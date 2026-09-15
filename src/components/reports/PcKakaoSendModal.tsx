@@ -27,7 +27,7 @@ export function PcKakaoSendModal({
   copySucceeded,
   onOpenPrint,
   pdfFileName: pdfFileNameProp,
-  title = "PC 카톡 발송 준비 완료",
+  title = "PC 카톡으로 보낼 준비가 됐어요",
 }: PcKakaoSendModalProps) {
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
   const pdfFileName =
@@ -49,9 +49,9 @@ export function PcKakaoSendModal({
   async function handleCopyAgain() {
     try {
       await navigator.clipboard.writeText(parentMessage);
-      setCopyMessage("학부모 발송용 문구가 다시 복사되었습니다.");
+      setCopyMessage("안내 문구를 다시 복사했어요.");
     } catch {
-      setCopyMessage("복사에 실패했습니다. 직접 선택해 복사해 주세요.");
+      setCopyMessage("복사하지 못했어요. 직접 골라서 복사해 주세요.");
     }
     window.setTimeout(() => setCopyMessage(null), 4000);
   }
@@ -63,10 +63,10 @@ export function PcKakaoSendModal({
       aria-modal="true"
       aria-labelledby="pc-kakao-modal-title"
     >
-      <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+      <div className="w-full max-w-lg rounded-lg border border-slate-200 bg-white p-6 shadow-xl">
         <h2
           id="pc-kakao-modal-title"
-          className="text-lg font-semibold text-slate-900"
+          className="text-lg font-bold text-slate-900"
         >
           {title}
         </h2>
@@ -74,11 +74,11 @@ export function PcKakaoSendModal({
         <ul className="mt-4 list-inside list-disc space-y-2 text-sm leading-relaxed text-slate-700">
           <li>
             {copySucceeded
-              ? "학부모 발송용 문구가 복사되었습니다."
-              : "문구 복사에 실패했습니다. 「문구 다시 복사」를 눌러 주세요."}
+              ? "안내 문구를 복사했어요."
+              : "문구를 복사하지 못했어요. 「문구 다시 복사」를 눌러 주세요."}
           </li>
           <li>
-            「PDF 저장 / 인쇄」 버튼을 눌러 리포트를 PDF로 저장해 주세요.
+            「PDF 저장」을 눌러 리포트를 PDF로 저장해 주세요.
           </li>
           <li>
             PC 카카오톡에서 학부모님 대화창을 열고{" "}
@@ -89,35 +89,34 @@ export function PcKakaoSendModal({
             <kbd className="rounded border border-slate-300 bg-slate-50 px-1 text-xs">
               V
             </kbd>
-            로 문구를 붙여넣으세요.
+            로 문구를 붙여 넣으세요.
           </li>
           <li>
-            저장한 PDF 파일을 대화창에 드래그하거나 첨부하면 됩니다.
+            저장한 PDF 파일을 대화창에 끌어 놓거나 첨부하면 돼요.
           </li>
         </ul>
 
-        <div className="mt-4 rounded-lg border border-[#1e3a5f]/15 bg-[#f4f7fb] px-4 py-3">
-          <p className="text-xs font-medium text-slate-500">권장 PDF 파일명</p>
-          <p className="mt-1 break-all font-mono text-sm font-semibold text-[#1e3a5f]">
+        <div className="mt-4 rounded-md bg-slate-50 px-4 py-3">
+          <p className="text-xs font-medium text-slate-500">PDF 파일 이름</p>
+          <p className="mt-1 break-all text-sm font-semibold text-slate-800">
             {pdfFileName}
           </p>
         </div>
 
         <p className="mt-4 text-xs leading-relaxed text-slate-500">
-          브라우저 보안 정책상 웹사이트에서 PC 카카오톡 대화창에 파일을 자동
-          첨부해 전송할 수는 없습니다. 문구 복사와 PDF 저장 후 PC 카카오톡에서
-          직접 전송해 주세요.
+          파일은 자동으로 첨부되지 않아요. 문구를 붙여 넣고 PDF를 첨부해 PC
+          카카오톡에서 직접 보내 주세요.
         </p>
 
         {copyMessage && (
-          <p className="mt-3 text-sm font-medium text-emerald-700" role="status">
+          <p className="mt-3 text-sm font-medium text-green-700" role="status">
             {copyMessage}
           </p>
         )}
 
         <div className="mt-6 flex flex-wrap gap-2">
           <Button type="button" onClick={() => onOpenPrint()}>
-            PDF 저장 / 인쇄
+            PDF 저장
           </Button>
           <Button
             type="button"
@@ -126,7 +125,7 @@ export function PcKakaoSendModal({
           >
             문구 다시 복사
           </Button>
-          <Button type="button" variant="ghost" onClick={onClose}>
+          <Button type="button" variant="ghost" onClick={onClose} className="ml-auto">
             닫기
           </Button>
         </div>

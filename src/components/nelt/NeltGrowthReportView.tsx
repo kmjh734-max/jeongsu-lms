@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Icon } from "@/components/layout/NavIcon";
 import { Button } from "@/components/ui/Button";
 import { NeltShareActions } from "@/components/nelt/NeltShareActions";
 import {
@@ -97,23 +98,23 @@ export function NeltGrowthReportView({
       });
       const json = await res.json();
       if (!res.ok || !json.ok || !json.narratives) {
-        throw new Error(json.message ?? "서술 생성 실패");
+        throw new Error(json.message ?? "리포트 문장을 쓰지 못했어요.");
       }
       setAiProgress(100);
       setAi(json.narratives as NeltAiNarratives);
       if (json.source === "ai") {
-        setAiStatus("AI 서술을 적용했습니다.");
+        setAiStatus("리포트 문장을 새로 썼어요.");
       } else if (json.source === "cache") {
-        setAiStatus("저장된 서술을 불러왔습니다.");
+        setAiStatus("저장된 문장을 불러왔어요.");
       } else {
         setAiStatus(
           json.message
-            ? `기본 문구를 사용합니다. (${json.message})`
-            : "기본 문구를 사용합니다."
+            ? `기본 문장을 보여 드려요. (${json.message})`
+            : "기본 문장을 보여 드려요."
         );
       }
     } catch (e) {
-      setAiStatus(e instanceof Error ? e.message : "서술 생성 오류");
+      setAiStatus(e instanceof Error ? e.message : "리포트 문장을 쓰지 못했어요.");
     } finally {
       setAiLoading(false);
       setAiProgress(0);
@@ -137,35 +138,41 @@ export function NeltGrowthReportView({
     if (analysis.aiNarratives) {
       setAi(analysis.aiNarratives);
     }
-    // 자동 AI 호출 금지 — 「AI로 서술 다시 작성」에서만 생성
+    // 자동 호출 금지 — 「문장 다시 쓰기」에서만 생성
   }, [analysis.aiNarratives, parentView]);
 
   return (
     <div id="nelt-print-root" className="nelt-proto space-y-4">
       {!parentView && (
-        <div className="print:hidden flex flex-wrap items-center gap-2">
+        <div className="print:hidden flex flex-wrap items-center justify-end gap-2">
+          {aiStatus && (
+            <span className="mr-auto text-xs text-slate-500">{aiStatus}</span>
+          )}
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={aiLoading}
+            onClick={() => void loadNarratives(true)}
+          >
+            <Icon
+              name="rotate"
+              size={14}
+              className={aiLoading ? "animate-spin" : ""}
+            />
+            {aiLoading
+              ? `리포트 문장을 쓰고 있어요… ${Math.max(1, Math.round(aiProgress))}%`
+              : "문장 다시 쓰기"}
+          </Button>
           <Button
             type="button"
             variant="secondary"
             size="sm"
             onClick={() => window.print()}
           >
-            PDF·인쇄
+            <Icon name="download" size={14} />
+            PDF 저장
           </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            disabled={aiLoading}
-            onClick={() => void loadNarratives(true)}
-          >
-            {aiLoading
-              ? `AI 서술 작성 중… ${Math.max(1, Math.round(aiProgress))}%`
-              : "AI 서술 재생성"}
-          </Button>
-          {aiStatus && (
-            <span className="text-xs text-slate-500">{aiStatus}</span>
-          )}
         </div>
       )}
 
@@ -206,7 +213,7 @@ export function NeltGrowthReportView({
           {aiLoading && (
             <div className="mb-5 rounded-xl border border-[#c9dbf5] bg-[#edf4ff] px-4 py-3.5 text-[#244a78]">
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-semibold">
-                <span>AI가 성장 서술을 작성하는 중입니다…</span>
+                <span>리포트 문장을 쓰고 있어요…</span>
                 <span className="tabular-nums text-xs font-bold opacity-80">
                   {Math.max(1, Math.round(aiProgress))}%
                 </span>
@@ -465,7 +472,7 @@ export function NeltGrowthReportView({
             <>
               <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
                 <span className="inline-block h-5 w-1.5 rounded-lg bg-[#f28c28]" />
-                학부모 카카오톡 안내문
+                학부모께 보내기
               </h3>
               <NeltShareActions
                 studentName={analysis.studentName}

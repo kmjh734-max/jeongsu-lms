@@ -1,124 +1,181 @@
-import {
-  homeworkSymbolChar,
-  homeworkSymbolTitle,
-} from "@/lib/learning-status/homework-symbol";
-import type { HomeworkDayCell } from "@/lib/learning-status/types";
+import { Icon } from "@/components/layout/NavIcon";
+import { homeworkSymbolTitle } from "@/lib/learning-status/homework-symbol";
+import type { HomeworkDayCell, HomeworkDaySymbol } from "@/lib/learning-status/types";
 
-const DAY_CELL = "w-8 min-w-[2rem]";
-
-function weekdayHeaderClass(weekday: number): string {
-  if (weekday === 0) return "text-red-600";
-  if (weekday === 6) return "text-blue-600";
-  return "text-slate-700";
-}
-
-function symbolClass(symbol: string): string {
-  if (symbol === "missing") return "font-bold text-red-600";
-  if (symbol === "complete") return "font-bold text-emerald-700";
-  if (symbol === "partial") return "font-bold text-amber-700";
-  return "text-slate-400";
-}
-
-/** 테이블 헤더용 — 날짜 1~31 (한 번만 표시) */
-export function MonthlyHomeworkDayHeaders({
-  days,
-  daysInMonth,
-}: {
-  days: HomeworkDayCell[];
-  daysInMonth: number;
-}) {
-  const dayMap = new Map(days.map((d) => [d.day, d]));
-
-  return (
-    <>
-      {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
-        const cell = dayMap.get(day);
-        const weekday = cell?.weekday ?? new Date(2024, 0, day).getDay();
-        return (
-          <th
-            key={day}
-            className={`${DAY_CELL} border-l border-slate-200 px-0 py-1.5 text-center text-[11px] font-semibold ${weekdayHeaderClass(weekday)} ${
-              cell?.isToday ? "bg-amber-100" : "bg-slate-50"
-            }`}
-          >
-            {day}
-          </th>
-        );
-      })}
-    </>
-  );
-}
-
-interface MonthlyHomeworkGridProps {
-  days: HomeworkDayCell[];
-  daysInMonth: number;
-}
-
-/** 학생 행용 — 기호만 (○ △ X) */
-export function MonthlyHomeworkSymbols({
-  days,
-  daysInMonth,
-}: MonthlyHomeworkGridProps) {
-  const dayMap = new Map(days.map((d) => [d.day, d]));
-
-  return (
-    <>
-      {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
-        const cell = dayMap.get(day);
-        const symbol = cell?.symbol ?? "none";
-        const char = homeworkSymbolChar(symbol);
-        return (
-          <td
-            key={day}
-            title={
-              cell
-                ? homeworkSymbolTitle(
-                    symbol,
-                    cell.completedCount,
-                    cell.totalCount
-                  )
-                : undefined
-            }
-            className={`${DAY_CELL} border-l border-slate-100 px-0 py-2 text-center text-base leading-none ${symbolClass(symbol)} ${
-              cell?.isToday ? "bg-amber-50" : ""
-            }`}
-          >
-            {char || ""}
-          </td>
-        );
-      })}
-    </>
-  );
-}
-
-/** 단독 미리보기용 (레거시) */
-export function MonthlyHomeworkGrid({
-  days,
-  daysInMonth,
-}: MonthlyHomeworkGridProps) {
-  return (
-    <table className="border-collapse text-sm">
-      <thead>
-        <tr>
-          <MonthlyHomeworkDayHeaders days={days} daysInMonth={daysInMonth} />
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <MonthlyHomeworkSymbols days={days} daysInMonth={daysInMonth} />
-        </tr>
-      </tbody>
-    </table>
-  );
+/** 한 칸 표시: 완료 초록 체크 · 일부 주황 테 · 안 함 빨간 X · 예정 회색 */
+export function HomeworkStatusDot({ symbol }: { symbol: HomeworkDaySymbol }) {
+  if (symbol === "complete") {
+    return (
+      <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-green-700 text-white">
+        <Icon name="check" size={11} strokeWidth={3} />
+      </span>
+    );
+  }
+  if (symbol === "partial") {
+    return (
+      <span className="block h-[18px] w-[18px] rounded-full border-[1.5px] border-amber-700 bg-amber-50" />
+    );
+  }
+  if (symbol === "missing") {
+    return (
+      <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-rose-50 text-rose-700">
+        <Icon name="x" size={10} strokeWidth={3} />
+      </span>
+    );
+  }
+  if (symbol === "scheduled") {
+    return <span className="block h-[18px] w-[18px] rounded-full bg-slate-100" />;
+  }
+  return <span className="block h-[18px] w-[18px]" />;
 }
 
 export function HomeworkStatusLegend() {
+  const items: Array<[string, string]> = [
+    ["bg-green-700", "완료"],
+    ["bg-amber-700", "일부"],
+    ["bg-rose-700", "안 함"],
+    ["bg-slate-300", "예정"],
+  ];
   return (
-    <p className="text-xs text-slate-600">
-      <span className="text-base font-bold text-emerald-700">○</span> 완료{" "}
-      <span className="text-base font-bold text-amber-700">△</span> 일부 완료{" "}
-      <span className="text-base font-bold text-red-600">X</span> 미완료{" "}
-      <span className="text-slate-500">(빈칸: 과제 없음 · 토=파랑 · 일=빨강)</span>
-    </p>
+    <div className="flex items-center gap-3.5 text-xs text-slate-500">
+      {items.map(([color, label]) => (
+        <span key={label} className="flex items-center gap-1.5">
+          <span className={`h-2 w-2 rounded-full ${color}`} />
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+export interface MonthlyHomeworkGridRow {
+  id: string;
+  name: string;
+  /** 이름 아래 작은 글씨 (예: 반) */
+  sub?: string;
+  days: HomeworkDayCell[];
+  /** 수행률 % — 없으면 — */
+  rate: number | null;
+}
+
+function rateTone(rate: number): string {
+  if (rate < 60) return "text-rose-700";
+  if (rate < 85) return "text-amber-700";
+  return "text-slate-900";
+}
+
+/** 학생 × 공부하는 날 표 (학생 이름 칸 고정) */
+export function MonthlyHomeworkGrid({
+  rows,
+  todayIso,
+  onNameClick,
+}: {
+  rows: MonthlyHomeworkGridRow[];
+  todayIso: string;
+  onNameClick?: (id: string) => void;
+}) {
+  // 누구에게든 과제가 있는 날만 열로 보인다
+  const studyDays = new Map<number, HomeworkDayCell>();
+  for (const row of rows) {
+    for (const cell of row.days) {
+      if (cell.isStudyDay && !studyDays.has(cell.day)) studyDays.set(cell.day, cell);
+    }
+  }
+  const columns = [...studyDays.values()].sort((a, b) => a.day - b.day);
+
+  if (columns.length === 0) {
+    return (
+      <p className="px-4 py-10 text-center text-sm text-slate-500">
+        이 달에는 배정된 듣기 과제가 없어요.
+      </p>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-max border-collapse text-sm">
+        <thead>
+          <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500">
+            <th className="sticky left-0 z-10 w-[120px] min-w-[120px] bg-slate-50 px-4 py-2.5 text-left font-semibold">
+              학생
+            </th>
+            {columns.map((c) => {
+              const today = c.taskDate === todayIso;
+              return (
+                <th
+                  key={c.day}
+                  scope="col"
+                  className={`min-w-[30px] px-0.5 py-2.5 text-center tabular-nums ${
+                    today ? "font-extrabold text-brand-700" : ""
+                  } ${c.weekday === 0 ? "text-rose-600" : ""}`}
+                  aria-label={today ? `${c.day}일 (오늘)` : `${c.day}일`}
+                >
+                  {c.day}
+                </th>
+              );
+            })}
+            <th className="w-[70px] min-w-[70px] px-4 py-2.5 text-right font-semibold">수행률</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => {
+            const byDay = new Map(row.days.map((d) => [d.day, d]));
+            return (
+              <tr key={row.id} className={i > 0 ? "border-t border-slate-100" : ""}>
+                <th
+                  scope="row"
+                  className="sticky left-0 z-10 bg-white px-4 py-2 text-left font-normal"
+                >
+                  {onNameClick ? (
+                    <button
+                      type="button"
+                      onClick={() => onNameClick(row.id)}
+                      className="block max-w-[104px] truncate text-left text-[13px] font-semibold text-slate-900 hover:text-brand-700 hover:underline"
+                    >
+                      {row.name}
+                    </button>
+                  ) : (
+                    <span className="block max-w-[104px] truncate text-[13px] font-semibold text-slate-900">
+                      {row.name}
+                    </span>
+                  )}
+                  {row.sub ? (
+                    <span className="block max-w-[104px] truncate text-[11px] text-slate-400">
+                      {row.sub}
+                    </span>
+                  ) : null}
+                </th>
+                {columns.map((c) => {
+                  const cell = byDay.get(c.day);
+                  const symbol = cell?.isStudyDay ? cell.symbol : "none";
+                  return (
+                    <td
+                      key={c.day}
+                      className="px-0.5 py-2"
+                      title={
+                        cell?.isStudyDay
+                          ? homeworkSymbolTitle(symbol, cell.completedCount, cell.totalCount)
+                          : undefined
+                      }
+                    >
+                      <span className="flex justify-center">
+                        <HomeworkStatusDot symbol={symbol} />
+                      </span>
+                    </td>
+                  );
+                })}
+                <td
+                  className={`px-4 py-2 text-right text-[13px] font-bold tabular-nums ${
+                    row.rate === null ? "text-slate-400" : rateTone(row.rate)
+                  }`}
+                >
+                  {row.rate === null ? "—" : `${row.rate}%`}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }

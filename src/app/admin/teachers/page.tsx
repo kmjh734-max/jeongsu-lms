@@ -1,52 +1,66 @@
 import { createClient } from "@/lib/supabase/server";
-import { TeacherManagement } from "@/components/admin/TeacherManagement";
-import type { TeacherCourseInfo } from "@/components/admin/AccountManagement";
-import type { Course, Profile } from "@/types/database";
+import { loadLastSignIns } from "@/lib/accounts/last-sign-in";
+import {
+  StaffAccountsBoard,
+  type StaffRow,
+} from "@/components/accounts/StaffAccountsBoard";
+import type { Profile } from "@/types/database";
 
 export default async function AdminTeachersPage() {
   const supabase = await createClient();
 
-  const [{ data: teachers }, { data: courses }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("role", "teacher")
-      .order("name"),
-    supabase
-      .from("courses")
-      .select("id, title, teacher_id")
-      .not("teacher_id", "is", null),
-  ]);
+  const [{ data: teachers }, { data: courses }, { data: classes }] =
+    await Promise.all([
+      supabase.from("profiles").select("*").eq("role", "teacher").order("name"),
+      supabase
+        .from("courses")
+        .select("id, teacher_id")
+        .not("teacher_id", "is", null),
+      supabase
+        .from("classes")
+        .select("id, name, teacher_id")
+        .eq("is_active", true)
+        .not("teacher_id", "is", null)
+        .order("name"),
+    ]);
 
   const teacherList = (teachers ?? []) as Profile[];
-  const courseInfoByUserId: Record<string, TeacherCourseInfo> = {};
+  const lastSignIns = await loadLastSignIns(teacherList.map((t) => t.id));
 
-  for (const course of (courses ?? []) as Pick<Course, "id" | "title" | "teacher_id">[]) {
-    if (!course.teacher_id) continue;
-    const existing = courseInfoByUserId[course.teacher_id] ?? {
-      count: 0,
-      titles: [],
-    };
-    existing.count += 1;
-    if (existing.titles.length < 3) {
-      existing.titles.push(course.title);
-    }
-    courseInfoByUserId[course.teacher_id] = existing;
+  const courseCount = new Map<string, number>();
+  for (const c of courses ?? []) {
+    const tid = c.teacher_id as string;
+    courseCount.set(tid, (courseCount.get(tid) ?? 0) + 1);
+  }
+  const classesByTeacher = new Map<string, { id: string; name: string }[]>();
+  for (const c of classes ?? []) {
+    const tid = c.teacher_id as string;
+    const list = classesByTeacher.get(tid) ?? [];
+    list.push({ id: c.id as string, name: c.name as string });
+    classesByTeacher.set(tid, list);
   }
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold">강사 관리</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          강사 계정을 등록·수정하고 비밀번호와 활성 상태를 관리합니다.
-        </p>
-      </div>
+  const rows: StaffRow[] = teacherList.map((t) => ({
+    id: t.id,
+    name: t.name,
+    username: t.username,
+    email: t.email,
+    is_active: t.is_active,
+    lastSignInAt: lastSignIns[t.id] ?? null,
+    classes: classesByTeacher.get(t.id) ?? [],
+    courseCount: courseCount.get(t.id) ?? 0,
+  }));
 
-      <TeacherManagement
-        teachers={teacherList}
-        courseInfoByUserId={courseInfoByUserId}
-      />
-    </div>
+  return (
+    <StaffAccountsBoard
+      title="강사 관리"
+      description="강사 계정과 담당 반을 관리합니다."
+      roleLabel="강사"
+      apiBasePath="/api/admin/teachers"
+      users={rows}
+      allowUsernameEdit={false}
+      classesHref="/admin/classes"
+      note="강사를 삭제하면 담당 반·강좌는 '담당 없음'이 되고, 학생 기록은 그대로 남아요."
+    />
   );
 }

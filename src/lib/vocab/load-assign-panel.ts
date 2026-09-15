@@ -1,366 +1,176 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
-  AssignableStudent,
-  ClassWithStudents,
-  FolderAssignmentRow,
-} from "@/components/vocab/VocabAssignmentPanel";
+  AssignPanelAssignment,
+  AssignPanelClass,
+  AssignPanelStudent,
+  VocabAssignPanelData,
+} from "@/lib/vocab/assign-panel-types";
+import { fetchByIdChunks } from "@/lib/vocab/fetch-all";
+import type { VocabRole } from "@/lib/vocab/module-types";
 
-export async function loadAssignableStudents(
+function toStudent(
+  s: { id: unknown; name: unknown; username: unknown },
+  info: { ids: string[]; names: string[] } | undefined
+): AssignPanelStudent {
+  return {
+    id: s.id as string,
+    name: (s.name as string) || (s.username as string) || "—",
+    username: (s.username as string | null) ?? null,
+    classIds: info?.ids ?? [],
+    classLabel: info?.names.length ? info.names.join(", ") : "반 없음",
+  };
+}
+
+/** 배정할 수 있는 학생 — 관리자는 학원 전체, 강사는 담당 반 학생과 직접 만든 학생 */
+async function loadAssignableStudents(
   supabase: SupabaseClient,
-  role: "admin" | "teacher",
-  userId: string
-): Promise<AssignableStudent[]> {
-  if (role === "admin") {
-    const [{ data: students }, { data: memberships }] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id, name, username")
-        .eq("role", "student")
-        .eq("is_active", true)
-        .order("name"),
+  role: VocabRole,
+  userId: string,
+  classRows: { id: string; name: string }[]
+): Promise<AssignPanelStudent[]> {
+  const classNameById = new Map(classRows.map((c) => [c.id, c.name]));
+  const classIds = classRows.map((c) => c.id);
+
+  const members = await fetchByIdChunks<{ student_id: string; class_id: string }>(
+    classIds,
+    (chunk, from, to) =>
       supabase
         .from("class_students")
-        .select("student_id, class_id, class:classes(name, is_active)"),
-    ]);
+        .select("student_id, class_id")
+        .in("class_id", chunk)
+        .range(from, to)
+  );
 
-    const classInfoByStudent = new Map<
-      string,
-      { ids: string[]; names: string[] }
-    >();
-
-    for (const row of memberships ?? []) {
-      const cls = Array.isArray(row.class) ? row.class[0] : row.class;
-      const classRow = cls as { name?: string; is_active?: boolean } | null;
-      if (!classRow?.name || classRow.is_active === false) continue;
-      const name = classRow.name;
-      const sid = row.student_id as string;
-      const entry = classInfoByStudent.get(sid) ?? { ids: [], names: [] };
-      if (!entry.ids.includes(row.class_id as string)) {
-        entry.ids.push(row.class_id as string);
-        entry.names.push(name);
-      }
-      classInfoByStudent.set(sid, entry);
+  const classInfoByStudent = new Map<string, { ids: string[]; names: string[] }>();
+  for (const row of members) {
+    const entry = classInfoByStudent.get(row.student_id) ?? { ids: [], names: [] };
+    if (!entry.ids.includes(row.class_id)) {
+      entry.ids.push(row.class_id);
+      entry.names.push(classNameById.get(row.class_id) ?? "—");
     }
-
-    return (students ?? []).map((s) => {
-      const info = classInfoByStudent.get(s.id as string);
-      return {
-        id: s.id as string,
-        name: (s.name as string) || (s.username as string) || "—",
-        username: (s.username as string | null) ?? null,
-        classIds: info?.ids ?? [],
-        classLabel: info?.names.length ? info.names.join(", ") : "반 없음",
-      };
-    });
+    classInfoByStudent.set(row.student_id, entry);
   }
 
-  const [{ data: teacherClasses }, { data: createdStudents }] =
-    await Promise.all([
-      supabase
-        .from("classes")
-        .select("id, name")
-        .eq("teacher_id", userId)
-        .eq("is_active", true),
+  if (role === "admin") {
+    const { data: students } = await supabase
+      .from("profiles")
+      .select("id, name, username")
+      .eq("role", "student")
+      .eq("is_active", true)
+      .order("name");
+    return (students ?? []).map((s) =>
+      toStudent(s, classInfoByStudent.get(s.id as string))
+    );
+  }
+
+  const { data: createdStudents } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("role", "student")
+    .eq("is_active", true)
+    .eq("created_by", userId);
+
+  const ids = new Set<string>(classInfoByStudent.keys());
+  for (const s of createdStudents ?? []) ids.add(s.id as string);
+  if (ids.size === 0) return [];
+
+  const profiles = await fetchByIdChunks<{ id: string; name: string; username: string | null }>(
+    [...ids],
+    (chunk, from, to) =>
       supabase
         .from("profiles")
         .select("id, name, username")
-        .eq("role", "student")
+        .in("id", chunk)
         .eq("is_active", true)
-        .eq("created_by", userId),
-    ]);
-
-  const classIds = (teacherClasses ?? []).map((c) => c.id as string);
-  const classNameById = new Map(
-    (teacherClasses ?? []).map((c) => [c.id as string, c.name as string])
+        .range(from, to)
   );
-
-  const studentIdSet = new Set<string>();
-  const classInfoByStudent = new Map<
-    string,
-    { ids: string[]; names: string[] }
-  >();
-
-  const { data: members } =
-    classIds.length > 0
-      ? await supabase
-          .from("class_students")
-          .select("student_id, class_id")
-          .in("class_id", classIds)
-      : { data: [] as { student_id: string; class_id: string }[] };
-
-  for (const row of members ?? []) {
-    const sid = row.student_id as string;
-    studentIdSet.add(sid);
-    const entry = classInfoByStudent.get(sid) ?? { ids: [], names: [] };
-    const cid = row.class_id as string;
-    if (!entry.ids.includes(cid)) {
-      entry.ids.push(cid);
-      entry.names.push(classNameById.get(cid) ?? "—");
-    }
-    classInfoByStudent.set(sid, entry);
-  }
-
-  for (const s of createdStudents ?? []) {
-    studentIdSet.add(s.id as string);
-  }
-
-  if (studentIdSet.size === 0) return [];
-
-  const ids = [...studentIdSet];
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, name, username")
-    .in("id", ids)
-    .order("name");
-
-  return (profiles ?? []).map((s) => {
-    const info = classInfoByStudent.get(s.id as string);
-    return {
-      id: s.id as string,
-      name: (s.name as string) || (s.username as string) || "—",
-      username: (s.username as string | null) ?? null,
-      classIds: info?.ids ?? [],
-      classLabel: info?.names.length ? info.names.join(", ") : "반 없음",
-    };
-  });
+  return profiles
+    .map((s) => toStudent(s, classInfoByStudent.get(s.id)))
+    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
 }
 
-function classesQuery(
+type AssignmentJoinRow = {
+  id: string;
+  set_id: string;
+  student_id: string | null;
+  class_id: string | null;
+  created_at: string;
+  student: { name: string | null } | { name: string | null }[] | null;
+  class: { name: string | null } | { name: string | null }[] | null;
+};
+
+function one<T>(v: T | T[] | null): T | null {
+  return Array.isArray(v) ? (v[0] ?? null) : v;
+}
+
+/** 배정 창 자료 — 고른 세트들의 지금 배정 + 고를 수 있는 반·학생 */
+export async function loadVocabAssignPanelData(
   supabase: SupabaseClient,
-  role: "admin" | "teacher",
-  userId: string
-) {
-  if (role === "admin") {
-    return supabase
-      .from("classes")
-      .select("id, name")
-      .eq("is_active", true)
-      .order("name");
+  role: VocabRole,
+  userId: string,
+  setIds: string[]
+): Promise<VocabAssignPanelData> {
+  const ids = [...new Set(setIds)].filter(Boolean);
+  if (ids.length === 0) {
+    return { sets: [], classes: [], students: [], assignments: [] };
   }
-  return supabase
+
+  let classesQuery = supabase
     .from("classes")
     .select("id, name")
-    .eq("teacher_id", userId)
     .eq("is_active", true)
     .order("name");
-}
+  if (role === "teacher") classesQuery = classesQuery.eq("teacher_id", userId);
 
-export async function loadFolderAssignPanelData(
-  supabase: SupabaseClient,
-  role: "admin" | "teacher",
-  userId: string,
-  folderId: string
-): Promise<{
-  classes: ClassWithStudents[];
-  allStudents: AssignableStudent[];
-  assignments: FolderAssignmentRow[];
-  setCount: number;
-  setTitles: string[];
-}> {
-  const [classesRes, setsRes, allStudents] = await Promise.all([
-    classesQuery(supabase, role, userId),
-    supabase
-      .from("vocab_sets")
-      .select("id, title")
-      .eq("folder_id", folderId)
-      .order("order_index", { ascending: true })
-      .order("created_at", { ascending: true }),
-    loadAssignableStudents(supabase, role, userId),
+  const [setRows, classesRes, assignmentRows] = await Promise.all([
+    fetchByIdChunks<{ id: string; title: string }>(ids, (chunk, from, to) =>
+      supabase.from("vocab_sets").select("id, title").in("id", chunk).range(from, to)
+    ),
+    classesQuery,
+    fetchByIdChunks<AssignmentJoinRow>(ids, (chunk, from, to) =>
+      supabase
+        .from("vocab_assignments")
+        .select(
+          "id, set_id, student_id, class_id, created_at, student:profiles!vocab_assignments_student_id_fkey(name), class:classes(name)"
+        )
+        .in("set_id", chunk)
+        .order("created_at", { ascending: false })
+        .range(from, to)
+    ),
   ]);
 
-  return finishFolderAssignPanel(
-    supabase,
-    (classesRes.data ?? []) as { id: string; name: string }[],
-    (setsRes.data ?? []) as { id: string; title: string }[],
-    allStudents
-  );
-}
+  const classRows = (classesRes.data ?? []) as { id: string; name: string }[];
+  const students = await loadAssignableStudents(supabase, role, userId, classRows);
 
-export async function loadUnfiledAssignPanelData(
-  supabase: SupabaseClient,
-  role: "admin" | "teacher",
-  userId: string
-): Promise<{
-  classes: ClassWithStudents[];
-  allStudents: AssignableStudent[];
-  assignments: FolderAssignmentRow[];
-  setCount: number;
-  setTitles: string[];
-}> {
-  const [classesRes, setsRes, allStudents] = await Promise.all([
-    classesQuery(supabase, role, userId),
-    supabase
-      .from("vocab_sets")
-      .select("id, title")
-      .is("folder_id", null)
-      .order("order_index", { ascending: true })
-      .order("created_at", { ascending: true }),
-    loadAssignableStudents(supabase, role, userId),
-  ]);
-
-  return finishFolderAssignPanel(
-    supabase,
-    (classesRes.data ?? []) as { id: string; name: string }[],
-    (setsRes.data ?? []) as { id: string; title: string }[],
-    allStudents
-  );
-}
-
-async function finishFolderAssignPanel(
-  supabase: SupabaseClient,
-  classRows: { id: string; name: string }[],
-  setRows: { id: string; title: string }[],
-  allStudents: AssignableStudent[]
-): Promise<{
-  classes: ClassWithStudents[];
-  allStudents: AssignableStudent[];
-  assignments: FolderAssignmentRow[];
-  setCount: number;
-  setTitles: string[];
-}> {
-  const setList = setRows;
-  const setIds = setList.map((s) => s.id);
-  const setTitles = setList.map((s) => s.title);
-
-  const classList = classRows as { id: string; name: string }[];
-  const classIds = classList.map((c) => c.id);
-
-  const studentsByClass = new Map<string, { id: string; name: string }[]>();
-  for (const student of allStudents) {
-    for (const cid of student.classIds) {
-      if (!classIds.includes(cid)) continue;
-      const list = studentsByClass.get(cid) ?? [];
-      list.push({ id: student.id, name: student.name });
-      studentsByClass.set(cid, list);
+  const studentIdsByClass = new Map<string, string[]>();
+  for (const s of students) {
+    for (const cid of s.classIds) {
+      const list = studentIdsByClass.get(cid) ?? [];
+      list.push(s.id);
+      studentIdsByClass.set(cid, list);
     }
   }
 
-  const assignmentsRes =
-    setIds.length > 0
-      ? await supabase
-          .from("vocab_assignments")
-          .select(
-            "id, set_id, student_id, class_id, set:vocab_sets(title), student:profiles!vocab_assignments_student_id_fkey(name), class:classes(name)"
-          )
-          .in("set_id", setIds)
-          .not("student_id", "is", null)
-          .order("created_at", { ascending: false })
-      : { data: [] };
-
-  const classes: ClassWithStudents[] = classList.map((c) => ({
+  const classes: AssignPanelClass[] = classRows.map((c) => ({
     id: c.id,
     name: c.name,
-    students: studentsByClass.get(c.id) ?? [],
+    studentIds: studentIdsByClass.get(c.id) ?? [],
   }));
 
-  const assignments: FolderAssignmentRow[] = (assignmentsRes.data ?? []).map(
-    (row) => {
-      const set = Array.isArray(row.set) ? row.set[0] : row.set;
-      const student = Array.isArray(row.student) ? row.student[0] : row.student;
-      const cls = Array.isArray(row.class) ? row.class[0] : row.class;
-      return {
-        id: row.id as string,
-        set_id: row.set_id as string,
-        student_id: row.student_id as string,
-        class_id: row.class_id as string | null,
-        set_title: (set as { title?: string } | null)?.title ?? "—",
-        student_name: (student as { name?: string } | null)?.name ?? "—",
-        class_name: (cls as { name?: string } | null)?.name ?? "—",
-      };
-    }
+  const order = new Map(ids.map((id, i) => [id, i]));
+  const sets = setRows.sort(
+    (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)
   );
 
-  return {
-    classes,
-    allStudents,
-    assignments,
-    setCount: setList.length,
-    setTitles,
-  };
-}
-
-export async function loadSetAssignPanelData(
-  supabase: SupabaseClient,
-  role: "admin" | "teacher",
-  userId: string,
-  setId: string
-): Promise<{
-  classes: ClassWithStudents[];
-  allStudents: AssignableStudent[];
-  assignments: FolderAssignmentRow[];
-  setCount: number;
-  setTitles: string[];
-}> {
-  const { data: set } = await supabase
-    .from("vocab_sets")
-    .select("id, title")
-    .eq("id", setId)
-    .single();
-
-  if (!set) {
-    return {
-      classes: [],
-      allStudents: [],
-      assignments: [],
-      setCount: 0,
-      setTitles: [],
-    };
-  }
-
-  const [classesRes, allStudents, assignmentsRes] = await Promise.all([
-    classesQuery(supabase, role, userId),
-    loadAssignableStudents(supabase, role, userId),
-    supabase
-      .from("vocab_assignments")
-      .select(
-        "id, set_id, student_id, class_id, set:vocab_sets(title), student:profiles!vocab_assignments_student_id_fkey(name), class:classes(name)"
-      )
-      .eq("set_id", setId)
-      .not("student_id", "is", null)
-      .order("created_at", { ascending: false }),
-  ]);
-
-  const classList = (classesRes.data ?? []) as { id: string; name: string }[];
-  const classIds = classList.map((c) => c.id);
-
-  const studentsByClass = new Map<string, { id: string; name: string }[]>();
-  for (const student of allStudents) {
-    for (const cid of student.classIds) {
-      if (!classIds.includes(cid)) continue;
-      const list = studentsByClass.get(cid) ?? [];
-      list.push({ id: student.id, name: student.name });
-      studentsByClass.set(cid, list);
-    }
-  }
-
-  const classes: ClassWithStudents[] = classList.map((c) => ({
-    id: c.id,
-    name: c.name,
-    students: studentsByClass.get(c.id) ?? [],
+  const assignments: AssignPanelAssignment[] = assignmentRows.map((row) => ({
+    id: row.id,
+    set_id: row.set_id,
+    student_id: row.student_id,
+    class_id: row.class_id,
+    created_at: row.created_at,
+    student_name: one(row.student)?.name ?? "—",
+    class_name: one(row.class)?.name ?? null,
   }));
 
-  const assignments: FolderAssignmentRow[] = (assignmentsRes.data ?? []).map(
-    (row) => {
-      const setRow = Array.isArray(row.set) ? row.set[0] : row.set;
-      const student = Array.isArray(row.student) ? row.student[0] : row.student;
-      const cls = Array.isArray(row.class) ? row.class[0] : row.class;
-      return {
-        id: row.id as string,
-        set_id: row.set_id as string,
-        student_id: row.student_id as string,
-        class_id: row.class_id as string | null,
-        set_title: (setRow as { title?: string } | null)?.title ?? "—",
-        student_name: (student as { name?: string } | null)?.name ?? "—",
-        class_name: (cls as { name?: string } | null)?.name ?? "—",
-      };
-    }
-  );
-
-  return {
-    classes,
-    allStudents,
-    assignments,
-    setCount: 1,
-    setTitles: [set.title as string],
-  };
+  return { sets, classes, students, assignments };
 }

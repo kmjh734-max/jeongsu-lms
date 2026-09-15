@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Icon } from "@/components/layout/NavIcon";
 import { Alert } from "@/components/ui/Alert";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ReportMenu, ReportMenuItem } from "@/components/reports/report-ui";
 import { NeltGrowthReportView } from "@/components/nelt/NeltGrowthReportView";
 import { buildNeltGrowthAnalysis, DOMAIN_LABEL } from "@/lib/nelt/compare/build-growth";
 import type {
@@ -46,7 +47,8 @@ export function NeltStudentPageContent({
 
   async function deleteAll() {
     const ok = window.confirm(
-      `"${studentName}" 학생의 NELT 회차와 성장 리포트를 모두 삭제할까요?`
+      `"${studentName}" 학생의 NELT 회차와 성장 리포트를 모두 삭제할까요?
+삭제하면 되돌릴 수 없어요.`
     );
     if (!ok) return;
     setDeleting(true);
@@ -59,83 +61,75 @@ export function NeltStudentPageContent({
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {
-        throw new Error(json.message ?? "삭제 실패");
+        throw new Error(json.message ?? "삭제하지 못했어요.");
       }
       router.push(base);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "삭제 오류");
+      setError(e instanceof Error ? e.message : "삭제하지 못했어요.");
       setDeleting(false);
     }
   }
 
+  const importHref = `${base}?import=1&name=${encodeURIComponent(studentName)}`;
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={`${studentName} NELT 영어 성장 리포트`}
-        description={
-          analysis
-            ? `${analysis.attemptCount}회차 결과를 비교한 성장 리포트입니다.`
-            : "회차별 NELT 결과를 등록하면 성장 리포트를 볼 수 있습니다."
-        }
-        action={
-          <div className="flex flex-wrap gap-2">
-            <ButtonLink href={base} variant="secondary" size="sm">
-              목록
-            </ButtonLink>
-            <ButtonLink
-              href={`${base}/import?name=${encodeURIComponent(studentName)}`}
-              variant="secondary"
-              size="sm"
-            >
-              회차 추가
-            </ButtonLink>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={deleting}
-              onClick={() => void deleteAll()}
-              className="!border-red-200 !text-red-700 hover:!bg-red-50"
-            >
-              {deleting ? "삭제 중…" : "전체 삭제"}
-            </Button>
-          </div>
-        }
-      />
+    <div className="space-y-4">
+      <div className="no-print">
+        <ButtonLink href={base} variant="ghost" size="sm" className="-ml-2 mb-2">
+          <Icon name="left" size={15} />
+          목록
+        </ButtonLink>
+        <PageHeader
+          title={`${studentName} 성장 리포트`}
+          description={
+            analysis
+              ? `NELT ${analysis.attemptCount}회차 결과를 비교했어요.`
+              : "회차별 NELT 결과를 넣으면 성장 리포트를 볼 수 있어요."
+          }
+          action={
+            <div className="flex items-center gap-2">
+              <ButtonLink href={importHref} variant="secondary">
+                <Icon name="plus" size={15} />
+                회차 추가
+              </ButtonLink>
+              <ReportMenu label={`${studentName} 메뉴`} disabled={deleting}>
+                <ReportMenuItem icon="trash" danger onClick={() => void deleteAll()}>
+                  {deleting ? "삭제 중…" : "전체 삭제"}
+                </ReportMenuItem>
+              </ReportMenu>
+            </div>
+          }
+        />
+      </div>
 
       {error && <Alert variant="error">{error}</Alert>}
 
       {attempts.length === 0 ? (
-        <Alert variant="info">
-          등록된 회차가 없습니다.{" "}
-          <Link
-            href={`${base}/import?name=${encodeURIComponent(studentName)}`}
-            className="underline"
-          >
-            결과 링크를 등록
-          </Link>
-          해 주세요.
-        </Alert>
+        <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+          <p className="text-sm text-slate-500">아직 넣은 회차가 없어요.</p>
+          <ButtonLink href={importHref} className="mt-4">
+            <Icon name="plus" size={15} />
+            결과 넣기
+          </ButtonLink>
+        </div>
       ) : attempts.length === 1 ? (
         <>
-          <Alert variant="info">
-            1회차만 등록되어 있습니다. 2회차 이상 링크를 추가하면 성장 비교
-            리포트가 열립니다.
-          </Alert>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <p className="text-sm text-amber-800">
+              1회차만 있어요. 2회차 결과를 넣으면 성장 리포트가 열려요.
+            </p>
+            <ButtonLink href={importHref} size="sm">
+              <Icon name="plus" size={14} />
+              2차 결과 넣기
+            </ButtonLink>
+          </div>
           <SingleAttemptDetail attempt={attempts[0]} />
-          <ButtonLink
-            href={`${base}/import?name=${encodeURIComponent(studentName)}`}
-            variant="primary"
-            size="sm"
-          >
-            2차 링크 등록하기
-          </ButtonLink>
         </>
       ) : analysis ? (
         <NeltGrowthReportView role={role} analysis={analysis} />
       ) : (
-        <Alert variant="error">성장 비교를 만들지 못했습니다.</Alert>
+        <Alert variant="error">성장 비교를 만들지 못했어요.</Alert>
       )}
     </div>
   );
@@ -143,53 +137,61 @@ export function NeltStudentPageContent({
 
 function SingleAttemptDetail({ attempt }: { attempt: NeltAttemptBundle }) {
   return (
-    <Card className="space-y-4 p-5">
-      <div>
-        <p className="text-lg font-bold text-slate-900">
-          1차 · {attempt.testDate ?? "날짜 미상"}
-        </p>
-        <p className="mt-1 text-sm text-slate-600">
-          {attempt.overallLevel ?? "—"}
-          {attempt.overallBand ? ` · ${attempt.overallBand}` : ""}
-          {attempt.overallPercentile != null
-            ? ` · 상위 ${attempt.overallPercentile}%`
-            : ""}
-        </p>
+    <Card className="p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-base font-bold text-slate-900">
+            1차 · {attempt.testDate ?? "날짜 없음"}
+          </p>
+          <p className="mt-0.5 text-sm text-slate-500">
+            {[
+              attempt.overallLevel,
+              attempt.overallBand,
+              attempt.overallPercentile != null ? `동학년 상위 ${attempt.overallPercentile}%` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ") || "—"}
+          </p>
+        </div>
+        {attempt.sourceUrl && (
+          <a
+            href={attempt.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs font-semibold text-brand-700 hover:underline"
+          >
+            원본 결과 열기
+          </a>
+        )}
       </div>
-      <div className="ui-table-wrap">
-        <table className="ui-table text-sm">
-          <thead>
+      <div className="mt-4 overflow-x-auto rounded-md border border-slate-200">
+        <table className="w-full min-w-[480px] text-left text-sm">
+          <thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500">
             <tr>
-              <th>영역</th>
-              <th>난이도</th>
-              <th>점수</th>
-              <th>학년 수준</th>
-              <th>상위%</th>
+              <th className="px-4 py-2 font-semibold">영역</th>
+              <th className="px-4 py-2 font-semibold">난이도</th>
+              <th className="px-4 py-2 text-right font-semibold">점수</th>
+              <th className="px-4 py-2 font-semibold">학년 수준</th>
+              <th className="px-4 py-2 text-right font-semibold">상위 %</th>
             </tr>
           </thead>
           <tbody>
             {attempt.domains.map((d) => (
-              <tr key={d.domain}>
-                <td>{DOMAIN_LABEL[d.domain]}</td>
-                <td>{d.difficultyCode ?? "—"}</td>
-                <td>{d.rawScore ?? "—"}</td>
-                <td>{d.evaluatedLevel ?? "—"}</td>
-                <td>{d.percentile ?? "—"}</td>
+              <tr key={d.domain} className="border-b border-slate-100 last:border-0">
+                <td className="px-4 py-2.5 font-medium text-slate-900">{DOMAIN_LABEL[d.domain]}</td>
+                <td className="px-4 py-2.5 text-slate-600">{d.difficultyCode ?? "—"}</td>
+                <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
+                  {d.rawScore ?? "—"}
+                </td>
+                <td className="px-4 py-2.5 text-slate-600">{d.evaluatedLevel ?? "—"}</td>
+                <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
+                  {d.percentile ?? "—"}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {attempt.sourceUrl && (
-        <a
-          href={attempt.sourceUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs text-brand-600 hover:underline"
-        >
-          원본 링크 열기
-        </a>
-      )}
     </Card>
   );
 }

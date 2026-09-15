@@ -204,6 +204,96 @@ const PATHS: Record<string, ReactNode> = {
       <path d="M18 18h2v2h-2z" />
     </>
   ),
+  plus: (
+    <>
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </>
+  ),
+  down: <path d="m6 9 6 6 6-6" />,
+  search: (
+    <>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m20 20-4.2-4.2" />
+    </>
+  ),
+  grip: (
+    <>
+      <circle cx="9" cy="7" r="1" />
+      <circle cx="15" cy="7" r="1" />
+      <circle cx="9" cy="12" r="1" />
+      <circle cx="15" cy="12" r="1" />
+      <circle cx="9" cy="17" r="1" />
+      <circle cx="15" cy="17" r="1" />
+    </>
+  ),
+  more: (
+    <>
+      <circle cx="5" cy="12" r="1" />
+      <circle cx="12" cy="12" r="1" />
+      <circle cx="19" cy="12" r="1" />
+    </>
+  ),
+  print: (
+    <>
+      <path d="M7 9V3h10v6" />
+      <rect x="3" y="9" width="18" height="8" rx="2" />
+      <path d="M7 14h10v7H7z" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect x="8" y="8" width="12" height="12" rx="2" />
+      <path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" />
+    </>
+  ),
+  move: (
+    <>
+      <path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" />
+      <path d="M10 13.5h6" />
+      <path d="m13.5 11 2.5 2.5-2.5 2.5" />
+    </>
+  ),
+  trash: (
+    <>
+      <path d="M4 7h16" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+      <path d="M6 7l1 13h10l1-13" />
+      <path d="M9 7V4h6v3" />
+    </>
+  ),
+  upload: (
+    <>
+      <path d="M12 20V9" />
+      <path d="m7 13 5-5 5 5" />
+      <path d="M5 4h14" />
+    </>
+  ),
+  sparkle: (
+    <>
+      <path d="M12 3v5" />
+      <path d="M12 16v5" />
+      <path d="M3 12h5" />
+      <path d="M16 12h5" />
+      <path d="m6 6 2.5 2.5" />
+      <path d="m15.5 15.5 2.5 2.5" />
+      <path d="m18 6-2.5 2.5" />
+      <path d="M8.5 15.5 6 18" />
+    </>
+  ),
+  send: (
+    <>
+      <path d="M21 3 10 14" />
+      <path d="M21 3l-7 18-4-7-7-4z" />
+    </>
+  ),
+  edit: (
+    <>
+      <path d="M4 20h4L19 9l-4-4L4 16z" />
+      <path d="m13.5 6.5 4 4" />
+    </>
+  ),
   chevron: <path d="m9 6 6 6-6 6" />,
   logout: (
     <>

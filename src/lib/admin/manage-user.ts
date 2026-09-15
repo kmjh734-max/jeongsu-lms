@@ -409,7 +409,7 @@ export async function updateManagedAccount(
   if (fetchError || !current) {
     return {
       ok: false,
-      message: `${label}을(를) 찾을 수 없습니다.`,
+      message: `${label} 계정을 찾을 수 없습니다.`,
       status: 404,
     };
   }
@@ -583,7 +583,7 @@ export async function resetManagedAccountPassword(
   if (!account) {
     return {
       ok: false,
-      message: `${label}을(를) 찾을 수 없습니다.`,
+      message: `${label} 계정을 찾을 수 없습니다.`,
       status: 404,
     };
   }
@@ -648,7 +648,7 @@ export async function deleteManagedAccount(
   if (accountError || !account) {
     return {
       ok: false,
-      message: `${label}을(를) 찾을 수 없습니다.`,
+      message: `${label} 계정을 찾을 수 없습니다.`,
       status: 404,
     };
   }

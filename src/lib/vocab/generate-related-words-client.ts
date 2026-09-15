@@ -46,7 +46,7 @@ export async function fetchGeneratedRelatedWords(
     if (!data.ok || !data.items) {
       return {
         ok: false,
-        message: data.message ?? "AI 생성에 실패했습니다.",
+        message: data.message ?? "동의어·반의어를 찾지 못했어요. 다시 해 주세요.",
       };
     }
 
@@ -56,6 +56,6 @@ export async function fetchGeneratedRelatedWords(
       kind: data.kind ?? kind,
     };
   } catch {
-    return { ok: false, message: "AI 생성에 실패했습니다." };
+    return { ok: false, message: "동의어·반의어를 찾지 못했어요. 다시 해 주세요." };
   }
 }

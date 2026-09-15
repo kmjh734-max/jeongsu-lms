@@ -1,43 +1,24 @@
 import type { ReactNode } from "react";
-import { createClient } from "@/lib/supabase/server";
-import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { VocabCombinedSidebar } from "@/components/vocab/VocabCombinedSidebar";
-import { VocabSidebarProvider } from "@/components/vocab/VocabSidebarContext";
-import { loadVocabSidebarData } from "@/lib/vocab/load-sidebar";
+import { VocabModuleHeader } from "@/components/vocab/VocabModuleHeader";
+import { loadVocabModuleData } from "@/lib/vocab/load-module-data";
+import type { VocabRole } from "@/lib/vocab/module-types";
 
-export async function renderVocabShell(
-  role: "admin" | "teacher",
-  mode: "status" | "assign" | "sets",
-  classesHref: string,
-  children: ReactNode,
-  actions?: {
-    createVocabFolder: (name: string) => Promise<{ ok: boolean; message: string }>;
-    deleteVocabFolder: (
-      folderId: string
-    ) => Promise<{ ok: boolean; message: string }>;
-  }
-) {
-  const profile = await getCurrentProfile();
-  const supabase = await createClient();
-  // status도 동일 셸에서 사이드바 유지 (탭 전환 시 재로드 방지)
-  const sidebarData = await loadVocabSidebarData(supabase, role, profile!.id);
+/** 단어학습 화면 공통 틀 — 제목·탭(세트 상세에서는 숨김) 아래에 각 화면을 둔다. */
+export async function renderVocabShell(role: VocabRole, children: ReactNode) {
+  const data = await loadVocabModuleData(role);
+  const myFolders = data.folders
+    .filter((f) => !f.isCurriculum)
+    .map((f) => ({ id: f.id, name: f.name }));
 
   return (
-    <VocabSidebarProvider value={sidebarData}>
-      <div className="-mx-4 flex min-h-[calc(100vh-7rem)] flex-col bg-slate-100/80 sm:mx-0 sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-sm">
-        <div className="flex flex-1 flex-col lg:flex-row">
-          <VocabCombinedSidebar
-            role={role}
-            classesHref={classesHref}
-            mode={mode}
-            onCreateFolder={actions?.createVocabFolder}
-            onDeleteFolder={actions?.deleteVocabFolder}
-          />
-          <main className="flex min-w-0 flex-1 flex-col bg-slate-50/50 p-4 sm:p-6 lg:p-8">
-            {children}
-          </main>
-        </div>
-      </div>
-    </VocabSidebarProvider>
+    <div className="pb-24">
+      <VocabModuleHeader
+        role={role}
+        setCount={data.mySetCount}
+        folders={myFolders}
+        teachers={data.teachers}
+      />
+      {children}
+    </div>
   );
 }

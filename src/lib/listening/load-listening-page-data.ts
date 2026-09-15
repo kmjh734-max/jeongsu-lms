@@ -3,8 +3,6 @@ import {
   listListeningSetFolders,
   type ListeningSetFolderRow,
 } from "@/lib/listening/folder-access";
-import { loadListeningAssignmentSummaries } from "@/lib/listening/load-assignment-summaries";
-import { listReportClasses } from "@/lib/reports/list-students";
 import type { UserRole } from "@/types/database";
 
 export interface ListeningSetListItem {
@@ -16,66 +14,60 @@ export interface ListeningSetListItem {
   order_index: number;
   is_locked?: boolean;
   description?: string | null;
+  grade_level?: string | null;
+  dictation_enabled?: boolean | null;
+  dictation_pass_score?: number | null;
 }
 
 export type ListeningSetFolderItem = ListeningSetFolderRow;
+
+const BASE_COLUMNS =
+  "id, title, is_published, created_at, folder_id, order_index, description, grade_level, dictation_enabled, dictation_pass_score";
 
 export async function loadListeningPageData(
   supabase: SupabaseClient,
   role: UserRole,
   viewerId: string
 ) {
-  let setsQuery = supabase
-    .from("listening_sets")
-    .select(
-      "id, title, is_published, created_at, folder_id, order_index, description"
-    )
-    .order("order_index", { ascending: true })
-    .order("created_at", { ascending: false })
-    .limit(200);
+  const buildSetsQuery = (columns: string) => {
+    let query = supabase
+      .from("listening_sets")
+      .select(columns)
+      .order("order_index", { ascending: true })
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (role === "teacher") {
+      // 본인 세트 + 커리큘럼 잠금 세트(description 마커; is_locked 컬럼 있으면 RLS로도 허용)
+      query = query.or(
+        `teacher_id.eq.${viewerId},description.ilike.%curriculum_locked%`
+      );
+    }
+    return query;
+  };
 
-  let classesQuery = supabase
-    .from("classes")
-    .select("id, name")
-    .eq("is_active", true)
-    .order("name");
+  const loadSets = async (): Promise<ListeningSetListItem[]> => {
+    const withLock = await buildSetsQuery(`${BASE_COLUMNS}, is_locked`);
+    if (!withLock.error) {
+      return (withLock.data ?? []) as unknown as ListeningSetListItem[];
+    }
+    // is_locked 컬럼이 없는 환경
+    const fallback = await buildSetsQuery(BASE_COLUMNS);
+    return (fallback.data ?? []) as unknown as ListeningSetListItem[];
+  };
 
-  if (role === "teacher") {
-    // 본인 세트 + 커리큘럼 잠금 세트(description 마커; is_locked 컬럼 있으면 RLS로도 허용)
-    setsQuery = setsQuery.or(
-      `teacher_id.eq.${viewerId},description.ilike.%curriculum_locked%`
-    );
-    classesQuery = classesQuery.eq("teacher_id", viewerId);
-  }
+  const [folders, sets] = await Promise.all([
+    listListeningSetFolders(supabase, role, viewerId).catch(
+      () => [] as ListeningSetFolderRow[]
+    ),
+    loadSets(),
+  ]);
 
-  const [foldersResult, { data: sets }, { data: classes }, statusClasses] =
-    await Promise.all([
-      listListeningSetFolders(supabase, role, viewerId).catch(
-        () => [] as ListeningSetFolderRow[]
-      ),
-      setsQuery,
-      classesQuery,
-      listReportClasses(supabase, role, viewerId),
-    ]);
-
-  const folders = foldersResult;
-
-  const setList = ((sets ?? []) as ListeningSetListItem[]).map((s) => ({
+  const setList = sets.map((s) => ({
     ...s,
     is_locked:
       s.is_locked === true ||
       (s.description ?? "").includes("curriculum_locked"),
   }));
-  const assignmentBySetId = await loadListeningAssignmentSummaries(
-    supabase,
-    setList.map((s) => s.id)
-  );
 
-  return {
-    sets: setList,
-    folders,
-    classes: classes ?? [],
-    assignmentBySetId,
-    statusClasses,
-  };
+  return { sets: setList, folders };
 }

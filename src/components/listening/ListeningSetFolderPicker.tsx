@@ -30,7 +30,7 @@ export function ListeningSetFolderPicker({
   folders = [],
   selectedIds,
   onChange,
-  emptyLabel = "선택할 수 있는 세트가 없습니다.",
+  emptyLabel = "고를 수 있는 세트가 없어요.",
 }: ListeningSetFolderPickerProps) {
   const selected = new Set(selectedIds);
   const folderNames = new Map(folders.map((f) => [f.id, f.name]));
@@ -89,9 +89,10 @@ export function ListeningSetFolderPicker({
         return (
           <div key={g.key}>
             {showFolderHeaders && (
-              <label className="flex cursor-pointer items-center gap-2 rounded bg-slate-50 px-2 py-1.5">
+              <label className="flex cursor-pointer items-center gap-2 rounded-md bg-slate-50 px-2 py-1.5">
                 <input
                   type="checkbox"
+                  className="h-4 w-4 accent-brand-600"
                   checked={allSelected}
                   ref={(el) => {
                     if (el) el.indeterminate = someSelected;
@@ -101,7 +102,7 @@ export function ListeningSetFolderPicker({
                 <span className="text-sm font-semibold text-slate-800">
                   {g.name}
                 </span>
-                <span className="ml-auto text-xs text-slate-400">
+                <span className="ml-auto text-xs tabular-nums text-slate-400">
                   {selCount}/{g.sets.length}
                 </span>
               </label>
@@ -109,9 +110,10 @@ export function ListeningSetFolderPicker({
             <ul className={showFolderHeaders ? "ml-5 mt-1 space-y-0.5" : "space-y-0.5"}>
               {g.sets.map((s) => (
                 <li key={s.id}>
-                  <label className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50">
+                  <label className="flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 hover:bg-slate-50">
                     <input
                       type="checkbox"
+                      className="h-4 w-4 accent-brand-600"
                       checked={selected.has(s.id)}
                       onChange={() => toggleSet(s.id)}
                     />

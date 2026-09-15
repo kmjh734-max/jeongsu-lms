@@ -1,19 +1,26 @@
 import { createClient } from "@/lib/supabase/server";
-import { EnrollmentProgressDetailTable } from "@/components/progress/EnrollmentProgressDetailTable";
+import { ProgressOverview } from "@/components/progress/ProgressOverview";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { loadProgressPageRows } from "@/lib/progress/load-progress-page";
+import { weekStartInstant } from "@/lib/classes/week";
+import { getTodayIsoKorea } from "@/lib/date/korea-today";
+import { loadProgressPageData } from "@/lib/progress/load-progress-page";
 
 export default async function AdminProgressPage() {
   const supabase = await createClient();
-  const rows = await loadProgressPageRows(supabase);
+  const data = await loadProgressPageData(supabase);
+  const todayIso = getTodayIsoKorea();
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="수강 현황"
-        description="최근 수강 배정 400건 기준으로 진도를 표시합니다. 학생 이름으로 검색할 수 있습니다."
+    <div>
+      <PageHeader title="수강 현황" description="동영상 강좌를 누가 어디까지 봤는지 봅니다." />
+      <ProgressOverview
+        rows={data.rows}
+        classes={data.classes}
+        todayIso={todayIso}
+        weekStart={weekStartInstant(todayIso)}
+        truncated={data.truncated}
+        limit={data.limit}
       />
-      <EnrollmentProgressDetailTable rows={rows} />
     </div>
   );
 }

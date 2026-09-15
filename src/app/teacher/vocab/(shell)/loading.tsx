@@ -1,9 +1,11 @@
 export default function VocabShellLoading() {
   return (
-    <div className="animate-pulse space-y-4">
-      <div className="h-8 w-48 rounded-lg bg-slate-200" />
-      <div className="h-4 w-72 rounded bg-slate-100" />
-      <div className="mt-6 h-64 rounded-xl bg-slate-100" />
+    <div className="flex animate-pulse gap-4" aria-label="불러오는 중">
+      <div className="hidden h-72 w-[216px] shrink-0 rounded-lg bg-slate-200/60 lg:block" />
+      <div className="flex-1 space-y-3">
+        <div className="h-9 w-full rounded-md bg-slate-200/60" />
+        <div className="h-64 w-full rounded-lg bg-slate-200/60" />
+      </div>
     </div>
   );
 }

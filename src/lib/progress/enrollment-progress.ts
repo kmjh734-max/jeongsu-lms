@@ -13,16 +13,16 @@ export interface LessonProgressDetail {
   completedAt: string | null;
 }
 
-/** 학생 이름·이메일 부분 일치 검색 (대소문자 무시). */
+/** 학생 이름·아이디 부분 일치 검색 (대소문자 무시). */
 export function matchesStudentSearch(
-  row: Pick<EnrollmentProgressRow, "studentName" | "studentEmail">,
+  row: Pick<EnrollmentProgressRow, "studentName" | "studentUsername">,
   query: string
 ): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
   return (
     row.studentName.toLowerCase().includes(q) ||
-    row.studentEmail.toLowerCase().includes(q)
+    (row.studentUsername ?? "").toLowerCase().includes(q)
   );
 }
 
@@ -30,12 +30,15 @@ export interface EnrollmentProgressRow {
   studentId: string;
   studentName: string;
   studentEmail: string;
+  studentUsername: string | null;
   courseId: string;
   courseTitle: string;
   totalLessons: number;
   completedLessons: number;
   progressPercent: number;
   lastStudiedAt: string | null;
+  /** 수강 배정일 */
+  enrolledAt: string | null;
   lessons: LessonProgressDetail[];
 }
 
@@ -55,20 +58,21 @@ type ProgressRow = Pick<
   | "watched_seconds"
 >;
 
+type EnrollmentStudent = { name: string; email: string; username?: string | null };
+
 export interface EnrollmentInput {
   student_id: string;
   course_id: string;
-  student?: { name: string; email: string } | null;
+  created_at?: string | null;
+  student?: EnrollmentStudent | null;
   course?: { title: string } | null;
 }
 
 type RawEnrollmentRow = {
   student_id: string;
   course_id: string;
-  student?:
-    | { name: string; email: string }
-    | { name: string; email: string }[]
-    | null;
+  created_at?: string | null;
+  student?: EnrollmentStudent | EnrollmentStudent[] | null;
   course?: { title: string } | { title: string }[] | null;
 };
 
@@ -87,6 +91,7 @@ export function normalizeEnrollmentInputs(
   return rows.map((row) => ({
     student_id: row.student_id,
     course_id: row.course_id,
+    created_at: row.created_at ?? null,
     student: unwrapRelation(row.student),
     course: unwrapRelation(row.course),
   }));
@@ -157,12 +162,14 @@ export function buildEnrollmentProgressRows(
       studentId: enrollment.student_id,
       studentName: enrollment.student?.name ?? "—",
       studentEmail: enrollment.student?.email ?? "—",
+      studentUsername: enrollment.student?.username ?? null,
       courseId: enrollment.course_id,
       courseTitle: enrollment.course?.title ?? "—",
       totalLessons: stats.totalLessons,
       completedLessons: stats.completedLessons,
       progressPercent: stats.progressPercent,
       lastStudiedAt: maxStudyDate(publishedIds, studentProgress),
+      enrolledAt: enrollment.created_at ?? null,
       lessons: lessonDetails,
     };
   });

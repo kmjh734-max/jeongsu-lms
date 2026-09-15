@@ -51,16 +51,16 @@ export function StudentRecordPrintPreview({
       aria-modal="true"
     >
       <div className="no-print flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
-        <div>
-          <p className="font-semibold text-slate-900">학생부 분석 PDF 미리보기</p>
-          <p className="text-xs text-slate-500">{pdfFileName}</p>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-slate-900">학생부 분석 미리보기</p>
+          <p className="mt-0.5 truncate text-xs text-slate-500">{pdfFileName}</p>
         </div>
         <div className="flex gap-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             닫기
           </Button>
           <Button type="button" onClick={handlePrint}>
-            PDF 저장 / 인쇄
+            PDF 저장
           </Button>
         </div>
       </div>

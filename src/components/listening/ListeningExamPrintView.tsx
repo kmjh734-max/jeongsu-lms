@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Icon } from "@/components/layout/NavIcon";
+import { Button } from "@/components/ui/Button";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
 import { shouldHideTextChoicesForFigure } from "@/lib/listening/figure-choice-display";
@@ -448,80 +450,77 @@ export function ListeningExamPrintView({
 
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white">
-      <div className="no-print sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm">
-        <div className="mx-auto max-w-4xl px-4 py-4">
+      <div className="no-print sticky top-0 z-10 border-b border-slate-200 bg-white shadow-card">
+        <div className="mx-auto max-w-4xl px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
               href={backHref}
-              className="text-sm font-medium text-slate-700 hover:underline"
+              className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900"
             >
-              ← 편집으로 돌아가기
+              <Icon name="left" size={16} />
+              세트로 돌아가기
             </Link>
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
+              <Button
+                variant="primary"
                 onClick={() => runPrint("exam")}
                 disabled={!layoutReady && questions.length > 0}
-                className="rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
               >
+                <Icon name="print" size={16} />
                 시험지 인쇄
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => runPrint("answers")}
                 disabled={questions.length === 0}
-                className="rounded-lg border border-sky-300 bg-white px-4 py-2.5 text-sm font-semibold text-sky-800 disabled:opacity-50"
               >
                 답지 인쇄
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => runPrint("all")}
                 disabled={!layoutReady && questions.length > 0}
-                className="rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
               >
                 시험지+답지
-              </button>
+              </Button>
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-sky-100 bg-sky-50/50 p-4">
-            <p className="mb-3 text-xs font-semibold text-sky-700">출력 설정</p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <label className="block sm:col-span-2 lg:col-span-3">
-                <span className="mb-1 block text-xs text-slate-600">
-                  시험지 제목
-                </span>
+          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="mb-3 text-xs font-semibold text-slate-700">출력 설정</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="ui-label">시험지 제목</span>
                 <input
                   className="ui-input"
                   value={examTitle}
                   onChange={(e) => setExamTitle(e.target.value)}
                 />
               </label>
-              <label className="block sm:col-span-2 lg:col-span-3">
-                <span className="mb-1 block text-xs text-neutral-600">이름</span>
+              <label className="block">
+                <span className="ui-label">이름</span>
                 <input
                   className="ui-input"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
-                  placeholder="인쇄 파일명에 사용 (선택)"
+                  placeholder="인쇄 파일 이름에 써요 (선택)"
                 />
               </label>
-              <label className="flex items-center gap-2 sm:col-span-2 lg:col-span-3">
+              <label className="flex items-center gap-2 sm:col-span-2">
                 <input
                   type="checkbox"
                   checked={includeAnswerKey}
                   onChange={(e) => setIncludeAnswerKey(e.target.checked)}
-                  className="rounded border-sky-300"
+                  className="h-4 w-4 accent-brand-600"
                 />
                 <span className="text-sm text-slate-700">
-                  미리보기에 정답지 페이지 표시
+                  미리보기에 정답지 페이지 보이기
                 </span>
               </label>
             </div>
             <p className="mt-3 text-xs text-slate-500">
-              A4 2단 · 문항 높이에 맞춰 배치 · 그림이 크면 다음 단으로 이동
-              {resolvedPages && ` · 시험지 ${totalPages}페이지`}
+              A4 2단 · 문항 높이에 맞춰 배치 · 그림이 크면 다음 단으로 넘겨요
+              {resolvedPages && ` · 시험지 ${totalPages}쪽`}
             </p>
           </div>
         </div>

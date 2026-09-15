@@ -12,7 +12,10 @@ import {
   formatBulkAssignSuccess,
 } from "@/lib/vocab/folder-assignments";
 import { bulkAssignSets } from "@/lib/vocab/bulk-assign-sets";
-import { removeVocabAssignment } from "@/lib/vocab/class-assignments";
+import {
+  removeVocabAssignment,
+  removeVocabAssignmentsByIds,
+} from "@/lib/vocab/class-assignments";
 import { revalidateVocabPaths } from "@/lib/vocab/revalidate";
 
 const ROLE = "teacher" as const;
@@ -282,4 +285,19 @@ export async function bulkAssignVocabSetsToStudents(
   if (!result.ok) return actionError(result.message);
   revalidateVocabPaths(ROLE, { classId });
   return actionSuccess(formatBulkAssignSuccess(result));
+}
+
+export async function removeVocabAssignments(
+  assignmentIds: string[]
+): Promise<ActionResult> {
+  const { error } = await requireTeacher();
+  if (error) return error;
+  if (!assignmentIds.length) return actionError("해제할 배정이 없어요.");
+
+  const supabase = await createClient();
+  const result = await removeVocabAssignmentsByIds(supabase, assignmentIds);
+  if (!result.ok) return actionError(result.message);
+
+  revalidateVocabPaths(ROLE);
+  return actionSuccess("배정을 해제했어요.");
 }

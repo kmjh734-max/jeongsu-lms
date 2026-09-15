@@ -1,87 +1,121 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Icon } from "@/components/layout/NavIcon";
 import { Button } from "@/components/ui/Button";
+import {
+  ExternalIcon,
+  KAKAO_FALLBACK_MESSAGE,
+  KAKAO_UNAVAILABLE_MESSAGE,
+  LinkIcon,
+  ReportMenu,
+  ReportMenuItem,
+} from "@/components/reports/report-ui";
 import {
   copyKakaoPasteMessage,
   isKakaoShareConfigured,
-  KAKAO_PRODUCT_LINK_HINT,
   loadKakaoSdkForReports,
   shareReportViaKakao,
   validateShareUrlForKakao,
 } from "@/lib/kakao/share-report";
-import { extractLearningReportSection } from "@/lib/reports/parent-message-utils";
+import {
+  extractLearningReportSection,
+  replaceLearningReportSection,
+} from "@/lib/reports/parent-message-utils";
 import type { StudentReport } from "@/lib/reports/types";
 
 interface ReportShareActionsProps {
-  report: StudentReport;
+  report: StudentReport | null;
   parentMessage: string;
-  aiReportDraft: string;
+  onParentMessageChange: (value: string) => void;
   onOpenPrint: () => void;
+  onPcKakaoPrepare: () => void | Promise<void>;
+  /** 학부모 링크를 만들었을 때 (목록의 "보냄" 표시) */
+  onShared?: (studentId: string, createdAt: string) => void;
   academyName?: string;
   logoSrc?: string;
 }
 
-function formatExpiresLabel(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch {
-    return iso;
-  }
-}
-
-/** 학부모용 링크 · 카카오톡보내기 · 링크 복사 · PDF */
+/** 학습 리포트 오른쪽 「학부모께 보내기」 — 안내 문구 · 카카오톡 · 링크 · PDF */
 export function ReportShareActions({
   report,
   parentMessage,
-  aiReportDraft,
+  onParentMessageChange,
   onOpenPrint,
+  onPcKakaoPrepare,
+  onShared,
   academyName,
   logoSrc,
 }: ReportShareActionsProps) {
   const kakaoConfigured = isKakaoShareConfigured();
   const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  /** 링크를 만든 순간의 문구 — 문구를 고치면 새 링크를 만든다 */
+  const [sharedMessage, setSharedMessage] = useState<string | null>(null);
+  /** 마지막으로 다시 쓴 학습 요약 (링크에 함께 저장) */
+  const [draftText, setDraftText] = useState("");
+  const [drafting, setDrafting] = useState(false);
   const [linkLoading, setLinkLoading] = useState(false);
   const [kakaoLoading, setKakaoLoading] = useState(false);
-  const [pasteLoading, setPasteLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const shareUrlWarning = shareUrl
-    ? validateShareUrlForKakao(shareUrl).warning
-    : null;
+  const liveUrl = shareUrl && sharedMessage === parentMessage ? shareUrl : null;
+  const shareUrlWarning = liveUrl ? validateShareUrlForKakao(liveUrl).warning : null;
+  const busy = linkLoading || kakaoLoading;
 
   useEffect(() => {
     if (kakaoConfigured) {
       void loadKakaoSdkForReports().catch(() => {
-        /* 실패 시 공유 버튼 클릭 때 재시도 */
+        /* 실패 시 보내기 버튼을 누를 때 다시 시도 */
       });
     }
   }, [kakaoConfigured]);
 
   function showStatus(message: string) {
-    setStatusMessage(message);
+    setStatus(message);
     setErrorMessage(null);
-    window.setTimeout(() => setStatusMessage(null), 6000);
+    window.setTimeout(() => setStatus(null), 6000);
   }
 
   function showError(message: string) {
     setErrorMessage(message);
+    setStatus(null);
     window.setTimeout(() => setErrorMessage(null), 6000);
   }
 
-  async function createShareLink(): Promise<string | null> {
-    setLinkLoading(true);
+  async function rewriteDraft() {
+    if (!report) return;
+    setDrafting(true);
     setErrorMessage(null);
     try {
-      const learningText =
-        extractLearningReportSection(parentMessage) || aiReportDraft.trim();
+      const res = await fetch("/api/reports/generate-report-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ report }),
+      });
+      const data = (await res.json()) as { ok?: boolean; text?: string; message?: string };
+      if (!res.ok || !data.ok || !data.text) {
+        showError(data.message ?? "초안을 다시 쓰지 못했어요. 잠시 후 다시 해 주세요.");
+        return;
+      }
+      setDraftText(data.text);
+      onParentMessageChange(
+        replaceLearningReportSection(parentMessage, data.text, report, academyName)
+      );
+      showStatus("안내 문구를 새로 썼어요.");
+    } catch {
+      showError("초안을 다시 쓰지 못했어요. 잠시 후 다시 해 주세요.");
+    } finally {
+      setDrafting(false);
+    }
+  }
 
+  async function ensureShareLink(): Promise<string | null> {
+    if (!report) return null;
+    if (liveUrl) return liveUrl;
+    setLinkLoading(true);
+    try {
+      const learningText = extractLearningReportSection(parentMessage) || draftText.trim();
       const res = await fetch("/api/reports/share", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -95,63 +129,34 @@ export function ReportShareActions({
       const data = (await res.json()) as {
         ok?: boolean;
         shareUrl?: string;
-        expiresAt?: string;
         message?: string;
       };
       if (!res.ok || !data.ok || !data.shareUrl) {
-        showError(data.message ?? "리포트 링크 생성에 실패했습니다.");
+        showError(data.message ?? "링크를 만들지 못했어요.");
         return null;
       }
       setShareUrl(data.shareUrl);
-      setExpiresAt(data.expiresAt ?? null);
-      showStatus(
-        "학부모용 리포트 링크가 생성되었습니다. 30일 동안 열람할 수 있습니다."
-      );
+      setSharedMessage(parentMessage);
+      onShared?.(report.student.id, new Date().toISOString());
       return data.shareUrl;
     } catch {
-      showError("리포트 링크 생성에 실패했습니다.");
+      showError("링크를 만들지 못했어요.");
       return null;
     } finally {
       setLinkLoading(false);
     }
   }
 
-  async function handleCreateLink() {
-    await createShareLink();
-  }
-
-  async function handleCopyLink() {
-    const url = shareUrl ?? (await createShareLink());
-    if (!url) return;
-    try {
-      await navigator.clipboard.writeText(url);
-      showStatus("리포트 링크가 복사되었습니다.");
-    } catch {
-      showError("링크 복사에 실패했습니다.");
-    }
-  }
-
-  function handleOpenLink() {
-    if (!shareUrl) {
-      void createShareLink().then((url) => {
-        if (url) window.open(url, "_blank", "noopener,noreferrer");
-      });
-      return;
-    }
-    window.open(shareUrl, "_blank", "noopener,noreferrer");
-  }
-
-  async function handleKakaoExport() {
+  async function handleKakao() {
+    if (!report) return;
     if (!kakaoConfigured) {
-      showError("카카오 JavaScript 키가 설정되어 있지 않습니다.");
+      showError(KAKAO_UNAVAILABLE_MESSAGE);
       return;
     }
-
     setKakaoLoading(true);
     try {
-      const url = shareUrl ?? (await createShareLink());
+      const url = await ensureShareLink();
       if (!url) return;
-
       const result = await shareReportViaKakao({
         studentName: report.student.name,
         periodLabel: report.rangeLabel,
@@ -159,14 +164,10 @@ export function ReportShareActions({
         academyName,
         logoSrc,
       });
-
       if (result.ok) {
-        showStatus(
-          "카카오톡 공유 창이 열렸습니다. 보낼 채팅방을 선택해 주세요."
-        );
+        showStatus("카카오톡 창이 열렸어요. 보낼 대화방을 골라 주세요.");
       } else if (result.fallback) {
-        setShareUrl(url);
-        showStatus(result.message);
+        showStatus(KAKAO_FALLBACK_MESSAGE);
       } else {
         showError(result.message);
       }
@@ -175,128 +176,137 @@ export function ReportShareActions({
     }
   }
 
-  async function handleKakaoPasteCopy() {
-    setPasteLoading(true);
+  async function handleCopyLink() {
+    const url = await ensureShareLink();
+    if (!url) return;
     try {
-      const url = shareUrl ?? (await createShareLink());
-      if (!url) return;
-
-      const result = await copyKakaoPasteMessage({
-        studentName: report.student.name,
-        periodLabel: report.rangeLabel,
-        shareUrl: url,
-        academyName,
-        logoSrc,
-      });
-      if (result.ok) {
-        showStatus(result.message);
-      } else {
-        showError(result.message);
-      }
-    } finally {
-      setPasteLoading(false);
+      await navigator.clipboard.writeText(url);
+      showStatus("링크를 복사했어요.");
+    } catch {
+      showError("링크를 복사하지 못했어요.");
     }
   }
 
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-base font-semibold text-slate-900">학부모 공유</h2>
-      <p className="mt-1 text-sm text-slate-500">
-        학부모용 공개 리포트 링크를 만들고, 카카오톡 공유창에서 채팅방을
-        선택해 보낼 수 있습니다.
-      </p>
+  async function handlePasteCopy() {
+    if (!report) return;
+    const url = await ensureShareLink();
+    if (!url) return;
+    const result = await copyKakaoPasteMessage({
+      studentName: report.student.name,
+      periodLabel: report.rangeLabel,
+      shareUrl: url,
+      academyName,
+      logoSrc,
+    });
+    if (result.ok) showStatus("카카오톡에 붙여 넣을 문구를 복사했어요.");
+    else showError(result.message);
+  }
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={linkLoading || kakaoLoading}
-          onClick={() => void handleCreateLink()}
-        >
-          {linkLoading ? "링크 생성 중..." : "학부모용 링크 생성"}
-        </Button>
-        <Button
-          type="button"
-          disabled={!kakaoConfigured || kakaoLoading || linkLoading}
-          title={
-            kakaoConfigured
-              ? "카카오톡 공유창에서 채팅방을 선택합니다"
-              : "NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY 필요"
-          }
-          onClick={() => void handleKakaoExport()}
-        >
-          {kakaoLoading ? "공유 준비 중..." : "카카오톡보내기"}
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={linkLoading || pasteLoading}
-          onClick={() => void handleKakaoPasteCopy()}
-        >
-          {pasteLoading ? "복사 중..." : "카카오 붙여넣기용 복사"}
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={linkLoading}
-          onClick={() => void handleCopyLink()}
-        >
-          링크 복사
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={linkLoading && !shareUrl}
-          onClick={handleOpenLink}
-        >
-          링크 열기
-        </Button>
-        <Button type="button" variant="secondary" onClick={onOpenPrint}>
-          PDF 저장 / 인쇄
-        </Button>
+  async function handleCopyMessage() {
+    try {
+      await navigator.clipboard.writeText(parentMessage);
+      showStatus("안내 문구를 복사했어요.");
+    } catch {
+      showError("복사하지 못했어요. 직접 골라서 복사해 주세요.");
+    }
+  }
+
+  async function handleOpenLink() {
+    const url = await ensureShareLink();
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  const disabled = !report;
+
+  return (
+    <section className="flex flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-card xl:h-[calc(100vh-190px)] xl:min-h-[560px]">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-base font-bold text-slate-900">학부모께 보내기</h2>
+        <ReportMenu label="보내기 더 보기" disabled={disabled}>
+          <ReportMenuItem icon="copy" onClick={() => void handleCopyMessage()}>
+            안내 문구만 복사
+          </ReportMenuItem>
+          <ReportMenuItem icon="send" onClick={() => void handlePasteCopy()}>
+            카카오 붙여넣기용 복사
+          </ReportMenuItem>
+          <ReportMenuItem icon="print" onClick={() => void onPcKakaoPrepare()}>
+            PC 카톡 발송 준비
+          </ReportMenuItem>
+          <ReportMenuItem icon={<ExternalIcon />} onClick={() => void handleOpenLink()}>
+            링크 열기
+          </ReportMenuItem>
+        </ReportMenu>
       </div>
 
-      {!kakaoConfigured && (
-        <p className="mt-2 text-xs text-amber-800">
-          카카오톡보내기를 사용하려면 NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY를
-          설정해 주세요.
-        </p>
-      )}
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <label htmlFor="report-parent-message" className="text-xs font-medium text-slate-500">
+          안내 문구
+        </label>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={disabled || drafting}
+          onClick={() => void rewriteDraft()}
+          className="-mr-2"
+        >
+          <Icon name="rotate" size={14} className={drafting ? "animate-spin" : ""} />
+          {drafting ? "쓰는 중…" : "다시 쓰기"}
+        </Button>
+      </div>
+      <textarea
+        id="report-parent-message"
+        className="ui-input mt-1 min-h-[260px] flex-1 resize-none text-sm leading-relaxed disabled:bg-slate-50"
+        value={report ? parentMessage : ""}
+        onChange={(e) => onParentMessageChange(e.target.value)}
+        placeholder={report ? "" : "학생을 고르면 안내 문구가 들어와요."}
+        disabled={disabled || drafting}
+      />
+      <p className="mt-1.5 text-xs text-slate-400">
+        {drafting
+          ? "초안을 쓰고 있어요…"
+          : "학습 기록으로 초안을 만들었어요. 고쳐서 보내세요."}
+      </p>
 
-      {kakaoConfigured && (
-        <p className="mt-2 text-xs text-slate-600">
-          카드만 보이고 링크가 안 열리면: {KAKAO_PRODUCT_LINK_HINT}
+      {status ? (
+        <p className="mt-2 text-xs font-medium text-green-700" role="status">
+          {status}
         </p>
-      )}
-
-      {shareUrlWarning && (
-        <p className="mt-2 text-xs font-medium text-amber-800" role="alert">
-          {shareUrlWarning}
-        </p>
-      )}
-
-      {shareUrl && (
-        <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
-          <p className="font-medium text-slate-700">생성된 링크</p>
-          <p className="mt-1 break-all text-slate-600">{shareUrl}</p>
-          {expiresAt && (
-            <p className="mt-1 text-xs text-slate-500">
-              만료일: {formatExpiresLabel(expiresAt)}까지 열람 가능
-            </p>
-          )}
-        </div>
-      )}
-
-      {statusMessage && (
-        <p className="mt-3 text-sm font-medium text-emerald-700" role="status">
-          {statusMessage}
-        </p>
-      )}
-      {errorMessage && (
-        <p className="mt-3 text-sm font-medium text-amber-800" role="alert">
+      ) : null}
+      {errorMessage ? (
+        <p className="mt-2 text-xs font-medium text-rose-700" role="alert">
           {errorMessage}
         </p>
-      )}
+      ) : null}
+      {shareUrlWarning ? (
+        <p className="mt-2 text-xs text-amber-700">{shareUrlWarning}</p>
+      ) : null}
+
+      <div className="mt-3 space-y-2">
+        <Button
+          className="h-10 w-full"
+          disabled={disabled || busy || drafting}
+          onClick={() => void handleKakao()}
+          title={kakaoConfigured ? undefined : KAKAO_UNAVAILABLE_MESSAGE}
+        >
+          <Icon name="send" size={16} />
+          {kakaoLoading ? "보낼 준비 중…" : "카카오톡으로 보내기"}
+        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="secondary"
+            disabled={disabled || busy}
+            onClick={() => void handleCopyLink()}
+          >
+            <LinkIcon size={15} />
+            {linkLoading && !kakaoLoading ? "만드는 중…" : "링크 복사"}
+          </Button>
+          <Button variant="secondary" disabled={disabled} onClick={onOpenPrint}>
+            <Icon name="download" size={15} />
+            PDF 저장
+          </Button>
+        </div>
+        <p className="text-center text-xs text-slate-400">링크는 30일 동안 열 수 있어요</p>
+      </div>
     </section>
   );
 }

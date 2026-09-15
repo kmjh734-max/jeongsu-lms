@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getKoreaDayUtcBounds, getTodayIsoKorea } from "@/lib/date/korea-today";
 import type { VocabTodayStatusRow, VocabTodayStatusTable } from "@/lib/learning-status/types";
 import { listReportStudents } from "@/lib/reports/list-students";
+import type { ReportStudentOption } from "@/lib/reports/types";
 import type { UserRole } from "@/types/database";
 
 interface AssignedPair {
@@ -115,16 +116,20 @@ export async function loadVocabTodayStatusTable(
     classId?: string;
     nameQuery?: string;
     loginQuery?: string;
+    /** 이미 불러온 학생 목록이 있으면 다시 조회하지 않는다 */
+    students?: ReportStudentOption[];
   }
 ): Promise<VocabTodayStatusTable> {
   const dateIso = options.dateIso?.trim() || getTodayIsoKorea();
   const { start, end } = getKoreaDayUtcBounds(dateIso);
 
-  const students = await listReportStudents(supabase, role, viewerId, {
-    classId: options.classId,
-    nameQuery: options.nameQuery,
-    loginQuery: options.loginQuery,
-  });
+  const students =
+    options.students ??
+    (await listReportStudents(supabase, role, viewerId, {
+      classId: options.classId,
+      nameQuery: options.nameQuery,
+      loginQuery: options.loginQuery,
+    }));
 
   if (students.length === 0) {
     return { dateIso, rows: [] };

@@ -45,14 +45,14 @@ export async function fetchGeneratedExamples(
     if (!res.ok && !data.message) {
       return {
         ok: false,
-        message: `AI 예문 생성 실패 (HTTP ${res.status})`,
+        message: "예문을 만들지 못했어요. 다시 해 주세요.",
       };
     }
 
     if (!data.ok || !data.items) {
       return {
         ok: false,
-        message: data.message ?? "AI 예문 생성에 실패했습니다.",
+        message: data.message ?? "예문을 만들지 못했어요. 다시 해 주세요.",
       };
     }
 
@@ -60,7 +60,7 @@ export async function fetchGeneratedExamples(
   } catch {
     return {
       ok: false,
-      message: "네트워크 오류로 AI 예문 생성에 실패했습니다.",
+      message: "인터넷 연결을 확인하고 다시 해 주세요.",
     };
   }
 }

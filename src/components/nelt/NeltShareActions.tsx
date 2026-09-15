@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Icon } from "@/components/layout/NavIcon";
 import { Button } from "@/components/ui/Button";
+import {
+  ExternalIcon,
+  KAKAO_FALLBACK_MESSAGE,
+  KAKAO_UNAVAILABLE_MESSAGE,
+  LinkIcon,
+  ReportMenu,
+  ReportMenuItem,
+} from "@/components/reports/report-ui";
 import {
   copyKakaoPasteMessage,
   isKakaoShareConfigured,
-  KAKAO_PRODUCT_LINK_HINT,
   loadKakaoSdkForReports,
   shareReportViaKakao,
   validateShareUrlForKakao,
@@ -159,7 +167,7 @@ export function NeltShareActions({
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {
-        throw new Error(json.message ?? "문구 생성 실패");
+        throw new Error(json.message ?? "문구를 쓰지 못했어요.");
       }
       let message = json.message as string;
       if (shareUrl) message = attachReportUrlToMessage(message, shareUrl);
@@ -172,9 +180,9 @@ export function NeltShareActions({
       const verPart = verLabel
         ? ` · ${verLabel} (${(json.versionIndex ?? nextVersion) + 1}/${json.versionCount ?? NELT_MESSAGE_VERSION_COUNT})`
         : "";
-      flashOk(`다른 버전으로 만들었습니다.${verPart}`);
+      flashOk(`안내 문구를 새로 썼어요.${verPart}`);
     } catch (e) {
-      flashErr(e instanceof Error ? e.message : "문구 생성 오류");
+      flashErr(e instanceof Error ? e.message : "문구를 쓰지 못했어요.");
     } finally {
       setMsgLoading(false);
     }
@@ -197,7 +205,7 @@ export function NeltShareActions({
       });
       const json = await res.json();
       if (!res.ok || !json.ok || !json.shareUrl) {
-        throw new Error(json.message ?? "링크 생성 실패");
+        throw new Error(json.message ?? "링크를 만들지 못했어요.");
       }
       setShareUrl(json.shareUrl as string);
       setExpiresAt(json.expiresAt ?? null);
@@ -208,10 +216,10 @@ export function NeltShareActions({
           attachReportUrlToMessage(prev, json.shareUrl as string)
         );
       }
-      flashOk("학부모용 공유 링크를 만들었습니다. (30일)");
+      flashOk("학부모용 링크를 만들었어요. 문구 끝에도 붙였어요.");
       return json.shareUrl as string;
     } catch (e) {
-      flashErr(e instanceof Error ? e.message : "링크 생성 오류");
+      flashErr(e instanceof Error ? e.message : "링크를 만들지 못했어요.");
       return null;
     } finally {
       setLinkLoading(false);
@@ -219,6 +227,10 @@ export function NeltShareActions({
   }
 
   async function handleKakao() {
+    if (!kakaoConfigured) {
+      flashErr(KAKAO_UNAVAILABLE_MESSAGE);
+      return;
+    }
     setKakaoLoading(true);
     try {
       let url = shareUrl;
@@ -238,10 +250,10 @@ export function NeltShareActions({
       });
       if (result.ok) {
         flashOk(
-          "카카오톡 공유 창이 열렸습니다. 리포트는 「자세히 보기」로 열어 주세요."
+          "카카오톡 창이 열렸어요. 리포트는 「자세히 보기」로 열 수 있어요."
         );
       } else if (result.fallback) {
-        flashOk(result.message);
+        flashOk(KAKAO_FALLBACK_MESSAGE);
       } else {
         flashErr(result.message);
       }
@@ -253,9 +265,9 @@ export function NeltShareActions({
   async function copyMessageOnly() {
     try {
       await navigator.clipboard.writeText(parentMessage.trim());
-      flashOk("안내문을 복사했습니다.");
+      flashOk("안내 문구를 복사했어요.");
     } catch {
-      flashErr("복사에 실패했습니다.");
+      flashErr("복사하지 못했어요.");
     }
   }
 
@@ -265,10 +277,16 @@ export function NeltShareActions({
     if (!url) return;
     try {
       await navigator.clipboard.writeText(url);
-      flashOk("공유 링크를 복사했습니다.");
+      flashOk("링크를 복사했어요.");
     } catch {
-      flashErr("링크 복사에 실패했습니다.");
+      flashErr("링크를 복사하지 못했어요.");
     }
+  }
+
+  async function openShareLink() {
+    let url = shareUrl;
+    if (!url) url = await createShareLink();
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
   }
 
   async function handlePasteCopy() {
@@ -279,7 +297,7 @@ export function NeltShareActions({
     setParentMessage(paste);
     try {
       await navigator.clipboard.writeText(paste);
-      flashOk("카카오톡에 붙여넣을 안내문을 복사했습니다.");
+      flashOk("카카오톡에 붙여 넣을 문구를 복사했어요.");
     } catch {
       const r = await copyKakaoPasteMessage({
         studentName,
@@ -287,7 +305,7 @@ export function NeltShareActions({
         shareUrl: url,
         academyName,
       });
-      if (r.ok) flashOk(r.message);
+      if (r.ok) flashOk("카카오톡에 붙여 넣을 문구를 복사했어요.");
       else flashErr(r.message);
     }
   }
@@ -295,199 +313,171 @@ export function NeltShareActions({
   const warning = shareUrl
     ? validateShareUrlForKakao(shareUrl).warning
     : null;
+  const busy = linkLoading || kakaoLoading;
 
   return (
-    <section className="print:hidden space-y-4 rounded-2xl border border-[#dce3ed] bg-[#fbfcfe] p-5">
-      <div className="rounded-2xl border border-[#dce3ed] bg-white p-4">
-        <h4 className="m-0 text-sm font-bold text-[#152d4f]">
-          안내문 발신 정보
-        </h4>
-        <p className="mt-1 text-xs text-slate-500">
-          학부모 호칭·발신자·수강 시작일을 넣으면 따뜻한 편지형 안내문이
-          만들어집니다.
+    <section className="print:hidden rounded-lg border border-slate-200 bg-white p-4 shadow-card">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-medium text-slate-500">보내는 사람</p>
+        <ReportMenu label="보내기 더 보기">
+          <ReportMenuItem icon="send" onClick={() => void handlePasteCopy()}>
+            카카오 붙여넣기용 복사
+          </ReportMenuItem>
+          <ReportMenuItem
+            icon={<ExternalIcon />}
+            onClick={() => void openShareLink()}
+          >
+            링크 열기
+          </ReportMenuItem>
+        </ReportMenu>
+      </div>
+      <div className="mt-1.5 grid grid-cols-2 gap-2 lg:grid-cols-5">
+        <label className="text-xs text-slate-500">
+          학부모 호칭
+          <select
+            className="ui-select mt-1 h-9 py-1.5"
+            value={parentTitle}
+            onChange={(e) => setParentTitle(e.target.value)}
+          >
+            <option value="어머님">어머님</option>
+            <option value="아버님">아버님</option>
+            <option value="보호자님">보호자님</option>
+          </select>
+        </label>
+        <label className="text-xs text-slate-500">
+          직책
+          <select
+            className="ui-select mt-1 h-9 py-1.5"
+            value={senderRole}
+            onChange={(e) => setSenderRole(e.target.value)}
+          >
+            <option value="영어원장">영어원장</option>
+            <option value="영어전임">영어전임</option>
+            <option value="영어강사">영어강사</option>
+          </select>
+        </label>
+        <label className="text-xs text-slate-500">
+          이름
+          <input
+            className="ui-input mt-1 h-9 py-1.5"
+            value={senderName}
+            onChange={(e) => setSenderName(e.target.value)}
+            placeholder="예: 최정민"
+          />
+        </label>
+        <label className="text-xs text-slate-500">
+          수강 시작일
+          <input
+            type="date"
+            className="ui-input mt-1 h-9 py-1.5"
+            value={enrollmentDate}
+            onChange={(e) => setEnrollmentDate(e.target.value)}
+          />
+        </label>
+        <label className="col-span-2 text-xs text-slate-500 lg:col-span-1">
+          문구 길이
+          <select
+            className="ui-select mt-1 h-9 py-1.5"
+            value={tone}
+            onChange={(e) => setTone(e.target.value as NeltParentMessageTone)}
+          >
+            <option value="standard">기본</option>
+            <option value="short">간단하게</option>
+            <option value="detail">자세하게</option>
+          </select>
+        </label>
+      </div>
+      {studyDuration && (
+        <p className="mt-1.5 text-xs text-slate-500">
+          함께한 기간: 약 {studyDuration}
         </p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="text-xs text-slate-600">
-            학부모 호칭
-            <select
-              className="ui-input mt-1 h-9 w-full text-sm"
-              value={parentTitle}
-              onChange={(e) => setParentTitle(e.target.value)}
-            >
-              <option value="어머님">어머님</option>
-              <option value="아버님">아버님</option>
-              <option value="보호자님">보호자님</option>
-            </select>
-          </label>
-          <label className="text-xs text-slate-600">
-            발신자 직책
-            <select
-              className="ui-input mt-1 h-9 w-full text-sm"
-              value={senderRole}
-              onChange={(e) => setSenderRole(e.target.value)}
-            >
-              <option value="영어원장">영어원장</option>
-              <option value="영어전임">영어전임</option>
-              <option value="영어강사">영어강사</option>
-            </select>
-          </label>
-          <label className="text-xs text-slate-600">
-            발신자 이름
-            <input
-              className="ui-input mt-1 h-9 w-full text-sm"
-              value={senderName}
-              onChange={(e) => setSenderName(e.target.value)}
-              placeholder="예: 최정민"
-            />
-          </label>
-          <label className="text-xs text-slate-600">
-            수강 시작일
-            <input
-              type="date"
-              className="ui-input mt-1 h-9 w-full text-sm"
-              value={enrollmentDate}
-              onChange={(e) => setEnrollmentDate(e.target.value)}
-            />
-          </label>
-        </div>
-        {studyDuration && (
-          <p className="mt-2 text-xs text-[#244a78]">
-            함께한 기간: 약 {studyDuration}
-          </p>
-        )}
-      </div>
+      )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-[#dce3ed] bg-white p-4">
-          <h4 className="m-0 text-sm font-bold text-[#152d4f]">
-            리포트 공유 링크
-          </h4>
-          <p className="mt-1 text-xs text-slate-500">
-            링크를 만들면 안내문 본문에도 자동으로 들어갑니다.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={linkLoading}
-              onClick={() => void createShareLink()}
-            >
-              {linkLoading ? "생성 중…" : "공유 링크 만들기"}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={linkLoading}
-              onClick={() => void copyShareUrlOnly()}
-            >
-              링크 복사
-            </Button>
-          </div>
-          {shareUrl ? (
-            <div className="mt-3 rounded-xl bg-[#edf4ff] px-3 py-2 text-xs text-[#244a78]">
-              <a
-                href={shareUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="break-all underline"
-              >
-                {shareUrl}
-              </a>
-              {expiresAt && (
-                <p className="mt-1 opacity-80">
-                  만료: {new Date(expiresAt).toLocaleDateString("ko-KR")}
-                </p>
-              )}
-            </div>
-          ) : (
-            <p className="mt-3 text-xs text-slate-400">
-              아직 공유 링크가 없습니다.
-            </p>
-          )}
-        </div>
-
-        <div className="rounded-2xl border border-[#dce3ed] bg-white p-4">
-          <h4 className="m-0 text-sm font-bold text-[#152d4f]">
-            카카오톡 발송 문구
-          </h4>
-          <p className="mt-1 text-xs text-slate-500">
-            기본·간단·상세 톤을 고른 뒤 문구를 다시 만드세요.
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <select
-              className="ui-input h-9 w-auto min-w-[120px] text-sm"
-              value={tone}
-              onChange={(e) =>
-                setTone(e.target.value as NeltParentMessageTone)
-              }
-              aria-label="안내문 톤"
-            >
-              <option value="standard">기본 안내</option>
-              <option value="short">간단 안내</option>
-              <option value="detail">상세 안내</option>
-            </select>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={msgLoading}
-              onClick={() => void generateParentMessage()}
-            >
-              {msgLoading ? "작성 중…" : "문구 다시 만들기"}
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={() => void copyMessageOnly()}
-            >
-              안내문 복사
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <textarea
-        className="ui-input min-h-[260px] w-full resize-y text-sm leading-relaxed"
-        value={parentMessage}
-        onChange={(e) => setParentMessage(e.target.value)}
-        aria-label="학부모 안내 문구"
-      />
-
-      <div className="flex flex-wrap gap-2">
+      <div className="mt-4 flex items-center justify-between gap-2">
+        <label
+          htmlFor="nelt-parent-message"
+          className="text-xs font-medium text-slate-500"
+        >
+          안내 문구
+        </label>
         <Button
           type="button"
-          variant="primary"
+          variant="ghost"
           size="sm"
-          disabled={kakaoLoading || linkLoading}
-          onClick={() => void handleKakao()}
-          title={
-            kakaoConfigured
-              ? "카카오톡 공유창"
-              : "카카오 키가 없어도 붙여넣기 복사는 가능합니다"
-          }
+          className="-mr-2"
+          disabled={msgLoading}
+          onClick={() => void generateParentMessage()}
         >
-          {kakaoLoading ? "준비 중…" : "카카오톡보내기"}
+          <Icon
+            name="rotate"
+            size={14}
+            className={msgLoading ? "animate-spin" : ""}
+          />
+          {msgLoading ? "쓰는 중…" : "다시 쓰기"}
+        </Button>
+      </div>
+      <textarea
+        id="nelt-parent-message"
+        className="ui-input mt-1 min-h-[260px] w-full resize-y text-sm leading-relaxed"
+        value={parentMessage}
+        onChange={(e) => setParentMessage(e.target.value)}
+        disabled={msgLoading}
+      />
+      <p className="mt-1.5 text-xs text-slate-400">
+        {msgLoading
+          ? "안내 문구를 쓰고 있어요…"
+          : "성장 리포트로 초안을 만들었어요. 고쳐서 보내세요."}
+      </p>
+
+      {status && (
+        <p className="mt-2 text-xs font-medium text-green-700" role="status">
+          {status}
+        </p>
+      )}
+      {error && (
+        <p className="mt-2 text-xs font-medium text-rose-700" role="alert">
+          {error}
+        </p>
+      )}
+      {warning && <p className="mt-2 text-xs text-amber-700">{warning}</p>}
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <Button
+          type="button"
+          className="h-10"
+          disabled={busy || msgLoading}
+          onClick={() => void handleKakao()}
+          title={kakaoConfigured ? undefined : KAKAO_UNAVAILABLE_MESSAGE}
+        >
+          <Icon name="send" size={16} />
+          {kakaoLoading ? "보낼 준비 중…" : "카카오톡으로 보내기"}
         </Button>
         <Button
           type="button"
           variant="secondary"
-          size="sm"
-          disabled={linkLoading}
-          onClick={() => void handlePasteCopy()}
+          className="h-10"
+          disabled={busy}
+          onClick={() => void copyShareUrlOnly()}
         >
-          안내문 복사 (링크 포함)
+          <LinkIcon size={15} />
+          {linkLoading && !kakaoLoading ? "만드는 중…" : "링크 복사"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-10"
+          onClick={() => void copyMessageOnly()}
+        >
+          <Icon name="copy" size={15} />
+          문구 복사
         </Button>
       </div>
-
-      {status && <p className="text-xs text-emerald-700">{status}</p>}
-      {error && <p className="text-xs text-red-600">{error}</p>}
-      {warning && <p className="text-xs text-amber-700">{warning}</p>}
-      {!kakaoConfigured && (
-        <p className="text-[11px] text-slate-400">{KAKAO_PRODUCT_LINK_HINT}</p>
-      )}
+      <p className="mt-2 text-center text-xs text-slate-400">
+        링크는 30일 동안 열 수 있어요
+        {shareUrl && expiresAt
+          ? ` · ${new Date(expiresAt).toLocaleDateString("ko-KR")}까지`
+          : ""}
+      </p>
     </section>
   );
 }

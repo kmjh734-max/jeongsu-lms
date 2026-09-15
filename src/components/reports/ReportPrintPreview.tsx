@@ -17,7 +17,7 @@ interface ReportPrintPreviewProps {
   logoSrc?: string;
 }
 
-/** A4 출력 미리보기 모달 — 확인 후 PDF 저장/인쇄 */
+/** A4 출력 미리보기 모달 — 확인 후 PDF 저장 */
 export function ReportPrintPreview({
   open,
   onClose,
@@ -64,20 +64,17 @@ export function ReportPrintPreview({
     >
       <div className="no-print flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-800">A4 리포트 미리보기</p>
+          <p className="text-sm font-bold text-slate-900">리포트 미리보기</p>
           <p className="mt-0.5 truncate text-xs text-slate-500">
-            저장 파일명:{" "}
-            <span className="font-mono font-medium text-[#1e3a5f]">
-              {pdfFileName}
-            </span>
+            {pdfFileName}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" onClick={handlePrint}>
-            PDF 저장 / 인쇄
-          </Button>
           <Button type="button" variant="secondary" onClick={onClose}>
             닫기
+          </Button>
+          <Button type="button" onClick={handlePrint}>
+            PDF 저장
           </Button>
         </div>
       </div>

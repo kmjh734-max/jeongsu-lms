@@ -270,7 +270,7 @@ export async function moveVocabSet(
 
 export async function copyVocabSet(
   setId: string,
-  targetFolderId: string
+  targetFolderId: string | null
 ): Promise<ActionResult & { setId?: string }> {
   const { profile, error } = await requireAdmin();
   if (error) return error;
@@ -285,7 +285,10 @@ export async function copyVocabSet(
 
   if (!result.ok) return actionError(result.message);
 
-  revalidateVocabPaths(ROLE, { folderId: targetFolderId, setId: result.newSetId });
+  revalidateVocabPaths(ROLE, {
+    folderId: targetFolderId ?? undefined,
+    setId: result.newSetId,
+  });
   return {
     ...actionSuccess("단어장이 복사되었습니다."),
     setId: result.newSetId,
@@ -326,7 +329,7 @@ export async function removeFolderVocabAssignment(
 
 export async function bulkMoveVocabSets(
   setIds: string[],
-  folderId: string
+  folderId: string | null
 ): Promise<ActionResult> {
   const { error } = await requireAdmin();
   if (error) return error;
@@ -338,7 +341,7 @@ export async function bulkMoveVocabSets(
     if (!result.ok) return actionError(result.message);
   }
 
-  revalidateVocabPaths(ROLE, { folderId });
+  revalidateVocabPaths(ROLE, { folderId: folderId ?? undefined });
   return actionSuccess(`${setIds.length}개 단어장을 이동했습니다.`);
 }
 

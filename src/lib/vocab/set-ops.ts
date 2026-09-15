@@ -19,7 +19,7 @@ export async function moveVocabSetToFolder(
 export async function copyVocabSetToFolder(
   supabase: SupabaseClient,
   setId: string,
-  targetFolderId: string,
+  targetFolderId: string | null,
   createdBy: string,
   teacherId?: string | null
 ): Promise<
@@ -51,7 +51,10 @@ export async function copyVocabSetToFolder(
     .from("vocab_sets")
     .insert({
       title,
-      description: source.description,
+      // 학원 교재 표시(curriculum_locked)는 복사본에 넘기지 않는다 — 복사본은 내 세트다
+      description: /curriculum_locked/i.test((source.description as string | null) ?? "")
+        ? null
+        : source.description,
       folder_id: targetFolderId,
       order_index: orderIndex,
       teacher_id: teacherId ?? source.teacher_id,
@@ -76,6 +79,8 @@ export async function copyVocabSetToFolder(
         part_of_speech: item.part_of_speech,
         example_sentence: item.example_sentence,
         example_meaning: item.example_meaning,
+        synonyms: item.synonyms,
+        antonyms: item.antonyms,
         order_index: item.order_index ?? index,
       }))
     );

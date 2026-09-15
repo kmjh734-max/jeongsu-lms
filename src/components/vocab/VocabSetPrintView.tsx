@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Icon } from "@/components/layout/NavIcon";
 import { VocabPrintCoverPage } from "@/components/vocab/VocabPrintCoverPage";
 import { VocabPrintExamConfig } from "@/components/vocab/VocabPrintExamConfig";
 import { VocabWorkbookPrintPages } from "@/components/vocab/VocabWorkbookPrintPages";
@@ -65,6 +66,64 @@ import type {
   VocabPrintSection,
 } from "@/lib/vocab/vocab-print-types";
 import type { PrintExamQuestion } from "@/lib/vocab/generate-print-test-questions";
+
+/** 왼쪽 설정판에서 고른 칸 / 안 고른 칸 모양 */
+function choiceClass(on: boolean): string {
+  return on
+    ? "border-brand-600 bg-brand-50 text-brand-700"
+    : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50";
+}
+
+/** 왼쪽 설정판의 접히는 묶음 */
+function PanelSection({
+  title,
+  defaultOpen = false,
+  aside,
+  children,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  aside?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <details
+      open={defaultOpen}
+      className="group rounded-lg border border-slate-200 bg-white [&_summary::-webkit-details-marker]:hidden"
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3.5 py-3">
+        <span className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
+          <Icon
+            name="chevron"
+            size={15}
+            strokeWidth={2}
+            className="text-slate-400 transition group-open:rotate-90"
+          />
+          {title}
+        </span>
+        {aside}
+      </summary>
+      <div className="space-y-3 border-t border-slate-100 px-3.5 pb-3.5 pt-3">
+        {children}
+      </div>
+    </details>
+  );
+}
+
+function PanelField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <p className="mb-1.5 text-[13px] font-medium text-slate-600">{label}</p>
+      {children}
+    </div>
+  );
+}
 
 interface VocabSetPrintViewProps {
   sections: VocabPrintSection[];
@@ -758,14 +817,20 @@ export function VocabSetPrintView({
         </>
       ) : null}
       <div className="flex min-h-screen print:block">
-        <aside className="no-print w-[min(100%,320px)] shrink-0 border-r border-slate-200 bg-white">
-          <div className="sticky top-0 flex max-h-screen flex-col gap-4 overflow-y-auto p-4">
-            <div>
-              <p className="text-xs font-medium text-slate-500">단어장 인쇄</p>
-              <h1 className="mt-0.5 text-base font-bold leading-snug text-slate-900">
+        <aside className="no-print w-[min(100%,340px)] shrink-0 border-r border-slate-200 bg-white">
+          <div className="sticky top-0 flex max-h-screen flex-col gap-3 overflow-y-auto p-4">
+            <div className="px-1">
+              <Link
+                href={backHref}
+                className="inline-flex items-center gap-1 text-[13px] font-medium text-slate-500 hover:text-slate-900"
+              >
+                <Icon name="left" size={16} />
+                돌아가기
+              </Link>
+              <h1 className="mt-2 text-base font-bold leading-snug text-slate-900">
                 {title}
               </h1>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-[13px] text-slate-500">
                 {totalItems}단어 · {pageCount}페이지
                 {cover.enabled ? " (표지 포함)" : ""} ·{" "}
                 {VOCAB_PRINT_SIZE_LABELS[size]}
@@ -778,96 +843,7 @@ export function VocabSetPrintView({
               </p>
             </div>
 
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-600">용지</p>
-              <div className="flex gap-2">
-                {(["a4", "b5"] as VocabPrintSize[]).map((key) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setQuery("size", key)}
-                    className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition ${
-                      size === key
-                        ? "bg-slate-800 text-white"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    {VOCAB_PRINT_SIZE_LABELS[key]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <label className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
-              <span className="text-xs font-semibold text-slate-700">
-                제본 여백 (왼쪽 넓게)
-              </span>
-              <input
-                type="checkbox"
-                checked={bindingMargin}
-                onChange={(e) => {
-                  const on = e.target.checked;
-                  layoutRef.current = {
-                    ...layoutRef.current,
-                    bindingMargin: on,
-                  };
-                  setBindingMargin(on);
-                  queueLayoutUrlSync();
-                }}
-                className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600"
-              />
-            </label>
-
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-600">글자 크기</p>
-              <div className="flex gap-1.5">
-                {(["sm", "md", "lg"] as VocabPrintFontScale[]).map((key) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setQuery("font", key)}
-                    className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition ${
-                      fontScale === key
-                        ? "bg-slate-800 text-white"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    {VOCAB_PRINT_FONT_LABELS[key]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {mode !== "exam" ? (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-slate-600">줄간격</p>
-                <div className="flex gap-1.5">
-                  {(["tight", "normal", "relaxed"] as VocabPrintLineSpacing[]).map(
-                    (key) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setQuery("spacing", key)}
-                        className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition ${
-                          lineSpacing === key
-                            ? "bg-slate-800 text-white"
-                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                        }`}
-                      >
-                        {VOCAB_PRINT_SPACING_LABELS[key]}
-                      </button>
-                    )
-                  )}
-                </div>
-                <p className="text-[11px] leading-snug text-slate-500">
-                  작게·좁게 할수록 페이지당 단어가 늘어 총 페이지가 줄어듭니다.
-                  (현재 페이지당 {perPage}개)
-                </p>
-              </div>
-            ) : null}
-
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-600">인쇄 종류</p>
+            <PanelSection title="인쇄 종류" defaultOpen>
               <div className="flex flex-col gap-1.5">
                 {(Object.keys(VOCAB_PRINT_MODE_LABELS) as VocabPrintMode[]).map(
                   (key) => (
@@ -875,39 +851,157 @@ export function VocabSetPrintView({
                       key={key}
                       type="button"
                       onClick={() => setQuery("mode", key)}
-                      className={`rounded-lg px-3 py-2 text-left text-xs font-semibold transition ${
+                      aria-pressed={mode === key}
+                      className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-[13px] font-semibold transition ${choiceClass(
                         mode === key
-                          ? "bg-emerald-700 text-white"
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      }`}
+                      )}`}
                     >
                       {VOCAB_PRINT_MODE_LABELS[key]}
+                      {mode === key ? (
+                        <Icon name="check" size={15} strokeWidth={2.4} />
+                      ) : null}
                     </button>
                   )
                 )}
               </div>
-            </div>
 
-            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-600">표지</p>
-                <label className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-slate-700">
+              <PanelField label="용지">
+                <div className="flex gap-1.5">
+                  {(["a4", "b5"] as VocabPrintSize[]).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setQuery("size", key)}
+                      aria-pressed={size === key}
+                      className={`flex-1 rounded-md border px-3 py-2 text-[13px] font-semibold transition ${choiceClass(
+                        size === key
+                      )}`}
+                    >
+                      {VOCAB_PRINT_SIZE_LABELS[key]}
+                    </button>
+                  ))}
+                </div>
+              </PanelField>
+
+              <label className="flex cursor-pointer items-center justify-between gap-2 rounded-md border border-slate-200 px-3 py-2.5">
+                <span className="text-[13px] font-medium text-slate-700">
+                  제본 여백 (왼쪽 넓게)
+                </span>
+                <input
+                  type="checkbox"
+                  checked={bindingMargin}
+                  onChange={(e) => {
+                    const on = e.target.checked;
+                    layoutRef.current = {
+                      ...layoutRef.current,
+                      bindingMargin: on,
+                    };
+                    setBindingMargin(on);
+                    queueLayoutUrlSync();
+                  }}
+                  className="h-4 w-4 accent-brand-600"
+                />
+              </label>
+
+              <PanelField label="글자 크기">
+                <div className="flex gap-1.5">
+                  {(["sm", "md", "lg"] as VocabPrintFontScale[]).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setQuery("font", key)}
+                      aria-pressed={fontScale === key}
+                      className={`flex-1 rounded-md border px-2 py-2 text-[13px] font-semibold transition ${choiceClass(
+                        fontScale === key
+                      )}`}
+                    >
+                      {VOCAB_PRINT_FONT_LABELS[key]}
+                    </button>
+                  ))}
+                </div>
+              </PanelField>
+
+              {mode !== "exam" ? (
+                <PanelField label="줄간격">
+                  <div className="flex gap-1.5">
+                    {(["tight", "normal", "relaxed"] as VocabPrintLineSpacing[]).map(
+                      (key) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setQuery("spacing", key)}
+                          aria-pressed={lineSpacing === key}
+                          className={`flex-1 rounded-md border px-2 py-2 text-[13px] font-semibold transition ${choiceClass(
+                            lineSpacing === key
+                          )}`}
+                        >
+                          {VOCAB_PRINT_SPACING_LABELS[key]}
+                        </button>
+                      )
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-xs leading-snug text-slate-500">
+                    작게·좁게 할수록 한 쪽에 단어가 많이 들어가요. (지금 한 쪽에{" "}
+                    {perPage}개)
+                  </p>
+                </PanelField>
+              ) : null}
+            </PanelSection>
+
+            {mode === "exam" ? (
+              <PanelSection title="시험 구성" defaultOpen>
+                <VocabPrintExamConfig
+                  settings={examSettings}
+                  onChange={updateExamSettings}
+                  onReshuffle={reshuffleExam}
+                  maxPool={totalItems}
+                />
+                {examTotal === 0 ? (
+                  <p className="text-[13px] text-amber-700">
+                    문항 수를 넣으면 시험지가 만들어져요.
+                  </p>
+                ) : null}
+                {examTotal > 0 && examGenerated.questions.length === 0 ? (
+                  <p className="text-[13px] text-rose-700">
+                    문항을 만들 수 없어요. 객관식은 단어가 2개 이상, 예문 문항은
+                    예문에 그 단어가 들어 있어야 해요.
+                  </p>
+                ) : null}
+                {examGenerated.capped ? (
+                  <p className="text-[13px] text-amber-700">
+                    단어 {totalItems}개까지만 낼 수 있어요. (요청 {examTotal}문항 →
+                    실제 {examGenerated.questions.length}문항)
+                  </p>
+                ) : null}
+                {examGenerated.skipped > 0 ? (
+                  <p className="text-[13px] text-amber-700">
+                    {examGenerated.skipped}문항은 보기를 만들 수 없어 뺐어요.
+                  </p>
+                ) : null}
+              </PanelSection>
+            ) : null}
+
+            <PanelSection
+              title="표지"
+              defaultOpen={cover.enabled}
+              aside={
+                <label
+                  className="flex cursor-pointer items-center gap-1.5 text-[13px] font-medium text-slate-700"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <input
                     type="checkbox"
                     checked={cover.enabled}
                     onChange={(e) => updateCover({ enabled: e.target.checked })}
-                    className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600"
+                    className="h-4 w-4 accent-brand-600"
                   />
-                  포함
+                  넣기
                 </label>
-              </div>
-
+              }
+            >
               {cover.enabled ? (
-                <div className="space-y-2.5">
-                  <div>
-                    <p className="mb-1 text-[11px] font-medium text-slate-500">
-                      디자인
-                    </p>
+                <div className="space-y-3">
+                  <PanelField label="디자인">
                     <div className="flex gap-1.5">
                       {(Object.keys(VOCAB_COVER_THEME_LABELS) as VocabCoverTheme[]).map(
                         (key) => (
@@ -915,26 +1009,22 @@ export function VocabSetPrintView({
                             key={key}
                             type="button"
                             onClick={() => updateCover({ theme: key })}
-                            className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition ${
+                            aria-pressed={cover.theme === key}
+                            className={`flex-1 rounded-md border px-2 py-1.5 text-[13px] font-semibold transition ${choiceClass(
                               cover.theme === key
-                                ? "bg-slate-800 text-white"
-                                : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"
-                            }`}
+                            )}`}
                           >
                             {VOCAB_COVER_THEME_LABELS[key]}
                           </button>
                         )
                       )}
                     </div>
-                    <p className="mt-1 text-[10px] leading-snug text-slate-500">
+                    <p className="mt-1 text-xs leading-snug text-slate-500">
                       같은 포스터 양식 · 포스터=민트 · 마스터=오렌지 · 컬러팝=핑크
                     </p>
-                  </div>
+                  </PanelField>
 
-                  <div>
-                    <p className="mb-1 text-[11px] font-medium text-slate-500">
-                      글꼴
-                    </p>
+                  <PanelField label="글꼴">
                     <div className="flex gap-1.5">
                       {(Object.keys(VOCAB_COVER_FONT_LABELS) as VocabCoverFont[]).map(
                         (key) => (
@@ -942,23 +1032,19 @@ export function VocabSetPrintView({
                             key={key}
                             type="button"
                             onClick={() => updateCover({ fontFamily: key })}
-                            className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition ${
+                            aria-pressed={cover.fontFamily === key}
+                            className={`flex-1 rounded-md border px-2 py-1.5 text-[13px] font-semibold transition ${choiceClass(
                               cover.fontFamily === key
-                                ? "bg-slate-800 text-white"
-                                : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"
-                            }`}
+                            )}`}
                           >
                             {VOCAB_COVER_FONT_LABELS[key]}
                           </button>
                         )
                       )}
                     </div>
-                  </div>
+                  </PanelField>
 
-                  <div>
-                    <p className="mb-1 text-[11px] font-medium text-slate-500">
-                      제목 크기
-                    </p>
+                  <PanelField label="제목 크기">
                     <div className="flex gap-1.5">
                       {(
                         Object.keys(
@@ -969,114 +1055,92 @@ export function VocabSetPrintView({
                           key={key}
                           type="button"
                           onClick={() => updateCover({ titleSize: key })}
-                          className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition ${
+                          aria-pressed={cover.titleSize === key}
+                          className={`flex-1 rounded-md border px-2 py-1.5 text-[13px] font-semibold transition ${choiceClass(
                             cover.titleSize === key
-                              ? "bg-slate-800 text-white"
-                              : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"
-                          }`}
+                          )}`}
                         >
                           {VOCAB_COVER_TITLE_SIZE_LABELS[key]}
                         </button>
                       ))}
                     </div>
-                  </div>
+                  </PanelField>
 
-                  <label className="block space-y-1">
-                    <span className="text-[11px] font-medium text-slate-500">
-                      슬로건
-                    </span>
+                  <PanelField label="슬로건">
                     <input
                       type="text"
                       value={cover.slogan}
                       onChange={(e) => updateCover({ slogan: e.target.value })}
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                      className="ui-input h-9 py-1.5 text-[13px]"
                       placeholder="시험에 나오는 것만 공부한다!"
                     />
-                  </label>
-                  <label className="block space-y-1">
-                    <span className="text-[11px] font-medium text-slate-500">
-                      메인 제목
-                    </span>
+                  </PanelField>
+                  <PanelField label="메인 제목">
                     <input
                       type="text"
                       value={cover.title}
                       onChange={(e) => updateCover({ title: e.target.value })}
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                      className="ui-input h-9 py-1.5 text-[13px]"
                     />
-                  </label>
-                  <label className="block space-y-1">
-                    <span className="text-[11px] font-medium text-slate-500">
-                      부제
-                    </span>
+                  </PanelField>
+                  <PanelField label="부제">
                     <input
                       type="text"
                       value={cover.subtitle}
                       onChange={(e) => updateCover({ subtitle: e.target.value })}
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                      className="ui-input h-9 py-1.5 text-[13px]"
                     />
-                  </label>
-                  <label className="block space-y-1">
-                    <span className="text-[11px] font-medium text-slate-500">
-                      시리즈 / 단계
-                    </span>
+                  </PanelField>
+                  <PanelField label="시리즈 / 단계">
                     <input
                       type="text"
                       value={cover.seriesLabel}
                       onChange={(e) =>
                         updateCover({ seriesLabel: e.target.value })
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
-                      placeholder="비우면 숨김"
+                      className="ui-input h-9 py-1.5 text-[13px]"
+                      placeholder="비우면 숨겨요"
                     />
-                  </label>
-                  <label className="block space-y-1">
-                    <span className="text-[11px] font-medium text-slate-500">
-                      학원명
-                    </span>
+                  </PanelField>
+                  <PanelField label="학원명">
                     <input
                       type="text"
                       value={cover.academyName}
                       onChange={(e) =>
                         updateCover({ academyName: e.target.value })
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                      className="ui-input h-9 py-1.5 text-[13px]"
                     />
-                  </label>
-                  <label className="block space-y-1">
-                    <span className="text-[11px] font-medium text-slate-500">
-                      부가 문구
-                    </span>
+                  </PanelField>
+                  <PanelField label="부가 문구">
                     <input
                       type="text"
                       value={cover.metaLine}
                       onChange={(e) => updateCover({ metaLine: e.target.value })}
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                      className="ui-input h-9 py-1.5 text-[13px]"
                     />
-                  </label>
-                  <label className="block space-y-1">
-                    <span className="text-[11px] font-medium text-slate-500">
-                      꼬릿말
-                    </span>
+                  </PanelField>
+                  <PanelField label="꼬리말">
                     <input
                       type="text"
                       value={cover.footerText}
                       onChange={(e) =>
                         updateCover({ footerText: e.target.value })
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                      className="ui-input h-9 py-1.5 text-[13px]"
                       placeholder="학원 · Vocabulary Workbook"
                     />
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-1.5 text-xs text-slate-700">
+                  </PanelField>
+                  <label className="flex cursor-pointer items-center gap-2 text-[13px] text-slate-700">
                     <input
                       type="checkbox"
                       checked={cover.showNameFields}
                       onChange={(e) =>
                         updateCover({ showNameFields: e.target.checked })
                       }
-                      className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600"
+                      className="h-4 w-4 accent-brand-600"
                     />
-                    이름 / 반 기입란
+                    이름 / 반 적는 칸
                   </label>
                   <button
                     type="button"
@@ -1085,46 +1149,18 @@ export function VocabSetPrintView({
                       setCover(coverDefaults);
                       queueLayoutUrlSync();
                     }}
-                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-100"
+                    className="flex w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 py-2 text-[13px] font-semibold text-slate-600 hover:bg-slate-50"
                   >
-                    기본값으로 되돌리기
+                    <Icon name="rotate" size={14} />
+                    처음 값으로 되돌리기
                   </button>
                 </div>
-              ) : null}
-            </div>
-
-            {mode === "exam" ? (
-              <div className="space-y-2">
-                <VocabPrintExamConfig
-                  settings={examSettings}
-                  onChange={updateExamSettings}
-                  onReshuffle={reshuffleExam}
-                  maxPool={totalItems}
-                />
-                {examTotal === 0 ? (
-                  <p className="text-xs text-amber-700">
-                    문항 수를 입력하면 시험지가 생성됩니다.
-                  </p>
-                ) : null}
-                {examTotal > 0 && examGenerated.questions.length === 0 ? (
-                  <p className="text-xs text-red-600">
-                    문항을 만들 수 없습니다. 객관식은 단어 2개 이상, 예문 문항은
-                    예문에 단어가 포함된 항목이 필요합니다.
-                  </p>
-                ) : null}
-                {examGenerated.capped ? (
-                  <p className="text-xs text-amber-700">
-                    단어 {totalItems}개까지만 출제됩니다. (요청{" "}
-                    {examTotal}문항 → 실제 {examGenerated.questions.length}문항)
-                  </p>
-                ) : null}
-                {examGenerated.skipped > 0 ? (
-                  <p className="text-xs text-amber-700">
-                    {examGenerated.skipped}문항은 보기를 만들 수 없어 제외되었습니다.
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
+              ) : (
+                <p className="text-[13px] text-slate-500">
+                  ‘넣기’를 켜면 맨 앞에 표지가 들어가요.
+                </p>
+              )}
+            </PanelSection>
 
             <div className="mt-auto flex flex-col gap-2 border-t border-slate-100 pt-4">
               {mode === "exam" ? (
@@ -1135,58 +1171,56 @@ export function VocabSetPrintView({
                     disabled={
                       printPreparing || examGenerated.questions.length === 0
                     }
-                    className="w-full rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-1.5 rounded-md bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
                   >
-                    시험지 출력
+                    <Icon name="print" size={16} strokeWidth={2} />
+                    시험지 인쇄
                   </button>
-                  <button
-                    type="button"
-                    onClick={handlePrintAnswerKey}
-                    disabled={
-                      printPreparing || examGenerated.questions.length === 0
-                    }
-                    className="w-full rounded-lg border border-teal-700 bg-white px-4 py-2.5 text-sm font-bold text-teal-800 hover:bg-teal-50 disabled:opacity-50"
-                  >
-                    정답지 출력
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handlePrintExamWithAnswers}
-                    disabled={
-                      printPreparing || examGenerated.questions.length === 0
-                    }
-                    className="w-full rounded-lg border border-emerald-700 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-900 hover:bg-emerald-100 disabled:opacity-50"
-                  >
-                    시험지+정답지 출력
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handlePrintAnswerKey}
+                      disabled={
+                        printPreparing || examGenerated.questions.length === 0
+                      }
+                      className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2.5 text-[13px] font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      정답지만
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handlePrintExamWithAnswers}
+                      disabled={
+                        printPreparing || examGenerated.questions.length === 0
+                      }
+                      className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2.5 text-[13px] font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      시험지+정답지
+                    </button>
+                  </div>
                 </>
               ) : (
                 <button
                   type="button"
                   onClick={handlePrint}
                   disabled={printPreparing}
-                  className="w-full rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-md bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
                 >
+                  <Icon name="print" size={16} strokeWidth={2} />
                   {printPreparing ? "인쇄 준비 중…" : "인쇄 / PDF 저장"}
                 </button>
               )}
-              <p className="text-[10px] leading-snug text-slate-500">
-                PDF 저장은 용지 선택이 없습니다. 위에서 고른{" "}
+              <p className="text-xs leading-snug text-slate-500">
+                PDF로 저장할 때는 용지를 따로 고르지 않아요. 위에서 고른{" "}
                 <strong className="font-semibold text-slate-700">
                   {size === "b5" ? "B5 (JIS) 182×257mm" : "A4 210×297mm"}
                 </strong>
-                크기로 저장됩니다. 여백은{" "}
+                크기로 저장돼요. 여백은{" "}
                 <strong className="font-semibold text-slate-700">없음</strong>,
                 배율은{" "}
                 <strong className="font-semibold text-slate-700">기본/100%</strong>
-                으로 두세요.
+                로 두세요.
               </p>
-              <Link
-                href={backHref}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
-                돌아가기
-              </Link>
             </div>
           </div>
         </aside>

@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const courseId = body.course_id;
 
     if (!studentId || !courseId) {
-      return adminJsonError("학생과 강좌을 모두 선택해 주세요.", 400);
+      return adminJsonError("학생과 강좌를 모두 선택해 주세요.", 400);
     }
 
     const admin = clientResult.admin;
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      message: "강좌이 학생에게 배정되었습니다.",
+      message: "강좌가 학생에게 배정되었습니다.",
     });
   } catch (error) {
     console.error("[POST /api/teacher/enrollments] unexpected error:", error);

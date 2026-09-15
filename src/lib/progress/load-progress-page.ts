@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { fetchInChunks } from "@/lib/classes/fetch-chunks";
 import {
   buildEnrollmentProgressRows,
   normalizeEnrollmentInputs,
@@ -8,37 +9,65 @@ import type { Lesson, LessonProgress, Section } from "@/types/database";
 
 const DEFAULT_ENROLLMENT_LIMIT = 400;
 
-export async function loadProgressPageRows(
+export interface ProgressRow extends EnrollmentProgressRow {
+  /** 이 학생이 속한 반 (반 거르기용) */
+  classIds: string[];
+  /** 표에 보일 반 — 이 강좌를 배정한 반이 있으면 그 반 */
+  className: string | null;
+}
+
+export interface ProgressPageData {
+  rows: ProgressRow[];
+  classes: { id: string; name: string }[];
+  /** 수강이 너무 많아 최근 배정분만 읽었는지 */
+  truncated: boolean;
+  limit: number;
+}
+
+export async function loadProgressPageData(
   supabase: SupabaseClient,
   options?: { teacherId?: string; enrollmentLimit?: number }
-): Promise<EnrollmentProgressRow[]> {
+): Promise<ProgressPageData> {
   const limit = options?.enrollmentLimit ?? DEFAULT_ENROLLMENT_LIMIT;
+  const empty: ProgressPageData = { rows: [], classes: [], truncated: false, limit };
 
   // enrollments는 academy_id가 없어, RLS가 적용된 courses로 먼저 범위를 좁힌다
   let courseQuery = supabase.from("courses").select("id");
+  let classQuery = supabase
+    .from("classes")
+    .select("id, name")
+    .eq("is_active", true)
+    .order("name");
   if (options?.teacherId) {
     courseQuery = courseQuery.eq("teacher_id", options.teacherId);
+    classQuery = classQuery.eq("teacher_id", options.teacherId);
   }
-  const { data: scopedCourses } = await courseQuery;
+  const [{ data: scopedCourses }, { data: classRows }] = await Promise.all([
+    courseQuery,
+    classQuery,
+  ]);
   const scopedCourseIds = (scopedCourses ?? []).map((c) => c.id as string);
-  if (scopedCourseIds.length === 0) return [];
+  const classes = (classRows ?? []) as { id: string; name: string }[];
+  if (scopedCourseIds.length === 0) return { ...empty, classes };
 
   const { data: enrollments } = await supabase
     .from("enrollments")
     .select(
-      "student_id, course_id, student:profiles!enrollments_student_id_fkey(name, email), course:courses(title)"
+      "student_id, course_id, created_at, student:profiles!enrollments_student_id_fkey(name, email, username), course:courses(title)"
     )
     .in("course_id", scopedCourseIds)
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .limit(limit + 1);
 
-  const enrollmentList = enrollments ?? [];
-  if (enrollmentList.length === 0) return [];
+  const truncated = (enrollments ?? []).length > limit;
+  const enrollmentList = (enrollments ?? []).slice(0, limit);
+  if (enrollmentList.length === 0) return { ...empty, classes };
 
   const courseIds = [...new Set(enrollmentList.map((e) => e.course_id as string))];
   const studentIds = [...new Set(enrollmentList.map((e) => e.student_id as string))];
+  const classIds = classes.map((c) => c.id);
 
-  const [{ data: sections }, { data: lessons }] = await Promise.all([
+  const [{ data: sections }, { data: lessons }, members, classCourses] = await Promise.all([
     supabase
       .from("sections")
       .select("id, course_id, order_index")
@@ -47,6 +76,22 @@ export async function loadProgressPageRows(
       .from("lessons")
       .select("id, course_id, title, order_index, section_id, is_published")
       .in("course_id", courseIds),
+    fetchInChunks<{ class_id: string; student_id: string }>(classIds, (ids, from, to) =>
+      supabase
+        .from("class_students")
+        .select("class_id, student_id")
+        .in("class_id", ids)
+        .order("id")
+        .range(from, to)
+    ),
+    fetchInChunks<{ class_id: string; course_id: string }>(classIds, (ids, from, to) =>
+      supabase
+        .from("class_courses")
+        .select("class_id, course_id")
+        .in("class_id", ids)
+        .order("id")
+        .range(from, to)
+    ),
   ]);
 
   const lessonIds = (lessons ?? []).map((l) => l.id as string);
@@ -87,11 +132,28 @@ export async function loadProgressPageRows(
     progress
   );
 
-  rows.sort((a, b) => {
-    const name = a.studentName.localeCompare(b.studentName, "ko");
-    if (name !== 0) return name;
-    return a.courseTitle.localeCompare(b.courseTitle, "ko");
-  });
+  const classNameById = new Map(classes.map((c) => [c.id, c.name]));
+  const classesByStudent = new Map<string, string[]>();
+  for (const m of members) {
+    const list = classesByStudent.get(m.student_id) ?? [];
+    list.push(m.class_id);
+    classesByStudent.set(m.student_id, list);
+  }
+  const courseClassPairs = new Set(classCourses.map((cc) => `${cc.class_id}:${cc.course_id}`));
 
-  return rows;
+  return {
+    rows: rows.map((row) => {
+      const ids = classesByStudent.get(row.studentId) ?? [];
+      const viaCourse = ids.find((id) => courseClassPairs.has(`${id}:${row.courseId}`));
+      const shown = viaCourse ?? ids[0] ?? null;
+      return {
+        ...row,
+        classIds: ids,
+        className: shown ? (classNameById.get(shown) ?? null) : null,
+      };
+    }),
+    classes,
+    truncated,
+    limit,
+  };
 }

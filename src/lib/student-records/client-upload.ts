@@ -106,10 +106,10 @@ export function validatePreparedStudentRecordFiles(files: File[]): string | null
 /** OCR extract 1회 요청 분량 검증 */
 export function validatePreparedExtractChunk(files: File[]): string | null {
   if (files.length === 0) {
-    return "OCR할 이미지가 없습니다.";
+    return "읽을 이미지가 없어요.";
   }
   if (files.length > STUDENT_RECORD_EXTRACT_CHUNK_PAGES) {
-    return `한 번에 OCR할 수 있는 페이지는 ${STUDENT_RECORD_EXTRACT_CHUNK_PAGES}장입니다.`;
+    return `한 번에 읽을 수 있는 페이지는 ${STUDENT_RECORD_EXTRACT_CHUNK_PAGES}장이에요.`;
   }
 
   let total = 0;
@@ -274,7 +274,7 @@ export async function readStudentRecordApiResponse<T extends { ok?: boolean; mes
       return {
         data: null,
         error:
-          "처리 시간이 서버 한도(약 1~5분)를 초과했습니다. PDF 페이지 수를 줄이거나 잠시 후 다시 시도해 주세요. (용량이 작아도 페이지·OCR 단계가 많으면 시간이 걸립니다.)",
+          "처리 시간이 서버 한도(약 1~5분)를 초과했습니다. PDF 페이지 수를 줄이거나 잠시 후 다시 시도해 주세요. (용량이 작아도 페이지가 많으면 읽는 데 시간이 걸려요.)",
       };
     }
     if (res.status === 502 || res.status === 503) {

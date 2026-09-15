@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Alert } from "@/components/ui/Alert";
+import { ButtonLink } from "@/components/ui/Button";
+import { Icon } from "@/components/layout/NavIcon";
 
 export function PaymentSuccessClient() {
   const sp = useSearchParams();
@@ -21,7 +21,7 @@ export function PaymentSuccessClient() {
     const amount = Number(sp.get("amount"));
 
     if (!paymentKey || !orderId || !Number.isFinite(amount)) {
-      setError("결제 정보가 올바르지 않습니다.");
+      setError("결제 정보가 올바르지 않아요.");
       return;
     }
 
@@ -36,7 +36,7 @@ export function PaymentSuccessClient() {
         const data = await res.json();
         if (cancelled) return;
         if (!data.ok) {
-          setError(data.message ?? "결제 승인에 실패했습니다.");
+          setError(data.message ?? "결제 승인에 실패했어요.");
           return;
         }
         setDone({
@@ -46,7 +46,7 @@ export function PaymentSuccessClient() {
           alreadyApproved: Boolean(data.alreadyApproved),
         });
       } catch {
-        if (!cancelled) setError("결제 승인 요청에 실패했습니다.");
+        if (!cancelled) setError("연결이 잠시 끊겼어요. 크레딧 화면에서 충전 내역을 확인해 주세요.");
       }
     })();
 
@@ -56,38 +56,72 @@ export function PaymentSuccessClient() {
   }, [sp]);
 
   return (
-    <div className="mx-auto max-w-lg space-y-4 px-4 py-10">
-      <h1 className="text-xl font-semibold text-slate-900">결제 결과</h1>
-      {error && <Alert variant="error">{error}</Alert>}
-      {!error && !done && (
-        <p className="text-sm text-slate-600">결제 승인 및 크레딧 적립 중…</p>
+    <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-card sm:mt-6">
+      {error ? (
+        <>
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 text-rose-700">
+            <Icon name="alert" size={22} />
+          </span>
+          <div>
+            <h1 className="text-lg font-bold text-slate-900">결제를 마치지 못했어요</h1>
+            <p className="mt-1 text-sm text-slate-500">{error}</p>
+          </div>
+        </>
+      ) : !done ? (
+        <>
+          <span className="h-12 w-12 animate-spin rounded-full border-4 border-brand-100 border-t-brand-600" aria-hidden />
+          <div>
+            <h1 className="text-lg font-bold text-slate-900">결제를 확인하고 있어요</h1>
+            <p className="mt-1 text-sm text-slate-500">크레딧을 넣는 중이에요. 창을 닫지 말아 주세요.</p>
+          </div>
+        </>
+      ) : (
+        <>
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-green-700">
+            <Icon name="check" size={24} strokeWidth={2.4} />
+          </span>
+          <div>
+            <h1 className="text-lg font-bold text-slate-900">
+              {done.alreadyApproved ? "이미 처리된 결제예요" : "충전했어요"}
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {done.alreadyApproved
+                ? "크레딧은 한 번만 들어가요."
+                : "지금 바로 쓸 수 있어요."}
+            </p>
+          </div>
+          <dl className="w-full rounded-lg bg-slate-50 px-4 py-3 text-[13px]">
+            <div className="flex justify-between py-1">
+              <dt className="text-slate-500">결제 금액</dt>
+              <dd className="font-semibold tabular-nums text-slate-900">
+                {done.paymentAmount.toLocaleString("ko-KR")}원
+              </dd>
+            </div>
+            <div className="flex justify-between py-1">
+              <dt className="text-slate-500">받은 크레딧</dt>
+              <dd className="font-semibold tabular-nums text-green-700">
+                +{done.totalCredit.toLocaleString("ko-KR")}
+              </dd>
+            </div>
+          </dl>
+        </>
       )}
-      {done && (
-        <Alert variant="success">
-          {done.alreadyApproved
-            ? "이미 처리된 결제입니다. 크레딧은 중복 지급되지 않았습니다."
-            : "결제가 완료되었고 크레딧이 적립되었습니다."}
-          <br />
-          {done.paymentAmount.toLocaleString("ko-KR")}원 →{" "}
-          {done.totalCredit.toLocaleString("ko-KR")} 크레딧
-        </Alert>
-      )}
-      <div className="flex flex-wrap gap-3 text-sm">
-        <Link
-          href="/admin/credits"
-          className="rounded-lg bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700"
-        >
-          크레딧으로 이동
-        </Link>
+      <div className="flex flex-wrap justify-center gap-2 pt-1">
+        <ButtonLink href="/admin/credits">크레딧으로</ButtonLink>
         {done?.receiptUrl ? (
           <a
             href={done.receiptUrl}
             target="_blank"
             rel="noreferrer"
-            className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-50"
+            className="inline-flex h-9 items-center rounded-md border border-slate-300 bg-white px-3.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
           >
             영수증 보기
           </a>
+        ) : null}
+        {error ? (
+          <ButtonLink href="/admin/credits/charge" variant="secondary">
+            다시 충전하기
+          </ButtonLink>
         ) : null}
       </div>
     </div>

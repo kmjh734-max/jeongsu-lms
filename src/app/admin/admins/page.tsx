@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
-import { AdminManagement } from "@/components/admin/AdminManagement";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { loadLastSignIns } from "@/lib/accounts/last-sign-in";
+import {
+  StaffAccountsBoard,
+  type StaffRow,
+} from "@/components/accounts/StaffAccountsBoard";
 import type { Profile } from "@/types/database";
 
 export default async function AdminAdminsPage() {
@@ -12,14 +15,27 @@ export default async function AdminAdminsPage() {
     .eq("role", "admin")
     .order("name");
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="관리자 계정"
-        description="추가 관리자를 등록하고 아이디·비밀번호·활성 상태를 관리합니다. 로그인은 아이디와 비밀번호를 사용합니다."
-      />
+  const adminList = (admins ?? []) as Profile[];
+  const lastSignIns = await loadLastSignIns(adminList.map((a) => a.id));
 
-      <AdminManagement admins={(admins ?? []) as Profile[]} />
-    </div>
+  const rows: StaffRow[] = adminList.map((a) => ({
+    id: a.id,
+    name: a.name,
+    username: a.username,
+    email: a.email,
+    is_active: a.is_active,
+    lastSignInAt: lastSignIns[a.id] ?? null,
+  }));
+
+  return (
+    <StaffAccountsBoard
+      title="관리자 계정"
+      description="학원을 함께 관리할 계정을 등록하고 관리합니다."
+      roleLabel="관리자"
+      apiBasePath="/api/admin/admins"
+      users={rows}
+      allowUsernameEdit
+      note="마지막 남은 관리자 계정은 삭제할 수 없어요. 쉬게 한 계정은 다시 활성으로 바꾸기 전까지 로그인할 수 없어요."
+    />
   );
 }

@@ -89,9 +89,22 @@ export interface NeltGrowthReport {
   updated_at: string;
 }
 
+export interface NeltStudentGroupAttempt {
+  testDate: string | null;
+  overallLevel: string | null;
+  /** 동학년 상위 % */
+  overallPercentile: number | null;
+}
+
 export interface NeltStudentGroup {
   studentName: string;
   reportCount: number;
   latestTestDate: string | null;
   latestOverallLevel: string | null;
+  /** 가장 최근 회차의 학년 */
+  gradeRaw: string | null;
+  /** 시험일 오래된 순 */
+  attempts: NeltStudentGroupAttempt[];
+  /** 학부모 안내 링크를 마지막으로 만든 시각 */
+  lastSharedAt: string | null;
 }

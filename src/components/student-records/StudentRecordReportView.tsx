@@ -1,7 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Icon } from "@/components/layout/NavIcon";
+import { Button } from "@/components/ui/Button";
 import { PcKakaoSendModal } from "@/components/reports/PcKakaoSendModal";
+import {
+  formatKoreanDate,
+  ReportMenu,
+  ReportMenuItem,
+} from "@/components/reports/report-ui";
 import { StudentRecordPrintPreview } from "@/components/student-records/StudentRecordPrintPreview";
 import { StudentRecordShareActions } from "@/components/student-records/StudentRecordShareActions";
 import { buildStudentRecordKakaoMessage } from "@/lib/student-records/build-kakao-message";
@@ -10,17 +17,21 @@ import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
 
 interface StudentRecordReportViewProps {
   result: StudentRecordAnalysisResult;
-  onReset: () => void;
+  /** 분석 기록에 저장된 학교 이름 */
+  school?: string | null;
   /** 본문 수정 저장 후 상위 상태 동기화 */
   onHtmlSaved?: (html: string) => void;
+  /** 기록 삭제 (저장된 기록일 때만) */
+  onDelete?: () => void;
   academyName?: string;
   logoSrc?: string;
 }
 
 export function StudentRecordReportView({
   result,
-  onReset,
+  school,
   onHtmlSaved,
+  onDelete,
   academyName,
   logoSrc,
 }: StudentRecordReportViewProps) {
@@ -30,22 +41,29 @@ export function StudentRecordReportView({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [editError, setEditError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ text: string; tone: "ok" | "error" } | null>(
+    null
+  );
   const [iframeKey, setIframeKey] = useState(0);
 
   const canEdit = Boolean(result.recordId);
+
+  function showNotice(text: string, tone: "ok" | "error") {
+    setNotice({ text, tone });
+    window.setTimeout(() => setNotice(null), 6000);
+  }
 
   function startEditing() {
     const doc = iframeRef.current?.contentDocument;
     if (!doc) return;
     doc.designMode = "on";
-    setEditError(null);
+    setNotice(null);
     setEditing(true);
   }
 
   function cancelEditing() {
     setEditing(false);
-    setEditError(null);
+    setNotice(null);
     // iframe을 다시 그려 수정 전 내용으로 복원
     setIframeKey((k) => k + 1);
   }
@@ -56,25 +74,22 @@ export function StudentRecordReportView({
 
     const html = `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
     setSaving(true);
-    setEditError(null);
     try {
-      const res = await fetch(
-        `/api/student-records/history/${result.recordId}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ html }),
-        }
-      );
+      const res = await fetch(`/api/student-records/history/${result.recordId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ html }),
+      });
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        throw new Error(data.message ?? "저장에 실패했습니다.");
+        throw new Error(data.message ?? "저장하지 못했어요.");
       }
       doc.designMode = "off";
       setEditing(false);
       onHtmlSaved?.(html);
+      showNotice("고친 내용을 저장했어요.", "ok");
     } catch (e) {
-      setEditError(e instanceof Error ? e.message : "저장에 실패했습니다.");
+      showNotice(e instanceof Error ? e.message : "저장하지 못했어요.", "error");
     } finally {
       setSaving(false);
     }
@@ -98,80 +113,80 @@ export function StudentRecordReportView({
     setPcKakaoOpen(true);
   }
 
+  const meta = [school, formatKoreanDate(result.generatedAt)].filter(Boolean).join(" · ");
+
   return (
-    <div className="space-y-4">
-      <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-        <div>
-          <p className="font-semibold text-emerald-900">
-            {result.studentName} 학생 · 학생부 분석 완료
-          </p>
-          <p className="text-xs text-emerald-800">
-            생성: {new Date(result.generatedAt).toLocaleString("ko-KR")}
-          </p>
+    <div className="space-y-3">
+      <header className="no-print flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-card">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+          <Icon name="clipboard" size={19} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-base font-bold text-slate-900">
+            {result.studentName} 학생부 분석
+          </h2>
+          {meta ? <p className="truncate text-xs text-slate-500">{meta}</p> : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {canEdit && !editing && (
-            <button
-              type="button"
-              className="rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-100"
-              onClick={startEditing}
-            >
-              ✏️ 내용 수정
-            </button>
-          )}
-          {editing && (
+          {editing ? (
             <>
-              <button
-                type="button"
-                className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                disabled={saving}
-                onClick={() => void saveEditing()}
-              >
-                {saving ? "저장 중…" : "수정 내용 저장"}
-              </button>
-              <button
-                type="button"
-                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                disabled={saving}
-                onClick={cancelEditing}
-              >
+              <Button variant="secondary" disabled={saving} onClick={cancelEditing}>
                 취소
-              </button>
+              </Button>
+              <Button disabled={saving} onClick={() => void saveEditing()}>
+                <Icon name="check" size={15} />
+                {saving ? "저장 중…" : "고친 내용 저장"}
+              </Button>
+            </>
+          ) : (
+            <>
+              {canEdit ? (
+                <Button variant="secondary" onClick={startEditing}>
+                  <Icon name="edit" size={15} />
+                  내용 수정
+                </Button>
+              ) : null}
+              <StudentRecordShareActions
+                result={result}
+                onOpenPrint={() => setPrintOpen(true)}
+                onPcKakaoPrepare={handlePcKakaoPrepare}
+                onMessage={showNotice}
+                academyName={academyName}
+                logoSrc={logoSrc}
+              />
+              {onDelete ? (
+                <ReportMenu label="기록 메뉴">
+                  <ReportMenuItem icon="trash" danger onClick={onDelete}>
+                    삭제
+                  </ReportMenuItem>
+                </ReportMenu>
+              ) : null}
             </>
           )}
-          <button
-            type="button"
-            className="rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-100"
-            onClick={onReset}
-          >
-            ← 학생부 분석 메인으로
-          </button>
         </div>
-      </div>
+      </header>
 
-      {editing && (
-        <p className="no-print rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-800">
-          편집 모드입니다. 아래 보고서에서 고치고 싶은 글자를 직접 클릭해서
-          수정한 뒤, 위의 <b>수정 내용 저장</b> 버튼을 눌러 주세요.
+      {editing ? (
+        <p className="no-print rounded-md border border-brand-100 bg-brand-50 px-4 py-2.5 text-sm text-brand-800">
+          고치고 싶은 글자를 아래 보고서에서 바로 눌러 고친 뒤, 「고친 내용 저장」을 눌러 주세요.
         </p>
-      )}
-      {editError && (
-        <p className="no-print rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
-          {editError}
+      ) : null}
+      {notice ? (
+        <p
+          role={notice.tone === "error" ? "alert" : "status"}
+          className={`no-print rounded-md border px-4 py-2.5 text-sm ${
+            notice.tone === "error"
+              ? "border-rose-100 bg-rose-50 text-rose-700"
+              : "border-green-100 bg-green-50 text-green-700"
+          }`}
+        >
+          {notice.text}
         </p>
-      )}
-
-      <StudentRecordShareActions
-        result={result}
-        onOpenPrint={() => setPrintOpen(true)}
-        onPcKakaoPrepare={handlePcKakaoPrepare}
-        academyName={academyName}
-        logoSrc={logoSrc}
-      />
+      ) : null}
 
       <div
-        className={`overflow-hidden rounded-xl border bg-white shadow-sm ${
-          editing ? "border-blue-400 ring-2 ring-blue-200" : "border-slate-200"
+        className={`overflow-hidden rounded-lg border bg-white shadow-card ${
+          editing ? "border-brand-600 ring-2 ring-brand-100" : "border-slate-200"
         }`}
       >
         <iframe
@@ -182,16 +197,6 @@ export function StudentRecordReportView({
           className="min-h-[80vh] w-full border-0"
           sandbox="allow-same-origin"
         />
-      </div>
-
-      <div className="no-print">
-        <button
-          type="button"
-          className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          onClick={onReset}
-        >
-          ← 학생부 분석 메인으로 돌아가기
-        </button>
       </div>
 
       <StudentRecordPrintPreview
@@ -210,7 +215,7 @@ export function StudentRecordReportView({
         copySucceeded={pcKakaoCopyOk}
         onOpenPrint={() => setPrintOpen(true)}
         pdfFileName={buildStudentRecordPdfFileName(result.studentName)}
-        title="PC 카카오 학생부 분석 발송"
+        title="PC 카톡으로 학생부 분석 보내기"
       />
     </div>
   );

@@ -36,10 +36,10 @@ export function ListeningQuestionPreview({
   const av = question.answer_validation;
 
   return (
-    <article className="rounded-xl border border-indigo-100 bg-white p-4 shadow-sm">
+    <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-card">
       <header className="mb-3 flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 pb-2">
         <div>
-          <p className="text-xs font-medium text-indigo-600">
+          <p className="text-xs font-semibold text-slate-500">
             {question.order_index}번 · {question.question_type}
           </p>
           {question.instruction && (
@@ -49,8 +49,8 @@ export function ListeningQuestionPreview({
       </header>
 
       {audioNeedsRegeneration && (
-        <p className="mb-2 rounded-lg bg-violet-50 px-2 py-1 text-xs text-violet-800">
-          음원 재생성이 필요합니다.
+        <p className="mb-2 rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-800">
+          음성을 다시 만들어야 해요.
         </p>
       )}
 
@@ -77,14 +77,14 @@ export function ListeningQuestionPreview({
             highlightMismatchNo={table.mismatch_no}
           />
           {table.mismatch_reason && (
-            <p className="mt-2 text-xs text-amber-800">
+            <p className="mt-2 text-xs text-amber-700">
               <span className="font-medium">불일치:</span> {table.mismatch_reason}
             </p>
           )}
           {question.order_index === 14 &&
             question.source_facts_from_script &&
             question.source_facts_from_script.length > 0 && (
-              <div className="mt-2 rounded-lg bg-slate-50 p-2 text-xs text-slate-800">
+              <div className="mt-2 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
                 <p className="font-medium">대본 기준 정보</p>
                 <ul className="mt-1 space-y-0.5">
                   {question.source_facts_from_script.map((f, i) => (
@@ -103,7 +103,7 @@ export function ListeningQuestionPreview({
       )}
 
       {(question.order_index === 19 || question.order_index === 20) && (
-        <div className="mb-3 rounded-lg bg-slate-50 p-2 text-xs text-slate-700">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           {question.order_index === 19 && question.blank_speaker && (
             <p>
               <span className="font-medium">빈칸 화자:</span>{" "}
@@ -155,12 +155,12 @@ export function ListeningQuestionPreview({
           <li
             key={i}
             className={
-              question.correct_answer === i + 1 ? "font-semibold text-indigo-700" : ""
+              question.correct_answer === i + 1 ? "font-semibold text-green-700" : ""
             }
           >
             <div>
               {CIRCLED[i] ?? `${i + 1}.`} {c}
-              {question.correct_answer === i + 1 ? " ✓" : ""}
+              {question.correct_answer === i + 1 ? " · 정답" : ""}
             </div>
             {((question.choice_image_urls?.length ?? 0) > 1 &&
               question.choice_image_urls?.[i]?.trim()) ? (
@@ -196,7 +196,7 @@ export function ListeningQuestionPreview({
         question.order_index === 2 ||
         question.order_index === 3) &&
         question.needs_image_choices && (
-        <p className="mb-2 text-xs text-violet-700">
+        <p className="mb-2 text-xs text-slate-600">
           그림 선택지 문항
           {question.visual_choice_type
             ? ` (${question.visual_choice_type})`
@@ -209,7 +209,7 @@ export function ListeningQuestionPreview({
 
       {question.order_index === 4 &&
         (question.target_intention || question.final_utterance) && (
-        <div className="mb-3 rounded-lg bg-violet-50 p-2 text-xs text-violet-900">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">의도 파악 문항 정보</p>
           <p className="mt-1">
             마지막 화자:{" "}
@@ -238,7 +238,7 @@ export function ListeningQuestionPreview({
         (question.requested_action ||
           question.requester ||
           question.request_expression) && (
-        <div className="mb-3 rounded-lg bg-rose-50 p-2 text-xs text-rose-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">부탁한 일 문항 정보</p>
           <p className="mt-1">
             부탁: {question.requester || "—"} → {question.requested_person || "—"}{" "}
@@ -264,7 +264,7 @@ export function ListeningQuestionPreview({
         (question.suggested_action ||
           question.suggester ||
           question.suggestion_expression) && (
-        <div className="mb-3 rounded-lg bg-sky-50 p-2 text-xs text-sky-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">제안한 것 문항 정보</p>
           <p className="mt-1">
             제안: {question.suggester || "—"} → {question.suggested_to || "—"}{" "}
@@ -290,7 +290,7 @@ export function ListeningQuestionPreview({
         (question.planned_action ||
           question.target_time ||
           question.target_person) && (
-        <div className="mb-3 rounded-lg bg-teal-50 p-2 text-xs text-teal-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">특정 시점에 할 일 문항 정보</p>
           <p className="mt-1">
             대상: {question.target_person || "—"} · 시점:{" "}
@@ -315,7 +315,7 @@ export function ListeningQuestionPreview({
         (question.target_job ||
           question.target_person ||
           (question.job_clues?.length ?? 0) > 0) && (
-        <div className="mb-3 rounded-lg bg-violet-50 p-2 text-xs text-violet-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">직업 파악 문항 정보</p>
           <p className="mt-1">
             대상: {question.target_person || "—"} · 직업:{" "}
@@ -345,7 +345,7 @@ export function ListeningQuestionPreview({
 
       {question.order_index === 13 &&
         (question.target_place || (question.place_clues?.length ?? 0) > 0) && (
-        <div className="mb-3 rounded-lg bg-emerald-50 p-2 text-xs text-emerald-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">대화 장소 파악 문항 정보</p>
           <p className="mt-1">
             대화 장소: {question.target_place || "—"}
@@ -372,7 +372,7 @@ export function ListeningQuestionPreview({
         (question.reason_for_going ||
           question.target_place ||
           question.target_person) && (
-        <div className="mb-3 rounded-lg bg-indigo-50 p-2 text-xs text-indigo-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">이유 파악 문항 정보</p>
           <p className="mt-1">
             대상: {question.target_person || "—"} · 장소:{" "}
@@ -397,7 +397,7 @@ export function ListeningQuestionPreview({
         (question.final_transport ||
           question.destination ||
           (question.mentioned_transport_options?.length ?? 0) > 0) && (
-        <div className="mb-3 rounded-lg bg-sky-50 p-2 text-xs text-sky-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">이동 방법 파악 문항 정보</p>
           <p className="mt-1">
             목적지: {question.destination || "—"} · 최종 수단:{" "}
@@ -422,7 +422,7 @@ export function ListeningQuestionPreview({
 
       {question.order_index === 10 &&
         (question.main_content || (question.content_clues?.length ?? 0) > 0) && (
-        <div className="mb-3 rounded-lg bg-teal-50 p-2 text-xs text-teal-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">핵심 내용 파악 문항 정보</p>
           <p className="mt-1">
             핵심 내용: {question.main_content || "—"}
@@ -447,7 +447,7 @@ export function ListeningQuestionPreview({
 
       {question.order_index === 9 &&
         (question.immediate_action || question.target_person) && (
-        <div className="mb-3 rounded-lg bg-orange-50 p-2 text-xs text-orange-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">대화 직후 할 일 문항 정보</p>
           <p className="mt-1">
             대상: {question.target_person || "—"} · 직후 행동:{" "}
@@ -468,7 +468,7 @@ export function ListeningQuestionPreview({
 
       {question.order_index === 8 &&
         (question.target_emotion || question.target_person) && (
-        <div className="mb-3 rounded-lg bg-rose-50 p-2 text-xs text-rose-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">심정 파악 문항 정보</p>
           <p className="mt-1">
             대상: {question.target_person || "—"} · 심정:{" "}
@@ -486,7 +486,7 @@ export function ListeningQuestionPreview({
 
       {question.order_index === 7 &&
         (question.dream_job || question.target_person) && (
-        <div className="mb-3 rounded-lg bg-teal-50 p-2 text-xs text-teal-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">장래 희망 문항 정보</p>
           <p className="mt-1">
             대상: {question.target_person || "—"} · 장래 희망:{" "}
@@ -504,7 +504,7 @@ export function ListeningQuestionPreview({
 
       {question.order_index === 6 &&
         (question.final_time || question.time_question_target) && (
-        <div className="mb-3 rounded-lg bg-indigo-50 p-2 text-xs text-indigo-950">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">시각 파악 문항 정보</p>
           <p className="mt-1">
             질문 대상: {question.time_question_target || "—"} · 정답 시각:{" "}
@@ -523,8 +523,8 @@ export function ListeningQuestionPreview({
       )}
 
       {question.order_index === 5 && question.mention_plan && (
-        <div className="mb-3 rounded-lg bg-amber-50 p-2 text-xs text-amber-950">
-          <p className="font-medium">언급/미언급 계획 (mention_plan)</p>
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
+          <p className="font-medium">언급한 것 · 안 한 것</p>
           {question.mention_plan.topic && (
             <p className="mt-1">주제: {question.mention_plan.topic}</p>
           )}
@@ -535,9 +535,9 @@ export function ListeningQuestionPreview({
                 <li key={item.no}>
                   {item.no}. {item.label}{" "}
                   {item.mentioned ? (
-                    <span className="text-emerald-700">언급</span>
+                    <span className="text-slate-500">언급</span>
                   ) : (
-                    <span className="font-medium text-red-700">미언급(정답)</span>
+                    <span className="font-medium text-green-700">언급 안 됨(정답)</span>
                   )}
                   {item.evidence && (
                     <span className="block text-slate-600 italic">
@@ -552,7 +552,7 @@ export function ListeningQuestionPreview({
 
       {question.order_index === 3 &&
         (question.weather_target_location || question.weather_target_time) && (
-        <div className="mb-3 rounded-lg bg-sky-50 p-2 text-xs text-sky-900">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">날씨 문항 정보</p>
           <p className="mt-1">
             지역: {question.weather_target_location || "—"} · 질문 시점:{" "}
@@ -573,7 +573,7 @@ export function ListeningQuestionPreview({
       )}
 
       {question.order_index === 2 && question.selected_conditions && (
-        <div className="mb-3 rounded-lg bg-slate-50 p-2 text-xs text-slate-700">
+        <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium text-slate-600">구매 조건</p>
           <ul className="mt-1 space-y-0.5">
             {question.selected_conditions.item_type && (
@@ -589,7 +589,7 @@ export function ListeningQuestionPreview({
               <li>특징: {question.selected_conditions.extra_feature}</li>
             )}
             {question.selected_conditions.final_choice_sentence && (
-              <li className="text-emerald-800">
+              <li className="text-green-700">
                 최종: {question.selected_conditions.final_choice_sentence}
               </li>
             )}
@@ -602,7 +602,7 @@ export function ListeningQuestionPreview({
       </p>
 
       {question.answer_clue && (
-        <p className="mb-2 text-xs text-emerald-800">
+        <p className="mb-2 text-xs text-green-700">
           <span className="font-medium">정답 근거:</span> {question.answer_clue}
         </p>
       )}
@@ -620,9 +620,9 @@ export function ListeningQuestionPreview({
               type="button"
               disabled={regenerateBusy || revalidateBusy}
               onClick={onRegenerate}
-              className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-800 disabled:opacity-50"
+              className="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
             >
-              {regenerateBusy ? "재생성 중…" : "이 문항 다시 생성"}
+              {regenerateBusy ? "다시 만드는 중…" : "이 문항 다시 만들기"}
             </button>
           )}
           {onRevalidate && (
@@ -630,9 +630,9 @@ export function ListeningQuestionPreview({
               type="button"
               disabled={regenerateBusy || revalidateBusy}
               onClick={onRevalidate}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 disabled:opacity-50"
+              className="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
             >
-              {revalidateBusy ? "검수 중…" : "정답/선택지 다시 검수"}
+              {revalidateBusy ? "확인 중…" : "정답·선택지 다시 확인"}
             </button>
           )}
           {onGenerateAudio && (
@@ -640,9 +640,9 @@ export function ListeningQuestionPreview({
               type="button"
               disabled={audioBusy}
               onClick={onGenerateAudio}
-              className="rounded-lg border border-indigo-200 px-3 py-1.5 text-xs font-medium text-indigo-700 disabled:opacity-50"
+              className="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
             >
-              {audioBusy ? "음원 생성 중…" : "음원 생성"}
+              {audioBusy ? "음성 만드는 중…" : "음성 만들기"}
             </button>
           )}
         </div>

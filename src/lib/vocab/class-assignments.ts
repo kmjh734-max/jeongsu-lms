@@ -123,3 +123,19 @@ export async function removeVocabAssignment(
   if (error) return { ok: false, message: error.message };
   return { ok: true };
 }
+
+/** 배정 여러 개를 한 번에 해제 (반 배정은 학생마다 줄이 있어 한꺼번에 지운다) */
+export async function removeVocabAssignmentsByIds(
+  supabase: SupabaseClient,
+  assignmentIds: string[]
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const ids = [...new Set(assignmentIds)];
+  for (let i = 0; i < ids.length; i += 100) {
+    const { error } = await supabase
+      .from("vocab_assignments")
+      .delete()
+      .in("id", ids.slice(i, i + 100));
+    if (error) return { ok: false, message: error.message };
+  }
+  return { ok: true };
+}

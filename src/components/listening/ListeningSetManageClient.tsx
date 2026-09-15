@@ -2,26 +2,36 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Icon } from "@/components/layout/NavIcon";
+import { ListeningAudioBar } from "@/components/listening/ListeningAudioBar";
 import {
   GenerationProgress,
   type ItemProgressRow,
 } from "@/components/listening/GenerationProgress";
 import {
+  ListeningMenu,
+  ListeningMenuDivider,
+  ListeningMenuItem,
+} from "@/components/listening/ListeningMenu";
+import {
+  ListeningQuestionEditor,
+  questionNeedsReview,
+  type ListeningQuestionData,
+} from "@/components/listening/ListeningQuestionEditor";
+import { ListeningQuestionPreview } from "@/components/listening/ListeningQuestionPreview";
+import { ListeningVoiceSettings } from "@/components/listening/ListeningVoiceSettings";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import {
   generateAudioSequential,
   generateQuestionsSequential,
 } from "@/lib/listening/client-generation";
-import type { GenerationPhase } from "@/lib/listening/progress-weights";
-import { ListeningQuestionCompact } from "@/components/listening/ListeningQuestionCompact";
-import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
-import { ListeningQuestionEditor } from "@/components/listening/ListeningQuestionEditor";
-import { ListeningQuestionPreview } from "@/components/listening/ListeningQuestionPreview";
+import type { DictationBlankLevel, DictationSetSettings } from "@/lib/listening/dictation/types";
+import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
 import { type ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
+import { getExamTypesForGrade, tierLabel } from "@/lib/listening/exam-types";
 import {
-  getExamTypesForGrade,
-  tierLabel,
-} from "@/lib/listening/exam-types";
-import {
+  gradeLevelShort,
   isHighSchoolListeningGrade,
   LISTENING_GRADE_OPTIONS,
   questionCountOptionsForGrade,
@@ -32,16 +42,23 @@ import {
   planRandomGenerationSlots,
   type ListeningGenerationPlanMode,
 } from "@/lib/listening/generation-slots";
-import type { GeneratedListeningQuestion } from "@/lib/listening/types";
-import { ListeningVoiceSettings } from "@/components/listening/ListeningVoiceSettings";
+import type { GenerationPhase } from "@/lib/listening/progress-weights";
 import {
   SPEECH_SPEED_MAP,
   SPEECH_SPEED_OPTIONS,
   presetFromSpeed,
   type SpeechSpeedPreset,
 } from "@/lib/listening/speech-speed";
-import type { DictationBlankLevel, DictationSetSettings } from "@/lib/listening/dictation/types";
-import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
+import type { GeneratedListeningQuestion } from "@/lib/listening/types";
+
+type Step = 1 | 2 | 3 | 4;
+
+const BLANK_LEVEL_LABEL: Record<DictationBlankLevel, string> = {
+  auto: "알아서",
+  few: "적게",
+  normal: "보통",
+  many: "많게",
+};
 
 interface ListeningSetManageClientProps {
   setId: string;
@@ -56,6 +73,70 @@ interface ListeningSetManageClientProps {
   role: "admin" | "teacher";
   /** 커리큘럼 잠금 — 교사는 수정 불가 */
   isLocked?: boolean;
+  /** 뒤로 가기 줄에 보일 폴더 이름 */
+  folderName?: string | null;
+  /** 진행 중인 배정 대상 이름 */
+  assignedTargets?: string[];
+  /** 주소의 ?step= 값 */
+  initialStep?: string;
+}
+
+function hasAudio(q: ListeningQuestionData): boolean {
+  return Boolean(q.audio_url?.trim());
+}
+
+function defaultStep(questions: ListeningQuestionData[]): Step {
+  if (questions.length === 0) return 1;
+  if (questions.some(questionNeedsReview)) return 2;
+  if (questions.some((q) => !hasAudio(q))) return 3;
+  return 2;
+}
+
+function parseStep(raw: string | undefined): Step | null {
+  const n = Number(raw);
+  return n === 1 || n === 2 || n === 3 || n === 4 ? n : null;
+}
+
+function SavedHint({ show, text = "저장했어요" }: { show: boolean; text?: string }) {
+  if (!show) return null;
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+      <Icon name="check" size={13} strokeWidth={2.4} />
+      {text}
+    </span>
+  );
+}
+
+function Switch({
+  checked,
+  onChange,
+  disabled,
+  label,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  disabled?: boolean;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full transition disabled:opacity-50 ${
+        checked ? "bg-brand-600" : "bg-slate-300"
+      }`}
+    >
+      <span
+        className={`inline-block h-5 w-5 rounded-full bg-white shadow transition ${
+          checked ? "translate-x-[18px]" : "translate-x-0.5"
+        }`}
+      />
+    </button>
+  );
 }
 
 export function ListeningSetManageClient({
@@ -70,9 +151,17 @@ export function ListeningSetManageClient({
   questions: initialQuestions,
   role,
   isLocked = false,
+  folderName,
+  assignedTargets = [],
+  initialStep,
 }: ListeningSetManageClientProps) {
   const readOnly = role === "teacher" && isLocked;
+  const basePath = role === "admin" ? "/admin/listening" : "/teacher/listening";
   const router = useRouter();
+
+  const [step, setStep] = useState<Step>(
+    () => parseStep(initialStep) ?? defaultStep(initialQuestions)
+  );
   const [gradeLevel, setGradeLevel] = useState<ListeningGradeLevel>(initialGradeLevel);
   const [generationPlanMode, setGenerationPlanMode] =
     useState<ListeningGenerationPlanMode>("random");
@@ -84,10 +173,28 @@ export function ListeningSetManageClient({
   const [speechPreset, setSpeechPreset] = useState<SpeechSpeedPreset>(
     presetFromSpeed(initialSpeechSpeed)
   );
+  const [speedSaved, setSpeedSaved] = useState(false);
   const [dictation, setDictation] = useState<DictationSetSettings>({
     ...DEFAULT_DICTATION_SETTINGS,
     ...initialDictation,
   });
+  const [dictationDraft, setDictationDraft] = useState<DictationSetSettings>(dictation);
+  const [dictationSaved, setDictationSaved] = useState(false);
+  const [previewQuestions, setPreviewQuestions] = useState<
+    GeneratedListeningQuestion[] | null
+  >(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [, setProgressPhase] = useState<GenerationPhase>("idle");
+  const [progressDetail, setProgressDetail] = useState<string | null>(null);
+  const [progressItems, setProgressItems] = useState<ItemProgressRow[]>([]);
+  const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(
+    () =>
+      initialQuestions.find(questionNeedsReview)?.id ?? initialQuestions[0]?.id ?? null
+  );
+  const editorDirtyRef = useRef(false);
 
   useEffect(() => {
     setSpeechPreset(presetFromSpeed(initialSpeechSpeed));
@@ -101,104 +208,86 @@ export function ListeningSetManageClient({
       body: JSON.stringify({ setId }),
     });
   }, [setId, dictation.dictation_enabled, initialQuestions.length]);
-  const [previewQuestions, setPreviewQuestions] = useState<
-    GeneratedListeningQuestion[] | null
-  >(null);
-  const [busy, setBusy] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [progressPercent, setProgressPercent] = useState(0);
-  const [, setProgressPhase] = useState<GenerationPhase>("idle");
-  const [progressDetail, setProgressDetail] = useState<string | null>(null);
-  const [progressItems, setProgressItems] = useState<ItemProgressRow[]>([]);
-  const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
+
+  // 목록이 새로 오면 고른 문항이 사라졌는지 확인
+  useEffect(() => {
+    if (selectedId && initialQuestions.some((q) => q.id === selectedId)) return;
+    setSelectedId(initialQuestions[0]?.id ?? null);
+  }, [initialQuestions, selectedId]);
+
+  useEffect(() => {
+    if (!speedSaved) return;
+    const t = window.setTimeout(() => setSpeedSaved(false), 4000);
+    return () => window.clearTimeout(t);
+  }, [speedSaved]);
 
   const isGenerating =
     busy === "preview" || busy === "ai" || busy === "save" || busy === "gen-flow";
   const isAudioBusy = busy === "audio-all" || busy === "audio-seq";
 
-  const examTypes = useMemo(
-    () => getExamTypesForGrade(gradeLevel),
-    [gradeLevel]
-  );
+  const examTypes = useMemo(() => getExamTypesForGrade(gradeLevel), [gradeLevel]);
 
   const generationSlots = useMemo(() => {
     if (generationPlanMode === "random") {
       return planRandomGenerationSlots({ questionCount, examTypes });
     }
-    return planCustomGenerationSlots({
-      questionCount,
-      selectedTypeIds,
-      examTypes,
-    });
+    return planCustomGenerationSlots({ questionCount, selectedTypeIds, examTypes });
   }, [generationPlanMode, questionCount, selectedTypeIds, examTypes]);
 
   const plannedQuestionCount = generationSlots.length;
-  const useCompactQuestionList = initialQuestions.length >= 6;
+  const speechSpeedValue = SPEECH_SPEED_MAP[speechPreset];
 
-  function confirmReplaceExistingQuestions(actionLabel: string): boolean {
+  const total = initialQuestions.length;
+  const flaggedCount = initialQuestions.filter(questionNeedsReview).length;
+  const audioReady = initialQuestions.filter(hasAudio).length;
+  const stepDone: Record<Step, boolean> = {
+    1: total > 0,
+    2: total > 0 && flaggedCount === 0,
+    3: total > 0 && audioReady === total,
+    4: total > 0 && audioReady === total && flaggedCount === 0,
+  };
+
+  const onEditorDirty = useCallback((dirty: boolean) => {
+    editorDirtyRef.current = dirty;
+  }, []);
+
+  function confirmLeaveEditor(): boolean {
+    if (!editorDirtyRef.current) return true;
+    const ok = window.confirm("저장하지 않은 내용이 있어요. 그래도 넘어갈까요?");
+    if (ok) editorDirtyRef.current = false;
+    return ok;
+  }
+
+  function goStep(next: Step) {
+    if (next === step) return;
+    if (step === 2 && !confirmLeaveEditor()) return;
+    setStep(next);
+    const url = new URL(window.location.href);
+    url.searchParams.set("step", String(next));
+    window.history.replaceState(window.history.state, "", url.toString());
+  }
+
+  function selectQuestion(id: string) {
+    if (id === selectedId) return;
+    if (!confirmLeaveEditor()) return;
+    setSelectedId(id);
+  }
+
+  function confirmReplaceExistingQuestions(): boolean {
     if (initialQuestions.length === 0) return true;
     return window.confirm(
-      `이 세트에 저장된 문항 ${initialQuestions.length}개가 있습니다. ${actionLabel}하면 기존 문항·음원이 삭제되고 새 문항으로 바뀝니다. 계속할까요?`
+      `이 세트에 문항 ${initialQuestions.length}개가 있어요. 새로 저장하면 지금 문항과 음성이 지워지고 새 문항으로 바뀌어요. 계속할까요?`
     );
   }
 
-  async function prebuildDictation() {
-    setBusy("dictation-prebuild");
-    setMessage(null);
-    const res = await fetch("/api/listening/dictation/prebuild-set", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ setId }),
-    });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      prepared?: number;
-      failed?: number;
-    };
-    setBusy(null);
-    if (!data.ok) {
-      setMessage(data.message ?? "Dictation 미리 생성 실패");
-      return;
-    }
-    setMessage(data.message ?? "Dictation 미리 생성 완료");
-    router.refresh();
-  }
+  const resetProgress = useCallback(() => {
+    setProgressPercent(0);
+    setProgressPhase("idle");
+    setProgressDetail(null);
+    setProgressItems([]);
+  }, []);
 
-  async function saveDictationSettings(patch: Partial<DictationSetSettings>) {
-    const next = { ...dictation, ...patch };
-    setDictation(next);
-    const res = await fetch(`/api/listening/sets/${setId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next),
-    });
-    const data = (await res.json()) as { ok?: boolean; message?: string };
-    if (data.ok) {
-      setMessage("Dictation 설정이 저장되었습니다.");
-      router.refresh();
-    } else {
-      setMessage(data.message ?? "Dictation 설정 저장 실패");
-    }
-  }
-
-  async function saveSpeechSpeed(preset: SpeechSpeedPreset) {
-    setSpeechPreset(preset);
-    const res = await fetch(`/api/listening/sets/${setId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ speech_speed: SPEECH_SPEED_MAP[preset] }),
-    });
-    const data = (await res.json()) as { ok?: boolean; message?: string };
-    if (data.ok) {
-      setMessage(
-        `음성 속도 ${SPEECH_SPEED_MAP[preset]}로 저장되었습니다. 반영하려면 「전체 음원 생성」 또는 문항별 「음원 생성」을 다시 실행하세요.`
-      );
-      router.refresh();
-    } else {
-      setMessage(data.message ?? "음성 속도 저장 실패");
-    }
-  }
+  // ---- ① 문항 만들기 ----
 
   async function changeGradeLevel(level: ListeningGradeLevel) {
     if (level === gradeLevel) return;
@@ -217,7 +306,7 @@ export function ListeningSetManageClient({
     const data = (await res.json()) as { ok?: boolean; message?: string };
     if (!data.ok) {
       setGradeLevel(previous);
-      setMessage(data.message ?? "학년 저장 실패");
+      setMessage(data.message ?? "학년을 저장하지 못했어요.");
     }
   }
 
@@ -228,19 +317,28 @@ export function ListeningSetManageClient({
     }
   }
 
-  const resetProgress = useCallback(() => {
-    setProgressPercent(0);
-    setProgressPhase("idle");
-    setProgressDetail(null);
-    setProgressItems([]);
-  }, []);
+  function toggleTypeId(id: number) {
+    setSelectedTypeIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= questionCount) return prev;
+      return [...prev, id].sort((a, b) => a - b);
+    });
+  }
+
+  function generatingDetail(phase: GenerationPhase) {
+    if (phase === "generating" || phase === "validating") {
+      setProgressDetail(`${plannedQuestionCount}문항을 만들고 있어요…`);
+    } else if (phase === "saving") {
+      setProgressDetail("저장하고 있어요…");
+    }
+  }
 
   async function generatePreview() {
     setBusy("preview");
     setMessage(null);
     setPreviewQuestions(null);
     resetProgress();
-    setProgressDetail("AI 문제 생성 중…");
+    setProgressDetail("문항을 만들고 있어요…");
 
     const result = await generateQuestionsSequential({
       setId,
@@ -251,17 +349,7 @@ export function ListeningSetManageClient({
         setProgressPercent(percent);
         setProgressPhase(phase);
         setProgressItems(items);
-        if (phase === "generating" || phase === "validating") {
-          const apiCalls =
-            plannedQuestionCount <= 5
-              ? 1
-              : Math.ceil(plannedQuestionCount / 5);
-          setProgressDetail(
-            apiCalls === 1
-              ? `${plannedQuestionCount}문항 일괄 생성 중…`
-              : `${plannedQuestionCount}문항 생성 중 (${apiCalls}회 일괄 호출)…`
-          );
-        }
+        generatingDetail(phase);
       },
     });
 
@@ -273,24 +361,20 @@ export function ListeningSetManageClient({
       return;
     }
     setPreviewQuestions(result.questions);
-    setMessage("미리보기가 생성되었습니다. 확인 후 저장하세요.");
+    setMessage("미리보기를 만들었어요. 살펴보고 저장해 주세요.");
   }
 
   async function savePreview() {
     if (!previewQuestions?.length) return;
-    if (!confirmReplaceExistingQuestions("미리보기 문항을 DB에 저장")) return;
+    if (!confirmReplaceExistingQuestions()) return;
     setBusy("save");
     setMessage(null);
     resetProgress();
-    setProgressDetail("DB 저장 중…");
+    setProgressDetail("저장하고 있어요…");
     const items: ItemProgressRow[] = previewQuestions.map((q) => ({
       orderIndex: q.order_index,
-      status: "pending",
+      status: "saving",
     }));
-
-    items.forEach((item) => {
-      item.status = "saving";
-    });
     setProgressItems([...items]);
     setProgressPercent(50);
 
@@ -306,46 +390,25 @@ export function ListeningSetManageClient({
         replaceAll: true,
       }),
     });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      schemaWarning?: string;
-      schemaMigrationNeeded?: boolean;
-    };
-    if (!data.ok) {
-      items.forEach((item) => {
-        item.status = "error";
-      });
-      setBusy(null);
-      resetProgress();
-      setMessage(data.message ?? "저장 실패");
-      return;
-    }
-    items.forEach((item) => {
-      item.status = "saved";
-    });
-    if (data.schemaWarning) {
-      setMessage(data.schemaWarning);
-    }
-
+    const data = (await res.json()) as { ok?: boolean; message?: string };
     setBusy(null);
     resetProgress();
+    if (!data.ok) {
+      setMessage(data.message ?? "저장하지 못했어요.");
+      return;
+    }
     setPreviewQuestions(null);
-    setMessage((prev) =>
-      prev && prev.includes("마이그레이션")
-        ? prev
-        : "문항이 저장되었습니다."
-    );
+    setMessage("문항을 저장했어요. ② 검토·수정에서 하나씩 살펴보세요.");
     router.refresh();
   }
 
   async function generateAndSave() {
-    if (!confirmReplaceExistingQuestions("문항을 생성·저장")) return;
+    if (!confirmReplaceExistingQuestions()) return;
     setBusy("gen-flow");
     setMessage(null);
     setPreviewQuestions(null);
     resetProgress();
-    setProgressDetail(`${plannedQuestionCount}문항 생성·저장 중…`);
+    setProgressDetail(`${plannedQuestionCount}문항을 만들어 저장하고 있어요…`);
 
     const result = await generateQuestionsSequential({
       setId,
@@ -356,17 +419,7 @@ export function ListeningSetManageClient({
         setProgressPercent(percent);
         setProgressPhase(phase);
         setProgressItems(items);
-        if (phase === "generating" || phase === "validating") {
-          const apiCalls =
-            plannedQuestionCount <= 5
-              ? 1
-              : Math.ceil(plannedQuestionCount / 5);
-          setProgressDetail(
-            apiCalls === 1
-              ? `${plannedQuestionCount}문항 일괄 생성 중…`
-              : `${plannedQuestionCount}문항 생성 중 (${apiCalls}회 일괄 호출)…`
-          );
-        } else if (phase === "saving") setProgressDetail("DB 저장 중…");
+        generatingDetail(phase);
       },
     });
 
@@ -377,8 +430,9 @@ export function ListeningSetManageClient({
       router.refresh();
       return;
     }
-    const base = `${plannedQuestionCount}문항이 생성·저장되었습니다. 「전체 음원 생성」만 누르면 학생 재생용 mp3까지 저장됩니다.`;
-    setMessage(result.schemaWarning ? `${base} ${result.schemaWarning}` : base);
+    setMessage(
+      `${plannedQuestionCount}문항을 만들어 저장했어요. 검토한 뒤 ③ 음성 만들기에서 음성을 만들어 주세요.`
+    );
     router.refresh();
   }
 
@@ -414,35 +468,51 @@ export function ListeningSetManageClient({
     };
     setRegeneratingIndex(null);
     if (!data.ok || !data.question) {
-      setMessage(data.message ?? "재생성 실패");
+      setMessage(data.message ?? "다시 만들지 못했어요.");
       return;
     }
     setPreviewQuestions((list) =>
       (list ?? []).map((q) =>
-        q.order_index === orderIndex
-          ? { ...data.question!, order_index: orderIndex }
-          : q
+        q.order_index === orderIndex ? { ...data.question!, order_index: orderIndex } : q
       )
     );
-    setMessage(`${orderIndex}번 문항을 다시 생성했습니다.`);
+    setMessage(`${orderIndex}번 문항을 다시 만들었어요.`);
+  }
+
+  // ---- ③ 음성 ----
+
+  async function saveSpeechSpeed(preset: SpeechSpeedPreset) {
+    const previous = speechPreset;
+    setSpeechPreset(preset);
+    setSpeedSaved(false);
+    const res = await fetch(`/api/listening/sets/${setId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ speech_speed: SPEECH_SPEED_MAP[preset] }),
+    });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    if (data.ok) {
+      setSpeedSaved(true);
+      router.refresh();
+    } else {
+      setSpeechPreset(previous);
+      setMessage(data.message ?? "속도를 저장하지 못했어요.");
+    }
   }
 
   async function generateAllAudio() {
     if (initialQuestions.length === 0) {
-      setMessage("먼저 문항을 생성·저장하세요.");
+      setMessage("먼저 문항을 만들어 저장해 주세요.");
       return;
     }
     setBusy("audio-seq");
     setMessage(null);
     resetProgress();
-    setProgressDetail("문항별 음원·재생 mp3 생성 중…");
+    setProgressDetail("문항별 음성을 만들고 있어요…");
 
     const result = await generateAudioSequential({
       setId,
-      questions: initialQuestions.map((q) => ({
-        id: q.id,
-        order_index: q.order_index,
-      })),
+      questions: initialQuestions.map((q) => ({ id: q.id, order_index: q.order_index })),
       speechSpeed: speechSpeedValue,
       onProgress: (percent, detail, items) => {
         setProgressPercent(percent);
@@ -453,470 +523,823 @@ export function ListeningSetManageClient({
 
     setBusy(null);
     resetProgress();
-    setMessage(result.message ?? "음원 생성 완료");
+    setMessage(result.message ?? "음성을 다 만들었어요.");
     router.refresh();
   }
 
-  async function deleteSet() {
-    if (
-      !window.confirm(
-        `「${title}」 세트와 문항·음원·배정을 모두 삭제합니다. 계속할까요?`
-      )
-    ) {
+  async function generateOneAudio(q: ListeningQuestionData) {
+    setBusy(`audio-${q.id}`);
+    setMessage(null);
+    const res = await fetch("/api/listening/generate-audio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setId, questionId: q.id, speechSpeed: speechSpeedValue }),
+    });
+    const data = (await res.json()) as { ok?: boolean; message?: string; audioUrl?: string };
+    setBusy(null);
+    if (!data.ok || !data.audioUrl) {
+      setMessage(data.message ?? `${q.order_index}번 음성을 만들지 못했어요.`);
       return;
     }
+    setMessage(`${q.order_index}번 음성을 만들었어요.`);
+    router.refresh();
+  }
+
+  // ---- ④ 받아쓰기 ----
+
+  const dictationDirty =
+    JSON.stringify(dictationDraft) !== JSON.stringify(dictation);
+
+  function editDictation(patch: Partial<DictationSetSettings>) {
+    setDictationDraft((d) => ({ ...d, ...patch }));
+    setDictationSaved(false);
+  }
+
+  async function saveDictationSettings() {
+    setBusy("dictation-save");
+    setDictationSaved(false);
+    const next = { ...dictationDraft };
+    const res = await fetch(`/api/listening/sets/${setId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(next),
+    });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    setBusy(null);
+    if (data.ok) {
+      setDictation(next);
+      setDictationSaved(true);
+      router.refresh();
+    } else {
+      setMessage(data.message ?? "받아쓰기 설정을 저장하지 못했어요.");
+    }
+  }
+
+  async function prebuildDictation() {
+    setBusy("dictation-prebuild");
+    setMessage(null);
+    const res = await fetch("/api/listening/dictation/prebuild-set", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setId }),
+    });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    setBusy(null);
+    if (!data.ok) {
+      setMessage(data.message ?? "받아쓰기를 미리 만들지 못했어요.");
+      return;
+    }
+    setMessage("받아쓰기 빈칸을 미리 만들었어요.");
+    router.refresh();
+  }
+
+  // ---- 세트 ----
+
+  async function deleteSet() {
+    if (!window.confirm(`「${title}」 세트와 문항·음성·배정을 모두 지울까요?`)) return;
     setBusy("delete");
     const res = await fetch(`/api/listening/sets/${setId}`, { method: "DELETE" });
     const data = (await res.json()) as { ok?: boolean; message?: string };
     setBusy(null);
     if (!data.ok) {
-      setMessage(data.message ?? "삭제 실패");
+      setMessage(data.message ?? "세트를 지우지 못했어요.");
       return;
     }
-    router.push(role === "admin" ? "/admin/listening" : "/teacher/listening");
+    router.push(`${basePath}/sets`);
     router.refresh();
   }
 
-  function toggleTypeId(id: number) {
-    setSelectedTypeIds((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= questionCount) return prev;
-      return [...prev, id].sort((a, b) => a - b);
-    });
-  }
+  // ---- 화면 ----
 
-  const speechSpeedValue = SPEECH_SPEED_MAP[speechPreset];
+  const steps: Array<{ n: Step; title: string; sub: string; warn?: boolean }> = [
+    { n: 1, title: "문항 만들기", sub: total > 0 ? `${total}문항` : "아직 없어요" },
+    {
+      n: 2,
+      title: "검토·수정",
+      sub:
+        total === 0
+          ? "문항을 먼저 만들어요"
+          : flaggedCount > 0
+            ? `${flaggedCount}개 확인 필요`
+            : "확인할 것 없음",
+      warn: flaggedCount > 0,
+    },
+    { n: 3, title: "음성 만들기", sub: total > 0 ? `${audioReady}/${total}` : "—" },
+    {
+      n: 4,
+      title: "받아쓰기",
+      sub: dictation.dictation_enabled ? `${dictation.dictation_pass_score}점 통과` : "끔",
+    },
+  ];
+
+  const assignedSummary =
+    assignedTargets.length === 0
+      ? null
+      : assignedTargets.length === 1
+        ? assignedTargets[0]
+        : `${assignedTargets[0]} 외 ${assignedTargets.length - 1}`;
+
+  const selectedIndex = initialQuestions.findIndex((q) => q.id === selectedId);
+  const selectedQuestion = selectedIndex >= 0 ? initialQuestions[selectedIndex] : null;
+  const prevQuestion = selectedIndex > 0 ? initialQuestions[selectedIndex - 1] : null;
+  const nextQuestion =
+    selectedIndex >= 0 && selectedIndex < total - 1 ? initialQuestions[selectedIndex + 1] : null;
+
+  const planHint =
+    generationPlanMode === "random" || selectedTypeIds.length === 0
+      ? `${plannedQuestionCount}문항을 1번 유형부터 차례로 만들어요.`
+      : selectedTypeIds.length === 1
+        ? `${selectedTypeIds[0]}번 유형으로 ${plannedQuestionCount}문항을 만들어요.`
+        : selectedTypeIds.length >= questionCount
+          ? `고른 유형 ${selectedTypeIds.length}개로 ${plannedQuestionCount}문항을 만들어요.`
+          : `고른 유형 ${selectedTypeIds.length}개를 돌려 가며 ${plannedQuestionCount}문항을 만들어요.`;
+
+  const showGenProgress =
+    (busy === "preview" || busy === "gen-flow" || busy === "save") &&
+    (progressItems.length > 0 || progressPercent > 0);
 
   return (
-    <div className="space-y-6">
-      {readOnly ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          이 세트는 <strong>커리큘럼 잠금</strong> 상태입니다. 교사 계정에서는
-          수정·삭제·재생성할 수 없고, 배정·출력만 가능합니다.
-        </div>
-      ) : null}
-      {isLocked && role === "admin" ? (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-          커리큘럼 잠금 세트입니다. 관리자만 편집할 수 있으며, 교사는 수정할 수
-          없습니다.
-        </div>
-      ) : null}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">{title}</h1>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href={`${role === "admin" ? "/admin" : "/teacher"}/listening/${setId}/print`}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            시험지 출력
-          </Link>
-          <Link
-            href={`${role === "admin" ? "/admin" : "/teacher"}/listening/${setId}/print?script=1`}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            대본 포함 출력
-          </Link>
-          <button
-            type="button"
-            disabled={!!busy || readOnly}
-            onClick={deleteSet}
-            className="rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 disabled:opacity-50"
-          >
-            {busy === "delete" ? "삭제 중…" : "세트 삭제"}
-          </button>
+    <div className="space-y-4">
+      {/* 머리 */}
+      <div className="space-y-2.5">
+        <Link
+          href={`${basePath}/sets`}
+          className="inline-flex items-center gap-1 text-[13px] font-medium text-slate-500 hover:text-slate-900"
+        >
+          <Icon name="left" size={16} />
+          듣기학습 · {folderName ?? "전체"}
+        </Link>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 space-y-1.5">
+            <h1 className="flex items-center gap-2 text-xl font-bold tracking-tight text-slate-900 sm:text-[22px]">
+              {isLocked ? <Icon name="lock" size={18} className="text-slate-400" /> : null}
+              <span className="truncate">{title}</span>
+            </h1>
+            <div className="flex flex-wrap gap-1.5">
+              <span className="inline-flex h-[22px] items-center rounded bg-slate-100 px-2 text-xs font-semibold text-slate-600">
+                {gradeLevelShort(gradeLevel)} · {total}문항
+              </span>
+              {assignedSummary ? (
+                <span
+                  className="inline-flex h-[22px] items-center gap-1 rounded bg-brand-50 px-2 text-xs font-semibold text-brand-700"
+                  title={assignedTargets.join(", ")}
+                >
+                  <Icon name="users" size={12} strokeWidth={2} />
+                  {assignedSummary}에 배정 중
+                </span>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <ButtonLink href={`${basePath}/${setId}/print`} variant="secondary">
+              <Icon name="print" size={16} />
+              시험지 인쇄
+            </ButtonLink>
+            <ButtonLink href={`${basePath}/assign?set=${setId}`}>
+              <Icon name="calendar" size={16} />
+              배정
+            </ButtonLink>
+            <ListeningMenu
+              label="세트 메뉴"
+              triggerClassName="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+            >
+              <ListeningMenuItem icon="file" href={`${basePath}/${setId}/print?script=1`}>
+                대본 넣어 인쇄
+              </ListeningMenuItem>
+              <ListeningMenuDivider />
+              <ListeningMenuItem
+                icon="trash"
+                danger
+                disabled={readOnly || busy === "delete"}
+                onClick={() => void deleteSet()}
+              >
+                세트 지우기
+              </ListeningMenuItem>
+            </ListeningMenu>
+          </div>
         </div>
       </div>
 
-      <ListeningVoiceSettings
-        setId={setId}
-        initialVoiceAnnId={voiceAnnId}
-        initialVoiceMId={voiceMId}
-        initialVoiceWId={voiceWId}
-      />
+      {readOnly ? (
+        <p className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+          <Icon name="lock" size={16} />
+          학원 교재라 수정할 수 없어요. 인쇄와 배정은 할 수 있어요.
+        </p>
+      ) : isLocked ? (
+        <p className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+          <Icon name="lock" size={16} className="text-slate-400" />
+          학원 교재예요. 선생님 계정에서는 고칠 수 없고, 관리자만 고칠 수 있어요.
+        </p>
+      ) : null}
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-semibold text-slate-800">Dictation 설정</h2>
-        <p className="mt-1 text-xs text-slate-500">
-          객관식 제출 후 문항별 받아쓰기. 통과 점수 미만이면 다음 문항 잠금(설정 시).
-        </p>
-        <label className="mt-3 flex items-center gap-2 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            checked={dictation.dictation_enabled}
-            onChange={(e) => void saveDictationSettings({ dictation_enabled: e.target.checked })}
-          />
-          Dictation 사용
-        </label>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <label className="text-xs text-slate-600">
-            통과 기준 점수
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={dictation.dictation_pass_score}
-              onChange={(e) =>
-                setDictation((d) => ({
-                  ...d,
-                  dictation_pass_score: Number(e.target.value) || 80,
-                }))
-              }
-              onBlur={() =>
-                void saveDictationSettings({
-                  dictation_pass_score: dictation.dictation_pass_score,
-                })
-              }
-              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm"
-            />
-          </label>
-          <label className="text-xs text-slate-600">
-            빈칸 개수
-            <select
-              value={dictation.dictation_blank_level}
-              onChange={(e) =>
-                void saveDictationSettings({
-                  dictation_blank_level: e.target.value as DictationBlankLevel,
-                })
-              }
-              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm"
-            >
-              <option value="auto">자동</option>
-              <option value="few">적게</option>
-              <option value="normal">보통</option>
-              <option value="many">많게</option>
-            </select>
-          </label>
-        </div>
-        <label className="mt-2 flex items-center gap-2 text-xs text-slate-700">
-          <input
-            type="checkbox"
-            checked={dictation.dictation_randomize_on_retry}
-            onChange={(e) =>
-              void saveDictationSettings({
-                dictation_randomize_on_retry: e.target.checked,
-              })
-            }
-          />
-          재시도 시 빈칸 랜덤 변경
-        </label>
-        <label className="mt-1 flex items-center gap-2 text-xs text-slate-700">
-          <input
-            type="checkbox"
-            checked={dictation.dictation_lock_next_until_pass}
-            onChange={(e) =>
-              void saveDictationSettings({
-                dictation_lock_next_until_pass: e.target.checked,
-              })
-            }
-          />
-          통과 전 다음 문제 잠금
-        </label>
-        {dictation.dictation_enabled && initialQuestions.length > 0 && (
-          <button
-            type="button"
-            disabled={!!busy}
-            onClick={() => void prebuildDictation()}
-            className="mt-3 rounded-lg border border-violet-300 bg-violet-50 px-4 py-2 text-sm font-medium text-violet-900 disabled:opacity-50"
-          >
-            {busy === "dictation-prebuild"
-              ? "Dictation 미리 생성 중…"
-              : `Dictation 미리 생성 (${initialQuestions.length}문항)`}
-          </button>
-        )}
-        <p className="mt-1 text-xs text-slate-500">
-          세트를 열거나 문항·음원을 저장하면 빈칸이 자동으로 준비됩니다. 아래 버튼은
-          전체를 다시 만들 때만 사용하세요.
-        </p>
-      </section>
-
-      <section className="rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-semibold text-slate-800">음성 속도</h2>
-        <p className="mt-1 text-xs text-slate-500">
-          기본: 보통(0.75). 저장 후 「전체 음원 생성」으로 다시 만들어야 들리는
-          속도가 바뀝니다. 「최종 mp3만 병합」은 기존 줄 음원을 이어붙이므로
-          속도가 변하지 않습니다.
-        </p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {SPEECH_SPEED_OPTIONS.map(({ key, label }) => (
+      {/* 단계 */}
+      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4" role="tablist" aria-label="세트 만들기 단계">
+        {steps.map((s) => {
+          const current = s.n === step;
+          const done = !current && stepDone[s.n];
+          return (
             <button
-              key={key}
+              key={s.n}
               type="button"
-              disabled={!!busy}
-              onClick={() => saveSpeechSpeed(key)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
-                speechPreset === key
-                  ? "bg-indigo-600 text-white"
-                  : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+              role="tab"
+              aria-selected={current}
+              onClick={() => goStep(s.n)}
+              className={`flex items-center gap-3 rounded-lg bg-white px-3.5 py-3 text-left transition ${
+                current
+                  ? "border-[1.5px] border-brand-600 ring-[3px] ring-brand-50"
+                  : "border border-slate-200 hover:border-slate-300"
               }`}
             >
-              {label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 p-4">
-        <h2 className="text-sm font-semibold text-slate-800">AI 문항 생성</h2>
-        <p className="mt-1 text-xs text-slate-600">
-          기출 복사 없음 · 참고 유형만 반영 · 새 대본/문항 자체 제작
-        </p>
-
-        <div className="mt-3">
-          <p className="text-xs font-medium text-slate-600">대상 학년 (문항 유형)</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {LISTENING_GRADE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                disabled={!!busy}
-                onClick={() => void changeGradeLevel(opt.value)}
-                className={`rounded-lg px-3 py-2 text-left text-sm ${
-                  gradeLevel === opt.value
-                    ? "bg-indigo-600 text-white"
-                    : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              <span
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold tabular-nums ${
+                  done
+                    ? "bg-green-700 text-white"
+                    : current
+                      ? "bg-brand-600 text-white"
+                      : "bg-slate-100 text-slate-400"
                 }`}
               >
-                <span className="font-medium">{opt.label}</span>
+                {done ? <Icon name="check" size={15} strokeWidth={2.8} /> : s.n}
+              </span>
+              <span className="min-w-0">
                 <span
-                  className={`mt-0.5 block text-xs ${
-                    gradeLevel === opt.value ? "text-indigo-100" : "text-slate-500"
+                  className={`block text-sm font-bold ${
+                    current || done ? "text-slate-900" : "text-slate-500"
                   }`}
                 >
-                  {opt.description}
+                  {s.title}
                 </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-3">
-          <p className="text-xs font-medium text-slate-600">생성 방식</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {(
-              [
-                {
-                  value: "random" as const,
-                  label: "랜덤 생성",
-                  description: "유형을 고르지 않고 1번부터 문항 수만큼 순서대로 배정",
-                },
-                {
-                  value: "custom" as const,
-                  label: "유형 선택",
-                  description: "5·10·15·20문항 또는 아래에서 유형 직접 선택",
-                },
-              ] as const
-            ).map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                disabled={!!busy}
-                onClick={() => {
-                  setGenerationPlanMode(opt.value);
-                  if (opt.value === "random") setSelectedTypeIds([]);
-                }}
-                className={`rounded-lg px-3 py-2 text-left text-xs ${
-                  generationPlanMode === opt.value
-                    ? "border-indigo-400 bg-indigo-50 text-indigo-900"
-                    : "border border-slate-200 bg-white text-slate-700"
-                }`}
-              >
-                <span className="font-medium">{opt.label}</span>
-                <span className="mt-0.5 block text-slate-500">{opt.description}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-end gap-3">
-          <div className="text-sm">
-            <span className="font-medium text-slate-700">문항 수</span>
-            <div className="mt-1 flex flex-wrap gap-1">
-              {questionCountOptionsForGrade(gradeLevel).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => selectQuestionCount(n)}
-                  className={`rounded-md px-2 py-1 text-xs font-medium ${
-                    questionCount === n
-                      ? "bg-indigo-600 text-white"
-                      : "border border-slate-200 text-slate-700"
+                <span
+                  className={`block truncate text-xs ${
+                    s.warn ? "font-medium text-amber-700" : "text-slate-500"
                   }`}
                 >
-                  {n}문항
-                </button>
-              ))}
-            </div>
-            <p className="mt-1 text-xs text-slate-500">
-              {generationPlanMode === "random"
-                ? `실제 생성: ${plannedQuestionCount}문항 (1~${plannedQuestionCount}번 유형 순서)`
-                : selectedTypeIds.length === 1
-                  ? `실제 생성: ${plannedQuestionCount}문항 (유형 ${selectedTypeIds[0]}번 × ${plannedQuestionCount})`
-                  : selectedTypeIds.length > 0
-                    ? selectedTypeIds.length >= questionCount
-                      ? `실제 생성: ${plannedQuestionCount}문항 (선택 유형 ${selectedTypeIds.length}개)`
-                      : `실제 생성: ${plannedQuestionCount}문항 (선택 유형 ${selectedTypeIds.length}개 반복)`
-                    : `실제 생성: ${plannedQuestionCount}문항 (1~${plannedQuestionCount}번 유형 순서)`}
-            </p>
-          </div>
+                  {s.sub}
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {message ? (
+        <div
+          role="status"
+          className="flex items-start justify-between gap-3 rounded-md border border-brand-100 bg-brand-50 px-3 py-2 text-sm text-brand-800"
+        >
+          <span>{message}</span>
           <button
             type="button"
-            disabled={!!busy || isGenerating}
-            onClick={generatePreview}
-            className="rounded-lg border border-indigo-300 bg-white px-4 py-2 text-sm font-medium text-indigo-700 disabled:opacity-50"
+            onClick={() => setMessage(null)}
+            aria-label="알림 닫기"
+            className="shrink-0 rounded p-0.5 text-brand-700 hover:bg-brand-100"
           >
-            {busy === "preview" ? "생성 중…" : "미리보기 생성"}
-          </button>
-          <button
-            type="button"
-            disabled={!!busy || isGenerating}
-            onClick={generateAndSave}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {busy === "gen-flow" ? "생성 중…" : "바로 생성·저장"}
+            <Icon name="x" size={14} />
           </button>
         </div>
+      ) : null}
 
-        {generationPlanMode === "custom" && (
-          <div className="mt-4 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
-            <p className="mb-2 text-xs font-medium text-slate-600">
-              유형 선택 — 비우면 1~{questionCount}번 유형 순서 · 유형 1개만 고르면 같은
-              유형 {questionCount}문항 · 여러 개 고르면 {questionCount}문항까지 선택 유형 반복
-            </p>
-            <div className="grid gap-1 sm:grid-cols-2">
-              {examTypes.map((t) => (
-                <label key={t.id} className="flex items-start gap-2 text-xs text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={selectedTypeIds.includes(t.id)}
-                    onChange={() => toggleTypeId(t.id)}
-                    className="mt-0.5"
-                  />
-                  <span>
-                    {t.id}. {t.question_type}{" "}
-                    <span className="text-slate-400">({tierLabel(t.difficulty_tier)})</span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {(busy === "preview" || busy === "gen-flow" || busy === "save" || isAudioBusy) &&
-          (progressItems.length > 0 || progressPercent > 0) && (
-          <div className="mt-4">
-            <GenerationProgress
-              title={
-                isAudioBusy
-                  ? "음원 생성 진행"
-                  : busy === "save"
-                    ? "저장 진행"
-                    : "문항 생성 진행"
-              }
-              percent={progressPercent}
-              detailMessage={progressDetail ?? undefined}
-              items={progressItems}
-            />
-          </div>
-        )}
-      </section>
-
-      {previewQuestions && previewQuestions.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold text-slate-900">문항 미리보기</h2>
-            <button
-              type="button"
-              disabled={!!busy || isGenerating}
-              onClick={savePreview}
-              className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
-              {busy === "save" ? "저장 중…" : "이 문항들 DB에 저장"}
-            </button>
-          </div>
-          {previewQuestions.map((q) => (
-            <ListeningQuestionPreview
-              key={q.order_index}
-              question={q}
-              showActions
-              regenerateBusy={regeneratingIndex === q.order_index}
-              onRegenerate={() => regeneratePreviewItem(q.order_index)}
-            />
-          ))}
-        </section>
-      )}
-
-      {initialQuestions.length > 0 && (
-        <section className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
-          <h2 className="text-sm font-semibold text-slate-800">음원 생성</h2>
-          <p className="mt-1 text-xs text-slate-600">
-            「전체 음원 생성」 한 번이면 문항별 재생 mp3가 저장됩니다. 별도 병합 단계는
-            필요 없습니다.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={!!busy || isAudioBusy}
-              onClick={generateAllAudio}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
-              {isAudioBusy
-                ? "전체 음원 생성 중…"
-                : `전체 음원 생성 (${initialQuestions.length}문항)`}
-            </button>
-          {isAudioBusy && progressItems.length > 0 && (
-            <div className="mt-4">
-              <GenerationProgress
-                title="음원 생성 진행"
-                percent={progressPercent}
-                detailMessage={progressDetail ?? undefined}
-                items={progressItems}
-              />
-            </div>
-          )}
-          </div>
-        </section>
-      )}
-
-      {initialQuestions.length === 0 && !previewQuestions?.length ? (
-        <p className="text-sm text-slate-600">아직 문항이 없습니다.</p>
-      ) : (
-        <div className="space-y-3">
-          {useCompactQuestionList ? (
-            <>
-              <p className="text-xs text-slate-500">
-                문항이 많아 요약 목록으로 표시합니다. 수정할 문항만 펼치세요.
+      {/* ① 문항 만들기 */}
+      {step === 1 ? (
+        <div className="space-y-4">
+          <section className="space-y-5 rounded-lg border border-slate-200 bg-white p-5 shadow-card">
+            <div>
+              <h2 className="text-base font-bold text-slate-900">문항 만들기</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                유형만 참고해 새 대본과 문항을 만들어요. 기출 문제를 그대로 옮기지 않아요.
               </p>
-              {initialQuestions.map((q) => (
-                <ListeningQuestionCompact
-                  key={q.id}
-                  setId={setId}
+            </div>
+
+            {readOnly ? (
+              <p className="text-sm text-slate-500">학원 교재는 문항을 새로 만들 수 없어요.</p>
+            ) : (
+              <>
+                <div>
+                  <p className="ui-label">학년</p>
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {LISTENING_GRADE_OPTIONS.map((opt) => {
+                      const on = gradeLevel === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          disabled={!!busy}
+                          onClick={() => void changeGradeLevel(opt.value)}
+                          className={`rounded-md border px-3 py-2.5 text-left transition disabled:opacity-60 ${
+                            on
+                              ? "border-brand-600 bg-brand-50"
+                              : "border-slate-200 bg-white hover:border-slate-300"
+                          }`}
+                        >
+                          <span className={`block text-sm font-semibold ${on ? "text-brand-700" : "text-slate-900"}`}>
+                            {opt.label}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-slate-500">{opt.description}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid gap-5 lg:grid-cols-2">
+                  <div>
+                    <p className="ui-label">만드는 방식</p>
+                    <div className="inline-flex overflow-hidden rounded-md border border-slate-200 bg-white">
+                      {(
+                        [
+                          { value: "random" as const, label: "차례대로" },
+                          { value: "custom" as const, label: "유형 고르기" },
+                        ] as const
+                      ).map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          disabled={!!busy}
+                          onClick={() => {
+                            setGenerationPlanMode(opt.value);
+                            if (opt.value === "random") setSelectedTypeIds([]);
+                          }}
+                          className={`px-3.5 py-1.5 text-[13px] font-semibold transition ${
+                            generationPlanMode === opt.value
+                              ? "bg-slate-900 text-white"
+                              : "text-slate-700 hover:bg-slate-50"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="ui-label">문항 수</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {questionCountOptionsForGrade(gradeLevel).map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => selectQuestionCount(n)}
+                          className={`h-[30px] rounded-md px-3 text-[13px] font-semibold transition ${
+                            questionCount === n
+                              ? "bg-brand-600 text-white"
+                              : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                          }`}
+                        >
+                          {n}문항
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {generationPlanMode === "custom" ? (
+                  <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                    <p className="mb-2 text-xs text-slate-500">
+                      안 고르면 1번 유형부터 차례로 · 하나만 고르면 그 유형으로만 · 여러 개면 돌려 가며{" "}
+                      {questionCount}문항까지 만들어요.
+                    </p>
+                    <div className="grid max-h-56 gap-1 overflow-y-auto sm:grid-cols-2">
+                      {examTypes.map((t) => (
+                        <label
+                          key={t.id}
+                          className="flex cursor-pointer items-start gap-2 rounded px-1.5 py-1 text-xs text-slate-700 hover:bg-white"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedTypeIds.includes(t.id)}
+                            onChange={() => toggleTypeId(t.id)}
+                            className="mt-0.5 h-3.5 w-3.5 accent-brand-600"
+                          />
+                          <span>
+                            {t.id}. {t.question_type}{" "}
+                            <span className="text-slate-400">({tierLabel(t.difficulty_tier)})</span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="text-xs text-slate-500">
+                    <p>{planHint}</p>
+                    {total > 0 ? (
+                      <p className="mt-0.5 text-amber-700">
+                        지금 문항 {total}개가 있어요. 새로 저장하면 바뀌어요.
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <Button
+                      variant="secondary"
+                      disabled={!!busy || isGenerating}
+                      onClick={() => void generatePreview()}
+                    >
+                      {busy === "preview" ? "만드는 중…" : "미리보기 만들기"}
+                    </Button>
+                    <Button disabled={!!busy || isGenerating} onClick={() => void generateAndSave()}>
+                      <Icon name="sparkle" size={16} />
+                      {busy === "gen-flow" ? "만드는 중…" : "바로 만들어 저장"}
+                    </Button>
+                  </div>
+                </div>
+
+                {showGenProgress ? (
+                  <GenerationProgress
+                    title={busy === "save" ? "저장하고 있어요" : "문항을 만들고 있어요"}
+                    percent={progressPercent}
+                    detailMessage={progressDetail ?? undefined}
+                    items={progressItems}
+                  />
+                ) : null}
+              </>
+            )}
+          </section>
+
+          {previewQuestions && previewQuestions.length > 0 ? (
+            <section className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-base font-bold text-slate-900">
+                  미리보기 <span className="text-slate-400">{previewQuestions.length}문항</span>
+                </h2>
+                <Button disabled={!!busy || isGenerating} onClick={() => void savePreview()}>
+                  {busy === "save" ? "저장 중…" : "이 문항들 저장"}
+                </Button>
+              </div>
+              {previewQuestions.map((q) => (
+                <ListeningQuestionPreview
+                  key={q.order_index}
                   question={q}
-                  speechSpeed={speechSpeedValue}
-                  onUpdated={() => router.refresh()}
+                  showActions
+                  regenerateBusy={regeneratingIndex === q.order_index}
+                  onRegenerate={() => void regeneratePreviewItem(q.order_index)}
                 />
               ))}
-            </>
-          ) : (
-            initialQuestions.map((q) => (
+            </section>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* ② 검토·수정 */}
+      {step === 2 ? (
+        total === 0 ? (
+          <EmptyStep
+            text="아직 문항이 없어요. 먼저 문항을 만들어 주세요."
+            action={<Button onClick={() => goStep(1)}>① 문항 만들기로</Button>}
+          />
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-[250px_minmax(0,1fr)]">
+            <aside className="self-start rounded-lg border border-slate-200 bg-white px-2 py-2.5 shadow-card">
+              <div className="flex items-center justify-between px-2 pb-2 pt-1">
+                <span className="text-sm font-bold text-slate-900">문항 {total}</span>
+                {flaggedCount > 0 ? (
+                  <span className="text-xs font-semibold text-amber-700">확인 필요 {flaggedCount}</span>
+                ) : null}
+              </div>
+              <ul className="flex gap-1 overflow-x-auto pb-1 lg:max-h-[calc(100vh-18rem)] lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:pb-0">
+                {initialQuestions.map((q) => {
+                  const on = q.id === selectedId;
+                  const flag = questionNeedsReview(q);
+                  return (
+                    <li key={q.id} className="shrink-0 lg:shrink">
+                      <button
+                        type="button"
+                        onClick={() => selectQuestion(q.id)}
+                        aria-current={on ? "true" : undefined}
+                        className={`flex w-full items-center gap-2.5 whitespace-nowrap rounded-md px-3 py-2 text-left transition ${
+                          on ? "bg-brand-50" : "hover:bg-slate-50"
+                        }`}
+                      >
+                        <span
+                          className={`w-5 text-[13px] font-bold tabular-nums ${
+                            on ? "text-brand-700" : "text-slate-500"
+                          }`}
+                        >
+                          {q.order_index}
+                        </span>
+                        <span
+                          className={`min-w-0 flex-1 truncate text-[13px] ${
+                            on ? "font-semibold text-brand-700" : "font-medium text-slate-900"
+                          }`}
+                        >
+                          {q.question_type}
+                        </span>
+                        {flag ? (
+                          <span className="rounded bg-amber-50 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
+                            확인 필요
+                          </span>
+                        ) : hasAudio(q) ? (
+                          <Icon name="speaker" size={14} className="text-green-700" />
+                        ) : null}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </aside>
+
+            {selectedQuestion ? (
               <ListeningQuestionEditor
-                key={q.id}
+                key={selectedQuestion.id}
                 setId={setId}
-                question={q}
+                question={selectedQuestion}
                 speechSpeed={speechSpeedValue}
                 onUpdated={() => router.refresh()}
+                readOnly={readOnly}
+                onDirtyChange={onEditorDirty}
+                footer={
+                  <div className="flex items-center justify-between gap-3">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={!prevQuestion}
+                      onClick={() => prevQuestion && selectQuestion(prevQuestion.id)}
+                    >
+                      <Icon name="left" size={15} />
+                      {prevQuestion ? `${prevQuestion.order_index}번` : "처음"}
+                    </Button>
+                    <span className="hidden text-center text-[13px] text-slate-500 sm:block">
+                      검토를 마치면{" "}
+                      <button
+                        type="button"
+                        onClick={() => goStep(3)}
+                        className="font-bold text-slate-900 hover:text-brand-700"
+                      >
+                        ③ 음성 만들기
+                      </button>
+                      로 넘어가요
+                    </span>
+                    {nextQuestion ? (
+                      <Button variant="secondary" size="sm" onClick={() => selectQuestion(nextQuestion.id)}>
+                        {nextQuestion.order_index}번
+                        <Icon name="chevron" size={15} />
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={() => goStep(3)}>
+                        음성 만들기
+                        <Icon name="chevron" size={15} />
+                      </Button>
+                    )}
+                  </div>
+                }
               />
-            ))
-          )}
-        </div>
-      )}
+            ) : null}
+          </div>
+        )
+      ) : null}
 
-      {message && (
-        <p className="text-sm text-slate-600" role="status">
-          {message}
-        </p>
-      )}
+      {/* ③ 음성 만들기 */}
+      {step === 3 ? (
+        total === 0 ? (
+          <EmptyStep
+            text="음성을 만들 문항이 없어요. 먼저 문항을 만들어 주세요."
+            action={<Button onClick={() => goStep(1)}>① 문항 만들기로</Button>}
+          />
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <section className="rounded-lg border border-slate-200 bg-white shadow-card">
+              <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">음성 만들기</h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    대본을 읽어 학생이 들을 음성을 만들어요. 지시문과 선택지는 읽지 않아요.
+                  </p>
+                </div>
+                {!readOnly ? (
+                  <Button
+                    className="shrink-0"
+                    disabled={!!busy || isAudioBusy}
+                    onClick={() => void generateAllAudio()}
+                  >
+                    <Icon name="speaker" size={16} />
+                    {isAudioBusy ? "만드는 중…" : `전체 음성 만들기 (${total}문항)`}
+                  </Button>
+                ) : null}
+              </div>
+              {isAudioBusy && (progressItems.length > 0 || progressPercent > 0) ? (
+                <div className="border-b border-slate-100 p-4">
+                  <GenerationProgress
+                    title="음성을 만들고 있어요"
+                    percent={progressPercent}
+                    detailMessage={progressDetail ?? undefined}
+                    items={progressItems}
+                  />
+                </div>
+              ) : null}
+              <div className="flex items-center justify-between px-5 py-2.5 text-xs font-semibold text-slate-500">
+                <span>문항별 음성</span>
+                <span className={audioReady === total ? "text-green-700" : "text-amber-700"}>
+                  {audioReady}/{total} 준비됨
+                </span>
+              </div>
+              <ul className="divide-y divide-slate-100 border-t border-slate-100">
+                {initialQuestions.map((q) => {
+                  const ready = hasAudio(q);
+                  const rowBusy = busy === `audio-${q.id}`;
+                  return (
+                    <li
+                      key={q.id}
+                      className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2.5 md:grid-cols-[28px_minmax(0,160px)_minmax(0,1fr)_auto]"
+                    >
+                      <span className="text-[13px] font-bold tabular-nums text-slate-500">
+                        {q.order_index}
+                      </span>
+                      <span className="truncate text-[13px] font-medium text-slate-900">
+                        {q.question_type}
+                      </span>
+                      <div className="col-span-3 row-start-2 md:col-span-1 md:row-start-auto">
+                        {ready ? (
+                          <ListeningAudioBar src={q.audio_url!} compact />
+                        ) : (
+                          <span className="inline-flex h-[22px] items-center rounded bg-slate-100 px-2 text-xs font-semibold text-slate-500">
+                            음성 없음
+                          </span>
+                        )}
+                      </div>
+                      {!readOnly ? (
+                        <Button
+                          variant={ready ? "ghost" : "secondary"}
+                          size="sm"
+                          disabled={!!busy}
+                          onClick={() => void generateOneAudio(q)}
+                        >
+                          {rowBusy ? "만드는 중…" : ready ? "다시 만들기" : "만들기"}
+                        </Button>
+                      ) : (
+                        <span />
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+
+            <div className="space-y-4">
+              <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-card">
+                <h3 className="text-sm font-bold text-slate-900">읽는 속도</h3>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {SPEECH_SPEED_OPTIONS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      disabled={!!busy || readOnly}
+                      onClick={() => void saveSpeechSpeed(key)}
+                      aria-pressed={speechPreset === key}
+                      className={`h-[30px] rounded-md px-3 text-[13px] font-semibold transition disabled:opacity-60 ${
+                        speechPreset === key
+                          ? "bg-brand-600 text-white"
+                          : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  속도를 바꾸면 음성을 다시 만들어야 바뀐 속도로 들려요.
+                </p>
+                <div className="mt-1">
+                  <SavedHint show={speedSaved} />
+                </div>
+              </section>
+              <ListeningVoiceSettings
+                setId={setId}
+                initialVoiceAnnId={voiceAnnId}
+                initialVoiceMId={voiceMId}
+                initialVoiceWId={voiceWId}
+                readOnly={readOnly}
+              />
+            </div>
+          </div>
+        )
+      ) : null}
+
+      {/* ④ 받아쓰기 */}
+      {step === 4 ? (
+        <section className="max-w-2xl rounded-lg border border-slate-200 bg-white shadow-card">
+          <div className="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
+            <div>
+              <h2 className="text-base font-bold text-slate-900">받아쓰기</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                객관식을 푼 뒤 문항마다 대본 빈칸을 채워요.
+              </p>
+            </div>
+            <Switch
+              label="받아쓰기 사용"
+              checked={dictationDraft.dictation_enabled}
+              disabled={readOnly}
+              onChange={(v) => editDictation({ dictation_enabled: v })}
+            />
+          </div>
+
+          <div className={`space-y-4 p-5 ${dictationDraft.dictation_enabled ? "" : "opacity-50"}`}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="ui-label">기본 통과 점수</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={dictationDraft.dictation_pass_score}
+                    disabled={readOnly || !dictationDraft.dictation_enabled}
+                    onChange={(e) =>
+                      editDictation({ dictation_pass_score: Number(e.target.value) || 0 })
+                    }
+                    className="ui-input w-24"
+                  />
+                  <span className="text-sm text-slate-600">점</span>
+                </div>
+                <span className="mt-1 block text-xs text-slate-500">
+                  배정할 때 반·학생마다 바꿀 수 있어요.
+                </span>
+              </label>
+              <label className="block">
+                <span className="ui-label">빈칸 수</span>
+                <select
+                  value={dictationDraft.dictation_blank_level}
+                  disabled={readOnly || !dictationDraft.dictation_enabled}
+                  onChange={(e) =>
+                    editDictation({ dictation_blank_level: e.target.value as DictationBlankLevel })
+                  }
+                  className="ui-select"
+                >
+                  {(Object.keys(BLANK_LEVEL_LABEL) as DictationBlankLevel[]).map((k) => (
+                    <option key={k} value={k}>
+                      {BLANK_LEVEL_LABEL[k]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={dictationDraft.dictation_randomize_on_retry}
+                  disabled={readOnly || !dictationDraft.dictation_enabled}
+                  onChange={(e) => editDictation({ dictation_randomize_on_retry: e.target.checked })}
+                  className="h-4 w-4 accent-brand-600"
+                />
+                다시 할 때 빈칸 위치 바꾸기
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={dictationDraft.dictation_lock_next_until_pass}
+                  disabled={readOnly || !dictationDraft.dictation_enabled}
+                  onChange={(e) =>
+                    editDictation({ dictation_lock_next_until_pass: e.target.checked })
+                  }
+                  className="h-4 w-4 accent-brand-600"
+                />
+                통과해야 다음 문제로
+              </label>
+            </div>
+          </div>
+
+          {!readOnly ? (
+            <div className="flex flex-col gap-3 border-t border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <Button
+                  disabled={!dictationDirty || busy === "dictation-save"}
+                  onClick={() => void saveDictationSettings()}
+                >
+                  {busy === "dictation-save" ? "저장 중…" : "저장"}
+                </Button>
+                {dictationDirty ? (
+                  <span className="text-xs font-medium text-amber-700">저장 안 한 내용이 있어요</span>
+                ) : (
+                  <SavedHint show={dictationSaved} />
+                )}
+              </div>
+              {dictation.dictation_enabled && total > 0 ? (
+                <Button
+                  variant="secondary"
+                  disabled={!!busy}
+                  onClick={() => void prebuildDictation()}
+                >
+                  {busy === "dictation-prebuild" ? "만드는 중…" : `받아쓰기 미리 만들기 (${total}문항)`}
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+          {!readOnly && dictation.dictation_enabled && total > 0 ? (
+            <p className="px-5 pb-4 text-xs text-slate-500">
+              세트를 열거나 문항·음성을 저장하면 빈칸은 알아서 준비돼요. 전부 새로 만들 때만 눌러
+              주세요.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+function EmptyStep({ text, action }: { text: string; action: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+      <p className="text-sm text-slate-600">{text}</p>
+      <div className="mt-4 flex justify-center">{action}</div>
     </div>
   );
 }

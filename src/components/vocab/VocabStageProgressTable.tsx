@@ -1,6 +1,11 @@
+import { StageDots, StageLegend } from "@/components/vocab/VocabUi";
+import { buildStageCell } from "@/lib/vocab/stage-cell";
+
 export interface VocabStageProgressRow {
   studentId: string;
   studentName: string;
+  /** 진행 기록이 있는지 */
+  started: boolean;
   stage1Completed: boolean;
   stage2Completed: boolean;
   stage3Completed: boolean;
@@ -10,55 +15,91 @@ export interface VocabStageProgressRow {
   stage4AttemptCount: number;
 }
 
-interface VocabStageProgressTableProps {
-  rows: VocabStageProgressRow[];
-}
-
-function boolLabel(done: boolean) {
-  return done ? "완료" : "미완료";
-}
-
-export function VocabStageProgressTable({ rows }: VocabStageProgressTableProps) {
+/** 단어장 한 개의 학생별 진행 — 1·2·3·4단계 점, 최근·최고 점수, 응시 횟수 */
+export function VocabStageProgressTable({ rows }: { rows: VocabStageProgressRow[] }) {
   if (rows.length === 0) {
     return (
-      <p className="text-sm text-slate-500">
-        배정된 학생이 없거나 아직 학습 기록이 없습니다.
-      </p>
+      <div className="rounded-lg border border-slate-200 bg-white px-6 py-14 text-center shadow-card">
+        <p className="text-sm text-slate-500">
+          아직 배정된 학생이 없어요. 배정하면 여기서 진행을 볼 수 있어요.
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="ui-table-wrap">
-      <table className="ui-table">
-        <thead>
-          <tr>
-            <th>학생</th>
-            <th>1단계</th>
-            <th>2단계</th>
-            <th>3단계 예문</th>
-            <th>4단계 합격</th>
-            <th>4단계 최근</th>
-            <th>4단계 최고</th>
-            <th>4단계 응시</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.studentId}>
-              <td className="font-medium text-slate-900">{row.studentName}</td>
-              <td>{boolLabel(row.stage1Completed)}</td>
-              <td>{boolLabel(row.stage2Completed)}</td>
-              <td>{boolLabel(row.stage3Completed)}</td>
-              <td>{row.stage4Passed ? "합격" : "—"}</td>
-              <td>
-                {row.stage4AttemptCount > 0 ? `${row.stage4LastScore}점` : "—"}
-              </td>
-              <td>{row.stage4BestScore > 0 ? `${row.stage4BestScore}점` : "—"}</td>
-              <td>{row.stage4AttemptCount}</td>
+    <div className="space-y-2.5">
+      <div className="flex justify-end">
+        <StageLegend />
+      </div>
+      <div className="ui-table-wrap">
+        <table className="ui-table">
+          <thead>
+            <tr>
+              <th>학생</th>
+              <th>
+                1·2·3·4단계
+                <span className="ml-1.5 font-normal text-slate-400">카드 · 철자 · 예문 · 최종 시험</span>
+              </th>
+              <th className="text-right">최근</th>
+              <th className="text-right">최고</th>
+              <th className="text-right">응시</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row) => {
+              const tookTest = row.stage4AttemptCount > 0 || row.stage4Passed;
+              const cell = buildStageCell({
+                started: row.started,
+                stage1: row.stage1Completed,
+                stage2: row.stage2Completed,
+                stage3: row.stage3Completed,
+                passed: row.stage4Passed,
+                attempts: row.stage4AttemptCount,
+                bestScore: row.stage4BestScore,
+              });
+              return (
+                <tr key={row.studentId}>
+                  <td className="font-semibold text-slate-900">{row.studentName}</td>
+                  <td>
+                    <span className="flex items-center gap-2">
+                      <StageDots dots={cell.dots} />
+                      <span
+                        className={`text-xs font-semibold ${
+                          cell.passed
+                            ? "text-green-700"
+                            : cell.failed
+                              ? "text-rose-700"
+                              : "font-normal text-slate-400"
+                        }`}
+                      >
+                        {cell.passed ? "합격" : cell.failed ? "불합격" : cell.label}
+                      </span>
+                    </span>
+                  </td>
+                  <td className="text-right tabular-nums">
+                    {row.stage4AttemptCount > 0 ? `${row.stage4LastScore}점` : "—"}
+                  </td>
+                  <td
+                    className={`text-right font-semibold tabular-nums ${
+                      !tookTest
+                        ? "text-slate-400"
+                        : row.stage4Passed
+                          ? "text-green-700"
+                          : "text-rose-700"
+                    }`}
+                  >
+                    {tookTest ? `${row.stage4BestScore}점` : "—"}
+                  </td>
+                  <td className="text-right tabular-nums text-slate-500">
+                    {row.stage4AttemptCount}회
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

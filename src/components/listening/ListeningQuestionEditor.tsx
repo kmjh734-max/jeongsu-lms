@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Icon } from "@/components/layout/NavIcon";
+import { ListeningAudioBar } from "@/components/listening/ListeningAudioBar";
 import {
   SegmentScriptEditor,
   type SegmentDraft,
 } from "@/components/listening/SegmentScriptEditor";
-import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
+import { Button } from "@/components/ui/Button";
+import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import type { AnswerValidationPayload, QualityIssuePayload } from "@/lib/listening/types";
 
@@ -93,13 +96,6 @@ export interface ListeningQuestionData {
   }>;
 }
 
-interface ListeningQuestionEditorProps {
-  setId: string;
-  question: ListeningQuestionData;
-  speechSpeed?: number;
-  onUpdated: () => void;
-}
-
 function padChoices(choices: string[]): string[] {
   const next = [...choices];
   while (next.length < 5) next.push("");
@@ -184,11 +180,54 @@ function normalizeRegeneratedQuestion(
   };
 }
 
+/** 문항 점검에서 나온 경고 문구 (중복 제거) */
+export function questionReviewWarnings(q: ListeningQuestionData): string[] {
+  const out: string[] = [];
+  for (const issue of q.quality_issues ?? []) {
+    if (issue?.message?.trim()) out.push(issue.message.trim());
+  }
+  const av = q.answer_validation as Partial<AnswerValidationPayload> | undefined;
+  for (const p of av?.problems ?? []) {
+    if (typeof p === "string" && p.trim()) out.push(p.trim());
+  }
+  return [...new Set(out)];
+}
+
+/** 검토에서 「확인 필요」로 보일 문항 */
+export function questionNeedsReview(q: ListeningQuestionData): boolean {
+  return q.needs_review === true;
+}
+
+const SPEAKER_WORD: Record<string, string> = { W: "여자", M: "남자", ANN: "안내" };
+
+function voiceCaption(segments: ListeningQuestionData["segments"]): string {
+  const kinds = [...new Set(segments.map((s) => s.speaker_type))].filter(
+    (k) => k === "W" || k === "M"
+  );
+  if (kinds.length === 0) return "안내 목소리";
+  return `${kinds.map((k) => SPEAKER_WORD[k]).join(" · ")} 목소리`;
+}
+
+interface ListeningQuestionEditorProps {
+  setId: string;
+  question: ListeningQuestionData;
+  speechSpeed?: number;
+  onUpdated: () => void;
+  readOnly?: boolean;
+  /** 저장 안 한 내용이 생기거나 없어질 때 */
+  onDirtyChange?: (dirty: boolean) => void;
+  /** 카드 맨 아래 (이전·다음 문항 버튼) */
+  footer?: ReactNode;
+}
+
 export function ListeningQuestionEditor({
   setId,
   question,
   speechSpeed = 0.75,
   onUpdated,
+  readOnly = false,
+  onDirtyChange,
+  footer,
 }: ListeningQuestionEditorProps) {
   const applyQuestionToEditor = (q: ListeningQuestionData) => {
     setSegments(segmentsToDrafts(q.segments));
@@ -204,6 +243,7 @@ export function ListeningQuestionEditor({
     setAnswerClue(q.answer_clue ?? "");
     setAudioUrl(q.audio_url);
     setLocalContentKey(questionContentKey(q));
+    setDirty(false);
   };
 
   const [segments, setSegments] = useState<SegmentDraft[]>(() =>
@@ -231,6 +271,8 @@ export function ListeningQuestionEditor({
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
 
   const serverContentKey = questionContentKey(question);
 
@@ -240,17 +282,36 @@ export function ListeningQuestionEditor({
     }
   }, [serverContentKey, localContentKey, question]);
 
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+
+  useEffect(() => {
+    if (!savedAt) return;
+    const t = window.setTimeout(() => setSavedAt(null), 2500);
+    return () => window.clearTimeout(t);
+  }, [savedAt]);
+
+  function edit<T>(setter: (value: T) => void) {
+    return (value: T) => {
+      setter(value);
+      setDirty(true);
+      setSavedAt(null);
+    };
+  }
+
   const filledChoiceCount = choices.filter((c) => c.trim()).length;
-  const hasFinalAudio = !!audioUrl;
   const table = normalizeTableData(question.table_data);
-  const blankLine =
-    question.order_index === 19 || question.order_index === 20
-      ? displayQuestionTextForOrder(question.order_index, questionText)
-      : null;
+  const blankLine = isFixedContinuationPassage
+    ? displayQuestionTextForOrder(question.order_index, questionText)
+    : null;
+  const warnings = questionReviewWarnings(question);
+  const flagged = questionNeedsReview(question);
 
   async function saveQuestion() {
     setBusy("save");
     setMessage(null);
+    setError(null);
     const res = await fetch(`/api/listening/questions/${question.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -267,10 +328,11 @@ export function ListeningQuestionEditor({
     const data = (await res.json()) as { ok?: boolean; message?: string };
     setBusy(null);
     if (!data.ok) {
-      setMessage(data.message ?? "저장 실패");
+      setError(data.message ?? "저장하지 못했어요.");
       return;
     }
-    setMessage("저장되었습니다.");
+    setDirty(false);
+    setSavedAt(Date.now());
     onUpdated();
   }
 
@@ -295,18 +357,18 @@ export function ListeningQuestionEditor({
     };
     setBusy(null);
     if (!data.ok) {
-      setError(data.message ?? "음원 생성 실패");
+      setError(data.message ?? "음성을 만들지 못했어요.");
       return;
     }
     if (!data.audioUrl) {
-      setError("음원 URL을 받지 못했습니다. 음원 생성을 다시 시도해 주세요.");
+      setError("음성 파일을 받지 못했어요. 한 번 더 눌러 주세요.");
       return;
     }
     setAudioUrl(`${data.audioUrl}?t=${Date.now()}`);
     setMessage(
       segmentId
-        ? "해당 줄만 화면에 보이는 대본 그대로 다시 읽었습니다."
-        : "ElevenLabs로 대본 음원을 생성했습니다. (지시문·선택지는 읽지 않습니다.)"
+        ? "이 줄을 지금 대본대로 다시 읽었어요."
+        : "대본 음성을 만들었어요. 지시문과 선택지는 읽지 않아요."
     );
     onUpdated();
   }
@@ -314,13 +376,14 @@ export function ListeningQuestionEditor({
   async function regenerateQuestion() {
     if (
       !window.confirm(
-        `${question.order_index}번 문항을 AI로 다시 만듭니다. 기존 대본은 교체되고 음원은 초기화됩니다. 계속할까요?`
+        `${question.order_index}번 문항을 다시 만들어요. 지금 대본은 바뀌고 음성은 지워져요. 계속할까요?`
       )
     ) {
       return;
     }
     setBusy("regen");
     setMessage(null);
+    setError(null);
     const prevProblems = [
       ...(question.quality_issues?.map((i) => i.message) ?? []),
       ...((question.answer_validation as AnswerValidationPayload | undefined)
@@ -344,7 +407,7 @@ export function ListeningQuestionEditor({
     };
     setBusy(null);
     if (!data.ok) {
-      setMessage(data.message ?? "재생성 실패");
+      setError(data.message ?? "다시 만들지 못했어요.");
       return;
     }
     if (data.question) {
@@ -354,185 +417,230 @@ export function ListeningQuestionEditor({
     }
     setMessage(
       data.audioNeedsRegeneration
-        ? "문항을 다시 생성했습니다. 음원을 다시 생성해 주세요."
-        : "문항을 다시 생성했습니다."
+        ? "문항을 다시 만들었어요. ③ 음성 만들기에서 음성도 다시 만들어 주세요."
+        : "문항을 다시 만들었어요."
     );
     onUpdated();
   }
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h3 className="font-semibold text-slate-900">
+    <article className="flex min-h-full flex-col gap-4 rounded-lg border border-slate-200 bg-white px-5 py-[18px] shadow-card">
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <h3 className="text-base font-bold text-slate-900">
             {question.order_index}번 · {question.question_type}
-            <span
-              className={`ml-2 text-xs font-normal ${hasFinalAudio ? "text-emerald-600" : "text-amber-600"}`}
-            >
-              {hasFinalAudio ? "● 최종 음원 있음" : "○ 최종 음원 없음"}
-            </span>
           </h3>
-          {instruction && (
-            <p className="mt-1 text-sm text-slate-700">{instruction}</p>
-          )}
-          {answerClue && (
-            <p className="mt-1 text-xs text-emerald-700">
-              정답 근거: {answerClue}
-            </p>
-          )}
+          {flagged || warnings.length > 0 ? (
+            <span
+              className="inline-flex h-[22px] max-w-full items-center gap-1 rounded bg-amber-50 px-2 text-xs font-semibold text-amber-700"
+              title={warnings.join("\n") || undefined}
+            >
+              <Icon name="alert" size={12} strokeWidth={2} />
+              <span className="truncate">{warnings[0] ?? "확인이 필요해요"}</span>
+              {warnings.length > 1 ? (
+                <span className="shrink-0 text-amber-600">외 {warnings.length - 1}</span>
+              ) : null}
+            </span>
+          ) : null}
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={!!busy}
-            onClick={regenerateQuestion}
-            className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-800 disabled:opacity-50"
-          >
-            {busy === "regen" ? "재생성 중…" : "이 문항 다시 생성"}
-          </button>
-          <button
-            type="button"
-            disabled={!!busy}
-            onClick={() => saveQuestion()}
-            className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-          >
-            {busy === "save" ? "저장 중…" : "대본·문항 저장"}
-          </button>
-          <button
-            type="button"
-            disabled={!!busy}
-            onClick={() => generateAudio()}
-            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-          >
-            {busy === "audio" ? "ElevenLabs 생성 중…" : "음원 생성 (ElevenLabs)"}
-          </button>
-        </div>
+        {!readOnly ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {dirty ? (
+              <span className="text-xs font-medium text-amber-700">저장 안 한 내용이 있어요</span>
+            ) : savedAt ? (
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+                <Icon name="check" size={13} strokeWidth={2.4} />
+                저장했어요
+              </span>
+            ) : null}
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!!busy}
+              onClick={regenerateQuestion}
+            >
+              <Icon name="rotate" size={15} />
+              {busy === "regen" ? "다시 만드는 중…" : "이 문항 다시 만들기"}
+            </Button>
+            <Button size="sm" disabled={!!busy} onClick={() => void saveQuestion()}>
+              {busy === "save" ? "저장 중…" : "저장"}
+            </Button>
+          </div>
+        ) : null}
       </header>
 
-      <label className="mb-3 block text-sm">
-        <span className="font-medium text-slate-700">지시문 (한국어)</span>
-        <textarea
-          value={instruction}
-          onChange={(e) => setInstruction(e.target.value)}
-          className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm"
-          rows={2}
-        />
-      </label>
-
-      <SegmentScriptEditor segments={segments} onChange={setSegments} />
-
-      {table && (
-        <div className="mt-4">
-          <p className="mb-1 text-xs font-medium text-slate-500">표 (14번)</p>
-          <ListeningTableDisplay
-            table={table}
-            highlightMismatchNo={table.mismatch_no}
-          />
-        </div>
-      )}
-
-      {blankLine && (
-        <p className="mt-3 font-mono text-sm text-slate-800">{blankLine}</p>
-      )}
-
-      <div className="mt-3 space-y-1">
-        {question.segments.map((seg, i) => (
-          <div
-            key={seg.id}
-            className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500"
-          >
-            <span>
-              [{seg.speaker_type}] {segments[i]?.text?.slice(0, 40) ?? seg.text.slice(0, 40)}
-              {seg.audio_url ? " · 음원 있음" : ""}
-            </span>
-            <button
-              type="button"
-              disabled={!!busy}
-              onClick={() => generateAudio(seg.id)}
-              className="text-indigo-600 hover:underline disabled:opacity-50"
-            >
-              {busy === `seg-${seg.id}` ? "생성 중…" : "이 줄만 음원 생성"}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-4 space-y-3">
-        <label className="block text-sm">
-          <span className="font-medium text-slate-700">질문/표</span>
-          <textarea
-            value={questionText}
-            onChange={(e) => setQuestionText(e.target.value)}
-            readOnly={isFixedContinuationPassage}
-            className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm read-only:bg-slate-50"
-            rows={3}
-          />
-        </label>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {choices.map((c, i) => (
-            <label key={i} className="block text-sm">
-              <span className="text-slate-600">
-                {CIRCLED[i] ?? `${i + 1}.`} 선택지
-              </span>
-              <input
-                value={c}
-                onChange={(e) => {
-                  const next = [...choices];
-                  next[i] = e.target.value;
-                  setChoices(next);
-                }}
-                className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm"
-              />
-              {(question.order_index === 1 ||
-                question.order_index === 2 ||
-                question.order_index === 3) &&
-                imagePrompts[i]?.trim() && (
-                  <p className="mt-1 text-xs text-slate-500">
-                    그림: {imagePrompts[i]}
-                  </p>
-                )}
-            </label>
+      {warnings.length > 1 ? (
+        <ul className="space-y-0.5 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {warnings.map((w) => (
+            <li key={w}>· {w}</li>
           ))}
+        </ul>
+      ) : null}
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        {/* 대본 · 음성 · 해설 */}
+        <div className="flex min-w-0 flex-col gap-2">
+          <span className="text-xs font-semibold text-slate-500">대본</span>
+          <SegmentScriptEditor
+            segments={segments}
+            onChange={edit(setSegments)}
+            readOnly={readOnly}
+            renderRowAction={
+              readOnly
+                ? undefined
+                : (seg) =>
+                    seg.id ? (
+                      <button
+                        type="button"
+                        disabled={!!busy}
+                        onClick={() => void generateAudio(seg.id)}
+                        title="이 줄만 다시 읽기"
+                        aria-label="이 줄만 다시 읽기"
+                        className={`mt-1 shrink-0 rounded p-1 hover:bg-brand-50 hover:text-brand-700 disabled:opacity-40 ${
+                          busy === `seg-${seg.id}` ? "animate-pulse text-brand-600" : "text-slate-400"
+                        }`}
+                      >
+                        <Icon name="speaker" size={14} />
+                      </button>
+                    ) : null
+            }
+          />
+          {audioUrl ? (
+            <ListeningAudioBar src={audioUrl} caption={voiceCaption(question.segments)} />
+          ) : (
+            <p className="flex h-11 items-center gap-2 rounded-lg border border-dashed border-slate-200 px-3 text-xs text-slate-500">
+              <Icon name="speaker" size={14} />
+              아직 음성이 없어요. ③ 음성 만들기에서 만들 수 있어요.
+            </p>
+          )}
+
+          {table ? (
+            <div className="mt-1">
+              <span className="text-xs font-semibold text-slate-500">표</span>
+              <div className="mt-1">
+                <ListeningTableDisplay table={table} highlightMismatchNo={table.mismatch_no} />
+              </div>
+            </div>
+          ) : null}
+
+          <label className="mt-1 block">
+            <span className="text-xs font-semibold text-slate-500">해설</span>
+            <textarea
+              value={explanation}
+              readOnly={readOnly}
+              onChange={(e) => edit(setExplanation)(e.target.value)}
+              className="mt-1.5 w-full rounded-lg border border-transparent bg-slate-50 px-3 py-2.5 text-[13px] leading-relaxed text-slate-700 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100"
+              rows={2}
+            />
+          </label>
+          {answerClue ? (
+            <p className="text-xs text-slate-500">
+              <span className="font-semibold text-slate-600">정답 근거</span> {answerClue}
+            </p>
+          ) : null}
         </div>
-        <label className="block text-sm">
-          <span className="font-medium text-slate-700">정답 (1~{filledChoiceCount || 5})</span>
-          <input
-            type="number"
-            min={1}
-            max={filledChoiceCount || 5}
-            value={correctAnswer}
-            onChange={(e) => setCorrectAnswer(Number(e.target.value))}
-            className="mt-1 w-20 rounded-md border border-slate-200 px-2 py-1.5 text-sm"
-          />
-        </label>
-        <label className="block text-sm">
-          <span className="font-medium text-slate-700">해설</span>
+
+        {/* 문제 · 선택지 */}
+        <div className="flex min-w-0 flex-col gap-2">
+          <span className="text-xs font-semibold text-slate-500">문제</span>
           <textarea
-            value={explanation}
-            onChange={(e) => setExplanation(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm"
+            value={instruction}
+            readOnly={readOnly}
+            onChange={(e) => edit(setInstruction)(e.target.value)}
+            aria-label="지시문"
             rows={2}
+            className="w-full resize-y rounded-md border border-transparent px-1 py-0.5 text-sm font-semibold leading-normal text-slate-900 hover:border-slate-200 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 read-only:hover:border-transparent"
           />
-        </label>
+          {questionText.trim() || !readOnly ? (
+            <textarea
+              value={questionText}
+              onChange={(e) => edit(setQuestionText)(e.target.value)}
+              readOnly={readOnly || isFixedContinuationPassage}
+              aria-label="질문"
+              placeholder="질문 (필요할 때만)"
+              rows={questionText.trim() ? 2 : 1}
+              className="w-full resize-y rounded-md border border-slate-200 px-2.5 py-1.5 text-[13px] text-slate-700 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 read-only:bg-slate-50"
+            />
+          ) : null}
+          {blankLine ? (
+            <p className="font-mono text-sm text-slate-800">{blankLine}</p>
+          ) : null}
+
+          <ul className="flex flex-col gap-2">
+            {choices.map((c, i) => {
+              const isAnswer = correctAnswer === i + 1;
+              if (readOnly && !c.trim()) return null;
+              return (
+                <li key={i}>
+                  <div
+                    className={`flex min-h-[38px] items-center gap-2 rounded-md border px-2 ${
+                      isAnswer ? "border-green-700 bg-green-50" : "border-slate-200 bg-white"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      disabled={readOnly}
+                      onClick={() => edit(setCorrectAnswer)(i + 1)}
+                      title={isAnswer ? "정답" : "정답으로 고르기"}
+                      aria-label={`${i + 1}번을 정답으로`}
+                      aria-pressed={isAnswer}
+                      className={`shrink-0 rounded px-1 text-sm font-semibold disabled:cursor-default ${
+                        isAnswer ? "text-green-700" : "text-slate-400 hover:text-slate-700"
+                      }`}
+                    >
+                      {CIRCLED[i] ?? `${i + 1}.`}
+                    </button>
+                    <input
+                      value={c}
+                      readOnly={readOnly}
+                      onChange={(e) => {
+                        const next = [...choices];
+                        next[i] = e.target.value;
+                        edit(setChoices)(next);
+                      }}
+                      aria-label={`${i + 1}번 선택지`}
+                      className={`min-w-0 flex-1 bg-transparent py-1.5 text-[13px] focus:outline-none ${
+                        isAnswer ? "font-semibold text-green-700" : "text-slate-900"
+                      }`}
+                    />
+                    {isAnswer ? (
+                      <span className="shrink-0 rounded bg-green-700/10 px-2 py-0.5 text-xs font-semibold text-green-700">
+                        정답
+                      </span>
+                    ) : null}
+                  </div>
+                  {(question.order_index === 1 ||
+                    question.order_index === 2 ||
+                    question.order_index === 3) &&
+                  imagePrompts[i]?.trim() ? (
+                    <p className="mt-1 pl-2 text-xs text-slate-500">그림: {imagePrompts[i]}</p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+          {!readOnly ? (
+            <p className="text-xs text-slate-400">
+              번호를 누르면 정답이 바뀌어요 (1~{filledChoiceCount || 5}).
+            </p>
+          ) : null}
+        </div>
       </div>
 
-      {audioUrl && (
-        <div className="mt-4">
-          <p className="mb-1 text-xs font-medium text-slate-500">미리듣기 (최종 mp3)</p>
-          <audio controls src={audioUrl} className="w-full max-w-md" preload="metadata" />
-        </div>
-      )}
-
-      {error && (
-        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+      {error ? (
+        <p className="rounded-md border border-rose-100 bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
           {error}
         </p>
-      )}
-      {message && (
-        <p className="mt-2 text-sm text-slate-600" role="status">
+      ) : null}
+      {message ? (
+        <p className="rounded-md border border-brand-100 bg-brand-50 px-3 py-2 text-sm text-brand-800" role="status">
           {message}
         </p>
-      )}
+      ) : null}
+
+      {footer ? (
+        <div className="mt-auto border-t border-slate-100 pt-3">{footer}</div>
+      ) : null}
     </article>
   );
 }

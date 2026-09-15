@@ -347,7 +347,7 @@ export async function moveVocabSet(
 
 export async function copyVocabSet(
   setId: string,
-  targetFolderId: string
+  targetFolderId: string | null
 ): Promise<ActionResult & { setId?: string }> {
   const { profile, error } = await requireTeacher();
   if (error) return error;
@@ -363,7 +363,10 @@ export async function copyVocabSet(
 
   if (!result.ok) return actionError(result.message);
 
-  revalidateVocabPaths(ROLE, { folderId: targetFolderId, setId: result.newSetId });
+  revalidateVocabPaths(ROLE, {
+    folderId: targetFolderId ?? undefined,
+    setId: result.newSetId,
+  });
   return {
     ...actionSuccess("단어장이 복사되었습니다."),
     setId: result.newSetId,
@@ -411,26 +414,28 @@ export async function removeFolderVocabAssignment(
 
 export async function bulkMoveVocabSets(
   setIds: string[],
-  folderId: string
+  folderId: string | null
 ): Promise<ActionResult> {
   const { profile, error } = await requireTeacher();
   if (error) return error;
   if (!setIds.length) return actionError("이동할 단어장을 선택해 주세요.");
 
   const supabase = await createClient();
-  const folderDenied = await assertTeacherOwnsFolder(
-    supabase,
-    profile!.id,
-    folderId
-  );
-  if (folderDenied) return folderDenied;
+  if (folderId) {
+    const folderDenied = await assertTeacherOwnsFolder(
+      supabase,
+      profile!.id,
+      folderId
+    );
+    if (folderDenied) return folderDenied;
+  }
 
   for (const setId of setIds) {
     const result = await moveVocabSetToFolder(supabase, setId, folderId);
     if (!result.ok) return actionError(result.message);
   }
 
-  revalidateVocabPaths(ROLE, { folderId });
+  revalidateVocabPaths(ROLE, { folderId: folderId ?? undefined });
   return actionSuccess(`${setIds.length}개 단어장을 이동했습니다.`);
 }
 

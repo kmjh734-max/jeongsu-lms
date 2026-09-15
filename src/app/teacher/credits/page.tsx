@@ -1,14 +1,24 @@
-import { PageHeader } from "@/components/ui/PageHeader";
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { loadCreditsPageData } from "@/lib/credits/load-credits-page";
+import { Alert } from "@/components/ui/Alert";
 import { CreditsDashboard } from "@/components/credits/CreditsDashboard";
 
-export default function TeacherCreditsPage() {
-  return (
-    <div>
-      <PageHeader
-        title="크레딧"
-        description="학원 잔액과 AI·학습 이용 내역을 확인합니다."
-      />
-      <CreditsDashboard />
-    </div>
-  );
+interface PageProps {
+  searchParams: Promise<{ month?: string }>;
+}
+
+export default async function TeacherCreditsPage({ searchParams }: PageProps) {
+  const { month } = await searchParams;
+  const profile = await getCurrentProfile();
+  if (!profile?.academy_id) {
+    return <Alert variant="error">학원 정보를 찾지 못했어요. 다시 로그인해 주세요.</Alert>;
+  }
+  const supabase = await createClient();
+  const data = await loadCreditsPageData(supabase, {
+    academyId: profile.academy_id,
+    monthParam: month,
+    canCharge: false,
+  });
+  return <CreditsDashboard data={data} />;
 }

@@ -2,6 +2,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { listListeningSetFolders } from "@/lib/listening/folder-access";
 import { listScheduleAssignments } from "@/lib/listening/schedule/list-assignments";
 import type { ScheduleAssignmentListItem } from "@/lib/listening/schedule/list-assignments";
+import {
+  loadClassStudentCounts,
+  loadListeningSetQuestionStats,
+  loadScheduleAssignmentProgress,
+  loadStudentClassNames,
+  type ScheduleAssignmentProgress,
+} from "@/lib/listening/load-listening-overview";
+import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { UserRole } from "@/types/database";
 
@@ -10,12 +18,28 @@ export interface ScheduleStudentOption {
   name: string;
 }
 
+export interface ScheduleSetOption {
+  id: string;
+  title: string;
+  folder_id: string | null;
+  /** 문항 수 — 「이렇게 나가요」 미리보기 계산용 */
+  questionCount: number;
+  /** 세트 기본 받아쓰기 통과 점수 — 배정 창 기본값 */
+  dictationPassScore: number;
+}
+
 export interface ScheduleAssignPageData {
   assignments: ScheduleAssignmentListItem[];
-  classes: { id: string; name: string }[];
-  sets: { id: string; title: string; folder_id: string | null }[];
+  classes: { id: string; name: string; studentCount: number }[];
+  sets: ScheduleSetOption[];
   folders: { id: string; name: string }[];
   students: ScheduleStudentOption[];
+  /** 반 배정 카드에 보일 학생 수 */
+  classStudentCounts: Record<string, number>;
+  /** 학생 배정 카드에 보일 소속 반 */
+  studentClassNames: Record<string, string>;
+  progressByAssignment: Record<string, ScheduleAssignmentProgress>;
+  todayIso: string;
 }
 
 async function loadScheduleStudentOptions(
@@ -83,7 +107,7 @@ export async function loadScheduleAssignPageData(
 
   let setsQuery = supabase
     .from("listening_sets")
-    .select("id, title, folder_id, order_index")
+    .select("id, title, folder_id, order_index, dictation_pass_score")
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: false })
     .limit(300);
@@ -142,15 +166,59 @@ export async function loadScheduleAssignPageData(
       loadScheduleStudentOptions(supabase, role, viewerId, academyId),
     ]);
 
+  const todayIso = getTodayIsoKorea();
+  const setRows = sets ?? [];
+  const classRows = classes ?? [];
+  const classIdsForCounts = [
+    ...new Set([
+      ...classRows.map((c) => c.id as string),
+      ...assignments
+        .map((a) => a.targetClassId)
+        .filter((id): id is string => Boolean(id)),
+    ]),
+  ];
+  const studentTargetIds = [
+    ...new Set(
+      assignments
+        .map((a) => a.targetStudentId)
+        .filter((id): id is string => Boolean(id))
+    ),
+  ];
+
+  const [questionStats, classStudentCounts, studentClassNames, progressByAssignment] =
+    await Promise.all([
+      loadListeningSetQuestionStats(
+        supabase,
+        setRows.map((s) => s.id as string)
+      ),
+      loadClassStudentCounts(admin, classIdsForCounts),
+      loadStudentClassNames(admin, studentTargetIds),
+      loadScheduleAssignmentProgress(
+        admin,
+        assignments.map((a) => a.id),
+        todayIso
+      ),
+    ]);
+
   return {
     assignments,
-    classes: classes ?? [],
-    sets: (sets ?? []).map((s) => ({
+    classes: classRows.map((c) => ({
+      id: c.id as string,
+      name: c.name as string,
+      studentCount: classStudentCounts[c.id as string] ?? 0,
+    })),
+    sets: setRows.map((s) => ({
       id: s.id as string,
       title: s.title as string,
       folder_id: (s.folder_id as string | null) ?? null,
+      questionCount: questionStats[s.id as string]?.questionCount ?? 0,
+      dictationPassScore: (s.dictation_pass_score as number | null) ?? 80,
     })),
     folders,
     students,
+    classStudentCounts,
+    studentClassNames,
+    progressByAssignment,
+    todayIso,
   };
 }

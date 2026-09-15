@@ -1,5 +1,5 @@
-import { VocabAssignHub } from "@/components/vocab/VocabAssignHub";
+import { renderVocabAssignPage } from "@/lib/vocab/render-vocab-assign-page";
 
-export default function TeacherVocabAssignPage() {
-  return <VocabAssignHub role="teacher" />;
+export default async function TeacherVocabAssignPage() {
+  return renderVocabAssignPage("teacher");
 }

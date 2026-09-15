@@ -64,23 +64,22 @@ export function VocabPrintExamConfig({
   }
 
   return (
-    <div className="w-full space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-      <p className="text-xs font-semibold text-slate-600">
-        시험지 문항 수 (단어 {maxPool}개 · 합계 최대 {maxPool}문항 · 예문은 마지막
-        1단)
+    <div className="w-full space-y-3">
+      <p className="text-[13px] font-medium text-slate-600">
+        문항 수 · 단어 {maxPool}개라 합계 {maxPool}문항까지 (예문 문항은 마지막에 1단)
       </p>
       <p
-        className={`text-[11px] font-medium ${
+        className={`text-xs font-medium ${
           overPool ? "text-amber-700" : "text-slate-500"
         }`}
       >
         현재 합계 {Math.min(total, maxPool)} / {maxPool}문항
-        {overPool ? " · 단어 수를 넘길 수 없어 자동으로 줄입니다." : ""}
+        {overPool ? " · 단어 수보다 많을 수 없어 알아서 줄여요." : ""}
       </p>
 
       <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="text-xs text-slate-500">
+          <tr className="text-[13px] text-slate-500">
             <th className="pb-2 text-left font-medium" />
             <th className="pb-2 text-center font-semibold">객관식</th>
             <th className="pb-2 text-center font-semibold">주관식</th>
@@ -89,7 +88,7 @@ export function VocabPrintExamConfig({
         <tbody>
           {ROWS.map((row) => (
             <tr key={row.label}>
-              <td className="py-1.5 pr-3 font-medium text-slate-700">{row.label}</td>
+              <td className="py-1.5 pr-3 text-[13px] font-medium text-slate-700">{row.label}</td>
               <td className="px-1 py-1.5 text-center">
                 <input
                   type="number"
@@ -97,7 +96,7 @@ export function VocabPrintExamConfig({
                   max={maxPool || 0}
                   value={counts[row.mc] || ""}
                   onChange={(e) => setCount(row.mc, e.target.value)}
-                  className="w-16 rounded border border-slate-300 px-2 py-1 text-center text-sm"
+                  className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-center text-sm tabular-nums focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
                 />
               </td>
               <td className="px-1 py-1.5 text-center">
@@ -107,7 +106,7 @@ export function VocabPrintExamConfig({
                   max={maxPool || 0}
                   value={counts[row.sa] || ""}
                   onChange={(e) => setCount(row.sa, e.target.value)}
-                  className="w-16 rounded border border-slate-300 px-2 py-1 text-center text-sm"
+                  className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-center text-sm tabular-nums focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
                 />
               </td>
             </tr>
@@ -116,7 +115,7 @@ export function VocabPrintExamConfig({
       </table>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
-        <span className="text-xs font-semibold text-slate-600">
+        <span className="w-full text-[13px] font-medium text-slate-600">
           단 구성 (단어·의미)
         </span>
         {COLUMNS.map((col) => (
@@ -124,10 +123,10 @@ export function VocabPrintExamConfig({
             key={col}
             type="button"
             onClick={() => setLayout({ columns: col })}
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+            className={`rounded-md border px-3 py-1.5 text-[13px] font-semibold ${
               layout.columns === col
-                ? "bg-slate-800 text-white"
-                : "bg-white text-slate-700 ring-1 ring-slate-300"
+                ? "border-brand-600 bg-brand-50 text-brand-700"
+                : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
             }`}
           >
             {EXAM_COLUMN_LABELS[col]}
@@ -136,16 +135,16 @@ export function VocabPrintExamConfig({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold text-slate-600">문항 간격</span>
+        <span className="w-full text-[13px] font-medium text-slate-600">문항 간격</span>
         {SPACINGS.map((spacing) => (
           <button
             key={spacing}
             type="button"
             onClick={() => setLayout({ lineSpacing: spacing })}
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+            className={`rounded-md border px-3 py-1.5 text-[13px] font-semibold ${
               layout.lineSpacing === spacing
-                ? "bg-slate-800 text-white"
-                : "bg-white text-slate-700 ring-1 ring-slate-300"
+                ? "border-brand-600 bg-brand-50 text-brand-700"
+                : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
             }`}
           >
             {EXAM_LINE_SPACING_LABELS[spacing]}
@@ -154,19 +153,19 @@ export function VocabPrintExamConfig({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <label className="flex items-center gap-2 text-xs text-slate-700">
+        <label className="flex items-center gap-2 text-[13px] text-slate-700">
           <input
             type="checkbox"
             checked={layout.shuffle}
             onChange={(e) => setLayout({ shuffle: e.target.checked })}
-            className="rounded border-slate-300"
+            className="h-4 w-4 accent-brand-600"
           />
-          문항 순서 랜덤
+          문항 순서 섞기
         </label>
         <button
           type="button"
           onClick={onReshuffle}
-          className="rounded-md bg-violet-100 px-2.5 py-1 text-xs font-semibold text-violet-800 hover:bg-violet-200"
+          className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-[13px] font-semibold text-slate-700 hover:bg-slate-50"
         >
           순서 다시 섞기
         </button>

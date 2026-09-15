@@ -80,6 +80,7 @@ export async function loadSetStageProgressRows(
     return {
       studentId: s.id,
       studentName: (s.name as string) || (s.login_id as string) || "—",
+      started: Boolean(p),
       stage1Completed: Boolean(progress.stage1_completed),
       stage2Completed: Boolean(progress.stage2_completed),
       stage3Completed: readStage3Completed(progress),

@@ -1,8 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Icon } from "@/components/layout/NavIcon";
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
+import {
+  formatKoreanDate,
+  NameAvatar,
+  ReportMenu,
+  ReportMenuItem,
+} from "@/components/reports/report-ui";
 import { StudentRecordReportView } from "@/components/student-records/StudentRecordReportView";
 import type {
   ReportClassOption,
@@ -23,15 +31,19 @@ import { STUDENT_RECORD_MAX_IMAGE_BYTES } from "@/lib/student-records/limits";
 import { DEFAULT_ANALYSIS_INSTRUCTIONS } from "@/lib/student-records/simple-analysis-prompt";
 import { isPdfUpload } from "@/lib/student-records/file-types";
 import { STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL } from "@/lib/student-records/limits";
-import {
-  hasSubstantiveStudentRecordText,
-  isReliableStudentRecordExtract,
-} from "@/lib/student-records/ocr-quality";
+import { isReliableStudentRecordExtract } from "@/lib/student-records/ocr-quality";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
 
 const PROGRESS_PREP_END = 12;
 const PROGRESS_OCR_END = 72;
 const PROGRESS_GENERATE_END = 98;
+
+const ACCEPT = "application/pdf,image/jpeg,image/png,image/webp";
+const ACCEPT_TYPES = ACCEPT.split(",");
+
+/** 0 파일 읽기 · 1 내용 정리 · 2 보고서 쓰기 */
+type ProgressStage = 0 | 1 | 2;
+const STAGE_LABELS = ["파일 읽기", "내용 정리", "보고서 쓰기"] as const;
 
 type ExtractApiResult = {
   ok: boolean;
@@ -56,6 +68,69 @@ interface StudentRecordWorkspaceProps {
   logoSrc?: string;
 }
 
+function StepCard({
+  index,
+  title,
+  sub,
+  done,
+  active,
+}: {
+  index: number;
+  title: string;
+  sub: string;
+  done: boolean;
+  active?: boolean;
+}) {
+  return (
+    <li
+      className={`flex items-center gap-3 rounded-lg border bg-white px-3.5 py-3 shadow-card ${
+        active ? "border-brand-600 ring-1 ring-brand-600" : "border-slate-200"
+      }`}
+    >
+      <span
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+          done && !active
+            ? "bg-green-700 text-white"
+            : active
+              ? "bg-brand-600 text-white"
+              : "bg-slate-100 text-slate-500"
+        }`}
+      >
+        {done && !active ? <Icon name="check" size={15} strokeWidth={2.5} /> : index}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold text-slate-900">{title}</span>
+        <span className="block truncate text-xs text-slate-500">{sub}</span>
+      </span>
+    </li>
+  );
+}
+
+function StepSection({
+  index,
+  title,
+  hint,
+  children,
+}: {
+  index: number;
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="border-t border-slate-100 px-5 py-5 first:border-t-0">
+      <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+        <span className="flex h-5 w-5 items-center justify-center rounded bg-slate-100 text-xs font-bold text-slate-600">
+          {index}
+        </span>
+        {title}
+      </h2>
+      {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
+      <div className="mt-3">{children}</div>
+    </section>
+  );
+}
+
 export function StudentRecordWorkspace({
   initialClasses = [],
   initialStudents = [],
@@ -66,51 +141,68 @@ export function StudentRecordWorkspace({
   const [students, setStudents] = useState<ReportStudentOption[]>(initialStudents);
   const [classId, setClassId] = useState("");
   const [nameQuery, setNameQuery] = useState("");
-  const [loginQuery, setLoginQuery] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [manualStudentName, setManualStudentName] = useState("");
   const [analysisInstructions, setAnalysisInstructions] = useState(
     DEFAULT_ANALYSIS_INSTRUCTIONS
   );
   const [files, setFiles] = useState<File[]>([]);
+  const [dragOver, setDragOver] = useState(false);
   const [result, setResult] = useState<StudentRecordAnalysisResult | null>(null);
   const [listLoading, setListLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [progressLabel, setProgressLabel] = useState<string | null>(null);
   const [progressPercent, setProgressPercent] = useState(0);
+  const [progressStage, setProgressStage] = useState<ProgressStage>(0);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryRecord[]>([]);
+  const [historyQuery, setHistoryQuery] = useState("");
   const [historyBusyId, setHistoryBusyId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const firstClassLoad = useRef(true);
 
-  const updateProgress = useCallback((label: string, percent: number) => {
-    setProgressLabel(label);
-    setProgressPercent(Math.min(100, Math.max(0, Math.round(percent))));
-  }, []);
+  const updateProgress = useCallback(
+    (stage: ProgressStage, label: string, percent: number) => {
+      setProgressStage(stage);
+      setProgressLabel(label);
+      setProgressPercent(Math.min(100, Math.max(0, Math.round(percent))));
+    },
+    []
+  );
 
-  const loadStudents = useCallback(async () => {
-    setListLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-      if (classId) params.set("classId", classId);
-      if (nameQuery.trim()) params.set("name", nameQuery.trim());
-      if (loginQuery.trim()) params.set("loginId", loginQuery.trim());
-
-      const res = await fetch(`/api/reports/students?${params.toString()}`);
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message ?? "학생 목록을 불러오지 못했습니다.");
-      }
-      setClasses(data.classes ?? []);
-      setStudents(data.students ?? []);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
-    } finally {
-      setListLoading(false);
+  // 반을 바꾸면 그 반 학생만 다시 불러온다 (이름은 화면에서 바로 거른다)
+  useEffect(() => {
+    if (firstClassLoad.current) {
+      firstClassLoad.current = false;
+      if (initialStudents.length > 0 || initialClasses.length > 0) return;
     }
-  }, [classId, nameQuery, loginQuery]);
+    let cancelled = false;
+    setListLoading(true);
+    const params = new URLSearchParams();
+    if (classId) params.set("classId", classId);
+    fetch(`/api/reports/students?${params.toString()}`)
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.message ?? "학생 목록을 불러오지 못했어요.");
+        }
+        if (cancelled) return;
+        setClasses(data.classes ?? []);
+        setStudents(data.students ?? []);
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "학생 목록을 불러오지 못했어요.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setListLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [classId, initialClasses.length, initialStudents.length]);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -128,14 +220,37 @@ export function StudentRecordWorkspace({
     void loadHistory();
   }, [loadHistory]);
 
+  const visibleStudents = useMemo(() => {
+    const q = nameQuery.trim().toLowerCase();
+    if (!q) return students;
+    return students.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        (s.loginId ?? "").toLowerCase().includes(q)
+    );
+  }, [students, nameQuery]);
+
+  const visibleHistory = useMemo(() => {
+    const q = historyQuery.trim().toLowerCase();
+    if (!q) return history;
+    return history.filter(
+      (r) =>
+        r.studentName.toLowerCase().includes(q) ||
+        (r.school ?? "").toLowerCase().includes(q)
+    );
+  }, [history, historyQuery]);
+
+  const selectedStudent = students.find((s) => s.id === selectedStudentId) ?? null;
+
   async function openHistoryRecord(id: string) {
+    if (analyzing) return;
     setHistoryBusyId(id);
     setError(null);
     try {
       const res = await fetch(`/api/student-records/history/${id}`);
       const data = await res.json();
       if (!res.ok || !data.ok || !data.record?.html) {
-        throw new Error(data.message ?? "기록을 불러오지 못했습니다.");
+        throw new Error(data.message ?? "기록을 불러오지 못했어요.");
       }
       setResult({
         studentId: data.record.studentId ?? null,
@@ -145,7 +260,7 @@ export function StudentRecordWorkspace({
         recordId: data.record.id ?? id,
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "기록을 불러오지 못했습니다.");
+      setError(e instanceof Error ? e.message : "기록을 불러오지 못했어요.");
     } finally {
       setHistoryBusyId(null);
     }
@@ -154,16 +269,14 @@ export function StudentRecordWorkspace({
   function startEditingRecord(record: HistoryRecord) {
     setEditingId(record.id);
     setEditingTitle(
-      record.school
-        ? `${record.school} · ${record.studentName}`
-        : record.studentName
+      record.school ? `${record.school} · ${record.studentName}` : record.studentName
     );
   }
 
   async function renameHistoryRecord(id: string) {
     const title = editingTitle.trim();
     if (!title) {
-      setError("제목을 입력해 주세요.");
+      setError("제목을 적어 주세요.");
       return;
     }
     setHistoryBusyId(id);
@@ -176,17 +289,15 @@ export function StudentRecordWorkspace({
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        throw new Error(data.message ?? "제목 수정에 실패했습니다.");
+        throw new Error(data.message ?? "제목을 고치지 못했어요.");
       }
       setHistory((prev) =>
-        prev.map((r) =>
-          r.id === id ? { ...r, studentName: title, school: null } : r
-        )
+        prev.map((r) => (r.id === id ? { ...r, studentName: title, school: null } : r))
       );
       setEditingId(null);
       setEditingTitle("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "제목 수정에 실패했습니다.");
+      setError(e instanceof Error ? e.message : "제목을 고치지 못했어요.");
     } finally {
       setHistoryBusyId(null);
     }
@@ -202,29 +313,42 @@ export function StudentRecordWorkspace({
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        throw new Error(data.message ?? "기록 삭제에 실패했습니다.");
+        throw new Error(data.message ?? "기록을 삭제하지 못했어요.");
       }
       setHistory((prev) => prev.filter((r) => r.id !== id));
+      setResult((prev) => (prev?.recordId === id ? null : prev));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "기록 삭제에 실패했습니다.");
+      setError(e instanceof Error ? e.message : "기록을 삭제하지 못했어요.");
     } finally {
       setHistoryBusyId(null);
     }
   }
 
-  const hasInitialLists =
-    initialClasses.length > 0 || initialStudents.length > 0;
+  function startNew() {
+    if (analyzing) return;
+    setResult(null);
+    setError(null);
+  }
 
-  useEffect(() => {
-    if (hasInitialLists && !classId && !nameQuery.trim() && !loginQuery.trim()) {
+  function addFiles(list: FileList | File[] | null) {
+    if (!list) return;
+    const incoming = Array.from(list).filter(
+      (f) => ACCEPT_TYPES.includes(f.type) || isPdfUpload(f)
+    );
+    if (incoming.length === 0) {
+      setError("PDF나 이미지(JPG·PNG·WEBP) 파일만 올릴 수 있어요.");
       return;
     }
-    void loadStudents();
-  }, [loadStudents, hasInitialLists, classId, nameQuery, loginQuery]);
+    setError(null);
+    setFiles((prev) => {
+      const seen = new Set(prev.map((f) => `${f.name}-${f.size}`));
+      return [...prev, ...incoming.filter((f) => !seen.has(`${f.name}-${f.size}`))];
+    });
+  }
 
   async function runAnalysis() {
     if (files.length === 0) {
-      setError("분석할 PDF 또는 이미지를 업로드해 주세요.");
+      setError("분석할 PDF나 이미지를 올려 주세요.");
       return;
     }
 
@@ -237,10 +361,8 @@ export function StudentRecordWorkspace({
     setAnalyzing(true);
     setError(null);
     setResult(null);
-    updateProgress("분석 준비 중…", 0);
+    updateProgress(0, "파일 여는 중", 0);
     try {
-      const pdfFiles = files.filter(isPdfUpload);
-      const directImageFiles = files.filter((file) => !isPdfUpload(file));
       let resolvedStudentId: string | null = null;
       let resolvedStudentName = "";
       let combinedExtractedText = "";
@@ -255,37 +377,29 @@ export function StudentRecordWorkspace({
       };
 
       const postExtract = async (formData: FormData) => {
-        const extractRes = await fetchStudentRecordApi(
-          "/api/student-records/extract",
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-        const { data, error } =
-          await readStudentRecordApiResponse<ExtractApiResult>(extractRes);
+        const extractRes = await fetchStudentRecordApi("/api/student-records/extract", {
+          method: "POST",
+          body: formData,
+        });
+        const { data, error } = await readStudentRecordApiResponse<ExtractApiResult>(extractRes);
         if (error) throw new Error(error);
         return data;
       };
 
       if (!combinedExtractedText) {
-        updateProgress("준비 단계 · 업로드한 파일을 변환하고 있어요", 4);
+        updateProgress(0, "파일 여는 중", 4);
         const preparedFiles = await prepareStudentRecordFiles(files, (label) => {
           if (label.startsWith("PDF 변환")) {
             const match = label.match(/(\d+)\/(\d+)/);
             if (match) {
               const current = Number(match[1]);
               const total = Number(match[2]);
-              const pct =
-                4 + (current / Math.max(total, 1)) * (PROGRESS_PREP_END - 4);
-              updateProgress(
-                `준비 단계 · PDF를 페이지 이미지로 변환 중 (${current}/${total}페이지)`,
-                pct
-              );
+              const pct = 4 + (current / Math.max(total, 1)) * (PROGRESS_PREP_END - 4);
+              updateProgress(0, `파일 여는 중 · ${current}/${total}쪽`, pct);
               return;
             }
           }
-          updateProgress("준비 단계 · 업로드한 파일을 변환하고 있어요", 6);
+          updateProgress(0, "파일 여는 중", 6);
         });
         const preparedError = validatePreparedStudentRecordFiles(preparedFiles);
         if (preparedError) {
@@ -297,9 +411,7 @@ export function StudentRecordWorkspace({
         const ocrTexts: string[] = [];
 
         if (imageChunks.length === 0) {
-          throw new Error(
-            "업로드한 파일에서 분석할 이미지를 찾지 못했습니다. 파일을 확인해 주세요."
-          );
+          throw new Error("올린 파일에서 읽을 쪽을 찾지 못했어요. 파일을 확인해 주세요.");
         } else {
           const ocrSpan = PROGRESS_OCR_END - PROGRESS_PREP_END;
 
@@ -316,8 +428,7 @@ export function StudentRecordWorkspace({
             const extracted = await postExtract(formData);
             if (!extracted?.ok || !extracted.text || !extracted.studentName) {
               throw new Error(
-                extracted?.message ??
-                  `${chunkIndex + 1}번째 페이지 묶음 인식에 실패했습니다.`
+                extracted?.message ?? `${chunkIndex + 1}번째 묶음을 읽지 못했어요.`
               );
             }
             return extracted;
@@ -326,17 +437,10 @@ export function StudentRecordWorkspace({
           const totalPages = preparedFiles.length;
           let pagesDone = 0;
 
-          for (
-            let i = 0;
-            i < imageChunks.length;
-            i += STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL
-          ) {
+          for (let i = 0; i < imageChunks.length; i += STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL) {
             const batchIndices = Array.from(
               {
-                length: Math.min(
-                  STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL,
-                  imageChunks.length - i
-                ),
+                length: Math.min(STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL, imageChunks.length - i),
               },
               (_, j) => i + j
             );
@@ -346,7 +450,8 @@ export function StudentRecordWorkspace({
             );
 
             updateProgress(
-              `1단계 · 학생부 내용 읽는 중 (${pagesDone + 1}~${Math.min(pagesDone + batchPages, totalPages)}/${totalPages}페이지)`,
+              1,
+              `학생부 내용 읽는 중 · ${Math.min(pagesDone + batchPages, totalPages)}/${totalPages}쪽`,
               PROGRESS_PREP_END + (pagesDone / totalPages) * ocrSpan
             );
 
@@ -363,7 +468,8 @@ export function StudentRecordWorkspace({
             pagesDone = Math.min(pagesDone + batchPages, totalPages);
 
             updateProgress(
-              `1단계 · 학생부 내용 읽기 완료 (${pagesDone}/${totalPages}페이지)`,
+              1,
+              `학생부 내용 읽는 중 · ${pagesDone}/${totalPages}쪽`,
               PROGRESS_PREP_END + (pagesDone / totalPages) * ocrSpan
             );
           }
@@ -372,21 +478,16 @@ export function StudentRecordWorkspace({
         combinedExtractedText = ocrTexts.join("\n\n");
         if (!isReliableStudentRecordExtract(combinedExtractedText)) {
           throw new Error(
-            "학생부 OCR 결과가 충분하지 않습니다. 스캔 선명도를 확인한 뒤 다시 업로드해 주세요."
+            "학생부 글자를 충분히 읽지 못했어요. 더 선명한 파일로 다시 올려 주세요."
           );
         }
       }
 
-      updateProgress(
-        "2단계 · AI가 분석 보고서를 작성 중이에요 (보통 1~3분 소요)",
-        PROGRESS_OCR_END + 3
-      );
+      updateProgress(2, "보고서 쓰는 중", PROGRESS_OCR_END + 3);
 
       // 생성 단계는 1~3분 걸리므로 멈춰 보이지 않게 진행률을 천천히 올린다
       const generateTicker = setInterval(() => {
-        setProgressPercent((p) =>
-          p < PROGRESS_GENERATE_END ? p + 1 : p
-        );
+        setProgressPercent((p) => (p < PROGRESS_GENERATE_END ? p + 1 : p));
       }, 5000);
 
       let generateRes: Response;
@@ -423,10 +524,10 @@ export function StudentRecordWorkspace({
         throw new Error(generateError);
       }
       if (!generated?.ok || !generated.html || !generated.generatedAt) {
-        throw new Error(generated?.message ?? "보고서 생성에 실패했습니다.");
+        throw new Error(generated?.message ?? "보고서를 만들지 못했어요.");
       }
 
-      updateProgress("보고서 생성 완료", 100);
+      updateProgress(2, "다 만들었어요", 100);
       setResult({
         studentId: resolvedStudentId,
         // 학생 미선택 시 서버가 학생부 본문에서 찾아낸 실제 이름 사용
@@ -435,209 +536,119 @@ export function StudentRecordWorkspace({
         generatedAt: generated.generatedAt,
         recordId: generated.recordId ?? null,
       });
+      // 다 만들었으면 다음 「새 분석」은 빈 양식으로 시작
+      setFiles([]);
+      setSelectedStudentId("");
+      setManualStudentName("");
       void loadHistory();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
+      setError(e instanceof Error ? e.message : "문제가 생겼어요. 다시 해 주세요.");
     } finally {
       setAnalyzing(false);
       setProgressLabel(null);
       setProgressPercent(0);
+      setProgressStage(0);
     }
   }
 
-  if (result) {
-    return (
-      <StudentRecordReportView
-        result={result}
-        academyName={academyName}
-        logoSrc={logoSrc}
-        onReset={() => {
-          setResult(null);
-          setError(null);
-        }}
-        onHtmlSaved={(html) =>
-          setResult((prev) => (prev ? { ...prev, html } : prev))
-        }
+  const pdfCount = files.filter(isPdfUpload).length;
+  const imageCount = files.length - pdfCount;
+  const fileSummary =
+    files.length === 0
+      ? "파일을 올려 주세요"
+      : [pdfCount ? `PDF ${pdfCount}개` : "", imageCount ? `이미지 ${imageCount}장` : ""]
+          .filter(Boolean)
+          .join(" · ");
+  const instructionsChanged =
+    analysisInstructions.trim() !== DEFAULT_ANALYSIS_INSTRUCTIONS.trim();
+  const studentSub = selectedStudent
+    ? `${selectedStudent.name}${
+        selectedStudent.classNames.length > 0 ? ` · ${selectedStudent.classNames[0]}` : ""
+      }`
+    : manualStudentName.trim() || "학생부에서 이름 읽기";
+  const runningName =
+    selectedStudent?.name || manualStudentName.trim() || "";
+
+  const openRecordId = result?.recordId ?? null;
+  const openRecord = openRecordId ? history.find((r) => r.id === openRecordId) : undefined;
+
+  const steps = (
+    <ol className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <StepCard
+        index={1}
+        title="학생"
+        sub={studentSub}
+        done={Boolean(selectedStudentId || manualStudentName.trim())}
       />
-    );
-  }
+      <StepCard index={2} title="학생부 파일" sub={fileSummary} done={files.length > 0} />
+      <StepCard
+        index={3}
+        title="요청 사항"
+        sub={instructionsChanged ? "직접 고침" : "기본 요청"}
+        done={analysisInstructions.trim().length > 0}
+      />
+      <StepCard
+        index={4}
+        title="만들기"
+        sub={analyzing ? `${STAGE_LABELS[progressStage]} 중` : files.length > 0 ? "준비됐어요" : "파일이 필요해요"}
+        done={false}
+        active={analyzing}
+      />
+    </ol>
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="no-print">
-        <PageHeader
-          title="학생부 분석"
-          description="학교생활기록부 텍스트·PDF·이미지를 업로드하면 입학사정관 관점 HTML 보고서를 생성합니다. PDF 저장·카카오톡 발송을 지원합니다."
-        />
-      </div>
+    <div>
+      <PageHeader
+        title="학생부 분석"
+        description="학교생활기록부를 올리면 입시 관점의 분석 보고서를 만들어 드려요."
+        action={
+          <Button onClick={startNew} disabled={analyzing}>
+            <Icon name="plus" size={16} />
+            새 분석
+          </Button>
+        }
+      />
 
-      <section className="no-print space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">1. 학생 선택 (선택)</h2>
-        <p className="text-xs text-slate-500">
-          학생을 선택하지 않아도 자료만으로 분석할 수 있습니다. 미선택 시 아래
-          이름을 입력하거나, 학생부에서 이름을 추출합니다.
-        </p>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <label className="block text-sm">
-            <span className="mb-1 block text-slate-600">반</span>
-            <select
-              className="ui-select"
-              value={classId}
-              onChange={(e) => setClassId(e.target.value)}
-            >
-              <option value="">전체</option>
-              {classes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm">
-            <span className="mb-1 block text-slate-600">이름 검색</span>
-            <input
-              className="ui-input"
-              value={nameQuery}
-              onChange={(e) => setNameQuery(e.target.value)}
-              placeholder="학생 이름"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="mb-1 block text-slate-600">로그인 ID</span>
-            <input
-              className="ui-input"
-              value={loginQuery}
-              onChange={(e) => setLoginQuery(e.target.value)}
-              placeholder="아이디"
-            />
-          </label>
-        </div>
-
-        <label className="block text-sm">
-          <span className="mb-1 block text-slate-600">학생</span>
-          <select
-            className="ui-select"
-            value={selectedStudentId}
-            onChange={(e) => setSelectedStudentId(e.target.value)}
-            disabled={listLoading}
-          >
-            <option value="">선택 안 함</option>
-            {students.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-                {s.loginId ? ` (${s.loginId})` : ""}
-                {s.classNames.length > 0 ? ` · ${s.classNames.join(", ")}` : ""}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {!selectedStudentId && (
-          <label className="block text-sm">
-            <span className="mb-1 block text-slate-600">학생 이름 (선택)</span>
-            <input
-              className="ui-input"
-              value={manualStudentName}
-              onChange={(e) => setManualStudentName(e.target.value)}
-              placeholder="미입력 시 학생부에서 추출"
-            />
-          </label>
-        )}
-      </section>
-
-      <section className="no-print space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">
-          2. 학생부 자료 입력
-        </h2>
-        <p className="text-xs text-slate-500">
-          성적표·세특·창체·행특이 담긴 PDF·이미지(JPG/PNG)를 업로드하세요.
-          이미지는 장당 최대{" "}
-          {formatBytes(STUDENT_RECORD_MAX_IMAGE_BYTES)}까지 허용합니다. 스캔 PDF는
-          고해상도 변환 후 OpenAI Vision(gpt-4o)으로 OCR합니다(최대{" "}
-          {STUDENT_RECORD_MAX_PDF_PAGES}페이지). 파일은 자동으로 나눠
-          업로드되므로 전체 용량 제한은 없습니다.
-        </p>
-        <input
-          type="file"
-          className="block w-full text-sm text-slate-600"
-          accept="application/pdf,image/jpeg,image/png,image/webp"
-          multiple
-          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-        />
-        {files.length > 0 && (
-          <ul className="text-xs text-slate-600">
-            {files.map((f) => (
-              <li key={`${f.name}-${f.size}`}>· {f.name}</li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="no-print space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">
-          3. 분석 요청 (선택)
-        </h2>
-        <p className="text-xs text-slate-500">
-          기본값은 성적·등급 산출, 대학 추천, 세특·행특·창체까지 포함한 종합
-          분석입니다. 일부만 분석하려면 요청 내용을 수정해 주세요.
-        </p>
-        <textarea
-          className="ui-input min-h-[120px] text-sm leading-relaxed"
-          value={analysisInstructions}
-          onChange={(e) => setAnalysisInstructions(e.target.value)}
-          placeholder="예: 성적 분석 없이 세특·행특·창체만 요약해 주세요."
-        />
-      </section>
-
-      {error && (
-        <p className="no-print rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
-          {error}
-        </p>
-      )}
-
-      <div className="no-print space-y-3">
-        <Button
-          type="button"
-          disabled={analyzing}
-          onClick={() => void runAnalysis()}
-        >
-          {analyzing
-            ? `${progressLabel ?? "분석 생성 중…"} (${progressPercent}%)`
-            : "학생부 분석 보고서 생성"}
-        </Button>
-        {analyzing && (
-          <div className="max-w-md space-y-1">
-            <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-              <div
-                className="h-full rounded-full bg-blue-600 transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
-              />
+      <div className="grid gap-4 lg:grid-cols-[250px_minmax(0,1fr)]">
+        {/* 분석 기록 */}
+        <aside className="flex flex-col rounded-lg border border-slate-200 bg-white shadow-card lg:max-h-[calc(100vh-190px)] lg:min-h-[480px]">
+          <div className="space-y-2 p-3">
+            <div className="flex items-center justify-between px-0.5">
+              <h2 className="text-sm font-bold text-slate-900">분석 기록</h2>
+              <span className="text-xs tabular-nums text-slate-400">{history.length}</span>
             </div>
-            <p className="text-xs text-slate-600">
-              {progressLabel ?? "분석 중…"} · {progressPercent}%
-            </p>
+            <label className="relative block">
+              <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-slate-400">
+                <Icon name="search" size={16} />
+              </span>
+              <input
+                type="search"
+                className="ui-input h-9 py-1.5 pl-8"
+                value={historyQuery}
+                onChange={(e) => setHistoryQuery(e.target.value)}
+                placeholder="이름 찾기"
+                aria-label="분석 기록 찾기"
+              />
+            </label>
           </div>
-        )}
-      </div>
-
-      <section className="no-print space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">분석 기록</h2>
-        {history.length === 0 ? (
-          <p className="text-xs text-slate-500">
-            저장된 분석 기록이 없습니다. 보고서를 생성하면 자동으로 저장됩니다.
-          </p>
-        ) : (
-          <ul className="divide-y divide-slate-100">
-            {history.map((record) => (
-              <li
-                key={record.id}
-                className="flex flex-wrap items-center justify-between gap-2 py-2.5"
-              >
-                {editingId === record.id ? (
-                  <>
+          <ul className="max-h-72 min-h-0 flex-1 overflow-y-auto px-2 pb-2 lg:max-h-none">
+            {visibleHistory.length === 0 ? (
+              <li className="px-2 py-6 text-center text-xs text-slate-400">
+                {history.length === 0
+                  ? "아직 기록이 없어요. 보고서를 만들면 여기에 쌓여요."
+                  : "찾는 기록이 없어요."}
+              </li>
+            ) : null}
+            {visibleHistory.map((record) => {
+              const on = record.id === openRecordId;
+              const busy = historyBusyId === record.id;
+              if (editingId === record.id) {
+                return (
+                  <li key={record.id} className="space-y-1.5 rounded-md bg-slate-50 p-2">
                     <input
                       type="text"
-                      className="ui-input min-w-0 flex-1 px-3 py-1.5 text-sm"
+                      className="ui-input h-8 py-1 text-sm"
                       value={editingTitle}
                       maxLength={100}
                       autoFocus
@@ -646,70 +657,362 @@ export function StudentRecordWorkspace({
                         if (e.key === "Enter") void renameHistoryRecord(record.id);
                         if (e.key === "Escape") setEditingId(null);
                       }}
+                      aria-label="기록 제목"
                     />
-                    <div className="flex shrink-0 gap-2">
-                      <button
-                        type="button"
-                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                        disabled={historyBusyId === record.id}
+                    <div className="flex justify-end gap-1.5">
+                      <Button variant="secondary" size="sm" onClick={() => setEditingId(null)}>
+                        취소
+                      </Button>
+                      <Button
+                        size="sm"
+                        disabled={busy}
                         onClick={() => void renameHistoryRecord(record.id)}
                       >
-                        {historyBusyId === record.id ? "저장 중…" : "저장"}
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                        onClick={() => setEditingId(null)}
-                      >
-                        취소
-                      </button>
+                        {busy ? "저장 중…" : "저장"}
+                      </Button>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-slate-900">
-                        {record.school
-                          ? `${record.school} · ${record.studentName}`
-                          : record.studentName}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {new Date(record.generatedAt).toLocaleString("ko-KR")}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 gap-2">
-                      <button
-                        type="button"
-                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                        disabled={historyBusyId === record.id}
-                        onClick={() => void openHistoryRecord(record.id)}
+                  </li>
+                );
+              }
+              return (
+                <li key={record.id} className="group relative">
+                  <button
+                    type="button"
+                    disabled={busy || analyzing}
+                    onClick={() => void openHistoryRecord(record.id)}
+                    aria-current={on ? "true" : undefined}
+                    className={`flex w-full items-start gap-2.5 rounded-md px-2 py-2.5 pr-9 text-left transition disabled:opacity-60 ${
+                      on ? "bg-brand-50" : "hover:bg-slate-50"
+                    }`}
+                  >
+                    <Icon
+                      name="file"
+                      size={17}
+                      className={`mt-0.5 ${on ? "text-brand-600" : "text-slate-400"}`}
+                    />
+                    <span className="min-w-0">
+                      <span
+                        className={`block truncate text-sm font-semibold ${
+                          on ? "text-brand-700" : "text-slate-900"
+                        }`}
                       >
-                        {historyBusyId === record.id ? "불러오는 중…" : "열람"}
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                        disabled={historyBusyId === record.id}
-                        onClick={() => startEditingRecord(record)}
-                      >
+                        {record.studentName}
+                      </span>
+                      <span className="block truncate text-xs text-slate-400">
+                        {busy
+                          ? "불러오는 중…"
+                          : [record.school, formatKoreanDate(record.generatedAt)]
+                              .filter(Boolean)
+                              .join(" · ")}
+                      </span>
+                    </span>
+                  </button>
+                  <div className="absolute right-1 top-2">
+                    <ReportMenu label={`${record.studentName} 기록 메뉴`} disabled={busy}>
+                      <ReportMenuItem icon="edit" onClick={() => startEditingRecord(record)}>
                         제목 수정
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 disabled:opacity-50"
-                        disabled={historyBusyId === record.id}
+                      </ReportMenuItem>
+                      <ReportMenuItem
+                        icon="trash"
+                        danger
                         onClick={() => void deleteHistoryRecord(record.id)}
                       >
                         삭제
-                      </button>
-                    </div>
-                  </>
-                )}
-              </li>
-            ))}
+                      </ReportMenuItem>
+                    </ReportMenu>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
-        )}
-      </section>
+        </aside>
+
+        <div className="min-w-0 space-y-4">
+          {error && (result || analyzing) ? <Alert variant="error">{error}</Alert> : null}
+
+          {result ? (
+            <StudentRecordReportView
+              key={`${result.recordId ?? "new"}-${result.generatedAt}`}
+              result={result}
+              school={openRecord?.school ?? null}
+              academyName={academyName}
+              logoSrc={logoSrc}
+              onDelete={
+                result.recordId
+                  ? () => void deleteHistoryRecord(result.recordId!)
+                  : undefined
+              }
+              onHtmlSaved={(html) =>
+                setResult((prev) => (prev ? { ...prev, html } : prev))
+              }
+            />
+          ) : analyzing ? (
+            <>
+              {steps}
+              <section className="rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-card">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                  <Icon name="clipboard" size={24} />
+                </span>
+                <h2 className="mt-4 text-lg font-bold text-slate-900">
+                  {runningName ? `${runningName} 학생부를` : "학생부를"} 분석하고 있어요
+                </h2>
+                <p className="mt-1.5 text-sm text-slate-500">
+                  보통 1~3분 걸려요. 이 화면을 닫지 말고 기다려 주세요.
+                </p>
+                <div className="mx-auto mt-6 max-w-md text-left">
+                  <div className="flex items-center justify-between gap-3 text-sm">
+                    <span className="font-semibold text-slate-800">
+                      {progressLabel ?? "준비 중"}
+                    </span>
+                    <span className="tabular-nums text-slate-500">{progressPercent}%</span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-brand-600 transition-all duration-300"
+                      style={{ width: `${Math.max(3, progressPercent)}%` }}
+                    />
+                  </div>
+                </div>
+                <ul className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
+                  {STAGE_LABELS.map((label, i) => {
+                    const state =
+                      i < progressStage ? "done" : i === progressStage ? "now" : "todo";
+                    return (
+                      <li
+                        key={label}
+                        className={`flex items-center gap-1.5 ${
+                          state === "done"
+                            ? "text-slate-700"
+                            : state === "now"
+                              ? "font-semibold text-brand-700"
+                              : "text-slate-400"
+                        }`}
+                      >
+                        {state === "done" ? (
+                          <Icon name="check" size={15} className="text-green-700" />
+                        ) : (
+                          <span
+                            className={`h-2 w-2 rounded-full ${
+                              state === "now" ? "bg-brand-600" : "bg-slate-200"
+                            }`}
+                          />
+                        )}
+                        {label}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            </>
+          ) : (
+            <>
+              {steps}
+              <div className="rounded-lg border border-slate-200 bg-white shadow-card">
+                <StepSection
+                  index={1}
+                  title="학생"
+                  hint="고르지 않아도 돼요. 그러면 학생부에 적힌 이름을 읽어요."
+                >
+                  <div className="grid gap-2 sm:grid-cols-[180px_minmax(0,1fr)]">
+                    <select
+                      className="ui-select h-9 py-1.5"
+                      value={classId}
+                      onChange={(e) => setClassId(e.target.value)}
+                      aria-label="반"
+                    >
+                      <option value="">반: 전체</option>
+                      {classes.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                    <label className="relative block">
+                      <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-slate-400">
+                        <Icon name="search" size={16} />
+                      </span>
+                      <input
+                        type="search"
+                        className="ui-input h-9 py-1.5 pl-8"
+                        value={nameQuery}
+                        onChange={(e) => setNameQuery(e.target.value)}
+                        placeholder="이름 찾기"
+                        aria-label="학생 이름 찾기"
+                      />
+                    </label>
+                  </div>
+                  <ul
+                    role="listbox"
+                    aria-label="학생"
+                    className="mt-2 max-h-56 divide-y divide-slate-100 overflow-y-auto rounded-md border border-slate-200"
+                  >
+                    <li>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={!selectedStudentId}
+                        onClick={() => setSelectedStudentId("")}
+                        className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition ${
+                          !selectedStudentId ? "bg-brand-50 font-semibold text-brand-700" : "text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                          <Icon name="file" size={14} />
+                        </span>
+                        선택 안 함 (학생부에서 이름 읽기)
+                      </button>
+                    </li>
+                    {listLoading ? (
+                      <li className="px-3 py-3 text-xs text-slate-400">불러오는 중…</li>
+                    ) : null}
+                    {visibleStudents.map((s) => {
+                      const on = s.id === selectedStudentId;
+                      return (
+                        <li key={s.id}>
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={on}
+                            onClick={() => setSelectedStudentId(s.id)}
+                            className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition ${
+                              on ? "bg-brand-50" : "hover:bg-slate-50"
+                            }`}
+                          >
+                            <NameAvatar name={s.name} active={on} />
+                            <span className={`font-semibold ${on ? "text-brand-700" : "text-slate-900"}`}>
+                              {s.name}
+                            </span>
+                            <span className="truncate text-xs text-slate-400">
+                              {s.classNames.join(", ")}
+                            </span>
+                            {on ? (
+                              <Icon name="check" size={16} className="ml-auto text-brand-600" />
+                            ) : null}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {!selectedStudentId ? (
+                    <input
+                      className="ui-input mt-2"
+                      value={manualStudentName}
+                      onChange={(e) => setManualStudentName(e.target.value)}
+                      placeholder="이름을 알면 적어 주세요 (비워 두면 학생부에서 읽어요)"
+                      aria-label="학생 이름"
+                    />
+                  ) : null}
+                </StepSection>
+
+                <StepSection index={2} title="학생부 파일" hint="성적표·세특·창체·행특이 담긴 파일을 올려 주세요.">
+                  <label
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOver(true);
+                    }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragOver(false);
+                      addFiles(e.dataTransfer.files);
+                    }}
+                    className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-8 text-center transition ${
+                      dragOver
+                        ? "border-brand-600 bg-brand-50"
+                        : "border-slate-300 bg-slate-50/60 hover:border-brand-300 hover:bg-brand-50/40"
+                    }`}
+                  >
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-brand-600 shadow-card">
+                      <Icon name="upload" size={18} />
+                    </span>
+                    <span className="mt-3 text-sm font-semibold text-slate-800">
+                      PDF·이미지 파일을 끌어 놓거나 눌러서 고르세요
+                    </span>
+                    <span className="mt-1 text-xs text-slate-500">
+                      PDF는 최대 {STUDENT_RECORD_MAX_PDF_PAGES}쪽, 이미지는 한 장에{" "}
+                      {formatBytes(STUDENT_RECORD_MAX_IMAGE_BYTES)}까지 올릴 수 있어요.
+                    </span>
+                    <input
+                      type="file"
+                      className="sr-only"
+                      accept={ACCEPT}
+                      multiple
+                      onChange={(e) => {
+                        addFiles(e.target.files);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  {files.length > 0 ? (
+                    <ul className="mt-2 divide-y divide-slate-100 rounded-md border border-slate-200">
+                      {files.map((f) => (
+                        <li
+                          key={`${f.name}-${f.size}`}
+                          className="flex items-center gap-2.5 px-3 py-2 text-sm"
+                        >
+                          <Icon name="file" size={16} className="text-slate-400" />
+                          <span className="min-w-0 flex-1 truncate text-slate-800">{f.name}</span>
+                          <span className="shrink-0 text-xs tabular-nums text-slate-400">
+                            {formatBytes(f.size)}
+                          </span>
+                          <button
+                            type="button"
+                            aria-label={`${f.name} 빼기`}
+                            onClick={() =>
+                              setFiles((prev) => prev.filter((x) => x !== f))
+                            }
+                            className="flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                          >
+                            <Icon name="x" size={15} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </StepSection>
+
+                <StepSection
+                  index={3}
+                  title="요청 사항"
+                  hint="기본은 성적·등급, 대학 추천, 세특·행특·창체까지 모두 봐요. 일부만 원하면 고쳐 주세요."
+                >
+                  <textarea
+                    className="ui-input min-h-[120px] text-sm leading-relaxed"
+                    value={analysisInstructions}
+                    onChange={(e) => setAnalysisInstructions(e.target.value)}
+                    placeholder="예: 성적 분석 없이 세특·행특·창체만 요약해 주세요."
+                    aria-label="요청 사항"
+                  />
+                  {instructionsChanged ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-1 -ml-2"
+                      onClick={() => setAnalysisInstructions(DEFAULT_ANALYSIS_INSTRUCTIONS)}
+                    >
+                      <Icon name="rotate" size={14} />
+                      기본 요청으로 되돌리기
+                    </Button>
+                  ) : null}
+                </StepSection>
+
+                <StepSection index={4} title="만들기">
+                  {error ? <Alert variant="error" className="mb-3">{error}</Alert> : null}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button disabled={files.length === 0} onClick={() => void runAnalysis()}>
+                      <Icon name="sparkle" size={16} />
+                      분석 보고서 만들기
+                    </Button>
+                    <span className="text-xs text-slate-500">
+                      보통 1~3분 걸려요. 다 만들면 왼쪽 기록에 저장돼요.
+                    </span>
+                  </div>
+                </StepSection>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

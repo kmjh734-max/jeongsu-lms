@@ -128,7 +128,7 @@ function SidebarBody({
 
       <nav
         aria-label={`${name} 메뉴`}
-        className="side-scroll -mx-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1"
+        className="side-scroll -mx-1 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-1"
       >
         {groupNavItems(items).map((group) => (
           <div key={group.key} className="flex flex-col gap-0.5">
@@ -146,7 +146,7 @@ function SidebarBody({
                   prefetch={false}
                   onClick={onNavigate}
                   aria-current={on ? "page" : undefined}
-                  className={`flex h-9 items-center gap-2.5 rounded-md px-3 text-sm transition ${
+                  className={`flex h-[34px] items-center gap-2.5 rounded-md px-3 text-sm transition ${
                     on
                       ? "bg-side-active font-semibold text-white"
                       : "font-medium text-side-text hover:bg-side-hover hover:text-white"
