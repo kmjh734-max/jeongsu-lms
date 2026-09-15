@@ -44,6 +44,12 @@ import { getAllHigh2TypePromptBlocks } from "@/lib/listening/prompts/high2TypePr
 import { getAllHigh3TypePromptBlocks } from "@/lib/listening/prompts/high3TypePrompts";
 import { getAllTypePromptBlocks } from "@/lib/listening/prompts/typePrompts";
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
+import { buildQualityCraftBlock } from "@/lib/listening/prompts/quality-craft";
+import {
+  formatSlotPlanBlock,
+  planSlotAssignments,
+  type SlotPlan,
+} from "@/lib/listening/slot-plan";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 const SLOT_CHUNK_SIZE = 5;
@@ -73,7 +79,8 @@ function buildSlotsBatchPrompt(
   difficultyMode: ListeningDifficultyMode,
   gradeLevel: ListeningGradeLevel,
   types: ExamTypeTemplate[],
-  usedAnswersByType?: Record<number, string[]>
+  usedAnswersByType?: Record<number, string[]>,
+  plans?: Map<number, SlotPlan>
 ): string {
   const uniqueTypeIds = [...new Set(slots.map((s) => s.typeId))];
   const difficultyBlock = buildDifficultyPromptBlock(
@@ -119,14 +126,23 @@ function buildSlotsBatchPrompt(
   }
   // 정답·상황 다양화 풀: 같은 과정에서 덜 쓴 정답부터 배정 (이번 묶음 안에서도 겹치지 않게)
   const usedInBatch: Record<number, string[]> = {};
+  const usedScenarios: string[] = [];
   for (const slot of slots) {
-    const pick = pickAnswerVariety(slot.typeId, gradeLevel, [
-      ...(usedAnswersByType?.[slot.typeId] ?? []),
-      ...(usedInBatch[slot.typeId] ?? []),
-    ]);
+    const pick = pickAnswerVariety(
+      slot.typeId,
+      gradeLevel,
+      [...(usedAnswersByType?.[slot.typeId] ?? []), ...(usedInBatch[slot.typeId] ?? [])],
+      usedScenarios
+    );
     if (!pick) continue;
     (usedInBatch[slot.typeId] ||= []).push(pick.answer);
+    usedScenarios.push(pick.scenario);
     scenarioBlocks += `${formatAnswerVarietyBlock(pick, gradeLevel, slot.slotIndex)}\n\n`;
+  }
+  // 세트 전체에서 겹치지 않게 미리 정한 소재 영역·정답 자리
+  for (const slot of slots) {
+    const block = formatSlotPlanBlock(slot, plans?.get(slot.slotIndex), gradeLevel);
+    if (block) scenarioBlocks += `${block}\n\n`;
   }
 
   const pairNote =
@@ -152,19 +168,26 @@ ${difficultyBlock}
 
 ${typeBlocks}
 
+${buildQualityCraftBlock(uniqueTypeIds, gradeLevel)}
+
 ${LISTENING_OUTPUT_GUARD_BLOCK}
 
 ${getJsonOutputSchema(gradeLevel)}
 `.trim();
 }
 
+/**
+ * 묶음 1회 호출. 파싱된 문항은 슬롯 번호로 돌려주고, 실패한 슬롯은 따로 알려 준다.
+ * (예전에는 5문항 중 1개만 실패해도 5개를 모두 버리고 1문항씩 다시 만들어 호출이 6배로 늘었다.)
+ */
 async function fetchSlotChunkQuestions(
   apiKey: string,
   slots: ListeningGenerationSlot[],
   difficultyMode: ListeningDifficultyMode,
   gradeLevel: ListeningGradeLevel,
-  usedAnswersByType?: Record<number, string[]>
-): Promise<GeneratedListeningQuestion[]> {
+  usedAnswersByType?: Record<number, string[]>,
+  plans?: Map<number, SlotPlan>
+): Promise<{ made: GeneratedListeningQuestion[]; failedSlots: ListeningGenerationSlot[] }> {
   const types = slots.map((s) => {
     const t = getExamTypeById(s.typeId, gradeLevel);
     if (!t) throw new Error(`유형 ${s.typeId}을 찾을 수 없습니다.`);
@@ -176,7 +199,8 @@ async function fetchSlotChunkQuestions(
     difficultyMode,
     gradeLevel,
     types,
-    usedAnswersByType
+    usedAnswersByType,
+    plans
   );
   const system = `${getListeningSystemPrompt(gradeLevel)}\nOutput JSON only. questions array length must be ${slots.length}. speakers: M, W, ANN only.`;
 
@@ -187,29 +211,28 @@ async function fetchSlotChunkQuestions(
     maxCompletionTokens: listeningMaxCompletionTokensForCount(slots.length),
   });
 
-  const { questions, failures } = parseQuestionsFromPayload(
+  const { questions, sourceIndexes, failures } = parseQuestionsFromPayload(
     parsed,
     true,
     types,
     gradeLevel
   );
-
-  if (questions.length < slots.length) {
-    const detail =
-      failures.length > 0 ? ` (${failures.slice(0, 2).join("; ")})` : "";
-    throw new Error(
-      `${slots.length}문항 중 ${questions.length}개만 파싱됨${detail}`
-    );
+  if (failures.length > 0) {
+    console.error(`[listening] 묶음 파싱 실패 ${failures.length}건`, failures.slice(0, 2).join("; "));
   }
 
-  return slots.map((slot, i) => {
-    const q = questions[i]!;
-    return finalizeListeningQuestionFast(
-      { ...q, order_index: slot.slotIndex },
-      types[i],
-      gradeLevel
+  const made: GeneratedListeningQuestion[] = [];
+  const done = new Set<number>();
+  questions.forEach((q, k) => {
+    const i = sourceIndexes[k]!;
+    const slot = slots[i];
+    if (!slot || done.has(i)) return;
+    done.add(i);
+    made.push(
+      finalizeListeningQuestionFast({ ...q, order_index: slot.slotIndex }, types[i], gradeLevel)
     );
   });
+  return { made, failedSlots: slots.filter((_, i) => !done.has(i)) };
 }
 
 async function generateSlotChunk(
@@ -218,20 +241,48 @@ async function generateSlotChunk(
   difficultyMode: ListeningDifficultyMode,
   gradeLevel: ListeningGradeLevel,
   prior: GeneratedListeningQuestion[],
-  usedAnswersByType?: Record<number, string[]>
+  usedAnswersByType?: Record<number, string[]>,
+  plans?: Map<number, SlotPlan>
 ): Promise<GeneratedListeningQuestion[]> {
+  let made: GeneratedListeningQuestion[] = [];
+  let failedSlots = slots;
   try {
-    return await fetchSlotChunkQuestions(
+    ({ made, failedSlots } = await fetchSlotChunkQuestions(
       apiKey,
       slots,
       difficultyMode,
       gradeLevel,
-      usedAnswersByType
-    );
-  } catch {
-    const out: GeneratedListeningQuestion[] = [];
-    for (let i = 0; i < slots.length; i++) {
-      const slot = slots[i]!;
+      usedAnswersByType,
+      plans
+    ));
+  } catch (e) {
+    console.error("[listening] 묶음 생성 실패", e instanceof Error ? e.message : e);
+  }
+  if (failedSlots.length === 0) return made;
+
+  // 고등 16·17은 같은 담화라 둘 중 하나만 따로 만들면 대본과 선택지가 어긋난다 → 둘을 한 번에 다시 만든다
+  let retrySlots = failedSlots;
+  if (isHighSchoolListeningGrade(gradeLevel)) {
+    const pair = slots.filter((s) => s.typeId === 16 || s.typeId === 17);
+    if (pair.length === 2 && failedSlots.some((s) => s.typeId === 16 || s.typeId === 17)) {
+      made = made.filter((q) => !pair.some((p) => p.slotIndex === q.order_index));
+      try {
+        const again = await fetchSlotChunkQuestions(apiKey, pair, difficultyMode, gradeLevel, usedAnswersByType, plans);
+        if (again.failedSlots.length === 0) made.push(...again.made);
+        retrySlots = [
+          ...failedSlots.filter((s) => s.typeId !== 16 && s.typeId !== 17),
+          ...(again.failedSlots.length === 0 ? [] : pair),
+        ];
+      } catch {
+        retrySlots = [...failedSlots.filter((s) => s.typeId !== 16 && s.typeId !== 17), ...pair];
+      }
+    }
+  }
+
+  {
+    const out: GeneratedListeningQuestion[] = [...made];
+    for (let i = 0; i < retrySlots.length; i++) {
+      const slot = retrySlots[i]!;
       const prevProblems =
         slot.typeId === 19 || slot.typeId === 20
           ? [
@@ -260,6 +311,7 @@ async function generateSlotChunk(
                 )
                 .map((o) => o.choices[o.correct_answer - 1] ?? ""),
             ],
+            plan: plans?.get(slot.slotIndex),
           }
         );
         // 규칙 검수의 검토 표시(needs_review)는 지우지 않는다
@@ -354,7 +406,10 @@ export async function generateExamQuestionsFromSlotsSettled(
         gradeLevel,
         slot.slotIndex,
         undefined,
-        { usedAnswers: opts?.usedAnswersByType?.[slot.typeId] ?? [] }
+        {
+          usedAnswers: opts?.usedAnswersByType?.[slot.typeId] ?? [],
+          plan: planSlotAssignments([slot], gradeLevel).get(slot.slotIndex),
+        }
       );
       return {
         questions: [{ ...q, order_index: slot.slotIndex }],
@@ -369,6 +424,8 @@ export async function generateExamQuestionsFromSlotsSettled(
     }
   }
 
+  // 소재 영역·정답 자리는 청크를 나누기 전에 세트 전체로 정한다 (병렬 청크끼리 겹치지 않게)
+  const plans = planSlotAssignments(slots, gradeLevel);
   const chunks = chunkSlots(slots);
   const chunkResults = await runWithConcurrency(
     chunks,
@@ -380,7 +437,8 @@ export async function generateExamQuestionsFromSlotsSettled(
         difficultyMode,
         gradeLevel,
         [],
-        opts?.usedAnswersByType
+        opts?.usedAnswersByType,
+        plans
       )
   );
 

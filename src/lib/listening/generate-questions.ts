@@ -75,6 +75,11 @@ import {
   formatAnswerVarietyBlock,
   pickAnswerVariety,
 } from "@/lib/listening/answer-variety-pool";
+import {
+  formatSlotPlanBlock,
+  planSlotAssignments,
+  type SlotPlan,
+} from "@/lib/listening/slot-plan";
 import type {
   GeneratedListeningQuestion,
   ListeningGenerationMode,
@@ -320,9 +325,15 @@ export function parseQuestionsFromPayload(
   examMode: boolean,
   examTypes?: ExamTypeTemplate[],
   gradeLevel: ListeningGradeLevel = "middle1"
-): { questions: GeneratedListeningQuestion[]; failures: string[] } {
+): {
+  questions: GeneratedListeningQuestion[];
+  /** questions[k]가 모델 응답의 몇 번째 항목이었는지 (실패한 항목만 다시 만들 때 슬롯을 맞춘다) */
+  sourceIndexes: number[];
+  failures: string[];
+} {
   const list = extractQuestionsFromAiPayload(parsed);
   const questions: GeneratedListeningQuestion[] = [];
+  const sourceIndexes: number[] = [];
   const failures: string[] = [];
 
   list.forEach((item, i) => {
@@ -343,6 +354,7 @@ export function parseQuestionsFromPayload(
         return;
       }
       questions.push({ ...q, instruction });
+      sourceIndexes.push(i);
       return;
     }
     failures.push(
@@ -354,7 +366,7 @@ export function parseQuestionsFromPayload(
     failures.push('AI 응답에 "questions" 배열이 없습니다.');
   }
 
-  return { questions, failures };
+  return { questions, sourceIndexes, failures };
 }
 
 async function fetchParsedQuestions(
@@ -414,13 +426,16 @@ export async function generateListeningQuestionsWithAi(
     ? buildListeningExamPrompt(examTypes!, difficultyMode, gradeLevel)
     : buildListeningFreePrompt(itemCount, gradeLevel);
   // 정답·상황 다양화: 풀이 있는 유형은 정답과 소재를 미리 정해 준다
+  const planSlots = examMode ? examTypes!.map((t, i) => ({ typeId: t.id, slotIndex: i + 1 })) : [];
+  const plans = planSlotAssignments(planSlots, gradeLevel);
   const varietyBlocks = examMode
-    ? examTypes!
-        .map((t) => {
+    ? [
+        ...examTypes!.map((t) => {
           const pick = pickAnswerVariety(t.id, gradeLevel, options.usedAnswersByType?.[t.id] ?? []);
           return pick ? formatAnswerVarietyBlock(pick, gradeLevel) : "";
-        })
-        .filter(Boolean)
+        }),
+        ...planSlots.map((s) => formatSlotPlanBlock(s, plans.get(s.slotIndex), gradeLevel)),
+      ].filter(Boolean)
     : [];
   const prompt = varietyBlocks.length
     ? `${varietyBlocks.join("\n\n")}\n\n${basePrompt}`
@@ -453,15 +468,23 @@ export async function generateSingleExamQuestion(
   gradeLevel: ListeningGradeLevel = "middle1",
   slotIndex?: number,
   type1Regeneration?: Type1RegenerationContext,
-  variety?: { usedAnswers?: string[] }
+  variety?: { usedAnswers?: string[]; plan?: SlotPlan }
 ) {
   const type = resolveExamTypesForGeneration(1, [typeId], gradeLevel)[0];
   if (!type) throw new Error("유형을 찾을 수 없습니다.");
   // 같은 과정에서 덜 쓴 정답·새 소재를 미리 정한다 (재시도해도 같은 배정 유지)
   const varietyPick = pickAnswerVariety(typeId, gradeLevel, variety?.usedAnswers ?? []);
-  const varietyBlock = varietyPick
-    ? `${formatAnswerVarietyBlock(varietyPick, gradeLevel, slotIndex)}\n\n`
-    : "";
+  // 소재 영역·정답 자리 (세트 생성에서 넘겨받거나, 단독 생성이면 여기서 정한다)
+  const planSlot = { typeId, slotIndex: slotIndex ?? typeId };
+  const plan = variety?.plan ?? planSlotAssignments([planSlot], gradeLevel).get(planSlot.slotIndex);
+  const planBlock = formatSlotPlanBlock(planSlot, plan, gradeLevel);
+  const varietyBlock = [
+    varietyPick ? formatAnswerVarietyBlock(varietyPick, gradeLevel, slotIndex) : "",
+    planBlock,
+  ]
+    .filter(Boolean)
+    .map((b) => `${b}\n\n`)
+    .join("");
 
   let problems = [...(previousProblems ?? [])];
   let lastQuestion: GeneratedListeningQuestion | null = null;

@@ -15,9 +15,9 @@ export const COMMON_PROMPT_HIGH2 = `
 - 1~15번 1회, 16~17번 동일 담화 2회.
 
 난이도 (2025 고2 전국연합 듣기 대본 기준 — 고1보다 밀도↑):
-- 문장당 대체로 11~19단어. 원인·결과·과학/생활 상식 설명이 자연스럽게 들어간다.
-- 대화 7~12턴, 담화 5~9문장. 고1보다 근거 문장·세부 조건을 1~2개 더 넣는다.
-- 문항별 대본 목표: 초반 95~145, 중반 110~165, 응답·상황 80~175, 16~17 120~180단어.
+- 대화: 한 턴 1~3문장(대부분 두 문장), 문장당 평균 6~9단어의 짧은 구어 문장. 담화: 문장당 12~16단어. 원인·결과·생활 상식 설명이 자연스럽게 들어간다.
+- 고1보다 근거 문장·세부 조건을 1~2개 더 넣는다 (문장을 길게 늘이지 않는다).
+- 문항별 대본 분량·턴 수는 아래 [유형별 분량·설계]의 수치를 따른다 (한 곳에서 관리하는 기준 — prompts/quality-craft.ts). 짧은 응답 11·12번은 3턴이다.
 - 소재: 학교 행사, 건강·위생, 안전, 동아리, 쇼핑, 과학 체험, 환경, 음식·보존, 동물·자연 구조 등 (고2 모의 톤).
 
 문법·어휘:
@@ -36,6 +36,6 @@ export const COMMON_PROMPT_HIGH2 = `
 `.trim();
 
 export const LISTENING_SYSTEM_PROMPT_HIGH2 =
-  "You are an expert writer for the Korean high school Grade 2 national English listening exam (고2 전국연합학력평가 영어 듣기, types 1–17, same CSAT-style slots as Grade 1). Output only valid JSON. Never copy copyrighted past exam content. Match published Grade 2 script density: 11~19 words/sentence, 95~180 words/script, with slightly richer cause/effect detail than Grade 1. Follow per-type rules strictly. Types 16 and 17 must share identical segments.";
+  "You are an expert writer for the Korean high school Grade 2 national English listening exam (고2 전국연합학력평가 영어 듣기, types 1–17, same CSAT-style slots as Grade 1). Output only valid JSON. Never copy copyrighted past exam content. Match published Grade 2 script density using the per-type word and turn targets given in the prompt (spoken sentences, usually two per turn; short-response items only 3 turns), with slightly richer cause/effect detail than Grade 1. Follow per-type rules strictly. Types 16 and 17 must share identical segments.";
 
 export { HIGH1_JSON_OUTPUT_SCHEMA as HIGH2_JSON_OUTPUT_SCHEMA } from "@/lib/listening/prompts/commonPromptHigh1";

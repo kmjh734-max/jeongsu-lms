@@ -6,6 +6,7 @@ import {
 } from "@/lib/listening/grade-level";
 import { QUALITY_PASS_THRESHOLD } from "@/lib/listening/prompts/qualityCheckPrompt";
 import { genericQualityIssues } from "@/lib/listening/generic-quality-checks";
+import { listeningTypeTarget } from "@/lib/listening/prompts/quality-craft";
 import { speakerOfQuote } from "@/lib/listening/speaker-attribution";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { normalizeTableData } from "@/lib/listening/table-data";
@@ -167,8 +168,9 @@ export interface QualityCheckResult {
   quality_score: number;
 }
 
+/** 중1 금지 문법. "so that is impossible"의 지시사 that까지 관계대명사로 잡아 that은 뺐다. */
 const FORBIDDEN_GRAMMAR =
-  /\b(who|which|that)\s+(is|are|was|were|has|have)\b|having\s+\w+ed\b|would\s+have\b|if\s+i\s+were\b/i;
+  /\b(who|which)\s+(is|are|was|were|has|have)\b|having\s+\w+ed\b|would\s+have\b|if\s+i\s+were\b/i;
 
 /** 담화형(단독 화자·안내) 유형 — getMonologueTypeIds(grade) 사용 */
 
@@ -183,16 +185,33 @@ function totalScriptWords(q: GeneratedListeningQuestion): number {
   return q.segments.reduce((sum, s) => sum + wordCount(s.text), 0);
 }
 
+/** 한 segment에 여러 문장이 들어 있을 수 있어 문장 단위로 나눈다 (a.m./Mr. 같은 약어는 끊지 않음) */
+function splitSentences(text: string): string[] {
+  return text
+    .replace(/\b(a\.m|p\.m|Mr|Mrs|Ms|Dr)\./gi, "$1")
+    .split(/(?<=[.!?])\s+/)
+    .filter((s) => wordCount(s) > 0);
+}
+
 function longSentenceCount(q: GeneratedListeningQuestion, maxWords = 13): number {
-  return q.segments.filter((s) => wordCount(s.text) > maxWords).length;
+  return q.segments.flatMap((s) => splitSentences(s.text)).filter((s) => wordCount(s) > maxWords).length;
+}
+
+function scriptSentenceCount(q: GeneratedListeningQuestion): number {
+  return q.segments.reduce((n, s) => n + splitSentences(s.text).length, 0);
 }
 
 function computeQualityScore(issues: QualityIssue[]): number {
   let score = 100;
+  let metadataPenalty = 0;
   for (const issue of issues) {
     const w = issue.weight ?? defaultIssueWeight(issue.code);
-    score -= w;
+    if (issue.code.endsWith("_check")) metadataPenalty += w;
+    else score -= w;
   }
+  // "_check"는 유형별 보조 필드(evidence·mentioned_* 등) 대조다. 일괄 생성은 이 필드를 다 채우지 않아
+  // 멀쩡한 문항이 40점대로 떨어져 검토 표시가 붙었으므로, 한 문항에서 20점까지만 깎는다.
+  score -= Math.min(metadataPenalty, 20);
   return Math.max(0, Math.min(100, score));
 }
 
@@ -236,29 +255,10 @@ export function checkListeningQuestionQuality(
 
   const typeId = typeHint?.id ?? q.order_index;
   const isMonologue = getMonologueTypeIds(gradeLevel).has(typeId);
-  const skipWordCountRules = gradeLevel === "middle1";
-  const wordCountRange =
-    gradeLevel === "high3"
-      ? { min: 85, max: 205, label: "85~205" }
-      : gradeLevel === "high2"
-        ? { min: 80, max: 190, label: "80~190" }
-        : gradeLevel === "high1"
-          ? { min: 70, max: 170, label: "70~170" }
-          : gradeLevel === "middle3"
-            ? { min: 70, max: 125, label: "70~125" }
-            : { min: 50, max: 95, label: "55~90" };
-  const dialogueTurnRange =
-    isHighSchoolListeningGrade(gradeLevel)
-      ? { min: 4, max: 12 }
-      : gradeLevel === "middle3"
-        ? { min: 7, max: 11 }
-        : { min: 6, max: 8 };
-  const monologueSentenceRange =
-    isHighSchoolListeningGrade(gradeLevel)
-      ? { min: 5, max: 10 }
-      : gradeLevel === "middle3"
-        ? { min: 6, max: 8 }
-        : { min: 5, max: 7 };
+  // 분량 기준은 학년·유형별 목표(quality-rubric.md, 시판 교재 실측)에서 온다. 목표 밖이어도 15%까지는 봐준다.
+  // 예전 기준은 학년 하나로 뭉뚱그려 고1 짧은 응답(실제 3턴 30~55단어)을 "너무 짧다"로, 중2 9~10턴 대화를
+  // "턴이 많다"로 잡았고, 한 segment에 여러 문장이 든 담화를 "1문장"으로 셌다.
+  const target = listeningTypeTarget(typeId, gradeLevel);
   const maxWordsPerSentence =
     gradeLevel === "high3"
       ? 24
@@ -268,60 +268,50 @@ export function checkListeningQuestionQuality(
           ? 20
           : gradeLevel === "middle3"
             ? 17
-            : 13;
+            : 15;
   const minWordsPerSentence =
     isHighSchoolListeningGrade(gradeLevel) ? 7 : gradeLevel === "middle3" ? 8 : 5;
 
-  if (!skipWordCountRules) {
-    const totalWords = totalScriptWords(q);
-    if (totalWords < wordCountRange.min || totalWords > wordCountRange.max) {
+  const totalWords = totalScriptWords(q);
+  if (target) {
+    const [lo, hi] = target.words;
+    if (totalWords < Math.floor(lo * 0.85) || totalWords > Math.ceil(hi * 1.15)) {
       issues.push({
         code: "word_count",
-        message: `대본 단어 수가 기준(${wordCountRange.label})을 벗어납니다 (${totalWords}단어).`,
+        message: `대본 단어 수가 기준(${lo}~${hi})을 벗어납니다 (${totalWords}단어).`,
       });
     }
   }
 
   const turnCount = q.segments.length;
   if (isMonologue) {
-    if (
-      turnCount < monologueSentenceRange.min ||
-      turnCount > monologueSentenceRange.max
-    ) {
+    const sentences = scriptSentenceCount(q);
+    if (sentences < 4 || sentences > 16) {
       issues.push({
         code: "sentence_count",
-        message: `담화형은 ${monologueSentenceRange.min}~${monologueSentenceRange.max}문장이어야 합니다 (${turnCount}개).`,
+        message: `담화 문장 수가 알맞지 않습니다 (${sentences}문장).`,
       });
     }
-  } else if (typeId !== 19 && typeId !== 20) {
-    if (
-      turnCount < dialogueTurnRange.min ||
-      turnCount > dialogueTurnRange.max
-    ) {
+  } else if (target?.turns) {
+    const [lo, hi] = target.turns;
+    const spokenTurns = q.segments.filter((s) => s.speaker === "M" || s.speaker === "W").length;
+    if (spokenTurns < lo - 1 || spokenTurns > hi + 2) {
       issues.push({
         code: "turn_count",
-        message: `대화형은 ${dialogueTurnRange.min}~${dialogueTurnRange.max}턴이어야 합니다 (${turnCount}턴).`,
+        message: `대화는 ${lo === hi ? `${lo}` : `${lo}~${hi}`}턴이 적당합니다 (${spokenTurns}턴).`,
       });
     }
-  } else if (
-    turnCount < dialogueTurnRange.min ||
-    turnCount > dialogueTurnRange.max
-  ) {
+  }
+
+  const longCount = longSentenceCount(q, maxWordsPerSentence);
+  if (longCount > 0) {
     issues.push({
-      code: "turn_count",
-      message: `19~20번은 ${dialogueTurnRange.min}~${dialogueTurnRange.max}턴이어야 합니다 (${turnCount}턴).`,
+      code: "long_sentences",
+      message: `${maxWordsPerSentence}단어를 넘는 문장이 ${longCount}개 있습니다.`,
     });
   }
 
-  if (!skipWordCountRules) {
-    const longCount = longSentenceCount(q, maxWordsPerSentence);
-    if (longCount > 0) {
-      issues.push({
-        code: "long_sentences",
-        message: `${maxWordsPerSentence}단어를 넘는 문장이 ${longCount}개 있습니다.`,
-      });
-    }
-
+  if (gradeLevel !== "middle1") {
     const shortCount = q.segments.filter(
       (s) => wordCount(s.text) < minWordsPerSentence
     ).length;
@@ -334,7 +324,8 @@ export function checkListeningQuestionQuality(
   }
 
   for (const seg of q.segments) {
-    if (!isHighSchoolListeningGrade(gradeLevel) && FORBIDDEN_GRAMMAR.test(seg.text)) {
+    // 관계대명사·현재완료는 중2·중3 프롬프트에서 허용하므로 중1만 검사
+    if (gradeLevel === "middle1" && FORBIDDEN_GRAMMAR.test(seg.text)) {
       issues.push({
         code: "grammar",
         message: "중1 수준을 넘는 문법이 포함되어 있습니다.",
@@ -345,6 +336,16 @@ export function checkListeningQuestionQuality(
 
   // 전 학년 공통: 잘린 대본·중복 선택지·해설 번호·금액 검산·화자 일치 등
   issues.push(...genericQualityIssues(q, typeId, gradeLevel));
+
+  // 중등 유형별 턴 수: 예전엔 모든 학년에 중1 기준(6~8턴, 응답 5~7턴)을 적용해 중2·중3의 9~10턴 대화를 잡았다.
+  // 학년 목표(quality-rubric.md)에서 1턴까지는 봐준다.
+  const middleTurnRange = target?.turns ?? [6, 8];
+  const middleTurnsOff =
+    turnCount < middleTurnRange[0] - 1 || turnCount > middleTurnRange[1] + 1;
+  const middleTurnLabel = `${middleTurnRange[0]}~${middleTurnRange[1]}`;
+  // 담화형(1·3·5)은 segment 수가 아니라 실제 문장 수로 센다 (한 segment에 여러 문장을 넣는 경우가 있다)
+  const monologueSentences = scriptSentenceCount(q);
+  const monologueSentencesOff = monologueSentences < 5 || monologueSentences > 9;
 
   // 고1·고2는 중등 1~20 유형 검수 규칙을 적용하지 않음 (번호 의미가 다름)
   if (isHighSchoolListeningGrade(gradeLevel)) {
@@ -362,10 +363,10 @@ export function checkListeningQuestionQuality(
         weight: 22,
       });
     }
-    if (turnCount < 5 || turnCount > 7) {
+    if (monologueSentencesOff) {
       issues.push({
         code: "type1_sentences",
-        message: `1번 유형은 5~7문장이어야 합니다 (${turnCount}개).`,
+        message: `1번 유형은 5~9문장이 적당합니다 (${monologueSentences}문장).`,
       });
     }
     const speakers = new Set(q.segments.map((s) => s.speaker));
@@ -417,10 +418,10 @@ export function checkListeningQuestionQuality(
         message: "3번 유형은 W 또는 M 한 명의 날씨 안내만 사용해야 합니다.",
       });
     }
-    if (turnCount < 5 || turnCount > 7) {
+    if (monologueSentencesOff) {
       issues.push({
         code: "type3_sentences",
-        message: `3번 유형은 5~7문장이어야 합니다 (${turnCount}개).`,
+        message: `3번 유형은 5~9문장이 적당합니다 (${monologueSentences}문장).`,
       });
     }
     if (!q.instruction?.trim() || q.instruction.includes("○○")) {
@@ -605,10 +606,10 @@ export function checkListeningQuestionQuality(
         weight: 20,
       });
     }
-    if (turnCount < 5 || turnCount > 7) {
+    if (monologueSentencesOff) {
       issues.push({
         code: "type5_sentences",
-        message: `5번 유형은 5~7문장이어야 합니다 (${turnCount}개).`,
+        message: `5번 유형은 5~9문장이 적당합니다 (${monologueSentences}문장).`,
       });
     }
 
@@ -695,10 +696,10 @@ export function checkListeningQuestionQuality(
         message: "6번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type6_turns",
-        message: `6번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `6번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -793,10 +794,10 @@ export function checkListeningQuestionQuality(
         message: "7번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type7_turns",
-        message: `7번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `7번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -909,10 +910,10 @@ export function checkListeningQuestionQuality(
         message: "8번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type8_turns",
-        message: `8번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `8번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1022,10 +1023,10 @@ export function checkListeningQuestionQuality(
         message: "9번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type9_turns",
-        message: `9번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `9번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1136,10 +1137,10 @@ export function checkListeningQuestionQuality(
         message: "10번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type10_turns",
-        message: `10번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `10번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1259,10 +1260,10 @@ export function checkListeningQuestionQuality(
         message: "11번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type11_turns",
-        message: `11번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `11번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1314,7 +1315,7 @@ export function checkListeningQuestionQuality(
     const scriptJoined = q.segments.map((s) => s.text).join(" ");
     if (
       scriptJoined &&
-      !/\blet'?s\s+(?:take|walk|go)|then let'?s walk|yes\.?\s*let'?s/i.test(
+      !/\blet'?s\s+(?:just\s+)?(?:take|walk|go|ride|bike|cycle|drive|catch|hop on)|then let'?s walk|yes\.?\s*let'?s|\bwe'?ll\s+(?:take|walk|ride|drive|go by)\b/i.test(
         scriptJoined
       )
     ) {
@@ -1411,10 +1412,10 @@ export function checkListeningQuestionQuality(
         message: "12번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type12_turns",
-        message: `12번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `12번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1565,10 +1566,10 @@ export function checkListeningQuestionQuality(
         message: "13번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type13_turns",
-        message: `13번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `13번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1699,10 +1700,10 @@ export function checkListeningQuestionQuality(
         message: "2번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type2_turns",
-        message: `2번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `2번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
     const scriptJoined = q.segments.map((s) => s.text).join(" ");
@@ -1819,10 +1820,10 @@ export function checkListeningQuestionQuality(
       });
     }
 
-    if (turnCount < 5 || turnCount > 7) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type19_turns",
-        message: `19번 유형은 5~7턴이어야 합니다 (${turnCount}턴).`,
+        message: `19번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1939,10 +1940,10 @@ export function checkListeningQuestionQuality(
       });
     }
 
-    if (turnCount < 5 || turnCount > 7) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type20_turns",
-        message: `20번 유형은 5~7턴이어야 합니다 (${turnCount}턴).`,
+        message: `20번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -2202,10 +2203,10 @@ export function checkListeningQuestionQuality(
         message: "15번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type15_turns",
-        message: `15번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `15번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -2375,10 +2376,10 @@ export function checkListeningQuestionQuality(
         message: "16번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type16_turns",
-        message: `16번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `16번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -2551,10 +2552,10 @@ export function checkListeningQuestionQuality(
         message: "17번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type17_turns",
-        message: `17번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `17번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -2717,10 +2718,10 @@ export function checkListeningQuestionQuality(
         message: "18번 유형은 M과 W 대화가 필요합니다.",
       });
     }
-    if (turnCount < 6 || turnCount > 8) {
+    if (middleTurnsOff) {
       issues.push({
         code: "type18_turns",
-        message: `18번 유형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `18번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 

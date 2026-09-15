@@ -25,8 +25,9 @@ const TRANSPORT_SET = new Set<string>(KOREAN_TRANSPORTS);
 const NOT_TRANSPORT =
   /^(미술관|도서관|공원|영화관|결혼식|학교|빨리\s*가기|아빠|엄마|친구|목적지|이동)$/;
 
+/** 최종 결정 문장. "Let's ride our bikes", "Let's just drive", "We'll walk, then" 도 결정으로 본다. */
 const FINAL_DECISION_CLUE =
-  /let'?s\s+(?:take|walk|go)|then let'?s walk|yes\.?\s*let'?s|let us (?:take|walk|go)/i;
+  /let'?s\s+(?:just\s+)?(?:take|walk|go|ride|bike|cycle|drive|catch|hop on)|then let'?s walk|yes\.?\s*let'?s|let us (?:take|walk|go|ride)|\bwe'?ll\s+(?:take|walk|ride|drive|go by)\b/i;
 
 const PROPOSAL_ONLY_CLUE =
   /^(?:we\s+)?can\s+take|should\s+we|maybe|what about|how about|(?:the\s+)?(?:subway|bus|train|plane|boat|taxi|station|stop)\s+is/i;

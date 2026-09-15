@@ -80,9 +80,68 @@ export function indexOfTimeInChoices(
   return choices.findIndex((c) => normalizeTimeLabel(c) === target);
 }
 
+const HOUR_WORDS = [
+  "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
+];
+const TEEN_WORDS = [
+  "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen",
+];
+const TENS_WORDS: Record<string, number> = { twenty: 20, thirty: 30, forty: 40, fifty: 50 };
+
+function minuteFromWords(words: string): number | null {
+  const w = words.toLowerCase().replace(/-/g, " ").trim();
+  if (w === "o'clock" || w === "o’clock") return 0;
+  const oh = w.match(/^oh (\w+)$/);
+  if (oh) {
+    const n = HOUR_WORDS.indexOf(oh[1]!) + 1;
+    return n >= 1 && n <= 9 ? n : null;
+  }
+  const teen = TEEN_WORDS.indexOf(w);
+  if (teen >= 0) return 10 + teen;
+  const [tens, ones] = w.split(" ");
+  const t = TENS_WORDS[tens ?? ""];
+  if (t == null) return null;
+  if (!ones) return t;
+  const o = HOUR_WORDS.indexOf(ones) + 1;
+  return o >= 1 && o <= 9 ? t + o : null;
+}
+
+/**
+ * 말로 쓴 시각("three forty", "four o'clock", "half past six", "quarter to five")을 "3:40" 꼴로.
+ * 대본은 TTS용이라 숫자 대신 말로 쓰는 경우가 많은데, 숫자 시각만 찾아 "대본에 시각이 0개"로 잘못 잡았다.
+ */
+export function spelledTimesInText(text: string): string[] {
+  const t = String(text ?? "").toLowerCase().replace(/’/g, "'");
+  const out: string[] = [];
+  const hour = `(${HOUR_WORDS.join("|")})`;
+  const minute =
+    "(o'clock|oh[- ](?:one|two|three|four|five|six|seven|eight|nine)|(?:twenty|thirty|forty|fifty)(?:[- ](?:one|two|three|four|five|six|seven|eight|nine))?|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen)";
+  for (const m of t.matchAll(new RegExp(`\\b${hour}\\s+${minute}\\b`, "g"))) {
+    const h = HOUR_WORDS.indexOf(m[1]!) + 1;
+    const min = minuteFromWords(m[2]!);
+    if (min != null) out.push(`${h}:${String(min).padStart(2, "0")}`);
+  }
+  for (const m of t.matchAll(new RegExp(`\\b(half|quarter) (past|to|after) ${hour}\\b`, "g"))) {
+    let h = HOUR_WORDS.indexOf(m[3]!) + 1;
+    let min = m[1] === "half" ? 30 : 15;
+    if (m[2] === "to") {
+      h = h === 1 ? 12 : h - 1;
+      min = 60 - min;
+    }
+    out.push(`${h}:${String(min).padStart(2, "0")}`);
+  }
+  for (const m of t.matchAll(/\b(\d{1,2}):(\d{2})\b/g)) out.push(`${Number(m[1])}:${m[2]}`);
+  return [...new Set(out)];
+}
+
 export function extractTimesFromScript(scriptText: string): string[] {
   const matches = scriptText.match(TIME_IN_TEXT) ?? [];
-  return [...new Set(matches.map((m) => normalizeTimeLabel(m)))];
+  const withPeriod = matches.map((m) => normalizeTimeLabel(m));
+  // 오전·오후 표시가 없거나 말로 쓴 시각도 센다 (같은 시·분이면 한 번만)
+  const clock = (s: string) => s.match(/\d{1,2}:\d{2}/)?.[0] ?? s;
+  const seen = new Set(withPeriod.map(clock));
+  const extra = spelledTimesInText(scriptText).filter((s) => !seen.has(s));
+  return [...new Set([...withPeriod, ...extra])];
 }
 
 /** 지시문과 time_question_target 키워드 일치 */
@@ -117,10 +176,14 @@ export function hasFinalTimeConfirmation(
   const hourPart = norm.split(":")[0];
   const minPart = norm.match(/:(\d{2})/)?.[1];
   if (hourPart && minPart) {
-    return (
+    if (
       script.includes(`${hourPart}:${minPart}`) &&
       (script.includes("a.m") || script.includes("p.m") || script.includes("am") || script.includes("pm"))
-    );
+    ) {
+      return true;
+    }
+    // "three forty"처럼 말로 쓴 시각
+    return spelledTimesInText(scriptText).includes(`${Number(hourPart)}:${minPart}`);
   }
   return false;
 }
@@ -158,7 +221,8 @@ export function validateType6TimeFields(
     }
     if (q.answer_clue.trim() && !q.answer_clue.toLowerCase().includes(finalTime.split(" ")[0] ?? "")) {
       const hour = finalTime.match(/\d{1,2}:\d{2}/)?.[0];
-      if (hour && !q.answer_clue.includes(hour)) {
+      const spelled = hour ? spelledTimesInText(q.answer_clue).includes(hour.replace(/^0/, "")) : false;
+      if (hour && !q.answer_clue.includes(hour) && !spelled) {
         issues.push("answer_clue에 final_time 관련 표현이 포함되어야 합니다.");
       }
     }

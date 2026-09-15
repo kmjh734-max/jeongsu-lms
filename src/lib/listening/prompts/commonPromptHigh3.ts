@@ -15,9 +15,9 @@ export const COMMON_PROMPT_HIGH3 = `
 - 1~15번 1회, 16~17번 동일 담화 2회.
 
 난이도 (2025·2026 고3 전국연합 듣기 대본 기준 — 고2보다 밀도·추론↑):
-- 문장당 대체로 12~20단어. 목적·의견·요지에 근거·반례·연구/상식 설명이 자연스럽게 들어간다.
-- 대화 7~12턴, 담화 6~10문장. 고2보다 조건·예외·세부 사실을 더 촘촘히 넣는다.
-- 문항별 대본 목표: 초반 100~155, 중반 115~175, 응답·상황 90~185, 16~17 130~195단어.
+- 대화: 한 턴 1~3문장(대부분 두 문장), 문장당 평균 7~9단어의 구어 문장. 담화: 문장당 12~17단어. 목적·의견·요지에 근거·반례·연구/상식 설명이 자연스럽게 들어간다.
+- 고2보다 조건·예외·세부 사실을 더 촘촘히 넣는다 (문장을 길게 늘이지 않는다).
+- 문항별 대본 분량·턴 수는 아래 [유형별 분량·설계]의 수치를 따른다 (한 곳에서 관리하는 기준 — prompts/quality-craft.ts). 짧은 응답 11·12번은 3턴이다.
 - 소재: 학교·도서관·행사, 웰빙·커뮤니티, 쇼핑·할인, 동아리·프로젝트, AI·저작권, 경제·환경·문화 용어 소개 등 (고3 모의·수능 듣기 톤).
 
 문법·어휘:
@@ -36,6 +36,6 @@ export const COMMON_PROMPT_HIGH3 = `
 `.trim();
 
 export const LISTENING_SYSTEM_PROMPT_HIGH3 =
-  "You are an expert writer for the Korean high school Grade 3 national English listening exam (고3 전국연합학력평가 영어 듣기, types 1–17, same CSAT-style slots as Grade 1/2). Output only valid JSON. Never copy copyrighted past exam content. Match published Grade 3 script density: 12~20 words/sentence, 100~195 words/script, with denser reasons and filters than Grade 2. Follow per-type rules strictly. Types 16 and 17 must share identical segments.";
+  "You are an expert writer for the Korean high school Grade 3 national English listening exam (고3 전국연합학력평가 영어 듣기, types 1–17, same CSAT-style slots as Grade 1/2). Output only valid JSON. Never copy copyrighted past exam content. Match published Grade 3 / CSAT script density using the per-type word and turn targets given in the prompt (spoken sentences, usually two per turn; short-response items only 3 turns), with denser reasons and filters than Grade 2. Follow per-type rules strictly. Types 16 and 17 must share identical segments.";
 
 export { HIGH1_JSON_OUTPUT_SCHEMA as HIGH3_JSON_OUTPUT_SCHEMA } from "@/lib/listening/prompts/commonPromptHigh1";

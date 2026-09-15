@@ -1,10 +1,11 @@
 import type { ExamTypeTemplate } from "@/lib/listening/exam-type-template";
+import { listeningTypeTarget } from "@/lib/listening/prompts/quality-craft";
 
 /**
  * 고1 전국연합학력평가 영어 듣기 1~17번 고정 유형
  * (2025.9·10 / 2026.3·6 기출 형식 참고, 내용 복사 금지)
  */
-export const HIGH1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
+const HIGH1_TYPES_BASE: ExamTypeTemplate[] = [
   {
     id: 1,
     question_type: "목적 파악",
@@ -133,9 +134,9 @@ export const HIGH1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     format_guide:
       "Short dialogue ending BEFORE the responder's reply. English response choices. previous_turn + blank_speaker required.",
     segment_guide:
-      "M/W short dialogue 4~7 turns. Total 70~110 words. Last segment = previous_turn speaker only. Do NOT include the reply in segments.",
+      "M/W short dialogue of exactly 3 turns (A-B-A). Total 30~55 words. Last segment = previous_turn speaker only. Do NOT include the reply in segments.",
     choice_guide:
-      "5 English replies (8~16 words). One fits function+context. No bare Okay/Yes/Sure. question_text like \"Woman: _____\" or \"Man: _____\".",
+      "5 English replies (5~10 words). One fits function+context. No bare Okay/Yes/Sure. question_text like \"Woman: _____\" or \"Man: _____\".",
     difficulty_tier: "applied",
   },
   {
@@ -146,7 +147,7 @@ export const HIGH1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     format_guide:
       "Same as type 11 but opposite blank speaker (if 11 blanks W, 12 blanks M, or vice versa). English choices. Often 3 points.",
     segment_guide:
-      "M/W short dialogue 4~7 turns. Total 70~110 words. Reply not in segments.",
+      "M/W short dialogue of exactly 3 turns (A-B-A). Total 30~55 words. Reply not in segments.",
     choice_guide:
       "5 English replies. previous_turn, blank_speaker, correct_response_function, distractor_reasons required.",
     difficulty_tier: "applied",
@@ -197,7 +198,7 @@ export const HIGH1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     format_guide:
       "[16~17] shared long monologue played TWICE. Type 16 = topic. English topic choices. Must share identical segments with type 17.",
     segment_guide:
-      "Monologue (M or W). 6~9 sentences listing 3~5 items/tips. Total 110~160 words. Clear topic sentence + enumerated items.",
+      "Monologue (M or W). 10~13 sentences listing 4 items with 1~2 sentences each. Total 150~185 words. Intro + enumerated items + wrap-up.",
     choice_guide:
       "5 English topic phrases. Correct = overall topic; distractors = one detail or wrong focus.",
     difficulty_tier: "advanced",
@@ -215,6 +216,28 @@ export const HIGH1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     difficulty_tier: "advanced",
   },
 ];
+
+/**
+ * 분량(단어·턴) 문구는 유형별 목표 표(prompts/quality-craft.ts) 한 곳에서 채운다.
+ * 예전에는 여기·exam-difficulty·공통 프롬프트의 숫자가 서로 달랐다(짧은 응답 70~110단어 ↔ 실제 3턴 30~55단어).
+ */
+export function withScriptTarget(
+  t: ExamTypeTemplate,
+  grade: "high1" | "high2" | "high3"
+): ExamTypeTemplate {
+  const target = listeningTypeTarget(t.id, grade);
+  if (!target) return t;
+  let guide = t.segment_guide.replace(/\s*Total \d+~\d+ words\.?/g, "");
+  if (target.turns) {
+    const turns = target.turns[0] === target.turns[1] ? `exactly ${target.turns[0]}` : `${target.turns[0]}~${target.turns[1]}`;
+    guide = guide.replace(/(?:exactly \d+|\d+~\d+) turns/, `${turns} turns`);
+  }
+  return { ...t, segment_guide: `${guide.trim()} Total ${target.words[0]}~${target.words[1]} words.` };
+}
+
+export const HIGH1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = HIGH1_TYPES_BASE.map((t) =>
+  withScriptTarget(t, "high1")
+);
 
 export function getHigh1ExamTypeById(id: number): ExamTypeTemplate | undefined {
   return HIGH1_LISTENING_EXAM_TYPES.find((t) => t.id === id);

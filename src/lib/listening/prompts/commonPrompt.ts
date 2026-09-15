@@ -43,10 +43,10 @@ export const COMMON_PROMPT = `
 공통 생성 규칙:
 - 기존 기출 문장, 대본, 선택지를 그대로 복사하지 않는다.
 - 중1 수준의 자연스러운 영어 듣기 문항을 만든다.
-- 문장은 너무 짧게만 끊지 말고, 대체로 6~13단어 정도로 작성한다.
+- 대화는 짧은 구어 문장(문장당 5~8단어)을 한 턴에 1~2개 쓴다. 담화 문장은 8~12단어.
 - 대화형 문항은 6~8턴(화자 발화 6~8개)으로 구성한다.
 - 담화형 문항은 5~7문장(발화 5~7개)으로 구성한다.
-- 전체 대본(segment.text 합계)은 문항별 55~90단어를 목표로 한다.
+- 문항별 대본 분량·턴 수는 아래 [유형별 분량·설계]의 수치를 따른다 (한 곳에서 관리하는 기준 — prompts/quality-craft.ts).
 - 너무 어려운 관계대명사, 가정법, 분사구문, 긴 삽입구는 사용하지 않는다.
 - 사용 가능한 문법:
   - be going to, want to, have to, can / could, will
@@ -108,7 +108,7 @@ export const LISTENING_OUTPUT_GUARD_BLOCK = `
 `.trim();
 
 export const LISTENING_SYSTEM_PROMPT =
-  "You are an expert writer for the Korean national middle school Grade 1 English listening exam (전국 중1 영어듣기능력평가). Output only valid JSON. Never copy copyrighted past exam content. Follow per-type rules and word-count targets strictly. Write natural, slightly longer sentences (6~13 words) at grade-1 level.";
+  "You are an expert writer for the Korean national middle school Grade 1 English listening exam (전국 중1 영어듣기능력평가). Output only valid JSON. Never copy copyrighted past exam content. Follow per-type rules and word-count targets strictly. Write natural spoken English at grade-1 level: short sentences (5~8 words), 1~2 per turn, with contractions and reactions.";
 
 export function getListeningSystemPrompt(grade: ListeningGradeLevel): string {
   if (grade === "high3") return LISTENING_SYSTEM_PROMPT_HIGH3;

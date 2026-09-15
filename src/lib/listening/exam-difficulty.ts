@@ -1,5 +1,6 @@
 import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
 import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import { listeningTargetText } from "@/lib/listening/prompts/quality-craft";
 
 /** 전국 중1 영어듣기평가 기출(2024·2025) 문항 번호대별 난이도 */
 export type ListeningDifficultyTier =
@@ -31,9 +32,9 @@ export const DIFFICULTY_RULES: Record<ListeningDifficultyTier, DifficultyRules> 
     questionRange: "1~6번",
     monologueSentences: "5~6 sentences",
     dialogueTurns: "6~7 turns",
-    wordsPerSentence: "6~11 English words per sentence",
+    wordsPerSentence: "dialogue 5~8 words per sentence, 1~2 sentences per turn; monologue 7~11",
     vocabulary: "very common middle school grade 1 words only",
-    extra: "Total script 55~75 words. One clear fact per sentence; natural but simple rhythm.",
+    extra: "One clear fact per sentence; natural spoken rhythm with contractions.",
   },
   standard: {
     tier: "standard",
@@ -41,9 +42,9 @@ export const DIFFICULTY_RULES: Record<ListeningDifficultyTier, DifficultyRules> 
     questionRange: "7~13번",
     monologueSentences: "5~6 sentences",
     dialogueTurns: "6~8 turns",
-    wordsPerSentence: "7~12 English words per sentence",
+    wordsPerSentence: "dialogue 5~8 words per sentence, 1~2 sentences per turn; monologue 7~11",
     vocabulary: "grade 1 textbook vocabulary; one new word at most per item",
-    extra: "Total script 60~85 words. Short natural dialogues; one main idea to track.",
+    extra: "Short natural dialogues; one main idea to track.",
   },
   applied: {
     tier: "applied",
@@ -51,10 +52,9 @@ export const DIFFICULTY_RULES: Record<ListeningDifficultyTier, DifficultyRules> 
     questionRange: "14~18번",
     monologueSentences: "5~7 sentences",
     dialogueTurns: "6~8 turns",
-    wordsPerSentence: "8~13 English words per sentence",
+    wordsPerSentence: "dialogue 5~8 words per sentence, 1~2 sentences per turn; monologue 8~12",
     vocabulary: "grade 1+; may include numbers, times, places, simple compound sentences",
-    extra:
-      "Total script 65~90 words. May include announcement with details, table in question_text, or location clues.",
+    extra: "May include announcement with details, table in question_text, or location clues.",
   },
   advanced: {
     tier: "advanced",
@@ -62,7 +62,7 @@ export const DIFFICULTY_RULES: Record<ListeningDifficultyTier, DifficultyRules> 
     questionRange: "19~20번",
     monologueSentences: "N/A (dialogue only)",
     dialogueTurns: "6~8 turns",
-    wordsPerSentence: "7~13 words per line; reply choices 6~12 words in English",
+    wordsPerSentence: "dialogue lines of 1~2 short sentences (5~8 words); reply choices 3~7 words in English",
     vocabulary: "grade 1; focus on natural replies, not rare words",
     extra:
       "Dialogue ends with W (type 19) or M (type 20). The OTHER speaker's reply is NOT in segments. question_text must be exactly \"Man: ________\" (type 19) or \"Woman: ________\" (type 20) with no other words.",
@@ -77,10 +77,9 @@ export const MIDDLE3_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
     questionRange: "1~6번",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "7~9 turns",
-    wordsPerSentence: "10~14 English words per sentence",
+    wordsPerSentence: "dialogue 6~9 words per sentence, 1~3 sentences per turn; monologue 10~14",
     vocabulary: "grade 3 textbook vocabulary; natural collocations",
-    extra:
-      "Total script 75~100 words. Match typical 중3 기출 (shopping, phone calls, picture dialogue).",
+    extra: "Match typical 중3 기출 (shopping, phone calls, picture dialogue).",
   },
   standard: {
     tier: "standard",
@@ -88,9 +87,9 @@ export const MIDDLE3_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
     questionRange: "7~12번",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "7~10 turns",
-    wordsPerSentence: "11~16 English words per sentence",
+    wordsPerSentence: "dialogue 6~9 words per sentence, 1~3 sentences per turn; monologue 10~14",
     vocabulary: "grade 3; relative clauses and present perfect OK",
-    extra: "Total script 85~110 words. One main idea with supporting details.",
+    extra: "One main idea with supporting details.",
   },
   applied: {
     tier: "applied",
@@ -98,11 +97,10 @@ export const MIDDLE3_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
     questionRange: "13~18번",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "8~10 turns",
-    wordsPerSentence: "12~17 English words per sentence",
+    wordsPerSentence: "dialogue 6~9 words per sentence, 1~3 sentences per turn; monologue 10~14",
     vocabulary:
       "grade 3+; prices, schedules, dates; passive voice OK; no subjunctive",
-    extra:
-      "Total script 90~115 words. May include payment math, table choice, schedule negotiation.",
+    extra: "May include payment math, table choice, schedule negotiation.",
   },
   advanced: {
     tier: "advanced",
@@ -110,7 +108,7 @@ export const MIDDLE3_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
     questionRange: "19~20번",
     monologueSentences: "N/A (dialogue only)",
     dialogueTurns: "7~10 turns",
-    wordsPerSentence: "10~16 words per line; reply choices 9~15 words in English",
+    wordsPerSentence: "dialogue lines of 1~3 short sentences (6~9 words); reply choices 4~9 words in English",
     vocabulary: "grade 3; contextual replies with specific detail",
     extra:
       "Dialogue ends with W (19) or M (20). Reply NOT in segments. Man:/Woman: ______ format.",
@@ -129,46 +127,42 @@ export const HIGH1_DIFFICULTY_RULES: Record<
     tier: "foundation",
     label: "기초",
     questionRange: "1~5번",
-    monologueSentences: "5~8 sentences",
-    dialogueTurns: "7~10 turns",
-    wordsPerSentence: "10~16 English words per sentence",
+    monologueSentences: "8~11 sentences",
+    dialogueTurns: "9~12 turns",
+    wordsPerSentence: "dialogue 6~8 words per sentence on average, 1~3 sentences per turn; monologue 11~15",
     vocabulary: "high school grade 1; school/community announcement and daily opinion language",
-    extra:
-      "Total script 85~130 words. Match 고1 전국연합 purpose/opinion/gist/picture/next-action scripts.",
+    extra: "Match 고1 전국연합 purpose/opinion/gist/picture/next-action scripts.",
   },
   standard: {
     tier: "standard",
     label: "보통",
     questionRange: "6~10번",
-    monologueSentences: "6~9 sentences",
-    dialogueTurns: "8~12 turns",
-    wordsPerSentence: "11~17 English words per sentence",
+    monologueSentences: "8~11 sentences",
+    dialogueTurns: "9~13 turns",
+    wordsPerSentence: "dialogue 6~8 words per sentence on average, 1~3 sentences per turn; monologue 11~15",
     vocabulary:
       "grade 1; prices, schedules, event details; clear numbers; light relative clauses OK",
-    extra:
-      "Total script 100~150 words. Payment math, reason with false guesses, unmentioned item, announcement mismatch, or table filters.",
+    extra: "Payment math, reason with false guesses, unmentioned item, announcement mismatch, or table filters.",
   },
   applied: {
     tier: "applied",
     label: "심화",
     questionRange: "11~15번",
-    monologueSentences: "5~8 sentences (type 15 narration)",
-    dialogueTurns: "4~7 turns (short reply) or 8~12 turns (long reply)",
-    wordsPerSentence: "10~18 English words per sentence; reply choices 8~16 words",
+    monologueSentences: "8~11 sentences (type 15 narration)",
+    dialogueTurns: "exactly 3 turns (short reply 11~12) or 9~12 turns (long reply 13~14)",
+    wordsPerSentence: "dialogue 6~8 words per sentence on average; monologue 11~15; reply choices 5~10 words",
     vocabulary: "grade 1; pragmatic replies and situation speech acts",
-    extra:
-      "Short/long response: do NOT put the blank reply in segments. Situation speech: third-person narration ending with what A would say to B. Total 70~160 words.",
+    extra: "Short response: exactly 3 turns. Do NOT put the blank reply in segments. Situation speech: third-person narration ending with what A would say to B.",
   },
   advanced: {
     tier: "advanced",
     label: "고난도",
     questionRange: "16~17번",
-    monologueSentences: "6~9 sentences",
+    monologueSentences: "10~13 sentences",
     dialogueTurns: "N/A (shared monologue)",
-    wordsPerSentence: "11~18 English words per sentence",
+    wordsPerSentence: "monologue 11~15 words per sentence",
     vocabulary: "grade 1; list/tips monologue with clear topic + enumerated items",
-    extra:
-      "Types 16 and 17 MUST share identical segments/script. Played twice in real exam. Total 110~160 words. 16=topic (English choices), 17=unmentioned item.",
+    extra: "Types 16 and 17 MUST share identical segments/script. Played twice in real exam. intro + 4 items with 1~2 sentences each + wrap-up. 16=topic (English choices), 17=unmentioned item.",
   },
 };
 
@@ -180,10 +174,9 @@ export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
     questionRange: "1~6번",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "7~9 turns",
-    wordsPerSentence: "9~14 English words per sentence",
+    wordsPerSentence: "dialogue 5~8 words per sentence, 1~2 sentences per turn; monologue 8~12",
     vocabulary: "grade 2 textbook vocabulary; natural collocations",
-    extra:
-      "Total script 70~95 words. Slightly richer than typical 중2 기출. One clear fact per sentence.",
+    extra: "Slightly richer than typical 중2 기출 by adding turns and details, not longer sentences.",
   },
   standard: {
     tier: "standard",
@@ -191,9 +184,9 @@ export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
     questionRange: "7~12번",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "7~10 turns",
-    wordsPerSentence: "10~15 English words per sentence",
+    wordsPerSentence: "dialogue 5~8 words per sentence, 1~2 sentences per turn; monologue 8~12",
     vocabulary: "grade 2; simple relative clauses (who/which/that) sparingly allowed",
-    extra: "Total script 75~105 words. Track one main idea with supporting details.",
+    extra: "Track one main idea with supporting details.",
   },
   applied: {
     tier: "applied",
@@ -201,11 +194,10 @@ export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
     questionRange: "13~18번",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "7~10 turns",
-    wordsPerSentence: "10~16 English words per sentence",
+    wordsPerSentence: "dialogue 5~8 words per sentence, 1~2 sentences per turn; monologue 8~12",
     vocabulary:
       "grade 2+; numbers, prices, times; present perfect for experience OK; no subjunctive",
-    extra:
-      "Total script 80~115 words. May include payment math, relationship inference, schedule-at-time plans (type 17).",
+    extra: "May include payment math, relationship inference, schedule-at-time plans (type 17).",
   },
   advanced: {
     tier: "advanced",
@@ -213,7 +205,7 @@ export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
     questionRange: "19~20번",
     monologueSentences: "N/A (dialogue only)",
     dialogueTurns: "7~10 turns",
-    wordsPerSentence: "9~15 words per line; reply choices 8~14 words in English",
+    wordsPerSentence: "dialogue lines of 1~2 short sentences (5~8 words); reply choices 4~8 words in English",
     vocabulary: "grade 2; contextual replies with specific detail",
     extra:
       "Dialogue ends with W (19) or M (20). Reply NOT in segments. Man:/Woman: ______ format.",
@@ -231,48 +223,44 @@ export const HIGH2_DIFFICULTY_RULES: Record<
     tier: "foundation",
     label: "기초",
     questionRange: "1~5번",
-    monologueSentences: "5~8 sentences",
-    dialogueTurns: "7~11 turns",
-    wordsPerSentence: "11~18 English words per sentence",
+    monologueSentences: "8~11 sentences",
+    dialogueTurns: "9~12 turns",
+    wordsPerSentence: "dialogue 6~9 words per sentence on average, 1~3 sentences per turn; monologue 12~16",
     vocabulary:
       "high school grade 2; school/community plus light science-of-daily-life wording",
-    extra:
-      "Total script 95~145 words. Match 고2 전국연합: clearer cause/effect than 고1 (e.g. schedule change reasons, safety tips).",
+    extra: "Match 고2 전국연합: clearer cause/effect than 고1 (e.g. schedule change reasons, safety tips).",
   },
   standard: {
     tier: "standard",
     label: "보통",
     questionRange: "6~10번",
-    monologueSentences: "6~9 sentences",
-    dialogueTurns: "8~12 turns",
-    wordsPerSentence: "12~18 English words per sentence",
+    monologueSentences: "8~11 sentences",
+    dialogueTurns: "9~13 turns",
+    wordsPerSentence: "dialogue 6~9 words per sentence on average, 1~3 sentences per turn; monologue 12~16",
     vocabulary:
       "grade 2; prices, event rules, multi-step table filters; denser detail than 고1",
-    extra:
-      "Total script 110~165 words. Payment with options/discount, false-guess reasons, unmentioned item, announcement mismatch, table choice.",
+    extra: "Payment with options/discount, false-guess reasons, unmentioned item, announcement mismatch, table choice.",
   },
   applied: {
     tier: "applied",
     label: "심화",
     questionRange: "11~15번",
-    monologueSentences: "5~8 sentences (type 15 narration)",
-    dialogueTurns: "4~7 turns (short reply) or 8~12 turns (long reply)",
-    wordsPerSentence: "11~19 English words per sentence; reply choices 9~17 words",
+    monologueSentences: "8~11 sentences (type 15 narration)",
+    dialogueTurns: "exactly 3 turns (short reply 11~12) or 9~12 turns (long reply 13~14)",
+    wordsPerSentence: "dialogue 6~9 words per sentence on average; monologue 12~16; reply choices 5~10 words",
     vocabulary: "grade 2; pragmatic replies with specific contextual detail",
-    extra:
-      "Do NOT put blank replies in segments. Situation speech denser than 고1. Total 80~175 words.",
+    extra: "Short response: exactly 3 turns. Do NOT put blank replies in segments. Situation speech denser than 고1.",
   },
   advanced: {
     tier: "advanced",
     label: "고난도",
     questionRange: "16~17번",
-    monologueSentences: "7~10 sentences",
+    monologueSentences: "10~13 sentences",
     dialogueTurns: "N/A (shared monologue)",
-    wordsPerSentence: "12~19 English words per sentence",
+    wordsPerSentence: "monologue 12~16 words per sentence",
     vocabulary:
       "grade 2; topical list monologue (nature, food, science) with clear functions/examples",
-    extra:
-      "Types 16–17 share identical segments. Total 120~180 words. Denser examples than 고1.",
+    extra: "Types 16–17 share identical segments. Denser examples than 고1.",
   },
 };
 
@@ -287,49 +275,45 @@ export const HIGH3_DIFFICULTY_RULES: Record<
     tier: "foundation",
     label: "기초",
     questionRange: "1~5번",
-    monologueSentences: "6~9 sentences",
-    dialogueTurns: "7~11 turns",
-    wordsPerSentence: "12~19 English words per sentence",
+    monologueSentences: "8~11 sentences",
+    dialogueTurns: "10~13 turns",
+    wordsPerSentence: "dialogue 7~9 words per sentence on average, 1~3 sentences per turn; monologue 12~17",
     vocabulary:
       "high school grade 3; school/community plus research-light wellness and practical explanation wording",
-    extra:
-      "Total script 100~155 words. Match 고3 전국연합: inconvenience framing, brief research/tip support, denser than 고2.",
+    extra: "Match 고3 전국연합: inconvenience framing, brief research/tip support, denser than 고2.",
   },
   standard: {
     tier: "standard",
     label: "보통",
     questionRange: "6~10번",
-    monologueSentences: "6~10 sentences",
-    dialogueTurns: "8~12 turns",
-    wordsPerSentence: "12~19 English words per sentence",
+    monologueSentences: "8~11 sentences",
+    dialogueTurns: "10~13 turns",
+    wordsPerSentence: "dialogue 7~9 words per sentence on average, 1~3 sentences per turn; monologue 12~17",
     vocabulary:
       "grade 3; multi-option tickets, event rules, multi-step table filters with clearer constraints",
-    extra:
-      "Total script 115~175 words. Payment with options/discount, denied guesses, unmentioned item, mismatch announcement, table choice.",
+    extra: "Payment with options/discount, denied guesses, unmentioned item, mismatch announcement, table choice.",
   },
   applied: {
     tier: "applied",
     label: "심화",
     questionRange: "11~15번",
-    monologueSentences: "6~9 sentences (type 15 narration)",
-    dialogueTurns: "4~7 turns (short reply) or 8~12 turns (long reply)",
-    wordsPerSentence: "12~20 English words per sentence; reply choices 9~18 words",
+    monologueSentences: "8~11 sentences (type 15 narration)",
+    dialogueTurns: "exactly 3 turns (short reply 11~12) or 10~12 turns (long reply 13~14)",
+    wordsPerSentence: "dialogue 7~9 words per sentence on average; monologue 12~17; reply choices 5~10 words",
     vocabulary:
       "grade 3; pragmatic replies with copyright/AI/project or schedule detail",
-    extra:
-      "Do NOT put blank replies in segments. Situation speech denser than 고2. Total 90~185 words.",
+    extra: "Short response: exactly 3 turns. Do NOT put blank replies in segments. Situation speech denser than 고2.",
   },
   advanced: {
     tier: "advanced",
     label: "고난도",
     questionRange: "16~17번",
-    monologueSentences: "7~10 sentences",
+    monologueSentences: "10~13 sentences",
     dialogueTurns: "N/A (shared monologue)",
-    wordsPerSentence: "12~20 English words per sentence",
+    wordsPerSentence: "monologue 12~17 words per sentence",
     vocabulary:
       "grade 3; topical/academic list monologue (economy terms, science, culture) with clear definitions/examples",
-    extra:
-      "Types 16–17 share identical segments. Total 130~195 words. Denser definitions than 고2.",
+    extra: "Types 16–17 share identical segments. Denser definitions than 고2.",
   },
 };
 
@@ -405,14 +389,14 @@ export function buildDifficultyRequirementBlock(
           : grade === "middle3"
             ? " (중3: 2024~2026 전국 기출 대본 수준)"
             : grade === "middle2"
-              ? " (중2: 전국 기출 수준보다 문장·정보를 약간 더 길게)"
+              ? " (중2: 전국 기출보다 턴·정보를 약간 더, 문장은 짧은 구어체)"
               : "";
   if (grade === "middle1") {
     return `
 ## 난이도 (참고 — 중1은 문장·대화 **단어 수**로 저장을 막지 않음)
 - 적용: ${rules.label} (${rules.questionRange})
 - 권장 문장 길이: ${rules.wordsPerSentence}
-- 권장 대화: ${rules.dialogueTurns} / 독백: ${rules.monologueSentences}
+- 권장 분량: ${listeningTargetText(type.id, grade) || `${rules.dialogueTurns} / 독백: ${rules.monologueSentences}`}
 - 어휘: ${rules.vocabulary}
 - 형식 참고: ${rules.extra}
 - 단어 수가 권장보다 길거나 짧아도 문항은 유효. 자연스러운 중1 영어가 우선.
@@ -423,10 +407,10 @@ export function buildDifficultyRequirementBlock(
 ## 난이도 — 반드시 준수${harderNote}
 - 적용: ${rules.label} (${rules.questionRange})
 - 문장 길이: ${rules.wordsPerSentence}
-- 대화: ${rules.dialogueTurns} / 독백: ${rules.monologueSentences}
+- 분량: ${listeningTargetText(type.id, grade) || `대화 ${rules.dialogueTurns} / 독백 ${rules.monologueSentences}`}
 - 어휘: ${rules.vocabulary}
 - 총 분량·형식: ${rules.extra}
-- 위 수치보다 짧거나 단순하면 안 됨. 선택한 난이도를 벗어난 초단문·초단대화 금지.
+- 총 분량·턴 수는 위 기준보다 적으면 안 됨. 문장은 짧은 구어체로 쓰되 턴·정보를 줄이지 않는다 (긴 한 문장으로 늘이지 말 것).
 `.trim();
 }
 
@@ -445,12 +429,14 @@ export function buildDifficultyPromptBlock(
           : grade === "middle3"
             ? " (중3: 2024~2026 전국 기출 대본 수준)"
             : grade === "middle2"
-              ? " (중2: 2025·2026 전국 기출 대본보다 문장을 약간 더 길고 정보 밀도 있게)"
+              ? " (중2: 2025·2026 전국 기출보다 턴·정보를 약간 더, 문장은 짧은 구어체)"
               : "";
   return types
     .map((t, i) => {
       const rules = resolveDifficultyForType(t, mode, grade);
-      return `Item ${i + 1} (Type #${t.id}, ${rules.label})${harderNote}: ${rules.wordsPerSentence}; ${rules.dialogueTurns}; ${rules.monologueSentences}; vocab: ${rules.vocabulary}. ${rules.extra}`;
+      // 분량은 유형별 표(quality-craft) 한 곳에서 가져온다 — 번호대 tier의 턴·문장 수는 표가 없을 때만
+      const size = listeningTargetText(t.id, grade) || `${rules.dialogueTurns}; ${rules.monologueSentences}`;
+      return `Item ${i + 1} (Type #${t.id}, ${rules.label})${harderNote}: script ${size}; ${rules.wordsPerSentence}; vocab: ${rules.vocabulary}. ${rules.extra}`;
     })
     .join("\n");
 }

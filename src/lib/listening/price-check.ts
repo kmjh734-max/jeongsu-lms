@@ -19,6 +19,8 @@ export interface PriceCalculationAdjustment {
   kind: "percent_off" | "amount_off" | "add";
   value: number;
   label?: string;
+  /** 특정 품목에만 적용할 때 그 품목 label (없으면 전체 금액에 적용) */
+  applies_to?: string[];
 }
 
 export interface PriceCalculation {
@@ -54,7 +56,17 @@ export function normalizePriceCalculation(raw: unknown): PriceCalculation | null
       const value = toNum(r.value ?? r.amount ?? r.percent);
       if (value == null) return null;
       if (kind !== "percent_off" && kind !== "amount_off" && kind !== "add") return null;
-      return { kind, value, label: String(r.label ?? "").trim() } as PriceCalculationAdjustment;
+      const scope = Array.isArray(r.applies_to)
+        ? (r.applies_to as unknown[]).map((x) => String(x ?? "").trim()).filter(Boolean)
+        : typeof r.applies_to === "string" && r.applies_to.trim()
+          ? [r.applies_to.trim()]
+          : [];
+      return {
+        kind,
+        value,
+        label: String(r.label ?? "").trim(),
+        ...(scope.length > 0 ? { applies_to: scope } : {}),
+      } as PriceCalculationAdjustment;
     })
     .filter((x): x is PriceCalculationAdjustment => x !== null);
   if (items.length === 0) return null;
@@ -69,8 +81,15 @@ function round2(n: number): number {
 /** 단가×수량 합계에 할인·추가를 적힌 순서대로 적용 */
 export function computePriceFromCalculation(calc: PriceCalculation): number {
   let total = calc.items.reduce((sum, it) => sum + it.unit_price * it.quantity, 0);
+  const norm = (s: string | undefined) => String(s ?? "").trim().toLowerCase();
   for (const adj of calc.adjustments) {
-    if (adj.kind === "percent_off") total = total * (1 - adj.value / 100);
+    // 특정 품목에만 적용하는 % 할인 ("이용권만 10% 할인")
+    const scoped = adj.applies_to?.length
+      ? calc.items.filter((it) => adj.applies_to!.some((a) => norm(a) === norm(it.label)))
+      : [];
+    if (adj.kind === "percent_off" && scoped.length > 0) {
+      total -= scoped.reduce((sum, it) => sum + it.unit_price * it.quantity, 0) * (adj.value / 100);
+    } else if (adj.kind === "percent_off") total = total * (1 - adj.value / 100);
     else if (adj.kind === "amount_off") total -= adj.value;
     else total += adj.value;
   }
@@ -165,9 +184,24 @@ export function checkPriceQuestion(q: {
   const fromExplanation = explanationFinalAmount(q.explanation ?? "");
   let expected: number | null = null;
   let source: PriceCheckResult["source"] = null;
-  if (q.price_calculation) {
-    expected = computePriceFromCalculation(q.price_calculation);
+  const computed = q.price_calculation ? computePriceFromCalculation(q.price_calculation) : null;
+  const declared = q.price_calculation?.final_amount;
+  // 계산식으로 못 나타낸 규칙(예: "이용권에만 10% 할인")이면 계산값이 모델의 final_amount·해설과 다르다.
+  // 셋(final_amount·해설·정답)이 서로 맞으면 계산값으로 정답을 고치지 않는다
+  // (고1 생성본: (30×2)×0.9+10=64가 맞는데 전체 10% 할인으로 계산해 63으로 바꾼 적이 있다).
+  // 1달러 미만 차이는 모델이 센트를 반올림한 것이므로(34.80 → $35) 계산값을 믿는다
+  const calcUnreliable =
+    computed != null &&
+    declared != null &&
+    Math.abs(computed - declared) >= 1 &&
+    fromExplanation != null &&
+    Math.abs(fromExplanation - declared) < 0.005;
+  if (computed != null && !calcUnreliable) {
+    expected = computed;
     source = "calculation";
+  } else if (calcUnreliable && values.some((v) => v != null && Math.abs(v - declared!) < 0.005)) {
+    expected = declared!;
+    source = "explanation";
   } else if (fromExplanation != null && values.some((v) => v === fromExplanation)) {
     // 해설의 최종 금액이 선택지 중 하나일 때만 기준으로 삼는다 (중간 금액을 잘못 집는 것 방지)
     expected = fromExplanation;
@@ -195,6 +229,86 @@ function formatLike(sample: string, value: number): string {
   return `$${n}`;
 }
 
+/** 계산 착오로 나올 법한 금액 (할인·추가 누락, 적용 순서 바꿈, 수량 하나 차이) */
+export function priceDistractorCandidates(calc: PriceCalculation): number[] {
+  const out = new Set<number>();
+  const adj = calc.adjustments;
+  out.add(computePriceFromCalculation({ ...calc, adjustments: [] }));
+  adj.forEach((_, skip) => {
+    out.add(computePriceFromCalculation({ ...calc, adjustments: adj.filter((__, i) => i !== skip) }));
+  });
+  if (adj.length >= 2) out.add(computePriceFromCalculation({ ...calc, adjustments: [...adj].reverse() }));
+  calc.items.forEach((it, i) => {
+    for (const d of [1, -1]) {
+      const quantity = it.quantity + d;
+      if (quantity < 1) continue;
+      const items = calc.items.map((x, j) => (j === i ? { ...x, quantity } : x));
+      out.add(computePriceFromCalculation({ ...calc, items }));
+    }
+  });
+  return [...out].filter((v) => Number.isFinite(v) && v > 0);
+}
+
+/**
+ * 금액 정답이 오름차순 선택지의 맨 앞·맨 뒤면 계산 착오 금액으로 오답을 다시 골라 정답을 ②~④에 둔다.
+ * 교재 금액 문항은 18개 중 17개가 ②~④였는데, 생성본은 정답이 최솟값인 경우가 있어 "제일 싼 것"만 골라도 맞았다.
+ * 모델이 쓴 오답은 가능한 한 그대로 쓰고, 모자란 쪽만 계산 착오 금액(없으면 가까운 어림값)으로 채운다.
+ */
+export function rebalancePriceChoices<T extends {
+  choices: string[];
+  correct_answer: number;
+  price_calculation?: PriceCalculation | null;
+}>(q: T, targetRank?: number): { question: T; changed: boolean } {
+  const calc = q.price_calculation;
+  if (!calc || q.choices.length !== 5) return { question: q, changed: false };
+  const values = q.choices.map(numericChoiceValue);
+  if (values.some((v) => v == null)) return { question: q, changed: false };
+  const expected = computePriceFromCalculation(calc);
+  const keyValue = values[q.correct_answer - 1]!;
+  if (Math.abs(keyValue - expected) >= 0.005) return { question: q, changed: false };
+  const sorted = [...(values as number[])].sort((a, b) => a - b);
+  const rank = sorted.findIndex((v) => Math.abs(v - expected) < 0.005) + 1;
+  if (rank >= 2 && rank <= 4) return { question: q, changed: false };
+
+  const near = (a: number, b: number) => Math.abs(a - b) < 0.005;
+  const existing = (values as number[]).filter((v) => !near(v, expected));
+  // 정답이 달러 단위 정수면 센트가 붙은 오답은 튀므로 쓰지 않는다
+  const wholeDollars = near(expected, Math.round(expected));
+  const computed = priceDistractorCandidates(calc).filter(
+    (v) => !near(v, expected) && (!wholeDollars || near(v, Math.round(v)))
+  );
+  const step = expected >= 100 ? 10 : expected >= 30 ? 5 : expected >= 10 ? 2 : 1;
+  const synthetic = [1, 2, 3, 4].flatMap((k) => [expected - k * step, expected + k * step]).filter((v) => v > 0);
+  // 출처 우선순위: 모델이 쓴 오답 → 계산 착오 금액 → 어림값. 같은 출처 안에서는 정답에 가까운 값부터.
+  const pool: Array<{ v: number; rank: number }> = [];
+  [existing, computed, synthetic].forEach((list, rank) => {
+    for (const v of list) if (!pool.some((p) => near(p.v, v))) pool.push({ v, rank });
+  });
+  const order = (a: { v: number; rank: number }, b: { v: number; rank: number }) =>
+    a.rank - b.rank || Math.abs(a.v - expected) - Math.abs(b.v - expected);
+  const pick = (want: number) => {
+    const below = pool.filter((p) => p.v < expected).sort(order).slice(0, want - 1);
+    const above = pool.filter((p) => p.v > expected).sort(order).slice(0, 5 - want);
+    if (below.length !== want - 1 || above.length !== 5 - want) return null;
+    const synth = [...below, ...above].filter((p) => p.rank === 2).length;
+    return { want, below: below.map((p) => p.v), above: above.map((p) => p.v), synth };
+  };
+  // 정한 자리가 없으면 어림값이 가장 적게 드는 자리(②~④)를 고른다
+  const options = (targetRank && targetRank >= 2 && targetRank <= 4 ? [targetRank] : [2, 3, 4])
+    .map(pick)
+    .filter((o): o is NonNullable<ReturnType<typeof pick>> => o !== null);
+  if (options.length === 0) return { question: q, changed: false };
+  const fewest = Math.min(...options.map((o) => o.synth));
+  const best = options.filter((o) => o.synth === fewest);
+  const { want, below, above } = best[Math.floor(Math.random() * best.length)]!;
+
+  const sample = q.choices[q.correct_answer - 1]!;
+  const next = [...below.sort((a, b) => a - b), expected, ...above.sort((a, b) => a - b)];
+  const choices = next.map((v, i) => (i === want - 1 ? sample : formatLike(sample, v)));
+  if (new Set(choices).size !== 5) return { question: q, changed: false };
+  return { question: { ...q, choices, correct_answer: want }, changed: true };
+}
+
 /**
  * 계산(price_calculation)으로 확인된 금액과 정답이 다르면 정답을 고친다.
  * 계산 금액이 선택지에 없으면 계산 금액에서 가장 먼 오답 하나를 계산 금액으로 바꾼다.
@@ -208,7 +322,12 @@ export function fixPriceAnswer<T extends {
   price_calculation?: PriceCalculation | null;
 }>(q: T): { question: T; changed: boolean; check: PriceCheckResult } {
   const check = checkPriceQuestion(q);
-  if (!check.keyMismatch || check.source !== "calculation" || check.expected == null) {
+  // 계산식과 모델의 final_amount·해설이 어긋나 해설 쪽을 믿은 경우도 final_amount와 해설이 서로 맞으면 고친다
+  const declared = q.price_calculation?.final_amount;
+  const trusted =
+    check.source === "calculation" ||
+    (check.source === "explanation" && declared != null && check.expected != null && Math.abs(declared - check.expected) < 0.005);
+  if (!check.keyMismatch || !trusted || check.expected == null) {
     return { question: q, changed: false, check };
   }
   let choices = [...q.choices];

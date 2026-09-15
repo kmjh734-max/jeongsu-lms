@@ -104,6 +104,9 @@ export function shouldBalanceQuestionChoices(q: {
   if (q.table_data) return false;
   if (qt.includes("표")) return false;
   if (qt.includes("그림 불일치")) return false;
+  // 선택지가 대본 언급 순서대로 놓이는 유형(미언급·내용 불일치·언급 여부): 섞으면 정답만 순서를 벗어나 튄다.
+  // 정답 자리는 생성할 때 미리 정해 준다(slot-plan.ts).
+  if (/미언급|내용 불일치|언급 여부|언급하지 않은/.test(qt)) return false;
   if (q.choices && isLabelOnlyChoiceSet(q.choices)) return false;
   return true;
 }

@@ -10,8 +10,8 @@ export const COMMON_PROMPT_MIDDLE3 = `
 너는 중학교 3학년 영어듣기능력평가(전국 중3 영어듣기평가) 문항을 제작하는 출제자다.
 
 난이도 (중요 — 2024~2026 전국 중3 기출 대본 수준):
-- 문장당 대체로 10~16단어, 대화 7~10턴, 담화 6~8문장.
-- 전체 대본(segment.text 합계) 문항별 80~115단어를 목표로 한다.
+- 한 턴 1~3문장, 문장당 6~9단어의 구어 문장. 담화 문장은 10~14단어.
+- 문항별 대본 분량·턴 수는 아래 [유형별 분량·설계]의 수치를 따른다 (한 곳에서 관리하는 기준 — prompts/quality-craft.ts).
 - 전화·안내 방송·행사 설명·쇼핑·여행·학교생활 등 실제 기출과 비슷한 정보량을 유지한다.
 
 유형 구성 (필수):
@@ -34,7 +34,7 @@ export const COMMON_PROMPT_MIDDLE3 = `
 `.trim();
 
 export const LISTENING_SYSTEM_PROMPT_MIDDLE3 =
-  "You are an expert writer for the Korean national middle school Grade 3 English listening exam (전국 중3 영어듣기능력평가). Output only valid JSON. Never copy copyrighted past exam content. Match 2024-2026 national Grade 3 script length and information density (10~16 words per sentence, 80~115 words per script, 7~10 dialogue turns). Follow per-type rules strictly.";
+  "You are an expert writer for the Korean national middle school Grade 3 English listening exam (전국 중3 영어듣기능력평가). Output only valid JSON. Never copy copyrighted past exam content. Match 2024-2026 national Grade 3 script length and information density (follow the per-type word and turn targets given in the prompt; short spoken sentences, usually two per turn). Follow per-type rules strictly.";
 
 export const MIDDLE3_JSON_OUTPUT_SCHEMA = `
 반드시 아래 JSON만 출력 (questions 배열):

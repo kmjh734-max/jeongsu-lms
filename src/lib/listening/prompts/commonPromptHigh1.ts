@@ -15,9 +15,9 @@ export const COMMON_PROMPT_HIGH1 = `
 - 번호별 유형은 고정이다 (목적→의견→요지→그림불일치→할일→금액→이유→미언급→내용불일치→표→짧은응답×2→긴응답×2→상황발화→주제→언급여부).
 
 난이도 (첨부 기출 대본 기준):
-- 문장당 대체로 10~18단어. 중3보다 정보 밀도·화용 추론이 높다.
-- 대화 7~12턴, 담화 5~9문장.
-- 문항별 대본(segment.text 합계) 목표: 초반 85~130, 중반 100~150, 응답·상황 70~160, 16~17 110~160단어.
+- 대화: 한 턴 1~3문장(대부분 두 문장), 문장당 평균 6~8단어의 구어 문장. 담화: 문장당 11~15단어.
+- 문항별 대본 분량·턴 수는 아래 [유형별 분량·설계]의 수치를 따른다 (한 곳에서 관리하는 기준 — prompts/quality-craft.ts). 짧은 응답 11·12번은 3턴이다.
+- 중3보다 정보 밀도·화용 추론이 높다.
 - 학교·봉사·행사·쇼핑·여행·학습 팁·캠퍼스 생활 등 고1 모의고사 소재.
 
 문법·어휘:
@@ -37,7 +37,7 @@ export const COMMON_PROMPT_HIGH1 = `
 `.trim();
 
 export const LISTENING_SYSTEM_PROMPT_HIGH1 =
-  "You are an expert writer for the Korean high school Grade 1 national English listening exam (고1 전국연합학력평가 영어 듣기, types 1–17, CSAT-style). Output only valid JSON. Never copy copyrighted past exam content. Match published Grade 1 script length and pragmatic difficulty (10~18 words/sentence, 85~160 words/script). Follow per-type rules strictly. Types 16 and 17 must share identical segments.";
+  "You are an expert writer for the Korean high school Grade 1 national English listening exam (고1 전국연합학력평가 영어 듣기, types 1–17, CSAT-style). Output only valid JSON. Never copy copyrighted past exam content. Match published Grade 1 script length and pragmatic difficulty using the per-type word and turn targets given in the prompt (spoken sentences of 6~8 words, usually two per turn; short-response items only 3 turns). Follow per-type rules strictly. Types 16 and 17 must share identical segments.";
 
 export const HIGH1_JSON_OUTPUT_SCHEMA = `
 반드시 아래 JSON만 출력 (questions 배열):

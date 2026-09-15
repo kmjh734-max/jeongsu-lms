@@ -53,6 +53,7 @@ import { buildType19OnlyGenerationPrompt } from "@/lib/listening/prompts/type19R
 import { buildType20OnlyGenerationPrompt } from "@/lib/listening/prompts/type20ResponsePrompt";
 import { getAllTypePromptBlocks } from "@/lib/listening/prompts/typePrompts";
 import { QUALITY_CHECK_CRITERIA } from "@/lib/listening/prompts/qualityCheckPrompt";
+import { buildQualityCraftBlock } from "@/lib/listening/prompts/quality-craft";
 
 /**
  * 단일 유형 또는 여러 유형 시험 모드 최종 프롬프트
@@ -96,6 +97,8 @@ ${difficultyBlock}
 
 ${getTypeBlocks(typeIds)}
 
+${buildQualityCraftBlock(typeIds, grade)}
+
 생성 후 스스로 검수:
 ${QUALITY_CHECK_CRITERIA}
 
@@ -133,6 +136,8 @@ ${getCopyrightBlock(grade)}
 ${difficultyBlock}
 
 ${getTypeBlocks(typeIds)}
+
+${buildQualityCraftBlock(typeIds, grade)}
 
 생성 후 스스로 검수:
 ${QUALITY_CHECK_CRITERIA}
@@ -220,6 +225,8 @@ ${difficultyBlock}
 
 ${getAllTypePromptBlocks(typeIds)}
 
+${buildQualityCraftBlock(typeIds, grade)}
+
 생성 후 스스로 검수:
 ${QUALITY_CHECK_CRITERIA}
 
@@ -301,7 +308,7 @@ export function buildListeningSingleTypePrompt(
     core = `${buildListeningExamPrompt([type], difficultyMode, grade)}${avoid}`;
   }
 
-  return `${core}\n\n${difficultyBlock}\n\n${LISTENING_OUTPUT_GUARD_BLOCK}`;
+  return `${core}\n\n${difficultyBlock}\n\n${buildQualityCraftBlock([type.id], grade)}\n\n${LISTENING_OUTPUT_GUARD_BLOCK}`;
 }
 
 /** 자유 생성 모드 (유형 미지정) */
@@ -317,6 +324,8 @@ ${getCopyrightBlock(grade)}
 ${gradeLevelShort(grade)} 듣기 문항 ${count}개를 자유 형식으로 생성한다.
 각 문항은 서로 다른 일상 상황이어야 한다.
 order_index는 1부터 순서대로.
+
+${buildQualityCraftBlock([], grade)}
 
 ${QUALITY_CHECK_CRITERIA}
 

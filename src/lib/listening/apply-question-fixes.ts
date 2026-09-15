@@ -26,7 +26,11 @@ import { fixType10Question } from "@/lib/listening/fix-type10-question";
 import { fixType11Question } from "@/lib/listening/fix-type11-question";
 import { fixType12Question } from "@/lib/listening/fix-type12-question";
 import { fixType13Question } from "@/lib/listening/fix-type13-question";
-import { fixPriceAnswer, isPriceQuestion } from "@/lib/listening/price-check";
+import {
+  fixPriceAnswer,
+  isPriceQuestion,
+  rebalancePriceChoices,
+} from "@/lib/listening/price-check";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 /** 생성·저장 직전 유형별 정규화 */
@@ -41,7 +45,7 @@ export function applyQuestionFixes(
     const highId = typeId ?? inferExamTypeIdForFixes(q, gradeLevel);
     let out = fixSwappedScriptLanguage(q);
     out = ensureMwDialogueSegments(out, highId, gradeLevel, { mergeOnly: true });
-    if (isPriceQuestion(out)) out = fixPriceAnswer(out).question;
+    if (isPriceQuestion(out)) out = rebalancePriceChoices(fixPriceAnswer(out).question).question;
     return { ...out, order_index: slotOrder };
   }
   const id = typeId ?? inferExamTypeIdForFixes(q, gradeLevel);
@@ -72,6 +76,6 @@ export function applyQuestionFixes(
   out = fixType20Question(out, id);
   // 유형 보정이 줄을 바꿨을 수 있으니 연속 줄만 한 번 더 합친다 (화자는 바꾸지 않음)
   out = ensureMwDialogueSegments(out, id, gradeLevel, { mergeOnly: true });
-  if (isPriceQuestion(out)) out = fixPriceAnswer(out).question;
+  if (isPriceQuestion(out)) out = rebalancePriceChoices(fixPriceAnswer(out).question).question;
   return { ...out, order_index: slotOrder };
 }

@@ -93,6 +93,7 @@ const MIDDLE_POOLS: Record<number, VarietyPool> = {
       { answer: "화가", hint: "artist" }, { answer: "운동선수", hint: "athlete" }, { answer: "사진작가", hint: "photographer" },
     ],
     scenarios: SCHOOL_SCENES,
+    note: "다른 직업 1~2개(부모님 권유·예전 꿈·친구의 꿈)를 대본에 넣어 오답 근거로 삼고, 정답 직업은 하는 일로 설명하거나 한 번만 말한다.",
   },
   8: {
     answerLabel: "심정(정답)",
@@ -101,6 +102,7 @@ const MIDDLE_POOLS: Record<number, VarietyPool> = {
       { answer: "만족" }, { answer: "당황" }, { answer: "놀람" }, { answer: "지루함" }, { answer: "슬픔" },
     ],
     scenarios: SCHOOL_SCENES,
+    note: "감정은 가능하면 상황과 반응(What a relief! / My hands are shaking.)으로 드러내고, 정답 외 감정 1~2개도 상황상 그럴듯하게 만든다.",
   },
   10: {
     answerLabel: "대화의 핵심 내용(정답)",
@@ -159,6 +161,18 @@ const MIDDLE_POOLS: Record<number, VarietyPool> = {
   },
 };
 
+/** 중2·중3 심정: 교재 선택지가 모두 영어 감정 형용사다 (중1은 한국어 감정 명사) */
+const MIDDLE_EMOTION_EN_POOL: VarietyPool = {
+  answerLabel: "심정(정답, 영어 형용사)",
+  entries: [
+    { answer: "relieved" }, { answer: "proud" }, { answer: "disappointed" }, { answer: "worried" },
+    { answer: "excited" }, { answer: "satisfied" }, { answer: "embarrassed" }, { answer: "surprised" },
+    { answer: "bored" }, { answer: "nervous" }, { answer: "grateful" }, { answer: "upset" },
+  ],
+  scenarios: SCHOOL_SCENES,
+  note: "선택지는 영어 감정 형용사 5개(소문자). 대상 화자는 감정 단어를 직접 말하지 않고 상황과 반응(What a relief! / My hands are shaking.)으로 드러낸다.",
+};
+
 const HIGH_POOLS: Record<number, VarietyPool> = {
   4: {
     answerLabel: "그림에서 대화와 다르게 그릴 라벨(정답)",
@@ -191,6 +205,7 @@ const HIGH_POOLS: Record<number, VarietyPool> = {
 };
 
 function poolFor(typeId: number, grade: ListeningGradeLevel | undefined): VarietyPool | null {
+  if (typeId === 8 && (grade === "middle2" || grade === "middle3")) return MIDDLE_EMOTION_EN_POOL;
   const pools = isHighSchoolListeningGrade(grade) ? HIGH_POOLS : MIDDLE_POOLS;
   return pools[typeId] ?? null;
 }
@@ -218,7 +233,9 @@ function pickRandom<T>(list: T[]): T {
 export function pickAnswerVariety(
   typeId: number,
   grade: ListeningGradeLevel | undefined,
-  usedAnswers: string[] = []
+  usedAnswers: string[] = [],
+  /** 같은 세트에서 이미 쓴 상황 — 여러 유형이 같은 상황 목록을 써서 한 세트에 같은 장면이 겹쳤다 */
+  avoidScenarios: string[] = []
 ): AnswerVarietyAssignment | null {
   const pool = poolFor(typeId, grade);
   if (!pool) return null;
@@ -231,11 +248,12 @@ export function pickAnswerVariety(
   const min = Math.min(...usage);
   const candidates = pool.entries.filter((_, i) => usage[i] === min);
   const entry = pickRandom(candidates);
+  const freshScenarios = pool.scenarios.filter((s) => !avoidScenarios.includes(s));
   return {
     typeId,
     answer: entry.answer,
     hint: entry.hint,
-    scenario: pickRandom(pool.scenarios),
+    scenario: pickRandom(freshScenarios.length > 0 ? freshScenarios : pool.scenarios),
   };
 }
 

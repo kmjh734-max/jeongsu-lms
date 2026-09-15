@@ -10,10 +10,9 @@ export const COMMON_PROMPT_MIDDLE2 = `
 너는 중학교 2학년 영어듣기능력평가(전국 중2 영어듣기평가) 문항을 제작하는 출제자다.
 
 난이도 (중요 — 첨부 기출보다 약간 어렵게):
-- 2025·2026 전국 중2 기출 대본과 비교해, 문장을 약간 더 길고 정보량 있게 작성한다.
-- 문장당 대체로 9~16단어, 대화 7~10턴, 담화 6~8문장.
-- 전체 대본(segment.text 합계) 문항별 75~115단어를 목표로 한다.
-- 기출을 그대로 따라 짧게만 쓰지 말 것.
+- 2025·2026 전국 중2 기출 대본과 비교해, 턴과 정보를 약간 더 넣는다 (문장을 길게 늘이지 않는다).
+- 한 턴 1~2문장, 문장당 5~8단어의 짧은 구어 문장. 분량은 턴을 두 문장으로 채워 맞춘다.
+- 문항별 대본 분량·턴 수는 아래 [유형별 분량·설계]의 수치를 따른다 (한 곳에서 관리하는 기준 — prompts/quality-craft.ts).
 
 유형 구성 (필수):
 - 1~20번 유형은 중1 전국 영어듣기평가와 번호·유형명·지시문·출제 형식이 동일하다.
@@ -35,7 +34,7 @@ export const COMMON_PROMPT_MIDDLE2 = `
 `.trim();
 
 export const LISTENING_SYSTEM_PROMPT_MIDDLE2 =
-  "You are an expert writer for the Korean national middle school Grade 2 English listening exam (전국 중2 영어듣기능력평가). Output only valid JSON. Never copy copyrighted past exam content. Write natural sentences slightly longer and richer than typical published Grade 2 exams (9~16 words per sentence, 75~115 words per script). Follow per-type rules strictly.";
+  "You are an expert writer for the Korean national middle school Grade 2 English listening exam (전국 중2 영어듣기능력평가). Output only valid JSON. Never copy copyrighted past exam content. Write natural spoken dialogues slightly richer than typical published Grade 2 exams, following the per-type word and turn targets given in the prompt (short spoken sentences, usually two per turn). Follow per-type rules strictly.";
 
 export const MIDDLE2_JSON_OUTPUT_SCHEMA = `
 반드시 아래 JSON만 출력 (questions 배열):

@@ -48,7 +48,7 @@ choice_image_prompts: 1장. 라벨 ①–⑤가 모두 보이고, 정답 라벨�
   5: `
 ### 고1 5번 — 할 일
 지시: 대화를 듣고, {남/여}가 할 일로 가장 적절한 것을 고르시오.
-형식: 준비 체크리스트. 여러 일은 이미 끝남 → 남은 일 1개만 대상이 수행.
+형식: 준비 체크리스트. 여러 일은 이미 끝남 → 남은 일 1개만 대상이 수행. (배정된 지시문 변형이 있으면 부탁한 일 / ~를 위해 할 일로 쓴다)
 선택지: 한국어 「…하기」. 오답=이미 한 일.
 `.trim(),
   6: `
@@ -62,6 +62,7 @@ price_calculation 필수 (정답 검산용):
     "adjustments": [{ "kind": "percent_off", "value": 10 }, { "kind": "amount_off", "value": 5 }],
     "final_amount": 76 }
   adjustments는 대본에서 적용하는 순서대로 (percent_off=전체 %할인, amount_off=금액 할인, add=추가 비용).
+  특정 품목에만 적용되는 할인이면 그 adjustment에 "applies_to": ["품목 label"]을 넣는다 (예: 이용권만 10% 할인).
   final_amount와 correct_answer 선택지 금액, 해설의 최종 금액이 모두 같아야 한다.
 `.trim(),
   7: `
@@ -85,8 +86,9 @@ price_calculation 필수 (정답 검산용):
   10: `
 ### 고1 10번 — 표 선택
 지시: 다음 표를 보면서 대화를 듣고, …을 고르시오.
-형식: 표 5행(A–E)·3~4열. 조건(가격·크기·옵션)을 순차 적용해 1행 확정.
+형식: 표 5행(A–E)·3~4열. 조건(가격·크기·옵션)을 순차 적용해 1행 확정. 오답 행은 각각 조건을 정확히 하나씩만 어긴다.
 table_data 필수: title, rows[5]{no,label,value}, mismatch_no=정답행, mismatch_reason.
+표 열 이름: title 끝 괄호에 열 이름을 순서대로 적고(예: "Summer Classes (Class / Day / Fee / Level)"), 각 value는 같은 순서로 " / "로 구분한다.
 question_text "". needs_image_choices=false.
 CRITICAL (스포일러 금지):
 - 대본에서 정답 행의 이름·라벨·알파벳(예: Pine Valley, Room B, Package D, Game Coding)을 말하지 말 것.
@@ -95,25 +97,29 @@ CRITICAL (스포일러 금지):
 `.trim(),
   11: `
 ### 고1 11번 — 짧은 응답
-지시: 대화를 듣고, {화자A}의 마지막 말에 대한 {화자B}의 응답으로…
-형식: 짧은 대화. 응답 직전에서 끊김. 응답은 segments에 넣지 않음.
-question_text: "Man: _____" 또는 "Woman: _____".
-choices: 영어 응답 5개. previous_turn, blank_speaker, correct_response_function, distractor_reasons 필수.
+지시: 대화를 듣고, 여자의 마지막 말에 대한 남자의 응답으로 가장 적절한 것을 고르시오. (교재·기출 관례: 11번은 여→남)
+형식: W-M-W 3턴 짧은 대화(분량은 [유형별 분량·설계]). 응답 직전에서 끊김. 응답은 segments에 넣지 않음.
+마지막 말은 평서문(소식·걱정·계획)이나 의문사 의문문 위주. "Could you …?/Shall I …?" 부탁 → "Sure, I'll …" 정답 구조 금지.
+question_text: "Man: _____", blank_speaker "M".
+choices: 영어 응답 5개(5~10단어). previous_turn, blank_speaker, correct_response_function, distractor_reasons 필수.
 Okay/Yes/Sure/Thank you 단독 금지.
 `.trim(),
   12: `
-### 고1 12번 — 짧은 응답 (11과 화자 반대)
-11번과 동일 형식. blank_speaker를 반대로. 자주 3점.
+### 고1 12번 — 짧은 응답 (남→여)
+지시: 대화를 듣고, 남자의 마지막 말에 대한 여자의 응답으로 가장 적절한 것을 고르시오.
+11번과 동일 형식(M-W-M 3턴). question_text "Woman: _____", blank_speaker "W". 응답 기능은 11번과 다르게.
 `.trim(),
   13: `
-### 고1 13번 — 긴 응답
-지시: 동일 응답 패턴. 상담·예약·프로젝트 등 긴 맥락(8~12턴).
-문제지에 Man:/Woman: 빈칸. 영어 선지. 자주 3점.
+### 고1 13번 — 긴 응답 (남→여)
+지시: 대화를 듣고, 남자의 마지막 말에 대한 여자의 응답으로 가장 적절한 것을 고르시오.
+상담·예약·프로젝트 등 긴 맥락. 마지막 segment 화자 M, question_text "Woman: _____", blank_speaker "W". 영어 선지(5~10단어). 자주 3점.
 응답 segments 금지. previous_turn 등 필수 필드.
+마지막 말은 Yes/No 부탁이 아니라 고민·의견·계획을 말하는 문장으로 끝내고, 정답은 대화 전체를 종합한 반응(마지막 말의 단어 되풀이 금지).
 `.trim(),
   14: `
-### 고1 14번 — 긴 응답 (13과 화자 반대)
-13번과 동일 형식. blank_speaker 반대. 자주 3점.
+### 고1 14번 — 긴 응답 (여→남)
+지시: 대화를 듣고, 여자의 마지막 말에 대한 남자의 응답으로 가장 적절한 것을 고르시오.
+13번과 동일 형식. 마지막 segment 화자 W, question_text "Man: _____", blank_speaker "M". 자주 3점.
 `.trim(),
   15: `
 ### 고1 15번 — 상황 발화
@@ -124,14 +130,14 @@ question_text: "Aname: _____". choices: 영어 발화 5개 (부탁/감사/제안
   16: `
 ### 고1 16번 — 주제 ([16~17] 세트, 2회 재생)
 지시: {남/여}가 하는 말의 주제로 가장 적절한 것은?
-형식: 열거형 긴 독백(팁·필수품·음식 등 3~5항목). choices: 영어 주제 5개.
+형식: 열거형 긴 독백(분량은 [유형별 분량·설계]) — 도입 → 구체 항목 4개(각 1~2문장 설명) → 마무리. choices: 영어 주제 5개(첫 문장을 그대로 옮기지 않음).
 17번과 segments·script_text를 글자 단위로 동일하게 맞출 것.
 `.trim(),
   17: `
 ### 고1 17번 — 언급 여부 (16과 동일 음원)
 지시: 언급된 {범주}이/가 아닌 것은?
 형식: 16번과 동일한 segments/script_text만 사용. 새 대본 작성 금지.
-choices: 영어 항목 5개. 4개 언급·1개 미언급.
+choices: 영어 항목 5개(구체 명사 1~3단어, 지시문 범주어와 같은 범주). 4개 언급·1개 미언급, 대본 언급 순서대로.
 `.trim(),
 };
 

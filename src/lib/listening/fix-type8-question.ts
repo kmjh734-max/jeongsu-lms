@@ -43,7 +43,7 @@ function selfEmotionSpeaker(q: GeneratedListeningQuestion): "M" | "W" | null {
   const answer = normalizeEmotionLabel(
     q.choices[q.correct_answer - 1]?.trim() || q.target_emotion?.trim() || ""
   );
-  const en = EMOTION_EN[answer];
+  const en = EMOTION_EN[answer] ?? (/^[a-z]+$/.test(answer) ? answer : undefined);
   if (!en) return null;
   const pattern = new RegExp(
     `\\bI(?:'m| am| feel| felt| was)\\s+(?:so |really |very |a little |much |a bit )?(?:${en})\\b`,

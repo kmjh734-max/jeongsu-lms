@@ -3,6 +3,7 @@
  * 예전에는 생성 직후 모든 문항에 품질 100·정답 확인됨을 찍어 두어, 아래 문제가 그대로 저장됐다:
  * 잘린 대본, 반대 화자를 묻는 지시문, 섞기 전 번호를 가리키는 해설, 틀린 금액 정답.
  */
+import { answerLeakIssues } from "@/lib/listening/answer-leak-checks";
 import {
   isLabelOnlyChoiceSet,
   numericChoiceValue,
@@ -65,6 +66,8 @@ function expectedChoiceLanguage(
     return null;
   }
   if ([1, 2, 19, 20].includes(typeId)) return "en";
+  // 중2·중3 심정은 영어 감정 형용사
+  if (typeId === 8 && (gradeLevel === "middle2" || gradeLevel === "middle3")) return "en";
   if (typeId >= 3 && typeId <= 18 && typeId !== 6) return "ko";
   return null;
 }
@@ -241,6 +244,9 @@ export function genericQualityIssues(
       });
     }
   }
+
+  // 10) 정답 노출·오답 설계·구어체 (quality-rubric.md)
+  issues.push(...answerLeakIssues(q, typeId, gradeLevel));
 
   return issues;
 }

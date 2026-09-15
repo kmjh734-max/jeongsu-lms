@@ -21,6 +21,13 @@ export const VALID_EMOTIONS = new Set([
   "평화로움",
 ]);
 
+/** 중2·중3 심정 선택지(영어 감정 형용사) */
+export const VALID_EMOTIONS_EN = new Set([
+  "relieved", "proud", "disappointed", "worried", "excited", "satisfied", "embarrassed", "surprised",
+  "bored", "nervous", "grateful", "upset", "happy", "sad", "angry", "lonely", "scared", "thankful",
+  "anxious", "jealous", "confused", "calm", "curious", "annoyed", "frustrated", "pleased", "moved",
+]);
+
 const EMOTION_ALIASES: Record<string, string> = {
   당황스러움: "당황",
   당황함: "당황",
@@ -36,6 +43,8 @@ const VAGUE_CLUE =
   /^(okay|ok|really|i see|thank you|thanks|yes|no|right|sure|good)\.?$/i;
 
 export function normalizeEmotionLabel(label: string): string {
+  // 영어 형용사 선택지(중2·중3)는 소문자로만 맞춘다
+  if (/^[A-Za-z\s-]+$/.test(label.trim())) return label.trim().toLowerCase();
   const t = label.trim().replace(/\s+/g, "");
   if (EMOTION_ALIASES[t]) return EMOTION_ALIASES[t]!;
   if (t.endsWith("스러움") && VALID_EMOTIONS.has(t.replace(/스러움$/, ""))) {
@@ -46,7 +55,7 @@ export function normalizeEmotionLabel(label: string): string {
 
 export function isEmotionChoice(choice: string): boolean {
   const n = normalizeEmotionLabel(choice);
-  return VALID_EMOTIONS.has(n);
+  return VALID_EMOTIONS.has(n) || VALID_EMOTIONS_EN.has(n);
 }
 
 export function checkKoreanEmotionChoices(choices: string[]): {
