@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { getAdminClientSafe } from "@/lib/admin/api-json";
-import { createManagedAccount } from "@/lib/admin/manage-user";
+import {
+  createManagedAccount,
+  deleteManagedAccount,
+  resetManagedAccountPassword,
+  updateManagedAccount,
+} from "@/lib/admin/manage-user";
 import { requireSuperAdminApi } from "@/lib/auth/require-super-admin-api";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -197,6 +202,135 @@ export async function POST(
         ok: false,
         message: e instanceof Error ? e.message : "처리 실패",
       },
+      { status: 500 }
+    );
+  }
+}
+
+const ADMIN_SELECT = "id, name, email, username, role, is_active, academy_id, created_at";
+
+/** 학원 관리자 수정: 이름·아이디·활성 여부, 새 비밀번호(선택) */
+export async function PATCH(
+  request: Request,
+  ctx: { params: Promise<{ id: string }> }
+) {
+  try {
+    const auth = await requireSuperAdminApi();
+    if ("error" in auth && auth.error) return auth.error;
+
+    const { id: academyId } = await ctx.params;
+    const clientResult = getAdminClientSafe();
+    if (!clientResult.ok) return clientResult.response;
+    const admin = clientResult.admin;
+
+    let body: {
+      adminId?: string;
+      name?: string;
+      username?: string;
+      is_active?: boolean;
+      password?: string;
+    };
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { ok: false, message: "요청 형식이 올바르지 않습니다." },
+        { status: 400 }
+      );
+    }
+    const adminId = (body.adminId ?? "").trim();
+    if (!adminId) {
+      return NextResponse.json(
+        { ok: false, message: "수정할 관리자를 골라 주세요." },
+        { status: 400 }
+      );
+    }
+
+    const hasProfileChange =
+      body.name !== undefined || body.username !== undefined || body.is_active !== undefined;
+    if (hasProfileChange) {
+      const updated = await updateManagedAccount(admin, adminId, "admin", {
+        name: body.name,
+        username: body.username,
+        is_active: body.is_active,
+        allowUsernameChange: body.username !== undefined,
+        restrictToAcademyId: academyId,
+      });
+      if (!updated.ok) {
+        return NextResponse.json(
+          { ok: false, message: updated.message },
+          { status: updated.status }
+        );
+      }
+    }
+
+    const password = (body.password ?? "").trim();
+    if (password) {
+      const reset = await resetManagedAccountPassword(admin, adminId, "admin", password, {
+        restrictToAcademyId: academyId,
+      });
+      if (!reset.ok) {
+        return NextResponse.json(
+          { ok: false, message: reset.message },
+          { status: reset.status }
+        );
+      }
+    }
+
+    const { data: refreshed } = await admin
+      .from("profiles")
+      .select(ADMIN_SELECT)
+      .eq("id", adminId)
+      .maybeSingle();
+
+    return NextResponse.json({
+      ok: true,
+      message: password ? "관리자 정보를 저장하고 비밀번호를 바꿨어요." : "관리자 정보를 저장했어요.",
+      admin: refreshed,
+    });
+  } catch (e) {
+    return NextResponse.json(
+      { ok: false, message: e instanceof Error ? e.message : "수정 실패" },
+      { status: 500 }
+    );
+  }
+}
+
+/** 학원 관리자 계정 삭제 (?adminId=…) */
+export async function DELETE(
+  request: Request,
+  ctx: { params: Promise<{ id: string }> }
+) {
+  try {
+    const auth = await requireSuperAdminApi();
+    if ("error" in auth && auth.error) return auth.error;
+
+    const { id: academyId } = await ctx.params;
+    const clientResult = getAdminClientSafe();
+    if (!clientResult.ok) return clientResult.response;
+    const admin = clientResult.admin;
+
+    const adminId = (new URL(request.url).searchParams.get("adminId") ?? "").trim();
+    if (!adminId) {
+      return NextResponse.json(
+        { ok: false, message: "삭제할 관리자를 골라 주세요." },
+        { status: 400 }
+      );
+    }
+
+    const result = await deleteManagedAccount(admin, adminId, "admin", {
+      restrictToAcademyId: academyId,
+    });
+    if (!result.ok) {
+      return NextResponse.json(
+        { ok: false, message: result.message },
+        { status: result.status }
+      );
+    }
+    return NextResponse.json({ ok: true, message: "관리자 계정을 삭제했어요." });
+  } catch (e) {
+    return NextResponse.json(
+      { ok: false, message: e instanceof Error ? e.message : "삭제 실패" },
       { status: 500 }
     );
   }

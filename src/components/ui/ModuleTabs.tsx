@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 export type ModuleTab = {
@@ -34,6 +34,7 @@ export function ModuleHeader({
   action?: ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   return (
     <div className="mb-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -58,6 +59,8 @@ export function ModuleHeader({
               key={tab.href}
               href={tab.href}
               prefetch={false}
+              onMouseEnter={() => router.prefetch(tab.href)}
+              onFocus={() => router.prefetch(tab.href)}
               aria-current={on ? "page" : undefined}
               className={`-mb-px flex h-10 shrink-0 items-center gap-1.5 border-b-2 text-sm transition ${
                 on

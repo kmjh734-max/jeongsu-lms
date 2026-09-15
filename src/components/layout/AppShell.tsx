@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -77,6 +77,19 @@ async function signOut() {
   window.location.assign("/login");
 }
 
+/** 메뉴에 마우스를 올리거나 포커스하면 그 화면을 미리 준비한다(전체 미리 부르기는 서버 부담이 커서 하지 않음) */
+function usePrefetchOnIntent() {
+  const router = useRouter();
+  return useCallback(
+    (href: string) => ({
+      onMouseEnter: () => router.prefetch(href),
+      onFocus: () => router.prefetch(href),
+      onTouchStart: () => router.prefetch(href),
+    }),
+    [router]
+  );
+}
+
 /* ── 왼쪽 메뉴 ── */
 
 function SidebarBody({
@@ -94,7 +107,8 @@ function SidebarBody({
 }) {
   const pathname = usePathname();
   const active = activeNavItem(pathname, items);
-  const balance = useCreditBalance(showCredits ? pathname : undefined);
+  const balance = useCreditBalance(pathname, showCredits);
+  const intent = usePrefetchOnIntent();
   const name = branding?.name?.trim() || SITE_NAME;
   const logoUrl = branding?.logoUrl?.trim() || "";
   const creditsHref =
@@ -147,6 +161,7 @@ function SidebarBody({
                   key={item.href}
                   href={item.href}
                   prefetch={false}
+                  {...intent(item.href)}
                   onClick={onNavigate}
                   aria-current={on ? "page" : undefined}
                   className={`flex h-[34px] items-center gap-2.5 rounded-md px-3 text-sm transition ${
@@ -299,6 +314,7 @@ export function isStudyScreen(pathname: string): boolean {
 
 export function StudentTabBar({ items }: { items: AppNavItem[] }) {
   const pathname = usePathname();
+  const intent = usePrefetchOnIntent();
   if (isStudyScreen(pathname)) return null;
   const active = activeNavItem(pathname, items);
   return (
@@ -315,6 +331,7 @@ export function StudentTabBar({ items }: { items: AppNavItem[] }) {
               key={item.href}
               href={item.href}
               prefetch={false}
+              {...intent(item.href)}
               aria-current={on ? "page" : undefined}
               className={`flex h-16 flex-1 flex-col items-center justify-center gap-1 text-[11px] ${
                 on ? "font-bold text-brand-600" : "font-medium text-slate-400"

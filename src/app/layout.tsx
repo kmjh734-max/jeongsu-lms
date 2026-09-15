@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import {
-  LOGO_SRC,
   PRIMARY_COLOR,
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -9,6 +8,8 @@ import {
 } from "@/lib/branding";
 import "./fonts/pretendard/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
+
+const SHARE_IMAGE = "/og/engcore-share.png";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -24,12 +25,13 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
+    // 카카오톡·메신저 링크 미리보기용 EngCore 대표 이미지 (1200×630)
     images: [
       {
-        url: LOGO_SRC,
-        width: 800,
-        height: 800,
-        alt: SITE_NAME,
+        url: SHARE_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} · 영어학원의 모든 것을 하나로`,
       },
     ],
   },
@@ -37,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
-    images: [LOGO_SRC],
+    images: [SHARE_IMAGE],
   },
 };
 

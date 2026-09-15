@@ -47,9 +47,13 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // 토큰이 비대칭 서명(ES256)이라 인증 서버에 묻지 않고 여기서 바로 검증한다.
+  // (만료된 토큰은 getClaims 가 getSession 으로 새로 받아 쿠키를 갱신한다)
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
+  const user = claims?.sub
+    ? { id: claims.sub, email: typeof claims.email === "string" ? claims.email : undefined }
+    : null;
 
   return { supabase, user, supabaseResponse };
 }

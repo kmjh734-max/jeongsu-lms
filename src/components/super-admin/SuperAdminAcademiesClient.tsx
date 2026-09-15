@@ -85,6 +85,14 @@ export function SuperAdminAcademiesClient({
   const [createUsername, setCreateUsername] = useState("");
   const [createPassword, setCreatePassword] = useState("");
   const [inviteHint, setInviteHint] = useState<string | null>(null);
+  /** 관리자 수정 중인 행 */
+  const [editAdmin, setEditAdmin] = useState<{
+    id: string;
+    name: string;
+    username: string;
+    password: string;
+    isActive: boolean;
+  } | null>(null);
 
   const [editName, setEditName] = useState("");
   const [editLogo, setEditLogo] = useState("");
@@ -377,6 +385,114 @@ export function SuperAdminAcademiesClient({
       setCreateName("");
       setCreateUsername("");
       setCreatePassword("");
+      await loadAdmins(manageId);
+      router.refresh();
+    } catch {
+      setError("요청에 실패했습니다.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function startEditAdmin(a: AdminRow) {
+    setError(null);
+    setMessage(null);
+    setEditAdmin({
+      id: a.id,
+      name: a.name ?? "",
+      username: a.username ?? "",
+      password: "",
+      isActive: a.is_active,
+    });
+  }
+
+  async function saveAdmin() {
+    if (!manageId || !editAdmin) return;
+    const current = admins.find((a) => a.id === editAdmin.id);
+    const username = editAdmin.username.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!editAdmin.name.trim()) {
+      setError("이름을 입력해 주세요.");
+      return;
+    }
+    if (username && username.length < 3) {
+      setError("아이디는 영문 소문자·숫자 3자 이상으로 입력해 주세요.");
+      return;
+    }
+    if (editAdmin.password && editAdmin.password.length < 6) {
+      setError("새 비밀번호는 6자 이상으로 입력해 주세요.");
+      return;
+    }
+    const body: Record<string, unknown> = { adminId: editAdmin.id };
+    if (editAdmin.name.trim() !== (current?.name ?? "")) body.name = editAdmin.name.trim();
+    if (username && username !== (current?.username ?? "")) body.username = username;
+    if (editAdmin.isActive !== current?.is_active) body.is_active = editAdmin.isActive;
+    if (editAdmin.password) body.password = editAdmin.password;
+    if (Object.keys(body).length === 1) {
+      setEditAdmin(null);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/super-admin/academies/${manageId}/admins`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.message ?? "저장하지 못했어요.");
+        return;
+      }
+      setMessage(data.message ?? "저장했어요.");
+      if (body.username || body.password) {
+        setInviteHint(
+          [
+            `로그인: ${academyLoginAbsoluteUrl(managed?.slug ?? "", SITE_URL)}`,
+            `아이디: ${username || current?.username || ""}`,
+            body.password ? "비밀번호: (방금 바꾼 값)" : "",
+            `학원: ${managed?.name ?? ""}`,
+          ]
+            .filter(Boolean)
+            .join("\n")
+        );
+      }
+      setEditAdmin(null);
+      await loadAdmins(manageId);
+      router.refresh();
+    } catch {
+      setError("요청에 실패했습니다.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteAdmin(a: AdminRow) {
+    if (!manageId) return;
+    const last = a.is_active && admins.filter((x) => x.is_active).length <= 1;
+    const warn = last
+      ? "\n\n이 학원의 마지막 관리자예요. 삭제하면 새 관리자를 만들기 전까지 학원 관리 화면에 들어갈 사람이 없어요."
+      : "";
+    const ok = window.confirm(
+      `${a.name}(${a.username ?? a.email}) 관리자 계정을 삭제할까요?\n이 계정으로 더 이상 로그인할 수 없고, 되돌릴 수 없어요.${warn}`
+    );
+    if (!ok) return;
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch(
+        `/api/super-admin/academies/${manageId}/admins?adminId=${encodeURIComponent(a.id)}`,
+        { method: "DELETE" }
+      );
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.message ?? "삭제하지 못했어요.");
+        return;
+      }
+      setMessage(data.message ?? "삭제했어요.");
+      if (editAdmin?.id === a.id) setEditAdmin(null);
       await loadAdmins(manageId);
       router.refresh();
     } catch {
@@ -833,13 +949,14 @@ export function SuperAdminAcademiesClient({
                       <th>이름</th>
                       <th>이메일 / 아이디</th>
                       <th>상태</th>
+                      <th className="text-right">관리</th>
                     </tr>
                   </thead>
                   <tbody>
                     {adminsLoading && (
                       <tr>
                         <td
-                          colSpan={3}
+                          colSpan={4}
                           className="py-6 text-center text-slate-500"
                         >
                           불러오는 중…
@@ -847,7 +964,76 @@ export function SuperAdminAcademiesClient({
                       </tr>
                     )}
                     {!adminsLoading &&
-                      admins.map((a) => (
+                      admins.map((a) =>
+                        editAdmin?.id === a.id ? (
+                          <tr key={a.id} className="bg-brand-50/40">
+                            <td colSpan={4}>
+                              <div className="grid gap-2 py-1 sm:grid-cols-2 lg:grid-cols-4">
+                                <label className="block">
+                                  <span className="ui-label">이름</span>
+                                  <input
+                                    className="ui-input"
+                                    value={editAdmin.name}
+                                    onChange={(e) => setEditAdmin({ ...editAdmin, name: e.target.value })}
+                                  />
+                                </label>
+                                <label className="block">
+                                  <span className="ui-label">아이디</span>
+                                  <input
+                                    className="ui-input font-mono"
+                                    value={editAdmin.username}
+                                    onChange={(e) =>
+                                      setEditAdmin({
+                                        ...editAdmin,
+                                        username: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""),
+                                      })
+                                    }
+                                    placeholder="영문 소문자·숫자"
+                                  />
+                                </label>
+                                <label className="block">
+                                  <span className="ui-label">새 비밀번호 (바꿀 때만)</span>
+                                  <input
+                                    className="ui-input"
+                                    type="text"
+                                    autoComplete="new-password"
+                                    value={editAdmin.password}
+                                    onChange={(e) => setEditAdmin({ ...editAdmin, password: e.target.value })}
+                                    placeholder="6자 이상"
+                                  />
+                                </label>
+                                <div className="flex flex-col justify-end gap-2">
+                                  <label className="flex items-center gap-2 text-sm text-slate-700">
+                                    <input
+                                      type="checkbox"
+                                      checked={editAdmin.isActive}
+                                      onChange={(e) => setEditAdmin({ ...editAdmin, isActive: e.target.checked })}
+                                    />
+                                    로그인 허용 (활성)
+                                  </label>
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      disabled={busy}
+                                      onClick={() => void saveAdmin()}
+                                      className="inline-flex h-9 items-center rounded-md bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                                    >
+                                      저장
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={busy}
+                                      onClick={() => setEditAdmin(null)}
+                                      className="inline-flex h-9 items-center rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                                    >
+                                      취소
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
                         <tr key={a.id}>
                           <td className="font-medium">{a.name}</td>
                           <td className="text-xs text-slate-600">
@@ -869,12 +1055,31 @@ export function SuperAdminAcademiesClient({
                               </span>
                             )}
                           </td>
+                          <td className="whitespace-nowrap text-right">
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => startEditAdmin(a)}
+                              className="rounded-md px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-50"
+                            >
+                              수정
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => void deleteAdmin(a)}
+                              className="ml-1 rounded-md px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+                            >
+                              삭제
+                            </button>
+                          </td>
                         </tr>
-                      ))}
+                        )
+                      )}
                     {!adminsLoading && admins.length === 0 && (
                       <tr>
                         <td
-                          colSpan={3}
+                          colSpan={4}
                           className="py-6 text-center text-slate-500"
                         >
                           아직 연결된 학원 관리자가 없습니다.
