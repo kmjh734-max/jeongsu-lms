@@ -6,9 +6,9 @@ type ButtonSize = "sm" | "md";
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-200 border-transparent",
+    "bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-200 border-brand-600 hover:border-brand-700",
   secondary:
-    "bg-white text-slate-700 border-slate-300 hover:bg-slate-50 focus:ring-slate-200",
+    "bg-white text-slate-800 border-slate-300 hover:bg-slate-50 hover:border-slate-400 focus:ring-slate-200",
   danger:
     "bg-white text-red-700 border-red-200 hover:bg-red-50 focus:ring-red-100",
   ghost:
@@ -16,8 +16,8 @@ const variantStyles: Record<ButtonVariant, string> = {
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-xs",
-  md: "h-10 px-4 text-sm",
+  sm: "h-8 gap-1.5 px-3 text-xs",
+  md: "h-9 gap-1.5 px-3.5 text-sm",
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -38,7 +38,7 @@ export function Button({
     <button
       type="button"
       disabled={disabled}
-      className={`inline-flex items-center justify-center rounded-lg border font-medium transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${sizeStyles[size]} ${className}`.trim()}
+      className={`inline-flex items-center justify-center whitespace-nowrap rounded-md border font-semibold transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${sizeStyles[size]} ${className}`.trim()}
       {...props}
     >
       {children}
@@ -64,7 +64,7 @@ export function ButtonLink({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center justify-center rounded-lg border font-medium transition focus:outline-none focus:ring-2 ${variantStyles[variant]} ${sizeStyles[size]} ${className}`.trim()}
+      className={`inline-flex items-center justify-center whitespace-nowrap rounded-md border font-semibold transition focus:outline-none focus:ring-2 ${variantStyles[variant]} ${sizeStyles[size]} ${className}`.trim()}
     >
       {children}
     </Link>

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export function HeaderCreditsBadge({ href }: { href: string }) {
+/** 학원 크레딧 잔액. refreshKey가 바뀌면(예: 화면 이동) 다시 읽는다. */
+export function useCreditBalance(refreshKey?: string): number | null {
   const [balance, setBalance] = useState<number | null>(null);
 
   useEffect(() => {
@@ -21,14 +22,19 @@ export function HeaderCreditsBadge({ href }: { href: string }) {
         const n = json.wallet?.balance;
         setBalance(typeof n === "number" ? n : 0);
       } catch {
-        if (!cancelled) setBalance(0);
+        if (!cancelled) setBalance((prev) => prev ?? 0);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
+  return balance;
+}
+
+export function HeaderCreditsBadge({ href }: { href: string }) {
+  const balance = useCreditBalance();
   const loading = balance === null;
 
   return (

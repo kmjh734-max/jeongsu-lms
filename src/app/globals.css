@@ -9,13 +9,31 @@
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-canvas text-slate-900 antialiased;
+  }
+
+  /* 인쇄물(시험지·워크북·분석서 등)은 화면 글꼴과 상관없이 예전 글꼴 그대로.
+     쪽 나누기를 재는 숨은 틀(.font-print)도 같은 글꼴이어야 쪽이 어긋나지 않는다. */
+  .font-print,
+  #qg-print-root,
+  #listening-print-root,
+  #a4-print-root,
+  #shared-report-print-root,
+  #student-record-print-root,
+  #vocab-print-root,
+  #nelt-print-root,
+  #lesson-pack-print-root,
+  #analysis-report-print-root,
+  #workbook-print-root,
+  #final-bundle-print-root {
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+      "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   }
 }
 
 @layer components {
   .ui-input {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100;
+    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
 
   .workbook-underline-blank {
@@ -79,8 +97,14 @@
     vertical-align: baseline;
   }
 
+  /* 왼쪽 메뉴 스크롤 막대 — 어두운 바탕에 맞춰 얇게 */
+  .side-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #243a55 transparent;
+  }
+
   .ui-select {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100;
+    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
 
   .ui-label {
@@ -88,7 +112,7 @@
   }
 
   .ui-table-wrap {
-    @apply overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-card;
+    @apply overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-card;
   }
 
   .ui-table {
@@ -96,11 +120,11 @@
   }
 
   .ui-table thead {
-    @apply border-b border-slate-200 bg-slate-50/90;
+    @apply border-b border-slate-200 bg-slate-50;
   }
 
   .ui-table th {
-    @apply whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600;
+    @apply whitespace-nowrap px-4 py-2.5 text-xs font-semibold text-slate-500;
   }
 
   .ui-table tbody tr {
@@ -112,7 +136,7 @@
   }
 
   .ui-section-card {
-    @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-card sm:p-6;
+    @apply rounded-lg border border-slate-200 bg-white p-5 shadow-card sm:p-6;
   }
 
   .listening-exam-sheet {

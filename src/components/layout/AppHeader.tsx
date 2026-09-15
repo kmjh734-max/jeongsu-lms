@@ -47,7 +47,7 @@ function homeHref(role: Profile["role"]): string {
 type NavGroup = { key: string; label: string | null; items: AppNavItem[] };
 
 /** group 필드 기준으로 순서를 유지하며 묶는다. group이 하나뿐이면 라벨 숨김 */
-function groupNavItems(items: AppNavItem[]): NavGroup[] {
+export function groupNavItems(items: AppNavItem[]): NavGroup[] {
   const groups: NavGroup[] = [];
   const index = new Map<string, NavGroup>();
   for (const item of items) {
@@ -67,7 +67,7 @@ function groupNavItems(items: AppNavItem[]): NavGroup[] {
   return groups;
 }
 
-function isNavActive(pathname: string, href: string): boolean {
+export function isNavActive(pathname: string, href: string): boolean {
   if (
     href === "/admin" ||
     href === "/teacher" ||

@@ -24,7 +24,7 @@ export function QgJobProgressBar({
     : "변형문제";
 
   return (
-    <div className="sticky top-0 z-30 mb-4 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 shadow-sm">
+    <div className="sticky top-[60px] z-30 mb-4 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 shadow-sm">
       {generating ? (
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0 flex-1">

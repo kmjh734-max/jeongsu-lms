@@ -857,7 +857,7 @@ export function QuestionPrintView({
           <div
             ref={measureRef}
             aria-hidden
-            className="qg-print-measure no-print"
+            className="qg-print-measure font-print no-print"
             style={{ width: `${COL_WIDTH_MM}mm` }}
           >
             {displayItems.map((item) => (

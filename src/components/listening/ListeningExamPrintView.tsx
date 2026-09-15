@@ -529,7 +529,7 @@ export function ListeningExamPrintView({
 
       <div
         ref={measureRef}
-        className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
+        className="font-print pointer-events-none fixed -left-[200vw] top-0 opacity-0"
         aria-hidden
       >
         <div className={COLUMN_WIDTH_CLASS}>

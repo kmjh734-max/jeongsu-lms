@@ -14,7 +14,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   success: "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100",
   warning: "bg-amber-50 text-amber-800 ring-1 ring-amber-100",
   danger: "bg-red-50 text-red-800 ring-1 ring-red-100",
-  brand: "bg-brand-50 text-brand-800 ring-1 ring-brand-100",
+  brand: "bg-brand-50 text-brand-700 ring-1 ring-brand-100",
 };
 
 interface BadgeProps {
@@ -30,7 +30,7 @@ export function Badge({
 }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${variantStyles[variant]} ${className}`.trim()}
+      className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold ${variantStyles[variant]} ${className}`.trim()}
     >
       {children}
     </span>

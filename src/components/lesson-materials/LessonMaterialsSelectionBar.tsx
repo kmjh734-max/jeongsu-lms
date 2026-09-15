@@ -49,7 +49,7 @@ export function LessonMaterialsSelectionBar({
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 flex justify-center px-4">
+      <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 lg:left-[244px] flex justify-center px-4">
         <div className="pointer-events-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 rounded-2xl bg-violet-600 px-4 py-3 text-white shadow-xl">
           <div className="flex items-center gap-2 text-sm font-semibold">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-xs">

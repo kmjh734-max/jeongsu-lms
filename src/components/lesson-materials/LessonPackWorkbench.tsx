@@ -1276,7 +1276,7 @@ export function LessonPackWorkbench({
                   높이 0인 틀 안에 둬서 스크롤 길이에 잡히지 않게 한다. */}
               <div aria-hidden className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden">
               <div
-                className="lesson-pack-measure -z-10 w-[210mm] opacity-0"
+                className="lesson-pack-measure font-print -z-10 w-[210mm] opacity-0"
                 style={{ padding: A4_PAD, ...previewStyle }}
               >
                 <div ref={packMeasureRef} className="flex flex-col gap-2.5">

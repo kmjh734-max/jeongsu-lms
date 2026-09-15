@@ -1294,7 +1294,7 @@ export function QuestionGeneratorClient({
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 bg-white/95 backdrop-blur">
+      <div className="fixed bottom-0 left-0 right-0 z-20 lg:left-[244px] border-t border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="text-sm text-slate-700">
             <span className="font-semibold text-slate-900">

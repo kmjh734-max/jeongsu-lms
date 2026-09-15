@@ -3130,7 +3130,7 @@ export function WorkbookWorkbench({
         <div className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden" aria-hidden>
         <div
           ref={measureRef}
-          className="-z-10 w-[210mm] opacity-0"
+          className="font-print -z-10 w-[210mm] opacity-0"
           style={{
             padding: A4_PAD,
             paddingBottom: `${A4_FOOTER_MM}mm`,

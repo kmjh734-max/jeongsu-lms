@@ -22,7 +22,7 @@ export function Alert({
   return (
     <p
       role="status"
-      className={`rounded-lg border px-3 py-2 text-sm ${styles[variant]} ${className}`.trim()}
+      className={`rounded-md border px-3 py-2 text-sm ${styles[variant]} ${className}`.trim()}
     >
       {children}
     </p>
