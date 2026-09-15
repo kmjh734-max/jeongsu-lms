@@ -247,7 +247,9 @@ async function countSavedQuestions(jobId: string): Promise<number> {
 
 /**
  * 후불 작업: 새로 만들어진 문항 수만큼 크레딧을 차감한다(버려지거나 생략된 문항은 받지 않는다).
- * 같은 완료 수로 두 번 불려도 한 번만 차감되고, 이어서 재시도하면 새로 생긴 문항만 받는다.
+ * 지난 차감(billedAt) 뒤에 저장된 문항만 센다. 그래서 이어서 재시도하면 새로 생긴 문항만 받고,
+ * 문항을 지운 뒤 다시 만들어 개수가 제자리여도 새로 만든 문항 값은 받는다.
+ * 같은 문항 묶음으로 두 번 불려도 차감 키가 같아 한 번만 차감된다.
  */
 async function billGeneratedQuestions(jobId: string, completed: number): Promise<void> {
   const admin = createAdminClient();
@@ -259,21 +261,49 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
   const rc = (job?.request_config ?? null) as GenerationRequestConfig | null;
   const billing = rc?._billing;
   if (!job?.academy_id || !job.created_by || !rc || billing?.mode !== "post") return;
-  const toBill = completed - (billing.billed ?? 0);
-  if (toBill <= 0) return;
+
+  let toBill: number;
+  let latest: string | null = null;
+  if (billing.billedAt) {
+    const { data: rows, count } = await admin
+      .from("generated_english_questions")
+      .select("created_at", { count: "exact" })
+      .eq("generation_job_id", jobId)
+      .gt("created_at", billing.billedAt)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    toBill = count ?? 0;
+    latest = (rows?.[0]?.created_at as string | undefined) ?? null;
+  } else {
+    // billedAt 없이 시작한 예전 작업
+    toBill = completed - (billing.billed ?? 0);
+    const { data: rows } = await admin
+      .from("generated_english_questions")
+      .select("created_at")
+      .eq("generation_job_id", jobId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    latest = (rows?.[0]?.created_at as string | undefined) ?? null;
+  }
+  if (toBill <= 0 || !latest) return;
   const ok = await debitLessonCredits({
     academyId: job.academy_id as string,
     actorId: job.created_by as string,
     featureKey: CREDIT_FEATURES.qg_generate_job,
     quantity: toBill,
-    idempotencyKey: `qg_generate_job:${jobId}:upto-${completed}`,
+    idempotencyKey: `qg_generate_job:${jobId}:upto-${latest}`,
     metadata: { job_id: jobId },
     note: `변형문제 ${toBill}문항`,
   });
   if (!ok) return;
   await admin
     .from("question_generation_jobs")
-    .update({ request_config: { ...rc, _billing: { mode: "post", billed: completed } } })
+    .update({
+      request_config: {
+        ...rc,
+        _billing: { mode: "post", billed: (billing.billed ?? 0) + toBill, billedAt: latest },
+      },
+    })
     .eq("id", jobId);
 }
 

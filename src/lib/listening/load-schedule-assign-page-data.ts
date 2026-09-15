@@ -194,9 +194,10 @@ export async function loadScheduleAssignPageData(
     classesPromise,
     setsPromise,
     loadScheduleStudentOptions(supabase, role, viewerId, academyId),
+    // 세트 id 는 권한 검사를 거친 목록에서 왔으니, 문항 수는 행마다 권한을 다시 따지지 않고 센다.
     setsPromise.then((rows) =>
       loadListeningSetQuestionStats(
-        supabase,
+        admin,
         rows.map((s) => s.id as string)
       )
     ),

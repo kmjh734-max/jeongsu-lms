@@ -140,7 +140,15 @@ export function GenerationDetailClient({
       job.status
     );
     if (!running) return;
-    const t = window.setInterval(() => void load(), 1000);
+    // 만들어진 문항을 차례로 보여 준다. 진행 막대는 useQgJobProgress가 따로 가볍게 본다.
+    let inFlight = false;
+    const t = window.setInterval(() => {
+      if (inFlight || document.hidden) return;
+      inFlight = true;
+      void load().finally(() => {
+        inFlight = false;
+      });
+    }, 3000);
     return () => window.clearInterval(t);
   }, [job, load]);
 

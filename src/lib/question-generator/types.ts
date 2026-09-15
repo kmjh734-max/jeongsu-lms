@@ -107,10 +107,11 @@ export interface GenerationRequestConfig {
    */
   _run?: { claimedAt: string; chunk: number };
   /**
-   * 크레딧 후불: 작업이 끝날 때 만들어진 문항 수만큼 차감한다. billed는 이미 차감한 문항 수
-   * (예전에 미리 차감한 작업은 그때까지 저장된 수).
+   * 크레딧 후불: 작업이 끝날 때 새로 만들어진 문항 수만큼 차감한다. billed는 이미 차감한 문항 수
+   * (예전에 미리 차감한 작업은 그때까지 저장된 수). billedAt 이후에 저장된 문항만 새로 받는다 —
+   * 지운 문항을 다시 만들거나 같은 작업으로 다시 만들어도 새 문항 값은 받는다.
    */
-  _billing?: { mode: "post"; billed: number };
+  _billing?: { mode: "post"; billed: number; billedAt?: string };
 }
 
 export interface PassageAnalysis {

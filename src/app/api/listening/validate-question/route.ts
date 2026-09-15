@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import { getExamTypeById } from "@/lib/listening/exam-types";
 import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
@@ -135,6 +136,12 @@ function rowToGenerated(
 
 export async function POST(request: Request) {
   try {
+    // 유료 모델을 부르므로 원장·선생님만 쓸 수 있다(학생·로그인 안 한 요청 차단).
+    const profile = await getCurrentProfile();
+    if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
+      return jsonError("권한이 없습니다.", 403);
+    }
+
     let apiKey: string;
     try {
       ({ apiKey } = assertListeningOpenAiEnv());

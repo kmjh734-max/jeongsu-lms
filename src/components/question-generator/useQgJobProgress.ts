@@ -12,7 +12,7 @@ import {
 const TERMINAL = new Set(["completed", "partially_completed", "failed"]);
 /** 실제 생성 워커가 돌고 있는 상태 */
 const ACTIVE = new Set(["analyzing", "generating", "validating"]);
-const POLL_MS = 750;
+const POLL_MS = 2000;
 /** 생성 직후 pending 허용 시간 (그 이후 pending+0문항이면 배너 제거) */
 const PENDING_GRACE_MS = 15_000;
 
@@ -66,11 +66,15 @@ export function useQgJobProgress(options: Options = {}) {
     if (!jobProgress?.jobId || jobProgress.done) return;
 
     let cancelled = false;
+    let inFlight = false;
 
     const poll = async () => {
+      // 다른 탭을 보고 있으면 쉬고, 앞 요청이 안 끝났으면 겹쳐 보내지 않는다.
+      if (inFlight || document.hidden) return;
+      inFlight = true;
       try {
         const res = await fetch(
-          `/api/question-generator/jobs/${jobProgress.jobId}`
+          `/api/question-generator/jobs/${jobProgress.jobId}?lite=1`
         );
         const data = await res.json();
         if (cancelled) return;
@@ -148,14 +152,21 @@ export function useQgJobProgress(options: Options = {}) {
         }
       } catch {
         /* ignore */
+      } finally {
+        inFlight = false;
       }
     };
 
     void poll();
     const t = window.setInterval(() => void poll(), POLL_MS);
+    const onVisible = () => {
+      if (!document.hidden) void poll();
+    };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       window.clearInterval(t);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [
     jobProgress?.jobId,

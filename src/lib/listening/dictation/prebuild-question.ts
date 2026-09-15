@@ -242,7 +242,8 @@ export async function prebuildDictationForSet(
 ): Promise<{ ok: number; failed: number; messages: string[] }> {
   const result = await ensureDictationPreparedForSet(setId, {
     includeVariants: true,
-    force: true,
+    // 이미 만든 문항은 건너뛴다(누를 때마다 전부 다시 만들면 문항당 3번씩 새로 부른다).
+    force: false,
   });
   return { ok: result.ok, failed: result.failed, messages: result.messages };
 }

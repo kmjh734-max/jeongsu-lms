@@ -45,9 +45,10 @@ export async function ListeningSetsTabPage({ role }: { role: Role }) {
   const pageDataPromise = loadListeningPageData(supabase, role, profile!.id, academyId);
   const [{ sets, folders }, questionStats, assignments] = await Promise.all([
     pageDataPromise,
+    // 세트 id 는 권한 검사를 거친 목록에서 왔으니, 문항 수는 행마다 권한을 다시 따지지 않고 센다.
     pageDataPromise.then(({ sets }) =>
       loadListeningSetQuestionStats(
-        supabase,
+        createAdminClient(),
         sets.map((s) => s.id)
       )
     ),

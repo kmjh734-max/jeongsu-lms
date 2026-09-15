@@ -8,6 +8,7 @@ import {
   chargeFeatureOrError,
   CREDIT_FEATURES,
 } from "@/lib/credits/charge";
+import { adjustAcademyCredits, getFeatureCost } from "@/lib/credits";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
 
 export const maxDuration = 180;
@@ -46,15 +47,6 @@ export async function POST(request: Request) {
     const writable = await assertListeningSetWritable(setId);
     if (!writable.ok) return jsonError(writable.message, writable.status);
 
-    const chargeErr = await chargeFeatureOrError({
-      academyId: profile.academy_id,
-      featureKey: CREDIT_FEATURES.listening_generate_audio,
-      actorId: profile.id,
-      idempotencyKey: `listening_generate_audio:${questionId}:${Date.now()}`,
-      metadata: { set_id: setId, question_id: questionId },
-    });
-    if (chargeErr) return chargeErr;
-
     const admin = createAdminClient();
     const { data: question, error: qErr } = await admin
       .from("listening_questions")
@@ -91,12 +83,39 @@ export async function POST(request: Request) {
             ? setRow.speech_speed
             : EXAM_DEFAULT_SPEECH_SPEED;
 
-    const result = await generateQuestionAudio({
-      setId,
-      questionId,
-      segmentId: body.segmentId?.trim() || undefined,
-      speechSpeed,
+    // 문항·권한을 다 확인한 뒤 차감하고, 음성을 못 만들면 되돌려 준다.
+    const chargeKey = `listening_generate_audio:${questionId}:${Date.now()}`;
+    const chargeErr = await chargeFeatureOrError({
+      academyId: profile.academy_id,
+      featureKey: CREDIT_FEATURES.listening_generate_audio,
+      actorId: profile.id,
+      idempotencyKey: chargeKey,
+      metadata: { set_id: setId, question_id: questionId },
     });
+    if (chargeErr) return chargeErr;
+
+    let result: Awaited<ReturnType<typeof generateQuestionAudio>>;
+    try {
+      result = await generateQuestionAudio({
+        setId,
+        questionId,
+        segmentId: body.segmentId?.trim() || undefined,
+        speechSpeed,
+      });
+    } catch (genErr) {
+      const pricing = await getFeatureCost(admin, CREDIT_FEATURES.listening_generate_audio).catch(() => null);
+      if (profile.academy_id && pricing && pricing.cost > 0) {
+        await adjustAcademyCredits(admin, {
+          academyId: profile.academy_id,
+          amount: pricing.cost,
+          direction: "grant",
+          actorId: profile.id,
+          note: "듣기 음성 만들기 실패 — 차감 취소",
+          idempotencyKey: `refund:${chargeKey}`,
+        }).catch((e) => console.error("[generate-audio] refund failed", e));
+      }
+      throw genErr;
+    }
 
     return NextResponse.json({
       ok: true,

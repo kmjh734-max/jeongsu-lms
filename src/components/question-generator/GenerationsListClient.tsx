@@ -147,7 +147,14 @@ export function GenerationsListClient({
 
   useEffect(() => {
     if (!hasRunningJob) return;
-    const t = window.setInterval(() => void load({ silent: true }), 1000);
+    let inFlight = false;
+    const t = window.setInterval(() => {
+      if (inFlight || document.hidden) return;
+      inFlight = true;
+      void load({ silent: true }).finally(() => {
+        inFlight = false;
+      });
+    }, 3000);
     return () => window.clearInterval(t);
   }, [hasRunningJob, load]);
 

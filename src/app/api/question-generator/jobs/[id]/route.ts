@@ -25,6 +25,35 @@ export async function GET(
     const profile = await requireStaffProfile();
     const { id } = await ctx.params;
     const supabase = await createClient();
+    const origin = new URL(req.url).origin;
+
+    // 진행 막대용 가벼운 조회: 문항·지문 본문 없이 상태만 (몇 초마다 불린다)
+    if (new URL(req.url).searchParams.get("lite") === "1") {
+      let liteQuery = supabase
+        .from("question_generation_jobs")
+        .select(
+          "id,status,progress_message,total_completed,total_requested,total_failed,error_message,created_at,title:request_config->>title,run:request_config->_run,english_source_passages(title)"
+        )
+        .eq("id", id);
+      if (profile.role === "teacher") liteQuery = liteQuery.eq("created_by", profile.id);
+      const { data: lite, error: liteErr } = await liteQuery.single();
+      if (liteErr || !lite) return jsonError("작업을 찾을 수 없습니다.", 404);
+      const row = lite as Record<string, unknown>;
+      const resumeLite = resumeGenerationJobIfIdle(
+        {
+          id: String(row.id),
+          status: String(row.status),
+          created_at: row.created_at as string | null,
+          total_completed: row.total_completed as number | null,
+          request_config: { _run: row.run ?? undefined },
+        },
+        origin
+      );
+      if (resumeLite) after(resumeLite);
+      const { run: _run, title, ...rest } = row;
+      void _run;
+      return jsonOk({ job: { ...rest, request_config: { title } } });
+    }
 
     let jobQuery = supabase
       .from("question_generation_jobs")
@@ -39,7 +68,7 @@ export async function GET(
     if (error || !job) return jsonError("작업을 찾을 수 없습니다.", 404);
 
     // 실행이 끊겨 멈췄거나 다음 실행이 이어 받지 못한 작업은 여기서 이어 간다.
-    const resume = resumeGenerationJobIfIdle(job, new URL(req.url).origin);
+    const resume = resumeGenerationJobIfIdle(job, origin);
     if (resume) after(resume);
 
     let qQuery = supabase
@@ -116,14 +145,26 @@ export async function POST(
       );
       if (shortfall) return jsonError(shortfall, 402);
       const rc = (jobRow.request_config ?? {}) as GenerationRequestConfig;
-      if (!rc._billing) {
-        // 이미 저장된 문항(예전에 미리 차감한 작업의 재시도 등)은 다시 받지 않는다.
+      if (!rc._billing || !rc._billing.billedAt) {
+        // 지금까지 저장된 문항(예전에 미리 차감한 작업의 재시도 등)은 다시 받지 않고,
+        // 지금부터 새로 저장되는 문항만 받는다.
+        const { data: lastRow } = await admin
+          .from("generated_english_questions")
+          .select("created_at")
+          .eq("generation_job_id", id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
         await admin
           .from("question_generation_jobs")
           .update({
             request_config: {
               ...rc,
-              _billing: { mode: "post", billed: Number(jobRow.total_completed) || 0 },
+              _billing: {
+                mode: "post",
+                billed: rc._billing?.billed ?? (Number(jobRow.total_completed) || 0),
+                billedAt: (lastRow?.created_at as string | undefined) ?? new Date(0).toISOString(),
+              },
             },
           })
           .eq("id", id);
