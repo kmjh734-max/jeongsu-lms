@@ -58,7 +58,22 @@ export async function PATCH(
         return jsonError("유효한 segment가 없습니다.");
       }
 
-      await replaceQuestionSegments(questionId, segments);
+      // 편집기는 저장할 때마다 대본을 함께 보낸다. 대본이 그대로면 음원·받아쓰기를 지우지 않는다.
+      const { data: currentSegs } = await admin
+        .from("listening_question_segments")
+        .select("speaker_type, text, order_index")
+        .eq("question_id", questionId)
+        .order("order_index", { ascending: true });
+      const unchanged =
+        (currentSegs ?? []).length === segments.length &&
+        (currentSegs ?? []).every(
+          (s, i) =>
+            s.speaker_type === segments[i]!.speaker &&
+            String(s.text ?? "").trim() === segments[i]!.text
+        );
+      if (!unchanged) {
+        await replaceQuestionSegments(questionId, segments);
+      }
     }
 
     const patch: Record<string, unknown> = {};

@@ -8,7 +8,10 @@ import type {
   DictationBlankLevel,
 } from "@/lib/listening/dictation/types";
 import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text";
-import { wordInLine } from "@/lib/listening/dictation/word-only";
+import {
+  isTrivialDictationBlank,
+  wordInLine,
+} from "@/lib/listening/dictation/word-only";
 
 const SKIP_WORDS = new Set([
   "a",
@@ -72,6 +75,8 @@ function wordCandidates(line: string): Array<{ word: string; importance: number 
     const word = raw.replace(/^['"]|['"]$/g, "");
     const key = word.toLowerCase();
     if (key.length < 3 || SKIP_WORDS.has(key)) continue;
+    // "What am I?"의 What, "Yes." 같은 뻔한 칸은 만들지 않는다 (짧은 문장은 빈칸 없이 둔다)
+    if (isTrivialDictationBlank({ answer: word, original_sentence: line })) continue;
     let importance = Math.min(10, 3 + Math.floor(word.length / 2));
     if (
       /(subway|bus|library|museum|station|poster|science|lunch|worried|drawing|pictures|because|before|after|tomorrow|yesterday|monday|tuesday|happy|sad|angry|teacher|doctor|police|weather|cloudy|rain|fog|clear|bright|tonight|morning|afternoon|evening|daegu|daejeon|seoul)/i.test(

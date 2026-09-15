@@ -26,10 +26,17 @@ export function HomeworkStatusDot({ symbol }: { symbol: HomeworkDaySymbol }) {
   if (symbol === "scheduled") {
     return <span className="block h-[18px] w-[18px] rounded-full bg-slate-100" />;
   }
+  if (symbol === "paused") {
+    return (
+      <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-slate-100 text-slate-400">
+        <Icon name="pause" size={10} strokeWidth={2.6} />
+      </span>
+    );
+  }
   return <span className="block h-[18px] w-[18px]" />;
 }
 
-export function HomeworkStatusLegend() {
+export function HomeworkStatusLegend({ withPaused = false }: { withPaused?: boolean }) {
   const items: Array<[string, string]> = [
     ["bg-green-700", "완료"],
     ["bg-amber-700", "일부"],
@@ -37,13 +44,19 @@ export function HomeworkStatusLegend() {
     ["bg-slate-300", "예정"],
   ];
   return (
-    <div className="flex items-center gap-3.5 text-xs text-slate-500">
+    <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-xs text-slate-500">
       {items.map(([color, label]) => (
         <span key={label} className="flex items-center gap-1.5">
           <span className={`h-2 w-2 rounded-full ${color}`} />
           {label}
         </span>
       ))}
+      {withPaused ? (
+        <span className="flex items-center gap-1 text-slate-500">
+          <Icon name="pause" size={10} strokeWidth={2.6} className="text-slate-400" />
+          일시정지
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -53,6 +66,8 @@ export interface MonthlyHomeworkGridRow {
   name: string;
   /** 이름 아래 작은 글씨 (예: 반) */
   sub?: string;
+  /** 이름 아래 회색 표시 (예: 일시정지 · 9/15부터) */
+  pausedLabel?: string;
   days: HomeworkDayCell[];
   /** 수행률 % — 없으면 — */
   rate: number | null;
@@ -74,11 +89,13 @@ export function MonthlyHomeworkGrid({
   todayIso: string;
   onNameClick?: (id: string) => void;
 }) {
-  // 누구에게든 과제가 있는 날만 열로 보인다
+  // 누구에게든 과제가 있는(또는 멈춘) 날만 열로 보인다
+  const shown = (cell: HomeworkDayCell | undefined) =>
+    Boolean(cell && (cell.isStudyDay || cell.symbol === "paused"));
   const studyDays = new Map<number, HomeworkDayCell>();
   for (const row of rows) {
     for (const cell of row.days) {
-      if (cell.isStudyDay && !studyDays.has(cell.day)) studyDays.set(cell.day, cell);
+      if (shown(cell) && !studyDays.has(cell.day)) studyDays.set(cell.day, cell);
     }
   }
   const columns = [...studyDays.values()].sort((a, b) => a.day - b.day);
@@ -144,16 +161,22 @@ export function MonthlyHomeworkGrid({
                       {row.sub}
                     </span>
                   ) : null}
+                  {row.pausedLabel ? (
+                    <span className="mt-0.5 flex max-w-[104px] items-center gap-1 text-[11px] font-semibold text-slate-500">
+                      <Icon name="pause" size={10} strokeWidth={2.6} className="text-slate-400" />
+                      <span className="truncate">{row.pausedLabel}</span>
+                    </span>
+                  ) : null}
                 </th>
                 {columns.map((c) => {
                   const cell = byDay.get(c.day);
-                  const symbol = cell?.isStudyDay ? cell.symbol : "none";
+                  const symbol = cell && shown(cell) ? cell.symbol : "none";
                   return (
                     <td
                       key={c.day}
                       className="px-0.5 py-2"
                       title={
-                        cell?.isStudyDay
+                        cell && shown(cell)
                           ? homeworkSymbolTitle(symbol, cell.completedCount, cell.totalCount)
                           : undefined
                       }

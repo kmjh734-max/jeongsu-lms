@@ -6,7 +6,11 @@ import type { DictationBlankItem, DictationSetSettings } from "@/lib/listening/d
 import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
 import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text";
 import { anchorDictationBlankItems } from "@/lib/listening/dictation/anchor-blank-items";
-import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
+import {
+  filterWordOnlyBlankItems,
+  isClearlyTrivialDictationBlank,
+  isTrivialDictationBlank,
+} from "@/lib/listening/dictation/word-only";
 
 const VARIANT_COUNT = 2;
 
@@ -40,7 +44,7 @@ async function generateBlankSet(opts: {
       const wordsOnly = anchorDictationBlankItems(
         filterWordOnlyBlankItems(items),
         { scriptText: opts.scriptText, segments: opts.segments }
-      );
+      ).filter((item) => !isTrivialDictationBlank(item));
       if (wordsOnly.length > 0) return wordsOnly;
     } catch {
       /* fallback */
@@ -55,6 +59,38 @@ async function generateBlankSet(opts: {
       answerClue: opts.answerClue,
     })
   );
+}
+
+/**
+ * 저장된 빈칸이 지금 대본과 안 맞거나(대본을 고친 뒤 그대로 남은 경우) 뻔한 칸이 섞였으면 true.
+ * 이런 빈칸은 새 음원과 달라 학생이 받아쓸 수 없으므로 다시 만든다.
+ */
+export function preparedBlanksAreStale(
+  items: unknown,
+  scriptText: string,
+  segments: Array<{ speaker: string; text: string }>
+): boolean {
+  if (!Array.isArray(items) || items.length === 0) return true;
+  const wordOnly = filterWordOnlyBlankItems(items as DictationBlankItem[]);
+  if (wordOnly.length === 0) return true;
+  if (wordOnly.some((item) => isClearlyTrivialDictationBlank(item))) return true;
+  const anchored = anchorDictationBlankItems(wordOnly, { scriptText, segments });
+  return anchored.length < wordOnly.length;
+}
+
+async function loadSegmentsForDictation(
+  admin: ReturnType<typeof createAdminClient>,
+  questionId: string
+): Promise<Array<{ speaker: string; text: string }>> {
+  const { data: segments } = await admin
+    .from("listening_question_segments")
+    .select("speaker_type, text, order_index")
+    .eq("question_id", questionId)
+    .order("order_index", { ascending: true });
+  return (segments ?? []).map((s) => ({
+    speaker: s.speaker_type as string,
+    text: s.text as string,
+  }));
 }
 
 function wordsFromItems(items: DictationBlankItem[]): string[] {
@@ -81,9 +117,14 @@ export async function prebuildDictationForQuestion(
   }
 
   const existing = question.dictation_blank_items;
+  let segListCache: Array<{ speaker: string; text: string }> | null = null;
   if (!force && Array.isArray(existing) && existing.length > 0) {
-    const wordOnly = filterWordOnlyBlankItems(existing as DictationBlankItem[]);
-    if (wordOnly.length > 0) {
+    segListCache = await loadSegmentsForDictation(admin, questionId);
+    // 대본이 바뀌어 빈칸이 안 맞으면 캐시로 쓰지 않고 다시 만든다
+    if (
+      !preparedBlanksAreStale(existing, (question.script_text as string) ?? "", segListCache)
+    ) {
+      const wordOnly = filterWordOnlyBlankItems(existing as DictationBlankItem[]);
       return { ok: true, itemCount: wordOnly.length, cached: true };
     }
   }
@@ -114,16 +155,7 @@ export async function prebuildDictationForQuestion(
     return { ok: false, message: "대본이 없어 Dictation을 만들 수 없습니다." };
   }
 
-  const { data: segments } = await admin
-    .from("listening_question_segments")
-    .select("speaker_type, text, order_index")
-    .eq("question_id", questionId)
-    .order("order_index", { ascending: true });
-
-  const segList = (segments ?? []).map((s) => ({
-    speaker: s.speaker_type as string,
-    text: s.text as string,
-  }));
+  const segList = segListCache ?? (await loadSegmentsForDictation(admin, questionId));
 
   let apiKey: string | undefined;
   try {
@@ -206,7 +238,7 @@ export async function ensureDictationPreparedForSet(
 
   const { data: questions } = await admin
     .from("listening_questions")
-    .select("id, dictation_blank_items")
+    .select("id, script_text, dictation_blank_items")
     .eq("set_id", setId)
     .order("order_index", { ascending: true });
 
@@ -218,8 +250,9 @@ export async function ensureDictationPreparedForSet(
   for (const q of questions ?? []) {
     const existing = q.dictation_blank_items;
     if (!opts?.force && Array.isArray(existing) && existing.length > 0) {
-      const wordOnly = filterWordOnlyBlankItems(existing as DictationBlankItem[]);
-      if (wordOnly.length > 0) {
+      const segList = await loadSegmentsForDictation(admin, q.id as string);
+      // 지금 대본과 맞는 빈칸만 건너뛴다 (대본을 고친 문항은 다시 만든다)
+      if (!preparedBlanksAreStale(existing, (q.script_text as string) ?? "", segList)) {
         skipped++;
         continue;
       }

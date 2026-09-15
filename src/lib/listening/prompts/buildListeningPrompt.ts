@@ -9,6 +9,7 @@ import {
   getCommonPrompt,
   getCopyrightBlock,
   getJsonOutputSchema,
+  LISTENING_OUTPUT_GUARD_BLOCK,
 } from "@/lib/listening/prompts/commonPrompt";
 import {
   buildMiddle2TypeOnlyGenerationPrompt,
@@ -98,6 +99,8 @@ ${getTypeBlocks(typeIds)}
 생성 후 스스로 검수:
 ${QUALITY_CHECK_CRITERIA}
 
+${LISTENING_OUTPUT_GUARD_BLOCK}
+
 ${getJsonOutputSchema(grade)}
 `.trim();
   }
@@ -133,6 +136,8 @@ ${getTypeBlocks(typeIds)}
 
 생성 후 스스로 검수:
 ${QUALITY_CHECK_CRITERIA}
+
+${LISTENING_OUTPUT_GUARD_BLOCK}
 
 ${getJsonOutputSchema(grade)}
 `.trim();
@@ -218,6 +223,8 @@ ${getAllTypePromptBlocks(typeIds)}
 생성 후 스스로 검수:
 ${QUALITY_CHECK_CRITERIA}
 
+${LISTENING_OUTPUT_GUARD_BLOCK}
+
 ${getJsonOutputSchema(grade)}
 `.trim();
 }
@@ -294,7 +301,7 @@ export function buildListeningSingleTypePrompt(
     core = `${buildListeningExamPrompt([type], difficultyMode, grade)}${avoid}`;
   }
 
-  return `${core}\n\n${difficultyBlock}`;
+  return `${core}\n\n${difficultyBlock}\n\n${LISTENING_OUTPUT_GUARD_BLOCK}`;
 }
 
 /** 자유 생성 모드 (유형 미지정) */
@@ -312,6 +319,8 @@ ${gradeLevelShort(grade)} 듣기 문항 ${count}개를 자유 형식으로 생�
 order_index는 1부터 순서대로.
 
 ${QUALITY_CHECK_CRITERIA}
+
+${LISTENING_OUTPUT_GUARD_BLOCK}
 
 ${getJsonOutputSchema(grade)}
 `.trim();

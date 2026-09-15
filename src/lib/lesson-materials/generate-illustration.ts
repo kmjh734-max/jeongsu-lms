@@ -53,12 +53,28 @@ Story / scene idea (illustrate, do not print this paragraph as text):
 ${body}`.slice(0, 3000);
 }
 
-async function generateImagePngBytes(prompt: string): Promise<Buffer> {
+/** 한 모델에 주는 최대 시간 */
+const MODEL_TIMEOUT_MS = 100_000;
+/**
+ * 남은 시간이 이보다 적으면 다음 모델을 시작하지 않는다. 이미지 한 장은 보통 30~60초 걸리고,
+ * 끊은 요청도 OpenAI가 끝까지 만든 값을 받으므로 못 끝낼 요청은 아예 보내지 않는다.
+ */
+const MIN_MODEL_MS = 60_000;
+/** 기본 마감: 경로 상한(120초)에서 저장·차감할 자리를 뺀 시간 */
+const DEFAULT_BUDGET_MS = 105_000;
+
+async function generateImagePngBytes(prompt: string, deadlineAt: number): Promise<Buffer> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) throw new Error("OPENAI_API_KEY가 설정되어 있지 않습니다.");
 
   let lastErr = "이미지 생성 실패";
+  let attempted = 0;
   for (const model of imageModelCandidates()) {
+    const remaining = deadlineAt - Date.now();
+    // 첫 모델은 남은 시간을 다 쓰고, 다음 모델은 끝낼 시간이 있을 때만 시작한다
+    if (attempted > 0 && remaining < MIN_MODEL_MS) break;
+    if (remaining <= 5_000) break;
+    attempted++;
     const body: Record<string, unknown> = {
       model,
       prompt,
@@ -69,7 +85,10 @@ async function generateImagePngBytes(prompt: string): Promise<Buffer> {
     };
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 90_000);
+    const timer = setTimeout(
+      () => controller.abort(),
+      Math.min(MODEL_TIMEOUT_MS, remaining)
+    );
     let res: Response;
     try {
       res = await fetch("https://api.openai.com/v1/images/generations", {
@@ -84,7 +103,8 @@ async function generateImagePngBytes(prompt: string): Promise<Buffer> {
     } catch (e) {
       clearTimeout(timer);
       if (e instanceof Error && e.name === "AbortError") {
-        lastErr = `이미지 생성 시간 초과 (${model})`;
+        // 시간이 다 된 뒤라 다음 모델도 끝내지 못한다(남은 시간 검사가 막는다)
+        lastErr = "삽화를 만드는 데 시간이 너무 오래 걸렸습니다. 잠시 뒤 다시 시도해 주세요.";
         continue;
       }
       lastErr = e instanceof Error ? e.message : `이미지 생성 실패 (${model})`;
@@ -126,6 +146,10 @@ export async function generateLessonMaterialComicIllustration(input: {
   illustrationPrompt: string;
   passageHint?: string;
   captions?: string[];
+  /** 이 시각(ms)까지 끝내야 한다. 없으면 지금부터 DEFAULT_BUDGET_MS. */
+  deadlineAt?: number;
+  /** 그림이 실제로 나왔을 때(저장 전) 한 번 부른다 — 여기서 차감한다 */
+  onImageProduced?: () => Promise<void>;
 }): Promise<{ url: string; prompt: string }> {
   const captions = normalizeCaptions(input.captions);
   const prompt = buildComicImagePrompt(
@@ -133,17 +157,29 @@ export async function generateLessonMaterialComicIllustration(input: {
     input.passageHint ?? "",
     captions
   );
-  const bytes = await generateImagePngBytes(prompt);
+  const bytes = await generateImagePngBytes(
+    prompt,
+    input.deadlineAt ?? Date.now() + DEFAULT_BUDGET_MS
+  );
+  // 그림은 이미 만들어졌다(값이 나갔다). 저장이 실패해도 차감은 한다.
+  await input.onImageProduced?.();
 
   const admin = createAdminClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL이 없습니다.");
 
   const storagePath = `lesson-materials/${input.academyId}/${crypto.randomUUID()}.png`;
-  const { error } = await admin.storage.from(BUCKET).upload(storagePath, bytes, {
+  let { error } = await admin.storage.from(BUCKET).upload(storagePath, bytes, {
     contentType: "image/png",
     upsert: true,
   });
+  if (error) {
+    // 만든 그림을 버리지 않게 저장을 한 번 더 해 본다
+    ({ error } = await admin.storage.from(BUCKET).upload(storagePath, bytes, {
+      contentType: "image/png",
+      upsert: true,
+    }));
+  }
   if (error) throw new Error(`삽화 저장 실패: ${error.message}`);
 
   const base = supabaseUrl.replace(/\/$/, "");

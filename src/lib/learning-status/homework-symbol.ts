@@ -14,6 +14,8 @@ export function homeworkSymbolTitle(
       return "안 함";
     case "scheduled":
       return "예정";
+    case "paused":
+      return "일시정지";
     case "none":
     default:
       return "과제 없음";

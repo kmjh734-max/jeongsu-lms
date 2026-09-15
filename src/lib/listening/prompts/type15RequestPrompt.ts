@@ -76,6 +76,8 @@ choices: 한글 행동 5개 (~하기). 정답=부탁받은 사람이 할 행동.
 
 필수: requester, requested_person, requested_action, request_expression, mentioned_actions.
 requester=지시문 첫 인물=부탁 말한 화자. requested_action=correct_answer.
+화자 주의: "Could you ~?"를 말하는 segment의 speaker가 requester다. 지시문이 "남자가 여자에게"면 부탁 문장은 반드시 M 줄에 있어야 한다.
+M/W는 한 줄씩 번갈아 쓴다 (같은 사람 두 줄 연속 금지).
 
 소재: 학교생활, 행사 준비, 가족/집, 친구 사이.
 기존 기출 복사 금지. 중1 수준 영어.

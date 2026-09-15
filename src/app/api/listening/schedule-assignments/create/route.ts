@@ -1,5 +1,10 @@
 import { after, NextResponse } from "next/server";
 import { bootstrapDailyTasksForAssignment } from "@/lib/listening/schedule/generate-daily-tasks";
+import {
+  chargeMonthlySeatsOnAssign,
+  monthlySeatShortfall,
+} from "@/lib/credits/monthly-seat";
+import { resolveStudentIdsForScheduleAssignment } from "@/lib/listening/schedule/resolve-students";
 import { sortSetIdsByRound } from "@/lib/listening/schedule/question-queue";
 import {
   assertScheduleManager,
@@ -94,6 +99,22 @@ export async function POST(request: Request) {
 
     const { admin } = access;
 
+    // 학생 월 이용료(듣기): 이번 달 아직 안 낸 학생 수만큼 잔액이 되는지 먼저 본다(단어 배정과 같다)
+    const academyId = access.profile.academy_id;
+    const seatStudentIds = await resolveStudentIdsForScheduleAssignment(admin, {
+      target_type: targetType,
+      target_class_id: targetClassId,
+      target_student_id: targetStudentId,
+    });
+    if (academyId) {
+      const seatShortfall = await monthlySeatShortfall(admin, {
+        academyId,
+        studentIds: seatStudentIds,
+        kind: "listening",
+      });
+      if (seatShortfall) return jsonError(seatShortfall, 402);
+    }
+
     const { data: setTitleRows } = await admin
       .from("listening_sets")
       .select("id, title")
@@ -146,6 +167,23 @@ export async function POST(request: Request) {
         .delete()
         .eq("id", inserted.id);
       return jsonError(setErr.message);
+    }
+
+    if (academyId && seatStudentIds.length > 0) {
+      const charged = await chargeMonthlySeatsOnAssign(admin, {
+        academyId,
+        studentIds: seatStudentIds,
+        kind: "listening",
+        actorId: access.profile.id,
+      });
+      if (!charged.ok) {
+        // 이용료를 못 낸 배정은 되돌린다(이미 낸 학생은 이번 달 다시 차감되지 않는다)
+        await admin
+          .from("listening_schedule_assignments")
+          .delete()
+          .eq("id", inserted.id);
+        return jsonError(charged.message, 402);
+      }
     }
 
     const { data: assignment } = await admin

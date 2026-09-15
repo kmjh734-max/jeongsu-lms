@@ -14,13 +14,14 @@ function buildInstruction(targetPerson: string): string {
 }
 
 function resolveTargetPerson(q: GeneratedListeningQuestion): string {
+  // "I want to be …"를 실제로 말한 화자가 우선 (모델 필드보다 대본이 기준)
+  const dreamSpeaker = findDreamJobSpeaker(q.segments);
+  if (dreamSpeaker === "M") return "남자";
+  if (dreamSpeaker === "W") return "여자";
   if (q.target_person?.trim()) {
     const label = targetPersonLabel(q.target_person);
     if (label) return label;
   }
-  const dreamSpeaker = findDreamJobSpeaker(q.segments);
-  if (dreamSpeaker === "M") return "남자";
-  if (dreamSpeaker === "W") return "여자";
   if (q.instruction.includes("남자")) return "남자";
   if (q.instruction.includes("여자")) return "여자";
   return "여자";

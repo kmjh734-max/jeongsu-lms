@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { extractStudentRecordContent } from "@/lib/student-records/extract-content";
 import { parseStudentRecordUpload } from "@/lib/student-records/parse-upload";
+import {
+  isCompleteStudentRecordOcr,
+  readStudentRecordOcrCache,
+  studentRecordOcrCacheKey,
+  writeStudentRecordOcrCache,
+} from "@/lib/student-records/ocr-cache";
 import { resolveStudentRecordTarget } from "@/lib/student-records/resolve-student";
 
 export const runtime = "nodejs";
@@ -53,6 +59,25 @@ export async function POST(request: Request) {
       );
     }
 
+    // 같은 쪽 묶음을 다시 보내면(실패 후 다시 시도 등) 저장해 둔 글자를 쓰고 다시 읽지 않는다
+    const academyId = (profile.academy_id as string | null) ?? null;
+    const cacheKey = studentRecordOcrCacheKey({
+      academyId,
+      studentName: target.studentName,
+      text: combinedText,
+      imageDataUrls: parsed.imageDataUrls,
+      pdfDocuments: parsed.pdfDocuments,
+    });
+    const cachedText = cacheKey ? await readStudentRecordOcrCache(cacheKey) : null;
+    if (cachedText) {
+      return NextResponse.json({
+        ok: true,
+        text: cachedText,
+        studentId: target.studentId,
+        studentName: target.studentName,
+      });
+    }
+
     const result = await extractStudentRecordContent({
       studentId: target.studentId,
       studentName: target.studentName,
@@ -63,6 +88,10 @@ export async function POST(request: Request) {
 
     if (!result.ok) {
       return jsonError(result.message);
+    }
+
+    if (cacheKey && isCompleteStudentRecordOcr(result.text, parsed.pdfDocuments)) {
+      await writeStudentRecordOcrCache({ key: cacheKey, academyId, text: result.text });
     }
 
     return NextResponse.json({

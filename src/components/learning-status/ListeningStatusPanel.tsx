@@ -62,6 +62,19 @@ function pct(done: number, total: number): string {
   return total > 0 ? String(Math.round((done / total) * 100)) : "—";
 }
 
+function formatMD(iso: string): string {
+  const d = parseDateOnly(iso);
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+/** 이름 아래 「일시정지 · 9/15~」 */
+function pausedLabelOf(row: ListeningStatusRow): string | undefined {
+  if (!row.pause) return undefined;
+  return row.pause.until
+    ? `일시정지 ${formatMD(row.pause.since)}~${formatMD(row.pause.until)}`
+    : `일시정지 ${formatMD(row.pause.since)}~`;
+}
+
 /** 오늘이 든 주의 월요일 */
 function mondayOf(iso: string): string {
   const d = parseDateOnly(iso);
@@ -190,10 +203,15 @@ export function ListeningStatusPanel({
     }
 
     const missedMonth = rows.filter((r) => r.missedDates.length > 0);
+    // 오늘 멈춘 학생 (오늘 학생 수·안 한 학생에서 빠진다)
+    const pausedToday = rows.filter((r) =>
+      r.days.some((d) => d.taskDate === todayIso && d.symbol === "paused")
+    ).length;
 
     return {
       isCurrentMonth,
       doneToday,
+      pausedToday,
       todayTotal: withToday.length,
       missed: isCurrentMonth ? missedToday : missedMonth,
       weekRate: pct(weekDone, weekTotal),
@@ -254,7 +272,9 @@ export function ListeningStatusPanel({
               />
             </label>
           </div>
-          <HomeworkStatusLegend />
+          <HomeworkStatusLegend
+            withPaused={rows.some((r) => r.days.some((d) => d.symbol === "paused"))}
+          />
         </div>
 
         {error ? (
@@ -277,7 +297,13 @@ export function ListeningStatusPanel({
                 label="오늘 끝낸 학생"
                 value={String(summary.doneToday)}
                 unit={`/ ${summary.todayTotal}명`}
-                note={summary.todayTotal === 0 ? "오늘은 나간 과제가 없어요" : undefined}
+                note={
+                  summary.pausedToday > 0
+                    ? `일시정지 ${summary.pausedToday}명은 빼고 셌어요`
+                    : summary.todayTotal === 0
+                      ? "오늘은 나간 과제가 없어요"
+                      : undefined
+                }
               />
             ) : (
               <StatCard label="학생" value={String(rows.length)} unit="명" />
@@ -356,6 +382,7 @@ export function ListeningStatusPanel({
                 id: r.studentId,
                 name: r.studentName,
                 sub: selectedClass ? undefined : r.classLabel,
+                pausedLabel: pausedLabelOf(r),
                 days: r.days,
                 rate: r.totalCount > 0 ? r.executionRate : null,
               }))}

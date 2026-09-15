@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { scheduleStudentMonthlySeat } from "@/lib/credits/monthly-seat";
 import { gradeListeningExamAnswers } from "@/lib/listening/exam/grade-answers";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -98,6 +99,13 @@ export async function POST(request: Request) {
       await admin.from("listening_exam_attempts").delete().eq("id", attempt.id);
       return jsonError(ansErr.message);
     }
+
+    // 새 달에 처음 공부하면 이번 달 듣기 이용료를 낸다(응답 뒤에, 잔액이 모자라도 막지 않는다)
+    scheduleStudentMonthlySeat({
+      academyId: profile.academy_id,
+      studentId: profile.id,
+      kind: "listening",
+    });
 
     return NextResponse.json({
       ok: true,

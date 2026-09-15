@@ -97,6 +97,18 @@ function viewHref(basePath: string, j: JobRow): string {
   return `${basePath}/generations/${j.id}`;
 }
 
+/**
+ * "09. 14. 오후 06:23" (한국 시간). 서버와 브라우저의 Intl 데이터가 달라 "PM"/"오후"가 갈리면
+ * 화면을 다시 그리는 오류(#418)가 나서, 글자를 직접 만든다.
+ */
+function formatKoreanDateTime(iso: string): string {
+  const d = new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const h = d.getUTCHours();
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${pad(d.getUTCMonth() + 1)}. ${pad(d.getUTCDate())}. ${h < 12 ? "오전" : "오후"} ${pad(h12)}:${pad(d.getUTCMinutes())}`;
+}
+
 export function GenerationsListClient({
   basePath,
   initialJobs,
@@ -476,14 +488,7 @@ export function GenerationsListClient({
                       </span>
                     </td>
                     <td className="whitespace-nowrap text-xs text-slate-600">
-                      {new Date(j.created_at).toLocaleString("ko-KR", {
-                        // 서버(UTC)와 브라우저가 같은 시각을 그리도록 한국 시간으로 고정
-                        timeZone: "Asia/Seoul",
-                        month: "2-digit",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatKoreanDateTime(j.created_at)}
                     </td>
                     <td>
                       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">

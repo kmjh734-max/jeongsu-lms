@@ -10,14 +10,20 @@ import {
   personLabelToSpeaker,
   speakerToPersonLabel,
 } from "@/lib/listening/type15-request-choices";
+import { otherMw, speakerOfQuote } from "@/lib/listening/speaker-attribution";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
+/** 부탁한 사람은 대본에서 실제로 부탁 표현을 말한 화자가 우선 (모델 필드는 틀릴 때가 많음) */
 function resolveRequester(q: GeneratedListeningQuestion): string {
+  const fromQuote =
+    speakerOfQuote(q.segments, q.request_expression) ??
+    speakerOfQuote(q.segments, q.answer_clue);
+  if (fromQuote) return speakerToPersonLabel(fromQuote);
+  const speaker = findRequestSpeaker(q.segments);
+  if (speaker) return speakerToPersonLabel(speaker);
   if (q.requester?.trim()) {
     return targetPersonLabel(q.requester) ?? q.requester.trim();
   }
-  const speaker = findRequestSpeaker(q.segments);
-  if (speaker) return speakerToPersonLabel(speaker);
   if (q.instruction.includes("여자")) return "여자";
   if (q.instruction.includes("남자")) return "남자";
   return "여자";
@@ -27,6 +33,11 @@ function resolveRequestedPerson(
   q: GeneratedListeningQuestion,
   requester: string
 ): string {
+  const reqCode = personLabelToSpeaker(requester);
+  // 두 사람 대화면 부탁받은 사람은 항상 상대 화자
+  if (reqCode && q.segments.some((s) => s.speaker === otherMw(reqCode))) {
+    return speakerToPersonLabel(otherMw(reqCode));
+  }
   if (q.requested_person?.trim()) {
     return targetPersonLabel(q.requested_person) ?? q.requested_person.trim();
   }
@@ -48,10 +59,10 @@ function instructionMatches(
   requester: string,
   requestedPerson: string
 ): boolean {
+  // "남자가 여자에게"는 남자·여자를 둘 다 담고 있어 단순 포함 검사로는 반대 지시문도 통과했다
   return (
-    instruction.includes(requester) &&
-    (instruction.includes(`${requestedPerson}에게`) ||
-      instruction.includes(requestedPerson))
+    new RegExp(`${requester}[가이]\\s`).test(instruction) &&
+    instruction.includes(`${requestedPerson}에게`)
   );
 }
 

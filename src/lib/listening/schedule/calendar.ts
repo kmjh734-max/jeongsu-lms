@@ -1,7 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { isStudyDay, parseDateOnly } from "@/lib/listening/schedule/days-of-week";
+import { applyPausesToAssignment } from "@/lib/listening/schedule/pauses";
 import {
+  isAssignmentPausedOn,
   loadStudentScheduleContext,
   type StudentScheduleContext,
 } from "@/lib/listening/schedule/student-context";
@@ -22,6 +24,8 @@ export interface ListeningCalendarDay {
   completedCount: number;
   assignmentTitle: string | null;
   setTitle: string | null;
+  /** 선생님이 멈춘 날 (학습일로 세지 않음) */
+  paused?: boolean;
 }
 
 function isDateInAssignment(
@@ -84,7 +88,7 @@ export async function getStudentListeningCalendar(
   };
 
   // 과제 목록(유효 시작일 포함)과 이달 과제는 서로 기다릴 필요가 없다
-  const [{ assignments, effectiveStartByAssignment }, { data: taskRows }] = await Promise.all([
+  const [ctx, { data: taskRows }] = await Promise.all([
     context ?? loadStudentScheduleContext(admin, studentId),
     admin
       .from("listening_daily_tasks")
@@ -104,21 +108,35 @@ export async function getStudentListeningCalendar(
     tasksByDate.set(iso, list);
   }
 
+  const { assignments, effectiveStartByAssignment, pausesByAssignment } = ctx;
   const activeAssignmentIds = new Set(assignments.map((a) => a.id));
+  // 끝나는 날은 쉰 날만큼 뒤로 민 규칙으로 본다
+  const effectiveAssignments = assignments.map((a) =>
+    applyPausesToAssignment(a, pausesByAssignment.get(a.id))
+  );
   const days: ListeningCalendarDay[] = [];
 
   for (let day = 1; day <= daysInMonth; day++) {
     const taskDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const dateObj = parseDateOnly(taskDate);
     const weekday = dateObj.getDay();
-    const studyAssignments = assignments.filter((a) =>
+    const ruleAssignments = effectiveAssignments.filter((a) =>
       isDateInAssignment(
         taskDate,
         a,
         effectiveStartByAssignment.get(a.id)
       )
     );
-    const rows = tasksByDate.get(taskDate) ?? [];
+    // 멈춘 날은 학습일로 세지 않는다 (그날 끝낸 과제는 그대로 보인다)
+    const studyAssignments = ruleAssignments.filter(
+      (a) => !isAssignmentPausedOn(ctx, a.id, taskDate)
+    );
+    const rows = (tasksByDate.get(taskDate) ?? []).filter(
+      (r) =>
+        r.status === "completed" ||
+        !activeAssignmentIds.has(r.assignment_id) ||
+        !isAssignmentPausedOn(ctx, r.assignment_id, taskDate)
+    );
     // 요일·기간을 바꾼 뒤에도 이미 나간 과제는 달력에 남긴다
     const isStudyDayFlag =
       studyAssignments.length > 0 ||
@@ -137,6 +155,7 @@ export async function getStudentListeningCalendar(
         completedCount: 0,
         assignmentTitle: null,
         setTitle: null,
+        paused: ruleAssignments.length > 0,
       });
       continue;
     }

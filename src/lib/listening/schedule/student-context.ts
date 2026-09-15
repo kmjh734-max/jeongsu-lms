@@ -1,4 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { loadSchedulePauses } from "@/lib/listening/schedule/load-pauses";
+import {
+  isDatePaused,
+  pausesForStudent,
+  type SchedulePauseRange,
+} from "@/lib/listening/schedule/pauses";
 import { computeStudentListeningEffectiveStartIso } from "@/lib/listening/schedule/student-effective-start";
 import type { ScheduleAssignmentRow } from "@/lib/listening/schedule/types";
 
@@ -12,6 +18,17 @@ export interface StudentScheduleContext {
   assignments: ScheduleAssignmentRow[];
   /** 과제 id → 유효 시작일 (getStudentListeningEffectiveStartIso 와 같은 값) */
   effectiveStartByAssignment: Map<string, string>;
+  /** 과제 id → 이 학생에게 걸린 일시정지 기간 (과제 전체 + 이 학생). 없으면 빈 목록 */
+  pausesByAssignment: Map<string, SchedulePauseRange[]>;
+}
+
+/** 이 학생에게 이 과제가 그날 멈춰 있는지 */
+export function isAssignmentPausedOn(
+  context: Pick<StudentScheduleContext, "pausesByAssignment">,
+  assignmentId: string,
+  iso: string
+): boolean {
+  return isDatePaused(context.pausesByAssignment.get(assignmentId), iso);
 }
 
 export async function loadStudentScheduleContext(
@@ -69,5 +86,15 @@ export async function loadStudentScheduleContext(
     );
   }
 
-  return { assignments, effectiveStartByAssignment };
+  // 일시정지 기간 — 과제 전체 멈춤과 이 학생만 멈춘 것
+  const pauseMap = await loadSchedulePauses(
+    admin,
+    assignments.map((a) => a.id)
+  );
+  const pausesByAssignment = new Map<string, SchedulePauseRange[]>();
+  for (const a of assignments) {
+    pausesByAssignment.set(a.id, pausesForStudent(pauseMap.get(a.id), studentId));
+  }
+
+  return { assignments, effectiveStartByAssignment, pausesByAssignment };
 }

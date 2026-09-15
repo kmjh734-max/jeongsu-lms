@@ -16,6 +16,34 @@ const WEATHER_KO_MAP: Record<string, string[]> = {
   안개: ["fog", "foggy"],
 };
 
+/** 영어 날씨 선택지 → 한국어 (다른 날씨 문항은 모두 한국어라 섞이지 않게 맞춘다) */
+const WEATHER_EN_TO_KO: Record<string, string> = {
+  sunny: "맑음",
+  clear: "맑음",
+  cloudy: "흐림",
+  rainy: "비",
+  rain: "비",
+  snowy: "눈",
+  snow: "눈",
+  windy: "바람",
+  foggy: "안개",
+  stormy: "천둥번개",
+};
+
+function weatherToKorean(label: string): string | null {
+  const key = label.trim().toLowerCase().replace(/[.!]$/, "");
+  return WEATHER_EN_TO_KO[key] ?? null;
+}
+
+/** 선택지가 모두 영어 날씨어면 한국어로 바꾼다 (하나라도 모르는 말이면 그대로 둔다) */
+export function koreanizeWeatherChoices(choices: string[]): string[] | null {
+  if (!choices.some((c) => /[a-z]/i.test(c))) return null;
+  const mapped = choices.map((c) => (/[가-힣]/.test(c) ? c.trim() : weatherToKorean(c)));
+  if (mapped.some((m) => !m)) return null;
+  if (new Set(mapped).size !== mapped.length) return null;
+  return mapped as string[];
+}
+
 function normalizeMentioned(
   raw: unknown
 ): MentionedWeatherByTime[] {
@@ -87,7 +115,12 @@ export function fixType3Question(
 
   const weather_target_location = q.weather_target_location?.trim() ?? "";
   const weather_target_time = q.weather_target_time?.trim() ?? "";
-  const weather_answer = q.weather_answer?.trim() ?? "";
+  const koreanChoices = koreanizeWeatherChoices(q.choices);
+  const choices = koreanChoices ?? q.choices;
+  const rawAnswer = q.weather_answer?.trim() ?? "";
+  const weather_answer = koreanChoices
+    ? weatherToKorean(rawAnswer) ?? rawAnswer
+    : rawAnswer;
   const mentioned_weather_by_time = normalizeMentioned(q.mentioned_weather_by_time);
 
   const instruction =
@@ -101,6 +134,7 @@ export function fixType3Question(
     question_type: TYPE3_QUESTION_TYPE,
     instruction,
     segments,
+    choices,
     script_text: buildScriptText(segments),
     question_text: "",
     needs_image_choices: true,

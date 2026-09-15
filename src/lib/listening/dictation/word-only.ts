@@ -7,6 +7,51 @@ export function isDictationSingleWord(answer: string): boolean {
   return /^[A-Za-z]+(?:'[A-Za-z]+)?$/.test(t);
 }
 
+/**
+ * 받아쓰기로 의미 없는 빈칸: "What am I?"의 What, "Yes." 같은 인사·기능어.
+ * 이런 칸이 122개 있었다 — 새로 만들 때 빼고, 이미 있으면 다시 만든다.
+ */
+const TRIVIAL_BLANK_WORDS = new Set([
+  "a", "an", "the", "i", "you", "he", "she", "it", "we", "they", "me", "my", "your",
+  "is", "am", "are", "was", "were", "be", "do", "does", "did",
+  "yes", "no", "ok", "okay", "oh", "hi", "hello", "bye", "sure", "well", "so",
+  "what", "who", "how", "and", "or", "but", "to", "of", "in", "on", "at",
+  "thanks", "please", "i'm", "it's", "that's",
+]);
+
+export function isTrivialDictationBlank(item: {
+  answer: string;
+  original_sentence?: string;
+  display_sentence?: string;
+}): boolean {
+  const word = item.answer.trim().toLowerCase().replace(/[’`]/g, "'");
+  if (!word || TRIVIAL_BLANK_WORDS.has(word)) return true;
+  const sentence = (item.original_sentence || item.display_sentence || "")
+    .replace(/^(M|W|ANN)\s*:\s*/i, "")
+    .trim();
+  // 세 단어 이하 짧은 문장("What am I?", "Yes, I do.")의 빈칸은 들을 필요가 없다
+  const words = sentence.split(/\s+/).filter(Boolean).length;
+  return words > 0 && words <= 3;
+}
+
+/** 이미 만든 빈칸 중 다시 만들어야 할 만큼 뻔한 칸 (좁은 기준 — 멀쩡한 빈칸까지 다시 만들지 않게) */
+const CLEARLY_TRIVIAL_WORDS = new Set(["what", "yes", "no", "ok", "okay", "hi", "hello", "bye", "oh"]);
+
+export function isClearlyTrivialDictationBlank(item: {
+  answer: string;
+  original_sentence?: string;
+  display_sentence?: string;
+}): boolean {
+  const word = item.answer.trim().toLowerCase();
+  if (!CLEARLY_TRIVIAL_WORDS.has(word)) return false;
+  if (word !== "what") return true;
+  // What은 "What am I?"처럼 짧은 문장일 때만
+  const sentence = (item.original_sentence || item.display_sentence || "")
+    .replace(/^(M|W|ANN)\s*:\s*/i, "")
+    .trim();
+  return sentence.split(/\s+/).filter(Boolean).length <= 4;
+}
+
 export function normalizeLineForMatch(text: string): string {
   return text
     .replace(/[\u2018\u2019\u2032`´]/g, "'")

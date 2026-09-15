@@ -69,6 +69,8 @@ export const HIGH1_JSON_OUTPUT_SCHEMA = `
   ]
 }
 
+해설(explanation)에는 선택지 번호 ①~⑤를 쓰지 않는다 (4번 그림 라벨 설명은 예외).
+6번: price_calculation { items[{label, unit_price, quantity}], adjustments[{kind: percent_off|amount_off|add, value}], final_amount } 필수. 대본에서 최종 금액을 말하지 않는다.
 4번: needs_image_choices true, choices=["①","②","③","④","⑤"], choice_image_prompts에 라벨 ①–⑤ 장면 1개.
 중요: 대화는 올바른 사실만 말하고, 그림만 그중 하나를 틀리게. "포스터에 이미 틀린 값이 있다"고 대화에서 인정하지 말 것.
 10번: table_data 필수 { title, rows[5](no,label,value), mismatch_no=정답 행(1~5), mismatch_reason }. question_text "".

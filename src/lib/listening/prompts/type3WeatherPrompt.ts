@@ -44,7 +44,7 @@ export const TYPE3_JSON_OUTPUT_SCHEMA = `
 
 order_index는 반드시 3.
 instruction에 지역명(한국어)과 질문 시점(현재/오늘 오후/내일 등)을 명확히 넣는다.
-choices는 한국어 날씨 표현으로 통일 권장 (맑음, 흐림, 비, 눈, 바람, 안개 등).
+choices는 반드시 한국어 날씨어 5개 (맑음, 흐림, 비, 눈, 바람, 안개 중). Sunny·Rainy 같은 영어 선택지 금지.
 weather_answer와 correct_answer가 가리키는 날씨가 일치해야 한다.
 `.trim();
 

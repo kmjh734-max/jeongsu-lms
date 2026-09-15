@@ -61,6 +61,7 @@ export async function GET(request: Request) {
       todayTask: summary.todayTask,
       missedTasks: summary.missedTasks,
       nextStudyDate: summary.nextStudyDate,
+      paused: summary.paused,
       calendar,
     });
   } catch (e) {

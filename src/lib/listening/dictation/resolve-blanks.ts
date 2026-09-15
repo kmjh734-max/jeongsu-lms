@@ -7,6 +7,7 @@ import { collectDictationLines } from "@/lib/listening/dictation/spoken-lines";
 import {
   pickPreparedBlankItems,
   prebuildDictationForQuestion,
+  preparedBlanksAreStale,
 } from "@/lib/listening/dictation/prebuild-question";
 import type {
   DictationBlankItem,
@@ -44,6 +45,13 @@ export async function resolveDictationBlankItems(
       .maybeSingle();
 
     items = qRow ? (pickPreparedBlankItems(qRow, input.attemptNo) ?? []) : [];
+    // 대본을 고친 뒤 남은 예전 빈칸(새 음원과 다름)이나 뻔한 칸이면 다시 만든다
+    if (
+      items.length &&
+      preparedBlanksAreStale(items, input.scriptText, input.segments)
+    ) {
+      items = [];
+    }
   }
 
   if (!items.length) {

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { scheduleStudentMonthlySeat } from "@/lib/credits/monthly-seat";
 import {
   actionError,
   actionSuccess,
@@ -91,6 +92,14 @@ async function studentSetContext(setId: unknown): Promise<ContextResult> {
   if (!set || !assigned) {
     return { ctx: null, error: actionError("단어장을 찾을 수 없어요.") };
   }
+
+  // 새 달에 처음 공부하면 이번 달 이용료를 낸다(응답 뒤에, 잔액이 모자라도 공부는 막지 않는다)
+  scheduleStudentMonthlySeat({
+    academyId: profile.academy_id,
+    studentId: profile.id,
+    kind: "vocab",
+    assignmentVerified: true,
+  });
 
   return {
     ctx: {

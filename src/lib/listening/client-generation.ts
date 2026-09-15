@@ -77,6 +77,8 @@ export async function generateQuestionsSequential(opts: {
     questions?: GeneratedListeningQuestion[];
     schemaWarning?: string;
     schemaMigrationNeeded?: boolean;
+    /** 만들지 못한 슬롯 번호 — 만든 문항은 이미 저장·차감됐고 이 번호만 따로 다시 만든다 */
+    missingSlotIndexes?: number[];
   };
 
   if (!data.ok || !data.questions?.length) {
@@ -92,11 +94,76 @@ export async function generateQuestionsSequential(opts: {
     };
   }
 
-  const generated = data.questions.map((q, i) => ({
-    ...q,
-    order_index: slots[i]?.slotIndex ?? q.order_index,
-    needs_review: false,
-  }));
+  const missing = (data.missingSlotIndexes ?? []).filter((n) =>
+    slots.some((s) => s.slotIndex === n)
+  );
+  let generated: GeneratedListeningQuestion[];
+  if (missing.length === 0) {
+    generated = data.questions.map((q, i) => ({
+      ...q,
+      order_index: slots[i]?.slotIndex ?? q.order_index,
+      needs_review: false,
+    }));
+  } else {
+    // 일부만 만들어졌다: 만든 문항은 그대로 두고 빠진 번호만 한 번씩 다시 만든다(문항마다 따로 차감)
+    generated = data.questions.map((q) => ({ ...q, needs_review: false }));
+    const stillMissing: number[] = [];
+    for (const slotIndex of missing) {
+      const slot = slots.find((s) => s.slotIndex === slotIndex)!;
+      const row = items.find((item) => item.orderIndex === slotIndex);
+      try {
+        const itemRes = await fetch("/api/listening/generate-question-item", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            setId,
+            typeId: slot.typeId,
+            orderIndex: slot.slotIndex,
+            mode,
+            difficultyMode,
+            persist,
+          }),
+        });
+        const itemData = (await itemRes.json().catch(() => ({}))) as GenerateItemResult;
+        if (itemData.ok && itemData.question) {
+          generated.push({
+            ...itemData.question,
+            order_index: slot.slotIndex,
+            needs_review: false,
+          });
+          continue;
+        }
+        if (row) row.message = itemData.message;
+        stillMissing.push(slotIndex);
+        // 크레딧이 모자라면 나머지도 같으니 멈춘다
+        if (itemRes.status === 402) {
+          stillMissing.push(...missing.slice(missing.indexOf(slotIndex) + 1));
+          break;
+        }
+      } catch {
+        stillMissing.push(slotIndex);
+      }
+    }
+    generated.sort((a, b) => a.order_index - b.order_index);
+
+    if (stillMissing.length > 0) {
+      const missingSet = new Set(stillMissing);
+      items.forEach((item) => {
+        if (missingSet.has(item.orderIndex)) {
+          item.status = "error";
+          item.message = item.message ?? "미생성";
+        } else {
+          item.status = persist ? "saved" : "done";
+        }
+      });
+      onProgress(generationProgressPercent("error", generated.length, total), "error", items);
+      return {
+        questions: generated,
+        reviewCount: 0,
+        error: `${total}문항 중 ${generated.length}문항을 만들어 ${persist ? "저장했어요" : "미리보기에 담았어요"}. ${stillMissing.join(", ")}번 문항은 만들지 못했어요.`,
+      };
+    }
+  }
 
   if (generated.length < total) {
     items.forEach((item, i) => {

@@ -8,6 +8,11 @@ import {
   ensureDailyTasksForStudentRange,
   loadStartedTaskIds,
 } from "@/lib/listening/schedule/generate-daily-tasks";
+import { loadSchedulePauses } from "@/lib/listening/schedule/load-pauses";
+import {
+  applyPausesToAssignment,
+  pausesForStudent,
+} from "@/lib/listening/schedule/pauses";
 import { isTaskStarted } from "@/lib/listening/schedule/plan-daily-tasks";
 import { buildQuestionQueueForAssignment } from "@/lib/listening/schedule/question-queue";
 import { resolveStudentIdsForScheduleAssignment } from "@/lib/listening/schedule/resolve-students";
@@ -311,7 +316,7 @@ export async function loadScheduleTaskHistory(
   return { hasHistory, reachedSetIds: [...reached] };
 }
 
-async function runWithConcurrency<T>(
+export async function runWithConcurrency<T>(
   items: T[],
   limit: number,
   worker: (item: T) => Promise<void>
@@ -329,7 +334,7 @@ async function runWithConcurrency<T>(
   await Promise.all(runners);
 }
 
-function addDaysIso(iso: string, days: number): string {
+export function addDaysIso(iso: string, days: number): string {
   const d = parseDateOnly(iso);
   d.setDate(d.getDate() + days);
   return toDateOnlyString(d);
@@ -370,17 +375,15 @@ export async function rebuildUpcomingScheduleTasks(
   };
   if (!assignment.is_active) return result;
 
-  const [studentIds, queue] = await Promise.all([
+  const [studentIds, queue, pauseMap] = await Promise.all([
     resolveStudentIdsForScheduleAssignment(admin, assignment),
     buildQuestionQueueForAssignment(admin, assignment.id),
+    loadSchedulePauses(admin, [assignment.id]),
   ]);
   if (studentIds.length === 0 || queue.length === 0) return result;
+  const pauses = pauseMap.get(assignment.id) ?? [];
 
   const horizonTo = addDaysIso(todayIso, horizonDays);
-  const toIso =
-    assignment.end_date && assignment.end_date < horizonTo
-      ? assignment.end_date
-      : horizonTo;
 
   await runWithConcurrency(studentIds, 5, async (studentId) => {
     const effectiveStart = await getStudentListeningEffectiveStartIso(
@@ -388,6 +391,12 @@ export async function rebuildUpcomingScheduleTasks(
       assignment,
       studentId
     );
+    // 일시정지로 쉰 날이 있으면 끝나는 날도 그만큼 뒤로 밀린다
+    const endIso = applyPausesToAssignment(
+      assignment,
+      pausesForStudent(pauses, studentId)
+    ).end_date;
+    const toIso = endIso && endIso < horizonTo ? endIso : horizonTo;
     const fromIso = effectiveStart > todayIso ? effectiveStart : todayIso;
     if (fromIso > toIso) return;
     await ensureDailyTasksForStudentRange(
@@ -397,7 +406,8 @@ export async function rebuildUpcomingScheduleTasks(
       fromIso,
       toIso,
       queue,
-      effectiveStart
+      effectiveStart,
+      pauses
     );
   });
 

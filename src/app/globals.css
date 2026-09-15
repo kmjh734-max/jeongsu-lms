@@ -1883,6 +1883,13 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   line-height: 1.4;
 }
 
+/* 한 단보다 긴 문항을 나눠 실을 때 끝 부분이 아닌 조각: 다음 단에서 이어지므로 구분선을 뺀다. */
+.qg-print-card.qg-print-card-cont {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
 .qg-print-q-head {
   font-weight: 800;
   margin-bottom: 1.2mm;

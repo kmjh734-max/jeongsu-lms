@@ -36,7 +36,8 @@ export function instructionMatchesSuggester(
 ): boolean {
   const who = targetPersonLabel(suggester);
   if (!who || !instruction.trim()) return true;
-  return instruction.includes(who);
+  // "남자가 여자에게"에는 남자·여자가 모두 있으므로 조사까지 보고 판단한다
+  return new RegExp(`${who}[가이]\\s`).test(instruction);
 }
 
 export function instructionMatchesSuggestedTo(
@@ -45,7 +46,7 @@ export function instructionMatchesSuggestedTo(
 ): boolean {
   const to = targetPersonLabel(suggestedTo);
   if (!to || !instruction.trim()) return true;
-  return instruction.includes(`${to}에게`) || instruction.includes(to);
+  return instruction.includes(`${to}에게`);
 }
 
 export function findSuggestionSpeaker(

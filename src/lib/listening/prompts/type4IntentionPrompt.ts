@@ -78,7 +78,12 @@ const TYPE4_GENERATION_RULES = `
 - 부탁: Could you help me carry this box?
 - 항의: Please check the order next time. (공손한 불만)
 - 감사: Thank you for your help.
-- 격려: Don't worry. You can do it.
+- 격려: Don't worry. You can do it. (걱정·긴장한 상대에게 하는 말)
+
+격려 주의:
+- 격려하는 사람(마지막 화자)과 걱정하는 사람은 서로 다른 사람이다. 걱정·긴장을 말한 사람이 마지막에 격려하면 안 된다.
+- "Don't worry, I can do it."처럼 자기 자신에게 하는 다짐은 격려가 아니다. 마지막 말은 상대(you)를 향해야 한다.
+- 같은 사람이 두 줄 연속 말하지 않는다 (M/W 교대). 한 사람의 말은 한 줄에 합친다.
 
 대화 흐름: 상황 제시 → 반응 → 배경 → 의도 유도 → 마지막 말에서 의도 명확.
 

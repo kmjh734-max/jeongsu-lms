@@ -26,6 +26,7 @@ import { fixType10Question } from "@/lib/listening/fix-type10-question";
 import { fixType11Question } from "@/lib/listening/fix-type11-question";
 import { fixType12Question } from "@/lib/listening/fix-type12-question";
 import { fixType13Question } from "@/lib/listening/fix-type13-question";
+import { fixPriceAnswer, isPriceQuestion } from "@/lib/listening/price-check";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 /** 생성·저장 직전 유형별 정규화 */
@@ -35,13 +36,19 @@ export function applyQuestionFixes(
   gradeLevel?: ListeningGradeLevel
 ): GeneratedListeningQuestion {
   const slotOrder = q.order_index;
-  // 고1·고2는 중등 1~20 유형 fix와 번호 의미가 다름 — 스크립트 언어 보정만
+  // 고1·고2는 중등 1~20 유형 fix와 번호 의미가 다름 — 스크립트 언어·연속 화자·금액 검산만
   if (isHighSchoolListeningGrade(gradeLevel)) {
-    const out = fixSwappedScriptLanguage(q);
+    const highId = typeId ?? inferExamTypeIdForFixes(q, gradeLevel);
+    let out = fixSwappedScriptLanguage(q);
+    out = ensureMwDialogueSegments(out, highId, gradeLevel, { mergeOnly: true });
+    if (isPriceQuestion(out)) out = fixPriceAnswer(out).question;
     return { ...out, order_index: slotOrder };
   }
   const id = typeId ?? inferExamTypeIdForFixes(q, gradeLevel);
   let out = fixSwappedScriptLanguage(q);
+  // 화자 정리(같은 화자 연속 줄 합치기)를 먼저 해야 아래 유형 보정이 실제 화자로 지시문을 맞춘다.
+  // 예전에는 보정 뒤에 M↔W를 억지로 번갈아 붙여 부탁·격려·직업 문항의 화자가 뒤집혔다.
+  out = ensureMwDialogueSegments(out, id, gradeLevel);
   out = fixContinuationQuestion(out, id);
   out = fixType14Question(out, id, gradeLevel);
   out = fixType1Question(out, id, gradeLevel);
@@ -63,6 +70,8 @@ export function applyQuestionFixes(
   out = fixType18Question(out, id);
   out = fixType19Question(out, id);
   out = fixType20Question(out, id);
-  out = ensureMwDialogueSegments(out, id, gradeLevel);
+  // 유형 보정이 줄을 바꿨을 수 있으니 연속 줄만 한 번 더 합친다 (화자는 바꾸지 않음)
+  out = ensureMwDialogueSegments(out, id, gradeLevel, { mergeOnly: true });
+  if (isPriceQuestion(out)) out = fixPriceAnswer(out).question;
   return { ...out, order_index: slotOrder };
 }

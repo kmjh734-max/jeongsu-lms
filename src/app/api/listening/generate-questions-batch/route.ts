@@ -2,12 +2,17 @@ import { NextResponse } from "next/server";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import {
-  generateExamQuestionsFromSlots,
-  generateFreeQuestionsFromSlots,
+  generateExamQuestionsFromSlotsSettled,
+  generateFreeQuestionsFromSlotsSettled,
+  type SlotGenerationResult,
 } from "@/lib/listening/generate-exam-from-slots";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
-import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
+import { loadCurriculumAnswerUsage } from "@/lib/listening/curriculum-answer-usage";
+import {
+  clearListeningQuestionsForSet,
+  persistGeneratedQuestions,
+} from "@/lib/listening/persist-questions";
 import type { ListeningGenerationSlot } from "@/lib/listening/generation-slots";
 import { CREDIT_FEATURES } from "@/lib/credits";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
@@ -63,54 +68,79 @@ export async function POST(request: Request) {
     const gradeLevel = await fetchListeningSetGradeLevel(setId);
     const difficultyMode = body.difficultyMode ?? "auto";
 
-    let questions: GeneratedListeningQuestion[];
+    // 같은 과정의 다른 회차에서 이미 쓴 정답 (한 정답이 계속 반복되지 않게)
+    const usedAnswersByType =
+      mode === "exam"
+        ? await loadCurriculumAnswerUsage(access.admin, setId, gradeLevel)
+        : undefined;
+
+    let generated: SlotGenerationResult;
     try {
-      questions =
+      generated =
         mode === "exam"
-          ? await generateExamQuestionsFromSlots(
+          ? await generateExamQuestionsFromSlotsSettled(
               apiKey,
               slots,
               difficultyMode,
-              gradeLevel
+              gradeLevel,
+              { usedAnswersByType }
             )
-          : await generateFreeQuestionsFromSlots(apiKey, slots, gradeLevel);
+          : await generateFreeQuestionsFromSlotsSettled(apiKey, slots, gradeLevel);
     } catch (e) {
       const message = e instanceof Error ? e.message : "문항 생성 실패";
       return jsonError(message);
     }
 
-    if (questions.length !== slots.length) {
-      return jsonError(
-        `${slots.length}문항 중 ${questions.length}문항만 생성되었습니다. 다시 시도해 주세요.`
-      );
+    const questions: GeneratedListeningQuestion[] = generated.questions;
+    const missingSlotIndexes = generated.missingSlotIndexes;
+    if (questions.length === 0) {
+      return jsonError("문항을 만들지 못했습니다. 다시 시도해 주세요.");
     }
 
+    // 일부만 만들어져도 만든 문항은 버리지 않고 저장·차감한다. 빠진 문항은 화면이 따로 다시 만든다.
     if (academyId) {
       await debitLessonCredits({
         academyId,
         actorId: access.profile.id,
         featureKey: CREDIT_FEATURES.listening_generate_questions,
         quantity: questions.length,
-        metadata: { set_id: setId },
+        metadata: {
+          set_id: setId,
+          ...(missingSlotIndexes.length > 0 ? { missing_slots: missingSlotIndexes } : {}),
+        },
         note: `듣기 문항 ${questions.length}개 생성`,
       });
     }
 
+    const partial = missingSlotIndexes.length > 0;
+    const partialMessage = partial
+      ? `${slots.length}문항 중 ${questions.length}문항을 만들었어요. ${missingSlotIndexes.join(", ")}번 문항은 만들지 못했어요.`
+      : undefined;
+
     if (body.persist) {
-      const saved = await persistGeneratedQuestions(
-        setId,
-        questions.map((q, i) => ({
-          ...q,
-          order_index: slots[i]?.slotIndex ?? i + 1,
-        })),
-        { replaceAll: true }
-      );
+      let saved: Awaited<ReturnType<typeof persistGeneratedQuestions>>;
+      if (partial) {
+        // 빠진 번호가 있으면 번호를 당기지 않고 슬롯 번호 그대로 저장한다(빠진 칸은 나중에 채운다)
+        await clearListeningQuestionsForSet(setId);
+        saved = await persistGeneratedQuestions(setId, questions);
+      } else {
+        saved = await persistGeneratedQuestions(
+          setId,
+          questions.map((q, i) => ({
+            ...q,
+            order_index: slots[i]?.slotIndex ?? i + 1,
+          })),
+          { replaceAll: true }
+        );
+      }
       const schemaMigrationNeeded = saved.some(
         (q) => q.schema_extended_saved === false
       );
       return NextResponse.json({
         ok: true,
         questions: saved,
+        missingSlotIndexes,
+        message: partialMessage,
         schemaMigrationNeeded,
         schemaWarning: schemaMigrationNeeded
           ? "문항은 저장되었으나 DB 마이그레이션(027~036) 미적용으로 유형별 메타데이터는 저장되지 않았습니다. Supabase에서 RUN_LISTENING_027_THROUGH_036.sql을 실행하세요."
@@ -118,7 +148,12 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ ok: true, questions });
+    return NextResponse.json({
+      ok: true,
+      questions,
+      missingSlotIndexes,
+      message: partialMessage,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : "문항 일괄 생성 오류";
     return jsonError(message);

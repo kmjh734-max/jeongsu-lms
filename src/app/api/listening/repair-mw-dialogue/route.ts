@@ -7,7 +7,7 @@ function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
 }
 
-/** 세트 대화 문항 M↔W 화자 라벨 일괄 보정 (음원은 재생성 필요) */
+/** 세트 대화 문항의 같은 화자 연속 대사를 한 턴으로 합침 (화자는 바꾸지 않음, 음원은 재생성 필요) */
 export async function POST(request: Request) {
   try {
     const profile = await getCurrentProfile();
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       repairedCount,
       message:
         repairedCount > 0
-          ? `${repairedCount}개 문항의 M/W 화자를 교대로 맞췄습니다. 음원 일괄 생성을 실행하세요.`
+          ? `${repairedCount}개 문항에서 같은 사람이 이어 말한 대사를 한 줄로 합쳤습니다. 음원 일괄 생성을 실행하세요.`
           : "수정할 대화 문항이 없습니다.",
     });
   } catch (e) {

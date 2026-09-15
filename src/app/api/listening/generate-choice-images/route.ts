@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { generateAndSaveChoiceImages } from "@/lib/listening/generate-choice-images";
+import {
+  generateAndSaveChoiceImages,
+  resolveMismatchLabel,
+} from "@/lib/listening/generate-choice-images";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
 
@@ -34,7 +37,9 @@ export async function POST(req: Request) {
     const admin = createAdminClient();
     const { data: q, error } = await admin
       .from("listening_questions")
-      .select("id, set_id, choice_image_prompts")
+      .select(
+        "id, set_id, choice_image_prompts, script_text, choices, correct_answer, explanation, answer_clue"
+      )
       .eq("id", questionId)
       .maybeSingle();
     if (error || !q) {
@@ -65,12 +70,24 @@ export async function POST(req: Request) {
       );
     }
 
+    // 합성 그림(그림 불일치)은 대본·정답 라벨을 함께 넘겨야 라벨마다 대화와 맞는지 검수할 수 있다
+    const composite = prompts.length === 1;
     const result = await generateAndSaveChoiceImages({
       setId,
       questionId,
       prompts,
-      compositeLabeledFigure: prompts.length === 1,
+      compositeLabeledFigure: composite,
       force: Boolean(body.force),
+      figureContext: composite
+        ? {
+            scriptText: String(q.script_text ?? ""),
+            mismatchLabel:
+              resolveMismatchLabel(q.choices as string[] | null, q.correct_answer as number) ??
+              undefined,
+            explanation: String(q.explanation ?? ""),
+            answerClue: String(q.answer_clue ?? ""),
+          }
+        : undefined,
     });
 
     return NextResponse.json({ ok: true, ...result });

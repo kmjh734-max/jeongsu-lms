@@ -10,9 +10,16 @@ import {
   speakerCodeFromTarget,
   targetPersonLabel,
 } from "@/lib/listening/type18-job-choices";
+import {
+  majoritySpeakerOfQuotes,
+  mwToPerson,
+} from "@/lib/listening/speaker-attribution";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 function resolveTargetPerson(q: GeneratedListeningQuestion): string {
+  // 직업 단서 문장을 실제로 말한 화자가 우선 (모델의 target_person이 반대인 경우가 있었음)
+  const fromClues = majoritySpeakerOfQuotes(q.segments, q.job_clues ?? []);
+  if (fromClues) return mwToPerson(fromClues);
   if (q.target_person?.trim()) {
     return targetPersonLabel(q.target_person) ?? q.target_person.trim();
   }

@@ -163,6 +163,41 @@ const COLUMN_TYPE_TITLE: Record<WorkbookColumnTypeId, string> = {
   sentence_order: "문장 순서 배열",
 };
 
+/** 창 본문의 단 사이 간격. 화면·인쇄가 같아야 잰 단 수와 인쇄의 단 수가 같다. */
+const WINDOW_GAP = "7mm";
+
+/**
+ * 한 쪽보다 긴 내용을 높이 heightMm의 단(1단 또는 2단)으로 끝까지 흘린다. 넘친 단은 오른쪽으로
+ * 이어 붙으므로, index번째 쪽의 단이 본문 자리에 오도록 옆으로 옮긴다(본문 밖은 가려진다).
+ * 쪽마다 같은 흐름을 그리므로 줄 나눔이 쪽 사이에서 어긋나지 않는다. probe는 쪽 수를 재는 용도.
+ */
+function WindowFlow({
+  columns,
+  heightMm,
+  index,
+  probe,
+  children,
+}: {
+  columns: 1 | 2;
+  heightMm: number;
+  index: number;
+  probe?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={`workbook-window-flow${columns === 2 ? " workbook-two-col" : " workbook-one-col"}`}
+      style={{
+        height: `${heightMm}mm`,
+        transform: index > 0 ? `translateX(calc(${-index} * (100% + ${WINDOW_GAP})))` : undefined,
+      }}
+      data-wb-probe={probe}
+    >
+      {children}
+    </div>
+  );
+}
+
 function PageShell({
   children,
   pageNo,
@@ -175,6 +210,8 @@ function PageShell({
   columnHeightMm,
   columnKey,
   columnCount,
+  windowIndex,
+  windowCount,
 }: {
   children: ReactNode;
   pageNo: number;
@@ -194,8 +231,16 @@ function PageShell({
   /** 넘침 검사용: "유형:첫 지문 번호"와 이 쪽에 실은 지문 수. */
   columnKey?: string;
   columnCount?: number;
+  /**
+   * 한 쪽보다 긴 지문(또는 정답 블록)을 여러 쪽에 이어 실을 때 이 쪽의 순서(0부터).
+   * 내용을 columnHeightMm 높이의 단으로 끝까지 흘리고, 이 쪽에는 그중 windowIndex번째
+   * 쪽에 해당하는 단만 보이게 옮겨 둔다(나머지 단은 앞뒤 쪽에 보인다).
+   */
+  windowIndex?: number;
+  windowCount?: number;
 }) {
   const fixed = columnHeightMm != null;
+  const win = windowIndex != null && fixed;
   return (
     <article
       className={`workbook-a4-sheet lesson-pack-a4-sheet relative box-border bg-white shadow-xl print:shadow-none ${
@@ -218,21 +263,34 @@ function PageShell({
             style={{ color: ACCENT }}
           >
             {typeTitle}
+            {win && windowIndex > 0 && !typeTitle.endsWith("(계속)") ? " (계속)" : ""}
           </h2>
         ) : null}
       </header>
-      <div
-        className={`workbook-a4-body${columns === 2 ? " workbook-two-col" : ""}`}
-        style={
-          fixed
-            ? { height: `${columnHeightMm}mm`, ...(columns === 2 ? { columnFill: "auto" } : {}) }
-            : undefined
-        }
-        data-col-body={fixed ? columnKey : undefined}
-        data-col-count={fixed ? columnCount : undefined}
-      >
-        {children}
-      </div>
+      {win ? (
+        <div
+          className="workbook-a4-body overflow-hidden"
+          style={{ height: `${columnHeightMm}mm` }}
+          data-wb-window={`${windowIndex + 1}/${windowCount ?? 1}`}
+        >
+          <WindowFlow columns={columns} heightMm={columnHeightMm} index={windowIndex}>
+            {children}
+          </WindowFlow>
+        </div>
+      ) : (
+        <div
+          className={`workbook-a4-body${columns === 2 ? " workbook-two-col" : ""}`}
+          style={
+            fixed
+              ? { height: `${columnHeightMm}mm`, ...(columns === 2 ? { columnFill: "auto" } : {}) }
+              : undefined
+          }
+          data-col-body={fixed ? columnKey : undefined}
+          data-col-count={fixed ? columnCount : undefined}
+        >
+          {children}
+        </div>
+      )}
       <p className="pointer-events-none absolute bottom-[8mm] left-0 right-0 text-center text-[12px] text-slate-500">
         - {pageNo} -
       </p>
@@ -1231,6 +1289,8 @@ type ColumnPage = {
   typeOrder: number;
   packed: boolean;
   columns: 1 | 2;
+  /** 한 쪽보다 긴 지문을 여러 쪽에 이어 실을 때 이 쪽의 순서와 전체 쪽 수. */
+  window?: { index: number; count: number };
 };
 
 /** 한줄해석·통문장 영작·어순배열 영작: 문항 단위로 쪽을 나누고 지문을 이어 싣는다. */
@@ -1263,6 +1323,8 @@ type WorkbookPage =
       /** 이 쪽에 싣는 정답 블록(answerBlocks의 key). null이면 전부(쪽 나눔을 재기 전). */
       keys: string[] | null;
       continued: boolean;
+      /** 한 쪽보다 긴 정답 블록 하나를 여러 쪽에 이어 실을 때 이 쪽의 순서와 전체 쪽 수. */
+      window?: { index: number; count: number };
     };
 
 /** 정답지 블록 사이 간격(px): 같은 유형 안 / 유형이 바뀔 때. */
@@ -1323,8 +1385,15 @@ export function WorkbookWorkbench({
   >({});
   /** 2단 쪽의 본문(단) 높이. 머리글 높이를 잰 뒤에 정해진다. */
   const [columnBodyMm, setColumnBodyMm] = useState<number | null>(null);
+  /**
+   * 한 쪽보다 긴 지문(packed가 아닌 쪽)·정답 블록이 차지하는 쪽 수. 키는 "유형:지문 번호" 또는
+   * "answer:블록 key". 재기 전에는 없고, 그동안은 예전처럼 한 쪽에 싣는다.
+   */
+  const [windowCounts, setWindowCounts] = useState<Record<string, number>>({});
   /** 정답지 쪽마다 실을 블록(key). 재기 전에는 null(한 쪽에 전부). */
   const [answerPages, setAnswerPages] = useState<string[][] | null>(null);
+  /** 한 쪽보다 긴 정답 블록(key). 쪽 수를 재어 여러 쪽에 이어 싣는다. */
+  const [answerOversize, setAnswerOversize] = useState<string[]>([]);
   /** 글꼴을 다 받은 뒤 정답지 높이를 다시 잰다(글꼴이 바뀌면 줄 수가 달라진다). */
   const [fontsReady, setFontsReady] = useState(false);
   useEffect(() => {
@@ -2197,6 +2266,22 @@ export function WorkbookWorkbench({
   column-rule: 1px solid #e2e8f0;
   column-fill: balance;
 }
+/* 한 쪽보다 긴 내용: 고정 높이 단으로 흘려 여러 쪽에 나눠 보인다(WindowFlow). 간격은 화면·인쇄 같게. */
+.workbook-window-flow {
+  column-fill: auto;
+  column-gap: 7mm;
+}
+.workbook-window-flow.workbook-one-col {
+  column-count: 1;
+}
+.workbook-window-flow.workbook-two-col {
+  column-gap: 7mm;
+}
+.workbook-window-flow li,
+.workbook-window-flow .break-inside-avoid {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
 .workbook-two-col li,
 .workbook-two-col .break-inside-avoid {
   break-inside: avoid;
@@ -2320,6 +2405,22 @@ export function WorkbookWorkbench({
           columnPacks[columnType]?.filter((p) => p.indices.every((i) => i < count)) ??
           Array.from({ length: count }, (_, i) => ({ indices: [i], packed: false }));
         for (const p of packs) {
+          // 한 쪽보다 긴 지문: 잰 쪽 수만큼 같은 지문을 이어 싣는다(쪽마다 다음 단들이 보인다).
+          const windows = p.packed ? 0 : (windowCounts[`${columnType}:${p.indices[0]}`] ?? 0);
+          if (windows > 0) {
+            for (let k = 0; k < windows; k++) {
+              out.push({
+                kind: "columns_q",
+                type: columnType,
+                indices: p.indices,
+                typeOrder: order,
+                packed: false,
+                columns,
+                window: { index: k, count: windows },
+              });
+            }
+            continue;
+          }
           out.push({
             kind: "columns_q",
             type: columnType,
@@ -2359,10 +2460,26 @@ export function WorkbookWorkbench({
       // 정답지도 A4 쪽으로 나눈다. 예전에는 한 장에 전부 실어 인쇄에서 여러 쪽으로
       // 잘렸고, 가운데 쪽들은 위아래 여백 없이 종이 끝까지 찍혔다.
       const planned = answerPages && answerPages.length > 0 ? answerPages : [null];
-      planned.forEach((keys, i) => out.push({ kind: "answers", keys, continued: i > 0 }));
+      planned.forEach((keys, i) => {
+        // 한 쪽보다 긴 정답 블록 하나: 잰 쪽 수만큼 이어 싣는다.
+        const windows =
+          keys && keys.length === 1 ? (windowCounts[`answer:${keys[0]}`] ?? 0) : 0;
+        if (windows > 1) {
+          for (let k = 0; k < windows; k++) {
+            out.push({
+              kind: "answers",
+              keys,
+              continued: i > 0 || k > 0,
+              window: { index: k, count: windows },
+            });
+          }
+          return;
+        }
+        out.push({ kind: "answers", keys, continued: i > 0 });
+      });
     }
     return out;
-  }, [workbook, typeOrders, flowPages, columnPacks, answerPages]);
+  }, [workbook, typeOrders, flowPages, columnPacks, answerPages, windowCounts]);
 
   useLayoutEffect(() => {
     ensureWorkbookPrintStyles();
@@ -2513,6 +2630,7 @@ export function WorkbookWorkbench({
     let page: string[] = [];
     let used = 0;
     let prev: { order: number } | null = null;
+    const oversize: string[] = [];
     root.querySelectorAll<HTMLElement>("[data-wb-answer]").forEach((el) => {
       const cur = {
         order: Number(el.dataset.wbAnswerOrder),
@@ -2520,7 +2638,8 @@ export function WorkbookWorkbench({
       };
       const gap = prev ? answerGapBefore(prev, cur) : 0;
       const h = el.offsetHeight;
-      // 한 쪽보다 긴 블록은 혼자 한 쪽을 쓴다.
+      // 한 쪽보다 긴 블록은 혼자 쪽을 쓰고, 잰 쪽 수만큼 이어 싣는다(windowCounts).
+      if (h > budget) oversize.push(el.dataset.wbAnswer!);
       if (page.length && used + gap + h > budget) {
         next.push(page);
         page = [];
@@ -2534,7 +2653,27 @@ export function WorkbookWorkbench({
     });
     if (page.length) next.push(page);
     setAnswerPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+    setAnswerOversize((prev) => (prev.join("|") === oversize.join("|") ? prev : oversize));
   }, [workbook, typeOrders, fontsReady]);
+
+  /**
+   * 한 쪽보다 긴 지문·정답 블록의 쪽 수: 측정 영역에 쪽 본문 높이로 흘려 본 단 수로 정한다
+   * (예전에는 쪽이 길어지기만 해서 인쇄에서 다음 장으로 넘친 부분의 쪽 번호·여백이 어긋났다).
+   */
+  useLayoutEffect(() => {
+    const root = measureRef.current;
+    if (!root) return;
+    const next: Record<string, number> = {};
+    root.querySelectorAll<HTMLElement>("[data-wb-probe]").forEach((el) => {
+      const perPage = el.classList.contains("workbook-two-col") ? 2 : 1;
+      const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+      const width = el.clientWidth || 1;
+      const stride = (width - (perPage - 1) * gap) / perPage + gap;
+      const cols = Math.max(1, Math.ceil((el.scrollWidth + gap - 2) / stride));
+      next[el.dataset.wbProbe!] = Math.max(1, Math.ceil(cols / perPage));
+    });
+    setWindowCounts((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+  }, [workbook, columnPacks, answerOversize, columnBodyMm, fontsReady]);
 
   // 그린 2단 쪽이 오른쪽 단 밖으로 넘치면(재 둔 높이와 실제가 다를 때) 그 쪽에 싣는 지문을 하나 줄인다.
   useLayoutEffect(() => {
@@ -3037,7 +3176,7 @@ export function WorkbookWorkbench({
               if (page.kind === "columns_q") {
                 return (
                   <PageShell
-                    key={`col-${page.type}-${page.indices.join("-")}`}
+                    key={`col-${page.type}-${page.indices.join("-")}${page.window ? `-w${page.window.index}` : ""}`}
                     pageNo={pageNo}
                     total={total}
                     workbookTitle={title}
@@ -3045,9 +3184,13 @@ export function WorkbookWorkbench({
                     typeTitle={`${page.typeOrder}. ${COLUMN_TYPE_TITLE[page.type]}`}
                     isLast={isLast}
                     columns={page.columns}
-                    columnHeightMm={page.packed ? (columnBodyMm ?? undefined) : undefined}
+                    columnHeightMm={
+                      page.packed || page.window ? (columnBodyMm ?? undefined) : undefined
+                    }
                     columnKey={`${page.type}:${page.indices[0]}`}
                     columnCount={page.indices.length}
+                    windowIndex={page.window?.index}
+                    windowCount={page.window?.count}
                   >
                     {page.indices.map((i) => (
                       <div key={`col-${page.type}-${i}`} className="workbook-col-section">
@@ -3114,6 +3257,9 @@ export function WorkbookWorkbench({
                   showTypeTitle
                   typeTitle={page.continued ? "정답 (계속)" : "정답"}
                   isLast={isLast}
+                  columnHeightMm={page.window ? (columnBodyMm ?? undefined) : undefined}
+                  windowIndex={page.window?.index}
+                  windowCount={page.window?.count}
                 >
                   {renderAnswerBlocks(shown)}
                 </PageShell>
@@ -3154,6 +3300,41 @@ export function WorkbookWorkbench({
             </div>
           ))}
           <div>{renderAnswerBlocks(answerBlocks, true)}</div>
+          {columnBodyMm != null ? (
+            <div className="workbook-a4-body" style={{ height: 0, overflow: "hidden" }}>
+              {columnTypesOn.flatMap((t) =>
+                (columnPacks[t] ?? [])
+                  .filter((p) => !p.packed && p.indices.length === 1)
+                  .map((p) => (
+                    <WindowFlow
+                      key={`probe-${t}-${p.indices[0]}`}
+                      columns={workbook.columnLayout?.[t] === 2 ? 2 : 1}
+                      heightMm={columnBodyMm}
+                      index={0}
+                      probe={`${t}:${p.indices[0]}`}
+                    >
+                      <div className="workbook-col-section">
+                        {renderColumnSection(t, p.indices[0]!)}
+                      </div>
+                    </WindowFlow>
+                  ))
+              )}
+              {answerOversize.map((key) => {
+                const block = answerBlockByKey.get(key);
+                return block ? (
+                  <WindowFlow
+                    key={`probe-answer-${key}`}
+                    columns={1}
+                    heightMm={columnBodyMm}
+                    index={0}
+                    probe={`answer:${key}`}
+                  >
+                    {renderAnswerBlocks([block])}
+                  </WindowFlow>
+                ) : null;
+              })}
+            </div>
+          ) : null}
           <div className="flow-root" data-wb-answer-conthead>
             <AnswerContinued typeOrder={1} label="한줄해석" title={title} />
           </div>

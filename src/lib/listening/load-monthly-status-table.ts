@@ -5,6 +5,14 @@ import {
   getTodayIsoKorea,
 } from "@/lib/date/korea-today";
 import { isStudyDay, parseDateOnly } from "@/lib/listening/schedule/days-of-week";
+import { loadSchedulePauses } from "@/lib/listening/schedule/load-pauses";
+import {
+  applyPausesToAssignment,
+  isDatePaused,
+  pausesForStudent,
+  pauseStateOn,
+  type SchedulePauseRange,
+} from "@/lib/listening/schedule/pauses";
 import { computeStudentListeningEffectiveStartIso } from "@/lib/listening/schedule/student-effective-start";
 import type {
   DailyTaskStatus,
@@ -208,27 +216,56 @@ function buildStudentDays(
   month: number,
   daysInMonth: number,
   todayIso: string,
-  effectiveStartByAssignmentId: Map<string, string>
+  effectiveStartByAssignmentId: Map<string, string>,
+  /** 과제 id → 이 학생에게 걸린 일시정지 기간 */
+  pausesByAssignmentId: Map<string, SchedulePauseRange[]>
 ): HomeworkDayCell[] {
   const activeAssignmentIds = new Set(assignments.map((a) => a.id));
+  const isPaused = (assignmentId: string, iso: string) =>
+    isDatePaused(pausesByAssignmentId.get(assignmentId), iso);
+  // 끝나는 날은 쉰 날만큼 뒤로 민 규칙으로 본다
+  const effectiveAssignments = assignments.map((a) =>
+    applyPausesToAssignment(a, pausesByAssignmentId.get(a.id))
+  );
   const days: HomeworkDayCell[] = [];
 
   for (let day = 1; day <= daysInMonth; day++) {
     const taskDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const dateObj = parseDateOnly(taskDate);
     const weekday = dateObj.getDay();
-    const studyAssignments = assignments.filter((a) =>
+    const ruleAssignments = effectiveAssignments.filter((a) =>
       isDateInAssignment(
         taskDate,
         a,
         effectiveStartByAssignmentId.get(a.id)
       )
     );
-    const rows = tasksByDate.get(taskDate) ?? [];
+    // 멈춘 날은 학습일로 세지 않는다 (그날 끝낸 과제는 그대로 완료로 센다)
+    const studyAssignments = ruleAssignments.filter(
+      (a) => !isPaused(a.id, taskDate)
+    );
+    const rows = (tasksByDate.get(taskDate) ?? []).filter(
+      (r) => r.status === "completed" || !isPaused(r.assignment_id, taskDate)
+    );
     // 요일·기간을 바꾼 뒤에도 이미 나간 과제는 표에 남긴다
     const isStudyDayFlag =
       studyAssignments.length > 0 ||
       rows.some((r) => activeAssignmentIds.has(r.assignment_id));
+
+    if (!isStudyDayFlag && ruleAssignments.length > 0) {
+      days.push({
+        day,
+        weekday,
+        taskDate,
+        symbol: "paused",
+        isToday: taskDate === todayIso,
+        isStudyDay: false,
+        completedCount: 0,
+        totalCount: 0,
+      });
+      continue;
+    }
+
     const aggregated = aggregateTasksForDay(rows);
 
     const completedCount = aggregated.completedCount;
@@ -313,12 +350,18 @@ export async function loadListeningMonthlyStatusTable(
       : Promise.resolve(null as Set<string> | null);
 
   const [
-    { byStudent: assignmentsByStudent, membershipCreatedAt },
+    { byStudent: assignmentsByStudent, membershipCreatedAt, pauseMap },
     { data: taskRows },
     examQuery,
     teacherSetIds,
   ] = await Promise.all([
-    loadAssignmentsByStudent(admin, studentIds),
+    // 과제를 읽는 대로 일시정지 기간도 이어 읽는다 (다른 조회와 같이 돈다)
+    loadAssignmentsByStudent(admin, studentIds).then(async (loaded) => ({
+      ...loaded,
+      pauseMap: await loadSchedulePauses(admin, [
+        ...new Set([...loaded.byStudent.values()].flat().map((a) => a.id)),
+      ]),
+    })),
     admin
       .from("listening_daily_tasks")
       .select(
@@ -437,6 +480,7 @@ export async function loadListeningMonthlyStatusTable(
     // 반 가입일은 위에서 한 번에 읽었으니 학생·과제마다 다시 조회하지 않는다
     const joinedByClass = membershipCreatedAt.get(student.id);
     const effectiveStartByAssignmentId = new Map<string, string>();
+    const pausesByAssignmentId = new Map<string, SchedulePauseRange[]>();
     for (const a of assignments) {
       effectiveStartByAssignmentId.set(
         a.id,
@@ -445,6 +489,7 @@ export async function loadListeningMonthlyStatusTable(
           a.target_class_id ? joinedByClass?.get(a.target_class_id) : null
         )
       );
+      pausesByAssignmentId.set(a.id, pausesForStudent(pauseMap.get(a.id), student.id));
     }
     const tasksByDate = tasksByStudentDate.get(student.id) ?? new Map();
     const days = buildStudentDays(
@@ -454,8 +499,18 @@ export async function loadListeningMonthlyStatusTable(
       options.month,
       daysInMonth,
       todayIso,
-      effectiveStartByAssignmentId
+      effectiveStartByAssignmentId,
+      pausesByAssignmentId
     );
+
+    // 오늘 멈춰 있는 과제 (여럿이면 가장 먼저 멈춘 것)
+    let pause: ListeningStatusRow["pause"] = null;
+    for (const ranges of pausesByAssignmentId.values()) {
+      const state = pauseStateOn(ranges, todayIso);
+      if (state && (!pause || state.since < pause.since)) {
+        pause = { since: state.since, until: state.until };
+      }
+    }
 
     let completedCount = 0;
     let totalCount = 0;
@@ -497,6 +552,7 @@ export async function loadListeningMonthlyStatusTable(
       correctCount: accuracy.correctCount,
       answeredCount: accuracy.answeredCount,
       missedDates,
+      pause,
     };
   });
 

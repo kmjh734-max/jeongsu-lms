@@ -804,7 +804,7 @@ export function ListeningScheduleAssignPanel({
             <p className="mt-1 text-[11px] text-slate-400">오늘 벌써 풀기 시작한 과제는 그대로 두고 내일부터 바뀌어요.</p>
           ) : null}
           {!editing.isActive ? (
-            <p className="mt-1 text-[11px] text-slate-500">지금은 쉬는 중이에요. 다시 시작하면 새 규칙으로 이어져요.</p>
+            <p className="mt-1 text-[11px] text-slate-500">지금은 일시정지 중이에요. 재개하면 새 규칙으로 이어져요.</p>
           ) : null}
           {startLocked && history ? (
             <p className="mt-1 text-[11px] text-slate-400">이미 공부를 시작한 과제라 시작일은 그대로예요.</p>

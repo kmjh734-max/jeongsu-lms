@@ -9,6 +9,7 @@ import { buildScriptText } from "@/lib/listening/script-text";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
+import { DICTATION_RESET_FIELDS } from "@/lib/listening/dictation/reset-fields";
 import {
   ensureDictationPreparedForSet,
   prebuildDictationForQuestion,
@@ -340,6 +341,8 @@ export async function replaceGeneratedQuestion(
       .update({
         ...buildQuestionRow(setId, q, script_text, extended),
         audio_url: null,
+        // 대본이 새로 바뀌었으니 예전 받아쓰기 빈칸·예전 그림은 버린다 (새 대본으로 다시 만든다)
+        ...(extended ? { ...DICTATION_RESET_FIELDS, choice_image_urls: [] } : {}),
       })
       .eq("id", questionId)
       .eq("set_id", setId);
@@ -398,6 +401,7 @@ export async function replaceQuestionSegments(
     gradeLevel
   );
 
+  // 선생님이 직접 고친 대본은 화자를 바꾸지 않고, 같은 사람 연속 줄만 한 줄로 합친다
   const normalized = ensureMwDialogueSegments(
     {
       order_index: typeId,
@@ -416,7 +420,8 @@ export async function replaceQuestionSegments(
       answer_clue: "",
     },
     typeId,
-    gradeLevel
+    gradeLevel,
+    { mergeOnly: true }
   ).segments.map((s) => ({ speaker: s.speaker, text: s.text }));
 
   await admin.from("listening_question_segments").delete().eq("question_id", questionId);
@@ -444,7 +449,8 @@ export async function replaceQuestionSegments(
 
   await admin
     .from("listening_questions")
-    .update({ script_text, audio_url: null })
+    // 대본이 바뀌면 예전 받아쓰기 빈칸은 새 음원과 맞지 않으므로 비우고 다시 만든다
+    .update({ script_text, audio_url: null, ...DICTATION_RESET_FIELDS })
     .eq("id", questionId);
 
   scheduleDictationPrebuild(questionId, { force: true });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 import { ListeningMenu, ListeningMenuItem } from "@/components/listening/ListeningMenu";
 import {
@@ -18,8 +18,12 @@ import {
 } from "@/components/listening/ListeningScheduleAssignPanel";
 import { Button } from "@/components/ui/Button";
 import type { ScheduleAssignmentProgress } from "@/lib/listening/load-listening-overview";
-import { parseDateOnly } from "@/lib/listening/schedule/days-of-week";
+import { parseDateOnly, toDateOnlyString } from "@/lib/listening/schedule/days-of-week";
 import type { ScheduleAssignmentListItem } from "@/lib/listening/schedule/list-assignments";
+import type {
+  SchedulePauseMember,
+  SchedulePauseView,
+} from "@/lib/listening/schedule/pauses";
 
 type ViewFilter = "all" | "class" | "student";
 
@@ -48,6 +52,48 @@ function prettyDays(label: string): string {
   if (label === "월·화·수·목·금") return "월~금";
   if (label === "월·화·수·목·금·토·일") return "매일";
   return label;
+}
+
+function addDaysIso(iso: string, days: number): string {
+  const d = parseDateOnly(iso);
+  d.setDate(d.getDate() + days);
+  return toDateOnlyString(d);
+}
+
+/** 「9/15~」 또는 「9/15~9/22」 */
+function pauseRangeLabel(p: Pick<SchedulePauseView, "since" | "until">): string {
+  return `${formatMD(p.since)}~${p.until ? formatMD(p.until) : ""}`;
+}
+
+/** 멈춘 사람·시각 (마우스를 올리면 보임) */
+function pauseTitle(p: SchedulePauseView): string {
+  const parts: string[] = [];
+  if (p.pausedByName) parts.push(p.pausedByName);
+  if (p.pausedAt) {
+    const d = new Date(p.pausedAt);
+    parts.push(
+      `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")} 멈춤`
+    );
+  }
+  if (p.until) parts.push(`${formatMD(p.until)}부터 다시 나가요`);
+  return parts.join(" · ");
+}
+
+type PauseRequest = { paused: boolean; studentId?: string; until?: string | null };
+
+async function postPause(
+  assignmentId: string,
+  body: PauseRequest
+): Promise<{ ok: boolean; message?: string }> {
+  const res = await fetch(`/api/listening/schedule-assignments/${assignmentId}/pause`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return (await res.json().catch(() => ({ ok: false }))) as {
+    ok: boolean;
+    message?: string;
+  };
 }
 
 export function ListeningScheduleManageClient({
@@ -97,25 +143,32 @@ export function ListeningScheduleManageClient({
     });
   }, [assignments, viewFilter, query]);
 
-  async function setPaused(a: ScheduleAssignmentListItem, pause: boolean) {
-    const msg = pause
-      ? `「${a.targetLabel}」 과제를 잠시 쉴까요?\n\n쉬는 동안 학생에게 과제가 보이지 않아요. 끝낸 기록은 남고, 다시 시작하면 멈춘 곳부터 이어져요.`
-      : `「${a.targetLabel}」 과제를 다시 시작할까요?\n\n오늘부터 다시 나가요.`;
-    if (!window.confirm(msg)) return;
+  /** 과제 전체 일시정지(until: 다시 시작할 날, 없으면 재개할 때까지) · 재개 */
+  async function setPaused(
+    a: ScheduleAssignmentListItem,
+    pause: boolean,
+    until: string | null = null
+  ): Promise<boolean> {
+    if (
+      !pause &&
+      !window.confirm(
+        `「${a.targetLabel}」 과제를 재개할까요?\n\n오늘부터 멈춘 곳 다음 문항이 나가요.`
+      )
+    ) {
+      return false;
+    }
     setBusyId(a.id);
     setError(null);
-    const res = await fetch(`/api/listening/schedule-assignments/${a.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: !pause }),
-    });
-    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string };
+    setNotice(null);
+    const data = await postPause(a.id, { paused: pause, until });
     setBusyId(null);
     if (!data.ok) {
       setError(data.message ?? "바꾸지 못했어요.");
-      return;
+      return false;
     }
+    setNotice(data.message ?? (pause ? "일시정지했어요." : "재개했어요."));
     router.refresh();
+    return true;
   }
 
   async function removeAssignment(a: ScheduleAssignmentListItem) {
@@ -190,7 +243,8 @@ export function ListeningScheduleManageClient({
         endDate: editingAssignment.endDate,
         requireDictationPass: editingAssignment.requireDictationPass,
         dictationPassScore: editingAssignment.dictationPassScore,
-        isActive: editingAssignment.isActive,
+        // 일시정지 중이면 수정 창에 「일시정지 중」 안내를 띄운다
+        isActive: editingAssignment.isActive && !editingAssignment.pause,
       }
     : undefined;
 
@@ -299,8 +353,17 @@ export function ListeningScheduleManageClient({
                   canAddSets={a.isActive && sets.some((s) => !a.setIds.includes(s.id))}
                   onEdit={() => openEdit(a)}
                   onAddSets={() => setAddSetsTarget(a)}
-                  onPause={() => void setPaused(a, true)}
+                  onPause={(until) => setPaused(a, true, until)}
                   onResume={() => void setPaused(a, false)}
+                  onStudentsChanged={(message) => {
+                    setError(null);
+                    setNotice(message);
+                    router.refresh();
+                  }}
+                  onStudentsError={(message) => {
+                    setNotice(null);
+                    setError(message);
+                  }}
                   onDelete={() => void removeAssignment(a)}
                 />
               ))}
@@ -365,6 +428,8 @@ function AssignmentCard({
   onAddSets,
   onPause,
   onResume,
+  onStudentsChanged,
+  onStudentsError,
   onDelete,
 }: {
   a: ScheduleAssignmentListItem;
@@ -376,26 +441,38 @@ function AssignmentCard({
   canAddSets: boolean;
   onEdit: () => void;
   onAddSets: () => void;
-  onPause: () => void;
+  /** until: 다시 시작할 날 (없으면 재개할 때까지). 성공하면 true */
+  onPause: (until: string | null) => Promise<boolean>;
   onResume: () => void;
+  onStudentsChanged: (message: string) => void;
+  onStudentsError: (message: string) => void;
   onDelete: () => void;
 }) {
+  const [pauseFormOpen, setPauseFormOpen] = useState(false);
+  const [studentsOpen, setStudentsOpen] = useState(false);
+  const isClass = a.targetType === "class";
+  const pause = a.pause;
+
   const titles = a.setTitles.length > 0 ? a.setTitles : [];
   const shown = titles.slice(0, 3);
   const more = Math.max(0, (titles.length || a.setCount) - shown.length);
 
   let progressLabel: string;
   let pct: number | null = null;
-  if (!a.isActive) {
-    progressLabel = "잠시 쉬는 중이에요";
+  if (progress && progress.dueTasks > 0 && a.startDate <= todayIso) {
+    pct = Math.round((progress.completedTasks / progress.dueTasks) * 100);
+  }
+  if (pause) {
+    progressLabel = pause.until
+      ? `${formatMD(pause.until)}부터 멈춘 곳 다음 문항이 나가요`
+      : "재개할 때까지 과제가 나가지 않아요";
   } else if (a.startDate > todayIso) {
     progressLabel = `${formatMD(a.startDate)}에 시작해요`;
-  } else if (progress && progress.dueTasks > 0) {
+  } else if (pct !== null && progress) {
     progressLabel =
       a.startDate === todayIso
         ? "오늘 시작 · 평균 수행"
         : `배정된 날 ${progress.studyDays}일 · 평균 수행`;
-    pct = Math.round((progress.completedTasks / progress.dueTasks) * 100);
   } else {
     progressLabel = "아직 나간 과제가 없어요";
   }
@@ -409,21 +486,42 @@ function AssignmentCard({
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <Icon
-            name={a.targetType === "class" ? "users" : "usercheck"}
+            name={isClass ? "users" : "usercheck"}
             size={18}
             className="text-brand-700"
           />
           <span className="truncate text-[15px] font-bold text-slate-900">{a.targetLabel || "—"}</span>
-          <span className="shrink-0 text-[13px] text-slate-500">{sub}</span>
+          {isClass ? (
+            <button
+              type="button"
+              onClick={() => setStudentsOpen((v) => !v)}
+              aria-expanded={studentsOpen}
+              title="학생별 일시정지"
+              className="inline-flex shrink-0 items-center gap-0.5 rounded text-[13px] text-slate-500 hover:text-brand-700"
+            >
+              {sub}
+              <Icon
+                name="down"
+                size={13}
+                className={`transition ${studentsOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+          ) : (
+            <span className="shrink-0 text-[13px] text-slate-500">{sub}</span>
+          )}
         </div>
-        {a.isActive ? (
-          <span className="inline-flex h-[22px] shrink-0 items-center rounded bg-green-50 px-2 text-xs font-semibold text-green-700">
-            진행 중
+        {pause ? (
+          <span
+            title={pauseTitle(pause) || undefined}
+            className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded bg-slate-100 px-2 text-xs font-semibold text-slate-600"
+          >
+            <Icon name="pause" size={12} strokeWidth={2.2} />
+            일시정지
+            <span className="font-medium tabular-nums text-slate-500">{pauseRangeLabel(pause)}</span>
           </span>
         ) : (
-          <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded bg-slate-100 px-2 text-xs font-semibold text-slate-500">
-            <Icon name="pause" size={12} strokeWidth={2.2} />
-            쉬는 중
+          <span className="inline-flex h-[22px] shrink-0 items-center rounded bg-green-50 px-2 text-xs font-semibold text-green-700">
+            진행 중
           </span>
         )}
       </div>
@@ -447,7 +545,7 @@ function AssignmentCard({
         ) : null}
       </div>
 
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-slate-700">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-slate-700">
         <span className="flex items-center gap-1.5">
           <Icon name="calendar" size={14} className="text-slate-500" />
           {prettyDays(a.daysLabel)} · 하루 {a.questionsPerDay}문항
@@ -455,17 +553,30 @@ function AssignmentCard({
         <span className="tabular-nums">
           {formatMD(a.startDate)} – {a.endDate ? formatMD(a.endDate) : "세트 끝날 때까지"}
         </span>
+        {isClass && a.pausedStudentCount > 0 ? (
+          <button
+            type="button"
+            onClick={() => setStudentsOpen(true)}
+            className="inline-flex h-6 items-center gap-1 rounded bg-slate-100 px-2 text-xs font-semibold text-slate-600 hover:bg-slate-200"
+          >
+            <Icon name="pause" size={11} strokeWidth={2.4} />
+            학생 {a.pausedStudentCount}명 일시정지
+          </button>
+        ) : null}
       </div>
 
       <div className="space-y-1.5">
-        <div className="flex justify-between text-xs text-slate-500">
-          <span>{progressLabel}</span>
+        <div className="flex justify-between gap-2 text-xs text-slate-500">
+          <span className="min-w-0 truncate">{progressLabel}</span>
           <span className="font-semibold tabular-nums text-slate-900">
             {pct === null ? "—" : `${pct}%`}
           </span>
         </div>
         <div className="h-[5px] overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full bg-brand-600" style={{ width: `${pct ?? 0}%` }} />
+          <div
+            className={`h-full rounded-full ${pause ? "bg-slate-300" : "bg-brand-600"}`}
+            style={{ width: `${pct ?? 0}%` }}
+          />
         </div>
       </div>
 
@@ -479,21 +590,230 @@ function AssignmentCard({
             세트 더하기
           </Button>
         ) : null}
-        {a.isActive ? (
-          <Button variant="secondary" size="sm" disabled={busy} onClick={onPause}>
-            잠시 쉬기
+        {pause ? (
+          <Button variant="secondary" size="sm" disabled={busy} onClick={onResume}>
+            <Icon name="play" size={12} strokeWidth={1} filled />
+            재개
           </Button>
         ) : (
-          <Button variant="secondary" size="sm" disabled={busy} onClick={onResume}>
-            다시 시작
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={busy}
+            onClick={() => setPauseFormOpen((v) => !v)}
+            aria-expanded={pauseFormOpen}
+          >
+            <Icon name="pause" size={12} strokeWidth={2.2} />
+            일시정지
           </Button>
         )}
         <ListeningMenu label={`${a.targetLabel} 과제 메뉴`}>
+          {isClass ? (
+            <ListeningMenuItem icon="users" onClick={() => setStudentsOpen((v) => !v)}>
+              {studentsOpen ? "학생 목록 닫기" : "학생별 일시정지"}
+            </ListeningMenuItem>
+          ) : null}
           <ListeningMenuItem icon="trash" danger disabled={busy} onClick={onDelete}>
             과제 지우기
           </ListeningMenuItem>
         </ListeningMenu>
       </div>
+
+      {pauseFormOpen && !pause ? (
+        <PauseForm
+          todayIso={todayIso}
+          busy={busy}
+          onCancel={() => setPauseFormOpen(false)}
+          onConfirm={async (until) => {
+            if (await onPause(until)) setPauseFormOpen(false);
+          }}
+        />
+      ) : null}
+
+      {isClass && studentsOpen ? (
+        <ClassPauseList
+          assignmentId={a.id}
+          todayIso={todayIso}
+          wholePaused={Boolean(pause)}
+          onChanged={onStudentsChanged}
+          onError={onStudentsError}
+        />
+      ) : null}
     </article>
+  );
+}
+
+/** 일시정지 확인 — 다시 시작할 날(선택) */
+function PauseForm({
+  todayIso,
+  busy,
+  compact = false,
+  onConfirm,
+  onCancel,
+}: {
+  todayIso: string;
+  busy: boolean;
+  /** 학생 한 줄 안에서 쓸 때 (설명 생략) */
+  compact?: boolean;
+  onConfirm: (until: string | null) => void | Promise<void>;
+  onCancel: () => void;
+}) {
+  const [until, setUntil] = useState("");
+  const min = addDaysIso(todayIso, 1);
+  const max = addDaysIso(todayIso, 365);
+  const invalid = until !== "" && (until < min || until > max);
+
+  return (
+    <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5">
+      {!compact ? (
+        <p className="text-xs leading-relaxed text-slate-600">
+          오늘부터 과제가 나가지 않고, 안 한 날로도 세지 않아요. 재개하면 멈춘 곳 다음 문항부터 이어져요.
+        </p>
+      ) : null}
+      <div className={`flex flex-wrap items-center gap-2 ${compact ? "" : "mt-2"}`}>
+        <label className="flex items-center gap-1.5 text-xs text-slate-600">
+          다시 시작할 날
+          <input
+            type="date"
+            value={until}
+            min={min}
+            max={max}
+            onChange={(e) => setUntil(e.target.value)}
+            className="ui-input h-8 w-auto py-1 text-xs"
+          />
+        </label>
+        {!until ? <span className="text-[11px] text-slate-400">비우면 재개할 때까지</span> : null}
+        <div className="ml-auto flex gap-1.5">
+          <Button variant="ghost" size="sm" disabled={busy} onClick={onCancel}>
+            취소
+          </Button>
+          <Button size="sm" disabled={busy || invalid} onClick={() => void onConfirm(until || null)}>
+            <Icon name="pause" size={12} strokeWidth={2.2} />
+            일시정지
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** 반 배정 안 학생별 일시정지 */
+function ClassPauseList({
+  assignmentId,
+  todayIso,
+  wholePaused,
+  onChanged,
+  onError,
+}: {
+  assignmentId: string;
+  todayIso: string;
+  wholePaused: boolean;
+  onChanged: (message: string) => void;
+  onError: (message: string) => void;
+}) {
+  const [members, setMembers] = useState<SchedulePauseMember[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [busyStudentId, setBusyStudentId] = useState<string | null>(null);
+  const [formFor, setFormFor] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    const res = await fetch(`/api/listening/schedule-assignments/${assignmentId}/pause`);
+    const data = (await res.json().catch(() => ({}))) as {
+      ok?: boolean;
+      members?: SchedulePauseMember[];
+      message?: string;
+    };
+    if (!data.ok) {
+      setLoadError(data.message ?? "학생 목록을 불러오지 못했어요.");
+      return;
+    }
+    setLoadError(null);
+    setMembers(data.members ?? []);
+  }, [assignmentId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function act(studentId: string, paused: boolean, until: string | null) {
+    setBusyStudentId(studentId);
+    const data = await postPause(assignmentId, { paused, studentId, until });
+    setBusyStudentId(null);
+    if (!data.ok) {
+      onError(data.message ?? "바꾸지 못했어요.");
+      return;
+    }
+    setFormFor(null);
+    onChanged(data.message ?? (paused ? "일시정지했어요." : "재개했어요."));
+    await load();
+  }
+
+  return (
+    <div className="overflow-hidden rounded-md border border-slate-200">
+      {wholePaused ? (
+        <p className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+          반 전체가 일시정지 중이에요. 재개한 뒤 학생별로 멈출 수 있어요.
+        </p>
+      ) : null}
+      {members === null ? (
+        <p className={`px-3 py-3 text-xs ${loadError ? "text-rose-700" : "text-slate-400"}`}>
+          {loadError ?? "불러오는 중…"}
+        </p>
+      ) : members.length === 0 ? (
+        <p className="px-3 py-3 text-xs text-slate-500">반에 학생이 없어요.</p>
+      ) : (
+        <ul className="max-h-64 divide-y divide-slate-100 overflow-y-auto">
+          {members.map((m) => (
+            <li key={m.studentId} className="px-3 py-1.5">
+              <div className="flex items-center gap-2">
+                <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-slate-800">
+                  {m.name}
+                </span>
+                {m.pause ? (
+                  <span
+                    title={pauseTitle(m.pause) || undefined}
+                    className="inline-flex h-5 shrink-0 items-center gap-1 rounded bg-slate-100 px-1.5 text-[11px] font-semibold text-slate-600"
+                  >
+                    <Icon name="pause" size={10} strokeWidth={2.6} />
+                    일시정지 <span className="tabular-nums">{pauseRangeLabel(m.pause)}</span>
+                  </span>
+                ) : null}
+                {m.pause ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={busyStudentId !== null}
+                    onClick={() => void act(m.studentId, false, null)}
+                  >
+                    재개
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={busyStudentId !== null || wholePaused}
+                    aria-expanded={formFor === m.studentId}
+                    onClick={() => setFormFor(formFor === m.studentId ? null : m.studentId)}
+                  >
+                    일시정지
+                  </Button>
+                )}
+              </div>
+              {formFor === m.studentId && !m.pause ? (
+                <div className="mt-1.5">
+                  <PauseForm
+                    compact
+                    todayIso={todayIso}
+                    busy={busyStudentId === m.studentId}
+                    onCancel={() => setFormFor(null)}
+                    onConfirm={(until) => act(m.studentId, true, until)}
+                  />
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

@@ -86,15 +86,25 @@ export function repositionCorrectChoice(
   return { choices: next, correct_answer: targetSlot };
 }
 
+/** 그림 속 라벨(①~⑤)이나 표의 행 기호(A~E)만 있는 선택지 — 그림·표가 정답 위치를 정하므로 섞으면 안 된다 */
+export function isLabelOnlyChoiceSet(choices: string[]): boolean {
+  if (choices.length === 0) return false;
+  return choices.every((c) => /^\s*(?:[①②③④⑤]|[A-E]|\(?[1-5]\)?)\s*$/.test(String(c)));
+}
+
 export function shouldBalanceQuestionChoices(q: {
   order_index?: number;
   question_type?: string;
   table_data?: unknown;
+  choices?: string[];
 }): boolean {
-  if (q.order_index === 14) return false;
-  if (q.table_data) return false;
   const qt = q.question_type?.trim() ?? "";
+  // 중등 14번(표 정보 불일치)만 제외 — 예전엔 번호로만 막아 고등 14번(긴 응답) 정답이 20문항 모두 ①이었다
+  if (q.order_index === 14 && !qt) return false;
+  if (q.table_data) return false;
   if (qt.includes("표")) return false;
+  if (qt.includes("그림 불일치")) return false;
+  if (q.choices && isLabelOnlyChoiceSet(q.choices)) return false;
   return true;
 }
 
@@ -104,7 +114,80 @@ type ChoiceQuestion = {
   order_index?: number;
   question_type?: string;
   table_data?: unknown;
+  explanation?: string;
+  choice_image_prompts?: string[];
+  choice_image_urls?: string[];
 };
+
+const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
+
+/**
+ * 새 순서의 각 자리가 예전 몇 번째 선택지였는지 (perm[새 자리] = 예전 자리).
+ * 같은 글자의 선택지가 여러 개면 앞에서부터 짝짓는다.
+ */
+export function choicePermutation(before: string[], after: string[]): number[] | null {
+  if (before.length !== after.length) return null;
+  const used = new Set<number>();
+  const perm: number[] = [];
+  for (const text of after) {
+    const idx = before.findIndex((b, i) => !used.has(i) && b === text);
+    if (idx < 0) return null;
+    used.add(idx);
+    perm.push(idx);
+  }
+  return perm;
+}
+
+/**
+ * 해설 속 ①~⑤ 번호를 선택지 이동에 맞춰 바꾼다.
+ * 섞기 전 번호가 해설에 남아 "①이 가장 적절하다"인데 정답은 ④가 되는 일이 있었다.
+ */
+export function remapExplanationChoiceRefs(explanation: string, perm: number[]): string {
+  if (!explanation || !/[①②③④⑤]/.test(explanation)) return explanation;
+  const oldToNew = new Map<number, number>();
+  perm.forEach((oldIdx, newIdx) => oldToNew.set(oldIdx, newIdx));
+  return explanation.replace(/[①②③④⑤]/g, (ch) => {
+    const oldIdx = CIRCLED.indexOf(ch as (typeof CIRCLED)[number]);
+    const newIdx = oldToNew.get(oldIdx);
+    return newIdx == null ? ch : CIRCLED[newIdx]!;
+  });
+}
+
+/** 선택지 순서가 바뀐 결과를 해설 번호·그림 프롬프트/URL에도 똑같이 반영 */
+function withReorderedChoices<T extends ChoiceQuestion>(
+  q: T,
+  cleaned: string[],
+  next: { choices: string[]; correct_answer: number }
+): T {
+  const perm = choicePermutation(cleaned, next.choices);
+  const out: T = { ...q, choices: next.choices, correct_answer: next.correct_answer };
+  if (!perm) return out;
+  if (typeof q.explanation === "string") {
+    out.explanation = remapExplanationChoiceRefs(q.explanation, perm);
+  }
+  const reorder = (list?: string[]) =>
+    Array.isArray(list) && list.length === perm.length
+      ? perm.map((oldIdx) => list[oldIdx]!)
+      : list;
+  if (q.choice_image_prompts) out.choice_image_prompts = reorder(q.choice_image_prompts);
+  if (q.choice_image_urls) out.choice_image_urls = reorder(q.choice_image_urls);
+  return out;
+}
+
+/**
+ * 한 문항의 선택지를 정리한다: ①~⑤ 접두어 제거, 수 선택지는 오름차순, 아니면 정답을 targetSlot으로.
+ * 해설의 ①~⑤ 번호와 그림 프롬프트 순서도 함께 옮긴다.
+ */
+export function reorderQuestionChoices<T extends ChoiceQuestion>(q: T, targetSlot?: number): T {
+  const cleaned = q.choices.map(stripChoiceNumber);
+  const numeric = orderNumericChoices(cleaned, q.correct_answer);
+  const next =
+    numeric ??
+    (targetSlot
+      ? repositionCorrectChoice(cleaned, q.correct_answer, targetSlot)
+      : { choices: cleaned, correct_answer: q.correct_answer });
+  return withReorderedChoices({ ...q, choices: cleaned }, cleaned, next);
+}
 
 export function applyBalancedChoicePositions<T extends ChoiceQuestion>(
   questions: T[]
@@ -116,11 +199,7 @@ export function applyBalancedChoicePositions<T extends ChoiceQuestion>(
   const result = [...questions];
 
   eligible.forEach(({ q, index }, i) => {
-    const cleaned = q.choices.map(stripChoiceNumber);
-    const numeric = orderNumericChoices(cleaned, q.correct_answer);
-    const { choices, correct_answer } =
-      numeric ?? repositionCorrectChoice(cleaned, q.correct_answer, targets[i]!);
-    result[index] = { ...q, choices, correct_answer };
+    result[index] = reorderQuestionChoices(q, targets[i]!);
   });
 
   return result;
@@ -129,9 +208,5 @@ export function applyBalancedChoicePositions<T extends ChoiceQuestion>(
 export function applyRandomChoicePosition<T extends ChoiceQuestion>(question: T): T {
   if (!shouldBalanceQuestionChoices(question)) return question;
   const targetSlot = Math.floor(Math.random() * 5) + 1;
-  const cleaned = question.choices.map(stripChoiceNumber);
-  const { choices, correct_answer } =
-    orderNumericChoices(cleaned, question.correct_answer) ??
-    repositionCorrectChoice(cleaned, question.correct_answer, targetSlot);
-  return { ...question, choices, correct_answer };
+  return reorderQuestionChoices(question, targetSlot);
 }

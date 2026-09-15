@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { assertStudentProfile } from "@/lib/listening/schedule/schedule-access";
+import { scheduleStudentMonthlySeat } from "@/lib/credits/monthly-seat";
 import { updateDailyTaskQuestionProgress } from "@/lib/listening/schedule/update-progress";
 
 function jsonError(message: string, status = 200) {
@@ -44,6 +45,15 @@ export async function POST(request: Request) {
     });
 
     if (!result.ok) return jsonError(result.message ?? "저장 실패");
+
+    // 새 달에 처음 공부하면 이번 달 듣기 이용료를 낸다(응답 뒤에, 잔액이 모자라도 막지 않는다)
+    scheduleStudentMonthlySeat({
+      academyId: access.profile.academy_id,
+      studentId: access.profile.id,
+      kind: "listening",
+      // 본인 스케줄 과제의 오늘 할 일을 저장했으니 배정은 확인된 셈이다
+      assignmentVerified: true,
+    });
 
     return NextResponse.json({
       ok: true,

@@ -11,6 +11,8 @@ import { bootstrapDailyTasksForAssignment } from "@/lib/listening/schedule/gener
 import { teacherCanManageAssignment } from "@/lib/listening/schedule/list-assignments";
 import {
   pauseScheduleAssignment,
+  regenerateUpcomingScheduleTasks,
+  resumeScheduleAssignment,
 } from "@/lib/listening/schedule/pause-assignment";
 import { sortSetIdsByRound } from "@/lib/listening/schedule/question-queue";
 import {
@@ -343,20 +345,9 @@ export async function PATCH(
           ? !body.isPaused
           : undefined;
 
+    // 과제 전체 일시정지·재개 — 멈춘 기간을 기록해 두는 새 방식으로 처리한다
+    // (학생별 일시정지와 다시 시작할 날은 /pause 경로)
     if (typeof nextActive === "boolean") {
-      if (!nextActive) {
-        const { clearedTasks } = await pauseScheduleAssignment(
-          access.admin,
-          id
-        );
-        return NextResponse.json({
-          ok: true,
-          isActive: false,
-          clearedTasks,
-          message: "듣기 과제를 일시정지했습니다. 재개하면 이어서 배정됩니다.",
-        });
-      }
-
       const { data: assignment } = await access.admin
         .from("listening_schedule_assignments")
         .select("*")
@@ -365,25 +356,26 @@ export async function PATCH(
 
       if (!assignment) return jsonError("과제를 찾을 수 없습니다.", 404);
 
-      await access.admin
-        .from("listening_schedule_assignments")
-        .update({
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
+      const opts = {
+        assignment: assignment as ScheduleAssignmentRow,
+        studentId: null,
+        actorId: access.profile.id,
+      };
+      const result = nextActive
+        ? await resumeScheduleAssignment(access.admin, opts)
+        : await pauseScheduleAssignment(access.admin, { ...opts, untilIso: null });
+      if (!result.ok) return jsonError(result.message);
 
-      after(() => {
-        void bootstrapDailyTasksForAssignment(
-          access.admin,
-          assignment as ScheduleAssignmentRow
-        ).catch(() => undefined);
-      });
+      if (nextActive) {
+        after(() =>
+          regenerateUpcomingScheduleTasks(access.admin, id).catch(() => undefined)
+        );
+      }
 
       return NextResponse.json({
         ok: true,
-        isActive: true,
-        message: "듣기 과제를 재개했습니다. 학습 진행 위치부터 이어집니다.",
+        isActive: nextActive,
+        message: result.message,
       });
     }
 

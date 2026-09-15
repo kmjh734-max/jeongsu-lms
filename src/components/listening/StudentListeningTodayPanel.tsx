@@ -24,12 +24,21 @@ interface DailyTaskView {
   remainingCount: number;
 }
 
+interface PausedAssignmentView {
+  assignmentId: string;
+  assignmentTitle: string;
+  since: string;
+  until: string | null;
+}
+
 export interface TodaySummary {
   todayIso: string;
   isStudyDayToday: boolean;
   todayTask: DailyTaskView | null;
   missedTasks: DailyTaskView[];
   nextStudyDate: string | null;
+  /** 선생님이 지금 멈춰 둔 과제 */
+  paused?: PausedAssignmentView[];
   calendar?: ListeningCalendarData;
 }
 
@@ -187,18 +196,31 @@ function TodayCard({ summary }: { summary: TodaySummary }) {
     );
   }
 
-  // 오늘 과제가 없음
+  // 오늘 과제가 없음 — 선생님이 멈춘 학습이면 그렇게 알려 준다
+  const paused = summary.paused ?? [];
+  const pausedOnly = !summary.isStudyDayToday && paused.length > 0;
+  // 다음 학습일은 멈춘 날을 건너뛰어 계산돼 있다
+  const resumeDate = pausedOnly ? summary.nextStudyDate : null;
   const message = summary.isStudyDayToday
     ? missedCount > 0
       ? "오늘 학습 전에 못 끝낸 학습을 마저 풀어 주세요."
       : "오늘 학습을 준비하지 못했어요. 페이지를 새로고침해 주세요."
-    : "오늘은 듣기학습 배정일이 아닙니다.";
+    : pausedOnly
+      ? "선생님이 잠시 멈춘 학습이에요."
+      : "오늘은 듣기학습 배정일이 아닙니다.";
 
   return (
     <TodayCardShell todayIso={todayIso}>
       <div className="flex flex-col gap-1.5">
         <p className="text-lg font-bold leading-snug">{message}</p>
-        {summary.nextStudyDate && (
+        {pausedOnly ? (
+          <p className="flex items-center gap-1.5 text-sm text-side-text">
+            <Icon name="pause" size={15} />
+            {resumeDate
+              ? `${formatStudyDate(resumeDate)}부터 이어서 풀어요`
+              : "다시 시작하면 멈춘 곳부터 이어서 풀어요"}
+          </p>
+        ) : summary.nextStudyDate && (
           <p className="flex items-center gap-1.5 text-sm text-side-text">
             <Icon name="calendar" size={15} />
             다음 학습일 {formatStudyDate(summary.nextStudyDate)}

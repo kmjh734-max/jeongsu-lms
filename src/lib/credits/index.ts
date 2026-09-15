@@ -132,6 +132,12 @@ export async function debitFeatureCredits(
     note?: string;
     /** 기본 1. 단가 × quantity 차감 */
     quantity?: number;
+    /**
+     * 이미 만든 결과의 값(후불)이면 true. 잔액이 모자라도 차감한다(잔액이 마이너스가 될 수 있다).
+     * 새 작업을 막는 것은 만들기 전 잔액 확인(lessonCreditShortfall)이 한다.
+     * 마이그레이션 136 전이면 예전 차감으로 되돌아간다(잔액이 모자라면 실패).
+     */
+    allowNegative?: boolean;
   }
 ): Promise<{ skipped: boolean; transaction: CreditTransaction | null }> {
   const pricing = await getFeatureCost(admin, params.featureKey);
@@ -151,6 +157,30 @@ export async function debitFeatureCredits(
     quantity,
     unit_cost: pricing.cost,
   };
+
+  if (params.allowNegative) {
+    const postpaid = await admin.rpc("debit_academy_credits_postpaid", {
+      p_academy_id: params.academyId,
+      p_feature_key: params.featureKey,
+      p_actor_id: params.actorId,
+      p_idempotency_key: params.idempotencyKey,
+      p_metadata: meta,
+      p_note: params.note ?? null,
+      p_quantity: quantity,
+    });
+    if (!postpaid.error) {
+      return { skipped: false, transaction: postpaid.data as CreditTransaction };
+    }
+    // 136 미적용(함수 없음)이면 아래 예전 차감으로 되돌아간다. 그 밖의 오류는 그대로 알린다.
+    if (
+      !/Could not find the function|debit_academy_credits_postpaid|PGRST202|does not exist/i.test(
+        postpaid.error.message
+      )
+    ) {
+      mapRpcError(postpaid.error.message);
+    }
+  }
+
   let { data, error } = await admin.rpc("debit_academy_credits", {
     p_academy_id: params.academyId,
     p_feature_key: params.featureKey,
@@ -239,22 +269,43 @@ export async function adjustAcademyCredits(
   return data as CreditTransaction;
 }
 
+export type MonthlySeatKind = "vocab" | "listening";
+
+export function monthlySeatFeatureKey(kind: MonthlySeatKind): CreditFeatureKey {
+  return kind === "vocab"
+    ? CREDIT_FEATURES.vocab_student_monthly
+    : CREDIT_FEATURES.listening_student_monthly;
+}
+
+/** 학생 월 이용료 차감 키. 배정할 때와 학생이 공부할 때 같은 키를 써서 한 달에 한 번만 차감된다. */
+export function monthlySeatIdempotencyKey(params: {
+  academyId: string;
+  studentId: string;
+  kind: MonthlySeatKind;
+  yearMonth?: string;
+}): string {
+  const ym = params.yearMonth ?? koreaYearMonth();
+  return `${monthlySeatFeatureKey(params.kind)}:${params.academyId}:${params.studentId}:${ym}`;
+}
+
 /** 학생·월 단위 좌석 차감 (같은 달·학생은 1회만) */
 export async function debitMonthlyStudentSeat(
   admin: SupabaseClient,
   params: {
     academyId: string;
     studentId: string;
-    kind: "vocab" | "listening";
+    kind: MonthlySeatKind;
     actorId: string | null;
   }
 ): Promise<{ skipped: boolean; transaction: CreditTransaction | null }> {
-  const featureKey =
-    params.kind === "vocab"
-      ? CREDIT_FEATURES.vocab_student_monthly
-      : CREDIT_FEATURES.listening_student_monthly;
+  const featureKey = monthlySeatFeatureKey(params.kind);
   const ym = koreaYearMonth();
-  const idempotencyKey = `${featureKey}:${params.academyId}:${params.studentId}:${ym}`;
+  const idempotencyKey = monthlySeatIdempotencyKey({
+    academyId: params.academyId,
+    studentId: params.studentId,
+    kind: params.kind,
+    yearMonth: ym,
+  });
 
   return debitFeatureCredits(admin, {
     academyId: params.academyId,

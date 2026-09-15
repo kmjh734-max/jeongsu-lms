@@ -1,6 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { CreditError, debitFeatureCredits, getFeatureCost } from "@/lib/credits";
+import {
+  CreditError,
+  InsufficientCreditsError,
+  debitFeatureCredits,
+  getFeatureCost,
+} from "@/lib/credits";
 
 /**
  * 수업자료 기능 크레딧(가격은 feature_pricing). 원가(2026-09-14 실측)의 약 2배로 잡았다.
@@ -48,9 +53,11 @@ export async function lessonCreditShortfall(
 }
 
 /**
- * 새로 만든 뒤 차감한다. 이미 만든 결과는 버리지 않으므로 차감이 실패해도 결과를 돌려준다
- * (그 사이 잔액이 바닥난 드문 경우). 가격 설정이 아직 없으면 넘어간다. 차감했으면(또는
- * 차감할 가격이 없으면) true.
+ * 새로 만든 뒤 차감한다(후불). 만들기 전 잔액 확인은 lessonCreditShortfall이 하고, 여기서는
+ * 잔액이 모자라도 차감한다(잔액이 마이너스가 될 수 있다). 같은 잔액으로 동시에 시작한 작업들이
+ * 모두 확인을 통과한 뒤 차감에 실패해 값을 받지 못하던 것을 막는다(마이그레이션 136).
+ * 이미 만든 결과는 버리지 않으므로 차감이 실패해도 결과를 돌려준다. 가격 설정이 아직 없으면
+ * 넘어간다. 차감했으면(또는 차감할 가격이 없으면) true.
  */
 export async function debitLessonCredits(params: {
   academyId: string;
@@ -63,24 +70,37 @@ export async function debitLessonCredits(params: {
   metadata?: Record<string, unknown>;
   note?: string;
 }): Promise<boolean> {
-  try {
-    await debitFeatureCredits(createAdminClient(), {
-      academyId: params.academyId,
-      featureKey: params.featureKey,
-      actorId: params.actorId,
-      idempotencyKey:
-        params.idempotencyKey ?? `${params.featureKey}:${params.projectId ?? "-"}:${randomUUID()}`,
-      metadata: {
-        ...(params.projectId ? { project_id: params.projectId } : {}),
-        ...(params.metadata ?? {}),
-      },
-      note: params.note,
-      quantity: params.quantity,
-    });
-    return true;
-  } catch (e) {
-    if (e instanceof CreditError && e.code === "unknown_feature") return true;
-    console.error("[lesson-credits] debit failed", params.featureKey, e);
-    return false;
+  // 키를 먼저 정해 두어 다시 시도해도 두 번 차감되지 않게 한다.
+  const idempotencyKey =
+    params.idempotencyKey ?? `${params.featureKey}:${params.projectId ?? "-"}:${randomUUID()}`;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await debitFeatureCredits(createAdminClient(), {
+        academyId: params.academyId,
+        featureKey: params.featureKey,
+        actorId: params.actorId,
+        idempotencyKey,
+        metadata: {
+          ...(params.projectId ? { project_id: params.projectId } : {}),
+          ...(params.metadata ?? {}),
+        },
+        note: params.note,
+        quantity: params.quantity,
+        allowNegative: true,
+      });
+      return true;
+    } catch (e) {
+      if (e instanceof CreditError && e.code === "unknown_feature") return true;
+      // 잔액 부족(136 미적용)·가격 꺼짐은 다시 해도 같다. 그 밖(네트워크 등)은 한 번 더 한다.
+      const final =
+        attempt > 0 ||
+        e instanceof InsufficientCreditsError ||
+        (e instanceof CreditError && e.code !== "credit_error");
+      if (final) {
+        console.error("[lesson-credits] debit failed", params.featureKey, e);
+        return false;
+      }
+    }
   }
+  return false;
 }

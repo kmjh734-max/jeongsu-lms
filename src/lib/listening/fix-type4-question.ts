@@ -37,15 +37,16 @@ export function fixType4Question(
   if (typeId !== 4) return q;
 
   const last = lastSegment(q);
+  // 마지막 화자·마지막 말은 대본의 실제 마지막 발화가 기준 (모델 필드보다 우선)
   const last_speaker: "M" | "W" =
-    q.last_speaker === "M" || q.last_speaker === "W"
-      ? q.last_speaker
-      : last?.speaker === "M" || last?.speaker === "W"
-        ? last.speaker
+    last?.speaker === "M" || last?.speaker === "W"
+      ? last.speaker
+      : q.last_speaker === "M" || q.last_speaker === "W"
+        ? q.last_speaker
         : "W";
 
   const final_utterance =
-    q.final_utterance?.trim() || last?.text?.trim() || "";
+    last?.text?.trim() || q.final_utterance?.trim() || "";
 
   const intention_candidates = Array.isArray(q.intention_candidates)
     ? q.intention_candidates.map((x) => normalizeIntentionLabel(String(x))).filter(Boolean)

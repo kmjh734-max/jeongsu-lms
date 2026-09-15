@@ -5,6 +5,8 @@ import {
   type ListeningGradeLevel,
 } from "@/lib/listening/grade-level";
 import { QUALITY_PASS_THRESHOLD } from "@/lib/listening/prompts/qualityCheckPrompt";
+import { genericQualityIssues } from "@/lib/listening/generic-quality-checks";
+import { speakerOfQuote } from "@/lib/listening/speaker-attribution";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import { checkChoicesSameCategory } from "@/lib/listening/type1-choice-category";
@@ -341,6 +343,9 @@ export function checkListeningQuestionQuality(
     }
   }
 
+  // 전 학년 공통: 잘린 대본·중복 선택지·해설 번호·금액 검산·화자 일치 등
+  issues.push(...genericQualityIssues(q, typeId, gradeLevel));
+
   // 고1·고2는 중등 1~20 유형 검수 규칙을 적용하지 않음 (번호 의미가 다름)
   if (isHighSchoolListeningGrade(gradeLevel)) {
     const quality_score = computeQualityScore(issues);
@@ -498,11 +503,12 @@ export function checkListeningQuestionQuality(
     }
     const spoken = q.segments.filter((s) => s.speaker === "M" || s.speaker === "W");
     const lastSeg = spoken[spoken.length - 1];
+    // 대본의 실제 마지막 화자가 기준 (모델이 적은 last_speaker는 틀릴 수 있음)
     const last_speaker =
-      q.last_speaker === "M" || q.last_speaker === "W"
-        ? q.last_speaker
-        : lastSeg?.speaker === "M" || lastSeg?.speaker === "W"
-          ? lastSeg.speaker
+      lastSeg?.speaker === "M" || lastSeg?.speaker === "W"
+        ? lastSeg.speaker
+        : q.last_speaker === "M" || q.last_speaker === "W"
+          ? q.last_speaker
           : null;
 
     if (last_speaker && q.instruction?.trim()) {
@@ -2257,7 +2263,8 @@ export function checkListeningQuestionQuality(
       });
     }
 
-    const reqSpeaker = findRequestSpeaker(q.segments);
+    const reqSpeaker =
+      speakerOfQuote(q.segments, q.request_expression) ?? findRequestSpeaker(q.segments);
     if (
       reqSpeaker &&
       q.requester?.trim() &&
@@ -2430,7 +2437,10 @@ export function checkListeningQuestionQuality(
       });
     }
 
-    const sugSpeaker = findSuggestionSpeaker(q.segments);
+    // 제안 표현 문장을 실제로 말한 화자가 기준 (없으면 마지막 제안형 문장 — 상대의 "Okay, let's"에 속기 쉬움)
+    const sugSpeaker =
+      speakerOfQuote(q.segments, q.suggestion_expression) ??
+      findSuggestionSpeaker(q.segments);
     if (
       sugSpeaker &&
       q.suggester?.trim() &&
@@ -2592,7 +2602,9 @@ export function checkListeningQuestionQuality(
       }
     }
 
-    const planSpeaker = findPlannedActionSpeaker(q.segments);
+    // 정답 근거 문장을 실제로 말한 화자가 기준 (마지막 "I will …" 문장은 상대의 말일 때가 많음)
+    const planSpeaker =
+      speakerOfQuote(q.segments, q.answer_clue) ?? findPlannedActionSpeaker(q.segments);
     if (
       planSpeaker &&
       q.target_person?.trim() &&
@@ -2771,10 +2783,11 @@ export function checkListeningQuestionQuality(
           weight: 22,
         });
       } else if (targetClues < otherClues && otherClues >= 2) {
+        // 낱말 수만 센 참고용 신호 (손님이 "dog"를 더 많이 말하는 수의사 대화도 걸림) — 검토 표시는 하지 않는다
         issues.push({
-          code: "type18_target_person_mismatch",
-          message: "직업 단서가 target_person이 아닌 다른 화자에게 더 많습니다.",
-          weight: 20,
+          code: "type18_job_clue_keywords",
+          message: "직업 관련 낱말이 target_person보다 상대 화자 쪽에 더 많습니다.",
+          weight: 8,
         });
       }
     }

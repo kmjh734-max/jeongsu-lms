@@ -11,6 +11,7 @@ import {
   findType1SubjectFromAnswer,
 } from "@/lib/listening/type1-subject-pool";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
+import { loadCurriculumAnswerUsage } from "@/lib/listening/curriculum-answer-usage";
 import { CREDIT_FEATURES } from "@/lib/credits";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { replaceGeneratedQuestion } from "@/lib/listening/persist-questions";
@@ -137,6 +138,11 @@ export async function POST(request: Request) {
       };
     }
 
+    // 같은 과정에서 이미 쓴 정답 + 이번 문항의 이전 정답은 덜 고르게 한다
+    const usedAnswers =
+      (await loadCurriculumAnswerUsage(access.admin, setId, gradeLevel))[typeId] ?? [];
+    if (previousAnswer) usedAnswers.push(previousAnswer, previousAnswer);
+
     const generated = await generateSingleExamQuestion(
       apiKey,
       typeId,
@@ -144,7 +150,8 @@ export async function POST(request: Request) {
       trimmedProblems.length ? trimmedProblems : undefined,
       gradeLevel,
       slotIndex,
-      type1Regeneration
+      type1Regeneration,
+      { usedAnswers }
     );
 
     if (academyId) {

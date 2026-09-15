@@ -4,11 +4,15 @@
  * 지울 과제 id 와 새로 만들 과제를 돌려준다.
  */
 import {
-  getStudyDayIndex,
   isStudyDay,
   listStudyDatesInclusive,
   parseDateOnly,
 } from "@/lib/listening/schedule/days-of-week";
+import {
+  getStudyDayIndexSkippingPauses,
+  isDatePaused,
+  type PauseDateRange,
+} from "@/lib/listening/schedule/pauses";
 import {
   buildPackedDailySlices,
   remainingQueueAfterConsumed,
@@ -74,6 +78,8 @@ function sameIdList(a: string[] | null | undefined, b: string[]): boolean {
  * - 오늘·이후 과제는 끝냈거나, 시작했고 순서가 맞으면 그대로 둔다.
  * - 나머지 날은 「이미 나간·끝낸 마지막 문항 다음」부터 새 규칙으로 채운다.
  *   (아무것도 나간 게 없으면 시작일 기준 순번으로 자른다)
+ * - 일시정지한 날은 과제를 만들지 않고, 순번에서도 뺀다(다시 시작하면 멈춘 곳부터 이어짐).
+ *   아직 안 건드린 과제가 멈춘 날에 남아 있으면 지운다.
  */
 export function planStudentDailyTasks(input: {
   assignment: PlanAssignmentRule;
@@ -87,6 +93,8 @@ export function planStudentDailyTasks(input: {
   /** 유효 시작일로 이미 잘린 시작 */
   fromIso: string;
   toIso: string;
+  /** 이 학생에게 걸린 일시정지 기간 (과제 전체 + 이 학생) */
+  pausedRanges?: readonly PauseDateRange[];
 }): { idsToDelete: string[]; inserts: PlannedDailyTask[] } {
   const {
     assignment,
@@ -96,7 +104,9 @@ export function planStudentDailyTasks(input: {
     todayIso,
     fromIso,
     toIso,
+    pausedRanges,
   } = input;
+  const isPaused = (iso: string) => isDatePaused(pausedRanges, iso);
 
   const idsToDelete: string[] = [];
   const inserts: PlannedDailyTask[] = [];
@@ -138,7 +148,9 @@ export function planStudentDailyTasks(input: {
     }
 
     if (row.task_date >= fromIso && row.task_date <= toIso) {
-      unlockedInRange.push(row);
+      // 멈춘 날에 남은 안 건드린 과제는 지운다 (아래 학습일 목록에서도 빠진다)
+      if (isPaused(row.task_date)) idsToDelete.push(row.id);
+      else unlockedInRange.push(row);
     }
   }
 
@@ -154,7 +166,7 @@ export function planStudentDailyTasks(input: {
     fromIso,
     toIso,
     assignment.days_of_week
-  ).filter((iso) => isTaskDateInAssignment(iso, assignment));
+  ).filter((iso) => isTaskDateInAssignment(iso, assignment) && !isPaused(iso));
 
   const futureDates = studyDates.filter(
     (iso) => iso >= todayIso && !lockedByDate.has(iso)
@@ -185,13 +197,14 @@ export function planStudentDailyTasks(input: {
   };
 
   if (consumed.size === 0) {
-    // 아직 나간 문항이 없으면 시작일부터의 학습일 순번으로 자른다
+    // 아직 나간 문항이 없으면 시작일부터의 학습일 순번으로 자른다 (멈춘 날은 세지 않는다)
     const packed = buildPackedDailySlices(queue, assignment.questions_per_day);
     const sliceForDate = (iso: string) => {
-      const index = getStudyDayIndex(
+      const index = getStudyDayIndexSkippingPauses(
         assignment.start_date,
         iso,
-        assignment.days_of_week
+        assignment.days_of_week,
+        pausedRanges
       );
       return index < 0 ? null : (packed[index] ?? null);
     };

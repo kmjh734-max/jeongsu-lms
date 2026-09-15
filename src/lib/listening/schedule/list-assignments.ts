@@ -1,5 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { formatDaysOfWeek } from "@/lib/listening/schedule/days-of-week";
+import { loadSchedulePauses } from "@/lib/listening/schedule/load-pauses";
+import {
+  pauseStateOn,
+  type SchedulePauseView,
+} from "@/lib/listening/schedule/pauses";
 import type { UserRole } from "@/types/database";
 
 export interface ScheduleAssignmentListItem {
@@ -21,6 +27,10 @@ export interface ScheduleAssignmentListItem {
   dictationPassScore: number;
   isActive: boolean;
   createdAt: string;
+  /** 과제 전체가 오늘 멈춰 있으면 멈춘 날·다시 시작하는 날·멈춘 사람 */
+  pause: SchedulePauseView | null;
+  /** 반 배정 안에서 오늘 따로 멈춘 학생 수 */
+  pausedStudentCount: number;
 }
 
 async function teacherClassIds(
@@ -46,7 +56,7 @@ export async function listScheduleAssignments(
   let query = admin
     .from("listening_schedule_assignments")
     .select(
-      "id, title, target_type, target_class_id, target_student_id, start_date, end_date, days_of_week, questions_per_day, require_dictation_pass, dictation_pass_score, is_active, created_at, assigned_by, academy_id"
+      "id, title, target_type, target_class_id, target_student_id, start_date, end_date, days_of_week, questions_per_day, require_dictation_pass, dictation_pass_score, is_active, created_at, updated_at, assigned_by, academy_id"
     )
     .eq("academy_id", academyId)
     .order("created_at", { ascending: false })
@@ -82,7 +92,7 @@ export async function listScheduleAssignments(
   ];
   const assignmentIds = rows.map((r) => r.id as string);
 
-  const [{ data: classes }, { data: students }, { data: setLinks }] =
+  const [{ data: classes }, { data: students }, { data: setLinks }, pauseMap] =
     await Promise.all([
       classIds.length
         ? admin.from("classes").select("id, name").in("id", classIds)
@@ -95,7 +105,44 @@ export async function listScheduleAssignments(
         .select("assignment_id, set_id, order_index, set:listening_sets(title)")
         .in("assignment_id", assignmentIds)
         .order("order_index"),
+      loadSchedulePauses(admin, assignmentIds),
     ]);
+
+  // 오늘 걸린 멈춤 — 과제 전체 / 학생별
+  const todayIso = getTodayIsoKorea();
+  const wholePauseById = new Map<string, NonNullable<ReturnType<typeof pauseStateOn>>>();
+  const pausedStudentCountById = new Map<string, number>();
+  for (const [aid, ranges] of pauseMap) {
+    const whole = pauseStateOn(
+      ranges.filter((r) => r.studentId === null),
+      todayIso
+    );
+    if (whole) wholePauseById.set(aid, whole);
+    const pausedStudents = new Set(
+      ranges
+        .filter(
+          (r) =>
+            r.studentId !== null &&
+            r.startDate <= todayIso &&
+            (r.endDate === null || todayIso < r.endDate)
+        )
+        .map((r) => r.studentId as string)
+    );
+    if (pausedStudents.size > 0) pausedStudentCountById.set(aid, pausedStudents.size);
+  }
+  const pauserIds = [
+    ...new Set(
+      [...wholePauseById.values()]
+        .map((p) => p.pausedBy)
+        .filter((id): id is string => Boolean(id))
+    ),
+  ];
+  const { data: pausers } = pauserIds.length
+    ? await admin.from("profiles").select("id, name").in("id", pauserIds)
+    : { data: [] as { id: string; name: string }[] };
+  const pauserNameById = new Map(
+    (pausers ?? []).map((p) => [p.id as string, p.name as string])
+  );
 
   const classNameById = new Map(
     (classes ?? []).map((c) => [c.id as string, c.name as string])
@@ -153,8 +200,41 @@ export async function listScheduleAssignments(
       dictationPassScore: (row.dictation_pass_score as number | null) ?? 80,
       isActive: row.is_active as boolean,
       createdAt: row.created_at as string,
+      pause: pauseViewOf(
+        row.is_active as boolean,
+        (row.updated_at as string | null) ?? null,
+        wholePauseById.get(row.id as string) ?? null,
+        pauserNameById
+      ),
+      pausedStudentCount: pausedStudentCountById.get(row.id as string) ?? 0,
     };
   });
+}
+
+function pauseViewOf(
+  isActive: boolean,
+  updatedAt: string | null,
+  state: ReturnType<typeof pauseStateOn>,
+  pauserNameById: Map<string, string>
+): SchedulePauseView | null {
+  if (state) {
+    return {
+      ...state,
+      pausedByName: state.pausedBy ? (pauserNameById.get(state.pausedBy) ?? null) : null,
+    };
+  }
+  // 예전 「잠시 쉬기」로 멈춘 과제 — 멈춘 날은 마지막으로 고친 날로 본다
+  if (!isActive) {
+    return {
+      since: updatedAt ? getTodayIsoKorea(new Date(updatedAt)) : getTodayIsoKorea(),
+      until: null,
+      pausedBy: null,
+      pausedAt: updatedAt,
+      pausedByName: null,
+      legacy: true,
+    };
+  }
+  return null;
 }
 
 export async function teacherCanManageAssignment(

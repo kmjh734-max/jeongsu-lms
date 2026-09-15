@@ -2,14 +2,19 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import {
   isStudyDay,
-  nextStudyDateAfter,
   parseDateOnly,
   toDateOnlyString,
 } from "@/lib/listening/schedule/days-of-week";
 import { getStudentListeningCalendar } from "@/lib/listening/schedule/calendar";
 import { ensureDailyTasksForStudentRange } from "@/lib/listening/schedule/generate-daily-tasks";
+import {
+  applyPausesToAssignment,
+  nextUnpausedStudyDateAfter,
+  pauseStateOn,
+} from "@/lib/listening/schedule/pauses";
 import { buildQuestionQueueForAssignment } from "@/lib/listening/schedule/question-queue";
 import {
+  isAssignmentPausedOn,
   loadStudentScheduleContext,
   type StudentScheduleContext,
 } from "@/lib/listening/schedule/student-context";
@@ -29,6 +34,15 @@ export interface StudentDailyTaskView {
   completedCount: number;
   totalCount: number;
   remainingCount: number;
+}
+
+/** 선생님이 지금 멈춰 둔 과제 (학생 화면 안내용) */
+export interface StudentPausedAssignmentView {
+  assignmentId: string;
+  assignmentTitle: string;
+  since: string;
+  /** 다시 시작하는 날. null = 선생님이 다시 시작할 때까지 */
+  until: string | null;
 }
 
 function isDateInAssignment(
@@ -143,8 +157,27 @@ export async function getStudentScheduleTodaySummaryReadOnly(
   /** 같은 요청에서 이미 읽은 과제 목록 (없으면 여기서 읽는다) */
   context?: StudentScheduleContext
 ) {
-  const { assignments, effectiveStartByAssignment } =
-    context ?? (await loadStudentScheduleContext(admin, studentId));
+  const ctx = context ?? (await loadStudentScheduleContext(admin, studentId));
+  const { effectiveStartByAssignment, pausesByAssignment } = ctx;
+  // 오늘 멈춘 과제는 오늘 할 일·못 끝낸 학습에서 뺀다 (안내만 한다)
+  const pausedToday = ctx.assignments.filter((a) =>
+    isAssignmentPausedOn(ctx, a.id, todayIso)
+  );
+  const pausedIds = new Set(pausedToday.map((a) => a.id));
+  const assignments = ctx.assignments.filter((a) => !pausedIds.has(a.id));
+  const paused: StudentPausedAssignmentView[] = pausedToday.flatMap((a) => {
+    const state = pauseStateOn(pausesByAssignment.get(a.id), todayIso);
+    return state
+      ? [
+          {
+            assignmentId: a.id,
+            assignmentTitle: a.title,
+            since: state.since,
+            until: state.until,
+          },
+        ]
+      : [];
+  });
 
   // 유효 시작일 이전 미완료 정리와 과제 조회를 같이 한다.
   // 정리 대상(유효 시작일 이전)은 아래에서 어차피 걸러 내므로 결과는 같다.
@@ -244,25 +277,19 @@ export async function getStudentScheduleTodaySummaryReadOnly(
       : null;
   let nextStudyDate: string | null = null;
 
-  for (const assignment of assignments) {
+  // 다음 학습일 — 멈춘 날은 건너뛴다 (다시 시작할 날이 정해진 멈춤도 포함)
+  for (const assignment of ctx.assignments) {
     const effectiveStart =
       effectiveStartByAssignment.get(assignment.id) ?? assignment.start_date;
-    const next = nextStudyDateAfter(
+    const ranges = pausesByAssignment.get(assignment.id);
+    const next = nextUnpausedStudyDateAfter(
       todayIso < effectiveStart ? addDaysIso(effectiveStart, -1) : todayIso,
       assignment.days_of_week,
-      assignment.end_date
+      applyPausesToAssignment(assignment, ranges).end_date,
+      ranges
     );
-    // effectiveStart 이전 next 는 무시
-    const nextOk =
-      next && next >= effectiveStart
-        ? next
-        : nextStudyDateAfter(
-            addDaysIso(effectiveStart, -1),
-            assignment.days_of_week,
-            assignment.end_date
-          );
-    if (nextOk && (!nextStudyDate || nextOk < nextStudyDate)) {
-      nextStudyDate = nextOk;
+    if (next && (!nextStudyDate || next < nextStudyDate)) {
+      nextStudyDate = next;
     }
   }
 
@@ -309,7 +336,10 @@ export async function getStudentScheduleTodaySummaryReadOnly(
     const effectiveStart =
       effectiveStartByAssignment.get(a.id) ?? a.start_date;
     if (todayIso < effectiveStart) return false;
-    return isDateInAssignment(todayIso, a);
+    return isDateInAssignment(
+      todayIso,
+      applyPausesToAssignment(a, pausesByAssignment.get(a.id))
+    );
   });
 
   return {
@@ -318,6 +348,7 @@ export async function getStudentScheduleTodaySummaryReadOnly(
     todayTask,
     missedTasks,
     nextStudyDate,
+    paused,
   };
 }
 
@@ -329,8 +360,8 @@ export async function ensureStudentTodayAndMissedTasks(
   /** 같은 요청에서 이미 읽은 과제 목록 (없으면 여기서 읽는다) */
   context?: StudentScheduleContext
 ): Promise<void> {
-  const { assignments, effectiveStartByAssignment } =
-    context ?? (await loadStudentScheduleContext(admin, studentId));
+  const ctx = context ?? (await loadStudentScheduleContext(admin, studentId));
+  const { assignments, effectiveStartByAssignment, pausesByAssignment } = ctx;
   if (assignments.length === 0) return;
 
   await Promise.all(
@@ -338,7 +369,12 @@ export async function ensureStudentTodayAndMissedTasks(
       const effectiveStart =
         effectiveStartByAssignment.get(assignment.id) ?? assignment.start_date;
       if (todayIso < effectiveStart) return;
-      if (!isDateInAssignment(todayIso, assignment)) return;
+      // 오늘 멈춘 과제는 만들지 않는다
+      if (isAssignmentPausedOn(ctx, assignment.id, todayIso)) return;
+      const pauses = pausesByAssignment.get(assignment.id) ?? [];
+      if (!isDateInAssignment(todayIso, applyPausesToAssignment(assignment, pauses))) {
+        return;
+      }
       const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
       if (queue.length === 0) return;
       await ensureDailyTasksForStudentRange(
@@ -348,7 +384,8 @@ export async function ensureStudentTodayAndMissedTasks(
         todayIso,
         todayIso,
         queue,
-        effectiveStart
+        effectiveStart,
+        pauses
       );
     })
   );
@@ -368,7 +405,7 @@ export async function ensureStudentScheduleDailyTasks(
   options?: { futureDays?: number; context?: StudentScheduleContext }
 ): Promise<void> {
   const futureDays = options?.futureDays ?? 30;
-  const { assignments, effectiveStartByAssignment } =
+  const { assignments, effectiveStartByAssignment, pausesByAssignment } =
     options?.context ?? (await loadStudentScheduleContext(admin, studentId));
   const lookbackFrom = lookbackIsoFrom(todayIso, MISSED_TASK_LOOKBACK_DAYS);
   const futureTo = addDaysIso(todayIso, futureDays);
@@ -383,10 +420,10 @@ export async function ensureStudentScheduleDailyTasks(
           : lookbackFrom;
       if (rangeFrom < effectiveStart) rangeFrom = effectiveStart;
 
-      const rangeTo =
-        assignment.end_date && assignment.end_date < futureTo
-          ? assignment.end_date
-          : futureTo;
+      // 멈춘 날은 과제를 만들지 않고, 끝나는 날은 쉰 날만큼 뒤로 밀린다
+      const pauses = pausesByAssignment.get(assignment.id) ?? [];
+      const endIso = applyPausesToAssignment(assignment, pauses).end_date;
+      const rangeTo = endIso && endIso < futureTo ? endIso : futureTo;
       if (rangeFrom > rangeTo) return;
 
       const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
@@ -397,7 +434,8 @@ export async function ensureStudentScheduleDailyTasks(
         rangeFrom,
         rangeTo,
         queue,
-        effectiveStart
+        effectiveStart,
+        pauses
       );
     })
   );

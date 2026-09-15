@@ -348,7 +348,7 @@ function SeriesSummary({
             .map((sr) => (
               <div key={sr.series}>
                 <p className="mb-1 text-[11px] font-semibold text-slate-500">{sr.series}</p>
-                <ul className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-1">
+                <ul className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-1">
                   {sr.items.map((it) => (
                     <li
                       key={it.setId}

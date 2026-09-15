@@ -55,7 +55,14 @@ choice_image_prompts: 1장. 라벨 ①–⑤가 모두 보이고, 정답 라벨�
 ### 고1 6번 — 금액 계산
 지시: 대화를 듣고, {남/여}가 지불할 금액을 고르시오. (자주 3점)
 형식: 단가·수량·옵션·쿠폰/할인. 최종 지불액이 유일하게 계산됨.
-선택지: $금액 5개. 산수 실수형 오답 포함.
+선택지: $금액 5개. 산수 실수형 오답 포함 (할인 순서를 바꾼 값, 쿠폰을 빠뜨린 값 등).
+금지: 대본에서 최종 지불액이나 할인 전 합계를 말하지 말 것 ("Your total is …", "So I'll pay …" 금지). 단가·수량·할인 조건만 말한다.
+price_calculation 필수 (정답 검산용):
+  { "items": [{ "label": "T-shirt", "unit_price": 12, "quantity": 6 }],
+    "adjustments": [{ "kind": "percent_off", "value": 10 }, { "kind": "amount_off", "value": 5 }],
+    "final_amount": 76 }
+  adjustments는 대본에서 적용하는 순서대로 (percent_off=전체 %할인, amount_off=금액 할인, add=추가 비용).
+  final_amount와 correct_answer 선택지 금액, 해설의 최종 금액이 모두 같아야 한다.
 `.trim(),
   7: `
 ### 고1 7번 — 이유 파악

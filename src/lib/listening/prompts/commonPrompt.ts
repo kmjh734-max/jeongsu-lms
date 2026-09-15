@@ -94,6 +94,19 @@ export const JSON_OUTPUT_SCHEMA = `
 19~20번: previous_turn, correct_response_function, distractor_reason[5] 필수.
 `.trim();
 
+/**
+ * 모든 학년·유형 공통 출력 주의 (해설 번호·화자·선택지 언어·금액).
+ * 생성 뒤 선택지를 섞기 때문에 해설에 ①~⑤를 쓰면 번호가 어긋난다.
+ */
+export const LISTENING_OUTPUT_GUARD_BLOCK = `
+[공통 출력 주의 — 반드시 지킬 것]
+- explanation(해설)에는 ①~⑤ 같은 선택지 번호를 절대 쓰지 않는다. "정답은 ○○이다"처럼 선택지 내용으로 설명한다 (선택지 순서는 나중에 바뀐다).
+- 지시문이 가리키는 사람(남자/여자)과 대본에서 실제로 그 말(부탁·제안·마지막 말·자기 직업 설명 등)을 하는 화자가 반드시 같아야 한다. 대화 유형은 같은 사람이 두 줄 연속 말하지 않게 M/W를 번갈아 쓴다 (한 사람 말은 한 줄에 합친다).
+- 선택지 5개는 한 언어로 통일한다 (한국어 유형이면 5개 모두 한국어, 영어 응답 유형이면 5개 모두 영어).
+- 시각·금액 선택지는 숫자만 다르게 쓰고 앞에 ①~⑤ 번호를 붙이지 않는다.
+- 금액 계산 문항: 대본에서 최종 지불 금액(합계)을 말하지 않는다. 단가·수량·할인만 말해 학생이 계산하게 하고, JSON에 price_calculation을 넣는다.
+`.trim();
+
 export const LISTENING_SYSTEM_PROMPT =
   "You are an expert writer for the Korean national middle school Grade 1 English listening exam (전국 중1 영어듣기능력평가). Output only valid JSON. Never copy copyrighted past exam content. Follow per-type rules and word-count targets strictly. Write natural, slightly longer sentences (6~13 words) at grade-1 level.";
 

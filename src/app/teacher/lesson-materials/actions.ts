@@ -10,6 +10,11 @@ import {
   type LessonMaterialAnalysisCard,
 } from "@/lib/lesson-materials/generate-organization";
 import { generateLessonMaterialComicIllustration } from "@/lib/lesson-materials/generate-illustration";
+import {
+  debitLessonCredits,
+  LESSON_CREDIT_FEATURES,
+  lessonCreditShortfall,
+} from "@/lib/credits/lesson-credits";
 
 type PassageInput = { english: string; korean?: string };
 
@@ -219,12 +224,24 @@ export async function generateLessonMaterialsIllustrationAction(input: {
     return { ok: false, message: "삽화 프롬프트가 비어 있습니다." };
   }
 
+  // 화면은 /api/lesson-materials/illustration을 쓴다. 이 경로로 와도 같은 값을 받는다.
+  const shortfall = await lessonCreditShortfall(academyId, LESSON_CREDIT_FEATURES.illustration);
+  if (shortfall) return { ok: false, message: shortfall };
+
   try {
     const out = await generateLessonMaterialComicIllustration({
       academyId,
       illustrationPrompt: prompt,
       passageHint: input.passageHint,
       captions: input.captions,
+      onImageProduced: async () => {
+        await debitLessonCredits({
+          academyId,
+          actorId: profile.id,
+          featureKey: LESSON_CREDIT_FEATURES.illustration,
+          note: "지문 삽화",
+        });
+      },
     });
     return { ok: true, url: out.url, prompt: out.prompt };
   } catch (e) {

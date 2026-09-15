@@ -17,6 +17,8 @@ export interface ListeningCalendarDay {
   completedCount: number;
   assignmentTitle: string | null;
   setTitle: string | null;
+  /** 선생님이 멈춘 날 */
+  paused?: boolean;
 }
 
 export interface ListeningCalendarData {
@@ -31,10 +33,10 @@ interface StudentListeningCalendarProps {
   onMonthChange?: (year: number, month: number) => Promise<ListeningCalendarData | null>;
 }
 
-type DayTone = "completed" | "missed" | "today" | "scheduled" | "none";
+type DayTone = "completed" | "missed" | "today" | "scheduled" | "paused" | "none";
 
 function dayTone(day: ListeningCalendarDay, todayIso: string): DayTone {
-  if (!day.isStudyDay) return "none";
+  if (!day.isStudyDay) return day.paused ? "paused" : "none";
   if (day.status === "completed") return "completed";
   if (day.taskDate === todayIso) return "today";
   if (day.locked) return "scheduled";
@@ -42,7 +44,7 @@ function dayTone(day: ListeningCalendarDay, todayIso: string): DayTone {
 }
 
 function statusLabel(day: ListeningCalendarDay, todayIso: string): string {
-  if (!day.isStudyDay) return "";
+  if (!day.isStudyDay) return day.paused ? "쉼" : "";
   if (day.status === "completed") return "완료";
   if (day.taskDate === todayIso) {
     return day.totalCount > 0
@@ -58,6 +60,7 @@ const TAG_CLASS: Record<DayTone, string> = {
   missed: "bg-amber-50 text-amber-700",
   today: "bg-brand-600 text-white",
   scheduled: "bg-slate-100 text-slate-400",
+  paused: "bg-slate-50 text-slate-400",
   none: "",
 };
 
@@ -66,6 +69,7 @@ const DOT_CLASS: Record<DayTone, string> = {
   missed: "bg-amber-600",
   today: "bg-brand-600",
   scheduled: "bg-slate-300",
+  paused: "bg-slate-200",
   none: "",
 };
 
@@ -143,6 +147,12 @@ export function StudentListeningCalendar({
             <span className="h-2 w-2 rounded-full bg-slate-400" />
             예정
           </li>
+          {calendar.days.some((d) => d.paused) ? (
+            <li className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-slate-200" />
+              쉼
+            </li>
+          ) : null}
         </ul>
       </div>
 

@@ -20,6 +20,8 @@ export async function chargeFeatureOrError(params: {
   note?: string;
   /** 단가 × quantity (변형문제 문항 수 등) */
   quantity?: number;
+  /** 이미 만든 결과의 값(후불)이면 true — 잔액이 모자라도 차감한다(debitFeatureCredits 참고) */
+  allowNegative?: boolean;
 }): Promise<NextResponse | null> {
   if (!params.academyId) {
     return NextResponse.json(
@@ -37,6 +39,7 @@ export async function chargeFeatureOrError(params: {
       metadata: params.metadata,
       note: params.note,
       quantity: params.quantity,
+      allowNegative: params.allowNegative,
     });
     return null;
   } catch (err) {

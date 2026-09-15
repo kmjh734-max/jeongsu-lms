@@ -376,8 +376,14 @@ type ReasoningEffort = "low" | "medium";
  */
 const GRAMMAR_EFFORT: ReasoningEffort = "low";
 const SENTENCE_EFFORT: ReasoningEffort = "medium";
-/** See requestHedged. Normal calls finish well inside this. */
-const HEDGE_AFTER_MS = 30_000;
+/**
+ * See requestHedged. Normal calls finish in 11-19s (grammar at low 15-18s).
+ * OpenAI bills the aborted loser in full (non-streaming), so the hedge only
+ * fires for calls that are really stuck: at 30s it doubled the cost of every
+ * merely slow call. At 90s a duplicate (~20s) still lands well before
+ * REPORT_DEADLINE_MS (240s).
+ */
+const HEDGE_AFTER_MS = 90_000;
 
 function sleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {

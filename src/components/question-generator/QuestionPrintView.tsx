@@ -5,9 +5,13 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { Button } from "@/components/ui/Button";
 import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
 import {
-  paginateExamQuestions,
-  type ExamPageLayout,
-} from "@/lib/listening/paginate-exam-questions";
+  paginatePrintPieces,
+  splitPrintUnits,
+  type PrintPiece,
+  type PrintPiecePage,
+  type PrintPiecePart,
+  type PrintUnit,
+} from "@/lib/question-generator/print-split";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import {
   questionNeedsVocabGloss,
@@ -53,7 +57,7 @@ type DisplayItem = {
   num: number;
 };
 
-type SheetPage = ExamPageLayout & {
+type SheetPage = PrintPiecePage & {
   /** 유형별 출력: 이 페이지가 새 유형의 첫 장일 때 소제목 */
   sectionLabel?: string;
 };
@@ -136,32 +140,61 @@ function renderMarkedText(text: string): ReactNode[] {
   return nodes.length > 0 ? nodes : [text];
 }
 
-function PassageParas({ text }: { text: string }) {
-  const raw = (text || "").replace(/\r\n/g, "\n").trim();
-  const blocks = raw
-    ? raw
-        .split(/\n\s*\n+/)
-        .map((para) =>
-          para
-            .split(/\n/)
-            .map((l) => l.trim())
-            .filter(Boolean)
-            .join(" ")
-            .replace(/\s+/g, " ")
-            .trim()
-        )
-        .filter(Boolean)
-    : [];
-
-  if (blocks.length === 0) return null;
-
+/**
+ * 지문 조각을 문단별 <p>로 그린다. range가 있으면 그 조각만(단을 넘겨 이어지는 긴 지문).
+ * 조각마다 data-qg-u를 달아 쪽 나눔 측정에서 조각 단위로 잘라 볼 수 있게 한다.
+ * 같은 문단의 조각은 한 칸 띄워 이어 붙이므로 쪼개지 않은 문단은 예전과 똑같이 보인다.
+ */
+function PassageUnits({
+  units,
+  range,
+  marked = true,
+  pClass = "qg-print-passage-p",
+}: {
+  units: PrintUnit[];
+  range?: { from: number; to: number };
+  /** <u>…</u>를 밑줄로 그린다(개수형 지문·해설은 글자 그대로). */
+  marked?: boolean;
+  pClass?: string;
+}) {
+  const from = range?.from ?? 0;
+  const to = range?.to ?? units.length;
+  const paras: { para: number; items: { index: number; text: string; lead: boolean }[] }[] = [];
+  for (let i = from; i < to; i++) {
+    const u = units[i];
+    if (!u) continue;
+    const lead = i > 0 && units[i - 1]?.para === u.para;
+    const last = paras[paras.length - 1];
+    if (last && last.para === u.para) last.items.push({ index: i, text: u.text, lead });
+    else paras.push({ para: u.para, items: [{ index: i, text: u.text, lead }] });
+  }
   return (
-    <div className="qg-print-passage qg-print-passage-block">
-      {blocks.map((p, pi) => (
-        <p key={pi} className="qg-print-passage-p">
-          {renderMarkedText(p)}
+    <>
+      {paras.map((p) => (
+        <p key={p.para} className={pClass} data-qg-para="">
+          {p.items.map((it) => (
+            <span key={it.index} data-qg-u={it.index}>
+              {it.lead ? " " : null}
+              {marked ? renderMarkedText(it.text) : it.text}
+            </span>
+          ))}
         </p>
       ))}
+    </>
+  );
+}
+
+function PassageParas({
+  units,
+  range,
+}: {
+  units: PrintUnit[];
+  range?: { from: number; to: number };
+}) {
+  if (units.length === 0) return null;
+  return (
+    <div className="qg-print-passage qg-print-passage-block">
+      <PassageUnits units={units} range={range} />
     </div>
   );
 }
@@ -279,13 +312,27 @@ function GrammarCorrectionBoxes({
   );
 }
 
+/** 쪼갠 문항 부분에 붙이는 카드 class와 지문 범위. 끝 부분이 아니면 아래 구분선을 뺀다. */
+function pieceProps(part: PrintPiecePart | undefined) {
+  return {
+    cardClass: part && !part.last ? " qg-print-card-cont" : "",
+    range: part ? { from: part.from, to: part.to } : undefined,
+    head: !part || part.first,
+    tail: !part || part.last,
+  };
+}
+
 function QuestionBlock({
   q,
   index,
+  part,
 }: {
   q: QuestionRow;
   index: number;
+  /** 한 단보다 긴 문항을 나눠 실을 때 이 부분(없으면 문항 전체). */
+  part?: PrintPiecePart;
 }) {
+  const { cardClass, range, head, tail } = pieceProps(part);
   const isCount = q.question_type === "content_count";
   const isInsertion = q.question_type === "sentence_insertion";
   const isIrrelevant = q.question_type === "irrelevant_sentence";
@@ -319,45 +366,56 @@ function QuestionBlock({
     q.choices.length > 0 &&
     q.choices.some((c) => String(c.text ?? "").trim().length > 0);
 
+  // 지문 조각(쪽 나눔 측정과 쪼갠 문항이 같은 조각을 쓴다)
+  const units = splitPrintUnits(reflowPassageForPrint(passage));
+
   if (isCount) {
     return (
-      <section className="qg-print-card qg-print-count-card">
-        <p className="qg-print-q-head">
-          <span className="qg-print-q-num qg-print-count-num">
-            {padNo(index)}
-          </span>{" "}
-          {q.instruction}
-        </p>
-        {passage.trim() && (
+      <section className={`qg-print-card qg-print-count-card${cardClass}`}>
+        {head ? (
+          <p className="qg-print-q-head" data-qg-head="">
+            <span className="qg-print-q-num qg-print-count-num">
+              {padNo(index)}
+            </span>{" "}
+            {q.instruction}
+          </p>
+        ) : null}
+        {units.length > 0 && (
           <div className="qg-print-count-box qg-print-passage-block">
-            {reflowPassageForPrint(passage).map((p, pi) => (
-              <p key={pi} className="qg-print-passage-p">
-                {p}
-              </p>
-            ))}
+            <PassageUnits units={units} range={range} marked={false} />
           </div>
         )}
-        <p className="qg-print-bogi-label">&lt;보기&gt;</p>
-        <div className="qg-print-count-box qg-print-bogi-box">
-          {bogiLines.map((line, i) => (
-            <p key={i} className="qg-print-bogi-line">
-              {line}
-            </p>
-          ))}
-        </div>
+        {tail ? (
+          <div data-qg-tail="">
+            <p className="qg-print-bogi-label">&lt;보기&gt;</p>
+            <div className="qg-print-count-box qg-print-bogi-box">
+              {bogiLines.map((line, i) => (
+                <p key={i} className="qg-print-bogi-line">
+                  {line}
+                </p>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
     );
   }
 
   return (
-    <section className="qg-print-card">
-      <p className="qg-print-q-head">
-        <span className="qg-print-q-num">{padNo(index)}</span> {q.instruction}
-      </p>
-      {isInsertion && extra ? (
-        <div className="qg-print-given-box">{extra}</div>
+    <section className={`qg-print-card${cardClass}`}>
+      {head ? (
+        <div data-qg-head="">
+          <p className="qg-print-q-head">
+            <span className="qg-print-q-num">{padNo(index)}</span> {q.instruction}
+          </p>
+          {isInsertion && extra ? (
+            <div className="qg-print-given-box">{extra}</div>
+          ) : null}
+        </div>
       ) : null}
-      {passage.trim() ? <PassageParas text={passage} /> : null}
+      <PassageParas units={units} range={range} />
+      {tail ? (
+      <div data-qg-tail="">
       {summaryWriting ? (
         <SummaryWritingBoxes blocks={summaryWriting} />
       ) : null}
@@ -390,6 +448,8 @@ function QuestionBlock({
           ))}
         </ul>
       )}
+      </div>
+      ) : null}
     </section>
   );
 }
@@ -397,10 +457,17 @@ function QuestionBlock({
 function AnswerBlock({
   q,
   index,
+  part,
 }: {
   q: QuestionRow;
   index: number;
+  part?: PrintPiecePart;
 }) {
+  const { cardClass, range, head, tail } = pieceProps(part);
+  // 해설이 한 단보다 길면 문장 단위로 나눠 다음 단에 잇는다.
+  // (white-space: normal이라 줄바꿈은 원래도 한 칸으로 보였다)
+  const explanation = String(q.explanation ?? "").replace(/\s+/g, " ").trim();
+  const units = splitPrintUnits(explanation ? [explanation] : []);
   const hardWords = questionNeedsVocabGloss({
     choices: q.choices,
     questionType: q.question_type,
@@ -411,16 +478,27 @@ function AnswerBlock({
     ? parseHardWordsColumn(q.hard_words)
     : [];
   return (
-    <section className="qg-print-card qg-print-answer-card">
-      <p className="qg-print-answer-head">
-        <span className="qg-print-q-num">{padNo(index)}</span>{" "}
-        <span className="qg-print-answer-mark">
-          {formatAnswer(q.correct_answer)}
-        </span>
-      </p>
-      <p className="qg-print-answer-body">{q.explanation}</p>
-      {hardWords.length > 0 ? (
-        <div className="qg-print-hard-words">
+    <section className={`qg-print-card qg-print-answer-card${cardClass}`}>
+      {head ? (
+        <p className="qg-print-answer-head" data-qg-head="">
+          <span className="qg-print-q-num">{padNo(index)}</span>{" "}
+          <span className="qg-print-answer-mark">
+            {formatAnswer(q.correct_answer)}
+          </span>
+        </p>
+      ) : null}
+      {units.length > 0 ? (
+        <PassageUnits
+          units={units}
+          range={range}
+          marked={false}
+          pClass="qg-print-answer-body"
+        />
+      ) : (
+        <p className="qg-print-answer-body" />
+      )}
+      {tail && hardWords.length > 0 ? (
+        <div className="qg-print-hard-words" data-qg-tail="">
           <p className="qg-print-hard-words-label">보기 단어</p>
           <ul className="qg-print-hard-words-list">
             {hardWords.map((w) => (
@@ -657,12 +735,86 @@ export function QuestionPrintView({
       const mmToPx = (mm: number) => (mm * 96) / 25.4;
       const firstColMax = mmToPx(232);
       const nextColMax = mmToPx(240);
-      const paginateOpts = {
-        firstColumnMaxPx: firstColMax,
-        nextColumnMaxPx: nextColMax,
-        questionGapPx: QUESTION_GAP_PX,
-        columnSafetyPx: COLUMN_SAFETY_PX,
+
+      /**
+       * 한 단보다 긴 문항의 부분 높이: 측정용 문항을 복제해 머리·꼬리·지문 조각을 덜어 낸 뒤 잰다.
+       * 실제 쪽의 부분(QuestionBlock part)과 같은 모양이 되게 덜어 낸다.
+       */
+      const measureEls = displayItems.map((item) =>
+        root.querySelector<HTMLElement>(`[data-measure-q="${item.id}"]`)
+      );
+      const unitCount = (i: number) =>
+        measureEls[i]?.querySelectorAll("[data-qg-u]").length ?? 0;
+      const measurePart = (i: number, from: number, to: number, first: boolean, last: boolean) => {
+        const src = measureEls[i];
+        if (!src) return Infinity;
+        const clone = src.cloneNode(true) as HTMLElement;
+        clone.removeAttribute("data-measure-q");
+        if (!first) clone.querySelectorAll("[data-qg-head]").forEach((el) => el.remove());
+        if (!last) {
+          clone.querySelectorAll("[data-qg-tail]").forEach((el) => el.remove());
+          clone.querySelector(".qg-print-card")?.classList.add("qg-print-card-cont");
+        }
+        clone.querySelectorAll<HTMLElement>("[data-qg-u]").forEach((el) => {
+          const u = Number(el.dataset.qgU);
+          if (u < from || u >= to) el.remove();
+        });
+        clone.querySelectorAll("[data-qg-para]").forEach((p) => {
+          if (!p.querySelector("[data-qg-u]")) p.remove();
+        });
+        root.appendChild(clone);
+        const h = clone.offsetHeight + 1;
+        clone.remove();
+        return h;
       };
+      const split = {
+        unitCount,
+        fit: (i: number, from: number, first: boolean, maxPx: number) => {
+          const n = unitCount(i);
+          const whole = measurePart(i, from, n, first, true);
+          if (whole <= maxPx) return { to: n, height: whole };
+          // 끝 부분(보기·선택지 포함)이 다 들어가지 않으면 지문만 들어가는 만큼 싣는다.
+          let lo = from + 1;
+          let hi = n - 1;
+          if (lo > hi) return { to: from, height: 0 };
+          const firstH = measurePart(i, from, lo, first, false);
+          if (firstH > maxPx) return { to: from, height: 0 };
+          let best = { to: lo, height: firstH };
+          while (lo < hi) {
+            const mid = Math.floor((lo + hi + 1) / 2);
+            const h = measurePart(i, from, mid, first, false);
+            if (h <= maxPx) {
+              best = { to: mid, height: h };
+              lo = mid;
+            } else {
+              hi = mid - 1;
+            }
+          }
+          return best;
+        },
+      };
+      const paginate = (slice: number[], offset: number, firstColumnMaxPx: number) =>
+        paginatePrintPieces(
+          slice,
+          {
+            firstColumnMaxPx,
+            nextColumnMaxPx: nextColMax,
+            questionGapPx: QUESTION_GAP_PX,
+            columnSafetyPx: COLUMN_SAFETY_PX,
+            // 이미 문항이 있는 단에 1/3도 안 남았으면 긴 문항은 다음 단에서 시작한다.
+            minStartPx: nextColMax / 3,
+          },
+          {
+            unitCount: (i) => split.unitCount(i + offset),
+            fit: (i, from, first, maxPx) => split.fit(i + offset, from, first, maxPx),
+          }
+        )
+          .filter((p) => p.left.length > 0 || p.right.length > 0)
+          .map((p) => {
+            const shift = (list: PrintPiece[]) =>
+              list.map((piece) => ({ ...piece, item: piece.item + offset }));
+            return { left: shift(p.left), right: shift(p.right) };
+          });
 
       if (printLayout === "byType" && typeRanges.length > 0) {
         const all: SheetPage[] = [];
@@ -671,18 +823,16 @@ export function QuestionPrintView({
         for (const range of typeRanges) {
           if (range.end <= range.start) continue;
           const slice = heights.slice(range.start, range.end);
-          const layouts = paginateExamQuestions(slice, {
-            firstColumnMaxPx:
-              (isDocFirstSection ? firstColMax : nextColMax) - bannerReservePx,
-            nextColumnMaxPx: nextColMax,
-            questionGapPx: QUESTION_GAP_PX,
-            columnSafetyPx: COLUMN_SAFETY_PX,
-          }).filter((p) => p.left.length > 0 || p.right.length > 0);
+          const layouts = paginate(
+            slice,
+            range.start,
+            (isDocFirstSection ? firstColMax : nextColMax) - bannerReservePx
+          );
           layouts.forEach((layout, i) => {
             all.push({
               sectionLabel: i === 0 ? range.label : undefined,
-              left: layout.left.map((j) => j + range.start),
-              right: layout.right.map((j) => j + range.start),
+              left: layout.left,
+              right: layout.right,
             });
           });
           isDocFirstSection = false;
@@ -691,10 +841,7 @@ export function QuestionPrintView({
         return;
       }
 
-      const layouts = paginateExamQuestions(heights, paginateOpts).filter(
-        (p) => p.left.length > 0 || p.right.length > 0
-      );
-      setPages(layouts);
+      setPages(paginate(heights, 0, firstColMax));
     };
 
     const t = window.setTimeout(run, 50);
@@ -839,18 +986,27 @@ export function QuestionPrintView({
       : displayItems.length > 0
         ? [
             {
-              left: displayItems.map((_, i) => i),
-              right: [] as number[],
+              left: displayItems.map((_, i): PrintPiece => ({ item: i })),
+              right: [] as PrintPiece[],
             },
           ]
         : [];
 
-  function renderDisplayItem(item: DisplayItem | undefined) {
+  function renderDisplayItem(item: DisplayItem | undefined, part?: PrintPiecePart) {
     if (!item) return null;
     return mode === "exam" ? (
-      <QuestionBlock q={item.q} index={item.num} />
+      <QuestionBlock q={item.q} index={item.num} part={part} />
     ) : (
-      <AnswerBlock q={item.q} index={item.num} />
+      <AnswerBlock q={item.q} index={item.num} part={part} />
+    );
+  }
+
+  function renderPiece(piece: PrintPiece) {
+    const item = displayItems[piece.item];
+    return (
+      <div key={`${item?.id ?? piece.item}:${piece.part?.from ?? "all"}`}>
+        {renderDisplayItem(item, piece.part)}
+      </div>
     );
   }
 
@@ -893,18 +1049,10 @@ export function QuestionPrintView({
                 ) : null}
                 <div className="qg-print-cols">
                   <div className="qg-print-col">
-                    {page.left.map((ii) => (
-                      <div key={displayItems[ii]?.id ?? ii}>
-                        {renderDisplayItem(displayItems[ii])}
-                      </div>
-                    ))}
+                    {page.left.map(renderPiece)}
                   </div>
                   <div className="qg-print-col qg-print-col-right">
-                    {page.right.map((ii) => (
-                      <div key={displayItems[ii]?.id ?? ii}>
-                        {renderDisplayItem(displayItems[ii])}
-                      </div>
-                    ))}
+                    {page.right.map(renderPiece)}
                   </div>
                 </div>
                 {renderFooter(pageIdx)}

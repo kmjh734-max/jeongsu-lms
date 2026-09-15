@@ -139,6 +139,8 @@ export interface GeneratedListeningQuestion {
   job_clues?: string[];
   distractor_jobs?: import("@/lib/listening/type18-job-choices").DistractorJobEntry[];
   quality_check_focus?: string[];
+  /** 금액 계산 문항: 단가·수량·할인 순서 (정답 검산용, DB에는 저장하지 않음) */
+  price_calculation?: import("@/lib/listening/price-check").PriceCalculation | null;
 }
 
 export interface ListeningQuestionRow {

@@ -9,6 +9,12 @@ import {
   planStudentDailyTasks,
   type PlanExistingTaskRow,
 } from "@/lib/listening/schedule/plan-daily-tasks";
+import { loadSchedulePauses } from "@/lib/listening/schedule/load-pauses";
+import {
+  applyPausesToAssignment,
+  pausesForStudent,
+  type SchedulePauseRange,
+} from "@/lib/listening/schedule/pauses";
 import { buildQuestionQueueForAssignment } from "@/lib/listening/schedule/question-queue";
 import { resolveStudentIdsForScheduleAssignment } from "@/lib/listening/schedule/resolve-students";
 import {
@@ -145,11 +151,19 @@ export async function ensureDailyTasksForStudentRange(
   fromIso: string,
   toIso: string,
   queue?: QuestionQueueItem[],
-  effectiveStartIso?: string
+  effectiveStartIso?: string,
+  /** 이 과제의 일시정지 기간 (과제 전체·학생별 모두 — 여기서 이 학생 것만 고른다). 없으면 읽는다 */
+  pauses?: readonly SchedulePauseRange[]
 ): Promise<void> {
-  const effectiveStart =
+  const [effectiveStart, allPauses] = await Promise.all([
     effectiveStartIso ??
-    (await getStudentListeningEffectiveStartIso(admin, assignment, studentId));
+      getStudentListeningEffectiveStartIso(admin, assignment, studentId),
+    pauses ??
+      loadSchedulePauses(admin, [assignment.id]).then(
+        (map) => map.get(assignment.id) ?? []
+      ),
+  ]);
+  const pausedRanges = pausesForStudent(allPauses, studentId);
 
   // 정리(유효 시작일 이전 미완료 삭제)는 아래 읽기와 같이 돌리고, 끝나기를 기다린다
   const prunePromise = pruneIncompleteTasksBeforeEffectiveStart(admin, {
@@ -229,7 +243,8 @@ export async function ensureDailyTasksForStudentRange(
   );
 
   const { idsToDelete, inserts } = planStudentDailyTasks({
-    assignment,
+    // 끝나는 날이 있으면 쉰 날만큼 뒤로 민 규칙으로 짠다
+    assignment: applyPausesToAssignment(assignment, pausedRanges),
     queue: resolvedQueue,
     existingRows,
     completedQuestionIds,
@@ -237,6 +252,7 @@ export async function ensureDailyTasksForStudentRange(
     todayIso,
     fromIso: clampedFrom,
     toIso,
+    pausedRanges,
   });
 
   const pending: DailyTaskInsert[] = inserts.map((task) => ({
@@ -270,8 +286,12 @@ export async function bootstrapDailyTasksForAssignment(
   );
   if (studentIds.length === 0) return;
 
-  const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
+  const [queue, pauseMap] = await Promise.all([
+    buildQuestionQueueForAssignment(admin, assignment.id),
+    loadSchedulePauses(admin, [assignment.id]),
+  ]);
   if (queue.length === 0) return;
+  const pauses = pauseMap.get(assignment.id) ?? [];
 
   const start = parseDateOnly(assignment.start_date);
   const end = assignment.end_date
@@ -305,7 +325,8 @@ export async function bootstrapDailyTasksForAssignment(
       studentFrom,
       toIso,
       queue,
-      effectiveStart
+      effectiveStart,
+      pauses
     );
   }
 }

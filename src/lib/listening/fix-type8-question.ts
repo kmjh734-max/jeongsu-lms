@@ -6,6 +6,10 @@ import {
   normalizeEmotionLabel,
   targetPersonLabel,
 } from "@/lib/listening/type8-emotion-choices";
+import {
+  soleSpeakerMatching,
+  mwToPerson,
+} from "@/lib/listening/speaker-attribution";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 function buildInstruction(targetPerson: string): string {
@@ -13,7 +17,45 @@ function buildInstruction(targetPerson: string): string {
   return `대화를 듣고, ${who}의 심정으로 가장 적절한 것을 고르시오.`;
 }
 
+/** 정답 감정어 → 그 감정을 스스로 말할 때 쓰는 영어 표현 */
+const EMOTION_EN: Record<string, string> = {
+  안도: "relieved",
+  자랑스러움: "proud",
+  실망: "disappointed",
+  걱정: "worried",
+  불안: "nervous|anxious",
+  설렘: "excited",
+  신남: "excited",
+  기쁨: "happy|glad",
+  행복: "happy",
+  슬픔: "sad",
+  당황: "embarrassed",
+  지루함: "bored",
+  놀람: "surprised",
+  만족: "satisfied",
+  외로움: "lonely",
+  화남: "angry|upset",
+  감사: "thankful|grateful",
+};
+
+/** 정답 감정을 "I'm so relieved"처럼 자기 입으로 말한 화자 (한 명일 때만) */
+function selfEmotionSpeaker(q: GeneratedListeningQuestion): "M" | "W" | null {
+  const answer = normalizeEmotionLabel(
+    q.choices[q.correct_answer - 1]?.trim() || q.target_emotion?.trim() || ""
+  );
+  const en = EMOTION_EN[answer];
+  if (!en) return null;
+  const pattern = new RegExp(
+    `\\bI(?:'m| am| feel| felt| was)\\s+(?:so |really |very |a little |much |a bit )?(?:${en})\\b`,
+    "i"
+  );
+  return soleSpeakerMatching(q.segments, pattern);
+}
+
 function resolveTargetPerson(q: GeneratedListeningQuestion): string {
+  // 정답 감정을 직접 말한 화자가 우선 (모델 필드보다 대본이 기준)
+  const selfSpeaker = selfEmotionSpeaker(q);
+  if (selfSpeaker) return mwToPerson(selfSpeaker);
   if (q.target_person?.trim()) {
     const label = targetPersonLabel(q.target_person);
     if (label) return label;

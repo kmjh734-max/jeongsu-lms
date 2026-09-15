@@ -322,7 +322,8 @@ async function generatePairs(input: {
     schema: GENERATOR_SCHEMA as unknown as Record<string, unknown>,
     maxCompletionTokens: 8_000,
     // 지문 전체를 한 번에 만들어 정상 응답이 15~25초다. 어법 문턱(20초)을 쓰면 복제 요청이 자주 붙는다.
-    hedgeAfterMs: 60_000,
+    // 끊은 요청도 값은 다 나가므로 정말 멈춘 호출에만 복제한다(90초 + 복제 약 25초 + 검수 상한 120초 < 300초).
+    hedgeAfterMs: 90_000,
   });
   const parsed = parse<{ items?: Array<Partial<StoredVocabChoicePair>> }>(called.content);
   return (parsed?.items ?? []).map((it) => ({
@@ -365,7 +366,8 @@ async function auditPairs(input: {
     schema: AUDITOR_SCHEMA as unknown as Record<string, unknown>,
     maxCompletionTokens: 4_000,
     // 10여 개를 한 번에 판정해 어법 판정(3문항)보다 길다. 어법용 12초 복제·35초 상한을 쓰지 않는다.
-    hedgeAfterMs: 45_000,
+    // 복제는 값이 두 배라 늦게 붙이되, 상한(120초) 안에 복제가 끝날 자리는 남긴다.
+    hedgeAfterMs: 60_000,
     deadlineMs: 120_000,
   });
   const parsed = parse<{ results?: Array<{ id?: string; verdict?: string }> }>(called.content);

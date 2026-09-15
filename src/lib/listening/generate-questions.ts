@@ -29,6 +29,7 @@ import {
   normalizeDistractorReasons,
 } from "@/lib/listening/type19-response-choices";
 import { normalizeTableData } from "@/lib/listening/table-data";
+import { normalizePriceCalculation } from "@/lib/listening/price-check";
 import { buildScriptText } from "@/lib/listening/script-text";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
@@ -70,6 +71,10 @@ import {
   applyRandomChoicePosition,
 } from "@/lib/listening/balance-correct-answer";
 import { finalizeListeningQuestionFast } from "@/lib/listening/finalize-listening-question";
+import {
+  formatAnswerVarietyBlock,
+  pickAnswerVariety,
+} from "@/lib/listening/answer-variety-pool";
 import type {
   GeneratedListeningQuestion,
   ListeningGenerationMode,
@@ -80,6 +85,7 @@ import {
   extractQuestionsFromAiPayload,
   normalizeCorrectAnswerIndex,
   normalizeListeningSpeaker,
+  scriptTooShortReason,
 } from "@/lib/listening/parse-listening-response";
 export interface GenerateQuestionsOptions {
   mode: ListeningGenerationMode;
@@ -87,6 +93,8 @@ export interface GenerateQuestionsOptions {
   selectedTypeIds?: number[];
   difficultyMode?: ListeningDifficultyMode;
   gradeLevel?: ListeningGradeLevel;
+  /** 같은 과정(학원·학년)에서 유형별로 이미 쓴 정답 — 다양화 풀이 덜 쓴 정답부터 고른다 */
+  usedAnswersByType?: Record<number, string[]>;
 }
 
 export interface GenerateQuestionsResult {
@@ -138,6 +146,22 @@ function normalizeQuestion(
     .filter((s): s is ListeningScriptSegment => s !== null);
 
   if (segments.length === 0) return null;
+  // 한 줄짜리처럼 잘린 대본은 저장하지 않고 다시 만들게 한다
+  const shapeTypeId =
+    typeHint?.id ??
+    inferExamTypeIdForFixes(
+      {
+        order_index: typeof raw.order_index === "number" ? raw.order_index : index + 1,
+        instruction: String(raw.instruction ?? ""),
+        question_type: String(raw.question_type ?? ""),
+      },
+      gradeLevel
+    );
+  if (
+    scriptTooShortReason(segments, shapeTypeId, gradeLevel, String(raw.instruction ?? ""))
+  ) {
+    return null;
+  }
 
   const choices = normalizeChoices(raw.choices, examMode);
   if (!choices) return null;
@@ -273,6 +297,7 @@ function normalizeQuestion(
     target_job: String(raw.target_job ?? "").trim(),
     job_clues: normalizeJobClues(raw.job_clues),
     distractor_jobs: normalizeDistractorJobs(raw.distractor_jobs),
+    price_calculation: normalizePriceCalculation(raw.price_calculation),
   };
 
   const typeId =
@@ -313,7 +338,7 @@ export function parseQuestionsFromPayload(
         q.instruction.trim() || hint?.instruction?.trim() || "";
       if (!instruction) {
         failures.push(
-          `${i + 1}번째: instruction 없음 (${diagnoseQuestionParseFailure(raw, examMode).join(", ")})`
+          `${i + 1}번째: instruction 없음 (${diagnoseQuestionParseFailure(raw, examMode, { typeId: hint?.id, gradeLevel }).join(", ")})`
         );
         return;
       }
@@ -321,7 +346,7 @@ export function parseQuestionsFromPayload(
       return;
     }
     failures.push(
-      `${i + 1}번째: ${diagnoseQuestionParseFailure(raw, examMode).join(", ")}`
+      `${i + 1}번째: ${diagnoseQuestionParseFailure(raw, examMode, { typeId: hint?.id, gradeLevel }).join(", ")}`
     );
   });
 
@@ -385,9 +410,21 @@ export async function generateListeningQuestionsWithAi(
     : undefined;
   const itemCount = examMode ? examTypes!.length : count;
 
-  const prompt = examMode
+  const basePrompt = examMode
     ? buildListeningExamPrompt(examTypes!, difficultyMode, gradeLevel)
     : buildListeningFreePrompt(itemCount, gradeLevel);
+  // 정답·상황 다양화: 풀이 있는 유형은 정답과 소재를 미리 정해 준다
+  const varietyBlocks = examMode
+    ? examTypes!
+        .map((t) => {
+          const pick = pickAnswerVariety(t.id, gradeLevel, options.usedAnswersByType?.[t.id] ?? []);
+          return pick ? formatAnswerVarietyBlock(pick, gradeLevel) : "";
+        })
+        .filter(Boolean)
+    : [];
+  const prompt = varietyBlocks.length
+    ? `${varietyBlocks.join("\n\n")}\n\n${basePrompt}`
+    : basePrompt;
 
   const questions = await fetchParsedQuestions(
     apiKey,
@@ -397,17 +434,13 @@ export async function generateListeningQuestionsWithAi(
     gradeLevel,
     itemCount
   );
-  const finalized = questions.map((q, i) =>
-    finalizeListeningQuestionFast(
-      { ...q, order_index: i + 1 },
-      examTypes?.[i],
-      gradeLevel
-    )
-  );
+  // 선택지 섞기를 먼저 하고 규칙 검수를 해야 검수 결과(수 선택지 순서·해설 번호)가 저장본과 맞는다
+  const numbered = questions.map((q, i) => ({ ...q, order_index: i + 1 }));
+  const ordered = examMode ? applyBalancedChoicePositions(numbered) : numbered;
   return {
-    questions: examMode
-      ? applyBalancedChoicePositions(finalized)
-      : finalized,
+    questions: ordered.map((q, i) =>
+      finalizeListeningQuestionFast(q, examTypes?.[i], gradeLevel)
+    ),
   };
 }
 
@@ -419,10 +452,16 @@ export async function generateSingleExamQuestion(
   previousProblems?: string[],
   gradeLevel: ListeningGradeLevel = "middle1",
   slotIndex?: number,
-  type1Regeneration?: Type1RegenerationContext
+  type1Regeneration?: Type1RegenerationContext,
+  variety?: { usedAnswers?: string[] }
 ) {
   const type = resolveExamTypesForGeneration(1, [typeId], gradeLevel)[0];
   if (!type) throw new Error("유형을 찾을 수 없습니다.");
+  // 같은 과정에서 덜 쓴 정답·새 소재를 미리 정한다 (재시도해도 같은 배정 유지)
+  const varietyPick = pickAnswerVariety(typeId, gradeLevel, variety?.usedAnswers ?? []);
+  const varietyBlock = varietyPick
+    ? `${formatAnswerVarietyBlock(varietyPick, gradeLevel, slotIndex)}\n\n`
+    : "";
 
   let problems = [...(previousProblems ?? [])];
   let lastQuestion: GeneratedListeningQuestion | null = null;
@@ -433,12 +472,12 @@ export async function generateSingleExamQuestion(
   );
 
   for (let attempt = 0; attempt < 3; attempt++) {
-    let prompt = buildListeningSingleTypePrompt(
+    let prompt = `${varietyBlock}${buildListeningSingleTypePrompt(
       type,
       difficultyMode,
       problems.length ? problems : undefined,
       gradeLevel
-    );
+    )}`;
     let type1Assignment: Type1SubjectAssignment | null = null;
     if (typeId === 1 && !isHighSchoolListeningGrade(gradeLevel)) {
       type1Assignment = pickType1Subject(
@@ -511,12 +550,10 @@ export async function generateSingleExamQuestion(
       }
     }
 
-    return applyRandomChoicePosition(
-      finalizeListeningQuestionFast(
-        { ...q, order_index: slotIndex ?? typeId },
-        type,
-        gradeLevel
-      )
+    return finalizeListeningQuestionFast(
+      applyRandomChoicePosition({ ...q, order_index: slotIndex ?? typeId }),
+      type,
+      gradeLevel
     );
   }
 
@@ -528,12 +565,10 @@ export async function generateSingleExamQuestion(
     );
   }
 
-  return applyRandomChoicePosition(
-    finalizeListeningQuestionFast(
-      { ...lastQuestion, order_index: slotIndex ?? typeId },
-      type,
-      gradeLevel
-    )
+  return finalizeListeningQuestionFast(
+    applyRandomChoicePosition({ ...lastQuestion, order_index: slotIndex ?? typeId }),
+    type,
+    gradeLevel
   );
 }
 
@@ -552,11 +587,9 @@ export async function generateSingleFreeQuestion(
   const questions = await fetchParsedQuestions(apiKey, prompt, false, undefined, gradeLevel);
   const q = questions[0];
   if (!q) throw new Error("문항 생성 실패");
-  return applyRandomChoicePosition(
-    finalizeListeningQuestionFast(
-      { ...q, order_index: orderIndex },
-      undefined,
-      gradeLevel
-    )
+  return finalizeListeningQuestionFast(
+    applyRandomChoicePosition({ ...q, order_index: orderIndex }),
+    undefined,
+    gradeLevel
   );
 }

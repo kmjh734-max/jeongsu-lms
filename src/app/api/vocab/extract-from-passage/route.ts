@@ -121,6 +121,8 @@ export async function POST(request: Request) {
       academyId: profile.academy_id,
       featureKey: CREDIT_FEATURES.vocab_extract_passage,
       actorId: profile.id,
+      // 이미 만든 결과라 잔액이 그 사이 모자라져도 차감하고 결과를 돌려준다
+      allowNegative: true,
       idempotencyKey: clientKey
         ? `vocab_extract_passage:${profile.id}:${clientKey}`
         : `vocab_extract_passage:${profile.id}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,

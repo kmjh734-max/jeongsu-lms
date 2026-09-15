@@ -71,8 +71,12 @@ export function fixType5Question(
         })
       : null);
 
-  const choices = plan ? choicesFromPlan(plan) : q.choices;
-  const correct_answer = plan?.unmentioned_no ?? q.correct_answer;
+  // 선택지를 이미 섞어 두었으면(정답 위치 분산) 그 순서를 지키고 plan 번호를 맞춘다.
+  // 예전에는 plan 순서로 되돌려 정답(참가비)이 60문항 중 57번 ⑤에 놓였다.
+  const reordered = plan ? planFollowingChoiceOrder(plan, q.choices) : null;
+  const finalPlan = reordered ?? plan;
+  const choices = reordered ? q.choices.map((c) => c.trim()) : plan ? choicesFromPlan(plan) : q.choices;
+  const correct_answer = finalPlan?.unmentioned_no ?? q.correct_answer;
 
   const instruction =
     q.instruction?.trim() && instructionMatchesSpeaker(q.instruction, speaker)
@@ -92,6 +96,28 @@ export function fixType5Question(
     needs_image_choices: false,
     visual_choice_type: "none",
     choice_image_prompts: [],
-    mention_plan: plan ?? q.mention_plan,
+    mention_plan: finalPlan ?? q.mention_plan,
+  };
+}
+
+/** 선택지가 plan 항목과 같은 글자들의 다른 순서면, 선택지 순서대로 번호를 다시 매긴 plan (아니면 null) */
+function planFollowingChoiceOrder(plan: MentionPlan, choices: string[]): MentionPlan | null {
+  const labels = choices.map((c) => c.trim());
+  if (labels.length !== plan.choice_items.length) return null;
+  const items: MentionPlan["choice_items"] = [];
+  for (let i = 0; i < labels.length; i++) {
+    const item = plan.choice_items.find((it) => it.label === labels[i]);
+    if (!item) return null;
+    items.push({ ...item, no: i + 1 });
+  }
+  if (new Set(items.map((i) => i.label)).size !== items.length) return null;
+  const unmentioned =
+    items.find((i) => i.label === plan.unmentioned_label) ?? items.find((i) => !i.mentioned);
+  if (!unmentioned) return null;
+  return {
+    ...plan,
+    choice_items: items,
+    unmentioned_no: unmentioned.no,
+    unmentioned_label: unmentioned.label,
   };
 }

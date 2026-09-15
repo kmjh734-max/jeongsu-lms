@@ -45,6 +45,7 @@ export default async function StudentListeningPage() {
       todayTask: summary.todayTask,
       missedTasks: summary.missedTasks,
       nextStudyDate: summary.nextStudyDate,
+      paused: summary.paused,
       calendar,
     };
     // 45일 미래 과제 만들기는 응답 뒤에 (API 와 같게)

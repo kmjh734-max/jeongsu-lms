@@ -13,6 +13,10 @@ import {
   pickType1Subject,
 } from "@/lib/listening/type1-subject-pool";
 import { applyBalancedChoicePositions } from "@/lib/listening/balance-correct-answer";
+import {
+  formatAnswerVarietyBlock,
+  pickAnswerVariety,
+} from "@/lib/listening/answer-variety-pool";
 import { finalizeListeningQuestionFast } from "@/lib/listening/finalize-listening-question";
 import {
   generateSingleExamQuestion,
@@ -30,6 +34,7 @@ import {
   getCopyrightBlock,
   getJsonOutputSchema,
   getListeningSystemPrompt,
+  LISTENING_OUTPUT_GUARD_BLOCK,
 } from "@/lib/listening/prompts/commonPrompt";
 import { getCommonPrompt } from "@/lib/listening/prompts/commonPrompt";
 import { getAllMiddle2TypePromptBlocks } from "@/lib/listening/prompts/middle2TypePrompts";
@@ -67,7 +72,8 @@ function buildSlotsBatchPrompt(
   slots: ListeningGenerationSlot[],
   difficultyMode: ListeningDifficultyMode,
   gradeLevel: ListeningGradeLevel,
-  types: ExamTypeTemplate[]
+  types: ExamTypeTemplate[],
+  usedAnswersByType?: Record<number, string[]>
 ): string {
   const uniqueTypeIds = [...new Set(slots.map((s) => s.typeId))];
   const difficultyBlock = buildDifficultyPromptBlock(
@@ -111,6 +117,17 @@ function buildSlotsBatchPrompt(
       }
     }
   }
+  // 정답·상황 다양화 풀: 같은 과정에서 덜 쓴 정답부터 배정 (이번 묶음 안에서도 겹치지 않게)
+  const usedInBatch: Record<number, string[]> = {};
+  for (const slot of slots) {
+    const pick = pickAnswerVariety(slot.typeId, gradeLevel, [
+      ...(usedAnswersByType?.[slot.typeId] ?? []),
+      ...(usedInBatch[slot.typeId] ?? []),
+    ]);
+    if (!pick) continue;
+    (usedInBatch[slot.typeId] ||= []).push(pick.answer);
+    scenarioBlocks += `${formatAnswerVarietyBlock(pick, gradeLevel, slot.slotIndex)}\n\n`;
+  }
 
   const pairNote =
     isHighSchoolListeningGrade(gradeLevel) &&
@@ -135,6 +152,8 @@ ${difficultyBlock}
 
 ${typeBlocks}
 
+${LISTENING_OUTPUT_GUARD_BLOCK}
+
 ${getJsonOutputSchema(gradeLevel)}
 `.trim();
 }
@@ -143,7 +162,8 @@ async function fetchSlotChunkQuestions(
   apiKey: string,
   slots: ListeningGenerationSlot[],
   difficultyMode: ListeningDifficultyMode,
-  gradeLevel: ListeningGradeLevel
+  gradeLevel: ListeningGradeLevel,
+  usedAnswersByType?: Record<number, string[]>
 ): Promise<GeneratedListeningQuestion[]> {
   const types = slots.map((s) => {
     const t = getExamTypeById(s.typeId, gradeLevel);
@@ -155,7 +175,8 @@ async function fetchSlotChunkQuestions(
     slots,
     difficultyMode,
     gradeLevel,
-    types
+    types,
+    usedAnswersByType
   );
   const system = `${getListeningSystemPrompt(gradeLevel)}\nOutput JSON only. questions array length must be ${slots.length}. speakers: M, W, ANN only.`;
 
@@ -196,14 +217,16 @@ async function generateSlotChunk(
   slots: ListeningGenerationSlot[],
   difficultyMode: ListeningDifficultyMode,
   gradeLevel: ListeningGradeLevel,
-  prior: GeneratedListeningQuestion[]
+  prior: GeneratedListeningQuestion[],
+  usedAnswersByType?: Record<number, string[]>
 ): Promise<GeneratedListeningQuestion[]> {
   try {
     return await fetchSlotChunkQuestions(
       apiKey,
       slots,
       difficultyMode,
-      gradeLevel
+      gradeLevel,
+      usedAnswersByType
     );
   } catch {
     const out: GeneratedListeningQuestion[] = [];
@@ -217,15 +240,36 @@ async function generateSlotChunk(
             ].flatMap((q) => q.problems ?? [])
           : out[out.length - 1]?.problems;
 
-      const q = await generateSingleExamQuestion(
-        apiKey,
-        slot.typeId,
-        difficultyMode,
-        prevProblems?.length ? prevProblems : undefined,
-        gradeLevel,
-        slot.slotIndex
-      );
-      out.push({ ...q, order_index: slot.slotIndex, needs_review: false });
+      // 한 문항이 실패해도 앞뒤에서 만든 문항은 버리지 않는다(빠진 문항만 따로 다시 만든다)
+      try {
+        const q = await generateSingleExamQuestion(
+          apiKey,
+          slot.typeId,
+          difficultyMode,
+          prevProblems?.length ? prevProblems : undefined,
+          gradeLevel,
+          slot.slotIndex,
+          undefined,
+          {
+            usedAnswers: [
+              ...(usedAnswersByType?.[slot.typeId] ?? []),
+              ...out
+                .filter(
+                  (o) =>
+                    slots.find((s) => s.slotIndex === o.order_index)?.typeId === slot.typeId
+                )
+                .map((o) => o.choices[o.correct_answer - 1] ?? ""),
+            ],
+          }
+        );
+        // 규칙 검수의 검토 표시(needs_review)는 지우지 않는다
+        out.push({ ...q, order_index: slot.slotIndex });
+      } catch (e) {
+        console.error(
+          `[listening] ${slot.slotIndex}번 문항 생성 실패`,
+          e instanceof Error ? e.message : e
+        );
+      }
     }
     return out;
   }
@@ -239,26 +283,90 @@ function chunkSlots(slots: ListeningGenerationSlot[]): ListeningGenerationSlot[]
   return chunks;
 }
 
-/** 슬롯 목록을 최소 API 호출로 생성 (5문항 단위 일괄, 청크는 2개까지 병렬) */
+/** 만든 문항과 만들지 못한 슬롯 번호. 만든 문항은 슬롯 순서대로, order_index = slotIndex. */
+export type SlotGenerationResult = {
+  questions: GeneratedListeningQuestion[];
+  missingSlotIndexes: number[];
+};
+
+function throwIfMissing(result: SlotGenerationResult): GeneratedListeningQuestion[] {
+  if (result.missingSlotIndexes.length > 0) {
+    throw new Error(`${result.missingSlotIndexes[0]}번 문항 생성 실패`);
+  }
+  return result.questions;
+}
+
+/** 슬롯 목록을 최소 API 호출로 생성 (5문항 단위 일괄, 청크는 2개까지 병렬). 하나라도 빠지면 던진다. */
 export async function generateExamQuestionsFromSlots(
   apiKey: string,
   slots: ListeningGenerationSlot[],
   difficultyMode: ListeningDifficultyMode = "auto",
-  gradeLevel: ListeningGradeLevel = "middle1"
+  gradeLevel: ListeningGradeLevel = "middle1",
+  opts?: SlotGenerationOptions
 ): Promise<GeneratedListeningQuestion[]> {
-  if (slots.length === 0) return [];
+  return throwIfMissing(
+    await generateExamQuestionsFromSlotsSettled(apiKey, slots, difficultyMode, gradeLevel, opts)
+  );
+}
+
+export type SlotGenerationOptions = {
+  /** 같은 과정(학원·학년)에서 유형별로 이미 쓴 정답 — 다양화 풀이 덜 쓴 정답부터 고른다 */
+  usedAnswersByType?: Record<number, string[]>;
+};
+
+/**
+ * 선택지를 섞은 뒤 규칙 검수를 다시 돌린다 (검수는 무료 규칙만).
+ * 섞기 전에 매긴 점수·검토 표시는 선택지 순서·해설 번호가 달라 저장본과 맞지 않는다.
+ */
+function refreshRuleChecks(
+  questions: GeneratedListeningQuestion[],
+  slots: ListeningGenerationSlot[],
+  gradeLevel: ListeningGradeLevel
+): GeneratedListeningQuestion[] {
+  return questions.map((q) => {
+    const slot = slots.find((s) => s.slotIndex === q.order_index);
+    const type = slot ? getExamTypeById(slot.typeId, gradeLevel) ?? undefined : undefined;
+    return finalizeListeningQuestionFast(q, type, gradeLevel);
+  });
+}
+
+/**
+ * generateExamQuestionsFromSlots와 같지만 일부 슬롯이 실패해도 만든 문항은 돌려준다.
+ * (예전에는 한 문항이 실패하면 나머지 문항까지 모두 버려, 값만 들고 처음부터 다시 만들어야 했다.)
+ */
+export async function generateExamQuestionsFromSlotsSettled(
+  apiKey: string,
+  slots: ListeningGenerationSlot[],
+  difficultyMode: ListeningDifficultyMode = "auto",
+  gradeLevel: ListeningGradeLevel = "middle1",
+  opts?: SlotGenerationOptions
+): Promise<SlotGenerationResult> {
+  if (slots.length === 0) return { questions: [], missingSlotIndexes: [] };
 
   if (slots.length === 1) {
     const slot = slots[0]!;
-    const q = await generateSingleExamQuestion(
-      apiKey,
-      slot.typeId,
-      difficultyMode,
-      undefined,
-      gradeLevel,
-      slot.slotIndex
-    );
-    return [{ ...q, order_index: slot.slotIndex, needs_review: false }];
+    try {
+      const q = await generateSingleExamQuestion(
+        apiKey,
+        slot.typeId,
+        difficultyMode,
+        undefined,
+        gradeLevel,
+        slot.slotIndex,
+        undefined,
+        { usedAnswers: opts?.usedAnswersByType?.[slot.typeId] ?? [] }
+      );
+      return {
+        questions: [{ ...q, order_index: slot.slotIndex }],
+        missingSlotIndexes: [],
+      };
+    } catch (e) {
+      console.error(
+        `[listening] ${slot.slotIndex}번 문항 생성 실패`,
+        e instanceof Error ? e.message : e
+      );
+      return { questions: [], missingSlotIndexes: [slot.slotIndex] };
+    }
   }
 
   const chunks = chunkSlots(slots);
@@ -266,7 +374,14 @@ export async function generateExamQuestionsFromSlots(
     chunks,
     CHUNK_PARALLEL,
     async (chunk) =>
-      generateSlotChunk(apiKey, chunk, difficultyMode, gradeLevel, [])
+      generateSlotChunk(
+        apiKey,
+        chunk,
+        difficultyMode,
+        gradeLevel,
+        [],
+        opts?.usedAnswersByType
+      )
   );
 
   const bySlotIndex = new Map<number, GeneratedListeningQuestion>();
@@ -276,32 +391,60 @@ export async function generateExamQuestionsFromSlots(
     }
   }
 
-  const ordered = slots.map((slot) => {
+  const ordered: GeneratedListeningQuestion[] = [];
+  const missingSlotIndexes: number[] = [];
+  for (const slot of slots) {
     const q = bySlotIndex.get(slot.slotIndex);
-    if (!q) throw new Error(`${slot.slotIndex}번 문항 생성 실패`);
-    return q;
-  });
+    if (q) ordered.push(q);
+    else missingSlotIndexes.push(slot.slotIndex);
+  }
   const synced = isHighSchoolListeningGrade(gradeLevel)
     ? syncHighSchoolPairedScripts(ordered, slots)
     : ordered;
-  return applyBalancedChoicePositions(synced);
+  return {
+    questions: refreshRuleChecks(applyBalancedChoicePositions(synced), slots, gradeLevel),
+    missingSlotIndexes,
+  };
 }
 
-/** 자유 모드: 문항 수만큼 1회 API 호출 */
+/** 자유 모드: 문항 수만큼 1회 API 호출. 하나라도 빠지면 던진다. */
 export async function generateFreeQuestionsFromSlots(
   apiKey: string,
   slots: ListeningGenerationSlot[],
   gradeLevel: ListeningGradeLevel = "middle1"
 ): Promise<GeneratedListeningQuestion[]> {
+  return throwIfMissing(
+    await generateFreeQuestionsFromSlotsSettled(apiKey, slots, gradeLevel)
+  );
+}
+
+/** 자유 모드, 일부만 만들어져도 만든 문항은 돌려준다 */
+export async function generateFreeQuestionsFromSlotsSettled(
+  apiKey: string,
+  slots: ListeningGenerationSlot[],
+  gradeLevel: ListeningGradeLevel = "middle1"
+): Promise<SlotGenerationResult> {
+  if (slots.length === 0) return { questions: [], missingSlotIndexes: [] };
   if (slots.length === 1) {
     const slot = slots[0]!;
-    const q = await generateSingleFreeQuestion(
-      apiKey,
-      slot.slotIndex,
-      undefined,
-      gradeLevel
-    );
-    return [{ ...q, order_index: slot.slotIndex, needs_review: false }];
+    try {
+      const q = await generateSingleFreeQuestion(
+        apiKey,
+        slot.slotIndex,
+        undefined,
+        gradeLevel
+      );
+      return {
+        questions: [{ ...q, order_index: slot.slotIndex }],
+        missingSlotIndexes: [],
+      };
+    } catch (e) {
+      console.error(
+        `[listening] ${slot.slotIndex}번 문항 생성 실패`,
+        e instanceof Error ? e.message : e
+      );
+      return { questions: [], missingSlotIndexes: [slot.slotIndex] };
+    }
   }
 
   const count = slots.length;
@@ -322,16 +465,16 @@ export async function generateFreeQuestionsFromSlots(
     gradeLevel
   );
 
-  if (questions.length < count) {
-    throw new Error(`${count}문항 중 ${questions.length}개만 생성됨`);
-  }
-
-  const finalized = slots.map((slot, i) =>
-    finalizeListeningQuestionFast(
-      { ...questions[i]!, order_index: slot.slotIndex },
-      undefined,
-      gradeLevel
-    )
-  );
-  return applyBalancedChoicePositions(finalized);
+  // 덜 나왔으면 나온 만큼 앞 슬롯부터 채우고, 나머지는 빠진 슬롯으로 돌려준다
+  const made = Math.min(count, questions.length);
+  const numbered = slots
+    .slice(0, made)
+    .map((slot, i) => ({ ...questions[i]!, order_index: slot.slotIndex }));
+  // 선택지를 섞은 뒤 규칙 검수를 해야 검수 결과가 저장본과 맞는다
+  return {
+    questions: applyBalancedChoicePositions(numbered).map((q) =>
+      finalizeListeningQuestionFast(q, undefined, gradeLevel)
+    ),
+    missingSlotIndexes: slots.slice(made).map((slot) => slot.slotIndex),
+  };
 }

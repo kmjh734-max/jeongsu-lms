@@ -14,7 +14,11 @@ function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false as const, message }, { status });
 }
 
+/** 경로 상한(120초)에서 차감·저장할 자리를 뺀 그림 만들기 마감 */
+const IMAGE_BUDGET_MS = 105_000;
+
 export async function POST(request: Request) {
+  const startedAt = Date.now();
   try {
     const profile = await getCurrentProfile();
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
@@ -40,18 +44,21 @@ export async function POST(request: Request) {
     const shortfall = await lessonCreditShortfall(academyId, LESSON_CREDIT_FEATURES.illustration);
     if (shortfall) return jsonError(shortfall);
 
+    // 그림이 실제로 나오면(저장 전) 바로 차감한다. 그림을 못 만들면 차감하지 않는다.
     const out = await generateLessonMaterialComicIllustration({
       academyId,
       illustrationPrompt: prompt,
       passageHint: body.passageHint,
       captions: body.captions,
-    });
-
-    await debitLessonCredits({
-      academyId,
-      actorId: profile.id,
-      featureKey: LESSON_CREDIT_FEATURES.illustration,
-      note: "지문 삽화",
+      deadlineAt: startedAt + IMAGE_BUDGET_MS,
+      onImageProduced: async () => {
+        await debitLessonCredits({
+          academyId,
+          actorId: profile.id,
+          featureKey: LESSON_CREDIT_FEATURES.illustration,
+          note: "지문 삽화",
+        });
+      },
     });
 
     return NextResponse.json({

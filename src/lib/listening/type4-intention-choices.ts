@@ -11,6 +11,8 @@ export const VALID_INTENTIONS = new Set([
   "제안",
   "동의",
   "걱정",
+  // "Don't worry, I can do it."처럼 자기 자신에게 하는 말 (격려와 구분)
+  "다짐",
 ]);
 
 /** 별칭 → 표준 의도 */
