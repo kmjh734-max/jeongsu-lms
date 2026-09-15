@@ -11,6 +11,10 @@ export const CREDIT_FEATURES = {
   qg_generate_job: "qg_generate_job",
   listening_generate_questions: "listening_generate_questions",
   listening_generate_audio: "listening_generate_audio",
+  /** 듣기 그림(선택지 그림·라벨 그림) 한 장 */
+  listening_generate_image: "listening_generate_image",
+  /** 듣기 그림 상황 문항의 장면 그림(그림 + 정답 대화 검수) */
+  listening_generate_scene: "listening_generate_scene",
   vocab_generate_examples: "vocab_generate_examples",
   vocab_extract_passage: "vocab_extract_passage",
   vocab_grade_meaning: "vocab_grade_meaning",

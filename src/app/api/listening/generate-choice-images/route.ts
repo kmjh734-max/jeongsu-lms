@@ -7,6 +7,33 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
 import { generateAndSaveSceneImage } from "@/lib/listening/scene-figure";
+import { CREDIT_FEATURES } from "@/lib/credits";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+
+/**
+ * 그림은 새로 저장한 장수만큼 받는다(이미 있어 건너뛰면 0). 검수에 떨어져 버린 그림은 받지 않는다.
+ * 잔액이 모자라면 그리기 전에 멈춘다.
+ */
+async function chargeImages(opts: {
+  academyId: string | null | undefined;
+  actorId: string;
+  questionId: string;
+  setId: string;
+  feature: string;
+  quantity: number;
+  note: string;
+}): Promise<void> {
+  if (!opts.academyId || opts.quantity <= 0) return;
+  await debitLessonCredits({
+    academyId: opts.academyId,
+    actorId: opts.actorId,
+    featureKey: opts.feature,
+    quantity: opts.quantity,
+    idempotencyKey: `${opts.feature}:${opts.questionId}:${Date.now()}`,
+    metadata: { set_id: opts.setId, question_id: opts.questionId },
+    note: opts.note,
+  });
+}
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -71,6 +98,10 @@ export async function POST(req: Request) {
       );
     }
 
+    if (!profile.academy_id) {
+      return NextResponse.json({ ok: false, message: "소속 학원 정보가 없습니다." }, { status: 403 });
+    }
+
     // 그림 상황에 맞는 대화: 글자 없는 장면 1장 — 정답 대화만 그림과 맞는지 검수한다(라벨 그림과 다름)
     const isScene =
       q.visual_choice_type === "scene" ||
@@ -90,6 +121,8 @@ export async function POST(req: Request) {
           return NextResponse.json({ ok: true, urls: existing, generated: 0, skipped: true });
         }
       }
+      const sceneShort = await lessonCreditShortfall(profile.academy_id, CREDIT_FEATURES.listening_generate_scene);
+      if (sceneShort) return NextResponse.json({ ok: false, message: sceneShort }, { status: 402 });
       const { data: segs } = await admin
         .from("listening_question_segments")
         .select("speaker_type, text")
@@ -102,8 +135,24 @@ export async function POST(req: Request) {
         segments: (segs ?? []).map((r) => ({ speaker: String(r.speaker_type), text: String(r.text ?? "") })),
         correctAnswer: Number(q.correct_answer) || 1,
       });
+      await chargeImages({
+        academyId: profile.academy_id,
+        actorId: profile.id,
+        questionId,
+        setId,
+        feature: CREDIT_FEATURES.listening_generate_scene,
+        quantity: result.generated > 0 ? 1 : 0,
+        note: "듣기 그림 상황 그림",
+      });
       return NextResponse.json({ ok: true, ...result });
     }
+
+    const imageShort = await lessonCreditShortfall(
+      profile.academy_id,
+      CREDIT_FEATURES.listening_generate_image,
+      prompts.length
+    );
+    if (imageShort) return NextResponse.json({ ok: false, message: imageShort }, { status: 402 });
 
     // 합성 그림(그림 불일치)은 대본·정답 라벨을 함께 넘겨야 라벨마다 대화와 맞는지 검수할 수 있다
     const composite = prompts.length === 1;
@@ -125,6 +174,15 @@ export async function POST(req: Request) {
         : undefined,
     });
 
+    await chargeImages({
+      academyId: profile.academy_id,
+      actorId: profile.id,
+      questionId,
+      setId,
+      feature: CREDIT_FEATURES.listening_generate_image,
+      quantity: result.generated,
+      note: `듣기 그림 ${result.generated}장`,
+    });
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     return NextResponse.json(
