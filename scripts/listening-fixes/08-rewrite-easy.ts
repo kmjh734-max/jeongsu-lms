@@ -13,6 +13,9 @@
  *   ... 08-rewrite-easy.ts --audio --apply         새 대본인데 음원 검증 기록이 없는 문항만 녹음
  *   ... 08-rewrite-easy.ts --propagate [--apply]   사본 6곳에 새 대본·segment·음원 주소 복사 (원본 녹음 검증 후)
  *   공통 옵션: --only="고1 듣기 1회#6,중1 6회#4"  --limit=N  --include-later  --quiet
+ *             --data=09-batch2.data.json (다른 데이터 파일)  --batch=N (이번에 저장·녹음할 문항 수, 끝난 문항은 건너뜀)
+ *   src 는 "@/lib/..." 로 가져온다. src/lib/listening 을 고치는 중이면(중2·중3 번호 배치가 바뀌는 등)
+ *   커밋된 src 를 풀어 둔 폴더의 tsconfig(@/* → 그 폴더의 src)를 --tsconfig 로 주면 커밋된 검수 규칙으로 돈다.
  *
  * 음원 파일 경로는 문항마다 하나(final.mp3, 덮어쓰기)이고 사본은 원본 파일을 함께 쓴다.
  * 그래서 녹음 뒤 audio_url 에 ?v=시각 을 붙여 브라우저·CDN 캐시가 옛 음원을 주지 않게 한다.
@@ -36,19 +39,20 @@ import {
   type SegRow,
 } from "./lib";
 import { easyGuards, runRuleChecks, toGenerated, type SimpleSeg } from "./check-lib";
-import { isCriticalQualityCode } from "../../src/lib/listening/generic-quality-checks";
-import { DICTATION_RESET_FIELDS } from "../../src/lib/listening/dictation/reset-fields";
-import { generateQuestionAudio } from "../../src/lib/listening/generate-audio";
-import type { ListeningGradeLevel } from "../../src/lib/listening/grade-level";
-import type { PriceCalculation } from "../../src/lib/listening/price-check";
+import { isCriticalQualityCode } from "@/lib/listening/generic-quality-checks";
+import { DICTATION_RESET_FIELDS } from "@/lib/listening/dictation/reset-fields";
+import { generateQuestionAudio } from "@/lib/listening/generate-audio";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import type { PriceCalculation } from "@/lib/listening/price-check";
 
 const HERE = resolve(process.cwd(), "scripts", "listening-fixes");
-const DATA_FILE = resolve(HERE, "08-rewrite-easy.data.json");
 const STATE_FILE = resolve(HERE, "backups", "08-audio-state.json");
 
 const argv = process.argv.slice(2);
 const has = (f: string) => argv.includes(f);
 const opt = (name: string) => argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);
+/** --data=09-batch2.data.json 처럼 다른 데이터 파일을 쓸 수 있다 (기본: 08-rewrite-easy.data.json) */
+const DATA_FILE = resolve(HERE, opt("data") ?? "08-rewrite-easy.data.json");
 const MODE_PROPAGATE = has("--propagate");
 const MODE_AUDIO_ONLY = has("--audio");
 const NO_AUDIO = has("--no-audio");
@@ -59,6 +63,8 @@ const ONLY = opt("only")
   .map((s) => s.trim())
   .filter(Boolean);
 const LIMIT = opt("limit") ? Number(opt("limit")) : undefined;
+/** --batch=N: 이번 실행에서 저장·녹음할 문항 수 (이미 끝난 문항은 세지 않음) */
+const BATCH = opt("batch") ? Number(opt("batch")) : undefined;
 
 type Item = {
   key: string;
@@ -72,8 +78,13 @@ type Item = {
   answer_clue: string;
   explanation: string;
   choices?: string[];
+  /** 대본에 나오면 안 되는 말 (점검용, DB에 쓰지 않음) */
+  banned_words?: string[];
   fields?: Record<string, unknown>;
   price_calculation?: PriceCalculation;
+  /** 검토 후 일부러 남겨 둔 규칙 표시 코드 (치명 표시는 허용하지 않음). 이유는 accepted_flags_reason 에 적는다 */
+  accepted_flags?: string[];
+  accepted_flags_reason?: string;
 };
 
 type AudioState = Record<
@@ -175,7 +186,9 @@ function planItem(d: Loaded, it: Item): Plan {
   const problems: string[] = [];
   for (const i of after.issues) {
     if (isCriticalQualityCode(i.code)) problems.push(`치명 규칙 표시 ${i.code}: ${i.message}`);
-    else if (!beforeCodes.has(i.code)) problems.push(`새 규칙 표시 ${i.code}: ${i.message}`);
+    else if (!beforeCodes.has(i.code) && !it.accepted_flags?.includes(i.code)) {
+      problems.push(`새 규칙 표시 ${i.code}: ${i.message}`);
+    }
   }
   if (state === "old") {
     problems.push(
@@ -190,6 +203,7 @@ function planItem(d: Loaded, it: Item): Plan {
         newSegments: it.segments,
         targetPerson: String((it.fields?.target_person as string) ?? template.target_person ?? ""),
         priceCalculation: it.price_calculation ?? null,
+        bannedWords: it.banned_words,
       })
     );
   }
@@ -210,6 +224,11 @@ function printPlan(d: Loaded, p: Plan) {
   for (const s of segsOf(d, template)) console.log(`        ${s.speaker_type}: ${s.text}`);
   console.log("    + 후:");
   for (const s of it.segments) console.log(`        ${s.speaker}: ${s.text}`);
+  if (it.choices && JSON.stringify(it.choices) !== JSON.stringify(template.choices)) {
+    console.log(
+      `    선택지 + ${it.choices.map((c, i) => `${i + 1 === template.correct_answer ? "*" : ""}${c}`).join(" | ")}`
+    );
+  }
   console.log(`    해설 - ${template.explanation}`);
   console.log(`    해설 + ${it.explanation}`);
   console.log(`    근거 + ${it.answer_clue}`);
@@ -480,8 +499,18 @@ async function main() {
   const withAnswers = [...answers.values()].filter((n) => n > 0).length;
   const total = [...answers.values()].reduce((a, b) => a + b, 0);
   console.log(
-    `\n학생 풀이 기록: 대상 문항(원본+사본 ${ids.length}행) 중 ${withAnswers}행에 ${total}건 (선택지·정답 번호는 그대로라 채점은 바뀌지 않음)`
+    `\n학생 풀이 기록: 대상 문항(원본+사본 ${ids.length}행) 중 ${withAnswers}행에 ${total}건 (정답 번호는 그대로라 채점은 바뀌지 않음)`
   );
+  const choiceChanged = plans.filter(
+    (p) => p.it.choices && JSON.stringify(p.it.choices) !== JSON.stringify(p.template.choices)
+  );
+  if (choiceChanged.length) {
+    const cIds = new Set(choiceChanged.flatMap((p) => [p.template.id, ...copiesByTitle(d, p.template).map((c) => c.id)]));
+    const cRows = [...answers.entries()].filter(([id, n]) => cIds.has(id) && n > 0);
+    console.log(
+      `  그중 선택지 글이 바뀌는 ${choiceChanged.length}문항(${cIds.size}행): 기록 있는 행 ${cRows.length}개, ${cRows.reduce((a, [, n]) => a + n, 0)}건 (옛 기록의 번호가 새 선택지 글을 가리키게 됨)`
+    );
+  }
 
   const needAudio = plans.filter(
     (p) =>
@@ -500,7 +529,7 @@ async function main() {
   }
 
   if (MODE_AUDIO_ONLY) {
-    const targets = needAudio.filter((p) => p.state === "new");
+    const targets = needAudio.filter((p) => p.state === "new").slice(0, BATCH);
     let ok = 0;
     for (const [i, p] of targets.entries()) {
       console.log(`\n[${i + 1}/${targets.length}] ${p.it.key} 녹음`);
@@ -510,7 +539,7 @@ async function main() {
     return;
   }
 
-  const targets = plans.filter((p) => p.state === "old");
+  const targets = plans.filter((p) => p.state === "old").slice(0, BATCH);
   if (!targets.length) {
     console.log("\n바꿀 문항이 없습니다 (이미 새 대본). 녹음만 필요하면 --audio --apply");
     return;

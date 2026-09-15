@@ -3,20 +3,20 @@
  * - quality-check.ts (checkListeningQuestionQuality, 안에서 generic-quality-checks 포함)
  * - price-check.ts (금액 문항 검산, 최종 금액이 대본에 그대로 나오는지)
  */
-import { getExamTypeById } from "../../src/lib/listening/exam-types";
-import type { ListeningGradeLevel } from "../../src/lib/listening/grade-level";
-import { checkListeningQuestionQuality } from "../../src/lib/listening/quality-check";
+import * as examTypes from "@/lib/listening/exam-types";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import { checkListeningQuestionQuality } from "@/lib/listening/quality-check";
 import {
   checkPriceQuestion,
   computePriceFromCalculation,
   isPriceQuestion,
   scriptStatesAmount,
   type PriceCalculation,
-} from "../../src/lib/listening/price-check";
+} from "@/lib/listening/price-check";
 import type {
   GeneratedListeningQuestion,
   ListeningScriptSegment,
-} from "../../src/lib/listening/types";
+} from "@/lib/listening/types";
 
 export type SimpleSeg = { speaker: string; text: string };
 
@@ -62,7 +62,10 @@ export function runRuleChecks(
   gen: GeneratedListeningQuestion,
   grade: ListeningGradeLevel
 ): RuleCheck {
-  const typeHint = getExamTypeById(gen.order_index, grade);
+  // 저장된 문항의 유형은 번호가 아니라 저장된 이름·지시문으로 정한다 (중2·중3 새 번호 배치와 다름).
+  // templateForStoredQuestion 이 없는 예전 src(커밋본 스냅숏)에서는 번호로 찾는다(그때는 중1 배치와 같았음).
+  const stored = (examTypes as { templateForStoredQuestion?: (q: GeneratedListeningQuestion, g: ListeningGradeLevel) => ReturnType<typeof examTypes.getExamTypeById> }).templateForStoredQuestion;
+  const typeHint = stored ? stored(gen, grade) : examTypes.getExamTypeById(gen.order_index, grade);
   const r = checkListeningQuestionQuality(gen, typeHint, grade);
   const out: RuleCheck = {
     score: r.quality_score,
@@ -140,6 +143,8 @@ export type GuardInput = {
   newSegments: SimpleSeg[];
   targetPerson?: string;
   priceCalculation?: PriceCalculation | null;
+  /** 대본에 나오면 안 되는 말 (정답 직업명·주제어 등, 데이터 파일의 banned_words) */
+  bannedWords?: string[];
 };
 
 /** 다시 쓴 대본의 추가 점검. 문제 문장 목록을 돌려준다 (없으면 통과) */
@@ -209,6 +214,11 @@ export function easyGuards(g: GuardInput): string[] {
       (c, i) => i !== g.correctAnswer - 1 && JOB_ENGLISH[c.trim()]?.test(script)
     );
     if (distractorsSpoken.length < 1) out.push("오답 직업이 대본에 하나도 나오지 않음");
+  }
+
+  for (const w of g.bannedWords ?? []) {
+    const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (new RegExp(`\\b${escaped}`, "i").test(script)) out.push(`금지어가 대본에 나옴: ${w}`);
   }
 
   // 핵심 내용: 정답 주제(○○ 촬영 장소 등)를 대본이 그대로 말하지 않는다 — 장소를 비교하는 대화에서 주제를 추론하게
