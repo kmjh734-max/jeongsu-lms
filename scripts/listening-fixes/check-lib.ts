@@ -129,6 +129,12 @@ export const JOB_ENGLISH: Record<string, RegExp> = {
   가수: /\b(singer)s?\b/i,
   조종사: /\b(pilot)s?\b/i,
   만화가: /\b(cartoonist)s?\b/i,
+  건축가: /\b(architect)s?\b/i,
+  사진사: /\b(photographer)s?\b/i,
+  미술가: /\b(painter|artist)s?\b/i,
+  통역사: /\b(interpreter|translator)s?\b/i,
+  "동물원 사육사": /\b(zookeeper)s?\b/i,
+  "동물 조련사": /\b(animal trainer)s?\b/i,
   영양사: /\b(nutritionist)s?\b/i,
 };
 
