@@ -472,7 +472,8 @@ export function AnalysisReportWorkbench({
     const widthPx = root.offsetWidth || 1;
     const pxPerMm = widthPx / 210;
     const bodyMm = 297 - A4_PAD_MM - A4_FOOTER_MM;
-    const pageBodyPx = bodyMm * pxPerMm;
+    // 재는 값에 한두 픽셀 오차가 있어 조금 낮춰 잡는다(넘치면 빈 쪽이 생긴다)
+    const pageBodyPx = bodyMm * pxPerMm - 6;
     const gapPx = 8;
 
     const next: Record<string, AnalysisUnit[][]> = {};
@@ -502,24 +503,32 @@ export function AnalysisReportWorkbench({
        */
       const units: AnalysisUnit[] = [];
       for (let i = 0; i < count; i++) {
+        const blockEl = box.querySelector(
+          `[data-analysis-block="s-${i}"]`
+        ) as HTMLElement | null;
+        const blockH = blockEl?.offsetHeight ?? 120;
         const head = box.querySelector(
           `[data-analysis-part="s-${i}-head"]`
         ) as HTMLElement | null;
         if (!head) {
-          const el = box.querySelector(
-            `[data-analysis-block="s-${i}"]`
-          ) as HTMLElement | null;
-          units.push({ s: i, kind: "whole", h: el?.offsetHeight ?? 120 });
+          units.push({ s: i, kind: "whole", h: blockH });
           continue;
         }
-        units.push({ s: i, kind: "head", h: head.offsetHeight });
+        const points: AnalysisUnit[] = [];
         for (let j = 0; ; j++) {
           const pt = box.querySelector(
             `[data-analysis-part="s-${i}-p-${j}"]`
           ) as HTMLElement | null;
           if (!pt) break;
-          units.push({ s: i, kind: "point", p: j, h: pt.offsetHeight });
+          points.push({ s: i, kind: "point", p: j, h: pt.offsetHeight });
         }
+        // 조각 높이를 더해도 묶음 높이에 모자란다(묶음 여백, 설명 목록 위 여백).
+        // 그 차이를 첫 조각에 얹어야 쪽이 넘치지 않는다. 넘치면 인쇄에서 한 줄이
+        // 다음 쪽으로 새어 나가 거의 빈 쪽이 생겼다.
+        const partsSum = head.offsetHeight + points.reduce((a, u) => a + u.h, 0);
+        const extra = Math.max(0, blockH - partsSum);
+        units.push({ s: i, kind: "head", h: head.offsetHeight + extra });
+        units.push(...points);
       }
 
       const pages: AnalysisUnit[][] = [];
