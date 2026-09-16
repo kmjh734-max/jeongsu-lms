@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { Icon } from "@/components/layout/NavIcon";
+import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { Button } from "@/components/ui/Button";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
 import { shouldHideTextChoicesForFigure } from "@/lib/listening/figure-choice-display";
 import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
@@ -27,6 +28,10 @@ const COLUMN_WIDTH_CLASS = "w-[84mm]";
 /** 문항 간격 */
 const QUESTION_GAP_MM = 5;
 const QUESTION_GAP_MM_WITH_SCRIPT = 3;
+/** 정답지 줄 간격 — 항목이 한 줄이라 시험지보다 촘촘하게 */
+const ANSWER_GAP_MM = 1.2;
+/** 표준 20문항 시험에서 5+5가 들어갈 때까지 줄여 보는 문항 글자 크기 */
+const QUESTION_SIZES_PT: number[] = [10, 9.7, 9.4, 9.1, 8.8, 8.5];
 const COLUMN_SAFETY_PX = 16;
 const COLUMN_SAFETY_PX_WITH_SCRIPT = 28;
 const COLUMN_SAFETY_PX_WITH_FIGURE = 28;
@@ -94,6 +99,72 @@ function columnUsedHeight(indices: number[], heights: number[], gapPx: number) {
   return used;
 }
 
+/** 정답지 배치 — 쪽마다 두 단에 고르게 나눈다 (한 단에만 몰리지 않게) */
+function paginateAnswerKey(
+  heights: number[],
+  opts: {
+    firstColumnMaxPx: number;
+    nextColumnMaxPx: number;
+    questionGapPx: number;
+    columnSafetyPx?: number;
+  }
+): ExamPageLayout[] {
+  if (heights.length === 0) return [];
+  const safety = opts.columnSafetyPx ?? 0;
+  const pages: ExamPageLayout[] = [];
+  let idx = 0;
+
+  while (idx < heights.length) {
+    const max =
+      (pages.length === 0 ? opts.firstColumnMaxPx : opts.nextColumnMaxPx) -
+      safety;
+    const take: number[] = [];
+    let colUsed = 0;
+    let colNo = 1;
+    while (idx < heights.length) {
+      const need = heights[idx]! + (colUsed > 0 ? opts.questionGapPx : 0);
+      if (colUsed + need > max) {
+        if (colNo === 2) break;
+        colNo = 2;
+        colUsed = 0;
+        continue;
+      }
+      colUsed += need;
+      take.push(idx);
+      idx++;
+    }
+    if (take.length === 0) {
+      take.push(idx);
+      idx++;
+    }
+    const half = Math.ceil(take.length / 2);
+    pages.push({ left: take.slice(0, half), right: take.slice(half) });
+  }
+  return pages;
+}
+
+/** 고정 5+5 배치가 실제로 단 안에 들어가는지 (안 들어가면 높이대로 다시 채운다) */
+function layoutFits(
+  layouts: ExamPageLayout[],
+  heights: number[],
+  opts: {
+    firstColumnMaxPx: number;
+    nextColumnMaxPx: number;
+    questionGapPx: number;
+    columnSafetyPx?: number;
+  }
+): boolean {
+  const safety = opts.columnSafetyPx ?? 0;
+  return layouts.every((layout, pageIndex) => {
+    const max =
+      (pageIndex === 0 ? opts.firstColumnMaxPx : opts.nextColumnMaxPx) - safety;
+    return (
+      columnUsedHeight(layout.left, heights, opts.questionGapPx) <= max &&
+      columnUsedHeight(layout.right, heights, opts.questionGapPx) <= max
+    );
+  });
+}
+
 /** off-screen flex 측정이 0으로 나오는 경우 대비 */
 function resolveColumnMaxPx(bodyZone: HTMLElement): number {
   const measured = bodyZone.clientHeight;
@@ -128,16 +199,11 @@ function answerLabel(correctAnswer: number): string {
   return CIRCLED[idx] ?? String(correctAnswer);
 }
 
-function examEditionLabel(
-  questions: ListeningQuestionData[],
-  pageIndex: number
-): string {
-  if (questions.length === 0) return "01";
-  const idx = Math.min(
-    questions.length - 1,
-    pageIndex === 0 ? 0 : pageIndex * 8
-  );
-  return String(questions[idx]?.order_index ?? pageIndex + 1).padStart(2, "0");
+/** 머리 띠의 회차 — 제목의 "N회"를 쓰고, 없으면 띠에서 뺀다 */
+function examEditionLabel(examTitle: string): string | null {
+  const hit = examTitle.match(/(\d{1,3})\s*회/);
+  if (!hit) return null;
+  return hit[1]!.padStart(2, "0");
 }
 
 function speakerLabel(type: string): string {
@@ -205,11 +271,16 @@ export function ListeningExamPrintView({
     null
   );
   const [pagesVerified, setPagesVerified] = useState(false);
+  const [questionSizePt, setQuestionSizePt] = useState<number>(
+    QUESTION_SIZES_PT[0]!
+  );
 
   const measureRef = useRef<HTMLDivElement>(null);
   const probeFirstRef = useRef<HTMLDivElement>(null);
   const probeNextRef = useRef<HTMLDivElement>(null);
   const overflowFixAttempts = useRef(0);
+  /** 고정 5+5 배치를 그대로 썼는지 — 그럴 땐 시험지 쪽은 옮기지 않는다 */
+  const fixedLayoutUsed = useRef(false);
   const listenUrl = buildStudentListeningHubUrl(setId);
 
   const meta: PrintMeta = {
@@ -248,25 +319,31 @@ export function ListeningExamPrintView({
       const nextBody = probeNext.querySelector<HTMLElement>("[data-body-zone]");
       if (!firstBody || !nextBody) return;
 
-      const examHeights: number[] = [];
-      const answerHeights: number[] = [];
-      for (const q of questions) {
-        const examEl = measureRoot.querySelector<HTMLElement>(
-          `[data-measure-q="${q.id}"]`
-        );
-        const answerEl = measureRoot.querySelector<HTMLElement>(
-          `[data-measure-answer-q="${q.id}"]`
-        );
-        const hasFig = Boolean(
-          examEl?.querySelector(".listening-exam-figure-img")
-        );
-        // 그림 문항은 측정 오차·여백을 조금 더 줌 → 단 끝에 끼워 넣다 잘리는 것 방지
-        const pad = hasFig ? 12 : 0;
-        const examH = Math.ceil(examEl?.offsetHeight ?? 96) + pad;
-        const answerH = Math.ceil(answerEl?.offsetHeight ?? examH) + pad;
-        examHeights.push(examH);
-        answerHeights.push(answerH);
-      }
+      /** 문항 글자 크기를 바꿔 가며 높이를 다시 잰다 (쪽 맞추기용) */
+      const measureAt = (sizePt: number) => {
+        measureRoot.style.setProperty("--lx-q-size", `${sizePt}pt`);
+        void measureRoot.offsetHeight;
+        const exam: number[] = [];
+        const answer: number[] = [];
+        for (const q of questions) {
+          const examEl = measureRoot.querySelector<HTMLElement>(
+            `[data-measure-q="${q.id}"]`
+          );
+          const answerEl = measureRoot.querySelector<HTMLElement>(
+            `[data-measure-answer-q="${q.id}"]`
+          );
+          const hasFig = Boolean(
+            examEl?.querySelector(".listening-exam-figure-img")
+          );
+          // 그림 문항은 측정 오차·여백을 조금 더 줌 → 단 끝에 끼워 넣다 잘리는 것 방지
+          const pad = hasFig ? 12 : 0;
+          const examH = Math.ceil(examEl?.offsetHeight ?? 96) + pad;
+          const answerH = Math.ceil(answerEl?.offsetHeight ?? examH) + pad;
+          exam.push(examH);
+          answer.push(answerH);
+        }
+        return { exam, answer };
+      };
 
       const packOpts = {
         firstColumnMaxPx: resolveColumnMaxPx(firstBody),
@@ -275,17 +352,45 @@ export function ListeningExamPrintView({
         columnSafetyPx: layoutConfig.columnSafetyPx,
       };
 
-      const examLayouts = useFixedTwentyLayout
-        ? paginateStandardTwentyExam()
-        : paginateExamQuestions(examHeights, packOpts);
+      let sizePt = QUESTION_SIZES_PT[0]!;
+      let heights = measureAt(sizePt);
+      let examLayouts: ExamPageLayout[];
+
+      if (useFixedTwentyLayout) {
+        // 표준 20문항: 쪽마다 5+5가 들어갈 때까지 글자를 한 단계씩 줄여 본다
+        const fixed = paginateStandardTwentyExam();
+        let fits = layoutFits(fixed, heights.exam, packOpts);
+        for (let i = 1; !fits && i < QUESTION_SIZES_PT.length; i++) {
+          sizePt = QUESTION_SIZES_PT[i]!;
+          heights = measureAt(sizePt);
+          fits = layoutFits(fixed, heights.exam, packOpts);
+        }
+        if (fits) {
+          examLayouts = fixed;
+        } else {
+          // 가장 작게 줄여도 안 들어가면 원래 크기로 높이대로 채운다 (잘림 방지)
+          sizePt = QUESTION_SIZES_PT[0]!;
+          heights = measureAt(sizePt);
+          examLayouts = paginateExamQuestions(heights.exam, packOpts);
+        }
+        fixedLayoutUsed.current = examLayouts === fixed;
+      } else {
+        examLayouts = paginateExamQuestions(heights.exam, packOpts);
+        fixedLayoutUsed.current = false;
+      }
+
+      measureRoot.style.removeProperty("--lx-q-size");
 
       overflowFixAttempts.current = 0;
       setPagesVerified(false);
+      setQuestionSizePt(sizePt);
       setPages(examLayouts);
+      // 정답지는 한 줄짜리 항목이라 두 단에 고르게 나눠 담는다
       setAnswerPages(
-        useFixedTwentyLayout
-          ? paginateStandardTwentyExam()
-          : paginateExamQuestions(answerHeights, packOpts)
+        paginateAnswerKey(heights.answer, {
+          ...packOpts,
+          questionGapPx: Math.round((ANSWER_GAP_MM * 96) / 25.4),
+        })
       );
     };
 
@@ -329,13 +434,6 @@ export function ListeningExamPrintView({
   useLayoutEffect(() => {
     if (!pages || questions.length === 0) return;
 
-    // 고정 20문항(그림 없음)만 오버플로 이동 생략
-    if (useFixedTwentyLayout) {
-      overflowFixAttempts.current = 0;
-      setPagesVerified(true);
-      return;
-    }
-
     const root = document.getElementById("listening-print-root");
     if (!root) return;
 
@@ -345,7 +443,15 @@ export function ListeningExamPrintView({
       layouts: ExamPageLayout[] | null;
       setLayouts: typeof setPages;
     }> = [
-      { sel: ".exam-print-exam", layouts: pages, setLayouts: setPages },
+      ...(fixedLayoutUsed.current
+        ? []
+        : [
+            {
+              sel: ".exam-print-exam",
+              layouts: pages,
+              setLayouts: setPages,
+            },
+          ]),
       {
         sel: ".exam-print-answers",
         layouts: answerPages,
@@ -414,7 +520,6 @@ export function ListeningExamPrintView({
     gradeLabel,
     studentName,
     includeAnswerKey,
-    useFixedTwentyLayout,
   ]);
 
   function runPrint(scope: PrintScope) {
@@ -540,7 +645,7 @@ export function ListeningExamPrintView({
                 <ExamQuestionBlock question={q} showScript={showScript} />
               </div>
               <div data-measure-answer-q={q.id}>
-                <AnswerKeyItem question={q} compactScript={showScript} />
+                <AnswerKeyItem question={q} />
               </div>
             </div>
           ))}
@@ -585,7 +690,12 @@ export function ListeningExamPrintView({
       </div>
 
       <div className="mx-auto max-w-[210mm] space-y-6 py-8 print:space-y-0 print:py-0">
-        <div id="listening-print-root">
+        <div
+          id="listening-print-root"
+          style={
+            { "--lx-q-size": `${questionSizePt}pt` } as CSSProperties
+          }
+        >
           <div className="exam-print-exam">
             {questions.length === 0 ? (
               <ExamSheetPage
@@ -650,7 +760,7 @@ export function ListeningExamPrintView({
                 meta={meta}
                 questions={questions}
                 pageLayouts={answerPages}
-                questionGapStyle={layoutConfig.gapStyle}
+                questionGapStyle={{ gap: `${ANSWER_GAP_MM}mm` }}
               />
             </div>
           )}
@@ -686,6 +796,7 @@ function ExamSheetPage({
   questionGapStyle: { gap: string };
 }) {
   const isFirst = pageIndex === 0;
+  const editionNo = examEditionLabel(meta.examTitle);
 
   return (
     <article
@@ -695,38 +806,43 @@ function ExamSheetPage({
     >
       {isFirst ? (
         <header className="shrink-0">
-          <div className="listening-exam-header-bar">
-            <div className="listening-exam-header-edition">
-              <span className="listening-exam-header-edition-label">
-                LISTENING
-              </span>
-              <span className="listening-exam-header-edition-no">
-                {examEditionLabel(questions, pageIndex)}회
-              </span>
+          <div className="listening-exam-head">
+            {editionNo ? (
+              <div className="listening-exam-head-no">
+                <b>{editionNo}</b>
+                <span>회</span>
+              </div>
+            ) : null}
+            <div className="listening-exam-head-main">
+              <p className="listening-exam-kicker">LISTENING · 듣기평가</p>
+              <h1 className="listening-exam-head-title">{meta.examTitle}</h1>
+              <p className="listening-exam-head-sub">
+                {meta.gradeLabel}
+                {questions.length > 0 ? ` · ${questions.length}문항` : ""}
+              </p>
             </div>
-            <div className="listening-exam-header-main">
-              <p className="listening-exam-header-sub">Listening Practice</p>
-              <h1 className="listening-exam-header-title">{meta.examTitle}</h1>
-              <p className="listening-exam-header-sub">{meta.gradeLabel}</p>
+            <div className="listening-exam-head-qr">
+              <ListeningPrintQrCode url={listenUrl} sizePx={62} />
+              <p className="listening-exam-head-qr-label">듣기 QR</p>
             </div>
-            <div className="listening-exam-header-qr">
-              <ListeningPrintQrCode url={listenUrl} sizePx={72} />
-              <p className="listening-exam-header-qr-label">듣기 QR</p>
-            </div>
+            {LOGO_SRC ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={LOGO_SRC}
+                alt={ACADEMY_NAME}
+                className="listening-exam-head-logo"
+              />
+            ) : null}
           </div>
 
-          <table className="listening-exam-info-table">
-            <tbody>
-              <tr>
-                <th>이름</th>
-                <td>{meta.studentName || "\u00a0"}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div className="listening-exam-guide">
-            <strong>LISTENING TIP</strong> QR로 음원을 듣고 아래 문항의
-            답을 골라 OMR에 마킹하세요.
+          <div className="listening-exam-meta">
+            <span className="listening-exam-meta-name">
+              이름
+              <i>{meta.studentName || " "}</i>
+            </span>
+            <span className="listening-exam-meta-tip">
+              QR로 음원을 듣고 알맞은 답을 고르세요.
+            </span>
           </div>
         </header>
       ) : (
@@ -762,17 +878,43 @@ function ExamSheetPage({
         </div>
       </div>
 
-      <footer className="listening-exam-footer shrink-0">
-        <span>{meta.examTitle}</span>
-        {isLastPage && !measureOnly ? (
-          <span>— 끝 —</span>
-        ) : (
-          <span>
-            {pageIndex + 1} / {totalPages}
-          </span>
-        )}
-      </footer>
+      <ExamSheetFooter
+        pageIndex={pageIndex}
+        totalPages={totalPages}
+        right={
+          isLastPage && !measureOnly
+            ? `${meta.examTitle} · 끝`
+            : `${meta.examTitle} · 듣기 시험지`
+        }
+      />
     </article>
+  );
+}
+
+/** 꼬리말 — 변형문제·워크북 인쇄와 같은 3칸(학원 · 쪽 번호 · 자료 이름) */
+function ExamSheetFooter({
+  pageIndex,
+  totalPages,
+  right,
+}: {
+  pageIndex: number;
+  totalPages: number;
+  right: string;
+}) {
+  return (
+    <footer className="listening-exam-footer shrink-0">
+      <span className="listening-exam-footer-left">
+        {LOGO_SRC ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={LOGO_SRC} alt="" className="listening-exam-footer-logo" />
+        ) : null}
+        <span>{ACADEMY_NAME}</span>
+      </span>
+      <span className="listening-exam-footer-page">
+        - {pageIndex + 1} / {totalPages} -
+      </span>
+      <span className="listening-exam-footer-right">{right}</span>
+    </footer>
   );
 }
 
@@ -1104,6 +1246,7 @@ function ExamAnswerKeyPage({
   questionGapStyle: { gap: string };
 }) {
   const isFirst = pageIndex === 0;
+  const editionNo = examEditionLabel(meta.examTitle);
 
   return (
     <article
@@ -1113,11 +1256,29 @@ function ExamAnswerKeyPage({
     >
       <header className="shrink-0">
         {isFirst ? (
-          <div className="listening-exam-answer-key-bar">
-            <p className="listening-exam-answer-key-title">
-              {meta.examTitle} · 정답지
-            </p>
-            <p className="listening-exam-answer-key-sub">{meta.gradeLabel}</p>
+          <div className="listening-exam-head listening-exam-head--answer">
+            {editionNo ? (
+              <div className="listening-exam-head-no">
+                <b>{editionNo}</b>
+                <span>회</span>
+              </div>
+            ) : null}
+            <div className="listening-exam-head-main">
+              <p className="listening-exam-kicker">ANSWER · 정답지</p>
+              <h1 className="listening-exam-head-title">{meta.examTitle}</h1>
+              <p className="listening-exam-head-sub">
+                {meta.gradeLabel}
+                {questions.length > 0 ? ` · ${questions.length}문항` : ""}
+              </p>
+            </div>
+            {LOGO_SRC ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={LOGO_SRC}
+                alt={ACADEMY_NAME}
+                className="listening-exam-head-logo"
+              />
+            ) : null}
           </div>
         ) : (
           <div className="listening-exam-subheader">
@@ -1151,16 +1312,15 @@ function ExamAnswerKeyPage({
         </div>
       </div>
 
-      <footer className="listening-exam-footer shrink-0">
-        <span>교사용 정답지</span>
-        {isLastPage ? (
-          <span>— 끝 —</span>
-        ) : (
-          <span>
-            {pageIndex + 1} / {totalPages}
-          </span>
-        )}
-      </footer>
+      <ExamSheetFooter
+        pageIndex={pageIndex}
+        totalPages={totalPages}
+        right={
+          isLastPage
+            ? `${meta.examTitle} · 정답지 끝`
+            : `${meta.examTitle} · 정답지`
+        }
+      />
     </article>
   );
 }
@@ -1197,50 +1357,26 @@ function AnswerKeyColumn({
   );
 }
 
+/** 정답지 항목 — 번호·정답·선택지 글만. 해설·근거·대본은 싣지 않는다. */
 function AnswerKeyItem({
   question: q,
-  compactScript = false,
 }: {
   question: ListeningQuestionData;
-  compactScript?: boolean;
 }) {
   const idx = q.correct_answer - 1;
   // 선택지가 ①~⑤ 번호뿐이면(그림 라벨·표 행·짧은 대화 5개) 번호를 두 번 쓰지 않는다
   const rawChoice = q.choices[idx] ?? "";
   const choice = /^\s*(?:[①②③④⑤]|[1-5])\s*$/.test(rawChoice) ? "" : rawChoice;
-  const answerSize = "text-[15pt]";
-  const choiceSize = "text-[10pt]";
-  const scriptSize = "text-[10pt]";
-  const clueSize = "text-[9.5pt]";
 
   return (
-    <div className="min-h-0" data-exam-question>
-      <div className="flex items-baseline gap-[2mm]">
-        <span className="listening-exam-q-num shrink-0 tabular-nums">
-          {String(q.order_index).padStart(2, "0")}
-        </span>
-        <span className={`shrink-0 font-normal text-[#234b8c] ${answerSize}`}>
-          {answerLabel(q.correct_answer)}
-        </span>
-        <span
-          className={`min-w-0 flex-1 leading-snug font-normal text-slate-800 ${choiceSize}`}
-        >
-          {choice}
-        </span>
-      </div>
-
-      {q.segments.length > 0 && (
-        <div className={`mt-[0.8mm] ${scriptSize}`}>
-          <PrintScriptPanel segments={q.segments} compact={compactScript} />
-        </div>
-      )}
-
-      {q.answer_clue && (
-        <p className={`mt-[0.5mm] leading-snug text-slate-600 ${clueSize}`}>
-          <span className="font-semibold text-[#234b8c]">근거</span>{" "}
-          {q.answer_clue}
-        </p>
-      )}
+    <div className="listening-exam-answer-item" data-exam-question>
+      <span className="listening-exam-answer-no">
+        {String(q.order_index).padStart(2, "0")}
+      </span>
+      <span className="listening-exam-answer-mark">
+        {answerLabel(q.correct_answer)}
+      </span>
+      <span className="listening-exam-answer-text">{choice}</span>
     </div>
   );
 }

@@ -140,356 +140,253 @@
     @apply rounded-lg border border-slate-200 bg-white p-5 shadow-card sm:p-6;
   }
 
+  /* 듣기 시험지 인쇄 — 변형문제·워크북·1장 자료와 같은 결.
+     머리 띠(번호·제목·QR·로고), 왼쪽 눈금을 둔 얇은 구분선, 작은 색 표식,
+     정돈된 꼬리말. 강조색만 듣기용 파랑(brand-600)으로 둔다.
+     글꼴은 인쇄 루트(#listening-print-root)에서 물려받아 측정 틀과 어긋나지 않게 한다. */
   .listening-exam-sheet {
+    --lx-accent: #2563c9;
+    --lx-ink: #1a4283;
+    --lx-tint: #eef4fc;
+    --lx-line: #bcd2f3;
+    --lx-hair: #e2e8f0;
     box-sizing: border-box;
     width: 210mm;
     height: 297mm;
     background: #fff;
-    color: #1a1a1a;
-    padding: 8mm 10mm 7mm;
-    font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color: #111827;
+    padding: 9mm 11mm 7mm;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  .listening-exam-header-bar {
+  .listening-exam-head {
     display: flex;
-    align-items: stretch;
-    gap: 0;
-    margin: -8mm -10mm 3.5mm;
-    background: linear-gradient(180deg, #234b8c 0%, #1a3a6e 100%);
-    color: #fff;
-    min-height: 18mm;
+    align-items: center;
+    gap: 3.5mm;
+    padding: 2.6mm 3.5mm;
+    border: 1px solid var(--lx-line);
+    border-radius: 2.2mm;
+    background: var(--lx-tint);
   }
 
-  .listening-exam-header-edition {
+  .listening-exam-head-no {
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 24mm;
-    padding: 2.5mm 3mm;
-    background: #2f5ea8;
-    border-right: 1px solid rgb(255 255 255 / 0.18);
-  }
-
-  .listening-exam-header-edition-label {
-    font-size: 7.5pt;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    opacity: 0.92;
-  }
-
-  .listening-exam-header-edition-no {
-    font-size: 18pt;
-    font-weight: 900;
+    min-width: 11mm;
     line-height: 1;
-    margin-top: 1mm;
+    color: var(--lx-accent);
   }
 
-  .listening-exam-header-main {
+  .listening-exam-head-no b {
+    font-size: 19pt;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .listening-exam-head-no span {
+    margin-top: 0.7mm;
+    font-size: 7pt;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .listening-exam-head-main {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 2.5mm 5mm;
     min-width: 0;
   }
 
-  .listening-exam-header-sub {
+  .listening-exam-kicker {
     font-size: 8pt;
-    font-weight: 700;
-    opacity: 0.9;
-    letter-spacing: 0.06em;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: var(--lx-accent);
   }
 
-  .listening-exam-header-title {
-    font-size: 16pt;
+  .listening-exam-head-title {
+    margin-top: 0.4mm;
+    font-size: 14.5pt;
     font-weight: 900;
-    line-height: 1.15;
-    margin-top: 0.8mm;
+    line-height: 1.2;
+    color: #0f172a;
   }
 
-  .listening-exam-header-qr {
+  .listening-exam-head-sub {
+    margin-top: 0.5mm;
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .listening-exam-head-qr {
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 2mm 3.5mm;
-    background: rgb(255 255 255 / 0.97);
-    color: #1a3a6e;
-    border-left: 1px solid rgb(255 255 255 / 0.18);
+    gap: 0.6mm;
+    padding: 1.2mm;
+    border: 1px solid var(--lx-line);
+    border-radius: 1.6mm;
+    background: #fff;
   }
 
-  .listening-exam-header-qr-label {
-    font-size: 7pt;
+  .listening-exam-head-qr-label {
+    font-size: 6.5pt;
     font-weight: 800;
-    margin-top: 0.8mm;
+    color: var(--lx-ink);
   }
 
-  .listening-exam-info-table {
-    width: 100%;
-    border-collapse: collapse;
+  .listening-exam-head-logo {
+    flex-shrink: 0;
+    height: 9mm;
+    width: auto;
+    max-width: 26mm;
+    object-fit: contain;
+  }
+
+  /* 이름 칸 + 안내 한 줄 (예전 표·안내 상자를 대신한다) */
+  .listening-exam-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 3mm;
+    margin-top: 2mm;
+    padding-bottom: 1.5mm;
+    border-bottom: 1px solid var(--lx-hair);
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .listening-exam-meta-name {
+    display: flex;
+    align-items: baseline;
+    gap: 2mm;
     font-size: 9.5pt;
-    border: 1.5px solid #b8cfe8;
-  }
-
-  .listening-exam-info-table th {
-    width: 10%;
-    background: #e8f3fc;
-    border: 1px solid #c5d9ef;
-    padding: 1.8mm 2.5mm;
     font-weight: 800;
-    color: #1a3a6e;
-    text-align: center;
+    color: #334155;
   }
 
-  .listening-exam-info-table td {
-    border: 1px solid #d5e5f5;
-    padding: 1.8mm 3mm;
+  .listening-exam-meta-name i {
+    display: inline-block;
+    min-width: 34mm;
+    border-bottom: 1px solid #94a3b8;
+    font-style: normal;
     font-weight: 700;
-    color: #1a1a1a;
+    color: #0f172a;
     text-align: center;
   }
 
-  .listening-exam-guide {
-    margin-top: 2.5mm;
-    padding: 2.5mm 3.5mm;
-    border: 1.5px solid #b8d4ef;
-    border-radius: 3mm;
-    background: linear-gradient(180deg, #f0f8ff 0%, #e3f2fb 100%);
-    font-size: 9.5pt;
-    line-height: 1.45;
-    color: #1a3a6e;
+  .listening-exam-meta-tip {
+    margin-left: auto;
+    text-align: right;
   }
 
-  .listening-exam-guide strong {
-    color: #234b8c;
-  }
-
+  /* 둘째 쪽부터 — 왼쪽 눈금을 둔 얇은 머리글 */
   .listening-exam-subheader {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 2mm;
-    padding-bottom: 2.5mm;
-    border-bottom: 3px solid #234b8c;
-    margin-bottom: 1.5mm;
+    gap: 2.5mm;
+    padding-bottom: 1.6mm;
+    border-bottom: 1px solid var(--lx-hair);
+  }
+
+  .listening-exam-subheader::before {
+    content: "";
+    align-self: stretch;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--lx-accent);
   }
 
   .listening-exam-subheader-title {
-    font-size: 10.5pt;
-    font-weight: 900;
-    color: #1a1a1a;
+    font-size: 10pt;
+    font-weight: 800;
+    color: #334155;
   }
 
   .listening-exam-subheader-page {
-    font-size: 9pt;
-    font-weight: 800;
-    color: #234b8c;
+    margin-left: auto;
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: var(--lx-accent);
   }
 
   .listening-exam-col-divider {
-    border-left: 2px solid #d0e3f5;
+    border-left: 1px solid var(--lx-hair);
     padding-left: 4mm;
   }
 
   .listening-exam-q-block {
-    font-size: 10.5pt;
-    line-height: 1.42;
+    /* 20문항 표준 시험은 쪽마다 10문항이 들어가도록 글자를 조금만 줄여 맞춘다 */
+    font-size: var(--lx-q-size, 10pt);
+    line-height: 1.36;
     break-inside: avoid;
     page-break-inside: avoid;
-  }
-
-  .listening-exam-q-block--compact {
-    font-size: 9.5pt;
-    line-height: 1.42;
-  }
-
-  .listening-exam-q-block--table-compact {
-    font-size: 9pt;
-    line-height: 1.38;
   }
 
   .listening-exam-type-head {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 1.5mm;
-    margin-bottom: 0.8mm;
+    gap: 1.2mm;
+    margin-bottom: 0.6mm;
   }
 
   .listening-exam-type-label {
     display: inline-block;
-    padding: 0.6mm 2mm;
-    border-radius: 1.5mm;
-    background: #234b8c;
-    color: #fff;
-    font-size: 8pt;
-    font-weight: 900;
-    line-height: 1.2;
+    padding: 0.2mm 1.4mm;
+    border-radius: 0.9mm;
+    background: #dce8f9;
+    color: var(--lx-accent);
+    font-size: 7pt;
+    font-weight: 800;
+    line-height: 1.5;
   }
 
   .listening-exam-type-name {
-    font-size: 8.5pt;
-    font-weight: 800;
-    color: #234b8c;
+    font-size: 7.5pt;
+    font-weight: 700;
+    color: #64748b;
   }
 
   .listening-exam-q-num {
-    font-size: 13pt;
+    min-width: 6.5mm;
+    font-size: 10.5pt;
     font-weight: 900;
-    color: #1a3a6e;
-    line-height: 1;
-    min-width: 7mm;
+    line-height: 1.3;
+    color: var(--lx-accent);
+    font-variant-numeric: tabular-nums;
   }
 
   .listening-exam-q-instruction {
-    font-size: 1.05em;
-    font-weight: 800;
-    color: #111;
-    line-height: 1.38;
+    font-size: 1em;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.36;
   }
 
   .listening-exam-q-passage {
-    margin-top: 0.8mm;
+    margin-top: 0.6mm;
     font-size: 1em;
-    color: #222;
-    line-height: 1.4;
+    color: #1f2937;
+    line-height: 1.38;
   }
 
   .listening-exam-choice-mark {
-    width: 5mm;
+    width: 4.6mm;
     flex-shrink: 0;
-    font-size: 1em;
+    font-size: 0.95em;
     font-weight: 400;
-    color: #1a1a1a;
+    color: #64748b;
   }
 
   .listening-exam-choice-text {
     font-size: 1em;
     font-weight: 400;
-    color: #1a1a1a;
-  }
-
-  .listening-exam-script-col {
-    border: 1.5px solid #b8d4ef;
-    border-radius: 2.5mm;
-    background: linear-gradient(180deg, #f5faff 0%, #e8f3fc 100%);
-    padding: 2mm 2.5mm;
-    font-size: 8.5pt;
-    line-height: 1.5;
-    color: #222;
-  }
-
-  .listening-exam-script-col--compact {
-    font-size: 8pt;
-  }
-
-  .listening-exam-script-title {
-    margin-bottom: 1mm;
-    font-size: 7.5pt;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    color: #234b8c;
-  }
-
-  .listening-exam-speaker {
-    font-weight: 900;
-    color: #234b8c;
-  }
-
-  .listening-exam-blank-marker {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 4.5mm;
-    height: 4.5mm;
-    margin: 0 0.6mm;
-    border-radius: 999px;
-    background: #f59a23;
-    color: #fff;
-    font-size: 6.5pt;
-    font-weight: 900;
-    vertical-align: middle;
-  }
-
-  .listening-exam-print-table {
-    margin-top: 1.2mm;
-    border: 1.5px solid #8eb5d9;
-    font-size: 8.5pt;
-    line-height: 1.32;
-    border-radius: 1.5mm;
-    overflow: hidden;
-  }
-
-  .listening-exam-print-table--compact {
-    font-size: 8pt;
-  }
-
-  .listening-exam-print-table--extra-compact {
-    font-size: 7.5pt;
-  }
-
-  .listening-exam-print-table-title {
-    border-bottom: 1px solid #8eb5d9;
-    background: #e8f3fc;
-    padding: 1mm 2mm;
-    font-weight: 900;
-    color: #1a3a6e;
-  }
-
-  .listening-exam-print-table td {
-    border-top: 1px solid #d5e5f5;
-    padding: 0.8mm 1.2mm;
-    vertical-align: top;
-  }
-
-  .listening-exam-print-table .col-no {
-    width: 5.5mm;
-    font-weight: 900;
-    color: #234b8c;
-    text-align: center;
-  }
-
-  .listening-exam-print-table .col-label {
-    width: 15mm;
-    font-weight: 800;
-    color: #333;
-  }
-
-  /* 양식 빈칸 (중2 2026 형식 17번): 전단·티켓 */
-  .listening-exam-flyer {
-    margin: 1.2mm auto 0;
-    max-width: 70mm;
-    border: 1.5px solid #333;
-    border-radius: 1.5mm;
-    padding: 1mm 2mm;
-    font-size: 8.5pt;
-    line-height: 1.32;
-  }
-
-  .listening-exam-flyer-title {
-    border-bottom: 1px dashed #666;
-    padding-bottom: 0.8mm;
-    margin-bottom: 0.8mm;
-    text-align: center;
-    font-weight: 900;
-  }
-
-  .listening-exam-flyer .col-label {
-    width: 18mm;
-    font-weight: 800;
-    color: #333;
-    vertical-align: top;
-  }
-
-  .listening-exam-flyer-blank {
-    display: inline-block;
-    min-width: 16mm;
-    border: 1px solid #333;
-    text-align: center;
-    font-weight: 800;
+    color: #1f2937;
   }
 
   /* 선택지가 ①~⑤ 번호뿐일 때 (짧은 대화 5개·표 행): 한 줄로 */
@@ -499,8 +396,142 @@
     margin-top: 1mm;
   }
 
+  .listening-exam-script-col {
+    border: 1px solid var(--lx-hair);
+    border-radius: 1.6mm;
+    background: #f8fafc;
+    padding: 1.5mm 2mm;
+    font-size: 8pt;
+    line-height: 1.45;
+    color: #334155;
+  }
+
+  .listening-exam-script-col--compact {
+    font-size: 7.6pt;
+  }
+
+  .listening-exam-script-title {
+    display: flex;
+    align-items: center;
+    gap: 1.2mm;
+    margin-bottom: 0.8mm;
+    font-size: 6.8pt;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--lx-accent);
+  }
+
+  .listening-exam-script-title::before {
+    content: "";
+    width: 2px;
+    height: 2.6mm;
+    border-radius: 1px;
+    background: var(--lx-accent);
+  }
+
+  .listening-exam-speaker {
+    font-weight: 800;
+    color: var(--lx-ink);
+  }
+
+  .listening-exam-blank-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.8mm;
+    height: 3.8mm;
+    margin: 0 0.5mm;
+    border-radius: 999px;
+    background: #f59e0b;
+    color: #fff;
+    font-size: 6pt;
+    font-weight: 800;
+    vertical-align: middle;
+  }
+
+  /* 표 보고 고르기 */
+  .listening-exam-print-table {
+    margin-top: 1mm;
+    border: 1px solid var(--lx-line);
+    border-radius: 1.4mm;
+    overflow: hidden;
+    font-size: 8.2pt;
+    line-height: 1.3;
+  }
+
+  .listening-exam-print-table--compact {
+    font-size: 7.8pt;
+  }
+
+  .listening-exam-print-table--extra-compact {
+    font-size: 7.4pt;
+  }
+
+  .listening-exam-print-table-title {
+    border-bottom: 1px solid var(--lx-line);
+    background: var(--lx-tint);
+    padding: 0.9mm 1.8mm;
+    font-weight: 800;
+    color: var(--lx-ink);
+  }
+
+  .listening-exam-print-table td {
+    border-top: 1px solid var(--lx-hair);
+    padding: 0.8mm 1.2mm;
+    vertical-align: top;
+  }
+
+  .listening-exam-print-table .col-no {
+    width: 5.5mm;
+    font-weight: 800;
+    color: var(--lx-accent);
+    text-align: center;
+  }
+
+  .listening-exam-print-table .col-label {
+    width: 15mm;
+    font-weight: 700;
+    color: #475569;
+  }
+
+  /* 양식 빈칸 (전단·티켓) — 빈칸 (A)(B)는 네모 칸 */
+  .listening-exam-flyer {
+    margin: 1mm auto 0;
+    max-width: 68mm;
+    border: 1px solid #94a3b8;
+    border-radius: 1.4mm;
+    padding: 1mm 2mm;
+    font-size: 8.2pt;
+    line-height: 1.3;
+  }
+
+  .listening-exam-flyer-title {
+    border-bottom: 1px dashed #cbd5e1;
+    padding-bottom: 0.8mm;
+    margin-bottom: 0.8mm;
+    text-align: center;
+    font-weight: 800;
+    color: var(--lx-ink);
+  }
+
+  .listening-exam-flyer .col-label {
+    width: 18mm;
+    font-weight: 700;
+    color: #475569;
+    vertical-align: top;
+  }
+
+  .listening-exam-flyer-blank {
+    display: inline-block;
+    min-width: 15mm;
+    border: 1px solid #64748b;
+    border-radius: 0.7mm;
+    text-align: center;
+    font-weight: 800;
+  }
+
   .listening-exam-figure {
-    margin: 1.5mm 0 2mm;
+    margin: 1.2mm 0 1.6mm;
     text-align: center;
     /* 단 안에서 잘리지 않게 — 넘치면 문항 단위로 다음 단 이동 */
     break-inside: avoid;
@@ -514,7 +545,8 @@
     width: auto;
     height: auto;
     object-fit: contain;
-    border: 1px solid #c5d8ec;
+    border: 1px solid var(--lx-hair);
+    border-radius: 1mm;
     background: #fff;
     display: block;
     margin: 0 auto;
@@ -524,7 +556,7 @@
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 1.2mm;
-    margin: 1.5mm 0 2mm;
+    margin: 1.2mm 0 1.6mm;
   }
 
   .listening-exam-figure-cell {
@@ -533,9 +565,9 @@
 
   .listening-exam-figure-label {
     display: block;
-    font-size: 8pt;
+    font-size: 7.5pt;
     font-weight: 800;
-    color: #234b8c;
+    color: var(--lx-accent);
     margin-bottom: 0.4mm;
   }
 
@@ -553,36 +585,94 @@
     max-height: 14mm;
     max-width: 22mm;
     object-fit: contain;
-    border: 1px solid #d5e5f5;
+    border: 1px solid var(--lx-hair);
+    border-radius: 0.8mm;
   }
 
   .listening-exam-footer {
-    border-top: 2px solid #d0e3f5;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 3mm;
+    margin-top: auto;
     padding-top: 2mm;
+    border-top: 1px solid var(--lx-hair);
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: #94a3b8;
+  }
+
+  .listening-exam-footer-left {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: 1.5mm;
+    min-width: 0;
+  }
+
+  .listening-exam-footer-logo {
+    width: 5mm;
+    height: 5mm;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .listening-exam-footer-page {
     font-size: 8.5pt;
-    font-weight: 700;
-    color: #5a7a9a;
+    font-weight: 500;
+    color: #64748b;
+    letter-spacing: 0.02em;
   }
 
-  .listening-exam-answer-key-bar {
-    margin: -8mm -10mm 3.5mm;
-    background: linear-gradient(180deg, #1a4f7a 0%, #153d5f 100%);
-    color: #fff;
-    padding: 4mm 5mm;
+  .listening-exam-footer-right {
+    /* 제목이 길면 줄여서 한 줄로 (꼬리말이 두 줄이 되면 쪽이 넘친다) */
+    min-width: 0;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .listening-exam-answer-key-title {
-    font-size: 14pt;
+  /* 정답지 — 시험지와 같은 머리 띠, 정답만 담은 촘촘한 칸 */
+  .listening-exam-head--answer {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
+
+  .listening-exam-head--answer .listening-exam-head-no,
+  .listening-exam-head--answer .listening-exam-kicker {
+    color: #475569;
+  }
+
+  .listening-exam-answer-item {
+    display: flex;
+    align-items: baseline;
+    gap: 2mm;
+    padding-bottom: 1.2mm;
+    border-bottom: 1px solid #eef2f7;
+    line-height: 1.35;
+  }
+
+  .listening-exam-answer-no {
+    min-width: 6mm;
+    font-size: 8.5pt;
+    font-weight: 800;
+    color: #94a3b8;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .listening-exam-answer-mark {
+    min-width: 5mm;
+    font-size: 12pt;
     font-weight: 900;
+    line-height: 1;
+    color: var(--lx-accent);
   }
 
-  .listening-exam-answer-key-sub {
+  .listening-exam-answer-text {
+    min-width: 0;
+    flex: 1;
     font-size: 9pt;
-    font-weight: 700;
-    opacity: 0.92;
-    margin-top: 0.8mm;
+    color: #334155;
   }
 
   .listening-exam-col-stack {
@@ -595,7 +685,7 @@
     min-height: 0;
     flex: 1;
     overflow: hidden;
-    padding-top: 2mm;
+    padding-top: 2.2mm;
   }
 
   .listening-exam-body-cols {
@@ -604,15 +694,6 @@
     column-gap: 4mm;
     align-items: start;
     align-content: start;
-  }
-
-  .listening-exam-chevron-band {
-    display: none;
-  }
-
-  .listening-exam-ribbon {
-    background: transparent;
-    clip-path: none;
   }
 
   .listening-exam-page-break {
