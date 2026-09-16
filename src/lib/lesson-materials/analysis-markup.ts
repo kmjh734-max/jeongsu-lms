@@ -200,9 +200,33 @@ const LABEL_ALIASES: Record<string, string> = {
 };
 
 /** 고정 어휘에 있으면 그 표기로 돌려주고, 없으면 null(=찍지 않는다). */
+/**
+ * 수업에서 안 쓰는 학술 용어. 선생님 지적(2026-09-17): "이런 표현 좀 쓰지 말구"(의사분열문).
+ * 쉬운 말이 있으면 바꾸고, 없으면 그 이름표는 달지 않는다(표시 자체는 그대로 남는다).
+ */
+const TOO_ACADEMIC: Record<string, string> = {
+  "의사분열문": "",
+  "의사분열문 all": "",
+  "분열문": "강조 구문",
+  "외치": "",
+  "비한정적 관계절": "계속적 용법",
+  "한정적 관계절": "관계사절",
+  "양보 부사절": "양보절",
+  "명사절 보문": "명사절",
+  "보문": "",
+  "동격절 보문": "동격절",
+  "무생물 주어 구문": "",
+  "결과절": "",
+};
+
 export function canonicalMarkupLabel(raw: unknown): string | null {
   const norm = normalizeLabel(String(raw ?? ""));
   if (!norm) return null;
+  const plain = TOO_ACADEMIC[norm];
+  if (plain !== undefined) {
+    if (!plain) return null;
+    return ALLOWED_LABELS.has(plain) ? plain : null;
+  }
   const aliased = LABEL_ALIASES[norm] ?? norm;
   if (ALLOWED_LABELS.has(aliased)) return aliased;
   // "부사절(시간)"처럼 뒤에 괄호 설명이 붙은 경우 앞머리만 다시 본다.
@@ -550,6 +574,24 @@ export function readAnalysisMarkup(
     }
   }
 
+  /* 꼬리표가 가리키는 자리. 이걸 읽어 오지 않으면 저장된 분석서에서 표시가 사라진다. */
+  const tagSpans: MarkupTagSpan[] = [];
+  for (const t of Array.isArray(o.tagSpans) ? o.tagSpans : []) {
+    const row = t as Record<string, unknown>;
+    const tag = String(row.tag ?? "").trim();
+    if (!(MARKUP_SENTENCE_TAGS as readonly string[]).includes(tag)) continue;
+    if (!tags.includes(tag as MarkupSentenceTag)) continue;
+    const span = asSpan(row.span, len);
+    if (!span) continue;
+    const paraphrase = String(row.paraphrase ?? "").trim().slice(0, 220);
+    if (tagSpans.some((x) => x.tag === tag)) continue;
+    tagSpans.push({
+      tag: tag as MarkupSentenceTag,
+      span,
+      paraphrase: paraphrase || undefined,
+    });
+  }
+
   const translation = String(o.translation ?? "").trim();
   const markup: AnalysisSentenceMarkup = {
     text,
@@ -558,6 +600,7 @@ export function readAnalysisMarkup(
     notes,
     points,
     callouts,
+    tagSpans,
     translation,
     tags,
   };
