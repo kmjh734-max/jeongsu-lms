@@ -47,8 +47,9 @@ export function resolveOnePageModel(): string {
   return process.env.OPENAI_MODEL_ONE_PAGE?.trim() || "gpt-5-mini";
 }
 
-const VOCAB_SECTION = `[vocab] 이 지문으로 공부할 때 외워야 할 핵심 낱말 10~12개.
-- 고를 것: 글의 주제·논지를 나르는 내용어(명사·동사·형용사·부사)로, 고등학생이 새로 배울 만한 수준의 낱말.
+const VOCAB_SECTION = `[vocab] 이 지문의 뜻을 떠받치는 핵심 낱말 10~12개.
+- 고르는 기준은 '어려운 낱말'이 아니라 '내용상 중요한 낱말'이다. 그 낱말을 반대말로 바꾸면 글의 흐름·주장이 뒤집히는 낱말을 먼저 고른다(increase↔decrease, sustain↔lose, necessarily↔hardly). 어렵기만 하고 바꿔도 논지가 그대로인 낱말은 넣지 않는다.
+- 고를 것: 글의 주제·논지를 나르는 내용어(명사·동사·형용사·부사). 쉬운 낱말이라도 논지를 가르면 넣는다.
 - 빼야 할 것: 중학 수준의 쉬운 낱말(steal, cash, money, help, balance), 고유명사·약어(NEAs, Jackson High School), 숫자·단위, 두 낱말 이상의 구(그런 표현은 paraphrases로 보낸다), 한 지문에서 같은 어근인 낱말(diversify·diversity·variety 중 하나만).
 - surface: 지문에 나온 형태 그대로의 낱말 하나(하이픈으로 이어진 낱말은 하나로 본다). 구는 안 된다. no: 그 낱말이 나온 문장.
 - meaningKo: 이 문맥에서의 뜻 하나만, 품사에 맞게 쓴다(명사는 "~것", 동사는 "~하다", 형용사는 "~한"). 여러 뜻을 늘어놓지 않는다.
@@ -87,7 +88,8 @@ const SYSTEM_PROMPT = `너는 한국 고등학교 내신 영어 시험 대비 "1
 ${VOCAB_SECTION}
 ${GRAMMAR_SECTION}
 [paraphrases] 서술형·바꿔 쓰기에 나올 핵심 표현 4~6개. expression은 지문에 나온 그대로의 2~6 words 어구(낱말 하나짜리는 vocab이 맡는다), meaningKo는 이 문맥에 맞는 짧고 자연스러운 한국어 뜻, paraphrases는 이 문맥에서 바꿔 써도 뜻이 같은 영어 표현 1~2개(지문의 다른 표현을 그대로 베끼지 않는다).
-[references] 지칭 정리 4~6개. 시험에서 "밑줄 친 것이 가리키는 것"으로 물을 만한 자리만 고른다.
+[references] 지칭 정리 — 지문에 나오는 지칭 표현을 빠짐없이 싣는다(최대 14개, 문장 순서대로).
+- 한 문장에 여러 개면 모두 싣는다. 같은 말(they, it)이 여러 문장에 나오면 문장마다 따로 싣는다.
 - 대상: 대명사(it, they, them, this, these, those, one, ones, so)와 앞말을 받는 명사구(such+명사, the+명사, this/that+명사, another, the former/the latter).
 - surface: 그 문장에 나온 그대로(1~4 words). 그 문장에 두 번 나오는 말은 고르지 않는다.
 - refersToNo: 가리키는 대상이 있는 문장 번호. 반드시 surface가 있는 문장보다 앞(또는 같은 문장의 앞부분)이어야 한다.
@@ -519,6 +521,8 @@ function checkContent(raw: RawContent, sentences: string[]): Checked {
     if (!placed) continue;
     // 밑줄이 엉뚱한 자리에 가지 않게, 그 문장에 한 번만 나오는 말만 싣는다.
     if (countPhrase(sentences[placed.si]!, placed.exact) !== 1) continue;
+    // 같은 문장에서 이미 실은 자리면 건너뛴다(문장이 다르면 같은 말도 따로 싣는다).
+    if (references.some((x) => x.sentenceIndex === placed.si && x.surface.toLowerCase() === placed.exact.toLowerCase())) continue;
     const referent = str1(r.referent);
     // 앞 문장 전체를 받는 this·that·so는 문장 전체가 답이므로 길게 허용한다
     if (!referent || wordCount(referent) > 40) continue;
@@ -536,8 +540,6 @@ function checkContent(raw: RawContent, sentences: string[]): Checked {
     if (si < 0) continue;
     const hit = findPhrase(sentences[si]!, referent)!;
     if (si === placed.si && hit.start >= placed.start) continue;
-    // 같은 말은 한 번만(같은 지칭어가 여러 번 나와도 한 줄로 족하다).
-    if (references.some((x) => x.surface.toLowerCase() === placed.exact.toLowerCase())) continue;
     references.push({
       sentenceIndex: placed.si,
       surface: placed.exact,
@@ -545,7 +547,7 @@ function checkContent(raw: RawContent, sentences: string[]): Checked {
       referentSentenceIndex: si,
       meaningKo: str1(r.meaningKo),
     });
-    if (references.length >= 6) break;
+    if (references.length >= 14) break;
   }
 
   const tf: OnePageTfItem[] = [];

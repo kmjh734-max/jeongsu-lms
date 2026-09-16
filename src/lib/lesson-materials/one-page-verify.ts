@@ -62,7 +62,7 @@ Drop invented or unnatural collocations (ethical license, mountain vents, "energ
 Then, if fewer than 2 remain, add ordinary English words that do pass the test; prefer single words. If this sense has no true opposite, leave antonyms empty rather than inventing one.
 Also judge meaningKo: it must give one meaning that fits this sentence, in the part of speech of the word. Fill meaningKoFixed only when the gloss is wrong or lists several meanings.
 For each item return: worthTeaching, keepSynonyms (the final 2, in order), keepAntonyms (the final 0-2), meaningKoFixed ("" when the gloss is fine).
-Set worthTeaching false only for a proper noun, an abbreviation, or a word every middle-school student already knows (help, money, school, big). An ordinary content word a high-school student would meet in a reading passage is worth teaching, so keep it.
+Judge worthTeaching by how much the passage's meaning depends on the word, not by how hard it is: keep a word when replacing it with its opposite would flip the argument or the flow of the passage. Set worthTeaching false for a proper noun, an abbreviation, a word that carries no part of the argument (a hard word the passage could lose without changing its point), or a word every middle-school student already knows (help, money, school, big).
 Return only JSON.`;
 
 const REFERENCE_PROMPT = `You check reference expressions on a Korean high-school English study sheet ("what does the underlined it refer to?").
