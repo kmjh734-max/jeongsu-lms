@@ -13,14 +13,16 @@ import {
 } from "@/lib/listening/variant-question";
 import type { ValidatedListeningQuestion } from "@/lib/listening/run-question-validation";
 
-export const maxDuration = 800;
+export const maxDuration = 300;
 
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
 }
 
-/** 한 번에 만드는 문항 수 — 문항끼리 기다리지 않게 나눠 부른다 */
-const PARALLEL = 4;
+/** 한 번에 만드는 문항 수 — 경로 상한(300초) 안에 20문항이 끝나도록 넉넉히 함께 부른다 */
+const PARALLEL = 7;
+/** 한 문항을 기다리는 한도. 넘으면 그 문항만 빼고 나머지로 세트를 만든다. */
+const PER_QUESTION_MS = 90_000;
 
 /**
  * 이 세트와 비슷한 새 세트 — 문항 순서·유형·정답 자리를 그대로 두고 소재만 바꾼 회차를 새로 만든다.
@@ -63,7 +65,11 @@ export async function POST(request: Request) {
     const gradeLevel = await fetchListeningSetGradeLevel(setId);
     const results = await runWithConcurrency(sources, PARALLEL, async (src) => {
       try {
-        return await generateVariantQuestion(apiKey, src, gradeLevel);
+        // 한 문항이 늦어도 세트 전체가 경로 상한에 걸리지 않게 한도를 둔다
+        return await Promise.race([
+          generateVariantQuestion(apiKey, src, gradeLevel),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), PER_QUESTION_MS)),
+        ]);
       } catch {
         return null;
       }
