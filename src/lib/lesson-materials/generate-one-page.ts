@@ -17,7 +17,7 @@ import {
 import { formatWorkbookPassage } from "@/lib/lesson-materials/workbook-types";
 
 /**
- * 1장 정리자료·1장 테스트 재료를 지문당 한 번의 호출로 만든다: 한글 주제, 영어 제목, 요약문
+ * 1장 요약직보자료·1장 테스트 재료를 지문당 한 번의 호출로 만든다: 한글 주제, 영어 제목, 요약문
  * (핵심 어구·해석), 도식화, 동·반의어, 어법 포인트, 표현 바꿔 쓰기, T/F, 영작 문장.
  * 본문에서 가져와야 하는 값(낱말·어법 자리·표현)은 코드가 본문과 대조해 없는 것은 버린다.
  * 시험지의 어법 선택·어휘 선택은 워크북 문항을 쓰므로 여기서 만들지 않는다.
@@ -32,7 +32,7 @@ export function resolveOnePageModel(): string {
   return process.env.OPENAI_MODEL_ONE_PAGE?.trim() || "gpt-5-mini";
 }
 
-const SYSTEM_PROMPT = `너는 한국 고등학교 내신 영어 시험 대비 "1장 정리자료"와 "1장 테스트" 재료를 만드는 편집자다.
+const SYSTEM_PROMPT = `너는 한국 고등학교 내신 영어 시험 대비 "1장 요약직보자료"와 "1장 테스트" 재료를 만드는 편집자다.
 입력 지문(문장마다 no가 있다)만 근거로 쓰고, 정해진 JSON으로만 답한다.
 
 [공통]
@@ -50,7 +50,7 @@ const SYSTEM_PROMPT = `너는 한국 고등학교 내신 영어 시험 대비 "1
 [vocab] 시험에 나올 핵심 내용어 8~10개(동사·형용사·명사·부사, 쉬운 기초 낱말은 빼고 같은 낱말은 한 번만).
 - surface: 지문에 나온 형태 그대로(굴절형 포함), no: 그 낱말이 나온 문장.
 - meaningKo: 이 문맥에서의 뜻(짧게).
-- synonyms: 이 문맥의 뜻으로 바꿔 쓸 수 있는 동의어 1~2개, antonyms: 반의어 1개(뚜렷한 반의어가 없으면 []). 가능하면 surface와 같은 품사·형태(예: productive → fruitful / unproductive, assumes → supposes).
+- synonyms: 이 문맥의 뜻으로 바꿔 쓸 수 있는 동의어 2~3개, antonyms: 반의어 2개(뚜렷한 반의어가 하나뿐이면 1개, 정말 없으면 []). 둘 다 되도록 2개 이상 채운다. 가능하면 surface와 같은 품사·형태(예: productive → fruitful, efficient / unproductive, useless).
 [grammar] 내신 어법 선택·수정 문제에 실제로 나올 자리 4~6개(서로 다른 원리 위주, 한 문장에 최대 2개).
 - 먼저 볼 원리: 주어-동사 수일치(긴 주어, each·every, 수식어 뒤 동사), 대명사 수·격(its/their, it/them), 형용사 vs 부사, 관계사 what/that/which와 관계부사, 분사 능동/수동, to부정사 vs 동명사, 가주어-진주어, 병렬 구조, 5형식 목적격보어, 도치, 시제·태.
 - 넣지 않는 것: 조동사 뒤 동사원형, 관사, 철자, 생략된 말처럼 시험에서 고르게 할 수 없는 것.
@@ -199,8 +199,8 @@ function checkContent(raw: RawContent, sentences: string[]): Checked {
   for (const r of rows(raw.vocab)) {
     const placed = placeIn(r.no, str1(r.surface));
     if (!placed || vocab.some((v) => v.surface.toLowerCase() === placed.exact.toLowerCase())) continue;
-    const synonyms = strList1(r.synonyms, 2);
-    const antonyms = strList1(r.antonyms, 1);
+    const synonyms = strList1(r.synonyms, 3);
+    const antonyms = strList1(r.antonyms, 2);
     if (synonyms.length === 0 && antonyms.length === 0) continue;
     vocab.push({ sentenceIndex: placed.si, surface: placed.exact, meaningKo: str1(r.meaningKo), synonyms, antonyms });
     if (vocab.length >= 10) break;

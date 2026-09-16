@@ -16,7 +16,7 @@ const KIND_LABEL: Record<LessonMaterialDocumentKind, string> = {
   analysis_report: "지문 분석서",
   workbook: "워크북",
   integrated: "통합자료",
-  one_page_summary: "1장 정리자료",
+  one_page_summary: "1장 요약직보자료",
   one_page_test: "1장 테스트",
 };
 

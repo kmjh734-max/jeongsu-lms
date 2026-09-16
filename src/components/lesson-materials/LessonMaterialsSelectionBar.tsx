@@ -123,7 +123,7 @@ export function LessonMaterialsSelectionBar({
               disabled={opening}
               onClick={() => void make("one_page_summary")}
             >
-              📃 1장 정리자료 제작
+              📃 1장 요약직보자료 제작
             </button>
             <button
               type="button"

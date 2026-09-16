@@ -25,7 +25,7 @@ export const DOCUMENT_NAME_PREFIX: Record<LessonMaterialDocumentKind, string> = 
   analysis_report: "지문분석서",
   workbook: "워크북",
   integrated: "통합자료",
-  one_page_summary: "1장정리자료",
+  one_page_summary: "1장요약직보자료",
   one_page_test: "1장테스트",
 };
 

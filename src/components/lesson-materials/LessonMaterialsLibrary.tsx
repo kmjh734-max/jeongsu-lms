@@ -46,7 +46,7 @@ const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
   { id: "lesson", label: "수업용자료" },
   { id: "analysis", label: "분석서" },
   { id: "workbook", label: "워크북" },
-  { id: "onePageSummary", label: "1장 정리자료" },
+  { id: "onePageSummary", label: "1장 요약직보자료" },
   { id: "onePageTest", label: "1장 테스트" },
   { id: "questions", label: "변형문제" },
   { id: "integrated", label: "최종통합자료" },

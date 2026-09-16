@@ -101,7 +101,7 @@ export async function loadAnalysisReportProjects(
 }
 
 /**
- * 1장 정리자료·1장 테스트 화면에 넘길 지문 데이터. 재료는 지금 원문으로 만든 것만 넘기고,
+ * 1장 요약직보자료·1장 테스트 화면에 넘길 지문 데이터. 재료는 지금 원문으로 만든 것만 넘기고,
  * 없거나 옛 원문이면 null로 둬서 화면이 준비하게 한다.
  */
 export async function loadOnePageProjects(

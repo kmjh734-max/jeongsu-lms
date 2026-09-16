@@ -7,7 +7,7 @@ import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding"
 import { OnePageWorkbench } from "@/components/lesson-materials/one-page/OnePageWorkbench";
 
 /**
- * 1장 정리자료·1장 테스트 화면(서버). ?doc=면 저장된 파일의 지문을, 아니면 ?ids=를 쓴다.
+ * 1장 요약직보자료·1장 테스트 화면(서버). ?doc=면 저장된 파일의 지문을, 아니면 ?ids=를 쓴다.
  * 테스트 파일은 조립해 저장한 시험지(payload)도 함께 넘긴다. 조회는 사용자 세션이라 RLS가 가린다.
  */
 export async function OnePagePage({

@@ -2419,7 +2419,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     transform: none !important;
   }
 
-  /* 1장 정리자료·1장 테스트: 쪽마다 A4 한 장. 넘치는 쪽(op-sheet--grow)은 다음 쪽으로 이어진다. */
+  /* 1장 요약직보자료·1장 테스트: 쪽마다 A4 한 장. 넘치는 쪽(op-sheet--grow)은 다음 쪽으로 이어진다. */
   .one-page-a4-sheet {
     box-shadow: none !important;
     height: auto !important;

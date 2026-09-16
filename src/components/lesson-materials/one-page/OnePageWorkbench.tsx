@@ -38,7 +38,7 @@ const CONCURRENCY = { summary: 6, test: 4 } as const;
 
 type Mode = "summary" | "test";
 
-const MODE_LABEL: Record<Mode, string> = { summary: "1장 정리자료", test: "1장 테스트" };
+const MODE_LABEL: Record<Mode, string> = { summary: "1장 요약직보자료", test: "1장 테스트" };
 
 type PrepareResult = Awaited<ReturnType<typeof prepareOnePageContentAction>>;
 type GrammarResult = Awaited<ReturnType<typeof generateGrammarChoicePassageAction>>;

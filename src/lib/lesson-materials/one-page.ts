@@ -1,5 +1,5 @@
 /**
- * 1장 정리자료·1장 테스트 공용(브라우저에서도 쓴다). 지문별 재료 타입, 원문 해시, 시험지 조립
+ * 1장 요약직보자료·1장 테스트 공용(브라우저에서도 쓴다). 지문별 재료 타입, 원문 해시, 시험지 조립
  * (문장 순서·어순 섞기·어법/어휘 문항 고르기), 정리자료 본문 표시 조각을 만든다.
  *
  * 재료는 지문마다 한 번 만들어 lesson_pack_json.onePageContent에 둔다. 원문이 바뀌지 않으면
@@ -20,7 +20,7 @@ import {
 } from "@/lib/lesson-materials/workbook-types";
 
 /** 재료 형식이 바뀌면 올린다. 옛 형식 재료는 열 때 한 번 새로 만든다. */
-export const ONE_PAGE_CONTENT_VERSION = "op-2";
+export const ONE_PAGE_CONTENT_VERSION = "op-3";
 
 /** 시험지 어법 선택·어휘 선택 문항 수(양식: 10문항씩) */
 export const ONE_PAGE_CHOICE_MAX = 10;
@@ -107,7 +107,7 @@ export function onePageSentences(
     .filter((s) => s.english);
 }
 
-/** 1장 정리자료·1장 테스트 화면에 넘기는 지문 하나 */
+/** 1장 요약직보자료·1장 테스트 화면에 넘기는 지문 하나 */
 export type OnePageProjectInput = {
   id: string;
   title: string;

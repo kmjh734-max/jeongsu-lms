@@ -23,7 +23,7 @@ import {
 } from "@/lib/lesson-materials/one-page";
 
 /**
- * 1장 정리자료·1장 테스트 인쇄 쪽. 지문 하나가 A4 한 쪽에 들어가도록 글자 크기를 줄여 맞추고
+ * 1장 요약직보자료·1장 테스트 인쇄 쪽. 지문 하나가 A4 한 쪽에 들어가도록 글자 크기를 줄여 맞추고
  * (FitSheet), 가장 작게 줄여도 넘치면 자르지 않고 다음 쪽으로 이어지게 둔다. 크기는 모두 em이라
  * 쪽의 글자 크기 하나만 바꾸면 전체가 함께 줄어든다. 최종통합자료에도 그대로 끼워 넣으므로
  * 스타일은 인쇄 루트 id가 아니라 op- 클래스에 건다.
@@ -58,7 +58,7 @@ export const ONE_PAGE_CSS = `
 .op-passage{text-align:justify;line-height:2.45;font-size:1.05em;margin:0}
 .op-sn{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.86em;color:#4b5563;margin-right:.18em}
 ruby.op-voc{ruby-position:under;ruby-align:center;font-weight:700;white-space:nowrap}
-ruby.op-voc rt{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.54em;font-weight:500;color:#0f766e;line-height:1.1;letter-spacing:0}
+ruby.op-voc rt{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.5em;font-weight:500;color:#0f766e;line-height:1.1;letter-spacing:0}
 .op-g{text-decoration:underline;text-decoration-color:#dc2626;text-decoration-thickness:1.4px;text-underline-offset:.2em}
 .op-x{background:#e3ecff;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .op-gm,.op-xm{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.74em;font-weight:700;vertical-align:.55em;line-height:0;margin-right:.08em}
@@ -192,7 +192,7 @@ export function FitSheet({
   );
 }
 
-// ---------------------------------------------------------------- 1장 정리자료
+// ---------------------------------------------------------------- 1장 요약직보자료
 
 export type OnePageSummaryInput = {
   id: string;
@@ -228,17 +228,16 @@ function RunText({ run }: { run: OnePageRun }) {
 }
 
 /**
- * 낱말 아래 적을 동·반의어. 주석 글자는 본문의 절반 남짓이라, 주석이 낱말보다 넓으면 그만큼
- * 낱말 양옆이 벌어진다. 동의어 하나·반의어 하나를 먼저 싣고, 둘째 동의어는 낱말 폭 안에 들 때만 붙인다.
+ * 낱말 아래 적을 동·반의어. 선생님 요청대로 동의어·반의어를 2개씩 싣는다(있는 만큼).
+ * 주석이 낱말보다 넓으면 그만큼 낱말 양옆이 벌어지므로, 주석 글자는 본문의 절반 크기로 두고
+ * 쪽 맞추기(자동 축소)가 남은 넓이를 흡수한다.
  */
 function vocabNote(v: OnePageContent["vocab"][number]): string {
-  const make = (syn: string[]) =>
-    [syn.length ? `≒ ${syn.join(", ")}` : "", v.antonyms[0] ? `↔ ${v.antonyms[0]}` : ""]
-      .filter(Boolean)
-      .join(" ");
-  const short = make(v.synonyms.slice(0, 1));
-  const long = make(v.synonyms.slice(0, 2));
-  return long.length <= v.surface.length * 1.9 + 2 ? long : short;
+  const syn = v.synonyms.slice(0, 2);
+  const ant = v.antonyms.slice(0, 2);
+  return [syn.length ? `≒ ${syn.join(", ")}` : "", ant.length ? `↔ ${ant.join(", ")}` : ""]
+    .filter(Boolean)
+    .join(" ");
 }
 
 export function OnePageSummarySheet({

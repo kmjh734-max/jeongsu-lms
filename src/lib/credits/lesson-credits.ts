@@ -24,7 +24,7 @@ export const LESSON_CREDIT_FEATURES = {
   workbookTf: "lesson_workbook_tf",
   /** 지문 삽화, 장당 */
   illustration: "lesson_illustration",
-  /** 1장 정리자료·1장 테스트 재료(주제·요약문·동반의어·어법 포인트·T/F 등), 지문당 */
+  /** 1장 요약직보자료·1장 테스트 재료(주제·요약문·동반의어·어법 포인트·T/F 등), 지문당 */
   onePage: "lesson_one_page",
 } as const;
 
