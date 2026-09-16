@@ -214,7 +214,7 @@ export function AnalysisMarkupSentence({
   const leadTags = markup.tags.filter((t) => !CORNER_TAGS.has(t));
 
   return (
-    <section data-analysis-block={`s-${index}`} className="ar-block break-inside-avoid">
+    <section data-analysis-block={`s-${index}`} className="ar-block">
       <div className="ar-frame" ref={frameRef}>
         {leadTags.length > 0 ? (
           <span className="ar-tags ar-tags--lead">
