@@ -471,7 +471,12 @@ export function AnalysisReportWorkbench({
     if (!root) return;
     const widthPx = root.offsetWidth || 1;
     const pxPerMm = widthPx / 210;
-    const bodyMm = 297 - A4_PAD_MM - A4_FOOTER_MM;
+    /*
+     * 담을 수 있는 높이. 인쇄에서는 아래 여백이 15mm다. 재는 값과 실제로 찍히는
+     * 높이가 조금 달라서(쪽이 넘치면 한 줄이 새어 나가 거의 빈 쪽이 생긴다)
+     * 6mm를 여유로 뺀다.
+     */
+    const bodyMm = 297 - A4_PAD_MM - A4_FOOTER_MM - 6;
     const pageBodyPx = bodyMm * pxPerMm;
     // 쪽에 찍을 때 묶음 사이 여백(space-y-1). 넉넉히 잡으면 묶음 하나가 통째로 밀린다.
     const gapPx = 4;
