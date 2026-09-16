@@ -11,7 +11,13 @@ export interface MentionedActionEntry {
   role: string;
 }
 
-const ACTION_SUFFIX = /(하기|가기|찾기|사기|전화하기|가져오기|만들기|확인하기|검색하기|신청하기|청소하기|붙이기|데리러\s*가기|열어주기|돌려주기|빌리기|마시기|접기|씻기|그리기|연습하기|끄기)$/;
+/**
+ * 한국어 동사의 명사형은 "…-기"로 끝난다(청소하기·기다리기·먹이 주기·물병 채우기).
+ * 예전에는 쓸 수 있는 어미를 코드에 적어 두어, 목록에 없는 "주기·보기·채우기·기다리기"가
+ * 전부 "행동 표현이 아닌 선택지"로 걸렸다(중3 7·11번, 중2 8·15번 — 멀쩡한 문항이 64점).
+ * 이제 마지막 글자가 "기"이고 앞에 한글 어간이 있으면 행동으로 본다.
+ */
+const ACTION_NOMINAL = /[가-힣]기$/;
 
 const PLACE_OR_NOUN_ONLY =
   /^(도서관|인터넷|학교|교실|미술관|케이크|물병|돗자리|배터리|마이크|컴퓨터|선생님|친구)$/;
@@ -31,7 +37,7 @@ export function isKoreanActionChoice(choice: string): boolean {
   if (!t || t.length < 3) return false;
   if (/^[A-Za-z]/.test(t) && !/[\uAC00-\uD7A3]/.test(t)) return false;
   if (PLACE_OR_NOUN_ONLY.test(t.replace(/\s/g, ""))) return false;
-  if (ACTION_SUFFIX.test(t)) return true;
+  if (ACTION_NOMINAL.test(t)) return true;
   if (/[\uAC00-\uD7A3]/.test(t) && /(하기|가기|찾|사|전화|가져|만들|확인|검색|신청|데리|열어|돌려|빌|마시|접|씻|그리|연습|끄)/.test(t)) {
     return true;
   }

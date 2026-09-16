@@ -107,5 +107,47 @@ export function fixType8Question(
     : -1;
   const correct_answer = idx >= 0 ? idx + 1 : base.correct_answer;
 
-  return { ...base, correct_answer };
+  return {
+    ...base,
+    correct_answer,
+    choices: replaceLeakedDistractorEmotions(base.choices, correct_answer, base.script_text),
+  };
+}
+
+/** 영어 감정 선택지에서 쓸 수 있는 여분 감정 (대본에 없으면 오답으로 바꿔 쓴다) */
+const SPARE_EN_EMOTIONS = [
+  "bored", "curious", "jealous", "lonely", "annoyed", "confused",
+  "scared", "upset", "shy", "calm",
+];
+
+/**
+ * 오답 감정어가 대본에 그대로 나오면 그 오답도 답이 된다
+ * ("What a relief!"가 들리는데 오답에 relieved가 있으면 학생은 그것을 고른다).
+ * 대본을 다시 쓰는 대신, 대본에 없는 다른 감정으로 오답만 바꾼다 — 모델을 부르지 않는다.
+ */
+export function replaceLeakedDistractorEmotions(
+  choices: string[],
+  correctAnswer: number,
+  scriptText: string
+): string[] {
+  const list = [...(choices ?? [])];
+  if (list.length !== 5 || !scriptText.trim()) return list;
+  // 영어 형용사 선택지에만 적용한다 (한국어 감정어는 대본이 영어라 겹치지 않는다)
+  if (!list.every((c) => /^[a-z]+$/.test(String(c).trim()))) return list;
+
+  const inScript = (word: string) =>
+    new RegExp(`\\b${word.slice(0, 5)}[a-z]*`, "i").test(scriptText);
+
+  const used = new Set(list.map((c) => c.trim().toLowerCase()));
+  for (let i = 0; i < list.length; i++) {
+    if (i + 1 === correctAnswer) continue;
+    const word = String(list[i] ?? "").trim().toLowerCase();
+    if (word.length < 5 || !inScript(word)) continue;
+    const spare = SPARE_EN_EMOTIONS.find((s) => !used.has(s) && !inScript(s));
+    if (!spare) continue;
+    used.delete(word);
+    used.add(spare);
+    list[i] = spare;
+  }
+  return list;
 }

@@ -53,6 +53,7 @@ import {
   planSlotAssignments,
   type SlotPlan,
 } from "@/lib/listening/slot-plan";
+import { QUALITY_PASS_THRESHOLD } from "@/lib/listening/prompts/qualityCheckPrompt";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 const SLOT_CHUNK_SIZE = 5;
@@ -212,6 +213,11 @@ order_index는 반드시 위 문항 번호와 일치한다 (유형 ID와 다를 
 ${difficultyBlock}
 
 ${typeBlocks}
+
+[묶음 생성에서 자주 빠지는 것 — 반드시 채운다]
+위 유형 설명의 "필수" 항목(mention_plan의 evidence, mentioned_actions, mentioned_times,
+distractor_places, weather_* 같은 유형별 추가 필드)은 문항 한 개짜리 요청과 똑같이 모든 문항에 넣는다.
+한 번에 여러 문항을 만들 때 이 항목을 빼는 일이 잦았고, 그 문항은 검수에서 걸려 다시 만들게 된다.
 
 ${buildQualityCraftBlock(uniqueTypeIds, gradeLevel)}
 
@@ -508,10 +514,73 @@ export async function generateExamQuestionsFromSlotsSettled(
   const synced = isHighSchoolListeningGrade(gradeLevel)
     ? syncHighSchoolPairedScripts(ordered, slots, gradeLevel)
     : ordered;
+  const checked = refreshRuleChecks(applyBalancedChoicePositions(synced), slots, gradeLevel, plans);
   return {
-    questions: refreshRuleChecks(applyBalancedChoicePositions(synced), slots, gradeLevel, plans),
+    questions: await rebuildLowScoreQuestions(apiKey, checked, slots, difficultyMode, gradeLevel, plans, opts),
     missingSlotIndexes,
   };
+}
+
+/**
+ * 규칙 검수 점수가 기준(80점) 아래인 문항만 한 번 더 만든다.
+ * 묶음 생성 경로에는 점수 문턱이 없어서, 분량 미달·정답 누출·화자 형식 오류가 검수에 걸리고도
+ * 그대로 저장됐다(중2 1회 20문항 중 3문항). 걸린 문제를 그대로 프롬프트에 넣어 다시 만들고,
+ * 점수가 오른 것만 바꾼다. 실패하면 원래 문항을 그대로 둔다.
+ */
+async function rebuildLowScoreQuestions(
+  apiKey: string,
+  questions: GeneratedListeningQuestion[],
+  slots: ListeningGenerationSlot[],
+  difficultyMode: ListeningDifficultyMode,
+  gradeLevel: ListeningGradeLevel,
+  plans?: Map<number, SlotPlan>,
+  opts?: SlotGenerationOptions
+): Promise<GeneratedListeningQuestion[]> {
+  const low = questions.filter((q) => (q.quality_score ?? 100) < QUALITY_PASS_THRESHOLD);
+  if (low.length === 0) return questions;
+
+  const rebuilt = await runWithConcurrency(low, CHUNK_PARALLEL, async (old) => {
+    const slot = slots.find((s) => s.slotIndex === old.order_index);
+    if (!slot) return null;
+    const plan = plans?.get(slot.slotIndex);
+    const problems = (old.quality_issues ?? []).map((i) => i.message).filter(Boolean);
+    try {
+      const next = await generateSingleExamQuestion(
+        apiKey,
+        slot.typeId,
+        difficultyMode,
+        problems,
+        gradeLevel,
+        slot.slotIndex,
+        undefined,
+        {
+          usedAnswers: opts?.usedAnswersByType?.[slotCode(slot, gradeLevel, plans)] ?? [],
+          plan,
+          typeKey: slot.typeKey,
+          variant: slot.variant,
+        }
+      );
+      const type = resolveSlotTemplate(slot, gradeLevel, plan);
+      const finalized = finalizeListeningQuestionFast(
+        { ...next, order_index: slot.slotIndex },
+        type,
+        gradeLevel
+      );
+      if ((finalized.quality_score ?? 0) <= (old.quality_score ?? 0)) return null;
+      return finalized;
+    } catch (e) {
+      console.error(
+        `[listening] ${slot.slotIndex}번 재생성 실패`,
+        e instanceof Error ? e.message : e
+      );
+      return null;
+    }
+  });
+
+  const replaced = new Map<number, GeneratedListeningQuestion>();
+  for (const q of rebuilt) if (q) replaced.set(q.order_index, q);
+  if (replaced.size === 0) return questions;
+  return questions.map((q) => replaced.get(q.order_index) ?? q);
 }
 
 /** 자유 모드: 문항 수만큼 1회 API 호출. 하나라도 빠지면 던진다. */

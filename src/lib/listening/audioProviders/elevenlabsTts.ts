@@ -1,6 +1,6 @@
 import {
-  ELEVENLABS_TTS_MODEL,
   ELEVENLABS_VOICE_SETTINGS,
+  resolveElevenLabsTtsModel,
 } from "@/lib/listening/audioProviders/elevenlabs-config";
 import type { ListeningSpeakerType } from "@/lib/listening/types";
 
@@ -10,6 +10,8 @@ export interface GenerateElevenLabsSegmentOpts {
   apiKey: string;
   voiceId: string;
   speed?: number;
+  /** 미지정 시 환경변수·기본 모델 */
+  modelId?: string;
 }
 
 function clampSpeed(speed: number): number {
@@ -68,7 +70,7 @@ export async function generateElevenLabsSpeechSegment(
 
   const body: Record<string, unknown> = {
     text: spoken,
-    model_id: ELEVENLABS_TTS_MODEL,
+    model_id: opts.modelId?.trim() || resolveElevenLabsTtsModel(),
     voice_settings: {
       ...ELEVENLABS_VOICE_SETTINGS,
       speed,

@@ -1357,7 +1357,7 @@ function AnswerKeyColumn({
   );
 }
 
-/** 정답지 항목 — 번호·정답·선택지 글만. 해설·근거·대본은 싣지 않는다. */
+/** 정답지 항목 — 번호·정답·선택지 글과 대본. 해설·근거는 싣지 않는다(선생님 요청: 정답지에 대본 필요). */
 function AnswerKeyItem({
   question: q,
 }: {
@@ -1377,6 +1377,11 @@ function AnswerKeyItem({
         {answerLabel(q.correct_answer)}
       </span>
       <span className="listening-exam-answer-text">{choice}</span>
+      {q.segments.length > 0 ? (
+        <div className="listening-exam-answer-script">
+          <PrintScriptPanel segments={q.segments} compact />
+        </div>
+      ) : null}
     </div>
   );
 }

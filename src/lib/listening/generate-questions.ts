@@ -68,6 +68,7 @@ export interface Type1RegenerationContext {
   previousScript?: string;
 }
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
+import { generatorModelsForTypeKey } from "@/lib/listening/model-tier";
 import { listeningMaxCompletionTokensForCount } from "@/lib/listening/openai-listening-model";
 import {
   applyBalancedChoicePositions,
@@ -378,7 +379,8 @@ async function fetchParsedQuestions(
   examTypes?: ExamTypeTemplate[],
   gradeLevel: ListeningGradeLevel = "middle1",
   questionCount = 1,
-  temperature = 0.5
+  temperature = 0.5,
+  models?: string[]
 ): Promise<GeneratedListeningQuestion[]> {
   const system = `${getListeningSystemPrompt(gradeLevel)}\nOutput JSON only. Use exact keys: questions, segments, choices, correct_answer. speakers: M, W, ANN only.`;
 
@@ -390,6 +392,7 @@ async function fetchParsedQuestions(
       system,
       user: attempt === 0 ? prompt : `${prompt}${PARSE_RETRY_SUFFIX}`,
       maxCompletionTokens: listeningMaxCompletionTokensForCount(questionCount),
+      ...(models?.length ? { models } : {}),
     });
 
     const { questions, failures } = parseQuestionsFromPayload(
@@ -563,7 +566,9 @@ export async function generateSingleExamQuestion(
       [type],
       gradeLevel,
       1,
-      isRegeneration ? 0.75 : 0.5
+      isRegeneration ? 0.75 : 0.5,
+      // 유형 등급에 맞는 모델 (쉬운 중등 유형은 싼 모델)
+      generatorModelsForTypeKey(type.key)
     );
     const q = questions[0];
     if (!q) throw new Error("문항 생성 실패");

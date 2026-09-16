@@ -4,6 +4,13 @@
  * middle: 선택지별 최대 5장
  */
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  dalleQuality,
+  resolveListeningImageQuality,
+  resolveListeningImageSize,
+  type ListeningImageQuality,
+  type ListeningImageSize,
+} from "@/lib/listening/image-options";
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
 import {
   getListeningGeneratorModelCandidates,
@@ -232,9 +239,15 @@ Clean simple flat-color or line drawing, white background, textbook style.
 Subject: ${body}`.slice(0, 3000);
 }
 
-export async function generateImagePngBytes(prompt: string): Promise<Buffer> {
+export async function generateImagePngBytes(
+  prompt: string,
+  opts?: { quality?: ListeningImageQuality; size?: ListeningImageSize }
+): Promise<Buffer> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) throw new Error("OPENAI_API_KEY가 없습니다.");
+
+  const quality = opts?.quality ?? resolveListeningImageQuality();
+  const size = opts?.size ?? resolveListeningImageSize();
 
   let lastErr = "이미지 생성 실패";
   for (const model of imageModelCandidates()) {
@@ -242,14 +255,16 @@ export async function generateImagePngBytes(prompt: string): Promise<Buffer> {
       model,
       prompt,
       n: 1,
-      size: "1024x1024",
+      size,
     };
     if (model.startsWith("dall-e")) {
       body.response_format = "b64_json";
-      body.quality = "hd";
+      body.quality = dalleQuality(quality);
       body.style = "natural";
+      // dall-e-3는 세로·가로 크기 이름이 다르다
+      body.size = size === "1024x1024" ? "1024x1024" : size === "1536x1024" ? "1792x1024" : "1024x1792";
     } else {
-      body.quality = "high";
+      body.quality = quality;
       // 투명 배경으로 나오면 어두운 화면·인쇄에서 번진 것처럼 보인다 — 흰 배경으로 받는다
       body.background = "opaque";
     }
@@ -480,6 +495,8 @@ export async function generateAndSaveChoiceImages(opts: {
   questionId: string;
   prompts: string[];
   compositeLabeledFigure?: boolean;
+  /** 그림 선택지 5개를 한 장(5칸)으로 합쳐 그린다 — 그림값이 1/5로 준다 */
+  choiceGrid?: boolean;
   figureContext?: CompositeFigureContext;
   skipIfPresent?: boolean;
   force?: boolean;
@@ -504,9 +521,30 @@ export async function generateAndSaveChoiceImages(opts: {
     const existing = Array.isArray(row?.choice_image_urls)
       ? (row!.choice_image_urls as string[]).filter((u) => String(u).trim())
       : [];
-    if (existing.length >= prompts.length) {
-      return { urls: existing.slice(0, prompts.length), generated: 0, skipped: true };
+    // 5칸 한 장으로 그리는 문항은 그림 1장이면 이미 다 있는 것이다
+    const needed = opts.choiceGrid && prompts.length === 5 ? 1 : prompts.length;
+    if (existing.length >= needed) {
+      return { urls: existing.slice(0, needed), generated: 0, skipped: true };
     }
+  }
+
+  // 그림 선택지 5개 → 5칸 한 장 (검수 통과한 그림만 저장)
+  if (opts.choiceGrid && prompts.length === 5) {
+    const { drawCheckedChoiceGrid } = await import("@/lib/listening/choice-grid-figure");
+    const { bytes, check } = await drawCheckedChoiceGrid({ prompts, maxRetries: opts.maxLabelRetries ?? 1 });
+    if (!bytes) {
+      throw new Error(
+        `그림 검수를 통과하지 못해 저장하지 않았습니다: ${check?.problems.join(", ") || "알 수 없는 오류"}`
+      );
+    }
+    const gridPath = choiceImageStoragePath(opts.setId, opts.questionId, 0, String(Date.now()));
+    const gridUrl = await uploadPng(admin, gridPath, bytes);
+    const { error: gridError } = await admin
+      .from("listening_questions")
+      .update({ choice_image_urls: [gridUrl] })
+      .eq("id", opts.questionId);
+    if (gridError) throw new Error(`choice_image_urls 저장 실패: ${gridError.message}`);
+    return { urls: [gridUrl], generated: 1, skipped: false };
   }
 
   const composite =

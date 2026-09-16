@@ -320,7 +320,9 @@ export function ListeningQuestionEditor({
   const blankLine = fixedBlankLine;
   const imageUrls = (question.choice_image_urls ?? []).filter((u) => String(u).trim());
   const promptCount = (question.choice_image_prompts ?? []).filter((p) => String(p).trim()).length;
-  const canMakeImages = !readOnly && promptCount > 0 && imageUrls.length < promptCount;
+  // 그림 선택지는 5칸 한 장으로 그린다 — 그림 1장이면 이미 다 만든 것이다
+  const neededImageCount = promptCount === 5 ? 1 : promptCount;
+  const canMakeImages = !readOnly && promptCount > 0 && imageUrls.length < neededImageCount;
   const warnings = questionReviewWarnings(question);
   const flagged = questionNeedsReview(question);
 

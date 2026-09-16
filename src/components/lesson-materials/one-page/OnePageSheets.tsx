@@ -109,7 +109,8 @@ ruby.op-voc rt{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.5em;fon
 
 // ---------------------------------------------------------------- 한 쪽 맞추기
 
-const FIT_MIN = 0.72;
+// 선생님 요청: 분량이 많으면 억지로 줄이지 말고 두 쪽으로 넘긴다(읽을 수 있는 크기를 지킨다).
+const FIT_MIN = 0.88;
 /** 짧은 지문은 글자를 조금 키워 아래 빈 곳을 줄인다. */
 const FIT_MAX = 1.12;
 
@@ -419,7 +420,6 @@ export function OnePageSummarySheet({
                 <b className="op-en">{r.surface}</b>
                 <span style={{ color: "#b45309" }}> → </span>
                 <span className="op-en">{r.referent}</span>
-                {r.meaningKo ? <span style={{ color: "#6b7280" }}> ({r.meaningKo})</span> : null}
               </Fragment>
             ))}
           </p>

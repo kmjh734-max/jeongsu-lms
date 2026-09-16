@@ -9,6 +9,11 @@ import type {
 } from "@/lib/listening/dictation/types";
 import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text";
 import {
+  buildWordFrequency,
+  scoreContentWords,
+  scoreFallbackWords,
+} from "@/lib/listening/dictation/content-word-score";
+import {
   isTrivialDictationBlank,
   wordInLine,
 } from "@/lib/listening/dictation/word-only";
@@ -68,26 +73,25 @@ function sentenceKey(sentence: string): string {
   return normalizeDictationText(sentence);
 }
 
-function wordCandidates(line: string): Array<{ word: string; importance: number }> {
-  const tokens = line.match(/[A-Za-z]+(?:'[A-Za-z]+)?/g) ?? [];
-  const out: Array<{ word: string; importance: number }> = [];
-  for (const raw of tokens) {
-    const word = raw.replace(/^['"]|['"]$/g, "");
-    const key = word.toLowerCase();
-    if (key.length < 3 || SKIP_WORDS.has(key)) continue;
+/**
+ * 한 줄의 빈칸 후보. 예전에는 단어 목록을 코드에 적어 두고 그 단어에만 가산점을 줬다
+ * (목록에 없는 소재는 늘 짧은 단어가 뽑혔다). 이제 내용어 규칙·대본 빈도로 점수를 낸다.
+ */
+function wordCandidates(
+  line: string,
+  frequency?: Map<string, number>
+): Array<{ word: string; importance: number }> {
+  const keep = (c: { word: string; score: number }) =>
+    !SKIP_WORDS.has(c.word.toLowerCase()) &&
     // "What am I?"의 What, "Yes." 같은 뻔한 칸은 만들지 않는다 (짧은 문장은 빈칸 없이 둔다)
-    if (isTrivialDictationBlank({ answer: word, original_sentence: line })) continue;
-    let importance = Math.min(10, 3 + Math.floor(word.length / 2));
-    if (
-      /(subway|bus|library|museum|station|poster|science|lunch|worried|drawing|pictures|because|before|after|tomorrow|yesterday|monday|tuesday|happy|sad|angry|teacher|doctor|police|weather|cloudy|rain|fog|clear|bright|tonight|morning|afternoon|evening|daegu|daejeon|seoul)/i.test(
-        word
-      )
-    ) {
-      importance += 4;
-    }
-    out.push({ word, importance });
-  }
-  return out.sort((a, b) => b.importance - a.importance);
+    !isTrivialDictationBlank({ answer: c.word, original_sentence: line });
+
+  const strict = scoreContentWords(line, frequency).filter(keep);
+  if (strict.length > 0) return strict.map((c) => ({ word: c.word, importance: c.score }));
+  // 내용어가 없는 줄은 느슨한 기준으로라도 한 칸을 만든다 (예전에는 이 줄 때문에 모델을 불렀다)
+  return scoreFallbackWords(line)
+    .filter(keep)
+    .map((c) => ({ word: c.word, importance: c.score }));
 }
 
 function makeBlankInSentence(sentence: string, word: string): string {
@@ -146,11 +150,12 @@ export function ensureOneBlankPerSpokenLine(
   const usedWords = new Set(
     out.map((i) => normalizeDictationText(i.answer)).filter(Boolean)
   );
+  const frequency = buildWordFrequency(spoken.map((l) => l.text));
 
   for (const line of spoken) {
     if (sentenceHasBlank(out, line)) continue;
 
-    const candidates = wordCandidates(line.text);
+    const candidates = wordCandidates(line.text, frequency);
     for (const c of candidates) {
       const wKey = normalizeDictationText(c.word);
       if (avoid.has(wKey) || usedWords.has(wKey)) continue;
@@ -194,8 +199,9 @@ export function buildFallbackDictationBlanks(opts: {
     importance: number;
   }> = [];
 
+  const frequency = buildWordFrequency(spoken.map((l) => l.text));
   for (const line of spoken) {
-    for (const c of wordCandidates(line.text)) {
+    for (const c of wordCandidates(line.text, frequency)) {
       if (avoid.has(normalizeDictationText(c.word))) continue;
       pool.push({
         speaker: line.speaker,

@@ -66,11 +66,12 @@ Set worthTeaching false only for a proper noun, an abbreviation, or a word every
 Return only JSON.`;
 
 const REFERENCE_PROMPT = `You check reference expressions on a Korean high-school English study sheet ("what does the underlined it refer to?").
-For each item you get: passage (the numbered sentences), sentenceNo, surface (the reference expression as it appears in that sentence), referent (what the sheet says it points back to), meaningKo (the Korean gloss).
+For each item you get: passage (the numbered sentences), sentenceNo, surface (the reference expression as it appears in that sentence) and referent (what the sheet says it points back to). The sheet prints English only, so ignore any Korean gloss.
 - refersCorrectly: true only if, reading the passage, "surface" in that sentence really points back to "referent". A plausible but wrong antecedent, or a referent taken from a later sentence, is false.
 - worthAsking: false when the expression is not really a reference a test would ask about (a fixed phrase such as "it is important to", an "it" that is a dummy subject or object, "the" in a first mention, a generic "this" that points at nothing in the passage).
 - fixedReferent: when refersCorrectly is false but a correct antecedent exists in an EARLIER sentence, copy it exactly from the passage; otherwise "".
-- fixedMeaningKo: a correct short Korean gloss when the given one is wrong; otherwise "".
+- A referent may be a whole earlier sentence or clause when "this", "that" or "so" points at the whole idea; in that case it must be copied from the passage word for word.
+- fixedMeaningKo: always "" (the sheet prints no Korean here).
 Return only JSON.`;
 
 const TRANSLATION_PROMPT = `You check Korean translations on a Korean high-school English study sheet.

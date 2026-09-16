@@ -20,7 +20,7 @@ import {
 } from "@/lib/lesson-materials/workbook-types";
 
 /** 재료 형식이 바뀌면 올린다. 옛 형식 재료는 열 때 한 번 새로 만든다. */
-export const ONE_PAGE_CONTENT_VERSION = "op-4";
+export const ONE_PAGE_CONTENT_VERSION = "op-5";
 
 /** 시험지 어법 선택·어휘 선택 문항 수(양식: 10문항씩) */
 export const ONE_PAGE_CHOICE_MAX = 10;

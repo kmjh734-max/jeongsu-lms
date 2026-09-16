@@ -110,6 +110,23 @@ const EMOTION_SELF =
 const JOB_WORDS =
   /\b(doctor|teacher|vet|veterinarian|nurse|chef|cook|pilot|writer|author|reporter|journalist|scientist|engineer|designer|artist|painter|photographer|programmer|developer|singer|dancer|actor|actress|athlete|soccer player|baseball player|police officer|firefighter|lawyer|farmer|baker|librarian|zookeeper|animal trainer|interpreter|translator|announcer|youtuber|director|architect|dentist|pharmacist|musician|pianist|cartoonist|webtoon artist|game designer|tour guide|flight attendant|hairdresser|zoo keeper|counselor|astronaut)s?\b/gi;
 
+/**
+ * 감정 선택지 → 대본에서 찾을 어간. relieved/relief, proud/pride처럼 형태가 달라도 잡히게
+ * 앞 4~5글자만 쓴다. 감정 단어가 아니면 null.
+ */
+const EMOTION_WORDS = new Set([
+  "proud", "relieved", "disappointed", "nervous", "worried", "excited", "bored",
+  "embarrassed", "surprised", "satisfied", "sad", "upset", "angry", "scared",
+  "anxious", "thrilled", "jealous", "lonely", "annoyed", "frustrated", "confused",
+  "grateful", "curious", "regretful", "touched", "hopeful", "calm", "pleased",
+]);
+
+function emotionStem(choice: string): string | null {
+  const w = String(choice ?? "").trim().toLowerCase().replace(/[^a-z]/g, "");
+  if (!EMOTION_WORDS.has(w) || w.length < 5) return null;
+  return w.slice(0, 5);
+}
+
 function personCode(label: string | undefined): "M" | "W" | null {
   if (label === "남자") return "M";
   if (label === "여자") return "W";
@@ -188,6 +205,27 @@ export function answerLeakIssues(
         code: "emotion_word_stated",
         message: `대상 화자가 감정을 직접 말합니다 ("${said.text.match(EMOTION_SELF)?.[0]}"). 상황·반응으로 드러내야 합니다.`,
         weight: 8,
+      });
+    }
+  }
+
+  // 3-1) 심정: 선택지 감정 단어가 대본에 그대로 나옴.
+  //      EMOTION_SELF는 "I'm relieved"만 잡아 "What a relief!" 같은 감탄문을 놓쳤다.
+  //      정답이면 답이 그대로 들리고, 오답이면 그 오답도 답이 되어 어느 쪽이든 문항이 무너진다
+  //      (생성본에 "What a relief!"를 쓰고 정답만 grateful로 둔 문항이 세 개 나왔다).
+  if ((gradeLevel === "middle2" || gradeLevel === "middle3") && typeId === 8 && choices.length === 5) {
+    const leaked: string[] = [];
+    choices.forEach((c, i) => {
+      const stem = emotionStem(c);
+      if (!stem || !new RegExp(`\\b${stem}[a-z]*`, "i").test(scriptAll)) return;
+      leaked.push(i + 1 === q.correct_answer ? `${c}(정답)` : c);
+    });
+    if (leaked.length > 0) {
+      issues.push({
+        code: "emotion_answer_in_script",
+        message: `선택지 감정(${leaked.join(", ")})의 말이 대본에 그대로 나옵니다. 감정은 상황·반응으로만 드러내야 합니다.`,
+        // 정답이 들리거나 오답이 정답처럼 들리는 가장 센 누출이라 이 문항 하나로 합격선 아래로 내린다
+        weight: 22,
       });
     }
   }

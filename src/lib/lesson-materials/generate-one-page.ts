@@ -91,8 +91,9 @@ ${GRAMMAR_SECTION}
 - 대상: 대명사(it, they, them, this, these, those, one, ones, so)와 앞말을 받는 명사구(such+명사, the+명사, this/that+명사, another, the former/the latter).
 - surface: 그 문장에 나온 그대로(1~4 words). 그 문장에 두 번 나오는 말은 고르지 않는다.
 - refersToNo: 가리키는 대상이 있는 문장 번호. 반드시 surface가 있는 문장보다 앞(또는 같은 문장의 앞부분)이어야 한다.
-- referent: 가리키는 대상을 그 문장에서 그대로 옮긴 말(1~10 words).
-- meaningKo: "~을 가리킨다"로 끝나는 짧은 한국어 풀이.
+- referent: 가리키는 대상을 그 문장에서 그대로 옮긴 영어(철자·어순 그대로). 보통 1~10 words.
+  this·that·so처럼 앞 문장 전체(또는 절 전체)를 받는 경우에는 그 문장(절)을 처음부터 끝까지 그대로 옮긴다(최대 40 words).
+- meaningKo: 빈 문자열("")로 둔다. 지칭 정리는 영어만 적는다.
 - 넣지 않는 것: 가주어·가목적어 it, 관용구의 it(it is important to), 앞에 가리킬 것이 없는 the·this, 날씨·시간의 it, 글쓴이·읽는이를 가리키는 I·you·we, 인사말.
 - 같은 말은 한 번만 싣는다.
 [tf] 내용 일치 T/F 영어 문장 정확히 5개(각 12~25 words). 지문 문장을 그대로 베끼지 말고 내용 이해를 묻는다. T 2~3개, F 2~3개를 섞고, F는 지문에 비추어 분명히 틀린 내용이어야 한다(애매하면 안 됨).
@@ -519,7 +520,8 @@ function checkContent(raw: RawContent, sentences: string[]): Checked {
     // 밑줄이 엉뚱한 자리에 가지 않게, 그 문장에 한 번만 나오는 말만 싣는다.
     if (countPhrase(sentences[placed.si]!, placed.exact) !== 1) continue;
     const referent = str1(r.referent);
-    if (!referent || wordCount(referent) > 10) continue;
+    // 앞 문장 전체를 받는 this·that·so는 문장 전체가 답이므로 길게 허용한다
+    if (!referent || wordCount(referent) > 40) continue;
     const from = Math.floor(Number(r.refersToNo)) - 1;
     // 가리키는 대상은 앞(또는 같은 문장)에 실제로 있어야 한다.
     let si = from >= 0 && from <= placed.si && findPhrase(sentences[from] ?? "", referent) ? from : -1;

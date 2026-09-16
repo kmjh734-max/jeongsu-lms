@@ -15,6 +15,8 @@ export interface ListeningChatOptions {
   temperature?: number;
   /** 미지정 시 문항 1개 기준 상한 */
   maxCompletionTokens?: number;
+  /** 모델 후보 (미지정 시 기본 후보). 유형별 모델 등급에서 넘긴다 */
+  models?: string[];
 }
 
 type RequestProfile = {
@@ -142,7 +144,7 @@ export async function listeningChatCompletion(
   apiKey: string,
   opts: ListeningChatOptions
 ): Promise<string> {
-  const models = getListeningGeneratorModelCandidates();
+  const models = opts.models?.length ? opts.models : getListeningGeneratorModelCandidates();
   let lastError = "OpenAI API 실패";
 
   for (let i = 0; i < models.length; i++) {

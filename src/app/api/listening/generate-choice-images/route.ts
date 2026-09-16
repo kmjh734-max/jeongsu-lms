@@ -147,10 +147,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, ...result });
     }
 
+    // 그림 선택지 5개는 실제 문제지처럼 5칸 한 장으로 그린다 (그림값 1장분)
+    const choiceGrid = prompts.length === 5;
     const imageShort = await lessonCreditShortfall(
       profile.academy_id,
       CREDIT_FEATURES.listening_generate_image,
-      prompts.length
+      choiceGrid ? 1 : prompts.length
     );
     if (imageShort) return NextResponse.json({ ok: false, message: imageShort }, { status: 402 });
 
@@ -160,6 +162,7 @@ export async function POST(req: Request) {
       setId,
       questionId,
       prompts,
+      choiceGrid,
       compositeLabeledFigure: composite,
       force: Boolean(body.force),
       figureContext: composite
