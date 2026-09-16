@@ -188,8 +188,16 @@ function useMarkupLayout(
 export function AnalysisMarkupSentence({
   markup,
   index,
+  showHead = true,
+  pointsFrom = 0,
+  pointsTo,
 }: {
   markup: AnalysisSentenceMarkup;
+  /** 테두리 문장과 해석을 이 쪽에 찍을지. 설명만 다음 쪽으로 이어질 때 false. */
+  showHead?: boolean;
+  /** 이 쪽에 찍을 번호 설명의 범위 */
+  pointsFrom?: number;
+  pointsTo?: number;
   /** 문장 번호(0부터). 화면에는 1부터 찍는다. */
   index: number;
 }) {
@@ -210,11 +218,19 @@ export function AnalysisMarkupSentence({
       ? highlightSpan
       : null;
 
+  // 쪽을 채우려고 설명은 항목 단위로 다음 쪽에 이어 붙는다
+  const shownPoints = markup.points.slice(
+    pointsFrom,
+    pointsTo === undefined ? markup.points.length : pointsTo
+  );
+
   const cornerTags = markup.tags.filter((t) => CORNER_TAGS.has(t));
   const leadTags = markup.tags.filter((t) => !CORNER_TAGS.has(t));
 
   return (
     <section data-analysis-block={`s-${index}`} className="ar-block">
+      {showHead ? (
+      <div data-analysis-part={`s-${index}-head`}>
       <div className="ar-frame" ref={frameRef}>
         {leadTags.length > 0 ? (
           <span className="ar-tags ar-tags--lead">
@@ -260,11 +276,17 @@ export function AnalysisMarkupSentence({
           {markup.translation}
         </p>
       ) : null}
+      </div>
+      ) : null}
 
-      {markup.points.length > 0 ? (
+      {shownPoints.length > 0 ? (
         <ol className="ar-points">
-          {markup.points.map((p) => (
-            <li key={p.index} className="ar-point">
+          {shownPoints.map((p, pi) => (
+            <li
+              key={p.index}
+              data-analysis-part={`s-${index}-p-${pointsFrom + pi}`}
+              className="ar-point"
+            >
               <span className="ar-point-mark">{circled(p.index)}</span>
               <span className="ar-point-body">
                 {/* 설명 머리의 ★는 실물 분석지처럼 번호마다 붙인다(문장 안 ★는 중요한 자리에만). */}

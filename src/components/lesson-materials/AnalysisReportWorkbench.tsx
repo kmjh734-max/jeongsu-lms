@@ -93,21 +93,69 @@ function GrammarPointItem({
   );
 }
 
+/** 한 쪽에 담긴 조각들을 문장별로 묶는다(테두리 + 그 쪽에 들어간 설명 범위). */
+function groupUnits(units: AnalysisUnit[]): Array<{
+  s: number;
+  showHead: boolean;
+  pointsFrom: number;
+  pointsTo: number;
+}> {
+  const out: Array<{ s: number; showHead: boolean; pointsFrom: number; pointsTo: number }> = [];
+  for (const u of units) {
+    const last = out[out.length - 1];
+    if (!last || last.s !== u.s) {
+      out.push({
+        s: u.s,
+        showHead: u.kind !== "point",
+        pointsFrom: u.kind === "point" ? (u.p ?? 0) : 0,
+        pointsTo: u.kind === "point" ? (u.p ?? 0) + 1 : u.kind === "whole" ? Number.MAX_SAFE_INTEGER : 0,
+      });
+      continue;
+    }
+    if (u.kind === "point") last.pointsTo = (u.p ?? 0) + 1;
+  }
+  return out;
+}
+
+/** 쪽에 담는 조각. 표시 분석이 있는 문장은 테두리(head)와 설명 항목(point)으로 쪼갠다. */
+type AnalysisUnit = {
+  s: number;
+  kind: "whole" | "head" | "point";
+  /** kind가 point일 때 설명 번호(0부터) */
+  p?: number;
+  /** 잰 높이(px) */
+  h: number;
+};
+
 function SentenceBlock({
   sentence,
   index,
   accent,
+  showHead,
+  pointsFrom,
+  pointsTo,
 }: {
   sentence: AnalysisSentence;
   index: number;
   accent: string;
+  showHead?: boolean;
+  pointsFrom?: number;
+  pointsTo?: number;
 }) {
   const plainEn = sentence.enChunks.map((c) => c.text).join(" ").trim();
   // 새 분석서는 문장 표시 분석(성분·괄호·이름표·번호 설명·해석)을 그대로 찍는다.
   // 저장본을 다시 읽을 때도 같은 검사를 지나고, 원문이 바뀌었으면 표시를 버리고 옛 모양으로 돌아간다.
   const markup = readAnalysisMarkup(sentence.markup, plainEn);
   if (markup) {
-    return <AnalysisMarkupSentence markup={markup} index={index} />;
+    return (
+      <AnalysisMarkupSentence
+        markup={markup}
+        index={index}
+        showHead={showHead}
+        pointsFrom={pointsFrom}
+        pointsTo={pointsTo}
+      />
+    );
   }
 
   const enText = joinChunks(sentence.enChunks.map((c) => c.text));
@@ -301,7 +349,7 @@ export function AnalysisReportWorkbench({
   );
   const [zoom, setZoom] = useState(85);
   const scaled = useScaledHeight<HTMLDivElement>(zoom / 100);
-  const [pageChunksById, setPageChunksById] = useState<Record<string, number[][]>>({});
+  const [pageChunksById, setPageChunksById] = useState<Record<string, AnalysisUnit[][]>>({});
   const measureRef = useRef<HTMLDivElement>(null);
   /** 아직 만드는 중인 지문. 보고 있는 지문이 먼저 끝나면 나머지를 기다리지 않고 화면을 연다. */
   const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
@@ -427,14 +475,16 @@ export function AnalysisReportWorkbench({
     const pageBodyPx = bodyMm * pxPerMm;
     const gapPx = 8;
 
-    const next: Record<string, number[][]> = {};
+    const next: Record<string, AnalysisUnit[][]> = {};
     for (const p of projects) {
       const count = p.report?.sentences?.length ?? 0;
       const box = root.querySelector(
         `[data-measure-project="${p.id}"]`
       ) as HTMLElement | null;
       if (!box || count === 0) {
-        next[p.id] = [Array.from({ length: count }, (_, i) => i)];
+        next[p.id] = [
+          Array.from({ length: count }, (_, i) => ({ s: i, kind: "whole" as const, h: 0 })),
+        ];
         continue;
       }
 
@@ -443,34 +493,55 @@ export function AnalysisReportWorkbench({
       ) as HTMLElement | null;
       const headerH = headerEl?.offsetHeight ?? 0;
 
-      const heights = Array.from({ length: count }, (_, i) => {
-        const el = box.querySelector(
-          `[data-analysis-block="s-${i}"]`
+      /*
+       * 문장 묶음을 통째로 붙여 두면 쪽 아래가 크게 비었다(설명이 긴 문장 하나가
+       * 통째로 다음 쪽으로 넘어가서). 그래서 테두리 문장+해석을 한 조각으로,
+       * 번호 설명을 항목마다 한 조각으로 쪼개 담는다. 실물 분석지도 설명은
+       * 다음 쪽으로 이어진다. 옛 형식(표시 분석이 없는 분석서)은 예전처럼
+       * 문장 하나가 한 조각이다.
+       */
+      const units: AnalysisUnit[] = [];
+      for (let i = 0; i < count; i++) {
+        const head = box.querySelector(
+          `[data-analysis-part="s-${i}-head"]`
         ) as HTMLElement | null;
-        return el?.offsetHeight ?? 120;
-      });
+        if (!head) {
+          const el = box.querySelector(
+            `[data-analysis-block="s-${i}"]`
+          ) as HTMLElement | null;
+          units.push({ s: i, kind: "whole", h: el?.offsetHeight ?? 120 });
+          continue;
+        }
+        units.push({ s: i, kind: "head", h: head.offsetHeight });
+        for (let j = 0; ; j++) {
+          const pt = box.querySelector(
+            `[data-analysis-part="s-${i}-p-${j}"]`
+          ) as HTMLElement | null;
+          if (!pt) break;
+          units.push({ s: i, kind: "point", p: j, h: pt.offsetHeight });
+        }
+      }
 
-      const pages: number[][] = [];
-      let current: number[] = [];
+      const pages: AnalysisUnit[][] = [];
+      let current: AnalysisUnit[] = [];
       let used = 0;
 
-      heights.forEach((h, i) => {
-        const topPad = current.length === 0 ? (pages.length === 0 ? headerH + gapPx : 0) : gapPx;
-        const need = topPad + h;
-        if (current.length > 0 && used + need > pageBodyPx) {
+      for (const u of units) {
+        // 문장이 바뀔 때만 문장 사이 간격이 붙는다
+        const prev = current[current.length - 1];
+        const gap = current.length === 0 ? 0 : prev && prev.s === u.s ? 0 : gapPx;
+        const headerPad = pages.length === 0 && current.length === 0 ? headerH + gapPx : 0;
+        if (current.length > 0 && used + gap + u.h > pageBodyPx) {
           pages.push(current);
           current = [];
           used = 0;
+          used += u.h;
+          current.push(u);
+          continue;
         }
-        const firstPad =
-          current.length === 0
-            ? pages.length === 0
-              ? headerH + gapPx
-              : 0
-            : gapPx;
-        used += firstPad + h;
-        current.push(i);
-      });
+        used += headerPad + gap + u.h;
+        current.push(u);
+      }
       if (current.length) pages.push(current);
       next[p.id] = pages.length ? pages : [[]];
     }
@@ -478,11 +549,13 @@ export function AnalysisReportWorkbench({
   }, [projects, headerLabel, active]);
 
   /** 지문 하나의 쪽 배치. 배치 effect가 돌기 전 렌더에서는 없는 문장 번호를 뺀다. */
-  function pagesFor(projectId: string, count: number): number[][] {
+  function pagesFor(projectId: string, count: number): AnalysisUnit[][] {
     const live = (pageChunksById[projectId] ?? [])
-      .map((c) => c.filter((i) => i < count))
+      .map((c) => c.filter((u) => u.s < count))
       .filter((c) => c.length > 0);
-    return live.length > 0 ? live : [Array.from({ length: count }, (_, i) => i)];
+    return live.length > 0
+      ? live
+      : [Array.from({ length: count }, (_, i) => ({ s: i, kind: "whole" as const, h: 0 }))];
   }
 
   /** 지문별 상단 라벨. 고른 지문은 편집 중인 값을 쓴다. */
@@ -629,12 +702,15 @@ export function AnalysisReportWorkbench({
                     />
                   ) : null}
                   <div className="space-y-1">
-                    {sheet.chunk.map((i) => (
+                    {groupUnits(sheet.chunk).map((g) => (
                       <SentenceBlock
-                        key={sheet.sentences[i]?.itemId || i}
-                        sentence={sheet.sentences[i]!}
-                        index={i}
+                        key={`${sheet.sentences[g.s]?.itemId || g.s}-${g.pointsFrom}`}
+                        sentence={sheet.sentences[g.s]!}
+                        index={g.s}
                         accent={accent}
+                        showHead={g.showHead}
+                        pointsFrom={g.pointsFrom}
+                        pointsTo={g.pointsTo}
                       />
                     ))}
                   </div>
