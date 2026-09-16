@@ -20,7 +20,7 @@ import {
 } from "@/lib/lesson-materials/workbook-types";
 
 /** 재료 형식이 바뀌면 올린다. 옛 형식 재료는 열 때 한 번 새로 만든다. */
-export const ONE_PAGE_CONTENT_VERSION = "op-3";
+export const ONE_PAGE_CONTENT_VERSION = "op-4";
 
 /** 시험지 어법 선택·어휘 선택 문항 수(양식: 10문항씩) */
 export const ONE_PAGE_CHOICE_MAX = 10;
@@ -45,12 +45,18 @@ export type OnePageVocabNote = {
 /** 내신 어법 선택·수정에 나올 자리 */
 export type OnePageGrammarPoint = {
   sentenceIndex: number;
-  /** 본문에 나온 그대로의 부분(표시할 자리) */
+  /** 교재 어법 코드(one-page-grammar-rules). 옛 재료에는 없다. */
+  code?: string;
+  /** 본문에 나온 그대로의 부분(표시할 자리). 정답과 그 근거를 함께 담는다. */
   target: string;
   /** target 안의 바른 형태 */
   right: string;
+  /** target 안에서 답을 정해 주는 근거(주어 명사·선행사·전치사 등). 옛 재료에는 없다. */
+  cue?: string;
   /** 시험에 자주 나오는 틀린 형태(없으면 빈 문자열) */
   wrong: string;
+  /** 틀린 형태가 이 문장에서 왜 안 되는지(검수에 쓴다). 옛 재료에는 없다. */
+  wrongWhy?: string;
   /** 어법 항목 이름(예: 주어-동사 수일치) */
   point: string;
   /** 왜 그 형태인지 한 문장 */
@@ -64,6 +70,19 @@ export type OnePageParaphrase = {
   expression: string;
   meaningKo: string;
   paraphrases: string[];
+};
+
+/** 본문의 지칭어(it, they, such experiences, the fallacy…)와 그것이 가리키는 말 */
+export type OnePageReference = {
+  sentenceIndex: number;
+  /** 본문에 나온 그대로의 지칭 표현 */
+  surface: string;
+  /** 가리키는 대상(앞 문장에 나온 그대로) */
+  referent: string;
+  /** 가리키는 대상이 있는 문장(0부터). 지칭어가 있는 문장보다 앞이어야 한다. */
+  referentSentenceIndex: number;
+  /** 한국어 풀이(짧게) */
+  meaningKo: string;
 };
 
 export type OnePageTfItem = { statement: string; answer: "T" | "F" };
@@ -80,6 +99,8 @@ export type OnePageContent = {
   flow: OnePageFlowNode[];
   vocab: OnePageVocabNote[];
   grammar: OnePageGrammarPoint[];
+  /** 지칭 정리(옛 재료에는 없다) */
+  references?: OnePageReference[];
   paraphrases: OnePageParaphrase[];
   tf: OnePageTfItem[];
   /** 주요문장 영작에 쓸 문장(0부터 센 번호, 지문 순서) */
@@ -508,9 +529,12 @@ export type OnePageRun = {
   grammar: number[];
   /** 걸린 바꿔 쓰기 표현 번호 */
   expression: number[];
-  /** 어법·표현이 시작하는 조각이면 그 번호(표시 기호를 앞에 붙인다) */
+  /** 걸린 지칭어 번호 */
+  reference: number[];
+  /** 어법·표현·지칭이 시작하는 조각이면 그 번호(표시 기호를 앞에 붙인다) */
   grammarStart: number[];
   expressionStart: number[];
+  referenceStart: number[];
 };
 
 /** 문장 하나를 낱말(동·반의어) 덩어리로 나누고, 덩어리 안을 어법·표현 경계로 다시 나눈다. */
@@ -523,7 +547,8 @@ export type OnePageSegment = { vocab: number | null; runs: OnePageRun[] };
 export function splitSentenceForSummary(
   english: string,
   sentenceIndex: number,
-  content: Pick<OnePageContent, "vocab" | "grammar" | "paraphrases">
+  content: Pick<OnePageContent, "vocab" | "grammar" | "paraphrases"> &
+    Pick<OnePageContent, "references">
 ): OnePageSegment[] {
   const vocabRanges: Array<{ start: number; end: number; index: number }> = [];
   content.vocab.forEach((v, index) => {
@@ -534,7 +559,12 @@ export function splitSentenceForSummary(
   });
   vocabRanges.sort((a, b) => a.start - b.start);
 
-  const marks: Array<{ start: number; end: number; kind: "grammar" | "expression"; index: number }> = [];
+  const marks: Array<{
+    start: number;
+    end: number;
+    kind: "grammar" | "expression" | "reference";
+    index: number;
+  }> = [];
   content.grammar.forEach((g, index) => {
     if (g.sentenceIndex !== sentenceIndex) return;
     const hit = findPhrase(english, g.target);
@@ -544,6 +574,11 @@ export function splitSentenceForSummary(
     if (p.sentenceIndex !== sentenceIndex) return;
     const hit = findPhrase(english, p.expression);
     if (hit) marks.push({ ...hit, kind: "expression", index });
+  });
+  (content.references ?? []).forEach((r, index) => {
+    if (r.sentenceIndex !== sentenceIndex) return;
+    const hit = findPhrase(english, r.surface);
+    if (hit) marks.push({ ...hit, kind: "reference", index });
   });
 
   const runsBetween = (from: number, to: number): OnePageRun[] => {
@@ -563,8 +598,10 @@ export function splitSentenceForSummary(
         text: english.slice(start, end),
         grammar: on.filter((m) => m.kind === "grammar").map((m) => m.index),
         expression: on.filter((m) => m.kind === "expression").map((m) => m.index),
+        reference: on.filter((m) => m.kind === "reference").map((m) => m.index),
         grammarStart: on.filter((m) => m.kind === "grammar" && m.start === start).map((m) => m.index),
         expressionStart: on.filter((m) => m.kind === "expression" && m.start === start).map((m) => m.index),
+        referenceStart: on.filter((m) => m.kind === "reference" && m.start === start).map((m) => m.index),
       });
     }
     return runs;
@@ -597,4 +634,9 @@ export function circledLetter(i: number): string {
 
 export function circledHangul(i: number): string {
   return CIRCLED_HANGUL[i] ?? `(${i + 1})`;
+}
+
+/** 지칭어 표시 번호(본문에는 위첨자로 작게 붙인다). 문장 번호 ①②③과 겹치지 않게 그냥 숫자를 쓴다. */
+export function referenceMark(i: number): string {
+  return String(i + 1);
 }

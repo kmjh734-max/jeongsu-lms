@@ -13,6 +13,7 @@ import {
   circledHangul,
   circledLetter,
   circledNumber,
+  referenceMark,
   splitSentenceForSummary,
   splitSummaryByKeywords,
   stripMarkup,
@@ -61,8 +62,11 @@ ruby.op-voc{ruby-position:under;ruby-align:center;font-weight:700;white-space:no
 ruby.op-voc rt{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.5em;font-weight:500;color:#0f766e;line-height:1.1;letter-spacing:0}
 .op-g{text-decoration:underline;text-decoration-color:#dc2626;text-decoration-thickness:1.4px;text-underline-offset:.2em}
 .op-x{background:#e3ecff;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
-.op-gm,.op-xm{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.74em;font-weight:700;vertical-align:.55em;line-height:0;margin-right:.08em}
-.op-gm{color:#dc2626}.op-xm{color:#2563eb}
+.op-r{text-decoration:underline;text-decoration-style:dotted;text-decoration-color:#b45309;text-decoration-thickness:1.2px;text-underline-offset:.2em}
+.op-gm,.op-xm,.op-rm{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.74em;font-weight:700;vertical-align:.55em;line-height:0;margin-right:.08em}
+.op-gm{color:#dc2626}.op-xm{color:#2563eb}.op-rm{color:#b45309}
+.op-refs{margin:0;line-height:1.5;font-size:.92em;text-align:justify}
+.op-refs .op-rsep{color:#d1d5db;margin:0 .35em}
 .op-flow{display:flex;align-items:stretch;gap:.3em}
 .op-fbox{flex:1 1 0;min-width:0;border:1px solid #e3dcf7;border-radius:.55em;padding:.4em .5em;text-align:center}
 .op-fbox b{display:block;font-size:.92em;line-height:1.28}
@@ -216,9 +220,16 @@ function RunText({ run }: { run: OnePageRun }) {
           {circledHangul(x)}
         </span>
       ))}
+      {run.referenceStart.map((r) => (
+        <span key={`r${r}`} className="op-rm">
+          {referenceMark(r)}
+        </span>
+      ))}
     </>
   );
-  const cls = `${run.grammar.length ? "op-g" : ""} ${run.expression.length ? "op-x" : ""}`.trim();
+  const cls = `${run.grammar.length ? "op-g" : ""} ${run.expression.length ? "op-x" : ""} ${
+    run.reference.length ? "op-r" : ""
+  }`.trim();
   return (
     <>
       {markers}
@@ -252,6 +263,7 @@ export function OnePageSummarySheet({
   isLast?: boolean;
 }) {
   const c = project.content;
+  const references = c.references ?? [];
   const title = (project.titleEn ?? "").trim() || c.titleEn || project.title;
   const summaryParts = splitSummaryByKeywords(c.summaryEn, c.summaryKeywords);
   return (
@@ -311,7 +323,11 @@ export function OnePageSummarySheet({
           <span className="op-xm" style={{ verticalAlign: 0 }}>
             ㉠
           </span>
-          바꿔 쓰기 표현 · 낱말 아래 <span style={{ color: "#0f766e" }}>≒ 동의어 ↔ 반의어</span>
+          바꿔 쓰기 표현 ·{" "}
+          <span className="op-rm" style={{ verticalAlign: 0 }}>
+            1
+          </span>
+          지칭어 · 낱말 아래 <span style={{ color: "#0f766e" }}>≒ 동의어 ↔ 반의어</span>
         </span>
       </h2>
       <p className="op-passage op-en">
@@ -389,6 +405,26 @@ export function OnePageSummarySheet({
           </ol>
         </section>
       </div>
+
+      {references.length > 0 ? (
+        <section>
+          <h2 className="op-h">지칭 정리</h2>
+          <p className="op-refs">
+            {references.map((r, i) => (
+              <Fragment key={i}>
+                {i > 0 ? <span className="op-rsep">/</span> : null}
+                <span className="op-rm" style={{ verticalAlign: ".35em" }}>
+                  {referenceMark(i)}
+                </span>
+                <b className="op-en">{r.surface}</b>
+                <span style={{ color: "#b45309" }}> → </span>
+                <span className="op-en">{r.referent}</span>
+                {r.meaningKo ? <span style={{ color: "#6b7280" }}> ({r.meaningKo})</span> : null}
+              </Fragment>
+            ))}
+          </p>
+        </section>
+      ) : null}
     </FitSheet>
   );
 }
