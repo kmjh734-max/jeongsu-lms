@@ -7,7 +7,7 @@
 import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 import { createClient } from "@supabase/supabase-js";
-import { getExamTypeById } from "../src/lib/listening/exam-types";
+import { templateForStoredQuestion } from "../src/lib/listening/exam-types";
 import {
   gradeLevelShort,
   type ListeningGradeLevel,
@@ -258,7 +258,8 @@ async function auditGrade(grade: ListeningGradeLevel) {
       const q = raw as DbQuestion;
       const segments = segsByQ.get(q.id) ?? [];
       const gen = toGeneratedQuestion(q, segments);
-      const typeHint = getExamTypeById(q.order_index, grade);
+      // 번호가 아니라 저장된 유형 이름으로 찾는다(중2·중3 옛 세트는 중1 배치로 만들어졌다)
+      const typeHint = templateForStoredQuestion(q, grade);
       const result = checkListeningQuestionQuality(gen, typeHint, grade);
 
       const choices = gen.choices;

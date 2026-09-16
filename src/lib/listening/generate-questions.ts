@@ -532,7 +532,9 @@ export async function generateSingleExamQuestion(
     if (code === 1 && !isHighSchoolListeningGrade(gradeLevel)) {
       type1Assignment = pickType1Subject(
         problems,
-        type1Regeneration?.excludeSubjectIds ?? []
+        type1Regeneration?.excludeSubjectIds ?? [],
+        // ‘these’ 변형이면 여러 개로 쓰는 물건에서 고른다(What are these?)
+        { plural: type.variant === "these" }
       );
       const regenBlock =
         isRegeneration && type1Regeneration

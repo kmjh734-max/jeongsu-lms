@@ -151,7 +151,10 @@ function buildSlotsBatchPrompt(
     slots.forEach((_, i) => {
       const code = codes[i]!;
       if (code === 1) {
-        const assignment = pickType1Subject(usedType1Problems);
+        // ‘these’ 변형이면 여러 개로 쓰는 물건에서 고른다(What are these?)
+        const assignment = pickType1Subject(usedType1Problems, [], {
+          plural: types[i]!.variant === "these",
+        });
         usedType1Problems.push(`subject_id:${assignment.id}`);
         scenarioBlocks += `${formatAssignedType1SubjectBlock(assignment)}\n\n`;
       }

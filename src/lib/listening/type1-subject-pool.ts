@@ -13,6 +13,8 @@ export interface Type1SubjectAssignment {
   clueHints: string[];
   /** 같은 범주 오답 후보 */
   peerChoices: string[];
+  /** 여러 개로 쓰는 물건 — ‘these’ 변형(What are these?) 전용 */
+  plural?: true;
 }
 
 const TYPE1_SUBJECTS: Type1SubjectAssignment[] = [
@@ -373,6 +375,61 @@ const TYPE1_SUBJECTS: Type1SubjectAssignment[] = [
     clueHints: ["ride", "mane", "run fast", "farm"],
     peerChoices: ["A donkey", "A cow", "A camel", "A zebra"],
   },
+  // plural objects (6) — ‘these’ 변형용 (These are ... / What are these?)
+  {
+    id: "gloves",
+    category: "object",
+    answer: "Gloves",
+    theme: "추울 때 두 손에 끼는 물건",
+    clueHints: ["wear on hands", "warm", "winter", "a pair"],
+    peerChoices: ["Socks", "Boots", "Scarves", "Earmuffs"],
+    plural: true,
+  },
+  {
+    id: "chopsticks",
+    category: "object",
+    answer: "Chopsticks",
+    theme: "음식을 집어 먹을 때 쓰는 한 쌍의 도구",
+    clueHints: ["pick up food", "a pair", "wood or metal", "meal"],
+    peerChoices: ["Spoons", "Forks", "Straws", "Knives"],
+    plural: true,
+  },
+  {
+    id: "scissors",
+    category: "object",
+    answer: "Scissors",
+    theme: "종이를 자를 때 쓰는 도구",
+    clueHints: ["cut paper", "two blades", "school supplies", "hold with fingers"],
+    peerChoices: ["Rulers", "Staplers", "Pencils", "Erasers"],
+    plural: true,
+  },
+  {
+    id: "sneakers",
+    category: "object",
+    answer: "Sneakers",
+    theme: "운동할 때 신는 신발",
+    clueHints: ["wear on feet", "run", "laces", "comfortable"],
+    peerChoices: ["Slippers", "Boots", "Sandals", "Socks"],
+    plural: true,
+  },
+  {
+    id: "headphones",
+    category: "object",
+    answer: "Headphones",
+    theme: "음악을 들을 때 귀에 쓰는 물건",
+    clueHints: ["listen to music", "over your ears", "quiet", "plug in"],
+    peerChoices: ["Speakers", "Glasses", "Earmuffs", "Microphones"],
+    plural: true,
+  },
+  {
+    id: "skis",
+    category: "object",
+    answer: "Skis",
+    theme: "겨울에 눈 위를 미끄러져 내려갈 때 쓰는 한 쌍의 물건",
+    clueHints: ["snow", "slide down", "a pair", "winter sport"],
+    peerChoices: ["Skates", "Sleds", "Snowboards", "Poles"],
+    plural: true,
+  },
 ];
 
 export function normalizeType1AnswerLabel(answer: string): string {
@@ -404,17 +461,20 @@ export function parseUsedType1SubjectIds(previousProblems?: string[]): string[] 
 
 export function pickType1Subject(
   previousProblems?: string[],
-  excludeSubjectIds: string[] = []
+  excludeSubjectIds: string[] = [],
+  /** ‘these’ 변형이면 여러 개로 쓰는 물건만 고른다 */
+  opts?: { plural?: boolean }
 ): Type1SubjectAssignment {
   const used = new Set([
     ...parseUsedType1SubjectIds(previousProblems),
     ...excludeSubjectIds.filter(Boolean),
   ]);
-  let available = TYPE1_SUBJECTS.filter((s) => !used.has(s.id));
+  const pool = TYPE1_SUBJECTS.filter((s) => Boolean(s.plural) === Boolean(opts?.plural));
+  let available = pool.filter((s) => !used.has(s.id));
   if (available.length === 0) {
-    available = TYPE1_SUBJECTS.filter((s) => !excludeSubjectIds.includes(s.id));
+    available = pool.filter((s) => !excludeSubjectIds.includes(s.id));
   }
-  const list = available.length > 0 ? available : TYPE1_SUBJECTS;
+  const list = available.length > 0 ? available : pool;
   return list[Math.floor(Math.random() * list.length)]!;
 }
 
@@ -462,6 +522,7 @@ export function formatAssignedType1SubjectBlock(
 - 정답은 반드시 "${assignment.answer}" 이어야 한다. 다른 대상으로 바꾸지 말 것.
 - 정답 범주와 다른 범주의 선택지 섞기 금지
 - "I am a ..." 로 정답을 직접 밝히기 금지
+${assignment.plural ? '- 여러 개로 쓰는 물건이다: "These are ..." 로 설명하고 마지막 문장은 "What are these?" 로 끝낸다. What am I? 규칙은 쓰지 않는다.' : ""}
 `.trim();
 }
 

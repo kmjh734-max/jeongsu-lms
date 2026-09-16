@@ -371,21 +371,21 @@ export function checkListeningQuestionQuality(
     if (!ending.test(last)) {
       issues.push({
         code: "type1_ending",
-        message: "1번 유형은 마지막 문장이 What am I?(또는 변형의 What is this?) 여야 합니다.",
+        message: "이 유형은 마지막 문장이 What am I?(또는 변형의 What is this?) 여야 합니다.",
         weight: 22,
       });
     }
     if (monologueSentencesOff) {
       issues.push({
         code: "type1_sentences",
-        message: `1번 유형은 5~9문장이 적당합니다 (${monologueSentences}문장).`,
+        message: `이 유형은 5~9문장이 적당합니다 (${monologueSentences}문장).`,
       });
     }
     const speakers = new Set(q.segments.map((s) => s.speaker));
     if (speakers.has("ANN") || (speakers.has("M") && speakers.has("W"))) {
       issues.push({
         code: "type1_speaker",
-        message: "1번 유형은 M 또는 W 한 명의 담화만 사용해야 합니다.",
+        message: "이 유형은 M 또는 W 한 명의 담화만 사용해야 합니다.",
       });
     }
     const catCheck = checkChoicesSameCategory(q.choices);
@@ -427,19 +427,19 @@ export function checkListeningQuestionQuality(
     if (speakers.has("ANN") || (speakers.has("M") && speakers.has("W"))) {
       issues.push({
         code: "type3_speaker",
-        message: "3번 유형은 W 또는 M 한 명의 날씨 안내만 사용해야 합니다.",
+        message: "이 유형은 W 또는 M 한 명의 날씨 안내만 사용해야 합니다.",
       });
     }
     if (monologueSentencesOff) {
       issues.push({
         code: "type3_sentences",
-        message: `3번 유형은 5~9문장이 적당합니다 (${monologueSentences}문장).`,
+        message: `이 유형은 5~9문장이 적당합니다 (${monologueSentences}문장).`,
       });
     }
     if (!q.instruction?.trim() || q.instruction.includes("○○")) {
       issues.push({
         code: "type3_instruction",
-        message: "3번 유형은 지역명이 포함된 지시문이 필요합니다.",
+        message: "이 유형은 지역명이 포함된 지시문이 필요합니다.",
       });
     }
     if (!q.weather_target_location?.trim()) {
@@ -481,7 +481,7 @@ export function checkListeningQuestionQuality(
     if (!q.needs_image_choices) {
       issues.push({
         code: "type3_needs_image",
-        message: "3번 유형은 needs_image_choices가 true여야 합니다.",
+        message: "이 유형은 needs_image_choices가 true여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "weather_icon") {
@@ -511,7 +511,7 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type4_dialogue",
-        message: "4번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     const spoken = q.segments.filter((s) => s.speaker === "M" || s.speaker === "W");
@@ -583,7 +583,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type4_needs_image",
-        message: "4번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -596,13 +596,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type4_image_prompts",
-        message: "4번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type4_question_text",
-        message: "4번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -614,14 +614,14 @@ export function checkListeningQuestionQuality(
     if (speakers.size !== 1) {
       issues.push({
         code: "type5_speaker",
-        message: "5번 유형은 M 또는 W 한 명의 담화만 사용해야 합니다.",
+        message: "이 유형은 M 또는 W 한 명의 담화만 사용해야 합니다.",
         weight: 20,
       });
     }
     if (monologueSentencesOff) {
       issues.push({
         code: "type5_sentences",
-        message: `5번 유형은 5~9문장이 적당합니다 (${monologueSentences}문장).`,
+        message: `이 유형은 5~9문장이 적당합니다 (${monologueSentences}문장).`,
       });
     }
 
@@ -675,7 +675,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type5_needs_image",
-        message: "5번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -688,13 +688,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type5_image_prompts",
-        message: "5번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type5_question_text",
-        message: "5번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -705,13 +705,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type6_dialogue",
-        message: "6번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type6_turns",
-        message: `6번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -773,7 +773,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type6_needs_image",
-        message: "6번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -786,13 +786,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type6_image_prompts",
-        message: "6번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type6_question_text",
-        message: "6번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -803,13 +803,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type7_dialogue",
-        message: "7번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type7_turns",
-        message: `7번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -889,7 +889,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type7_needs_image",
-        message: "7번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -902,13 +902,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type7_image_prompts",
-        message: "7번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type7_question_text",
-        message: "7번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -919,13 +919,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type8_dialogue",
-        message: "8번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type8_turns",
-        message: `8번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1002,7 +1002,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type8_needs_image",
-        message: "8번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -1015,13 +1015,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type8_image_prompts",
-        message: "8번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type8_question_text",
-        message: "8번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -1032,13 +1032,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type9_dialogue",
-        message: "9번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type9_turns",
-        message: `9번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1116,7 +1116,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type9_needs_image",
-        message: "9번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -1129,13 +1129,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type9_image_prompts",
-        message: "9번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type9_question_text",
-        message: "9번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -1146,13 +1146,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type10_dialogue",
-        message: "10번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type10_turns",
-        message: `10번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1239,7 +1239,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type10_needs_image",
-        message: "10번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -1252,13 +1252,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type10_image_prompts",
-        message: "10번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type10_question_text",
-        message: "10번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -1269,13 +1269,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type11_dialogue",
-        message: "11번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type11_turns",
-        message: `11번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1391,7 +1391,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type11_needs_image",
-        message: "11번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -1404,13 +1404,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type11_image_prompts",
-        message: "11번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type11_question_text",
-        message: "11번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -1421,13 +1421,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type12_dialogue",
-        message: "12번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type12_turns",
-        message: `12번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1550,7 +1550,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type12_needs_image",
-        message: "12번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -1563,13 +1563,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type12_image_prompts",
-        message: "12번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type12_question_text",
-        message: "12번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -1580,13 +1580,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type13_dialogue",
-        message: "13번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type13_turns",
-        message: `13번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1684,7 +1684,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type13_needs_image",
-        message: "13번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -1697,13 +1697,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type13_image_prompts",
-        message: "13번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type13_question_text",
-        message: "13번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -1714,13 +1714,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type2_dialogue",
-        message: "2번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type2_turns",
-        message: `2번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
     const scriptJoined = q.segments.map((s) => s.text).join(" ");
@@ -1729,14 +1729,14 @@ export function checkListeningQuestionQuality(
     if (!madeVariant && !/I'?ll\s+(?:take|have|buy)/i.test(scriptJoined)) {
       issues.push({
         code: "type2_final_choice",
-        message: "2번 유형은 I'll take/have/buy 형태의 최종 선택 문장이 필요합니다.",
+        message: "이 유형은 I'll take/have/buy 형태의 최종 선택 문장이 필요합니다.",
         weight: 20,
       });
     }
     if (!q.needs_image_choices) {
       issues.push({
         code: "type2_needs_image",
-        message: "2번 유형은 needs_image_choices가 true여야 합니다.",
+        message: "이 유형은 needs_image_choices가 true여야 합니다.",
         weight: 22,
       });
     }
@@ -1842,7 +1842,7 @@ export function checkListeningQuestionQuality(
     if (middleTurnsOff) {
       issues.push({
         code: "type19_turns",
-        message: `19번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -1932,7 +1932,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type19_needs_image",
-        message: "19번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -1945,7 +1945,7 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type19_image_prompts",
-        message: "19번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
   }
@@ -1962,7 +1962,7 @@ export function checkListeningQuestionQuality(
     if (middleTurnsOff) {
       issues.push({
         code: "type20_turns",
-        message: `20번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -2032,7 +2032,7 @@ export function checkListeningQuestionQuality(
     if (scriptJoined && scriptLooksLikeLostItemDialogue(scriptJoined)) {
       issues.push({
         code: "type20_duplicate_with_19",
-        message: "대본이 19번 유형(잃어버린 물건)과 너무 비슷합니다.",
+        message: "대본이 이 유형(잃어버린 물건)과 너무 비슷합니다.",
         weight: 22,
       });
     }
@@ -2079,7 +2079,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type20_needs_image",
-        message: "20번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -2092,7 +2092,7 @@ export function checkListeningQuestionQuality(
     if (prompts20.some((p) => p.trim())) {
       issues.push({
         code: "type20_image_prompts",
-        message: "20번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
   }
@@ -2104,7 +2104,7 @@ export function checkListeningQuestionQuality(
     if (!table) {
       issues.push({
         code: "type14_no_table",
-        message: "14번 유형은 table_data가 필요합니다.",
+        message: "이 유형은 table_data가 필요합니다.",
         weight: 25,
       });
     } else {
@@ -2171,7 +2171,7 @@ export function checkListeningQuestionQuality(
       if (q.needs_image_choices) {
         issues.push({
           code: "type14_needs_image",
-          message: "14번 유형은 needs_image_choices가 false여야 합니다.",
+          message: "이 유형은 needs_image_choices가 false여야 합니다.",
         });
       }
 
@@ -2207,7 +2207,7 @@ export function checkListeningQuestionQuality(
       if (q.question_text?.trim()) {
         issues.push({
           code: "type14_question_text",
-          message: "14번 유형은 question_text를 비워 두어야 합니다.",
+          message: "이 유형은 question_text를 비워 두어야 합니다.",
         });
       }
     }
@@ -2219,13 +2219,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type15_dialogue",
-        message: "15번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type15_turns",
-        message: `15번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -2362,7 +2362,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type15_needs_image",
-        message: "15번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -2375,13 +2375,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type15_image_prompts",
-        message: "15번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type15_question_text",
-        message: "15번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -2392,13 +2392,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type16_dialogue",
-        message: "16번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type16_turns",
-        message: `16번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -2538,7 +2538,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type16_needs_image",
-        message: "16번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -2551,13 +2551,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type16_image_prompts",
-        message: "16번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type16_question_text",
-        message: "16번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -2568,13 +2568,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type17_dialogue",
-        message: "17번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type17_turns",
-        message: `17번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -2704,7 +2704,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type17_needs_image",
-        message: "17번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -2717,13 +2717,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type17_image_prompts",
-        message: "17번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type17_question_text",
-        message: "17번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
@@ -2734,13 +2734,13 @@ export function checkListeningQuestionQuality(
     if (!hasM || !hasW) {
       issues.push({
         code: "type18_dialogue",
-        message: "18번 유형은 M과 W 대화가 필요합니다.",
+        message: "이 유형은 M과 W 대화가 필요합니다.",
       });
     }
     if (middleTurnsOff) {
       issues.push({
         code: "type18_turns",
-        message: `18번 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
+        message: `이 유형은 ${middleTurnLabel}턴이 적당합니다 (${turnCount}턴).`,
       });
     }
 
@@ -2881,7 +2881,7 @@ export function checkListeningQuestionQuality(
     if (q.needs_image_choices) {
       issues.push({
         code: "type18_needs_image",
-        message: "18번 유형은 needs_image_choices가 false여야 합니다.",
+        message: "이 유형은 needs_image_choices가 false여야 합니다.",
       });
     }
     if (q.visual_choice_type && q.visual_choice_type !== "none") {
@@ -2894,13 +2894,13 @@ export function checkListeningQuestionQuality(
     if (prompts.some((p) => p.trim())) {
       issues.push({
         code: "type18_image_prompts",
-        message: "18번 유형은 choice_image_prompts를 비워 두어야 합니다.",
+        message: "이 유형은 choice_image_prompts를 비워 두어야 합니다.",
       });
     }
     if (q.question_text?.trim()) {
       issues.push({
         code: "type18_question_text",
-        message: "18번 유형은 question_text를 비워 두어야 합니다.",
+        message: "이 유형은 question_text를 비워 두어야 합니다.",
       });
     }
   }
