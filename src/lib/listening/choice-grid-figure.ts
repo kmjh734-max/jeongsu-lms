@@ -4,7 +4,11 @@
  * 예전에는 선택지마다 1장씩 5장을 그려서 문항 하나에 그림값이 다섯 배로 들었다.
  * 실제 시·도교육청 문제지도 ①~⑤가 한 그림판 안에 나란히 인쇄되므로,
  * 5칸짜리 그림 한 장이 학생·선생님이 보는 결과와 같다.
- * 그린 뒤 비전 검수로 칸이 다섯 개인지·라벨이 하나씩인지·칸마다 설명대로 그려졌는지 본다.
+ *
+ * 칸 배치는 위 3칸 · 아래 2칸(가운데 정렬)이라 빈 칸이 남지 않는다.
+ * 그림 모델에는 3×2로 그리게 하고(칸 자리를 가장 잘 지킨다) 아래 줄을 캔버스에서
+ * 반 칸만큼 옮겨 붙인다 — 자리 이동이라 그림이 잘리지 않는다.
+ * 그린 뒤 비전 검수로 칸마다 설명대로 그려졌는지, 특히 정답 칸이 정답 설명과 맞는지 본다.
  */
 import {
   buildVerifyBody,
@@ -19,14 +23,71 @@ export type ChoiceGridCheck = {
   problems: string[];
   /** 칸마다 실제로 그려진 것 */
   panels: Array<{ label: string; count: number; drawn: string; matchesPlan: boolean }>;
+  /** 정답 칸이 정답 설명과 맞는지 */
+  answerOk: boolean;
   note: string;
 };
 
+/** 그림 모델이 그리는 원본 칸 배치 (3×2, 오른쪽 아래는 비움) */
+export const SOURCE_COLS = 3;
+export const SOURCE_ROWS = 2;
+/** 인쇄용 최종 배치 — 위 3칸 · 아래 2칸(가운데), 칸은 정사각형 */
+export const GRID_TOP_CELLS = 3;
+export const GRID_BOTTOM_CELLS = 2;
+/** 칸 안에서 그림이 차지하는 비율 — 남는 흰 여백을 잘라 내고 이만큼 키워 인쇄에서 크게 보이게 */
+const CELL_FILL = 0.86;
+/** 원본을 너무 크게 늘리면 선이 뭉개진다 */
+const MAX_UPSCALE = 3;
 
+type GridRect = { x: number; y: number; w: number; h: number };
 
-/** 3×2 칸 (마지막 칸은 비움) */
-export const GRID_COLS = 3;
-export const GRID_ROWS = 2;
+/** 최종 판 크기 — 칸이 정사각형이라 3:2 (가로로 넓어 인쇄 폭을 꽉 쓴다) */
+export function gridSheetSize(sourceWidth: number): { width: number; height: number } {
+  const cell = Math.round(sourceWidth / SOURCE_COLS);
+  return { width: cell * SOURCE_COLS, height: cell * SOURCE_ROWS };
+}
+
+/** 최종 칸 자리 — 위 3칸은 그대로, 아래 2칸은 반 칸만큼 오른쪽으로 옮겨 가운데 정렬 */
+export function gridCellRects(width: number, height: number): GridRect[] {
+  const cw = width / SOURCE_COLS;
+  const ch = height / SOURCE_ROWS;
+  const shift = cw / 2;
+  const rects: GridRect[] = [];
+  for (let i = 0; i < GRID_TOP_CELLS; i++) {
+    rects.push({ x: i * cw, y: 0, w: cw, h: ch });
+  }
+  for (let i = 0; i < GRID_BOTTOM_CELLS; i++) {
+    rects.push({ x: shift + i * cw, y: ch, w: cw, h: ch });
+  }
+  return rects;
+}
+
+/** 칸 안에서 흰 여백을 뺀 실제 그림 자리 (없으면 null) */
+function inkBounds(
+  data: Uint8ClampedArray,
+  regionW: number,
+  regionH: number
+): GridRect | null {
+  let minX = regionW;
+  let minY = regionH;
+  let maxX = -1;
+  let maxY = -1;
+  for (let y = 0; y < regionH; y++) {
+    for (let x = 0; x < regionW; x++) {
+      const i = (y * regionW + x) * 4;
+      const a = data[i + 3]!;
+      if (a < 24) continue;
+      // 흰색에 가까우면 여백으로 본다
+      if (data[i]! > 242 && data[i + 1]! > 242 && data[i + 2]! > 242) continue;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+  }
+  if (maxX < 0 || maxY < 0) return null;
+  return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
+}
 
 /**
  * 선택지 5개 → 한 장 프롬프트.
@@ -45,57 +106,95 @@ Imagine the square split into a 3 x 2 grid of six equal areas (each one third wi
 area 1 = top-left, area 2 = top-middle, area 3 = top-right, area 4 = bottom-left, area 5 = bottom-middle,
 area 6 = bottom-right and stays completely empty white.
 
-Draw one picture centred in each of areas 1-5, filling about two thirds of its area:
+Draw one picture centred in each of areas 1-5, filling about two thirds of its area with a clear white margin all around it:
 ${list}
 
 Rules:
 - Draw NO grid, NO frame, NO border, NO dividing line and NO box of any kind. The six areas are imaginary and separated only by white space.
-- Draw NO numbers, NO circled digits and NO captions anywhere. The only letters allowed are words explicitly requested above (spell those correctly).
+- Draw NO numbers, NO circled digits and NO captions anywhere. The only letters allowed are words explicitly requested above (spell those correctly, in the cell that asks for them and nowhere else).
 - Flat-color textbook illustration, clean thick black outlines, no photorealism, no 3D, no shadows, no gradients, no watermark.
-- Each picture is ONE clear object or scene, fully inside its own area, never touching another area.
-- The five pictures must be clearly DIFFERENT from each other — the differing detail (pattern, shape, count, printed word, position) must stay obvious when printed small.
-- No answer marks, ticks or highlights.
+- Each picture is ONE clear object or scene, drawn well inside its own area with white space around it — it must never cross into, touch or overlap a neighbouring area.
+- The detail that tells the cells apart (pattern, printed word, shape, count) is drawn LARGE and THICK inside that picture — few, big details rather than many small ones — so it stays readable when the sheet is printed small.
+- EVERY detail written for a cell must be visible in that cell: the stated color, shape, pattern, count and printed word. A cell whose description lists two details (for example "stars AND the word HOME") must show BOTH of them.
+- A detail that is NOT written for a cell must not appear there. The cells differ only by the details listed above, and every difference must stay obvious when printed small.
 ${extraNote ? "\n" + extraNote : ""}
 VERIFY: five pictures placed top-left / top-middle / top-right / bottom-left / bottom-middle, bottom-right empty, no lines, no numbers.`.slice(0, 3800);
 }
 
 /**
- * 칸 선과 번호(①~⑤)를 그림 위에 얹는다.
- * 실제 문제지처럼 칸마다 왼쪽 위에 동그라미 숫자를 놓고, 칸 사이에 얇은 선을 긋는다.
+ * 원본(3×2)을 인쇄용 판으로 다시 짠다.
+ * 칸마다 흰 여백을 잘라 내고 정사각형 칸에 꽉 차게 키운 뒤, 칸 선과 번호(①~⑤)를 얹는다.
+ * 빈 여섯째 칸이 없어지고 그림이 크게 인쇄돼 별·글자 같은 정답 단서가 종이에서도 보인다.
  */
 export async function overlayGridLabels(bytes: Buffer): Promise<Buffer> {
   const { createCanvas, loadImage } = await import("@napi-rs/canvas");
   const img = await loadImage(bytes);
-  const w = img.width;
-  const h = img.height;
-  const canvas = createCanvas(w, h);
+  const srcW = img.width;
+  const srcH = img.height;
+
+  // 원본을 한 번 캔버스에 올려 칸마다 잉크 자리를 잰다
+  const srcCanvas = createCanvas(srcW, srcH);
+  const srcCtx = srcCanvas.getContext("2d");
+  srcCtx.fillStyle = "#ffffff";
+  srcCtx.fillRect(0, 0, srcW, srcH);
+  srcCtx.drawImage(img, 0, 0);
+
+  const srcCellW = srcW / SOURCE_COLS;
+  const srcCellH = srcH / SOURCE_ROWS;
+
+  const { width, height } = gridSheetSize(srcW);
+  const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, w, h);
-  ctx.drawImage(img, 0, 0);
+  ctx.fillRect(0, 0, width, height);
 
-  const cw = w / GRID_COLS;
-  const ch = h / GRID_ROWS;
+  const rects = gridCellRects(width, height);
+
+  for (let i = 0; i < rects.length; i++) {
+    const target = rects[i]!;
+    const sx = Math.round((i % SOURCE_COLS) * srcCellW);
+    const sy = Math.round(Math.floor(i / SOURCE_COLS) * srcCellH);
+    const sw = Math.round(srcCellW);
+    const sh = Math.round(srcCellH);
+    const region = srcCtx.getImageData(sx, sy, sw, sh);
+    const ink = inkBounds(region.data as unknown as Uint8ClampedArray, sw, sh);
+    if (!ink) continue;
+    const scale = Math.min(
+      (target.w * CELL_FILL) / ink.w,
+      (target.h * CELL_FILL) / ink.h,
+      MAX_UPSCALE
+    );
+    const dw = ink.w * scale;
+    const dh = ink.h * scale;
+    ctx.drawImage(
+      srcCanvas,
+      sx + ink.x,
+      sy + ink.y,
+      ink.w,
+      ink.h,
+      target.x + (target.w - dw) / 2,
+      target.y + (target.h - dh) / 2,
+      dw,
+      dh
+    );
+  }
 
   // 칸 선
   ctx.strokeStyle = "#222222";
-  ctx.lineWidth = Math.max(2, Math.round(w / 400));
-  for (let i = 0; i < 5; i++) {
-    const col = i % GRID_COLS;
-    const row = Math.floor(i / GRID_COLS);
-    ctx.strokeRect(col * cw, row * ch, cw, ch);
+  ctx.lineWidth = Math.max(2, Math.round(width / 400));
+  for (const rect of rects) {
+    ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
   }
 
   // 동그라미 숫자 — 글꼴에 ①이 없을 수 있어 원 + 숫자를 직접 그린다
-  const r = Math.max(14, Math.round(cw * 0.075));
+  const r = Math.max(14, Math.round((width / SOURCE_COLS) * 0.085));
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = `bold ${Math.round(r * 1.25)}px sans-serif`;
-  for (let i = 0; i < 5; i++) {
-    const col = i % GRID_COLS;
-    const row = Math.floor(i / GRID_COLS);
-    const cx = col * cw + r * 1.6;
-    const cy = row * ch + r * 1.6;
+  for (let i = 0; i < rects.length; i++) {
+    const rect = rects[i]!;
+    const cx = rect.x + r * 1.45;
+    const cy = rect.y + r * 1.45;
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.fillStyle = "#ffffff";
@@ -110,14 +209,21 @@ export async function overlayGridLabels(bytes: Buffer): Promise<Buffer> {
   return canvas.toBuffer("image/png");
 }
 
-/** 그림판 검수 (칸 수·라벨 중복·칸별 내용) */
+/** 그림판 검수 (칸 수 · 칸별 내용 · 정답 칸) */
 export async function verifyChoiceGrid(
   png: Buffer,
-  prompts: string[]
+  prompts: string[],
+  answerIndex?: number
 ): Promise<ChoiceGridCheck> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
-    return { ok: false, problems: ["OPENAI_API_KEY 없음 — 검수 불가"], panels: [], note: "" };
+    return {
+      ok: false,
+      problems: ["OPENAI_API_KEY 없음 — 검수 불가"],
+      panels: [],
+      answerOk: false,
+      note: "",
+    };
   }
   const models = [
     process.env.OPENAI_MODEL_LISTENING_IMAGE_PLAN?.trim(),
@@ -131,6 +237,20 @@ export async function verifyChoiceGrid(
     .slice(0, 5)
     .map((p, i) => `${CIRCLED[i]}: ${String(p ?? "").trim()}`)
     .join("\n");
+  const answerNo =
+    answerIndex && answerIndex >= 1 && answerIndex <= 5 ? answerIndex : null;
+  const answerPlan = answerNo ? String(prompts[answerNo - 1] ?? "").trim() : "";
+  const systemPrompt = [
+    "You strictly check a Korean listening-exam picture-choice sheet.",
+    "The sheet has five boxed cells: cells 1, 2, 3 fill the top row (left, middle, right) and cells 4, 5 sit side by side, centred, in the bottom row.",
+    "Each cell carries a small circled number 1-5 at its top-left.",
+    "Read the image literally (exact objects, colors, shapes, patterns, counts, printed words, positions).",
+    'JSON only: {"panels":[{"label":"1","count":1,"drawn":"what is actually drawn in this cell","matches_plan":true,"missing":"which required detail is missing or wrong, else empty"}, ...for cells 1,2,3,4,5],"panelCount":5,"panelsDistinct":true,"cleanBackground":true,"misspelledWords":[],"answerCellMatches":true,"note":"..."}.',
+    "count = 1 when this cell contains one picture, 0 when the cell is empty, 2+ when it holds several unrelated pictures.",
+    "matches_plan = true ONLY when EVERY detail of that cell's description (color, shape, pattern, count, printed word) is visible in that cell and no detail belonging to another cell appears there; otherwise false with `missing` filled in.",
+    "panelsDistinct = false when two cells look the same. cleanBackground = false if the background is not plain white (dark vignette, glow, blur).",
+    "answerCellMatches answers the ANSWER CELL question when one is given, else true.",
+  ].join(" ");
   let lastErr = "verify failed";
 
   for (const model of models) {
@@ -140,17 +260,17 @@ export async function verifyChoiceGrid(
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify(
           buildVerifyBody(model, [
-            {
-              role: "system",
-              content:
-                'You strictly check a Korean listening-exam picture-choice sheet. The image is a 3 x 2 grid of cells; cells 1-3 are the top row (left, middle, right), cells 4-5 are the bottom row (left, middle) and the bottom-right cell is empty. Each drawn cell carries a small circled number 1-5 at its top-left. Read the image literally (exact objects, patterns, counts, printed words, positions). JSON only: {"panels":[{"label":"1","count":1,"drawn":"what is actually drawn in this cell","matches_plan":true}, ...for cells 1,2,3,4,5],"panelCount":5,"panelsDistinct":true,"cleanBackground":true,"misspelledWords":[],"note":"..."}. count = 1 when this cell contains one picture, 0 when the cell is empty, 2+ when it holds several unrelated pictures. matches_plan=false when the cell contradicts its intended description. panelsDistinct=false when two cells look the same. cleanBackground=false if the background is not plain white (dark vignette, glow, blur).',
-            },
+            { role: "system", content: systemPrompt },
             {
               role: "user",
               content: [
                 {
                   type: "text",
-                  text: `Intended panels:\n${plan}\n\nCheck each panel: is the circled number there exactly once, and does the drawing match its description?`,
+                  text: `Intended panels:\n${plan}\n${
+                    answerNo
+                      ? `\nANSWER CELL: cell ${answerNo} is the keyed answer and must show exactly "${answerPlan}" — every detail of it. Set answerCellMatches=false if any part of it is missing or wrong.`
+                      : ""
+                  }\n\nCheck each cell: is the circled number there exactly once, and does the drawing show every detail of its description?`,
                 },
                 { type: "image_url", image_url: { url: dataUrl } },
               ],
@@ -165,11 +285,18 @@ export async function verifyChoiceGrid(
       }
       const json = JSON.parse(text) as { choices?: Array<{ message?: { content?: string } }> };
       const parsed = JSON.parse(String(json.choices?.[0]?.message?.content ?? "{}")) as {
-        panels?: Array<{ label?: string; count?: number; drawn?: string; matches_plan?: boolean }>;
+        panels?: Array<{
+          label?: string;
+          count?: number;
+          drawn?: string;
+          matches_plan?: boolean;
+          missing?: string;
+        }>;
         panelCount?: number;
         panelsDistinct?: boolean;
         cleanBackground?: boolean;
         misspelledWords?: string[];
+        answerCellMatches?: boolean;
         note?: string;
       };
       const panels = CIRCLED.map((label, idx) => {
@@ -182,31 +309,60 @@ export async function verifyChoiceGrid(
           label,
           count: Number(hit?.count ?? 0),
           drawn: String(hit?.drawn ?? ""),
-          matchesPlan: hit?.matches_plan !== false,
+          // 판정이 빠진 칸은 통과로 보지 않는다 (예전에는 !== false라 누락이 통과됐다)
+          matchesPlan: hit?.matches_plan === true,
+          missing: String(hit?.missing ?? ""),
         };
       });
       const problems: string[] = [];
       for (const p of panels) {
         if (p.count === 0) problems.push(`${p.label} 칸이 비어 있음`);
         else if (p.count > 1) problems.push(`${p.label} 칸에 그림이 ${p.count}개`);
-        else if (!p.matchesPlan) problems.push(`${p.label} 칸이 설명과 다름`);
+        else if (!p.matchesPlan) {
+          problems.push(
+            `${p.label} 칸이 설명과 다름${p.missing ? ` (${p.missing})` : ""}`
+          );
+        }
       }
       if (Number(parsed.panelCount ?? 5) !== 5) problems.push(`칸이 ${parsed.panelCount}개`);
       if (parsed.panelsDistinct === false) problems.push("칸끼리 구분이 안 됨");
       if (parsed.cleanBackground === false) problems.push("배경이 깨끗하지 않음");
       const misspelled = (parsed.misspelledWords ?? []).map(String).filter((w) => w.trim());
       if (misspelled.length) problems.push(`철자 오류: ${misspelled.join(", ")}`);
-      return { ok: problems.length === 0, problems, panels, note: String(parsed.note ?? "") };
+      const answerOk = answerNo ? parsed.answerCellMatches !== false : true;
+      if (!answerOk) {
+        problems.push(`정답 칸(${CIRCLED[answerNo! - 1]})이 정답 설명과 다름`);
+      }
+      return {
+        ok: problems.length === 0,
+        problems,
+        panels: panels.map(({ label, count, drawn, matchesPlan }) => ({
+          label,
+          count,
+          drawn,
+          matchesPlan,
+        })),
+        answerOk,
+        note: String(parsed.note ?? ""),
+      };
     } catch (e) {
       lastErr = e instanceof Error ? e.message : String(e);
     }
   }
-  return { ok: false, problems: [`검수 실패: ${lastErr}`], panels: [], note: lastErr };
+  return {
+    ok: false,
+    problems: [`검수 실패: ${lastErr}`],
+    panels: [],
+    answerOk: false,
+    note: lastErr,
+  };
 }
 
 /** 그림판을 그리고 검수한다 (저장하지 않음). 통과한 그림이 없으면 bytes = null */
 export async function drawCheckedChoiceGrid(opts: {
   prompts: string[];
+  /** 정답 번호(1~5) — 정답 칸은 정답 설명과 반드시 맞아야 통과 */
+  answerIndex?: number;
   maxRetries?: number;
   onAttempt?: (info: { attempt: number; check: ChoiceGridCheck; bytes: Buffer }) => void;
 }): Promise<{ bytes: Buffer | null; check: ChoiceGridCheck | null; attempts: number }> {
@@ -216,18 +372,19 @@ export async function drawCheckedChoiceGrid(opts: {
   }
   let prompt = buildChoiceGridPrompt(prompts);
   let last: ChoiceGridCheck | null = null;
-  const max = opts.maxRetries ?? 1;
+  const max = opts.maxRetries ?? 2;
   for (let attempt = 0; attempt <= max; attempt++) {
     const drawn = await flattenPngOnWhite(await generateImagePngBytes(prompt));
     const bytes = await overlayGridLabels(drawn);
-    const check = await verifyChoiceGrid(bytes, prompts);
+    const check = await verifyChoiceGrid(bytes, prompts, opts.answerIndex);
     last = check;
     opts.onAttempt?.({ attempt: attempt + 1, check, bytes });
     if (check.ok) return { bytes, check, attempts: attempt + 1 };
     prompt = buildChoiceGridPrompt(
       prompts,
       `PREVIOUS DRAWING FAILED QA — ${check.problems.join(", ")}. ${check.note}
-Fix exactly those problems: a 3 x 2 grid, one picture centred in each of cells 1-5, bottom-right cell empty, each cell drawn as described.`
+Fix exactly those problems: a 3 x 2 grid, one picture centred in each of cells 1-5, bottom-right area empty,
+and every cell showing EVERY detail written for it (color, shape, pattern, count, printed word).`
     );
   }
   return { bytes: null, check: last, attempts: max + 1 };

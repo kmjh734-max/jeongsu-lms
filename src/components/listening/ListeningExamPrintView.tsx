@@ -4,7 +4,13 @@ import Link from "next/link";
 import { Icon } from "@/components/layout/NavIcon";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { Button } from "@/components/ui/Button";
-import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
 import { shouldHideTextChoicesForFigure } from "@/lib/listening/figure-choice-display";
 import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
@@ -28,8 +34,8 @@ const COLUMN_WIDTH_CLASS = "w-[84mm]";
 /** 문항 간격 */
 const QUESTION_GAP_MM = 5;
 const QUESTION_GAP_MM_WITH_SCRIPT = 3;
-/** 정답지 줄 간격 — 항목이 한 줄이라 시험지보다 촘촘하게 */
-const ANSWER_GAP_MM = 1.2;
+/** 정답지 항목 간격 — 항목마다 정답 줄 + 대본 칸이라 카드가 떨어져 보이게 */
+const ANSWER_GAP_MM = 2.2;
 /** 표준 20문항 시험에서 5+5가 들어갈 때까지 줄여 보는 문항 글자 크기 */
 const QUESTION_SIZES_PT: number[] = [10, 9.7, 9.4, 9.1, 8.8, 8.5];
 const COLUMN_SAFETY_PX = 16;
@@ -99,7 +105,10 @@ function columnUsedHeight(indices: number[], heights: number[], gapPx: number) {
   return used;
 }
 
-/** 정답지 배치 — 쪽마다 두 단에 고르게 나눈다 (한 단에만 몰리지 않게) */
+/**
+ * 정답지 배치 — 실제 잰 높이대로 왼쪽 단을 채우고 넘치면 오른쪽 단, 그다음 쪽으로 넘긴다.
+ * (예전에는 두 단 몫을 모은 뒤 "개수"로 반을 갈라서, 대본이 긴 항목이 몰리면 단 아래가 잘렸다.)
+ */
 function paginateAnswerKey(
   heights: number[],
   opts: {
@@ -113,34 +122,64 @@ function paginateAnswerKey(
   const safety = opts.columnSafetyPx ?? 0;
   const pages: ExamPageLayout[] = [];
   let idx = 0;
+  let pageIndex = 0;
 
   while (idx < heights.length) {
     const max =
-      (pages.length === 0 ? opts.firstColumnMaxPx : opts.nextColumnMaxPx) -
-      safety;
-    const take: number[] = [];
-    let colUsed = 0;
-    let colNo = 1;
-    while (idx < heights.length) {
-      const need = heights[idx]! + (colUsed > 0 ? opts.questionGapPx : 0);
-      if (colUsed + need > max) {
-        if (colNo === 2) break;
-        colNo = 2;
-        colUsed = 0;
-        continue;
+      (pageIndex === 0 ? opts.firstColumnMaxPx : opts.nextColumnMaxPx) - safety;
+    const page: ExamPageLayout = { left: [], right: [] };
+
+    for (const side of ["left", "right"] as const) {
+      const col = page[side];
+      let used = 0;
+      while (idx < heights.length) {
+        const need = heights[idx]! + (col.length > 0 ? opts.questionGapPx : 0);
+        if (col.length > 0 && used + need > max) break;
+        // 한 항목이 단보다 길면 어쩔 수 없이 그 단에 혼자 담는다 (무한 루프 방지)
+        col.push(idx);
+        used += need;
+        idx++;
+        if (used > max) break;
       }
-      colUsed += need;
-      take.push(idx);
+    }
+
+    if (page.left.length === 0 && page.right.length === 0) {
+      page.left.push(idx);
       idx++;
     }
-    if (take.length === 0) {
-      take.push(idx);
-      idx++;
+    // 왼쪽만 차고 오른쪽이 비면 보기 나쁘다 — 두 단 다 들어갈 때만 뒤쪽을 옮긴다
+    if (page.right.length === 0 && page.left.length > 1) {
+      balanceAnswerColumns(page, heights, opts.questionGapPx, max);
     }
-    const half = Math.ceil(take.length / 2);
-    pages.push({ left: take.slice(0, half), right: take.slice(half) });
+    pages.push(page);
+    pageIndex++;
   }
   return pages;
+}
+
+/** 한 쪽 안에서 두 단 높이 차를 줄인다 (두 단 모두 들어갈 때만 옮긴다) */
+function balanceAnswerColumns(
+  page: ExamPageLayout,
+  heights: number[],
+  gapPx: number,
+  maxPx: number
+) {
+  while (page.left.length > 1) {
+    const candidate: ExamPageLayout = {
+      left: page.left.slice(0, -1),
+      right: [page.left[page.left.length - 1]!, ...page.right],
+    };
+    const leftH = columnUsedHeight(candidate.left, heights, gapPx);
+    const rightH = columnUsedHeight(candidate.right, heights, gapPx);
+    if (rightH > maxPx) break;
+    const before = Math.abs(
+      columnUsedHeight(page.left, heights, gapPx) -
+        columnUsedHeight(page.right, heights, gapPx)
+    );
+    if (Math.abs(leftH - rightH) >= before) break;
+    page.left = candidate.left;
+    page.right = candidate.right;
+  }
 }
 
 /** 고정 5+5 배치가 실제로 단 안에 들어가는지 (안 들어가면 높이대로 다시 채운다) */
@@ -626,8 +665,10 @@ export function ListeningExamPrintView({
               </label>
             </div>
             <p className="mt-3 text-xs text-slate-500">
-              A4 2단 · 문항 높이에 맞춰 배치 · 그림이 크면 다음 단으로 넘겨요
+              A4 한 장씩 나뉘어 보여요 · 2단 · 문항 높이에 맞춰 배치 · 그림이 크면 다음
+              단으로 넘겨요
               {resolvedPages && ` · 시험지 ${totalPages}쪽`}
+              {answerPages && ` · 답지 ${answerPages.length}쪽`}
             </p>
           </div>
         </div>
@@ -635,7 +676,7 @@ export function ListeningExamPrintView({
 
       <div
         ref={measureRef}
-        className="font-print pointer-events-none fixed -left-[200vw] top-0 opacity-0"
+        className="listening-exam-measure font-print pointer-events-none fixed -left-[200vw] top-0 opacity-0"
         aria-hidden
       >
         <div className={COLUMN_WIDTH_CLASS}>
@@ -689,7 +730,7 @@ export function ListeningExamPrintView({
         />
       </div>
 
-      <div className="mx-auto max-w-[210mm] space-y-6 py-8 print:space-y-0 print:py-0">
+      <div className="mx-auto w-full max-w-[210mm] py-8 print:py-0">
         <div
           id="listening-print-root"
           style={
@@ -799,9 +840,11 @@ function ExamSheetPage({
   const editionNo = examEditionLabel(meta.examTitle);
 
   return (
-    <article
-      className={`listening-exam-page listening-exam-sheet relative mx-auto flex h-[297mm] max-h-[297mm] min-h-[297mm] flex-col overflow-hidden bg-white shadow-lg print:shadow-none ${
-        !isLastPage && !measureOnly ? "listening-exam-page-break" : ""
+    <PrintSheetFrame
+      label={`시험지 ${pageIndex + 1} / ${totalPages}`}
+      hideLabel={measureOnly}
+      className={`${!isLastPage && !measureOnly ? "listening-exam-page-break" : ""} ${
+        isLastPage && !measureOnly ? "listening-exam-scope-end" : ""
       }`}
     >
       {isFirst ? (
@@ -887,7 +930,36 @@ function ExamSheetPage({
             : `${meta.examTitle} · 듣기 시험지`
         }
       />
-    </article>
+    </PrintSheetFrame>
+  );
+}
+
+/**
+ * A4 한 장 틀 — 화면에서는 쪽마다 이름표·그림자·테두리로 또렷이 나뉘고,
+ * 인쇄에서는 여백 없이 용지 한 장과 1:1로 맞는다 (1장 요약직보자료 인쇄와 같은 결).
+ */
+function PrintSheetFrame({
+  label,
+  hideLabel,
+  className,
+  children,
+}: {
+  label: string;
+  hideLabel?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="listening-exam-sheet-wrap">
+      {hideLabel ? null : (
+        <p className="listening-exam-sheet-caption no-print">{label}</p>
+      )}
+      <article
+        className={`listening-exam-page listening-exam-sheet relative mx-auto flex h-[297mm] max-h-[297mm] min-h-[297mm] flex-col overflow-hidden bg-white shadow-xl print:shadow-none ${className ?? ""}`}
+      >
+        {children}
+      </article>
+    </div>
   );
 }
 
@@ -976,9 +1048,12 @@ function ExamQuestionBlock({
     },
     { forStudent: true }
   );
-  // 선택지가 ①~⑤ 번호뿐인데 그림이 없으면(짧은 대화 5개·표 행) 번호만 한 줄로
-  const labelOnlyChoices =
-    isLabelOnlyChoiceSet(q.choices) && (q.choice_image_urls ?? []).filter((u) => String(u).trim()).length === 0;
+  const figureUrls = (q.choice_image_urls ?? []).filter((u) => String(u).trim());
+  // 선택지가 ①~⑤ 번호뿐이면(그림 상황에 맞는 대화·짧은 대화 5개·표 행) 번호만 한 줄로.
+  // 그림이 한 장 있어도 답을 표시할 줄은 있어야 하므로 줄을 지우지 않는다.
+  // 선택지마다 그림이 따로 있으면(그림판 여러 장) 그림 칸에 이미 번호가 있어 줄을 빼 준다.
+  const labelOnlyChoices = isLabelOnlyChoiceSet(q.choices);
+  const showChoiceMarkRow = labelOnlyChoices && figureUrls.length <= 1;
   const instruction = q.instruction?.trim();
   const numLabel = String(q.order_index).padStart(2, "0");
   const table = normalizeTableData(q.table_data);
@@ -1011,7 +1086,7 @@ function ExamQuestionBlock({
       {table ? table.kind === "flyer" ? <ExamPrintFlyer table={table} /> : <ExamPrintTable table={table} /> : null}
 
       {(() => {
-        const urls = (q.choice_image_urls ?? []).filter((u) => String(u).trim());
+        const urls = figureUrls;
         if (urls.length === 0) return null;
         // 고1 그림 불일치 등: 합성 장면 1장 (보기 ①–⑤는 그림 안)
         if (urls.length === 1) {
@@ -1046,7 +1121,7 @@ function ExamQuestionBlock({
         );
       })()}
 
-      {labelOnlyChoices ? (
+      {showChoiceMarkRow ? (
         <p className="listening-exam-choice-row">
           {q.choices.map((_, i) => (
             <span key={i} className="listening-exam-choice-mark">
@@ -1063,9 +1138,7 @@ function ExamQuestionBlock({
       }) && (
         <ul className="listening-exam-choices mt-[1mm] list-none pl-0">
           {q.choices.map((choice, i) => {
-            const urls = (q.choice_image_urls ?? []).filter((u) =>
-              String(u).trim()
-            );
+            const urls = figureUrls;
             const showInline =
               urls.length > 1 && Boolean(urls[i]?.trim());
             return (
@@ -1249,10 +1322,9 @@ function ExamAnswerKeyPage({
   const editionNo = examEditionLabel(meta.examTitle);
 
   return (
-    <article
-      className={`listening-exam-page listening-exam-sheet relative mx-auto flex h-[297mm] max-h-[297mm] min-h-[297mm] flex-col overflow-hidden bg-white shadow-lg print:shadow-none ${
-        !isLastPage ? "listening-exam-page-break" : ""
-      }`}
+    <PrintSheetFrame
+      label={`정답지 ${pageIndex + 1} / ${totalPages}`}
+      className={!isLastPage ? "listening-exam-page-break" : ""}
     >
       <header className="shrink-0">
         {isFirst ? (
@@ -1321,7 +1393,7 @@ function ExamAnswerKeyPage({
             : `${meta.examTitle} · 정답지`
         }
       />
-    </article>
+    </PrintSheetFrame>
   );
 }
 
@@ -1357,7 +1429,8 @@ function AnswerKeyColumn({
   );
 }
 
-/** 정답지 항목 — 번호·정답·선택지 글과 대본. 해설·근거는 싣지 않는다(선생님 요청: 정답지에 대본 필요). */
+/** 정답지 항목 — 번호 · 정답(①~⑤) · 정답 선택지 글, 그 아래 대본 칸.
+    해설·근거는 싣지 않는다 (선생님 요청: 정답지에는 정답과 대본만). */
 function AnswerKeyItem({
   question: q,
 }: {
@@ -1367,19 +1440,29 @@ function AnswerKeyItem({
   // 선택지가 ①~⑤ 번호뿐이면(그림 라벨·표 행·짧은 대화 5개) 번호를 두 번 쓰지 않는다
   const rawChoice = q.choices[idx] ?? "";
   const choice = /^\s*(?:[①②③④⑤]|[1-5])\s*$/.test(rawChoice) ? "" : rawChoice;
+  const blankOffset = { n: 1 };
 
   return (
     <div className="listening-exam-answer-item" data-exam-question>
-      <span className="listening-exam-answer-no">
-        {String(q.order_index).padStart(2, "0")}
-      </span>
-      <span className="listening-exam-answer-mark">
-        {answerLabel(q.correct_answer)}
-      </span>
-      <span className="listening-exam-answer-text">{choice}</span>
+      <div className="listening-exam-answer-head">
+        <span className="listening-exam-answer-no">
+          {String(q.order_index).padStart(2, "0")}
+        </span>
+        <span className="listening-exam-answer-mark">
+          {answerLabel(q.correct_answer)}
+        </span>
+        <span className="listening-exam-answer-text">{choice}</span>
+      </div>
       {q.segments.length > 0 ? (
         <div className="listening-exam-answer-script">
-          <PrintScriptPanel segments={q.segments} compact />
+          {q.segments.map((seg) => (
+            <p key={seg.id}>
+              <span className="listening-exam-answer-speaker">
+                {speakerLabel(seg.speaker_type)}
+              </span>
+              {renderScriptWithBlanks(seg.text, blankOffset)}
+            </p>
+          ))}
         </div>
       ) : null}
     </div>

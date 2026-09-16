@@ -497,13 +497,22 @@ export async function generateAndSaveChoiceImages(opts: {
   compositeLabeledFigure?: boolean;
   /** 그림 선택지 5개를 한 장(5칸)으로 합쳐 그린다 — 그림값이 1/5로 준다 */
   choiceGrid?: boolean;
+  /** 5칸 그림판의 정답 번호(1~5) — 정답 칸은 정답 설명과 맞아야 통과한다 */
+  choiceGridAnswerIndex?: number;
   figureContext?: CompositeFigureContext;
   skipIfPresent?: boolean;
   force?: boolean;
   maxLabelRetries?: number;
   /** 합성 그림 검수 결과를 시도마다 받는다 (스크립트에서 그림 확인용) */
   onAttempt?: (info: { attempt: number; check: FigureCheck; bytes: Buffer }) => void;
-}): Promise<{ urls: string[]; generated: number; skipped: boolean; check?: FigureCheck | null }> {
+}): Promise<{
+  urls: string[];
+  generated: number;
+  skipped: boolean;
+  /** 검수 재시도까지 포함해 실제로 그린 횟수 (원가 계산용) */
+  attempts?: number;
+  check?: FigureCheck | null;
+}> {
   const admin = createAdminClient();
   const prompts = (opts.prompts ?? [])
     .map((p) => String(p ?? "").trim())
@@ -531,7 +540,11 @@ export async function generateAndSaveChoiceImages(opts: {
   // 그림 선택지 5개 → 5칸 한 장 (검수 통과한 그림만 저장)
   if (opts.choiceGrid && prompts.length === 5) {
     const { drawCheckedChoiceGrid } = await import("@/lib/listening/choice-grid-figure");
-    const { bytes, check } = await drawCheckedChoiceGrid({ prompts, maxRetries: opts.maxLabelRetries ?? 1 });
+    const { bytes, check, attempts } = await drawCheckedChoiceGrid({
+      prompts,
+      answerIndex: opts.choiceGridAnswerIndex,
+      maxRetries: opts.maxLabelRetries ?? 2,
+    });
     if (!bytes) {
       throw new Error(
         `그림 검수를 통과하지 못해 저장하지 않았습니다: ${check?.problems.join(", ") || "알 수 없는 오류"}`
@@ -544,7 +557,8 @@ export async function generateAndSaveChoiceImages(opts: {
       .update({ choice_image_urls: [gridUrl] })
       .eq("id", opts.questionId);
     if (gridError) throw new Error(`choice_image_urls 저장 실패: ${gridError.message}`);
-    return { urls: [gridUrl], generated: 1, skipped: false };
+    // generated는 저장한 장수(요금 기준), attempts는 검수 재시도까지 포함한 실제 그린 횟수
+    return { urls: [gridUrl], generated: 1, attempts, skipped: false, check: null };
   }
 
   const composite =

@@ -163,6 +163,8 @@ export async function POST(req: Request) {
       questionId,
       prompts,
       choiceGrid,
+      // 정답 칸은 정답 설명과 맞아야 검수를 통과한다
+      choiceGridAnswerIndex: choiceGrid ? Number(q.correct_answer) || undefined : undefined,
       compositeLabeledFigure: composite,
       force: Boolean(body.force),
       figureContext: composite
