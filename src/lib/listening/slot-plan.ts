@@ -36,6 +36,12 @@ export interface SlotPlan {
   typeKey?: ListeningTypeKey;
   /** 유형 모듈 번호 (변형 반영) */
   code?: number;
+  /** 같은 학원·학년에서 이번이 몇 번째 회차인지 (0부터). 상황 은행을 회차마다 한 칸씩 돌려 쓴다 */
+  rotation?: number;
+  /** 이 세트에서 쓸 이름 (회차마다 다른 배역) */
+  cast?: string[];
+  /** 이 문항의 첫 대사 여는 방식 (세트마다 다르게) */
+  opener?: string;
 }
 
 type PlanSlotInput = {
@@ -66,6 +72,40 @@ const DOMAINS = [
   "수업 과제·조별 발표", "시험 공부 계획", "친구 생일·선물", "스마트폰 앱·게임", "사진·영상 만들기",
   "고장 난 물건 수리(자전거·노트북)", "방 꾸미기·이사", "동네 시장·지역 축제", "과학 관찰·자연 체험",
   "외국어·다른 나라 문화", "날씨 때문에 바뀐 계획", "분실물 찾기", "학교 급식·건강한 식습관", "수영장·체육관 이용",
+];
+
+/**
+ * 회차마다 다른 배역 이름 — 정수학원 중등 66세트의 대본에서 이름 356번 중 Minho 139번, Sora 94번으로
+ * 두 이름이 3분의 2였다. 회차 번호로 6명씩 잘라 쓰면 12회차가 지나야 같은 이름이 돌아온다.
+ */
+const CAST_NAMES = [
+  "Jiwon", "Taeho", "Boram", "Sehun", "Nayoung", "Dongha",
+  "Yerin", "Junseo", "Miyeon", "Hyunwoo", "Sunwoo", "Chaewon",
+  "Bora", "Jaehyun", "Sohee", "Woojin", "Eunbi", "Kihoon",
+  "Haeun", "Minjun", "Subin", "Doyoon", "Yujin", "Namjoo",
+  "Seoyeon", "Taerin", "Gyuri", "Jinu", "Areum", "Hansol",
+  "Dain", "Siwoo", "Yebin", "Joowon", "Nari", "Kyungmin",
+  "Somin", "Hyeonjae", "Yuna", "Seungho", "Jia", "Minseok",
+  "Eunseo", "Jaeyoon", "Hyerin", "Sungmin", "Nabin", "Taeyang",
+];
+
+/**
+ * 첫 대사를 여는 방식 — 같은 66세트에서 "Welcome to" 58번, "Good morning" 57번, "Excuse me" 46번,
+ * "Hello students" 44번으로 네 가지가 1305개 대본의 6분의 1을 차지했다. 세트마다 다른 방식을 준다.
+ */
+const OPENERS = [
+  "상대의 이름을 부르며 바로 용건을 꺼낸다",
+  "지금 보이는 것에 대한 짧은 감탄이나 소감으로 연다",
+  "질문 한 문장으로 바로 연다",
+  "방금 한 일을 알리는 문장으로 연다",
+  "상대가 하고 있는 일을 알아채고 말을 건다",
+  "걱정·놀람이 드러나는 한마디로 연다",
+  "시간·날짜를 확인하는 말로 연다",
+  "물건을 내밀거나 가리키며 연다",
+  "부탁을 꺼내기 전에 상황부터 한 문장으로 설명한다",
+  "상대의 말을 이어받듯 대답으로 연다",
+  "전화를 받은 쪽이 용건을 되묻는 말로 연다",
+  "좋은 소식을 전하는 문장으로 연다",
 ];
 
 function familyOf(grade: ListeningGradeLevel | undefined): "middle" | "high" {
@@ -150,7 +190,9 @@ function shuffle<T>(items: T[]): T[] {
  */
 export function planSlotAssignments(
   slots: PlanSlotInput[],
-  grade: ListeningGradeLevel | undefined
+  grade: ListeningGradeLevel | undefined,
+  /** 같은 학원·학년에서 이번이 몇 번째 회차인지 (0부터, 모르면 -1) */
+  rotation = -1
 ): Map<number, SlotPlan> {
   const plans = new Map<number, SlotPlan>();
   const g = grade ?? "middle1";
@@ -159,9 +201,18 @@ export function planSlotAssignments(
   let d = 0;
   const slotted = slots.filter((s) => needsAnswerSlot(base.get(s)!.code, grade));
   const positions = buildBalancedCorrectAnswerSlots(slotted.length);
+  // 회차마다 다른 배역 6명 — 이름이 Minho·Sora 둘로 쏠리던 것을 회차별로 갈라 놓는다
+  const cast =
+    rotation >= 0
+      ? Array.from({ length: 6 }, (_, i) => CAST_NAMES[(rotation * 6 + i) % CAST_NAMES.length]!)
+      : undefined;
+  let openerAt = rotation >= 0 ? rotation : Math.floor(Math.random() * OPENERS.length);
   for (const s of slots) {
     const { code } = base.get(s)!;
     const plan: SlotPlan = { code };
+    if (rotation >= 0) plan.rotation = rotation;
+    if (cast) plan.cast = cast;
+    plan.opener = OPENERS[openerAt++ % OPENERS.length]!;
     if (!hasOwnScenario(code, grade)) plan.domain = domains[d++ % domains.length];
     const pi = slotted.indexOf(s);
     if (pi >= 0) plan.answerSlot = positions[pi];
@@ -227,12 +278,14 @@ export function formatSlotPlanBlock(
   plan: SlotPlan | undefined,
   grade: ListeningGradeLevel | undefined
 ): string {
-  if (!plan || (!plan.domain && !plan.answerSlot && !plan.variant)) return "";
+  if (!plan || (!plan.domain && !plan.answerSlot && !plan.variant && !plan.opener && !plan.cast)) return "";
   // 유형 번호는 모듈 번호(프롬프트의 "N번 유형" 블록과 같은 번호) — 중2·중3은 문항 번호와 다르다
   const code = plan.code ?? slot.typeId;
   const lines = [`## ${slot.slotIndex}번 문항(유형 ${code}) 배정`];
   if (plan.domain) lines.push(`- 소재 영역: ${plan.domain} (이 영역 안에서 새로운 상황을 만든다)`);
   if (plan.answerSlot) lines.push(`- 정답 자리: ${answerSlotRule(code, grade, plan.answerSlot)}`);
   if (plan.variant) lines.push(`- 지시문 변형: ${plan.variant}`);
+  if (plan.opener) lines.push(`- 첫 대사 여는 방식: ${plan.opener} (Good morning / Welcome to / Excuse me / Hello, students 로 시작하지 않는다)`);
+  if (plan.cast?.length) lines.push(`- 이름은 이 목록에서만 고른다: ${plan.cast.join(", ")} (Minho·Sora 같은 이전 회차 이름은 쓰지 않는다)`);
   return lines.join("\n");
 }

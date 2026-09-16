@@ -10,6 +10,8 @@ export {
 export const CREDIT_FEATURES = {
   qg_generate_job: "qg_generate_job",
   listening_generate_questions: "listening_generate_questions",
+  /** 이미 있는 문항의 소재만 바꿔 만드는 비슷한 문항 (새로 만드는 값의 1/10) */
+  listening_variant_questions: "listening_variant_questions",
   listening_generate_audio: "listening_generate_audio",
   /** 듣기 그림(선택지 그림·라벨 그림) 한 장 */
   listening_generate_image: "listening_generate_image",

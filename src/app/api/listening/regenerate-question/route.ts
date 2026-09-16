@@ -11,7 +11,7 @@ import {
   findType1SubjectFromAnswer,
 } from "@/lib/listening/type1-subject-pool";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
-import { loadCurriculumAnswerUsage } from "@/lib/listening/curriculum-answer-usage";
+import { loadCurriculumVariety } from "@/lib/listening/curriculum-answer-usage";
 import { CREDIT_FEATURES } from "@/lib/credits";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { replaceGeneratedQuestion } from "@/lib/listening/persist-questions";
@@ -151,8 +151,8 @@ export async function POST(request: Request) {
     }
 
     // 같은 과정에서 이미 쓴 정답 + 이번 문항의 이전 정답은 덜 고르게 한다
-    const usedAnswers =
-      (await loadCurriculumAnswerUsage(access.admin, setId, gradeLevel))[code] ?? [];
+    const curriculum = await loadCurriculumVariety(access.admin, setId, gradeLevel);
+    const usedAnswers = curriculum.usage[code] ?? [];
     if (previousAnswer) usedAnswers.push(previousAnswer, previousAnswer);
 
     const generated = await generateSingleExamQuestion(
@@ -164,7 +164,7 @@ export async function POST(request: Request) {
       slotIndex,
       type1Regeneration,
       // 같은 유형·같은 변형(응답 방향 등)으로 다시 만든다 — 배치표 밖 유형(예전 배치)도 그대로
-      { usedAnswers, typeKey: typeKey ?? type.key, variant: variant ?? "" }
+      { usedAnswers, typeKey: typeKey ?? type.key, variant: variant ?? "", rotation: curriculum.rotation }
     );
 
     if (academyId) {

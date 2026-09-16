@@ -596,6 +596,41 @@ export function ListeningSetManageClient({
 
   // ---- 세트 ----
 
+  /**
+   * 이 세트와 비슷한 새 세트 — 문항 순서·유형·정답 자리는 그대로 두고 소재만 바꾼 회차를 만든다.
+   * 처음부터 만드는 것보다 적게 들고, 새 세트는 같은 폴더에 공개하지 않은 상태로 들어간다.
+   */
+  async function makeVariantSet() {
+    if (
+      !window.confirm(
+        `「${title}」와 비슷한 새 세트를 만들어요. 문항 순서·유형·정답 자리는 그대로 두고 이름·장소·물건·숫자만 바뀌어요. 음성과 그림은 새 세트에서 따로 만들어야 해요. 계속할까요?`
+      )
+    ) {
+      return;
+    }
+    setBusy("variant-set");
+    setMessage(null);
+    const res = await fetch("/api/listening/variant-set", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setId }),
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      setId?: string;
+      made?: number;
+      missing?: number;
+    };
+    setBusy(null);
+    if (!data.ok || !data.setId) {
+      setMessage(data.message ?? "비슷한 세트를 만들지 못했어요.");
+      return;
+    }
+    router.push(`${basePath}/${data.setId}`);
+    router.refresh();
+  }
+
   async function deleteSet() {
     if (!window.confirm(`「${title}」 세트와 문항·음성·배정을 모두 지울까요?`)) return;
     setBusy("delete");
@@ -706,6 +741,14 @@ export function ListeningSetManageClient({
             >
               <ListeningMenuItem icon="file" href={`${basePath}/${setId}/print?script=1`}>
                 대본 넣어 인쇄
+              </ListeningMenuItem>
+              <ListeningMenuDivider />
+              <ListeningMenuItem
+                icon="copy"
+                disabled={readOnly || !!busy || total === 0}
+                onClick={() => void makeVariantSet()}
+              >
+                {busy === "variant-set" ? "비슷한 세트 만드는 중…" : "이 세트와 비슷한 새 세트"}
               </ListeningMenuItem>
               <ListeningMenuDivider />
               <ListeningMenuItem

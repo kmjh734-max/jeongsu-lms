@@ -164,7 +164,14 @@ export async function listeningChatCompletion(
             message?: { content?: string };
             finish_reason?: string;
           }>;
+          usage?: { prompt_tokens?: number; completion_tokens?: number };
         };
+        // 원가를 재 볼 때만 켠다 (LISTENING_LOG_TOKENS=1) — 새로 만드는 길과 비슷한 문항 길의 값을 비교하려면 필요하다
+        if (process.env.LISTENING_LOG_TOKENS && data.usage) {
+          console.log(
+            `[listening-tokens] model=${model} in=${data.usage.prompt_tokens ?? 0} out=${data.usage.completion_tokens ?? 0}`
+          );
+        }
         return parseCompletionContent(data, model);
       }
 

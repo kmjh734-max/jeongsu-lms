@@ -5,7 +5,7 @@ import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
 import { generateListeningQuestionsWithAi } from "@/lib/listening/generate-questions";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
-import { loadCurriculumAnswerUsage } from "@/lib/listening/curriculum-answer-usage";
+import { loadCurriculumVariety } from "@/lib/listening/curriculum-answer-usage";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import type { GeneratedListeningQuestion, ListeningGenerationMode } from "@/lib/listening/types";
 import { CREDIT_FEATURES } from "@/lib/credits/charge";
@@ -97,6 +97,8 @@ export async function POST(request: Request) {
 
     const gradeLevel = await fetchListeningSetGradeLevel(setId);
 
+    // 같은 과정의 다른 회차에서 이미 쓴 정답·회차 번호
+    const variety = mode === "exam" ? await loadCurriculumVariety(admin, setId, gradeLevel) : undefined;
     const { questions: generated } = await generateListeningQuestionsWithAi(apiKey, {
       mode,
       count,
@@ -104,8 +106,8 @@ export async function POST(request: Request) {
       difficultyMode: body.difficultyMode ?? "auto",
       gradeLevel,
       // 같은 과정의 다른 회차에서 이미 쓴 정답 (한 정답이 계속 반복되지 않게)
-      usedAnswersByType:
-        mode === "exam" ? await loadCurriculumAnswerUsage(admin, setId, gradeLevel) : undefined,
+      usedAnswersByType: variety?.usage,
+      rotation: variety?.rotation ?? -1,
     });
 
     if (profile.academy_id && generated.length > 0) {

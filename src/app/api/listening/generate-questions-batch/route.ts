@@ -8,7 +8,7 @@ import {
 } from "@/lib/listening/generate-exam-from-slots";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
-import { loadCurriculumAnswerUsage } from "@/lib/listening/curriculum-answer-usage";
+import { loadCurriculumVariety } from "@/lib/listening/curriculum-answer-usage";
 import {
   clearListeningQuestionsForSet,
   persistGeneratedQuestions,
@@ -68,11 +68,12 @@ export async function POST(request: Request) {
     const gradeLevel = await fetchListeningSetGradeLevel(setId);
     const difficultyMode = body.difficultyMode ?? "auto";
 
-    // 같은 과정의 다른 회차에서 이미 쓴 정답 (한 정답이 계속 반복되지 않게)
-    const usedAnswersByType =
+    // 같은 과정의 다른 회차에서 이미 쓴 정답·회차 번호 (한 정답·상황이 계속 반복되지 않게)
+    const variety =
       mode === "exam"
-        ? await loadCurriculumAnswerUsage(access.admin, setId, gradeLevel)
+        ? await loadCurriculumVariety(access.admin, setId, gradeLevel)
         : undefined;
+    const usedAnswersByType = variety?.usage;
 
     let generated: SlotGenerationResult;
     try {
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
               slots,
               difficultyMode,
               gradeLevel,
-              { usedAnswersByType }
+              { usedAnswersByType, rotation: variety?.rotation ?? -1 }
             )
           : await generateFreeQuestionsFromSlotsSettled(apiKey, slots, gradeLevel);
     } catch (e) {

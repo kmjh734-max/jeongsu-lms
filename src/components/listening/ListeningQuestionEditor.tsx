@@ -441,6 +441,48 @@ export function ListeningQuestionEditor({
     onUpdated();
   }
 
+  /**
+   * 비슷한 문항으로 다시 만들기 — 유형·구조·정답 자리는 그대로 두고
+   * 이름·장소·물건·숫자만 바꾼 문항으로 바꿔 끼운다. 새로 만드는 것보다 적게 든다.
+   */
+  async function makeVariantQuestion() {
+    if (
+      !window.confirm(
+        `${question.order_index}번 문항과 비슷한 문항을 만들어요. 유형과 정답 자리는 그대로 두고 이름·장소·물건·숫자만 바뀌어요. 지금 대본은 바뀌고 음성은 지워져요. 계속할까요?`
+      )
+    ) {
+      return;
+    }
+    setBusy("variant");
+    setMessage(null);
+    setError(null);
+    const res = await fetch("/api/listening/variant-question", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setId, questionId: question.id }),
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      audioNeedsRegeneration?: boolean;
+      question?: Record<string, unknown>;
+    };
+    setBusy(null);
+    if (!data.ok) {
+      setError(data.message ?? "비슷한 문항을 만들지 못했어요.");
+      return;
+    }
+    if (data.question) {
+      applyQuestionToEditor(normalizeRegeneratedQuestion(data.question, question));
+    }
+    setMessage(
+      data.audioNeedsRegeneration
+        ? "비슷한 문항으로 바꿨어요. ③ 음성 만들기에서 음성도 다시 만들어 주세요."
+        : "비슷한 문항으로 바꿨어요."
+    );
+    onUpdated();
+  }
+
   async function makeImages() {
     setBusy("images");
     setMessage(null);
@@ -490,6 +532,16 @@ export function ListeningQuestionEditor({
                 저장했어요
               </span>
             ) : null}
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!!busy}
+              onClick={makeVariantQuestion}
+              title="유형과 정답 자리는 그대로 두고 이름·장소·물건·숫자만 바꿔요"
+            >
+              <Icon name="copy" size={15} />
+              {busy === "variant" ? "만드는 중…" : "비슷한 문항으로 다시 만들기"}
+            </Button>
             <Button
               variant="secondary"
               size="sm"

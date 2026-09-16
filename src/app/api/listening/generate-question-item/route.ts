@@ -12,7 +12,7 @@ import {
 } from "@/lib/listening/type1-subject-pool";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
-import { loadCurriculumAnswerUsage } from "@/lib/listening/curriculum-answer-usage";
+import { loadCurriculumVariety } from "@/lib/listening/curriculum-answer-usage";
 import { CREDIT_FEATURES } from "@/lib/credits";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
@@ -109,10 +109,9 @@ export async function POST(request: Request) {
     }
 
     // 같은 과정의 다른 회차에서 이미 쓴 정답 (한 정답이 계속 반복되지 않게)
-    const usedAnswers =
-      mode === "exam"
-        ? (await loadCurriculumAnswerUsage(access.admin, setId, gradeLevel))[code] ?? []
-        : [];
+    const curriculum =
+      mode === "exam" ? await loadCurriculumVariety(access.admin, setId, gradeLevel) : undefined;
+    const usedAnswers = curriculum?.usage[code] ?? [];
     const prevAnswer = prev?.choices?.[(prev.correct_answer ?? 1) - 1];
     if (prevAnswer) usedAnswers.push(prevAnswer, prevAnswer);
 
@@ -126,7 +125,12 @@ export async function POST(request: Request) {
             gradeLevel,
             slotIndex,
             type1Regeneration,
-            { usedAnswers, typeKey, variant: typeof body.variant === "string" ? body.variant : undefined }
+            {
+              usedAnswers,
+              typeKey,
+              variant: typeof body.variant === "string" ? body.variant : undefined,
+              rotation: curriculum?.rotation ?? -1,
+            }
           )
         : await generateSingleFreeQuestion(
             apiKey,

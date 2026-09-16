@@ -104,6 +104,8 @@ export interface GenerateQuestionsOptions {
   gradeLevel?: ListeningGradeLevel;
   /** 같은 과정(학원·학년)에서 유형별로 이미 쓴 정답 — 다양화 풀이 덜 쓴 정답부터 고른다 */
   usedAnswersByType?: Record<number, string[]>;
+  /** 같은 과정에서 이번이 몇 번째 회차인지 (0부터) — 상황·이름·첫 대사를 회차마다 돌려 쓴다 */
+  rotation?: number;
 }
 
 export interface GenerateQuestionsResult {
@@ -420,6 +422,7 @@ export async function generateListeningQuestionsWithAi(
     selectedTypeIds,
     difficultyMode = "auto",
     gradeLevel = "middle1",
+    rotation = -1,
   } = options;
   const examMode = mode === "exam";
   const baseTypes = examMode
@@ -429,7 +432,7 @@ export async function generateListeningQuestionsWithAi(
 
   // 정답·상황 다양화: 풀이 있는 유형은 정답과 소재를 미리 정해 준다 (변형·대체 유형도 여기서 정한다)
   const planSlots = examMode ? baseTypes!.map((t, i) => ({ typeId: t.id, slotIndex: i + 1 })) : [];
-  const plans = planSlotAssignments(planSlots, gradeLevel);
+  const plans = planSlotAssignments(planSlots, gradeLevel, rotation);
   const examTypes = examMode
     ? planSlots.map((s, i) => {
         const plan = plans.get(s.slotIndex);
@@ -443,7 +446,7 @@ export async function generateListeningQuestionsWithAi(
     ? [
         ...examTypes!.map((t) => {
           const code = examTypeCode(t);
-          const pick = pickAnswerVariety(code, gradeLevel, options.usedAnswersByType?.[code] ?? [], [], t.variant);
+          const pick = pickAnswerVariety(code, gradeLevel, options.usedAnswersByType?.[code] ?? [], [], t.variant, rotation);
           return pick ? formatAnswerVarietyBlock(pick, gradeLevel) : "";
         }),
         ...planSlots.map((s) => formatSlotPlanBlock(s, plans.get(s.slotIndex), gradeLevel)),
@@ -484,7 +487,7 @@ export async function generateSingleExamQuestion(
   gradeLevel: ListeningGradeLevel = "middle1",
   slotIndex?: number,
   type1Regeneration?: Type1RegenerationContext,
-  variety?: { usedAnswers?: string[]; plan?: SlotPlan; typeKey?: ListeningTypeKey; variant?: string }
+  variety?: { usedAnswers?: string[]; plan?: SlotPlan; typeKey?: ListeningTypeKey; variant?: string; rotation?: number }
 ) {
   // 소재 영역·정답 자리·변형 (세트 생성에서 넘겨받거나, 단독 생성이면 여기서 정한다)
   const planSlot = {
@@ -493,7 +496,9 @@ export async function generateSingleExamQuestion(
     typeKey: variety?.typeKey,
     variant: variety?.variant,
   };
-  const plan = variety?.plan ?? planSlotAssignments([planSlot], gradeLevel).get(planSlot.slotIndex);
+  const plan =
+    variety?.plan ??
+    planSlotAssignments([planSlot], gradeLevel, variety?.rotation ?? -1).get(planSlot.slotIndex);
   const type =
     variety?.typeKey || plan?.typeKey || plan?.variantId || variety?.variant
       ? templateForSlot(
@@ -506,7 +511,7 @@ export async function generateSingleExamQuestion(
   // 유형별 규칙은 모듈 번호로 (중2·중3은 배치표 번호와 다르다)
   const code = examTypeCode(type);
   // 같은 과정에서 덜 쓴 정답·새 소재를 미리 정한다 (재시도해도 같은 배정 유지)
-  const varietyPick = pickAnswerVariety(code, gradeLevel, variety?.usedAnswers ?? [], [], type.variant);
+  const varietyPick = pickAnswerVariety(code, gradeLevel, variety?.usedAnswers ?? [], [], type.variant, plan?.rotation ?? -1);
   const planBlock = formatSlotPlanBlock(planSlot, plan, gradeLevel);
   const varietyBlock = [
     varietyPick ? formatAnswerVarietyBlock(varietyPick, gradeLevel, slotIndex) : "",

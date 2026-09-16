@@ -178,7 +178,8 @@ function buildSlotsBatchPrompt(
       gradeLevel,
       [...(usedAnswersByType?.[code] ?? []), ...(usedInBatch[code] ?? [])],
       usedScenarios,
-      types[i]!.variant
+      types[i]!.variant,
+      plans?.get(slot.slotIndex)?.rotation ?? -1
     );
     if (!pick) return;
     (usedInBatch[code] ||= []).push(pick.answer);
@@ -415,6 +416,8 @@ export async function generateExamQuestionsFromSlots(
 export type SlotGenerationOptions = {
   /** 같은 과정(학원·학년)에서 유형 모듈 번호별로 이미 쓴 정답 — 다양화 풀이 덜 쓴 정답부터 고른다 */
   usedAnswersByType?: Record<number, string[]>;
+  /** 같은 과정에서 이번이 몇 번째 회차인지 (0부터) — 상황·이름·첫 대사를 회차마다 한 칸씩 돌려 쓴다 */
+  rotation?: number;
 };
 
 /**
@@ -450,7 +453,7 @@ export async function generateExamQuestionsFromSlotsSettled(
   if (slots.length === 1) {
     const slot = slots[0]!;
     try {
-      const plan = planSlotAssignments([slot], gradeLevel).get(slot.slotIndex);
+      const plan = planSlotAssignments([slot], gradeLevel, opts?.rotation ?? -1).get(slot.slotIndex);
       const q = await generateSingleExamQuestion(
         apiKey,
         slot.typeId,
@@ -480,7 +483,7 @@ export async function generateExamQuestionsFromSlotsSettled(
   }
 
   // 소재 영역·정답 자리는 청크를 나누기 전에 세트 전체로 정한다 (병렬 청크끼리 겹치지 않게)
-  const plans = planSlotAssignments(slots, gradeLevel);
+  const plans = planSlotAssignments(slots, gradeLevel, opts?.rotation ?? -1);
   const chunks = chunkSlots(slots);
   const chunkResults = await runWithConcurrency(
     chunks,
