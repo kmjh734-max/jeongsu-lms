@@ -22,7 +22,8 @@ const EN_STOP = new Set(
   )
 );
 
-function enStems(text: string): string[] {
+/** 내용어만 남긴 영어 어간 (검수 공용) */
+export function enStems(text: string): string[] {
   const words = String(text ?? "").match(/[A-Za-z’']{3,}/g) ?? [];
   return [
     ...new Set(
@@ -50,7 +51,8 @@ function koStems(text: string): string[] {
   ];
 }
 
-function overlapRatio(a: string[], b: string[]): number {
+/** a의 낱말 중 b에도 있는 비율 (검수 공용) */
+export function overlapRatio(a: string[], b: string[]): number {
   if (a.length === 0) return 0;
   const set = new Set(b);
   return a.filter((x) => set.has(x)).length / a.length;

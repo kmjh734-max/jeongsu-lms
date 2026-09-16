@@ -106,7 +106,7 @@ const MIDDLE_POOLS: Record<number, VarietyPool> = {
       { answer: "만족" }, { answer: "당황" }, { answer: "놀람" }, { answer: "지루함" }, { answer: "슬픔" },
     ],
     scenarios: SCHOOL_SCENES,
-    note: "감정은 가능하면 상황과 반응(What a relief! / My hands are shaking.)으로 드러내고, 정답 외 감정 1~2개도 상황상 그럴듯하게 만든다.",
+    note: "감정은 감정어 대신 몸의 반응·행동·다음에 하려는 일로 드러내고, 회차마다 다른 장치를 고른다(이 지침의 예시 문장을 그대로 옮겨 쓰지 않는다). 정답 외 감정 1~2개도 상황상 그럴듯하게 만든다. 감탄문으로 감정을 그대로 말하는 문장(What a relief! 등)은 그 감정어를 말한 것과 같으므로 쓰지 않는다.",
   },
   10: {
     answerLabel: "대화의 핵심 내용(정답)",
@@ -226,7 +226,7 @@ const MIDDLE_EMOTION_EN_POOL: VarietyPool = {
     { answer: "bored" }, { answer: "nervous" }, { answer: "grateful" }, { answer: "upset" },
   ],
   scenarios: SCHOOL_SCENES,
-  note: "선택지는 영어 감정 형용사 5개(소문자). 대상 화자는 감정 단어를 직접 말하지 않고 상황과 반응(What a relief! / My hands are shaking.)으로 드러낸다.",
+  note: "선택지는 영어 감정 형용사 5개(소문자). 대상 화자는 감정 단어를 직접 말하지 않고 몸의 반응·행동·다음에 하려는 일로 드러내며, 회차마다 다른 장치를 고른다(이 지침의 예시 문장을 그대로 옮겨 쓰지 않는다). 감탄문으로 감정을 그대로 말하는 문장(What a relief! 등)은 그 감정어를 말한 것과 같으므로 쓰지 않는다.",
 };
 
 const HIGH_POOLS: Record<number, VarietyPool> = {

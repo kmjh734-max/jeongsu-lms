@@ -732,10 +732,10 @@ const DEFS: ListeningTypeDef[] = [
     choiceFormat: "spoken_labels",
     orderBound: true,
     format_guide:
-      "Five unrelated short exchanges (①~⑤, 2 turns each). Exactly one reply misses the intent of the question (asks how long → answers where).",
+      "Five unrelated short exchanges (①~⑤, 2 turns each). Exactly one reply misses the intent of the question. Vary the mismatch each time (how much → answers when, who → answers how, why → answers where, an offer → answers with a price); do not reuse the same mismatch pair across sets.",
     segment_guide: "Segments: ANN \"Number one.\" then two lines (M/W alternate), repeated for 1~5. Nothing else.",
     choice_guide: "choices = [\"①\",\"②\",\"③\",\"④\",\"⑤\"]; correct_answer = the awkward exchange.",
-    craft: "어색한 대화: 네 쌍은 완전히 자연스럽고, 한 쌍만 질문 의도와 어긋난 대답(방법↔장소, 시간↔방향, 제안↔감사). 어색한 대답도 문법은 맞고 같은 소재 단어를 쓴다.",
+    craft: "어색한 대화: 네 쌍은 완전히 자연스럽고, 한 쌍만 질문 의도와 어긋난 대답(방법↔장소, 시간↔방향, 제안↔감사). 어색한 대답도 문법은 맞고 같은 소재 단어를 쓴다. 회차마다 어긋나는 짝을 바꾸고, \"How long …?\"에 장소로 답하는 짝은 되풀이하지 않는다.",
     tier: "standard",
   },
   {
@@ -798,7 +798,7 @@ const DEFS: ListeningTypeDef[] = [
     scriptForm: "monologue",
     choiceFormat: "en",
     format_guide:
-      "Third-person narration about two named people; ends with \"In this situation, what would A most likely say to B?\". question_text \"A: ______\".",
+      "Third-person narration about two named people; ends with \"In this situation, what would A most likely say to B?\". question_text \"A: ______\". State A's intention with different words from the correct choice - never let the narration repeat the choice's content words (if the answer is \"Please practice before ten or wear headphones.\", the narration says the late drumming keeps her brother awake, not \"she wants to ask him to practice earlier or use headphones\").",
     segment_guide: "Monologue narrator (M or W).",
     choice_guide: "5 English utterances (4~9 words). One matches the intended speech act.",
     craft: "상황 발화(중등): 배경→문제→A의 생각. A가 하려는 말의 취지는 밝히되(wants to suggest / thank …) 정답 문장과 같은 단어로 쓰지 않는다. 오답은 다른 사람이 할 말·다른 시점의 말.",

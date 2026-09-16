@@ -3,6 +3,7 @@
  * 옛 유형은 quality-check.ts의 typeId 분기가 보고, 여기서는 새 유형의 형식만 본다
  * (짧은 대화 5개 구조, 양식 빈칸, 인용 표현, 표 선택, 날짜·거스름돈, 상황에 맞는 말).
  */
+import { enStems, overlapRatio } from "@/lib/listening/answer-leak-checks";
 import { isLabelOnlyChoiceSet, numericChoiceValue } from "@/lib/listening/balance-correct-answer";
 import type { GenericQualityIssue } from "@/lib/listening/generic-quality-checks";
 import {
@@ -240,6 +241,18 @@ export function newTypeQualityIssues(
     }
     if (segs.some((s) => s.speaker !== segs[0]?.speaker)) {
       issues.push({ code: "situation_one_narrator", message: "상황 설명은 나레이터 한 명이 읽어야 합니다.", weight: 15 });
+    }
+    // 나레이션이 "그는 …해 달라고 부탁하고 싶다"를 정답 문장과 같은 말로 쓰면 듣지 않아도 답이 보인다
+    const answer = choices[q.correct_answer - 1] ?? "";
+    const answerStems = enStems(answer);
+    const narration = segs.map((s) => s.text).join(" ").replace(/in this situation.*$/i, "");
+    // 내용어가 둘뿐인 짧은 정답은 사물 이름이 겹칠 수밖에 없어(중1) 셋 이상일 때만 본다
+    if (answerStems.length >= 3 && overlapRatio(answerStems, enStems(narration)) >= 0.6) {
+      issues.push({
+        code: "situation_answer_echo",
+        message: "상황 설명이 정답 문장과 같은 단어로 의도를 말해 답이 드러납니다. 의도는 밝히되 다른 표현으로 쓰세요.",
+        weight: 10,
+      });
     }
   }
 

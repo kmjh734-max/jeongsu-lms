@@ -63,30 +63,68 @@ export function gridCellRects(width: number, height: number): GridRect[] {
 }
 
 /** 칸 안에서 흰 여백을 뺀 실제 그림 자리 (없으면 null) */
+/**
+ * 잉크 줄 수를 보고 본 그림이 있는 구간만 고른다.
+ * 그림 모델이 칸 경계를 넘겨 그리면 옆 칸 그림의 끄트머리가 이 칸에 함께 잡혀,
+ * 그 조각까지 넣어 키우는 바람에 본 그림이 칸 밖으로 밀려 잘려 보였다.
+ * 빈 줄(gap 이상)로 끊긴 덩어리 중 잉크가 가장 많은 덩어리만 남긴다.
+ */
+function mainInkRange(counts: number[], gap: number): { start: number; end: number } | null {
+  const bands: Array<{ start: number; end: number; ink: number }> = [];
+  let cur: { start: number; end: number; ink: number } | null = null;
+  let blank = 0;
+  for (let i = 0; i < counts.length; i++) {
+    const c = counts[i]!;
+    if (c > 0) {
+      if (!cur) cur = { start: i, end: i, ink: 0 };
+      cur.end = i;
+      cur.ink += c;
+      blank = 0;
+    } else if (cur) {
+      blank += 1;
+      if (blank >= gap) {
+        bands.push(cur);
+        cur = null;
+      }
+    }
+  }
+  if (cur) bands.push(cur);
+  if (bands.length === 0) return null;
+  const best = bands.reduce((a, b) => (b.ink > a.ink ? b : a));
+  return { start: best.start, end: best.end };
+}
+
 function inkBounds(
   data: Uint8ClampedArray,
   regionW: number,
   regionH: number
 ): GridRect | null {
-  let minX = regionW;
-  let minY = regionH;
-  let maxX = -1;
-  let maxY = -1;
+  const isInk = (x: number, y: number): boolean => {
+    const i = (y * regionW + x) * 4;
+    if (data[i + 3]! < 24) return false;
+    // 흰색에 가까우면 여백으로 본다
+    return !(data[i]! > 242 && data[i + 1]! > 242 && data[i + 2]! > 242);
+  };
+
+  const rows = new Array<number>(regionH).fill(0);
   for (let y = 0; y < regionH; y++) {
+    for (let x = 0; x < regionW; x++) if (isInk(x, y)) rows[y]! += 1;
+  }
+  // 가로로 끊긴 덩어리는 나누지 않는다 (사과와 우유갑처럼 한 칸에 물건 두 개가 떨어져 있을 수 있다)
+  const yRange = mainInkRange(rows, Math.max(3, Math.round(regionH * 0.04)));
+  if (!yRange) return null;
+
+  let minX = regionW;
+  let maxX = -1;
+  for (let y = yRange.start; y <= yRange.end; y++) {
     for (let x = 0; x < regionW; x++) {
-      const i = (y * regionW + x) * 4;
-      const a = data[i + 3]!;
-      if (a < 24) continue;
-      // 흰색에 가까우면 여백으로 본다
-      if (data[i]! > 242 && data[i + 1]! > 242 && data[i + 2]! > 242) continue;
+      if (!isInk(x, y)) continue;
       if (x < minX) minX = x;
       if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
     }
   }
-  if (maxX < 0 || maxY < 0) return null;
-  return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
+  if (maxX < 0) return null;
+  return { x: minX, y: yRange.start, w: maxX - minX + 1, h: yRange.end - yRange.start + 1 };
 }
 
 /**

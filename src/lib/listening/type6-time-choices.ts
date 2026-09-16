@@ -130,6 +130,15 @@ export function spelledTimesInText(text: string): string[] {
     }
     out.push(`${h}:${String(min).padStart(2, "0")}`);
   }
+  // 분을 붙이지 않은 정시("starts at four", "by six today") — 대본은 정시를 이렇게 말하는 때가 많다.
+  // "table four" 같은 번호를 시각으로 세지 않게 앞은 시간 전치사, 뒤는 문장 끝·시간 표현으로 막는다.
+  const after =
+    "(?:[.,!?;]|$|\\s+(?:o'clock|a\\.?m\\.?|p\\.?m\\.?|sharp|in|on|at|today|tomorrow|then|instead|and|but|so|or)\\b)";
+  for (const m of t.matchAll(
+    new RegExp(`\\b(?:at|by|around|until|till|before|after|from)\\s+${hour}${after}`, "g")
+  )) {
+    out.push(`${HOUR_WORDS.indexOf(m[1]!) + 1}:00`);
+  }
   for (const m of t.matchAll(/\b(\d{1,2}):(\d{2})\b/g)) out.push(`${Number(m[1])}:${m[2]}`);
   return [...new Set(out)];
 }
