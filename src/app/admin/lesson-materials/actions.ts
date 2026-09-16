@@ -151,7 +151,8 @@ export async function saveLessonMaterialsFromWizard(input: {
     .insert(rows);
   if (itemsInsertErr) return actionError(itemsInsertErr.message);
 
-  revalidatePath("/admin/lesson-materials");
+  // 저장한 지문이 자료함에 바로 보이도록 하위 경로까지 새로 고친다(첫 저장 뒤 목록이 옛것으로 보였다)
+  revalidatePath("/admin/lesson-materials", "layout");
 
   return {
     ...actionSuccess("자료가 저장되었습니다."),

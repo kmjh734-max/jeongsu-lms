@@ -408,13 +408,11 @@ export function OnePageSummarySheet({
                 <span className="op-gm" style={{ verticalAlign: 0, fontSize: "1em" }}>
                   {circledLetter(i)}
                 </span>{" "}
-                <b className="op-en">{g.right || g.target}</b>
-                {g.wrong ? (
-                  <>
-                    {" "}
-                    <span className="op-strike op-en">{g.wrong}</span>
-                  </>
-                ) : null}
+                {/* 워크북 어법 선택과 같은 표기: [정답 / 오답], 정답만 굵게 */}
+                <span className="op-en">
+                  [<b>{g.right || g.target}</b>
+                  {g.wrong ? <> / {g.wrong}</> : null}]
+                </span>
                 {g.point ? <span className="op-tag">{g.point}</span> : " "}
                 {g.explanation}
               </li>

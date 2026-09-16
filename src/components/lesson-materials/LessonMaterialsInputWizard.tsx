@@ -1121,16 +1121,18 @@ export function LessonMaterialsInputWizard({
             <Button type="button" variant="ghost" onClick={resetToStep1}>
               다시 입력
             </Button>
-            <Link
-              href={
-                role === "admin"
-                  ? "/admin/lesson-materials"
-                  : "/teacher/lesson-materials"
+            <button
+              type="button"
+              // 브라우저가 들고 있던 옛 목록이 보이지 않도록 아예 새로 연다
+              onClick={() =>
+                window.location.assign(
+                  role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials"
+                )
               }
               className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700"
             >
               자료함으로 이동
-            </Link>
+            </button>
           </div>
 
           {savedProjectId ? (
