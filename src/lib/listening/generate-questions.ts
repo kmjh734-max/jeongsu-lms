@@ -574,6 +574,15 @@ export async function generateSingleExamQuestion(
     if (!q) throw new Error("문항 생성 실패");
     lastQuestion = q;
 
+    // 해설·단서가 비면 선생님 화면에 빈칸으로 남는다(한 문항만 다시 만들 때 두 번 있었다) → 다시 만든다
+    if (String(q.explanation ?? "").trim().length < 10 || !String(q.answer_clue ?? "").trim()) {
+      problems = [
+        ...problems,
+        "explanation_missing|해설(explanation)과 정답 단서(answer_clue)를 반드시 채울 것",
+      ].slice(0, 12);
+      continue;
+    }
+
     if (code === 1 && type1Assignment) {
       const actualAnswer = q.choices[(q.correct_answer ?? 1) - 1] ?? "";
       const expected = normalizeType1AnswerLabel(type1Assignment.answer);
