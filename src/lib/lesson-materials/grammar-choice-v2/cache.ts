@@ -81,8 +81,15 @@ export function buildV2CacheKey(input: {
   };
 }
 
+/**
+ * 필드 순서와 상관없는 digest. 캐시는 lesson_pack_json(jsonb)에 저장되는데 jsonb는 객체 필드
+ * 순서를 바꿔 저장한다. 예전에는 JSON.stringify를 그대로 써서, 값이 모두 같아도 DB에서 읽은
+ * 열쇠와 새로 만든 열쇠의 digest가 달라 캐시가 한 번도 맞지 않았다(열 때마다 다시 만들고 차감).
+ */
 export function cacheKeyDigest(key: GrammarChoiceV2CacheKey): string {
-  return createHash("sha256").update(JSON.stringify(key)).digest("hex");
+  const record = key as unknown as Record<string, unknown>;
+  const ordered = Object.fromEntries(Object.keys(record).sort().map((k) => [k, record[k]]));
+  return createHash("sha256").update(JSON.stringify(ordered)).digest("hex");
 }
 
 function sameKey(a: GrammarChoiceV2CacheKey, b: GrammarChoiceV2CacheKey): boolean {

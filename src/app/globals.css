@@ -25,6 +25,7 @@
   #lesson-pack-print-root,
   #analysis-report-print-root,
   #workbook-print-root,
+  #one-page-print-root,
   #final-bundle-print-root {
     font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
       "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -2333,7 +2334,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #qg-print-root,
   #lesson-pack-print-root,
   #analysis-report-print-root,
-  #workbook-print-root {
+  #workbook-print-root,
+  #one-page-print-root {
     visibility: visible;
   }
 
@@ -2356,7 +2358,9 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #analysis-report-print-root,
   #analysis-report-print-root *,
   #workbook-print-root,
-  #workbook-print-root * {
+  #workbook-print-root *,
+  #one-page-print-root,
+  #one-page-print-root * {
     visibility: visible;
   }
 
@@ -2387,7 +2391,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #nelt-print-root,
   #lesson-pack-print-root,
   #analysis-report-print-root,
-  #workbook-print-root {
+  #workbook-print-root,
+  #one-page-print-root {
     position: absolute;
     left: 0;
     top: 0;
@@ -2407,10 +2412,26 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 
   #lesson-pack-print-root,
   #analysis-report-print-root,
-  #workbook-print-root {
+  #workbook-print-root,
+  #one-page-print-root {
     width: 210mm !important;
     max-width: 210mm !important;
     transform: none !important;
+  }
+
+  /* 1장 정리자료·1장 테스트: 쪽마다 A4 한 장. 넘치는 쪽(op-sheet--grow)은 다음 쪽으로 이어진다. */
+  .one-page-a4-sheet {
+    box-shadow: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .one-page-a4-sheet.one-page-a4-sheet--last {
+    break-after: auto;
+    page-break-after: auto;
   }
 
   .lesson-pack-a4-sheet {

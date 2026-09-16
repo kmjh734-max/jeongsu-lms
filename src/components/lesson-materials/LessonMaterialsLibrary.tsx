@@ -36,6 +36,8 @@ type LibraryTab =
   | "lesson"
   | "analysis"
   | "workbook"
+  | "onePageSummary"
+  | "onePageTest"
   | "questions"
   | "integrated";
 
@@ -44,6 +46,8 @@ const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
   { id: "lesson", label: "수업용자료" },
   { id: "analysis", label: "분석서" },
   { id: "workbook", label: "워크북" },
+  { id: "onePageSummary", label: "1장 정리자료" },
+  { id: "onePageTest", label: "1장 테스트" },
   { id: "questions", label: "변형문제" },
   { id: "integrated", label: "최종통합자료" },
 ];
@@ -209,11 +213,8 @@ export function LessonMaterialsLibrary({
       list = list.filter((p) => p.has_lesson_pack);
     } else if (libraryTab === "analysis") {
       list = list.filter((p) => p.has_analysis_report);
-    } else if (
-      libraryTab === "questions" ||
-      libraryTab === "workbook" ||
-      libraryTab === "integrated"
-    ) {
+    } else if (!["materials", "lesson", "analysis"].includes(libraryTab)) {
+      // 워크북·1장 자료·변형문제·최종통합자료 탭은 만든 파일만 보여 준다.
       list = [];
     }
 
@@ -271,16 +272,20 @@ export function LessonMaterialsLibrary({
         ? "analysis_report"
         : libraryTab === "workbook"
           ? "workbook"
-          : libraryTab === "integrated"
-            ? "integrated"
-            : null;
+          : libraryTab === "onePageSummary"
+            ? "one_page_summary"
+            : libraryTab === "onePageTest"
+              ? "one_page_test"
+              : libraryTab === "integrated"
+                ? "integrated"
+                : null;
   const tabDocuments = useMemo(
     () => (documentKind ? (data.documents ?? []).filter((d) => d.kind === documentKind) : []),
     [data.documents, documentKind]
   );
-  /** 워크북·변형문제 탭은 만든 결과만 있고 지문별 목록이 없다. */
+  /** 워크북·1장 자료·변형문제·최종통합자료 탭은 만든 결과만 있고 지문별 목록이 없다. */
   const showProjectList =
-    libraryTab !== "workbook" && libraryTab !== "questions" && libraryTab !== "integrated";
+    libraryTab === "materials" || libraryTab === "lesson" || libraryTab === "analysis";
 
   /** 폴더(또는 미분류)를 고른 채 새 자료를 추가하면 그 폴더에 들어간다. */
   const newMaterialHref =
@@ -769,7 +774,7 @@ export function LessonMaterialsLibrary({
                 ? "준비 중"
                 : libraryTab === "questions"
                   ? `${data.questionJobs.length}개의 변형문제가 있습니다.`
-                  : documentKind === "workbook"
+                  : documentKind && !showProjectList
                   ? `${tabDocuments.length}개의 파일이 있습니다.`
                   : documentKind
                     ? `파일 ${tabDocuments.length}개 · 지문 ${visibleProjects.length}개`

@@ -16,6 +16,8 @@ const KIND_LABEL: Record<LessonMaterialDocumentKind, string> = {
   analysis_report: "지문 분석서",
   workbook: "워크북",
   integrated: "통합자료",
+  one_page_summary: "1장 정리자료",
+  one_page_test: "1장 테스트",
 };
 
 const KIND_ICON: Record<LessonMaterialDocumentKind, string> = {
@@ -23,6 +25,8 @@ const KIND_ICON: Record<LessonMaterialDocumentKind, string> = {
   analysis_report: "📄",
   workbook: "📘",
   integrated: "🗂",
+  one_page_summary: "📃",
+  one_page_test: "📝",
 };
 
 function formatWhen(iso: string): string {

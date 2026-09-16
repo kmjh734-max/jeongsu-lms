@@ -19,6 +19,7 @@ const FEATURES: Record<string, FeatureInfo> = {
   lesson_workbook_grammar_choice: { label: "워크북 어법 선택", group: "워크북", unit: "지문" },
   lesson_workbook_vocab_choice: { label: "워크북 어휘 선택", group: "워크북", unit: "지문" },
   lesson_workbook_tf: { label: "워크북 T/F", group: "워크북", unit: "지문" },
+  lesson_one_page: { label: "1장 자료", group: "수업자료", unit: "지문" },
   vocab_student_monthly: { label: "단어학습 학생 이용", group: "단어·듣기 학생 이용" },
   listening_student_monthly: { label: "듣기학습 학생 이용", group: "단어·듣기 학생 이용" },
   listening_generate_questions: { label: "듣기 문항 만들기", group: "듣기 자료" },

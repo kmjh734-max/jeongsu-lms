@@ -117,8 +117,21 @@ export function LessonMaterialsSelectionBar({
             >
               🗂 최종통합자료 제작
             </button>
-            <button type="button" className={btn} disabled title="준비 중">
-              📃 1장 직보자료 제작
+            <button
+              type="button"
+              className={btn}
+              disabled={opening}
+              onClick={() => void make("one_page_summary")}
+            >
+              📃 1장 정리자료 제작
+            </button>
+            <button
+              type="button"
+              className={btn}
+              disabled={opening}
+              onClick={() => void make("one_page_test")}
+            >
+              📝 1장 테스트 제작
             </button>
           </div>
         </div>

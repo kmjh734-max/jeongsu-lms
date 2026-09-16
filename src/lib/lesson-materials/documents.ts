@@ -3,7 +3,13 @@
  * 테이블: lesson_material_documents (supabase/migrations/128).
  */
 
-export type LessonMaterialDocumentKind = "lesson_pack" | "analysis_report" | "workbook" | "integrated";
+export type LessonMaterialDocumentKind =
+  | "lesson_pack"
+  | "analysis_report"
+  | "workbook"
+  | "integrated"
+  | "one_page_summary"
+  | "one_page_test";
 
 export type LessonMaterialDocumentRow = {
   id: string;
@@ -19,6 +25,8 @@ export const DOCUMENT_NAME_PREFIX: Record<LessonMaterialDocumentKind, string> = 
   analysis_report: "지문분석서",
   workbook: "워크북",
   integrated: "통합자료",
+  one_page_summary: "1장정리자료",
+  one_page_test: "1장테스트",
 };
 
 /** 한국 시간 기준 MMDD. 서버(UTC)에서 불러도 날짜가 하루 밀리지 않는다. */
@@ -57,5 +65,7 @@ export function documentPagePath(
   if (kind === "lesson_pack") return `${base}/lesson-pack`;
   if (kind === "analysis_report") return `${base}/analysis-report`;
   if (kind === "integrated") return `${base}/final`;
+  if (kind === "one_page_summary") return `${base}/one-page-summary`;
+  if (kind === "one_page_test") return `${base}/one-page-test`;
   return `${base}/workbook`;
 }
