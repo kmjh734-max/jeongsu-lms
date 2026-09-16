@@ -60,7 +60,8 @@ export const ONE_PAGE_CSS = `
 .op-passage{text-align:justify;line-height:2.45;font-size:1.05em;margin:0}
 .op-sn{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.86em;color:#4b5563;margin-right:.18em}
 ruby.op-voc{ruby-position:under;ruby-align:center;font-weight:700;white-space:nowrap}
-ruby.op-voc rt{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.5em;font-weight:500;color:#0f766e;line-height:1.1;letter-spacing:0}
+ruby.op-voc rt{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.5em;font-weight:500;color:#0f766e;line-height:1.12;letter-spacing:0}
+ruby.op-voc rt .op-vocl{display:block;white-space:nowrap}
 .op-g{text-decoration:underline;text-decoration-color:#dc2626;text-decoration-thickness:1.4px;text-underline-offset:.2em}
 .op-x{background:#e3ecff;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .op-r{text-decoration:underline;text-decoration-style:dotted;text-decoration-color:#b45309;text-decoration-thickness:1.2px;text-underline-offset:.2em}
@@ -249,12 +250,13 @@ function RunText({ run }: { run: OnePageRun }) {
  * 주석이 낱말보다 넓으면 그만큼 낱말 양옆이 벌어지므로, 주석 글자는 본문의 절반 크기로 두고
  * 쪽 맞추기(자동 축소)가 남은 넓이를 흡수한다.
  */
-function vocabNote(v: OnePageContent["vocab"][number]): string {
+function vocabNote(v: OnePageContent["vocab"][number]): { syn: string; ant: string } {
   const syn = v.synonyms.slice(0, 2);
   const ant = v.antonyms.slice(0, 2);
-  return [syn.length ? `≒ ${syn.join(", ")}` : "", ant.length ? `↔ ${ant.join(", ")}` : ""]
-    .filter(Boolean)
-    .join(" ");
+  return {
+    syn: syn.length ? `≒ ${syn.join(", ")}` : "",
+    ant: ant.length ? `↔ ${ant.join(", ")}` : "",
+  };
 }
 
 export function OnePageSummarySheet({
@@ -370,7 +372,11 @@ export function OnePageSummarySheet({
               return (
                 <ruby key={gi} className="op-voc">
                   <span>{runs}</span>
-                  <rt>{note}</rt>
+                  {/* 동의어 한 줄, 반의어 한 줄 — 한 줄에 몰면 낱말 양옆이 벌어진다(선생님 요청) */}
+                  <rt>
+                    {note.syn ? <span className="op-vocl">{note.syn}</span> : null}
+                    {note.ant ? <span className="op-vocl">{note.ant}</span> : null}
+                  </rt>
                 </ruby>
               );
             })}{" "}

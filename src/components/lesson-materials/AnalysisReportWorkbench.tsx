@@ -149,6 +149,9 @@ function SentenceBlock({
   // 저장본을 다시 읽을 때도 같은 검사를 지나고, 원문이 바뀌었으면 표시를 버리고 옛 모양으로 돌아간다.
   const markup = readAnalysisMarkup(sentence.markup, plainEn);
   if (markup) {
+    // 예전 분석서의 추가 설명(부연설명)도 그대로 싣는다 — 선생님 요청
+    const extra =
+      (sentence.contextNote ?? "").trim() || (sentence.easyUnderstanding ?? "").trim();
     return (
       <AnalysisMarkupSentence
         markup={markup}
@@ -156,6 +159,7 @@ function SentenceBlock({
         showHead={showHead}
         pointsFrom={pointsFrom}
         pointsTo={pointsTo}
+        extraNote={extra || undefined}
       />
     );
   }

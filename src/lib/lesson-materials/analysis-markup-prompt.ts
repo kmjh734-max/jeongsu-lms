@@ -38,7 +38,11 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
    - body 1~2문장. 단서·예외를 적는다(예: "직접목적어가 it이나 them이면 4형식으로 바꿀 수 없다").
 6) translation  이 문장의 한국어 해석 한 줄. 자연스러운 한국어로, 빠뜨리는 말 없이.
    - '~다'로 끝나는 평서형으로 쓴다. '~합니다/~하세요/~해요'는 쓰지 않는다(명령문도 '~하라/~해 보라'로).
-7) tags  문장 모서리 꼬리표 0~2개. 아래 목록에서만: ${MARKUP_SENTENCE_TAGS.join(" · ")}
+7) contextNote  이 문장을 글 흐름 속에서 풀어 주는 부연 설명 한두 문장(60~110자).
+   - 이 문장이 앞뒤와 어떻게 이어지는지, 무엇을 뜻하는지 학생 말로 풀어 준다.
+   - 해석을 다시 쓰지 않는다. 문법 용어를 늘어놓지 않는다. '~다'로 끝나는 평서형.
+   - 풀어 줄 말이 마땅치 않으면 빈 문자열("")로 둔다.
+8) tags  문장 모서리 꼬리표 0~2개. 아래 목록에서만: ${MARKUP_SENTENCE_TAGS.join(" · ")}
    - "주제문"은 글의 중심 생각을 담은 문장에만. 한 지문에 한두 개다.
 
 # 구간 지정 방법 (제일 중요)
@@ -88,9 +92,10 @@ ${
 export const ANALYSIS_MARKUP_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["translation", "tags", "roles", "brackets", "notes", "points", "callouts"],
+  required: ["translation", "contextNote", "tags", "roles", "brackets", "notes", "points", "callouts"],
   properties: {
     translation: { type: "string" },
+    contextNote: { type: "string" },
     tags: { type: "array", items: { type: "string" } },
     roles: {
       type: "array",

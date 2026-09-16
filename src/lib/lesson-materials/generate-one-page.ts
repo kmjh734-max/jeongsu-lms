@@ -74,7 +74,10 @@ const VOCAB_SECTION = `[vocab] 이 지문의 뜻을 떠받치는 핵심 낱말(�
 const GRAMMAR_SECTION = `[grammar] 내신 어법 선택·수정 문제로 그대로 낼 수 있는 자리(개수는 아래 지시를 따른다. 되도록 서로 다른 code, 한 문장에 최대 2개).
 code는 아래 GRAMMAR_RULES에 있는 것만 쓴다. 각 자리는 다음을 모두 만족해야 하고, 하나라도 어기면 그 자리는 빼라.
 1) 이 문장에서 맞는 형태가 오직 하나여야 한다. 다른 형태도 문법에 맞으면 싣지 않는다. 예를 들어 주어 자리의 동명사(to부정사도 주어가 된다), 콤마 없는 관계절의 that/which, 목적격 관계대명사 생략, help 뒤의 원형/to V, 목적어절의 if/whether, 강조구문의 that/who는 모두 둘 다 되므로 금지다.
-2) 관사, 쉼표, 철자, 단수·복수 표기, 생략된 말, 조동사 뒤 동사원형(should run, would have p.p.)은 고르게 할 수 없으니 금지다.
+2) 관사, 쉼표, 철자, 단수·복수 표기, 생략된 말은 고르게 할 수 없으니 금지다.
+   동사원형만 올 수 있는 자리도 금지다: 조동사 뒤(would become/would becomes, should run/should runs),
+   to 뒤(to go/to goes), 사역·지각동사 뒤(make him go/make him goes). 이런 짝은 틀린 쪽이 영어에 아예 없는
+   말이라 시험 문항이 되지 않는다. right 안에 조동사나 to가 들어가 있어도 마찬가지로 금지다.
 3) 답을 정하는 근거가 같은 문장 안에 드러나 있어야 한다.
 4) 주어가 동사 바로 앞에 있는 인칭·수 일치(I am, you need, they feel, Humans enjoy, There are)는 시험에 나오지 않는다. 수일치는 주어와 동사 사이에 수식어구·관계절이 끼어 있을 때만 낸다.
 - code: GRAMMAR_RULES의 코드 그대로.
@@ -337,6 +340,30 @@ const LEADING_CUES = new Set([
 /** 조동사 뒤 동사원형은 시험에 낼 수 없는 자리다. */
 const MODALS = new Set(["should","would","can","could","will","shall","may","might","must","do","does","did"]);
 
+/**
+ * 동사원형만 올 수 있는 자리(조동사 뒤, to 뒤, 사역·지각동사 뒤)는 어법 문항이 되지 않는다.
+ * 그런 자리는 틀린 쪽이 영어에 아예 없는 말이라 학생이 고민하지 않는다.
+ * 선생님 지적(2026-09-17): "[would become / would becomes] 같은 얼토당토않은 어법 포인트".
+ * 바뀌는 낱말 바로 앞을 보고, 그런 자리면 싣지 않는다.
+ */
+const BARE_FORM_TRIGGERS = new Set([
+  "to","help","make","makes","made","let","lets","have","has","had","see","sees","saw","hear","hears","heard","watch","watches","watched",
+]);
+
+function inBareFormSlot(right: string, wrong: string, sentence: string, rightStart: number): boolean {
+  const words = (t: string) => t.trim().split(/\s+/).filter(Boolean);
+  const a = words(right);
+  const b = words(wrong);
+  let idx = 0;
+  while (idx < a.length && idx < b.length && a[idx]!.toLowerCase() === b[idx]!.toLowerCase()) idx++;
+  const prev =
+    idx > 0
+      ? a[idx - 1]!.toLowerCase().replace(/[^a-z'’-]/g, "")
+      : (sentence.slice(0, rightStart).match(/([A-Za-z’']+)\s*$/)?.[1] ?? "").toLowerCase();
+  if (!prev) return false;
+  return MODALS.has(prev) || BARE_FORM_TRIGGERS.has(prev);
+}
+
 /** 오답이 바른 형태와 굴절·기능어 하나만 다른지. 워크북 오답 검사에 더해 낱말 자체가 바뀐 것을 막는다. */
 function minimalFormPair(right: string, wrong: string): boolean {
   const tok = (t: string) => t.toLowerCase().replace(/[^a-z'’-]/g, "");
@@ -485,12 +512,10 @@ function checkGrammarPoint(
     if (gapTo <= gapFrom || wordCount(sentence.slice(gapFrom, gapTo)) < 2) return null;
   }
 
-  // 조동사 뒤 동사원형 자리는 시험에 낼 수 없다(should run / should ran).
-  const beforeRight = sentence.slice(0, rightStart).match(/([A-Za-z’']+)\s*$/);
-  if (beforeRight && MODALS.has(beforeRight[1]!.toLowerCase())) return null;
-
   const wrong = str1(r.wrong);
   if (!wrong || wrong.toLowerCase() === right.toLowerCase()) return null;
+  // 동사원형만 올 수 있는 자리(조동사·to·사역동사 뒤)는 고를 거리가 없다.
+  if (inBareFormSlot(right, wrong, sentence, rightStart)) return null;
   if (!minimalFormPair(right, wrong)) return null;
   if (rejectFabricatedDistractor({ pointCode: code, correct: right, wrong, sentence })) return null;
   if (validateMinimalPair({ pointCode: code, sourceSpan: right, distractor: wrong, sentence })) return null;

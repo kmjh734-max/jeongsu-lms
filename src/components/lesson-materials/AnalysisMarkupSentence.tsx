@@ -191,8 +191,11 @@ export function AnalysisMarkupSentence({
   showHead = true,
   pointsFrom = 0,
   pointsTo,
+  extraNote,
 }: {
   markup: AnalysisSentenceMarkup;
+  /** 예전 분석서의 추가 설명(부연설명). 설명 아래에 이어 붙인다. */
+  extraNote?: string;
   /** 테두리 문장과 해석을 이 쪽에 찍을지. 설명만 다음 쪽으로 이어질 때 false. */
   showHead?: boolean;
   /** 이 쪽에 찍을 번호 설명의 범위 */
@@ -223,6 +226,9 @@ export function AnalysisMarkupSentence({
     pointsFrom,
     pointsTo === undefined ? markup.points.length : pointsTo
   );
+  // 설명이 다음 쪽으로 이어질 때는 마지막 조각에만 부연 설명을 붙인다
+  const showLastSlice =
+    pointsTo === undefined || pointsTo >= markup.points.length;
 
   const cornerTags = markup.tags.filter((t) => CORNER_TAGS.has(t));
   const leadTags = markup.tags.filter((t) => !CORNER_TAGS.has(t));
@@ -236,7 +242,7 @@ export function AnalysisMarkupSentence({
           <span className="ar-tags ar-tags--lead">
             {leadTags.map((t) => (
               <span key={t} className="ar-tag ar-tag--lead">
-                {t === "주제문" ? "♥ 주제문" : t}
+                {t}
               </span>
             ))}
           </span>
@@ -300,6 +306,13 @@ export function AnalysisMarkupSentence({
             </li>
           ))}
         </ol>
+      ) : null}
+
+      {extraNote && showLastSlice ? (
+        <p className="ar-extra">
+          <span className="ar-extra-key">부연 설명</span>
+          {extraNote}
+        </p>
       ) : null}
     </section>
   );

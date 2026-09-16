@@ -734,6 +734,8 @@ export async function generateAnalysisReport(input: {
     // 분석·표시·해석은 그 문장 하나에 대해서만 한다. 실패한 문장은 표시 없이 나간다.
     const passageText = lines.map((l) => l.english.trim()).join(" ");
     const markupUsage: MarkupUsage = emptyMarkupUsage();
+    /** 문장별 부연 설명. 표시 분석 호출이 같이 받아 온다(예전 분석서의 추가 설명 자리). */
+    const markupNotes: string[] = [];
     const markupTask = runWithConcurrency(
       lines,
       MARKUP_CONCURRENCY,
@@ -749,6 +751,7 @@ export async function generateAnalysisReport(input: {
             signal: controller.signal,
             usage: markupUsage,
           });
+          if (built?.contextNote) markupNotes[i] = built.contextNote;
           return built?.markup ?? null;
         } catch {
           return null;
@@ -886,6 +889,7 @@ export async function generateAnalysisReport(input: {
 
       const contextNote =
         String(raw?.contextNote ?? "").trim() ||
+        (markupNotes[index] ?? "").trim() ||
         noteExtra?.contextNote ||
         String(raw?.easyUnderstanding ?? "").trim() ||
         "";

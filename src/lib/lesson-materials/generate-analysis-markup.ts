@@ -207,7 +207,7 @@ export type MarkupBuildReport = {
 export function buildVerifiedMarkup(
   sentence: string,
   raw: unknown
-): { markup: AnalysisSentenceMarkup; report: MarkupBuildReport } {
+): { markup: AnalysisSentenceMarkup; report: MarkupBuildReport; contextNote: string } {
   const text = String(sentence ?? "").replace(/\s+/g, " ").trim();
   const report: MarkupBuildReport = { kept: 0, dropped: [] };
   const drop = (kind: string, reason: MarkupDropReason, t: unknown) => {
@@ -224,7 +224,7 @@ export function buildVerifiedMarkup(
     translation: "",
     tags: [],
   };
-  if (!text || !raw || typeof raw !== "object") return { markup: empty, report };
+  if (!text || !raw || typeof raw !== "object") return { markup: empty, report, contextNote: "" };
   const o = raw as Record<string, unknown>;
 
   /** 괄호·문장성분만 구간을 감싼다. 서로 반쯤 걸치면 괄호를 칠 수 없어 뒤의 것을 버린다. */
@@ -411,9 +411,13 @@ export function buildVerifiedMarkup(
   report.kept =
     brackets.length + roles.length + points.length + notes.length + callouts.length;
 
+  // 예전 분석서에 있던 추가 설명(부연설명). 문장에 실어 보낸다.
+  const contextNote = String(o.contextNote ?? "").replace(/\s+/g, " ").trim().slice(0, 220);
+
   return {
     markup: { text, roles, brackets, notes, points, callouts, translation, tags },
     report,
+    contextNote,
   };
 }
 
@@ -444,7 +448,11 @@ export async function generateSentenceMarkup(input: {
   koreanHint?: string | null;
   signal: AbortSignal;
   usage?: MarkupUsage;
-}): Promise<{ markup: AnalysisSentenceMarkup; report: MarkupBuildReport } | null> {
+}): Promise<{
+  markup: AnalysisSentenceMarkup;
+  report: MarkupBuildReport;
+  contextNote: string;
+} | null> {
   const called = await callMarkup({
     apiKey: input.apiKey,
     user: buildAnalysisMarkupUserPrompt({
