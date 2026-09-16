@@ -20,7 +20,7 @@ import {
 } from "@/lib/lesson-materials/workbook-types";
 
 /** 재료 형식이 바뀌면 올린다. 옛 형식 재료는 열 때 한 번 새로 만든다. */
-export const ONE_PAGE_CONTENT_VERSION = "op-7";
+export const ONE_PAGE_CONTENT_VERSION = "op-8";
 
 /** 시험지 어법 선택·어휘 선택 문항 수(양식: 10문항씩) */
 export const ONE_PAGE_CHOICE_MAX = 10;
@@ -90,15 +90,31 @@ export type OnePageReference = {
 /** 이 지문으로 낼 만한 시험 유형 표시(빈칸 추론·문장 삽입·순서 배열·요약문 빈칸) */
 export type OnePageExamPointKind = "blank" | "insert" | "order" | "summary";
 
-/** 유력 출제 자리. 본문에 작은 표시를 남기고 "출제 포인트" 줄에 한 줄씩 적는다. */
+/**
+ * 유력 출제 자리. 본문에 표시를 남기고 "출제 포인트"에 문제 꼴·정답까지 한 줄씩 적는다.
+ * 선생님 지적("출제포인트가 너무 모호하다")에 따라 유형마다 실제 문항이 되는 값을 함께 담는다.
+ */
 export type OnePageExamPoint = {
   kind: OnePageExamPointKind;
-  /** 0부터 센 문장 번호. insert·order는 이 문장 "앞"이 경계다. */
+  /**
+   * 0부터 센 문장 번호. blank는 네모 칠 어구가 있는 문장, insert는 <보기>로 빼낼 문장,
+   * order는 첫 경계 문장(그 문장 앞에서 덩어리가 갈린다), summary는 그 내용이 나온 문장.
+   */
   sentenceIndex: number;
-  /** blank는 본문에 나온 그대로의 어구, summary는 요약문의 어구. insert·order는 빈 문자열. */
+  /** blank는 본문에 나온 그대로의 어구(네모로 칠한다), summary는 요약문의 어구. 나머지는 빈 문자열. */
   target: string;
   /** 왜 이 자리가 나올 만한지 한국어 한 줄 */
   reasonKo: string;
+  /** 빈칸 추론: 학생이 고를 만한 오답 방향(한국어 짧은 구 1~2개) */
+  distractorsKo?: string[];
+  /** 문장 삽입: 지문에서 빼내어 <보기>로 주는 문장(지문 그대로) */
+  insertSentence?: string;
+  /** 순서 배열: 덩어리가 시작하는 문장 번호(0부터, 오름차순). 첫 덩어리는 주어진 글이다. */
+  splitIndexes?: number[];
+  /** 순서 배열: 지문 순서대로 놓인 덩어리에 붙는 (A)(B)(C) 라벨. 이어 읽으면 정답 순서가 된다. */
+  orderLabels?: string[];
+  /** 요약문 빈칸: 요약문에서 빈칸으로 낼 두 낱말(요약문에 그대로 있는 어구) */
+  summaryWords?: string[];
 };
 
 export type OnePageTfItem = { statement: string; answer: "T" | "F" };
@@ -724,6 +740,28 @@ export const EXAM_POINT_MARKS: Record<OnePageExamPointKind, { mark: string; labe
   order: { mark: "‖", labelKo: "순서 배열" },
   summary: { mark: "≡", labelKo: "요약문 빈칸" },
 };
+
+/** 그 자체로는 아무것도 가리켜 주지 못하는 말(가리키는 대상이 이런 말뿐이면 풀이가 안 된다). */
+const EMPTY_WORDS = new Set([
+  "the","a","an","this","that","these","those","such","it","its","they","them","their","he","him",
+  "his","she","her","we","us","our","you","your","i","me","my","one","ones","other","others","another",
+  "thing","things","something","anything","everything","nothing","some","any","all","both","each",
+  "of","in","on","at","to","for","and","or","but","is","are","was","were","be","been",
+]);
+
+/** 가리키는 대상이 실제로 무엇인지 이름을 대 주는 말인지(내용어가 하나라도 있어야 한다). */
+export function namesSomething(referent: string): boolean {
+  return referent
+    .split(/\s+/)
+    .map((w) => w.toLowerCase().replace(/[^a-z'’-]/g, ""))
+    .some((w) => w.length >= 2 && !EMPTY_WORDS.has(w));
+}
+
+/** 두 어구가 사실상 같은 말인지(대소문자·문장부호만 다른 것). */
+export function sameWords(a: string, b: string): boolean {
+  const cut = (t: string) => t.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+  return cut(a) === cut(b);
+}
 
 /** 지칭어 표시 번호(본문에는 위첨자로 작게 붙인다). 문장 번호 ①②③과 겹치지 않게 그냥 숫자를 쓴다. */
 export function referenceMark(i: number): string {

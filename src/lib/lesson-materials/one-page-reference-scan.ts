@@ -73,6 +73,9 @@ const SHELL_NOUNS = new Set([
   "system","conclusion","view","opposite","latter","former","others","rest","same","efforts","effort",
 ]);
 
+/** 명사 자리를 대신 받는 말(the large ones, the others). 이 말이 오면 the+명사도 지칭으로 본다. */
+const PRONOUN_HEADS = new Set(["ones", "one", "others", "other", "latter", "former", "rest"]);
+
 /** 가주어·가목적어·날씨/시간의 it(가리킬 말이 없으므로 지칭 문제가 되지 않는다) */
 const DUMMY_IT_AFTER =
   /^\s+(?:is|was|'s|’s|seems|seemed|appears|appeared|becomes|became|remains|remained|takes|took|turns out|turned out|feels|felt|matters|helps|pays|makes sense)\b[^.;:!?]*?\b(?:to\s+[a-z]+|that\s+[a-z]+|whether|how|why|when)\b/i;
@@ -89,15 +92,6 @@ export type ReferenceCandidate = {
   /** 그 문장에서 같은 말이 몇 번째로 나왔는지(0부터) */
   occurrence: number;
 };
-
-/** 낱말 하나의 어근을 대충 자른다(the + 명사가 앞에 나온 말을 받는지 볼 때 쓴다). */
-function stem(word: string): string {
-  return word
-    .toLowerCase()
-    .replace(/[^a-z]/g, "")
-    .replace(/(?:ies|es|s)$/, "")
-    .replace(/(?:ing|ed)$/, "");
-}
 
 /**
  * 한정사 뒤의 명사구 길이(낱말 수). 형용사처럼 보이는 말은 지나쳐 뒤의 명사까지 묶는다
@@ -122,15 +116,13 @@ function nounPhraseWords(words: string[], from: number, joined: (k: number) => b
  * 지문에서 지칭 표현 후보를 모두 뽑는다(문장 순서, 문장 안 자리 순서).
  * - 대명사(it, they, their, one, such…)와 앞말을 받는 명사구(this/that/these/those/such/the + 명사)
  * - 가주어·가목적어 it, 날씨·시간의 it, I·you·we는 뺀다.
- * - the + 명사는 그 명사(어근)가 앞 문장에 이미 나왔을 때만 후보로 둔다(첫 언급의 the는 지칭이 아니다).
+ * - the + 명사는 앞 내용을 받는 껍데기 명사(the answer)와 the large ones 꼴만 둔다.
  */
 export function scanReferenceCandidates(sentences: string[]): ReferenceCandidate[] {
   const out: ReferenceCandidate[] = [];
-  const seenStems = new Set<string>();
   sentences.forEach((sentence, sentenceIndex) => {
     const taken: Array<{ start: number; end: number }> = [];
     const counts = new Map<string, number>();
-    const stemsHere: string[] = [];
     // 낱말과 그 자리
     const tokens: Array<{ text: string; start: number; end: number }> = [];
     const re = /[A-Za-z][A-Za-z'’-]*/g;
@@ -154,13 +146,22 @@ export function scanReferenceCandidates(sentences: string[]): ReferenceCandidate
         if (words2 > 0) end = tokens[i + words2]!.end;
       }
 
-      // the는 명사구일 때만 본다. 앞에 같은 말이 나왔거나(the story) 앞 내용을 받는 껍데기
-      // 명사일 때만(the answer, the latter) 지칭으로 본다.
+      /**
+       * the + 명사는 넣지 않는다. 2026-09-16 선생님 지적("지칭정리가 제대로 못하고있어 이상해"):
+       * 앞에 같은 낱말이 있다는 것만으로 후보에 넣었더니 the tension·the rhythm처럼 같은 낱말이
+       * 여러 번 나오는 지문에서 엉뚱한 앞말을 가리키는 항목이 자꾸 실렸다. 앞 내용을 통째로 받는
+       * 껍데기 명사(the answer, the latter)와 ones·others로 받는 말만 남긴다.
+       */
       if (lower === "the") {
         if (words2 === 0 || sentenceIndex === 0) return;
         const headWord = words[i + words2]!.toLowerCase().replace(/[^a-z]/g, "");
-        const head = stem(headWord);
-        if (!(head && seenStems.has(head)) && !SHELL_NOUNS.has(headWord)) return;
+        const next = words[i + words2 + 1]?.toLowerCase().replace(/[^a-z]/g, "") ?? "";
+        if (PRONOUN_HEADS.has(next)) {
+          // the large ones: 명사 자리를 대명사가 받는다. 그 말까지 묶는다.
+          end = tokens[i + words2 + 1]!.end;
+        } else if (!PRONOUN_HEADS.has(headWord) && !SHELL_NOUNS.has(headWord)) {
+          return;
+        }
       }
       // 홀로 선 this·that은 뒤에 동사가 올 때만 본다(접속사·관계사의 that을 거른다).
       if ((lower === "that" || lower === "this" || lower === "such") && words2 === 0) {
@@ -185,11 +186,6 @@ export function scanReferenceCandidates(sentences: string[]): ReferenceCandidate
       out.push({ sentenceIndex, surface, start: tok.start, end, occurrence });
     });
 
-    for (const w of words) {
-      const st = stem(w);
-      if (st.length >= 3) stemsHere.push(st);
-    }
-    for (const st of stemsHere) seenStems.add(st);
   });
   return out;
 }

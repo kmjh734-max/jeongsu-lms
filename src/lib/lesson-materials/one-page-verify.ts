@@ -15,7 +15,7 @@ import {
   isUnsupportedTemperatureError,
   studentRecordModelSupportsTemperature,
 } from "@/lib/student-records/model";
-import { findPhrase } from "@/lib/lesson-materials/one-page";
+import { findPhrase, namesSomething, sameWords } from "@/lib/lesson-materials/one-page";
 import type {
   OnePageGrammarPoint,
   OnePageParaphrase,
@@ -70,9 +70,9 @@ Return only JSON.`;
 
 const REFERENCE_PROMPT = `You check reference expressions on a Korean high-school English study sheet ("what does the underlined it refer to?").
 For each item you get: passage (the numbered sentences), sentenceNo, surface (the reference expression as it appears in that sentence) and referent (what the sheet says it points back to). The sheet prints English only, so ignore any Korean gloss.
-- refersCorrectly: true only if, reading the passage, "surface" in that sentence really points back to "referent". A plausible but wrong antecedent, or a referent taken from a later sentence, is false.
-- worthAsking: false when the expression is not really a reference a test would ask about (a fixed phrase such as "it is important to", an "it" that is a dummy subject or object, "the" in a first mention, a generic "this" that points at nothing in the passage).
-- fixedReferent: when refersCorrectly is false but a correct antecedent exists in an EARLIER sentence, copy it exactly from the passage; otherwise "".
+- refersCorrectly: true only if, reading the passage, "surface" in that sentence really points back to "referent". A plausible but wrong antecedent, a referent taken from a later sentence, an earlier mention of the same noun that is not the one this expression picks up ("the rhythm" of the prelude answered with "a very comfortable rhythm" from the opening), a referent that only repeats the expression itself, or a referent that is another pronoun or a vague phrase ("these things", "something") is false.
+- worthAsking: false when the expression is not really a reference a test would ask about (a fixed phrase such as "it is important to", an "it" that is a dummy subject or object, "the" in a first mention, or a generic "this" that points at nothing in the passage). A pronoun with a clear antecedent is always worth asking, even when the antecedent stands in the same sentence.
+- fixedReferent: when refersCorrectly is false but a correct antecedent exists in an EARLIER sentence, copy it exactly from the passage; take the nearest earlier wording that names the thing, never another pronoun and never the same words as the expression; otherwise "".
 - A referent may be a whole earlier sentence or clause when "this", "that" or "so" points at the whole idea; in that case it must be copied from the passage word for word.
 - fixedMeaningKo: always "" (the sheet prints no Korean here).
 Return only JSON.`;
@@ -91,6 +91,8 @@ async function callJson(input: {
   user: string;
   schemaName: string;
   schema: Record<string, unknown>;
+  /** 되묻기만 하는 갈래(동·반의어·해석)는 추론을 줄여 더 빨리 받는다. */
+  effort?: "minimal" | "low";
   signal: AbortSignal;
 }): Promise<Called | null> {
   const model = resolveOnePageVerifyModel();
@@ -112,7 +114,7 @@ async function callJson(input: {
     if (includeTemperature) body.temperature = 0;
     if (isGpt5FamilyModel(model)) {
       body.max_completion_tokens = 12_000;
-      if (includeReasoning) body.reasoning_effort = "low";
+      if (includeReasoning) body.reasoning_effort = input.effort ?? "low";
     } else {
       body.max_tokens = 3_000;
     }
@@ -200,33 +202,48 @@ export type OnePageVerifyResult = {
   notes: string[];
 };
 
+const emptyUsage = (): VerifyUsage => ({ inputTokens: 0, outputTokens: 0, calls: 0 });
+
+/** 갈래 하나를 몇 조각으로 나눠 동시에 묻고, 돌아온 답을 id로 모은다. 답이 하나도 없으면 null. */
+async function askInChunks<T>(input: {
+  items: T[];
+  size: number;
+  usage: VerifyUsage;
+  call: (part: T[]) => Promise<Called | null>;
+}): Promise<Map<string, Record<string, unknown>> | null> {
+  if (input.items.length === 0) return null;
+  const done = await Promise.all(chunked(input.items, input.size).map((part) => input.call(part)));
+  const rows: Array<Record<string, unknown>> = [];
+  let any = false;
+  for (const r of done) {
+    if (!r) continue;
+    any = true;
+    input.usage.calls += 1;
+    input.usage.inputTokens += r.inputTokens;
+    input.usage.outputTokens += r.outputTokens;
+    rows.push(...parseRows(r.text));
+  }
+  return any ? new Map(rows.map((row) => [clean(row.id), row] as const)) : null;
+}
+
 /**
- * 어법·동반의어·지칭어·해석을 검수한다. 호출이 실패하면 그 갈래는 원래 재료를 그대로 둔다
- * (검수 때문에 자료를 못 만드는 일이 없게 한다).
+ * 어법 검수: 두 형태가 다 맞거나 설명이 틀린 자리는 버린다(고쳐 준 설명이 있으면 고쳐 쓴다).
+ * 만드는 호출이 조각으로 돌아오는 대로 바로 부른다(만들기가 다 끝나기를 기다리지 않는다).
  */
-export async function verifyOnePageMaterial(input: {
+export async function verifyOnePageGrammar(input: {
   apiKey: string;
   sentences: string[];
   grammar: OnePageGrammarPoint[];
-  vocab: OnePageVocabNote[];
-  references: OnePageReference[];
-  paraphrases: OnePageParaphrase[];
-  summaryEn: string;
-  summaryKo: string;
   signal: AbortSignal;
-}): Promise<OnePageVerifyResult> {
-  const usage: VerifyUsage = { inputTokens: 0, outputTokens: 0, calls: 0 };
+}): Promise<{ grammar: OnePageGrammarPoint[]; usage: VerifyUsage; notes: string[] }> {
+  const usage = emptyUsage();
   const notes: string[] = [];
   const sentenceOf = (i: number) => input.sentences[i] ?? "";
-  const passage = input.sentences.map((en, i) => `${i + 1}. ${en}`).join("\n");
-
-  type Kind = "grammar" | "vocab" | "reference" | "translation";
-  const tasks: Array<{ kind: Kind; call: Promise<Called | null> }> = [];
-  const add = (kind: Kind, call: Promise<Called | null>) => tasks.push({ kind, call });
-
-  for (const part of chunked(input.grammar.map((g, i) => ({ g, i })), 5)) {
-    add(
-      "grammar",
+  const byId = await askInChunks({
+    items: input.grammar.map((g, i) => ({ g, i })),
+    size: 2,
+    usage,
+    call: (part) =>
       callJson({
         apiKey: input.apiKey,
         system: GRAMMAR_PROMPT,
@@ -256,13 +273,51 @@ export async function verifyOnePageMaterial(input: {
           }),
         }),
         signal: input.signal,
-      })
-    );
-  }
+      }),
+  });
+  if (!byId) return { grammar: input.grammar, usage, notes };
+  const grammar = input.grammar.flatMap((g, i) => {
+    const row = byId.get(String(i));
+    if (!row) return [g];
+    if (row.rightOk === false || row.onlyOneCorrect === false || row.wrongIsRealForm === false) {
+      notes.push(`어법 버림(둘 다 되거나 오답이 없는 형태): ${g.right} / ${g.wrong} · ${g.point}`);
+      return [];
+    }
+    if (row.spanCoversPoint === false) {
+      notes.push(`어법 버림(밑줄이 설명과 안 맞음): ${g.target}`);
+      return [];
+    }
+    const point = clean(row.fixedPointKo) || g.point;
+    if (point !== g.point) notes.push(`어법 이름 고침: ${g.point} → ${point}`);
+    if (row.explanationTrue === false) {
+      const fixed = clean(row.fixedExplanationKo);
+      if (!fixed) {
+        notes.push(`어법 버림(설명 틀림): ${g.right} · ${g.explanation}`);
+        return [];
+      }
+      notes.push(`어법 설명 고침: ${g.explanation} → ${fixed}`);
+      return [{ ...g, explanation: fixed, point }];
+    }
+    return [{ ...g, point }];
+  });
+  return { grammar, usage, notes };
+}
 
-  for (const part of chunked(input.vocab.map((v, i) => ({ v, i })), 8)) {
-    add(
-      "vocab",
+/** 동·반의어 검수: 문맥·품사에 맞지 않는 것을 빼고, 논지를 가르는 낱말이 앞에 오게 줄을 세운다. */
+export async function verifyOnePageVocab(input: {
+  apiKey: string;
+  sentences: string[];
+  vocab: OnePageVocabNote[];
+  signal: AbortSignal;
+}): Promise<{ vocab: OnePageVocabNote[]; usage: VerifyUsage; notes: string[] }> {
+  const usage = emptyUsage();
+  const notes: string[] = [];
+  const sentenceOf = (i: number) => input.sentences[i] ?? "";
+  const byId = await askInChunks({
+    items: input.vocab.map((v, i) => ({ v, i })),
+    size: 4,
+    usage,
+    call: (part) =>
       callJson({
         apiKey: input.apiKey,
         system: VOCAB_PROMPT,
@@ -277,6 +332,7 @@ export async function verifyOnePageMaterial(input: {
           })),
         }),
         schemaName: "one_page_vocab_check",
+        effort: "minimal",
         schema: obj({
           results: listOf({
             id: str,
@@ -288,13 +344,80 @@ export async function verifyOnePageMaterial(input: {
           }),
         }),
         signal: input.signal,
-      })
-    );
-  }
+      }),
+  });
+  if (!byId) return { vocab: input.vocab, usage, notes };
+  /**
+   * 너무 쉬운 낱말이라 빼는 것은 남는 낱말이 넉넉할 때만 한다. 검수가 까다롭게 굴어 정리자료의
+   * 낱말이 서너 개로 줄면 본문 아래 동·반의어가 텅 비어 보인다.
+   */
+  const easyCount = input.vocab.filter((_, i) => byId.get(String(i))?.worthTeaching === false).length;
+  const dropEasy = Math.max(0, input.vocab.length - easyCount) >= MIN_KEEP_VOCAB ? easyCount : 0;
+  let easyDropped = 0;
+  let vocab = input.vocab.flatMap((v, i) => {
+    const row = byId.get(String(i));
+    if (!row) return [v];
+    if (row.worthTeaching === false && easyDropped < dropEasy) {
+      easyDropped += 1;
+      notes.push(`어휘 버림(가르칠 낱말이 아님): ${v.surface}`);
+      return [];
+    }
+    const list = (raw: unknown, max: number) => {
+      const out: string[] = [];
+      for (const item of Array.isArray(raw) ? raw : []) {
+        const word = clean(item);
+        if (!word || word.toLowerCase() === v.surface.toLowerCase()) continue;
+        if (out.some((o) => o.toLowerCase() === word.toLowerCase())) continue;
+        out.push(word);
+        if (out.length >= max) break;
+      }
+      return out;
+    };
+    const synonyms = list(row.keepSynonyms, 2);
+    const antonyms = list(row.keepAntonyms, 2);
+    if (synonyms.length === 0 && antonyms.length === 0) {
+      notes.push(`어휘 버림(동·반의어 없음): ${v.surface}`);
+      return [];
+    }
+    const meaningKo = clean(row.meaningKoFixed) || v.meaningKo;
+    if (meaningKo !== v.meaningKo) notes.push(`뜻 고침: ${v.surface} ${v.meaningKo} → ${meaningKo}`);
+    if (synonyms.join("|") !== v.synonyms.join("|") || antonyms.join("|") !== v.antonyms.join("|")) {
+      notes.push(`동·반의어 고침: ${v.surface}`);
+    }
+    return [{ ...v, meaningKo, synonyms, antonyms }];
+  });
+  /**
+   * 선생님 요청: 어려운 낱말이 아니라 논지를 가르는 낱말을 싣는다. 검수가 매긴 pivotal(0~5)과
+   * "진짜 반대말이 있는지"로 줄을 세워, 자리가 모자랄 때 반의어가 빈 낱말부터 밀려나게 한다.
+   */
+  const scoreOf = (v: OnePageVocabNote) => {
+    const i = input.vocab.findIndex((x) => x === v || x.surface === v.surface);
+    const row = i >= 0 ? byId.get(String(i)) : undefined;
+    const pivotal = Math.max(0, Math.min(5, Math.floor(Number(row?.pivotal ?? 3)) || 0));
+    return pivotal * 2 + (v.antonyms.length > 0 ? 3 : 0);
+  };
+  vocab = vocab
+    .map((v, i) => ({ v, i, score: scoreOf(v) }))
+    .sort((a, b) => b.score - a.score || a.i - b.i)
+    .map((row) => row.v);
+  return { vocab, usage, notes };
+}
 
-  for (const part of chunked(input.references.map((r, i) => ({ r, i })), 8)) {
-    add(
-      "reference",
+/** 지칭 검수: 가리키는 대상이 틀리면 고치고, 고칠 수 없으면 버린다(틀린 지칭은 없느니만 못하다). */
+export async function verifyOnePageReferences(input: {
+  apiKey: string;
+  sentences: string[];
+  references: OnePageReference[];
+  signal: AbortSignal;
+}): Promise<{ references: OnePageReference[]; usage: VerifyUsage; notes: string[] }> {
+  const usage = emptyUsage();
+  const notes: string[] = [];
+  const passage = input.sentences.map((en, i) => `${i + 1}. ${en}`).join("\n");
+  const byId = await askInChunks({
+    items: input.references.map((r, i) => ({ r, i })),
+    size: 4,
+    usage,
+    call: (part) =>
       callJson({
         apiKey: input.apiKey,
         system: REFERENCE_PROMPT,
@@ -319,184 +442,122 @@ export async function verifyOnePageMaterial(input: {
           }),
         }),
         signal: input.signal,
-      })
-    );
-  }
+      }),
+  });
+  if (!byId) return { references: input.references, usage, notes };
+  const references = input.references.flatMap((ref, i) => {
+    const row = byId.get(String(i));
+    if (!row) return [ref];
+    if (row.worthAsking === false) {
+      notes.push(`지칭 버림(물을 자리가 아님): ${ref.surface}`);
+      return [];
+    }
+    const meaningKo = clean(row.fixedMeaningKo) || ref.meaningKo;
+    if (row.refersCorrectly === false) {
+      // 고쳐 준 대상도 앞 문장에 그대로 있어야 쓴다(지어낸 답은 버린다).
+      const fixed = clean(row.fixedReferent);
+      // 고쳐 준 답도 이름을 대 주는 말이어야 하고, 지칭어와 같은 말이면 풀이가 되지 않는다.
+      const usable = fixed && namesSomething(fixed) && !sameWords(fixed, ref.surface);
+      const at = usable ? locateReferent(input.sentences, fixed, ref.sentenceIndex) : null;
+      if (!at) {
+        notes.push(`지칭 버림(가리키는 대상이 틀림): ${ref.surface} → ${ref.referent}`);
+        return [];
+      }
+      notes.push(`지칭 고침: ${ref.surface} ${ref.referent} → ${at.referent}`);
+      return [{ ...ref, referent: at.referent, referentSentenceIndex: at.sentenceIndex, meaningKo }];
+    }
+    if (meaningKo !== ref.meaningKo) notes.push(`지칭 뜻 고침: ${ref.surface}`);
+    return [{ ...ref, meaningKo }];
+  });
+  return { references, usage, notes };
+}
 
-  const translationItems = [
+/** 해석 검수: 요약문 해석과 바꿔 쓰기 표현의 뜻. */
+export async function verifyOnePageTranslations(input: {
+  apiKey: string;
+  summaryEn: string;
+  summaryKo: string;
+  paraphrases: OnePageParaphrase[];
+  signal: AbortSignal;
+}): Promise<{
+  summaryKo: string;
+  paraphrases: OnePageParaphrase[];
+  usage: VerifyUsage;
+  notes: string[];
+}> {
+  const usage = emptyUsage();
+  const notes: string[] = [];
+  const items = [
     { id: "summary", en: input.summaryEn, ko: input.summaryKo },
     ...input.paraphrases.map((p, i) => ({ id: `p${i}`, en: p.expression, ko: p.meaningKo })),
   ].filter((it) => it.en && it.ko);
-
-  if (translationItems.length) {
-    add(
-      "translation",
+  const byId = await askInChunks({
+    items,
+    size: Math.max(1, items.length),
+    usage,
+    call: (part) =>
       callJson({
         apiKey: input.apiKey,
         system: TRANSLATION_PROMPT,
-        user: JSON.stringify({ items: translationItems }),
+        user: JSON.stringify({ items: part }),
         schemaName: "one_page_translation_check",
+        effort: "minimal",
         schema: obj({ results: listOf({ id: str, ok: bool, fixed: str }) }),
         signal: input.signal,
-      })
-    );
-  }
-
-  const done = await Promise.all(tasks.map((t) => t.call));
-  for (const r of done) {
-    if (!r) continue;
-    usage.calls += 1;
-    usage.inputTokens += r.inputTokens;
-    usage.outputTokens += r.outputTokens;
-  }
-  /** 갈래별로 돌아온 답을 번호로 모은다. 답이 하나도 없으면 그 갈래는 원래 재료를 그대로 둔다. */
-  const answersOf = (kind: Kind): Map<string, Record<string, unknown>> | null => {
-    const rows = tasks.flatMap((t, i) => (t.kind === kind && done[i] ? parseRows(done[i]!.text) : []));
-    const any = tasks.some((t, i) => t.kind === kind && done[i]);
-    return any ? new Map(rows.map((row) => [clean(row.id), row] as const)) : null;
-  };
-  const grammarRows = answersOf("grammar");
-  const vocabRows = answersOf("vocab");
-  const referenceRows = answersOf("reference");
-  const translationRows = answersOf("translation");
-
-  // ---- 어법: 둘 다 맞거나 설명이 틀린 자리는 버린다(고쳐 준 설명이 있으면 고쳐 쓴다).
-  let grammar = input.grammar;
-  if (grammarRows) {
-    const byId = grammarRows;
-    grammar = input.grammar.flatMap((g, i) => {
-      const row = byId.get(String(i));
-      if (!row) return [g];
-      if (row.rightOk === false || row.onlyOneCorrect === false || row.wrongIsRealForm === false) {
-        notes.push(`어법 버림(둘 다 되거나 오답이 없는 형태): ${g.right} / ${g.wrong} · ${g.point}`);
-        return [];
-      }
-      if (row.spanCoversPoint === false) {
-        notes.push(`어법 버림(밑줄이 설명과 안 맞음): ${g.target}`);
-        return [];
-      }
-      const point = clean(row.fixedPointKo) || g.point;
-      if (point !== g.point) notes.push(`어법 이름 고침: ${g.point} → ${point}`);
-      if (row.explanationTrue === false) {
-        const fixed = clean(row.fixedExplanationKo);
-        if (!fixed) {
-          notes.push(`어법 버림(설명 틀림): ${g.right} · ${g.explanation}`);
-          return [];
-        }
-        notes.push(`어법 설명 고침: ${g.explanation} → ${fixed}`);
-        return [{ ...g, explanation: fixed, point }];
-      }
-      return [{ ...g, point }];
-    });
-  }
-
-  // ---- 동·반의어: 문맥·품사에 맞지 않는 것을 빼고 모자라면 검수가 준 것으로 채운다.
-  let vocab = input.vocab;
-  if (vocabRows) {
-    const byId = vocabRows;
-    /**
-     * 너무 쉬운 낱말이라 빼는 것은 남는 낱말이 넉넉할 때만 한다. 검수가 까다롭게 굴어 정리자료의
-     * 낱말이 서너 개로 줄면 본문 아래 동·반의어가 텅 비어 보인다.
-     */
-    const easyCount = input.vocab.filter((_, i) => byId.get(String(i))?.worthTeaching === false).length;
-    const dropEasy = Math.max(0, input.vocab.length - easyCount) >= MIN_KEEP_VOCAB ? easyCount : 0;
-    let easyDropped = 0;
-    vocab = input.vocab.flatMap((v, i) => {
-      const row = byId.get(String(i));
-      if (!row) return [v];
-      if (row.worthTeaching === false && easyDropped < dropEasy) {
-        easyDropped += 1;
-        notes.push(`어휘 버림(가르칠 낱말이 아님): ${v.surface}`);
-        return [];
-      }
-      const list = (raw: unknown, max: number) => {
-        const out: string[] = [];
-        for (const item of Array.isArray(raw) ? raw : []) {
-          const word = clean(item);
-          if (!word || word.toLowerCase() === v.surface.toLowerCase()) continue;
-          if (out.some((o) => o.toLowerCase() === word.toLowerCase())) continue;
-          out.push(word);
-          if (out.length >= max) break;
-        }
-        return out;
-      };
-      const synonyms = list(row.keepSynonyms, 2);
-      const antonyms = list(row.keepAntonyms, 2);
-      if (synonyms.length === 0 && antonyms.length === 0) {
-        notes.push(`어휘 버림(동·반의어 없음): ${v.surface}`);
-        return [];
-      }
-      const meaningKo = clean(row.meaningKoFixed) || v.meaningKo;
-      if (meaningKo !== v.meaningKo) notes.push(`뜻 고침: ${v.surface} ${v.meaningKo} → ${meaningKo}`);
-      if (synonyms.join("|") !== v.synonyms.join("|") || antonyms.join("|") !== v.antonyms.join("|")) {
-        notes.push(`동·반의어 고침: ${v.surface}`);
-      }
-      return [{ ...v, meaningKo, synonyms, antonyms }];
-    });
-    /**
-     * 선생님 요청: 어려운 낱말이 아니라 논지를 가르는 낱말을 싣는다. 검수가 매긴 pivotal(0~5)과
-     * "진짜 반대말이 있는지"로 줄을 세워, 자리가 모자랄 때 반의어가 빈 낱말부터 밀려나게 한다.
-     * (부르는 쪽에서 앞에서부터 잘라 쓰고, 마지막에 지문 순서로 다시 줄 세운다.)
-     */
-    const scoreOf = (v: OnePageVocabNote) => {
-      const i = input.vocab.findIndex((x) => x === v || x.surface === v.surface);
-      const row = i >= 0 ? byId.get(String(i)) : undefined;
-      const pivotal = Math.max(0, Math.min(5, Math.floor(Number(row?.pivotal ?? 3)) || 0));
-      return pivotal * 2 + (v.antonyms.length > 0 ? 3 : 0);
-    };
-    vocab = vocab
-      .map((v, i) => ({ v, i, score: scoreOf(v) }))
-      .sort((a, b) => b.score - a.score || a.i - b.i)
-      .map((row) => row.v);
-  }
-
-  // ---- 지칭어: 가리키는 대상이 틀리면 고치고, 고칠 수 없으면 버린다(틀린 지칭은 없느니만 못하다).
-  let references = input.references;
-  if (referenceRows) {
-    const byId = referenceRows;
-    references = input.references.flatMap((ref, i) => {
-      const row = byId.get(String(i));
-      if (!row) return [ref];
-      if (row.worthAsking === false) {
-        notes.push(`지칭 버림(물을 자리가 아님): ${ref.surface}`);
-        return [];
-      }
-      const meaningKo = clean(row.fixedMeaningKo) || ref.meaningKo;
-      if (row.refersCorrectly === false) {
-        // 고쳐 준 대상도 앞 문장에 그대로 있어야 쓴다(지어낸 답은 버린다).
-        const fixed = clean(row.fixedReferent);
-        const at = fixed ? locateReferent(input.sentences, fixed, ref.sentenceIndex) : null;
-        if (!at) {
-          notes.push(`지칭 버림(가리키는 대상이 틀림): ${ref.surface} → ${ref.referent}`);
-          return [];
-        }
-        notes.push(`지칭 고침: ${ref.surface} ${ref.referent} → ${at.referent}`);
-        return [{ ...ref, referent: at.referent, referentSentenceIndex: at.sentenceIndex, meaningKo }];
-      }
-      if (meaningKo !== ref.meaningKo) notes.push(`지칭 뜻 고침: ${ref.surface}`);
-      return [{ ...ref, meaningKo }];
-    });
-  }
-
-  // ---- 해석: 요약문 해석과 바꿔 쓰기 표현의 뜻
+      }),
+  });
+  if (!byId) return { summaryKo: input.summaryKo, paraphrases: input.paraphrases, usage, notes };
   let summaryKo = input.summaryKo;
-  let paraphrases = input.paraphrases;
-  if (translationRows) {
-    const byId = translationRows;
-    const summaryRow = byId.get("summary");
-    if (summaryRow && summaryRow.ok === false && clean(summaryRow.fixed)) {
-      notes.push(`요약문 해석 고침: ${summaryKo} → ${clean(summaryRow.fixed)}`);
-      summaryKo = clean(summaryRow.fixed);
-    }
-    paraphrases = input.paraphrases.map((p, i) => {
-      const row = byId.get(`p${i}`);
-      if (!row || row.ok !== false) return p;
-      const fixed = clean(row.fixed);
-      if (!fixed) return p;
-      notes.push(`표현 뜻 고침: ${p.expression} ${p.meaningKo} → ${fixed}`);
-      return { ...p, meaningKo: fixed };
-    });
+  const summaryRow = byId.get("summary");
+  if (summaryRow && summaryRow.ok === false && clean(summaryRow.fixed)) {
+    notes.push(`요약문 해석 고침: ${summaryKo} → ${clean(summaryRow.fixed)}`);
+    summaryKo = clean(summaryRow.fixed);
   }
+  const paraphrases = input.paraphrases.map((p, i) => {
+    const row = byId.get(`p${i}`);
+    if (!row || row.ok !== false) return p;
+    const fixed = clean(row.fixed);
+    if (!fixed) return p;
+    notes.push(`표현 뜻 고침: ${p.expression} ${p.meaningKo} → ${fixed}`);
+    return { ...p, meaningKo: fixed };
+  });
+  return { summaryKo, paraphrases, usage, notes };
+}
 
-  return { grammar, vocab, references, paraphrases, summaryKo, usage, notes };
+/**
+ * 네 갈래를 한꺼번에 검수한다(재료가 이미 다 있는 보충 호출에서 쓴다). 만드는 호출과 겹쳐 돌릴
+ * 때는 갈래별 함수를 따로 부른다. 호출이 실패하면 그 갈래는 원래 재료를 그대로 둔다.
+ */
+export async function verifyOnePageMaterial(input: {
+  apiKey: string;
+  sentences: string[];
+  grammar: OnePageGrammarPoint[];
+  vocab: OnePageVocabNote[];
+  references: OnePageReference[];
+  paraphrases: OnePageParaphrase[];
+  summaryEn: string;
+  summaryKo: string;
+  signal: AbortSignal;
+}): Promise<OnePageVerifyResult> {
+  const [g, v, r, t] = await Promise.all([
+    verifyOnePageGrammar(input),
+    verifyOnePageVocab(input),
+    verifyOnePageReferences(input),
+    verifyOnePageTranslations(input),
+  ]);
+  const usage = emptyUsage();
+  for (const part of [g.usage, v.usage, r.usage, t.usage]) {
+    usage.calls += part.calls;
+    usage.inputTokens += part.inputTokens;
+    usage.outputTokens += part.outputTokens;
+  }
+  return {
+    grammar: g.grammar,
+    vocab: v.vocab,
+    references: r.references,
+    paraphrases: t.paraphrases,
+    summaryKo: t.summaryKo,
+    usage,
+    notes: [...g.notes, ...v.notes, ...r.notes, ...t.notes],
+  };
 }
