@@ -35,7 +35,7 @@ export const SOURCE_ROWS = 2;
 export const GRID_TOP_CELLS = 3;
 export const GRID_BOTTOM_CELLS = 2;
 /** 칸 안에서 그림이 차지하는 비율 — 남는 흰 여백을 잘라 내고 이만큼 키워 인쇄에서 크게 보이게 */
-const CELL_FILL = 0.86;
+const CELL_FILL = 0.82;
 /** 원본을 너무 크게 늘리면 선이 뭉개진다 */
 const MAX_UPSCALE = 3;
 
@@ -91,7 +91,31 @@ function mainInkRange(counts: number[], gap: number): { start: number; end: numb
   if (cur) bands.push(cur);
   if (bands.length === 0) return null;
   const best = bands.reduce((a, b) => (b.ink > a.ink ? b : a));
-  return { start: best.start, end: best.end };
+
+  /*
+   * 한 그림이 띠로 끊겨 있을 수 있다(스티커 위쪽 'LUNCH' 띠처럼). 가장 큰 덩어리만 남기면
+   * 그 띠가 잘려 ④⑤의 글자가 사라졌다. 가까이 붙어 있고 잉크가 어느 정도 있는 덩어리는
+   * 같은 그림으로 보고 함께 남기되, 멀리 떨어진 옆 칸 끄트머리는 그대로 버린다.
+   */
+  const near = Math.max(4, Math.round(counts.length * 0.16));
+  const minInk = best.ink * 0.04;
+  let start = best.start;
+  let end = best.end;
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const band of bands) {
+      if (band.ink < minInk) continue;
+      if (band.end < start && start - band.end <= near) {
+        start = band.start;
+        grew = true;
+      } else if (band.start > end && band.start - end <= near) {
+        end = band.end;
+        grew = true;
+      }
+    }
+  }
+  return { start, end };
 }
 
 function inkBounds(
@@ -161,7 +185,8 @@ VERIFY: five pictures placed top-left / top-middle / top-right / bottom-left / b
 
 /**
  * 원본(3×2)을 인쇄용 판으로 다시 짠다.
- * 칸마다 흰 여백을 잘라 내고 정사각형 칸에 꽉 차게 키운 뒤, 칸 선과 번호(①~⑤)를 얹는다.
+ * 칸마다 흰 여백을 잘라 내고 정사각형 칸에 꽉 차게 키운 뒤 번호(①~⑤)만 얹는다.
+ * 칸 선은 그리지 않는다 — 선생님 요청(그림만 있으면 되고, 선 때문에 ④⑤가 잘려 보였다).
  * 빈 여섯째 칸이 없어지고 그림이 크게 인쇄돼 별·글자 같은 정답 단서가 종이에서도 보인다.
  */
 export async function overlayGridLabels(bytes: Buffer): Promise<Buffer> {
@@ -217,13 +242,6 @@ export async function overlayGridLabels(bytes: Buffer): Promise<Buffer> {
     );
   }
 
-  // 칸 선
-  ctx.strokeStyle = "#222222";
-  ctx.lineWidth = Math.max(2, Math.round(width / 400));
-  for (const rect of rects) {
-    ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
-  }
-
   // 동그라미 숫자 — 글꼴에 ①이 없을 수 있어 원 + 숫자를 직접 그린다
   const r = Math.max(14, Math.round((width / SOURCE_COLS) * 0.085));
   ctx.textAlign = "center";
@@ -231,8 +249,8 @@ export async function overlayGridLabels(bytes: Buffer): Promise<Buffer> {
   ctx.font = `bold ${Math.round(r * 1.25)}px sans-serif`;
   for (let i = 0; i < rects.length; i++) {
     const rect = rects[i]!;
-    const cx = rect.x + r * 1.45;
-    const cy = rect.y + r * 1.45;
+    const cx = rect.x + r * 1.2;
+    const cy = rect.y + r * 1.2;
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.fillStyle = "#ffffff";
