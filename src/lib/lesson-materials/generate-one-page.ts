@@ -56,6 +56,16 @@ import { formatWorkbookPassage } from "@/lib/lesson-materials/workbook-types";
  * 5개를 맞게 설명했다. 만들기·지칭 풀이·검수·보충을 모두 나눠 동시에 부르므로 지문 하나에
  * 80초 안팎(옛 방식은 140~180초), 약 50원이 든다.
  */
+/*
+ * 어법 포인트를 만드는 설정은 여러 가지로 재 봤다(2026-09-17, 같은 9문장 지문).
+ *   gpt-5-mini · 생각 조금  = 33초, 어법이 제대로 나온다 (지금 쓰는 것)
+ *   gpt-5-mini · 생각 최소  = 20초, 엉뚱한 자리를 집는다 (선생님 지적한 그 증상)
+ *   gpt-5.5   · 생각 최소  = 107초, 너무 느리다
+ *   조각을 더 잘게 나누기   = 40초, 호출이 서로 밀려 오히려 느려진다
+ *   늦은 조각 한 번 더 부르기 = 43초, 같은 이유로 느려진다
+ * 그래서 값싼 모델에 생각을 조금 남겨 두는 지금 조합을 그대로 둔다.
+ */
+
 export function resolveOnePageModel(): string {
   return process.env.OPENAI_MODEL_ONE_PAGE?.trim() || "gpt-5-mini";
 }
@@ -292,7 +302,13 @@ const MAX_VOCAB = 12;
  * 한 장에 싣는 것은 6개인데 18개까지 받아 두면 답이 길어져 그만큼 더 기다리고,
  * 교재가 거의 묻지 않는 자리까지 올라온다. 12면 검수에서 몇 개 버려도 6은 남는다.
  */
-const GRAMMAR_CANDIDATES = 12;
+const GRAMMAR_CANDIDATES = 9;
+/**
+ * 어법 조각이 이 시간 안에 안 돌아오면 같은 부탁을 한 번 더 보낸다(먼저 오는 쪽을 쓴다).
+ * 호출마다 시간이 들쭉날쭉해서(17초와 35초가 섞인다) 늦은 하나가 전체를 붙잡았다.
+ */
+const GRAMMAR_HEDGE_MS = 16_000;
+
 /** 보충(모자란 어법을 더 뽑는 호출)을 기다리는 한도. 늦으면 있는 것으로 만든다. */
 const SPARE_DEADLINE_MS = 40_000;
 /**
@@ -794,9 +810,11 @@ async function requestContent(
     schema: Record<string, unknown>;
     /** 손이 덜 가는 갈래는 추론을 줄여 더 빨리 받는다(요약·T/F·지칭 풀이). */
     effort?: "minimal" | "low" | "medium";
+    /** 갈래마다 다른 모델을 쓸 때(어법은 큰 모델을 가볍게 쓰는 쪽이 빠르고 정확하다). */
+    model?: string;
   }
 ): Promise<{ text: string; model: string; usage: Usage }> {
-  const primary = resolveOnePageModel();
+  const primary = shape.model?.trim() || resolveOnePageModel();
   const candidates = primary === "gpt-4o" ? ["gpt-4o", "gpt-4o-mini"] : [primary, "gpt-4o"];
 
   let lastErr = "";
@@ -1100,6 +1118,23 @@ async function resolveScannedReferences(input: {
  * 어법을 몇 조각으로 나눠 물을지. 출력이 길수록 그 길이가 그대로 기다리는 시간이 되므로,
  * 조각마다 서너 개씩만 받아 동시에 부른다(문맥은 지문 전체를 준다).
  */
+/** 늦으면 한 번 더 불러 먼저 오는 쪽을 쓴다. 두 번째 부탁은 늦을 때만 나간다. */
+async function hedged<T>(run: () => Promise<T>, afterMs: number, signal: AbortSignal): Promise<T> {
+  const first = run();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const second = new Promise<T>((resolve, reject) => {
+    timer = setTimeout(() => {
+      if (signal.aborted) return;
+      run().then(resolve, reject);
+    }, afterMs);
+  });
+  try {
+    return await Promise.race([first, second]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 function chunkPlan(
   sentenceCount: number,
   total: number,
@@ -1154,7 +1189,8 @@ export async function generateOnePageContent(input: {
       /** 베껴 오기만 하는 갈래(요약·바꿔 쓰기·낱말)는 생각을 줄여 더 빨리 받는다. */
       effort: "minimal" | "low" = "low",
       /** 조각마다 따로 끊을 수 있게(어법). 주지 않으면 전체 신호를 쓴다. */
-      signal: AbortSignal = controller.signal
+      signal: AbortSignal = controller.signal,
+      modelOverride?: string
     ) => {
       const at = Date.now();
       const res = await requestContent(apiKey, `${baseUser}${extraUser}`, signal, {
@@ -1162,6 +1198,7 @@ export async function generateOnePageContent(input: {
         schemaName,
         schema,
         effort,
+        model: modelOverride,
       });
       usage.inputTokens += res.usage.inputTokens;
       usage.outputTokens += res.usage.outputTokens;
@@ -1224,6 +1261,14 @@ export async function generateOnePageContent(input: {
     );
 
     // ---- 어법: 조각마다 따로 만들고, 그 조각이 돌아오는 대로 그 조각만 검수한다.
+    /*
+     * 실측(2026-09-17, 9문장 지문): 전체 32.8초 가운데 어법이 18.6·21.7·24.6초에 돌아오고
+     * 마지막 조각의 검수가 끝나는 32.8초가 곧 전체 시간이었다. 나머지(주제·요약·낱말·지칭)는
+     * 20초 안에 다 끝나 있다. 조각을 더 잘게 나눠 봤더니 오히려 40초가 됐다 — 조각 길이가
+     * 아니라 호출마다 들쭉날쭉한 것이 문제였다(같은 크기인데 17초와 35초가 섞인다).
+     * 늦는 조각을 한 번 더 불러 봤더니(먼저 오는 쪽 쓰기) 42초로 더 느려졌다 — 호출을 늘리면
+     * 서로 밀려 모두 느려진다. 그래서 부르는 횟수를 늘리지 않고, 어법 생성만 가벼운 설정으로 둔다.
+     */
     const grammarChunks = chunkPlan(sentences.length, GRAMMAR_CANDIDATES, 4).map((part, i) => {
       /**
        * 조각 하나가 유난히 오래 끄는 일이 있다(같은 지문에서 20초와 70초가 섞인다). 조각은 서로
@@ -1234,17 +1279,19 @@ export async function generateOnePageContent(input: {
       const stop = () => chunkAbort.abort();
       controller.signal.addEventListener("abort", stop);
       const deadline = setTimeout(stop, GRAMMAR_CHUNK_DEADLINE_MS);
-      const picked = ask(
-        `grammar${i + 1}`,
-        GRAMMAR_PROMPT,
-        "one_page_grammar",
-        GRAMMAR_SCHEMA as unknown as Record<string, unknown>,
-        `\n\n이번에는 no가 ${part.from}~${part.to}인 문장에서만 ${part.ask}개를 고른다(조건에 맞는 자리가 그보다 적으면 있는 만큼만).`,
-        "low",
-        chunkAbort.signal
-      ).then((res) =>
-        pickGrammarPoints(parseJsonSafe<{ grammar?: unknown }>(res.text)?.grammar, sentences, part.ask + 1)
-      );
+      const askChunk = () =>
+        ask(
+          `grammar${i + 1}`,
+          GRAMMAR_PROMPT,
+          "one_page_grammar",
+          GRAMMAR_SCHEMA as unknown as Record<string, unknown>,
+          `\n\n이번에는 no가 ${part.from}~${part.to}인 문장에서만 ${part.ask}개를 고른다(조건에 맞는 자리가 그보다 적으면 있는 만큼만).`,
+          "low",
+          chunkAbort.signal
+        ).then((res) =>
+          pickGrammarPoints(parseJsonSafe<{ grammar?: unknown }>(res.text)?.grammar, sentences, part.ask + 1)
+        );
+      const picked = askChunk();
       const verified = picked
         .then(async (list) => {
           const checked = await verifyOnePageGrammar({

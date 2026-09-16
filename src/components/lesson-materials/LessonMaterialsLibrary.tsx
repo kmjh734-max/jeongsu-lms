@@ -7,6 +7,7 @@ import { LessonMaterialDocumentList } from "@/components/lesson-materials/Lesson
 import { LessonQuestionJobList } from "@/components/lesson-materials/LessonQuestionJobList";
 import { IntegratedCreateModal } from "@/components/lesson-materials/integrated/IntegratedCreateModal";
 import type { LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
+import { Icon } from "@/components/layout/NavIcon";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import {
@@ -52,26 +53,9 @@ const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
   { id: "integrated", label: "최종통합자료" },
 ];
 
-/** 끌기 손잡이: 점 두 줄. 글자(⠿)는 글꼴마다 크기·굵기가 달라 작고 흐리게 보였다. */
-/** 위아래 화살표 사이에 가로줄 두 개: 끌어서 위아래로 옮긴다는 뜻. */
+/** 끌기 손잡이. 듣기·단어 목록과 같은 점 여섯 개를 쓴다(선생님 요청). */
 function GripIcon() {
-  return (
-    <svg
-      width="10"
-      height="14"
-      viewBox="0 0 14 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M4 5 7 2l3 3" />
-      <path d="M3 8.5h8M3 11.5h8" />
-      <path d="M4 15l3 3 3-3" />
-    </svg>
-  );
+  return <Icon name="grip" size={16} strokeWidth={2.4} />;
 }
 
 function reorderProjects(
