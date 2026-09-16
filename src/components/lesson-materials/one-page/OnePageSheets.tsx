@@ -10,7 +10,6 @@ import {
   type ReactNode,
 } from "react";
 import {
-  EXAM_POINT_MARKS,
   circledHangul,
   circledLetter,
   circledNumber,
@@ -69,6 +68,7 @@ ruby.op-voc rt .op-vocl{display:block;white-space:nowrap}
 .op-gm{color:#dc2626}.op-xm{color:#2563eb}.op-rm{color:#b45309}
 .op-bk{background:#ffe680;box-shadow:0 1.3px 0 #a16207,0 -1.3px 0 #a16207;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .op-em{font-family:ui-sans-serif,system-ui,sans-serif;font-weight:900;color:#111827;font-size:1.05em;margin-right:.15em}
+.op-ins{font-family:ui-sans-serif,system-ui,sans-serif;font-weight:800;font-size:.62em;color:#b91c1c;border:1px solid #b91c1c;border-radius:3px;padding:0 .25em;margin-right:.3em;white-space:nowrap;vertical-align:.12em;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .op-refs{margin:0;line-height:1.5;font-size:.92em;text-align:justify}
 .op-refs .op-rsep{color:#d1d5db;margin:0 .35em}
 .op-flow{display:flex;align-items:stretch;gap:.3em}
@@ -273,16 +273,12 @@ export function OnePageSummarySheet({
   const c = project.content;
   const references = c.references ?? [];
   const examPoints = c.examPoints ?? [];
-  /**
-   * 문장 앞 그 자리에 찍는 출제 표시. 문장 삽입은 빼낼 문장 앞에, 순서 배열은 덩어리가 갈리는
-   * 자리마다 찍는다(선생님 요청: 설명 대신 자리를 표시한다).
+  /*
+   * 문장 앞에 찍는 출제 표시. 선생님 요청(2026-09-17): 순서 배열은 빼고, 문장 삽입은
+   * 작은 기호 대신 [문장삽입 유력]이라고 문장 앞에 붙여 눈에 띄게 한다.
    */
   const aheadOf = (si: number) =>
-    examPoints.filter((e) =>
-      e.kind === "insert"
-        ? e.sentenceIndex === si
-        : e.kind === "order" && (e.splitIndexes ?? [e.sentenceIndex]).includes(si)
-    );
+    examPoints.filter((e) => e.kind === "insert" && e.sentenceIndex === si);
   const title = (project.titleEn ?? "").trim() || c.titleEn || project.title;
   const summaryParts = splitSummaryByKeywords(c.summaryEn, c.summaryKeywords);
   return (
@@ -350,8 +346,7 @@ export function OnePageSummarySheet({
           {examPoints.length > 0 ? (
             <>
               {" · 출제 자리: "}
-              <span className="op-bk">형광</span> 빈칸 추론 · <b>{EXAM_POINT_MARKS.insert.mark}</b> 문장 삽입 ·{" "}
-              <b>{EXAM_POINT_MARKS.order.mark}</b> 순서 배열
+              <span className="op-bk">형광</span> 빈칸 추론 · <b>[문장삽입 유력]</b> 문장 삽입
             </>
           ) : null}
         </span>
@@ -360,8 +355,8 @@ export function OnePageSummarySheet({
         {project.sentences.map((s, si) => (
           <Fragment key={si}>
             {aheadOf(si).map((e, k) => (
-              <span key={`e${k}`} className="op-em">
-                {EXAM_POINT_MARKS[e.kind].mark}
+              <span key={`e${k}`} className="op-ins">
+                [문장삽입 유력]
               </span>
             ))}
             <span className="op-sn">{circledNumber(si)}</span>

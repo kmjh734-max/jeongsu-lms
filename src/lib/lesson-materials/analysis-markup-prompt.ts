@@ -44,6 +44,9 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
    - 풀어 줄 말이 마땅치 않으면 빈 문자열("")로 둔다.
 8) tags  문장 모서리 꼬리표 0~2개. 아래 목록에서만: ${MARKUP_SENTENCE_TAGS.join(" · ")}
    - "주제문"은 글의 중심 생각을 담은 문장에만. 한 지문에 한두 개다.
+   - 빈칸 추론·함축 의미·어휘 추론·어법 빈출을 쓰면, tagSpans에 그 꼬리표가 가리키는 자리를
+     원문 그대로(3~8 words) 따와 적는다. 자리를 적지 않으면 그 꼬리표는 버려진다.
+     예: tags에 "함축 의미"를 넣었으면 tagSpans에 {"tag":"함축 의미","text":"a technology of distance"}.
 
 # 구간 지정 방법 (제일 중요)
 - text 에는 원문에서 그대로 따온 연속된 글자를 넣는다. 대소문자·구두점·철자를 한 글자도 바꾸지 않는다.
@@ -92,11 +95,23 @@ ${
 export const ANALYSIS_MARKUP_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["translation", "contextNote", "tags", "roles", "brackets", "notes", "points", "callouts"],
+  required: ["translation", "contextNote", "tags", "tagSpans", "roles", "brackets", "notes", "points", "callouts"],
   properties: {
     translation: { type: "string" },
     contextNote: { type: "string" },
     tags: { type: "array", items: { type: "string" } },
+    tagSpans: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["tag", "text"],
+        properties: {
+          tag: { type: "string" },
+          text: { type: "string" },
+        },
+      },
+    },
     roles: {
       type: "array",
       items: {

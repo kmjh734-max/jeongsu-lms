@@ -69,7 +69,14 @@ export const ONE_PAGE_BOTH_FORMS_OK = new Set<string>([
 /** 프롬프트에 싣는 어법 수. 교재가 자주 묻는 것부터 자른다(정리자료 한 장에는 5~6개만 실린다). */
 const MAX_RULES = 60;
 
-export type OnePageGrammarRule = { code: string; labelKo: string; decide: string; avoid?: string };
+export type OnePageGrammarRule = {
+  code: string;
+  labelKo: string;
+  decide: string;
+  avoid?: string;
+  /** 교재가 이 어법을 묻는 횟수. 한 장에 실을 것을 고를 때 자주 나오는 것부터 쓴다. */
+  freq: number;
+};
 
 /** 교재가 5문항 이상 묻고, 워크북 엔진이 출제 가능하다고 보고, 둘 다 되는 자리가 아닌 어법. */
 function buildRules(): OnePageGrammarRule[] {
@@ -80,7 +87,7 @@ function buildRules(): OnePageGrammarRule[] {
     if (generationPolicyFor(code) === "NOT_QUESTIONABLE") continue;
     const labelKo = ontologyPoint(code)?.labelKo ?? "";
     if (!labelKo) continue;
-    out.push({ code, labelKo, decide: rule.decide, avoid: rule.avoid });
+    out.push({ code, labelKo, decide: rule.decide, avoid: rule.avoid, freq: rule.freq });
   }
   return out
     .sort((a, b) => TEXTBOOK_RULES[b.code]!.freq - TEXTBOOK_RULES[a.code]!.freq)

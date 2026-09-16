@@ -37,6 +37,8 @@ import {
   type MarkupSentenceTag,
   type MarkupSpan,
   type MarkupSpanNote,
+  type MarkupTagSpan,
+  SPAN_TAGS,
 } from "@/lib/lesson-materials/analysis-markup";
 
 export type MarkupUsage = { inputTokens: number; outputTokens: number; calls: number };
@@ -406,6 +408,30 @@ export function buildVerifiedMarkup(
     }
   }
 
+  /*
+   * 꼬리표가 가리키는 자리. 빈칸 추론·함축 의미·어휘 추론·어법 빈출은 문장의 한 부분을 두고
+   * 붙이는 말이라, 어디를 말하는지 찍어 줘야 한다(선생님 지적: "어디가 그런건지도 써줘야지").
+   * 자리를 못 찾은 꼬리표는 붙이지 않는다 — 가리키는 곳 없는 꼬리표는 없느니만 못하다.
+   */
+  const tagSpans: MarkupTagSpan[] = [];
+  for (const t of Array.isArray(o.tagSpans) ? o.tagSpans : []) {
+    const row = t as RawItem & { tag?: unknown };
+    const tag = String(row.tag ?? "").trim();
+    if (!(SPAN_TAGS as readonly string[]).includes(tag)) continue;
+    if (!tags.includes(tag as MarkupSentenceTag)) continue;
+    if (tagSpans.some((x) => x.tag === tag)) continue;
+    const span = locate(text, row);
+    if (!span) {
+      drop("tagSpan", "span-not-found", row.text);
+      continue;
+    }
+    tagSpans.push({ tag: tag as MarkupSentenceTag, span });
+  }
+  // 자리를 못 받은 부분 꼬리표는 뗀다
+  const keptTags = tags.filter(
+    (t) => !(SPAN_TAGS as readonly string[]).includes(t) || tagSpans.some((x) => x.tag === t)
+  );
+
   const translation = String(o.translation ?? "").replace(/\s+/g, " ").trim();
 
   report.kept =
@@ -415,7 +441,7 @@ export function buildVerifiedMarkup(
   const contextNote = String(o.contextNote ?? "").replace(/\s+/g, " ").trim().slice(0, 220);
 
   return {
-    markup: { text, roles, brackets, notes, points, callouts, translation, tags },
+    markup: { text, roles, brackets, notes, points, callouts, translation, tags: keptTags, tagSpans },
     report,
     contextNote,
   };

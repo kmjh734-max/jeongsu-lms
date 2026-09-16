@@ -393,10 +393,10 @@ const GRAMMAR_EFFORT: ReasoningEffort = "low";
 const HEDGE_AFTER_MS = 90_000;
 
 /**
- * 문장 표시 분석을 한 지문 안에서 동시에 부르는 수. 문장이 많은 지문도 몇 십 초에 끝나야 하고,
- * 지문 여러 개를 함께 만들 때(화면에서 8개까지) 분당 요청 한도에 걸리지 않을 만큼만 연다.
+ * 문장 표시 분석을 한 지문 안에서 동시에 부르는 수. 보통 지문(7~12문장)이 한 번에 나가도록 연다.
+ * 6이면 12문장 지문이 두 번에 나뉘어 기다리는 시간이 곱절이 됐다(선생님 지적: 너무 오래 걸린다).
  */
-const MARKUP_CONCURRENCY = 6;
+const MARKUP_CONCURRENCY = 12;
 
 function sleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {

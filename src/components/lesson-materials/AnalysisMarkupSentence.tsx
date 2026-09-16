@@ -32,8 +32,18 @@ const CALLOUT_MARKS = ["ⓐ", "ⓑ", "ⓒ"];
 const LEVEL_SUP = ["", "¹", "²"];
 /** 테두리 오른쪽 위에 다는 꼬리표. 그 밖의 꼬리표는 주제문처럼 왼쪽에 둔다. */
 const CORNER_TAGS = new Set(["서술형 대비", "빈칸 추론", "어법 빈출"]);
+
+/** 꼬리표마다 문장에 칠하는 색. 알약의 점도 같은 색을 쓴다. */
+const TAG_MARK_CLASS: Record<string, string> = {
+  "빈칸 추론": "ar-hl--blank",
+  "함축 의미": "ar-hl--imply",
+  "어휘 추론": "ar-hl--vocab",
+  "어법 빈출": "ar-hl--grammar",
+};
 /** 같은 줄에 놓인 이름표 사이에 두는 최소 간격(px). */
 const NOTE_GAP = 11;
+/** 이름표를 쌓을 수 있는 층 수. 줄 사이 여백(line-height)이 두 층까지 받쳐 준다. */
+const NOTE_LEVELS = 2;
 /** 형광펜으로 칠할 수 있는 최대 길이(단어). 절 전체가 노랗게 덮이면 오히려 읽히지 않는다. */
 const MAX_HIGHLIGHT_WORDS = 6;
 
@@ -48,24 +58,39 @@ function circled(index: number): string {
 }
 
 /** 형광펜 구간과 겹치는 글자만 덧칠해 내보낸다(구간 괄호·성분과 상관없이 글자 단위로 칠한다). */
-function renderText(text: string, at: number, hl: MarkupSpan | null): ReactNode {
-  if (!hl) return text;
-  const from = Math.max(at, hl.start);
-  const to = Math.min(at + text.length, hl.end);
-  if (to <= from) return text;
-  return (
-    <>
-      {text.slice(0, from - at)}
-      <span className="ar-hl">{text.slice(from - at, to - at)}</span>
-      {text.slice(to - at)}
-    </>
-  );
+/** 문장 안에서 칠할 자리. 꼬리표가 가리키는 곳마다 다른 색으로 칠한다. */
+type Mark = { span: MarkupSpan; cls: string };
+
+function renderText(text: string, at: number, marks: Mark[]): ReactNode {
+  const hits = marks
+    .map((m) => ({
+      cls: m.cls,
+      from: Math.max(at, m.span.start),
+      to: Math.min(at + text.length, m.span.end),
+    }))
+    .filter((h) => h.to > h.from)
+    .sort((a, b) => a.from - b.from);
+  if (hits.length === 0) return text;
+  const out: ReactNode[] = [];
+  let cur = at;
+  hits.forEach((h, i) => {
+    if (h.from < cur) return;
+    if (h.from > cur) out.push(text.slice(cur - at, h.from - at));
+    out.push(
+      <span key={`m${i}`} className={h.cls}>
+        {text.slice(h.from - at, h.to - at)}
+      </span>
+    );
+    cur = h.to;
+  });
+  if (cur < at + text.length) out.push(text.slice(cur - at));
+  return <>{out}</>;
 }
 
-function renderNodes(nodes: MarkupNode[], hl: MarkupSpan | null): ReactNode {
+function renderNodes(nodes: MarkupNode[], marks: Mark[]): ReactNode {
   return nodes.map((node, i) => {
     if (node.kind === "text") {
-      return <Fragment key={i}>{renderText(node.text, node.at, hl)}</Fragment>;
+      return <Fragment key={i}>{renderText(node.text, node.at, marks)}</Fragment>;
     }
 
     // 끼워 넣는 표시: 이름표는 줄 사이 여백에 띄우고, 번호·상자 꼬리표는 그 자리에 찍는다.
@@ -96,7 +121,7 @@ function renderNodes(nodes: MarkupNode[], hl: MarkupSpan | null): ReactNode {
     }
 
     const { deco } = node;
-    const inner = renderNodes(node.children, hl);
+    const inner = renderNodes(node.children, marks);
     const [open, close] = deco.bracket ? bracketChars(deco.bracket) : ["", ""];
 
     const body = deco.role ? (
@@ -145,19 +170,35 @@ function useMarkupLayout(
 
     const notes = Array.from(box.querySelectorAll<HTMLElement>(".ar-note"));
     for (const el of notes) el.style.transform = "";
-    /** 줄마다 앞 이름표가 끝난 x. 줄은 이름표의 세로 위치로 가른다. */
-    const lineEnd = new Map<number, number>();
+    /**
+     * 줄마다, 층마다 앞 이름표가 끝난 x. 줄은 이름표의 세로 위치로 가른다.
+     * 옆으로 밀어도 오른쪽 끝을 넘으면 예전에는 밀기를 되돌려 그대로 겹쳐 찍혔다
+     * (선생님 지적: "이렇게 겹쳐져서 나와"). 이제 그럴 때는 한 층 위로 올린다.
+     */
+    const lineEnds = new Map<number, number[]>();
     for (const el of notes) {
       const rect = el.getBoundingClientRect();
       const line = Math.round(rect.top / 4);
+      const ends = lineEnds.get(line) ?? [];
+      let level = 0;
       let shift = 0;
-      const end = lineEnd.get(line);
-      // 이름표끼리 붙어 있으면 한 덩어리로 읽힌다. 눈에 보이는 사이를 띄운다.
-      if (end != null && rect.left < end + NOTE_GAP) shift = end + NOTE_GAP - rect.left;
-      const over = rect.right + shift - bounds.right;
-      if (over > 0) shift -= over;
-      if (Math.abs(shift) >= 1) el.style.transform = `translateX(${Math.round(shift)}px)`;
-      lineEnd.set(line, rect.right + shift);
+      for (; level < NOTE_LEVELS; level++) {
+        const end = ends[level];
+        // 이름표끼리 붙어 있으면 한 덩어리로 읽힌다. 눈에 보이는 사이를 띄운다.
+        shift = end != null && rect.left < end + NOTE_GAP ? end + NOTE_GAP - rect.left : 0;
+        if (rect.right + shift <= bounds.right) break;
+      }
+      if (level >= NOTE_LEVELS) {
+        // 어느 층에도 안 들어가면 맨 위층에서 오른쪽 끝에 맞춘다
+        level = NOTE_LEVELS - 1;
+        shift = Math.min(0, bounds.right - rect.right);
+      }
+      const lift = level > 0 ? -(rect.height + 1) * level : 0;
+      if (Math.abs(shift) >= 1 || lift !== 0) {
+        el.style.transform = `translate(${Math.round(shift)}px, ${Math.round(lift)}px)`;
+      }
+      ends[level] = rect.right + shift;
+      lineEnds.set(line, ends);
     }
 
     const frame = frameRef.current;
@@ -209,17 +250,24 @@ export function AnalysisMarkupSentence({
   const frameRef = useRef<HTMLDivElement>(null);
   useMarkupLayout(sentenceRef, frameRef);
 
-  // 빈칸 추론 문장은 그 빈칸이 걸린 자리를 형광펜으로 칠한다(작은 기호 대신 구절 자체를 칠한다).
-  const highlightSpan =
-    markup.tags.includes("빈칸 추론") && markup.points.length > 0
-      ? (markup.points.find((p) => p.star) ?? markup.points[0])!.span
-      : null;
-  const highlight =
-    highlightSpan &&
-    markup.text.slice(highlightSpan.start, highlightSpan.end).split(/\s+/).length <=
-      MAX_HIGHLIGHT_WORDS
-      ? highlightSpan
-      : null;
+  /*
+   * 꼬리표가 가리키는 자리를 문장에 칠한다. 선생님 지적: "함축 의미 추론으로 나올 만한
+   * 문장이면 어디가 그런 건지 표시를 해 주던가. 빈칸 추론도 마찬가지고."
+   * 꼬리표마다 색이 다르고, 테두리 위 알약에도 같은 색 점을 찍어 어느 꼬리표인지 잇는다.
+   * 자리를 받지 못한 예전 분석서는 예전처럼 ★ 번호 자리를 칠한다.
+   */
+  const marks: Mark[] = [];
+  for (const ts of markup.tagSpans ?? []) {
+    const words = markup.text.slice(ts.span.start, ts.span.end).split(/\s+/).length;
+    if (words > MAX_HIGHLIGHT_WORDS) continue;
+    marks.push({ span: ts.span, cls: `ar-hl ${TAG_MARK_CLASS[ts.tag] ?? ""}`.trim() });
+  }
+  if (marks.length === 0 && markup.tags.includes("빈칸 추론") && markup.points.length > 0) {
+    const span = (markup.points.find((p) => p.star) ?? markup.points[0])!.span;
+    if (markup.text.slice(span.start, span.end).split(/\s+/).length <= MAX_HIGHLIGHT_WORDS) {
+      marks.push({ span, cls: "ar-hl ar-hl--blank" });
+    }
+  }
 
   // 쪽을 채우려고 설명은 항목 단위로 다음 쪽에 이어 붙는다
   const shownPoints = markup.points.slice(
@@ -242,6 +290,9 @@ export function AnalysisMarkupSentence({
           <span className="ar-tags ar-tags--lead">
             {leadTags.map((t) => (
               <span key={t} className="ar-tag ar-tag--lead">
+                {TAG_MARK_CLASS[t] && marks.some((m) => m.cls.includes(TAG_MARK_CLASS[t]!)) ? (
+                  <i className={`ar-tag-dot ${TAG_MARK_CLASS[t]}`} />
+                ) : null}
                 {t}
               </span>
             ))}
@@ -251,6 +302,9 @@ export function AnalysisMarkupSentence({
           <span className="ar-tags ar-tags--corner">
             {cornerTags.map((t) => (
               <span key={t} className="ar-tag ar-tag--corner">
+                {TAG_MARK_CLASS[t] && marks.some((m) => m.cls.includes(TAG_MARK_CLASS[t]!)) ? (
+                  <i className={`ar-tag-dot ${TAG_MARK_CLASS[t]}`} />
+                ) : null}
                 {t}
               </span>
             ))}
@@ -259,7 +313,7 @@ export function AnalysisMarkupSentence({
 
         <p className="ar-sentence" ref={sentenceRef}>
           <span className="ar-no">{String(index + 1).padStart(2, "0")}</span>
-          {renderNodes(tree, highlight)}
+          {renderNodes(tree, marks)}
         </p>
 
         {markup.callouts.map((c, ci) => (

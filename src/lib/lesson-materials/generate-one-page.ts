@@ -122,7 +122,7 @@ const CORE_PROMPT = `${COMMON_HEADER}
  */
 const EXAM_PROMPT = `${COMMON_HEADER}
 [examPoints] 이 지문으로 실제로 낼 만한 유력 출제 자리 2~3개(문장 순서대로). 지문이 받쳐 주지 않는 유형은 넣지 않는다(억지로 채우지 않는다).
-- kind: "blank"(빈칸 추론), "insert"(문장 삽입), "order"(순서 배열) 중 하나. blank는 최대 2개, insert는 최대 1개, order는 최대 1개.
+- kind: "blank"(빈칸 추론), "insert"(문장 삽입) 중 하나. blank는 최대 2개, insert는 최대 1개. 순서 배열은 쓰지 않는다.
 - blank: no는 그 문장 번호, target은 그 문장에 나온 그대로의 어구(2~8 words). 주제·결론을 떠받치는 어구를 고른다(예시·숫자·고유명사는 안 된다). 그 문장에 한 번만 나오는 어구여야 하고, 앞뒤 문맥만으로 답을 찾을 수 있어야 한다.
   distractors: 학생이 고를 만한 오답의 '방향'을 한국어 짧은 구로 1~2개(예: "반대 개념을 넣은 선택지", "지문에 없는 원인을 넣은 선택지"). 영어 선택지를 지어내지 않는다.
   splitNos: [].
@@ -195,7 +195,7 @@ const EXAM_SCHEMA = obj({
   examPoints: {
     type: "array",
     items: obj({
-      kind: { type: "string", enum: ["blank", "insert", "order"] },
+      kind: { type: "string", enum: ["blank", "insert"] },
       no: int,
       target: str,
       distractors: strList,
@@ -288,7 +288,11 @@ const MAX_VOCAB = 12;
  * 검수에서 버려질 것을 감안해 더 뽑아 둔다. 다시 뽑는 호출(약 20초·토큰 절반)보다
  * 처음에 두어 개 더 받는 편이 값이 덜 든다.
  */
-const GRAMMAR_CANDIDATES = 18;
+/*
+ * 한 장에 싣는 것은 6개인데 18개까지 받아 두면 답이 길어져 그만큼 더 기다리고,
+ * 교재가 거의 묻지 않는 자리까지 올라온다. 12면 검수에서 몇 개 버려도 6은 남는다.
+ */
+const GRAMMAR_CANDIDATES = 12;
 /** 보충(모자란 어법을 더 뽑는 호출)을 기다리는 한도. 늦으면 있는 것으로 만든다. */
 const SPARE_DEADLINE_MS = 40_000;
 /**
@@ -539,7 +543,8 @@ function checkGrammarPoint(
   };
 }
 
-const EXAM_KINDS: OnePageExamPointKind[] = ["blank", "insert", "order", "summary"];
+// 순서 배열은 빼기로 했다(선생님 요청 2026-09-17) — 표시가 흐릿하고 문항으로 잘 이어지지 않았다.
+const EXAM_KINDS: OnePageExamPointKind[] = ["blank", "insert", "summary"];
 
 /**
  * 출제 포인트를 본다. 지문이 받쳐 주는 자리만 남긴다.
@@ -1363,10 +1368,18 @@ export async function generateOnePageContent(input: {
     );
     notes.push(...translated.notes, ...vocabDone.notes, ...grammarParts.flatMap((p) => p.notes), ...referenceDone.notes);
 
-    // 같은 어법이 둘이면 뒤엣것은 자리가 남을 때만 쓴다(한 장에 여러 원리가 고르게 실리게).
+    /*
+     * 한 장에 실을 것 고르기. 같은 어법이 둘이면 뒤엣것은 자리가 남을 때만 쓴다.
+     * 다만 서로 다른 어법을 채우는 데만 매달리면 교재가 거의 묻지 않는 희귀한 자리가
+     * 앞자리를 차지한다(선생님 지적 2026-09-17: "얼토당토않은 어법 포인트"). 후보를
+     * 10개에서 18개로 늘리면서 이 일이 더 자주 생겼다. 그래서 교재가 자주 묻는
+     * 어법부터 고른다.
+     */
     const spread = <T extends { code?: string }>(list: T[], max: number) => {
-      const first = list.filter((x, i) => list.findIndex((y) => y.code === x.code) === i);
-      return [...first, ...list.filter((x) => !first.includes(x))].slice(0, max);
+      const freqOf = (x: T) => onePageGrammarRule(String(x.code ?? ""))?.freq ?? 0;
+      const ranked = [...list].sort((a, b) => freqOf(b) - freqOf(a));
+      const first = ranked.filter((x, i) => ranked.findIndex((y) => y.code === x.code) === i);
+      return [...first, ...ranked.filter((x) => !first.includes(x))].slice(0, max);
     };
     // 검수에서 버려진 자리는 같이 띄워 둔 보충에서 겹치지 않는 것으로 메운다.
     const verifiedGrammar = grammarParts.flatMap((p) => p.grammar);

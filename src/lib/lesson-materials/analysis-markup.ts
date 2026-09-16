@@ -83,6 +83,19 @@ export const MARKUP_SENTENCE_TAGS = [
 
 export type MarkupSentenceTag = (typeof MARKUP_SENTENCE_TAGS)[number];
 
+/** 문장의 한 부분을 가리키는 꼬리표들 — 이 꼬리표를 쓰면 자리를 함께 받는다. */
+export const SPAN_TAGS: readonly MarkupSentenceTag[] = [
+  "빈칸 추론",
+  "함축 의미",
+  "어휘 추론",
+  "어법 빈출",
+];
+
+export type MarkupTagSpan = {
+  tag: MarkupSentenceTag;
+  span: MarkupSpan;
+};
+
 export type AnalysisSentenceMarkup = {
   /** 이 표시가 붙은 원문(공백 정리본). 문장이 바뀌면 표시를 버리는 기준이 된다. */
   text: string;
@@ -94,6 +107,11 @@ export type AnalysisSentenceMarkup = {
   /** 문장 해석(한 줄). */
   translation: string;
   tags: MarkupSentenceTag[];
+  /**
+   * 꼬리표가 가리키는 자리. 빈칸 추론·함축 의미·어휘 추론처럼 문장의 한 부분을 두고 붙는
+   * 꼬리표는 어디를 말하는지 표시해야 한다(선생님 지적: "어디가 그런건지도 써줘야지").
+   */
+  tagSpans?: MarkupTagSpan[];
 };
 
 /* ------------------------------------------------------------------ */
