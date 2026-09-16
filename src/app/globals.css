@@ -2418,6 +2418,326 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   color: #1a1a1a;
 }
 
+/* ------------------------------------------------------------------ */
+/* 지문분석지: 문장 표시 분석(.ar-*)                                     */
+/* 선생님이 주신 실물 분석지 모양: 둥근 빨간 테두리 안에 크게 띄운 문장,     */
+/* 테두리에 걸친 알약 꼬리표, 단어 아래 성분, 구간 위 파란 이름표, 파란 점선  */
+/* 상자. 해석과 번호 설명은 테두리 바깥 아래에 둔다. 자리 잡기는 흐름 배치라 */
+/* 긴 문장도 줄을 넘기며 A4 안에 들어간다. 이름표(.ar-note)만 줄 사이 여백에  */
+/* 띄우므로 .ar-sentence의 line-height가 그 여백을 만든다.                 */
+/* ------------------------------------------------------------------ */
+
+.ar-block {
+  padding: 0 0 10px;
+}
+
+/* 문장을 담는 둥근 빨간 테두리 */
+.ar-frame {
+  position: relative;
+  margin-top: 9px;
+  border: 2px solid #d21f27;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 11px 13px 9px;
+}
+
+/* 테두리 위에 걸치는 알약 꼬리표 */
+.ar-tags {
+  position: absolute;
+  top: -10px;
+  z-index: 1;
+  display: flex;
+  gap: 5px;
+}
+
+.ar-tags--corner {
+  right: 16px;
+}
+
+.ar-tags--lead {
+  left: 16px;
+}
+
+.ar-tag {
+  border-radius: 999px;
+  padding: 2px 11px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #ffffff;
+  white-space: nowrap;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.ar-tag--corner {
+  background: #b3121b;
+}
+
+.ar-tag--lead {
+  background: #1257a5;
+}
+
+/* 문장 앞 회색 번호 딱지 */
+.ar-no {
+  display: inline-block;
+  margin-right: 9px;
+  border-radius: 5px;
+  background: #8a8f98;
+  padding: 0 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+  color: #ffffff;
+  vertical-align: 0.28em;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* 문장 본문. 위쪽 여백은 이름표가 들어갈 자리다. */
+.ar-sentence {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 0.035em;
+  line-height: 2.85;
+  font-weight: 700;
+  color: #16457e;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.ar-seg {
+  /* 표시가 붙은 마디도 그냥 글자처럼 흐른다(줄 넘김을 막지 않는다). */
+  position: relative;
+}
+
+.ar-bracket {
+  font-weight: 800;
+  font-size: 1.12em;
+  color: #16457e;
+  padding: 0 1px;
+}
+
+.ar-bracket--inserted {
+  color: #64748b;
+}
+
+/* 빈칸이 걸린 구절은 형광펜으로 칠한다 */
+.ar-hl {
+  background: #ffe95c;
+  color: #c2185b;
+  font-weight: 800;
+  border-radius: 2px;
+  padding: 0 1px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* 단어 아래 문장성분. 글자 아래 밑줄과 작은 기호로 찍는다. */
+.ar-role-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+}
+
+.ar-role-text {
+  border-bottom: 1px solid #7c93b4;
+  line-height: 1.3;
+}
+
+.ar-role-tag {
+  margin-top: 0px;
+  font-size: 8.5px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: #16457e;
+}
+
+.ar-role-tag--l1,
+.ar-role-tag--l2 {
+  color: #3f74b8;
+}
+
+/* 구간 위 이름표. 줄 사이 여백에 띄워 글줄 길이를 늘리지 않는다. */
+.ar-note-anchor {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  height: 1em;
+  vertical-align: baseline;
+}
+
+.ar-note {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  width: max-content;
+  max-width: 58mm;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.2;
+  color: #1668b8;
+  text-align: left;
+}
+
+.ar-note-gloss {
+  font-weight: 600;
+  color: #1668b8;
+}
+
+.ar-pt-mark {
+  font-size: 12px;
+  font-weight: 800;
+  color: #d21f27;
+  letter-spacing: 0;
+  vertical-align: 0.12em;
+  padding-right: 1px;
+}
+
+.ar-star {
+  color: #e02020;
+  font-size: 11px;
+  letter-spacing: 0;
+  vertical-align: 0.12em;
+  padding-right: 1px;
+}
+
+.ar-callout-ref {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #1668b8;
+  letter-spacing: 0;
+  vertical-align: 0.25em;
+}
+
+/* 규칙을 뽑아 주는 파란 점선 상자 (가리키는 자리까지 점선 한 줄을 올린다) */
+.ar-callout {
+  position: relative;
+  margin: 10px 0 0 14px;
+  border: 1.4px dotted #2f7fd0;
+  border-radius: 4px;
+  background: #ffffff;
+  padding: 5px 10px;
+  max-width: 132mm;
+}
+
+.ar-callout::before {
+  content: "";
+  position: absolute;
+  left: var(--ar-stem-x, 16px);
+  bottom: 100%;
+  height: var(--ar-stem-h, 0px);
+  border-left: 1.2px dotted #2f7fd0;
+}
+
+.ar-callout-head {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #5b7791;
+}
+
+.ar-callout-mark {
+  margin-right: 4px;
+  color: #1668b8;
+}
+
+.ar-callout-anchor {
+  color: #16457e;
+}
+
+.ar-callout-title {
+  margin: 1px 0 0;
+  font-size: 11.5px;
+  font-weight: 800;
+  line-height: 1.5;
+  color: #1668b8;
+}
+
+.ar-callout-body {
+  margin: 1px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #1668b8;
+}
+
+/* 해석 한 줄 (테두리 바깥) */
+.ar-trans {
+  margin: 6px 0 0;
+  padding-left: 2px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: #111827;
+}
+
+.ar-trans-key {
+  display: inline-block;
+  margin-right: 7px;
+  border-radius: 3px;
+  background: #6b7280;
+  padding: 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  vertical-align: 0.12em;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* 번호 설명 (연회색 띠) */
+.ar-points {
+  margin: 6px 0 0;
+  border-radius: 6px;
+  background: #f1f2f4;
+  padding: 7px 10px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.ar-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.ar-point-mark {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.ar-point-body {
+  min-width: 0;
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: #111827;
+}
+
+.ar-point-label {
+  margin-right: 5px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.ar-point-rewrite {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #1668b8;
+}
+
 @media print {
 /* 기본은 여백만 0. 용지 크기는 화면별 주입(@page size)이 결정 — PDF 저장에 용지 옵션 없어도 동작 */
   @page {

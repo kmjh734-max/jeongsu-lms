@@ -1,0 +1,284 @@
+/**
+ * 내신 지문분석지 방식으로 문장 하나를 찍는다.
+ *
+ * 선생님이 주신 실물 분석지 모양을 그대로 따른다.
+ *  - 문장은 둥근 빨간 테두리 상자 안에 크게, 자간을 넓혀 남색으로 찍는다.
+ *  - 상자 왼쪽 위에 회색 번호 딱지, 테두리 위에 걸친 알약 꼬리표(서술형 대비·빈칸 추론은
+ *    오른쪽 진빨강, 주제문은 왼쪽 파랑).
+ *  - 단어 아래 문장성분(S·V·O·C), 구간 괄호([부사절] 〈명사절〉 (삽입)), 구간 위 파란 이름표,
+ *    설명할 자리에는 빨간 ★와 동그라미 번호, 규칙은 파란 점선 상자(상자에서 그 자리까지
+ *    점선 한 줄을 올린다).
+ *  - 해석 줄과 번호 설명은 상자 바깥 아래에 두고, 번호 설명은 연회색 띠 위에 놓는다.
+ * 그림은 쓰지 않고 글자와 테두리로만 만든다(인쇄에서 잘리지 않게).
+ */
+import {
+  Fragment,
+  useLayoutEffect,
+  useRef,
+  type ReactNode,
+} from "react";
+import {
+  buildMarkupTree,
+  type AnalysisSentenceMarkup,
+  type MarkupBracketKind,
+  type MarkupNode,
+  type MarkupRoleLevel,
+  type MarkupSpan,
+} from "@/lib/lesson-materials/analysis-markup";
+
+const CIRCLED = ["①", "②", "③", "④", "⑤", "⑥"];
+const CALLOUT_MARKS = ["ⓐ", "ⓑ", "ⓒ"];
+/** 종속절 성분은 S¹·V¹처럼 위첨자를 붙인다(분석지 관례). */
+const LEVEL_SUP = ["", "¹", "²"];
+/** 테두리 오른쪽 위에 다는 꼬리표. 그 밖의 꼬리표는 주제문처럼 왼쪽에 둔다. */
+const CORNER_TAGS = new Set(["서술형 대비", "빈칸 추론", "어법 빈출"]);
+/** 같은 줄에 놓인 이름표 사이에 두는 최소 간격(px). */
+const NOTE_GAP = 11;
+/** 형광펜으로 칠할 수 있는 최대 길이(단어). 절 전체가 노랗게 덮이면 오히려 읽히지 않는다. */
+const MAX_HIGHLIGHT_WORDS = 6;
+
+function bracketChars(kind: MarkupBracketKind): [string, string] {
+  if (kind === "adverbial") return ["[", "]"];
+  if (kind === "nominal") return ["〈", "〉"];
+  return ["(", ")"];
+}
+
+function circled(index: number): string {
+  return CIRCLED[index - 1] ?? `(${index})`;
+}
+
+/** 형광펜 구간과 겹치는 글자만 덧칠해 내보낸다(구간 괄호·성분과 상관없이 글자 단위로 칠한다). */
+function renderText(text: string, at: number, hl: MarkupSpan | null): ReactNode {
+  if (!hl) return text;
+  const from = Math.max(at, hl.start);
+  const to = Math.min(at + text.length, hl.end);
+  if (to <= from) return text;
+  return (
+    <>
+      {text.slice(0, from - at)}
+      <span className="ar-hl">{text.slice(from - at, to - at)}</span>
+      {text.slice(to - at)}
+    </>
+  );
+}
+
+function renderNodes(nodes: MarkupNode[], hl: MarkupSpan | null): ReactNode {
+  return nodes.map((node, i) => {
+    if (node.kind === "text") {
+      return <Fragment key={i}>{renderText(node.text, node.at, hl)}</Fragment>;
+    }
+
+    // 끼워 넣는 표시: 이름표는 줄 사이 여백에 띄우고, 번호·상자 꼬리표는 그 자리에 찍는다.
+    if (node.kind === "marker") {
+      return (
+        <Fragment key={i}>
+          {node.notes.map((n, ni) => (
+            <span key={`n${ni}`} className="ar-note-anchor">
+              <span className="ar-note">
+                {n.label}
+                {n.gloss ? <span className="ar-note-gloss"> {n.gloss}</span> : null}
+              </span>
+            </span>
+          ))}
+          {node.points.map((p) => (
+            <span key={`p${p.index}`} className="ar-pt-mark">
+              {p.star ? <span className="ar-star">★</span> : null}
+              {circled(p.index)}
+            </span>
+          ))}
+          {node.calloutIndexes.map((ci) => (
+            <span key={`c${ci}`} className="ar-callout-ref" data-callout-ref={ci}>
+              {CALLOUT_MARKS[ci] ?? "◦"}
+            </span>
+          ))}
+        </Fragment>
+      );
+    }
+
+    const { deco } = node;
+    const inner = renderNodes(node.children, hl);
+    const [open, close] = deco.bracket ? bracketChars(deco.bracket) : ["", ""];
+
+    const body = deco.role ? (
+      <span className="ar-role-wrap">
+        <span className="ar-role-text">{inner}</span>
+        <span className={`ar-role-tag ar-role-tag--l${deco.role.level}`}>
+          {deco.role.code}
+          {LEVEL_SUP[deco.role.level as MarkupRoleLevel]}
+        </span>
+      </span>
+    ) : (
+      inner
+    );
+
+    return (
+      <span key={i} className="ar-seg">
+        {open ? (
+          <span className={`ar-bracket ar-bracket--${deco.bracket}`}>{open}</span>
+        ) : null}
+        {body}
+        {close ? (
+          <span className={`ar-bracket ar-bracket--${deco.bracket}`}>{close}</span>
+        ) : null}
+      </span>
+    );
+  });
+}
+
+/**
+ * 자리를 잡은 뒤 손봐야 하는 두 가지.
+ *  1) 줄 사이에 띄운 이름표가 글상자 밖으로 나가면 인쇄에서 잘리고, 같은 줄에서 서로 겹치면
+ *     둘 다 읽히지 않는다. 앞 이름표 오른쪽으로 밀고, 오른쪽으로 넘치면 넘친 만큼 되민다.
+ *  2) 점선 상자에서 그 상자가 가리키는 자리까지 점선 한 줄을 올린다. 그 자리의 x는 줄바꿈에
+ *     따라 달라지므로 재서 넣는다.
+ * 어느 줄의 어디에 놓일지는 CSS만으로 알 수 없어 자리를 잡은 뒤에 한다.
+ */
+function useMarkupLayout(
+  sentenceRef: React.RefObject<HTMLParagraphElement | null>,
+  frameRef: React.RefObject<HTMLDivElement | null>
+) {
+  useLayoutEffect(() => {
+    const box = sentenceRef.current;
+    if (!box) return;
+    const bounds = box.getBoundingClientRect();
+    if (bounds.width <= 0) return;
+
+    const notes = Array.from(box.querySelectorAll<HTMLElement>(".ar-note"));
+    for (const el of notes) el.style.transform = "";
+    /** 줄마다 앞 이름표가 끝난 x. 줄은 이름표의 세로 위치로 가른다. */
+    const lineEnd = new Map<number, number>();
+    for (const el of notes) {
+      const rect = el.getBoundingClientRect();
+      const line = Math.round(rect.top / 4);
+      let shift = 0;
+      const end = lineEnd.get(line);
+      // 이름표끼리 붙어 있으면 한 덩어리로 읽힌다. 눈에 보이는 사이를 띄운다.
+      if (end != null && rect.left < end + NOTE_GAP) shift = end + NOTE_GAP - rect.left;
+      const over = rect.right + shift - bounds.right;
+      if (over > 0) shift -= over;
+      if (Math.abs(shift) >= 1) el.style.transform = `translateX(${Math.round(shift)}px)`;
+      lineEnd.set(line, rect.right + shift);
+    }
+
+    const frame = frameRef.current;
+    if (!frame) return;
+    for (const stem of Array.from(frame.querySelectorAll<HTMLElement>(".ar-callout"))) {
+      const ci = stem.dataset.callout;
+      const anchor = box.querySelector<HTMLElement>(`[data-callout-ref="${ci}"]`);
+      if (!anchor) {
+        stem.style.removeProperty("--ar-stem-x");
+        stem.style.removeProperty("--ar-stem-h");
+        continue;
+      }
+      const a = anchor.getBoundingClientRect();
+      const b = stem.getBoundingClientRect();
+      const x = Math.round(a.left + a.width / 2 - b.left);
+      const h = Math.round(b.top - a.bottom);
+      if (x > 4 && x < b.width - 4 && h > 2 && h < 90) {
+        stem.style.setProperty("--ar-stem-x", `${x}px`);
+        stem.style.setProperty("--ar-stem-h", `${h}px`);
+      } else {
+        stem.style.removeProperty("--ar-stem-x");
+        stem.style.removeProperty("--ar-stem-h");
+      }
+    }
+  });
+}
+
+export function AnalysisMarkupSentence({
+  markup,
+  index,
+}: {
+  markup: AnalysisSentenceMarkup;
+  /** 문장 번호(0부터). 화면에는 1부터 찍는다. */
+  index: number;
+}) {
+  const tree = buildMarkupTree(markup);
+  const sentenceRef = useRef<HTMLParagraphElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  useMarkupLayout(sentenceRef, frameRef);
+
+  // 빈칸 추론 문장은 그 빈칸이 걸린 자리를 형광펜으로 칠한다(작은 기호 대신 구절 자체를 칠한다).
+  const highlightSpan =
+    markup.tags.includes("빈칸 추론") && markup.points.length > 0
+      ? (markup.points.find((p) => p.star) ?? markup.points[0])!.span
+      : null;
+  const highlight =
+    highlightSpan &&
+    markup.text.slice(highlightSpan.start, highlightSpan.end).split(/\s+/).length <=
+      MAX_HIGHLIGHT_WORDS
+      ? highlightSpan
+      : null;
+
+  const cornerTags = markup.tags.filter((t) => CORNER_TAGS.has(t));
+  const leadTags = markup.tags.filter((t) => !CORNER_TAGS.has(t));
+
+  return (
+    <section data-analysis-block={`s-${index}`} className="ar-block break-inside-avoid">
+      <div className="ar-frame" ref={frameRef}>
+        {leadTags.length > 0 ? (
+          <span className="ar-tags ar-tags--lead">
+            {leadTags.map((t) => (
+              <span key={t} className="ar-tag ar-tag--lead">
+                {t === "주제문" ? "♥ 주제문" : t}
+              </span>
+            ))}
+          </span>
+        ) : null}
+        {cornerTags.length > 0 ? (
+          <span className="ar-tags ar-tags--corner">
+            {cornerTags.map((t) => (
+              <span key={t} className="ar-tag ar-tag--corner">
+                {t}
+              </span>
+            ))}
+          </span>
+        ) : null}
+
+        <p className="ar-sentence" ref={sentenceRef}>
+          <span className="ar-no">{String(index + 1).padStart(2, "0")}</span>
+          {renderNodes(tree, highlight)}
+        </p>
+
+        {markup.callouts.map((c, ci) => (
+          <div key={ci} className="ar-callout" data-callout={ci}>
+            <p className="ar-callout-head">
+              <span className="ar-callout-mark">{CALLOUT_MARKS[ci] ?? "◦"}</span>
+              <span className="ar-callout-anchor">
+                {markup.text.slice(c.span.start, c.span.end)}
+              </span>
+            </p>
+            <p className="ar-callout-title">{c.title}</p>
+            <p className="ar-callout-body">{c.body}</p>
+          </div>
+        ))}
+      </div>
+
+      {markup.translation ? (
+        <p className="ar-trans">
+          <span className="ar-trans-key">해석</span>
+          {markup.translation}
+        </p>
+      ) : null}
+
+      {markup.points.length > 0 ? (
+        <ol className="ar-points">
+          {markup.points.map((p) => (
+            <li key={p.index} className="ar-point">
+              <span className="ar-point-mark">{circled(p.index)}</span>
+              <span className="ar-point-body">
+                {/* 설명 머리의 ★는 실물 분석지처럼 번호마다 붙인다(문장 안 ★는 중요한 자리에만). */}
+                <span className="ar-star">★</span>
+                <span className="ar-point-label">{p.label}</span>
+                <span className="ar-point-text">{p.explanation}</span>
+                {p.rewrite ? (
+                  <span className="ar-point-rewrite">{p.rewrite}</span>
+                ) : null}
+              </span>
+            </li>
+          ))}
+        </ol>
+      ) : null}
+    </section>
+  );
+}

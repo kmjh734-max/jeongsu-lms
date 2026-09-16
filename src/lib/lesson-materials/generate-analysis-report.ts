@@ -14,6 +14,17 @@ import {
   resolveCheonilmunUnit,
   type CheonilmunClassification,
 } from "@/lib/lesson-materials/cheonilmun-basic-taxonomy";
+import {
+  hasAnyMarkup,
+  type AnalysisSentenceMarkup,
+} from "@/lib/lesson-materials/analysis-markup";
+import {
+  emptyMarkupUsage,
+  generateSentenceMarkup,
+  type MarkupUsage,
+} from "@/lib/lesson-materials/generate-analysis-markup";
+import { verifyAnalysisMarkups } from "@/lib/lesson-materials/analysis-markup-verify";
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
 
 export type AnalysisChunkRole =
   | "s"
@@ -81,13 +92,18 @@ export type AnalysisSentence = {
   discourseRole?: string;
   connectionType?: string;
   grammarPoints: AnalysisGrammarPoint[];
+  /**
+   * 내신 분석지 방식 문장 표시(성분·괄호·이름표·번호 설명·해석·꼬리표).
+   * 검증을 통과한 것만 들어 있고, 못 만든 문장은 비어 있다.
+   */
+  markup?: AnalysisSentenceMarkup;
 };
 
 /**
  * 저장된 분석서를 그대로 쓸 수 있는지 가르는 형식 버전. 출력 항목이 바뀌면(예: 문법 설명
  * explanation 추가) 올려서, 옛 형식 분석서는 제작 때 한 번 새로 만들게 한다.
  */
-export const ANALYSIS_REPORT_FORMAT_VERSION = "ar-2-explanation";
+export const ANALYSIS_REPORT_FORMAT_VERSION = "ar-3-markup";
 
 export type AnalysisReportData = {
   /** 만들 때의 영어 원문 해시. 원문이 그대로면 제작을 눌러도 다시 만들지 않는다. */
@@ -356,26 +372,17 @@ type RawAnalysisResponse = {
 
 /** Whole-report deadline; the route allows 300s and still has to save. */
 const REPORT_DEADLINE_MS = 240_000;
-/** A passage up to this many sentences is written by a single sentence call. */
-const SINGLE_GROUP_MAX_SENTENCES = 5;
-/** Target sentences per parallel sentence call once a passage is split. */
-const SENTENCES_PER_GROUP = 4;
-/** Upper bound on parallel sentence calls per passage (8 passages run at once). */
-const MAX_SENTENCE_GROUPS = 6;
-/** Each call (grammar or one sentence group) is tried at most this many times. */
+/** Each call is tried at most this many times. */
 const CALL_ATTEMPTS = 2;
 
 class ReportDeadlineError extends Error {}
 
 type ReasoningEffort = "low" | "medium";
 /**
- * The grammar call is the one every passage waits on (24-56s at medium against
- * 11-19s for the sentence calls, 3 passages). At low it took 15-18s and picked
- * and classified the same points; the sentence calls stay at medium because
- * lowering them does not shorten the report and chunking benefits from it.
+ * 어법 포인트 선정 호출은 low로도 같은 것을 고르고 분류했다(medium 24~56초 → low 15~18초).
+ * 문장별 표시 분석은 generate-analysis-markup.ts가 따로 부른다.
  */
 const GRAMMAR_EFFORT: ReasoningEffort = "low";
-const SENTENCE_EFFORT: ReasoningEffort = "medium";
 /**
  * See requestHedged. Normal calls finish in 11-19s (grammar at low 15-18s).
  * OpenAI bills the aborted loser in full (non-streaming), so the hedge only
@@ -384,6 +391,12 @@ const SENTENCE_EFFORT: ReasoningEffort = "medium";
  * REPORT_DEADLINE_MS (240s).
  */
 const HEDGE_AFTER_MS = 90_000;
+
+/**
+ * 문장 표시 분석을 한 지문 안에서 동시에 부르는 수. 문장이 많은 지문도 몇 십 초에 끝나야 하고,
+ * 지문 여러 개를 함께 만들 때(화면에서 8개까지) 분당 요청 한도에 걸리지 않을 만큼만 연다.
+ */
+const MARKUP_CONCURRENCY = 6;
 
 function sleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -542,25 +555,6 @@ async function requestAnalysisContent(
   return envelope?.choices?.[0]?.message?.content ?? bodyText;
 }
 
-/** Splits sentences into contiguous, evenly sized groups. */
-function splitSentenceGroups<T>(items: T[]): T[][] {
-  if (items.length <= SINGLE_GROUP_MAX_SENTENCES) return [items];
-  const count = Math.min(
-    MAX_SENTENCE_GROUPS,
-    Math.ceil(items.length / SENTENCES_PER_GROUP)
-  );
-  const base = Math.floor(items.length / count);
-  const extra = items.length % count;
-  const groups: T[][] = [];
-  let at = 0;
-  for (let g = 0; g < count; g++) {
-    const size = base + (g < extra ? 1 : 0);
-    groups.push(items.slice(at, at + size));
-    at += size;
-  }
-  return groups;
-}
-
 /**
  * Grammar points stay a single passage-wide call so selection (count, one
  * representative per principle) is judged over the whole passage. Its output
@@ -577,24 +571,6 @@ function buildGrammarScopePrompt(baseUserContent: string): string {
 - 각 항목에 explanation(학생이 바로 이해할 한국어 1∼2문장 설명, ～한다체)을 반드시 쓴다.
 - primaryClassification·relatedUnits의 각 분류는 {"unitNumber", "unitTitle"}만 쓴다. PART·CHAPTER는 UNIT 번호로 채워진다. 목차 외 보충이면 unitNumber는 null.
 - 강조할 어법이 없으면 grammarPoints는 [], hasKeyGrammarPoints는 false로 두고 noPointMessage를 쓴다.
-- JSON은 들여쓰기·줄바꿈 없이 한 줄로 출력한다.
-</output_scope>`;
-}
-
-function buildSentenceGroupScopePrompt(
-  baseUserContent: string,
-  group: Array<{ id: string; number: number }>
-): string {
-  const first = group[0]?.number ?? 1;
-  const last = group[group.length - 1]?.number ?? first;
-  return `${baseUserContent}
-
-<output_scope>
-이번 응답은 전체 문장 중 ${first}번∼${last}번 문장(${group.length}개)만 담당한다. 지문 전체 흐름은 위 full_passage와 sentences로 파악하되, 출력은 아래 대상 문장만 쓴다.
-target_sentence_ids: ${JSON.stringify(group.map((g) => g.id))}
-- "sentences"에는 대상 문장만 입력 순서대로 하나씩 넣는다. 대상 밖 문장은 출력하지 않는다(문장 개수·순서 유지 규칙은 대상 범위에 적용한다).
-- contextNote·discourseRole·connectionType은 대상 밖 문장을 포함한 앞뒤 문장과 지문 전체 흐름 속에서 판단한다.
-- 어법 포인트는 따로 선정되므로 "grammarPoints"는 []로 두고 hasKeyGrammarPoints·noPointMessage는 쓰지 않는다.
 - JSON은 들여쓰기·줄바꿈 없이 한 줄로 출력한다.
 </output_scope>`;
 }
@@ -687,6 +663,30 @@ async function runScopedCall(
   throw new Error("분석서 생성 실패: 응답을 읽지 못했습니다.");
 }
 
+/**
+ * 별표는 지문에서 정말 중요한 몇 자리에만 남긴다. 문장마다 하나씩 붙이면(문장별로 만들다 보니
+ * 그렇게 된다) 분석지가 온통 별표가 되어 강조가 사라진다. 설명이 많은 문장을 먼저 남긴다.
+ */
+function capMarkupStars(
+  markups: Array<AnalysisSentenceMarkup | null>
+): Array<AnalysisSentenceMarkup | null> {
+  const starred = markups
+    .map((m, i) => ({ i, m }))
+    .filter(({ m }) => m?.points.some((p) => p.star));
+  const limit = Math.max(1, Math.ceil(markups.length / 3));
+  if (starred.length <= limit) return markups;
+  const keep = new Set(
+    [...starred]
+      .sort((a, b) => (b.m!.points.length - a.m!.points.length) || (a.i - b.i))
+      .slice(0, limit)
+      .map(({ i }) => i)
+  );
+  return markups.map((m, i) => {
+    if (!m || keep.has(i) || !m.points.some((p) => p.star)) return m;
+    return { ...m, points: m.points.map((p) => ({ ...p, star: false })) };
+  });
+}
+
 export async function generateAnalysisReport(input: {
   lines: InputLine[];
   title?: string;
@@ -708,17 +708,13 @@ export async function generateAnalysisReport(input: {
   const timer = setTimeout(() => controller.abort(), REPORT_DEADLINE_MS);
 
   try {
-    // Every call sees the whole passage (so notes and grammar choice stay
-    // passage-aware) but writes only its own part: one call picks the
-    // passage's grammar points and the sentences are written in groups, all
-    // in parallel. A single call was slow because of how much it had to write.
+    // 두 갈래를 함께 부른다. 하나는 지문 전체를 보고 어법 포인트를 고르는 호출(워크북 어법
+    // 설계도가 이 결과를 쓴다), 다른 하나는 문장마다 하나씩 도는 표시 분석이다. 표시 분석이
+    // 인쇄에 나가는 본문이고, 어법 포인트는 데이터로만 남는다.
     const baseUserContent = buildAnalysisReportUserPrompt({
       title: input.title,
       lines,
     });
-
-    const numbered = lines.map((l, i) => ({ id: l.id, number: i + 1 }));
-    const groups = splitSentenceGroups(numbered);
 
     const grammarTask = runScopedCall(
       apiKey,
@@ -734,60 +730,36 @@ export async function generateAnalysisReport(input: {
       }
     );
 
-    const groupTasks = groups.map((group) => {
-      const targetIds = new Set(group.map((g) => g.id));
-      const numberToId = new Map(group.map((g) => [g.number, g.id] as const));
-      // This group's sentences only, keyed by the input id.
-      const ownSentences = (p: RawAnalysisResponse): RawAnalysisSentence[] =>
-        (Array.isArray(p.sentences) ? p.sentences : [])
-          .filter((s): s is RawAnalysisSentence => !!s && typeof s === "object")
-          .map((s) => {
-            const loose = s as RawAnalysisSentence & {
-              sentenceId?: unknown;
-              sentenceNumber?: unknown;
-            };
-            let id = String(loose.itemId ?? loose.sentenceId ?? "").trim();
-            if (!targetIds.has(id) && typeof loose.sentenceNumber === "number") {
-              id = numberToId.get(Math.floor(loose.sentenceNumber)) ?? id;
-            }
-            return { ...s, itemId: id };
-          })
-          .filter((s) => targetIds.has(s.itemId ?? ""));
-      return runScopedCall(
-        apiKey,
-        buildSentenceGroupScopePrompt(baseUserContent, group),
-        controller.signal,
-        SENTENCE_EFFORT,
-        (p) => {
-          const got = new Set(ownSentences(p).map((s) => s.itemId));
-          return { value: got.size, complete: got.size === targetIds.size };
+    // 문장 표시 분석: 문장마다 호출 하나(정확도가 걸린 자리). 지문 전체를 문맥으로 주되
+    // 분석·표시·해석은 그 문장 하나에 대해서만 한다. 실패한 문장은 표시 없이 나간다.
+    const passageText = lines.map((l) => l.english.trim()).join(" ");
+    const markupUsage: MarkupUsage = emptyMarkupUsage();
+    const markupTask = runWithConcurrency(
+      lines,
+      MARKUP_CONCURRENCY,
+      async (line, i) => {
+        try {
+          const built = await generateSentenceMarkup({
+            apiKey,
+            passage: passageText,
+            sentence: line.english.trim(),
+            sentenceNumber: i + 1,
+            totalSentences: lines.length,
+            koreanHint: line.korean,
+            signal: controller.signal,
+            usage: markupUsage,
+          });
+          return built?.markup ?? null;
+        } catch {
+          return null;
         }
-      ).then((p) => ({
-        sentences: ownSentences(p),
-        sentenceNotes: (Array.isArray(p.sentenceNotes)
-          ? p.sentenceNotes
-          : []
-        ).filter((n) => {
-          const id = String(n?.sentenceId ?? "").trim();
-          if (id) return targetIds.has(id);
-          return (
-            typeof n?.sentenceNumber === "number" &&
-            numberToId.has(Math.floor(n.sentenceNumber))
-          );
-        }),
-      }));
-    });
+      }
+    );
 
     let grammarPart: RawAnalysisResponse;
-    let sentenceParts: Array<{
-      sentences: RawAnalysisSentence[];
-      sentenceNotes: RawSentenceNote[];
-    }>;
+    let markups: Array<AnalysisSentenceMarkup | null>;
     try {
-      [grammarPart, sentenceParts] = await Promise.all([
-        grammarTask,
-        Promise.all(groupTasks),
-      ]);
+      [grammarPart, markups] = await Promise.all([grammarTask, markupTask]);
     } catch (e) {
       // Stop the sibling calls; the caller shows the error and offers a retry.
       controller.abort();
@@ -799,9 +771,23 @@ export async function generateAnalysisReport(input: {
       throw e;
     }
 
+    // 값싼 모델로 번호 설명과 해석을 한 번 더 확인한다. 검수가 실패해도 만든 것은 그대로 쓴다.
+    try {
+      const verified = await verifyAnalysisMarkups({
+        apiKey,
+        markups,
+        signal: controller.signal,
+      });
+      markups = verified.markups;
+    } catch {
+      /* 검수 실패는 넘어간다 */
+    }
+
+    markups = capMarkupStars(markups);
+
     const parsed: RawAnalysisResponse = {
-      sentences: sentenceParts.flatMap((p) => p.sentences),
-      sentenceNotes: sentenceParts.flatMap((p) => p.sentenceNotes),
+      sentences: [],
+      sentenceNotes: [],
       hasKeyGrammarPoints: grammarPart.hasKeyGrammarPoints,
       grammarPoints: Array.isArray(grammarPart.grammarPoints)
         ? grammarPart.grammarPoints
@@ -861,8 +847,9 @@ export async function generateAnalysisReport(input: {
       grammarByItemId.set(itemId, list);
     }
 
-    const sentences: AnalysisSentence[] = lines.map((line) => {
+    const sentences: AnalysisSentence[] = lines.map((line, index) => {
       const raw = byId.get(line.id);
+      const markup = markups[index] ?? undefined;
       const noteExtra = notesById.get(line.id);
       const enChunks = (raw?.enChunks ?? [])
         .map((c) => ({
@@ -883,10 +870,10 @@ export async function generateAnalysisReport(input: {
       if (koChunks.length > enChunks.length) {
         koChunks = koChunks.slice(0, enChunks.length);
       }
-      if (!koChunks.some((k) => k) && (line.korean ?? "").trim()) {
-        koChunks = enChunks.map((_, i) =>
-          i === 0 ? String(line.korean).trim() : ""
-        );
+      // 해석은 표시 분석이 낸 것을 쓴다(옛 저장본은 koChunks 그대로).
+      if (!koChunks.some((k) => k)) {
+        const ko = markup?.translation || String(line.korean ?? "").trim();
+        if (ko) koChunks = enChunks.map((_, i) => (i === 0 ? ko : ""));
       }
 
       let grammarPoints = grammarByItemId.get(line.id) ?? [];
@@ -918,6 +905,7 @@ export async function generateAnalysisReport(input: {
           noteExtra?.connectionType ||
           undefined,
         grammarPoints,
+        markup: markup && hasAnyMarkup(markup) ? markup : undefined,
       };
     });
 

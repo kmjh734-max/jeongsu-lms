@@ -29,6 +29,8 @@ import {
   useCreateDocumentFromUrl,
 } from "@/components/lesson-materials/open-new-document";
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
+import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
+import { readAnalysisMarkup } from "@/lib/lesson-materials/analysis-markup";
 
 /** 분석서를 동시에 만드는 지문 수. 지문 하나가 모델 호출 하나라 8개도 부담이 작다. */
 const ANALYSIS_REPORT_CONCURRENCY = 8;
@@ -100,6 +102,14 @@ function SentenceBlock({
   index: number;
   accent: string;
 }) {
+  const plainEn = sentence.enChunks.map((c) => c.text).join(" ").trim();
+  // 새 분석서는 문장 표시 분석(성분·괄호·이름표·번호 설명·해석)을 그대로 찍는다.
+  // 저장본을 다시 읽을 때도 같은 검사를 지나고, 원문이 바뀌었으면 표시를 버리고 옛 모양으로 돌아간다.
+  const markup = readAnalysisMarkup(sentence.markup, plainEn);
+  if (markup) {
+    return <AnalysisMarkupSentence markup={markup} index={index} />;
+  }
+
   const enText = joinChunks(sentence.enChunks.map((c) => c.text));
   const koText = joinChunks(sentence.koChunks);
   const contextNote =
