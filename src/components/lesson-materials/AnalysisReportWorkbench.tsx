@@ -472,9 +472,9 @@ export function AnalysisReportWorkbench({
     const widthPx = root.offsetWidth || 1;
     const pxPerMm = widthPx / 210;
     const bodyMm = 297 - A4_PAD_MM - A4_FOOTER_MM;
-    // 재는 값에 한두 픽셀 오차가 있어 조금 낮춰 잡는다(넘치면 빈 쪽이 생긴다)
-    const pageBodyPx = bodyMm * pxPerMm - 6;
-    const gapPx = 8;
+    const pageBodyPx = bodyMm * pxPerMm;
+    // 쪽에 찍을 때 묶음 사이 여백(space-y-1). 넉넉히 잡으면 묶음 하나가 통째로 밀린다.
+    const gapPx = 4;
 
     const next: Record<string, AnalysisUnit[][]> = {};
     for (const p of projects) {
