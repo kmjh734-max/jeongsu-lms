@@ -46,7 +46,10 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
    - "주제문"은 글의 중심 생각을 담은 문장에만. 한 지문에 한두 개다.
    - 빈칸 추론·함축 의미·어휘 추론·어법 빈출을 쓰면, tagSpans에 그 꼬리표가 가리키는 자리를
      원문 그대로(3~8 words) 따와 적는다. 자리를 적지 않으면 그 꼬리표는 버려진다.
-     예: tags에 "함축 의미"를 넣었으면 tagSpans에 {"tag":"함축 의미","text":"a technology of distance"}.
+     예: tags에 "함축 의미"를 넣었으면 tagSpans에 {"tag":"함축 의미","text":"a technology of distance",
+     "paraphrase":"멀리 떨어진 사람들을 이어 주는 방법"}.
+   - "함축 의미"는 paraphrase를 반드시 적는다. 그 표현이 이 글에서 무슨 뜻인지 한국어 한 문장(20~60자)으로
+     풀어 쓴다. 겉뜻을 그대로 옮기지 말고, 글의 맥락에서 가리키는 바를 적는다. 없으면 꼬리표를 빼라.
 
 # 구간 지정 방법 (제일 중요)
 - text 에는 원문에서 그대로 따온 연속된 글자를 넣는다. 대소문자·구두점·철자를 한 글자도 바꾸지 않는다.
@@ -105,10 +108,11 @@ export const ANALYSIS_MARKUP_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["tag", "text"],
+        required: ["tag", "text", "paraphrase"],
         properties: {
           tag: { type: "string" },
           text: { type: "string" },
+          paraphrase: { type: "string" },
         },
       },
     },

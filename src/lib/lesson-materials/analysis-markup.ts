@@ -94,6 +94,11 @@ export const SPAN_TAGS: readonly MarkupSentenceTag[] = [
 export type MarkupTagSpan = {
   tag: MarkupSentenceTag;
   span: MarkupSpan;
+  /**
+   * 함축 의미로 나올 자리는 그 말이 무슨 뜻인지 바꿔 쓴 문장을 함께 적는다
+   * (선생님 요청: "어떤 의미인지 패러프레이징 문장을 써 주고").
+   */
+  paraphrase?: string;
 };
 
 export type AnalysisSentenceMarkup = {

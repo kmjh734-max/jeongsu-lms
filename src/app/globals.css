@@ -2545,15 +2545,87 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   color: #64748b;
 }
 
-/* 빈칸이 걸린 구절은 형광펜으로 칠한다 */
+/* 꼬리표가 가리키는 구절은 그 자리에 칠한다. 꼬리표마다 색이 다르다. */
 .ar-hl {
-  background: #ffe95c;
-  color: #c2185b;
-  font-weight: 800;
   border-radius: 2px;
   padding: 0 1px;
+  font-weight: 800;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
+}
+
+/* 빈칸 추론: 형광펜 + 네모 (선생님 요청) */
+.ar-hl--blank {
+  background: #ffe95c;
+  color: #b3123f;
+  border: 1px solid #c2185b;
+  padding: 0 2px;
+}
+
+/* 함축 의미: 뜻을 따로 풀어 주므로 자리는 분홍으로 칠하고 밑줄을 둔다 */
+.ar-hl--imply {
+  background: #ffe1ef;
+  color: #a3155a;
+  border-bottom: 1.4px solid #d4477f;
+}
+
+/* 어휘 추론 */
+.ar-hl--vocab {
+  background: #dcf5e6;
+  color: #12633f;
+  border-bottom: 1.4px solid #2f9469;
+}
+
+/* 어법 빈출 */
+.ar-hl--grammar {
+  background: #e2ecfb;
+  color: #17457f;
+  border-bottom: 1.4px dotted #3e74bd;
+}
+
+/* 알약에 찍는 같은 색 점 — 꼬리표와 칠한 자리를 잇는다 */
+.ar-tag-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 4px;
+  border-radius: 2px;
+  vertical-align: 0.5px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* 함축 의미 뜻풀이 한 줄 (테두리 바깥, 해석 아래) */
+.ar-imply {
+  margin: 4px 0 0;
+  padding-left: 2px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #a3155a;
+}
+
+.ar-imply-key {
+  display: inline-block;
+  margin-right: 6px;
+  border-radius: 3px;
+  background: #c2185b;
+  padding: 0 5px;
+  font-size: 8.8px;
+  font-weight: 700;
+  color: #ffffff;
+  vertical-align: 0.1em;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.ar-imply-src {
+  font-weight: 700;
+  color: #16457e;
+}
+
+.ar-imply-arrow {
+  margin: 0 5px;
+  color: #8a8f98;
 }
 
 /* 단어 아래 문장성분. 글자 아래 밑줄과 작은 기호로 찍는다. */

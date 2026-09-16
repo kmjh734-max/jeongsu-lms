@@ -362,6 +362,21 @@ export function AnalysisMarkupSentence({
         </ol>
       ) : null}
 
+      {showHead
+        ? (markup.tagSpans ?? [])
+            .filter((t) => t.tag === "함축 의미" && t.paraphrase)
+            .map((t, i) => (
+              <p key={`imp${i}`} className="ar-imply">
+                <span className="ar-imply-key">함축 의미</span>
+                <span className="ar-imply-src">
+                  {markup.text.slice(t.span.start, t.span.end)}
+                </span>
+                <span className="ar-imply-arrow">→</span>
+                {t.paraphrase}
+              </p>
+            ))
+        : null}
+
       {extraNote && showLastSlice ? (
         <p className="ar-extra">
           <span className="ar-extra-key">부연 설명</span>

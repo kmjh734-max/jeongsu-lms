@@ -425,7 +425,16 @@ export function buildVerifiedMarkup(
       drop("tagSpan", "span-not-found", row.text);
       continue;
     }
-    tagSpans.push({ tag: tag as MarkupSentenceTag, span });
+    const paraphrase = String((row as { paraphrase?: unknown }).paraphrase ?? "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 160);
+    // 함축 의미는 뜻풀이가 없으면 표시할 값이 없다
+    if (tag === "함축 의미" && paraphrase.length < 8) {
+      drop("tagSpan", "empty-text", row.text);
+      continue;
+    }
+    tagSpans.push({ tag: tag as MarkupSentenceTag, span, paraphrase: paraphrase || undefined });
   }
   // 자리를 못 받은 부분 꼬리표는 뗀다
   const keptTags = tags.filter(
