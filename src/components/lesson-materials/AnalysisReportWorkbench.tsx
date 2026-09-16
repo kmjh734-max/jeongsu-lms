@@ -478,7 +478,12 @@ export function AnalysisReportWorkbench({
      * 높이가 조금 달라서(쪽이 넘치면 한 줄이 새어 나가 거의 빈 쪽이 생긴다)
      * 6mm를 여유로 뺀다.
      */
-    const bodyMm = 297 - A4_PAD_MM - PRINT_FOOTER_MM - 2;
+    /*
+     * 담을 수 있는 높이. 재는 높이와 실제로 찍히는 높이가 7mm 남짓 달라서
+     * (이어 붙는 설명 묶음이 여백을 한 번 더 쓴다) 그만큼 여유를 두고 잰다.
+     * 여유를 줄이면 쪽이 넘쳐 한 줄이 새고 거의 빈 쪽이 생긴다 — 실제로 확인했다.
+     */
+    const bodyMm = 297 - A4_PAD_MM - PRINT_FOOTER_MM - 7;
     const pageBodyPx = bodyMm * pxPerMm;
     // 쪽에 찍을 때 묶음 사이 여백(space-y-1). 넉넉히 잡으면 묶음 하나가 통째로 밀린다.
     const gapPx = 4;
