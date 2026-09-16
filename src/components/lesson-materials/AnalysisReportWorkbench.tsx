@@ -49,6 +49,8 @@ const A4_HEIGHT = "297mm";
 const A4_PAD_MM = 12;
 const A4_PAD = `${A4_PAD_MM}mm`;
 const A4_FOOTER_MM = 16;
+/** 인쇄에서 쪽 아래 여백(globals.css의 .analysis-report-a4-sheet). 담을 높이는 이 값으로 잰다. */
+const PRINT_FOOTER_MM = 15;
 /**
  * 분석서가 아직 없을 때 쓰는 빈 배열. 렌더마다 새 []를 만들어 effect 의존성에
  * 넣으면 쪽 배치 effect가 매번 state를 바꿔 무한 렌더가 되고(React #185),
@@ -476,7 +478,7 @@ export function AnalysisReportWorkbench({
      * 높이가 조금 달라서(쪽이 넘치면 한 줄이 새어 나가 거의 빈 쪽이 생긴다)
      * 6mm를 여유로 뺀다.
      */
-    const bodyMm = 297 - A4_PAD_MM - A4_FOOTER_MM - 6;
+    const bodyMm = 297 - A4_PAD_MM - PRINT_FOOTER_MM - 2;
     const pageBodyPx = bodyMm * pxPerMm;
     // 쪽에 찍을 때 묶음 사이 여백(space-y-1). 넉넉히 잡으면 묶음 하나가 통째로 밀린다.
     const gapPx = 4;
