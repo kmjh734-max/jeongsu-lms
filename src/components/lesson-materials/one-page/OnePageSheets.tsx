@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  EXAM_POINT_MARKS,
   circledHangul,
   circledLetter,
   circledNumber,
@@ -65,6 +66,12 @@ ruby.op-voc rt{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.5em;fon
 .op-r{text-decoration:underline;text-decoration-style:dotted;text-decoration-color:#b45309;text-decoration-thickness:1.2px;text-underline-offset:.2em}
 .op-gm,.op-xm,.op-rm{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.74em;font-weight:700;vertical-align:.55em;line-height:0;margin-right:.08em}
 .op-gm{color:#dc2626}.op-xm{color:#2563eb}.op-rm{color:#b45309}
+.op-bk{background:#fff7ed;border-bottom:1.4px dashed #ea580c;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.op-em{font-family:ui-sans-serif,system-ui,sans-serif;font-weight:800;color:#ea580c;font-size:.9em;margin-right:.12em}
+.op-emsup{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.72em;font-weight:700;color:#ea580c;vertical-align:.55em;line-height:0;margin-right:.08em}
+.op-exam{margin:0;line-height:1.5;font-size:.92em;text-align:justify}
+.op-exam .op-etag{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.84em;font-weight:700;color:#ea580c;background:#fff1e6;border-radius:.3em;padding:0 .35em;margin-right:.3em}
+.op-exam .op-rsep{color:#d1d5db;margin:0 .4em}
 .op-refs{margin:0;line-height:1.5;font-size:.92em;text-align:justify}
 .op-refs .op-rsep{color:#d1d5db;margin:0 .35em}
 .op-flow{display:flex;align-items:stretch;gap:.3em}
@@ -226,11 +233,16 @@ function RunText({ run }: { run: OnePageRun }) {
           {referenceMark(r)}
         </span>
       ))}
+      {run.examStart.map((e) => (
+        <span key={`e${e}`} className="op-emsup">
+          {EXAM_POINT_MARKS.blank.mark}
+        </span>
+      ))}
     </>
   );
   const cls = `${run.grammar.length ? "op-g" : ""} ${run.expression.length ? "op-x" : ""} ${
     run.reference.length ? "op-r" : ""
-  }`.trim();
+  } ${run.exam.length ? "op-bk" : ""}`.trim();
   return (
     <>
       {markers}
@@ -265,6 +277,10 @@ export function OnePageSummarySheet({
 }) {
   const c = project.content;
   const references = c.references ?? [];
+  const examPoints = c.examPoints ?? [];
+  /** 문장 앞에 붙는 출제 표시(문장 삽입·순서 배열) */
+  const aheadOf = (si: number) =>
+    examPoints.filter((e) => (e.kind === "insert" || e.kind === "order") && e.sentenceIndex === si);
   const title = (project.titleEn ?? "").trim() || c.titleEn || project.title;
   const summaryParts = splitSummaryByKeywords(c.summaryEn, c.summaryKeywords);
   return (
@@ -329,11 +345,27 @@ export function OnePageSummarySheet({
             1
           </span>
           지칭어 · 낱말 아래 <span style={{ color: "#0f766e" }}>≒ 동의어 ↔ 반의어</span>
+          {examPoints.length > 0 ? (
+            <>
+              {" · "}
+              <span style={{ color: "#ea580c" }}>
+                {EXAM_POINT_MARKS.blank.mark}
+                {EXAM_POINT_MARKS.insert.mark}
+                {EXAM_POINT_MARKS.order.mark}
+              </span>
+              유력 출제 자리
+            </>
+          ) : null}
         </span>
       </h2>
       <p className="op-passage op-en">
         {project.sentences.map((s, si) => (
           <Fragment key={si}>
+            {aheadOf(si).map((e, k) => (
+              <span key={`e${k}`} className="op-em">
+                {EXAM_POINT_MARKS[e.kind].mark}
+              </span>
+            ))}
             <span className="op-sn">{circledNumber(si)}</span>
             {splitSentenceForSummary(s.english, si, c).map((seg, gi) => {
               const runs = seg.runs.map((run, ri) => <RunText key={ri} run={run} />);
@@ -406,6 +438,35 @@ export function OnePageSummarySheet({
           </ol>
         </section>
       </div>
+
+      {examPoints.length > 0 ? (
+        <section>
+          <h2 className="op-h">
+            출제 포인트
+            <span className="op-legend">
+              {EXAM_POINT_MARKS.blank.mark} 본문 표시 자리가 빈칸이 될 어구 ·{" "}
+              {EXAM_POINT_MARKS.insert.mark} 그 문장 앞에 문장이 들어갈 자리 ·{" "}
+              {EXAM_POINT_MARKS.order.mark} 그 문장 앞에서 글이 갈리는 자리
+            </span>
+          </h2>
+          <p className="op-exam">
+            {examPoints.map((e, i) => (
+              <Fragment key={i}>
+                {i > 0 ? <span className="op-rsep">/</span> : null}
+                <span className="op-etag">
+                  {EXAM_POINT_MARKS[e.kind].mark} {EXAM_POINT_MARKS[e.kind].labelKo}
+                </span>
+                {e.kind === "insert" || e.kind === "order" ? (
+                  <b>{circledNumber(e.sentenceIndex)} 앞</b>
+                ) : (
+                  <b className="op-en">{e.target}</b>
+                )}
+                <span style={{ color: "#6b7280" }}> — {e.reasonKo}</span>
+              </Fragment>
+            ))}
+          </p>
+        </section>
+      ) : null}
 
       {references.length > 0 ? (
         <section>

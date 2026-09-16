@@ -20,7 +20,7 @@ import {
 } from "@/lib/lesson-materials/workbook-types";
 
 /** 재료 형식이 바뀌면 올린다. 옛 형식 재료는 열 때 한 번 새로 만든다. */
-export const ONE_PAGE_CONTENT_VERSION = "op-6";
+export const ONE_PAGE_CONTENT_VERSION = "op-7";
 
 /** 시험지 어법 선택·어휘 선택 문항 수(양식: 10문항씩) */
 export const ONE_PAGE_CHOICE_MAX = 10;
@@ -83,6 +83,22 @@ export type OnePageReference = {
   referentSentenceIndex: number;
   /** 한국어 풀이(짧게) */
   meaningKo: string;
+  /** 그 문장에서 몇 번째로 나온 말인지(0부터). 같은 말이 두 번 나오는 문장에서 자리를 가린다. */
+  occurrence?: number;
+};
+
+/** 이 지문으로 낼 만한 시험 유형 표시(빈칸 추론·문장 삽입·순서 배열·요약문 빈칸) */
+export type OnePageExamPointKind = "blank" | "insert" | "order" | "summary";
+
+/** 유력 출제 자리. 본문에 작은 표시를 남기고 "출제 포인트" 줄에 한 줄씩 적는다. */
+export type OnePageExamPoint = {
+  kind: OnePageExamPointKind;
+  /** 0부터 센 문장 번호. insert·order는 이 문장 "앞"이 경계다. */
+  sentenceIndex: number;
+  /** blank는 본문에 나온 그대로의 어구, summary는 요약문의 어구. insert·order는 빈 문자열. */
+  target: string;
+  /** 왜 이 자리가 나올 만한지 한국어 한 줄 */
+  reasonKo: string;
 };
 
 export type OnePageTfItem = { statement: string; answer: "T" | "F" };
@@ -101,6 +117,8 @@ export type OnePageContent = {
   grammar: OnePageGrammarPoint[];
   /** 지칭 정리(옛 재료에는 없다) */
   references?: OnePageReference[];
+  /** 유력 출제 포인트(옛 재료에는 없다) */
+  examPoints?: OnePageExamPoint[];
   paraphrases: OnePageParaphrase[];
   tf: OnePageTfItem[];
   /** 주요문장 영작에 쓸 문장(0부터 센 번호, 지문 순서) */
@@ -188,16 +206,22 @@ export function splitSummaryByKeywords(
 
 // ---------------------------------------------------------------- 낱말 찾기
 
+/** 낱말 경계로 찾는 정규식(대소문자 무시, 띄어쓰기 차이 허용). 빈 말이면 null. */
+function phraseRegex(phrase: string): RegExp | null {
+  const p = phrase.trim();
+  if (!p) return null;
+  const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+  return new RegExp(`(?<![A-Za-z])${escaped}(?![A-Za-z])`, "gi");
+}
+
 /** 낱말 경계로 찾는다(대소문자 무시, 띄어쓰기 차이 허용). from~to 안에서 먼저 찾고 없으면 전체에서. */
 export function findPhrase(
   text: string,
   phrase: string,
   range?: { from: number; to: number }
 ): { start: number; end: number } | null {
-  const p = phrase.trim();
-  if (!p) return null;
-  const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
-  const re = new RegExp(`(?<![A-Za-z])${escaped}(?![A-Za-z])`, "gi");
+  const re = phraseRegex(phrase);
+  if (!re) return null;
   const scan = (from: number, to: number) => {
     re.lastIndex = from;
     const m = re.exec(text);
@@ -209,6 +233,52 @@ export function findPhrase(
     if (hit) return hit;
   }
   return scan(0, text.length);
+}
+
+/** 낱말 경계로 n번째(0부터)로 나오는 자리. 같은 말이 한 문장에 두 번 나올 때 쓴다. */
+export function findPhraseAt(
+  text: string,
+  phrase: string,
+  occurrence: number
+): { start: number; end: number } | null {
+  if (occurrence <= 0) return findPhrase(text, phrase);
+  const re = phraseRegex(phrase);
+  if (!re) return null;
+  let n = 0;
+  for (;;) {
+    const m = re.exec(text);
+    if (!m) return null;
+    if (n === occurrence) return { start: m.index, end: m.index + m[0].length };
+    n += 1;
+    if (m[0].length === 0) re.lastIndex += 1;
+  }
+}
+
+/**
+ * 표시 기호(ⓐⓑ, ㉠㉡, 지칭 번호)가 본문에 나오는 차례대로 붙도록, 재료를 지문 순서
+ * (문장 번호 → 문장 안의 자리)로 줄 세운다. 선생님 지적: 기호가 뒤죽박죽으로 찍혔다.
+ */
+export function sortOnePageMarks<T>(
+  items: T[],
+  sentences: string[],
+  locate: (item: T) => {
+    sentenceIndex: number;
+    surface: string;
+    occurrence?: number;
+    /** 문장 앞에 붙는 표시(문장 삽입·순서 배열)는 그 문장의 맨 앞으로 본다. */
+    atSentenceStart?: boolean;
+  }
+): T[] {
+  return items
+    .map((item, i) => {
+      const at = locate(item);
+      const sentence = sentences[at.sentenceIndex] ?? "";
+      const hit = at.surface ? findPhraseAt(sentence, at.surface, at.occurrence ?? 0) : null;
+      const start = at.atSentenceStart ? -1 : hit ? hit.start : Number.MAX_SAFE_INTEGER;
+      return { item, i, si: at.sentenceIndex, start };
+    })
+    .sort((a, b) => a.si - b.si || a.start - b.start || a.i - b.i)
+    .map((row) => row.item);
 }
 
 /** 이어 붙인 본문에서 각 문장이 시작하는 자리. 못 찾은 문장은 null. */
@@ -531,10 +601,13 @@ export type OnePageRun = {
   expression: number[];
   /** 걸린 지칭어 번호 */
   reference: number[];
+  /** 걸린 빈칸 추론 자리 번호(content.examPoints의 순번) */
+  exam: number[];
   /** 어법·표현·지칭이 시작하는 조각이면 그 번호(표시 기호를 앞에 붙인다) */
   grammarStart: number[];
   expressionStart: number[];
   referenceStart: number[];
+  examStart: number[];
 };
 
 /** 문장 하나를 낱말(동·반의어) 덩어리로 나누고, 덩어리 안을 어법·표현 경계로 다시 나눈다. */
@@ -548,7 +621,7 @@ export function splitSentenceForSummary(
   english: string,
   sentenceIndex: number,
   content: Pick<OnePageContent, "vocab" | "grammar" | "paraphrases"> &
-    Pick<OnePageContent, "references">
+    Pick<OnePageContent, "references" | "examPoints">
 ): OnePageSegment[] {
   const vocabRanges: Array<{ start: number; end: number; index: number }> = [];
   content.vocab.forEach((v, index) => {
@@ -562,7 +635,7 @@ export function splitSentenceForSummary(
   const marks: Array<{
     start: number;
     end: number;
-    kind: "grammar" | "expression" | "reference";
+    kind: "grammar" | "expression" | "reference" | "exam";
     index: number;
   }> = [];
   content.grammar.forEach((g, index) => {
@@ -577,8 +650,14 @@ export function splitSentenceForSummary(
   });
   (content.references ?? []).forEach((r, index) => {
     if (r.sentenceIndex !== sentenceIndex) return;
-    const hit = findPhrase(english, r.surface);
+    const hit = findPhraseAt(english, r.surface, r.occurrence ?? 0);
     if (hit) marks.push({ ...hit, kind: "reference", index });
+  });
+  // 빈칸 추론 자리만 본문에 표시한다(문장 삽입·순서 배열은 문장 앞 경계에 붙인다).
+  (content.examPoints ?? []).forEach((e, index) => {
+    if (e.kind !== "blank" || e.sentenceIndex !== sentenceIndex || !e.target) return;
+    const hit = findPhrase(english, e.target);
+    if (hit) marks.push({ ...hit, kind: "exam", index });
   });
 
   const runsBetween = (from: number, to: number): OnePageRun[] => {
@@ -599,9 +678,11 @@ export function splitSentenceForSummary(
         grammar: on.filter((m) => m.kind === "grammar").map((m) => m.index),
         expression: on.filter((m) => m.kind === "expression").map((m) => m.index),
         reference: on.filter((m) => m.kind === "reference").map((m) => m.index),
+        exam: on.filter((m) => m.kind === "exam").map((m) => m.index),
         grammarStart: on.filter((m) => m.kind === "grammar" && m.start === start).map((m) => m.index),
         expressionStart: on.filter((m) => m.kind === "expression" && m.start === start).map((m) => m.index),
         referenceStart: on.filter((m) => m.kind === "reference" && m.start === start).map((m) => m.index),
+        examStart: on.filter((m) => m.kind === "exam" && m.start === start).map((m) => m.index),
       });
     }
     return runs;
@@ -635,6 +716,14 @@ export function circledLetter(i: number): string {
 export function circledHangul(i: number): string {
   return CIRCLED_HANGUL[i] ?? `(${i + 1})`;
 }
+
+/** 출제 포인트 표시 기호와 이름(본문 표시와 "출제 포인트" 줄에서 같이 쓴다) */
+export const EXAM_POINT_MARKS: Record<OnePageExamPointKind, { mark: string; labelKo: string }> = {
+  blank: { mark: "▭", labelKo: "빈칸 추론" },
+  insert: { mark: "∧", labelKo: "문장 삽입" },
+  order: { mark: "‖", labelKo: "순서 배열" },
+  summary: { mark: "≡", labelKo: "요약문 빈칸" },
+};
 
 /** 지칭어 표시 번호(본문에는 위첨자로 작게 붙인다). 문장 번호 ①②③과 겹치지 않게 그냥 숫자를 쓴다. */
 export function referenceMark(i: number): string {

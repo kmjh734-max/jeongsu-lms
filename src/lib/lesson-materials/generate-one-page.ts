@@ -8,13 +8,17 @@ import {
   ONE_PAGE_CONTENT_VERSION,
   findPhrase,
   onePageSourceHash,
+  sortOnePageMarks,
   type OnePageContent,
+  type OnePageExamPoint,
+  type OnePageExamPointKind,
   type OnePageGrammarPoint,
   type OnePageParaphrase,
   type OnePageReference,
   type OnePageTfItem,
   type OnePageVocabNote,
 } from "@/lib/lesson-materials/one-page";
+import { scanReferenceCandidates } from "@/lib/lesson-materials/one-page-reference-scan";
 import { rejectFabricatedDistractor } from "@/lib/lesson-materials/grammar-choice-v2/distractor-guard";
 import { validateMinimalPair } from "@/lib/lesson-materials/grammar-choice-v2/minimal-pair";
 import {
@@ -41,14 +45,17 @@ import { formatWorkbookPassage } from "@/lib/lesson-materials/workbook-types";
 /**
  * 기본은 gpt-5-mini(추론 low). 2026-09-16 같은 지문으로 비교: gpt-4o·gpt-4.1은 어법 포인트가
  * 3~4개에 그치고 설명이 틀린 것이 섞였고(가주어 진주어를 "common 뒤 to부정사"로 설명), gpt-5-mini는
- * 5개를 맞게 설명했다. 지문당 입력 약 1,900·출력 약 2,500토큰(약 8원), 50초 안팎.
+ * 5개를 맞게 설명했다. 만들기·지칭 풀이·검수·보충을 모두 나눠 동시에 부르므로 지문 하나에
+ * 80초 안팎(옛 방식은 140~180초), 약 50원이 든다.
  */
 export function resolveOnePageModel(): string {
   return process.env.OPENAI_MODEL_ONE_PAGE?.trim() || "gpt-5-mini";
 }
 
-const VOCAB_SECTION = `[vocab] 이 지문의 뜻을 떠받치는 핵심 낱말 10~12개.
+const VOCAB_SECTION = `[vocab] 이 지문의 뜻을 떠받치는 핵심 낱말 12~15개.
 - 고르는 기준은 '어려운 낱말'이 아니라 '내용상 중요한 낱말'이다. 그 낱말을 반대말로 바꾸면 글의 흐름·주장이 뒤집히는 낱말을 먼저 고른다(increase↔decrease, sustain↔lose, necessarily↔hardly). 어렵기만 하고 바꿔도 논지가 그대로인 낱말은 넣지 않는다.
+- 진짜 반대말이 있는 낱말을 먼저 고른다. 반대말이 없는 낱말(astronomy, novel, experience처럼 반의어가 빈 낱말)은 논지를 가르는 낱말에 밀린다.
+- 앞에 쓴 것일수록 논지가 더 많이 걸린 낱말이 되게 순서를 매겨 낸다.
 - 고를 것: 글의 주제·논지를 나르는 내용어(명사·동사·형용사·부사). 쉬운 낱말이라도 논지를 가르면 넣는다.
 - 빼야 할 것: 중학 수준의 쉬운 낱말(steal, cash, money, help, balance), 고유명사·약어(NEAs, Jackson High School), 숫자·단위, 두 낱말 이상의 구(그런 표현은 paraphrases로 보낸다), 한 지문에서 같은 어근인 낱말(diversify·diversity·variety 중 하나만).
 - surface: 지문에 나온 형태 그대로의 낱말 하나(하이픈으로 이어진 낱말은 하나로 본다). 구는 안 된다. no: 그 낱말이 나온 문장.
@@ -56,7 +63,7 @@ const VOCAB_SECTION = `[vocab] 이 지문의 뜻을 떠받치는 핵심 낱말 1
 - synonyms: 이 뜻으로 그 자리에 넣어도 말이 되는 낱말 2개. surface와 품사가 같아야 하고(명사↔명사, 동사↔동사), 한 낱말짜리를 먼저 쓴다. 지어낸 어구(ethical license, mountain vents 같은 것)는 쓰지 않는다.
 - antonyms: 이 뜻의 진짜 반대말 2개, 품사도 같아야 한다. "다른 것"은 반대말이 아니다(asteroid↔comet, diameter↔radius, wages↔poverty는 틀렸다). 진짜 반대말이 없으면 []로 두고, 그런 낱말은 애초에 고르지 않는 편이 낫다.`;
 
-const GRAMMAR_SECTION = `[grammar] 내신 어법 선택·수정 문제로 그대로 낼 수 있는 자리 6~8개(되도록 서로 다른 code, 한 문장에 최대 2개).
+const GRAMMAR_SECTION = `[grammar] 내신 어법 선택·수정 문제로 그대로 낼 수 있는 자리 8~10개(되도록 서로 다른 code, 한 문장에 최대 2개).
 code는 아래 GRAMMAR_RULES에 있는 것만 쓴다. 각 자리는 다음을 모두 만족해야 하고, 하나라도 어기면 그 자리는 빼라.
 1) 이 문장에서 맞는 형태가 오직 하나여야 한다. 다른 형태도 문법에 맞으면 싣지 않는다. 예를 들어 주어 자리의 동명사(to부정사도 주어가 된다), 콤마 없는 관계절의 that/which, 목적격 관계대명사 생략, help 뒤의 원형/to V, 목적어절의 if/whether, 강조구문의 that/who는 모두 둘 다 되므로 금지다.
 2) 관사, 쉼표, 철자, 단수·복수 표기, 생략된 말, 조동사 뒤 동사원형(should run, would have p.p.)은 고르게 할 수 없으니 금지다.
@@ -70,7 +77,7 @@ code는 아래 GRAMMAR_RULES에 있는 것만 쓴다. 각 자리는 다음을 �
 - wrongWhy: wrong이 이 문장에서 왜 틀렸는지 한국어 한 문장. "어색하다", "덜 자연스럽다"가 아니라 문법적으로 왜 안 되는지 적는다. 그렇게 쓸 수 없으면 그 자리를 빼라.
 - explanation: right가 맞는 이유를 한국어 한 문장(45자 안팎). 근거가 되는 본문 낱말을 그대로 적어 말한다("target", "cue", "문장" 같은 말은 쓰지 않는다). "~다"로 끝나는 평서형으로 쓰고(존댓말 금지), code가 말하는 원리와 실제로 묻는 원리가 다르면 그 자리를 빼라. 본문에 없는 규칙을 지어내지 않는다.`;
 
-const SYSTEM_PROMPT = `너는 한국 고등학교 내신 영어 시험 대비 "1장 요약직보자료"와 "1장 테스트" 재료를 만드는 편집자다.
+const COMMON_HEADER = `너는 한국 고등학교 내신 영어 시험 대비 "1장 요약직보자료"와 "1장 테스트" 재료를 만드는 편집자다.
 입력 지문(문장마다 no가 있다)만 근거로 쓰고, 정해진 JSON으로만 답한다.
 
 [공통]
@@ -78,6 +85,14 @@ const SYSTEM_PROMPT = `너는 한국 고등학교 내신 영어 시험 대비 "1
 - surface·target·right·expression은 그 문장(no)에 나온 글자 그대로 복사한다(대소문자·어형 포함, 바꾸거나 줄이지 않는다).
 - 한국어는 짧고 자연스럽게 쓴다.
 
+`;
+
+/**
+ * 만드는 호출을 셋으로 나눠 한꺼번에(병렬로) 부른다. 선생님 지적: "1장 요약직보자료 실행속도가
+ * 너무 느려요." 한 호출이 모든 갈래를 다 쓰느라 출력이 길어져 그 길이가 그대로 대기 시간이 됐다.
+ * 갈래를 나누면 가장 긴 호출 하나만큼만 기다린다(합이 아니라 최댓값).
+ */
+const CORE_PROMPT = `${COMMON_HEADER}
 [topicKo] 지문의 주제를 한국어 한 문장(35~60자)으로. "~다."로 끝낸다.
 [titleEn] 지문 내용을 담은 영어 제목(4~10 words, Title Case).
 [summary]
@@ -85,10 +100,21 @@ const SYSTEM_PROMPT = `너는 한국 고등학교 내신 영어 시험 대비 "1
 - keywords: en 안에 철자·대소문자까지 똑같이 들어 있는 핵심 어구 3~4개(각 1~4 words, 서로 겹치지 않음, en에 나오는 순서대로). 요약문 빈칸 문제의 정답이 되므로 주제를 드러내는 내용어를 고르고, 관사·전치사만으로 된 어구는 안 된다.
 - ko: en의 자연스러운 한국어 해석.
 [flow] 글의 논리 흐름 3~5단계. en은 "라벨: 짧은 구" 꼴(라벨 예: Assumption, Claim, Example, Counter-example, Cause, Result, Contrast, Solution, Conclusion), 3~8 words. ko는 같은 내용의 한국어(8~22자). 마지막 단계는 결론·교훈이다.
-${VOCAB_SECTION}
-${GRAMMAR_SECTION}
+[examPoints] 이 지문으로 실제로 낼 만한 유력 시험 자리 2~5개(문장 순서대로). 지문이 받쳐 주지 않는 유형은 넣지 않는다(억지로 채우지 않는다).
+- kind: "blank"(빈칸 추론), "insert"(문장 삽입), "order"(순서 배열), "summary"(요약문 빈칸) 중 하나. 같은 kind는 최대 2개.
+- blank: no는 그 문장 번호, target은 그 문장에 나온 그대로의 어구(2~8 words). 주제·결론을 떠받치는 어구를 고른다(예시·숫자·고유명사는 안 된다). 그 문장에 한 번만 나오는 어구여야 한다.
+- insert: no는 주어진 문장이 들어갈 자리 바로 뒤 문장의 번호(2 이상). 그 앞뒤가 논리로 끊겨 있어야 한다(연결어·지칭어가 근거). target은 "".
+- order: no는 글이 움직일 수 있는 덩어리로 갈리는 자리 바로 뒤 문장의 번호(2 이상). target은 "".
+- summary: target은 summary.en에 철자 그대로 있는 어구(1~4 words), no는 그 내용이 나온 지문 문장 번호.
+- reasonKo: 왜 그 자리가 시험에 나올 만한지 한국어 한 줄(15~40자), "~다"로 끝낸다.
+[tf] 내용 일치 T/F 영어 문장 정확히 5개(각 12~25 words). 지문 문장을 그대로 베끼지 말고 내용 이해를 묻는다. T 2~3개, F 2~3개를 섞고, F는 지문에 비추어 분명히 틀린 내용이어야 한다(애매하면 안 됨).
+[keySentences] 서술형·영작에 나올 핵심 문장 번호 4개(주제문·핵심 주장·중요 구문이 있는 문장, 가능하면 8~35 words). 문장이 4개보다 적으면 모두.
+`;
+
+/** 바꿔 쓰기 표현과 지칭 정리(목록이 길어 따로 부른다). */
+const EXTRA_PROMPT = `${COMMON_HEADER}
 [paraphrases] 서술형·바꿔 쓰기에 나올 핵심 표현 4~6개. expression은 지문에 나온 그대로의 2~6 words 어구(낱말 하나짜리는 vocab이 맡는다), meaningKo는 이 문맥에 맞는 짧고 자연스러운 한국어 뜻, paraphrases는 이 문맥에서 바꿔 써도 뜻이 같은 영어 표현 1~2개(지문의 다른 표현을 그대로 베끼지 않는다).
-[references] 지칭 정리 — 지문에 나오는 지칭 표현을 빠짐없이 싣는다(최대 14개, 문장 순서대로).
+[references] 지칭 정리 — 지문에 나오는 지칭 표현을 하나도 빠뜨리지 말고 싣는다(최대 20개, 문장 순서대로). 지문에 대명사가 20개면 20개를 다 싣는다.
 - 한 문장에 여러 개면 모두 싣는다. 같은 말(they, it)이 여러 문장에 나오면 문장마다 따로 싣는다.
 - 대상: 대명사(it, they, them, this, these, those, one, ones, so)와 앞말을 받는 명사구(such+명사, the+명사, this/that+명사, another, the former/the latter).
 - surface: 그 문장에 나온 그대로(1~4 words). 그 문장에 두 번 나오는 말은 고르지 않는다.
@@ -97,15 +123,21 @@ ${GRAMMAR_SECTION}
   this·that·so처럼 앞 문장 전체(또는 절 전체)를 받는 경우에는 그 문장(절)을 처음부터 끝까지 그대로 옮긴다(최대 40 words).
 - meaningKo: 빈 문자열("")로 둔다. 지칭 정리는 영어만 적는다.
 - 넣지 않는 것: 가주어·가목적어 it, 관용구의 it(it is important to), 앞에 가리킬 것이 없는 the·this, 날씨·시간의 it, 글쓴이·읽는이를 가리키는 I·you·we, 인사말.
-- 같은 말은 한 번만 싣는다.
-[tf] 내용 일치 T/F 영어 문장 정확히 5개(각 12~25 words). 지문 문장을 그대로 베끼지 말고 내용 이해를 묻는다. T 2~3개, F 2~3개를 섞고, F는 지문에 비추어 분명히 틀린 내용이어야 한다(애매하면 안 됨).
-[keySentences] 서술형·영작에 나올 핵심 문장 번호 4개(주제문·핵심 주장·중요 구문이 있는 문장, 가능하면 8~35 words). 문장이 4개보다 적으면 모두.
+- 같은 말이라도 문장이 다르면 따로 싣는다(한 문장 안에서 같은 말이 두 번 나오면 앞의 것만).
+`;
+
+const GRAMMAR_PROMPT = `${COMMON_HEADER}
+${GRAMMAR_SECTION}
 
 GRAMMAR_RULES (code(이름): 고르는 기준):
 ${onePageGrammarRulesText()}`;
 
+const WORDS_PROMPT = `${COMMON_HEADER}
+${VOCAB_SECTION}`;
+
 const str = { type: "string" } as const;
 const int = { type: "integer" } as const;
+const bool = { type: "boolean" } as const;
 const strList = { type: "array", items: str } as const;
 const obj = (properties: Record<string, unknown>) => ({
   type: "object",
@@ -114,28 +146,44 @@ const obj = (properties: Record<string, unknown>) => ({
   properties,
 });
 
-const SCHEMA = obj({
+const VOCAB_SCHEMA = {
+  type: "array",
+  items: obj({ no: int, surface: str, meaningKo: str, synonyms: strList, antonyms: strList }),
+} as const;
+
+const GRAMMAR_ITEMS_SCHEMA = {
+  type: "array",
+  items: obj({
+    no: int,
+    code: str,
+    target: str,
+    right: str,
+    cue: str,
+    wrong: str,
+    wrongWhy: str,
+    explanation: str,
+  }),
+} as const;
+
+const CORE_SCHEMA = obj({
   topicKo: str,
   titleEn: str,
   summary: obj({ en: str, keywords: strList, ko: str }),
   flow: { type: "array", items: obj({ en: str, ko: str }) },
-  vocab: {
-    type: "array",
-    items: obj({ no: int, surface: str, meaningKo: str, synonyms: strList, antonyms: strList }),
-  },
-  grammar: {
+  examPoints: {
     type: "array",
     items: obj({
+      kind: { type: "string", enum: ["blank", "insert", "order", "summary"] },
       no: int,
-      code: str,
       target: str,
-      right: str,
-      cue: str,
-      wrong: str,
-      wrongWhy: str,
-      explanation: str,
+      reasonKo: str,
     }),
   },
+  tf: { type: "array", items: obj({ statement: str, answer: { type: "string", enum: ["T", "F"] } }) },
+  keySentences: { type: "array", items: int },
+});
+
+const EXTRA_SCHEMA = obj({
   paraphrases: {
     type: "array",
     items: obj({ no: int, expression: str, meaningKo: str, paraphrases: strList }),
@@ -144,9 +192,11 @@ const SCHEMA = obj({
     type: "array",
     items: obj({ no: int, surface: str, refersToNo: int, referent: str, meaningKo: str }),
   },
-  tf: { type: "array", items: obj({ statement: str, answer: { type: "string", enum: ["T", "F"] } }) },
-  keySentences: { type: "array", items: int },
 });
+
+const GRAMMAR_SCHEMA = obj({ grammar: GRAMMAR_ITEMS_SCHEMA });
+
+const WORDS_SCHEMA = obj({ vocab: VOCAB_SCHEMA });
 
 /** 어법·어휘가 모자랄 때 겹치지 않는 것을 더 뽑는 호출(만드는 호출 전체를 다시 하지 않는다). */
 const REFILL_PROMPT = `너는 한국 고등학교 내신 영어 자료를 만드는 편집자다.
@@ -159,7 +209,7 @@ ${GRAMMAR_SECTION}
 GRAMMAR_RULES (code(이름): 고르는 기준):
 ${onePageGrammarRulesText()}`;
 
-const REFILL_SCHEMA = obj({ vocab: SCHEMA.properties.vocab, grammar: SCHEMA.properties.grammar });
+const REFILL_SCHEMA = obj({ vocab: VOCAB_SCHEMA, grammar: GRAMMAR_ITEMS_SCHEMA });
 
 type Row = Record<string, unknown>;
 type RawContent = {
@@ -171,6 +221,7 @@ type RawContent = {
   grammar?: unknown;
   paraphrases?: unknown;
   references?: unknown;
+  examPoints?: unknown;
   tf?: unknown;
   keySentences?: unknown;
 };
@@ -229,15 +280,20 @@ function locateKeywords(summary: string, raw: unknown): string[] {
 export const MIN_GRAMMAR = 4;
 /** 한 장에 싣는 최대 개수 */
 const MAX_GRAMMAR = 6;
-const MAX_VOCAB = 10;
+/** 정리자료에 싣는 낱말 수 상한(선생님 요청: 10~12개) */
+const MAX_VOCAB = 12;
 /**
  * 검수에서 버려질 것을 감안해 더 뽑아 둔다. 다시 뽑는 호출(약 20초·토큰 절반)보다
  * 처음에 두어 개 더 받는 편이 값이 덜 든다.
  */
-const GRAMMAR_CANDIDATES = 8;
-const VOCAB_CANDIDATES = 12;
+const GRAMMAR_CANDIDATES = 10;
+const VOCAB_CANDIDATES = 16;
 /** 정리자료 한 장에 실을 낱말 수(검수에서 빠져 이보다 적어지면 더 뽑는다). */
-export const MIN_VOCAB = 7;
+export const MIN_VOCAB = 10;
+/** 지칭 정리에 싣는 최대 개수(선생님 요청: 지문의 지칭어를 모두 싣는다. 넘치면 두 쪽으로 간다). */
+const MAX_REFERENCES = 24;
+/** 출제 포인트 표시 수(선생님 요청: 2~5개) */
+const MAX_EXAM_POINTS = 5;
 /** 밑줄 구간의 최대 길이. 근거까지 담느라 문장 전체가 밑줄이 되는 것을 막는다. */
 const MAX_TARGET_WORDS = 14;
 
@@ -455,6 +511,49 @@ function checkGrammarPoint(
   };
 }
 
+const EXAM_KINDS: OnePageExamPointKind[] = ["blank", "insert", "order", "summary"];
+
+/**
+ * 출제 포인트를 본다. 지문이 받쳐 주는 자리만 남긴다.
+ * - 빈칸 추론: 그 문장에 한 번만 나오는 2~8낱말 어구여야 표시가 엉뚱한 자리로 가지 않는다.
+ * - 문장 삽입·순서 배열: 첫 문장 앞은 경계가 될 수 없다.
+ * - 요약문 빈칸: 요약문에 그대로 있는 어구여야 한다.
+ * 같은 유형은 둘까지, 모두 합해 5개까지 싣는다.
+ */
+function checkExamPoints(raw: unknown, sentences: string[], summaryEn: string): OnePageExamPoint[] {
+  const out: OnePageExamPoint[] = [];
+  for (const r of rows(raw)) {
+    const kind = str1(r.kind).toLowerCase() as OnePageExamPointKind;
+    if (!EXAM_KINDS.includes(kind)) continue;
+    const si = Math.floor(Number(r.no)) - 1;
+    if (!(si >= 0 && si < sentences.length)) continue;
+    const reasonKo = str1(r.reasonKo);
+    if (!reasonKo) continue;
+    let target = "";
+    if (kind === "blank") {
+      const phrase = str1(r.target);
+      if (!phrase || wordCount(phrase) < 2 || wordCount(phrase) > 8) continue;
+      const hit = findPhrase(sentences[si]!, phrase);
+      if (!hit) continue;
+      target = sentences[si]!.slice(hit.start, hit.end);
+      if (countPhrase(sentences[si]!, target) !== 1) continue;
+    } else if (kind === "summary") {
+      const phrase = str1(r.target);
+      const hit = phrase ? findPhrase(summaryEn, phrase) : null;
+      if (!hit) continue;
+      target = summaryEn.slice(hit.start, hit.end);
+    } else if (si < 1) {
+      // 첫 문장 앞에는 문장을 넣을 자리도, 덩어리를 가를 자리도 없다.
+      continue;
+    }
+    if (out.some((e) => e.kind === kind && e.sentenceIndex === si)) continue;
+    if (out.filter((e) => e.kind === kind).length >= 2) continue;
+    out.push({ kind, sentenceIndex: si, target, reasonKo });
+    if (out.length >= MAX_EXAM_POINTS) break;
+  }
+  return out;
+}
+
 type Checked = { content: Omit<OnePageContent, "version" | "sourceHash" | "createdAt">; problems: string[] };
 
 function checkContent(raw: RawContent, sentences: string[]): Checked {
@@ -515,8 +614,9 @@ function checkContent(raw: RawContent, sentences: string[]): Checked {
   for (const r of rows(raw.references)) {
     const surface = str1(r.surface);
     if (!surface || wordCount(surface) > 4) continue;
-    // 글쓴이·읽는이를 가리키는 말은 물을 자리가 아니다.
+    // 글쓴이·읽는이를 가리키는 말(our rights, my people)은 물을 자리가 아니다.
     if (DEICTIC.has(surface.toLowerCase())) continue;
+    if (DEICTIC.has(surface.split(/\s+/)[0]!.toLowerCase())) continue;
     const placed = placeIn(r.no, surface);
     if (!placed) continue;
     // 밑줄이 엉뚱한 자리에 가지 않게, 그 문장에 한 번만 나오는 말만 싣는다.
@@ -546,9 +646,12 @@ function checkContent(raw: RawContent, sentences: string[]): Checked {
       referent: sentences[si]!.slice(hit.start, hit.end),
       referentSentenceIndex: si,
       meaningKo: str1(r.meaningKo),
+      occurrence: 0,
     });
-    if (references.length >= 14) break;
+    if (references.length >= MAX_REFERENCES) break;
   }
+
+  const examPoints = checkExamPoints(raw.examPoints, sentences, summaryEn);
 
   const tf: OnePageTfItem[] = [];
   for (const r of rows(raw.tf)) {
@@ -593,6 +696,7 @@ function checkContent(raw: RawContent, sentences: string[]): Checked {
       vocab,
       grammar,
       references,
+      examPoints,
       paraphrases,
       tf,
       keySentenceIndexes: [...picked].sort((a, b) => a - b),
@@ -607,10 +711,12 @@ async function requestContent(
   apiKey: string,
   userContent: string,
   signal: AbortSignal,
-  shape: { system: string; schemaName: string; schema: Record<string, unknown> } = {
-    system: SYSTEM_PROMPT,
-    schemaName: "one_page_content",
-    schema: SCHEMA as unknown as Record<string, unknown>,
+  shape: {
+    system: string;
+    schemaName: string;
+    schema: Record<string, unknown>;
+    /** 손이 덜 가는 갈래는 추론을 줄여 더 빨리 받는다(요약·T/F·지칭 풀이). */
+    effort?: "minimal" | "low" | "medium";
   }
 ): Promise<{ text: string; model: string; usage: Usage }> {
   const primary = resolveOnePageModel();
@@ -641,7 +747,7 @@ async function requestContent(
       if (includeTemperature) body.temperature = 0.3;
       if (isGpt5FamilyModel(model)) {
         body.max_completion_tokens = 12_000;
-        if (includeReasoningEffort) body.reasoning_effort = "low";
+        if (includeReasoningEffort) body.reasoning_effort = shape.effort ?? "low";
       } else {
         body.max_tokens = 5_000;
       }
@@ -702,11 +808,13 @@ async function refillMaterial(input: {
   vocab: OnePageVocabNote[];
   /** 검수에서 버린 어법 자리·낱말(다시 뽑지 않게) */
   dropped: { targets: string[]; words: string[] };
+  /** 몇 개가 더 필요한지(검수 전에 미리 부를 때는 밖에서 정한다). */
+  need?: { grammar: number; vocab: number };
   signal: AbortSignal;
   usage: Usage;
 }): Promise<{ grammar: OnePageGrammarPoint[]; vocab: OnePageVocabNote[] }> {
-  const needGrammar = Math.max(0, MIN_GRAMMAR - input.grammar.length);
-  const needVocab = Math.max(0, MIN_VOCAB - input.vocab.length);
+  const needGrammar = input.need ? input.need.grammar : Math.max(0, MIN_GRAMMAR - input.grammar.length);
+  const needVocab = input.need ? input.need.vocab : Math.max(0, MIN_VOCAB - input.vocab.length);
   if (needGrammar === 0 && needVocab === 0) return { grammar: [], vocab: [] };
   const usedTargets = [...input.grammar.map((g) => g.target), ...input.dropped.targets];
   const usedWords = [...input.vocab.map((v) => v.surface), ...input.dropped.words];
@@ -773,6 +881,112 @@ async function refillMaterial(input: {
   return { grammar: checked.grammar, vocab: checked.vocab };
 }
 
+const REFERENCE_FILL_PROMPT = `You resolve reference expressions in an English passage for a Korean high-school study sheet ("what does the underlined word refer to?").
+You get the numbered passage and a list of candidate expressions found in it (id, sentenceNo, surface, and the sentence it sits in).
+For each candidate answer:
+- isReference: true only if, in this passage, the expression points back to something already mentioned. Set it false for a dummy or impersonal "it", an "it" in a fixed phrase (it is important to, it turns out that), a first-mention "the" phrase, a generic "this"/"that" that points at nothing in the passage, a numeral "one", a relative or conjunction "that", a generic "they"/"you" meaning people in general, and anything referring to the writer or the reader.
+- referentNo: the number of the sentence that holds the antecedent. It must be EARLIER than sentenceNo, or the same sentence when the antecedent stands before the expression in it.
+- referent: that antecedent copied word for word from that sentence (normally 1-12 words). When "this", "that" or "so" points at a whole idea, copy the whole clause or sentence word for word (max 40 words).
+- surfaceFix: when the candidate cuts a noun phrase short ("This essential survival" for "This essential survival mechanism"), give the whole phrase exactly as written, starting at the same word; otherwise "".
+Never guess: when you are not sure what the expression points back to, set isReference false and leave referent "".
+Return only JSON.`;
+
+const REFERENCE_FILL_SCHEMA = obj({
+  results: {
+    type: "array",
+    items: obj({ id: str, isReference: bool, referentNo: int, referent: str, surfaceFix: str }),
+  },
+});
+
+/**
+ * 지칭어를 빠짐없이 싣기 위한 호출. 만드는 모델의 성실함에 기대지 않고 지칭 후보를 코드로 훑어
+ * (one-page-reference-scan) "이 말이 무엇을 가리키느냐"만 되묻는다. 만드는 호출과 같이 띄울 수
+ * 있어 기다리는 시간이 늘지 않는다. 돌아온 답은 "그 말이 앞 문장에 그대로 있는지"를 코드로
+ * 확인해 맞는 것만 남긴다(틀린 지칭은 버린다).
+ */
+async function resolveScannedReferences(input: {
+  apiKey: string;
+  sentences: string[];
+  signal: AbortSignal;
+}): Promise<{ references: OnePageReference[]; scanned: number; resolved: number; usage: Usage }> {
+  const usage: Usage = { inputTokens: 0, outputTokens: 0 };
+  const candidates = scanReferenceCandidates(input.sentences).slice(0, 28);
+  if (candidates.length === 0) return { references: [], scanned: 0, resolved: 0, usage };
+  const res = await requestContent(
+    input.apiKey,
+    JSON.stringify({
+      passage: input.sentences.map((en, i) => `${i + 1}. ${en}`).join("\n"),
+      items: candidates.map((c, i) => ({
+        id: String(i),
+        sentenceNo: c.sentenceIndex + 1,
+        surface: c.surface,
+        sentence: input.sentences[c.sentenceIndex] ?? "",
+      })),
+    }),
+    input.signal,
+    {
+      system: REFERENCE_FILL_PROMPT,
+      schemaName: "one_page_reference_fill",
+      schema: REFERENCE_FILL_SCHEMA as unknown as Record<string, unknown>,
+      effort: "low",
+    }
+  );
+  usage.inputTokens += res.usage.inputTokens;
+  usage.outputTokens += res.usage.outputTokens;
+  const parsed = parseJsonSafe<{ results?: unknown }>(res.text);
+  const byId = new Map(rows(parsed?.results).map((r) => [str1(r.id), r] as const));
+
+  const references: OnePageReference[] = [];
+  candidates.forEach((c, i) => {
+    const row = byId.get(String(i));
+    if (!row || row.isReference !== true) return;
+    const referent = str1(row.referent);
+    if (!referent || wordCount(referent) > 40) return;
+    const from = Math.floor(Number(row.referentNo)) - 1;
+    if (!(from >= 0 && from <= c.sentenceIndex)) return;
+    // 가리키는 말이 그 문장에 그대로 있어야 하고, 지칭어보다 앞에 있어야 한다.
+    const hit = findPhrase(input.sentences[from] ?? "", referent);
+    if (!hit) return;
+    if (from === c.sentenceIndex && hit.start >= c.start) return;
+    // 후보가 명사구를 반 토막 냈으면 모델이 준 온전한 어구로 바꾼다(같은 자리에서 시작해야 한다).
+    const sentence = input.sentences[c.sentenceIndex] ?? "";
+    const fix = str1(row.surfaceFix);
+    const fixHit = fix && wordCount(fix) <= 6 ? findPhrase(sentence, fix, { from: c.start, to: sentence.length }) : null;
+    const surface = fixHit && fixHit.start === c.start ? sentence.slice(fixHit.start, fixHit.end) : c.surface;
+    const occurrence = surface === c.surface ? c.occurrence : countPhrase(sentence.slice(0, c.start), surface);
+    references.push({
+      sentenceIndex: c.sentenceIndex,
+      surface,
+      referent: input.sentences[from]!.slice(hit.start, hit.end),
+      referentSentenceIndex: from,
+      meaningKo: "",
+      occurrence,
+    });
+  });
+  return { references, scanned: candidates.length, resolved: references.length, usage };
+}
+
+/** 만드는 호출이 낸 지칭어에, 훑어 푼 지칭어 가운데 자리가 겹치지 않는 것을 더한다. */
+function mergeScannedReferences(
+  made: OnePageReference[],
+  scanned: OnePageReference[],
+  sentences: string[]
+): { references: OnePageReference[]; added: number } {
+  const spanOf = (r: OnePageReference) => {
+    const hit = findPhrase(sentences[r.sentenceIndex] ?? "", r.surface);
+    return hit ? { si: r.sentenceIndex, start: hit.start, end: hit.end } : null;
+  };
+  const taken = made.flatMap((r) => spanOf(r) ?? []);
+  const extra = scanned.filter((r) => {
+    const span = spanOf(r);
+    if (!span) return false;
+    if (taken.some((t) => t.si === span.si && span.start < t.end && t.start < span.end)) return false;
+    taken.push(span);
+    return true;
+  });
+  return { references: [...made, ...extra].slice(0, MAX_REFERENCES), added: extra.length };
+}
+
 export async function generateOnePageContent(input: {
   title: string;
   sentences: string[];
@@ -793,44 +1007,137 @@ export async function generateOnePageContent(input: {
   const usage: Usage = { inputTokens: 0, outputTokens: 0 };
   let model = "";
   try {
-    let best: Checked | null = null;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const user =
-        attempt === 0 || !best
-          ? baseUser
-          : `${baseUser}\n\n이전 결과의 문제: ${best.problems.join(", ")}. 규칙을 지켜 다시 만들어라. summary.keywords는 summary.en에 그대로 들어 있어야 하고, surface·target·expression은 지문에 나온 그대로여야 한다.`;
-      const res = await requestContent(apiKey, user, controller.signal);
-      model = res.model;
-      usage.inputTokens += res.usage.inputTokens;
-      usage.outputTokens += res.usage.outputTokens;
-      const parsed = parseJsonSafe<RawContent>(res.text);
-      if (!parsed) continue;
-      const checked = checkContent(parsed, sentences);
-      if (!best || checked.problems.length < best.problems.length) best = checked;
-      // 어휘·어법이 모자란 것은 뒤의 보충 호출이 메우므로, 그것 때문에 전체를 다시 만들지 않는다.
-      if (checked.problems.every((p) => p.startsWith("어휘 부족") || p.startsWith("어법 포인트 부족"))) break;
+    /**
+     * 만들기: 갈래를 나눈 세 호출과 지칭 풀이 호출을 한꺼번에 띄운다. 기다리는 시간이 합이 아니라
+     * 가장 긴 호출 하나가 된다. 지칭 후보는 코드로 훑으므로(one-page-reference-scan) 만드는
+     * 호출을 기다릴 필요가 없다.
+     */
+    const startedAt = Date.now();
+    const seconds = (from: number) => Math.round((Date.now() - from) / 100) / 10;
+    const callSeconds: string[] = [];
+    const ask = async (
+      label: string,
+      system: string,
+      schemaName: string,
+      schema: Record<string, unknown>,
+      extraUser = ""
+    ) => {
+      const at = Date.now();
+      const res = await requestContent(apiKey, `${baseUser}${extraUser}`, controller.signal, {
+        system,
+        schemaName,
+        schema,
+        effort: "low",
+      });
+      callSeconds.push(`${label} ${seconds(at)}초`);
+      return res;
+    };
+
+    /**
+     * 어법은 출력이 가장 길어 기다리는 시간을 혼자 끌었다. 지문이 길면 앞뒤 절반으로 나눠
+     * 두 번 물어(문맥은 지문 전체를 준다) 답 길이를 반으로 줄인다.
+     */
+    const half = sentences.length >= 8 ? Math.ceil(sentences.length / 2) : 0;
+    const grammarAsks = half
+      ? [
+          ask(
+            "grammar1",
+            GRAMMAR_PROMPT,
+            "one_page_grammar",
+            GRAMMAR_SCHEMA as unknown as Record<string, unknown>,
+            `
+
+이번에는 no가 1~${half}인 문장에서만 5~6개를 고른다.`
+          ),
+          ask(
+            "grammar2",
+            GRAMMAR_PROMPT,
+            "one_page_grammar",
+            GRAMMAR_SCHEMA as unknown as Record<string, unknown>,
+            `
+
+이번에는 no가 ${half + 1}~${sentences.length}인 문장에서만 5~6개를 고른다.`
+          ),
+        ]
+      : [ask("grammar", GRAMMAR_PROMPT, "one_page_grammar", GRAMMAR_SCHEMA as unknown as Record<string, unknown>)];
+
+    const [coreRes, extraRes, wordsRes, scanRes, ...grammarResList] = await Promise.all([
+      ask("core", CORE_PROMPT, "one_page_core", CORE_SCHEMA as unknown as Record<string, unknown>),
+      ask("extra", EXTRA_PROMPT, "one_page_extra", EXTRA_SCHEMA as unknown as Record<string, unknown>),
+      ask("words", WORDS_PROMPT, "one_page_words", WORDS_SCHEMA as unknown as Record<string, unknown>),
+      resolveScannedReferences({ apiKey, sentences, signal: controller.signal }),
+      ...grammarAsks,
+    ]);
+    for (const r of [coreRes, extraRes, wordsRes, ...grammarResList]) {
+      usage.inputTokens += r.usage.inputTokens;
+      usage.outputTokens += r.usage.outputTokens;
     }
-    if (!best) throw new Error("1장 자료 응답을 읽지 못했습니다. 다시 시도해 주세요.");
-    const fatal = best.problems.some((p) => p === "요약문 없음" || p === "주제 없음");
-    if (fatal || best.content.tf.length < 3 || best.content.summaryKeywords.length === 0) {
+    usage.inputTokens += scanRes.usage.inputTokens;
+    usage.outputTokens += scanRes.usage.outputTokens;
+    model = coreRes.model;
+    const madeSec = seconds(startedAt);
+
+    const core = parseJsonSafe<RawContent>(coreRes.text);
+    if (!core) throw new Error("1장 자료 응답을 읽지 못했습니다. 다시 시도해 주세요.");
+    const extra = parseJsonSafe<{ paraphrases?: unknown; references?: unknown }>(extraRes.text) ?? {};
+    const merged: RawContent = {
+      ...core,
+      ...extra,
+      // 앞뒤 절반을 따로 물었으므로 문장 순서대로 잇는다(뒤에서 다시 줄 세운다).
+      grammar: grammarResList.flatMap((r) => rows(parseJsonSafe<{ grammar?: unknown }>(r.text)?.grammar)),
+      vocab: parseJsonSafe<{ vocab?: unknown }>(wordsRes.text)?.vocab ?? [],
+    };
+    const best = checkContent(merged, sentences);
+    if (best.problems.some((p) => p === "요약문 없음" || p === "주제 없음") ||
+        best.content.tf.length < 3 ||
+        best.content.summaryKeywords.length === 0) {
       throw new Error(`1장 자료를 만들지 못했습니다(${best.problems.join(", ")}). 다시 시도해 주세요.`);
     }
 
+    // 지칭어: 코드로 훑어 풀이해 둔 것 가운데 만드는 호출이 이미 실은 자리와 겹치지 않는 것을 더 싣는다.
+    const filled = mergeScannedReferences(best.content.references ?? [], scanRes.references, sentences);
+    const scanNote = `지칭 후보 ${scanRes.scanned}개 중 ${scanRes.resolved}개 풀이, ${filled.added}개 더 실음`;
+
     // 검수: 어법·동반의어·지칭어·해석을 값싼 모델로 한 번 더 확인해 틀린 것을 버리거나 고친다.
-    const verified = await verifyOnePageMaterial({
-      apiKey,
-      sentences,
-      grammar: best.content.grammar,
-      vocab: best.content.vocab,
-      references: best.content.references ?? [],
-      paraphrases: best.content.paraphrases,
-      summaryEn: best.content.summaryEn,
-      summaryKo: best.content.summaryKo,
-      signal: controller.signal,
-    });
+    /**
+     * 검수에서 몇 개는 버려지므로, 만들어 둔 것이 빠듯하면 보충 호출을 검수와 같이 띄운다.
+     * 검수를 기다렸다가 부르면 그 시간이 그대로 더해진다(선생님 지적: 너무 느리다).
+     */
+    const need = {
+      grammar: best.content.grammar.length < MIN_GRAMMAR + 2 ? 3 : 0,
+      vocab: best.content.vocab.length < MIN_VOCAB + 2 ? 3 : 0,
+    };
+    const verifyStartedAt = Date.now();
+    const [verified, early] = await Promise.all([
+      verifyOnePageMaterial({
+        apiKey,
+        sentences,
+        grammar: best.content.grammar,
+        vocab: best.content.vocab,
+        references: filled.references,
+        paraphrases: best.content.paraphrases,
+        summaryEn: best.content.summaryEn,
+        summaryKo: best.content.summaryKo,
+        signal: controller.signal,
+      }),
+      need.grammar + need.vocab > 0
+        ? refillMaterial({
+            apiKey,
+            baseUser,
+            sentences,
+            grammar: best.content.grammar,
+            vocab: best.content.vocab,
+            dropped: { targets: [], words: [] },
+            need,
+            signal: controller.signal,
+            usage,
+          })
+        : Promise.resolve({ grammar: [] as OnePageGrammarPoint[], vocab: [] as OnePageVocabNote[] }),
+    ]);
     usage.inputTokens += verified.usage.inputTokens;
     usage.outputTokens += verified.usage.outputTokens;
-    const notes = [...verified.notes];
+    const verifySec = seconds(verifyStartedAt);
+    const notes = [scanNote, ...verified.notes];
 
     // 검수에서 버려져 어법·낱말이 모자라면 겹치지 않는 것으로 채운다.
     // 같은 어법이 둘이면 뒤엣것은 자리가 남을 때만 쓴다(한 장에 여러 원리가 고르게 실리게).
@@ -838,8 +1145,18 @@ export async function generateOnePageContent(input: {
       const first = list.filter((x, i) => list.findIndex((y) => y.code === x.code) === i);
       return [...first, ...list.filter((x) => !first.includes(x))].slice(0, max);
     };
-    let grammar = spread(verified.grammar, MAX_GRAMMAR);
-    let vocab = verified.vocab.slice(0, MAX_VOCAB);
+    const notTaken = <T extends { sentenceIndex: number }>(list: T[], key: (x: T) => string) => {
+      const seen = new Set(list.map(key));
+      return (x: T) => !seen.has(key(x));
+    };
+    const addGrammar = early.grammar.filter(
+      notTaken(verified.grammar, (g) => `${g.sentenceIndex}|${g.target.toLowerCase()}`)
+    );
+    const addVocab = early.vocab.filter(notTaken(verified.vocab, (v) => v.surface.toLowerCase()));
+    if (addGrammar.length) notes.push(`어법 ${addGrammar.length}개 더 뽑음`);
+    if (addVocab.length) notes.push(`낱말 ${addVocab.length}개 더 뽑음`);
+    let grammar = spread([...verified.grammar, ...addGrammar], MAX_GRAMMAR);
+    let vocab = [...verified.vocab, ...addVocab].slice(0, MAX_VOCAB);
     const dropped = {
       targets: best.content.grammar
         .filter((g) => !grammar.some((k) => k.target === g.target))
@@ -848,7 +1165,8 @@ export async function generateOnePageContent(input: {
         .filter((v) => !vocab.some((k) => k.surface === v.surface))
         .map((v) => v.surface),
     };
-    for (let round = 0; round < 2; round++) {
+    // 보충은 한 번만 한다(두 번째 보충은 기다리는 시간만 늘리고 건지는 것이 거의 없었다).
+    for (let round = 0; round < 1; round++) {
       if (grammar.length >= MIN_GRAMMAR && vocab.length >= MIN_VOCAB) break;
       const more = await refillMaterial({
         apiKey,
@@ -867,13 +1185,41 @@ export async function generateOnePageContent(input: {
       vocab = [...vocab, ...more.vocab].slice(0, MAX_VOCAB);
     }
 
+    notes.unshift(
+      `만들기 ${madeSec}초(${callSeconds.join(", ")}) · 검수 ${verifySec}초 · 전체 ${seconds(startedAt)}초`
+    );
+
+    // 표시 기호가 본문에 나오는 차례대로 붙도록, 마지막에 모두 지문 순서로 줄 세운다.
+    const ordered = {
+      grammar: sortOnePageMarks(grammar, sentences, (g) => ({
+        sentenceIndex: g.sentenceIndex,
+        surface: g.target,
+      })),
+      vocab: sortOnePageMarks(vocab, sentences, (v) => ({
+        sentenceIndex: v.sentenceIndex,
+        surface: v.surface,
+      })),
+      references: sortOnePageMarks(verified.references, sentences, (r) => ({
+        sentenceIndex: r.sentenceIndex,
+        surface: r.surface,
+        occurrence: r.occurrence,
+      })),
+      paraphrases: sortOnePageMarks(verified.paraphrases, sentences, (p) => ({
+        sentenceIndex: p.sentenceIndex,
+        surface: p.expression,
+      })),
+      // 삽입·순서 표시는 문장 앞에 붙으므로 그 문장의 맨 앞으로 본다.
+      examPoints: sortOnePageMarks(best.content.examPoints ?? [], sentences, (e) => ({
+        sentenceIndex: e.sentenceIndex,
+        surface: e.kind === "blank" ? e.target : "",
+        atSentenceStart: e.kind === "insert" || e.kind === "order",
+      })),
+    };
+
     return {
       content: {
         ...best.content,
-        grammar,
-        vocab,
-        references: verified.references,
-        paraphrases: verified.paraphrases,
+        ...ordered,
         summaryKo: verified.summaryKo,
         version: ONE_PAGE_CONTENT_VERSION,
         sourceHash: onePageSourceHash(sentences),

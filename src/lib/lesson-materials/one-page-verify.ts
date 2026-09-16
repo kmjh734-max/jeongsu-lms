@@ -6,7 +6,8 @@
  * 뜻·품사와 맞지 않았고, 해석이 어색한 곳이 있었다. 만드는 호출은 한 번에 많은 것을 내놓느라
  * 하나하나를 따지지 못하므로, 항목만 떼어 짧게 되묻는 검수를 따로 둔다.
  *
- * 네 가지를 한 번씩, 서로 기다리지 않게 같이 호출한다(지문당 4회).
+ * 네 가지(어법·동반의어·지칭·해석)를 서로 기다리지 않게 같이 호출하고, 항목이 많은 갈래는
+ * 몇 개씩 나눠 동시에 묻는다. 답이 짧아져 기다리는 시간이 줄어든다.
  */
 import {
   isGpt5FamilyModel,
@@ -14,6 +15,7 @@ import {
   isUnsupportedTemperatureError,
   studentRecordModelSupportsTemperature,
 } from "@/lib/student-records/model";
+import { findPhrase } from "@/lib/lesson-materials/one-page";
 import type {
   OnePageGrammarPoint,
   OnePageParaphrase,
@@ -27,7 +29,7 @@ export function resolveOnePageVerifyModel(): string {
 }
 
 /** 검수가 "쉬운 낱말"이라고 뺄 때도 이만큼은 남긴다(정리자료 본문 주석이 비지 않게). */
-const MIN_KEEP_VOCAB = 7;
+const MIN_KEEP_VOCAB = 10;
 
 export type VerifyUsage = { inputTokens: number; outputTokens: number; calls: number };
 
@@ -61,8 +63,9 @@ Keep an antonym only if it is a true opposite of that sense and the same part of
 Drop invented or unnatural collocations (ethical license, mountain vents, "energy shortage" as an antonym of energy).
 Then, if fewer than 2 remain, add ordinary English words that do pass the test; prefer single words. If this sense has no true opposite, leave antonyms empty rather than inventing one.
 Also judge meaningKo: it must give one meaning that fits this sentence, in the part of speech of the word. Fill meaningKoFixed only when the gloss is wrong or lists several meanings.
-For each item return: worthTeaching, keepSynonyms (the final 2, in order), keepAntonyms (the final 0-2), meaningKoFixed ("" when the gloss is fine).
+For each item return: worthTeaching, pivotal, keepSynonyms (the final 2, in order), keepAntonyms (the final 0-2), meaningKoFixed ("" when the gloss is fine).
 Judge worthTeaching by how much the passage's meaning depends on the word, not by how hard it is: keep a word when replacing it with its opposite would flip the argument or the flow of the passage. Set worthTeaching false for a proper noun, an abbreviation, a word that carries no part of the argument (a hard word the passage could lose without changing its point), or a word every middle-school student already knows (help, money, school, big).
+pivotal is 0-5: how much of the passage's argument turns on this word. 5 = swapping in its opposite reverses the claim or the flow (increase/decrease, sustain/lose, necessarily/hardly); 3 = it carries a supporting step; 1 = it only names a topic or an example (astronomy, novel, experience) and the argument survives unchanged. A word with no true opposite rarely scores above 2.
 Return only JSON.`;
 
 const REFERENCE_PROMPT = `You check reference expressions on a Korean high-school English study sheet ("what does the underlined it refer to?").
@@ -108,7 +111,7 @@ async function callJson(input: {
     };
     if (includeTemperature) body.temperature = 0;
     if (isGpt5FamilyModel(model)) {
-      body.max_completion_tokens = 8_000;
+      body.max_completion_tokens = 12_000;
       if (includeReasoning) body.reasoning_effort = "low";
     } else {
       body.max_tokens = 3_000;
@@ -161,7 +164,30 @@ function parseRows(text: string): Array<Record<string, unknown>> {
   }
 }
 
+/**
+ * 항목이 많으면 몇 개씩 나눠 동시에 묻는다. 한 번에 다 물으면 답이 길어져 그 길이가 그대로
+ * 기다리는 시간이 된다(선생님 지적: 1장 자료가 너무 느리다). id는 원래 번호를 그대로 쓴다.
+ */
+function chunked<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
 const clean = (v: unknown) => String(v ?? "").replace(/\s+/g, " ").trim();
+
+/** 고쳐 준 지칭 대상이 그 앞(또는 같은 문장)에 그대로 있는지 본다. 없으면 null(버린다). */
+function locateReferent(
+  sentences: string[],
+  referent: string,
+  beforeSentenceIndex: number
+): { referent: string; sentenceIndex: number } | null {
+  for (let i = beforeSentenceIndex; i >= 0; i--) {
+    const hit = findPhrase(sentences[i] ?? "", referent);
+    if (hit) return { referent: sentences[i]!.slice(hit.start, hit.end), sentenceIndex: i };
+  }
+  return null;
+}
 
 export type OnePageVerifyResult = {
   grammar: OnePageGrammarPoint[];
@@ -194,12 +220,18 @@ export async function verifyOnePageMaterial(input: {
   const sentenceOf = (i: number) => input.sentences[i] ?? "";
   const passage = input.sentences.map((en, i) => `${i + 1}. ${en}`).join("\n");
 
-  const grammarCall = input.grammar.length
-    ? callJson({
+  type Kind = "grammar" | "vocab" | "reference" | "translation";
+  const tasks: Array<{ kind: Kind; call: Promise<Called | null> }> = [];
+  const add = (kind: Kind, call: Promise<Called | null>) => tasks.push({ kind, call });
+
+  for (const part of chunked(input.grammar.map((g, i) => ({ g, i })), 5)) {
+    add(
+      "grammar",
+      callJson({
         apiKey: input.apiKey,
         system: GRAMMAR_PROMPT,
         user: JSON.stringify({
-          items: input.grammar.map((g, i) => ({
+          items: part.map(({ g, i }) => ({
             id: String(i),
             sentence: sentenceOf(g.sentenceIndex),
             span: g.target,
@@ -225,14 +257,17 @@ export async function verifyOnePageMaterial(input: {
         }),
         signal: input.signal,
       })
-    : Promise.resolve(null);
+    );
+  }
 
-  const vocabCall = input.vocab.length
-    ? callJson({
+  for (const part of chunked(input.vocab.map((v, i) => ({ v, i })), 8)) {
+    add(
+      "vocab",
+      callJson({
         apiKey: input.apiKey,
         system: VOCAB_PROMPT,
         user: JSON.stringify({
-          items: input.vocab.map((v, i) => ({
+          items: part.map(({ v, i }) => ({
             id: String(i),
             sentence: sentenceOf(v.sentenceIndex),
             word: v.surface,
@@ -246,6 +281,7 @@ export async function verifyOnePageMaterial(input: {
           results: listOf({
             id: str,
             worthTeaching: bool,
+            pivotal: { type: "integer" },
             keepSynonyms: strList,
             keepAntonyms: strList,
             meaningKoFixed: str,
@@ -253,15 +289,18 @@ export async function verifyOnePageMaterial(input: {
         }),
         signal: input.signal,
       })
-    : Promise.resolve(null);
+    );
+  }
 
-  const referenceCall = input.references.length
-    ? callJson({
+  for (const part of chunked(input.references.map((r, i) => ({ r, i })), 8)) {
+    add(
+      "reference",
+      callJson({
         apiKey: input.apiKey,
         system: REFERENCE_PROMPT,
         user: JSON.stringify({
           passage,
-          items: input.references.map((r, i) => ({
+          items: part.map(({ r, i }) => ({
             id: String(i),
             sentenceNo: r.sentenceIndex + 1,
             surface: r.surface,
@@ -281,15 +320,18 @@ export async function verifyOnePageMaterial(input: {
         }),
         signal: input.signal,
       })
-    : Promise.resolve(null);
+    );
+  }
 
   const translationItems = [
     { id: "summary", en: input.summaryEn, ko: input.summaryKo },
     ...input.paraphrases.map((p, i) => ({ id: `p${i}`, en: p.expression, ko: p.meaningKo })),
   ].filter((it) => it.en && it.ko);
 
-  const translationCall = translationItems.length
-    ? callJson({
+  if (translationItems.length) {
+    add(
+      "translation",
+      callJson({
         apiKey: input.apiKey,
         system: TRANSLATION_PROMPT,
         user: JSON.stringify({ items: translationItems }),
@@ -297,25 +339,31 @@ export async function verifyOnePageMaterial(input: {
         schema: obj({ results: listOf({ id: str, ok: bool, fixed: str }) }),
         signal: input.signal,
       })
-    : Promise.resolve(null);
+    );
+  }
 
-  const [grammarRes, vocabRes, referenceRes, translationRes] = await Promise.all([
-    grammarCall,
-    vocabCall,
-    referenceCall,
-    translationCall,
-  ]);
-  for (const r of [grammarRes, vocabRes, referenceRes, translationRes]) {
+  const done = await Promise.all(tasks.map((t) => t.call));
+  for (const r of done) {
     if (!r) continue;
     usage.calls += 1;
     usage.inputTokens += r.inputTokens;
     usage.outputTokens += r.outputTokens;
   }
+  /** 갈래별로 돌아온 답을 번호로 모은다. 답이 하나도 없으면 그 갈래는 원래 재료를 그대로 둔다. */
+  const answersOf = (kind: Kind): Map<string, Record<string, unknown>> | null => {
+    const rows = tasks.flatMap((t, i) => (t.kind === kind && done[i] ? parseRows(done[i]!.text) : []));
+    const any = tasks.some((t, i) => t.kind === kind && done[i]);
+    return any ? new Map(rows.map((row) => [clean(row.id), row] as const)) : null;
+  };
+  const grammarRows = answersOf("grammar");
+  const vocabRows = answersOf("vocab");
+  const referenceRows = answersOf("reference");
+  const translationRows = answersOf("translation");
 
   // ---- 어법: 둘 다 맞거나 설명이 틀린 자리는 버린다(고쳐 준 설명이 있으면 고쳐 쓴다).
   let grammar = input.grammar;
-  if (grammarRes) {
-    const byId = new Map(parseRows(grammarRes.text).map((row) => [clean(row.id), row] as const));
+  if (grammarRows) {
+    const byId = grammarRows;
     grammar = input.grammar.flatMap((g, i) => {
       const row = byId.get(String(i));
       if (!row) return [g];
@@ -344,8 +392,8 @@ export async function verifyOnePageMaterial(input: {
 
   // ---- 동·반의어: 문맥·품사에 맞지 않는 것을 빼고 모자라면 검수가 준 것으로 채운다.
   let vocab = input.vocab;
-  if (vocabRes) {
-    const byId = new Map(parseRows(vocabRes.text).map((row) => [clean(row.id), row] as const));
+  if (vocabRows) {
+    const byId = vocabRows;
     /**
      * 너무 쉬운 낱말이라 빼는 것은 남는 낱말이 넉넉할 때만 한다. 검수가 까다롭게 굴어 정리자료의
      * 낱말이 서너 개로 줄면 본문 아래 동·반의어가 텅 비어 보인다.
@@ -385,12 +433,27 @@ export async function verifyOnePageMaterial(input: {
       }
       return [{ ...v, meaningKo, synonyms, antonyms }];
     });
+    /**
+     * 선생님 요청: 어려운 낱말이 아니라 논지를 가르는 낱말을 싣는다. 검수가 매긴 pivotal(0~5)과
+     * "진짜 반대말이 있는지"로 줄을 세워, 자리가 모자랄 때 반의어가 빈 낱말부터 밀려나게 한다.
+     * (부르는 쪽에서 앞에서부터 잘라 쓰고, 마지막에 지문 순서로 다시 줄 세운다.)
+     */
+    const scoreOf = (v: OnePageVocabNote) => {
+      const i = input.vocab.findIndex((x) => x === v || x.surface === v.surface);
+      const row = i >= 0 ? byId.get(String(i)) : undefined;
+      const pivotal = Math.max(0, Math.min(5, Math.floor(Number(row?.pivotal ?? 3)) || 0));
+      return pivotal * 2 + (v.antonyms.length > 0 ? 3 : 0);
+    };
+    vocab = vocab
+      .map((v, i) => ({ v, i, score: scoreOf(v) }))
+      .sort((a, b) => b.score - a.score || a.i - b.i)
+      .map((row) => row.v);
   }
 
   // ---- 지칭어: 가리키는 대상이 틀리면 고치고, 고칠 수 없으면 버린다(틀린 지칭은 없느니만 못하다).
   let references = input.references;
-  if (referenceRes) {
-    const byId = new Map(parseRows(referenceRes.text).map((row) => [clean(row.id), row] as const));
+  if (referenceRows) {
+    const byId = referenceRows;
     references = input.references.flatMap((ref, i) => {
       const row = byId.get(String(i));
       if (!row) return [ref];
@@ -400,13 +463,15 @@ export async function verifyOnePageMaterial(input: {
       }
       const meaningKo = clean(row.fixedMeaningKo) || ref.meaningKo;
       if (row.refersCorrectly === false) {
+        // 고쳐 준 대상도 앞 문장에 그대로 있어야 쓴다(지어낸 답은 버린다).
         const fixed = clean(row.fixedReferent);
-        if (!fixed) {
+        const at = fixed ? locateReferent(input.sentences, fixed, ref.sentenceIndex) : null;
+        if (!at) {
           notes.push(`지칭 버림(가리키는 대상이 틀림): ${ref.surface} → ${ref.referent}`);
           return [];
         }
-        notes.push(`지칭 고침: ${ref.surface} ${ref.referent} → ${fixed}`);
-        return [{ ...ref, referent: fixed, meaningKo }];
+        notes.push(`지칭 고침: ${ref.surface} ${ref.referent} → ${at.referent}`);
+        return [{ ...ref, referent: at.referent, referentSentenceIndex: at.sentenceIndex, meaningKo }];
       }
       if (meaningKo !== ref.meaningKo) notes.push(`지칭 뜻 고침: ${ref.surface}`);
       return [{ ...ref, meaningKo }];
@@ -416,8 +481,8 @@ export async function verifyOnePageMaterial(input: {
   // ---- 해석: 요약문 해석과 바꿔 쓰기 표현의 뜻
   let summaryKo = input.summaryKo;
   let paraphrases = input.paraphrases;
-  if (translationRes) {
-    const byId = new Map(parseRows(translationRes.text).map((row) => [clean(row.id), row] as const));
+  if (translationRows) {
+    const byId = translationRows;
     const summaryRow = byId.get("summary");
     if (summaryRow && summaryRow.ok === false && clean(summaryRow.fixed)) {
       notes.push(`요약문 해석 고침: ${summaryKo} → ${clean(summaryRow.fixed)}`);
