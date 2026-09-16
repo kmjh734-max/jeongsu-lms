@@ -136,9 +136,19 @@ const HIGH: BlueprintSlot[] = (
   ] as Array<[ListeningTypeKey, Omit<BlueprintSlot, "position" | "key" | "tier">?]>
 ).map(([key, extra], i) => ({ position: i + 1, key, tier: tierHigh(i + 1), ...(extra ?? {}) }));
 
+/**
+ * 선생님 요청(2026-09-16): 중1·중2·중3은 유형을 같게 하고 난이도만 학년으로 조절한다.
+ * 공통 배치는 가장 최근 형식인 중3 표를 쓴다. 학년 차이는 대본 길이·어휘·속도(quality-craft)와
+ * 심정 선택지 언어(중1은 한국어)로만 준다. 학년별 실제 시험 배치는 MIDDLE1/MIDDLE2에 남겨 둔다.
+ */
+const MIDDLE_COMMON: BlueprintSlot[] = MIDDLE3;
+const MIDDLE_COMMON_1: BlueprintSlot[] = MIDDLE_COMMON.map((slot) =>
+  slot.key === "M_EMOTION" ? { ...slot, variants: ["ko"] } : slot
+);
+
 const BLUEPRINTS: Record<ListeningGradeLevel, BlueprintSlot[]> = {
-  middle1: MIDDLE1,
-  middle2: MIDDLE2,
+  middle1: MIDDLE_COMMON_1,
+  middle2: MIDDLE_COMMON,
   middle3: MIDDLE3,
   high1: HIGH,
   high2: HIGH,
@@ -148,6 +158,13 @@ const BLUEPRINTS: Record<ListeningGradeLevel, BlueprintSlot[]> = {
 export function getGradeBlueprint(grade: ListeningGradeLevel): BlueprintSlot[] {
   return BLUEPRINTS[grade] ?? MIDDLE1;
 }
+
+/**
+ * 예전 세트(중1~중3 모두 중1 배치로 만들었다)의 번호 → 유형 되찾기용 표.
+ * 공통 배치를 바꿔도 예전 문항의 유형 판단은 흔들리면 안 되므로 따로 내보낸다.
+ */
+export const LEGACY_MIDDLE_ORDER: BlueprintSlot[] = MIDDLE1;
+export const OFFICIAL_MIDDLE2_ORDER: BlueprintSlot[] = MIDDLE2;
 
 export function blueprintSlot(grade: ListeningGradeLevel, position: number): BlueprintSlot | undefined {
   return getGradeBlueprint(grade).find((s) => s.position === position);

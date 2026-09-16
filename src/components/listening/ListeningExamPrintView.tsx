@@ -38,6 +38,29 @@ const QUESTION_GAP_MM_WITH_SCRIPT = 3;
 const ANSWER_GAP_MM = 2.2;
 /** 표준 20문항 시험에서 5+5가 들어갈 때까지 줄여 보는 문항 글자 크기 */
 const QUESTION_SIZES_PT: number[] = [10, 9.7, 9.4, 9.1, 8.8, 8.5];
+
+/**
+ * 20문항을 두 쪽에 담기 위한 단계. 글자만 줄이면 그림 문항이 있는 중등 시험지는 세 쪽이 됐다.
+ * 줄간격·문항 간격·그림 높이까지 같이 줄여 가며 5+5가 들어가는 첫 단계를 쓴다.
+ */
+type TightStep = { sizePt: number; lineHeight: number; gapMm: number; figureMaxMm: number };
+const TIGHT_STEPS: TightStep[] = [
+  { sizePt: 10, lineHeight: 1.36, gapMm: 5, figureMaxMm: 64 },
+  { sizePt: 9.7, lineHeight: 1.33, gapMm: 4.4, figureMaxMm: 60 },
+  { sizePt: 9.4, lineHeight: 1.3, gapMm: 3.8, figureMaxMm: 55 },
+  { sizePt: 9.1, lineHeight: 1.28, gapMm: 3.2, figureMaxMm: 50 },
+  { sizePt: 8.8, lineHeight: 1.26, gapMm: 2.8, figureMaxMm: 46 },
+  { sizePt: 8.5, lineHeight: 1.24, gapMm: 2.4, figureMaxMm: 42 },
+  { sizePt: 8.2, lineHeight: 1.22, gapMm: 2, figureMaxMm: 38 },
+];
+
+function tightVars(step: TightStep): CSSProperties {
+  return {
+    "--lx-q-size": `${step.sizePt}pt`,
+    "--lx-q-lh": `${step.lineHeight}`,
+    "--lx-fig-max": `${step.figureMaxMm}mm`,
+  } as CSSProperties;
+}
 const COLUMN_SAFETY_PX = 16;
 const COLUMN_SAFETY_PX_WITH_SCRIPT = 28;
 const COLUMN_SAFETY_PX_WITH_FIGURE = 28;
@@ -320,6 +343,7 @@ export function ListeningExamPrintView({
   const overflowFixAttempts = useRef(0);
   /** 고정 5+5 배치를 그대로 썼는지 — 그럴 땐 시험지 쪽은 옮기지 않는다 */
   const fixedLayoutUsed = useRef(false);
+  const [tightStep, setTightStep] = useState<TightStep>(TIGHT_STEPS[0]!);
   const listenUrl = buildStudentListeningHubUrl(setId);
 
   const meta: PrintMeta = {
@@ -331,11 +355,16 @@ export function ListeningExamPrintView({
   const resolvedPages = pages;
   const hasFigures = questionsHaveFigures(questions);
   const layoutConfig = getExamLayoutConfig(showScript, hasFigures);
-  /** 그림 문항이 있으면 고정 5+5 배치보다 높이 기반·오버플로 이동을 우선 */
+  // 문항 간격도 고른 단계를 따른다(대본 모드는 기존 간격 그대로).
+  const examGapStyle = showScript
+    ? layoutConfig.gapStyle
+    : ({ gap: `${tightStep.gapMm}mm` } as const);
+  /**
+   * 20문항 시험지는 그림이 있어도 두 쪽(쪽마다 5+5)을 먼저 노린다 — 선생님 요청.
+   * 가장 촘촘한 단계에서도 안 들어갈 때만 높이 기반으로 넘어간다.
+   */
   const useFixedTwentyLayout =
-    !showScript &&
-    isStandardTwentyQuestionExam(questions.length) &&
-    !hasFigures;
+    !showScript && isStandardTwentyQuestionExam(questions.length);
 
   useLayoutEffect(() => {
     if (questions.length === 0) {
@@ -359,8 +388,12 @@ export function ListeningExamPrintView({
       if (!firstBody || !nextBody) return;
 
       /** 문항 글자 크기를 바꿔 가며 높이를 다시 잰다 (쪽 맞추기용) */
-      const measureAt = (sizePt: number) => {
+      const measureAt = (sizePt: number, step?: TightStep) => {
         measureRoot.style.setProperty("--lx-q-size", `${sizePt}pt`);
+        if (step) {
+          measureRoot.style.setProperty("--lx-q-lh", `${step.lineHeight}`);
+          measureRoot.style.setProperty("--lx-fig-max", `${step.figureMaxMm}mm`);
+        }
         void measureRoot.offsetHeight;
         const exam: number[] = [];
         const answer: number[] = [];
@@ -392,24 +425,34 @@ export function ListeningExamPrintView({
       };
 
       let sizePt = QUESTION_SIZES_PT[0]!;
+      let step: TightStep = TIGHT_STEPS[0]!;
       let heights = measureAt(sizePt);
       let examLayouts: ExamPageLayout[];
 
       if (useFixedTwentyLayout) {
-        // 표준 20문항: 쪽마다 5+5가 들어갈 때까지 글자를 한 단계씩 줄여 본다
+        // 표준 20문항: 쪽마다 5+5가 들어갈 때까지 글자·줄간격·그림 높이를 한 단계씩 줄여 본다
         const fixed = paginateStandardTwentyExam();
-        let fits = layoutFits(fixed, heights.exam, packOpts);
-        for (let i = 1; !fits && i < QUESTION_SIZES_PT.length; i++) {
-          sizePt = QUESTION_SIZES_PT[i]!;
-          heights = measureAt(sizePt);
-          fits = layoutFits(fixed, heights.exam, packOpts);
+        let fits = false;
+        for (let i = 0; i < TIGHT_STEPS.length; i++) {
+          step = TIGHT_STEPS[i]!;
+          sizePt = step.sizePt;
+          heights = measureAt(sizePt, step);
+          const stepOpts = {
+            ...packOpts,
+            questionGapPx: Math.round((step.gapMm * 96) / 25.4),
+          };
+          if (layoutFits(fixed, heights.exam, stepOpts)) {
+            fits = true;
+            break;
+          }
         }
         if (fits) {
           examLayouts = fixed;
         } else {
-          // 가장 작게 줄여도 안 들어가면 원래 크기로 높이대로 채운다 (잘림 방지)
+          step = TIGHT_STEPS[0]!;
+          // 가장 촘촘한 단계에서도 안 들어가면 원래 크기로 높이대로 채운다 (잘림 방지)
           sizePt = QUESTION_SIZES_PT[0]!;
-          heights = measureAt(sizePt);
+          heights = measureAt(sizePt, step);
           examLayouts = paginateExamQuestions(heights.exam, packOpts);
         }
         fixedLayoutUsed.current = examLayouts === fixed;
@@ -419,10 +462,13 @@ export function ListeningExamPrintView({
       }
 
       measureRoot.style.removeProperty("--lx-q-size");
+      measureRoot.style.removeProperty("--lx-q-lh");
+      measureRoot.style.removeProperty("--lx-fig-max");
 
       overflowFixAttempts.current = 0;
       setPagesVerified(false);
       setQuestionSizePt(sizePt);
+      setTightStep(step);
       setPages(examLayouts);
       // 정답지는 한 줄짜리 항목이라 두 단에 고르게 나눠 담는다
       setAnswerPages(
@@ -708,7 +754,7 @@ export function ListeningExamPrintView({
           questions={questions}
           showScript={showScript}
           measureOnly
-          questionGapStyle={layoutConfig.gapStyle}
+          questionGapStyle={examGapStyle}
         />
       </div>
       <div
@@ -726,16 +772,14 @@ export function ListeningExamPrintView({
           questions={questions}
           showScript={showScript}
           measureOnly
-          questionGapStyle={layoutConfig.gapStyle}
+          questionGapStyle={examGapStyle}
         />
       </div>
 
       <div className="mx-auto w-full max-w-[210mm] py-8 print:py-0">
         <div
           id="listening-print-root"
-          style={
-            { "--lx-q-size": `${questionSizePt}pt` } as CSSProperties
-          }
+          style={tightVars({ ...tightStep, sizePt: questionSizePt })}
         >
           <div className="exam-print-exam">
             {questions.length === 0 ? (
@@ -748,7 +792,7 @@ export function ListeningExamPrintView({
                 right={[]}
                 questions={questions}
                 showScript={showScript}
-                questionGapStyle={layoutConfig.gapStyle}
+                questionGapStyle={examGapStyle}
               />
             ) : !pages ? (
               <div className="listening-exam-page listening-exam-sheet mx-auto flex h-[297mm] items-center justify-center text-sm text-slate-500">
@@ -780,7 +824,7 @@ export function ListeningExamPrintView({
                       right={layout.right}
                       questions={questions}
                       showScript={showScript}
-                      questionGapStyle={layoutConfig.gapStyle}
+                      questionGapStyle={examGapStyle}
                       isLastPage={pageIndex === resolvedPages!.length - 1}
                     />
                   ))}

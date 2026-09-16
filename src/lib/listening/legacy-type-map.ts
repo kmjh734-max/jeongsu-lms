@@ -8,7 +8,7 @@
  * 순서로 유형을 정한다. 번호만 보고 유형을 정하면 중2·중3 새 배치에서 다른 유형이 된다
  * (중3 20번 = 상황에 맞는 말인데 옛 번호로는 "응답"이 되어 "Woman: ___"이 인쇄되는 식).
  */
-import { getGradeBlueprint } from "@/lib/listening/grade-blueprints";
+import { getGradeBlueprint, LEGACY_MIDDLE_ORDER } from "@/lib/listening/grade-blueprints";
 import {
   isHighSchoolListeningGrade,
   type ListeningGradeLevel,
@@ -170,7 +170,8 @@ export function keyFromInstruction(instruction: string, family: Family): Listeni
 /** 번호로 — 중등은 중1 배치(예전 중2·중3 세트도 이 배치로 만들어졌다) */
 function keyFromOrder(order: number | null | undefined, family: Family): ListeningTypeKey | undefined {
   if (!order) return undefined;
-  const bp = getGradeBlueprint(family === "high" ? "high1" : "middle1");
+  // 중등 예전 세트는 모두 중1 배치로 만들었다 — 공통 배치를 바꿔도 여기서는 그 표를 쓴다.
+  const bp = family === "high" ? getGradeBlueprint("high1") : LEGACY_MIDDLE_ORDER;
   return bp.find((s) => s.position === order)?.key;
 }
 
