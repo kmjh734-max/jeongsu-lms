@@ -531,6 +531,19 @@ export function AnalysisReportWorkbench({
         units.push(...points);
       }
 
+      /*
+       * 설명이 다음 쪽으로 이어지면 그 쪽에도 묶음 여백과 설명 목록 위 여백이
+       * 한 번 더 붙는다. 이 몫을 빼먹어서 쪽이 2mm쯤 넘쳤고, 인쇄에서 한 줄이
+       * 다음 쪽으로 새어 거의 빈 쪽이 생겼다.
+       */
+      const sampleBlock = box.querySelector(".ar-block") as HTMLElement | null;
+      const samplePoints = box.querySelector(".ar-points") as HTMLElement | null;
+      const contOverhead =
+        sampleBlock && samplePoints
+          ? parseFloat(getComputedStyle(sampleBlock).paddingBottom || "0") +
+            parseFloat(getComputedStyle(samplePoints).marginTop || "0")
+          : 24;
+
       const pages: AnalysisUnit[][] = [];
       let current: AnalysisUnit[] = [];
       let used = 0;
@@ -543,8 +556,8 @@ export function AnalysisReportWorkbench({
         if (current.length > 0 && used + gap + u.h > pageBodyPx) {
           pages.push(current);
           current = [];
-          used = 0;
-          used += u.h;
+          // 이어지는 설명으로 쪽을 시작하면 묶음 여백이 한 번 더 붙는다
+          used = u.kind === "point" ? contOverhead + u.h : u.h;
           current.push(u);
           continue;
         }
