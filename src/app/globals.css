@@ -2792,6 +2792,12 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   white-space: nowrap;
 }
 
+.ar-chunk-slash {
+  margin: 0 5px 0 1px;
+  font-weight: 400;
+  color: #d23b3b;
+}
+
 .ar-gloss-anchor {
   position: relative;
   display: inline-block;

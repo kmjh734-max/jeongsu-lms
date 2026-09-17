@@ -103,6 +103,7 @@ function renderText(
     : [];
   if (cuts.length === 0) return renderMarked(text, at, marks);
   const out: ReactNode[] = [];
+  const firstStart = Math.min(...glosses!.keys());
   let cur = at;
   for (const b of cuts) {
     if (b < cur) continue;
@@ -114,6 +115,8 @@ function renderText(
     const wordEnd = b + wordLen;
     out.push(
       <span key={`g${b}`} className="ar-gloss-start">
+        {/* 덩어리 사이는 영어 본문에 사선으로 끊는다(첫 덩어리 앞에는 두지 않는다) */}
+        {b > firstStart ? <span className="ar-chunk-slash">/</span> : null}
         <span className="ar-gloss-anchor">
           <span className="ar-gloss">{glosses!.get(b)}</span>
         </span>
