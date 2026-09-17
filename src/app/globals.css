@@ -2783,23 +2783,36 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   print-color-adjust: exact;
 }
 
-/* 직독직해: 본문 안, 의미 덩어리 끝마다 사선과 뜻을 다른 색으로 끼운다 */
-.ar-gloss {
-  margin: 0 3px 0 2px;
-  /* 뜻이 줄 끝에서 둘로 갈리면 어느 덩어리 뜻인지 흐려진다 */
+/* 직독직해: 덩어리 첫 낱말 아래(문장성분 표시 밑)에 한글 뜻. 뜻 한 줄이 들어가게 줄 사이를 넓힌다. */
+.ar-sentence--chunk {
+  line-height: 3.7;
+}
+
+.ar-gloss-start {
   white-space: nowrap;
-  font-size: 10.2px;
+}
+
+.ar-gloss-anchor {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  height: 1em;
+  vertical-align: baseline;
+}
+
+.ar-gloss {
+  position: absolute;
+  left: 0;
+  top: calc(1em + 9px);
+  width: max-content;
+  font-size: 9.6px;
   font-weight: 500;
+  line-height: 1.2;
   letter-spacing: 0;
+  white-space: nowrap;
   color: #0f7a5c;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
-}
-
-.ar-gloss-slash {
-  margin-right: 3px;
-  font-weight: 400;
-  color: #9aa3ad;
 }
 
 /* 머리의 영어 주제문 */

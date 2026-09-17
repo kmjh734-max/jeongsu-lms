@@ -62,8 +62,8 @@ function circled(index: number): string {
 type Mark = { span: MarkupSpan; cls: string };
 
 /**
- * 직독직해 뜻을 본문 안에 끼워 넣을 자리. 끝 좌표 → 뜻.
- * 선생님 요청(2026-09-17): 직독직해를 아래에 따로 떼지 말고 본문에 다른 색으로 적어 달라.
+ * 직독직해 뜻을 달 자리. 덩어리 시작 좌표 → 뜻.
+ * 선생님 요청(2026-09-17): 직독직해를 아래에 따로 떼지 말고 본문에, 덩어리 바로 아래에 한글 뜻을.
  * 조각은 원문을 공백만 빼고 그대로 이은 것이라(verifiedChunks) 공백을 건너뛰며 글자를 세면 좌표가 나온다.
  */
 type Glosses = Map<number, string>;
@@ -75,46 +75,52 @@ function chunkGlosses(markup: AnalysisSentenceMarkup): Glosses | null {
   const out: Glosses = new Map();
   let i = 0;
   for (const c of chunks) {
+    let start = -1;
     for (const ch of c.en) {
       if (/\s/.test(ch)) continue;
       while (i < text.length && /\s/.test(text[i]!)) i++;
       if (i >= text.length) return null;
+      if (start < 0) start = i;
       i++;
     }
-    if (c.ko.trim()) out.set(i, c.ko.trim());
+    if (start >= 0 && c.ko.trim()) out.set(start, c.ko.trim());
   }
   return out;
 }
 
-function Gloss({ ko }: { ko: string }) {
-  return (
-    <span className="ar-gloss">
-      <span className="ar-gloss-slash">/</span>
-      {ko}
-    </span>
-  );
-}
-
-/** 글자를 칠해 내보내되, 뜻 자리(at < 끝 ≤ at+길이)에서 끊어 뜻을 끼운다. */
+/**
+ * 덩어리 첫 낱말 앞에 폭 0 닻을 두고 뜻을 그 아래(문장성분 표시 밑)에 띄운다.
+ * 닻과 첫 낱말은 줄에서 떨어지지 않게 묶는다(닻만 앞줄 끝에 남으면 뜻이 엉뚱한 줄에 붙는다).
+ */
 function renderText(
   text: string,
   at: number,
   marks: Mark[],
-  glosses: Glosses | null,
-  owned: Set<number>
+  glosses: Glosses | null
 ): ReactNode {
   const cuts = glosses
-    ? [...glosses.keys()]
-        .filter((b) => b > at && b <= at + text.length && !owned.has(b))
-        .sort((a, b) => a - b)
+    ? [...glosses.keys()].filter((b) => b >= at && b < at + text.length).sort((a, b) => a - b)
     : [];
   if (cuts.length === 0) return renderMarked(text, at, marks);
   const out: ReactNode[] = [];
   let cur = at;
   for (const b of cuts) {
-    out.push(<Fragment key={`t${b}`}>{renderMarked(text.slice(cur - at, b - at), cur, marks)}</Fragment>);
-    out.push(<Gloss key={`g${b}`} ko={glosses!.get(b)!} />);
-    cur = b;
+    if (b < cur) continue;
+    if (b > cur) {
+      out.push(<Fragment key={`t${b}`}>{renderMarked(text.slice(cur - at, b - at), cur, marks)}</Fragment>);
+    }
+    const rest = text.slice(b - at);
+    const wordLen = rest.search(/\s/) < 0 ? rest.length : rest.search(/\s/);
+    const wordEnd = b + wordLen;
+    out.push(
+      <span key={`g${b}`} className="ar-gloss-start">
+        <span className="ar-gloss-anchor">
+          <span className="ar-gloss">{glosses!.get(b)}</span>
+        </span>
+        {renderMarked(text.slice(b - at, wordEnd - at), b, marks)}
+      </span>
+    );
+    cur = wordEnd;
   }
   if (cur < at + text.length) {
     out.push(<Fragment key="tail">{renderMarked(text.slice(cur - at), cur, marks)}</Fragment>);
@@ -151,12 +157,11 @@ function renderMarked(text: string, at: number, marks: Mark[]): ReactNode {
 function renderNodes(
   nodes: MarkupNode[],
   marks: Mark[],
-  glosses: Glosses | null = null,
-  owned: Set<number> = new Set()
+  glosses: Glosses | null = null
 ): ReactNode {
   return nodes.map((node, i) => {
     if (node.kind === "text") {
-      return <Fragment key={i}>{renderText(node.text, node.at, marks, glosses, owned)}</Fragment>;
+      return <Fragment key={i}>{renderText(node.text, node.at, marks, glosses)}</Fragment>;
     }
 
     // 끼워 넣는 표시: 이름표는 줄 사이 여백에 띄우고, 번호·상자 꼬리표는 그 자리에 찍는다.
@@ -187,15 +192,7 @@ function renderNodes(
     }
 
     const { deco } = node;
-    // 뜻 자리가 이 마디 끝과 같으면 밑줄·괄호 안이 아니라 마디 바깥 뒤에 뜻을 붙인다
-    const end = node.span.end;
-    const glossAfter = glosses && !owned.has(end) ? glosses.get(end) : undefined;
-    const inner = renderNodes(
-      node.children,
-      marks,
-      glosses,
-      glossAfter ? new Set([...owned, end]) : owned
-    );
+    const inner = renderNodes(node.children, marks, glosses);
     const [open, close] = deco.bracket ? bracketChars(deco.bracket) : ["", ""];
 
     const body = deco.role ? (
@@ -219,7 +216,6 @@ function renderNodes(
         {close ? (
           <span className={`ar-bracket ar-bracket--${deco.bracket}`}>{close}</span>
         ) : null}
-        {glossAfter ? <Gloss ko={glossAfter} /> : null}
       </span>
     );
   });
@@ -295,6 +291,24 @@ function useMarkupLayout(
         el.style.transform = `translate(${Math.round(best.shift)}px, ${Math.round(best.lift)}px)`;
       }
       placed.push(best.box);
+    }
+
+    /*
+     * 직독직해 뜻: 앞 뜻이 길어 같은 줄의 다음 뜻과 겹치면 오른쪽으로 민다.
+     * 글상자 오른쪽 끝을 넘으면 넘친 만큼 왼쪽으로 되민다.
+     */
+    const glossEls = Array.from(box.querySelectorAll<HTMLElement>(".ar-gloss"));
+    for (const el of glossEls) el.style.transform = "";
+    let prev: { right: number; top: number } | null = null;
+    for (const el of glossEls) {
+      const r = el.getBoundingClientRect();
+      let shift = 0;
+      if (prev && Math.abs(prev.top - r.top) < 4 && r.left < prev.right + 6) {
+        shift = prev.right + 6 - r.left;
+      }
+      if (r.right + shift > bounds.right) shift = bounds.right - r.right;
+      if (Math.abs(shift) >= 1) el.style.transform = `translateX(${Math.round(shift)}px)`;
+      prev = { right: r.right + shift, top: r.top };
     }
 
     const frame = frameRef.current;
@@ -411,7 +425,7 @@ export function AnalysisMarkupSentence({
           </span>
         ) : null}
 
-        <p className="ar-sentence" ref={sentenceRef}>
+        <p className={`ar-sentence${glosses ? " ar-sentence--chunk" : ""}`} ref={sentenceRef}>
           <span className="ar-no">{String(index + 1).padStart(2, "0")}</span>
           {renderNodes(tree, marks, glosses)}
         </p>
