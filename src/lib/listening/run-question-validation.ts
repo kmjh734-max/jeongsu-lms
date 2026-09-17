@@ -9,6 +9,13 @@ import {
 } from "@/lib/listening/quality-check";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import {
+  blindSolveNeedsReview,
+  blindSolveProblem,
+  blindSolveQuestion,
+  emotionAmbiguityCheck,
+  type BlindSolveResult,
+} from "@/lib/listening/blind-solve";
+import {
   validateAnswerWithAi,
   type AnswerValidationResult,
 } from "@/lib/listening/validate-answer";
@@ -24,6 +31,8 @@ export interface QuestionValidationPayload {
   suggestions: string[];
   quality_issues: QualityIssue[];
   answer_validation: AnswerValidationResult;
+  /** 정답을 가리고 풀게 한 결과. 검수를 돌리지 않았으면 undefined. */
+  blind_solve?: BlindSolveResult;
 }
 
 function mergeProblems(
@@ -44,8 +53,11 @@ export function deriveNeedsReview(
   answerValidation: AnswerValidationResult,
   ruleIssueCount: number,
   hasAnswerClueInQuestion: boolean,
-  orderIndex?: number
+  orderIndex?: number,
+  blindSolve?: BlindSolveResult
 ): boolean {
+  // 정답을 가리고 풀었을 때 다른 답이 나오면 사람이 봐야 한다
+  if (blindSolve && blindSolveNeedsReview(blindSolve)) return true;
   if (qualityScore < QUALITY_PASS_THRESHOLD) return true;
   if (answerValidation.answer_clarity_score < ANSWER_CLARITY_PASS_THRESHOLD) return true;
   if (!answerValidation.is_answer_clear) return true;
@@ -73,6 +85,19 @@ export async function runQuestionValidation(
     typeHint,
     options?.gradeLevel ?? "middle1"
   );
+  /*
+   * 정답을 가리고 직접 풀게 하는 검사. 정답을 보여 주고 묻는 검수는 보여 준 답에 끌려가
+   * "맞다"고 하기 쉬워서, 2026-09-17 점검 때 120문항 중 세 개의 잘못을 놓쳤다.
+   * 두 검수를 함께 띄워 기다리는 시간이 늘지 않게 한다.
+   */
+  const blindTask: Promise<BlindSolveResult | undefined> = options?.skipAi
+    ? Promise.resolve(undefined)
+    : blindSolveQuestion(apiKey, q);
+  /** 심정 문항은 "답이 될 수 있는 감정을 다 고르라"고 한 번 더 묻는다 */
+  const emotionTask = options?.skipAi
+    ? Promise.resolve({ defensible: [] as number[], skipped: true })
+    : emotionAmbiguityCheck(apiKey, q);
+
   const answer_validation = options?.skipAi
     ? ({
         is_answer_clear: !!q.answer_clue?.trim(),
@@ -94,15 +119,33 @@ export async function runQuestionValidation(
     q.answer_clue?.trim() || answer_validation.answer_clue.trim()
   );
 
+  const blind_solve = await blindTask;
+  const emotion = await emotionTask;
+  const emotionAmbiguous =
+    !emotion.skipped &&
+    emotion.defensible.length > 1 &&
+    emotion.defensible.includes(q.correct_answer);
+
   const needs_review = deriveNeedsReview(
     rule.quality_score,
     answer_validation,
     rule.issues.length,
     has_answer_clue,
-    q.order_index
-  );
+    q.order_index,
+    blind_solve
+  ) || emotionAmbiguous;
 
   const problems = mergeProblems(rule.issues, answer_validation);
+  const blindProblem = blind_solve
+    ? blindSolveProblem(blind_solve, q.correct_answer)
+    : null;
+  if (blindProblem) problems.unshift(blindProblem);
+  if (emotionAmbiguous) {
+    const others = emotion.defensible.filter((n) => n !== q.correct_answer);
+    problems.unshift(
+      `심정이 하나로 정해지지 않습니다. ${others.join("·")}번도 근거가 있습니다.`
+    );
+  }
   const suggestions = [...answer_validation.suggestions];
 
   return {
@@ -116,6 +159,7 @@ export async function runQuestionValidation(
     suggestions,
     quality_issues: rule.issues,
     answer_validation,
+    blind_solve,
   };
 }
 
