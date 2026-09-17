@@ -389,7 +389,7 @@ function BlankQuestionBody({
 
 function BlankAnswerBody({ section }: { section: WorkbookBlankSection }) {
   return (
-    <ol className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+    <ol className="grid grid-cols-4 gap-x-4 gap-y-0.5">
       {section.answers.map((a) => {
         const showLemma =
           a.lemma &&
@@ -397,13 +397,12 @@ function BlankAnswerBody({ section }: { section: WorkbookBlankSection }) {
         return (
           <li
             key={a.number}
-            className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
+            className="break-inside-avoid text-[10.5px] leading-snug text-slate-800"
           >
             <span className="font-bold">{a.number}.</span> {a.answerText}
             {showLemma ? (
               <span className="text-slate-500"> ({a.lemma})</span>
-            ) : null}{" "}
-            — {a.meaningKo}
+            ) : null}
           </li>
         );
       })}
@@ -465,12 +464,11 @@ function TfAnswerBody({
 }) {
   return (
     <>
-      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+      <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         {typeOrder}. T/F 문제
         {multi ? ` · ${section.title}` : ""}
       </h3>
-      <p className="text-[13px] font-semibold text-slate-800">
-        정답:{" "}
+      <p className="text-[10.5px] font-semibold text-slate-800">
         {section.items.map((it) => `(${it.index}) ${it.answer}`).join("  ")}
       </p>
     </>
@@ -538,21 +536,21 @@ function GrammarChoiceAnswerBody({
 }) {
   return (
     <>
-      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+      <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         {typeOrder}. 어법 선택
         {multi ? ` · ${section.title}` : ""}
       </h3>
-      <ol className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
+      <ol className="grid grid-cols-3 gap-x-4 gap-y-0.5">
         {section.items.map((it) => (
           <li
             key={it.choiceId}
-            className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
+            className="break-inside-avoid text-[10.5px] leading-snug text-slate-800"
           >
             <span className="font-bold">
-              {circledNumber(it.number)} 정답: {it.correctText}
+              {circledNumber(it.number)} {it.correctText}
             </span>
             {it.labelHidden ? null : (
-              <span className="ml-1.5 text-[11.5px] font-semibold text-slate-500">
+              <span className="ml-1 text-[9.5px] font-semibold text-slate-500">
                 [{it.bookTerm || it.grammarCategoryName}]
               </span>
             )}
@@ -641,15 +639,15 @@ function VocabChoiceAnswerBody({
 }) {
   return (
     <>
-      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+      <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         {typeOrder}. 어휘 선택
         {multi ? ` · ${section.title}` : ""}
       </h3>
-      <ol className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
+      <ol className="grid grid-cols-4 gap-x-4 gap-y-0.5">
         {section.items.map((it) => (
           <li
             key={it.choiceId}
-            className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
+            className="break-inside-avoid text-[10.5px] leading-snug text-slate-800"
           >
             <span className="font-bold">
               {circledNumber(it.number)} {it.correctText}
@@ -745,15 +743,15 @@ function GrammarFixAnswerBody({
 }) {
   return (
     <>
-      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+      <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         {typeOrder}. {label}
         {multi ? ` · ${section.title}` : ""}
       </h3>
-      <ol className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
+      <ol className="grid grid-cols-3 gap-x-4 gap-y-0.5">
         {section.answers.map((a, i) => (
           <li
             key={`gfk-${i}`}
-            className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
+            className="break-inside-avoid text-[10.5px] leading-snug text-slate-800"
           >
             <span className="font-bold">
               {a.number != null ? `${circledNumber(a.number)} ` : `${i + 1}) `}
@@ -860,7 +858,7 @@ function SentenceOrderAnswerBody({
       : `${typeOrder}`;
   return (
     <div className="break-inside-avoid">
-      <p className="text-[13px] font-semibold text-slate-800">
+      <p className="text-[10.5px] font-semibold text-slate-800">
         <span className="font-black" style={{ color: ACCENT }}>
           {heading}.
         </span>{" "}
@@ -968,40 +966,34 @@ function LineTranslationAnswerBody({
     <div className="line-translation-answer-key">
       {showHeader ? (
       <>
-      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+      <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         {typeOrder}. 한줄해석
         {multi ? ` · ${section.title}` : ""}
       </h3>
       {!multi ? (
         <>
-          <p className="mb-1 text-[12px] font-semibold text-slate-500">
+          <p className="text-[10px] font-semibold text-slate-500">
             {section.title}
+            {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
           </p>
-          {section.source?.trim() ? (
-            <p className="mb-3 text-[12px] font-semibold text-slate-500">
-              · {section.source.trim()}
-            </p>
-          ) : null}
         </>
       ) : section.source?.trim() ? (
-        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+        <p className="text-[10px] font-semibold text-slate-500">
           · {section.source.trim()}
         </p>
       ) : null}
       </>
       ) : null}
-      <div className="space-y-2.5">
+      <div className="space-y-0.5">
         {items.map((it) => (
           <div
             key={`lta-${section.projectId}-${it.sentenceId}`}
             className="break-inside-avoid"
             style={{ pageBreakInside: "avoid" }}
           >
-            <p className="line-translation-answer-key-english">
-              <span className="font-bold">{it.orderIndex}.</span>{" "}
-              {it.englishDisplay}
+            <p className="line-translation-answer-key-korean">
+              <span className="font-bold text-slate-700">{it.orderIndex}.</span> {it.korean}
             </p>
-            <p className="line-translation-answer-key-korean">{it.korean}</p>
           </div>
         ))}
       </div>
@@ -1090,41 +1082,33 @@ function FullEnWritingAnswerBody({
     <div className="full-writing-answer-key">
       {showHeader ? (
       <>
-      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+      <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         {typeOrder}. 통문장 영작
         {multi ? ` · ${section.title}` : ""}
       </h3>
       {!multi ? (
         <>
-          <p className="mb-1 text-[12px] font-semibold text-slate-500">
+          <p className="text-[10px] font-semibold text-slate-500">
             {section.title}
+            {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
           </p>
-          {section.source?.trim() ? (
-            <p className="mb-3 text-[12px] font-semibold text-slate-500">
-              · {section.source.trim()}
-            </p>
-          ) : null}
         </>
       ) : section.source?.trim() ? (
-        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+        <p className="text-[10px] font-semibold text-slate-500">
           · {section.source.trim()}
         </p>
       ) : null}
       </>
       ) : null}
-      <div className="space-y-4">
+      <div className="space-y-0.5">
         {items.map((it) => (
           <div
             key={`fwa-${section.projectId}-${it.sentenceId}`}
             className="break-inside-avoid"
             style={{ pageBreakInside: "avoid" }}
           >
-            <p className="full-writing-answer-key-korean">
-              <span className="font-bold text-slate-700">{it.orderIndex}.</span>{" "}
-              {it.korean}
-            </p>
             <p className="full-writing-answer-key-english">
-              {it.englishDisplay}
+              <span className="font-bold text-slate-700">{it.orderIndex}.</span> {it.englishDisplay}
             </p>
           </div>
         ))}
@@ -1225,41 +1209,33 @@ function WordOrderAnswerBody({
     <div className="word-order-answer-key word-order-sheet">
       {showHeader ? (
       <>
-      <h3 className="word-order-title mb-3 font-black" style={{ color: ACCENT }}>
+      <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         {typeOrder}. 어순배열 영작
         {multi ? ` · ${section.title}` : ""}
       </h3>
       {!multi ? (
         <>
-          <p className="word-order-passage-title mb-1 font-semibold text-slate-500">
+          <p className="text-[10px] font-semibold text-slate-500">
             {section.title}
+            {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
           </p>
-          {section.source?.trim() ? (
-            <p className="word-order-source mb-3 font-semibold text-slate-500">
-              · {section.source.trim()}
-            </p>
-          ) : null}
         </>
       ) : section.source?.trim() ? (
-        <p className="word-order-source mb-3 font-semibold text-slate-500">
+        <p className="text-[10px] font-semibold text-slate-500">
           · {section.source.trim()}
         </p>
       ) : null}
       </>
       ) : null}
-      <div className="space-y-2">
+      <div className="space-y-0.5">
         {items.map((it) => (
           <div
             key={`woa-${it.questionId}`}
             className="break-inside-avoid"
             style={{ pageBreakInside: "avoid" }}
           >
-            <p className="word-order-answer-key-korean">
-              <span className="font-bold text-slate-700">{it.orderIndex}.</span>{" "}
-              {it.korean}
-            </p>
             <p className="word-order-answer-key-english">
-              {it.originalEnglish}
+              <span className="font-bold text-slate-700">{it.orderIndex}.</span> {it.originalEnglish}
             </p>
           </div>
         ))}
@@ -1328,8 +1304,9 @@ type WorkbookPage =
     };
 
 /** 정답지 블록 사이 간격(px): 같은 유형 안 / 유형이 바뀔 때. */
-const ANSWER_GAP_SAME_PX = 24;
-const ANSWER_GAP_TYPE_PX = 32;
+/* 정답지는 촘촘하게(선생님 의견 2026-09-18: 글씨·줄간격을 줄이고 단을 늘려 종이를 아끼자). */
+const ANSWER_GAP_SAME_PX = 8;
+const ANSWER_GAP_TYPE_PX = 12;
 
 /** 정답지의 한 덩어리(지문 하나의 정답, 또는 긴 유형은 문장 하나). */
 type AnswerBlock = {
@@ -2110,9 +2087,9 @@ export function WorkbookWorkbench({
   margin: 0;
 }
 .line-translation-answer-key-korean {
-  font-size: 13px;
-  line-height: 1.5;
-  margin-top: 2px;
+  font-size: 10.5px;
+  line-height: 1.45;
+  margin-top: 0;
   color: #475569;
   white-space: pre-wrap;
   word-break: keep-all;
@@ -2160,9 +2137,9 @@ export function WorkbookWorkbench({
   overflow-wrap: break-word;
 }
 .full-writing-answer-key-english {
-  margin-top: 5px;
-  font-size: 13px;
-  line-height: 1.65;
+  margin-top: 0;
+  font-size: 10.5px;
+  line-height: 1.45;
   color: #172033;
   font-weight: 500;
 }
@@ -2249,8 +2226,8 @@ export function WorkbookWorkbench({
   overflow-wrap: break-word;
 }
 .word-order-answer-key-english {
-  margin-top: 2px;
-  font-size: 14px;
+  margin-top: 0;
+  font-size: 10.5px;
   line-height: 1.45;
   color: #172033;
   font-weight: 500;
@@ -2922,7 +2899,7 @@ export function WorkbookWorkbench({
           order: ob,
           node: (
             <>
-              <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+              <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
                 {ob}. 빈칸 채우기
                 {workbook.blankSections.length > 1 ? ` · ${section.title}` : ""}
               </h3>
@@ -2999,10 +2976,10 @@ export function WorkbookWorkbench({
         order: oso,
         node: (
           <>
-            <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+            <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
               {oso}. 문장 순서 배열
             </h3>
-            <div className="space-y-3">
+            <div className="grid grid-cols-4 gap-x-4 gap-y-0.5">
               {soQuestions.map((q) => (
                 <SentenceOrderAnswerBody
                   key={`soa-${q.questionId}`}
@@ -3017,10 +2994,10 @@ export function WorkbookWorkbench({
       });
       addSkipped("sos", oso, soSkipped);
     }
-    // 문장 사이 간격은 각 정답 목록의 space-y(2.5 = 10px, 4 = 16px, 2 = 8px)와 같다.
+    // 문장 사이 간격은 각 정답 목록의 space-y(0.5 = 2px)와 같다.
     const olt = typeOrders.get("one_line_ko");
     if (olt != null) {
-      addSentenceBlocks("lta", olt, "한줄해석", ltSections, 10, (section, ii, showHeader) => (
+      addSentenceBlocks("lta", olt, "한줄해석", ltSections, 2, (section, ii, showHeader) => (
         <LineTranslationAnswerBody
           section={section}
           typeOrder={olt}
@@ -3033,7 +3010,7 @@ export function WorkbookWorkbench({
     }
     const ofe = typeOrders.get("full_en_writing");
     if (ofe != null) {
-      addSentenceBlocks("fea", ofe, "통문장 영작", feSections, 16, (section, ii, showHeader) => (
+      addSentenceBlocks("fea", ofe, "통문장 영작", feSections, 2, (section, ii, showHeader) => (
         <FullEnWritingAnswerBody
           section={section}
           typeOrder={ofe}
@@ -3046,7 +3023,7 @@ export function WorkbookWorkbench({
     }
     const owo = typeOrders.get("word_order_writing");
     if (owo != null) {
-      addSentenceBlocks("woa", owo, "어순배열 영작", woSections, 8, (section, ii, showHeader) => (
+      addSentenceBlocks("woa", owo, "어순배열 영작", woSections, 2, (section, ii, showHeader) => (
         <WordOrderAnswerBody
           section={section}
           typeOrder={owo}
