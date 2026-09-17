@@ -67,10 +67,27 @@ export function scriptRuleProblems(q: GeneratedListeningQuestion): string[] {
     }
   }
 
-  // 2) 한 대본에 사람 이름이 둘 이상이면 같은 사람을 다르게 부르는 일이 잦았다.
-  const names = namesIn(text);
-  if (names.length > 1) {
-    out.push(`name_conflict|대본에 이름이 ${names.join("·")}로 여럿 나온다. 같은 사람을 한 이름으로만 부르고, 등장인물이 정말 둘이면 각자 누구인지 분명히 하라.`);
+  /*
+   * 2) 한 화자가 상대를 두 이름으로 부르면 흠이다(Taerin이라 해 놓고 끝에서 Gyuri).
+   *    두 사람이 서로 이름을 부르는 대화는 정상이므로, 화자별로 나눠 센다.
+   */
+  const bySpeaker = new Map<string, Set<string>>();
+  for (const seg of segs) {
+    const who = String((seg as { speaker?: string; speaker_type?: string }).speaker ?? (seg as { speaker_type?: string }).speaker_type ?? "?");
+    const found = namesIn(String(seg?.text ?? ""));
+    if (found.length === 0) continue;
+    const set = bySpeaker.get(who) ?? new Set<string>();
+    for (const n of found) set.add(n);
+    bySpeaker.set(who, set);
+  }
+  for (const [who, set] of bySpeaker) {
+    if (set.size > 1) {
+      out.push(`name_conflict|한 사람(${who})이 상대를 ${[...set].join("·")}로 다르게 부른다. 한 이름으로만 부르라.`);
+      break;
+    }
+  }
+  if (segs.length === 0 && namesIn(text).length > 1) {
+    out.push(`name_conflict|대본에 이름이 ${namesIn(text).join("·")}로 여럿 나온다. 같은 사람을 한 이름으로만 부르라.`);
   }
 
   // 3) 담화(1인)는 첫 문장이 대화 도중처럼 시작하면 안 된다.
@@ -93,8 +110,11 @@ export function scriptRuleProblems(q: GeneratedListeningQuestion): string[] {
     // 앞에서 나온 문구 후보: 따옴표 안, 또는 "How about …" / "I like …" 뒤
     const proposals = [
       ...[...text.matchAll(/[“"']([^“”"']{6,70})[”"']/g)].map((m) => m[1]!),
-      ...[...text.matchAll(/\b(?:How about|I like|What about|Maybe)[,:]?\s+([^.?!]{6,70})[.?!]/gi)].map((m) => m[1]!),
-    ].map((t) => t.trim());
+      ...[...text.matchAll(/\b(?:How about|I like|What about)[,:]?\s+([^.?!]{6,70})[.?!]/gi)].map((m) => m[1]!),
+    ]
+      .map((t) => t.trim())
+      // 문구 후보는 세 낱말 이상만(짧은 말토막과 견주면 멀쩡한 정답이 걸린다)
+      .filter((t) => t.trim().split(/\s+/).length >= 3);
     const answer = String(q.choices?.[(q.correct_answer ?? 1) - 1] ?? "").replace(/^(?:How about|What about)[,:]?\s+/i, "");
     if (answer && proposals.some((s) => words(answer) >= words(s))) {
       out.push("shorter_but_longer|더 짧은 것을 묻는데 정답이 앞에서 나온 문구보다 길다. 정답을 실제로 더 짧게 써라.");
@@ -117,12 +137,18 @@ const SYSTEM = `너는 한국 중·고등학교 영어 듣기 문항의 대본�
  * 대본의 앞뒤 사실을 한 번 본다. 규칙으로 잡히지 않는 흠(물건과 부속, 가진 것과 해결책,
  * 거리·시각 계산, 지시문과 대본의 어긋남)을 잡는다. 호출이 실패하면 건너뛴다.
  */
+/** 어색한 대화 고르기: 어긋난 짝이 정답이라, 대본 검사를 그대로 쓰면 정답 자리를 흠으로 본다. */
+function isAwkwardDialogueType(q: GeneratedListeningQuestion): boolean {
+  return /어색/.test(String(q.question_type ?? "")) || /어색/.test(String(q.instruction ?? ""));
+}
+
 export async function auditScript(
   apiKey: string,
   q: GeneratedListeningQuestion
 ): Promise<ScriptAuditResult> {
   const text = scriptOf(q);
   if (!text || text.length < 40) return { problems: [], skipped: true };
+  if (isAwkwardDialogueType(q)) return auditAwkwardDialogue(apiKey, q, text);
   const choices = Array.isArray(q.choices) ? q.choices.map((c) => String(c)) : [];
   try {
     const raw = await listeningChatJson<Record<string, unknown>>(apiKey, {
@@ -153,6 +179,44 @@ ${choices.map((c, i) => `${i + 1}) ${c}`).join("\n")}
       .slice(0, 3)
       .map((p) => `script_fact|${p}`);
     return { problems, skipped: false };
+  } catch {
+    return { problems: [], skipped: true };
+  }
+}
+
+/**
+ * 어색한 대화 고르기 전용. 어긋난 짝의 번호를 받아 정답 번호와 맞는지 본다.
+ * (대본 검사를 그대로 쓰면 일부러 어긋낸 자리를 흠으로 잡아 멀쩡한 문항이 걸린다.)
+ */
+async function auditAwkwardDialogue(
+  apiKey: string,
+  q: GeneratedListeningQuestion,
+  text: string
+): Promise<ScriptAuditResult> {
+  try {
+    const raw = await listeningChatJson<Record<string, unknown>>(apiKey, {
+      temperature: 0.1,
+      system: SYSTEM,
+      user: `아래는 짧은 대화 다섯 개다. 묻는 말과 대답이 어긋난 대화를 모두 고른다.
+
+${text}
+
+{"awkward":[번호들],"why":"한국어 한 문장"}`,
+    });
+    const list = Array.isArray(raw.awkward) ? raw.awkward : [];
+    const nums = list.map((v) => Math.floor(Number(v))).filter((n) => n >= 1 && n <= 5);
+    const answer = q.correct_answer;
+    const why = String(raw.why ?? "").replace(/\s+/g, " ").trim().slice(0, 120);
+    if (nums.length === 0) {
+      return { problems: [`awkward_none|어긋난 대화를 찾지 못했다. ${answer}번이 분명히 어긋나게 다시 써라.`], skipped: false };
+    }
+    if (!nums.includes(answer)) {
+      return { problems: [`awkward_mismatch|어긋난 대화가 ${nums.join("·")}번으로 읽힌다(정답은 ${answer}번). ${why}`], skipped: false };
+    }
+    if (nums.length > 1) {
+      return { problems: [`awkward_extra|${nums.join("·")}번이 모두 어긋나 보인다. 정답 ${answer}번만 어긋나게 하고 나머지는 자연스럽게 고쳐라.`], skipped: false };
+    }
+    return { problems: [], skipped: false };
   } catch {
     return { problems: [], skipped: true };
   }
