@@ -61,7 +61,68 @@ function circled(index: number): string {
 /** 문장 안에서 칠할 자리. 꼬리표가 가리키는 곳마다 다른 색으로 칠한다. */
 type Mark = { span: MarkupSpan; cls: string };
 
-function renderText(text: string, at: number, marks: Mark[]): ReactNode {
+/**
+ * 직독직해 뜻을 본문 안에 끼워 넣을 자리. 끝 좌표 → 뜻.
+ * 선생님 요청(2026-09-17): 직독직해를 아래에 따로 떼지 말고 본문에 다른 색으로 적어 달라.
+ * 조각은 원문을 공백만 빼고 그대로 이은 것이라(verifiedChunks) 공백을 건너뛰며 글자를 세면 좌표가 나온다.
+ */
+type Glosses = Map<number, string>;
+
+function chunkGlosses(markup: AnalysisSentenceMarkup): Glosses | null {
+  const chunks = markup.chunks;
+  if (!chunks?.length) return null;
+  const text = markup.text;
+  const out: Glosses = new Map();
+  let i = 0;
+  for (const c of chunks) {
+    for (const ch of c.en) {
+      if (/\s/.test(ch)) continue;
+      while (i < text.length && /\s/.test(text[i]!)) i++;
+      if (i >= text.length) return null;
+      i++;
+    }
+    if (c.ko.trim()) out.set(i, c.ko.trim());
+  }
+  return out;
+}
+
+function Gloss({ ko }: { ko: string }) {
+  return (
+    <span className="ar-gloss">
+      <span className="ar-gloss-slash">/</span>
+      {ko}
+    </span>
+  );
+}
+
+/** 글자를 칠해 내보내되, 뜻 자리(at < 끝 ≤ at+길이)에서 끊어 뜻을 끼운다. */
+function renderText(
+  text: string,
+  at: number,
+  marks: Mark[],
+  glosses: Glosses | null,
+  owned: Set<number>
+): ReactNode {
+  const cuts = glosses
+    ? [...glosses.keys()]
+        .filter((b) => b > at && b <= at + text.length && !owned.has(b))
+        .sort((a, b) => a - b)
+    : [];
+  if (cuts.length === 0) return renderMarked(text, at, marks);
+  const out: ReactNode[] = [];
+  let cur = at;
+  for (const b of cuts) {
+    out.push(<Fragment key={`t${b}`}>{renderMarked(text.slice(cur - at, b - at), cur, marks)}</Fragment>);
+    out.push(<Gloss key={`g${b}`} ko={glosses!.get(b)!} />);
+    cur = b;
+  }
+  if (cur < at + text.length) {
+    out.push(<Fragment key="tail">{renderMarked(text.slice(cur - at), cur, marks)}</Fragment>);
+  }
+  return <>{out}</>;
+}
+
+function renderMarked(text: string, at: number, marks: Mark[]): ReactNode {
   const hits = marks
     .map((m) => ({
       cls: m.cls,
@@ -87,10 +148,15 @@ function renderText(text: string, at: number, marks: Mark[]): ReactNode {
   return <>{out}</>;
 }
 
-function renderNodes(nodes: MarkupNode[], marks: Mark[]): ReactNode {
+function renderNodes(
+  nodes: MarkupNode[],
+  marks: Mark[],
+  glosses: Glosses | null = null,
+  owned: Set<number> = new Set()
+): ReactNode {
   return nodes.map((node, i) => {
     if (node.kind === "text") {
-      return <Fragment key={i}>{renderText(node.text, node.at, marks)}</Fragment>;
+      return <Fragment key={i}>{renderText(node.text, node.at, marks, glosses, owned)}</Fragment>;
     }
 
     // 끼워 넣는 표시: 이름표는 줄 사이 여백에 띄우고, 번호·상자 꼬리표는 그 자리에 찍는다.
@@ -121,7 +187,15 @@ function renderNodes(nodes: MarkupNode[], marks: Mark[]): ReactNode {
     }
 
     const { deco } = node;
-    const inner = renderNodes(node.children, marks);
+    // 뜻 자리가 이 마디 끝과 같으면 밑줄·괄호 안이 아니라 마디 바깥 뒤에 뜻을 붙인다
+    const end = node.span.end;
+    const glossAfter = glosses && !owned.has(end) ? glosses.get(end) : undefined;
+    const inner = renderNodes(
+      node.children,
+      marks,
+      glosses,
+      glossAfter ? new Set([...owned, end]) : owned
+    );
     const [open, close] = deco.bracket ? bracketChars(deco.bracket) : ["", ""];
 
     const body = deco.role ? (
@@ -145,6 +219,7 @@ function renderNodes(nodes: MarkupNode[], marks: Mark[]): ReactNode {
         {close ? (
           <span className={`ar-bracket ar-bracket--${deco.bracket}`}>{close}</span>
         ) : null}
+        {glossAfter ? <Gloss ko={glossAfter} /> : null}
       </span>
     );
   });
@@ -270,6 +345,7 @@ export function AnalysisMarkupSentence({
   index: number;
 }) {
   const tree = buildMarkupTree(markup);
+  const glosses = translationMode === "chunk" ? chunkGlosses(markup) : null;
   const sentenceRef = useRef<HTMLParagraphElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   useMarkupLayout(sentenceRef, frameRef);
@@ -337,7 +413,7 @@ export function AnalysisMarkupSentence({
 
         <p className="ar-sentence" ref={sentenceRef}>
           <span className="ar-no">{String(index + 1).padStart(2, "0")}</span>
-          {renderNodes(tree, marks)}
+          {renderNodes(tree, marks, glosses)}
         </p>
 
         {markup.callouts.map((c, ci) => (
@@ -354,17 +430,7 @@ export function AnalysisMarkupSentence({
         ))}
       </div>
 
-      {translationMode === "chunk" && markup.chunks?.length ? (
-        <div className="ar-chunks">
-          <span className="ar-trans-key">직독직해</span>
-          {markup.chunks.map((c, ci) => (
-            <span key={ci} className="ar-chunk">
-              <span className="ar-chunk-en">{c.en}</span>
-              <span className="ar-chunk-ko">{c.ko}</span>
-            </span>
-          ))}
-        </div>
-      ) : markup.translation ? (
+      {glosses ? null : markup.translation ? (
         <p className="ar-trans">
           <span className="ar-trans-key">해석</span>
           {markup.translation}
