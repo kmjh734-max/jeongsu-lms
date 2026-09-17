@@ -74,6 +74,11 @@ import {
   applyBalancedChoicePositions,
   applyRandomChoicePosition,
 } from "@/lib/listening/balance-correct-answer";
+import {
+  blindSolveQuestion,
+  blindSolveRetryNote,
+  emotionAmbiguityCheck,
+} from "@/lib/listening/blind-solve";
 import { finalizeListeningQuestionFast } from "@/lib/listening/finalize-listening-question";
 import {
   formatAnswerVarietyBlock,
@@ -623,11 +628,41 @@ export async function generateSingleExamQuestion(
       }
     }
 
-    return finalizeListeningQuestionFast(
-      applyRandomChoicePosition({ ...q, order_index: slotIndex ?? typeId }),
-      type,
-      gradeLevel
-    );
+    /*
+     * 마지막 관문: 정답을 가리고 직접 풀어 본다.
+     * 규칙 검사만으로는 "다섯 항목이 다 대본에 나와 정답이 없는 문항", "지시문은 숙소를 묻는데
+     * 대본은 요리 수업을 예약하는 문항" 같은 것이 그대로 지나갔다(2026-09-17 실측: 120문항 중 3개).
+     * 여기서 걸리면 무엇이 어긋났는지 적어 다시 만들게 한다 — 검토 표시로 넘기지 않는다.
+     */
+    const placed = applyRandomChoicePosition({ ...q, order_index: slotIndex ?? typeId });
+    const blind = await blindSolveQuestion(apiKey, placed);
+    let gateNote = blindSolveRetryNote(blind, placed.correct_answer);
+    if (!gateNote) {
+      const emotion = await emotionAmbiguityCheck(apiKey, placed);
+      if (
+        !emotion.skipped &&
+        emotion.defensible.length > 1 &&
+        emotion.defensible.includes(placed.correct_answer)
+      ) {
+        gateNote = `emotion_tie|정답 말고 ${emotion.defensible
+          .filter((n) => n !== placed.correct_answer)
+          .join("·")}번 감정도 대본 근거가 대등하다. 대화 끝의 심정이 하나로만 읽히도록 다시 써라.`;
+      }
+    }
+    if (gateNote && attempt < 2) {
+      problems = [...problems, gateNote].slice(0, 12);
+      lastQuestion = q;
+      continue;
+    }
+
+    const finalized = finalizeListeningQuestionFast(placed, type, gradeLevel);
+    if (!gateNote) return finalized;
+    // 세 번을 고쳐도 걸리면 그때는 사람이 보도록 세워 둔다(그냥 내보내지 않는다)
+    return {
+      ...finalized,
+      needs_review: true,
+      problems: [gateNote.split("|").slice(1).join("|"), ...(finalized.problems ?? [])],
+    };
   }
 
   if (!lastQuestion) throw new Error("문항 생성 실패");

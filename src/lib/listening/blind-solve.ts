@@ -193,6 +193,35 @@ export function blindSolveNeedsReview(r: BlindSolveResult): boolean {
   return !r.confident;
 }
 
+/**
+ * 다시 만들게 할 때 모델에게 건네는 한 줄. 무엇이 어긋났는지 짚어 준다.
+ * 걸릴 이유가 없으면 null — 그대로 통과시킨다.
+ */
+export function blindSolveRetryNote(
+  r: BlindSolveResult,
+  correctAnswer: number
+): string | null {
+  if (r.skipped) return null;
+  if (!r.matches) {
+    return `blind_answer_mismatch|정답을 가리고 풀면 ${
+      r.picked ?? "아무 번호도"
+    }번이 나온다(정답은 ${correctAnswer}번이어야 한다). ${
+      r.note || "대본이 정답을 분명히 가리키도록 고쳐라."
+    } 정답 번호를 바꾸지 말고 대본·선택지를 고쳐라.`;
+  }
+  if (r.instructionMismatch) {
+    return `instruction_mismatch|지시문이 묻는 것과 대본 내용이 어긋난다. ${
+      r.note || "지시문이 묻는 정보를 대본이 담게 하라."
+    }`;
+  }
+  if (!r.confident) {
+    return `answer_not_clear|대본만으로는 답이 분명하지 않다. ${
+      r.note || "정답의 근거를 대본에 분명히 넣어라."
+    }`;
+  }
+  return null;
+}
+
 /** 검수 결과에 남길 한 줄 */
 export function blindSolveProblem(
   r: BlindSolveResult,
