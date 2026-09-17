@@ -56,11 +56,14 @@ export const ONE_PAGE_CSS = `
 .op-h{display:flex;align-items:baseline;gap:.55em;margin:.85em 0 .4em;padding-bottom:.28em;border-bottom:1px solid #e5e7eb;font-size:1em;font-weight:700;color:#374151;break-after:avoid}
 .op-h::before{content:"";align-self:stretch;width:3px;border-radius:2px;background:#7c6ae0}
 .op-legend{margin-left:auto;font-weight:500;font-size:.8em;color:#6b7280}
-.op-passage{text-align:justify;line-height:2.45;font-size:1.05em;margin:0}
+.op-passage{text-align:justify;line-height:2.75;font-size:1.05em;margin:0}
 .op-sn{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.86em;color:#4b5563;margin-right:.18em}
 ruby.op-voc{ruby-position:under;ruby-align:center;font-weight:700;white-space:nowrap}
 ruby.op-voc rt{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.5em;font-weight:500;color:#0f766e;line-height:1.12;letter-spacing:0}
-ruby.op-voc rt .op-vocl{display:block;white-space:nowrap}
+/* 동의어·반의어를 두 줄로. rt 안에서는 display:block도 <br>도 안 먹어서(실측),
+   inline-block 감싸개를 하나 두고 그 안에서 줄을 나눈다. */
+ruby.op-voc rt .op-vocw{display:inline-block;text-align:center}
+ruby.op-voc rt .op-vocw i{display:block;font-style:normal;white-space:nowrap}
 .op-g{text-decoration:underline;text-decoration-color:#dc2626;text-decoration-thickness:1.4px;text-underline-offset:.2em}
 .op-x{background:#e3ecff;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .op-r{text-decoration:underline;text-decoration-style:dotted;text-decoration-color:#b45309;text-decoration-thickness:1.2px;text-underline-offset:.2em}
@@ -369,8 +372,10 @@ export function OnePageSummarySheet({
                   <span>{runs}</span>
                   {/* 동의어 한 줄, 반의어 한 줄 — 한 줄에 몰면 낱말 양옆이 벌어진다(선생님 요청) */}
                   <rt>
-                    {note.syn ? <span className="op-vocl">{note.syn}</span> : null}
-                    {note.ant ? <span className="op-vocl">{note.ant}</span> : null}
+                    <span className="op-vocw">
+                      {note.syn ? <i>{note.syn}</i> : null}
+                      {note.ant ? <i>{note.ant}</i> : null}
+                    </span>
                   </rt>
                 </ruby>
               );
