@@ -279,7 +279,7 @@ export function FinalBundleClient({
                       on ? "border-violet-600 shadow-md" : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
-                    <CoverThumb preset={p} cover={payload.cover} widthPx={144} />
+                    <CoverThumb preset={p} cover={payload.cover} widthPx={144} logoSrc={logoSrc} />
                     <div className="px-2 py-1.5">
                       <p className="truncate text-[12px] font-bold text-slate-800">{p.name}</p>
                       <p className="truncate text-[10.5px] text-slate-500">{p.description}</p>
@@ -292,19 +292,19 @@ export function FinalBundleClient({
 
           <section className="space-y-2 rounded-xl bg-slate-50 p-3">
             <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">표지 상단 라벨 / 부제</span>
-              <input className={inputClass} value={payload.cover.label} placeholder="예: 호원고 기말고사" onChange={(e) => updateCover({ label: e.target.value })} />
+              <span className="text-[11px] font-bold text-slate-500">시험범위 라벨</span>
+              <input className={inputClass} value={payload.cover.label} placeholder="예: 호원고 3학년 · 26년도 1학기 중간고사 대비" onChange={(e) => updateCover({ label: e.target.value })} />
             </label>
             <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">표지 메인 제목</span>
-              <textarea className={inputClass} rows={2} value={payload.cover.title} placeholder="예: 미디어영어 5과" onChange={(e) => updateCover({ title: e.target.value })} />
+              <span className="text-[11px] font-bold text-slate-500">표지 메인 제목 (엔터로 줄 구분)</span>
+              <textarea className={inputClass} rows={2} value={payload.cover.title} placeholder={"예: 영어독해와작문\n천재(윤) 2과"} onChange={(e) => updateCover({ title: e.target.value })} />
             </label>
             <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">진도 표기 (엔터로 줄 구분)</span>
-              <textarea className={inputClass} rows={2} value={payload.cover.progress} placeholder="예: 26년 고1 3월 모의고사 31-40" onChange={(e) => updateCover({ progress: e.target.value })} />
+              <span className="text-[11px] font-bold text-slate-500">제목 아래 한 줄 · 꼬릿말 (엔터로 줄 구분)</span>
+              <textarea className={inputClass} rows={2} value={payload.cover.progress} placeholder={"예: Reading & Writing · Lesson 2\n2026. 3."} onChange={(e) => updateCover({ progress: e.target.value })} />
             </label>
             <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">표지 강사 / 학원명</span>
+              <span className="text-[11px] font-bold text-slate-500">학원명</span>
               <input className={inputClass} value={payload.cover.academy} onChange={(e) => updateCover({ academy: e.target.value })} />
             </label>
           </section>
@@ -382,7 +382,7 @@ export function FinalBundleClient({
             className="flex flex-col items-center gap-6 print:gap-0"
             style={{ ["--bundle-zoom" as string]: String(zoom / 100) }}
           >
-            <FrontCover preset={preset} cover={payload.cover} />
+            <FrontCover preset={preset} cover={payload.cover} logoSrc={logoSrc} />
             <ContentsPage entries={contents} cover={payload.cover} accent={preset.accent} />
             {sections.map((s, i) => (
               <div key={s.key} className="bundle-section flex flex-col items-center gap-6 print:gap-0">

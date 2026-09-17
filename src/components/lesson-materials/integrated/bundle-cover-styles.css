@@ -1,0 +1,977 @@
+/*
+ * 통합자료 앞표지 여덟 가지.
+ *
+ * 시안은 794 × 1123px로 그렸고, 실제 표지는 A4 210 × 297mm다. CSS px는 1/96in 고정이라
+ * 210mm = 793.70px, 297mm = 1122.52px — 시안과 0.04% 차이다. 그래서 시안의 px 값을
+ * 그대로 쓰고, 뿌리(.bc)만 종이에 꽉 채운다(inset: 0). 좌·상 기준 좌표는 그대로 맞고
+ * 우·하 기준 좌표도 그대로 맞는다. 인쇄에서 세로를 296.5mm로 줄여도(전역 인쇄 CSS)
+ * 아래쪽은 bottom 기준이라 잘리지 않는다.
+ *
+ * 인쇄에서 배경색이 빠지지 않게 모든 요소에 print-color-adjust: exact를 건다.
+ */
+
+.bc {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: #1f2430;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bc *,
+.bc *::before,
+.bc *::after {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bc p,
+.bc h1,
+.bc small {
+  margin: 0;
+  padding: 0;
+}
+
+/* 제목: 한글은 낱말 단위로만 끊고, 그래도 안 들어가면 어디서든 끊어서 넘긴다. */
+.bc h1 {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.bc h1 span {
+  display: block;
+}
+
+/* 시안의 기본 마크(로고 없을 때) */
+.bc-mk {
+  display: block;
+  flex: none;
+}
+
+/* 학원 로고 이미지 */
+.bc-logo {
+  display: block;
+  flex: none;
+  width: auto;
+  max-width: 132px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* 알약형 라벨은 내용만큼만 넓히되 종이 밖으로 나가지 않게 한다. */
+.bc-pill {
+  width: fit-content;
+  max-width: 100%;
+  word-break: keep-all;
+}
+
+/* ════════════ 1. 색면 폭발 ════════════ */
+.bc-k1 {
+  position: absolute;
+  inset: 0;
+  background: #d8381b;
+  color: #fff;
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+.bc-k1 .bc-top {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 54px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bc-k1 .bc-lock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.bc-k1 .bc-nm {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+.bc-k1 .bc-chip {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 330px;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  line-height: 1.35;
+}
+.bc-k1 h1 {
+  position: absolute;
+  left: 54px;
+  right: 54px;
+  top: 408px;
+  font-weight: 900;
+  line-height: 1.04;
+  letter-spacing: -0.055em;
+  color: #fff;
+}
+.bc-k1 .bc-stroke {
+  position: absolute;
+  left: 56px;
+  right: 56px;
+  top: 636px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 78px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: transparent;
+  -webkit-text-stroke: 1.6px rgba(255, 255, 255, 0.62);
+  line-height: 1;
+  white-space: nowrap;
+}
+.bc-k1 .bc-en {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 748px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.34em;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.bc-k1 .bc-foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 164px;
+  background: #fff;
+  color: #1a1c20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 58px;
+}
+.bc-k1 .bc-foot .bc-a {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #d8381b;
+  word-break: keep-all;
+}
+.bc-k1 .bc-foot .bc-b {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: #8b9098;
+  padding-left: 0.3em;
+  white-space: nowrap;
+}
+
+/* ════════════ 2. 원형 기하 ════════════ */
+.bc-k2 {
+  position: absolute;
+  inset: 0;
+  background: #0f2f5c;
+  color: #fff;
+  font-family: "IBM Plex Sans KR", "Noto Sans KR", "Malgun Gothic", sans-serif;
+}
+.bc-k2 .bc-ring {
+  position: absolute;
+  left: 44px;
+  top: 152px;
+  width: 706px;
+  height: 706px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.26);
+}
+.bc-k2 .bc-disc {
+  position: absolute;
+  left: 87px;
+  top: 195px;
+  width: 620px;
+  height: 620px;
+  border-radius: 50%;
+  background: #f5b72c;
+}
+.bc-k2 .bc-arc {
+  position: absolute;
+  right: -186px;
+  bottom: -206px;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  border: 28px solid #e2532c;
+}
+.bc-k2 .bc-arc2 {
+  position: absolute;
+  left: -150px;
+  top: -140px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  border: 18px solid rgba(255, 255, 255, 0.16);
+}
+.bc-k2 .bc-top {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 54px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bc-k2 .bc-lock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.bc-k2 .bc-nm {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+.bc-k2 .bc-core {
+  position: absolute;
+  left: 87px;
+  top: 195px;
+  width: 620px;
+  height: 620px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 76px;
+  color: #14233d;
+}
+.bc-k2 .bc-core .bc-kick {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #7a5c12;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+.bc-k2 .bc-core .bc-bar {
+  margin: 16px 0 22px;
+  width: 44px;
+  height: 3px;
+  background: #14233d;
+  flex: none;
+}
+.bc-k2 .bc-core h1 {
+  font-weight: 700;
+  line-height: 1.24;
+  letter-spacing: -0.04em;
+}
+.bc-k2 .bc-core .bc-en {
+  margin-top: 20px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 14px;
+  letter-spacing: 0.22em;
+  color: #6a5312;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+.bc-k2 .bc-foot {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  bottom: 62px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+.bc-k2 .bc-foot p {
+  font-size: 11.5px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  color: #8fb0d6;
+  word-break: keep-all;
+}
+.bc-k2 .bc-foot .bc-rt {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 12.5px;
+  letter-spacing: 0.3em;
+  color: #8fb0d6;
+  padding-left: 0.3em;
+  white-space: nowrap;
+}
+
+/* ════════════ 3. 겹친 면 ════════════ */
+.bc-k3 {
+  position: absolute;
+  inset: 0;
+  background: #eceef2;
+  color: #171f2c;
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+.bc-k3 .bc-p1 {
+  position: absolute;
+  left: 0;
+  top: 116px;
+  width: 516px;
+  height: 468px;
+  background: #16386f;
+  box-shadow: 0 24px 48px rgba(12, 22, 44, 0.26);
+}
+.bc-k3 .bc-p2 {
+  position: absolute;
+  right: 0;
+  top: 432px;
+  width: 566px;
+  height: 574px;
+  background: #f0693a;
+  box-shadow: 0 24px 48px rgba(90, 30, 10, 0.22);
+}
+.bc-k3 .bc-p1 .bc-tag {
+  position: absolute;
+  left: 58px;
+  right: 46px;
+  top: 44px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: #8fb2e2;
+  word-break: keep-all;
+}
+.bc-k3 .bc-p1 .bc-kick {
+  position: absolute;
+  left: 58px;
+  top: 86px;
+  right: 46px;
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: -0.005em;
+  color: #dce7f7;
+  word-break: keep-all;
+}
+.bc-k3 .bc-p2 .bc-num {
+  position: absolute;
+  right: 54px;
+  bottom: 34px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: rgba(255, 255, 255, 0.55);
+}
+.bc-k3 .bc-top {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bc-k3 .bc-lock {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.bc-k3 .bc-nm {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  color: #171f2c;
+  word-break: keep-all;
+}
+.bc-k3 .bc-card {
+  position: absolute;
+  left: 76px;
+  right: 76px;
+  top: 392px;
+  background: #fff;
+  padding: 48px 50px 50px;
+  box-shadow: 0 30px 62px rgba(14, 24, 46, 0.26);
+}
+.bc-k3 .bc-card .bc-chip {
+  display: inline-block;
+  background: #16386f;
+  color: #fff;
+  padding: 7px 15px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  line-height: 1.4;
+}
+.bc-k3 .bc-card h1 {
+  margin-top: 26px;
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.045em;
+  color: #141c29;
+}
+.bc-k3 .bc-card .bc-en {
+  margin-top: 18px;
+  font-family: "Literata", Georgia, serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #6a7383;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+.bc-k3 .bc-base {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  bottom: 54px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  color: #7c8492;
+  word-break: keep-all;
+}
+
+/* ════════════ 4. 아치 창 ════════════ */
+.bc-k4 {
+  position: absolute;
+  inset: 0;
+  background: #63124c;
+  color: #fff;
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+.bc-k4 .bc-halo {
+  position: absolute;
+  left: 75px;
+  top: 126px;
+  width: 644px;
+  height: 856px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 322px 322px 10px 10px;
+}
+.bc-k4 .bc-arch {
+  position: absolute;
+  left: 97px;
+  top: 150px;
+  width: 600px;
+  height: 812px;
+  background: #f7ecd9;
+  border-radius: 300px 300px 8px 8px;
+  box-shadow: 0 26px 58px rgba(28, 4, 20, 0.34);
+}
+.bc-k4 .bc-yr {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 68px;
+  text-align: center;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 13px;
+  letter-spacing: 0.34em;
+  color: rgba(255, 255, 255, 0.72);
+  padding-left: 0.34em;
+}
+.bc-k4 .bc-in {
+  position: absolute;
+  left: 141px;
+  right: 141px;
+  top: 424px;
+  text-align: center;
+  color: #2c0a21;
+}
+.bc-k4 .bc-in .bc-chip {
+  display: inline-block;
+  background: #d9452a;
+  color: #fff;
+  border-radius: 999px;
+  padding: 9px 20px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.bc-k4 .bc-in h1 {
+  margin-top: 36px;
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.055em;
+}
+.bc-k4 .bc-in .bc-bar {
+  margin: 30px auto 0;
+  width: 54px;
+  height: 3px;
+  background: #d9452a;
+}
+.bc-k4 .bc-in .bc-en {
+  margin-top: 26px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 14.5px;
+  letter-spacing: 0.18em;
+  color: #8c4b34;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+.bc-k4 .bc-lock {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  bottom: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+.bc-k4 .bc-nm {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  text-align: left;
+  word-break: keep-all;
+}
+
+/* ════════════ 5. 굵은 테두리 프레임 ════════════ */
+.bc-k5 {
+  position: absolute;
+  inset: 0;
+  background: #f3c324;
+  color: #14161b;
+  font-family: "IBM Plex Sans KR", "Noto Sans KR", "Malgun Gothic", sans-serif;
+}
+.bc-k5 .bc-field {
+  position: absolute;
+  inset: 30px;
+  background: #14161b;
+}
+.bc-k5 .bc-strip {
+  position: absolute;
+  right: 66px;
+  top: 12px;
+  max-width: 460px;
+  height: 54px;
+  background: #14161b;
+  color: #f3c324;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 12.5px;
+  letter-spacing: 0.3em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.bc-k5 .bc-strip span {
+  padding-left: 0.3em;
+}
+.bc-k5 .bc-chip {
+  position: absolute;
+  left: 84px;
+  right: 84px;
+  top: 426px;
+  background: #f3c324;
+  color: #1a1608;
+  padding: 10px 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.4;
+}
+.bc-k5 .bc-en {
+  position: absolute;
+  left: 86px;
+  right: 86px;
+  top: 508px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  color: #9a8b54;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.bc-k5 h1 {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  top: 556px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.055em;
+  color: #fbf4e2;
+}
+.bc-k5 .bc-bar {
+  position: absolute;
+  left: 84px;
+  top: 788px;
+  width: 104px;
+  height: 5px;
+  background: #f3c324;
+}
+.bc-k5 .bc-lock {
+  position: absolute;
+  right: 60px;
+  bottom: 12px;
+  max-width: 420px;
+  height: 58px;
+  background: #f3c324;
+  color: #1a1608;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 22px;
+}
+.bc-k5 .bc-nm {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+
+/* ════════════ 6. 대형 이니셜 워터마크 ════════════ */
+.bc-k6 {
+  position: absolute;
+  inset: 0;
+  background: #0b6b45;
+  color: #fff;
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+.bc-k6 .bc-wm {
+  position: absolute;
+  left: 118px;
+  top: -48px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 700;
+  font-size: 1380px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #14885b;
+  white-space: nowrap;
+}
+.bc-k6 .bc-hair {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 284px;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.34);
+}
+.bc-k6 .bc-chip {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 78px;
+  background: #fff;
+  color: #0a5637;
+  padding: 11px 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.4;
+}
+.bc-k6 .bc-en {
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  top: 336px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.bc-k6 h1 {
+  position: absolute;
+  left: 56px;
+  right: 96px;
+  top: 384px;
+  font-weight: 900;
+  line-height: 1.14;
+  letter-spacing: -0.058em;
+  text-shadow: 0 8px 26px rgba(4, 44, 26, 0.3);
+}
+.bc-k6 .bc-bar {
+  position: absolute;
+  left: 58px;
+  top: 644px;
+  width: 116px;
+  height: 6px;
+  background: #f2c230;
+}
+.bc-k6 .bc-lock {
+  position: absolute;
+  left: 58px;
+  right: 240px;
+  bottom: 62px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.bc-k6 .bc-nm {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+.bc-k6 .bc-date {
+  position: absolute;
+  right: 58px;
+  bottom: 70px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 12.5px;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.72);
+  padding-left: 0.3em;
+  white-space: nowrap;
+}
+
+/* ════════════ 7. 곡선 물결 분할 ════════════ */
+.bc-k7 {
+  position: absolute;
+  inset: 0;
+  background: #f6f1e6;
+  color: #0c2a32;
+  font-family: "IBM Plex Sans KR", "Noto Sans KR", "Malgun Gothic", sans-serif;
+}
+.bc-k7 .bc-wave {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 520px;
+}
+.bc-k7 .bc-top {
+  position: absolute;
+  left: 58px;
+  right: 56px;
+  top: 56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  color: #fff;
+}
+.bc-k7 .bc-chip {
+  border: 1.5px solid rgba(255, 255, 255, 0.62);
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  line-height: 1.35;
+  min-width: 0;
+  word-break: keep-all;
+}
+.bc-k7 .bc-lock {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex: none;
+}
+.bc-k7 .bc-nm {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  text-align: left;
+  word-break: keep-all;
+}
+.bc-k7 .bc-body {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 556px;
+}
+.bc-k7 .bc-body .bc-bar {
+  width: 96px;
+  height: 6px;
+  background: #0a6274;
+}
+.bc-k7 .bc-body h1 {
+  margin-top: 34px;
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: -0.058em;
+  color: #0c2a32;
+}
+.bc-k7 .bc-body .bc-en {
+  margin-top: 26px;
+  font-family: "Literata", Georgia, serif;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  color: #5c7077;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+.bc-k7 .bc-foot {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  bottom: 62px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+.bc-k7 .bc-foot p {
+  font-size: 11.5px;
+  letter-spacing: 0.2em;
+  color: #718488;
+  word-break: keep-all;
+}
+.bc-k7 .bc-foot .bc-rt {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 12.5px;
+  letter-spacing: 0.3em;
+  color: #718488;
+  padding-left: 0.3em;
+  white-space: nowrap;
+}
+
+/* ════════════ 8. 카드 스택 ════════════ */
+.bc-k8 {
+  position: absolute;
+  inset: 0;
+  background: #2b3690;
+  color: #fff;
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+.bc-k8 .bc-grain {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 78% 12%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 52%);
+}
+.bc-k8 .bc-top {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 54px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bc-k8 .bc-lock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.bc-k8 .bc-nm {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+.bc-k8 .bc-cd {
+  position: absolute;
+  width: 626px;
+  height: 430px;
+}
+.bc-k8 .bc-cd3 {
+  left: 124px;
+  top: 376px;
+  background: #e8593b;
+  box-shadow: 0 18px 40px rgba(10, 14, 50, 0.32);
+}
+.bc-k8 .bc-cd2 {
+  left: 104px;
+  top: 356px;
+  background: #f5bf3e;
+  box-shadow: 0 18px 40px rgba(10, 14, 50, 0.32);
+}
+.bc-k8 .bc-cd1 {
+  left: 84px;
+  top: 336px;
+  background: #fff;
+  color: #171a24;
+  box-shadow: 0 22px 46px rgba(10, 14, 50, 0.36);
+  padding: 44px 46px 0;
+  overflow: hidden;
+}
+.bc-k8 .bc-cd1 .bc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 22px;
+  border-bottom: 2px solid #171a24;
+}
+.bc-k8 .bc-cd1 .bc-row .bc-t {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  color: #2b3690;
+  white-space: nowrap;
+}
+.bc-k8 .bc-cd1 .bc-row .bc-n {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 13px;
+  letter-spacing: 0.24em;
+  color: #8d93a1;
+  white-space: nowrap;
+}
+.bc-k8 .bc-cd1 .bc-chip {
+  margin-top: 30px;
+  display: inline-block;
+  background: #f1f3fa;
+  padding: 9px 16px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #333a4d;
+  letter-spacing: -0.005em;
+  line-height: 1.4;
+}
+.bc-k8 .bc-cd1 h1 {
+  margin-top: 24px;
+  font-weight: 700;
+  line-height: 1.19;
+  letter-spacing: -0.055em;
+  color: #141822;
+}
+.bc-k8 .bc-cd1 .bc-en {
+  margin-top: 20px;
+  font-family: "Literata", Georgia, serif;
+  font-size: 14.5px;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+.bc-k8 .bc-foot {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  bottom: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+.bc-k8 .bc-foot p {
+  font-size: 11.5px;
+  letter-spacing: 0.2em;
+  color: #a9b0e4;
+  word-break: keep-all;
+}
+.bc-k8 .bc-foot .bc-rt {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 12.5px;
+  letter-spacing: 0.3em;
+  color: #a9b0e4;
+  padding-left: 0.3em;
+  white-space: nowrap;
+}

@@ -48,7 +48,7 @@ export type IntegratedPayload = {
 };
 
 export const DEFAULT_INTEGRATED_COVER: IntegratedCover = {
-  presetId: "navy",
+  presetId: "bold-field",
   label: "",
   title: "",
   progress: "",
@@ -89,8 +89,16 @@ export function normalizeIntegratedPayload(raw: unknown): IntegratedPayload {
 }
 
 
-/** 표지 배치. 네 가지 표지가 각각 하나씩 쓴다(BundleSheets.tsx). */
-export type CoverLayout = "classic" | "minimal" | "gradient" | "block";
+/** 표지 배치. 여덟 가지 표지가 각각 하나씩 쓴다(BundleSheets.tsx). */
+export type CoverLayout =
+  | "bold-field"
+  | "circle"
+  | "layers"
+  | "arch"
+  | "frame"
+  | "initial"
+  | "wave"
+  | "stack";
 
 export type CoverPreset = {
   id: string;
@@ -117,73 +125,159 @@ export type CoverPreset = {
 };
 
 /**
- * 표지 네 가지. 예전 열 가지는 비슷한 원형 장식이 많아 고르기만 번거로워, 성격이 뚜렷한
- * 넷으로 줄였다. 모두 인쇄에서 배경색까지 그대로 찍힌다.
+ * 표지 여덟 가지. 승인된 시안 그대로다 — 바탕색 하나가 먼저 읽히고, 기하 구조 하나가 판을
+ * 짜고, 제목이 표지의 3분의 1을 차지한다. 여기 색은 앞표지뿐 아니라 목차·간지·뒤표지가
+ * 함께 쓴다. 모두 인쇄에서 배경색까지 그대로 찍힌다.
  */
 export const COVER_PRESETS: CoverPreset[] = [
   {
-    id: "navy",
-    name: "클래식 네이비",
-    description: "남색 바탕 · 금색 테두리",
-    layout: "classic",
-    background: "#13213c",
-    ink: "#f7f1e3",
-    muted: "#cdbd98",
-    rule: "#d6be8c",
-    accent: "#1f3a68",
-    strip: "#13213c",
-    backBackground: "#13213c",
-    backInk: "#f7f1e3",
-    backMuted: "#cdbd98",
-  },
-  {
-    id: "minimal",
-    name: "미니멀 화이트",
-    description: "흰 바탕 · 굵은 제목",
-    layout: "minimal",
-    background: "#ffffff",
-    ink: "#0f172a",
-    muted: "#475569",
-    rule: "#0f172a",
-    accent: "#2563eb",
-    strip: "#0f172a",
-    backBackground: "#ffffff",
-    backInk: "#0f172a",
-    backMuted: "#64748b",
-  },
-  {
-    id: "soft",
-    name: "소프트 그라데이션",
-    description: "연보라·하늘 · 부드러운 느낌",
-    layout: "gradient",
-    background: "linear-gradient(160deg,#eef2ff 0%,#faf5ff 48%,#ecfeff 100%)",
-    ink: "#1e1b4b",
-    muted: "#4338ca",
-    rule: "#7c3aed",
-    accent: "#6d28d9",
-    strip: "linear-gradient(180deg,#a78bfa 0%,#67e8f9 100%)",
-    backBackground: "linear-gradient(160deg,#eef2ff 0%,#faf5ff 48%,#ecfeff 100%)",
-    backInk: "#1e1b4b",
-    backMuted: "#4338ca",
-  },
-  {
-    id: "block",
-    name: "컬러 블록",
-    description: "청록 블록 · 호박색 띠",
-    layout: "block",
-    background: "#f6f4ee",
+    id: "bold-field",
+    name: "색면 폭발",
+    description: "주홍 전면 · 큰 제목 · 하단 흰 띠",
+    layout: "bold-field",
+    background: "#d8381b",
     ink: "#ffffff",
-    muted: "#374151",
-    rule: "#f0b429",
-    accent: "#0f4c43",
-    strip: "#0f4c43",
-    backBackground: "#0f4c43",
+    muted: "#f6c6bc",
+    rule: "#ffffff",
+    accent: "#b62d14",
+    strip: "#d8381b",
+    backBackground: "#d8381b",
     backInk: "#ffffff",
-    backMuted: "#b9d3cc",
+    backMuted: "#f6c6bc",
+  },
+  {
+    id: "circle",
+    name: "원형 기하",
+    description: "남색 바탕 · 노란 원 안의 제목",
+    layout: "circle",
+    background: "#0f2f5c",
+    ink: "#ffffff",
+    muted: "#8fb0d6",
+    rule: "#f5b72c",
+    accent: "#0f2f5c",
+    strip: "#0f2f5c",
+    backBackground: "#0f2f5c",
+    backInk: "#ffffff",
+    backMuted: "#8fb0d6",
+  },
+  {
+    id: "layers",
+    name: "겹친 면",
+    description: "남색·주황 면 · 흰 제목 카드",
+    layout: "layers",
+    background: "#eceef2",
+    ink: "#141c29",
+    muted: "#6a7383",
+    rule: "#f0693a",
+    accent: "#16386f",
+    strip: "#16386f",
+    backBackground: "#16386f",
+    backInk: "#ffffff",
+    backMuted: "#b9cbe6",
+  },
+  {
+    id: "arch",
+    name: "아치 창",
+    description: "자주 바탕 · 크림 아치 창",
+    layout: "arch",
+    background: "#63124c",
+    ink: "#2c0a21",
+    muted: "#8c4b34",
+    rule: "#d9452a",
+    accent: "#63124c",
+    strip: "#63124c",
+    backBackground: "#63124c",
+    backInk: "#f7ecd9",
+    backMuted: "#cfa6c1",
+  },
+  {
+    id: "frame",
+    name: "굵은 테두리 프레임",
+    description: "노란 테두리 · 검정 면",
+    layout: "frame",
+    background: "#14161b",
+    ink: "#fbf4e2",
+    muted: "#9a8b54",
+    rule: "#f3c324",
+    accent: "#14161b",
+    strip: "#f3c324",
+    backBackground: "#14161b",
+    backInk: "#f3c324",
+    backMuted: "#9a8b54",
+  },
+  {
+    id: "initial",
+    name: "대형 이니셜 워터마크",
+    description: "진초록 바탕 · 거대한 이니셜",
+    layout: "initial",
+    background: "#0b6b45",
+    ink: "#ffffff",
+    muted: "#cfe6da",
+    rule: "#f2c230",
+    accent: "#0a5637",
+    strip: "#0b6b45",
+    backBackground: "#0b6b45",
+    backInk: "#ffffff",
+    backMuted: "#a8cfbd",
+  },
+  {
+    id: "wave",
+    name: "곡선 물결 분할",
+    description: "청록·크림 · 큰 곡선 분할",
+    layout: "wave",
+    background: "#f6f1e6",
+    ink: "#0c2a32",
+    muted: "#5c7077",
+    rule: "#e8a33c",
+    accent: "#0a6274",
+    strip: "#0a6274",
+    backBackground: "#0a6274",
+    backInk: "#f6f1e6",
+    backMuted: "#a9cbd3",
+  },
+  {
+    id: "stack",
+    name: "카드 스택",
+    description: "남보라 바탕 · 포갠 카드 3장",
+    layout: "stack",
+    background: "#2b3690",
+    ink: "#141822",
+    muted: "#6b7280",
+    rule: "#f5bf3e",
+    accent: "#2b3690",
+    strip: "#2b3690",
+    backBackground: "#2b3690",
+    backInk: "#ffffff",
+    backMuted: "#a9b0e4",
   },
 ];
 
-/** 저장된 표지 id가 없거나 예전 표지(열 가지 시절)면 첫 표지를 쓴다. */
-export function coverPreset(id: string | undefined): CoverPreset {
-  return COVER_PRESETS.find((p) => p.id === id) ?? COVER_PRESETS[0]!;
+/**
+ * 예전에 고른 표지 id를 지금 표지로 잇는다(예전에 만든 통합자료가 그대로 열리게).
+ * 여기에 없는 id는 첫 표지로 떨어진다.
+ */
+const LEGACY_COVER_IDS: Record<string, string> = {
+  // 네 가지 시절
+  navy: "circle", // 클래식 네이비 → 남색 바탕에 가운데 정렬
+  minimal: "layers", // 미니멀 화이트 → 밝은 바탕에 흰 제목 카드
+  soft: "wave", // 소프트 그라데이션 → 부드러운 곡선 분할
+  block: "bold-field", // 컬러 블록 → 색면 하나로 꽉 채운 표지
+  // 열 가지 시절에 쓰던 이름들
+  classic: "circle",
+  gradient: "wave",
+  ivory: "layers",
+  emerald: "initial",
+  amber: "frame",
+  crimson: "bold-field",
+  slate: "stack",
+  mint: "wave",
+  plum: "arch",
+  charcoal: "frame",
+};
+
+/** 저장된 표지 id가 없거나 예전 표지면 알맞은 지금 표지(없으면 첫 표지)를 쓴다. */
+export function coverPreset(id: string | undefined | null): CoverPreset {
+  const key = (id ?? "").trim();
+  const mapped = LEGACY_COVER_IDS[key] ?? key;
+  return COVER_PRESETS.find((p) => p.id === mapped) ?? COVER_PRESETS[0]!;
 }
