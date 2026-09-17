@@ -329,7 +329,7 @@ const DEFS: ListeningTypeDef[] = [
     format_guide: "Target person's emotion; target_person, target_emotion, emotion_clues.",
     segment_guide: "M/W dialogue. Clues in the target speaker's lines.",
     choice_guide: "5 emotion choices (Korean nouns or English adjectives by variant).",
-    craft: "심정: 상황·반응으로 드러내고, 오답 1~2개는 상황상 그럴듯한 감정(처음 걱정했다가 안도 등). 중2부터는 대상 화자가 감정 단어를 직접 말하지 않는다. 선택지 다섯 개의 감정어(정답·오답 모두)는 대본에 어떤 형태로도 넣지 않는다 — \"What a relief!\"는 relieved를, \"I'm so proud\"는 proud를 그대로 말한 것이라 그 선택지가 답으로 읽힌다. 대신 몸·행동·다음 계획으로 보여 준다(\"I can finally sit down.\", \"I kept checking the door.\").",
+    craft: "심정: 상황·반응으로 드러내고, 오답 1~2개는 상황상 그럴듯한 감정(처음 걱정했다가 안도 등). 중2부터는 대상 화자가 감정 단어를 직접 말하지 않는다. 선택지 다섯 개의 감정어(정답·오답 모두)는 대본에 어떤 형태로도 넣지 않는다 — \"What a relief!\"는 relieved를, \"I'm so proud\"는 proud를 그대로 말한 것이라 그 선택지가 답으로 읽힌다. 대신 몸·행동·다음 계획으로 보여 준다(예: 긴장이 풀려 몸이 늘어지는 말, 무언가를 거듭 확인하는 행동, 다음에 할 일을 서두르는 말). 이런 방법만 따르고 문장은 그 대화에 맞게 새로 쓴다 — 설명에 나온 표현을 그대로 옮기지 않는다(같은 문장이 여러 회차에 되풀이되었다).",
     tier: "standard",
   },
   {
