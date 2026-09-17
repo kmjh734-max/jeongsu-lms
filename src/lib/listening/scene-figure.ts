@@ -12,6 +12,7 @@ import {
   uploadPng,
 } from "@/lib/listening/generate-choice-images";
 import { splitMiniDialogues } from "@/lib/listening/new-type-checks";
+import { BW_FIGURE_RULES } from "@/lib/listening/print-bw";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
@@ -34,7 +35,8 @@ export function miniDialogueTexts(segments: Array<{ speaker: string; text: strin
 /** 시험지용 장면 그림 프롬프트 (글자 없음) */
 export function buildScenePrompt(scene: string, correctDialogue?: string): string {
   return `Korean middle-school English listening exam illustration for the item "choose the dialogue that fits the picture".
-Draw ONE clean scene: flat-color textbook illustration on a plain pure-white background (no vignette, no gradient, no dark edges). No photorealism, no 3D.
+Draw ONE clean scene: black line-art textbook illustration on a plain pure-white background (no vignette, no gradient, no dark edges). No photorealism, no 3D.
+${BW_FIGURE_RULES}
 ABSOLUTELY NO TEXT anywhere: no letters, numbers, signs with words, labels, captions, logos or speech bubbles.
 Show clearly WHO is doing WHAT and WHERE, with the key objects large and easy to see, so a student can tell which short dialogue matches the picture.
 Scene: ${scene}

@@ -53,6 +53,10 @@ function namesIn(text: string): string[] {
 }
 
 /** 규칙만으로 잡히는 흠. 모델을 부르지 않는다. */
+/** 흑백 인쇄에서 서로 구별되지 않는 색 이름 (검정·흰색·회색은 흑백에서도 구별되므로 뺀다) */
+const COLOR_WORDS =
+  /(red|blue|green|yellow|orange|purple|pink|brown|navy|beige|violet|golden)/i;
+
 export function scriptRuleProblems(q: GeneratedListeningQuestion): string[] {
   // 규칙은 화자 표시가 없는 대본으로 본다(담화 첫 문장 검사가 "M:"에 걸리지 않게).
   const text = scriptOf(q, false);
@@ -127,6 +131,27 @@ export function scriptRuleProblems(q: GeneratedListeningQuestion): string[] {
     const answer = String(q.choices?.[(q.correct_answer ?? 1) - 1] ?? "").replace(/^(?:How about|What about)[,:]?\s+/i, "");
     if (answer && proposals.some((s) => words(answer) >= words(s))) {
       out.push("shorter_but_longer|더 짧은 것을 묻는데 정답이 앞에서 나온 문구보다 길다. 정답을 실제로 더 짧게 써라.");
+    }
+  }
+
+  /*
+   * 5) 학원 대부분이 흑백 프린터를 쓴다(선생님 지적 2026-09-18). 그림에서 답을 고르는 유형인데
+   *    정답 단서가 색이면 흑백 인쇄에서 빨강·파랑이 비슷한 회색이 되어 문제를 풀 수 없다.
+   *    색 이름이 단서·해설·마지막 결정 문장에 있으면 무늬·모양·개수로 바꾸게 한다.
+   */
+  const imageChoices =
+    q.needs_image_choices === true || String(q.visual_choice_type ?? "") === "image";
+  if (imageChoices) {
+    const clue = [
+      String(q.answer_clue ?? ""),
+      String(q.explanation ?? ""),
+      last,
+    ].join(" ");
+    const color = clue.match(COLOR_WORDS);
+    if (color) {
+      out.push(
+        `color_clue|그림에서 답을 고르는 문항인데 정답 단서가 색(${color[0]})이다. 시험지는 흑백으로 인쇄된다 — 무늬·모양·개수·크기·적힌 글자로 답이 갈리게 고쳐라.`
+      );
     }
   }
 

@@ -4,6 +4,7 @@
  * middle: 선택지별 최대 5장
  */
 import { createAdminClient } from "@/lib/supabase/admin";
+import { BW_FIGURE_RULES, toPrintGrayscalePng } from "@/lib/listening/print-bw";
 import {
   dalleQuality,
   resolveListeningImageQuality,
@@ -61,7 +62,8 @@ export type CompositeFigureContext = {
 
 const COMPOSITE_LABEL_RULES = `CRITICAL — Korean 학력평가 listening 「그림 불일치」 exam figure:
 1) Draw ONE clean educational illustration (poster/scene) on a plain pure-white background (no glow, vignette, gradient or dark edges). Flat vector / textbook style. No photorealism, no 3D, no watermark. Spell every word correctly.
-2) COLOR IS ALLOWED AND REQUIRED when the scene mentions different colors (e.g. bins of different colors). Use simple flat colors (red/blue/green/yellow) so differences are obvious. Do NOT make everything grayscale if color is part of the content.
+2) ${BW_FIGURE_RULES}
+   When the dialogue mentions different colours, draw the objects apart by pattern instead (plain / striped / dotted / checked) and, if it helps, write the small word next to them — never by colour.
 3) The figure MUST contain ALL FIVE large circled labels inside the drawing: ① ② ③ ④ ⑤.
 4) Each label sits next to a DISTINCT element. Count them — all five must be readable.
 5) The picture shows what is ON the poster/scene (including the one mismatched detail). Students find which numbered part does NOT match the dialogue.
@@ -178,9 +180,9 @@ imagePrompt = detailed English drawing instructions for ONE worksheet illustrati
 Hard rules for imagePrompt:
 - ALL five circled labels ① ② ③ ④ ⑤ must appear large inside the picture, each exactly once.
 - Explicitly list Label ①…⑤ with what to draw at each (same as labels[].draw), including exact written text/numbers.
-- If dialogue mentions colors (different colors, colored objects), the drawing MUST use distinct flat colors — never all gray/identical.
+- The worksheet is printed on a BLACK-AND-WHITE printer: the drawing is black line art on white, shaded only with grey/hatching/dots. If the dialogue mentions colours, tell the objects apart by pattern, shape, count or a printed word instead — never by colour.
 - The picture shows the POSTER AS DRAWN, including the mismatched detail. Other labels match the dialogue.
-- Flat educational colors OK. No photorealism. No extra choice list outside the scene.
+- No photorealism. No extra choice list outside the scene.
 - End with: "VERIFY: ①②③④⑤ each appear exactly once; only the mismatch label differs from the dialogue."`,
       user: JSON.stringify({
         task: "enrich_high1_type4_figure_prompt",
@@ -230,8 +232,8 @@ ${scriptBit}
 ${mismatch}
 
 Mandatory: Label ①,②,③,④,⑤ all large and visible, each exactly once.
-If bins/objects have different colors in the dialogue, paint them clearly different flat colors (e.g. blue / yellow / green).
-VERIFY: five labels + color differences when mentioned.`.slice(0, 3200),
+If the dialogue gives objects different colours, tell them apart by pattern instead (plain / striped / dotted / checked), not by colour.
+VERIFY: five labels, black-and-white drawing, no detail that needs colour to be read.`.slice(0, 3200),
     specs: [],
   };
 }
@@ -240,7 +242,8 @@ function buildSimpleChoicePrompt(scenePrompt: string): string {
   const body = String(scenePrompt ?? "").trim();
   if (!body) throw new Error("choice_image_prompts가 비어 있습니다.");
   return `Korean middle-school English listening exam choice illustration.
-Clean simple flat-color or line drawing, white background, textbook style.
+Clean simple black line drawing, white background, textbook style.
+${BW_FIGURE_RULES}
 Subject: ${body}`.slice(0, 3000);
 }
 
@@ -297,8 +300,9 @@ export async function generateImagePngBytes(
       continue;
     }
     const item = json.data?.[0];
+    // 흑백 프린터로 뽑는 학원이 많다 — 그림은 회색조로 바꿔 올린다(선생님 지적 2026-09-18)
     if (item?.b64_json) {
-      return Buffer.from(item.b64_json, "base64");
+      return toPrintGrayscalePng(Buffer.from(item.b64_json, "base64"));
     }
     if (item?.url) {
       const imgRes = await fetch(item.url);
@@ -306,7 +310,7 @@ export async function generateImagePngBytes(
         lastErr = `이미지 URL 다운로드 실패 HTTP ${imgRes.status}`;
         continue;
       }
-      return Buffer.from(await imgRes.arrayBuffer());
+      return toPrintGrayscalePng(Buffer.from(await imgRes.arrayBuffer()));
     }
     lastErr = `Images API ${model}: data 없음`;
   }

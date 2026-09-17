@@ -15,6 +15,7 @@ import {
   flattenPngOnWhite,
   generateImagePngBytes,
 } from "@/lib/listening/generate-choice-images";
+import { BW_FIGURE_RULES } from "@/lib/listening/print-bw";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
 
@@ -174,10 +175,11 @@ ${list}
 Rules:
 - Draw NO grid, NO frame, NO border, NO dividing line and NO box of any kind. The six areas are imaginary and separated only by white space.
 - Draw NO numbers, NO circled digits and NO captions anywhere. The only letters allowed are words explicitly requested above (spell those correctly, in the cell that asks for them and nowhere else).
-- Flat-color textbook illustration, clean thick black outlines, no photorealism, no 3D, no shadows, no gradients, no watermark.
+- Black-and-white textbook illustration, clean thick black outlines, no photorealism, no 3D, no shadows, no gradients, no watermark.
+${BW_FIGURE_RULES}
 - Each picture is ONE clear object or scene, drawn well inside its own area with white space around it — it must never cross into, touch or overlap a neighbouring area.
 - The detail that tells the cells apart (pattern, printed word, shape, count) is drawn LARGE and THICK inside that picture — few, big details rather than many small ones — so it stays readable when the sheet is printed small.
-- EVERY detail written for a cell must be visible in that cell: the stated color, shape, pattern, count and printed word. A cell whose description lists two details (for example "stars AND the word HOME") must show BOTH of them.
+- EVERY detail written for a cell must be visible in that cell: the stated shape, pattern, count and printed word. A cell whose description lists two details (for example "stars AND the word HOME") must show BOTH of them.
 - A detail that is NOT written for a cell must not appear there. The cells differ only by the details listed above, and every difference must stay obvious when printed small.
 ${extraNote ? "\n" + extraNote : ""}
 VERIFY: five pictures placed top-left / top-middle / top-right / bottom-left / bottom-middle, bottom-right empty, no lines, no numbers.`.slice(0, 3800);
@@ -300,10 +302,10 @@ export async function verifyChoiceGrid(
     "You strictly check a Korean listening-exam picture-choice sheet.",
     "The sheet has five boxed cells: cells 1, 2, 3 fill the top row (left, middle, right) and cells 4, 5 sit side by side, centred, in the bottom row.",
     "Each cell carries a small circled number 1-5 at its top-left.",
-    "Read the image literally (exact objects, colors, shapes, patterns, counts, printed words, positions).",
+    "Read the image literally (exact objects, shapes, patterns, counts, printed words, positions).",
     'JSON only: {"panels":[{"label":"1","count":1,"drawn":"what is actually drawn in this cell","matches_plan":true,"missing":"which required detail is missing or wrong, else empty"}, ...for cells 1,2,3,4,5],"panelCount":5,"panelsDistinct":true,"cleanBackground":true,"misspelledWords":[],"answerCellMatches":true,"note":"..."}.',
     "count = 1 when this cell contains one picture, 0 when the cell is empty, 2+ when it holds several unrelated pictures.",
-    "matches_plan = true ONLY when EVERY detail of that cell's description (color, shape, pattern, count, printed word) is visible in that cell and no detail belonging to another cell appears there; otherwise false with `missing` filled in.",
+    "matches_plan = true ONLY when EVERY detail of that cell's description (shape, pattern, count, printed word) is visible in that cell and no detail belonging to another cell appears there; otherwise false with `missing` filled in.",
     "panelsDistinct = false when two cells look the same. cleanBackground = false if the background is not plain white (dark vignette, glow, blur).",
     "answerCellMatches answers the ANSWER CELL question when one is given, else true.",
   ].join(" ");
@@ -440,7 +442,7 @@ export async function drawCheckedChoiceGrid(opts: {
       prompts,
       `PREVIOUS DRAWING FAILED QA — ${check.problems.join(", ")}. ${check.note}
 Fix exactly those problems: a 3 x 2 grid, one picture centred in each of cells 1-5, bottom-right area empty,
-and every cell showing EVERY detail written for it (color, shape, pattern, count, printed word).`
+and every cell showing EVERY detail written for it (shape, pattern, count, printed word).`
     );
   }
   return { bytes: null, check: last, attempts: max + 1 };

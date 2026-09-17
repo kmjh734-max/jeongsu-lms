@@ -28,7 +28,6 @@ export const TYPE2_JSON_OUTPUT_SCHEMA = `
       "explanation": "",
       "selected_conditions": {
         "item_type": "",
-        "color": "",
         "pattern_or_shape": "",
         "extra_feature": "",
         "final_choice_sentence": ""
@@ -68,8 +67,9 @@ const TYPE2_GENERATION_RULES = `
 - 선택지는 그림 선택지가 원칙 (needs_image_choices: true, visual_choice_type: "image").
 - choice_image_prompts 5개 필수 — 중학교 시험지용 단순 일러스트 설명.
 
-그림으로 구분 가능한 조건: 색상, 무늬, 모양, 토핑, 부속품, 크기, 주머니/리본/바퀴 등.
-피할 조건: 가격만 다름, 브랜드명만, 미묘한 선호만, 그림으로 차이 안 나는 조건 (cheap, popular, nice만 다른 것).
+그림으로 구분 가능한 조건: 무늬(줄무늬·물방울·체크·민무늬), 모양, 토핑, 부속품, 크기, 주머니/리본/바퀴, 적힌 글자 등.
+피할 조건: 색상(시험지는 흑백으로 인쇄된다 — 색으로 답이 갈리면 안 된다), 가격만 다름, 브랜드명만, 미묘한 선호만,
+그림으로 차이 안 나는 조건 (cheap, popular, nice만 다른 것).
 
 대본:
 - M과 W 모두 사용. 점원·손님 역할.
@@ -90,17 +90,17 @@ const TYPE2_GENERATION_RULES = `
 
 최종 선택 문장 필수. "I like it."만으로 끝내지 말 것.
 
-소재 예: 아이스크림(cup/cone, topping), 가방(색·무늬·주머니), 모자, 우산, 인형(직업·부속), 코트, 음료 등.
+소재 예: 아이스크림(cup/cone, topping), 가방(무늬·주머니·손잡이), 모자, 우산, 인형(직업·부속), 코트, 음료 등.
 기출 예시 문장·상황 복사 금지. 새 상황·새 문장.
 
 선택지:
 - 영어로 같은 물건 범주 5개 (예: 모두 ice cream, 모두 bag).
-- 각 선택지는 그림으로 구분 가능하게 (색·무늬·토핑·부속 등 1~2가지 차이).
+- 각 선택지는 그림으로 구분 가능하게 (무늬·모양·토핑·부속 등 1~2가지 차이 — 색 차이는 금지).
 - 정답 1개. 오답은 정답 조건 일부만 맞고 핵심이 다름.
 - choice_image_prompts: "A simple test-style illustration of ..."
 
 selected_conditions 필수:
-- item_type, color, pattern_or_shape, extra_feature, final_choice_sentence
+- item_type, pattern_or_shape, extra_feature, final_choice_sentence
 
 question_text는 비워 둔다.
 `.trim();

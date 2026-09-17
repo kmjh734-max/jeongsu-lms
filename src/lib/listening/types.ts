@@ -30,7 +30,8 @@ import type { MentionedTimeEntry } from "@/lib/listening/type6-time-choices";
 
 export interface PurchaseSelectedConditions {
   item_type: string;
-  color: string;
+  /** 예전 문항에만 있는 값 — 흑백 인쇄 때문에 색은 더 이상 조건으로 쓰지 않는다 */
+  color?: string;
   pattern_or_shape: string;
   extra_feature: string;
   final_choice_sentence: string;

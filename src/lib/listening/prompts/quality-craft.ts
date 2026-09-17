@@ -11,6 +11,7 @@ import {
 } from "@/lib/listening/grade-level";
 import { getTypeDef, keyForCode, type ListeningTypeKey } from "@/lib/listening/type-catalog";
 import { buildTypeRecipeBlock } from "@/lib/listening/recipes";
+import { BW_SCRIPT_RULE } from "@/lib/listening/print-bw";
 
 export interface ListeningTypeTarget {
   /** 대본 영어 단어 수 범위 */
@@ -240,7 +241,7 @@ const HIGH_TYPE_CRAFT: Record<number, string> = {
 
 const MIDDLE_TYPE_CRAFT: Record<number, string> = {
   1: "묘사: 단서 3~4개를 일반→구체 순으로, 결정적 단서는 뒤에. 오답은 같은 범주에서 앞 단서 일부와 맞는 것.",
-  2: "구입: 조건을 하나씩 바꾸다 결정. 마지막 말이 정답 선택지 전체를 되풀이하지 않고, 정답을 가르는 특징 하나만 짚는다(무늬·모양·크기·색 중 그 대화에서 고른 것). 그 특징은 오답 그림 중 하나에만 겹치게 하고, 둘 이상과 겹치면 마지막 말만으로 답이 갈리지 않는다. 마지막 문장은 대화마다 새로 쓴다 — 회차마다 같은 끝말(예전의 'the one with the stars')이 되풀이되었다.",
+  2: "구입: 조건을 하나씩 바꾸다 결정. 마지막 말이 정답 선택지 전체를 되풀이하지 않고, 정답을 가르는 특징 하나만 짚는다(무늬·모양·크기·부속 중 그 대화에서 고른 것 — 색은 쓰지 않는다). 그 특징은 오답 그림 중 하나에만 겹치게 하고, 둘 이상과 겹치면 마지막 말만으로 답이 갈리지 않는다. 마지막 문장은 대화마다 새로 쓴다 — 회차마다 같은 끝말(예전의 'the one with the stars')이 되풀이되었다.",
   3: "날씨: 정답 외 날씨 2~3개가 다른 시점·지역으로 대본에 나온다.",
   4: "의도: 마지막 말은 의도어(칭찬·사과 등)를 직접 말하지 않는다. 마지막 말은 대화 상대에게 하는 말이어야 한다(자리에 없는 사람에게 하는 말 금지).",
   5: "언급하지 않은 것: 선택지는 대본 언급 순서대로.",
@@ -344,6 +345,7 @@ export function buildQualityCraftBlock(
   const parts = [
     COMMON_CRAFT,
     REAL_DEFECTS,
+    BW_SCRIPT_RULE,
     `대화: 문장당 평균 ${wps[0]}~${wps[1]}단어, 턴당 평균 ${wpt[0]}~${wpt[1]}단어(대부분 두 문장). 담화는 문장당 10~15단어.`,
     lines.length ? `[유형별 분량·설계 (이 요청에 해당하는 유형)]\n${lines.join("\n")}` : "",
     unique.some((id) => isResponseType(id, grade)) ? RESPONSE_EXEMPLAR : "",
