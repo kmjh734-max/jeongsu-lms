@@ -2935,6 +2935,466 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   color: #1668b8;
 }
 
+/* ------------------------------------------------------------------ */
+/* 지문분석지 모양 A·B·C. 선생님이 시안 셋을 모두 골라 쓰고 싶어 했다(2026-09-18). */
+/* 표시 구성은 기본과 같고 글꼴·색·테두리만 바꾼다.                             */
+/* ------------------------------------------------------------------ */
+.ar-style .ar-head-no,
+.ar-style .ar-head-label {
+  color: var(--ars-accent) !important;
+}
+.ar-style .ar-block {
+  position: relative;
+}
+.ar-style .ar-tag {
+  background: #ffffff !important;
+  border-radius: 0;
+  padding: 0 5px;
+  font-size: 9.4px;
+  letter-spacing: 0.05em;
+}
+.ar-style .ar-tag--corner {
+  color: var(--ars-accent);
+}
+.ar-style .ar-tag--lead {
+  color: var(--ars-lead);
+}
+.ar-style .ar-pt-mark,
+.ar-style .ar-star,
+.ar-style .ar-point-mark {
+  color: var(--ars-accent);
+}
+.ar-style .ar-trans-key,
+.ar-style .ar-extra-key,
+.ar-style .ar-topic-key,
+.ar-style .ar-imply-key {
+  background: none;
+  padding: 0;
+  margin-right: 8px;
+  letter-spacing: 0.06em;
+}
+.ar-style .ar-trans-key,
+.ar-style .ar-extra-key {
+  color: var(--ars-muted);
+}
+.ar-style .ar-topic-key {
+  color: var(--ars-accent);
+}
+.ar-style .ar-hl--imply {
+  background: transparent;
+  color: inherit;
+}
+.ar-style .ar-points {
+  border-left: 0;
+  padding-left: 0;
+}
+.ar-style .ar-extra {
+  background: transparent;
+}
+
+/* ── A · 교재 세리프 ── */
+.ar-style-a {
+  --ars-accent: #b23a3a;
+  --ars-lead: #1f5a96;
+  --ars-ink: #16213d;
+  --ars-muted: #8b93a1;
+}
+.ar-style-a .ar-head-title-en {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  color: #4a5470;
+}
+.ar-style-a .ar-head-no {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 600;
+}
+.ar-style-a .ar-head-rule {
+  height: 1.5px;
+  background: var(--ars-ink) !important;
+}
+.ar-style-a .ar-topic {
+  background: transparent;
+  padding: 8px 0 2px;
+}
+.ar-style-a .ar-topic-en {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 12.4px;
+  font-weight: 500;
+  color: var(--ars-ink);
+}
+.ar-style-a .ar-block {
+  padding-left: 30px;
+}
+.ar-style-a .ar-frame {
+  border: 0;
+  border-top: 1px solid #dfe3ea;
+  border-radius: 0;
+  padding: 18px 0 6px;
+}
+.ar-style-a .ar-no {
+  position: absolute;
+  left: -30px;
+  top: 17px;
+  background: none;
+  padding: 0;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #9aa3b5;
+  vertical-align: baseline;
+}
+.ar-style-a .ar-tags {
+  top: -8px;
+}
+.ar-style-a .ar-tags--lead {
+  left: -5px;
+}
+.ar-style-a .ar-sentence {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 14.6px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--ars-ink);
+}
+.ar-style-a .ar-bracket {
+  color: #34507f;
+}
+.ar-style-a .ar-role-text {
+  border-bottom-color: #8795b0;
+}
+.ar-style-a .ar-role-tag {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-style: italic;
+  font-size: 8.8px;
+  font-weight: 500;
+  color: #5c6d91;
+}
+.ar-style-a .ar-note {
+  font-weight: 500;
+  color: #2d6aa8;
+}
+.ar-style-a .ar-hl--imply {
+  background: linear-gradient(transparent 58%, #f6d3e2 58%);
+  border-bottom: 0;
+}
+.ar-style-a .ar-hl--grammar {
+  background: linear-gradient(transparent 60%, #dde7f7 60%);
+}
+.ar-style-a .ar-chunk-slash {
+  color: #c9a4a4;
+}
+.ar-style-a .ar-gloss {
+  color: #3f7c6a;
+}
+.ar-style-a .ar-trans {
+  font-size: 11.6px;
+  color: #39404c;
+}
+.ar-style-a .ar-points {
+  border-top: 1px dashed #d6dbe3;
+  padding-top: 6px;
+}
+.ar-style-a .ar-point-body,
+.ar-style-a .ar-point-mark {
+  color: #3a414d;
+}
+.ar-style-a .ar-point-label {
+  color: var(--ars-ink);
+}
+.ar-style-a .ar-point-rewrite {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-style: italic;
+  font-size: 11.6px;
+  color: #4a6aa0;
+}
+.ar-style-a .ar-imply {
+  color: #6b2a4a;
+}
+.ar-style-a .ar-imply-key {
+  color: #b0306a;
+}
+.ar-style-a .ar-imply-src {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  color: #6b2a4a;
+}
+.ar-style-a .ar-extra {
+  border-left: 2px solid #d9dee6;
+  color: #5d6573;
+}
+.ar-style-a .ar-callout {
+  border-color: #8795b0;
+}
+
+/* ── B · 깔끔한 산세리프 ── */
+.ar-style-b {
+  --ars-accent: #c2413b;
+  --ars-lead: #2c6e9e;
+  --ars-ink: #1b2a41;
+  --ars-muted: #8a96a8;
+  font-family: "IBM Plex Sans KR", "Noto Sans KR", sans-serif;
+}
+.ar-style-b .ar-head-title {
+  color: var(--ars-ink);
+}
+.ar-style-b .ar-head-title-en {
+  font-weight: 500;
+  color: #6b7686;
+}
+.ar-style-b .ar-head-no {
+  font-weight: 700;
+}
+.ar-style-b .ar-head-rule {
+  height: 1px;
+  background: #e1e6ec !important;
+}
+.ar-style-b .ar-topic {
+  background: #f3f6f9;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.ar-style-b .ar-topic-key {
+  color: var(--ars-lead);
+}
+.ar-style-b .ar-topic-en {
+  font-weight: 500;
+  color: var(--ars-ink);
+}
+.ar-style-b .ar-frame {
+  border: 1px solid #e1e6ec;
+  border-radius: 12px;
+  padding: 20px 14px 8px;
+}
+.ar-style-b .ar-tag {
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.5px 8px;
+  letter-spacing: 0.01em;
+}
+.ar-style-b .ar-no {
+  background: none;
+  padding: 0;
+  font-size: 10px;
+  color: #8a96a8;
+}
+.ar-style-b .ar-sentence {
+  font-size: 13.4px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ars-ink);
+}
+.ar-style-b .ar-role-text {
+  border-bottom: 0;
+  box-shadow: inset 0 -1.5px 0 #9fb3cc;
+}
+.ar-style-b .ar-role-tag {
+  color: #6f86a6;
+}
+.ar-style-b .ar-note {
+  border-radius: 4px;
+  background: #eef4fa;
+  padding: 0 4px;
+  font-weight: 500;
+  color: var(--ars-lead);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.ar-style-b .ar-hl--imply {
+  background: #fbe4ef;
+  border-bottom: 0;
+}
+.ar-style-b .ar-chunk-slash {
+  color: #c6ccd6;
+}
+.ar-style-b .ar-gloss {
+  color: #2f7d62;
+}
+.ar-style-b .ar-trans {
+  color: #3b4656;
+}
+.ar-style-b .ar-points {
+  border-radius: 10px;
+  background: #f7f8fa;
+  padding: 6px 12px;
+}
+.ar-style-b .ar-point-body,
+.ar-style-b .ar-point-mark {
+  color: #3b4656;
+}
+.ar-style-b .ar-point-label {
+  color: var(--ars-ink);
+}
+.ar-style-b .ar-point-rewrite {
+  color: var(--ars-lead);
+}
+.ar-style-b .ar-imply {
+  color: #8d2d5c;
+}
+.ar-style-b .ar-imply-key {
+  border-radius: 4px;
+  background: #b33a74;
+  padding: 0 6px;
+  color: #ffffff;
+}
+.ar-style-b .ar-extra {
+  border-left: 0;
+  padding-left: 2px;
+  color: #5f6b7b;
+}
+.ar-style-b .ar-extra-key {
+  color: var(--ars-lead);
+}
+
+/* ── C · 클래식 인쇄 ── */
+.ar-style-c {
+  --ars-accent: #7c2536;
+  --ars-lead: #7c2536;
+  --ars-ink: #2a2326;
+  --ars-muted: #7c2536;
+}
+.ar-style-c .ar-head-title {
+  font-family: "Gowun Batang", serif;
+  font-weight: 700;
+  color: var(--ars-ink);
+}
+.ar-style-c .ar-head-title-en {
+  font-family: "Literata", Georgia, serif;
+  font-weight: 500;
+  color: #6c5f63;
+}
+.ar-style-c .ar-head-no {
+  font-family: "Literata", Georgia, serif;
+  font-weight: 600;
+}
+.ar-style-c .ar-head-rule {
+  height: 0;
+  background: transparent !important;
+  border-top: 3px double var(--ars-accent);
+}
+.ar-style-c .ar-topic {
+  background: transparent;
+  padding: 8px 0 2px;
+}
+.ar-style-c .ar-topic-key {
+  font-family: "Literata", Georgia, serif;
+  font-size: 10.4px;
+}
+.ar-style-c .ar-topic-en {
+  font-family: "Literata", Georgia, serif;
+  font-size: 12.2px;
+  font-weight: 500;
+  color: var(--ars-ink);
+}
+.ar-style-c .ar-topic-ko {
+  font-family: "Gowun Batang", serif;
+  color: #5b5054;
+}
+.ar-style-c .ar-block {
+  padding-left: 34px;
+}
+.ar-style-c .ar-frame {
+  border: 0;
+  border-top: 1px solid #e3d9db;
+  border-radius: 0;
+  padding: 18px 0 6px;
+}
+.ar-style-c .ar-no {
+  position: absolute;
+  left: -34px;
+  top: 18px;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 22px;
+  border-radius: 0;
+  background: var(--ars-accent);
+  padding: 0;
+  font-family: "Literata", Georgia, serif;
+  font-size: 10.5px;
+  line-height: 1;
+  vertical-align: baseline;
+}
+.ar-style-c .ar-tags {
+  top: -8px;
+}
+.ar-style-c .ar-tags--lead {
+  left: -5px;
+}
+.ar-style-c .ar-tag {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ar-style-c .ar-sentence {
+  font-family: "Literata", Georgia, serif;
+  font-size: 13.8px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--ars-ink);
+}
+.ar-style-c .ar-bracket {
+  color: var(--ars-accent);
+}
+.ar-style-c .ar-role-text {
+  border-bottom-color: #a7979b;
+}
+.ar-style-c .ar-role-tag {
+  font-family: "Literata", Georgia, serif;
+  font-weight: 600;
+  color: var(--ars-accent);
+}
+.ar-style-c .ar-note {
+  font-weight: 500;
+  color: var(--ars-accent);
+}
+.ar-style-c .ar-hl--imply {
+  border-bottom: 2px dotted #9b3d74;
+}
+.ar-style-c .ar-chunk-slash {
+  color: #c7a9b0;
+}
+.ar-style-c .ar-gloss {
+  color: #3d6f5a;
+}
+.ar-style-c .ar-trans {
+  font-family: "Gowun Batang", serif;
+  font-size: 12px;
+  color: #3c3336;
+}
+.ar-style-c .ar-points {
+  border-top: 1px solid #e3d9db;
+  padding-top: 6px;
+}
+.ar-style-c .ar-point-body,
+.ar-style-c .ar-point-mark {
+  color: #3c3336;
+}
+.ar-style-c .ar-point-label {
+  color: var(--ars-ink);
+}
+.ar-style-c .ar-point-rewrite {
+  font-family: "Literata", Georgia, serif;
+  color: #6c4f57;
+}
+.ar-style-c .ar-imply {
+  color: #6e2f55;
+}
+.ar-style-c .ar-imply-src {
+  font-family: "Literata", Georgia, serif;
+  color: #6e2f55;
+}
+.ar-style-c .ar-extra {
+  border-left: 0;
+  background: #faf6f6;
+  font-family: "Gowun Batang", serif;
+  font-size: 11.4px;
+  color: #5b5054;
+}
+.ar-style-c .ar-callout {
+  border-color: #b99aa1;
+}
+
 @media print {
 /* 기본은 여백만 0. 용지 크기는 화면별 주입(@page size)이 결정 — PDF 저장에 용지 옵션 없어도 동작 */
   @page {

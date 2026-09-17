@@ -132,6 +132,27 @@ type AnalysisUnit = {
 export type TranslationMode = "full" | "chunk";
 const TRANSLATION_MODE_KEY = "analysis-report-translation-mode";
 
+/*
+ * 분석지 모양. 선생님이 시안 세 개(A 교재 세리프 · B 깔끔한 산세리프 · C 클래식 인쇄)를 모두
+ * 마음에 들어 해서 고를 수 있게 했다. 기본은 지금까지 쓰던 모양(빨간 둥근 테두리)이다.
+ * 글꼴과 색만 바꾸고 표시(성분·괄호·이름표·번호 설명) 구성은 같다 — globals.css의 .ar-style-*.
+ */
+export type AnalysisDesignStyle = "base" | "a" | "b" | "c";
+const DESIGN_STYLE_KEY = "analysis-report-design-style";
+const DESIGN_STYLES: Array<{ id: AnalysisDesignStyle; label: string; hint: string }> = [
+  { id: "base", label: "기본", hint: "빨간 테두리" },
+  { id: "a", label: "A", hint: "교재 세리프" },
+  { id: "b", label: "B", hint: "깔끔한 산세리프" },
+  { id: "c", label: "C", hint: "클래식 인쇄" },
+];
+/** A·B·C가 쓰는 글꼴. 기본 모양에서는 불러오지 않는다. */
+const DESIGN_FONTS_HREF =
+  "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,500;0,8..60,600;1,8..60,500&family=Literata:opsz,wght@7..72,500;7..72,600&family=Gowun+Batang:wght@400;700&display=swap";
+
+function designClass(style: AnalysisDesignStyle): string {
+  return style === "base" ? "" : `ar-style ar-style-${style}`;
+}
+
 function SentenceBlock({
   sentence,
   index,
@@ -300,35 +321,35 @@ function ReportHeader({
   accent: string;
 }) {
   return (
-    <header className="mb-4" data-analysis-block="header">
+    <header className="ar-head mb-4" data-analysis-block="header">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {source?.trim() ? (
-            <p className="text-[11px] font-medium leading-snug text-slate-400">
+            <p className="ar-head-source text-[11px] font-medium leading-snug text-slate-400">
               {source.trim()}
             </p>
           ) : null}
           <p
-            className={`text-sm font-semibold ${source?.trim() ? "mt-1" : ""}`}
+            className={`ar-head-label text-sm font-semibold ${source?.trim() ? "mt-1" : ""}`}
             style={{ color: accent }}
           >
             {headerLabel}
           </p>
-          <h1 className="mt-1 text-[22px] font-black leading-snug text-slate-900">
+          <h1 className="ar-head-title mt-1 text-[22px] font-black leading-snug text-slate-900">
             {title}
           </h1>
           {titleEn?.trim() ? (
-            <p className="mt-0.5 text-[14px] font-bold leading-snug text-slate-600">{titleEn.trim()}</p>
+            <p className="ar-head-title-en mt-0.5 text-[14px] font-bold leading-snug text-slate-600">{titleEn.trim()}</p>
           ) : null}
         </div>
         <div
-          className="shrink-0 text-4xl font-black tabular-nums"
+          className="ar-head-no shrink-0 text-4xl font-black tabular-nums"
           style={{ color: accent }}
         >
           {pageNo}
         </div>
       </div>
-      <div className="mt-3 h-1 w-full" style={{ backgroundColor: accent }} />
+      <div className="ar-head-rule mt-3 h-1 w-full" style={{ backgroundColor: accent }} />
       {topicEn?.trim() ? (
         <div className="ar-topic">
           <span className="ar-topic-key">Topic</span>
@@ -387,6 +408,39 @@ export function AnalysisReportWorkbench({
       /* 무시 */
     }
   };
+  const [designStyle, setDesignStyle] = useState<AnalysisDesignStyle>("base");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(DESIGN_STYLE_KEY);
+      if (saved === "base" || saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
+    } catch {
+      /* 저장소를 못 쓰면 기본값 */
+    }
+  }, []);
+  const chooseDesignStyle = (style: AnalysisDesignStyle) => {
+    setDesignStyle(style);
+    try {
+      window.localStorage.setItem(DESIGN_STYLE_KEY, style);
+    } catch {
+      /* 무시 */
+    }
+  };
+  /*
+   * 모양을 바꾸면 글꼴이 늦게 들어와 글자 폭이 달라진다. 쪽 나눔은 잰 높이로 하므로
+   * 글꼴이 다 들어온 뒤 한 번 더 잰다(안 그러면 쪽이 넘쳐 한 줄이 새어 나간다).
+   */
+  const [fontsTick, setFontsTick] = useState(0);
+  useEffect(() => {
+    if (designStyle === "base" || typeof document === "undefined" || !document.fonts) return;
+    let alive = true;
+    const bump = () => alive && setFontsTick((t) => t + 1);
+    void document.fonts.ready.then(bump);
+    document.fonts.addEventListener?.("loadingdone", bump);
+    return () => {
+      alive = false;
+      document.fonts.removeEventListener?.("loadingdone", bump);
+    };
+  }, [designStyle]);
   const [headerLabel, setHeaderLabel] = useState(
     () => initialProjects[0]?.headerLabel || "26년도 1학기 중간고사 대비"
   );
@@ -628,7 +682,7 @@ export function AnalysisReportWorkbench({
       next[p.id] = pages.length ? pages : [[]];
     }
     setPageChunksById(next);
-  }, [projects, headerLabel, active, translationMode]);
+  }, [projects, headerLabel, active, translationMode, designStyle, fontsTick]);
 
   /** 지문 하나의 쪽 배치. 배치 effect가 돌기 전 렌더에서는 없는 문장 번호를 뺀다. */
   function pagesFor(projectId: string, count: number): AnalysisUnit[][] {
@@ -826,7 +880,7 @@ export function AnalysisReportWorkbench({
           <div className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden" aria-hidden>
           <div
             ref={measureRef}
-            className="font-print -z-10 w-[210mm] opacity-0"
+            className={`font-print -z-10 w-[210mm] opacity-0 ${designClass(designStyle)}`}
             style={{ padding: A4_PAD }}
           >
             {projects.map((p, pi) => (
@@ -860,7 +914,8 @@ export function AnalysisReportWorkbench({
   if (embedded) {
     return (
       <div className="relative">
-        <div id="analysis-report-print-root" className="flex flex-col gap-6 print:gap-0">
+        {designStyle !== "base" ? <link rel="stylesheet" href={DESIGN_FONTS_HREF} /> : null}
+        <div id="analysis-report-print-root" className={`flex flex-col gap-6 print:gap-0 ${designClass(designStyle)}`}>
           {sheetPages}
         </div>
         {measureTree}
@@ -931,6 +986,29 @@ export function AnalysisReportWorkbench({
               ))}
             </div>
           </div>
+
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-500">분석지 모양</span>
+            <div className="grid grid-cols-4 gap-1 rounded-lg bg-slate-100 p-1">
+              {DESIGN_STYLES.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  title={d.hint}
+                  onClick={() => chooseDesignStyle(d.id)}
+                  className={`rounded-md px-1 py-1.5 text-xs font-bold transition ${
+                    designStyle === d.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-slate-400">
+              {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
+            </p>
+          </div>
+          {designStyle !== "base" ? <link rel="stylesheet" href={DESIGN_FONTS_HREF} /> : null}
 
           <p className="text-xs text-slate-500">{project.title}</p>
           {project.source?.trim() ? (
@@ -1010,7 +1088,7 @@ export function AnalysisReportWorkbench({
           <div
             ref={scaled.ref}
             id="analysis-report-print-root"
-            className="flex origin-top flex-col gap-6 print:gap-0 print:!transform-none"
+            className={`flex origin-top flex-col gap-6 print:gap-0 print:!transform-none ${designClass(designStyle)}`}
             style={previewStyle}
           >
             {sheetPages}
