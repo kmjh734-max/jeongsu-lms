@@ -4,7 +4,8 @@
  * middle: 선택지별 최대 5장
  */
 import { createAdminClient } from "@/lib/supabase/admin";
-import { BW_FIGURE_RULES, toPrintGrayscalePng } from "@/lib/listening/print-bw";
+import { BW_FIGURE_RULES } from "@/lib/listening/print-bw";
+import { toPrintGrayscalePng } from "@/lib/listening/print-gray";
 import {
   dalleQuality,
   resolveListeningImageQuality,
