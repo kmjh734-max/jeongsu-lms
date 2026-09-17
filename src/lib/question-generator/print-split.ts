@@ -162,7 +162,7 @@ export function paginatePrintPieces(
        */
       const minStart = opts.minStartPx ?? 0;
       const oversized = h > maxH();
-      if (col.length > 0 && (room < minStart || (!oversized && side === "right"))) {
+      if (col.length > 0 && (room < minStart || (!oversized && (side as string) === "right"))) {
         nextColumn();
         continue;
       }
