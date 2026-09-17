@@ -3380,6 +3380,9 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .ar-style-c .ar-imply {
   color: #6e2f55;
 }
+.ar-style-c .ar-imply-key {
+  color: #9b3d74;
+}
 .ar-style-c .ar-imply-src {
   font-family: "Literata", Georgia, serif;
   color: #6e2f55;
