@@ -5,6 +5,7 @@ import { Icon } from "@/components/layout/NavIcon";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { Button } from "@/components/ui/Button";
 import {
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -27,8 +28,65 @@ import {
 } from "@/lib/listening/paginate-exam-questions";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import type { ListeningTableData } from "@/lib/listening/types";
+import "./listening-print-styles.css";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
+
+/*
+ * 시험지 모양. 변형문제·분석지와 같은 시안 셋(A 교재 세리프 · B 깔끔한 산세리프 · C 클래식 인쇄)을
+ * 고를 수 있게 했다. 예전 모양(파란 머리 상자)은 다른 자료처럼 목록에서 빼고 처음엔 A로 연다. 문항 구성은 같고 글꼴·색·테두리만
+ * 바꾼다 — listening-print-styles.css의 .ls-style-*.
+ */
+type ListeningDesignStyle = "base" | "a" | "b" | "c";
+const DESIGN_STYLE_KEY = "listening-print-design-style";
+const DESIGN_STYLES: Array<{ id: ListeningDesignStyle; label: string; hint: string }> = [
+  { id: "a", label: "A", hint: "교재 세리프" },
+  { id: "b", label: "B", hint: "깔끔한 산세리프" },
+  { id: "c", label: "C", hint: "클래식 인쇄" },
+];
+/** A·B·C가 쓰는 글꼴. 기본 모양에서는 불러오지 않는다. */
+const DESIGN_FONTS_HREF =
+  "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,500;1,8..60,600&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=Gowun+Batang:wght@400;700&display=swap";
+
+function designClass(style: ListeningDesignStyle): string {
+  return style === "base" ? "" : `ls-style ls-style-${style}`;
+}
+
+/** 첫 쪽 머리의 학생 기록 칸 (이름 칸에는 출력 설정에 적은 이름을 채운다) */
+const HEADER_FIELDS = ["학년", "반", "번호", "이름", "점수"] as const;
+
+/*
+ * 짧은 선택지는 한 줄에 늘어놓는다(5개·3개·2개씩). 글자 수만 세면 한글과 영어 폭이 달라
+ * 단(약 80mm, 10pt) 밖으로 넘치므로 글자마다 대략의 폭(em)을 더해 판단한다.
+ * 한 칸에서 번호(①)·간격을 빼고 남는 폭: 5개 ≈ 2.3em · 3개 ≈ 5.3em · 2개 ≈ 9.1em.
+ * (한글 한 글자 ≈ 0.95em, 영어 한 글자 ≈ 0.5em — 영어는 같은 폭에 약 1.6~1.8배 들어간다.)
+ */
+type ChoiceRowLayout = "row5" | "row3" | "row2";
+const HANGUL_RE = /[ᄀ-ᇿ㄰-㆏가-힣]/;
+
+function estimateTextEm(text: string): number {
+  let em = 0;
+  for (const ch of Array.from(text)) {
+    if (/\s/.test(ch)) em += 0.3;
+    else if (ch.charCodeAt(0) > 0x2e7f) em += 0.95;
+    else if (/[il.,:;'!|]/.test(ch)) em += 0.28;
+    else if (/[MWmw@%&]/.test(ch)) em += 0.8;
+    else if (/[A-Z]/.test(ch)) em += 0.65;
+    else if (/[0-9$]/.test(ch)) em += 0.56;
+    else em += 0.52;
+  }
+  return em;
+}
+
+function shortChoiceLayout(choices: string[]): ChoiceRowLayout | null {
+  const texts = choices.map((c) => String(c ?? "").trim());
+  if (texts.length !== 5 || texts.some((t) => !t)) return null;
+  const widest = Math.max(...texts.map(estimateTextEm));
+  if (widest <= 2.3) return "row5";
+  if (widest <= 4.9) return "row3";
+  if (widest <= 8.6) return "row2";
+  return null;
+}
 /** 실제 인쇄 열보다 약간 좁게 재어 줄바꿈 여유를 둠 */
 const COLUMN_WIDTH_CLASS = "w-[84mm]";
 /** 문항 간격 */
@@ -346,6 +404,42 @@ export function ListeningExamPrintView({
   const [tightStep, setTightStep] = useState<TightStep>(TIGHT_STEPS[0]!);
   const listenUrl = buildStudentListeningHubUrl(setId);
 
+  const [designStyle, setDesignStyle] = useState<ListeningDesignStyle>("a");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(DESIGN_STYLE_KEY);
+      if (saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
+    } catch {
+      /* 저장소를 못 쓰면 기본값 */
+    }
+  }, []);
+  const chooseDesignStyle = (style: ListeningDesignStyle) => {
+    setDesignStyle(style);
+    try {
+      window.localStorage.setItem(DESIGN_STYLE_KEY, style);
+    } catch {
+      /* 무시 */
+    }
+  };
+  /*
+   * 모양을 바꾸면 글꼴이 늦게 들어와 글자 폭이 달라진다. 쪽 나눔은 잰 높이로 하므로
+   * 글꼴이 다 들어온 뒤 한 번 더 잰다(안 그러면 단이 넘쳐 아래가 잘린다).
+   */
+  const [fontsTick, setFontsTick] = useState(0);
+  useEffect(() => {
+    if (designStyle === "base" || typeof document === "undefined" || !document.fonts) return;
+    let alive = true;
+    const bump = () => alive && setFontsTick((t) => t + 1);
+    void document.fonts.ready.then(bump);
+    document.fonts.addEventListener?.("loadingdone", bump);
+    return () => {
+      alive = false;
+      document.fonts.removeEventListener?.("loadingdone", bump);
+    };
+  }, [designStyle]);
+  /** 측정 틀·빈 쪽 틀·인쇄 루트에 똑같이 건다 (잰 높이와 찍힌 높이가 같아야 한다) */
+  const styleClass = designClass(designStyle);
+
   const meta: PrintMeta = {
     examTitle: examTitle.trim() || title,
     gradeLabel,
@@ -514,6 +608,8 @@ export function ListeningExamPrintView({
     layoutConfig.columnSafetyPx,
     useFixedTwentyLayout,
     hasFigures,
+    designStyle,
+    fontsTick,
   ]);
 
   useLayoutEffect(() => {
@@ -698,6 +794,31 @@ export function ListeningExamPrintView({
                   placeholder="인쇄 파일 이름에 써요 (선택)"
                 />
               </label>
+              <div className="flex flex-col gap-1.5 sm:col-span-2">
+                <span className="ui-label">시험지 모양</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="grid w-full max-w-xs grid-cols-3 gap-1 rounded-lg bg-slate-200/70 p-1">
+                    {DESIGN_STYLES.map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        title={d.hint}
+                        onClick={() => chooseDesignStyle(d.id)}
+                        className={`rounded-md px-1 py-1.5 text-xs font-bold transition ${
+                          designStyle === d.id
+                            ? "bg-white text-slate-900 shadow-sm"
+                            : "text-slate-500"
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-xs text-slate-500">
+                    {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
+                  </span>
+                </div>
+              </div>
               <label className="flex items-center gap-2 sm:col-span-2">
                 <input
                   type="checkbox"
@@ -720,9 +841,10 @@ export function ListeningExamPrintView({
         </div>
       </div>
 
+      {designStyle !== "base" ? <link rel="stylesheet" href={DESIGN_FONTS_HREF} /> : null}
       <div
         ref={measureRef}
-        className="listening-exam-measure font-print pointer-events-none fixed -left-[200vw] top-0 opacity-0"
+        className={`listening-exam-measure font-print pointer-events-none fixed -left-[200vw] top-0 opacity-0 ${styleClass}`}
         aria-hidden
       >
         <div className={COLUMN_WIDTH_CLASS}>
@@ -741,7 +863,7 @@ export function ListeningExamPrintView({
 
       <div
         ref={probeFirstRef}
-        className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
+        className={`pointer-events-none fixed -left-[200vw] top-0 opacity-0 ${styleClass}`}
         aria-hidden
       >
         <ExamSheetPage
@@ -759,7 +881,7 @@ export function ListeningExamPrintView({
       </div>
       <div
         ref={probeNextRef}
-        className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
+        className={`pointer-events-none fixed -left-[200vw] top-0 opacity-0 ${styleClass}`}
         aria-hidden
       >
         <ExamSheetPage
@@ -779,6 +901,7 @@ export function ListeningExamPrintView({
       <div className="mx-auto w-full max-w-[210mm] py-8 print:py-0">
         <div
           id="listening-print-root"
+          className={styleClass || undefined}
           style={tightVars({ ...tightStep, sizePt: questionSizePt })}
         >
           <div className="exam-print-exam">
@@ -923,10 +1046,19 @@ function ExamSheetPage({
           </div>
 
           <div className="listening-exam-meta">
-            <span className="listening-exam-meta-name">
-              이름
-              <i>{meta.studentName || " "}</i>
-            </span>
+            <div className="listening-exam-fields">
+              {HEADER_FIELDS.map((label) => (
+                <span
+                  key={label}
+                  className={`listening-exam-field${label === "이름" ? " listening-exam-field--name" : ""}`}
+                >
+                  <i className="listening-exam-field-label">{label}</i>
+                  <i className="listening-exam-field-box">
+                    {label === "이름" ? meta.studentName.trim() : ""}
+                  </i>
+                </span>
+              ))}
+            </div>
             <span className="listening-exam-meta-tip">
               QR로 음원을 듣고 알맞은 답을 고르세요.
             </span>
@@ -1102,19 +1234,14 @@ function ExamQuestionBlock({
   const numLabel = String(q.order_index).padStart(2, "0");
   const table = normalizeTableData(q.table_data);
   const hasScript = showScript && q.segments.length > 0;
-  const typeName = q.question_type?.trim();
+  // 짧은 선택지는 한 줄에 늘어놓는다 — 그림·표 문항에는 쓰지 않는다.
+  // (문항마다 붙던 "유형 N · 유형 이름" 표시는 모의평가처럼 인쇄물에서 뺐다.)
+  const choiceRow =
+    figureUrls.length === 0 && !table ? shortChoiceLayout(q.choices) : null;
+  const choicesEnglish = q.choices.every((c) => !HANGUL_RE.test(String(c ?? "")));
 
   const questionBody = (
     <>
-      {typeName ? (
-        <div className="listening-exam-type-head">
-          <span className="listening-exam-type-label">
-            유형 {q.order_index}
-          </span>
-          <span className="listening-exam-type-name">{typeName}</span>
-        </div>
-      ) : null}
-
       {instruction && (
         <p className="listening-exam-q-instruction">{instruction}</p>
       )}
@@ -1180,7 +1307,11 @@ function ExamQuestionBlock({
         choices: q.choices,
         needsImageChoices: q.needs_image_choices,
       }) && (
-        <ul className="listening-exam-choices mt-[1mm] list-none pl-0">
+        <ul
+          className={`listening-exam-choices mt-[1mm] list-none pl-0${
+            choicesEnglish ? " listening-exam-choices--en" : ""
+          }${choiceRow ? ` listening-exam-choices--${choiceRow}` : ""}`}
+        >
           {q.choices.map((choice, i) => {
             const urls = figureUrls;
             const showInline =

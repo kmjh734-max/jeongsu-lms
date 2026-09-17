@@ -1,0 +1,925 @@
+/* ------------------------------------------------------------------ */
+/* 듣기평가 시험지 인쇄 — 모양 A·B·C와 공통 배치 (2026-09-18).             */
+/* 기본 모양(globals.css의 .listening-exam-*)은 그대로 두고, 고른 모양일 때만 */
+/* 글꼴·색·테두리를 바꾼다. 쪽 나눔은 잰 높이로 하므로 크기는 기본과 거의 같게. */
+/* 기본 규칙보다 앞서도록 선택자를 .ls-style.ls-style-x 두 겹으로 건다.       */
+/* 측정 틀(.listening-exam-measure)·빈 쪽 틀·인쇄 루트에 같은 클래스가 붙는다. */
+/* ------------------------------------------------------------------ */
+
+/* ══════════ 모든 모양 공통 배치 (기본 포함) ══════════ */
+
+/* 학년·반·번호·이름·점수 칸 — 기본 모양에서는 안내 문구와 한 줄에 둔다 */
+.listening-exam-meta .listening-exam-fields {
+  flex: 1 1 auto;
+  max-width: 122mm;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 2.4fr 1.3fr;
+  column-gap: 2.5mm;
+  align-self: flex-end;
+}
+
+.listening-exam-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.2mm;
+  min-width: 0;
+}
+
+.listening-exam-field i {
+  font-style: normal;
+}
+
+.listening-exam-field-label {
+  flex-shrink: 0;
+  font-size: 8.5pt;
+  font-weight: 800;
+  line-height: 5mm;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.listening-exam-field-box {
+  flex: 1;
+  min-width: 0;
+  height: 5mm;
+  line-height: 5mm;
+  border-bottom: 1px solid #94a3b8;
+  font-size: 9pt;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listening-exam-meta .listening-exam-meta-tip {
+  flex: 0 1 auto;
+  min-width: 0;
+  align-self: flex-end;
+  line-height: 5mm;
+}
+
+/* 짧은 선택지 한 줄 배치 (5개·3개·2개씩) — 칸 폭을 고르게 나눠 넘치지 않게 한다 */
+.listening-exam-choices.listening-exam-choices--row5,
+.listening-exam-choices.listening-exam-choices--row3,
+.listening-exam-choices.listening-exam-choices--row2 {
+  display: grid;
+  column-gap: 1.5mm;
+  row-gap: 0.3mm;
+}
+
+.listening-exam-choices.listening-exam-choices--row5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.listening-exam-choices.listening-exam-choices--row3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.listening-exam-choices.listening-exam-choices--row2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.listening-exam-choices--row5 > li,
+.listening-exam-choices--row3 > li,
+.listening-exam-choices--row2 > li {
+  min-width: 0;
+}
+
+/* ══════════ 고른 모양 공통 ══════════ */
+
+/* 머리: 제목을 왼쪽에, 회차·QR·로고를 오른쪽에 모은다 */
+.ls-style .listening-exam-head-main {
+  order: 0;
+}
+.ls-style .listening-exam-head-no {
+  order: 1;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.6mm;
+  min-width: 0;
+}
+.ls-style .listening-exam-head-no span {
+  margin-top: 0;
+  letter-spacing: 0;
+}
+.ls-style .listening-exam-head-qr {
+  order: 2;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.4mm;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+/* QR 둘레의 둥근 테두리는 뺀다 (B는 아래에서 모서리만 둥글게) */
+.ls-style .listening-exam-head-qr img {
+  border-radius: 0;
+  box-shadow: none;
+}
+.ls-style .listening-exam-head-qr-label {
+  max-width: 7mm;
+  font-size: 6.8pt;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.ls-style .listening-exam-head-logo {
+  order: 3;
+}
+
+/* 학년·반·번호·이름·점수는 머리 아래 한 줄 전체, 안내 문구는 그 아래 */
+.ls-style .listening-exam-meta {
+  display: block;
+  margin-top: 2mm;
+  padding-bottom: 0;
+  border-bottom: 0;
+  font-weight: 400;
+}
+.ls-style .listening-exam-meta .listening-exam-fields {
+  max-width: none;
+  width: 100%;
+}
+.ls-style .listening-exam-meta .listening-exam-meta-tip {
+  display: block;
+  margin: 1.4mm 0 0;
+  text-align: left;
+  font-size: 8pt;
+  line-height: 1.45;
+}
+.ls-style .listening-exam-field-label {
+  font-weight: 500;
+}
+.ls-style .listening-exam-field-box {
+  font-weight: 600;
+}
+
+/* 문항 사이 옅은 가름선 (A) 등에 쓰는 기준 */
+.ls-style .listening-exam-q-block {
+  position: relative;
+}
+
+/* ══════════ A · 교재 세리프 ══════════ */
+.ls-style.ls-style-a .listening-exam-sheet,
+.ls-style.ls-style-a .listening-exam-q-block,
+.ls-style.ls-style-a .listening-exam-answer-item {
+  --lx-accent: #b23a3a;
+  --lx-ink: #16213d;
+  --lx-tint: #f5f6f9;
+  --lx-line: #8795b0;
+  --lx-hair: #dfe3ea;
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+}
+
+.ls-style.ls-style-a .listening-exam-head {
+  align-items: flex-end;
+  padding: 0 0 2mm;
+  border: 0;
+  border-bottom: 1.5px solid #1d2b4f;
+  border-radius: 0;
+  background: transparent;
+}
+.ls-style.ls-style-a .listening-exam-kicker {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 8pt;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #7a8190;
+}
+.ls-style.ls-style-a .listening-exam-head-title {
+  font-size: 15pt;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #16213d;
+}
+.ls-style.ls-style-a .listening-exam-head-sub {
+  font-size: 8.3pt;
+  font-weight: 400;
+  color: #4a5470;
+}
+.ls-style.ls-style-a .listening-exam-head-no b {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 24pt;
+  font-weight: 600;
+  color: #b23a3a;
+}
+.ls-style.ls-style-a .listening-exam-head-no span {
+  font-size: 9pt;
+  font-weight: 700;
+  color: #b23a3a;
+}
+.ls-style.ls-style-a .listening-exam-head-qr-label {
+  color: #16213d;
+}
+
+.ls-style.ls-style-a .listening-exam-fields {
+  padding-bottom: 1mm;
+  border-bottom: 1px solid #dfe3ea;
+  column-gap: 3.5mm;
+}
+.ls-style.ls-style-a .listening-exam-field {
+  gap: 1.6mm;
+}
+.ls-style.ls-style-a .listening-exam-field-label {
+  color: #4a5470;
+}
+.ls-style.ls-style-a .listening-exam-field-box {
+  border-bottom-color: #8795b0;
+  color: #16213d;
+}
+.ls-style.ls-style-a .listening-exam-meta-tip {
+  color: #5d6573;
+}
+
+.ls-style.ls-style-a .listening-exam-subheader {
+  border-bottom: 1px solid #1d2b4f;
+}
+.ls-style.ls-style-a .listening-exam-subheader::before {
+  border-radius: 0;
+  background: #b23a3a;
+}
+.ls-style.ls-style-a .listening-exam-subheader-title {
+  font-weight: 700;
+  color: #16213d;
+}
+.ls-style.ls-style-a .listening-exam-subheader-page {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 600;
+  color: #b23a3a;
+}
+
+/* 문항 사이 옅은 가름선 — 높이를 바꾸지 않게 간격 한가운데에 그린다 */
+.ls-style.ls-style-a .listening-exam-col-stack > .listening-exam-q-block + .listening-exam-q-block::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1mm;
+  border-top: 1px solid #eceef2;
+}
+
+.ls-style.ls-style-a .listening-exam-q-num {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 10.5pt;
+  font-weight: 600;
+  color: #b23a3a;
+}
+.ls-style.ls-style-a .listening-exam-q-instruction {
+  font-weight: 500;
+  color: #1f2430;
+}
+.ls-style.ls-style-a .listening-exam-q-passage {
+  font-family: "Source Serif 4", Georgia, serif;
+  color: #16213d;
+}
+.ls-style.ls-style-a .listening-exam-choice-mark {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  color: #39404c;
+}
+.ls-style.ls-style-a .listening-exam-choice-text {
+  color: #16213d;
+}
+.ls-style.ls-style-a .listening-exam-choices--en .listening-exam-choice-text {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.03em;
+}
+
+.ls-style.ls-style-a .listening-exam-figure {
+  padding: 1.4mm 0;
+  border-top: 1px solid #8795b0;
+  border-bottom: 1px solid #8795b0;
+}
+.ls-style.ls-style-a .listening-exam-figure-img {
+  border: 0;
+  border-radius: 0;
+}
+.ls-style.ls-style-a .listening-exam-figure-cell {
+  padding-bottom: 0.8mm;
+  border-bottom: 1px solid #c3cad6;
+}
+.ls-style.ls-style-a .listening-exam-figure-label {
+  font-weight: 500;
+  color: #39404c;
+}
+.ls-style.ls-style-a .listening-exam-choice-thumb {
+  border-color: #c3cad6;
+  border-radius: 0;
+}
+
+.ls-style.ls-style-a .listening-exam-print-table {
+  border: 0;
+  border-top: 1.2px solid #16213d;
+  border-bottom: 1.2px solid #16213d;
+  border-radius: 0;
+  font-family: "Source Serif 4", Georgia, serif;
+  color: #16213d;
+}
+.ls-style.ls-style-a .listening-exam-print-table-title {
+  border-bottom: 1px solid #8795b0;
+  background: transparent;
+  text-align: center;
+  font-style: italic;
+  font-weight: 600;
+  color: #16213d;
+}
+.ls-style.ls-style-a .listening-exam-print-table td {
+  border-top-color: #eceef2;
+}
+.ls-style.ls-style-a .listening-exam-print-table thead td {
+  font-weight: 600;
+}
+.ls-style.ls-style-a .listening-exam-print-table .col-no {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  color: #16213d;
+}
+.ls-style.ls-style-a .listening-exam-print-table .col-label,
+.ls-style.ls-style-a .listening-exam-flyer .col-label {
+  color: #4a5470;
+}
+.ls-style.ls-style-a .listening-exam-flyer {
+  border: 0;
+  border-top: 1.2px solid #16213d;
+  border-bottom: 1.2px solid #16213d;
+  border-radius: 0;
+  color: #16213d;
+}
+.ls-style.ls-style-a .listening-exam-flyer-title {
+  border-bottom: 1px solid #8795b0;
+  font-weight: 600;
+  color: #16213d;
+}
+.ls-style.ls-style-a .listening-exam-flyer-blank {
+  border-color: #8795b0;
+  border-radius: 0;
+}
+
+.ls-style.ls-style-a .listening-exam-script-col {
+  border-color: #dfe3ea;
+  border-radius: 0;
+  background: #fafbfc;
+}
+.ls-style.ls-style-a .listening-exam-script-col p:not(.listening-exam-script-title) {
+  font-family: "Source Serif 4", Georgia, serif;
+}
+
+.ls-style.ls-style-a .listening-exam-answer-item {
+  border-color: #dfe3ea;
+  border-radius: 0;
+}
+.ls-style.ls-style-a .listening-exam-answer-head {
+  background: transparent;
+  border-bottom-color: #eceef2;
+}
+.ls-style.ls-style-a .listening-exam-answer-no {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 600;
+  color: #4a5470;
+}
+.ls-style.ls-style-a .listening-exam-answer-mark {
+  color: #b23a3a;
+}
+.ls-style.ls-style-a .listening-exam-answer-text {
+  color: #16213d;
+}
+.ls-style.ls-style-a .listening-exam-answer-script {
+  font-family: "Source Serif 4", Georgia, serif;
+  color: #1f2430;
+}
+
+.ls-style.ls-style-a .listening-exam-footer {
+  border-top-color: #dfe3ea;
+  font-weight: 400;
+  color: #8b93a1;
+}
+.ls-style.ls-style-a .listening-exam-footer-page {
+  font-family: "Source Serif 4", Georgia, serif;
+  color: #4a5470;
+}
+
+/* ══════════ B · 깔끔한 산세리프 ══════════ */
+.ls-style.ls-style-b .listening-exam-sheet,
+.ls-style.ls-style-b .listening-exam-q-block,
+.ls-style.ls-style-b .listening-exam-answer-item {
+  --lx-accent: #2c6e9e;
+  --lx-ink: #1b2a41;
+  --lx-tint: #f3f6f9;
+  --lx-line: #cfd8e3;
+  --lx-hair: #e1e6ec;
+  font-family: "IBM Plex Sans KR", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+}
+
+.ls-style.ls-style-b .listening-exam-head {
+  padding: 2.6mm 3.5mm;
+  border: 0;
+  border-radius: 3mm;
+  background: #f3f6f9;
+}
+.ls-style.ls-style-b .listening-exam-kicker {
+  font-size: 8pt;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: #6b7686;
+}
+.ls-style.ls-style-b .listening-exam-head-title {
+  font-size: 14.5pt;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-head-sub {
+  font-size: 8.3pt;
+  font-weight: 400;
+  color: #5f6b7b;
+}
+.ls-style.ls-style-b .listening-exam-head-no {
+  align-self: center;
+  padding: 1.5mm 3mm 1.2mm;
+  border-radius: 999px;
+  background: #1b2a41;
+  color: #fff;
+}
+.ls-style.ls-style-b .listening-exam-head-no b {
+  font-size: 12pt;
+  font-weight: 700;
+  color: #fff;
+}
+.ls-style.ls-style-b .listening-exam-head-no span {
+  font-size: 8pt;
+  font-weight: 600;
+  color: #fff;
+}
+.ls-style.ls-style-b .listening-exam-head-qr img {
+  border-radius: 1.5mm;
+  box-shadow: none;
+}
+.ls-style.ls-style-b .listening-exam-head-qr-label {
+  color: #1b2a41;
+}
+
+.ls-style.ls-style-b .listening-exam-fields {
+  column-gap: 1.6mm;
+}
+.ls-style.ls-style-b .listening-exam-field {
+  align-items: center;
+  gap: 1.6mm;
+  padding: 0 2mm;
+  border: 1px solid #cfd8e3;
+  border-radius: 2mm;
+}
+.ls-style.ls-style-b .listening-exam-field-label {
+  font-size: 7.6pt;
+  font-weight: 600;
+  line-height: 6mm;
+  color: #2c6e9e;
+}
+.ls-style.ls-style-b .listening-exam-field-box {
+  height: 6mm;
+  line-height: 6mm;
+  border-bottom: 0;
+  color: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-meta-tip {
+  color: #5f6b7b;
+}
+.ls-style.ls-style-b .listening-exam-meta-tip::before {
+  content: "안내";
+  display: inline-block;
+  margin-right: 1.6mm;
+  padding: 0 1.8mm;
+  border: 1px solid #cfd8e3;
+  border-radius: 999px;
+  font-size: 7pt;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #2c6e9e;
+}
+
+.ls-style.ls-style-b .listening-exam-subheader {
+  padding: 1.2mm 3mm;
+  border-bottom: 0;
+  border-radius: 2mm;
+  background: #f3f6f9;
+}
+.ls-style.ls-style-b .listening-exam-subheader::before {
+  background: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-subheader-title {
+  font-weight: 600;
+  color: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-subheader-page {
+  font-weight: 600;
+  color: #2c6e9e;
+}
+
+.ls-style.ls-style-b .listening-exam-q-num {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  min-width: 0;
+  width: 5.6mm;
+  height: 4.4mm;
+  margin: 0.4mm 0.9mm 0 0;
+  border-radius: 1.2mm;
+  background: #1b2a41;
+  color: #fff;
+  font-size: 7.8pt;
+  font-weight: 700;
+  line-height: 1;
+}
+.ls-style.ls-style-b .listening-exam-q-instruction {
+  font-weight: 600;
+  color: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-q-passage {
+  color: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-choice-mark {
+  font-weight: 600;
+  color: #2c6e9e;
+}
+.ls-style.ls-style-b .listening-exam-choice-text {
+  color: #1b2a41;
+}
+
+.ls-style.ls-style-b .listening-exam-figure {
+  padding: 1.5mm;
+  border-radius: 2.5mm;
+  background: #f5f7fa;
+}
+.ls-style.ls-style-b .listening-exam-figure-img {
+  border: 0;
+  border-radius: 1.5mm;
+}
+.ls-style.ls-style-b .listening-exam-figure-cell {
+  padding: 0.8mm;
+  border-radius: 2mm;
+  background: #f5f7fa;
+}
+.ls-style.ls-style-b .listening-exam-figure-label {
+  font-weight: 600;
+  color: #2c6e9e;
+}
+.ls-style.ls-style-b .listening-exam-choice-thumb {
+  border-color: #e1e6ec;
+  border-radius: 1.5mm;
+}
+
+.ls-style.ls-style-b .listening-exam-print-table {
+  border-color: #cfd8e3;
+  border-radius: 2mm;
+  color: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-print-table-title {
+  border-bottom-color: #e1e6ec;
+  background: #f3f6f9;
+  font-weight: 600;
+  color: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-print-table td {
+  border-top-color: #eef1f5;
+}
+.ls-style.ls-style-b .listening-exam-print-table thead td {
+  font-weight: 600;
+  color: #5f6b7b;
+}
+.ls-style.ls-style-b .listening-exam-print-table .col-no {
+  font-weight: 600;
+  color: #2c6e9e;
+}
+.ls-style.ls-style-b .listening-exam-print-table .col-label,
+.ls-style.ls-style-b .listening-exam-flyer .col-label {
+  font-weight: 600;
+  color: #5f6b7b;
+}
+.ls-style.ls-style-b .listening-exam-flyer {
+  border-color: #cfd8e3;
+  border-radius: 2mm;
+  color: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-flyer-title {
+  border-bottom: 1px solid #e1e6ec;
+  font-weight: 600;
+  color: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-flyer-blank {
+  border-color: #cfd8e3;
+  border-radius: 1mm;
+}
+
+.ls-style.ls-style-b .listening-exam-script-col {
+  border-color: #e1e6ec;
+  border-radius: 2mm;
+  background: #f5f7fa;
+}
+
+.ls-style.ls-style-b .listening-exam-answer-item {
+  border-color: #cfd8e3;
+  border-radius: 2mm;
+}
+.ls-style.ls-style-b .listening-exam-answer-head {
+  background: #f3f6f9;
+  border-bottom-color: #e1e6ec;
+}
+.ls-style.ls-style-b .listening-exam-answer-no {
+  font-weight: 700;
+  color: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-answer-mark {
+  font-weight: 700;
+  color: #2c6e9e;
+}
+.ls-style.ls-style-b .listening-exam-answer-text {
+  color: #1b2a41;
+}
+.ls-style.ls-style-b .listening-exam-answer-script {
+  color: #334155;
+}
+
+.ls-style.ls-style-b .listening-exam-footer {
+  border-top-color: #e1e6ec;
+  font-weight: 500;
+  color: #8a96a8;
+}
+.ls-style.ls-style-b .listening-exam-footer-page {
+  color: #5f6b7b;
+}
+
+/* ══════════ C · 클래식 인쇄 ══════════ */
+.ls-style.ls-style-c .listening-exam-sheet,
+.ls-style.ls-style-c .listening-exam-q-block,
+.ls-style.ls-style-c .listening-exam-answer-item {
+  --lx-accent: #7c2536;
+  --lx-ink: #2a2326;
+  --lx-tint: #faf6f7;
+  --lx-line: #2a2326;
+  --lx-hair: #e3d9db;
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+}
+
+.ls-style.ls-style-c .listening-exam-head {
+  padding: 2mm 0;
+  border: 0;
+  border-top: 3px double #7c2536;
+  border-bottom: 1px solid #7c2536;
+  border-radius: 0;
+  background: transparent;
+}
+.ls-style.ls-style-c .listening-exam-kicker {
+  font-family: "Literata", Georgia, serif;
+  font-size: 8pt;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-head-title {
+  font-family: "Gowun Batang", serif;
+  font-size: 16pt;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-head-sub {
+  font-family: "Gowun Batang", serif;
+  font-size: 8.6pt;
+  font-weight: 400;
+  color: #5b5054;
+}
+.ls-style.ls-style-c .listening-exam-head-no {
+  padding: 1.3mm 2.4mm 1mm;
+  border: 1px solid #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-head-no b {
+  font-family: "Literata", Georgia, serif;
+  font-size: 16pt;
+  font-weight: 600;
+  color: #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-head-no span {
+  font-family: "Gowun Batang", serif;
+  font-size: 9pt;
+  font-weight: 700;
+  color: #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-head-qr-label {
+  font-family: "Gowun Batang", serif;
+  color: #2a2326;
+}
+
+.ls-style.ls-style-c .listening-exam-fields {
+  column-gap: 0;
+  border: 1px solid #2a2326;
+  font-family: "Gowun Batang", serif;
+}
+.ls-style.ls-style-c .listening-exam-field {
+  align-items: stretch;
+  gap: 0;
+}
+.ls-style.ls-style-c .listening-exam-field + .listening-exam-field {
+  border-left: 1px solid #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-field-label {
+  display: grid;
+  place-items: center;
+  padding: 0 2mm;
+  border-right: 1px solid #c9b3b8;
+  font-weight: 700;
+  line-height: 6mm;
+  color: #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-field-box {
+  height: 6mm;
+  line-height: 6mm;
+  border-bottom: 0;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-meta-tip {
+  font-family: "Gowun Batang", serif;
+  font-size: 8.3pt;
+  color: #2a2326;
+}
+
+.ls-style.ls-style-c .listening-exam-subheader {
+  border-bottom: 1px solid #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-subheader::before {
+  border-radius: 0;
+  background: #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-subheader-title {
+  font-family: "Gowun Batang", serif;
+  font-weight: 700;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-subheader-page {
+  font-family: "Literata", Georgia, serif;
+  font-weight: 600;
+  color: #7c2536;
+}
+
+.ls-style.ls-style-c .listening-exam-q-num {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  min-width: 0;
+  width: 5.2mm;
+  height: 4.6mm;
+  margin: 0.3mm 1.3mm 0 0;
+  background: #7c2536;
+  color: #fff;
+  font-family: "Literata", Georgia, serif;
+  font-size: 7.6pt;
+  font-weight: 600;
+  line-height: 1;
+}
+.ls-style.ls-style-c .listening-exam-q-instruction {
+  font-family: "Gowun Batang", serif;
+  font-weight: 700;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-q-passage {
+  font-family: "Literata", Georgia, serif;
+  font-size: 0.97em;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-choice-mark {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-choice-text {
+  font-family: "Gowun Batang", serif;
+  font-size: 1.02em;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-choices--en .listening-exam-choice-text {
+  font-family: "Literata", Georgia, serif;
+  font-size: 0.97em;
+}
+
+.ls-style.ls-style-c .listening-exam-figure {
+  padding: 1.4mm;
+  border: 1px solid #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-figure-img {
+  border: 0;
+  border-radius: 0;
+}
+.ls-style.ls-style-c .listening-exam-figure-cell {
+  padding: 0.6mm;
+  border: 1px solid #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-figure-label {
+  font-weight: 500;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-choice-thumb {
+  border-color: #2a2326;
+  border-radius: 0;
+}
+
+.ls-style.ls-style-c .listening-exam-print-table {
+  border: 1px solid #2a2326;
+  border-radius: 0;
+  font-family: "Literata", Georgia, serif;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-print-table-title {
+  border-bottom: 1px solid #2a2326;
+  background: transparent;
+  text-align: center;
+  font-weight: 600;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-print-table td {
+  border: 1px solid #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-print-table tr:first-child td {
+  border-top: 0;
+}
+.ls-style.ls-style-c .listening-exam-print-table td:first-child {
+  border-left: 0;
+}
+.ls-style.ls-style-c .listening-exam-print-table td:last-child {
+  border-right: 0;
+}
+.ls-style.ls-style-c .listening-exam-print-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.ls-style.ls-style-c .listening-exam-print-table thead td {
+  font-weight: 600;
+  color: #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-print-table .col-no {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-print-table .col-label,
+.ls-style.ls-style-c .listening-exam-flyer .col-label {
+  color: #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-flyer {
+  border: 1px solid #2a2326;
+  border-radius: 0;
+  font-family: "Literata", Georgia, serif;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-flyer-title {
+  border-bottom: 1px solid #2a2326;
+  font-weight: 600;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-flyer-blank {
+  border-color: #2a2326;
+  border-radius: 0;
+}
+
+.ls-style.ls-style-c .listening-exam-script-col {
+  border-color: #2a2326;
+  border-radius: 0;
+  background: #fff;
+}
+.ls-style.ls-style-c .listening-exam-script-col p:not(.listening-exam-script-title) {
+  font-family: "Literata", Georgia, serif;
+}
+.ls-style.ls-style-c .listening-exam-script-title::before {
+  border-radius: 0;
+}
+
+.ls-style.ls-style-c .listening-exam-answer-item {
+  border-color: #2a2326;
+  border-radius: 0;
+}
+.ls-style.ls-style-c .listening-exam-answer-head {
+  background: #faf6f7;
+  border-bottom-color: #c9b3b8;
+}
+.ls-style.ls-style-c .listening-exam-answer-no {
+  font-family: "Literata", Georgia, serif;
+  font-weight: 600;
+  color: #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-answer-mark {
+  color: #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-answer-text {
+  font-family: "Gowun Batang", serif;
+  color: #2a2326;
+}
+.ls-style.ls-style-c .listening-exam-answer-script {
+  font-family: "Literata", Georgia, serif;
+  color: #2a2326;
+}
+
+.ls-style.ls-style-c .listening-exam-footer {
+  border-top: 1px solid #7c2536;
+  font-family: "Gowun Batang", serif;
+  font-weight: 400;
+  color: #7c2536;
+}
+.ls-style.ls-style-c .listening-exam-footer-page {
+  font-family: "Literata", Georgia, serif;
+  color: #2a2326;
+}
