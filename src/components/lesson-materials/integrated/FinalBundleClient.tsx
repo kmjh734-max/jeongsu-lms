@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { LessonPackWorkbench, type LessonPackProjectInput } from "@/components/lesson-materials/LessonPackWorkbench";
 import {
   AnalysisReportWorkbench,
@@ -218,6 +218,11 @@ export function FinalBundleClient({
     update({ order });
   }
 
+  /*
+   * 표지 글자를 한 자 칠 때마다 본문 122쪽이 통째로 다시 그려져 입력이 버벅였다
+   * (선생님 지적 2026-09-18). 본문은 고른 자료·순서에만 달렸으므로 따로 기억해 두고,
+   * 표지 글자가 바뀌어도 다시 만들지 않는다.
+   */
   const renderSection = (s: SectionPlan) => {
     if (s.kind === "lesson_pack") {
       return materials.lessonPacks.map((m) => (
@@ -246,6 +251,13 @@ export function FinalBundleClient({
       />
     ));
   };
+
+  const sectionBodies = useMemo(() => {
+    const out: Record<string, ReactNode> = {};
+    for (const s of sections) out[s.key] = renderSection(s);
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sections, materials, role, logoSrc, academyName, base, qgBase]);
 
   const inputClass =
     "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100";
@@ -291,22 +303,10 @@ export function FinalBundleClient({
           </section>
 
           <section className="space-y-2 rounded-xl bg-slate-50 p-3">
-            <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">시험범위 라벨</span>
-              <input className={inputClass} value={payload.cover.label} placeholder="예: 호원고 3학년 · 26년도 1학기 중간고사 대비" onChange={(e) => updateCover({ label: e.target.value })} />
-            </label>
-            <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">표지 메인 제목 (엔터로 줄 구분)</span>
-              <textarea className={inputClass} rows={2} value={payload.cover.title} placeholder={"예: 영어독해와작문\n천재(윤) 2과"} onChange={(e) => updateCover({ title: e.target.value })} />
-            </label>
-            <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">제목 아래 한 줄 · 꼬릿말 (엔터로 줄 구분)</span>
-              <textarea className={inputClass} rows={2} value={payload.cover.progress} placeholder={"예: Reading & Writing · Lesson 2\n2026. 3."} onChange={(e) => updateCover({ progress: e.target.value })} />
-            </label>
-            <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">학원명</span>
-              <input className={inputClass} value={payload.cover.academy} onChange={(e) => updateCover({ academy: e.target.value })} />
-            </label>
+            <CoverField label="시험범위 라벨" value={payload.cover.label} placeholder="예: 호원고 3학년 · 26년도 1학기 중간고사 대비" inputClass={inputClass} onCommit={(v) => updateCover({ label: v })} />
+            <CoverField label="표지 메인 제목 (엔터로 줄 구분)" value={payload.cover.title} placeholder={"예: 영어독해와작문\n천재(윤) 2과"} inputClass={inputClass} rows={2} onCommit={(v) => updateCover({ title: v })} />
+            <CoverField label="제목 아래 한 줄 · 꼬릿말 (엔터로 줄 구분)" value={payload.cover.progress} placeholder={"예: Reading & Writing · Lesson 2\n2026. 3."} inputClass={inputClass} rows={2} onCommit={(v) => updateCover({ progress: v })} />
+            <CoverField label="학원명" value={payload.cover.academy} inputClass={inputClass} onCommit={(v) => updateCover({ academy: v })} />
           </section>
 
           <section className="space-y-2">
@@ -397,7 +397,7 @@ export function FinalBundleClient({
                   />
                 ) : null}
                 <div data-bundle-section={s.key} className="flex flex-col items-center gap-6 print:gap-0">
-                  {renderSection(s)}
+                  {sectionBodies[s.key]}
                 </div>
               </div>
             ))}
@@ -406,5 +406,76 @@ export function FinalBundleClient({
         </div>
       </main>
     </div>
+  );
+}
+
+/**
+ * 표지 글자 입력 칸. 타자는 이 칸 안에서만 돌고, 0.4초 쉬면 그때 표지에 반영한다.
+ * 한 자마다 표지·본문을 다시 그리면 입력이 밀린다(선생님 지적 2026-09-18).
+ */
+function CoverField({
+  label,
+  value,
+  placeholder,
+  inputClass,
+  rows,
+  onCommit,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  inputClass: string;
+  rows?: number;
+  onCommit: (value: string) => void;
+}) {
+  const [text, setText] = useState(value);
+  const typing = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 밖에서 값이 바뀌면(다른 자료를 열거나 되돌릴 때) 따라간다. 타자 중에는 건드리지 않는다.
+  useEffect(() => {
+    if (!typing.current) setText(value);
+  }, [value]);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    []
+  );
+  const change = (next: string) => {
+    typing.current = true;
+    setText(next);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      typing.current = false;
+      onCommit(next);
+    }, 400);
+  };
+  const flush = () => {
+    if (timer.current) clearTimeout(timer.current);
+    typing.current = false;
+    if (text !== value) onCommit(text);
+  };
+  return (
+    <label className="block space-y-1">
+      <span className="text-[11px] font-bold text-slate-500">{label}</span>
+      {rows ? (
+        <textarea
+          className={inputClass}
+          rows={rows}
+          value={text}
+          placeholder={placeholder}
+          onChange={(e) => change(e.target.value)}
+          onBlur={flush}
+        />
+      ) : (
+        <input
+          className={inputClass}
+          value={text}
+          placeholder={placeholder}
+          onChange={(e) => change(e.target.value)}
+          onBlur={flush}
+        />
+      )}
+    </label>
   );
 }
