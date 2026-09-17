@@ -2786,6 +2786,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 /* 직독직해: 본문 안, 의미 덩어리 끝마다 사선과 뜻을 다른 색으로 끼운다 */
 .ar-gloss {
   margin: 0 3px 0 2px;
+  /* 뜻이 줄 끝에서 둘로 갈리면 어느 덩어리 뜻인지 흐려진다 */
+  white-space: nowrap;
   font-size: 10.2px;
   font-weight: 500;
   letter-spacing: 0;

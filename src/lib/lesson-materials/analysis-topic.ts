@@ -50,7 +50,7 @@ ${passage}
 Return JSON:
 {"titleEn":"an English title for this passage, 4-10 words, Title Case, no final period",
  "topicEn":"the main idea of the passage as one English sentence (12-25 words), in your own words, not copied from the passage",
- "topicKo":"topicEn을 자연스러운 한국어 한 문장으로, '~다.'로 끝냄"}`,
+ "topicKo":"topicEn의 뜻을 한국 학생이 바로 읽히는 한국어 한 문장으로(영어 어순대로 옮기지 말고 다시 씀, 45자 안팎), '~다.'로 끝냄"}`,
       },
     ],
   };
