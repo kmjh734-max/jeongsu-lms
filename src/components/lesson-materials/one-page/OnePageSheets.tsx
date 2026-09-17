@@ -72,9 +72,9 @@ ruby.op-voc rt .op-vocl{display:block;white-space:nowrap}
 .op-refs{margin:0;line-height:1.5;font-size:.92em;text-align:justify}
 .op-refs .op-rsep{color:#d1d5db;margin:0 .35em}
 .op-flow{display:flex;align-items:stretch;gap:.3em}
-.op-fbox{flex:1 1 0;min-width:0;border:1px solid #e3dcf7;border-radius:.55em;padding:.4em .5em;text-align:center}
-.op-fbox b{display:block;font-size:.92em;line-height:1.28}
-.op-fbox span{display:block;font-size:.8em;color:#6b7280;margin-top:.15em;line-height:1.3}
+.op-fbox{flex:1 1 0;min-width:0;border:1px solid #e3dcf7;border-radius:.55em;padding:.45em .55em;text-align:left}
+.op-fbox b{display:block;font-size:.76em;line-height:1.24;text-align:left}
+.op-fbox span{display:block;font-size:.7em;color:#5b6472;margin-top:.2em;line-height:1.3;text-align:left}
 .op-fbox--end{background:#f6f3fe;border-color:#c4b5fd}
 .op-farr{align-self:center;color:#a78bfa;font-size:.9em}
 .op-grid2{display:grid;grid-template-columns:1fr 1fr;column-gap:1.3em}

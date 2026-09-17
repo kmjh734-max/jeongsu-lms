@@ -120,7 +120,13 @@ const CORE_PROMPT = `${COMMON_HEADER}
 - en: 지문 전체를 요약한 영어 한 문장(22~38 words). 지문 문장을 그대로 베끼지 말고 바꿔 쓴다.
 - keywords: en 안에 철자·대소문자까지 똑같이 들어 있는 핵심 어구 3~4개(각 1~4 words, 서로 겹치지 않음, en에 나오는 순서대로). 요약문 빈칸 문제의 정답이 되므로 주제를 드러내는 내용어를 고르고, 관사·전치사만으로 된 어구는 안 된다.
 - ko: en의 자연스러운 한국어 해석.
-[flow] 글의 논리 흐름 3~5단계. en은 "라벨: 짧은 구" 꼴(라벨 예: Assumption, Claim, Example, Counter-example, Cause, Result, Contrast, Solution, Conclusion), 3~8 words. ko는 같은 내용의 한국어(8~22자). 마지막 단계는 결론·교훈이다.
+[flow] 글의 논리 흐름 4~5단계. 이 칸만 읽어도 글의 줄거리가 잡혀야 한다 — 라벨만 달고 끝내지 않는다.
+- en: "라벨: 그 단계에서 실제로 무슨 일이 있었는지" 꼴로 8~16 words. 라벨 예: Assumption, Claim, Example, Counter-example, Cause, Result, Contrast, Solution, Conclusion.
+  나쁜 예(너무 짧다): "Background: Evolutionary monitoring function"
+  좋은 예: "Background: Humans evolved to watch how others react to them"
+  주어와 동사가 있는 문장 꼴로 쓰고, 누가 무엇을 하는지/무엇이 무엇을 낳는지가 드러나게 한다.
+- ko: 같은 내용의 한국어(20~45자). 영어를 그대로 옮기되 자연스럽게.
+- 마지막 단계는 결론·교훈이다.
 [tf] 내용 일치 T/F 영어 문장 정확히 5개(각 12~25 words). 지문 문장을 그대로 베끼지 말고 내용 이해를 묻는다. T 2~3개, F 2~3개를 섞고, F는 지문에 비추어 분명히 틀린 내용이어야 한다(애매하면 안 됨).
 [keySentences] 서술형·영작에 나올 핵심 문장 번호 4개(주제문·핵심 주장·중요 구문이 있는 문장, 가능하면 8~35 words). 문장이 4개보다 적으면 모두.
 `;
