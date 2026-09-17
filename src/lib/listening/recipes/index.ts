@@ -37,6 +37,12 @@ import M_REQUEST from "./data/M_REQUEST.json";
 import M_RESPONSE from "./data/M_RESPONSE.json";
 import M_SITUATION_SAY from "./data/M_SITUATION_SAY.json";
 import M_TODO_NOW from "./data/M_TODO_NOW.json";
+import M_TIME from "./data/M_TIME.json";
+import M_TABLE_SELECT from "./data/M_TABLE_SELECT.json";
+import M_PICTURE_SITUATION from "./data/M_PICTURE_SITUATION.json";
+import M_PICTURE_SELECT from "./data/M_PICTURE_SELECT.json";
+import M_DESCRIBE from "./data/M_DESCRIBE.json";
+import M_DATE from "./data/M_DATE.json";
 
 type Skeleton = { turns?: number; beats: string[]; answerType?: string; distractors?: string[]; trap?: string };
 type Distractor = { source: string; share?: string; rule: string };
@@ -83,6 +89,12 @@ const RECIPES: Partial<Record<string, TypeRecipe>> = {
   M_RESPONSE: M_RESPONSE as unknown as TypeRecipe,
   M_SITUATION_SAY: M_SITUATION_SAY as unknown as TypeRecipe,
   M_TODO_NOW: M_TODO_NOW as unknown as TypeRecipe,
+  M_TIME: M_TIME as unknown as TypeRecipe,
+  M_TABLE_SELECT: M_TABLE_SELECT as unknown as TypeRecipe,
+  M_PICTURE_SITUATION: M_PICTURE_SITUATION as unknown as TypeRecipe,
+  M_PICTURE_SELECT: M_PICTURE_SELECT as unknown as TypeRecipe,
+  M_DESCRIBE: M_DESCRIBE as unknown as TypeRecipe,
+  M_DATE: M_DATE as unknown as TypeRecipe,
 };
 
 /** 규칙 목록 밖에 유형마다 따로 둔 설계(계산 틀·그림 명세·표 명세 등). 이름 → 제목 */
@@ -96,8 +108,11 @@ const EXTRA_TITLES: Record<string, string> = {
   eliminationDesign: "행 빼기 설계",
 };
 
+/** 설계서를 같이 쓰는 유형: "I" 수수께끼는 설명 대상 설계서가 중1 1인칭 수수께끼까지 다룬다. */
+const SHARED: Partial<Record<ListeningTypeKey, ListeningTypeKey>> = { M_RIDDLE: "M_DESCRIBE" };
+
 export function getTypeRecipe(key: ListeningTypeKey | undefined | null): TypeRecipe | undefined {
-  return key ? RECIPES[key] : undefined;
+  return key ? RECIPES[SHARED[key] ?? key] : undefined;
 }
 
 function pick<T>(list: T[] | undefined, rand: () => number): T | undefined {
