@@ -73,13 +73,13 @@ const BRANDING_STORAGE_KEY = "qg-print-branding";
 
 /*
  * 시험지 모양. 분석지와 같은 시안 셋(A 교재 세리프 · B 깔끔한 산세리프 · C 클래식 인쇄)을
- * 고를 수 있게 했다. 기본은 지금까지 쓰던 모양이다. 문항 구성은 같고 글꼴·색·테두리만
+ * 고를 수 있게 했다. 예전 모양(주황 머리선)은 선생님 요청으로 목록에서 뺐고, 처음 여는 사람과
+ * 예전에 기본을 골라 둔 사람은 A로 본다. 문항 구성은 같고 글꼴·색·테두리만
  * 바꾼다 — question-print-styles.css의 .qg-style-*.
  */
 type QuestionDesignStyle = "base" | "a" | "b" | "c";
 const DESIGN_STYLE_KEY = "question-print-design-style";
 const DESIGN_STYLES: Array<{ id: QuestionDesignStyle; label: string; hint: string }> = [
-  { id: "base", label: "기본", hint: "주황 머리선" },
   { id: "a", label: "A", hint: "교재 세리프" },
   { id: "b", label: "B", hint: "깔끔한 산세리프" },
   { id: "c", label: "C", hint: "클래식 인쇄" },
@@ -605,11 +605,11 @@ export function QuestionPrintView({
   });
   const [brandingReady, setBrandingReady] = useState(false);
   const measureRef = useRef<HTMLDivElement>(null);
-  const [designStyle, setDesignStyle] = useState<QuestionDesignStyle>("base");
+  const [designStyle, setDesignStyle] = useState<QuestionDesignStyle>("a");
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(DESIGN_STYLE_KEY);
-      if (saved === "base" || saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
+      if (saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
     } catch {
       /* 저장소를 못 쓰면 기본값 */
     }
@@ -1205,7 +1205,7 @@ export function QuestionPrintView({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
               시험지 모양
             </p>
-            <div className="grid grid-cols-4 gap-1 rounded-lg bg-slate-100 p-1">
+            <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
               {DESIGN_STYLES.map((d) => (
                 <button
                   key={d.id}
