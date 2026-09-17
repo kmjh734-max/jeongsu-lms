@@ -134,13 +134,13 @@ const TRANSLATION_MODE_KEY = "analysis-report-translation-mode";
 
 /*
  * 분석지 모양. 선생님이 시안 세 개(A 교재 세리프 · B 깔끔한 산세리프 · C 클래식 인쇄)를 모두
- * 마음에 들어 해서 고를 수 있게 했다. 기본은 지금까지 쓰던 모양(빨간 둥근 테두리)이다.
+ * 마음에 들어 해서 고를 수 있게 했다. 예전 모양(빨간 둥근 테두리)은 선생님 요청으로 목록에서 뺐고,
+ * 처음 여는 사람과 예전에 기본을 골라 둔 사람은 A로 본다.
  * 글꼴과 색만 바꾸고 표시(성분·괄호·이름표·번호 설명) 구성은 같다 — globals.css의 .ar-style-*.
  */
 export type AnalysisDesignStyle = "base" | "a" | "b" | "c";
 const DESIGN_STYLE_KEY = "analysis-report-design-style";
 const DESIGN_STYLES: Array<{ id: AnalysisDesignStyle; label: string; hint: string }> = [
-  { id: "base", label: "기본", hint: "빨간 테두리" },
   { id: "a", label: "A", hint: "교재 세리프" },
   { id: "b", label: "B", hint: "깔끔한 산세리프" },
   { id: "c", label: "C", hint: "클래식 인쇄" },
@@ -408,11 +408,11 @@ export function AnalysisReportWorkbench({
       /* 무시 */
     }
   };
-  const [designStyle, setDesignStyle] = useState<AnalysisDesignStyle>("base");
+  const [designStyle, setDesignStyle] = useState<AnalysisDesignStyle>("a");
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(DESIGN_STYLE_KEY);
-      if (saved === "base" || saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
+      if (saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
     } catch {
       /* 저장소를 못 쓰면 기본값 */
     }
@@ -989,7 +989,7 @@ export function AnalysisReportWorkbench({
 
           <div className="space-y-1">
             <span className="text-[11px] font-bold text-slate-500">분석지 모양</span>
-            <div className="grid grid-cols-4 gap-1 rounded-lg bg-slate-100 p-1">
+            <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
               {DESIGN_STYLES.map((d) => (
                 <button
                   key={d.id}
