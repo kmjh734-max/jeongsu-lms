@@ -344,6 +344,18 @@ function pieceProps(part: PrintPiecePart | undefined) {
   };
 }
 
+/**
+ * 단을 넘겨 이어 실은 지문 조각 맨 위의 작은 표시. 표시 없이 문장만 옆 단 위에 있으면
+ * 새 지문처럼 보여 어색했다(선생님 지적 2026-09-18: "단이 잘리는 건 괜찮은데 이상하게 잘린다").
+ */
+function ContinuedLabel({ index }: { index: number }) {
+  return (
+    <p className="qg-print-cont-label" data-qg-cont="">
+      {padNo(index)}번 지문 이어서
+    </p>
+  );
+}
+
 function QuestionBlock({
   q,
   index,
@@ -394,6 +406,7 @@ function QuestionBlock({
   if (isCount) {
     return (
       <section className={`qg-print-card qg-print-count-card${cardClass}`}>
+        {!head ? <ContinuedLabel index={index} /> : null}
         {head ? (
           <p className="qg-print-q-head" data-qg-head="">
             <span className="qg-print-q-num qg-print-count-num">
@@ -425,6 +438,7 @@ function QuestionBlock({
 
   return (
     <section className={`qg-print-card${cardClass}`}>
+      {!head ? <ContinuedLabel index={index} /> : null}
       {head ? (
         <div data-qg-head="">
           <p className="qg-print-q-head">
@@ -805,7 +819,16 @@ export function QuestionPrintView({
         if (!src) return Infinity;
         const clone = src.cloneNode(true) as HTMLElement;
         clone.removeAttribute("data-measure-q");
-        if (!first) clone.querySelectorAll("[data-qg-head]").forEach((el) => el.remove());
+        if (!first) {
+          clone.querySelectorAll("[data-qg-head]").forEach((el) => el.remove());
+          const card = clone.querySelector(".qg-print-card");
+          if (card) {
+            const label = document.createElement("p");
+            label.className = "qg-print-cont-label";
+            label.textContent = "00번 지문 이어서";
+            card.prepend(label);
+          }
+        }
         if (!last) {
           clone.querySelectorAll("[data-qg-tail]").forEach((el) => el.remove());
           clone.querySelector(".qg-print-card")?.classList.add("qg-print-card-cont");
@@ -844,6 +867,11 @@ export function QuestionPrintView({
             } else {
               hi = mid - 1;
             }
+          }
+          // 옆 단에 지문 한 문장만 달랑 남으면 끊긴 자리가 어색하다. 한 문장을 더 넘긴다.
+          if (n - best.to === 1 && best.to - from >= 2) {
+            const to = best.to - 1;
+            return { to, height: measurePart(i, from, to, first, false) };
           }
           return best;
         },

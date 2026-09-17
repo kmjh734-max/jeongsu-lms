@@ -923,3 +923,15 @@
   font-family: "Literata", Georgia, serif;
   color: #2a2326;
 }
+
+/* 같은 담화로 두 문항을 푸는 묶음 머리글 ([16~17] 다음을 듣고, 물음에 답하시오.) */
+.listening-exam-set-head {
+  margin: 0 0 1.2mm;
+  font-size: 9.5pt;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #1f2430;
+}
+.ls-style.ls-style-a .listening-exam-set-head { color: #16213d; }
+.ls-style.ls-style-b .listening-exam-set-head { color: #1b2a41; }
+.ls-style.ls-style-c .listening-exam-set-head { color: #7c2536; font-family: "Gowun Batang", serif; }

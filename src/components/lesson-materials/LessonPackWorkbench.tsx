@@ -1248,6 +1248,28 @@ export function LessonPackWorkbench({
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4 text-sm">
+          <div className="space-y-1.5">
+            <span className="text-xs font-bold text-slate-500">자료 모양</span>
+            <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
+              {DESIGN_STYLES.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  title={d.hint}
+                  onClick={() => chooseDesignStyle(d.id)}
+                  className={`rounded-md px-1 py-1.5 text-xs font-bold transition ${
+                    designStyle === d.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-slate-400">
+              {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
+            </p>
+          </div>
+
           <label className="block space-y-1.5">
             <span className="text-xs font-bold text-slate-500">상단 라벨 (소제목)</span>
             <input
@@ -1319,28 +1341,6 @@ export function LessonPackWorkbench({
               </label>
             </div>
           ))}
-
-          <div className="space-y-1.5">
-            <span className="text-xs font-bold text-slate-500">자료 모양</span>
-            <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
-              {DESIGN_STYLES.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  title={d.hint}
-                  onClick={() => chooseDesignStyle(d.id)}
-                  className={`rounded-md px-1 py-1.5 text-xs font-bold transition ${
-                    designStyle === d.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-            <p className="text-[11px] text-slate-400">
-              {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
-            </p>
-          </div>
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">

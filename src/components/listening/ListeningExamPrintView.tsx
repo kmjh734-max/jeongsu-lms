@@ -851,7 +851,7 @@ export function ListeningExamPrintView({
           {questions.map((q) => (
             <div key={q.id}>
               <div data-measure-q={q.id}>
-                <ExamQuestionBlock question={q} showScript={showScript} />
+                <ExamQuestionBlock question={q} showScript={showScript} setHeader={setHeaderFor(questions, q)} />
               </div>
               <div data-measure-answer-q={q.id}>
                 <AnswerKeyItem question={q} />
@@ -1198,18 +1198,41 @@ function QuestionColumn({
           key={questions[qi].id}
           question={questions[qi]}
           showScript={showScript}
+          setHeader={setHeaderFor(questions, questions[qi])}
         />
       ))}
     </div>
   );
 }
 
+/**
+ * 같은 담화를 듣고 두 문항을 푸는 묶음(고1 16~17번 등) 앞의 머리글.
+ * 외부 검토 지적(2026-09-18): 16·17번 대본이 같은데 문제지에 공통 지문 표시가 없었다.
+ * 다음 문항과 대본이 같고 앞 문항과는 다를 때, 묶음 첫 문항 위에 단다.
+ */
+function setHeaderFor(questions: ListeningQuestionData[], q: ListeningQuestionData): string | undefined {
+  const script = (x: ListeningQuestionData | undefined) =>
+    (x?.segments ?? []).map((seg) => seg.text).join(" ").replace(/s+/g, " ").trim();
+  const mine = script(q);
+  if (!mine) return undefined;
+  const idx = questions.findIndex((x) => x.id === q.id);
+  if (idx < 0 || script(questions[idx - 1]) === mine) return undefined;
+  let end = idx;
+  while (end + 1 < questions.length && script(questions[end + 1]) === mine) end++;
+  if (end === idx) return undefined;
+  const from = String(q.order_index).padStart(2, "0");
+  const to = String(questions[end]!.order_index).padStart(2, "0");
+  return `[${from}~${to}] 다음을 듣고, 물음에 답하시오.`;
+}
+
 function ExamQuestionBlock({
   question: q,
   showScript,
+  setHeader,
 }: {
   question: ListeningQuestionData;
   showScript: boolean;
+  setHeader?: string;
 }) {
   // 응답 빈칸 줄은 번호가 아니라 이름·지시문으로 (중3 17번 응답, 20번 상황에 맞는 말)
   const passageText = displayQuestionText(
@@ -1348,6 +1371,7 @@ function ExamQuestionBlock({
 
   return (
     <section className="listening-exam-q-block" data-exam-question>
+      {setHeader ? <p className="listening-exam-set-head">{setHeader}</p> : null}
       {hasScript ? (
         <div className="grid grid-cols-2 gap-[2.5mm]">
           <div className="flex items-start gap-[2mm]">
