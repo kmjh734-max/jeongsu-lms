@@ -140,8 +140,7 @@ export function paginatePrintPieces(
         continue;
       }
       const units = split ? split.unitCount(i) : 0;
-      const oversized = h > maxH();
-      if (!oversized || units < 2) {
+      if (units < 2) {
         if (col.length > 0) {
           nextColumn();
           continue;
@@ -152,6 +151,13 @@ export function paginatePrintPieces(
         nextColumn();
         continue;
       }
+      /*
+       * 남은 자리에 통째로 들어가지 않는 문항은 예전에는 다음 단으로 넘겼다. 그러면 짧은 문항
+       * 두 개 아래가 통째로 비는 단이 생겼다(선생님 지적 2026-09-17: "밑에 여백이 있는데
+       * 상단에 짧은 2문제만 나온 경우가 있다, 종이를 아껴야"). 이제 남은 자리가 넉넉하면
+       * 지문을 이어 싣고 나머지(지문 끝과 선택지)는 다음 단으로 잇는다.
+       * 남은 자리가 좁으면 두세 줄만 걸쳐 읽기 불편하므로 예전처럼 다음 단에서 시작한다.
+       */
       const minStart = opts.minStartPx ?? 0;
       if (col.length > 0 && room < minStart) {
         nextColumn();
