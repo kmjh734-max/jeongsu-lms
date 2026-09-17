@@ -96,7 +96,8 @@ function renderText(
   text: string,
   at: number,
   marks: Mark[],
-  glosses: Glosses | null
+  glosses: Glosses | null,
+  slashOutside: Set<number>
 ): ReactNode {
   const cuts = glosses
     ? [...glosses.keys()].filter((b) => b >= at && b < at + text.length).sort((a, b) => a - b)
@@ -116,7 +117,7 @@ function renderText(
     out.push(
       <span key={`g${b}`} className="ar-gloss-start">
         {/* 덩어리 사이는 영어 본문에 사선으로 끊는다(첫 덩어리 앞에는 두지 않는다) */}
-        {b > firstStart ? <span className="ar-chunk-slash">/</span> : null}
+        {b > firstStart && !slashOutside.has(b) ? <span className="ar-chunk-slash">/</span> : null}
         <span className="ar-gloss-anchor">
           <span className="ar-gloss">{glosses!.get(b)}</span>
         </span>
@@ -160,11 +161,12 @@ function renderMarked(text: string, at: number, marks: Mark[]): ReactNode {
 function renderNodes(
   nodes: MarkupNode[],
   marks: Mark[],
-  glosses: Glosses | null = null
+  glosses: Glosses | null = null,
+  slashOutside: Set<number> = new Set()
 ): ReactNode {
   return nodes.map((node, i) => {
     if (node.kind === "text") {
-      return <Fragment key={i}>{renderText(node.text, node.at, marks, glosses)}</Fragment>;
+      return <Fragment key={i}>{renderText(node.text, node.at, marks, glosses, slashOutside)}</Fragment>;
     }
 
     // 끼워 넣는 표시: 이름표는 줄 사이 여백에 띄우고, 번호·상자 꼬리표는 그 자리에 찍는다.
@@ -195,7 +197,21 @@ function renderNodes(
     }
 
     const { deco } = node;
-    const inner = renderNodes(node.children, marks, glosses);
+    /*
+     * 덩어리가 밑줄·괄호 마디 첫머리에서 시작하면 사선을 마디 바깥 앞에 찍는다
+     * (안쪽에 찍으면 사선까지 밑줄이 그어졌다).
+     */
+    const slashHere =
+      glosses != null &&
+      glosses.has(node.span.start) &&
+      node.span.start > Math.min(...glosses.keys()) &&
+      !slashOutside.has(node.span.start);
+    const inner = renderNodes(
+      node.children,
+      marks,
+      glosses,
+      slashHere ? new Set([...slashOutside, node.span.start]) : slashOutside
+    );
     const [open, close] = deco.bracket ? bracketChars(deco.bracket) : ["", ""];
 
     const body = deco.role ? (
@@ -211,7 +227,9 @@ function renderNodes(
     );
 
     return (
-      <span key={i} className="ar-seg">
+      <Fragment key={i}>
+      {slashHere ? <span className="ar-chunk-slash">/</span> : null}
+      <span className="ar-seg">
         {open ? (
           <span className={`ar-bracket ar-bracket--${deco.bracket}`}>{open}</span>
         ) : null}
@@ -220,6 +238,7 @@ function renderNodes(
           <span className={`ar-bracket ar-bracket--${deco.bracket}`}>{close}</span>
         ) : null}
       </span>
+      </Fragment>
     );
   });
 }
