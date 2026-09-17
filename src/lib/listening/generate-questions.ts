@@ -74,6 +74,7 @@ import {
   applyBalancedChoicePositions,
   applyRandomChoicePosition,
 } from "@/lib/listening/balance-correct-answer";
+import { auditScript, scriptRuleProblems } from "@/lib/listening/script-audit";
 import {
   blindSolveQuestion,
   blindSolveRetryNote,
@@ -635,8 +636,17 @@ export async function generateSingleExamQuestion(
      * 여기서 걸리면 무엇이 어긋났는지 적어 다시 만들게 한다 — 검토 표시로 넘기지 않는다.
      */
     const placed = applyRandomChoicePosition({ ...q, order_index: slotIndex ?? typeId });
-    const blind = await blindSolveQuestion(apiKey, placed);
-    let gateNote = blindSolveRetryNote(blind, placed.correct_answer);
+    /*
+     * 정답 검사(가리고 풀기)와 대본 검사(앞뒤가 맞나)를 함께 돌린다. 지금까지의 검사는 모두
+     * "정답이 맞나"만 물어서, 답을 푸는 데 지장이 없는 대본 흠(한 사람 두 이름, 램프에 손잡이,
+     * 현금이 없다는데 지폐 교환, 5분 거리인데 15분)이 그대로 지나갔다 — script-audit.ts 참고.
+     */
+    const [blind, audit] = await Promise.all([
+      blindSolveQuestion(apiKey, placed),
+      auditScript(apiKey, placed),
+    ]);
+    const scriptNotes = [...scriptRuleProblems(placed), ...audit.problems];
+    let gateNote = blindSolveRetryNote(blind, placed.correct_answer) ?? scriptNotes[0] ?? null;
     if (!gateNote) {
       const emotion = await emotionAmbiguityCheck(apiKey, placed);
       if (

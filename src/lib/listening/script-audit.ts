@@ -1,0 +1,159 @@
+/**
+ * 대본 자체가 말이 되는지 본다(정답이 맞는지가 아니라).
+ *
+ * 왜 필요한가: 지금까지의 검사는 모두 "정답이 맞나"를 물었다. 정답을 가리고 풀게 하는 검사도
+ * 정답만 하나로 나오면 통과시킨다. 그런데 2026-09-17~18에 실제로 나온 흠은 거의 다 대본 쪽이었다.
+ *   - 한 사람을 두 이름으로 부름(Taerin이라 해 놓고 끝에서 Gyuri)
+ *   - 물건과 부속이 안 맞음(램프를 주문했는데 손잡이가 왔다)
+ *   - 가진 것과 해결책이 모순(현금이 없다는데 "지폐를 바꿔 주겠다")
+ *   - 거리·시각 계산이 안 맞음(5분 거리인데 15분이라 하고, 거절한 시각이 정답)
+ *   - 요구와 정답이 어긋남("더 짧은 문구"를 묻는데 정답이 더 김)
+ *   - 담화가 대화 도중처럼 시작함("That's right, Nari, …", "Jinu, our class has …")
+ * 이런 것은 답을 푸는 데 지장이 없어서 앞의 검사들을 모두 지나갔다. 그래서 대본만 따로 본다.
+ *
+ * 규칙으로 잡을 수 있는 것은 규칙으로(돈이 들지 않는다), 나머지만 한 번 물어본다.
+ */
+import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
+import type { GeneratedListeningQuestion } from "@/lib/listening/types";
+
+/** 담화(1인 말하기)가 대화 도중처럼 시작하면 안 되는 말머리 */
+const REPLY_OPENERS = [
+  "that's right", "thats right", "right,", "yes,", "yeah,", "no,", "okay,", "ok,", "sure,",
+  "well,", "exactly,", "of course,", "i see,", "true,", "good idea,",
+];
+
+function scriptOf(q: GeneratedListeningQuestion): string {
+  const segs = Array.isArray(q.segments) ? q.segments : [];
+  const joined = segs.map((s) => String(s?.text ?? "")).join(" ");
+  return (joined.trim() || String(q.script_text ?? "")).replace(/\s+/g, " ").trim();
+}
+
+/** 대본에 나오는 사람 이름(호격·주어). 흔한 문장 첫 낱말은 뺀다. */
+function namesIn(text: string): string[] {
+  const stop = new Set([
+    "I", "You", "We", "They", "He", "She", "It", "The", "This", "That", "There", "Then", "Thanks",
+    "Thank", "Hello", "Hi", "Good", "Okay", "Yes", "No", "Sure", "Well", "Attention", "Welcome",
+    "Please", "Sorry", "Right", "Actually", "Maybe", "Let", "Do", "Did", "Can", "Could", "Would",
+    "What", "When", "Where", "Why", "How", "Who", "My", "Your", "Our", "Their", "His", "Her", "Its",
+    "Mr", "Ms", "Mrs", "Dr", "First", "Second", "Third", "Fourth", "Finally", "Room", "Monday",
+    "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+  ]);
+  const out = new Set<string>();
+  // 호격만 본다: ", Name." / ", Name," (문장 첫머리 "Look,"처럼 이름이 아닌 말이 섞이지 않게)
+  for (const m of text.matchAll(/,\s*([A-Z][a-z]{2,})\s*[.,!?]/g)) out.add(m[1]!);
+  return [...out].filter((n) => !stop.has(n));
+}
+
+/** 규칙만으로 잡히는 흠. 모델을 부르지 않는다. */
+export function scriptRuleProblems(q: GeneratedListeningQuestion): string[] {
+  const text = scriptOf(q);
+  if (!text) return [];
+  const out: string[] = [];
+  const segs = Array.isArray(q.segments) ? q.segments : [];
+
+  // 1) 대본 본문과 대사 조각이 다르면 녹음과 인쇄가 어긋난다(실제로 그렇게 나갔다).
+  const norm = (t: string) =>
+    t
+      .replace(/\b(?:[MW]|Man|Woman|ANN|Narrator)\s*:\s*/g, " ")
+      .replace(/[“”„]/g, '"')
+      .replace(/[‘’]/g, "'")
+      .replace(/[\s\u00a0]/g, "")
+      .toLowerCase();
+  const plain = norm(String(q.script_text ?? ""));
+  if (segs.length > 0 && plain) {
+    const joined = norm(segs.map((s) => String(s?.text ?? "")).join(" "));
+    if (joined !== plain) {
+      out.push("script_segments_mismatch|대본 본문(script_text)과 대사 조각(segments)의 문장이 다르다. 두 곳을 똑같이 맞춰라(음성은 대사 조각으로 만든다).");
+    }
+  }
+
+  // 2) 한 대본에 사람 이름이 둘 이상이면 같은 사람을 다르게 부르는 일이 잦았다.
+  const names = namesIn(text);
+  if (names.length > 1) {
+    out.push(`name_conflict|대본에 이름이 ${names.join("·")}로 여럿 나온다. 같은 사람을 한 이름으로만 부르고, 등장인물이 정말 둘이면 각자 누구인지 분명히 하라.`);
+  }
+
+  // 3) 담화(1인)는 첫 문장이 대화 도중처럼 시작하면 안 된다.
+  const monologue = segs.length <= 1;
+  if (monologue) {
+    const first = text.split(/(?<=[.!?])\s/)[0]?.toLowerCase() ?? "";
+    if (REPLY_OPENERS.some((o) => first.startsWith(o))) {
+      out.push("monologue_opening|담화가 앞 대화에 대한 대답처럼 시작한다. 안내·설명의 첫 문장(인사·호출)으로 시작하라.");
+    }
+    const vocative = /^[A-Z][a-z]{2,},\s/.test(text) && !/^(Hello|Hi|Good|Attention|Welcome|Thank)/.test(text);
+    if (vocative) {
+      out.push("monologue_vocative|담화가 특정 한 사람을 부르며 시작한다. 여러 사람에게 하는 안내·설명으로 시작하라.");
+    }
+  }
+
+  // 4) "더 짧은 것"을 묻는데 정답이 앞서 나온 문구보다 길면 안 된다.
+  const last = text.split(/(?<=[.!?])\s/).pop() ?? "";
+  if (/\bshorter\b|\bbriefer\b/i.test(last)) {
+    const words = (t: string) => t.trim().replace(/^[^A-Za-z]+/, "").split(/\s+/).filter(Boolean).length;
+    // 앞에서 나온 문구 후보: 따옴표 안, 또는 "How about …" / "I like …" 뒤
+    const proposals = [
+      ...[...text.matchAll(/[“"']([^“”"']{6,70})[”"']/g)].map((m) => m[1]!),
+      ...[...text.matchAll(/\b(?:How about|I like|What about|Maybe)[,:]?\s+([^.?!]{6,70})[.?!]/gi)].map((m) => m[1]!),
+    ].map((t) => t.trim());
+    const answer = String(q.choices?.[(q.correct_answer ?? 1) - 1] ?? "").replace(/^(?:How about|What about)[,:]?\s+/i, "");
+    if (answer && proposals.some((s) => words(answer) >= words(s))) {
+      out.push("shorter_but_longer|더 짧은 것을 묻는데 정답이 앞에서 나온 문구보다 길다. 정답을 실제로 더 짧게 써라.");
+    }
+  }
+
+  return out;
+}
+
+export interface ScriptAuditResult {
+  problems: string[];
+  skipped: boolean;
+}
+
+const SYSTEM = `너는 한국 중·고등학교 영어 듣기 문항의 대본을 읽고 앞뒤가 맞는지 보는 사람이다.
+정답이 맞는지는 보지 않는다. 대본 안의 사실이 서로 어긋나는지, 현실적으로 말이 되는지만 본다.
+없는 흠을 만들지 않는다. 확실한 것만 적는다. 반드시 JSON만 답한다.`;
+
+/**
+ * 대본의 앞뒤 사실을 한 번 본다. 규칙으로 잡히지 않는 흠(물건과 부속, 가진 것과 해결책,
+ * 거리·시각 계산, 지시문과 대본의 어긋남)을 잡는다. 호출이 실패하면 건너뛴다.
+ */
+export async function auditScript(
+  apiKey: string,
+  q: GeneratedListeningQuestion
+): Promise<ScriptAuditResult> {
+  const text = scriptOf(q);
+  if (!text || text.length < 40) return { problems: [], skipped: true };
+  const choices = Array.isArray(q.choices) ? q.choices.map((c) => String(c)) : [];
+  try {
+    const raw = await listeningChatJson<Record<string, unknown>>(apiKey, {
+      temperature: 0.1,
+      system: SYSTEM,
+      user: `지시문: ${q.instruction ?? ""}
+대본:
+${text}
+선택지:
+${choices.map((c, i) => `${i + 1}) ${c}`).join("\n")}
+정답: ${q.correct_answer}번
+
+아래 다섯 가지만 본다. 해당 없으면 빈 배열.
+1. 사물·상황이 안 맞음: 주문·구매한 물건에 그 부속이 실제로 딸려 있는지(그 물건에 없는 부품이 왔다고 하면 흠), 그 장소에서 할 수 없는 일을 하는지.
+2. 가진 것과 해결책이 모순: 현금이 없다는데 지폐를 바꿔 준다, 시간이 없다는데 더 오래 걸리는 방법을 받아들인다.
+3. 숫자·시각·거리 계산이 안 맞음: 걸리는 시간과 약속 시각이 어긋난다, 앞에서 거절한 값이 결론이 된다.
+4. 사람 관계·이름이 흔들림: 같은 사람을 다르게 부른다, 말하는 사람이 바뀐다.
+5. 지시문이 묻는 것을 대본이 다루지 않는다.
+
+먼저 대본에 나온 사물·사람·숫자·시각을 머릿속으로 적어 보고, 그중 서로 부딪히는 것만 고른다.
+
+{"problems":["한국어 한 문장으로 무엇이 어긋나는지"]}`,
+    });
+    const list = Array.isArray(raw.problems) ? raw.problems : [];
+    const problems = list
+      .map((p) => String(p ?? "").replace(/\s+/g, " ").trim())
+      .filter((p) => p.length >= 8)
+      .slice(0, 3)
+      .map((p) => `script_fact|${p}`);
+    return { problems, skipped: false };
+  } catch {
+    return { problems: [], skipped: true };
+  }
+}

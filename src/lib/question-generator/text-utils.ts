@@ -254,6 +254,46 @@ export function countEnglishWords(text: string): number {
  * 복사·붙여넣기 시 생긴 어색한 줄바꿈을 풀어 A4 폭에 맞게 자연스럽게 흐르게 함.
  * 빈 줄(문단)만 유지하고, 한 줄 개행은 공백으로 합침.
  */
+/** 한 글자를 어느 쪽에 붙일지 정할 때 쓰는 흔한 영어 낱말(앞 낱말이 이미 낱말이면 뒤쪽에 붙인다). */
+const COMMON_WORDS = new Set([
+  "the","and","that","have","for","not","with","you","this","but","his","from","they","say","her","she",
+  "will","one","all","would","there","their","what","out","about","who","get","which","when","make","can",
+  "like","time","just","him","know","take","people","into","year","your","good","some","could","them","see",
+  "other","than","then","now","look","only","come","its","over","also","back","after","use","two","how",
+  "our","work","first","well","way","even","new","want","because","any","these","give","day","most","us",
+  "are","was","were","has","had","been","being","did","does","done","made","said","each","many","much",
+  "more","such","very","own","same","those","while","before","between","under","above","again","still",
+  "as","at","by","in","is","it","of","on","or","to","up","we","he","do","so","if","no","my","me","be","an",
+]);
+
+/**
+ * 낱말 가운데가 띄어져 들어온 지문을 붙인다("as t he eastern" → "as the eastern", "th e" → "the").
+ * 붙여 넣은 원문(PDF 복사 등)에 이런 깨짐이 섞여 시험지에 그대로 찍혔다(선생님 지적 2026-09-18).
+ * 혼자 쓰이는 낱말은 a·I·A·O뿐이므로 그 밖의 한 글자만 손본다. 앞 낱말이 이미 온전한 낱말이면
+ * (as t he) 뒤쪽에, 아니면(th e) 앞쪽에 붙인다.
+ */
+export function joinBrokenWords(line: string): string {
+  const tokens = line.split(" ");
+  const out: string[] = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i]!;
+    const lone = /^[B-HJ-Zb-hj-z]$/.test(t);
+    const prev = out[out.length - 1];
+    const next = tokens[i + 1];
+    const wordish = (w: string | undefined) => Boolean(w && /^[A-Za-z]{2,}$/.test(w));
+    if (!lone || (!wordish(prev) && !wordish(next))) {
+      out.push(t);
+      continue;
+    }
+    const prevIsWord = wordish(prev) && COMMON_WORDS.has(prev!.toLowerCase());
+    if (wordish(next) && (prevIsWord || !wordish(prev))) {
+      tokens[i + 1] = t + next;
+      continue;
+    }
+    out[out.length - 1] = prev + t;
+  }
+  return out.join(" ");
+}
 export function reflowPassageForPrint(text: string): string[] {
   const raw = (text || "").replace(/\r\n/g, "\n").trim();
   if (!raw) return [];
@@ -268,5 +308,6 @@ export function reflowPassageForPrint(text: string): string[] {
         .replace(/\s+/g, " ")
         .trim()
     )
+    .map(joinBrokenWords)
     .filter(Boolean);
 }
