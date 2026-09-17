@@ -585,7 +585,9 @@ export function AnalysisReportWorkbench({
      * (이어 붙는 설명 묶음이 여백을 한 번 더 쓴다) 그만큼 여유를 두고 잰다.
      * 여유를 줄이면 쪽이 넘쳐 한 줄이 새고 거의 빈 쪽이 생긴다 — 실제로 확인했다.
      */
-    const bodyMm = 297 - A4_PAD_MM - PRINT_FOOTER_MM - 7;
+    // 모양 A·B·C는 글꼴이 달라 잰 높이와 찍히는 높이가 조금 더 벌어진다. 마지막 줄이 로고에
+    // 겹쳐 나온 일이 있어(선생님 지적 2026-09-18) 여유를 7mm에서 11mm로 넓혔다.
+    const bodyMm = 297 - A4_PAD_MM - PRINT_FOOTER_MM - 11;
     const pageBodyPx = bodyMm * pxPerMm;
     // 쪽에 찍을 때 묶음 사이 여백(space-y-1). 넉넉히 잡으면 묶음 하나가 통째로 밀린다.
     const gapPx = 4;

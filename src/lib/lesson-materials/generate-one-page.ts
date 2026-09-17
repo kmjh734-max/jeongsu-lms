@@ -897,6 +897,83 @@ async function requestContent(
  * 검수에서 버려져 어법 포인트·낱말이 모자랄 때, 이미 쓴 것과 버린 것을 빼고 더 뽑아 검수까지 마친다.
  * 만드는 호출 전체를 다시 하지 않아 값이 덜 든다.
  */
+/**
+ * 어법 포인트가 정말 시험에 나올 자리인지 매긴다(선생님 지적 2026-09-18: 요약자료 어법이
+ * 너무 쉽거나 말이 안 되는 것이 섞인다 — 워크북 어법 선택처럼 골라 달라).
+ * 워크북 어법 선택 엔진이 쓰는 잣대와 같은 것을 묻는다: 두 형태 중 하나만 맞는가, 문법을
+ * 묻는가(낱말 뜻이 아니라), 고등 내신·모의고사에 실제로 나오는 자리인가, 너무 뻔하지 않은가.
+ * 한 번만 부르고, 실패하면 있는 대로 쓴다(자료가 안 나오는 것보다 낫다).
+ */
+async function rateGrammarPoints(input: {
+  apiKey: string;
+  sentences: string[];
+  points: OnePageGrammarPoint[];
+  signal: AbortSignal;
+  usage: Usage;
+  notes: string[];
+}): Promise<Array<OnePageGrammarPoint & { examScore?: number }>> {
+  const { points } = input;
+  if (points.length <= 1) return points;
+  const list = points
+    .map((g, i) => {
+      const sentence = input.sentences[g.sentenceIndex] ?? "";
+      return `${i + 1}) [${g.code}] 밑줄: ${g.target}\n   정답: ${g.right} / 오답: ${g.wrong}\n   문장: ${sentence}`;
+    })
+    .join("\n");
+  try {
+    const res = await requestContent(
+      input.apiKey,
+      `아래는 한 지문에서 뽑은 어법 선택 후보다. 각각 고등학교 내신·모의고사 어법 문항으로 낼 만한지 매겨라.\n\n${list}\n\n각 후보에 대해:\n- no: 후보 번호\n- score: 0~5. 5는 실제 시험에 그대로 나올 만한 자리, 3은 낼 수는 있는 자리, 1 이하는 내면 안 되는 자리.\n- drop: true면 싣지 않는다.\n다음이면 drop으로 한다: 두 형태가 다 맞는 자리, 오답이 영어에 아예 없는 꼴이라 고를 거리가 안 되는 자리,\n낱말 뜻·연어를 묻는 자리, 중학생도 바로 아는 뻔한 자리(주어 바로 뒤 be동사, 인칭대명사 수일치 등),\n설명과 실제로 묻는 것이 다른 자리.`,
+      input.signal,
+      {
+        system: "너는 한국 고등학교 내신 영어 출제 검수자다. 정해진 JSON으로만 답한다.",
+        schemaName: "one_page_grammar_rating",
+        effort: "low",
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          required: ["items"],
+          properties: {
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["no", "score", "drop"],
+                properties: {
+                  no: { type: "integer" },
+                  score: { type: "integer" },
+                  drop: { type: "boolean" },
+                },
+              },
+            },
+          },
+        },
+      }
+    );
+    input.usage.inputTokens += res.usage.inputTokens;
+    input.usage.outputTokens += res.usage.outputTokens;
+    const parsed = parseJsonSafe<{ items?: Array<{ no?: number; score?: number; drop?: boolean }> }>(res.text);
+    const byNo = new Map<number, { score: number; drop: boolean }>();
+    for (const it of parsed?.items ?? []) {
+      const no = Math.floor(Number(it?.no));
+      if (!(no >= 1 && no <= points.length)) continue;
+      byNo.set(no, { score: Math.max(0, Math.min(5, Math.floor(Number(it?.score) || 0))), drop: it?.drop === true });
+    }
+    if (byNo.size === 0) return points;
+    const kept = points
+      .map((g, i) => ({ ...g, examScore: byNo.get(i + 1)?.score ?? 3, drop: byNo.get(i + 1)?.drop === true }))
+      .filter((g) => !g.drop || points.length <= 2);
+    const dropped = points.length - kept.length;
+    if (dropped > 0) input.notes.push(`어법 ${dropped}개 제외(시험에 낼 자리가 아님)`);
+    // 남은 것이 너무 적으면 버린 것 중 점수가 높은 것부터 되살린다.
+    if (kept.length < 2) return points.map((g, i) => ({ ...g, examScore: byNo.get(i + 1)?.score ?? 3 }));
+    return kept.map(({ drop: _drop, ...g }) => g);
+  } catch {
+    return points;
+  }
+}
+
 async function refillMaterial(input: {
   apiKey: string;
   baseUser: string;
@@ -1405,9 +1482,11 @@ export async function generateOnePageContent(input: {
      * 10개에서 18개로 늘리면서 이 일이 더 자주 생겼다. 그래서 교재가 자주 묻는
      * 어법부터 고른다.
      */
-    const spread = <T extends { code?: string }>(list: T[], max: number) => {
+    const spread = <T extends { code?: string; examScore?: number }>(list: T[], max: number) => {
       const freqOf = (x: T) => onePageGrammarRule(String(x.code ?? ""))?.freq ?? 0;
-      const ranked = [...list].sort((a, b) => freqOf(b) - freqOf(a));
+      // 시험에 나올 자리인지 매긴 점수가 먼저, 같으면 교재가 자주 묻는 어법 순서.
+      const scoreOf = (x: T) => (typeof x.examScore === "number" ? x.examScore : 3);
+      const ranked = [...list].sort((a, b) => scoreOf(b) - scoreOf(a) || freqOf(b) - freqOf(a));
       const first = ranked.filter((x, i) => ranked.findIndex((y) => y.code === x.code) === i);
       return [...first, ...ranked.filter((x) => !first.includes(x))].slice(0, max);
     };
@@ -1416,7 +1495,15 @@ export async function generateOnePageContent(input: {
     const taken = new Set(verifiedGrammar.map((g) => `${g.sentenceIndex}|${g.target.toLowerCase()}`));
     const addGrammar = spare.grammar.filter((g) => !taken.has(`${g.sentenceIndex}|${g.target.toLowerCase()}`));
     if (addGrammar.length) notes.push(`어법 ${addGrammar.length}개 더 뽑음`);
-    let grammar = spread([...verifiedGrammar, ...addGrammar], MAX_GRAMMAR);
+    const gradedGrammar = await rateGrammarPoints({
+      apiKey,
+      sentences,
+      points: [...verifiedGrammar, ...addGrammar],
+      signal: controller.signal,
+      usage,
+      notes,
+    });
+    let grammar = spread(gradedGrammar, MAX_GRAMMAR);
     let vocab = vocabDone.vocab.slice(0, MAX_VOCAB);
 
     /**

@@ -22,10 +22,18 @@ const REPLY_OPENERS = [
   "well,", "exactly,", "of course,", "i see,", "true,", "good idea,",
 ];
 
-function scriptOf(q: GeneratedListeningQuestion): string {
+/** 검사에 넘길 대본. 누가 한 말인지 표시해야 모델이 화자를 헷갈리지 않는다(실측: 두 문항이 그래서 잘못 걸렸다). */
+function scriptOf(q: GeneratedListeningQuestion, withSpeakers = true): string {
   const segs = Array.isArray(q.segments) ? q.segments : [];
-  const joined = segs.map((s) => String(s?.text ?? "")).join(" ");
-  return (joined.trim() || String(q.script_text ?? "")).replace(/\s+/g, " ").trim();
+  const joined = segs
+    .map((s) => {
+      const who = String((s as { speaker?: string; speaker_type?: string })?.speaker ?? (s as { speaker_type?: string })?.speaker_type ?? "").trim();
+      const text = String(s?.text ?? "").trim();
+      return who && text && withSpeakers ? `${who}: ${text}` : text;
+    })
+    .filter(Boolean)
+    .join("\n");
+  return (joined.trim() || String(q.script_text ?? "")).replace(/[ \t]+/g, " ").trim();
 }
 
 /** 대본에 나오는 사람 이름(호격·주어). 흔한 문장 첫 낱말은 뺀다. */
@@ -46,7 +54,8 @@ function namesIn(text: string): string[] {
 
 /** 규칙만으로 잡히는 흠. 모델을 부르지 않는다. */
 export function scriptRuleProblems(q: GeneratedListeningQuestion): string[] {
-  const text = scriptOf(q);
+  // 규칙은 화자 표시가 없는 대본으로 본다(담화 첫 문장 검사가 "M:"에 걸리지 않게).
+  const text = scriptOf(q, false);
   if (!text) return [];
   const out: string[] = [];
   const segs = Array.isArray(q.segments) ? q.segments : [];
