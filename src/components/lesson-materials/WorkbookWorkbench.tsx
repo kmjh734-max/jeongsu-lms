@@ -65,6 +65,37 @@ import {
   buildVocabFixSections,
 } from "@/lib/lesson-materials/grammar-fix";
 import { circledNumber } from "@/lib/lesson-materials/grammar-choice-constants";
+import "./workbook-print-styles.css";
+
+/*
+ * 워크북 모양. 분석지·변형문제와 같은 시안 셋(A 교재 세리프 · B 깔끔한 산세리프 · C 클래식 인쇄)
+ * 가운데 하나를 고른다(기본은 A). 문항 구성·크기는 같고 글꼴·색·선만 바꾼다 —
+ * workbook-print-styles.css의 .wb-style-*.
+ */
+type WorkbookDesignStyle = "a" | "b" | "c";
+const DESIGN_STYLE_KEY = "workbook-print-design-style";
+const DESIGN_STYLES: Array<{ id: WorkbookDesignStyle; label: string; hint: string }> = [
+  { id: "a", label: "A", hint: "교재 세리프" },
+  { id: "b", label: "B", hint: "깔끔한 산세리프" },
+  { id: "c", label: "C", hint: "클래식 인쇄" },
+];
+/** A·B·C가 쓰는 글꼴. */
+const DESIGN_FONTS_HREF =
+  "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,500&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=Gowun+Batang:wght@400;700&display=swap";
+
+function designClass(style: WorkbookDesignStyle): string {
+  return `wb-style wb-style-${style}`;
+}
+
+/** "3. 어법 선택" 같은 제목의 번호. 모양마다 번호만 따로 꾸민다(점은 모양에 따라 감춘다). */
+function TitleNo({ no }: { no: ReactNode }) {
+  return (
+    <span className="wb-title-no">
+      {no}
+      <span className="wb-title-dot">.</span>
+    </span>
+  );
+}
 
 /**
  * 동시에 띄우는 어법 선택 지문 요청 수. 지문 하나가 요청 하나라 함수 실행시간
@@ -198,6 +229,46 @@ function WindowFlow({
   );
 }
 
+/**
+ * 쪽 머리글(워크북 제목 · 선 · 유형 제목). 쪽과 쪽 나눔 측정 영역이 같은 모양을 쓴다.
+ * 유형 제목이 "3. 어법 선택"꼴이면 번호를 따로 감싸 모양마다 꾸민다(글자는 그대로).
+ */
+function SheetHeader({
+  workbookTitle,
+  typeTitle,
+  suffix,
+  measure,
+}: {
+  workbookTitle: string;
+  typeTitle?: string;
+  suffix?: string;
+  measure?: boolean;
+}) {
+  const m = typeTitle ? /^(\d+)\.\s+([\s\S]*)$/.exec(typeTitle) : null;
+  return (
+    <header
+      className="wb-sheet-header mb-4"
+      data-wb-block={measure ? undefined : "sheet-header"}
+      data-wb-measure={measure ? "sheet-header" : undefined}
+    >
+      <p className="wb-sheet-title text-[13px] font-bold text-slate-800">{workbookTitle}</p>
+      <div className="wb-sheet-rule mt-1.5 h-px w-full" style={{ backgroundColor: ACCENT }} />
+      {typeTitle ? (
+        <h2 className="wb-type-title mt-4 text-[18px] font-black tracking-tight" style={{ color: ACCENT }}>
+          {m ? (
+            <>
+              <TitleNo no={m[1]} /> {m[2]}
+            </>
+          ) : (
+            typeTitle
+          )}
+          {suffix}
+        </h2>
+      ) : null}
+    </header>
+  );
+}
+
 function PageShell({
   children,
   pageNo,
@@ -254,19 +325,13 @@ function PageShell({
         boxSizing: "border-box",
       }}
     >
-      <header className="mb-4" data-wb-block="sheet-header">
-        <p className="text-[13px] font-bold text-slate-800">{workbookTitle}</p>
-        <div className="mt-1.5 h-px w-full" style={{ backgroundColor: ACCENT }} />
-        {showTypeTitle && typeTitle ? (
-          <h2
-            className="mt-4 text-[18px] font-black tracking-tight"
-            style={{ color: ACCENT }}
-          >
-            {typeTitle}
-            {win && windowIndex > 0 && !typeTitle.endsWith("(계속)") ? " (계속)" : ""}
-          </h2>
-        ) : null}
-      </header>
+      <SheetHeader
+        workbookTitle={workbookTitle}
+        typeTitle={showTypeTitle && typeTitle ? typeTitle : undefined}
+        suffix={
+          win && windowIndex > 0 && typeTitle && !typeTitle.endsWith("(계속)") ? " (계속)" : ""
+        }
+      />
       {win ? (
         <div
           className="workbook-a4-body overflow-hidden"
@@ -291,7 +356,7 @@ function PageShell({
           {children}
         </div>
       )}
-      <p className="pointer-events-none absolute bottom-[8mm] left-0 right-0 text-center text-[12px] text-slate-500">
+      <p className="wb-page-no pointer-events-none absolute bottom-[8mm] left-0 right-0 text-center text-[12px] text-slate-500">
         - {pageNo} -
       </p>
       <span className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
@@ -347,10 +412,10 @@ function BlankQuestionBody({
       <div className="space-y-4">
         {section.sentences.map((s) => (
           <div key={s.id} className="break-inside-avoid">
-            <p className="text-[13px] leading-relaxed text-slate-900">
+            <p className="wb-en text-[13px] leading-relaxed text-slate-900">
               {renderTokens(s.tokens)}
             </p>
-            <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+            <p className="wb-ko mt-1 text-[12px] leading-relaxed text-slate-500">
               {s.korean || "—"}
             </p>
           </div>
@@ -369,12 +434,12 @@ function BlankQuestionBody({
       </p>
       <div>
         <p
-          className="mb-2 text-[14px] font-black"
+          className="wb-sub-label mb-2 text-[14px] font-black"
           style={{ color: ACCENT }}
         >
           [해석]
         </p>
-        <p className="workbook-passage text-[13px] leading-relaxed text-slate-700">
+        <p className="workbook-passage wb-ko text-[13px] leading-relaxed text-slate-700">
           {section.fullKorean || "—"}
         </p>
         {section.translationWarning ? (
@@ -397,9 +462,9 @@ function BlankAnswerBody({ section }: { section: WorkbookBlankSection }) {
         return (
           <li
             key={a.number}
-            className="break-inside-avoid text-[10.5px] leading-snug text-slate-800"
+            className="wb-ak-item break-inside-avoid text-[10.5px] leading-snug text-slate-800"
           >
-            <span className="font-bold">{a.number}.</span> {a.answerText}
+            <span className="wb-ak-no font-bold">{a.number}.</span> {a.answerText}
             {showLemma ? (
               <span className="text-slate-500"> ({a.lemma})</span>
             ) : null}
@@ -420,7 +485,7 @@ function TfQuestionBody({
   return (
     <>
       {multi ? (
-        <p className="mb-2 text-[12px] font-semibold text-slate-500">
+        <p className="wb-passage-meta mb-2 text-[12px] font-semibold text-slate-500">
           {section.title}
           {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
         </p>
@@ -428,14 +493,14 @@ function TfQuestionBody({
       <p className="workbook-passage text-[13px] leading-relaxed text-slate-900">
         {formatWorkbookPassage(section.passage)}
       </p>
-      <div className="my-4 h-px w-full bg-slate-200" />
+      <div className="wb-divider my-4 h-px w-full bg-slate-200" />
       <ol className="space-y-3">
         {section.items.map((it) => (
           <li
             key={it.index}
-            className="break-inside-avoid text-[13px] leading-relaxed text-slate-900"
+            className="wb-tf-item break-inside-avoid text-[13px] leading-relaxed text-slate-900"
           >
-            <span className="font-semibold">({it.index})</span> {it.statement}{" "}
+            <span className="wb-tf-no font-semibold">({it.index})</span> {it.statement}{" "}
             <span
               className="workbook-tf-mark ml-1 font-bold text-slate-500"
               style={{
@@ -465,11 +530,16 @@ function TfAnswerBody({
   return (
     <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
-        {typeOrder}. T/F 문제
+        <TitleNo no={typeOrder} /> T/F 문제
         {multi ? ` · ${section.title}` : ""}
       </h3>
-      <p className="text-[10.5px] font-semibold text-slate-800">
-        {section.items.map((it) => `(${it.index}) ${it.answer}`).join("  ")}
+      <p className="wb-ak-text text-[10.5px] font-semibold text-slate-800">
+        {section.items.map((it, i) => (
+          <span key={it.index}>
+            {i > 0 ? "  " : ""}
+            <span className="wb-ak-no">({it.index})</span> {it.answer}
+          </span>
+        ))}
       </p>
     </>
   );
@@ -488,17 +558,17 @@ function GrammarChoiceQuestionBody({
   return (
     <>
       {multi ? (
-        <p className="mb-2 text-[12px] font-semibold text-slate-500">
+        <p className="wb-passage-meta mb-2 text-[12px] font-semibold text-slate-500">
           {section.title}
           {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
         </p>
       ) : (
         <>
-          <p className="mb-1 text-[12px] font-semibold text-slate-500">
+          <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
             {section.title}
           </p>
           {section.source?.trim() ? (
-            <p className="mb-3 text-[12px] font-semibold text-slate-500">
+            <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
               · {section.source.trim()}
             </p>
           ) : (
@@ -506,7 +576,7 @@ function GrammarChoiceQuestionBody({
           )}
         </>
       )}
-      <p className="mb-4 text-[13px] font-semibold text-slate-800">{instruction}</p>
+      <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">{instruction}</p>
       <p className="grammar-passage text-[13px] text-slate-900">
         {section.segments.map((seg, i) =>
           seg.type === "text" ? (
@@ -516,7 +586,12 @@ function GrammarChoiceQuestionBody({
               key={`gcc-${seg.number}-${i}`}
               className="grammar-choice"
             >
-              {circledNumber(seg.number)}[{seg.leftText} / {seg.rightText}]
+              <span className="grammar-choice-num">{circledNumber(seg.number)}</span>
+              <span className="grammar-choice-br">[</span>
+              {seg.leftText}
+              <span className="grammar-choice-or"> / </span>
+              {seg.rightText}
+              <span className="grammar-choice-br">]</span>
             </span>
           )
         )}
@@ -537,17 +612,17 @@ function GrammarChoiceAnswerBody({
   return (
     <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
-        {typeOrder}. 어법 선택
+        <TitleNo no={typeOrder} /> 어법 선택
         {multi ? ` · ${section.title}` : ""}
       </h3>
       <ol className="grid grid-cols-3 gap-x-4 gap-y-0.5">
         {section.items.map((it) => (
           <li
             key={it.choiceId}
-            className="break-inside-avoid text-[10.5px] leading-snug text-slate-800"
+            className="wb-ak-item break-inside-avoid text-[10.5px] leading-snug text-slate-800"
           >
             <span className="font-bold">
-              {circledNumber(it.number)} {it.correctText}
+              <span className="wb-ak-no">{circledNumber(it.number)}</span> {it.correctText}
             </span>
             {it.labelHidden ? null : (
               <span className="ml-1 text-[9.5px] font-semibold text-slate-500">
@@ -640,17 +715,17 @@ function VocabChoiceAnswerBody({
   return (
     <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
-        {typeOrder}. 어휘 선택
+        <TitleNo no={typeOrder} /> 어휘 선택
         {multi ? ` · ${section.title}` : ""}
       </h3>
       <ol className="grid grid-cols-4 gap-x-4 gap-y-0.5">
         {section.items.map((it) => (
           <li
             key={it.choiceId}
-            className="break-inside-avoid text-[10.5px] leading-snug text-slate-800"
+            className="wb-ak-item break-inside-avoid text-[10.5px] leading-snug text-slate-800"
           >
             <span className="font-bold">
-              {circledNumber(it.number)} {it.correctText}
+              <span className="wb-ak-no">{circledNumber(it.number)}</span> {it.correctText}
             </span>
           </li>
         ))}
@@ -673,15 +748,15 @@ function GrammarFixQuestionBody({
   return (
     <>
       {multi ? (
-        <p className="mb-2 text-[12px] font-semibold text-slate-500">
+        <p className="wb-passage-meta mb-2 text-[12px] font-semibold text-slate-500">
           {section.title}
           {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
         </p>
       ) : (
         <>
-          <p className="mb-1 text-[12px] font-semibold text-slate-500">{section.title}</p>
+          <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">{section.title}</p>
           {section.source?.trim() ? (
-            <p className="mb-3 text-[12px] font-semibold text-slate-500">
+            <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
               · {section.source.trim()}
             </p>
           ) : (
@@ -689,7 +764,7 @@ function GrammarFixQuestionBody({
           )}
         </>
       )}
-      <p className="mb-4 text-[13px] font-semibold text-slate-800">
+      <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
         {kind === "vocab"
           ? section.mode === "underline"
             ? `밑줄 친 낱말 중 문맥상 쓰임이 적절하지 않은 것 ${errors}개를 찾아 바르게 고치세요.`
@@ -744,16 +819,16 @@ function GrammarFixAnswerBody({
   return (
     <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
-        {typeOrder}. {label}
+        <TitleNo no={typeOrder} /> {label}
         {multi ? ` · ${section.title}` : ""}
       </h3>
       <ol className="grid grid-cols-3 gap-x-4 gap-y-0.5">
         {section.answers.map((a, i) => (
           <li
             key={`gfk-${i}`}
-            className="break-inside-avoid text-[10.5px] leading-snug text-slate-800"
+            className="wb-ak-item break-inside-avoid text-[10.5px] leading-snug text-slate-800"
           >
-            <span className="font-bold">
+            <span className="wb-ak-no font-bold">
               {a.number != null ? `${circledNumber(a.number)} ` : `${i + 1}) `}
             </span>
             {a.wrongText} → <span className="font-bold">{a.correctText}</span>
@@ -788,18 +863,18 @@ function SentenceOrderQuestionBody({
   return (
     <>
       {showPassageMeta ? (
-        <p className="mb-2 text-[12px] font-semibold text-slate-500">
+        <p className="wb-passage-meta mb-2 text-[12px] font-semibold text-slate-500">
           {question.title}
           {question.source?.trim() ? ` · ${question.source.trim()}` : ""}
         </p>
       ) : null}
-      <p className="mb-4 text-[13px] font-semibold text-slate-800">
+      <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
         다음 문장들을 글의 흐름에 맞게 배열하세요.
       </p>
       {question.pinFirstSentence && question.givenSentence ? (
         <div className="mb-4 break-inside-avoid">
-          <p className="mb-1 text-[12px] font-bold text-slate-600">주어진 문장</p>
-          <p className="text-[13px] leading-relaxed text-slate-900">
+          <p className="wb-passage-meta mb-1 text-[12px] font-bold text-slate-600">주어진 문장</p>
+          <p className="wb-en text-[13px] leading-relaxed text-slate-900">
             {question.givenSentence.englishDisplay}
           </p>
         </div>
@@ -821,7 +896,7 @@ function SentenceOrderQuestionBody({
         ))}
       </ol>
       <div className="mt-6 break-inside-avoid">
-        <p className="mb-3 text-[13px] font-bold text-slate-800">정답 순서:</p>
+        <p className="wb-instruction mb-3 text-[13px] font-bold text-slate-800">정답 순서:</p>
         <div className="sentence-order-answer-row flex flex-wrap items-center gap-y-2">
           {Array.from({ length: answerBoxCount }, (_, i) => (
             <span
@@ -858,8 +933,8 @@ function SentenceOrderAnswerBody({
       : `${typeOrder}`;
   return (
     <div className="break-inside-avoid">
-      <p className="text-[10.5px] font-semibold text-slate-800">
-        <span className="font-black" style={{ color: ACCENT }}>
+      <p className="wb-ak-text text-[10.5px] font-semibold text-slate-800">
+        <span className="wb-ak-no font-black" style={{ color: ACCENT }}>
           {heading}.
         </span>{" "}
         {formatAnswerOrderSequence(question.answerOrderNumbers)}
@@ -884,19 +959,19 @@ function LineTranslationQuestionBody({
 
   return (
     <>
-      <p className="mb-1 text-[12px] font-semibold text-slate-500">
+      <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
         {section.title}
         {continued ? " (계속)" : ""}
       </p>
       {section.source?.trim() ? (
-        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+        <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
           · {section.source.trim()}
         </p>
       ) : (
         <div className="mb-3" />
       )}
       {!continued ? (
-        <p className="mb-4 text-[13px] font-semibold text-slate-800">
+        <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
           다음 영어 문장을 우리말로 해석하세요.
         </p>
       ) : null}
@@ -937,7 +1012,7 @@ function AnswerContinued({
   title: string;
 }) {
   return (
-    <p className="mb-2 text-[12px] font-semibold text-slate-500">
+    <p className="wb-ak-cont mb-2 text-[12px] font-semibold text-slate-500">
       {typeOrder}. {label} · {title} (계속)
     </p>
   );
@@ -967,18 +1042,18 @@ function LineTranslationAnswerBody({
       {showHeader ? (
       <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
-        {typeOrder}. 한줄해석
+        <TitleNo no={typeOrder} /> 한줄해석
         {multi ? ` · ${section.title}` : ""}
       </h3>
       {!multi ? (
         <>
-          <p className="text-[10px] font-semibold text-slate-500">
+          <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
             {section.title}
             {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
           </p>
         </>
       ) : section.source?.trim() ? (
-        <p className="text-[10px] font-semibold text-slate-500">
+        <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
           · {section.source.trim()}
         </p>
       ) : null}
@@ -992,7 +1067,7 @@ function LineTranslationAnswerBody({
             style={{ pageBreakInside: "avoid" }}
           >
             <p className="line-translation-answer-key-korean">
-              <span className="font-bold text-slate-700">{it.orderIndex}.</span> {it.korean}
+              <span className="wb-ak-no font-bold text-slate-700">{it.orderIndex}.</span> {it.korean}
             </p>
           </div>
         ))}
@@ -1017,19 +1092,19 @@ function FullEnWritingQuestionBody({
 
   return (
     <>
-      <p className="mb-1 text-[12px] font-semibold text-slate-500">
+      <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
         {section.title}
         {continued ? " (계속)" : ""}
       </p>
       {section.source?.trim() ? (
-        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+        <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
           · {section.source.trim()}
         </p>
       ) : (
         <div className="mb-3" />
       )}
       {!continued ? (
-        <p className="mb-4 text-[13px] font-semibold text-slate-800">
+        <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
           다음 우리말 뜻에 맞도록 영어 문장 전체를 쓰세요.
         </p>
       ) : null}
@@ -1083,18 +1158,18 @@ function FullEnWritingAnswerBody({
       {showHeader ? (
       <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
-        {typeOrder}. 통문장 영작
+        <TitleNo no={typeOrder} /> 통문장 영작
         {multi ? ` · ${section.title}` : ""}
       </h3>
       {!multi ? (
         <>
-          <p className="text-[10px] font-semibold text-slate-500">
+          <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
             {section.title}
             {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
           </p>
         </>
       ) : section.source?.trim() ? (
-        <p className="text-[10px] font-semibold text-slate-500">
+        <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
           · {section.source.trim()}
         </p>
       ) : null}
@@ -1108,7 +1183,7 @@ function FullEnWritingAnswerBody({
             style={{ pageBreakInside: "avoid" }}
           >
             <p className="full-writing-answer-key-english">
-              <span className="font-bold text-slate-700">{it.orderIndex}.</span> {it.englishDisplay}
+              <span className="wb-ak-no font-bold text-slate-700">{it.orderIndex}.</span> {it.englishDisplay}
             </p>
           </div>
         ))}
@@ -1210,18 +1285,18 @@ function WordOrderAnswerBody({
       {showHeader ? (
       <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
-        {typeOrder}. 어순배열 영작
+        <TitleNo no={typeOrder} /> 어순배열 영작
         {multi ? ` · ${section.title}` : ""}
       </h3>
       {!multi ? (
         <>
-          <p className="text-[10px] font-semibold text-slate-500">
+          <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
             {section.title}
             {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
           </p>
         </>
       ) : section.source?.trim() ? (
-        <p className="text-[10px] font-semibold text-slate-500">
+        <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
           · {section.source.trim()}
         </p>
       ) : null}
@@ -1235,7 +1310,7 @@ function WordOrderAnswerBody({
             style={{ pageBreakInside: "avoid" }}
           >
             <p className="word-order-answer-key-english">
-              <span className="font-bold text-slate-700">{it.orderIndex}.</span> {it.originalEnglish}
+              <span className="wb-ak-no font-bold text-slate-700">{it.orderIndex}.</span> {it.originalEnglish}
             </p>
           </div>
         ))}
@@ -1384,6 +1459,44 @@ export function WorkbookWorkbench({
   }, []);
   /** 그려 보니 넘친 2단 쪽: "유형:첫 지문 번호" → 그 쪽에 실을 수 있는 지문 수. */
   const [columnLimits, setColumnLimits] = useState<Record<string, number>>({});
+  /** 워크북 모양(A·B·C). 최종통합자료에 끼워 넣을 때도 같은 저장값을 읽는다. 옛 "base"는 A로 본다. */
+  const [designStyle, setDesignStyle] = useState<WorkbookDesignStyle>("a");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(DESIGN_STYLE_KEY);
+      if (saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
+    } catch {
+      /* 저장소를 못 쓰면 A */
+    }
+  }, []);
+  const chooseDesignStyle = (style: WorkbookDesignStyle) => {
+    setDesignStyle(style);
+    try {
+      window.localStorage.setItem(DESIGN_STYLE_KEY, style);
+    } catch {
+      /* 무시 */
+    }
+  };
+  // 모양이 바뀌면 글자 폭이 달라지므로, 앞 모양에서 넘쳐 줄여 둔 2단 쪽 한도를 비우고 다시 잰다.
+  useEffect(() => {
+    setColumnLimits((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+  }, [designStyle]);
+  /*
+   * 모양 글꼴은 늦게 들어와 글자 폭이 달라진다. 쪽 나눔은 잰 높이로 하므로 글꼴이 들어온 뒤
+   * 한 번 더 잰다(안 그러면 쪽이 넘쳐 아래가 잘린다).
+   */
+  const [fontsTick, setFontsTick] = useState(0);
+  useEffect(() => {
+    if (typeof document === "undefined" || !document.fonts) return;
+    let alive = true;
+    const bump = () => alive && setFontsTick((t) => t + 1);
+    void document.fonts.ready.then(bump);
+    document.fonts.addEventListener?.("loadingdone", bump);
+    return () => {
+      alive = false;
+      document.fonts.removeEventListener?.("loadingdone", bump);
+    };
+  }, [designStyle]);
   const measureRef = useRef<HTMLDivElement>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -2535,7 +2648,7 @@ export function WorkbookWorkbench({
     if (fe.length) next.full_en = packFlow("fe", fe);
     if (wo.length) next.word_order = packFlow("wo", wo);
     setFlowPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
-  }, [workbook]);
+  }, [workbook, designStyle, fontsTick]);
 
   // 2단 유형: 단 너비로 잰 지문 높이로 쪽마다 실을 지문을 정한다(왼쪽 단 → 오른쪽 단 → 다음 쪽).
   useLayoutEffect(() => {
@@ -2585,7 +2698,7 @@ export function WorkbookWorkbench({
       next[t] = packs;
     }
     setColumnPacks((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
-  }, [workbook, columnLimits]);
+  }, [workbook, columnLimits, designStyle, fontsTick]);
 
   // 정답지: 블록(유형·지문별 정답) 높이를 재서 A4 쪽마다 나눈다. 본문 높이는 한줄해석과 같다.
   useLayoutEffect(() => {
@@ -2631,7 +2744,7 @@ export function WorkbookWorkbench({
     if (page.length) next.push(page);
     setAnswerPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
     setAnswerOversize((prev) => (prev.join("|") === oversize.join("|") ? prev : oversize));
-  }, [workbook, typeOrders, fontsReady]);
+  }, [workbook, typeOrders, fontsReady, designStyle, fontsTick]);
 
   /**
    * 한 쪽보다 긴 지문·정답 블록의 쪽 수: 측정 영역에 쪽 본문 높이로 흘려 본 단 수로 정한다
@@ -2650,7 +2763,7 @@ export function WorkbookWorkbench({
       next[el.dataset.wbProbe!] = Math.max(1, Math.ceil(cols / perPage));
     });
     setWindowCounts((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
-  }, [workbook, columnPacks, answerOversize, columnBodyMm, fontsReady]);
+  }, [workbook, columnPacks, answerOversize, columnBodyMm, fontsReady, designStyle, fontsTick]);
 
   // 그린 2단 쪽이 오른쪽 단 밖으로 넘치면(재 둔 높이와 실제가 다를 때) 그 쪽에 싣는 지문을 하나 줄인다.
   useLayoutEffect(() => {
@@ -2668,7 +2781,7 @@ export function WorkbookWorkbench({
     if (Object.keys(over).length > 0) {
       setColumnLimits((prev) => ({ ...prev, ...over }));
     }
-  }, [columnPacks, columnBodyMm, zoom]);
+  }, [columnPacks, columnBodyMm, zoom, designStyle, fontsTick]);
 
   /**
    * 미리보기 배율. transform: scale은 줄인 만큼의 높이를 그대로 남겨, 쪽이 많으면 마지막 쪽
@@ -2900,7 +3013,7 @@ export function WorkbookWorkbench({
           node: (
             <>
               <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
-                {ob}. 빈칸 채우기
+                <TitleNo no={ob} /> 빈칸 채우기
                 {workbook.blankSections.length > 1 ? ` · ${section.title}` : ""}
               </h3>
               <BlankAnswerBody section={section} />
@@ -2977,7 +3090,7 @@ export function WorkbookWorkbench({
         node: (
           <>
             <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
-              {oso}. 문장 순서 배열
+              <TitleNo no={oso} /> 문장 순서 배열
             </h3>
             <div className="grid grid-cols-4 gap-x-4 gap-y-0.5">
               {soQuestions.map((q) => (
@@ -3093,7 +3206,7 @@ export function WorkbookWorkbench({
       return (
         <>
           {workbook.blankSections.length > 1 ? (
-            <p className="mb-2 text-[12px] font-semibold text-slate-500">
+            <p className="wb-passage-meta mb-2 text-[12px] font-semibold text-slate-500">
               {section.title}
               {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
             </p>
@@ -3118,7 +3231,7 @@ export function WorkbookWorkbench({
     return (
       <>
         {sets > 1 ? (
-          <p className="mb-1 text-[13px] font-black" style={{ color: ACCENT }}>
+          <p className="wb-set-heading mb-1 text-[13px] font-black" style={{ color: ACCENT }}>
             {typeOrders.get("sentence_order") ?? 1}-{question.setIndex}
           </p>
         ) : null}
@@ -3250,10 +3363,11 @@ export function WorkbookWorkbench({
           Off-screen measure tree: packs long bilingual sections into real A4 pages.
           높이 0인 틀 안에 둔다. 틀 없이 두면 측정용 내용 높이만큼 미리보기 아래가 스크롤됐다.
         */}
+        <link rel="stylesheet" href={DESIGN_FONTS_HREF} />
         <div className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden" aria-hidden>
         <div
           ref={measureRef}
-          className="font-print -z-10 w-[210mm] opacity-0"
+          className={`font-print -z-10 w-[210mm] opacity-0 ${designClass(designStyle)}`}
           style={{
             padding: A4_PAD,
             paddingBottom: `${A4_FOOTER_MM}mm`,
@@ -3315,42 +3429,30 @@ export function WorkbookWorkbench({
           <div className="flow-root" data-wb-answer-conthead>
             <AnswerContinued typeOrder={1} label="한줄해석" title={title} />
           </div>
-          <header className="mb-4" data-wb-measure="sheet-header">
-            <p className="text-[13px] font-bold text-slate-800">{title}</p>
-            <div
-              className="mt-1.5 h-px w-full"
-              style={{ backgroundColor: ACCENT }}
-            />
-            <h2
-              className="mt-4 text-[18px] font-black tracking-tight"
-              style={{ color: ACCENT }}
-            >
-              1. 한줄해석
-            </h2>
-          </header>
+          <SheetHeader workbookTitle={title} typeTitle="1. 한줄해석" measure />
           {ltSections.map((section, si) => (
             <div key={`m-lt-${section.projectId}`}>
               <div data-wb-measure={`lt-intro-${si}`}>
-                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
                   {section.title}
                 </p>
                 {section.source?.trim() ? (
-                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
                     · {section.source.trim()}
                   </p>
                 ) : (
                   <div className="mb-3" />
                 )}
-                <p className="mb-4 text-[13px] font-semibold text-slate-800">
+                <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
                   다음 영어 문장을 우리말로 해석하세요.
                 </p>
               </div>
               <div data-wb-measure={`lt-cont-${si}`}>
-                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
                   {section.title} (계속)
                 </p>
                 {section.source?.trim() ? (
-                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
                     · {section.source.trim()}
                   </p>
                 ) : (
@@ -3386,26 +3488,26 @@ export function WorkbookWorkbench({
           {feSections.map((section, si) => (
             <div key={`m-fe-${section.projectId}`}>
               <div data-wb-measure={`fe-intro-${si}`}>
-                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
                   {section.title}
                 </p>
                 {section.source?.trim() ? (
-                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
                     · {section.source.trim()}
                   </p>
                 ) : (
                   <div className="mb-3" />
                 )}
-                <p className="mb-4 text-[13px] font-semibold text-slate-800">
+                <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
                   다음 우리말 뜻에 맞도록 영어 문장 전체를 쓰세요.
                 </p>
               </div>
               <div data-wb-measure={`fe-cont-${si}`}>
-                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
                   {section.title} (계속)
                 </p>
                 {section.source?.trim() ? (
-                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
                     · {section.source.trim()}
                   </p>
                 ) : (
@@ -3437,27 +3539,27 @@ export function WorkbookWorkbench({
           {woSections.map((section, si) => (
             <div key={`m-wo-${section.projectId}`}>
               <div data-wb-measure={`wo-intro-${si}`}>
-                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
                   {section.title}
                 </p>
                 {section.source?.trim() ? (
-                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
                     · {section.source.trim()}
                   </p>
                 ) : (
                   <div className="mb-3" />
                 )}
-                <p className="mb-4 text-[13px] font-semibold text-slate-800">
+                <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
                   우리말 뜻과 일치하도록 주어진 영어 어절을 올바르게 배열하여
                   완전한 문장을 쓰세요.
                 </p>
               </div>
               <div data-wb-measure={`wo-cont-${si}`}>
-                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
                   {section.title} (계속)
                 </p>
                 {section.source?.trim() ? (
-                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
                     · {section.source.trim()}
                   </p>
                 ) : (
@@ -3507,7 +3609,10 @@ export function WorkbookWorkbench({
   if (embeddedDocId) {
     return (
       <div className="relative">
-        <div id="workbook-print-root" className="flex flex-col gap-6 print:gap-0">
+        <div
+          id="workbook-print-root"
+          className={`flex flex-col gap-6 print:gap-0 ${designClass(designStyle)}`}
+        >
           {printPages}
         </div>
         {measureBlock}
@@ -3555,6 +3660,28 @@ export function WorkbookWorkbench({
               }
             />
           </label>
+
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-bold text-slate-500">워크북 모양</p>
+            <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
+              {DESIGN_STYLES.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  title={d.hint}
+                  onClick={() => chooseDesignStyle(d.id)}
+                  className={`rounded-md px-1 py-1.5 text-xs font-bold transition ${
+                    designStyle === d.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-slate-400">
+              {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
+            </p>
+          </div>
 
           {columnTypes.length > 0 ? (
             <div className="space-y-1.5">
@@ -3709,7 +3836,7 @@ export function WorkbookWorkbench({
         <div className="flex justify-center p-6 print:p-0">
           <div
             id="workbook-print-root"
-            className="flex origin-top flex-col gap-6 print:gap-0 print:!transform-none"
+            className={`flex origin-top flex-col gap-6 print:gap-0 print:!transform-none ${designClass(designStyle)}`}
             style={previewStyle}
           >
             {printPages}

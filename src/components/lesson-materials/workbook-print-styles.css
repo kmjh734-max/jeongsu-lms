@@ -1,0 +1,602 @@
+/* ------------------------------------------------------------------ */
+/* 워크북 · 워크북 정답지 모양 A·B·C (2026-09-18).                          */
+/* WorkbookWorkbench의 쪽 틀(#workbook-print-root)과 쪽 나눔 측정 틀(.font-print)에 */
+/* .wb-style .wb-style-x를 함께 단다. 쪽 나눔은 잰 높이로 하므로 글자 크기·줄 간격은 */
+/* 예전 그대로 두고 글꼴·색·선만 바꾼다(쪽 수가 늘지 않게).                      */
+/* 인라인 style(주황 ACCENT)을 덮는 곳에만 !important를 쓴다.                   */
+/* ------------------------------------------------------------------ */
+
+/* ── 공통 ── */
+.wb-style .wb-type-title,
+.wb-style .wb-ak-title,
+.wb-style .wb-sub-label,
+.wb-style .wb-set-heading {
+  font-weight: 700;
+}
+.wb-style .wb-page-no {
+  font-size: 11px;
+}
+.wb-style .workbook-col-section + .workbook-col-section,
+.wb-style .workbook-flow-part + .workbook-flow-part {
+  border-top-style: solid;
+}
+.wb-style .grammar-choice-num,
+.wb-style .grammar-fix-num,
+.wb-style .blank-number {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ══════════ A · 교재 세리프 ══════════ */
+.wb-style.wb-style-a .workbook-a4-sheet,
+.wb-style.wb-style-a.font-print {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  color: #16213d;
+}
+/* 영어는 세리프, 한글이 섞이면 한글만 본고딕으로 */
+.wb-style.wb-style-a .workbook-passage,
+.wb-style.wb-style-a .grammar-passage,
+.wb-style.wb-style-a .wb-en,
+.wb-style.wb-style-a .wb-tf-item,
+.wb-style.wb-style-a .sentence-order-choice-text,
+.wb-style.wb-style-a .line-translation-english,
+.wb-style.wb-style-a .word-order-bank,
+.wb-style.wb-style-a .wb-ak-item,
+.wb-style.wb-style-a .wb-ak-text,
+.wb-style.wb-style-a .full-writing-answer-key-english,
+.wb-style.wb-style-a .word-order-answer-key-english {
+  font-family: "Source Serif 4", "Noto Sans KR", Georgia, serif;
+  color: #16213d;
+}
+.wb-style.wb-style-a .wb-ko {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  color: #4b5260;
+}
+
+/* 머리글: 주황 대신 남색 굵은 글씨와 가는 선 */
+.wb-style.wb-style-a .wb-sheet-title {
+  color: #16213d;
+}
+.wb-style.wb-style-a .wb-sheet-rule {
+  background-color: #1d2b4f !important;
+  height: 1.5px;
+}
+.wb-style.wb-style-a .wb-type-title {
+  color: #16213d !important;
+}
+.wb-style.wb-style-a .wb-type-title .wb-title-no {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 600;
+  color: #9aa3b5;
+  margin-right: 2px;
+}
+.wb-style.wb-style-a .wb-title-dot {
+  display: none;
+}
+.wb-style.wb-style-a .wb-page-no {
+  color: #8b93a1;
+}
+.wb-style.wb-style-a .wb-passage-meta,
+.wb-style.wb-style-a .word-order-passage-title,
+.wb-style.wb-style-a .word-order-source {
+  color: #7a8190;
+}
+.wb-style.wb-style-a .wb-instruction,
+.wb-style.wb-style-a .word-order-instruction {
+  color: #39404c;
+  font-weight: 500;
+}
+.wb-style.wb-style-a .wb-sub-label,
+.wb-style.wb-style-a .wb-set-heading {
+  color: #b23a3a !important;
+}
+.wb-style.wb-style-a .wb-divider {
+  background-color: #dfe3ea;
+}
+.wb-style.wb-style-a .workbook-col-section + .workbook-col-section,
+.wb-style.wb-style-a .workbook-flow-part + .workbook-flow-part {
+  border-top-color: #dfe3ea;
+}
+.wb-style.wb-style-a .workbook-two-col {
+  column-rule-color: #e6e9ef;
+}
+
+/* 어법·어휘 선택: 동그라미 번호만 빨강, 괄호·빗금은 옅게 */
+.wb-style.wb-style-a .grammar-choice {
+  color: #16213d;
+  font-weight: 600;
+}
+.wb-style.wb-style-a .grammar-choice-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b23a3a;
+  margin-right: 1px;
+}
+.wb-style.wb-style-a .grammar-choice-br,
+.wb-style.wb-style-a .grammar-choice-or {
+  color: #9aa3b5;
+  font-weight: 400;
+}
+.wb-style.wb-style-a .grammar-fix-num {
+  font-size: 11px;
+  color: #b23a3a;
+}
+.wb-style.wb-style-a .grammar-fix-answer-row {
+  color: #39404c;
+}
+.wb-style.wb-style-a .grammar-fix-answer-line {
+  border-bottom-color: #c8ced8;
+}
+.wb-style.wb-style-a .grammar-fix-answer-arrow {
+  color: #9aa3b5;
+}
+
+/* 빈칸 */
+.wb-style.wb-style-a .blank-number {
+  color: #b23a3a;
+}
+.wb-style.wb-style-a .blank-line {
+  border-bottom-color: #16213d;
+}
+
+/* T/F · 문장 순서 */
+.wb-style.wb-style-a .wb-tf-no,
+.wb-style.wb-style-a .sentence-order-choice-num {
+  font-family: "Source Serif 4", Georgia, serif;
+  color: #b23a3a;
+  font-weight: 600;
+}
+.wb-style.wb-style-a .workbook-tf-mark {
+  color: #4a5470;
+}
+.wb-style.wb-style-a .sentence-order-answer-box {
+  border-color: #9aa3b5;
+  border-radius: 3px;
+}
+.wb-style.wb-style-a .sentence-order-answer-arrow {
+  color: #9aa3b5;
+}
+
+/* 한줄해석 · 통문장 영작 · 어순배열 영작 */
+.wb-style.wb-style-a .line-translation-number,
+.wb-style.wb-style-a .full-writing-number,
+.wb-style.wb-style-a .word-order-number {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 600;
+  color: #b23a3a;
+}
+.wb-style.wb-style-a .full-writing-korean,
+.wb-style.wb-style-a .word-order-korean {
+  color: #39404c;
+}
+.wb-style.wb-style-a .word-order-bank {
+  background: transparent;
+  border-color: transparent;
+  border-left: 2px solid #d9dee6;
+  border-radius: 0;
+}
+.wb-style.wb-style-a .word-order-separator {
+  color: #c9a4a4;
+}
+.wb-style.wb-style-a .translation-answer-line,
+.wb-style.wb-style-a .full-writing-answer-line,
+.wb-style.wb-style-a .word-order-answer-line {
+  border-bottom-color: #c8ced8;
+}
+
+/* 정답지 */
+.wb-style.wb-style-a .wb-ak-title {
+  color: #16213d !important;
+}
+.wb-style.wb-style-a .wb-ak-title .wb-title-no {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 600;
+  color: #b23a3a;
+  margin-right: 1px;
+}
+.wb-style.wb-style-a .wb-ak-meta,
+.wb-style.wb-style-a .wb-ak-cont {
+  color: #7a8190;
+}
+.wb-style.wb-style-a .wb-ak-no {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  color: #b23a3a !important;
+  font-weight: 500;
+}
+.wb-style.wb-style-a .line-translation-answer-key-korean {
+  color: #2f3540;
+}
+
+/* ══════════ B · 깔끔한 산세리프 ══════════ */
+.wb-style.wb-style-b .workbook-a4-sheet,
+.wb-style.wb-style-b.font-print {
+  font-family: "IBM Plex Sans KR", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  color: #1b2a41;
+}
+.wb-style.wb-style-b .workbook-passage,
+.wb-style.wb-style-b .grammar-passage,
+.wb-style.wb-style-b .wb-en,
+.wb-style.wb-style-b .wb-tf-item,
+.wb-style.wb-style-b .sentence-order-choice-text,
+.wb-style.wb-style-b .line-translation-english,
+.wb-style.wb-style-b .word-order-bank,
+.wb-style.wb-style-b .wb-ak-item,
+.wb-style.wb-style-b .wb-ak-text,
+.wb-style.wb-style-b .full-writing-answer-key-english,
+.wb-style.wb-style-b .word-order-answer-key-english,
+.wb-style.wb-style-b .line-translation-answer-key-korean {
+  color: #1b2a41;
+}
+.wb-style.wb-style-b .grammar-choice-num,
+.wb-style.wb-style-b .grammar-fix-num,
+.wb-style.wb-style-b .blank-number {
+  font-family: inherit;
+}
+.wb-style.wb-style-b .wb-ko {
+  color: #5f6b7b;
+}
+
+.wb-style.wb-style-b .wb-sheet-title {
+  color: #1b2a41;
+}
+.wb-style.wb-style-b .wb-sheet-rule {
+  background-color: #d5dce5 !important;
+}
+.wb-style.wb-style-b .wb-type-title {
+  color: #1b2a41 !important;
+}
+/* 유형 번호는 남색 네모 칩 */
+.wb-style.wb-style-b .wb-title-no {
+  display: inline-block;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 6px;
+  background: #1b2a41;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 22px;
+  text-align: center;
+  vertical-align: 2px;
+  letter-spacing: 0;
+  box-sizing: border-box;
+}
+.wb-style.wb-style-b .wb-title-dot {
+  display: none;
+}
+.wb-style.wb-style-b .wb-page-no {
+  color: #8a96a8;
+}
+.wb-style.wb-style-b .wb-passage-meta,
+.wb-style.wb-style-b .word-order-passage-title,
+.wb-style.wb-style-b .word-order-source {
+  color: #6b7686;
+}
+.wb-style.wb-style-b .wb-instruction,
+.wb-style.wb-style-b .word-order-instruction {
+  color: #3b4656;
+  font-weight: 500;
+}
+.wb-style.wb-style-b .wb-sub-label,
+.wb-style.wb-style-b .wb-set-heading {
+  color: #2c6e9e !important;
+}
+.wb-style.wb-style-b .wb-divider {
+  background-color: #e1e6ec;
+}
+.wb-style.wb-style-b .workbook-col-section + .workbook-col-section,
+.wb-style.wb-style-b .workbook-flow-part + .workbook-flow-part {
+  border-top-color: #e1e6ec;
+}
+.wb-style.wb-style-b .workbook-two-col {
+  column-rule-color: #e1e6ec;
+}
+
+/* 어법·어휘 선택: 옅은 파란 딱지, 대괄호 없이 */
+.wb-style.wb-style-b .grammar-choice {
+  color: #1b2a41;
+  font-weight: 500;
+  background: #eef3f8;
+  border-radius: 4px;
+  padding: 1px 3px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.wb-style.wb-style-b .grammar-choice-num {
+  color: #2c6e9e;
+  font-weight: 700;
+  margin-right: 2px;
+}
+.wb-style.wb-style-b .grammar-choice-br {
+  display: none;
+}
+.wb-style.wb-style-b .grammar-choice-or {
+  color: #9fb0c4;
+}
+.wb-style.wb-style-b .grammar-fix-num {
+  color: #2c6e9e;
+}
+.wb-style.wb-style-b .grammar-fix-answer-row {
+  color: #3b4656;
+}
+.wb-style.wb-style-b .grammar-fix-answer-line {
+  border-bottom-color: #cfd6df;
+}
+.wb-style.wb-style-b .grammar-fix-answer-arrow {
+  color: #aab4c2;
+}
+
+.wb-style.wb-style-b .blank-number {
+  color: #2c6e9e;
+}
+.wb-style.wb-style-b .blank-line {
+  border-bottom-color: #6f86a6;
+}
+
+.wb-style.wb-style-b .wb-tf-no,
+.wb-style.wb-style-b .sentence-order-choice-num {
+  color: #2c6e9e;
+  font-weight: 700;
+}
+.wb-style.wb-style-b .workbook-tf-mark {
+  color: #2c6e9e;
+}
+.wb-style.wb-style-b .sentence-order-answer-box {
+  border-color: #aab4c2;
+  border-radius: 7px;
+}
+.wb-style.wb-style-b .sentence-order-answer-arrow {
+  color: #aab4c2;
+}
+
+.wb-style.wb-style-b .line-translation-number,
+.wb-style.wb-style-b .full-writing-number,
+.wb-style.wb-style-b .word-order-number {
+  color: #8a96a8;
+  font-weight: 700;
+}
+.wb-style.wb-style-b .full-writing-korean,
+.wb-style.wb-style-b .word-order-korean {
+  color: #3b4656;
+}
+.wb-style.wb-style-b .word-order-bank {
+  background: #f3f6f9;
+  border-color: transparent;
+  border-radius: 8px;
+  font-weight: 500;
+}
+.wb-style.wb-style-b .word-order-separator {
+  color: #aab4c2;
+}
+.wb-style.wb-style-b .translation-answer-line,
+.wb-style.wb-style-b .full-writing-answer-line,
+.wb-style.wb-style-b .word-order-answer-line {
+  border-bottom-color: #cfd6df;
+}
+
+/* 정답지: 번호만 파란색, 유형 번호는 작은 남색 칩 */
+.wb-style.wb-style-b .wb-ak-title {
+  color: #1b2a41 !important;
+}
+.wb-style.wb-style-b .wb-ak-title .wb-title-no {
+  min-width: 15px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-size: 9px;
+  line-height: 14px;
+  vertical-align: 1px;
+  margin-right: 1px;
+}
+.wb-style.wb-style-b .wb-ak-meta,
+.wb-style.wb-style-b .wb-ak-cont {
+  color: #6b7686;
+}
+.wb-style.wb-style-b .wb-ak-no {
+  color: #2c6e9e !important;
+  font-weight: 600;
+}
+
+/* ══════════ C · 클래식 인쇄 ══════════ */
+.wb-style.wb-style-c .workbook-a4-sheet,
+.wb-style.wb-style-c.font-print {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  color: #2a2326;
+}
+/* 영어는 Literata, 섞인 한글은 고운바탕 */
+.wb-style.wb-style-c .workbook-passage,
+.wb-style.wb-style-c .grammar-passage,
+.wb-style.wb-style-c .wb-en,
+.wb-style.wb-style-c .wb-tf-item,
+.wb-style.wb-style-c .sentence-order-choice-text,
+.wb-style.wb-style-c .line-translation-english,
+.wb-style.wb-style-c .word-order-bank,
+.wb-style.wb-style-c .wb-ak-item,
+.wb-style.wb-style-c .wb-ak-text,
+.wb-style.wb-style-c .full-writing-answer-key-english,
+.wb-style.wb-style-c .word-order-answer-key-english {
+  font-family: "Literata", "Gowun Batang", Georgia, serif;
+  color: #2a2326;
+}
+/* 우리말(지시문·해석·뜻)은 고운바탕 */
+.wb-style.wb-style-c .wb-ko,
+.wb-style.wb-style-c .wb-instruction,
+.wb-style.wb-style-c .word-order-instruction,
+.wb-style.wb-style-c .full-writing-korean,
+.wb-style.wb-style-c .word-order-korean,
+.wb-style.wb-style-c .line-translation-answer-key-korean,
+.wb-style.wb-style-c .wb-sheet-title {
+  font-family: "Gowun Batang", "Noto Sans KR", serif;
+}
+.wb-style.wb-style-c .wb-ko {
+  color: #5b5054;
+}
+
+/* 머리글: 위 두 줄 선 · 아래 가는 선, 자주색 */
+.wb-style.wb-style-c .wb-sheet-header {
+  border-top: 3px double #7c2536;
+  padding-top: 5px;
+}
+.wb-style.wb-style-c .wb-sheet-title {
+  color: #2a2326;
+  font-weight: 700;
+}
+.wb-style.wb-style-c .wb-sheet-rule {
+  background-color: #7c2536 !important;
+}
+.wb-style.wb-style-c .wb-type-title {
+  color: #7c2536 !important;
+  border-bottom: 1px solid #e3d9db;
+  padding-bottom: 2px;
+}
+.wb-style.wb-style-c .wb-title-no {
+  display: inline-block;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  background: #7c2536;
+  color: #fff;
+  font-family: "Literata", Georgia, serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 22px;
+  text-align: center;
+  vertical-align: 2px;
+  letter-spacing: 0;
+  box-sizing: border-box;
+}
+.wb-style.wb-style-c .wb-title-dot {
+  display: none;
+}
+.wb-style.wb-style-c .wb-page-no {
+  color: #8f8286;
+  font-family: "Literata", Georgia, serif;
+}
+.wb-style.wb-style-c .wb-passage-meta,
+.wb-style.wb-style-c .word-order-passage-title,
+.wb-style.wb-style-c .word-order-source {
+  color: #7c2536;
+}
+.wb-style.wb-style-c .wb-instruction,
+.wb-style.wb-style-c .word-order-instruction {
+  color: #3c3336;
+  font-weight: 700;
+}
+.wb-style.wb-style-c .wb-sub-label,
+.wb-style.wb-style-c .wb-set-heading {
+  color: #7c2536 !important;
+}
+.wb-style.wb-style-c .wb-divider {
+  background-color: #e3d9db;
+}
+.wb-style.wb-style-c .workbook-col-section + .workbook-col-section,
+.wb-style.wb-style-c .workbook-flow-part + .workbook-flow-part {
+  border-top-color: #eadfe1;
+}
+.wb-style.wb-style-c .workbook-two-col {
+  column-rule-color: #eadfe1;
+}
+
+.wb-style.wb-style-c .grammar-choice {
+  color: #2a2326;
+  font-weight: 600;
+}
+.wb-style.wb-style-c .grammar-choice-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7c2536;
+  margin-right: 1px;
+}
+.wb-style.wb-style-c .grammar-choice-br,
+.wb-style.wb-style-c .grammar-choice-or {
+  color: #a7979b;
+  font-weight: 400;
+}
+.wb-style.wb-style-c .grammar-fix-num {
+  font-size: 11px;
+  color: #7c2536;
+}
+.wb-style.wb-style-c .grammar-fix-answer-row {
+  color: #3c3336;
+}
+.wb-style.wb-style-c .grammar-fix-answer-line {
+  border-bottom-color: #cbbcc0;
+}
+.wb-style.wb-style-c .grammar-fix-answer-arrow {
+  color: #a7979b;
+}
+
+.wb-style.wb-style-c .blank-number {
+  color: #7c2536;
+}
+.wb-style.wb-style-c .blank-line {
+  border-bottom-color: #2a2326;
+}
+
+.wb-style.wb-style-c .wb-tf-no,
+.wb-style.wb-style-c .sentence-order-choice-num {
+  font-family: "Literata", Georgia, serif;
+  color: #7c2536;
+  font-weight: 600;
+}
+.wb-style.wb-style-c .workbook-tf-mark {
+  color: #7c2536;
+}
+.wb-style.wb-style-c .sentence-order-answer-box {
+  border-color: #a7979b;
+  border-radius: 0;
+}
+.wb-style.wb-style-c .sentence-order-answer-arrow {
+  color: #a7979b;
+}
+
+.wb-style.wb-style-c .line-translation-number,
+.wb-style.wb-style-c .full-writing-number,
+.wb-style.wb-style-c .word-order-number {
+  font-family: "Literata", Georgia, serif;
+  font-weight: 600;
+  color: #7c2536;
+}
+.wb-style.wb-style-c .full-writing-korean,
+.wb-style.wb-style-c .word-order-korean {
+  color: #3c3336;
+}
+.wb-style.wb-style-c .word-order-bank {
+  background: transparent;
+  border-color: #d8c9cc;
+  border-radius: 0;
+}
+.wb-style.wb-style-c .word-order-separator {
+  color: #c7a9b0;
+}
+.wb-style.wb-style-c .translation-answer-line,
+.wb-style.wb-style-c .full-writing-answer-line,
+.wb-style.wb-style-c .word-order-answer-line {
+  border-bottom-color: #cbbcc0;
+}
+
+/* 정답지: 유형 번호는 작은 자주색 네모 */
+.wb-style.wb-style-c .wb-ak-title {
+  color: #7c2536 !important;
+}
+.wb-style.wb-style-c .wb-ak-title .wb-title-no {
+  min-width: 13px;
+  height: 13px;
+  padding: 0 2px;
+  font-size: 8.5px;
+  line-height: 13px;
+  vertical-align: 1px;
+  margin-right: 1px;
+}
+.wb-style.wb-style-c .wb-ak-meta,
+.wb-style.wb-style-c .wb-ak-cont {
+  color: #7c2536;
+}
+.wb-style.wb-style-c .wb-ak-no {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  color: #7c2536 !important;
+  font-weight: 700;
+}
+.wb-style.wb-style-c .line-translation-answer-key-korean {
+  color: #2a2326;
+}
