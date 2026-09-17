@@ -43,7 +43,7 @@ const TAG_MARK_CLASS: Record<string, string> = {
 /** 같은 줄에 놓인 이름표 사이에 두는 최소 간격(px). */
 const NOTE_GAP = 11;
 /** 이름표를 쌓을 수 있는 층 수. 줄 사이 여백(line-height)이 두 층까지 받쳐 준다. */
-const NOTE_LEVELS = 2;
+const NOTE_LEVELS = 3;
 /** 형광펜으로 칠할 수 있는 최대 길이(단어). 절 전체가 노랗게 덮이면 오히려 읽히지 않는다. */
 const MAX_HIGHLIGHT_WORDS = 6;
 
@@ -170,35 +170,56 @@ function useMarkupLayout(
 
     const notes = Array.from(box.querySelectorAll<HTMLElement>(".ar-note"));
     for (const el of notes) el.style.transform = "";
-    /**
-     * 줄마다, 층마다 앞 이름표가 끝난 x. 줄은 이름표의 세로 위치로 가른다.
-     * 옆으로 밀어도 오른쪽 끝을 넘으면 예전에는 밀기를 되돌려 그대로 겹쳐 찍혔다
-     * (선생님 지적: "이렇게 겹쳐져서 나와"). 이제 그럴 때는 한 층 위로 올린다.
+    /*
+     * 이름표 자리 잡기. 예전에는 이름표의 세로 위치를 4px 단위로 반올림해 "같은 줄"을 갈랐는데,
+     * 나란한 이름표끼리도 1~2px씩 달라 서로 다른 줄로 잡히는 바람에 그대로 겹쳐 찍혔다
+     * (선생님 지적 2026-09-17: "이렇게 겹치게 나오는 게 있어").
+     * 이제는 이미 놓은 이름표와 실제로 겹치는지 직접 재고, 겹치면 오른쪽으로 밀고,
+     * 그래도 안 되면 한 층 위로 올린다.
      */
-    const lineEnds = new Map<number, number[]>();
+    type Box = { left: number; right: number; top: number; bottom: number };
+    const placed: Box[] = [];
+    const hits = (a: Box, b: Box) =>
+      a.left < b.right + NOTE_GAP && b.left < a.right + NOTE_GAP && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+
     for (const el of notes) {
       const rect = el.getBoundingClientRect();
-      const line = Math.round(rect.top / 4);
-      const ends = lineEnds.get(line) ?? [];
-      let level = 0;
-      let shift = 0;
-      for (; level < NOTE_LEVELS; level++) {
-        const end = ends[level];
-        // 이름표끼리 붙어 있으면 한 덩어리로 읽힌다. 눈에 보이는 사이를 띄운다.
-        shift = end != null && rect.left < end + NOTE_GAP ? end + NOTE_GAP - rect.left : 0;
-        if (rect.right + shift <= bounds.right) break;
+      const height = rect.height || 11;
+      let best: { shift: number; lift: number; box: Box } | null = null;
+
+      for (let level = 0; level < NOTE_LEVELS && !best; level++) {
+        const lift = -height * level;
+        const top = rect.top + lift;
+        const bottom = rect.bottom + lift;
+        // 이 층에서 이미 놓인 것들을 피해 오른쪽으로 민다
+        let shift = 0;
+        for (let guard = 0; guard < notes.length + 2; guard++) {
+          const cand: Box = { left: rect.left + shift, right: rect.right + shift, top, bottom };
+          const clash = placed.find((p) => hits(cand, p));
+          if (!clash) {
+            if (cand.right <= bounds.right) best = { shift, lift, box: cand };
+            break;
+          }
+          shift = clash.right + NOTE_GAP - rect.left;
+          if (rect.right + shift > bounds.right) break;
+        }
       }
-      if (level >= NOTE_LEVELS) {
-        // 어느 층에도 안 들어가면 맨 위층에서 오른쪽 끝에 맞춘다
-        level = NOTE_LEVELS - 1;
-        shift = Math.min(0, bounds.right - rect.right);
+
+      if (!best) {
+        // 어느 층에도 못 넣으면 맨 위층에서 오른쪽 끝에 맞춘다(그래도 아래층과는 떨어진다)
+        const lift = -height * (NOTE_LEVELS - 1);
+        const shift = Math.min(0, bounds.right - rect.right);
+        best = {
+          shift,
+          lift,
+          box: { left: rect.left + shift, right: rect.right + shift, top: rect.top + lift, bottom: rect.bottom + lift },
+        };
       }
-      const lift = level > 0 ? -(rect.height + 1) * level : 0;
-      if (Math.abs(shift) >= 1 || lift !== 0) {
-        el.style.transform = `translate(${Math.round(shift)}px, ${Math.round(lift)}px)`;
+
+      if (Math.abs(best.shift) >= 1 || best.lift !== 0) {
+        el.style.transform = `translate(${Math.round(best.shift)}px, ${Math.round(best.lift)}px)`;
       }
-      ends[level] = rect.right + shift;
-      lineEnds.set(line, ends);
+      placed.push(best.box);
     }
 
     const frame = frameRef.current;
