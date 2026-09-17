@@ -91,6 +91,25 @@ export const SPAN_TAGS: readonly MarkupSentenceTag[] = [
   "어법 빈출",
 ];
 
+export type MarkupChunk = { en: string; ko: string };
+
+/** 조각을 이은 것이 원문과 같은지(띄어쓰기·따옴표 모양 차이는 무시). 다르면 null. */
+export function verifiedChunks(text: string, raw: unknown): MarkupChunk[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const chunks: MarkupChunk[] = [];
+  for (const r of raw) {
+    const row = r as Record<string, unknown>;
+    const en = String(row?.en ?? "").replace(/\s+/g, " ").trim();
+    const ko = String(row?.ko ?? "").replace(/\s+/g, " ").trim();
+    if (!en) continue;
+    chunks.push({ en, ko });
+  }
+  if (chunks.length < 2) return undefined;
+  const norm = (t: string) =>
+    t.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, "").toLowerCase();
+  return norm(chunks.map((c) => c.en).join(" ")) === norm(text) ? chunks : undefined;
+}
+
 export type MarkupTagSpan = {
   tag: MarkupSentenceTag;
   span: MarkupSpan;
@@ -117,6 +136,11 @@ export type AnalysisSentenceMarkup = {
    * 꼬리표는 어디를 말하는지 표시해야 한다(선생님 지적: "어디가 그런건지도 써줘야지").
    */
   tagSpans?: MarkupTagSpan[];
+  /**
+   * 직독직해 조각. 원문을 앞에서부터 의미 덩어리로 자른 영어 조각과 그 뜻.
+   * 조각을 이으면 원문과 같아야 한다(다르면 버린다). 선생님 요청: 전체 해석 대신 고를 수 있게.
+   */
+  chunks?: MarkupChunk[];
 };
 
 /* ------------------------------------------------------------------ */
@@ -593,6 +617,7 @@ export function readAnalysisMarkup(
   }
 
   const translation = String(o.translation ?? "").trim();
+  const chunks = verifiedChunks(text, o.chunks);
   const markup: AnalysisSentenceMarkup = {
     text,
     roles,
@@ -601,6 +626,7 @@ export function readAnalysisMarkup(
     points,
     callouts,
     tagSpans,
+    chunks,
     translation,
     tags,
   };

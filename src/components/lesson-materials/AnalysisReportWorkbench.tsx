@@ -129,6 +129,9 @@ type AnalysisUnit = {
   h: number;
 };
 
+export type TranslationMode = "full" | "chunk";
+const TRANSLATION_MODE_KEY = "analysis-report-translation-mode";
+
 function SentenceBlock({
   sentence,
   index,
@@ -136,6 +139,7 @@ function SentenceBlock({
   showHead,
   pointsFrom,
   pointsTo,
+  translationMode,
 }: {
   sentence: AnalysisSentence;
   index: number;
@@ -143,6 +147,7 @@ function SentenceBlock({
   showHead?: boolean;
   pointsFrom?: number;
   pointsTo?: number;
+  translationMode?: TranslationMode;
 }) {
   const plainEn = sentence.enChunks.map((c) => c.text).join(" ").trim();
   // 새 분석서는 문장 표시 분석(성분·괄호·이름표·번호 설명·해석)을 그대로 찍는다.
@@ -160,6 +165,7 @@ function SentenceBlock({
         pointsFrom={pointsFrom}
         pointsTo={pointsTo}
         extraNote={extra || undefined}
+        translationMode={translationMode}
       />
     );
   }
@@ -277,12 +283,19 @@ function ReportHeader({
   headerLabel,
   source,
   title,
+  titleEn,
+  topicEn,
+  topicKo,
   pageNo,
   accent,
 }: {
   headerLabel: string;
   source?: string | null;
   title: string;
+  /** 영어 제목·주제문(선생님 요청: 제목·주제가 영어로도 있으면 좋겠다) */
+  titleEn?: string | null;
+  topicEn?: string | null;
+  topicKo?: string | null;
   pageNo: string;
   accent: string;
 }) {
@@ -304,6 +317,9 @@ function ReportHeader({
           <h1 className="mt-1 text-[22px] font-black leading-snug text-slate-900">
             {title}
           </h1>
+          {titleEn?.trim() ? (
+            <p className="mt-0.5 text-[14px] font-bold leading-snug text-slate-600">{titleEn.trim()}</p>
+          ) : null}
         </div>
         <div
           className="shrink-0 text-4xl font-black tabular-nums"
@@ -313,6 +329,13 @@ function ReportHeader({
         </div>
       </div>
       <div className="mt-3 h-1 w-full" style={{ backgroundColor: accent }} />
+      {topicEn?.trim() ? (
+        <div className="ar-topic">
+          <span className="ar-topic-key">Topic</span>
+          <span className="ar-topic-en">{topicEn.trim()}</span>
+          {topicKo?.trim() ? <span className="ar-topic-ko">{topicKo.trim()}</span> : null}
+        </div>
+      ) : null}
     </header>
   );
 }
@@ -343,6 +366,27 @@ export function AnalysisReportWorkbench({
   const regenerateOnce = useRef(regenerate);
   const [projects, setProjects] = useState(initialProjects);
   const [active, setActive] = useState(0);
+  /*
+   * 해석 방식. 선생님 요청: 전체 해석과 직독직해 중 고를 수 있게. 고른 값은 이 브라우저에 기억한다.
+   * 직독직해 조각이 없는 예전 분석서는 전체 해석으로 나간다.
+   */
+  const [translationMode, setTranslationMode] = useState<TranslationMode>("full");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(TRANSLATION_MODE_KEY);
+      if (saved === "chunk" || saved === "full") setTranslationMode(saved);
+    } catch {
+      /* 저장소를 못 쓰면 기본값 */
+    }
+  }, []);
+  const chooseTranslationMode = (mode: TranslationMode) => {
+    setTranslationMode(mode);
+    try {
+      window.localStorage.setItem(TRANSLATION_MODE_KEY, mode);
+    } catch {
+      /* 무시 */
+    }
+  };
   const [headerLabel, setHeaderLabel] = useState(
     () => initialProjects[0]?.headerLabel || "26년도 1학기 중간고사 대비"
   );
@@ -584,7 +628,7 @@ export function AnalysisReportWorkbench({
       next[p.id] = pages.length ? pages : [[]];
     }
     setPageChunksById(next);
-  }, [projects, headerLabel, active]);
+  }, [projects, headerLabel, active, translationMode]);
 
   /** 지문 하나의 쪽 배치. 배치 effect가 돌기 전 렌더에서는 없는 문장 번호를 뺀다. */
   function pagesFor(projectId: string, count: number): AnalysisUnit[][] {
@@ -735,6 +779,9 @@ export function AnalysisReportWorkbench({
                       headerLabel={headerLabelFor(sheet.projectIndex)}
                       source={sheet.project.source}
                       title={sheet.project.title}
+                      titleEn={sheet.project.titleEn || sheet.project.report?.titleEn}
+                      topicEn={sheet.project.report?.topicEn}
+                      topicKo={sheet.project.report?.topicKo}
                       pageNo={String(sheet.projectIndex + 1).padStart(2, "0")}
                       accent={accent}
                     />
@@ -749,6 +796,7 @@ export function AnalysisReportWorkbench({
                         showHead={g.showHead}
                         pointsFrom={g.pointsFrom}
                         pointsTo={g.pointsTo}
+                        translationMode={translationMode}
                       />
                     ))}
                   </div>
@@ -787,6 +835,9 @@ export function AnalysisReportWorkbench({
                   headerLabel={headerLabelFor(pi)}
                   source={p.source}
                   title={p.title}
+                  titleEn={p.titleEn || p.report?.titleEn}
+                  topicEn={p.report?.topicEn}
+                  topicKo={p.report?.topicKo}
                   pageNo={String(pi + 1).padStart(2, "0")}
                   accent={accent}
                 />
@@ -796,6 +847,7 @@ export function AnalysisReportWorkbench({
                     sentence={s}
                     index={i}
                     accent={accent}
+                    translationMode={translationMode}
                   />
                 ))}
               </div>
@@ -861,6 +913,24 @@ export function AnalysisReportWorkbench({
               onChange={(e) => setHeaderLabel(e.target.value)}
             />
           </label>
+
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-500">해석 방식</span>
+            <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+              {(["full", "chunk"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => chooseTranslationMode(mode)}
+                  className={`rounded-md px-2 py-1.5 text-xs font-bold transition ${
+                    translationMode === mode ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                  }`}
+                >
+                  {mode === "full" ? "전체 해석" : "직독직해"}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <p className="text-xs text-slate-500">{project.title}</p>
           {project.source?.trim() ? (

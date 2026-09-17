@@ -2783,6 +2783,82 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   print-color-adjust: exact;
 }
 
+/* 직독직해: 의미 덩어리마다 영어 위, 뜻 아래. 덩어리 사이는 사선으로 끊는다. */
+.ar-chunks {
+  margin: 5px 0 0;
+  padding-left: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  row-gap: 4px;
+  break-before: avoid;
+  page-break-before: avoid;
+}
+
+.ar-chunks .ar-trans-key {
+  margin-top: 2px;
+}
+
+.ar-chunk {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 0 7px;
+  border-left: 1px solid #c7ccd4;
+}
+
+.ar-chunks .ar-trans-key + .ar-chunk {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.ar-chunk-en {
+  font-size: 10.8px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #1b4a85;
+}
+
+.ar-chunk-ko {
+  font-size: 10.2px;
+  line-height: 1.35;
+  color: #4b5563;
+}
+
+/* 머리의 영어 주제문 */
+.ar-topic {
+  margin-top: 8px;
+  border-radius: 6px;
+  background: #f4f7fb;
+  padding: 6px 10px;
+  font-size: 11.2px;
+  line-height: 1.55;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.ar-topic-key {
+  display: inline-block;
+  margin-right: 7px;
+  border-radius: 3px;
+  background: #2a5f9e;
+  padding: 0 6px;
+  font-size: 8.8px;
+  font-weight: 700;
+  color: #ffffff;
+  vertical-align: 0.1em;
+}
+
+.ar-topic-en {
+  font-weight: 700;
+  color: #16457e;
+}
+
+.ar-topic-ko {
+  display: block;
+  margin-top: 1px;
+  color: #4b5563;
+}
+
 /* 번호 설명 (연회색 띠) */
 .ar-points {
   margin: 5px 0 0;

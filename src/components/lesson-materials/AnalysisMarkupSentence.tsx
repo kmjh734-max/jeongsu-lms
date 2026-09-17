@@ -254,8 +254,11 @@ export function AnalysisMarkupSentence({
   pointsFrom = 0,
   pointsTo,
   extraNote,
+  translationMode = "full",
 }: {
   markup: AnalysisSentenceMarkup;
+  /** 전체 해석 / 직독직해. 직독직해 조각이 없으면 전체 해석으로 나간다. */
+  translationMode?: "full" | "chunk";
   /** 예전 분석서의 추가 설명(부연설명). 설명 아래에 이어 붙인다. */
   extraNote?: string;
   /** 테두리 문장과 해석을 이 쪽에 찍을지. 설명만 다음 쪽으로 이어질 때 false. */
@@ -351,7 +354,17 @@ export function AnalysisMarkupSentence({
         ))}
       </div>
 
-      {markup.translation ? (
+      {translationMode === "chunk" && markup.chunks?.length ? (
+        <div className="ar-chunks">
+          <span className="ar-trans-key">직독직해</span>
+          {markup.chunks.map((c, ci) => (
+            <span key={ci} className="ar-chunk">
+              <span className="ar-chunk-en">{c.en}</span>
+              <span className="ar-chunk-ko">{c.ko}</span>
+            </span>
+          ))}
+        </div>
+      ) : markup.translation ? (
         <p className="ar-trans">
           <span className="ar-trans-key">해석</span>
           {markup.translation}

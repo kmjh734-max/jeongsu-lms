@@ -1,3 +1,4 @@
+import { generateAnalysisTopic } from "@/lib/lesson-materials/analysis-topic";
 import {
   isGpt5FamilyModel,
   isModelUnavailableError,
@@ -114,6 +115,10 @@ export type AnalysisReportData = {
   analysisSummary?: string;
   importantConstructions?: AnalysisImportantConstruction[];
   noPointMessage?: string;
+  /** 머리에 싣는 영어 제목·주제문(선생님 요청). 예전 분석서에는 없다. */
+  titleEn?: string;
+  topicEn?: string;
+  topicKo?: string;
   updatedAt?: string;
 };
 
@@ -743,6 +748,13 @@ export async function generateAnalysisReport(input: {
       lines,
     });
 
+    // 머리에 싣는 영어 제목·주제문. 다른 호출과 함께 띄우고, 실패해도 분석지는 그대로 만든다.
+    const topicTask = generateAnalysisTopic({
+      apiKey,
+      passage: lines.map((l) => l.english.trim()).join(" "),
+      signal: controller.signal,
+    }).catch(() => null);
+
     const grammarTask = runScopedCall(
       apiKey,
       buildGrammarScopePrompt(baseUserContent),
@@ -946,10 +958,14 @@ export async function generateAnalysisReport(input: {
         "이 지문에는 별도로 강조할 만한 고등학교 핵심 어법이 없습니다."
       : undefined;
 
+    const topic = await topicTask;
     return {
       headerLabel: input.headerLabel?.trim() || "26년도 1학기 중간고사 대비",
       sentences,
       noPointMessage,
+      titleEn: topic?.titleEn || undefined,
+      topicEn: topic?.topicEn || undefined,
+      topicKo: topic?.topicKo || undefined,
       updatedAt: new Date().toISOString(),
     };
   } finally {

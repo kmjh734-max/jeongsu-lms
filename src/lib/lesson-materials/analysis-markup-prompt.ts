@@ -38,6 +38,11 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
    - body 1~2문장. 단서·예외를 적는다(예: "직접목적어가 it이나 them이면 4형식으로 바꿀 수 없다").
 6) translation  이 문장의 한국어 해석 한 줄. 자연스러운 한국어로, 빠뜨리는 말 없이.
    - '~다'로 끝나는 평서형으로 쓴다. '~합니다/~하세요/~해요'는 쓰지 않는다(명령문도 '~하라/~해 보라'로).
+6-1) chunks  직독직해. 문장을 앞에서부터 의미 덩어리로 끊고, 덩어리마다 그 뜻을 영어 어순 그대로 한국어로 적는다.
+   - en: 원문을 앞에서부터 빠짐없이, 글자 그대로 잘라 낸 조각(2~7 words). 조각을 차례로 이으면 원문과 똑같아야 한다.
+   - 끊는 자리: 주어 덩어리 / 동사(+목적어) / 전치사구 / 접속사·관계사로 시작하는 절 / to부정사·분사구.
+   - ko: 그 조각만의 뜻을 짧게(예: "측정 단위의", "우리는 필요하다"). 앞뒤 조각의 말을 끌어오지 않는다.
+   - 쉼표·마침표 같은 문장부호도 원문 그대로 조각 끝에 붙인다.
 7) contextNote  이 문장을 글 흐름 속에서 풀어 주는 부연 설명 한두 문장(60~110자).
    - 이 문장이 앞뒤와 어떻게 이어지는지, 무엇을 뜻하는지 학생 말로 풀어 준다.
    - 해석을 다시 쓰지 않는다. 문법 용어를 늘어놓지 않는다. '~다'로 끝나는 평서형.
@@ -105,9 +110,18 @@ ${
 export const ANALYSIS_MARKUP_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["translation", "contextNote", "tags", "tagSpans", "roles", "brackets", "notes", "points", "callouts"],
+  required: ["translation", "chunks", "contextNote", "tags", "tagSpans", "roles", "brackets", "notes", "points", "callouts"],
   properties: {
     translation: { type: "string" },
+    chunks: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["en", "ko"],
+        properties: { en: { type: "string" }, ko: { type: "string" } },
+      },
+    },
     contextNote: { type: "string" },
     tags: { type: "array", items: { type: "string" } },
     tagSpans: {

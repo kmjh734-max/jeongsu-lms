@@ -39,6 +39,7 @@ import {
   type MarkupSpanNote,
   type MarkupTagSpan,
   SPAN_TAGS,
+  verifiedChunks,
 } from "@/lib/lesson-materials/analysis-markup";
 
 export type MarkupUsage = { inputTokens: number; outputTokens: number; calls: number };
@@ -450,7 +451,7 @@ export function buildVerifiedMarkup(
   const contextNote = String(o.contextNote ?? "").replace(/\s+/g, " ").trim().slice(0, 220);
 
   return {
-    markup: { text, roles, brackets, notes, points, callouts, translation, tags: keptTags, tagSpans },
+    markup: { text, roles, brackets, notes, points, callouts, translation, tags: keptTags, tagSpans, chunks: verifiedChunks(text, o.chunks) },
     report,
     contextNote,
   };
