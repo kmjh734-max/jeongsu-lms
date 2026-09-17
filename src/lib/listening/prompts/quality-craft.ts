@@ -10,6 +10,7 @@ import {
   type ListeningGradeLevel,
 } from "@/lib/listening/grade-level";
 import { getTypeDef, keyForCode, type ListeningTypeKey } from "@/lib/listening/type-catalog";
+import { buildTypeRecipeBlock } from "@/lib/listening/recipes";
 
 export interface ListeningTypeTarget {
   /** 대본 영어 단어 수 범위 */
@@ -281,6 +282,27 @@ function targetLine(typeId: number, grade: ListeningGradeLevel | undefined): str
   return `${text}(하한 미만 금지)${choice}`;
 }
 
+/**
+ * 참고 교재를 분석한 유형별 설계서(recipes). 한 번에 만드는 유형이 많으면(한 세트 통째 요청)
+ * 프롬프트가 지나치게 길어지므로, 묶음 크기(최대 6유형)까지만 붙인다.
+ */
+const RECIPE_MAX_TYPES = 6;
+
+function recipeBlocks(typeIds: number[], high: boolean): string[] {
+  if (typeIds.length === 0 || typeIds.length > RECIPE_MAX_TYPES) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const id of typeIds) {
+    const key = keyForCode(id, high ? "high" : "middle");
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    const block = buildTypeRecipeBlock(key);
+    if (block) out.push(typeIds.length > 1 ? `(유형 ${id})
+${block}` : block);
+  }
+  return out;
+}
+
 /** 요청한 유형들에 대한 출제 요령 블록 (공통 요령 + 유형별 분량·설계) */
 export function buildQualityCraftBlock(
   typeIds: number[],
@@ -307,6 +329,7 @@ export function buildQualityCraftBlock(
     `대화: 문장당 평균 ${wps[0]}~${wps[1]}단어, 턴당 평균 ${wpt[0]}~${wpt[1]}단어(대부분 두 문장). 담화는 문장당 10~15단어.`,
     lines.length ? `[유형별 분량·설계 (이 요청에 해당하는 유형)]\n${lines.join("\n")}` : "",
     unique.some((id) => isResponseType(id, grade)) ? RESPONSE_EXEMPLAR : "",
+    ...recipeBlocks(unique, high),
   ];
   return parts.filter(Boolean).join("\n\n");
 }
