@@ -33,8 +33,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       illustrationPrompt?: string;
       passageHint?: string;
-      /** 지문 원문. 여섯 컷 장면을 여기서 뽑는다. */
-      passageText?: string;
+      captions?: string[];
     };
 
     const prompt = body.illustrationPrompt?.trim() ?? "";
@@ -50,7 +49,7 @@ export async function POST(request: Request) {
       academyId,
       illustrationPrompt: prompt,
       passageHint: body.passageHint,
-      passageText: body.passageText,
+      captions: body.captions,
       deadlineAt: startedAt + IMAGE_BUDGET_MS,
       onImageProduced: async () => {
         await debitLessonCredits({
@@ -66,8 +65,6 @@ export async function POST(request: Request) {
       ok: true as const,
       url: out.url,
       prompt: out.prompt,
-      // 컷마다 얹은 한글 소제목 — 화면에서 그대로 저장한다
-      titles: out.titles,
     });
   } catch (e) {
     return jsonError(

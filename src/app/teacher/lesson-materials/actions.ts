@@ -208,12 +208,8 @@ export async function generateLessonMaterialsOrganizationDraftAction(input: {
 export async function generateLessonMaterialsIllustrationAction(input: {
   illustrationPrompt: string;
   passageHint?: string;
-  /** 지문 원문. 여섯 컷 장면을 여기서 뽑는다. */
-  passageText?: string;
-}): Promise<
-  | { ok: true; url: string; prompt: string; titles: string[] }
-  | { ok: false; message: string }
-> {
+  captions?: string[];
+}): Promise<{ ok: true; url: string; prompt: string } | { ok: false; message: string }> {
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "teacher") {
     return { ok: false, message: "강사 권한이 필요합니다." };
@@ -238,7 +234,7 @@ export async function generateLessonMaterialsIllustrationAction(input: {
       academyId,
       illustrationPrompt: prompt,
       passageHint: input.passageHint,
-      passageText: input.passageText,
+      captions: input.captions,
       onImageProduced: async () => {
         await debitLessonCredits({
           academyId,
@@ -248,7 +244,7 @@ export async function generateLessonMaterialsIllustrationAction(input: {
         });
       },
     });
-    return { ok: true, url: out.url, prompt: out.prompt, titles: out.titles };
+    return { ok: true, url: out.url, prompt: out.prompt };
   } catch (e) {
     return {
       ok: false,

@@ -232,20 +232,28 @@ export function LessonMaterialProjectWorkspace({
     setError(null);
     setMessage(null);
     try {
-      // 컷 소제목은 지문에서 뽑아 준다. 예전처럼 정해진 말풍선 문구를 보내지 않는다.
-      const passageText = itemsDraft.map((it) => it.english_text).join("\n");
+      const captions =
+        comicCaptions.length > 0
+          ? comicCaptions
+          : [
+              "이게 정말 맞을까?",
+              "잠깐, 문제가 보이네",
+              "다시 생각해 보자",
+              "이제 이해가 됐어!",
+            ];
       const res = await fetch("/api/lesson-materials/illustration", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           illustrationPrompt: prompt,
-          passageHint: passageText.slice(0, 800),
-          passageText,
+          passageHint: itemsDraft
+            .map((it) => it.english_text)
+            .join("\n")
+            .slice(0, 800),
+          captions,
         }),
       });
-      let img:
-        | { ok: true; url: string; titles?: string[] }
-        | { ok: false; message: string };
+      let img: { ok: true; url: string } | { ok: false; message: string };
       try {
         img = (await res.json()) as typeof img;
       } catch {
@@ -257,14 +265,9 @@ export function LessonMaterialProjectWorkspace({
         return;
       }
       setIllustrationUrl(img.url);
-      // 컷 소제목은 만들면서 정해진다 — 받은 그대로 화면과 자료에 남긴다
-      const titles = Array.isArray(img.titles)
-        ? img.titles.map((t) => String(t ?? "").trim()).filter(Boolean)
-        : [];
-      if (titles.length > 0) setComicCaptions(titles);
       const saved = await persist({
         illustrationUrl: img.url,
-        comicCaptions: titles.length > 0 ? titles : comicCaptions,
+        comicCaptions: captions,
         illustrationPrompt: prompt,
       });
       if (!saved.ok) {
