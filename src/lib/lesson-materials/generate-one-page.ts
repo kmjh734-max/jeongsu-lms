@@ -309,12 +309,6 @@ const MAX_VOCAB = 12;
  * 교재가 거의 묻지 않는 자리까지 올라온다. 12면 검수에서 몇 개 버려도 6은 남는다.
  */
 const GRAMMAR_CANDIDATES = 9;
-/**
- * 어법 조각이 이 시간 안에 안 돌아오면 같은 부탁을 한 번 더 보낸다(먼저 오는 쪽을 쓴다).
- * 호출마다 시간이 들쭉날쭉해서(17초와 35초가 섞인다) 늦은 하나가 전체를 붙잡았다.
- */
-const GRAMMAR_HEDGE_MS = 16_000;
-
 /** 보충(모자란 어법을 더 뽑는 호출)을 기다리는 한도. 늦으면 있는 것으로 만든다. */
 const SPARE_DEADLINE_MS = 40_000;
 /**
@@ -1124,23 +1118,6 @@ async function resolveScannedReferences(input: {
  * 어법을 몇 조각으로 나눠 물을지. 출력이 길수록 그 길이가 그대로 기다리는 시간이 되므로,
  * 조각마다 서너 개씩만 받아 동시에 부른다(문맥은 지문 전체를 준다).
  */
-/** 늦으면 한 번 더 불러 먼저 오는 쪽을 쓴다. 두 번째 부탁은 늦을 때만 나간다. */
-async function hedged<T>(run: () => Promise<T>, afterMs: number, signal: AbortSignal): Promise<T> {
-  const first = run();
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const second = new Promise<T>((resolve, reject) => {
-    timer = setTimeout(() => {
-      if (signal.aborted) return;
-      run().then(resolve, reject);
-    }, afterMs);
-  });
-  try {
-    return await Promise.race([first, second]);
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
-}
-
 function chunkPlan(
   sentenceCount: number,
   total: number,
