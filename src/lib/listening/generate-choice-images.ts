@@ -65,7 +65,12 @@ const COMPOSITE_LABEL_RULES = `CRITICAL — Korean 학력평가 listening 「그
 3) The figure MUST contain ALL FIVE large circled labels inside the drawing: ① ② ③ ④ ⑤.
 4) Each label sits next to a DISTINCT element. Count them — all five must be readable.
 5) The picture shows what is ON the poster/scene (including the one mismatched detail). Students find which numbered part does NOT match the dialogue.
-6) No separate multiple-choice list outside the scene.`;
+6) No separate multiple-choice list outside the scene.
+7) FRAMING — the whole scene must fit inside the canvas. Leave an empty white margin of at least
+   8% of the canvas on the top, bottom, left and right. No object, table, banner, wall or piece of
+   furniture may touch or run past any edge; nothing may be sliced off by the frame. Draw the scene
+   smaller rather than letting any part leave the picture. Every circled label ① ② ③ ④ ⑤ must sit
+   well inside that margin too.`;
 
 function imageModelCandidates(): string[] {
   const dedicated = process.env.OPENAI_MODEL_LISTENING_IMAGE?.trim();
@@ -405,7 +410,7 @@ async function verifyCompositeFigure(
             {
               role: "system",
               content:
-                'You strictly check a Korean listening-exam figure (그림 불일치). The dialogue describes a poster/scene; in a correct figure EXACTLY ONE circled label shows something different from the dialogue. Read the image literally (exact text, numbers, times, counts, left/right positions). JSON only: {"labels":[{"label":"①","count":1,"drawn":"what is actually drawn/written at this label","matches_dialogue":true}, ...for ①②③④⑤],"colorsDistinct":true|null,"cleanBackground":true,"misspelledWords":[],"note":"..."}. cleanBackground=false if the background is not plain white/light (dark vignette, glow, blur, smudges). misspelledWords = English words in the image that are misspelled. count = how many times that circled number appears in the image (0 if missing). matches_dialogue=false when what is drawn contradicts the dialogue.',
+                'You strictly check a Korean listening-exam figure (그림 불일치). The dialogue describes a poster/scene; in a correct figure EXACTLY ONE circled label shows something different from the dialogue. Read the image literally (exact text, numbers, times, counts, left/right positions). JSON only: {"labels":[{"label":"①","count":1,"drawn":"what is actually drawn/written at this label","matches_dialogue":true}, ...for ①②③④⑤],"colorsDistinct":true|null,"cleanBackground":true,"croppedAtEdge":false,"misspelledWords":[],"note":"..."}. cleanBackground=false if the background is not plain white/light (dark vignette, glow, blur, smudges). croppedAtEdge=true if any drawn object (table, banner, wall, furniture, text) is sliced off by the picture edge or runs past it instead of sitting fully inside with a white margin. misspelledWords = English words in the image that are misspelled. count = how many times that circled number appears in the image (0 if missing). matches_dialogue=false when what is drawn contradicts the dialogue.',
             },
             {
               role: "user",
@@ -433,6 +438,7 @@ async function verifyCompositeFigure(
         labels?: Array<{ label?: string; count?: number; drawn?: string; matches_dialogue?: boolean }>;
         colorsDistinct?: boolean | null;
         cleanBackground?: boolean;
+        croppedAtEdge?: boolean;
         misspelledWords?: string[];
         note?: string;
       };
@@ -471,6 +477,8 @@ async function verifyCompositeFigure(
       if (parsed.colorsDistinct === false) problems.push("색 구분이 안 됨");
       // 시험지에 그대로 인쇄되므로 어두운 번짐·철자 오류가 있는 그림도 다시 그린다
       if (parsed.cleanBackground === false) problems.push("배경이 깨끗하지 않음(번짐·어두운 가장자리)");
+      // 가장자리에서 잘린 그림은 다시 그린다 — 선생님 지적("사진이 잘라 나온다")
+      if (parsed.croppedAtEdge === true) problems.push("그림이 가장자리에서 잘림(전체가 안쪽에 들어와야 함)");
       const misspelled = (parsed.misspelledWords ?? []).map(String).filter((w) => w.trim());
       if (misspelled.length) problems.push(`철자 오류: ${misspelled.join(", ")}`);
       return {
