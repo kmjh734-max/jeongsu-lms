@@ -31,6 +31,7 @@ import {
   parseWordOrderBlocks,
   reflowPassageForPrint,
 } from "@/lib/question-generator/text-utils";
+import "./question-print-styles.css";
 
 type QuestionRow = {
   id: string;
@@ -69,6 +70,27 @@ const COL_WIDTH_MM = 88;
 const QUESTION_GAP_PX = 14;
 const COLUMN_SAFETY_PX = 12;
 const BRANDING_STORAGE_KEY = "qg-print-branding";
+
+/*
+ * 시험지 모양. 분석지와 같은 시안 셋(A 교재 세리프 · B 깔끔한 산세리프 · C 클래식 인쇄)을
+ * 고를 수 있게 했다. 기본은 지금까지 쓰던 모양이다. 문항 구성은 같고 글꼴·색·테두리만
+ * 바꾼다 — question-print-styles.css의 .qg-style-*.
+ */
+type QuestionDesignStyle = "base" | "a" | "b" | "c";
+const DESIGN_STYLE_KEY = "question-print-design-style";
+const DESIGN_STYLES: Array<{ id: QuestionDesignStyle; label: string; hint: string }> = [
+  { id: "base", label: "기본", hint: "주황 머리선" },
+  { id: "a", label: "A", hint: "교재 세리프" },
+  { id: "b", label: "B", hint: "깔끔한 산세리프" },
+  { id: "c", label: "C", hint: "클래식 인쇄" },
+];
+/** A·B·C가 쓰는 글꼴. 기본 모양에서는 불러오지 않는다. */
+const DESIGN_FONTS_HREF =
+  "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,500&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=Gowun+Batang:wght@400;700&display=swap";
+
+function designClass(style: QuestionDesignStyle): string {
+  return style === "base" ? "" : `qg-style qg-style-${style}`;
+}
 
 type PrintBranding = {
   headerKicker: string;
@@ -583,6 +605,39 @@ export function QuestionPrintView({
   });
   const [brandingReady, setBrandingReady] = useState(false);
   const measureRef = useRef<HTMLDivElement>(null);
+  const [designStyle, setDesignStyle] = useState<QuestionDesignStyle>("base");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(DESIGN_STYLE_KEY);
+      if (saved === "base" || saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
+    } catch {
+      /* 저장소를 못 쓰면 기본값 */
+    }
+  }, []);
+  const chooseDesignStyle = (style: QuestionDesignStyle) => {
+    setDesignStyle(style);
+    try {
+      window.localStorage.setItem(DESIGN_STYLE_KEY, style);
+    } catch {
+      /* 무시 */
+    }
+  };
+  /*
+   * 모양을 바꾸면 글꼴이 늦게 들어와 글자 폭이 달라진다. 쪽 나눔은 잰 높이로 하므로
+   * 글꼴이 다 들어온 뒤 한 번 더 잰다(안 그러면 쪽이 넘쳐 아래가 잘린다).
+   */
+  const [fontsTick, setFontsTick] = useState(0);
+  useEffect(() => {
+    if (designStyle === "base" || typeof document === "undefined" || !document.fonts) return;
+    let alive = true;
+    const bump = () => alive && setFontsTick((t) => t + 1);
+    void document.fonts.ready.then(bump);
+    document.fonts.addEventListener?.("loadingdone", bump);
+    return () => {
+      alive = false;
+      document.fonts.removeEventListener?.("loadingdone", bump);
+    };
+  }, [designStyle]);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/question-generator/jobs/${jobId}`);
@@ -849,7 +904,16 @@ export function QuestionPrintView({
       window.setTimeout(run, 30);
     });
     return () => window.clearTimeout(t);
-  }, [displayItems, mode, branding.headerTitle, branding.headerSub, printLayout, typeRanges]);
+  }, [
+    displayItems,
+    mode,
+    branding.headerTitle,
+    branding.headerSub,
+    printLayout,
+    typeRanges,
+    designStyle,
+    fontsTick,
+  ]);
 
   function runPrint() {
     const prev = document.title;
@@ -1013,10 +1077,11 @@ export function QuestionPrintView({
   /** 측정 영역과 인쇄 쪽들. 최종통합자료에 끼워 넣을 때(embedded)도 같은 모양을 쓴다. */
   const printBody = (
     <>
+          {designStyle !== "base" ? <link rel="stylesheet" href={DESIGN_FONTS_HREF} /> : null}
           <div
             ref={measureRef}
             aria-hidden
-            className="qg-print-measure font-print no-print"
+            className={`qg-print-measure font-print no-print ${designClass(designStyle)}`}
             style={{ width: `${COL_WIDTH_MM}mm` }}
           >
             {displayItems.map((item) => (
@@ -1028,7 +1093,7 @@ export function QuestionPrintView({
 
           <div
             id="qg-print-root"
-            className="max-w-[210mm] px-4 py-6 print:mx-0 print:max-w-none print:px-0 print:py-0"
+            className={`max-w-[210mm] px-4 py-6 print:mx-0 print:max-w-none print:px-0 print:py-0 ${designClass(designStyle)}`}
           >
             {sheetPages.map((page, pageIdx) => (
               <article
@@ -1135,6 +1200,30 @@ export function QuestionPrintView({
               </button>
             </div>
           )}
+
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              시험지 모양
+            </p>
+            <div className="grid grid-cols-4 gap-1 rounded-lg bg-slate-100 p-1">
+              {DESIGN_STYLES.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  title={d.hint}
+                  onClick={() => chooseDesignStyle(d.id)}
+                  className={`rounded-md px-1 py-1.5 text-xs font-bold transition ${
+                    designStyle === d.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-slate-400">
+              {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
+            </p>
+          </div>
 
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">

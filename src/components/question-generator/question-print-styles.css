@@ -1,0 +1,516 @@
+/* ------------------------------------------------------------------ */
+/* 변형문제 시험지 모양 A·B·C (2026-09-18).                               */
+/* 기본 모양(globals.css의 .qg-print-*)은 그대로 두고, 고른 모양일 때만     */
+/* 글꼴·색·테두리를 바꾼다. 쪽 나눔은 잰 높이로 하므로 크기는 기본과 거의 같게. */
+/* 기본 규칙보다 앞서도록 선택자를 .qg-style.qg-style-x 두 겹으로 건다.       */
+/* ------------------------------------------------------------------ */
+
+/* ── 공통 ── */
+
+/* 문항 번호를 발문 앞에 걸어 두고 발문 둘째 줄부터는 번호 뒤로 내어쓴다. */
+.qg-style .qg-print-q-head {
+  padding-left: 6.2mm;
+  text-indent: -6.2mm;
+}
+.qg-style .qg-print-q-head .qg-print-q-num {
+  display: inline-block;
+  width: 6.2mm;
+  /* 번호 뒤 띄어쓰기 한 칸만큼 당긴다 */
+  margin-right: -3px;
+  text-indent: 0;
+}
+
+.qg-style .qg-print-u {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* <보기> 이름표를 상자 윗선에 걸친다. */
+.qg-style .qg-print-bogi-label {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  margin: 2.2mm auto -1.5mm;
+  padding: 0 1.6mm;
+  background: #fff;
+  font-size: 8pt;
+  line-height: 1;
+}
+.qg-style .qg-print-bogi-box {
+  padding-top: 2.8mm;
+}
+
+/* ══════════ A · 교재 세리프 ══════════ */
+.qg-style.qg-style-a .qg-print-sheet {
+  --qg-accent: #b23a3a;
+}
+.qg-style.qg-style-a .qg-print-sheet,
+.qg-style.qg-style-a .qg-print-card {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+}
+.qg-style.qg-style-a .qg-print-header {
+  border-bottom: 1.5px solid #1d2b4f;
+}
+.qg-style.qg-style-a .qg-print-header-compact {
+  border-bottom-width: 1px;
+}
+.qg-style.qg-style-a .qg-print-logo-box {
+  border-color: #dfe3ea;
+}
+.qg-style.qg-style-a .qg-print-kicker {
+  color: #7a8190;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.qg-style.qg-style-a .qg-print-title {
+  color: #16213d;
+  font-weight: 700;
+}
+.qg-style.qg-style-a .qg-print-sub,
+.qg-style.qg-style-a .qg-print-meta {
+  color: #4a5470;
+}
+.qg-style.qg-style-a .qg-print-banner {
+  font-weight: 700;
+}
+.qg-style.qg-style-a .qg-print-page-no {
+  font-weight: 700;
+}
+.qg-style.qg-style-a .qg-print-vocab-qr-label {
+  color: #16213d;
+}
+.qg-style.qg-style-a .qg-print-type-banner {
+  border-bottom: 1px solid #8795b0;
+}
+.qg-style.qg-style-a .qg-print-type-banner-title {
+  color: #16213d;
+  font-weight: 700;
+}
+.qg-style.qg-style-a .qg-print-col-right {
+  border-left-color: #dfe3ea;
+}
+.qg-style.qg-style-a .qg-print-card {
+  border-bottom-color: #eceef2;
+}
+.qg-style.qg-style-a .qg-print-card.qg-print-card-cont {
+  border-bottom: none;
+}
+.qg-style.qg-style-a .qg-print-q-head {
+  color: #1f2430;
+  font-weight: 500;
+}
+.qg-style.qg-style-a .qg-print-q-num {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 10pt;
+  font-weight: 600;
+  line-height: 1;
+  color: #b23a3a;
+}
+.qg-style.qg-style-a .qg-print-passage,
+.qg-style.qg-style-a .qg-print-passage-p,
+.qg-style.qg-style-a .qg-print-given-box,
+.qg-style.qg-style-a .qg-print-wo-words,
+.qg-style.qg-style-a .qg-print-wo-summary,
+.qg-style.qg-style-a .qg-print-hw-en {
+  font-family: "Source Serif 4", Georgia, "Noto Sans KR", serif;
+  color: #16213d;
+}
+.qg-style.qg-style-a .qg-print-given-box {
+  background: transparent;
+  border-color: #8795b0;
+}
+.qg-style.qg-style-a .qg-print-extra {
+  color: #2f3540;
+}
+.qg-style.qg-style-a .qg-print-choices li {
+  font-family: "Source Serif 4", Georgia, "Noto Sans KR", serif;
+  color: #16213d;
+}
+.qg-style.qg-style-a .qg-print-choice-mark {
+  font-family: "Noto Sans KR", ui-sans-serif, sans-serif;
+  font-weight: 500;
+  color: #39404c;
+}
+.qg-style.qg-style-a .qg-print-count-box,
+.qg-style.qg-style-a .qg-print-wo-box {
+  border-color: #8795b0;
+}
+.qg-style.qg-style-a .qg-print-bogi-label,
+.qg-style.qg-style-a .qg-print-wo-label {
+  color: #16213d;
+  font-weight: 700;
+}
+.qg-style.qg-style-a .qg-print-bogi-line,
+.qg-style.qg-style-a .qg-print-wo-body {
+  color: #2f3540;
+}
+.qg-style.qg-style-a .qg-print-fix-table th,
+.qg-style.qg-style-a .qg-print-fix-table td {
+  border-color: #8795b0;
+}
+.qg-style.qg-style-a .qg-print-fix-table th {
+  background: #f4f6f9;
+  color: #16213d;
+}
+.qg-style.qg-style-a .qg-print-answer-head {
+  color: #16213d;
+}
+.qg-style.qg-style-a .qg-print-answer-body {
+  color: #2f3540;
+}
+.qg-style.qg-style-a .qg-print-hard-words {
+  border-top-color: #c3cad6;
+}
+.qg-style.qg-style-a .qg-print-footer {
+  border-top-color: #dfe3ea;
+  color: #8b93a1;
+}
+.qg-style.qg-style-a .qg-print-footer-page {
+  font-family: "Source Serif 4", Georgia, serif;
+  color: #4a5470;
+}
+
+/* ══════════ B · 깔끔한 산세리프 ══════════ */
+.qg-style.qg-style-b .qg-print-sheet {
+  --qg-accent: #2c6e9e;
+}
+.qg-style.qg-style-b .qg-print-sheet,
+.qg-style.qg-style-b .qg-print-card,
+.qg-style.qg-style-b .qg-print-passage-p,
+.qg-style.qg-style-b .qg-print-given-box,
+.qg-style.qg-style-b .qg-print-wo-words,
+.qg-style.qg-style-b .qg-print-wo-summary,
+.qg-style.qg-style-b .qg-print-hw-en {
+  font-family: "IBM Plex Sans KR", "Noto Sans KR", ui-sans-serif, sans-serif;
+}
+/* 머리: 둥근 회색 띠. 윗 여백을 더한 만큼 밑줄(1mm)을 빼서 높이를 기본과 비슷하게 둔다. */
+.qg-style.qg-style-b .qg-print-header {
+  align-items: center;
+  border-bottom: none;
+  border-radius: 3mm;
+  background: #f3f6f9;
+  padding: 1.5mm 3.5mm 2mm;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.qg-style.qg-style-b .qg-print-header-compact {
+  padding: 1.2mm 3.5mm 1.5mm;
+}
+.qg-style.qg-style-b .qg-print-logo-box {
+  border-color: #e1e6ec;
+}
+.qg-style.qg-style-b .qg-print-kicker {
+  color: #6b7686;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.qg-style.qg-style-b .qg-print-title {
+  color: #1b2a41;
+  font-weight: 700;
+}
+.qg-style.qg-style-b .qg-print-sub {
+  color: #5f6b7b;
+}
+.qg-style.qg-style-b .qg-print-banner {
+  font-weight: 700;
+}
+.qg-style.qg-style-b .qg-print-meta {
+  color: #5f6b7b;
+  font-weight: 500;
+}
+.qg-style.qg-style-b .qg-print-page-no {
+  margin-left: 1mm;
+  padding: 0.2mm 1.8mm;
+  border-radius: 999px;
+  background: #1b2a41;
+  color: #fff;
+  font-size: 7.5pt;
+  font-weight: 700;
+}
+.qg-style.qg-style-b .qg-print-vocab-qr img {
+  border-radius: 1.6mm;
+}
+.qg-style.qg-style-b .qg-print-vocab-qr-label {
+  color: #1b2a41;
+}
+.qg-style.qg-style-b .qg-print-type-banner-title {
+  border-left: 1mm solid #2c6e9e;
+  padding-left: 2mm;
+  color: #1b2a41;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.qg-style.qg-style-b .qg-print-col-right {
+  border-left-color: #e1e6ec;
+}
+.qg-style.qg-style-b .qg-print-card {
+  border-bottom-color: transparent;
+}
+.qg-style.qg-style-b .qg-print-q-head {
+  padding-left: 7mm;
+  text-indent: -7mm;
+  color: #1b2a41;
+  font-weight: 600;
+}
+/* 번호: 남색 네모 칩 */
+.qg-style.qg-style-b .qg-print-q-num {
+  display: inline-block;
+  width: 5.6mm;
+  height: 4.4mm;
+  line-height: 4.4mm;
+  margin-right: 0.8mm;
+  border-radius: 1.3mm;
+  background: #1b2a41;
+  color: #fff;
+  font-size: 7.8pt;
+  font-weight: 700;
+  text-align: center;
+  text-indent: 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.qg-style.qg-style-b .qg-print-q-head .qg-print-q-num {
+  width: 5.6mm;
+  margin-right: calc(1.4mm - 3px);
+}
+/* 지문: 연한 회색 바탕 상자 */
+.qg-style.qg-style-b .qg-print-passage-block:not(.qg-print-count-box) {
+  padding: 1.3mm 2mm;
+  border-radius: 2mm;
+  background: #f5f7fa;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.qg-style.qg-style-b .qg-print-passage,
+.qg-style.qg-style-b .qg-print-passage-p {
+  color: #1b2a41;
+}
+.qg-style.qg-style-b .qg-print-given-box {
+  border-color: #cfd8e3;
+  border-radius: 2mm;
+  background: #f5f7fa;
+  color: #1b2a41;
+}
+.qg-style.qg-style-b .qg-print-extra {
+  color: #33425a;
+}
+.qg-style.qg-style-b .qg-print-choices li {
+  color: #1b2a41;
+}
+.qg-style.qg-style-b .qg-print-choice-mark {
+  color: #2c6e9e;
+  font-weight: 600;
+}
+.qg-style.qg-style-b .qg-print-count-box,
+.qg-style.qg-style-b .qg-print-wo-box {
+  border-color: #cfd8e3;
+  border-radius: 2mm;
+}
+.qg-style.qg-style-b .qg-print-bogi-label {
+  border: 1px solid #cfd8e3;
+  border-radius: 999px;
+  padding: 0.6mm 2.2mm;
+  color: #2c6e9e;
+  font-size: 7.5pt;
+  margin-bottom: -2.2mm;
+}
+.qg-style.qg-style-b .qg-print-bogi-box {
+  padding-top: 3.2mm;
+}
+.qg-style.qg-style-b .qg-print-wo-label {
+  color: #2c6e9e;
+  font-weight: 600;
+}
+.qg-style.qg-style-b .qg-print-bogi-line,
+.qg-style.qg-style-b .qg-print-wo-body {
+  color: #1b2a41;
+}
+.qg-style.qg-style-b .qg-print-fix-table th,
+.qg-style.qg-style-b .qg-print-fix-table td {
+  border-color: #cfd8e3;
+}
+.qg-style.qg-style-b .qg-print-fix-table th {
+  background: #f3f6f9;
+  color: #1b2a41;
+}
+.qg-style.qg-style-b .qg-print-answer-head {
+  color: #1b2a41;
+}
+.qg-style.qg-style-b .qg-print-answer-body {
+  color: #26344b;
+}
+.qg-style.qg-style-b .qg-print-hard-words {
+  border-top-color: #cfd8e3;
+}
+.qg-style.qg-style-b .qg-print-footer {
+  border-top-color: #e1e6ec;
+  color: #8a96a8;
+}
+.qg-style.qg-style-b .qg-print-footer-page {
+  color: #5f6b7b;
+}
+
+/* ══════════ C · 클래식 인쇄 ══════════ */
+.qg-style.qg-style-c .qg-print-sheet {
+  --qg-accent: #7c2536;
+}
+.qg-style.qg-style-c .qg-print-sheet,
+.qg-style.qg-style-c .qg-print-card {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+}
+/* 머리: 자주색 두 줄 윗선 + 가는 밑줄 */
+.qg-style.qg-style-c .qg-print-header {
+  border-top: 3px double #7c2536;
+  border-bottom: 1px solid #7c2536;
+  padding-top: 1mm;
+}
+.qg-style.qg-style-c .qg-print-header-with-qr {
+  padding-bottom: 1.5mm;
+}
+.qg-style.qg-style-c .qg-print-logo-box {
+  border-color: #e3d9db;
+}
+.qg-style.qg-style-c .qg-print-kicker {
+  color: #7c2536;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.qg-style.qg-style-c .qg-print-title,
+.qg-style.qg-style-c .qg-print-sub,
+.qg-style.qg-style-c .qg-print-banner,
+.qg-style.qg-style-c .qg-print-meta,
+.qg-style.qg-style-c .qg-print-vocab-qr-label,
+.qg-style.qg-style-c .qg-print-type-banner-title {
+  font-family: "Gowun Batang", serif;
+}
+.qg-style.qg-style-c .qg-print-title {
+  color: #2a2326;
+  font-weight: 700;
+}
+.qg-style.qg-style-c .qg-print-sub,
+.qg-style.qg-style-c .qg-print-meta {
+  color: #5b5054;
+}
+.qg-style.qg-style-c .qg-print-banner {
+  font-weight: 700;
+}
+.qg-style.qg-style-c .qg-print-page-no {
+  font-family: "Literata", Georgia, serif;
+  font-weight: 600;
+}
+.qg-style.qg-style-c .qg-print-vocab-qr-label {
+  color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-type-banner {
+  border-bottom: 1px solid #7c2536;
+}
+.qg-style.qg-style-c .qg-print-type-banner-title {
+  color: #7c2536;
+  font-weight: 700;
+}
+.qg-style.qg-style-c .qg-print-col-right {
+  border-left-color: #e3d9db;
+}
+.qg-style.qg-style-c .qg-print-card {
+  border-bottom-color: #efe7e9;
+}
+.qg-style.qg-style-c .qg-print-card.qg-print-card-cont {
+  border-bottom: none;
+}
+.qg-style.qg-style-c .qg-print-q-head {
+  padding-left: 6.6mm;
+  text-indent: -6.6mm;
+  font-family: "Gowun Batang", serif;
+  font-weight: 700;
+  color: #2a2326;
+}
+/* 번호: 자주색 네모 */
+.qg-style.qg-style-c .qg-print-q-num {
+  display: inline-block;
+  width: 5mm;
+  height: 4.6mm;
+  line-height: 4.6mm;
+  margin-right: 0.8mm;
+  background: #7c2536;
+  color: #fff;
+  font-family: "Literata", Georgia, serif;
+  font-size: 7.5pt;
+  font-weight: 600;
+  text-align: center;
+  text-indent: 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.qg-style.qg-style-c .qg-print-q-head .qg-print-q-num {
+  width: 5mm;
+  margin-right: calc(1.6mm - 3px);
+}
+.qg-style.qg-style-c .qg-print-u {
+  text-decoration-color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-passage,
+.qg-style.qg-style-c .qg-print-passage-p,
+.qg-style.qg-style-c .qg-print-given-box,
+.qg-style.qg-style-c .qg-print-wo-words,
+.qg-style.qg-style-c .qg-print-wo-summary,
+.qg-style.qg-style-c .qg-print-hw-en {
+  font-family: "Literata", Georgia, "Gowun Batang", serif;
+  color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-given-box {
+  background: transparent;
+  border-color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-extra {
+  color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-choices li {
+  font-family: "Literata", Georgia, "Gowun Batang", serif;
+  color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-choice-mark {
+  font-family: "Noto Sans KR", ui-sans-serif, sans-serif;
+  font-weight: 500;
+  color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-count-box,
+.qg-style.qg-style-c .qg-print-wo-box {
+  border-color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-bogi-label,
+.qg-style.qg-style-c .qg-print-wo-label,
+.qg-style.qg-style-c .qg-print-bogi-line {
+  font-family: "Gowun Batang", serif;
+  color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-bogi-label {
+  font-size: 8.3pt;
+  font-weight: 700;
+}
+.qg-style.qg-style-c .qg-print-fix-table th,
+.qg-style.qg-style-c .qg-print-fix-table td {
+  border-color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-fix-table th {
+  background: #f6f1f2;
+  color: #2a2326;
+  font-family: "Gowun Batang", serif;
+}
+.qg-style.qg-style-c .qg-print-answer-head {
+  color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-answer-body {
+  color: #2a2326;
+}
+.qg-style.qg-style-c .qg-print-hard-words {
+  border-top-color: #c9b8bc;
+}
+.qg-style.qg-style-c .qg-print-footer {
+  border-top-color: #7c2536;
+  color: #7c2536;
+  font-family: "Gowun Batang", serif;
+}
+.qg-style.qg-style-c .qg-print-footer-page {
+  font-family: "Literata", Georgia, serif;
+  color: #2a2326;
+}
