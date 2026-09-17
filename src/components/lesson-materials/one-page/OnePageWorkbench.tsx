@@ -40,6 +40,29 @@ type Mode = "summary" | "test";
 
 const MODE_LABEL: Record<Mode, string> = { summary: "1장 요약직보자료", test: "1장 테스트" };
 
+/*
+ * 자료 모양. 분석지·변형문제·워크북과 같은 시안 셋(A 교재 세리프 · B 깔끔한 산세리프 · C 클래식 인쇄)
+ * 가운데 하나를 고른다(기본은 A). 요약자료와 테스트지는 따로 기억한다 —
+ * one-page-print-styles.css의 .op-style-*.
+ */
+type OnePageDesignStyle = "a" | "b" | "c";
+const DESIGN_STYLE_KEY: Record<Mode, string> = {
+  summary: "one-page-summary-design-style",
+  test: "one-page-test-design-style",
+};
+const DESIGN_STYLES: Array<{ id: OnePageDesignStyle; label: string; hint: string }> = [
+  { id: "a", label: "A", hint: "교재 세리프" },
+  { id: "b", label: "B", hint: "깔끔한 산세리프" },
+  { id: "c", label: "C", hint: "클래식 인쇄" },
+];
+/** A·B·C가 쓰는 글꼴. */
+const DESIGN_FONTS_HREF =
+  "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,500&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=Gowun+Batang:wght@400;700&display=swap";
+
+function designClass(style: OnePageDesignStyle): string {
+  return `op-style op-style-${style}`;
+}
+
 type PrepareResult = Awaited<ReturnType<typeof prepareOnePageContentAction>>;
 type GrammarResult = Awaited<ReturnType<typeof generateGrammarChoicePassageAction>>;
 type VocabResult = Awaited<ReturnType<typeof generateVocabChoicePassageAction>>;
@@ -71,6 +94,7 @@ export function OnePageSheetList({
   tests,
   logoSrc,
   includeAnswers,
+  designKey = "",
   placeholder,
 }: {
   mode: Mode;
@@ -78,6 +102,8 @@ export function OnePageSheetList({
   tests: Record<string, OnePageTestPassage>;
   logoSrc?: string | null;
   includeAnswers: boolean;
+  /** 모양·글꼴 상태. 바뀌면 쪽 맞추기를 다시 한다. */
+  designKey?: string;
   /** 아직 준비 중이거나 실패한 지문 자리에 넣을 것(화면 전용) */
   placeholder?: (project: OnePageProjectInput, index: number) => ReactNode;
 }) {
@@ -106,16 +132,22 @@ export function OnePageSheetList({
                 project={{ ...p, content: p.content as OnePageContent }}
                 logoSrc={logoSrc}
                 isLast={isLast}
+                designKey={designKey}
               />
             ) : (
-              <OnePageTestSheet index={i} passage={tests[p.id]!} isLast={isLast} />
+              <OnePageTestSheet index={i} passage={tests[p.id]!} isLast={isLast} designKey={designKey} />
             )}
           </div>
         );
       })}
       {mode === "test" && testPassages.length > 0 ? (
         <div id="op-answers" className={`contents ${includeAnswers ? "" : "print:hidden"}`}>
-          <OnePageAnswerSheets passages={testPassages} indexOf={indexOf} isLastGroup={includeAnswers} />
+          <OnePageAnswerSheets
+            passages={testPassages}
+            indexOf={indexOf}
+            isLastGroup={includeAnswers}
+            designKey={designKey}
+          />
         </div>
       ) : null}
     </>
@@ -152,6 +184,40 @@ export function OnePageWorkbench({
   const [zoom, setZoom] = useState(85);
   const [started, setStarted] = useState(false);
   const scaled = useScaledHeight<HTMLDivElement>(zoom / 100);
+  /** 자료 모양(A·B·C). 저장값이 없거나 옛 값("base" 등)이면 A. */
+  const [designStyle, setDesignStyle] = useState<OnePageDesignStyle>("a");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(DESIGN_STYLE_KEY[mode]);
+      if (saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
+    } catch {
+      /* 저장소를 못 쓰면 A */
+    }
+  }, [mode]);
+  const chooseDesignStyle = (style: OnePageDesignStyle) => {
+    setDesignStyle(style);
+    try {
+      window.localStorage.setItem(DESIGN_STYLE_KEY[mode], style);
+    } catch {
+      /* 무시 */
+    }
+  };
+  /*
+   * 모양 글꼴은 늦게 들어와 글자 폭이 달라진다. 한 쪽 맞추기는 잰 높이로 하므로 글꼴이 들어온 뒤
+   * 한 번 더 잰다(안 그러면 쪽이 넘치거나 아래가 빈다).
+   */
+  const [fontsTick, setFontsTick] = useState(0);
+  useEffect(() => {
+    if (typeof document === "undefined" || !document.fonts) return;
+    let alive = true;
+    const bump = () => alive && setFontsTick((t) => t + 1);
+    void document.fonts.ready.then(bump);
+    document.fonts.addEventListener?.("loadingdone", bump);
+    return () => {
+      alive = false;
+      document.fonts.removeEventListener?.("loadingdone", bump);
+    };
+  }, [designStyle]);
   /** 새로 조립한 시험지가 있어 파일에 저장해야 한다. */
   const needSave = useRef(false);
   /** 저장할 시험지. 상태는 렌더 뒤에야 바뀌므로, 조립하는 즉시 여기에도 넣는다. */
@@ -369,6 +435,25 @@ export function OnePageWorkbench({
               ) : null}
             </div>
           ) : null}
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-bold text-slate-500">자료 모양</p>
+            <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
+              {DESIGN_STYLES.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  title={d.hint}
+                  onClick={() => chooseDesignStyle(d.id)}
+                  className={`rounded-md px-1 py-1.5 text-xs font-bold transition ${
+                    designStyle === d.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-slate-400">{DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}</p>
+          </div>
           {mode === "test" ? (
             <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
               <input
@@ -447,12 +532,13 @@ export function OnePageWorkbench({
           </button>
         </div>
 
+        <link rel="stylesheet" href={DESIGN_FONTS_HREF} />
         <div className="flex flex-col items-center p-6 print:block print:p-0">
           <div style={scaled.frameStyle} className="print:!h-auto print:!overflow-visible">
             <div
               ref={scaled.ref}
               id="one-page-print-root"
-              className="flex origin-top flex-col gap-6 print:gap-0 print:!transform-none"
+              className={`flex origin-top flex-col gap-6 print:gap-0 print:!transform-none ${designClass(designStyle)}`}
               style={previewStyle}
             >
               <OnePageSheetList
@@ -461,6 +547,7 @@ export function OnePageWorkbench({
                 tests={tests}
                 logoSrc={logoSrc}
                 includeAnswers={includeAnswers}
+                designKey={`${designStyle}:${fontsTick}`}
                 placeholder={(p, i) => (
                   <div className="flex h-[60mm] w-[210mm] flex-col items-center justify-center rounded bg-white/70 text-sm text-slate-500 shadow">
                     <span className="font-bold text-slate-700">

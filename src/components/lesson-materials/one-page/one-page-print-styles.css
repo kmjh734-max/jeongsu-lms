@@ -1,0 +1,939 @@
+/* ------------------------------------------------------------------ */
+/* 1장 요약자료 · 1장 테스트지 모양 A·B·C (2026-09-18).                      */
+/* OnePageWorkbench의 쪽 틀(#one-page-print-root)에 .op-style .op-style-x를 단다. */
+/* 기본 틀(OnePageSheets의 ONE_PAGE_CSS) 위에 덮어 쓴다. 모든 규칙은 기본 규칙보다 */
+/* 선택자가 한 단계 세도록 .op-style(.op-style-x)를 앞에 붙인다.                 */
+/* 크기는 모두 em이라 한 쪽 맞추기(0.88~1.12배)가 그대로 먹는다. 글자 크기는 거의  */
+/* 그대로 두고 글꼴·색·선·번호 자리만 바꾼다(쪽이 늘지 않게).                     */
+/* ------------------------------------------------------------------ */
+
+/* ══════════ 공통 ══════════ */
+.op-style .op-body {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+}
+.op-style .op-sn,
+.op-style .op-gm,
+.op-style .op-xm,
+.op-style .op-rm,
+.op-style .op-ins,
+.op-style .op-num,
+.op-style .op-choice sup,
+.op-style .op-blank sup,
+.op-style .op-oitem b,
+.op-style .op-ansline,
+.op-style .op-tfm i,
+.op-style .op-ai b,
+.op-style ruby.op-voc rt {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* 머리말: 번호 · (앞말 + 제목) · 오른쪽(로고 / 이름·점수) */
+.op-style .op-head {
+  gap: 0.9em;
+  padding: 0 0 0.6em;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.op-style .op-head .op-no {
+  font-size: 2.6em;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+.op-style .op-no-pre {
+  display: none;
+}
+.op-style .op-head-m {
+  flex: 1;
+  min-width: 0;
+}
+.op-style .op-kicker {
+  display: block;
+  font-size: 0.92em;
+  line-height: 1.35;
+  letter-spacing: 0.03em;
+}
+.op-style .op-head h1 {
+  font-size: 1.55em;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 0.05em;
+}
+.op-style .op-head-r {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45em;
+}
+.op-style .op-nm {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.45em;
+  font-size: 0.92em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.op-style .op-nm i {
+  display: inline-block;
+  width: 7.6em;
+  height: 1.1em;
+  border-bottom: 1px solid currentColor;
+}
+.op-style .op-nm i.op-nm-sc {
+  width: 4.4em;
+}
+/* 테스트지 머리말은 조금 작게(문항 자리를 지킨다) */
+.op-style .op-head.op-head--test .op-no {
+  font-size: 2.2em;
+}
+.op-style .op-head.op-head--test h1 {
+  font-size: 1.3em;
+}
+
+/* 주제·제목·요약문: 번호는 감추고 이름만 */
+.op-style .op-meta dt b {
+  display: none;
+}
+.op-style .op-meta dt {
+  font-size: 0.87em;
+  padding-top: 0.15em;
+}
+.op-style .op-kw {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* 번호를 왼쪽 여백에 세운 절. 번호 칸 일부를 쪽 여백으로 내밀어 본문 폭을 거의 그대로 둔다. */
+.op-style .op-s {
+  display: grid;
+  grid-template-columns: 1.75em minmax(0, 1fr);
+  column-gap: 0.55em;
+  margin: 0.8em 0 0 -1.2em;
+}
+.op-style .op-sheet--test .op-s {
+  margin-top: 0.55em;
+}
+.op-style .op-s-body {
+  min-width: 0;
+}
+.op-style .op-gut {
+  padding-top: 0.05em;
+}
+.op-style .op-gut i {
+  font-style: normal;
+}
+.op-style .op-s .op-h {
+  margin-top: 0;
+}
+.op-style .op-h {
+  margin-bottom: 0.4em;
+  font-size: 1.08em;
+}
+.op-style .op-h::before {
+  display: none;
+}
+.op-style .op-legend {
+  font-size: 0.76em;
+}
+
+/* 본문 표시 */
+.op-style .op-x,
+.op-style .op-bk {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* 도식화 */
+.op-style .op-fbox {
+  border-radius: 0;
+}
+.op-style .op-fbox .op-fno {
+  display: block;
+  font-size: 0.8em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 0.15em;
+  color: inherit;
+}
+.op-style .op-list li {
+  line-height: 1.45;
+}
+
+/* 테스트 */
+.op-style .op-sumq {
+  line-height: 1.75;
+}
+.op-style .op-blank {
+  position: relative;
+}
+.op-style .op-blank sup {
+  position: absolute;
+  left: 0.1em;
+  top: -0.15em;
+  font-size: 0.78em;
+  font-weight: 700;
+  line-height: 1;
+}
+/* T/F: 번호 · 문장 · 끝에 동그라미 칠 T F (줄 높이보다 크지 않게) */
+.op-style .op-tf li {
+  display: grid;
+  grid-template-columns: 2.1em minmax(0, 1fr) auto;
+  column-gap: 0.3em;
+  align-items: center;
+  padding-left: 0;
+  text-indent: 0;
+  margin: 0;
+  padding: 0.12em 0;
+}
+.op-style .op-tf .op-num {
+  margin-right: 0;
+}
+.op-style .op-tfm {
+  white-space: nowrap;
+}
+.op-style .op-tfm i {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 1.65em;
+  height: 1.65em;
+  line-height: calc(1.65em - 2px);
+  margin-left: 0.4em;
+  border: 1px solid;
+  border-radius: 50%;
+  text-align: center;
+  font-style: normal;
+  font-size: 0.82em;
+  font-weight: 500;
+}
+/* 어법·어휘 두 단 사이 가는 세로선 */
+.op-style .op-two {
+  column-gap: 0.7em;
+  align-items: stretch;
+}
+.op-style .op-two > .op-s + .op-s {
+  margin-left: 0;
+  padding-left: 0.7em;
+  border-left: 1px solid #e1e5eb;
+}
+.op-style .op-wn {
+  margin-right: 0.35em;
+}
+.op-style .op-w .op-wko {
+  border-radius: 0;
+}
+.op-style .op-w .op-wline {
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+
+/* 정답 */
+.op-style .op-ans {
+  border-radius: 0;
+}
+
+/* ══════════ A · 교재 세리프 ══════════ */
+.op-style.op-style-a .op-en {
+  font-family: "Source Serif 4", "Noto Sans KR", Georgia, serif;
+}
+.op-style.op-style-a .op-body {
+  color: #16213d;
+}
+.op-style.op-style-a .op-head {
+  border-bottom: 1.5px solid #1d2b4f;
+}
+.op-style.op-style-a .op-head .op-no {
+  font-family: "Source Serif 4", Georgia, serif;
+  color: #b23a3a;
+}
+.op-style.op-style-a .op-kicker {
+  color: #7a8190;
+}
+.op-style.op-style-a .op-head h1 {
+  color: #16213d;
+}
+.op-style.op-style-a .op-nm {
+  color: #4a5470;
+}
+.op-style.op-style-a .op-meta dt {
+  font-size: 0.8em;
+  letter-spacing: 0.05em;
+  color: #b23a3a;
+}
+.op-style.op-style-a .op-meta dd {
+  color: #2f3540;
+}
+.op-style.op-style-a .op-meta .op-en {
+  color: #16213d;
+}
+.op-style.op-style-a .op-ko {
+  color: #5d6573;
+}
+.op-style.op-style-a .op-kw {
+  border-bottom: 1px solid #16213d;
+}
+.op-style.op-style-a .op-gut {
+  text-align: right;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.3em;
+  font-weight: 600;
+  line-height: 1.05;
+  color: #9aa3b5;
+}
+.op-style.op-style-a .op-s {
+  grid-template-columns: 1.35em minmax(0, 1fr);
+}
+.op-style.op-style-a .op-h {
+  color: #16213d;
+  letter-spacing: 0.02em;
+  border-bottom-color: #dfe3ea;
+}
+.op-style.op-style-a .op-legend {
+  color: #6b7382;
+}
+.op-style.op-style-a .op-lg-v {
+  font-family: "Source Serif 4", serif;
+  font-style: italic;
+  color: #5c6d91;
+}
+.op-style.op-style-a .op-passage {
+  color: #16213d;
+}
+.op-style.op-style-a .op-sn {
+  color: #9aa3b5;
+}
+.op-style.op-style-a .op-g {
+  text-decoration-color: #b23a3a;
+}
+.op-style.op-style-a .op-gm {
+  color: #b23a3a;
+}
+.op-style.op-style-a .op-x {
+  background: linear-gradient(transparent 52%, #dfe7f3 52%);
+  border-radius: 0;
+}
+.op-style.op-style-a .op-xm {
+  color: #1f5a96;
+}
+.op-style.op-style-a .op-r {
+  text-decoration-color: #3f7c6a;
+}
+.op-style.op-style-a .op-rm {
+  color: #3f7c6a;
+}
+.op-style.op-style-a ruby.op-voc rt {
+  font-family: "Source Serif 4", Georgia, serif;
+  color: #5c6d91;
+}
+.op-style.op-style-a ruby.op-voc rt .op-vocw i {
+  font-style: italic;
+}
+.op-style.op-style-a .op-bk {
+  background: linear-gradient(transparent 50%, #f5e19a 50%);
+  box-shadow: none;
+}
+.op-style.op-style-a .op-ins {
+  color: #b23a3a;
+  border-color: #b23a3a;
+  border-radius: 0;
+}
+.op-style.op-style-a .op-fbox {
+  border: 0;
+  border-top: 1.5px solid #c9d0db;
+  padding-left: 0;
+  padding-right: 0.5em;
+  background: none;
+}
+.op-style.op-style-a .op-fbox--end {
+  border-top-color: #b23a3a;
+}
+.op-style.op-style-a .op-fbox .op-fno {
+  font-family: "Source Serif 4", serif;
+  color: #b23a3a;
+}
+.op-style.op-style-a .op-fbox b {
+  color: #16213d;
+}
+.op-style.op-style-a .op-fbox .op-fko {
+  color: #5d6573;
+}
+.op-style.op-style-a .op-farr {
+  color: #b8bec9;
+}
+.op-style.op-style-a .op-list,
+.op-style.op-style-a .op-refs {
+  color: #3a414d;
+}
+.op-style.op-style-a .op-list b,
+.op-style.op-style-a .op-refs b {
+  color: #16213d;
+}
+.op-style.op-style-a .op-list .op-tag {
+  color: #b23a3a;
+  background: none;
+  padding: 0;
+}
+.op-style.op-style-a .op-mean {
+  color: #7a8190;
+}
+.op-style.op-style-a .op-to {
+  color: #1f5a96;
+}
+.op-style.op-style-a .op-refs .op-rsep {
+  color: #c9ced8;
+}
+.op-style.op-style-a .op-given {
+  border: 0;
+  border-left: 2px solid #1d2b4f;
+  border-radius: 0;
+  background: #f5f7fa;
+  color: #16213d;
+}
+.op-style.op-style-a .op-oitem {
+  color: #16213d;
+}
+.op-style.op-style-a .op-oitem b {
+  color: #b23a3a;
+}
+.op-style.op-style-a .op-ansline {
+  font-family: "Source Serif 4", serif;
+  font-style: italic;
+  font-weight: 600;
+  color: #16213d;
+}
+.op-style.op-style-a .op-ansline i {
+  border-bottom-color: #16213d;
+}
+.op-style.op-style-a .op-blank {
+  border-bottom-color: #1f2430;
+}
+.op-style.op-style-a .op-blank sup,
+.op-style.op-style-a .op-num,
+.op-style.op-style-a .op-choice sup,
+.op-style.op-style-a .op-wn {
+  color: #b23a3a;
+}
+.op-style.op-style-a .op-tf li {
+  border-bottom: 1px dotted #e1e5eb;
+  color: #16213d;
+}
+.op-style.op-style-a .op-tfm i {
+  border-color: #b8c0cc;
+  color: #4a5470;
+}
+.op-style.op-style-a .op-choice {
+  color: #16213d;
+}
+.op-style.op-style-a .op-w .op-chunks {
+  font-family: "Source Serif 4", "Noto Sans KR", serif;
+  font-weight: 600;
+  color: #16213d;
+}
+.op-style.op-style-a .op-w .op-wko {
+  background: none;
+  border-left: 2px solid #d9dee6;
+  color: #5d6573;
+}
+.op-style.op-style-a .op-w .op-wline {
+  border-bottom-color: #c8ced8;
+}
+.op-style.op-style-a .op-ans {
+  border-color: #dfe3ea;
+}
+.op-style.op-style-a .op-ans h3 span,
+.op-style.op-style-a .op-ai b {
+  color: #b23a3a;
+}
+
+/* ══════════ B · 깔끔한 산세리프 ══════════ */
+.op-style.op-style-b .op-body,
+.op-style.op-style-b .op-en,
+.op-style.op-style-b .op-sn,
+.op-style.op-style-b .op-gm,
+.op-style.op-style-b .op-xm,
+.op-style.op-style-b .op-rm,
+.op-style.op-style-b .op-ins,
+.op-style.op-style-b .op-num,
+.op-style.op-style-b .op-choice sup,
+.op-style.op-style-b .op-blank sup,
+.op-style.op-style-b .op-oitem b,
+.op-style.op-style-b .op-ansline,
+.op-style.op-style-b .op-tfm i,
+.op-style.op-style-b .op-ai b,
+.op-style.op-style-b ruby.op-voc rt,
+.op-style.op-style-b .op-w .op-chunks {
+  font-family: "IBM Plex Sans KR", "Noto Sans KR", ui-sans-serif, sans-serif;
+}
+.op-style.op-style-b .op-body {
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-head .op-no {
+  font-size: 1.04em;
+  font-weight: 600;
+  color: #fff;
+  background: #1b2a41;
+  border-radius: 999px;
+  padding: 0.35em 0.95em;
+}
+.op-style.op-style-b .op-head.op-head--test .op-no {
+  font-size: 1em;
+}
+.op-style.op-style-b .op-no-pre {
+  display: inline;
+}
+.op-style.op-style-b .op-kicker {
+  color: #6b7686;
+  letter-spacing: 0;
+}
+.op-style.op-style-b .op-head h1 {
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-nm {
+  color: #5f6b7b;
+}
+.op-style.op-style-b .op-nm i {
+  border-bottom-color: #aab4c2;
+}
+.op-style.op-style-b .op-meta {
+  background: #f3f6f9;
+  border-radius: 0.85em;
+  padding: 0.6em 1em;
+}
+.op-style.op-style-b .op-meta dt {
+  color: #2c6e9e;
+}
+.op-style.op-style-b .op-meta dd {
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-ko {
+  color: #5f6b7b;
+}
+.op-style.op-style-b .op-kw {
+  background: #dce9f5;
+  border-radius: 3px;
+  padding: 0 0.15em;
+}
+.op-style.op-style-b .op-gut i {
+  display: grid;
+  place-items: center;
+  width: 1.65em;
+  height: 1.65em;
+  border-radius: 0.5em;
+  background: #1b2a41;
+  color: #fff;
+  font-size: 0.95em;
+  font-weight: 700;
+  line-height: 1;
+}
+.op-style.op-style-b .op-h {
+  color: #1b2a41;
+  border-bottom-color: transparent;
+}
+.op-style.op-style-b .op-legend {
+  color: #5f6b7b;
+}
+.op-style.op-style-b .op-lg-v {
+  color: #2f7d62;
+}
+.op-style.op-style-b .op-passage {
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-sn {
+  color: #8a96a8;
+  font-weight: 600;
+}
+.op-style.op-style-b .op-g {
+  text-decoration-color: #c2413b;
+}
+.op-style.op-style-b .op-gm {
+  color: #c2413b;
+}
+.op-style.op-style-b .op-x {
+  background: #e6f0f8;
+  border-radius: 3px;
+}
+.op-style.op-style-b .op-xm {
+  color: #2c6e9e;
+}
+.op-style.op-style-b .op-r {
+  text-decoration-color: #b36b00;
+}
+.op-style.op-style-b .op-rm {
+  color: #b36b00;
+}
+.op-style.op-style-b ruby.op-voc rt {
+  color: #2f7d62;
+}
+.op-style.op-style-b .op-bk {
+  background: #fcecb3;
+  border-radius: 3px;
+  box-shadow: none;
+}
+.op-style.op-style-b .op-ins {
+  background: #c2413b;
+  color: #fff;
+  border-color: #c2413b;
+  border-radius: 999px;
+  padding: 0 0.6em;
+  font-weight: 600;
+}
+.op-style.op-style-b .op-fbox {
+  border: 0;
+  border-radius: 0.75em;
+  background: #f3f6f9;
+}
+.op-style.op-style-b .op-fbox--end {
+  background: #1b2a41;
+}
+.op-style.op-style-b .op-fbox .op-fno {
+  color: #2c6e9e;
+}
+.op-style.op-style-b .op-fbox b {
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-fbox .op-fko {
+  color: #5f6b7b;
+}
+.op-style.op-style-b .op-fbox--end .op-fno {
+  color: #9cc0dc;
+}
+.op-style.op-style-b .op-fbox--end b {
+  color: #fff;
+}
+.op-style.op-style-b .op-fbox--end .op-fko {
+  color: #c9d4e3;
+}
+.op-style.op-style-b .op-farr {
+  color: #aab4c2;
+}
+.op-style.op-style-b .op-list,
+.op-style.op-style-b .op-refs {
+  color: #3b4656;
+}
+.op-style.op-style-b .op-list b,
+.op-style.op-style-b .op-refs b {
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-list .op-tag {
+  color: #2c6e9e;
+  background: none;
+  border: 1px solid #a9c7de;
+  border-radius: 999px;
+  padding: 0 0.5em;
+  font-weight: 600;
+}
+.op-style.op-style-b .op-mean {
+  color: #7a8595;
+}
+.op-style.op-style-b .op-to {
+  color: #2c6e9e;
+}
+.op-style.op-style-b .op-refs .op-rsep {
+  color: #cfd6df;
+}
+.op-style.op-style-b .op-refs {
+  background: #f7f8fa;
+  border-radius: 0.75em;
+  padding: 0.3em 0.85em;
+}
+.op-style.op-style-b .op-given {
+  border: 0;
+  border-radius: 0.7em;
+  background: #f3f6f9;
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-oitem {
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-oitem b {
+  color: #2c6e9e;
+}
+.op-style.op-style-b .op-ansline {
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-ansline i {
+  border-bottom-color: #6f86a6;
+}
+.op-style.op-style-b .op-blank {
+  border-bottom: 1.5px solid #6f86a6;
+}
+.op-style.op-style-b .op-blank sup,
+.op-style.op-style-b .op-num,
+.op-style.op-style-b .op-choice sup {
+  color: #2c6e9e;
+}
+.op-style.op-style-b .op-tf li {
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-tfm i {
+  border-color: #c3ccd8;
+  color: #5f6b7b;
+}
+.op-style.op-style-b .op-choice {
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-choice b {
+  background: #eaf1f8;
+  border-radius: 4px;
+  padding: 0 0.2em;
+  font-weight: 600;
+}
+.op-style.op-style-b .op-w .op-chunks {
+  color: #1b2a41;
+}
+.op-style.op-style-b .op-wn {
+  color: #8a96a8;
+}
+.op-style.op-style-b .op-w .op-wko {
+  background: #f3f6f9;
+  border-radius: 0.5em;
+  color: #3b4656;
+}
+.op-style.op-style-b .op-w .op-wline {
+  border-bottom-color: #cfd6df;
+}
+.op-style.op-style-b .op-two > .op-s + .op-s {
+  border-left-color: #e1e6ec;
+}
+.op-style.op-style-b .op-ans {
+  border-color: #e1e6ec;
+  border-radius: 0.75em;
+}
+.op-style.op-style-b .op-ans h3 span,
+.op-style.op-style-b .op-ai b {
+  color: #2c6e9e;
+}
+
+/* ══════════ C · 클래식 인쇄 ══════════ */
+.op-style.op-style-c .op-en {
+  font-family: "Literata", "Noto Sans KR", Georgia, serif;
+}
+.op-style.op-style-c .op-body {
+  color: #2a2326;
+}
+.op-style.op-style-c .op-head {
+  border-top: 3px double #7c2536;
+  border-bottom: 1px solid #7c2536;
+  padding: 0.55em 0;
+}
+.op-style.op-style-c .op-head .op-no {
+  font-family: "Literata", Georgia, serif;
+  font-size: 2.35em;
+  color: #7c2536;
+}
+.op-style.op-style-c .op-head.op-head--test .op-no {
+  font-size: 2em;
+}
+.op-style.op-style-c .op-kicker {
+  color: #7c2536;
+  font-weight: 700;
+}
+.op-style.op-style-c .op-head h1 {
+  color: #2a2326;
+}
+.op-style.op-style-c .op-nm {
+  font-family: "Gowun Batang", serif;
+  color: #5b5054;
+}
+.op-style.op-style-c .op-meta dt {
+  font-family: "Gowun Batang", serif;
+  font-size: 0.93em;
+  color: #7c2536;
+}
+.op-style.op-style-c .op-meta dd {
+  font-family: "Gowun Batang", serif;
+  color: #2a2326;
+}
+.op-style.op-style-c .op-meta dd.op-en,
+.op-style.op-style-c .op-meta .op-en {
+  font-family: "Literata", Georgia, serif;
+}
+.op-style.op-style-c .op-ko {
+  font-family: "Gowun Batang", serif;
+  color: #5b5054;
+}
+.op-style.op-style-c .op-kw {
+  border-bottom: 1px solid #7c2536;
+}
+.op-style.op-style-c .op-gut i {
+  display: grid;
+  place-items: center;
+  width: 1.55em;
+  height: 1.55em;
+  background: #7c2536;
+  color: #fff;
+  font-family: "Literata", serif;
+  font-size: 0.92em;
+  font-weight: 600;
+  line-height: 1;
+}
+.op-style.op-style-c .op-h {
+  font-family: "Gowun Batang", serif;
+  font-size: 1.17em;
+  color: #7c2536;
+  border-bottom-color: #e3d9db;
+}
+.op-style.op-style-c .op-legend {
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 0.7em;
+  color: #6c5f63;
+}
+.op-style.op-style-c .op-lg-v {
+  color: #3d6f5a;
+}
+.op-style.op-style-c .op-passage {
+  color: #2a2326;
+}
+.op-style.op-style-c .op-sn {
+  color: #a7979b;
+}
+.op-style.op-style-c .op-g {
+  text-decoration-color: #7c2536;
+}
+.op-style.op-style-c .op-gm {
+  color: #7c2536;
+}
+.op-style.op-style-c .op-x {
+  background: #f2e9df;
+  border-radius: 0;
+}
+.op-style.op-style-c .op-xm {
+  color: #8a5a2b;
+}
+.op-style.op-style-c .op-r {
+  text-decoration-color: #9b3d74;
+}
+.op-style.op-style-c .op-rm {
+  color: #9b3d74;
+}
+.op-style.op-style-c ruby.op-voc rt {
+  font-family: "Literata", serif;
+  color: #3d6f5a;
+}
+.op-style.op-style-c .op-bk {
+  background: #f6ecc9;
+  box-shadow: 0 1px 0 #b99a4a;
+}
+.op-style.op-style-c .op-ins {
+  color: #7c2536;
+  border-color: transparent;
+  padding: 0;
+}
+.op-style.op-style-c .op-fbox {
+  border: 1px solid #d8c9cc;
+  background: none;
+}
+.op-style.op-style-c .op-fbox--end {
+  border-top: 3px solid #7c2536;
+  background: #faf6f6;
+}
+.op-style.op-style-c .op-fbox .op-fno {
+  font-family: "Literata", serif;
+  color: #7c2536;
+}
+.op-style.op-style-c .op-fbox b {
+  color: #2a2326;
+}
+.op-style.op-style-c .op-fbox .op-fko {
+  font-family: "Gowun Batang", serif;
+  color: #5b5054;
+}
+.op-style.op-style-c .op-farr {
+  color: #7c2536;
+}
+.op-style.op-style-c .op-list,
+.op-style.op-style-c .op-refs {
+  color: #3c3336;
+}
+.op-style.op-style-c .op-list b,
+.op-style.op-style-c .op-refs b {
+  color: #2a2326;
+}
+.op-style.op-style-c .op-list .op-tag {
+  color: #7c2536;
+  background: none;
+  border-radius: 0;
+  border-bottom: 1px solid #c7a9b0;
+  padding: 0;
+}
+.op-style.op-style-c .op-mean {
+  font-family: "Gowun Batang", serif;
+  color: #7a6d71;
+}
+.op-style.op-style-c .op-to {
+  color: #7c2536;
+}
+.op-style.op-style-c .op-refs .op-rsep {
+  color: #d6c3c7;
+}
+.op-style.op-style-c .op-given {
+  border: 1px solid #d8c9cc;
+  border-radius: 0;
+  background: #faf6f6;
+  color: #2a2326;
+}
+.op-style.op-style-c .op-oitem {
+  color: #2a2326;
+}
+.op-style.op-style-c .op-oitem b {
+  font-family: "Literata", serif;
+  color: #7c2536;
+}
+.op-style.op-style-c .op-ansline {
+  font-family: "Literata", serif;
+  color: #2a2326;
+}
+.op-style.op-style-c .op-ansline i {
+  border-bottom-color: #2a2326;
+}
+.op-style.op-style-c .op-blank {
+  border-bottom-color: #2a2326;
+}
+.op-style.op-style-c .op-blank sup,
+.op-style.op-style-c .op-num,
+.op-style.op-style-c .op-choice sup,
+.op-style.op-style-c .op-wn {
+  color: #7c2536;
+}
+.op-style.op-style-c .op-num,
+.op-style.op-style-c .op-wn {
+  font-family: "Literata", serif;
+}
+.op-style.op-style-c .op-tf li {
+  color: #2a2326;
+}
+.op-style.op-style-c .op-tfm i {
+  border-radius: 0;
+  border-color: #cbbcc0;
+  color: #6c5f63;
+}
+.op-style.op-style-c .op-choice {
+  color: #2a2326;
+}
+.op-style.op-style-c .op-w .op-chunks {
+  font-family: "Literata", "Noto Sans KR", serif;
+  font-weight: 600;
+  color: #2a2326;
+}
+.op-style.op-style-c .op-w .op-wko {
+  font-family: "Gowun Batang", serif;
+  background: #faf6f6;
+  color: #3c3336;
+}
+.op-style.op-style-c .op-w .op-wline {
+  border-bottom-color: #cbbcc0;
+}
+.op-style.op-style-c .op-two > .op-s + .op-s {
+  border-left-color: #e3d9db;
+}
+.op-style.op-style-c .op-ans {
+  border-color: #d8c9cc;
+}
+.op-style.op-style-c .op-ans h3 span,
+.op-style.op-style-c .op-ai b {
+  color: #7c2536;
+}
+.op-style.op-style-c .op-arow dt {
+  font-family: "Gowun Batang", serif;
+  color: #7c2536;
+}
