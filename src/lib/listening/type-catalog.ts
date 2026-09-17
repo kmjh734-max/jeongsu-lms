@@ -817,7 +817,7 @@ const DEFS: ListeningTypeDef[] = [
     format_guide:
       "School/community announcement monologue. Purpose = inform, request, invite, encourage, or announce a change. Korean choices.",
     segment_guide:
-      "Monologue only (M or W). 5~8 sentences. Opens with greeting/self-ID, states plan/change, closes with thanks/cooperation.",
+      "Monologue only (M or W). 9~12 sentences. Opens with greeting/self-ID, states plan/change, closes with thanks/cooperation.",
     choice_guide:
       "5 Korean purpose statements (…하려고). Only one matches the announced purpose; distractors share topic words.",
     craft: "목적: 인사·배경으로 시작하고 목적은 중반 이후에. 오답은 대본 소재어(행사·장소 등)를 쓴 다른 목적(홍보·사과·모집 등).",
@@ -847,7 +847,7 @@ const DEFS: ListeningTypeDef[] = [
     choiceFormat: "ko",
     engine: 3,
     format_guide: "Radio tip / advice monologue. Gist is a generalizable main idea, not a single detail. Korean choices.",
-    segment_guide: "Monologue (M or W). 5~8 sentences. Hook → tip → brief why it works.",
+    segment_guide: "Monologue (M or W). 7~10 sentences. Hook → tip → brief why it works.",
     choice_guide: "5 Korean gist statements. Correct abstracts the tip; distractors are details or opposite advice.",
     craft: "요지: 문제 제기→주장→예시→재강조. 정답은 마지막 재강조 문장의 직역이 아니라 일반화.",
     tier: "foundation",
@@ -959,7 +959,7 @@ const DEFS: ListeningTypeDef[] = [
     engine: 9,
     format_guide:
       "Event announcement monologue. Four facts match choices; one choice conflicts with the script. Korean choices.",
-    segment_guide: "Monologue (M or W). 6~9 sentences. Place, time, features, fee/reservation clearly stated.",
+    segment_guide: "Monologue (M or W). 9~12 sentences. Place, time, features, fee/reservation clearly stated.",
     choice_guide: "5 Korean factual claims. Correct = the false claim relative to the script.",
     craft: "내용 불일치: 선택지 5개는 대본 순서대로. 정답은 수·요일·대상 등 한 요소만 바꾼 문장.",
     tier: "standard",
@@ -1046,7 +1046,7 @@ const DEFS: ListeningTypeDef[] = [
     format_guide:
       "Third-person situation narration (English). Ask what A would say to B. English utterance choices. Printed \"Name: _____\".",
     segment_guide:
-      "Monologue narrator (M or W or ANN). 5~8 sentences. Ends with: In this situation, what would A most likely say to B?",
+      "Monologue narrator (M or W or ANN). 9~12 sentences. Ends with: In this situation, what would A most likely say to B?",
     choice_guide: "5 English utterances (request, thanks, suggestion, apology…). Only one matches the intended speech act.",
     craft: "상황 발화: 배경→문제→A의 판단. 마지막에 A가 하려는 말의 취지는 밝히되(wants to suggest / encourage …) 정답 문장과 같은 단어로 쓰지 않는다.",
     tier: "applied",

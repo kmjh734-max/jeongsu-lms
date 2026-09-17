@@ -14,7 +14,7 @@ const HIGH1_TYPES_BASE: ExamTypeTemplate[] = [
     format_guide:
       "School/community announcement monologue. Purpose = inform, request, invite, encourage, or announce a change. Korean choices.",
     segment_guide:
-      "Monologue only (M or W). 5~8 sentences. Total 85~120 words. Opens with greeting/self-ID, states plan/change, closes with thanks/cooperation.",
+      "Monologue only (M or W). 9~12 sentences. Total 115~140 words. Opens with greeting/self-ID, states plan/change, closes with thanks/cooperation.",
     choice_guide:
       "5 Korean purpose statements (…하려고). Only one matches the announced purpose; distractors share topic words.",
     difficulty_tier: "foundation",
@@ -38,7 +38,7 @@ const HIGH1_TYPES_BASE: ExamTypeTemplate[] = [
     format_guide:
       "Radio tip / advice monologue. Gist is a generalizable main idea, not a single detail. Korean choices.",
     segment_guide:
-      "Monologue (M or W). 5~8 sentences. Total 80~115 words. Hook → tip → brief why it works.",
+      "Monologue (M or W). 7~10 sentences. Total 90~115 words. Hook → tip → brief why it works.",
     choice_guide:
       "5 Korean gist statements. Correct abstracts the tip; distractors are details or opposite advice.",
     difficulty_tier: "foundation",
@@ -110,7 +110,7 @@ const HIGH1_TYPES_BASE: ExamTypeTemplate[] = [
     format_guide:
       "Event announcement monologue. Four facts match choices; one choice conflicts with the script. Korean choices.",
     segment_guide:
-      "Monologue (M or W). 6~9 sentences. Total 100~140 words. Place, time, features, fee/reservation clearly stated.",
+      "Monologue (M or W). 9~12 sentences. Total 110~145 words. Place, time, features, fee/reservation clearly stated.",
     choice_guide:
       "5 Korean factual claims. Correct = the false claim relative to the script.",
     difficulty_tier: "standard",
@@ -187,7 +187,7 @@ const HIGH1_TYPES_BASE: ExamTypeTemplate[] = [
     format_guide:
       "Third-person situation narration (English). Ask what A would say to B. English utterance choices. Printed \"Name: _____\".",
     segment_guide:
-      "Monologue narrator (M or W or ANN). 5~8 sentences. Total 90~130 words. Ends with: In this situation, what would A most likely say to B?",
+      "Monologue narrator (M or W or ANN). 9~12 sentences. Total 125~155 words. Ends with: In this situation, what would A most likely say to B?",
     choice_guide:
       "5 English utterances (request, thanks, suggestion, apology…). Only one matches the intended speech act.",
     difficulty_tier: "applied",
