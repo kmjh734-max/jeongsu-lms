@@ -294,21 +294,46 @@ function useMarkupLayout(
     }
 
     /*
-     * 직독직해 뜻: 앞 뜻이 길어 같은 줄의 다음 뜻과 겹치면 오른쪽으로 민다.
-     * 글상자 오른쪽 끝을 넘으면 넘친 만큼 왼쪽으로 되민다.
+     * 직독직해 뜻: 문장성분 표시(S·V)와 밑줄은 성분이 겹칠수록 아래로 내려가므로, 줄마다 가장
+     * 아래 표시를 재서 그 줄의 뜻을 모두 그 밑에 한 높이로 놓는다(처음 배포에서 뜻이 밑줄에 걸쳤다).
+     * 앞 뜻이 길어 같은 줄의 다음 뜻과 겹치면 오른쪽으로, 글상자 끝을 넘으면 안쪽으로 민다.
      */
     const glossEls = Array.from(box.querySelectorAll<HTMLElement>(".ar-gloss"));
-    for (const el of glossEls) el.style.transform = "";
-    let prev: { right: number; top: number } | null = null;
-    for (const el of glossEls) {
-      const r = el.getBoundingClientRect();
-      let shift = 0;
-      if (prev && Math.abs(prev.top - r.top) < 4 && r.left < prev.right + 6) {
-        shift = prev.right + 6 - r.left;
+    if (glossEls.length > 0) {
+      for (const el of glossEls) el.style.transform = "";
+      const marks = Array.from(
+        box.querySelectorAll<HTMLElement>(".ar-role-tag, .ar-role-text, .ar-bracket")
+      ).map((el) => el.getBoundingClientRect());
+      const items = glossEls.map((el) => ({
+        el,
+        anchor: el.parentElement!.getBoundingClientRect(),
+        rect: el.getBoundingClientRect(),
+      }));
+      // 같은 줄끼리 묶는다(닻의 윗변이 거의 같으면 같은 줄)
+      const lines: (typeof items)[] = [];
+      for (const it of [...items].sort((x, y) => x.anchor.top - y.anchor.top)) {
+        const line = lines.find((l) => Math.abs(l[0]!.anchor.top - it.anchor.top) < 8);
+        if (line) line.push(it);
+        else lines.push([it]);
       }
-      if (r.right + shift > bounds.right) shift = bounds.right - r.right;
-      if (Math.abs(shift) >= 1) el.style.transform = `translateX(${Math.round(shift)}px)`;
-      prev = { right: r.right + shift, top: r.top };
+      for (const line of lines) {
+        const top = Math.min(...line.map((it) => it.anchor.top));
+        const textBottom = Math.max(...line.map((it) => it.anchor.bottom));
+        let floor = textBottom;
+        for (const m of marks) {
+          if (m.height > 0 && m.top >= top - 4 && m.top < textBottom + 30 && m.bottom < textBottom + 34) {
+            floor = Math.max(floor, m.bottom);
+          }
+        }
+        let prevRight = -Infinity;
+        for (const it of line.sort((x, y) => x.rect.left - y.rect.left)) {
+          const dy = floor + 2 - it.rect.top;
+          let dx = it.rect.left < prevRight + 6 ? prevRight + 6 - it.rect.left : 0;
+          if (it.rect.right + dx > bounds.right) dx = bounds.right - it.rect.right;
+          it.el.style.transform = `translate(${Math.round(dx)}px, ${Math.round(dy)}px)`;
+          prevRight = it.rect.right + dx;
+        }
+      }
     }
 
     const frame = frameRef.current;

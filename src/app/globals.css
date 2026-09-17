@@ -2785,7 +2785,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 
 /* 직독직해: 덩어리 첫 낱말 아래(문장성분 표시 밑)에 한글 뜻. 뜻 한 줄이 들어가게 줄 사이를 넓힌다. */
 .ar-sentence--chunk {
-  line-height: 3.7;
+  line-height: 4.1;
 }
 
 .ar-gloss-start {
@@ -2803,7 +2803,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .ar-gloss {
   position: absolute;
   left: 0;
-  top: calc(1em + 9px);
+  /* 실제 높이는 자리를 잡은 뒤 그 줄의 문장성분 표시 밑으로 내린다 */
+  top: 100%;
   width: max-content;
   font-size: 9.6px;
   font-weight: 500;

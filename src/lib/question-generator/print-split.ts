@@ -157,9 +157,12 @@ export function paginatePrintPieces(
        * 상단에 짧은 2문제만 나온 경우가 있다, 종이를 아껴야"). 이제 남은 자리가 넉넉하면
        * 지문을 이어 싣고 나머지(지문 끝과 선택지)는 다음 단으로 잇는다.
        * 남은 자리가 좁으면 두세 줄만 걸쳐 읽기 불편하므로 예전처럼 다음 단에서 시작한다.
+       * 한 단에 들어가는 문항은 같은 쪽 안에서만(왼쪽 단 → 오른쪽 단) 잇는다. 쪽을 넘기면
+       * 지문과 선택지가 다른 장에 찍혀 풀기 어렵다(선생님 지적 2026-09-17).
        */
       const minStart = opts.minStartPx ?? 0;
-      if (col.length > 0 && room < minStart) {
+      const oversized = h > maxH();
+      if (col.length > 0 && (room < minStart || (!oversized && side === "right"))) {
         nextColumn();
         continue;
       }
