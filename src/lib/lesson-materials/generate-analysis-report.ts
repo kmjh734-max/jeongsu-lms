@@ -667,6 +667,33 @@ async function runScopedCall(
  * 별표는 지문에서 정말 중요한 몇 자리에만 남긴다. 문장마다 하나씩 붙이면(문장별로 만들다 보니
  * 그렇게 된다) 분석지가 온통 별표가 되어 강조가 사라진다. 설명이 많은 문장을 먼저 남긴다.
  */
+/**
+ * 한 지문에 함축 의미 꼬리표는 많아야 하나만 남긴다.
+ * 실제 시험도 지문 하나에 한 문항이고, 여기저기 붙으면 진짜 함축적인 자리가 묻힌다
+ * (선생님 지적: "함축의미추론이 좀 나올 만한 문장을 만들어야지 이상한 걸 만들면 어떻게").
+ * 남길 것은 뜻풀이(paraphrase)를 가장 충실히 적은 것으로 고른다.
+ */
+function capImplyTags(
+  markups: Array<AnalysisSentenceMarkup | null>
+): Array<AnalysisSentenceMarkup | null> {
+  const withImply = markups
+    .map((m, i) => ({ i, m, span: m?.tagSpans?.find((t) => t.tag === "함축 의미") }))
+    .filter((x) => x.span);
+  if (withImply.length <= 1) return markups;
+  const keepIndex = [...withImply].sort(
+    (a, b) => (b.span!.paraphrase ?? "").length - (a.span!.paraphrase ?? "").length
+  )[0]!.i;
+  return markups.map((m, i) => {
+    if (!m || i === keepIndex) return m;
+    if (!m.tagSpans?.some((t) => t.tag === "함축 의미")) return m;
+    return {
+      ...m,
+      tags: m.tags.filter((t) => t !== "함축 의미"),
+      tagSpans: m.tagSpans.filter((t) => t.tag !== "함축 의미"),
+    };
+  });
+}
+
 function capMarkupStars(
   markups: Array<AnalysisSentenceMarkup | null>
 ): Array<AnalysisSentenceMarkup | null> {
@@ -786,7 +813,7 @@ export async function generateAnalysisReport(input: {
       /* 검수 실패는 넘어간다 */
     }
 
-    markups = capMarkupStars(markups);
+    markups = capImplyTags(capMarkupStars(markups));
 
     const parsed: RawAnalysisResponse = {
       sentences: [],
