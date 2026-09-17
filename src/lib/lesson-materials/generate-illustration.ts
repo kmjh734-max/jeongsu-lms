@@ -1,10 +1,10 @@
 /**
  * 지문 삽화 — 6컷.
  *
- * 흐름: 지문 → (값싼 글 모델) 여섯 장면 → 여섯 그림을 한꺼번에 요청 → 캔버스에서 한 장으로 합침.
+ * 흐름: 지문 → (값싼 글 모델) 네 장면 → 네 그림을 한꺼번에 요청 → 캔버스에서 2×2 한 장으로 합침.
  * 예전에는 2×2 한 장을 통째로 시키고 말풍선 한글까지 그림 모델에 맡겼다. 한 번에 한 장이라
  * 55초 안팎 걸렸고, 지문 뒷부분이 빠지고 한글은 획이 뭉개졌다.
- * 지금은 여섯 컷을 나란히 요청하므로 가장 늦은 한 컷만큼만 기다리고, 컷마다 지문의 다른 대목을 맡는다.
+ * 지금은 네 컷을 나란히 요청하므로 가장 늦은 한 컷만큼만 기다리고, 컷마다 지문의 다른 대목을 맡는다.
  */
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BEAT_COUNT, planIllustrationBeats } from "@/lib/lesson-materials/illustration-beats";
@@ -18,7 +18,7 @@ const BEATS_TIMEOUT_MS = 25_000;
 /** 기본 마감: 경로 상한(120초)에서 합치기·저장·차감할 자리를 뺀 시간 */
 const DEFAULT_BUDGET_MS = 100_000;
 /** 그림이 이 수보다 적게 나오면 저장하지 않는다 — 반쪽짜리 판을 남기지 않는다 */
-const MIN_PANELS = 4;
+const MIN_PANELS = 3;
 
 export async function generateLessonMaterialComicIllustration(input: {
   academyId: string;

@@ -20,7 +20,11 @@ export type IllustrationPlan = {
   cast: string;
 };
 
-export const BEAT_COUNT = 6;
+/*
+ * 컷 수. 한때 6컷으로 늘렸다가 선생님 지적으로 예전처럼 4컷(2×2)으로 되돌렸다(2026-09-17).
+ * 컷을 따로 그려 한글 소제목을 우리가 얹는 방식은 그대로 둔다 — 그 덕에 글자가 또렷하고 빠르다.
+ */
+export const BEAT_COUNT = 4;
 
 function beatsModel(): string {
   return process.env.OPENAI_MODEL_ILLUSTRATION_BEATS?.trim() || "gpt-4o-mini";
@@ -33,7 +37,7 @@ Return JSON only:
 
 "cast": English, 15-30 words. The recurring figure(s) of this passage, described so any illustrator draws the same ones: age, hair, clothing colour, or — for a passage with no people — the recurring object/creature/place. Take them from the passage.
 
-"beats": exactly ${BEAT_COUNT}, in passage order. Beat 1-2 = the opening situation, 3-4 = how it develops, 5 = the turn, evidence or example, 6 = the closing point.
+"beats": exactly ${BEAT_COUNT}, in passage order. Beat 1 = the opening situation, 2 = how it develops, 3 = the turn, evidence or example, 4 = the closing point.
 - "title": KOREAN, 6-14 characters INCLUDING spaces, with normal word spacing. A plain summary of that beat, like a caption a teacher would write. No quotation marks, no ending period, no numbering.
 - "draw": ENGLISH, 25-45 words, ONE drawable moment taken from THAT part of the passage. Name the concrete people, creatures, objects, place and action the passage actually mentions. Never write a generic classroom, lecture or "student studying" scene unless the passage is about one.
 

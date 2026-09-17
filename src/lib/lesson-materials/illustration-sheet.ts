@@ -11,14 +11,15 @@ import fs from "fs";
 import path from "path";
 
 /** 컷 그림 자리 (3:2 가로) */
-const PANEL_W = 760;
-const PANEL_H = 507;
+const PANEL_W = 880;
+const PANEL_H = 587;
 /** 소제목 줄 높이 */
 const TITLE_H = 96;
 const GAP_X = 26;
 const GAP_Y = 30;
 const MARGIN = 26;
-const COLS = 3;
+/* 2×2 — 예전 4컷 배치로 되돌렸다(선생님 요청 2026-09-17) */
+const COLS = 2;
 
 const INK_THRESHOLD = 244;
 /** 원본을 너무 키우면 선이 뭉개진다 */
