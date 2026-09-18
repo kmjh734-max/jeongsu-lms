@@ -31,6 +31,8 @@ export interface VocabReportSection {
   stage2Completed: boolean;
   stage3Completed: boolean;
   stage4Passed: boolean;
+  /** 3단계(예문 빈칸) 최고 점수. 예전에 저장한 리포트에는 없다 */
+  stage3BestScore?: number;
   stage4LastScore: number;
   stage4BestScore: number;
   stage4AttemptCount: number;
@@ -89,6 +91,36 @@ export interface ListeningScheduleReportRow {
   summaryLine: string;
 }
 
+/** 한눈에 보기 — 기간 안에 실제로 한 학습을 모은 숫자와 학습 달력 */
+export interface ReportOverview {
+  /** 무엇이든 학습한 날 수 */
+  activeDays: number;
+  /** 날짜(YYYY-MM-DD, 한국 시간) → 그날 남긴 학습 기록 수 */
+  activity: Record<string, number>;
+  /** 달력 첫날·끝날(YYYY-MM-DD). 전체 기간이면 최근 5주 */
+  calendarStart: string;
+  calendarEnd: string;
+  vocab: {
+    setsStudied: number;
+    setsPassed: number;
+    /** 끝낸 단계 수 / 전체 단계 수(세트 × 4) */
+    stagesDone: number;
+    stagesTotal: number;
+    /** 4단계 종합테스트 최고 점수 평균(응시한 세트만) */
+    avgScore: number | null;
+  };
+  listening: {
+    examSets: number;
+    /** 듣기 시험 최고 점수 평균 */
+    examAvg: number | null;
+    /** 받아쓰기 통과 문항 비율(%) */
+    dictationRate: number | null;
+    tasksDone: number;
+    tasksTotal: number;
+  };
+  video: { courses: number; lessonsDone: number };
+}
+
 export interface StudentReport {
   generatedAt: string;
   range: ReportRange;
@@ -113,4 +145,6 @@ export interface StudentReport {
   listeningDictation: ListeningDictationReportRow[];
   listeningExam: ListeningExamReportRow[];
   reviewWords: ReviewWordRow[];
+  /** 예전에 저장한 리포트에는 없다 */
+  overview?: ReportOverview;
 }

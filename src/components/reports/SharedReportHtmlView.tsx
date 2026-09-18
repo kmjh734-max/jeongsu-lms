@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ReportOverviewPanel } from "@/components/reports/ReportOverviewPanel";
 import Link from "next/link";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { formatLastStudiedDate } from "@/lib/progress/enrollment-progress";
@@ -129,6 +130,9 @@ export function SharedReportHtmlView({
       </header>
 
       <main className="mx-auto max-w-lg space-y-4 px-4 py-6 sm:max-w-2xl sm:px-6 sm:py-8">
+        {report.overview ? (
+          <ReportOverviewPanel overview={report.overview} />
+        ) : (
         <div className="grid grid-cols-2 gap-3">
           <MetricTile
             label="영상 진도율"
@@ -148,6 +152,7 @@ export function SharedReportHtmlView({
           />
           <MetricTile label="최근 학습일" value={metrics.lastStudiedLabel} />
         </div>
+        )}
 
         <SectionCard title="학습 리포트">
           <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-slate-700">

@@ -8,6 +8,7 @@ import {
   formatMonthDay,
   NameAvatar,
 } from "@/components/reports/report-ui";
+import { ReportOverviewPanel } from "@/components/reports/ReportOverviewPanel";
 import { getReportRangeBounds } from "@/lib/reports/date-range";
 import type { StudentReport, VocabReportSection } from "@/lib/reports/types";
 
@@ -69,16 +70,21 @@ function MetricTile({
 function Section({
   title,
   aside,
+  accent = "#2563eb",
   children,
 }: {
   title: string;
   aside?: ReactNode;
+  accent?: string;
   children: ReactNode;
 }) {
   return (
-    <section className="border-t border-slate-100 pt-4">
-      <div className="mb-2 flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+    <section className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+          <span className="inline-block h-3.5 w-1 rounded-full" style={{ background: accent }} />
+          {title}
+        </h3>
         {aside ? <span className="text-xs text-slate-500">{aside}</span> : null}
       </div>
       {children}
@@ -95,23 +101,20 @@ const STAGE_NAMES = ["1단계 뜻 익히기", "2단계 스펠링", "3단계 예�
 function StageDots({ set }: { set: VocabReportSection }) {
   const done = [set.stage1Completed, set.stage2Completed, set.stage3Completed];
   const stage4Failed = !set.stage4Passed && set.stage4AttemptCount > 0;
+  const cells = [...done.map((d) => (d ? "done" : "todo")), set.stage4Passed ? "done" : stage4Failed ? "fail" : "todo"];
   return (
-    <span className="flex shrink-0 items-center gap-1" aria-hidden>
-      {done.map((d, i) => (
+    <span className="flex w-28 shrink-0 gap-0.5" aria-hidden>
+      {cells.map((c, i) => (
         <span
           key={i}
-          title={`${STAGE_NAMES[i]} ${d ? "완료" : "미완료"}`}
-          className={`h-2 w-2 rounded-full ${d ? "bg-green-700" : "bg-slate-200"}`}
-        />
+          title={`${STAGE_NAMES[i]} ${c === "done" ? (i === 3 ? "합격" : "완료") : c === "fail" ? "불합격" : "아직"}`}
+          className={`flex h-5 flex-1 items-center justify-center rounded text-[10px] font-bold ${
+            c === "done" ? "bg-green-600 text-white" : c === "fail" ? "bg-rose-500 text-white" : "bg-slate-100 text-slate-400"
+          }`}
+        >
+          {i + 1}
+        </span>
       ))}
-      <span
-        title={`${STAGE_NAMES[3]} ${
-          set.stage4Passed ? "합격" : stage4Failed ? "불합격" : "미응시"
-        }`}
-        className={`h-2 w-2 rounded-full ${
-          set.stage4Passed ? "bg-green-700" : stage4Failed ? "bg-rose-600" : "bg-slate-200"
-        }`}
-      />
     </span>
   );
 }
@@ -178,6 +181,11 @@ export function StudentReportView({ report, loading = false, onPreview }: Studen
         </Button>
       </header>
 
+      {report.overview ? (
+        <div className="mt-4">
+          <ReportOverviewPanel overview={report.overview} />
+        </div>
+      ) : (
       <div className="mt-4 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
         <MetricTile
           label="영상 진도"
@@ -198,9 +206,10 @@ export function StudentReportView({ report, loading = false, onPreview }: Studen
         />
         <MetricTile label="복습할 단어" value={report.reviewWords.length} unit="개" />
       </div>
+      )}
 
-      <div className="mt-5 space-y-4">
-        <Section title="단어학습">
+      <div className="mt-4 space-y-3">
+        <Section title="단어학습" accent="#16a34a" aside={report.vocabSets.length ? `${report.vocabSets.length}세트` : undefined}>
           {report.vocabSets.length === 0 ? (
             <Empty>이 기간에 공부한 단어장이 없어요.</Empty>
           ) : (
@@ -213,6 +222,7 @@ export function StudentReportView({ report, loading = false, onPreview }: Studen
                       <span className="block truncate text-slate-800">{set.setTitle}</span>
                       <span className="block truncate text-xs tabular-nums text-slate-400">
                         {set.itemCount}단어
+                        {set.stage3BestScore ? ` · 예문 빈칸 ${set.stage3BestScore}점` : ""}
                         {set.stage4AttemptCount > 0
                           ? ` · 응시 ${set.stage4AttemptCount}회 · 최고 ${set.stage4BestScore}점`
                           : ""}
@@ -232,7 +242,7 @@ export function StudentReportView({ report, loading = false, onPreview }: Studen
           )}
         </Section>
 
-        <Section title="듣기 · 받아쓰기">
+        <Section title="듣기 · 받아쓰기" accent="#9333ea">
           {!hasListening ? (
             <Empty>이 기간에 듣기 기록이 없어요.</Empty>
           ) : (
@@ -298,17 +308,20 @@ export function StudentReportView({ report, loading = false, onPreview }: Studen
 
               {report.listeningExam.length > 0 ? (
                 <div>
-                  <p className="text-slate-700">듣기 시험</p>
-                  <ul className="mt-0.5 space-y-0.5 text-xs text-slate-500">
+                  <p className="font-medium text-slate-700">듣기 시험</p>
+                  <ul className="mt-1.5 space-y-1.5">
                     {report.listeningExam.map((e) => (
-                      <li key={e.setId} className="tabular-nums">
-                        {e.setTitle} · {e.questionCount}문항 · 시도 {e.attemptCount}회
-                        {e.bestScore != null ? (
-                          <span className="font-semibold text-slate-700">
-                            {" "}
-                            · 최고 {e.bestScore}점
-                          </span>
-                        ) : null}
+                      <li key={e.setId} className="flex items-center gap-3 text-xs tabular-nums">
+                        <span className="w-32 shrink-0 truncate text-slate-700 sm:w-40">{e.setTitle}</span>
+                        <span className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100">
+                          <span
+                            className="block h-full rounded-full"
+                            style={{ width: `${Math.max(0, Math.min(100, e.bestScore ?? 0))}%`, background: "#9333ea" }}
+                          />
+                        </span>
+                        <span className="w-24 shrink-0 text-right text-slate-500">
+                          {e.bestScore != null ? <b className="text-slate-800">{e.bestScore}점</b> : "—"} · {e.attemptCount}회
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -318,7 +331,7 @@ export function StudentReportView({ report, loading = false, onPreview }: Studen
           )}
         </Section>
 
-        <Section title="영상 강좌">
+        <Section title="영상 강좌" accent="#0891b2">
           {report.courses.length === 0 ? (
             <Empty>이 기간에 본 영상 강좌가 없어요.</Empty>
           ) : (
@@ -366,6 +379,7 @@ export function StudentReportView({ report, loading = false, onPreview }: Studen
         </Section>
 
         <Section
+          accent="#ea580c"
           title="복습 필요 단어"
           aside={report.reviewWords.length > 0 ? `${report.reviewWords.length}개` : undefined}
         >

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ReportOverviewPanel } from "@/components/reports/ReportOverviewPanel";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { formatLastStudiedDate } from "@/lib/progress/enrollment-progress";
 import { parseReviewWordDisplay } from "@/lib/reports/review-word-display";
@@ -130,6 +131,11 @@ export function A4ReportDocument({
         </div>
       </header>
 
+      {report.overview ? (
+        <div className="mt-5 break-inside-avoid">
+          <ReportOverviewPanel overview={report.overview} print />
+        </div>
+      ) : (
       <div className="mt-5 grid grid-cols-4 gap-2 break-inside-avoid">
         <MetricCard
           label="영상 진도율"
@@ -149,6 +155,7 @@ export function A4ReportDocument({
         />
         <MetricCard label="최근 학습일" value={metrics.lastStudiedLabel} />
       </div>
+      )}
 
       <section className="mt-5 break-inside-avoid">
         <h2 className="text-[11pt] font-bold text-[#1e3a5f]">학습 리포트</h2>

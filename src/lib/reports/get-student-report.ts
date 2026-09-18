@@ -382,6 +382,7 @@ export async function getStudentReport(
       stage2Completed: Boolean(progress.stage2_completed),
       stage3Completed: stage3Completed(progress),
       stage4Passed: stage4Passed(progress),
+      stage3BestScore: Number(progress.stage3_best_score ?? 0) || 0,
       stage4LastScore: stage4Last,
       stage4BestScore: stage4Best,
       stage4AttemptCount: stage4Attempts,
@@ -538,7 +539,76 @@ export async function getStudentReport(
       ? "듣기 시험(OMR) 기록이 없습니다."
       : listeningExam.map((e) => `${e.setTitle}: ${e.summaryLine}`).join(" ");
 
+  // ---------- 한눈에 보기 ----------
+  const kstDay = (iso: string) =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(new Date(iso));
+  const inPeriod = (iso: string | null | undefined): iso is string =>
+    Boolean(iso) && (range === "all" || isIsoInReportRange(iso, bounds));
+  const activity: Record<string, number> = {};
+  const mark = (iso: string | null | undefined) => {
+    if (!inPeriod(iso)) return;
+    const d = kstDay(iso);
+    activity[d] = (activity[d] ?? 0) + 1;
+  };
+  for (const row of enrollmentRows) for (const l of row.lessons) mark(l.completedAt ?? l.lastWatchedAt);
+  for (const vp of scopedVocabProgress) mark(vp.last_studied_at as string | null);
+  for (const r of spellingWrong ?? []) mark(r.created_at as string);
+  for (const r of exampleWrong ?? []) mark(r.created_at as string);
+  for (const a of finalAttempts ?? []) mark(a.submitted_at as string);
+  for (const r of stageRows ?? []) {
+    for (const k of ["stage1_completed_at", "stage2_completed_at", "stage3_completed_at", "stage4_passed_at"] as const) {
+      mark((r as Record<string, string | null>)[k]);
+    }
+  }
+  const [{ data: examTimes }, { data: dictationTimes }] = await Promise.all([
+    supabase.from("listening_exam_attempts").select("submitted_at").eq("student_id", studentId),
+    supabase.from("listening_dictation_attempts").select("submitted_at").eq("student_id", studentId),
+  ]);
+  for (const r of examTimes ?? []) mark(r.submitted_at as string);
+  for (const r of dictationTimes ?? []) mark(r.submitted_at as string);
+  for (const s of listeningSchedule) for (const t of s.recentTasks) if (t.completedCount > 0) mark(`${t.taskDate}T12:00:00+09:00`);
+
+  const today = kstDay(generatedAt);
+  const calendarStart =
+    range === "all" || !bounds.start
+      ? kstDay(new Date(Date.now() - 34 * 86400000).toISOString())
+      : kstDay(bounds.start.toISOString());
+  const attempted = vocabSetsReport.filter((v) => v.stage4AttemptCount > 0);
+  const examWithScore = listeningExam.filter((e) => e.bestScore != null);
+  const dictTotal = listeningDictation.reduce((s, d) => s + d.questionCount, 0);
+  const overview = {
+    activeDays: Object.keys(activity).length,
+    activity,
+    calendarStart,
+    calendarEnd: today,
+    vocab: {
+      setsStudied: vocabSetsReport.length,
+      setsPassed: vocabPassed,
+      stagesDone: vocabSetsReport.reduce(
+        (s, v) => s + [v.stage1Completed, v.stage2Completed, v.stage3Completed, v.stage4Passed].filter(Boolean).length,
+        0
+      ),
+      stagesTotal: vocabSetsReport.length * 4,
+      avgScore: attempted.length
+        ? Math.round(attempted.reduce((s, v) => s + v.stage4BestScore, 0) / attempted.length)
+        : null,
+    },
+    listening: {
+      examSets: listeningExam.length,
+      examAvg: examWithScore.length
+        ? Math.round(examWithScore.reduce((s, e) => s + (e.bestScore ?? 0), 0) / examWithScore.length)
+        : null,
+      dictationRate: dictTotal
+        ? Math.round((listeningDictation.reduce((s, d) => s + d.passedQuestionCount, 0) / dictTotal) * 100)
+        : null,
+      tasksDone: listeningSchedule.reduce((s, x) => s + x.completedTasks, 0),
+      tasksTotal: listeningSchedule.reduce((s, x) => s + x.totalTasks, 0),
+    },
+    video: { courses: courses.length, lessonsDone: completedLessons },
+  };
+
   return {
+    overview,
     generatedAt,
     range,
     rangeLabel,
