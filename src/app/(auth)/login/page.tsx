@@ -123,6 +123,16 @@ export default async function LoginPage({ searchParams }: PageProps) {
               }
             />
           </Suspense>
+          {/* 학원 주소로 들어온 로그인(학생·선생님용)에는 가입 안내를 두지 않는다 */}
+          {academy ? null : (
+            <p className="text-center text-sm text-slate-500">
+              처음이신가요?{" "}
+              <a href="/signup" className="font-semibold text-brand-700 underline">
+                회원가입
+              </a>
+              <span className="text-slate-400"> · 2,000크레딧 무료</span>
+            </p>
+          )}
         </div>
         <p className="absolute inset-x-0 bottom-4 text-center text-[11px] leading-5 text-slate-400">
           {BUSINESS_INFO.name}
