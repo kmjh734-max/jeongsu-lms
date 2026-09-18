@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ReportProblemButton } from "@/components/ui/ReportProblemButton";
 import { DictationCard, DictationSection } from "@/components/listening/DictationSection";
 import { StudentAudioBar } from "@/components/listening/StudentAudioBar";
 import { Icon } from "@/components/layout/NavIcon";
@@ -626,10 +627,18 @@ export function StudentListeningPractice({
           {q.order_index}
         </span>
         {q.instruction && (
-          <p className="text-[15px] font-semibold leading-[23px] text-slate-900">
+          <p className="flex-1 text-[15px] font-semibold leading-[23px] text-slate-900">
             {q.instruction}
           </p>
         )}
+        <span className="ml-auto shrink-0">
+          <ReportProblemButton
+            kind="listening"
+            setId={questionSetId}
+            targetId={q.id}
+            targetLabel={`${q.order_index}번 ${q.instruction ?? ""}`.slice(0, 120)}
+          />
+        </span>
       </div>
 
       {q.audio_url ? (

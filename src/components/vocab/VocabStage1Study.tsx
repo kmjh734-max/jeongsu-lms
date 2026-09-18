@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ReportProblemButton } from "@/components/ui/ReportProblemButton";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/layout/NavIcon";
 import { VocabStudyHeader } from "@/components/vocab/VocabStudyHeader";
@@ -365,6 +366,11 @@ export function VocabStage1Study({
           trackSeen ? `학습 ${seenCount} / ${total}` : `${seenCount} / ${deckTotal}`
         }
         percent={roundPercent}
+        right={
+          current ? (
+            <ReportProblemButton kind="vocab" setId={setId} targetId={current.id} targetLabel={current.word} />
+          ) : null
+        }
       />
 
       <div className="flex flex-col items-center gap-4 sm:gap-5">

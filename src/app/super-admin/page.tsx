@@ -80,6 +80,12 @@ export default async function SuperAdminHomePage() {
             >
               크레딧 관리
             </Link>
+            <Link
+              href="/super-admin/reports"
+              className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-800 hover:bg-rose-100"
+            >
+              오류 신고
+            </Link>
             <SignOutButton />
           </div>
         }
