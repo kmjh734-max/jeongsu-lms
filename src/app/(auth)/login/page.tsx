@@ -123,6 +123,11 @@ export default async function LoginPage({ searchParams }: PageProps) {
             />
           </Suspense>
         </div>
+        <p className="mt-6 text-center text-xs text-slate-400">
+          <a href="/refund-policy" className="underline hover:text-slate-600">
+            환불 기준
+          </a>
+        </p>
       </main>
     </div>
   );

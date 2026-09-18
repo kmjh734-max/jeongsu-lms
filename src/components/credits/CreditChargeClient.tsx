@@ -267,6 +267,14 @@ export function CreditChargeClient() {
                 : "상품을 골라 주세요"}
           </Button>
         </div>
+        {/* 전자상거래법 제17조 제6항: 청약철회가 제한되는 사실을 결제 전에 알린다 */}
+        <p className="mt-3 text-[12.5px] leading-5 text-slate-500">
+          결제 후 7일 이내 사용하지 않은 크레딧은 전액, 그 뒤에도 남은 유료 크레딧은 환불받을 수 있어요. 자료를 만드는 데
+          이미 사용한 크레딧과 보너스 크레딧은 환불되지 않아요.{" "}
+          <Link href="/refund-policy" target="_blank" className="font-semibold text-brand-700 underline">
+            환불 기준 보기
+          </Link>
+        </p>
       </section>
     </div>
   );

@@ -19,6 +19,8 @@ import type { UserRole } from "@/types/database";
 
 const PUBLIC_PREFIXES = [
   "/login",
+  // 환불 기준 — 통신판매업 신고·결제 고지용으로 누구나 볼 수 있어야 한다
+  "/refund-policy",
   "/auth/callback",
   "/report/share",
   "/student-record/share",
