@@ -7,11 +7,11 @@ export const BUSINESS_INFO: Record<
   string
 > = {
   /** 상호 */
-  name: "EngCore",
+  name: "잉코어(EngCore)",
   /** 대표자 */
   representative: "",
   /** 사업자등록번호 */
-  registrationNumber: "",
+  registrationNumber: "397-43-01410",
   /** 통신판매업 신고번호 (신고 후 채운다) */
   mailOrderNumber: "",
   /** 사업장 주소 */
