@@ -10,7 +10,14 @@ export interface StudentDashboardCourse {
   completedLessons: number;
   totalLessons: number;
   inProgress: boolean;
+  /** 이어서 볼 강의(다 봤으면 첫 강의) — 카드에서 바로 연다 */
+  nextLesson: StudentNextLesson | null;
 }
+
+export type StudentNextLesson = Pick<
+  Lesson,
+  "id" | "title" | "video_provider" | "vimeo_url" | "vimeo_video_id" | "youtube_url" | "youtube_video_id"
+> & { number: number };
 
 function resolveCourseFromEnrollment(
   course: Course | Course[] | null | undefined,
@@ -90,9 +97,12 @@ export const loadStudentDashboardCourses = cache(
         : Promise.resolve({ data: [] as Course[] }),
       supabase
         .from("lessons")
-        .select("id, course_id, is_published")
+        .select(
+          "id, course_id, is_published, title, order_index, video_provider, vimeo_url, vimeo_video_id, youtube_url, youtube_video_id"
+        )
         .in("course_id", courseIds)
-        .eq("is_published", true),
+        .eq("is_published", true)
+        .order("order_index"),
     ]);
 
     const courseById = new Map(
@@ -138,7 +148,23 @@ export const loadStudentDashboardCourses = cache(
           (p) => !p.is_completed && (p.progress_percent ?? 0) > 0
         );
 
-        return { course: fullCourse, inProgress, ...stats };
+        const ordered = (allLessons ?? []).filter((l) => l.course_id === courseId);
+        const nextIdx = ordered.findIndex((l) => !progressByLesson.get(l.id as string)?.is_completed);
+        const pick = ordered[nextIdx >= 0 ? nextIdx : 0];
+        const nextLesson: StudentNextLesson | null = pick
+          ? {
+              id: pick.id as string,
+              title: pick.title as string,
+              video_provider: pick.video_provider,
+              vimeo_url: pick.vimeo_url,
+              vimeo_video_id: pick.vimeo_video_id,
+              youtube_url: pick.youtube_url,
+              youtube_video_id: pick.youtube_video_id,
+              number: (nextIdx >= 0 ? nextIdx : 0) + 1,
+            }
+          : null;
+
+        return { course: fullCourse, inProgress, nextLesson, ...stats };
       })
       .filter((item) => item.course?.id);
   }

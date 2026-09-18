@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { loadStudentDashboardCourses } from "@/lib/student/load-dashboard-courses";
+import { formatDuration } from "@/lib/video/format-duration";
+import { loadLessonVideoMeta } from "@/lib/video/video-meta";
 import { PublishedBadge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ButtonLink } from "@/components/ui/Button";
@@ -10,6 +12,9 @@ import { Icon } from "@/components/layout/NavIcon";
 export async function StudentDashboardContent() {
   const profile = await getCurrentProfile();
   const displayCourses = await loadStudentDashboardCourses(profile!.id);
+  const meta = await loadLessonVideoMeta(
+    displayCourses.flatMap((c) => (c.nextLesson ? [c.nextLesson] : []))
+  );
 
   return (
     <div>
@@ -32,20 +37,42 @@ export async function StudentDashboardContent() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {displayCourses.map(
-            ({ course, progressPercent, completedLessons, totalLessons, inProgress }) => {
+            ({ course, progressPercent, completedLessons, totalLessons, inProgress, nextLesson }) => {
               const finished = totalLessons > 0 && completedLessons >= totalLessons;
+              const nm = nextLesson ? meta[nextLesson.id] : undefined;
+              const watchHref = nextLesson
+                ? `/student/courses/${course.id}/lessons/${nextLesson.id}`
+                : `/student/courses/${course.id}`;
               return (
                 <div
                   key={course.id}
                   className="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-card"
                 >
                   <Link
-                    href={`/student/courses/${course.id}`}
-                    className="relative flex h-28 items-center justify-center bg-gradient-to-br from-side-active to-side text-white"
+                    href={watchHref}
+                    className="group relative flex aspect-video items-center justify-center overflow-hidden bg-gradient-to-br from-side-active to-side text-white"
                   >
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-white/15">
+                    {nm?.thumbnail ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={nm.thumbnail} alt="" className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-[1.02]" />
+                    ) : null}
+                    <span className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
+                    <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white/95 text-slate-900 shadow">
                       <Icon name="play" size={20} filled strokeWidth={1} />
                     </span>
+                    {nextLesson && !finished ? (
+                      <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3 text-left">
+                        <span className="min-w-0 truncate text-[13px] font-semibold">
+                          {inProgress || completedLessons > 0 ? "이어서 · " : ""}
+                          {nextLesson.number}강 {nextLesson.title}
+                        </span>
+                        {nm?.durationSeconds ? (
+                          <span className="shrink-0 rounded bg-black/70 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums">
+                            {formatDuration(nm.durationSeconds)}
+                          </span>
+                        ) : null}
+                      </span>
+                    ) : null}
                     {finished ? (
                       <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded bg-green-700 px-2 py-0.5 text-xs font-semibold">
                         <Icon name="check" size={12} strokeWidth={2.6} />
@@ -76,13 +103,18 @@ export async function StudentDashboardContent() {
                           style={{ width: `${progressPercent}%` }}
                         />
                       </div>
-                      <ButtonLink
-                        href={`/student/courses/${course.id}`}
-                        variant={finished ? "secondary" : "primary"}
-                        className="mt-4 w-full"
-                      >
-                        {finished ? "다시 보기" : inProgress ? "이어서 학습" : "학습 시작"}
-                      </ButtonLink>
+                      <div className="mt-4 flex gap-2">
+                        <ButtonLink
+                          href={watchHref}
+                          variant={finished ? "secondary" : "primary"}
+                          className="flex-1"
+                        >
+                          {finished ? "다시 보기" : inProgress || completedLessons > 0 ? "이어서 보기" : "1강부터 보기"}
+                        </ButtonLink>
+                        <ButtonLink href={`/student/courses/${course.id}`} variant="secondary">
+                          강의 목록
+                        </ButtonLink>
+                      </div>
                     </div>
                   </div>
                 </div>

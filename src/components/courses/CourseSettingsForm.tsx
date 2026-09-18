@@ -94,75 +94,69 @@ export function CourseSettingsForm({
   const busy = loading || deleting;
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="max-w-lg space-y-4">
+    <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3.5">
         <div>
-          <label className="mb-1 block text-sm font-medium">강좌명</label>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">강좌명</label>
           <input
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="ui-input h-9 w-full text-sm"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">설명</label>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">설명</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            rows={2}
+            placeholder="학생 화면 강좌 제목 아래에 보여요"
+            className="ui-input w-full py-2 text-sm"
           />
         </div>
         {variant === "admin" && (
           <div>
-            <label className="mb-1 block text-sm font-medium">담당 강사</label>
+            <label className="mb-1 block text-xs font-semibold text-slate-600">담당 강사</label>
             <select
               value={teacherId}
               onChange={(e) => setTeacherId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="ui-input h-9 w-full text-sm"
             >
               <option value="">선택 안 함</option>
               {teachers.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.name} ({t.email})
+                  {t.name}
                 </option>
               ))}
             </select>
           </div>
         )}
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-slate-700">
           <input
             type="checkbox"
             checked={isPublished}
             onChange={(e) => setIsPublished(e.target.checked)}
           />
-          강좌 공개 (학생에게 표시)
+          학생에게 강좌 공개
         </label>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={busy}
-          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+          className="h-9 w-full rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
         >
-          {loading ? "저장 중..." : "강좌 정보 저장"}
+          {loading ? "저장 중..." : "저장"}
         </button>
       </form>
-
-      <div className="max-w-lg rounded-xl border border-red-200 bg-red-50/50 p-4">
-        <h4 className="text-sm font-semibold text-red-900">강좌 삭제</h4>
-        <p className="mt-1 text-sm text-red-800/90">
-          강좌와 포함된 모든 영상·수강·진도 데이터가 영구 삭제됩니다.
-        </p>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={handleDelete}
-          className="mt-3 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
-        >
-          {deleting ? "삭제 중..." : "강좌 삭제"}
-        </button>
-      </div>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={handleDelete}
+        className="text-xs text-slate-400 hover:text-red-600 disabled:opacity-50"
+      >
+        {deleting ? "삭제 중..." : "이 강좌 삭제 (영상·진도 기록 함께 삭제)"}
+      </button>
     </div>
   );
 }

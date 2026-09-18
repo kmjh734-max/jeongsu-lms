@@ -13,12 +13,15 @@ interface VideoListEditorProps {
   rows: VideoDraftRow[];
   onChange: (rows: VideoDraftRow[]) => void;
   disabled?: boolean;
+  /** 바깥에 이미 제목·추가 버튼이 있으면 숨긴다 */
+  hideHeader?: boolean;
 }
 
 export function VideoListEditor({
   rows,
   onChange,
   disabled = false,
+  hideHeader = false,
 }: VideoListEditorProps) {
   function updateRow(index: number, patch: Partial<VideoDraftRow>) {
     onChange(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
@@ -34,7 +37,7 @@ export function VideoListEditor({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className={hideHeader ? "hidden" : "flex items-center justify-between"}>
         <h3 className="text-sm font-semibold text-slate-800">영상 목록</h3>
         <button
           type="button"
@@ -46,7 +49,7 @@ export function VideoListEditor({
         </button>
       </div>
 
-      {rows.length === 0 ? (
+      {rows.length === 0 && hideHeader ? null : rows.length === 0 ? (
         <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
           영상이 없습니다. 「+ 영상 추가」로 등록하세요.
         </p>

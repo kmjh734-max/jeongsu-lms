@@ -63,14 +63,8 @@ export function CourseStudentVisibilityBanner({
     router.refresh();
   }
 
-  if (ready) {
-    return (
-      <p className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-        학생 화면에 표시 준비가 되었습니다. (수강 배정 {enrollmentCount}명 · 공개
-        영상 {publishedLessonCount}개)
-      </p>
-    );
-  }
+  // 준비가 끝났으면 머리글의 상태 표시로 충분하다
+  if (ready) return null;
 
   return (
     <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-950">

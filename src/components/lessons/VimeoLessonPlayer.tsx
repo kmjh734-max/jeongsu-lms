@@ -9,6 +9,7 @@ import {
   isNaturalPlayheadAdvance,
   watchedPercentFromSeconds,
 } from "@/lib/lesson-progress/watch-tracker";
+import Link from "next/link";
 import { Icon } from "@/components/layout/NavIcon";
 
 async function postLessonProgress(payload: {
@@ -50,6 +51,8 @@ export interface VimeoLessonPlayerProps {
   initialIsCompleted: boolean;
   initialProgressPercent: number;
   initialWatchedSeconds: number;
+  nextHref?: string | null;
+  nextTitle?: string | null;
 }
 
 /** Vimeo Player SDK — 시청률 저장, 이어보기, 영상 내 앞으로 건너뛰기 차단 */
@@ -60,6 +63,8 @@ export function VimeoLessonPlayer({
   initialIsCompleted,
   initialProgressPercent,
   initialWatchedSeconds,
+  nextHref,
+  nextTitle,
 }: VimeoLessonPlayerProps) {
   const router = useRouter();
   const containerId = useId().replace(/:/g, "");
@@ -90,6 +95,12 @@ export function VimeoLessonPlayer({
   const [seekNotice, setSeekNotice] = useState<string | null>(null);
   const [playerReady, setPlayerReady] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
+  // 영상 쪽에서 자체 안내를 띄우면 준비 신호가 안 올 수 있어, 잠시 뒤 도는 표시는 걷는다
+  const [spinnerTimedOut, setSpinnerTimedOut] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setSpinnerTimedOut(true), 8000);
+    return () => window.clearTimeout(t);
+  }, []);
 
   const persistProgress = useCallback(
     async (
@@ -287,6 +298,10 @@ export function VimeoLessonPlayer({
           title: false,
           byline: false,
           portrait: false,
+          // 재생 칸을 눌러서 연 것이므로 바로 재생, 배속 조절 허용
+          autoplay: true,
+          speed: true,
+          playsinline: true,
         });
         playerRef.current = player;
 
@@ -390,7 +405,12 @@ export function VimeoLessonPlayer({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-lg bg-black">
+      <div className="relative overflow-hidden rounded-xl bg-black shadow-sm">
+        {!playerReady && !playerError && !spinnerTimedOut ? (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+            <span className="h-10 w-10 animate-spin rounded-full border-[3px] border-white/25 border-t-white" />
+          </div>
+        ) : null}
         <div
           id={containerId}
           ref={containerRef}
@@ -398,21 +418,6 @@ export function VimeoLessonPlayer({
           aria-label={title}
         />
       </div>
-
-      {resumeSeconds > 0 && !isCompleted && (
-        <p className="flex items-start gap-2 rounded-md bg-brand-50 px-3.5 py-2.5 text-[13px] text-brand-700">
-          <Icon name="rotate" size={16} className="mt-px" />
-          <span>
-            {initialProgressPercent}%까지 보셨어요. 이어서 재생됩니다. 앞으로 건너뛰기는 할 수 없어요.
-          </span>
-        </p>
-      )}
-
-      {!playerReady && !playerError && (
-        <p className="text-xs text-slate-500">
-          플레이어를 연결하고 있어요. 연결되면 시청률이 저장됩니다.
-        </p>
-      )}
 
       {playerError && (
         <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{playerError}</p>
@@ -426,9 +431,24 @@ export function VimeoLessonPlayer({
         <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">{seekNotice}</p>
       )}
 
-      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-card">
+      {isCompleted && nextHref ? (
+        <Link
+          href={nextHref}
+          className="flex items-center justify-between gap-3 rounded-xl bg-brand-600 px-4 py-3.5 text-white shadow-sm hover:bg-brand-700"
+        >
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold text-white/80">수강 완료 · 다음 강의</span>
+            <span className="block truncate text-[15px] font-bold">{nextTitle ?? "다음 강의 보기"}</span>
+          </span>
+          <Icon name="play" size={16} filled strokeWidth={1} />
+        </Link>
+      ) : null}
+
+      <div className="rounded-xl border border-slate-200 bg-white px-4 py-3.5 shadow-card">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-[13px] text-slate-500">누적 시청률</span>
+          <span className="text-[13px] font-semibold text-slate-700">
+            시청률 <b className="ml-1 text-lg tabular-nums text-slate-900">{displayPercent}%</b>
+          </span>
           {isCompleted ? (
             <span className="inline-flex items-center gap-1 rounded bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
               <Icon name="check" size={12} strokeWidth={2.6} />
@@ -440,13 +460,7 @@ export function VimeoLessonPlayer({
             </span>
           )}
         </div>
-        <p className="mb-2.5 mt-1.5 flex items-baseline gap-1">
-          <span className="text-3xl font-bold tabular-nums tracking-tight text-slate-900">
-            {displayPercent}
-          </span>
-          <span className="text-base font-semibold text-slate-500">%</span>
-        </p>
-        <div className="relative">
+        <div className="relative mt-2">
           <div className="h-2 overflow-hidden rounded-full bg-slate-100">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
@@ -457,10 +471,10 @@ export function VimeoLessonPlayer({
           </div>
           <span aria-hidden className="absolute -top-[3px] left-[90%] h-3.5 w-0.5 rounded-sm bg-slate-900" />
         </div>
-        <p className="mt-3 text-[13px] leading-relaxed text-slate-500">
+        <p className="mt-2.5 text-xs leading-relaxed text-slate-500">
           {isCompleted || statusMessage
             ? (statusMessage ?? "수강을 완료했어요. 끝까지 보면 100%까지 표시돼요.")
-            : "본 만큼 자동으로 저장되고, 다시 들어오면 이어서 재생돼요. 90% 이상 보면 수강 완료예요."}
+            : "본 만큼 자동으로 저장되고 다시 들어오면 이어서 재생돼요. 앞으로 건너뛰기는 안 돼요."}
         </p>
       </div>
     </div>

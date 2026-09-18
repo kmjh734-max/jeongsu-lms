@@ -18,6 +18,11 @@ interface StudentLessonWatchProps {
   initialProgressPercent: number;
   initialWatchedSeconds?: number;
   materialUrl?: string | null;
+  thumbnail?: string | null;
+  durationLabel?: string;
+  /** 다음 강의 (끝까지 보면 바로 넘어가는 버튼) */
+  nextHref?: string | null;
+  nextTitle?: string | null;
 }
 
 export function StudentLessonWatch({
@@ -32,6 +37,10 @@ export function StudentLessonWatch({
   initialProgressPercent,
   initialWatchedSeconds = 0,
   materialUrl,
+  thumbnail,
+  durationLabel,
+  nextHref,
+  nextTitle,
 }: StudentLessonWatchProps) {
   const resolved = resolveLessonVideo({
     video_provider: videoProvider,
@@ -51,7 +60,7 @@ export function StudentLessonWatch({
 
   if (resolved.provider === "youtube") {
     return (
-      <LazyLessonPlayerGate title={title}>
+      <LazyLessonPlayerGate title={title} thumbnail={thumbnail} durationLabel={durationLabel}>
         <div className="space-y-4">
           <p className="rounded-md bg-amber-50 px-3.5 py-2.5 text-[13px] text-amber-700">
             이 영상은 시청 기록이 저장되지 않아요. 끝까지 봐도 완료로 표시되지 않으니
@@ -68,9 +77,19 @@ export function StudentLessonWatch({
   }
 
   return (
-    <LazyLessonPlayerGate title={title}>
+    <LazyLessonPlayerGate
+      title={title}
+      thumbnail={thumbnail}
+      durationLabel={durationLabel}
+      resumeLabel={
+        !initialIsCompleted && initialProgressPercent > 0 ? `${initialProgressPercent}%까지 봤어요 · 이어서 재생` : undefined
+      }
+      warmVimeo
+    >
       <div className="space-y-4">
         <VimeoLessonPlayer
+          nextHref={nextHref}
+          nextTitle={nextTitle}
           lessonId={lessonId}
           videoId={resolved.videoId}
           title={title}

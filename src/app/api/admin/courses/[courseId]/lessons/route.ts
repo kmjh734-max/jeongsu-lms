@@ -3,6 +3,7 @@ import { adminJsonError, getAdminClientSafe } from "@/lib/admin/api-json";
 import { insertCourseLessons } from "@/lib/courses/lesson-save-server";
 import { resolveLessonTeacherId } from "@/lib/courses/resolve-lesson-teacher-id";
 import { requireAdminApi } from "@/lib/auth/require-admin-api";
+import { adminOwnsCourse } from "@/lib/courses/course-access";
 import type { VideoDraftRow } from "@/lib/courses/course-lessons";
 
 export const runtime = "nodejs";
@@ -24,6 +25,9 @@ export async function POST(request: Request, context: RouteContext) {
     }
 
     const { courseId } = await context.params;
+    if (!(await adminOwnsCourse(clientResult.admin, auth.profile!, courseId))) {
+      return adminJsonError("강좌를 찾을 수 없습니다.", 404);
+    }
 
     let body: { teacherId?: string; rows?: VideoDraftRow[] };
     try {

@@ -1,38 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { TeacherCourseList } from "@/components/teacher/TeacherCourseList";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ButtonLink } from "@/components/ui/Button";
+import { CourseCardGrid } from "@/components/courses/CourseCardGrid";
+import { loadCourseCards } from "@/lib/courses/course-cards";
 import type { Course } from "@/types/database";
 
 export default async function TeacherCoursesPage() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-
   const { data: courses } = await supabase
     .from("courses")
     .select("*")
     .eq("teacher_id", profile!.id)
     .order("created_at", { ascending: false });
-
-  const list = (courses ?? []) as Course[];
-  const courseIds = list.map((c) => c.id);
-
-  const { data: lessonRows } =
-    courseIds.length > 0
-      ? await supabase
-          .from("lessons")
-          .select("course_id")
-          .in("course_id", courseIds)
-      : { data: [] as { course_id: string }[] };
-
-  const lessonCountByCourse = new Map<string, number>();
-  for (const row of lessonRows ?? []) {
-    lessonCountByCourse.set(
-      row.course_id,
-      (lessonCountByCourse.get(row.course_id) ?? 0) + 1
-    );
-  }
+  const cards = await loadCourseCards(supabase, (courses ?? []) as Course[]);
 
   return (
     <div>
@@ -45,10 +27,7 @@ export default async function TeacherCoursesPage() {
           </ButtonLink>
         }
       />
-      <TeacherCourseList
-        courses={list}
-        lessonCountByCourse={lessonCountByCourse}
-      />
+      <CourseCardGrid cards={cards} hrefBase="/teacher/courses" newHref="/teacher/courses/new" />
     </div>
   );
 }

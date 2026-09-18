@@ -5,6 +5,7 @@ import {
   updateCourseLesson,
 } from "@/lib/courses/lesson-save-server";
 import { requireAdminApi } from "@/lib/auth/require-admin-api";
+import { adminOwnsCourse } from "@/lib/courses/course-access";
 
 export const runtime = "nodejs";
 
@@ -25,6 +26,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     const { courseId, lessonId } = await context.params;
+    if (!(await adminOwnsCourse(clientResult.admin, auth.profile!, courseId))) {
+      return adminJsonError("강좌를 찾을 수 없습니다.", 404);
+    }
 
     let body: { title?: string; videoUrl?: string; isPublished?: boolean };
     try {
@@ -77,6 +81,9 @@ export async function DELETE(_request: Request, context: RouteContext) {
     }
 
     const { courseId, lessonId } = await context.params;
+    if (!(await adminOwnsCourse(clientResult.admin, auth.profile!, courseId))) {
+      return adminJsonError("강좌를 찾을 수 없습니다.", 404);
+    }
 
     const result = await deleteCourseLesson(
       clientResult.admin,
