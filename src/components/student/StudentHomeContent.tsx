@@ -10,6 +10,7 @@ import {
   type StudentTodaySummary,
 } from "@/lib/student/today";
 import { ButtonLink } from "@/components/ui/Button";
+import { loadStudentStreak, type StudentStreak } from "@/lib/student/streak";
 import { Icon } from "@/components/layout/NavIcon";
 
 const KIND_LABEL: Record<StudentTodayItem["kind"], string> = {
@@ -85,21 +86,75 @@ function TodayCard({ item }: { item: StudentTodayItem }) {
 
 export async function StudentHomeContent() {
   const profile = await getCurrentProfile();
-  const [today, courses] = await Promise.all([
+  const [today, courses, streak] = await Promise.all([
     loadStudentToday(profile!.id, true),
     loadStudentDashboardCourses(profile!.id),
+    loadStudentStreak(profile!.id).catch(() => null),
   ]);
-  return <StudentHomeView name={profile!.name} today={today} courses={courses} />;
+  return <StudentHomeView name={profile!.name} today={today} courses={courses} streak={streak} />;
+}
+
+/** 연속 공부 카드 — 매일 들어오게 한다 */
+function StreakCard({ streak }: { streak: StudentStreak }) {
+  const n = streak.streak;
+  const message = streak.studiedToday
+    ? n >= 7
+      ? "일주일 넘게 매일 공부하고 있어요. 정말 멋져요!"
+      : n >= 3
+        ? "잘하고 있어요. 내일도 이어 가요!"
+        : "오늘도 공부했어요. 내일도 이어 가요!"
+    : n > 0
+      ? `오늘 공부하면 ${n + 1}일 연속이 돼요!`
+      : "오늘 공부하면 연속 기록이 시작돼요.";
+  return (
+    <section className="flex flex-col gap-4 rounded-lg border border-orange-200 bg-gradient-to-br from-orange-50 to-white p-5 shadow-card sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-4">
+        <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-orange-500 text-white">
+          <span className="text-2xl font-black leading-none tabular-nums">{n}</span>
+          <span className="text-[11px] font-bold">일 연속</span>
+        </div>
+        <div>
+          <p className="text-base font-extrabold text-slate-900">
+            {n > 0 ? `${n}일째 공부 중` : "연속 공부 도전"}
+          </p>
+          <p className="mt-0.5 text-sm text-slate-600">{message}</p>
+          {streak.best > n ? <p className="mt-0.5 text-xs text-slate-400">최고 기록 {streak.best}일</p> : null}
+        </div>
+      </div>
+      <ol className="flex gap-1.5" aria-label="이번 주 공부한 날">
+        {streak.week.map((d) => (
+          <li key={d.iso} className="flex flex-col items-center gap-1">
+            <span
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
+                d.studied
+                  ? "bg-orange-500 text-white"
+                  : d.isToday
+                    ? "border-2 border-dashed border-orange-400 text-orange-500"
+                    : d.future
+                      ? "bg-slate-50 text-slate-300"
+                      : "bg-slate-100 text-slate-400"
+              }`}
+            >
+              {d.studied ? <Icon name="check" size={14} strokeWidth={3} /> : d.label}
+            </span>
+            <span className={`text-[10px] ${d.isToday ? "font-bold text-orange-600" : "text-slate-400"}`}>{d.label}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
 }
 
 export function StudentHomeView({
   name,
   today,
   courses,
+  streak = null,
 }: {
   name: string;
   today: StudentTodaySummary;
   courses: StudentDashboardCourse[];
+  streak?: StudentStreak | null;
 }) {
   const { items, doneCount, week } = today;
   const hasWeek = week.some((d) => d.status !== "off");
@@ -120,6 +175,8 @@ export function StudentHomeView({
               : `오늘 할 일 ${items.length}개 중 ${doneCount}개를 끝냈어요`}
         </p>
       </div>
+
+      {streak ? <StreakCard streak={streak} /> : null}
 
       {items.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
