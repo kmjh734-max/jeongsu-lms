@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import { ButtonLink } from "@/components/ui/Button";
 import { Icon } from "@/components/layout/NavIcon";
 import { formatDuration } from "@/lib/video/format-duration";
@@ -30,9 +33,40 @@ export function CourseCardGrid({
     );
   }
 
+  return <FilteredGrid cards={cards} hrefBase={hrefBase} showTeacher={showTeacher} />;
+}
+
+const ETC = "기타";
+
+/** 카테고리 버튼(전체·문법·독해 …)으로 걸러 보기. 카테고리가 하나뿐이면 버튼은 숨긴다 */
+function FilteredGrid({ cards, hrefBase, showTeacher }: { cards: CourseCard[]; hrefBase: string; showTeacher?: boolean }) {
+  const [active, setActive] = useState<string | null>(null);
+  const catOf = (c: CourseCard) => c.course.category?.trim() || ETC;
+  const counts = new Map<string, number>();
+  for (const c of cards) counts.set(catOf(c), (counts.get(catOf(c)) ?? 0) + 1);
+  const cats = [...counts.keys()].sort((a, b) => (a === ETC ? 1 : b === ETC ? -1 : a.localeCompare(b, "ko")));
+  const shown = active ? cards.filter((c) => catOf(c) === active) : cards;
+
   return (
+    <div className="space-y-4">
+      {cats.length > 1 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {[null, ...cats].map((c) => (
+            <button
+              key={c ?? "all"}
+              type="button"
+              onClick={() => setActive(c)}
+              className={`rounded-full border px-3 py-1 text-sm font-semibold transition ${
+                active === c ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+              }`}
+            >
+              {c ?? "전체"} <span className="ml-0.5 text-xs opacity-70">{c ? counts.get(c) : cards.length}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
     <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {cards.map(({ course, teacherName, lessonCount, studentCount, thumbnail, totalSeconds }) => (
+      {shown.map(({ course, teacherName, lessonCount, studentCount, thumbnail, totalSeconds }) => (
         <li key={course.id}>
           <Link
             href={`${hrefBase}/${course.id}`}
@@ -61,6 +95,11 @@ export function CourseCardGrid({
               ) : null}
             </span>
             <span className="flex flex-1 flex-col p-4">
+              {course.category ? (
+                <span className="mb-1 w-fit rounded-md bg-brand-50 px-1.5 py-0.5 text-[11px] font-bold text-brand-700">
+                  {course.category}
+                </span>
+              ) : null}
               <span className="font-bold text-slate-900 group-hover:text-brand-800">{course.title}</span>
               <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
                 <span>
@@ -76,5 +115,6 @@ export function CourseCardGrid({
         </li>
       ))}
     </ul>
+    </div>
   );
 }

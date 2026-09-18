@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CourseCategoryInput, normalizeCourseCategory } from "@/components/courses/CourseCategoryInput";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { resolveLessonTeacherId } from "@/lib/courses/resolve-lesson-teacher-id";
@@ -20,16 +21,20 @@ interface CourseCreateFormProps {
   /** Logged-in user id (admin or teacher) */
   currentUserId: string;
   variant?: "admin" | "teacher";
+  /** 학원에서 이미 쓰는 카테고리 */
+  categories?: string[];
 }
 
 export function CourseCreateForm({
   teachers = [],
   currentUserId,
   variant = "admin",
+  categories = [],
 }: CourseCreateFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
   const [teacherId, setTeacherId] = useState("");
   const [isPublished, setIsPublished] = useState(true);
   const [videoRows, setVideoRows] = useState<VideoDraftRow[]>([
@@ -89,6 +94,7 @@ export function CourseCreateForm({
       .insert({
         title: title.trim(),
         description: description.trim() || null,
+        category: normalizeCourseCategory(category),
         teacher_id: assignedTeacherId,
         is_published: isPublished,
         academy_id: me.academy_id,
@@ -173,6 +179,10 @@ export function CourseCreateForm({
             placeholder="예: 내공영문법"
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
           />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">카테고리</label>
+          <CourseCategoryInput value={category} onChange={setCategory} existing={categories} />
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">강좌 설명</label>

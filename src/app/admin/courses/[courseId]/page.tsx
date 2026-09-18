@@ -5,6 +5,7 @@ import { resolveLessonTeacherId } from "@/lib/courses/resolve-lesson-teacher-id"
 import { flattenCourseLessons } from "@/lib/courses/course-lessons";
 import { unwrapRelation } from "@/lib/progress/enrollment-progress";
 import { loadLessonVideoMeta } from "@/lib/video/video-meta";
+import { loadCourseCategories } from "@/lib/courses/course-categories";
 import { CourseManageView } from "@/components/courses/CourseManageView";
 import type { Course, Lesson, Profile, Section } from "@/types/database";
 
@@ -37,7 +38,7 @@ export default async function AdminCourseDetailPage({ params }: PageProps) {
   if (!course) notFound();
   const typedCourse = course as Course;
   const flatLessons = flattenCourseLessons((sections ?? []) as Section[], (lessons ?? []) as Lesson[]);
-  const meta = await loadLessonVideoMeta(flatLessons);
+  const [meta, categories] = await Promise.all([loadLessonVideoMeta(flatLessons), loadCourseCategories(supabase)]);
 
   return (
     <CourseManageView
@@ -54,6 +55,7 @@ export default async function AdminCourseDetailPage({ params }: PageProps) {
       listHref="/admin/courses"
       studentsHref="/admin/classes"
       lessonsError={lessonsError?.message ?? null}
+      categories={categories}
     />
   );
 }

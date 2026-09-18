@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { CourseCategoryInput, normalizeCourseCategory } from "@/components/courses/CourseCategoryInput";
 import type { Course, Profile } from "@/types/database";
 
 interface CourseSettingsFormProps {
@@ -10,6 +11,7 @@ interface CourseSettingsFormProps {
   variant: "admin" | "teacher";
   teachers?: Profile[];
   listHref: string;
+  categories?: string[];
 }
 
 export function CourseSettingsForm({
@@ -17,10 +19,12 @@ export function CourseSettingsForm({
   variant,
   teachers = [],
   listHref,
+  categories = [],
 }: CourseSettingsFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState(course.title);
   const [description, setDescription] = useState(course.description ?? "");
+  const [category, setCategory] = useState(course.category ?? "");
   const [teacherId, setTeacherId] = useState(course.teacher_id ?? "");
   const [isPublished, setIsPublished] = useState(course.is_published);
   const [loading, setLoading] = useState(false);
@@ -36,11 +40,13 @@ export function CourseSettingsForm({
     const payload: {
       title: string;
       description: string | null;
+      category: string | null;
       is_published: boolean;
       teacher_id?: string | null;
     } = {
       title: title.trim(),
       description: description.trim() || null,
+      category: normalizeCourseCategory(category),
       is_published: isPublished,
     };
 
@@ -104,6 +110,10 @@ export function CourseSettingsForm({
             onChange={(e) => setTitle(e.target.value)}
             className="ui-input h-9 w-full text-sm"
           />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">카테고리</label>
+          <CourseCategoryInput value={category} onChange={setCategory} existing={categories} compact />
         </div>
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-600">설명</label>

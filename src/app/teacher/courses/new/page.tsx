@@ -2,12 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { CourseCreateForm } from "@/components/courses/CourseCreateForm";
+import { loadCourseCategories } from "@/lib/courses/course-categories";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function TeacherNewCoursePage() {
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "teacher") {
     redirect("/login");
   }
+  const categories = await loadCourseCategories(await createClient());
 
   return (
     <div>
@@ -25,6 +28,7 @@ export default async function TeacherNewCoursePage() {
       <CourseCreateForm
         variant="teacher"
         currentUserId={profile.id}
+        categories={categories}
       />
     </div>
   );

@@ -21,6 +21,7 @@ export function CourseManageView({
   listHref,
   studentsHref,
   lessonsError,
+  categories = [],
 }: {
   variant: "admin" | "teacher";
   course: Course;
@@ -32,6 +33,7 @@ export function CourseManageView({
   listHref: string;
   studentsHref?: string;
   lessonsError?: string | null;
+  categories?: string[];
 }) {
   const published = lessons.filter((l) => l.is_published).length;
   const totalSeconds = lessons.reduce((s, l) => s + (meta[l.id]?.durationSeconds ?? 0), 0);
@@ -47,6 +49,9 @@ export function CourseManageView({
           강좌 목록
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-2">
+          {course.category ? (
+            <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{course.category}</span>
+          ) : null}
           <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-[22px]">{course.title}</h1>
           <span
             className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
@@ -90,7 +95,13 @@ export function CourseManageView({
         <div className="space-y-5 lg:sticky lg:top-[72px]">
           <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="mb-3 text-sm font-bold text-slate-900">강좌 설정</h2>
-            <CourseSettingsForm variant={variant} course={course} teachers={teachers} listHref={listHref} />
+            <CourseSettingsForm
+              variant={variant}
+              course={course}
+              teachers={teachers}
+              listHref={listHref}
+              categories={categories}
+            />
           </section>
 
           <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">

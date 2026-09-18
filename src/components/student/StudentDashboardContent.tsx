@@ -16,6 +16,17 @@ export async function StudentDashboardContent() {
     displayCourses.flatMap((c) => (c.nextLesson ? [c.nextLesson] : []))
   );
 
+  // 카테고리가 둘 이상이면 문법·독해 … 로 묶어 보여 준다
+  const groups = new Map<string, typeof displayCourses>();
+  for (const c of displayCourses) {
+    const key = c.course.category?.trim() || "기타";
+    groups.set(key, [...(groups.get(key) ?? []), c]);
+  }
+  const groupList = [...groups.entries()].sort(([a], [b]) =>
+    a === "기타" ? 1 : b === "기타" ? -1 : a.localeCompare(b, "ko")
+  );
+  const showHeads = groupList.length > 1;
+
   return (
     <div>
       <PageHeader
@@ -35,8 +46,16 @@ export async function StudentDashboardContent() {
           </p>
         </div>
       ) : (
+        <div className="space-y-6">
+        {groupList.map(([cat, list]) => (
+        <section key={cat}>
+          {showHeads ? (
+            <h2 className="mb-2.5 text-sm font-bold text-slate-700">
+              {cat} <span className="font-semibold text-slate-400">{list.length}</span>
+            </h2>
+          ) : null}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {displayCourses.map(
+          {list.map(
             ({ course, progressPercent, completedLessons, totalLessons, inProgress, nextLesson }) => {
               const finished = totalLessons > 0 && completedLessons >= totalLessons;
               const nm = nextLesson ? meta[nextLesson.id] : undefined;
@@ -82,7 +101,14 @@ export async function StudentDashboardContent() {
                   </Link>
                   <div className="flex flex-1 flex-col p-5">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-slate-900">{course.title ?? "제목 없음"}</h3>
+                      <h3 className="font-bold text-slate-900">
+                        {course.category ? (
+                          <span className="mr-1.5 rounded-md bg-brand-50 px-1.5 py-0.5 align-middle text-[11px] font-bold text-brand-700">
+                            {course.category}
+                          </span>
+                        ) : null}
+                        {course.title ?? "제목 없음"}
+                      </h3>
                       {!course.is_published && <PublishedBadge published={false} />}
                     </div>
                     {course.description ? (
@@ -121,6 +147,9 @@ export async function StudentDashboardContent() {
               );
             }
           )}
+        </div>
+        </section>
+        ))}
         </div>
       )}
     </div>

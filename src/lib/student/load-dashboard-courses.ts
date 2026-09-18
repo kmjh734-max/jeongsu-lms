@@ -51,7 +51,7 @@ export const loadStudentDashboardCourses = cache(
       supabase
         .from("enrollments")
         .select(
-          "course_id, course:courses(id, title, description, is_published)"
+          "course_id, course:courses(id, title, description, is_published, category)"
         )
         .eq("student_id", studentId),
       fetchPagesParallel<ProgressRow>((from, to, withCount) =>
@@ -92,7 +92,7 @@ export const loadStudentDashboardCourses = cache(
       missingCourseIds.length > 0
         ? supabase
             .from("courses")
-            .select("id, title, description, is_published")
+            .select("id, title, description, is_published, category")
             .in("id", missingCourseIds)
         : Promise.resolve({ data: [] as Course[] }),
       supabase

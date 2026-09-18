@@ -37,6 +37,8 @@ export interface Course {
   teacher_id: string | null;
   is_published: boolean;
   created_at: string;
+  /** 문법·독해·내신 같은 묶음 (없으면 기타) */
+  category?: string | null;
   teacher?: Profile | null;
 }
 
