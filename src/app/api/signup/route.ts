@@ -1,0 +1,137 @@
+import { after, NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createManagedAccount } from "@/lib/admin/manage-user";
+import { isValidUsername, normalizeUsername } from "@/lib/auth/username";
+import { cloneListeningCurriculumToAcademy } from "@/lib/listening/clone-curriculum";
+import { cloneVocabCurriculumToAcademy } from "@/lib/vocab/clone-curriculum";
+
+export const runtime = "nodejs";
+// 가입 뒤 듣기·단어 교재를 복사한다(응답은 먼저 보내고 뒤에서 채운다).
+export const maxDuration = 300;
+
+/**
+ * 학원 회원가입 — 원장님이 직접 가입하면 학원과 관리자 계정을 만들고 교재를 복사한다.
+ * 예전에는 운영자가 학원을 만들어 줘야만 쓸 수 있었다.
+ */
+
+// 같은 곳에서 짧은 시간에 가입을 몰아 하지 못하게 (서버 한 대 안에서의 간단한 제한)
+const recent = new Map<string, number[]>();
+function tooMany(ip: string): boolean {
+  const now = Date.now();
+  const list = (recent.get(ip) ?? []).filter((t) => now - t < 60 * 60 * 1000);
+  list.push(now);
+  recent.set(ip, list);
+  return list.length > 5;
+}
+
+function jsonError(message: string, status = 400) {
+  return NextResponse.json({ ok: false, message }, { status });
+}
+
+/** 학원 주소(영문). 아이디를 바탕으로 만들고, 겹치면 숫자를 붙인다 */
+async function uniqueSlug(admin: ReturnType<typeof createAdminClient>, base: string): Promise<string> {
+  const root = base.replace(/[^a-z0-9]/g, "").slice(0, 20) || "academy";
+  for (let i = 0; i < 50; i++) {
+    const slug = i === 0 ? root : `${root}${i + 1}`;
+    const { data } = await admin.from("academies").select("id").eq("slug", slug).maybeSingle();
+    if (!data) return slug;
+  }
+  return `${root}${Date.now().toString(36)}`;
+}
+
+export async function POST(request: Request) {
+  let body: {
+    academyName?: string;
+    ownerName?: string;
+    username?: string;
+    password?: string;
+    phone?: string;
+    email?: string;
+    agreeTerms?: boolean;
+    agreePrivacy?: boolean;
+    agreeAge?: boolean;
+    website?: string; // 사람은 채우지 않는 칸(자동 가입 막기)
+  };
+  try {
+    body = await request.json();
+  } catch {
+    return jsonError("요청을 읽지 못했어요. 다시 해 주세요.");
+  }
+
+  if (body.website) return jsonError("가입하지 못했어요.");
+  const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || "unknown";
+  if (tooMany(ip)) return jsonError("잠시 뒤에 다시 가입해 주세요.", 429);
+
+  const academyName = (body.academyName ?? "").trim();
+  const ownerName = (body.ownerName ?? "").trim();
+  const username = normalizeUsername(body.username ?? "");
+  const password = body.password ?? "";
+  const phone = (body.phone ?? "").replace(/[^0-9-]/g, "").trim();
+  const email = (body.email ?? "").trim().toLowerCase();
+
+  if (!academyName || academyName.length > 40) return jsonError("학원 이름을 40자 안으로 입력해 주세요.");
+  if (!ownerName || ownerName.length > 20) return jsonError("원장님 성함을 입력해 주세요.");
+  if (!isValidUsername(username)) return jsonError("아이디는 영문 소문자·숫자 3~32자로 입력해 주세요.");
+  if (password.length < 8) return jsonError("비밀번호는 8자 이상으로 입력해 주세요.");
+  if (!/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(phone)) return jsonError("연락처를 휴대폰 번호 형식으로 입력해 주세요.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return jsonError("이메일 주소를 확인해 주세요.");
+  if (!body.agreeTerms || !body.agreePrivacy || !body.agreeAge) {
+    return jsonError("필수 약관에 모두 동의해 주세요.");
+  }
+
+  const admin = createAdminClient();
+
+  // 1) 학원
+  const slug = await uniqueSlug(admin, username);
+  const { data: academy, error: academyError } = await admin
+    .from("academies")
+    .insert({
+      name: academyName,
+      slug,
+      phone,
+      primary_color: "#2563EB",
+      secondary_color: "#2563EB",
+      status: "active",
+      settings: {
+        signup: {
+          owner_name: ownerName,
+          contact_email: email,
+          agreed_at: new Date().toISOString(),
+          agreed: { terms: true, privacy: true, age14: true },
+          ip,
+        },
+      },
+    })
+    .select("id, slug")
+    .single();
+  if (academyError || !academy) return jsonError("학원을 만들지 못했어요. 잠시 뒤 다시 해 주세요.", 500);
+
+  // 2) 원장님 계정 (학원 관리자)
+  const created = await createManagedAccount(admin, {
+    name: ownerName,
+    username,
+    password,
+    role: "admin",
+    academyId: academy.id as string,
+  });
+  if (!created.ok) {
+    await admin.from("academies").delete().eq("id", academy.id);
+    return jsonError(created.message, created.status ?? 400);
+  }
+  const ownerId = String(created.profile.id ?? "");
+
+  // 3) 교재 복사는 뒤에서 (수십 초 걸린다)
+  if (ownerId) {
+    const targetAcademyId = academy.id as string;
+    after(async () => {
+      try {
+        await cloneListeningCurriculumToAcademy({ targetAcademyId, ownerProfileId: ownerId });
+        await cloneVocabCurriculumToAcademy({ targetAcademyId, ownerProfileId: ownerId });
+      } catch (e) {
+        console.error("[signup] curriculum clone failed", e);
+      }
+    });
+  }
+
+  return NextResponse.json({ ok: true, academySlug: academy.slug, username });
+}
