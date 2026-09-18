@@ -50,7 +50,7 @@ const SHOWCASE: Array<{ src: string; w: number; h: number; tag: string; title: s
     h: 1140,
     tag: "단어",
     title: "학년별 단어장",
-    body: "초등부터 고등까지 Day별 단어장. 뜻·예문 2개·해석·동의어·반의어가 모두 들어 있습니다.",
+    body: "중학부터 고등까지 Day별 단어장. 뜻·예문 2개·해석·동의어·반의어가 모두 들어 있습니다.",
     points: ["중학 기본·필수·고난도, 고교 기본·필수", "학생은 날마다 단계별로 외우기", "선생님은 진도를 한눈에"],
   },
   {
