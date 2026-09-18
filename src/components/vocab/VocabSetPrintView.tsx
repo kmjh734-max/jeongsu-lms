@@ -40,6 +40,8 @@ import {
   mergeVocabPrintCoverFromSearchParams,
   VOCAB_COVER_FONT_LABELS,
   VOCAB_COVER_THEME_LABELS,
+  VOCAB_COVER_LEVELS,
+  type VocabCoverColor,
   VOCAB_COVER_TITLE_SIZE_LABELS,
   type VocabCoverFont,
   type VocabCoverTheme,
@@ -1107,7 +1109,7 @@ export function VocabSetPrintView({
               {cover.enabled ? (
                 <div className="space-y-3">
                   <PanelField label="디자인">
-                    <div className="flex gap-1.5">
+                    <div className="grid grid-cols-3 gap-1.5">
                       {(Object.keys(VOCAB_COVER_THEME_LABELS) as VocabCoverTheme[]).map(
                         (key) => (
                           <button
@@ -1115,7 +1117,7 @@ export function VocabSetPrintView({
                             type="button"
                             onClick={() => updateCover({ theme: key })}
                             aria-pressed={cover.theme === key}
-                            className={`flex-1 rounded-md border px-2 py-1.5 text-[13px] font-semibold transition ${choiceClass(
+                            className={`rounded-md border px-1 py-1.5 text-[12.5px] font-semibold transition ${choiceClass(
                               cover.theme === key
                             )}`}
                           >
@@ -1124,10 +1126,38 @@ export function VocabSetPrintView({
                         )
                       )}
                     </div>
-                    <p className="mt-1 text-xs leading-snug text-slate-500">
-                      같은 포스터 양식 · 포스터=민트 · 마스터=오렌지 · 컬러팝=핑크
-                    </p>
                   </PanelField>
+
+                  {cover.theme === "hybrid" || cover.theme === "block" || cover.theme === "neon" ? (
+                    <PanelField label="색">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => updateCover({ color: "auto" })}
+                          aria-pressed={cover.color === "auto"}
+                          className={`rounded-md border px-2 py-1 text-[12.5px] font-semibold transition ${choiceClass(
+                            cover.color === "auto"
+                          )}`}
+                        >
+                          레벨에 맞게
+                        </button>
+                        {VOCAB_COVER_LEVELS.map((l) => (
+                          <button
+                            key={l.key}
+                            type="button"
+                            title={l.name}
+                            aria-label={l.name}
+                            aria-pressed={cover.color === l.key}
+                            onClick={() => updateCover({ color: l.key as VocabCoverColor })}
+                            className={`h-7 w-7 rounded-full border-2 transition ${
+                              cover.color === l.key ? "border-slate-900" : "border-white shadow-[0_0_0_1px_rgb(203_213_225)]"
+                            }`}
+                            style={{ background: l.deep }}
+                          />
+                        ))}
+                      </div>
+                    </PanelField>
+                  ) : null}
 
                   <PanelField label="글꼴">
                     <div className="flex gap-1.5">
@@ -1360,6 +1390,7 @@ export function VocabSetPrintView({
                   logoSrc={logoSrc}
                   bindingMargin={bindingMargin}
                   pageBreakAfter={bodyPageCount > 0}
+                  stats={{ days: sections.length, words: totalItems }}
                 />
               ) : null}
               {previewPages}

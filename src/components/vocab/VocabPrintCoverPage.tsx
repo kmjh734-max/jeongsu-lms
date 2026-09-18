@@ -7,6 +7,12 @@ import type {
 } from "@/lib/vocab/vocab-print-cover";
 import type { VocabPrintSize } from "@/lib/vocab/vocab-print-size";
 import { VOCAB_PRINT_PAGE_DIMENSIONS } from "@/lib/vocab/vocab-print-size";
+import {
+  VocabPrintCoverModern,
+  type VocabCoverStats,
+} from "@/components/vocab/VocabPrintCoverModern";
+
+type LegacyTheme = Extract<VocabCoverTheme, "poster" | "master" | "pop">;
 
 type VocabPrintCoverPageProps = {
   cover: VocabPrintCoverSettings;
@@ -15,11 +21,12 @@ type VocabPrintCoverPageProps = {
   pageBreakAfter?: boolean;
   /** 제본용 왼쪽 여백 (기본 true) */
   bindingMargin?: boolean;
+  stats: VocabCoverStats;
 };
 
 /** Same poster geometry; only palette changes per theme */
 const THEME_PALETTE: Record<
-  VocabCoverTheme,
+  LegacyTheme,
   {
     bg0: string;
     bg1: string;
@@ -59,7 +66,7 @@ const THEME_PALETTE: Record<
   },
 };
 
-function CoverBackdrop({ theme }: { theme: VocabCoverTheme }) {
+function CoverBackdrop({ theme }: { theme: LegacyTheme }) {
   const p = THEME_PALETTE[theme];
   const uid = `vc-${theme}`;
 
@@ -100,6 +107,7 @@ export function VocabPrintCoverPage({
   logoSrc,
   pageBreakAfter = true,
   bindingMargin = true,
+  stats,
 }: VocabPrintCoverPageProps) {
   const dims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
   const theme = cover.theme;
@@ -115,9 +123,13 @@ export function VocabPrintCoverPage({
         {
           ["--vocab-page-width" as string]: dims.width,
           ["--vocab-page-height" as string]: dims.height,
+          position: "relative",
         } as CSSProperties
       }
     >
+      {theme === "hybrid" || theme === "block" || theme === "neon" ? (
+        <VocabPrintCoverModern cover={cover} stats={stats} />
+      ) : (
       <div className="vocab-cover-stage">
         <CoverBackdrop theme={theme} />
 
@@ -167,6 +179,7 @@ export function VocabPrintCoverPage({
           ) : null}
         </footer>
       </div>
+      )}
     </article>
   );
 }
