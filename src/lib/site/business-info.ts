@@ -9,17 +9,17 @@ export const BUSINESS_INFO: Record<
   /** 상호 */
   name: "잉코어(EngCore)",
   /** 대표자 */
-  representative: "",
+  representative: "최정민",
   /** 사업자등록번호 */
   registrationNumber: "397-43-01410",
   /** 통신판매업 신고번호 (신고 후 채운다) */
   mailOrderNumber: "",
   /** 사업장 주소 */
-  address: "",
+  address: "서울특별시 중랑구 봉우재로 109-15",
   /** 환불·결제 문의 이메일 */
   email: "",
   /** 환불·결제 문의 전화 */
-  phone: "",
+  phone: "010-8851-1196",
   /** 문의 받는 시간 */
   hours: "평일 10:00~18:00 (주말·공휴일 제외)",
 };

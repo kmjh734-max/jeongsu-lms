@@ -87,6 +87,13 @@ export async function POST(request: Request) {
 
   // 1) 학원
   const slug = await uniqueSlug(admin, username);
+  const signupInfo = {
+    owner_name: ownerName,
+    contact_email: email,
+    agreed_at: new Date().toISOString(),
+    agreed: { terms: true, privacy: true, age14: true },
+    ip,
+  };
   const { data: academy, error: academyError } = await admin
     .from("academies")
     .insert({
@@ -96,15 +103,7 @@ export async function POST(request: Request) {
       primary_color: "#2563EB",
       secondary_color: "#2563EB",
       status: "active",
-      settings: {
-        signup: {
-          owner_name: ownerName,
-          contact_email: email,
-          agreed_at: new Date().toISOString(),
-          agreed: { terms: true, privacy: true, age14: true },
-          ip,
-        },
-      },
+      settings: { signup: signupInfo },
     })
     .select("id, slug")
     .single();
@@ -124,8 +123,20 @@ export async function POST(request: Request) {
   }
   const ownerId = String(created.profile.id ?? "");
 
-  // 3) 가입 축하 크레딧 (같은 학원에 두 번 주지 않는다)
-  if (ownerId) {
+  // 3) 가입 축하 크레딧 — 같은 학원에 두 번, 같은 IP에 두 번 주지 않는다
+  //    (한 곳에서 계정을 여러 개 만들어 무료 크레딧만 받아 가는 것을 막는다)
+  let bonusGranted = false;
+  const { data: sameIp } =
+    ip === "unknown"
+      ? { data: [{ id: "x" }] }
+      : await admin
+          .from("academies")
+          .select("id")
+          .eq("settings->signup->>ip", ip)
+          .eq("settings->signup->>bonus", "granted")
+          .neq("id", academy.id)
+          .limit(1);
+  if (ownerId && (sameIp ?? []).length === 0) {
     try {
       await grantAcademyCredits(admin, {
         academyId: academy.id as string,
@@ -134,6 +145,11 @@ export async function POST(request: Request) {
         note: "가입 축하 무료 크레딧",
         idempotencyKey: `signup_bonus:${academy.id}`,
       });
+      bonusGranted = true;
+      await admin
+        .from("academies")
+        .update({ settings: { signup: { ...signupInfo, bonus: "granted" } } })
+        .eq("id", academy.id);
     } catch (e) {
       console.error("[signup] bonus credits failed", e);
     }
@@ -152,5 +168,5 @@ export async function POST(request: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true, academySlug: academy.slug, username });
+  return NextResponse.json({ ok: true, academySlug: academy.slug, username, bonusGranted });
 }

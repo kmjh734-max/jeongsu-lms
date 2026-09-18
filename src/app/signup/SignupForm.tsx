@@ -22,7 +22,7 @@ export function SignupForm() {
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<{ slug: string; username: string } | null>(null);
+  const [done, setDone] = useState<{ slug: string; username: string; bonus: boolean } | null>(null);
 
   const set = (k: Field) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setValues((v) => ({ ...v, [k]: e.target.value }));
@@ -57,12 +57,22 @@ export function SignupForm() {
           website,
         }),
       });
-      const data = (await res.json()) as { ok?: boolean; message?: string; academySlug?: string; username?: string };
+      const data = (await res.json()) as {
+        ok?: boolean;
+        message?: string;
+        academySlug?: string;
+        username?: string;
+        bonusGranted?: boolean;
+      };
       if (!data.ok) {
         setError(data.message ?? "가입하지 못했어요. 다시 해 주세요.");
         return;
       }
-      setDone({ slug: data.academySlug ?? "", username: data.username ?? values.username });
+      setDone({
+        slug: data.academySlug ?? "",
+        username: data.username ?? values.username,
+        bonus: Boolean(data.bonusGranted),
+      });
     } catch {
       setError("연결이 끊겼어요. 다시 해 주세요.");
     } finally {
@@ -77,8 +87,12 @@ export function SignupForm() {
         <p className="mt-2 text-sm leading-6 text-slate-600">
           아이디 <b className="text-slate-900">{done.username}</b>로 로그인해 주세요.
           <br />
-          가입 축하 <b className="text-slate-900">2,000크레딧</b>을 넣어 드렸어요.
-          <br />
+          {done.bonus ? (
+            <>
+              가입 축하 <b className="text-slate-900">2,000크레딧</b>을 넣어 드렸어요.
+              <br />
+            </>
+          ) : null}
           단어·듣기 교재는 몇 분 안에 자동으로 들어갑니다.
         </p>
         <Link
