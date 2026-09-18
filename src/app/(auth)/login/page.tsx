@@ -78,7 +78,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
       <LoginHero />
       <LoginHeroCompact />
 
-      <main className="relative -mt-3.5 flex flex-1 justify-center rounded-t-2xl bg-white px-6 pb-10 pt-[26px] lg:mt-0 lg:items-center lg:rounded-none lg:px-12 lg:py-12">
+      <main className="relative -mt-3.5 flex flex-1 justify-center rounded-t-2xl bg-white px-6 pb-24 pt-[26px] lg:mt-0 lg:items-center lg:rounded-none lg:px-12 lg:py-12">
         <div className="flex w-full max-w-[380px] flex-col gap-4 lg:gap-5">
           <div className="flex items-center gap-3">
             <AcademyMark
@@ -124,7 +124,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
             />
           </Suspense>
         </div>
-        <p className="mt-6 text-center text-xs leading-5 text-slate-400">
+        <p className="absolute inset-x-0 bottom-4 text-center text-[11px] leading-5 text-slate-400">
           {BUSINESS_INFO.name}
           {BUSINESS_INFO.registrationNumber ? ` · 사업자등록번호 ${BUSINESS_INFO.registrationNumber}` : ""}
           <br />
