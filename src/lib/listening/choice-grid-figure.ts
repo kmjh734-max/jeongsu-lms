@@ -16,6 +16,7 @@ import {
   generateImagePngBytes,
 } from "@/lib/listening/generate-choice-images";
 import { BW_FIGURE_RULES } from "@/lib/listening/print-bw";
+import { strokeDigit } from "@/lib/listening/grid-digits";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
 
@@ -244,11 +245,8 @@ export async function overlayGridLabels(bytes: Buffer): Promise<Buffer> {
     );
   }
 
-  // 동그라미 숫자 — 글꼴에 ①이 없을 수 있어 원 + 숫자를 직접 그린다
+  // 동그라미 숫자 — 서버에는 글꼴이 없어 글자 그리기로는 숫자가 비어 나왔다. 선으로 직접 그린다.
   const r = Math.max(14, Math.round((width / SOURCE_COLS) * 0.085));
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = `bold ${Math.round(r * 1.25)}px sans-serif`;
   for (let i = 0; i < rects.length; i++) {
     const rect = rects[i]!;
     const cx = rect.x + r * 1.2;
@@ -260,8 +258,7 @@ export async function overlayGridLabels(bytes: Buffer): Promise<Buffer> {
     ctx.strokeStyle = "#111111";
     ctx.lineWidth = Math.max(2, Math.round(r / 8));
     ctx.stroke();
-    ctx.fillStyle = "#111111";
-    ctx.fillText(String(i + 1), cx, cy + r * 0.05);
+    strokeDigit(ctx, i + 1, cx, cy, r * 0.95);
   }
 
   return canvas.toBuffer("image/png");
