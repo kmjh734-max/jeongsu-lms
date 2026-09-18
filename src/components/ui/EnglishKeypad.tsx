@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
+import { addJamo, removeJamo } from "@/lib/hangul-compose";
 
 /**
  * 휴대폰·태블릿에서 영어 답 칸에 띄우는 자체 영어 자판.
@@ -16,10 +17,23 @@ export const englishKeypadProps = {
   "data-keypad": "en",
 };
 
+/** 한글 뜻 칸: 두벌식 자판(글자 조합 포함) */
+export const koreanKeypadProps = {
+  inputMode: "none" as const,
+  "data-keypad": "ko",
+};
+
 const ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+const KO_ROWS = ["ㅂㅈㄷㄱㅅㅛㅕㅑㅐㅔ", "ㅁㄴㅇㄹㅎㅗㅓㅏㅣ", "ㅋㅌㅊㅍㅠㅜㅡ"];
+const KO_SHIFT: Record<string, string> = { "ㅂ": "ㅃ", "ㅈ": "ㅉ", "ㄷ": "ㄸ", "ㄱ": "ㄲ", "ㅅ": "ㅆ", "ㅐ": "ㅒ", "ㅔ": "ㅖ" };
 
 function isKeypadInput(el: Element | null): el is HTMLInputElement {
-  return el instanceof HTMLInputElement && el.dataset.keypad === "en" && !el.disabled && !el.readOnly;
+  return (
+    el instanceof HTMLInputElement &&
+    (el.dataset.keypad === "en" || el.dataset.keypad === "ko") &&
+    !el.disabled &&
+    !el.readOnly
+  );
 }
 
 /** React가 알아듣게 값을 바꾸고 input 이벤트를 보낸다 */
@@ -34,6 +48,7 @@ export function EnglishKeypad() {
   const [touch, setTouch] = useState(false);
   const [upper, setUpper] = useState(false);
   const keypadRef = useRef<HTMLDivElement>(null);
+  const [, rerender] = useReducer((n: number) => n + 1, 0);
 
   useEffect(() => {
     const mq = window.matchMedia("(pointer: coarse)");
@@ -61,6 +76,14 @@ export function EnglishKeypad() {
     };
   }, []);
 
+  // 같은 칸이 영어 ↔ 한글 문항으로 바뀌면 자판도 바꾼다
+  useEffect(() => {
+    if (!target) return;
+    const mo = new MutationObserver(() => rerender());
+    mo.observe(target, { attributes: true, attributeFilter: ["data-keypad"] });
+    return () => mo.disconnect();
+  }, [target]);
+
   const shown = touch && Boolean(target);
   // 자판이 떠 있는 동안에는 화면 아래(정답 확인 버튼 등)가 가려지지 않게 여백을 준다
   useEffect(() => {
@@ -83,7 +106,16 @@ export function EnglishKeypad() {
       return;
     }
     const cur = input.value;
-    const next = key === "back" ? cur.slice(0, -1) : cur + (upper ? key.toUpperCase() : key);
+    const korean = input.dataset.keypad === "ko";
+    const next = korean
+      ? key === "back"
+        ? removeJamo(cur)
+        : key.length === 1 && /[ㄱ-ㅣ]/.test(key)
+          ? addJamo(cur, upper ? (KO_SHIFT[key] ?? key) : key)
+          : cur + key
+      : key === "back"
+        ? cur.slice(0, -1)
+        : cur + (upper ? key.toUpperCase() : key);
     setNativeValue(input, next);
     if (upper && key.length === 1) setUpper(false);
     input.focus({ preventScroll: true });
@@ -100,12 +132,12 @@ export function EnglishKeypad() {
       ref={keypadRef}
       className="fixed inset-x-0 bottom-0 z-[60] border-t border-slate-300 bg-slate-200/95 px-1 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur"
       role="group"
-      aria-label="영어 자판"
+      aria-label={target.dataset.keypad === "ko" ? "한글 자판" : "영어 자판"}
       onPointerDown={keep}
       onMouseDown={keep}
     >
       <div className="mx-auto flex max-w-xl flex-col gap-1.5">
-        {ROWS.map((row, i) => (
+        {(target.dataset.keypad === "ko" ? KO_ROWS : ROWS).map((row, i) => (
           <div key={row} className={`flex gap-1 ${i === 1 ? "px-[5%]" : ""}`}>
             {i === 2 ? (
               <button type="button" aria-label="대문자" className={`${keyCls} flex-[1.4] text-sm ${upper ? "bg-slate-700 text-white" : ""}`} onClick={() => setUpper((u) => !u)}>
@@ -114,7 +146,7 @@ export function EnglishKeypad() {
             ) : null}
             {row.split("").map((ch) => (
               <button key={ch} type="button" className={keyCls} onClick={() => press(ch)}>
-                {upper ? ch.toUpperCase() : ch}
+                {target.dataset.keypad === "ko" ? (upper ? (KO_SHIFT[ch] ?? ch) : ch) : upper ? ch.toUpperCase() : ch}
               </button>
             ))}
             {i === 2 ? (
@@ -125,7 +157,7 @@ export function EnglishKeypad() {
           </div>
         ))}
         <div className="flex gap-1">
-          {["'", "-"].map((ch) => (
+          {(target.dataset.keypad === "ko" ? [",", "~"] : ["'", "-"]).map((ch) => (
             <button key={ch} type="button" className={`${keyCls} flex-[0.8]`} onClick={() => press(ch)}>
               {ch}
             </button>
