@@ -34,10 +34,20 @@ export function tableRuleProblems(q: GeneratedListeningQuestion): string[] {
   const rows = table.rows.map((r) => columnsOf(String(r?.value ?? "")));
   const names = rows[0]?.map((c) => c.name) ?? [];
 
-  for (const name of names) {
-    if (PERSON_COLUMN.test(name)) {
+  /*
+   * 이름 열 자체는 괜찮다 — 상품 이름(Cloud Mug)으로 행을 부르는 것은 실제 시험지에도 있다.
+   * 걸러야 하는 것은 그 값이 대본에 나오는 사람 이름인 경우다(Name: Bora / Name: Jaehyun).
+   */
+  const script = String(q.script_text ?? "");
+  for (const [ci, name] of names.entries()) {
+    if (!PERSON_COLUMN.test(name)) continue;
+    const values = rows.map((r) => r[ci]?.value ?? "").filter(Boolean);
+    const looksPerson = values.filter(
+      (v) => /^[A-Z][a-z]+$/.test(v.trim()) && new RegExp(`\b${v.trim()}\b`).test(script)
+    ).length;
+    if (looksPerson >= 2) {
       out.push(
-        `table_person_column|표에 사람 이름 열(${name})이 있다. 표의 행은 ①~⑤ 번호나 상품 이름으로 구분하고, 열에는 그 물건의 속성(크기·무게·재질·가격·기능 등)만 쓴다.`
+        `table_person_column|표의 행을 대본에 나오는 사람 이름(${values.slice(0, 2).join(", ")})으로 부르고 있다. 행은 ①~⑤ 번호나 상품 이름으로 구분하고, 열에는 그 물건의 속성(크기·무게·재질·가격·기능 등)만 쓴다.`
       );
       break;
     }
