@@ -3,6 +3,7 @@ import { filterNavItems } from "@/lib/academy-features";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { LowCreditBanner } from "@/components/credits/LowCreditBanner";
 
 const NAV_ITEMS = [
   { href: "/teacher", label: "강사 홈" },
@@ -39,6 +40,7 @@ export default async function TeacherLayout({
 
   return (
     <DashboardLayout profile={profile} navItems={filterNavItems(NAV_ITEMS)}>
+      <LowCreditBanner academyId={profile.academy_id} canCharge={false} />
       {children}
     </DashboardLayout>
   );
