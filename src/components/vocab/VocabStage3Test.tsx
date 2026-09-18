@@ -18,6 +18,7 @@ import {
   saveExamGuestProgress,
 } from "@/lib/vocab/exam-guest-progress";
 import { notifyStudentTodayChanged } from "@/lib/student/today-refresh";
+import { answerInputGuards, typedOnly } from "@/lib/vocab/typed-only";
 
 function answerKey(q: Stage3ClientQuestion): string {
   return `${q.itemId}:${q.questionType}`;
@@ -274,7 +275,10 @@ export function VocabStage3Test({
             className="h-14 w-full rounded-lg border-2 border-slate-300 bg-white px-4 text-center text-2xl font-semibold text-slate-900 transition placeholder:text-lg placeholder:font-normal placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-50 disabled:bg-slate-50 disabled:text-slate-400 sm:h-[60px]"
             value={answers[currentKey] ?? ""}
             onChange={(e) =>
-              setAnswers((prev) => ({ ...prev, [currentKey]: e.target.value }))
+              setAnswers((prev) => ({
+                ...prev,
+                [currentKey]: typedOnly(prev[currentKey] ?? "", e.target.value),
+              }))
             }
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -284,10 +288,7 @@ export function VocabStage3Test({
             }}
             placeholder={isMeaning ? "뜻 입력" : "영어 스펠링 입력"}
             enterKeyHint={isLast ? "done" : "next"}
-            autoComplete="off"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
+            {...answerInputGuards}
             aria-label={isMeaning ? "뜻 입력" : "영어 스펠링 입력"}
             disabled={submitting}
           />

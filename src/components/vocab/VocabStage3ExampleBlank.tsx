@@ -14,6 +14,7 @@ import {
   type ExampleBlankQuestion,
 } from "@/lib/vocab/example-blank";
 import { useStudyRecorder } from "@/lib/vocab/use-study-recorder";
+import { answerInputGuards, typedOnly } from "@/lib/vocab/typed-only";
 
 function shuffleQuestions(questions: ExampleBlankQuestion[]): ExampleBlankQuestion[] {
   const copy = [...questions];
@@ -356,7 +357,7 @@ export function VocabStage3ExampleBlank({
             onChange={(e) => {
               // 틀린 답을 보여 주는 동안에는 입력을 받지 않는다 (키보드는 그대로 둔다)
               if (wrong) return;
-              setAnswer(e.target.value.toLowerCase());
+              setAnswer(typedOnly(answer, e.target.value.toLowerCase()));
               if (message === "답을 입력해주세요.") setMessage(null);
             }}
             onKeyDown={(e) => {
@@ -370,10 +371,7 @@ export function VocabStage3ExampleBlank({
               }
             }}
             placeholder="영어 단어 입력"
-            autoComplete="off"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
+            {...answerInputGuards}
             enterKeyHint="next"
             aria-label="빈칸 영어 단어 입력"
             aria-invalid={wrong || undefined}

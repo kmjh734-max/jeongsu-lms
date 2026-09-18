@@ -68,7 +68,8 @@ export function StudentAudioBar({
   src,
   variant = "light",
   size = "md",
-  playbackRate = 1,
+  // 학생 듣기는 기본 0.8배속 (선생님 요청, 2026-09-18) — 음 높이는 그대로 두고 느리게
+  playbackRate = 0.8,
   audioRef,
   autoPlay = false,
   onEnded,

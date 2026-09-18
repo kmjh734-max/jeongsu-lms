@@ -131,7 +131,7 @@ export function DictationSection({
   const [score, setScore] = useState<number | null>(null);
   const [results, setResults] = useState<DictationBlankScoreResult[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [playbackRate, setPlaybackRate] = useState(1);
+  const [playbackRate, setPlaybackRate] = useState(0.8);
   const loadGeneration = useRef(0);
   const onPassedRef = useRef(onPassed);
   onPassedRef.current = onPassed;

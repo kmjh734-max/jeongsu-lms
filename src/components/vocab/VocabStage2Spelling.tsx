@@ -17,6 +17,7 @@ import {
 } from "@/lib/vocab/exam-guest-progress";
 import { useStudyRecorder } from "@/lib/vocab/use-study-recorder";
 import type { VocabItem } from "@/types/database";
+import { answerInputGuards, typedOnly } from "@/lib/vocab/typed-only";
 
 function shuffleIds(ids: string[]): string[] {
   const copy = [...ids];
@@ -331,7 +332,7 @@ export function VocabStage2Spelling({
             onChange={(e) => {
               // 틀린 답을 보여 주는 동안에는 입력을 받지 않는다 (키보드는 그대로 둔다)
               if (wrong) return;
-              setAnswer(e.target.value.toLowerCase());
+              setAnswer(typedOnly(answer, e.target.value.toLowerCase()));
               if (message === "답을 입력해주세요.") setMessage(null);
             }}
             onKeyDown={(e) => {
@@ -345,10 +346,7 @@ export function VocabStage2Spelling({
               }
             }}
             placeholder="영어 스펠링 입력"
-            autoComplete="off"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
+            {...answerInputGuards}
             enterKeyHint="next"
             aria-label="영어 스펠링 입력"
             aria-invalid={wrong || undefined}

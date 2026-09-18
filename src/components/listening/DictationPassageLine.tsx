@@ -3,6 +3,7 @@
 import { splitPassageLineByBlanks } from "@/lib/listening/dictation/split-passage-line";
 import type { DictationPassageLineClient } from "@/lib/listening/dictation/types";
 import type { DictationBlankScoreResult } from "@/lib/listening/dictation/types";
+import { answerInputGuards, typedOnly } from "@/lib/vocab/typed-only";
 
 interface DictationPassageLineProps {
   line: DictationPassageLineClient;
@@ -74,14 +75,11 @@ function DictationInlineBlank({
     <input
       type="text"
       value={value}
-      onChange={(e) => onChange(blankId, e.target.value)}
+      onChange={(e) => onChange(blankId, typedOnly(value, e.target.value))}
       disabled={disabled}
       className={`mx-0.5 inline-block h-7 rounded border-[1.5px] px-2 align-middle text-sm font-semibold normal-case outline-none transition disabled:cursor-default disabled:opacity-100 ${toneClass}`}
       style={{ width: `${widthCh}ch`, minWidth: "4rem" }}
-      autoComplete="off"
-      autoCapitalize="none"
-      autoCorrect="off"
-      spellCheck={false}
+      {...answerInputGuards}
       inputMode="text"
       lang="en"
       aria-label="받아쓰기 빈칸"
