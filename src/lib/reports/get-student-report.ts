@@ -107,7 +107,7 @@ export async function getStudentReport(
 
   const { data: classLinks } = await supabase
     .from("class_students")
-    .select("class:classes(name)")
+    .select("class:classes(name, weekdays, is_active)")
     .eq("student_id", studentId);
 
   const classNames = (classLinks ?? [])
@@ -544,8 +544,11 @@ export async function getStudentReport(
     new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(new Date(iso));
   const inPeriod = (iso: string | null | undefined): iso is string =>
     Boolean(iso) && (range === "all" || isIsoInReportRange(iso, bounds));
+  // 기간과 상관없이 모든 학습 시각(이전 기간 비교용)
+  const allStamps: string[] = [];
   const activity: Record<string, number> = {};
   const mark = (iso: string | null | undefined) => {
+    if (iso) allStamps.push(iso);
     if (!inPeriod(iso)) return;
     const d = kstDay(iso);
     activity[d] = (activity[d] ?? 0) + 1;
@@ -590,7 +593,49 @@ export async function getStudentReport(
     return { label: `${i + 1}주`, vocab: avg(vocabScores), listening: avg(listenScores) };
   });
 
+  // 학생 반들의 수업 요일
+  const classWeekdays = [
+    ...new Set(
+      (classLinks ?? []).flatMap((link) => {
+        const cls = unwrapRelation(
+          link.class as { weekdays?: number[] | null; is_active?: boolean } | { weekdays?: number[] | null; is_active?: boolean }[] | null
+        );
+        return cls && cls.is_active !== false ? (cls.weekdays ?? []).map(Number) : [];
+      })
+    ),
+  ].sort();
+
+  // 바로 앞 같은 길이 기간과 비교
+  let compare: {
+    activeDaysPrev: number;
+    vocabNow: number | null;
+    vocabPrev: number | null;
+    listeningNow: number | null;
+    listeningPrev: number | null;
+  } | undefined;
+  if (range !== "all" && bounds.start) {
+    const startMs = bounds.start.getTime();
+    const prevStart = startMs - (bounds.end.getTime() - startMs);
+    const inPrev = (iso: string | null | undefined) => {
+      if (!iso) return false;
+      const t = Date.parse(iso);
+      return t >= prevStart && t < startMs;
+    };
+    const prevDays = new Set(allStamps.filter(inPrev).map(kstDay));
+    const scores = (rows: Array<{ submitted_at?: unknown; score?: unknown }> | null | undefined, pick: (iso: string) => boolean) =>
+      avg((rows ?? []).filter((r) => pick(r.submitted_at as string)).map((r) => Number(r.score) || 0));
+    compare = {
+      activeDaysPrev: prevDays.size,
+      vocabNow: scores(finalAttempts, (iso) => inPeriod(iso)),
+      vocabPrev: scores(finalAttempts, inPrev),
+      listeningNow: scores(examTimes, (iso) => inPeriod(iso)),
+      listeningPrev: scores(examTimes, inPrev),
+    };
+  }
+
   const overview = {
+    classWeekdays,
+    compare,
     weeks,
     activeDays: Object.keys(activity).length,
     activity,

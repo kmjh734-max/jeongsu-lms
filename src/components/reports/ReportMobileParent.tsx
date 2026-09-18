@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { classDaySet, compareLines } from "@/components/reports/ReportDashboard";
 import type { StudentReport } from "@/lib/reports/types";
 
 /**
@@ -51,11 +52,13 @@ export function ReportMobileParent({
 
   const first = addDays(o.calendarStart, -weekdayIndex(o.calendarStart));
   const last = addDays(o.calendarEnd, 6 - weekdayIndex(o.calendarEnd));
+  const classDays_ = classDaySet(o);
+  const changes = compareLines(o);
   const cells: Array<{ ymd: string; state: string }> = [];
   for (let d = first; d <= last && cells.length < 49; d = addDays(d, 1)) {
     const inside = d >= o.calendarStart && d <= o.calendarEnd;
     const studied = (o.activity[d] ?? 0) > 0;
-    cells.push({ ymd: d, state: !inside ? "out" : studied ? "done" : weekdayIndex(d) >= 5 ? "off" : "missed" });
+    cells.push({ ymd: d, state: !inside ? "out" : studied ? "done" : !classDays_.has(weekdayIndex(d)) ? "off" : "missed" });
   }
   const classDays = cells.filter((c) => c.state === "done" || c.state === "missed").length;
   const style = (s: string) =>
@@ -108,6 +111,21 @@ export function ReportMobileParent({
             </div>
           ))}
         </div>
+
+        {changes.length ? (
+          <div className="mx-4 flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="font-semibold text-slate-500">지난 기간보다</span>
+            {changes.map((l) => (
+              <span
+                key={l.text}
+                className="rounded-full px-2.5 py-1 font-bold"
+                style={{ background: l.up ? "#dcfce7" : "#fee2e2", color: l.up ? "#166534" : "#b91c1c" }}
+              >
+                {l.up ? "▲" : "▼"} {l.text}
+              </span>
+            ))}
+          </div>
+        ) : null}
 
         {comment.trim() ? (
           <Card>

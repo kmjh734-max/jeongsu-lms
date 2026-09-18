@@ -632,8 +632,12 @@ interface ClassSettingsPanelProps {
   initialDescription: string;
   initialTeacherId: string;
   initialIsActive: boolean;
+  /** 수업 요일(0=월 … 6=일). 비어 있으면 월~금 */
+  initialWeekdays?: number[];
   teachers: { id: string; name: string }[];
 }
+
+const WEEKDAY_NAMES = ["월", "화", "수", "목", "금", "토", "일"];
 
 export function ClassSettingsPanel({
   variant,
@@ -642,8 +646,10 @@ export function ClassSettingsPanel({
   initialDescription,
   initialTeacherId,
   initialIsActive,
+  initialWeekdays = [],
   teachers,
 }: ClassSettingsPanelProps) {
+  const [weekdays, setWeekdays] = useState<number[]>(initialWeekdays);
   const isAdmin = variant === "admin";
   const router = useRouter();
   const [name, setName] = useState(initialName);
@@ -659,7 +665,7 @@ export function ClassSettingsPanel({
     setLoading(true);
     setMessage(null);
     try {
-      const result = await updateClass(classId, { name, description, teacherId, isActive });
+      const result = await updateClass(classId, { name, description, teacherId, isActive, weekdays });
       setMessage({ type: result.ok ? "success" : "error", text: result.message });
       if (result.ok) router.refresh();
     } catch {
@@ -720,6 +726,32 @@ export function ClassSettingsPanel({
                 ))}
               </select>
             </div>
+            <fieldset>
+              <legend className="ui-label">수업 요일</legend>
+              <div className="flex flex-wrap gap-1.5">
+                {WEEKDAY_NAMES.map((w, i) => {
+                  const on = weekdays.includes(i);
+                  return (
+                    <button
+                      key={w}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() =>
+                        setWeekdays((prev) => (on ? prev.filter((d) => d !== i) : [...prev, i].sort((a, b) => a - b)))
+                      }
+                      className={`h-9 w-10 rounded-md border text-sm font-semibold ${
+                        on ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 bg-white text-slate-600"
+                      }`}
+                    >
+                      {w}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                학습 리포트 달력에서 수업 요일에 공부를 안 한 날만 &lsquo;빠진 날&rsquo;로 표시해요. 비워 두면 월~금으로 봐요.
+              </p>
+            </fieldset>
             <label className="flex items-start gap-2 text-sm text-slate-700">
               <input
                 type="checkbox"

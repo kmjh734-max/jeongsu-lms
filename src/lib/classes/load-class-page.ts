@@ -27,6 +27,7 @@ export interface ClassPageData {
   name: string;
   description: string | null;
   isActive: boolean;
+  weekdays: number[];
   teacherId: string | null;
   teacherName: string | null;
   members: ClassMember[];
@@ -60,7 +61,7 @@ export async function loadClassPageData(
   let classQuery = supabase
     .from("classes")
     .select(
-      "id, name, description, is_active, teacher_id, academy_id, teacher:profiles!classes_teacher_id_fkey(id, name)"
+      "id, name, description, is_active, weekdays, teacher_id, academy_id, teacher:profiles!classes_teacher_id_fkey(id, name)"
     )
     .eq("id", classId);
   if (variant === "teacher") classQuery = classQuery.eq("teacher_id", viewerId);
@@ -127,6 +128,7 @@ export async function loadClassPageData(
     name: classRow.name as string,
     description: (classRow.description as string | null) ?? null,
     isActive: Boolean(classRow.is_active),
+    weekdays: ((classRow as { weekdays?: number[] | null }).weekdays ?? []).map(Number),
     teacherId: (classRow.teacher_id as string | null) ?? null,
     teacherName: teacher?.name ?? null,
     members,

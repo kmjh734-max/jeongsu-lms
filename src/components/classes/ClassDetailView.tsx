@@ -228,6 +228,7 @@ export function ClassDetailView({
             initialDescription={data.description ?? ""}
             initialTeacherId={data.teacherId ?? ""}
             initialIsActive={data.isActive}
+            initialWeekdays={data.weekdays}
             teachers={data.teachers}
           />
         ) : null}

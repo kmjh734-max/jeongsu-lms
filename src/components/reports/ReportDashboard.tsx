@@ -22,6 +22,30 @@ function addDays(ymd: string, n: number): string {
 function weekdayIndex(ymd: string): number {
   return (new Date(`${ymd}T00:00:00Z`).getUTCDay() + 6) % 7;
 }
+
+/** 지난 기간 대비 문구(바뀐 것만) */
+export function compareLines(o: NonNullable<StudentReport["overview"]>): Array<{ text: string; up: boolean }> {
+  const c = o.compare;
+  if (!c) return [];
+  const out: Array<{ text: string; up: boolean }> = [];
+  const d = o.activeDays - c.activeDaysPrev;
+  if (d !== 0) out.push({ text: `학습일 ${d > 0 ? "+" : ""}${d}일`, up: d > 0 });
+  if (c.vocabNow != null && c.vocabPrev != null && c.vocabNow !== c.vocabPrev) {
+    const v = c.vocabNow - c.vocabPrev;
+    out.push({ text: `단어 시험 ${v > 0 ? "+" : ""}${v}점`, up: v > 0 });
+  }
+  if (c.listeningNow != null && c.listeningPrev != null && c.listeningNow !== c.listeningPrev) {
+    const v = c.listeningNow - c.listeningPrev;
+    out.push({ text: `듣기 시험 ${v > 0 ? "+" : ""}${v}점`, up: v > 0 });
+  }
+  return out;
+}
+
+/** 수업 요일(0=월 … 6=일). 반에 정해 두지 않았으면 월~금 */
+export function classDaySet(o: NonNullable<StudentReport["overview"]>): Set<number> {
+  return new Set(o.classWeekdays?.length ? o.classWeekdays : [0, 1, 2, 3, 4]);
+}
+
 function pct(done: number, total: number): number | null {
   return total > 0 ? Math.round((done / total) * 100) : null;
 }
@@ -99,12 +123,13 @@ export function ReportDashboard({
   // ----- 달력: 학습함 / 빠진 날(평일) / 쉬는 날(주말) -----
   const first = addDays(o.calendarStart, -weekdayIndex(o.calendarStart));
   const last = addDays(o.calendarEnd, 6 - weekdayIndex(o.calendarEnd));
+  const classDays_ = classDaySet(o);
   const cells: Array<{ ymd: string; state: "done" | "missed" | "off" | "out" }> = [];
   for (let d = first; d <= last && cells.length < 49; d = addDays(d, 1)) {
     const inside = d >= o.calendarStart && d <= o.calendarEnd;
     const studied = (o.activity[d] ?? 0) > 0;
-    const weekend = weekdayIndex(d) >= 5;
-    cells.push({ ymd: d, state: !inside ? "out" : studied ? "done" : weekend ? "off" : "missed" });
+    const noClass = !classDays_.has(weekdayIndex(d));
+    cells.push({ ymd: d, state: !inside ? "out" : studied ? "done" : noClass ? "off" : "missed" });
   }
   const classDays = cells.filter((c) => c.state === "done" || c.state === "missed").length;
   const cellStyle = (s: string) =>
@@ -189,6 +214,21 @@ export function ReportDashboard({
             color={CYAN}
           />
         </div>
+
+        {compareLines(o).length ? (
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="font-semibold text-slate-500">지난 기간보다</span>
+            {compareLines(o).map((l) => (
+              <span
+                key={l.text}
+                className="rounded-full px-2.5 py-1 font-bold"
+                style={{ background: l.up ? "#dcfce7" : "#fee2e2", color: l.up ? "#166534" : "#b91c1c" }}
+              >
+                {l.up ? "▲" : "▼"} {l.text}
+              </span>
+            ))}
+          </div>
+        ) : null}
 
         <div className={`grid gap-4 ${print ? "grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]" : "md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]"}`}>
           <div className="rounded-xl border border-slate-200 p-4">

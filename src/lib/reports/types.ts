@@ -124,6 +124,16 @@ export interface ReportOverview {
   video: { courses: number; lessonsDone: number };
   /** 주차별 점수(단어 종합테스트·듣기 시험 평균). 기록이 없는 주는 null */
   weeks?: Array<{ label: string; vocab: number | null; listening: number | null }>;
+  /** 학생이 든 반들의 수업 요일(0=월 … 6=일). 비어 있으면 월~금 */
+  classWeekdays?: number[];
+  /** 바로 앞 같은 길이 기간과 비교(전체 기간이면 없음). 점수는 그 기간에 본 시험 평균 */
+  compare?: {
+    activeDaysPrev: number;
+    vocabNow: number | null;
+    vocabPrev: number | null;
+    listeningNow: number | null;
+    listeningPrev: number | null;
+  };
 }
 
 export interface StudentReport {
