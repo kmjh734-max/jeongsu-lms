@@ -16,7 +16,14 @@ const FEATURES: Array<{ icon: Parameters<typeof Icon>[0]["name"]; title: string;
 ];
 
 /** 실제 화면 (public/landing — 실제 서비스 화면을 잘라 찍은 것) */
-const SHOWCASE: Array<{ src: string; w: number; h: number; tag: string; title: string; body: string; points: string[] }> = [
+type ShowcaseItem = {
+  tag: string;
+  title: string;
+  body: string;
+  points: string[];
+} & ({ src: string; w: number; h: number; phones?: never } | { phones: string[]; src?: never; w?: never; h?: never });
+
+const SHOWCASE: ShowcaseItem[] = [
   {
     src: "/landing/analysis.jpg",
     w: 1011,
@@ -45,13 +52,18 @@ const SHOWCASE: Array<{ src: string; w: number; h: number; tag: string; title: s
     points: ["QR로 바로 듣는 음성", "학생은 앱에서 풀고 받아쓰기까지", "중1~중3 회차별 문항 제공"],
   },
   {
-    src: "/landing/vocab-words.jpg",
-    w: 1821,
-    h: 1140,
-    tag: "단어",
-    title: "학년별 단어장",
+    phones: ["/landing/m-listening.jpg"],
+    tag: "온라인 학습",
+    title: "온라인 듣기학습",
+    body: "학생은 휴대폰으로 문제를 듣고 바로 풉니다. 채점과 오답 확인, 받아쓰기까지 앱에서 끝나요.",
+    points: ["문항마다 음성 듣고 바로 풀기", "기본 0.8배속, 필요하면 1.0배속", "선생님은 결과를 한눈에"],
+  },
+  {
+    phones: ["/landing/m-vocab-hub.jpg", "/landing/m-vocab-stage1.jpg"],
+    tag: "온라인 학습",
+    title: "학년별 단어장 · 온라인 단어학습",
     body: "초등부터 고등까지 Day별 단어장. 뜻·예문 2개·해석·동의어·반의어가 모두 들어 있습니다.",
-    points: ["초등 Level 1~4, 중학 기본·필수·고난도, 고교 기본·필수", "학생은 날마다 단계별로 외우기", "선생님은 진도를 한눈에"],
+    points: ["초등 Level 1~4, 중학 기본·필수·고난도, 고교 기본·필수", "뜻 익히기 → 스펠링 → 예문 빈칸 → 종합테스트", "선생님은 진도를 한눈에"],
   },
   {
     src: "/landing/vocab-test.jpg",
@@ -143,19 +155,39 @@ export function LandingPage({
           </h2>
           <div className="mt-10 space-y-14 sm:space-y-20">
             {SHOWCASE.map((item, i) => (
-              <div key={item.src} className="grid items-center gap-6 md:grid-cols-2 md:gap-12">
+              <div key={item.title} className="grid items-center gap-6 md:grid-cols-2 md:gap-12">
                 <div className={i % 2 === 1 ? "md:order-2" : undefined}>
-                  <div className="relative max-h-[460px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-                    <Image
-                      src={item.src}
-                      alt={`${item.title} 화면`}
-                      width={item.w}
-                      height={item.h}
-                      sizes="(min-width: 768px) 540px, 100vw"
-                      className="h-auto w-full"
-                    />
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />
-                  </div>
+                  {item.phones ? (
+                    <div className="flex justify-center gap-4 rounded-xl bg-slate-50 px-4 py-6 sm:gap-6">
+                      {item.phones.map((src) => (
+                        <div
+                          key={src}
+                          className="w-[46%] max-w-[230px] overflow-hidden rounded-[26px] border-[6px] border-slate-900 bg-white shadow-xl"
+                        >
+                          <Image
+                            src={src}
+                            alt={`${item.title} 휴대폰 화면`}
+                            width={585}
+                            height={1266}
+                            sizes="230px"
+                            className="h-auto w-full"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="relative max-h-[460px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                      <Image
+                        src={item.src}
+                        alt={`${item.title} 화면`}
+                        width={item.w}
+                        height={item.h}
+                        sizes="(min-width: 768px) 540px, 100vw"
+                        className="h-auto w-full"
+                      />
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <span className="inline-block rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-700">
