@@ -174,7 +174,7 @@ ${list}
 
 Rules:
 - Draw NO grid, NO frame, NO border, NO dividing line and NO box of any kind. The six areas are imaginary and separated only by white space.
-- Draw NO numbers, NO circled digits and NO captions anywhere. The only letters allowed are words explicitly requested above (spell those correctly, in the cell that asks for them and nowhere else).
+- Draw NO numbers, NO circled digits, NO empty circles, NO badges, NO tags and NO captions anywhere. The number is printed on top of the sheet afterwards, so keep the TOP-LEFT CORNER of every area clear white and empty. The only letters allowed are words explicitly requested above (spell those correctly, in the cell that asks for them and nowhere else).
 - Black-and-white textbook illustration, clean thick black outlines, no photorealism, no 3D, no shadows, no gradients, no watermark.
 ${BW_FIGURE_RULES}
 - Each picture is ONE clear object or scene, drawn well inside its own area with white space around it — it must never cross into, touch or overlap a neighbouring area.
@@ -182,7 +182,7 @@ ${BW_FIGURE_RULES}
 - EVERY detail written for a cell must be visible in that cell: the stated shape, pattern, count and printed word. A cell whose description lists two details (for example "stars AND the word HOME") must show BOTH of them.
 - A detail that is NOT written for a cell must not appear there. The cells differ only by the details listed above, and every difference must stay obvious when printed small.
 ${extraNote ? "\n" + extraNote : ""}
-VERIFY: five pictures placed top-left / top-middle / top-right / bottom-left / bottom-middle, bottom-right empty, no lines, no numbers.`.slice(0, 3800);
+VERIFY: five pictures placed top-left / top-middle / top-right / bottom-left / bottom-middle, bottom-right empty, no lines, no numbers, no stray circles, each area's top-left corner clear.`.slice(0, 3800);
 }
 
 /**
@@ -301,7 +301,8 @@ export async function verifyChoiceGrid(
   const systemPrompt = [
     "You strictly check a Korean listening-exam picture-choice sheet.",
     "The sheet has five boxed cells: cells 1, 2, 3 fill the top row (left, middle, right) and cells 4, 5 sit side by side, centred, in the bottom row.",
-    "Each cell carries a small circled number 1-5 at its top-left.",
+    "Each cell carries a small circled number 1-5 at its top-left, printed on the sheet afterwards.",
+    "A cell also containing a second circle, badge or blank bubble that belongs to no object is a fault: set matches_plan=false and say so in `missing`.",
     "Read the image literally (exact objects, shapes, patterns, counts, printed words, positions).",
     'JSON only: {"panels":[{"label":"1","count":1,"drawn":"what is actually drawn in this cell","matches_plan":true,"missing":"which required detail is missing or wrong, else empty"}, ...for cells 1,2,3,4,5],"panelCount":5,"panelsDistinct":true,"cleanBackground":true,"misspelledWords":[],"answerCellMatches":true,"note":"..."}.',
     "count = 1 when this cell contains one picture, 0 when the cell is empty, 2+ when it holds several unrelated pictures.",
