@@ -11,6 +11,13 @@ export function isPdfUpload(file: { type: string; name: string }): boolean {
   return file.name.toLowerCase().endsWith(".pdf");
 }
 
+/** 나이스·학교에서 내려받은 학생부 HTML(.html/.htm) */
+export function isHtmlUpload(file: { type: string; name: string }): boolean {
+  const type = file.type.toLowerCase();
+  if (type === "text/html" || type === "application/xhtml+xml") return true;
+  return /\.x?html?$/.test(file.name.toLowerCase());
+}
+
 export function isImageUpload(file: { type: string; name?: string }): boolean {
   if (IMAGE_TYPES.has(file.type.toLowerCase())) return true;
   const name = file.name?.toLowerCase() ?? "";

@@ -1,5 +1,6 @@
 import { pdfFileToJpegFiles } from "@/lib/student-records/client-pdf-render";
-import { isImageUpload, isPdfUpload } from "@/lib/student-records/file-types";
+import { isHtmlUpload, isImageUpload, isPdfUpload } from "@/lib/student-records/file-types";
+
 import {
   STUDENT_RECORD_EXTRACT_CHUNK_PAGES,
   STUDENT_RECORD_MAX_DIRECT_IMAGES,
@@ -15,6 +16,36 @@ export {
   STUDENT_RECORD_MAX_PDF_PAGES,
   STUDENT_RECORD_MAX_TOTAL_BYTES,
 } from "@/lib/student-records/limits";
+
+/** 학생부 HTML 파일 한도(글자만 읽는다) */
+const STUDENT_RECORD_MAX_HTML_BYTES = 5 * 1024 * 1024;
+
+/**
+ * 학생부 HTML을 글자로 바꾼다. 표는 칸을 " | "로, 줄을 줄바꿈으로 남겨 과목·성적이 섞이지 않게 한다.
+ * 나이스에서 내려받은 파일은 EUC-KR인 경우가 있어, UTF-8로 읽다가 깨지면 EUC-KR로 다시 읽는다.
+ */
+export async function htmlFileToText(file: File): Promise<string> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let html: string;
+  try {
+    html = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    html = new TextDecoder("euc-kr").decode(bytes);
+  }
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("script, style, noscript, head").forEach((el) => el.remove());
+  doc.querySelectorAll("td, th").forEach((el) => el.append(" | "));
+  doc.querySelectorAll("br").forEach((el) => el.replaceWith("\n"));
+  doc
+    .querySelectorAll("tr, p, div, li, h1, h2, h3, h4, h5, h6, table, caption")
+    .forEach((el) => el.append("\n"));
+  return (doc.body?.textContent ?? "")
+    .replace(/\u00a0/g, " ")
+    .split("\n")
+    .map((line) => line.replace(/[ \t]+/g, " ").replace(/(\s*\|\s*)+$/, "").trim())
+    .filter(Boolean)
+    .join("\n");
+}
 
 /**
  * 요청당 장수·용량 예산에 맞춰 파일을 묶음으로 분할.
@@ -56,6 +87,12 @@ export function validateStudentRecordFiles(files: File[]): string | null {
   let imageCount = 0;
 
   for (const file of files) {
+    if (isHtmlUpload(file)) {
+      if (file.size > STUDENT_RECORD_MAX_HTML_BYTES) {
+        return `HTML은 ${formatBytes(STUDENT_RECORD_MAX_HTML_BYTES)} 이하만 올릴 수 있습니다. (${file.name})`;
+      }
+      continue;
+    }
     if (isPdfUpload(file)) {
       if (file.size > STUDENT_RECORD_MAX_PDF_BYTES) {
         return `PDF는 ${formatBytes(STUDENT_RECORD_MAX_PDF_BYTES)} 이하만 업로드할 수 있습니다. (${file.name})`;
@@ -74,7 +111,7 @@ export function validateStudentRecordFiles(files: File[]): string | null {
       continue;
     }
 
-    return "지원 형식: PDF, JPG/PNG/WEBP 이미지입니다.";
+    return "지원 형식: PDF, HTML, JPG/PNG/WEBP 이미지입니다.";
   }
 
   return null;

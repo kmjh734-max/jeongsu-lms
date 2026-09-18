@@ -2,11 +2,13 @@ import { useSyncExternalStore } from "react";
 import {
   chunkStudentRecordFiles,
   fetchStudentRecordApi,
+  htmlFileToText,
   prepareStudentRecordFiles,
   readStudentRecordApiResponse,
   validatePreparedExtractChunk,
   validatePreparedStudentRecordFiles,
 } from "@/lib/student-records/client-upload";
+import { isHtmlUpload } from "@/lib/student-records/file-types";
 import { STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL } from "@/lib/student-records/limits";
 import { isReliableStudentRecordExtract } from "@/lib/student-records/ocr-quality";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
@@ -240,7 +242,24 @@ async function runPipeline(
   };
 
   setProgress(id, 0, "파일 여는 중", 4);
-  const preparedFiles = await prepareStudentRecordFiles(input.files, (label) => {
+  const htmlFiles = input.files.filter((f) => isHtmlUpload(f));
+  const otherFiles = input.files.filter((f) => !isHtmlUpload(f));
+  const ocrTexts: string[] = [];
+  if (htmlFiles.length > 0) {
+    const htmlText = (await Promise.all(htmlFiles.map((f) => htmlFileToText(f)))).join("\n\n");
+    throwIfCancelled();
+    const formData = buildFormData();
+    formData.set("text", htmlText);
+    setProgress(id, 1, "학생부 내용 읽는 중", PROGRESS_PREP_END);
+    const extracted = await postExtract(formData);
+    if (!extracted?.ok || !extracted.text || !extracted.studentName) {
+      throw new Error(extracted?.message ?? "HTML 파일을 읽지 못했어요.");
+    }
+    resolvedStudentId = extracted.studentId ?? resolvedStudentId;
+    resolvedStudentName = extracted.studentName;
+    ocrTexts.push(extracted.text);
+  }
+  const preparedFiles = await prepareStudentRecordFiles(otherFiles, (label) => {
     throwIfCancelled();
     if (label.startsWith("PDF 변환")) {
       const match = label.match(/(\d+)\/(\d+)/);
@@ -260,11 +279,10 @@ async function runPipeline(
   if (preparedError) throw new Error(preparedError);
 
   const imageChunks = preparedFiles.length > 0 ? chunkStudentRecordFiles(preparedFiles) : [];
-  if (imageChunks.length === 0) {
+  if (imageChunks.length === 0 && ocrTexts.length === 0) {
     throw new Error("올린 파일에서 읽을 쪽을 찾지 못했어요. 파일을 확인해 주세요.");
   }
 
-  const ocrTexts: string[] = [];
   const ocrSpan = PROGRESS_OCR_END - PROGRESS_PREP_END;
 
   const extractChunk = async (chunkIndex: number) => {
@@ -284,7 +302,7 @@ async function runPipeline(
     return extracted;
   };
 
-  const totalPages = preparedFiles.length;
+  const totalPages = Math.max(1, preparedFiles.length);
   let pagesDone = 0;
 
   for (let i = 0; i < imageChunks.length; i += STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL) {

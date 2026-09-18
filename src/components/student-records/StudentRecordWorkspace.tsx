@@ -23,7 +23,7 @@ import {
 } from "@/lib/student-records/client-upload";
 import { STUDENT_RECORD_MAX_IMAGE_BYTES } from "@/lib/student-records/limits";
 import { DEFAULT_ANALYSIS_INSTRUCTIONS } from "@/lib/student-records/simple-analysis-prompt";
-import { isPdfUpload } from "@/lib/student-records/file-types";
+import { isHtmlUpload, isPdfUpload } from "@/lib/student-records/file-types";
 import {
   clearRecordJob,
   getRecordJobState,
@@ -33,7 +33,7 @@ import {
 } from "@/lib/student-records/record-job-runner";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
 
-const ACCEPT = "application/pdf,image/jpeg,image/png,image/webp";
+const ACCEPT = "application/pdf,image/jpeg,image/png,image/webp,text/html,.html,.htm";
 const ACCEPT_TYPES = ACCEPT.split(",");
 
 /** 0 파일 읽기 · 1 내용 정리 · 2 보고서 쓰기 */
@@ -349,10 +349,10 @@ export function StudentRecordWorkspace({
   function addFiles(list: FileList | File[] | null) {
     if (!list) return;
     const incoming = Array.from(list).filter(
-      (f) => ACCEPT_TYPES.includes(f.type) || isPdfUpload(f)
+      (f) => ACCEPT_TYPES.includes(f.type) || isPdfUpload(f) || isHtmlUpload(f)
     );
     if (incoming.length === 0) {
-      setError("PDF나 이미지(JPG·PNG·WEBP) 파일만 올릴 수 있어요.");
+      setError("PDF, HTML, 이미지(JPG·PNG·WEBP) 파일만 올릴 수 있어요.");
       return;
     }
     setError(null);
@@ -364,7 +364,7 @@ export function StudentRecordWorkspace({
 
   function runAnalysis() {
     if (files.length === 0) {
-      setError("분석할 PDF나 이미지를 올려 주세요.");
+      setError("분석할 PDF·HTML·이미지를 올려 주세요.");
       return;
     }
 
@@ -391,11 +391,12 @@ export function StudentRecordWorkspace({
   }
 
   const pdfCount = files.filter(isPdfUpload).length;
-  const imageCount = files.length - pdfCount;
+  const htmlCount = files.filter(isHtmlUpload).length;
+  const imageCount = files.length - pdfCount - htmlCount;
   const fileSummary =
     files.length === 0
       ? "파일을 올려 주세요"
-      : [pdfCount ? `PDF ${pdfCount}개` : "", imageCount ? `이미지 ${imageCount}장` : ""]
+      : [pdfCount ? `PDF ${pdfCount}개` : "", htmlCount ? `HTML ${htmlCount}개` : "", imageCount ? `이미지 ${imageCount}장` : ""]
           .filter(Boolean)
           .join(" · ");
   const instructionsChanged =
