@@ -601,6 +601,8 @@ export async function getStudentReport(
       dictationRate: dictTotal
         ? Math.round((listeningDictation.reduce((s, d) => s + d.passedQuestionCount, 0) / dictTotal) * 100)
         : null,
+      dictationPassed: listeningDictation.reduce((s, d) => s + d.passedQuestionCount, 0),
+      dictationTotal: dictTotal,
       tasksDone: listeningSchedule.reduce((s, x) => s + x.completedTasks, 0),
       tasksTotal: listeningSchedule.reduce((s, x) => s + x.totalTasks, 0),
     },

@@ -109,10 +109,16 @@ export function ReportOverviewPanel({
           accent="#9333ea"
         />
         <Kpi
-          label="받아쓰기"
-          value={listening.dictationRate != null ? String(listening.dictationRate) : "—"}
-          unit={listening.dictationRate != null ? "%" : undefined}
-          sub={listening.dictationRate != null ? "통과한 문항 비율" : "기록 없음"}
+          label="받아쓰기 통과"
+          value={
+            listening.dictationTotal
+              ? `${listening.dictationPassed ?? 0}/${listening.dictationTotal}`
+              : listening.dictationRate != null
+                ? `${listening.dictationRate}%`
+                : "—"
+          }
+          unit={listening.dictationTotal ? "문항" : undefined}
+          sub={listening.dictationRate != null ? "받아쓰기한 회차의 전체 문항 중" : "기록 없음"}
           accent="#ea580c"
         />
         <Kpi

@@ -115,6 +115,9 @@ export interface ReportOverview {
     examAvg: number | null;
     /** 받아쓰기 통과 문항 비율(%) */
     dictationRate: number | null;
+    /** 받아쓰기 통과 문항 / 받아쓰기한 세트의 전체 문항 */
+    dictationPassed?: number;
+    dictationTotal?: number;
     tasksDone: number;
     tasksTotal: number;
   };
