@@ -22,6 +22,11 @@ export type AcademyListRow = {
   students: number;
   teachers: number;
   courses: number;
+  /** 학원회원 / 개인회원 (직접 가입할 때 고른 것. 운영자가 만든 학원은 학원회원) */
+  memberType: "academy" | "personal";
+  selfSignup: boolean;
+  ownerName: string | null;
+  contactEmail: string | null;
 };
 
 type AdminRow = {
@@ -47,6 +52,8 @@ export function SuperAdminAcademiesClient({
 }) {
   const router = useRouter();
   const [rows, setRows] = useState(initialRows);
+  const [kind, setKind] = useState<"all" | "academy" | "personal">("all");
+  const shownRows = kind === "all" ? rows : rows.filter((r) => r.memberType === kind);
   useEffect(() => {
     setRows(initialRows);
   }, [initialRows]);
@@ -589,11 +596,32 @@ export function SuperAdminAcademiesClient({
         </div>
       )}
 
+      <div className="mb-3 flex gap-1.5">
+        {(
+          [
+            ["all", "전체", rows.length],
+            ["academy", "학원회원", rows.filter((r) => r.memberType === "academy").length],
+            ["personal", "개인회원", rows.filter((r) => r.memberType === "personal").length],
+          ] as const
+        ).map(([key, label, n]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setKind(key)}
+            className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
+              kind === key ? "bg-slate-900 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            {label} <span className="tabular-nums opacity-70">{n}</span>
+          </button>
+        ))}
+      </div>
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="ui-table w-full text-sm">
           <thead>
             <tr>
-              <th>학원</th>
+              <th>이름</th>
+              <th>구분</th>
               <th>slug</th>
               <th>상태</th>
               <th>학생</th>
@@ -604,7 +632,7 @@ export function SuperAdminAcademiesClient({
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
+            {shownRows.map((r) => (
               <tr
                 key={r.id}
                 className={manageId === r.id ? "bg-brand-50/50" : undefined}
@@ -626,6 +654,21 @@ export function SuperAdminAcademiesClient({
                     )}
                     <span className="font-medium">{r.name}</span>
                   </div>
+                  {r.selfSignup && (r.ownerName || r.contactEmail) ? (
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      {[r.ownerName, r.contactEmail].filter(Boolean).join(" · ")}
+                    </p>
+                  ) : null}
+                </td>
+                <td className="whitespace-nowrap">
+                  <span
+                    className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                      r.memberType === "personal" ? "bg-violet-100 text-violet-800" : "bg-sky-100 text-sky-800"
+                    }`}
+                  >
+                    {r.memberType === "personal" ? "개인" : "학원"}
+                  </span>
+                  {r.selfSignup ? <span className="ml-1 text-[11px] text-slate-400">직접 가입</span> : null}
                 </td>
                 <td className="font-mono text-xs text-slate-500">{r.slug}</td>
                 <td>
@@ -691,10 +734,10 @@ export function SuperAdminAcademiesClient({
                 </td>
               </tr>
             ))}
-            {rows.length === 0 && (
+            {shownRows.length === 0 && (
               <tr>
-                <td colSpan={8} className="py-10 text-center text-slate-500">
-                  등록된 학원이 없습니다.
+                <td colSpan={9} className="py-10 text-center text-slate-500">
+                  {kind === "personal" ? "가입한 개인회원이 없습니다." : "등록된 학원이 없습니다."}
                 </td>
               </tr>
             )}

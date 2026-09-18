@@ -16,7 +16,7 @@ export default async function SuperAdminHomePage() {
   const { data: academies } = await supabase
     .from("academies")
     .select(
-      "id, name, slug, status, primary_color, secondary_color, logo_url, description, phone, address, created_at, updated_at"
+      "id, name, slug, status, primary_color, secondary_color, logo_url, description, phone, address, created_at, updated_at, settings"
     )
     .order("created_at", { ascending: true });
 
@@ -52,12 +52,19 @@ export default async function SuperAdminHomePage() {
     }
   }
 
-  const rows = (academies ?? []).map((a) => ({
+  const rows = (academies ?? []).map(({ settings, ...a }) => {
+    const signup = (settings as { signup?: { member_type?: string; owner_name?: string; contact_email?: string } } | null)?.signup;
+    return {
     ...a,
+    memberType: (signup?.member_type === "personal" ? "personal" : "academy") as "academy" | "personal",
+    selfSignup: Boolean(signup),
+    ownerName: signup?.owner_name ?? null,
+    contactEmail: signup?.contact_email ?? null,
     students: countsByAcademy[a.id]?.students ?? 0,
     teachers: countsByAcademy[a.id]?.teachers ?? 0,
     courses: countsByAcademy[a.id]?.courses ?? 0,
-  }));
+    };
+  });
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
