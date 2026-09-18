@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BulkShareDialog } from "@/components/reports/BulkShareDialog";
 import { Icon } from "@/components/layout/NavIcon";
 import { Alert } from "@/components/ui/Alert";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -70,6 +71,7 @@ export function ReportWorkspace({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [pcKakaoOpen, setPcKakaoOpen] = useState(false);
   const [pcKakaoCopyOk, setPcKakaoCopyOk] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const reportRequest = useRef(0);
   const firstClassLoad = useRef(true);
 
@@ -221,6 +223,23 @@ export function ReportWorkspace({
                 </span>
               ) : null}
             </p>
+            {!listLoading && visibleStudents.length > 1 ? (
+              <button
+                type="button"
+                onClick={() => setBulkOpen(true)}
+                className="h-9 rounded-md border border-brand-200 bg-brand-50 text-xs font-semibold text-brand-800 hover:bg-brand-100"
+              >
+                {visibleStudents.length}명 리포트 링크 한 번에 만들기
+              </button>
+            ) : null}
+            {bulkOpen ? (
+              <BulkShareDialog
+                students={visibleStudents}
+                range={range}
+                onClose={() => setBulkOpen(false)}
+                onShared={(id) => setLastShared((m) => ({ ...m, [id]: new Date().toISOString() }))}
+              />
+            ) : null}
             {/* 좁은 화면: 목록 대신 고르기 */}
             <select
               className="ui-select xl:hidden"
