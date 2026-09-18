@@ -323,8 +323,6 @@ export function ListeningQuestionEditor({
   // 그림 선택지는 5칸 한 장으로 그린다 — 그림 1장이면 이미 다 만든 것이다
   const neededImageCount = promptCount === 5 ? 1 : promptCount;
   const canMakeImages = !readOnly && promptCount > 0 && imageUrls.length < neededImageCount;
-  const warnings = questionReviewWarnings(question);
-  const flagged = questionNeedsReview(question);
 
   async function saveQuestion() {
     setBusy("save");
@@ -509,18 +507,7 @@ export function ListeningQuestionEditor({
           <h3 className="text-base font-bold text-slate-900">
             {question.order_index}번 · {question.question_type}
           </h3>
-          {flagged || warnings.length > 0 ? (
-            <span
-              className="inline-flex h-[22px] max-w-full items-center gap-1 rounded bg-amber-50 px-2 text-xs font-semibold text-amber-700"
-              title={warnings.join("\n") || undefined}
-            >
-              <Icon name="alert" size={12} strokeWidth={2} />
-              <span className="truncate">{warnings[0] ?? "확인이 필요해요"}</span>
-              {warnings.length > 1 ? (
-                <span className="shrink-0 text-amber-600">외 {warnings.length - 1}</span>
-              ) : null}
-            </span>
-          ) : null}
+          {/* 품질 점검 문구는 선생님께 보이지 않는다 — 만들 때 점검을 통과할 때까지 다시 쓴다(선생님 요청 2026-09-18) */}
         </div>
         {!readOnly ? (
           <div className="flex flex-wrap items-center gap-2">
@@ -558,13 +545,6 @@ export function ListeningQuestionEditor({
         ) : null}
       </header>
 
-      {warnings.length > 1 ? (
-        <ul className="space-y-0.5 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-          {warnings.map((w) => (
-            <li key={w}>· {w}</li>
-          ))}
-        </ul>
-      ) : null}
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         {/* 대본 · 음성 · 해설 */}

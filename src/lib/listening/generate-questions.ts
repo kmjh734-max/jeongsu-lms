@@ -74,7 +74,8 @@ import {
   applyBalancedChoicePositions,
   applyRandomChoicePosition,
 } from "@/lib/listening/balance-correct-answer";
-import { repairMonologueOpening } from "@/lib/listening/repair-opening";
+import { repairMonologueOpening, repairSpokenFillers } from "@/lib/listening/repair-opening";
+import { checkListeningQuestionQuality } from "@/lib/listening/quality-check";
 import { auditScript, scriptRuleProblems } from "@/lib/listening/script-audit";
 import {
   blindSolveQuestion,
@@ -637,8 +638,9 @@ export async function generateSingleExamQuestion(
      * 여기서 걸리면 무엇이 어긋났는지 적어 다시 만들게 한다 — 검토 표시로 넘기지 않는다.
      */
     // 담화가 "Yes, …"처럼 대답 투로 시작하면 첫 마디만 떼어 고친다 (다시 만들 일이 아니다)
+    // 추임새를 먼저 고치고(Hmm → Well), 담화면 대답 투 첫마디를 뗀다(Well, …도 함께 떨어진다)
     const placed = repairMonologueOpening(
-      applyRandomChoicePosition({ ...q, order_index: slotIndex ?? typeId })
+      repairSpokenFillers(applyRandomChoicePosition({ ...q, order_index: slotIndex ?? typeId }))
     );
     /*
      * 정답 검사(가리고 풀기)와 대본 검사(앞뒤가 맞나)를 함께 돌린다. 지금까지의 검사는 모두
@@ -650,7 +652,17 @@ export async function generateSingleExamQuestion(
       auditScript(apiKey, placed),
     ]);
     const scriptNotes = [...scriptRuleProblems(placed), ...audit.problems];
-    let gateNote = blindSolveRetryNote(blind, placed.correct_answer) ?? scriptNotes[0] ?? null;
+    /*
+     * 문항 규칙 점검(대본 길이·글말투·선택지 형식 등)도 여기서 본다. 예전에는 저장한 뒤 선생님 화면에
+     * "긴 단어가 많아 글처럼 들립니다" 같은 경고로만 띄웠다 — 경고를 보이지 말고 처음부터 맞게
+     * 만들라는 요청(2026-09-18)에 따라, 걸리면 그 이유를 알려 주고 다시 쓰게 한다.
+     */
+    // 평균 단어 길이(written_style)는 멀쩡한 문항에도 셋 중 하나꼴로 걸려 다시 만들 이유로 삼지 않는다
+    const ruleIssue =
+      checkListeningQuestionQuality(placed, type, gradeLevel).issues.find((i) => i.code !== "written_style") ?? null;
+    const ruleNote = ruleIssue ? `${ruleIssue.code}|${ruleIssue.message}` : null;
+    let gateNote =
+      blindSolveRetryNote(blind, placed.correct_answer) ?? scriptNotes[0] ?? ruleNote ?? null;
     if (!gateNote) {
       const emotion = await emotionAmbiguityCheck(apiKey, placed);
       if (
@@ -670,7 +682,7 @@ export async function generateSingleExamQuestion(
     }
 
     const finalized = finalizeListeningQuestionFast(placed, type, gradeLevel);
-    if (!gateNote) return finalized;
+    if (!gateNote || gateNote === ruleNote) return finalized;
     // 세 번을 고쳐도 걸리면 그때는 사람이 보도록 세워 둔다(그냥 내보내지 않는다)
     return {
       ...finalized,

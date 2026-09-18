@@ -1,3 +1,4 @@
+import { replaceSpokenFillers } from "@/lib/listening/spoken-fillers";
 import {
   ELEVENLABS_VOICE_SETTINGS,
   resolveElevenLabsTtsModel,
@@ -52,7 +53,8 @@ function parseElevenLabsError(status: number, bodyText: string): string {
 export async function generateElevenLabsSpeechSegment(
   opts: GenerateElevenLabsSegmentOpts
 ): Promise<Buffer> {
-  const spoken = opts.text.trim();
+  // 추임새(Hmm·Um)는 음성 엔진이 이상한 소리로 읽는다 — 녹음 직전에 한 번 더 고친다
+  const spoken = replaceSpokenFillers(opts.text.trim());
   if (!spoken) {
     throw new Error("빈 대사는 음성으로 만들 수 없습니다.");
   }

@@ -16,7 +16,6 @@ import {
 } from "@/components/listening/ListeningMenu";
 import {
   ListeningQuestionEditor,
-  questionNeedsReview,
   type ListeningQuestionData,
 } from "@/components/listening/ListeningQuestionEditor";
 import { ListeningQuestionPreview } from "@/components/listening/ListeningQuestionPreview";
@@ -88,7 +87,6 @@ function hasAudio(q: ListeningQuestionData): boolean {
 
 function defaultStep(questions: ListeningQuestionData[]): Step {
   if (questions.length === 0) return 1;
-  if (questions.some(questionNeedsReview)) return 2;
   if (questions.some((q) => !hasAudio(q))) return 3;
   return 2;
 }
@@ -193,7 +191,7 @@ export function ListeningSetManageClient({
   const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(
     () =>
-      initialQuestions.find(questionNeedsReview)?.id ?? initialQuestions[0]?.id ?? null
+      initialQuestions[0]?.id ?? null
   );
   const editorDirtyRef = useRef(false);
 
@@ -239,13 +237,12 @@ export function ListeningSetManageClient({
   const speechSpeedValue = SPEECH_SPEED_MAP[speechPreset];
 
   const total = initialQuestions.length;
-  const flaggedCount = initialQuestions.filter(questionNeedsReview).length;
   const audioReady = initialQuestions.filter(hasAudio).length;
   const stepDone: Record<Step, boolean> = {
     1: total > 0,
-    2: total > 0 && flaggedCount === 0,
+    2: total > 0,
     3: total > 0 && audioReady === total,
-    4: total > 0 && audioReady === total && flaggedCount === 0,
+    4: total > 0 && audioReady === total,
   };
 
   const onEditorDirty = useCallback((dirty: boolean) => {
@@ -651,14 +648,8 @@ export function ListeningSetManageClient({
     { n: 1, title: "문항 만들기", sub: total > 0 ? `${total}문항` : "아직 없어요" },
     {
       n: 2,
-      title: "검토·수정",
-      sub:
-        total === 0
-          ? "문항을 먼저 만들어요"
-          : flaggedCount > 0
-            ? `${flaggedCount}개 확인 필요`
-            : "확인할 것 없음",
-      warn: flaggedCount > 0,
+      title: "보기·수정",
+      sub: total === 0 ? "문항을 먼저 만들어요" : "검수 끝난 문항",
     },
     { n: 3, title: "음성 만들기", sub: total > 0 ? `${audioReady}/${total}` : "—" },
     {
@@ -1039,14 +1030,10 @@ export function ListeningSetManageClient({
             <aside className="self-start rounded-lg border border-slate-200 bg-white px-2 py-2.5 shadow-card">
               <div className="flex items-center justify-between px-2 pb-2 pt-1">
                 <span className="text-sm font-bold text-slate-900">문항 {total}</span>
-                {flaggedCount > 0 ? (
-                  <span className="text-xs font-semibold text-amber-700">확인 필요 {flaggedCount}</span>
-                ) : null}
               </div>
               <ul className="flex gap-1 overflow-x-auto pb-1 lg:max-h-[calc(100vh-18rem)] lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:pb-0">
                 {initialQuestions.map((q) => {
                   const on = q.id === selectedId;
-                  const flag = questionNeedsReview(q);
                   return (
                     <li key={q.id} className="shrink-0 lg:shrink">
                       <button
@@ -1071,11 +1058,7 @@ export function ListeningSetManageClient({
                         >
                           {q.question_type}
                         </span>
-                        {flag ? (
-                          <span className="rounded bg-amber-50 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
-                            확인 필요
-                          </span>
-                        ) : hasAudio(q) ? (
+                        {hasAudio(q) ? (
                           <Icon name="speaker" size={14} className="text-green-700" />
                         ) : null}
                       </button>

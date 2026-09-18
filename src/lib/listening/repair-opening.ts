@@ -6,6 +6,7 @@
  * (그래야 "검토 필요"로 넘어가는 문항이 줄어든다 — 선생님이 손볼 일을 남기지 않는다).
  */
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
+import { replaceSpokenFillers } from "@/lib/listening/spoken-fillers";
 
 /** 대답하듯 여는 말 (대소문자 가리지 않음) */
 const REPLY_OPENER =
@@ -40,4 +41,16 @@ export function repairMonologueOpening(
     segments: first && fixedSegment ? [{ ...first, text: fixedSegment }] : segments,
     script_text: fixedScript ? (speaker ? `${speaker}: ${fixedScript}` : fixedScript) : q.script_text,
   };
+}
+
+/**
+ * 추임새(Hmm·Um·Uh)를 대본과 대사 조각에서 함께 고친다 — 음성 엔진이 이상한 소리로 읽는다.
+ */
+export function repairSpokenFillers(q: GeneratedListeningQuestion): GeneratedListeningQuestion {
+  const segments = Array.isArray(q.segments) ? q.segments : [];
+  const fixedSegments = segments.map((s) => ({ ...s, text: replaceSpokenFillers(String(s.text ?? "")) }));
+  const fixedScript = replaceSpokenFillers(String(q.script_text ?? ""));
+  const changed =
+    fixedScript !== q.script_text || fixedSegments.some((s, i) => s.text !== segments[i]?.text);
+  return changed ? { ...q, segments: fixedSegments, script_text: fixedScript } : q;
 }
