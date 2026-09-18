@@ -16,7 +16,7 @@ import { loadCurriculumVariety } from "@/lib/listening/curriculum-answer-usage";
 import { CREDIT_FEATURES } from "@/lib/credits";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
-import { findDuplicateStories } from "@/lib/listening/set-gate";
+import { balanceSetIfComplete, findDuplicateStories } from "@/lib/listening/set-gate";
 import { examTypeCode, getExamTypeById } from "@/lib/listening/exam-types";
 import { isListeningTypeKey } from "@/lib/listening/type-catalog";
 import type { ListeningGenerationMode } from "@/lib/listening/types";
@@ -193,6 +193,11 @@ export async function POST(request: Request) {
 
     if (body.persist) {
       const [saved] = await persistGeneratedQuestions(setId, [generated]);
+      /*
+       * 마지막 문항까지 채워졌으면 정답 번호 쏠림을 편다(내용은 그대로, 선택지 자리만).
+       * 한 개씩 만들 때는 세트 전체를 볼 자리가 여기밖에 없다.
+       */
+      await balanceSetIfComplete(access.admin, setId);
       return NextResponse.json({
         ok: true,
         question: saved,

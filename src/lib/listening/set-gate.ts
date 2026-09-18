@@ -188,3 +188,38 @@ export function balanceAnswerNumbers<T extends BalanceableQuestion>(
   }
   return changed;
 }
+
+/**
+ * 세트가 다 찼으면 정답 번호 쏠림을 편다 (문항을 한 개씩 만들 때 쓰는 마무리).
+ * 아직 만드는 중이면 아무것도 하지 않는다 — 다 만든 뒤 한 번만 손댄다.
+ */
+export async function balanceSetIfComplete(
+  admin: SupabaseClient,
+  setId: string
+): Promise<number[]> {
+  try {
+    const { data } = await admin
+      .from("listening_questions")
+      .select("id, order_index, question_type, choices, correct_answer, table_data, choice_image_prompts, choice_image_urls")
+      .eq("set_id", setId)
+      .order("order_index");
+    const rows = data ?? [];
+    if (rows.length < 15) return [];
+    // 번호가 1부터 빠짐없이 이어져야 다 만든 것으로 본다
+    const last = Number(rows[rows.length - 1]?.order_index ?? 0);
+    if (last !== rows.length) return [];
+
+    const moves = balanceAnswerNumbers(rows as BalanceableQuestion[]);
+    for (const m of moves) {
+      const row = rows.find((r) => Number(r.order_index) === m.order_index);
+      if (!row) continue;
+      await admin
+        .from("listening_questions")
+        .update({ choices: m.choices, correct_answer: m.correct_answer })
+        .eq("id", row.id as string);
+    }
+    return moves.map((m) => m.order_index);
+  } catch {
+    return [];
+  }
+}
