@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { SignOutButton } from "@/components/layout/SignOutButton";
 import { SuperAdminAcademiesClient } from "@/components/super-admin/SuperAdminAcademiesClient";
 
 export default async function SuperAdminHomePage() {
@@ -71,12 +72,7 @@ export default async function SuperAdminHomePage() {
             >
               크레딧 관리
             </Link>
-            <Link
-              href="/login"
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-            >
-              로그인 화면
-            </Link>
+            <SignOutButton />
           </div>
         }
       />

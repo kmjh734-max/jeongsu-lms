@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { SignOutButton } from "@/components/layout/SignOutButton";
 import { SuperAdminCreditsClient } from "@/components/super-admin/SuperAdminCreditsClient";
 
 export default async function SuperAdminCreditsPage() {
@@ -16,12 +17,15 @@ export default async function SuperAdminCreditsPage() {
         title="크레딧 관리"
         description="학원별 잔액 지급·차감과 기능 단가를 관리합니다."
         action={
-          <Link
-            href="/super-admin"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-          >
-            ← 학원 목록
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/super-admin"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            >
+              ← 학원 목록
+            </Link>
+            <SignOutButton />
+          </div>
         }
       />
       <SuperAdminCreditsClient />
