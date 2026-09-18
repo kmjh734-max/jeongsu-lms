@@ -17,6 +17,7 @@ import {
 } from "@/lib/listening/generate-choice-images";
 import { BW_FIGURE_RULES } from "@/lib/listening/print-bw";
 import { strokeDigit } from "@/lib/listening/grid-digits";
+import { stripThinLines } from "@/lib/listening/strip-thin-lines";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
 
@@ -204,6 +205,11 @@ export async function overlayGridLabels(bytes: Buffer): Promise<Buffer> {
   srcCtx.fillStyle = "#ffffff";
   srcCtx.fillRect(0, 0, srcW, srcH);
   srcCtx.drawImage(img, 0, 0);
+  // 바닥선·칸 나눔 선처럼 떨어진 가는 직선은 지운다 — 칸을 잘라 붙이면 선 조각이 남아 상자처럼 보였다
+  const whole = srcCtx.getImageData(0, 0, srcW, srcH);
+  if (stripThinLines(whole.data as unknown as Uint8ClampedArray, srcW, srcH) > 0) {
+    srcCtx.putImageData(whole, 0, 0);
+  }
 
   const srcCellW = srcW / SOURCE_COLS;
   const srcCellH = srcH / SOURCE_ROWS;

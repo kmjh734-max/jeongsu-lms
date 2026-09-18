@@ -551,8 +551,7 @@
     width: auto;
     height: auto;
     object-fit: contain;
-    border: 1px solid var(--lx-hair);
-    border-radius: 1mm;
+    border: 0;
     background: #fff;
     display: block;
     margin: 0 auto;

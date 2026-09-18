@@ -285,10 +285,9 @@
   font-size: 1.03em;
 }
 
+/* 그림은 상자·배경 없이 종이 위에 바로 놓는다 (선생님 요청 2026-09-18: 박스가 부자연스럽다) */
 .ls-style.ls-style-a .listening-exam-figure {
-  padding: 1.4mm 0;
-  border-top: 1px solid #8795b0;
-  border-bottom: 1px solid #8795b0;
+  padding: 1mm 0;
 }
 .ls-style.ls-style-a .listening-exam-figure-img {
   border: 0;
@@ -296,7 +295,6 @@
 }
 .ls-style.ls-style-a .listening-exam-figure-cell {
   padding-bottom: 0.8mm;
-  border-bottom: 1px solid #c3cad6;
 }
 .ls-style.ls-style-a .listening-exam-figure-label {
   font-weight: 500;
@@ -545,9 +543,7 @@
 }
 
 .ls-style.ls-style-b .listening-exam-figure {
-  padding: 1.5mm;
-  border-radius: 2.5mm;
-  background: #f5f7fa;
+  padding: 1mm 0;
 }
 .ls-style.ls-style-b .listening-exam-figure-img {
   border: 0;
@@ -555,8 +551,6 @@
 }
 .ls-style.ls-style-b .listening-exam-figure-cell {
   padding: 0.8mm;
-  border-radius: 2mm;
-  background: #f5f7fa;
 }
 .ls-style.ls-style-b .listening-exam-figure-label {
   font-weight: 600;
@@ -799,8 +793,7 @@
 }
 
 .ls-style.ls-style-c .listening-exam-figure {
-  padding: 1.4mm;
-  border: 1px solid #2a2326;
+  padding: 1mm 0;
 }
 .ls-style.ls-style-c .listening-exam-figure-img {
   border: 0;
@@ -808,7 +801,6 @@
 }
 .ls-style.ls-style-c .listening-exam-figure-cell {
   padding: 0.6mm;
-  border: 1px solid #2a2326;
 }
 .ls-style.ls-style-c .listening-exam-figure-label {
   font-weight: 500;
