@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { GUIDE_STEPS } from "@/lib/onboarding-guide";
 
 /**
  * 원장님 홈 맨 위 "시작하기" — 새로 가입한 학원·개인회원이 무엇부터 할지 알려 준다.
@@ -32,13 +33,14 @@ export async function GettingStarted({ academyId }: { academyId: string | null }
   }
 
   const steps = [
-    { done: (classCount ?? 0) > 0, title: "반 만들기", body: "수업 단위로 반을 만들어요. 개인 과외라면 학생마다 하나씩 만들어도 돼요.", href: "/admin/classes", cta: "반 만들기" },
-    { done: studentIds.length > 0, title: "학생 등록", body: "학생 아이디를 만들어 반에 넣어요. 학생은 휴대폰으로 로그인해 공부해요.", href: "/admin/students?new=1", cta: "학생 등록" },
-    { done: assigned, title: "단어·듣기 배정", body: "초등~수능 단어장과 학년별 듣기 문제를 반이나 학생에게 배정해요.", href: "/admin/vocab/assign", cta: "배정하기" },
-    { done: (materialCount ?? 0) > 0, title: "수업자료 만들어 보기", body: "지문을 넣으면 분석서·워크북·1장 자료가 나와요.", href: "/admin/lesson-materials/input", cta: "자료 만들기" },
+    { done: (classCount ?? 0) > 0, title: "반 만들기", body: "수업 단위로 반을 만들어요. 개인 과외라면 학생마다 하나씩 만들어도 돼요.", href: GUIDE_STEPS[0].href, cta: "반 만들기" },
+    { done: studentIds.length > 0, title: "학생 등록", body: "학생 아이디를 만들어 반에 넣어요. 학생은 휴대폰으로 로그인해 공부해요.", href: GUIDE_STEPS[1].href, cta: "학생 등록" },
+    { done: assigned, title: "단어·듣기 배정", body: "초등~수능 단어장과 학년별 듣기 문제를 반이나 학생에게 배정해요.", href: GUIDE_STEPS[2].href, cta: "배정하기" },
+    { done: (materialCount ?? 0) > 0, title: "수업자료 만들어 보기", body: "지문을 넣으면 분석서·워크북·1장 자료가 나와요.", href: GUIDE_STEPS[3].href, cta: "자료 만들기" },
   ];
   const doneCount = steps.filter((s) => s.done).length;
   if (doneCount === steps.length) return null;
+  const currentIndex = steps.findIndex((s) => !s.done);
 
   const balance = Number(wallet?.balance ?? 0);
   const cost = new Map((pricing ?? []).map((p) => [p.feature_key as string, Number(p.credit_cost)]));
@@ -63,11 +65,20 @@ export async function GettingStarted({ academyId }: { academyId: string | null }
           </p>
         ) : null}
       </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+        <div className="h-full rounded-full bg-brand-600" style={{ width: `${(doneCount / steps.length) * 100}%` }} />
+      </div>
       <ol className="mt-3 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((s, i) => (
           <li
             key={s.title}
-            className={`flex flex-col gap-1.5 rounded-lg border p-3.5 ${s.done ? "border-emerald-200 bg-emerald-50/60" : "border-slate-200"}`}
+            className={`flex flex-col gap-1.5 rounded-lg border p-3.5 ${
+              s.done
+                ? "border-emerald-200 bg-emerald-50/60"
+                : i === currentIndex
+                  ? "border-brand-400 bg-brand-50/60 ring-1 ring-brand-200"
+                  : "border-slate-200"
+            }`}
           >
             <p className="flex items-center gap-2 text-sm font-bold text-slate-900">
               <span
@@ -82,6 +93,13 @@ export async function GettingStarted({ academyId }: { academyId: string | null }
             <p className="text-xs leading-5 text-slate-600">{s.body}</p>
             {s.done ? (
               <p className="mt-auto text-xs font-semibold text-emerald-700">완료</p>
+            ) : i === currentIndex ? (
+              <Link
+                href={s.href}
+                className="mt-auto self-start rounded-md bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
+              >
+                지금 하기 · {s.cta} →
+              </Link>
             ) : (
               <Link href={s.href} className="mt-auto text-xs font-semibold text-brand-700 hover:underline">
                 {s.cta} →

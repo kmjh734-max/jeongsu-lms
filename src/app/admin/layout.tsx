@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { filterNavItems } from "@/lib/academy-features";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Suspense } from "react";
 import { LowCreditBanner } from "@/components/credits/LowCreditBanner";
+import { GuideBanner } from "@/components/home/GuideBanner";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /** 개인회원(개인 선생님)에게는 강사·관리자 계정 관리가 필요 없다 */
@@ -51,6 +53,9 @@ export default async function AdminLayout({
       )}
     >
       <LowCreditBanner academyId={profile.academy_id} canCharge />
+      <Suspense fallback={null}>
+        <GuideBanner />
+      </Suspense>
       {children}
     </DashboardLayout>
   );
