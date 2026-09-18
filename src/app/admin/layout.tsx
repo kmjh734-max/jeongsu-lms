@@ -2,6 +2,16 @@ import { redirect } from "next/navigation";
 import { filterNavItems } from "@/lib/academy-features";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+/** 개인회원(개인 선생님)에게는 강사·관리자 계정 관리가 필요 없다 */
+const TEAM_ONLY = new Set(["/admin/teachers", "/admin/admins"]);
+
+async function isPersonalMember(academyId: string | null | undefined): Promise<boolean> {
+  if (!academyId) return false;
+  const { data } = await createAdminClient().from("academies").select("settings").eq("id", academyId).maybeSingle();
+  return (data?.settings as { signup?: { member_type?: string } } | null)?.signup?.member_type === "personal";
+}
 
 const NAV_ITEMS = [
   { href: "/admin", label: "관리 홈" },
@@ -33,7 +43,12 @@ export default async function AdminLayout({
   }
 
   return (
-    <DashboardLayout profile={profile} navItems={filterNavItems(NAV_ITEMS)}>
+    <DashboardLayout
+      profile={profile}
+      navItems={filterNavItems(
+        (await isPersonalMember(profile.academy_id)) ? NAV_ITEMS.filter((i) => !TEAM_ONLY.has(i.href)) : NAV_ITEMS
+      )}
+    >
       {children}
     </DashboardLayout>
   );

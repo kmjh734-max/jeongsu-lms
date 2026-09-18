@@ -4,6 +4,7 @@ import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding"
 import { loadHomeDashboard } from "@/lib/home/load-home";
 import { koreaDateLabel } from "@/lib/home/date-label";
 import { HomeDashboard } from "@/components/home/HomeDashboard";
+import { GettingStarted } from "@/components/home/GettingStarted";
 
 export default async function AdminDashboardPage() {
   const profile = await getCurrentProfile();
@@ -18,6 +19,8 @@ export default async function AdminDashboardPage() {
   ]);
 
   return (
+    <>
+    <GettingStarted academyId={profile?.academy_id ?? null} />
     <HomeDashboard
       role="admin"
       title="관리 홈"
@@ -25,5 +28,6 @@ export default async function AdminDashboardPage() {
       academyName={branding.name}
       data={data}
     />
+    </>
   );
 }
