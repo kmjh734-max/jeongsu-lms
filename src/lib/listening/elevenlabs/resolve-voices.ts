@@ -40,6 +40,17 @@ export function getElevenLabsApiKey(): string {
   return apiKey;
 }
 
+/**
+ * 기본 음성 — 남자 하나, 여자 하나, 안내 하나로 고정한다(선생님 요청 2026-09-18).
+ * 예전에는 계정의 음성 목록에서 그때그때 골라, 목록이 바뀌면 같은 과정 안에서도 목소리가
+ * 달라질 수 있었다. 지금까지 모든 회차가 이 세 음성으로 녹음되어 있다.
+ */
+const DEFAULT_VOICE_IDS: Record<ListeningSpeakerType, string> = {
+  M: "CwhRBWXzGAHq8TQ4Fs17",
+  W: "EXAVITQu4vr4xnSDxMaL",
+  ANN: "SAz9YHcvj6GT2YYXdXww",
+};
+
 function envVoiceId(speaker: ListeningSpeakerType): string | undefined {
   const key = `ELEVENLABS_VOICE_${speaker}` as const;
   return process.env[key]?.trim() || undefined;
@@ -89,7 +100,7 @@ export async function resolveListeningVoiceIds(
     const overrideKey = OVERRIDE_KEYS[speaker];
     const fromSet = setOverrides?.[overrideKey]?.trim();
     const fromEnv = envVoiceId(speaker);
-    voiceIds[speaker] = fromSet || fromEnv || autoSelected[speaker];
+    voiceIds[speaker] = fromSet || fromEnv || DEFAULT_VOICE_IDS[speaker] || autoSelected[speaker];
   }
 
   return { apiKey, voiceIds, autoSelected };
