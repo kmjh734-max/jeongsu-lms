@@ -18,11 +18,11 @@ function weekdayIndex(ymd: string): number {
   return (new Date(`${ymd}T00:00:00Z`).getUTCDay() + 6) % 7;
 }
 
+/** 학습한 날은 진한 초록(많이 할수록 더 진하게), 안 한 날은 옅은 회색 — 한눈에 갈리게 */
 function cellColor(count: number): string {
-  if (count <= 0) return "#f1f5f9";
-  if (count <= 2) return "#bfdbfe";
-  if (count <= 6) return "#60a5fa";
-  return "#1d4ed8";
+  if (count <= 0) return "#e5e7eb";
+  if (count <= 3) return "#22c55e";
+  return "#15803d";
 }
 
 function Kpi({
@@ -134,12 +134,15 @@ export function ReportOverviewPanel({
         <div className="rounded-lg border border-slate-200 bg-white p-3">
           <div className="flex items-baseline justify-between">
             <p className="text-xs font-bold text-slate-800">학습 달력</p>
-            <p className="flex items-center gap-1 text-[10px] text-slate-400">
-              적음
-              {[0, 1, 3, 7].map((n) => (
-                <span key={n} className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: cellColor(n) }} />
-              ))}
-              많음
+            <p className="flex items-center gap-2 text-[10px] text-slate-500">
+              <span className="flex items-center gap-1">
+                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: cellColor(1) }} />
+                학습함
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: cellColor(0) }} />
+                안 함
+              </span>
             </p>
           </div>
           <div className="mt-2 grid grid-cols-7 gap-1">
@@ -154,14 +157,15 @@ export function ReportOverviewPanel({
               return (
                 <span
                   key={d}
-                  title={inside ? `${d} · 학습 기록 ${count}개` : undefined}
+                  title={inside ? (count > 0 ? `${d} · 학습함(기록 ${count}개)` : `${d} · 학습 안 함`) : undefined}
                   className="flex aspect-square items-center justify-center rounded text-[10px] tabular-nums"
                   style={{
                     background: inside ? cellColor(count) : "transparent",
-                    color: count > 6 ? "#fff" : inside ? "#475569" : "#cbd5e1",
+                    color: inside ? (count > 0 ? "#fff" : "#6b7280") : "#d1d5db",
+                    fontWeight: count > 0 ? 700 : 400,
                   }}
                 >
-                  {Number(d.slice(8))}
+                  {inside && count > 0 ? `${Number(d.slice(8))}✓` : Number(d.slice(8))}
                 </span>
               );
             })}
