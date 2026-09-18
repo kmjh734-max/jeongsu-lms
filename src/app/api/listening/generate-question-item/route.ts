@@ -149,6 +149,34 @@ export async function POST(request: Request) {
      * 한 문항 만드는 데 이미 오래 걸렸으면(유형 검사가 여러 번 되돌린 경우) 겹침 때문에
      * 한 번 더 만들지 않는다 — 화면이 기다리다 끊기면 만든 문항까지 잃는다.
      */
+    /*
+     * 세 번을 고쳐도 검사에 걸렸으면 "검토 필요"로 넘기지 않고, 시간이 남으면 새 상황으로
+     * 한 번 더 만든다 — 선생님이 하나씩 검수하지 않아도 되게.
+     */
+    if (mode === "exam" && generated.needs_review && Date.now() - startedAt < 150_000) {
+      try {
+        const why = (generated.problems ?? []).filter(Boolean).slice(0, 2).join(" / ");
+        const fresh = await generateSingleExamQuestion(
+          apiKey,
+          typeId,
+          body.difficultyMode ?? "auto",
+          [`fresh_rewrite|앞서 만든 문항이 검사를 통과하지 못했다(${why || "검토 필요"}). 상황·소재를 완전히 새로 잡아 처음부터 다시 써라.`],
+          gradeLevel,
+          slotIndex,
+          type1Regeneration,
+          {
+            usedAnswers,
+            typeKey,
+            variant: typeof body.variant === "string" ? body.variant : undefined,
+            rotation: curriculum?.rotation ?? -1,
+          }
+        );
+        if (!fresh.needs_review) generated = fresh;
+      } catch {
+        // 새로 만들지 못하면 처음 문항을 쓴다
+      }
+    }
+
     if (mode === "exam" && Date.now() - startedAt < 120_000) {
       const dup = await findDuplicateStories(access.admin, setId, gradeLevel, [
         {

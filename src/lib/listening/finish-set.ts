@@ -81,6 +81,18 @@ export async function tidyGeneratedSet(opts: {
     }))
   );
   for (const d of acrossSets) if (!notes.has(d.orderIndex)) notes.set(d.orderIndex, d.note);
+  /*
+   * 세 번을 고쳐도 검사에 걸려 "검토 필요"로 남은 문항은 선생님께 넘기지 않고 새 상황으로 다시 만든다.
+   * 같은 상황을 붙잡고 고치면 같은 흠이 되풀이되므로, 걸린 이유와 함께 처음부터 새로 쓰게 한다.
+   */
+  for (const q of questions) {
+    if (!q.needs_review || notes.has(q.order_index)) continue;
+    const why = (q.problems ?? []).filter(Boolean).slice(0, 2).join(" / ");
+    notes.set(
+      q.order_index,
+      `fresh_rewrite|앞서 만든 문항이 검사를 통과하지 못했다(${why || "검토 필요"}). 상황·소재를 완전히 새로 잡아 처음부터 다시 써라.`
+    );
+  }
 
   // 2) 겹친 문항만 다시 만든다 (한 번씩만 — 다시 만든 것이 또 겹치면 그대로 둔다)
   const deadlineAt = opts.deadlineAt ?? Date.now() + 90_000;

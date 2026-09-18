@@ -399,7 +399,7 @@ export function ListeningSetManageClient({
       return;
     }
     setPreviewQuestions(null);
-    setMessage("문항을 저장했어요. ② 검토·수정에서 하나씩 살펴보세요.");
+    setMessage("문항을 저장했어요. 검수까지 마친 문항이에요.");
     router.refresh();
   }
 
@@ -432,7 +432,7 @@ export function ListeningSetManageClient({
       return;
     }
     setMessage(
-      `${plannedQuestionCount}문항을 만들어 저장했어요. 검토한 뒤 ③ 음성 만들기에서 음성을 만들어 주세요.`
+      `${plannedQuestionCount}문항을 만들고 검수까지 마쳤어요. ③ 음성 만들기에서 음성을 만들어 주세요.`
     );
     router.refresh();
   }
