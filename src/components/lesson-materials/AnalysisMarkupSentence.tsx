@@ -260,6 +260,13 @@ function useMarkupLayout(
     if (!box) return;
     const bounds = box.getBoundingClientRect();
     if (bounds.width <= 0) return;
+    /*
+     * 화면 미리보기는 쪽을 축소(예: 70%)해서 보여 준다. 잰 값은 축소된 크기인데 translate는
+     * 축소 전 크기로 먹으므로, 그대로 쓰면 인쇄(축소 없음)에서 뜻이 덜 내려가 문장성분 표시와
+     * 겹쳤다(선생님 지적 2026-09-18: 인쇄하니 주석과 직독직해가 겹친다). 비율로 나눠 원래 크기로 바꾼다.
+     */
+    const scale = box.offsetWidth > 0 ? bounds.width / box.offsetWidth : 1;
+    const unscale = (v: number) => (scale > 0 ? v / scale : v);
 
     const notes = Array.from(box.querySelectorAll<HTMLElement>(".ar-note"));
     for (const el of notes) el.style.transform = "";
@@ -310,7 +317,7 @@ function useMarkupLayout(
       }
 
       if (Math.abs(best.shift) >= 1 || best.lift !== 0) {
-        el.style.transform = `translate(${Math.round(best.shift)}px, ${Math.round(best.lift)}px)`;
+        el.style.transform = `translate(${Math.round(unscale(best.shift))}px, ${Math.round(unscale(best.lift))}px)`;
       }
       placed.push(best.box);
     }
@@ -352,7 +359,7 @@ function useMarkupLayout(
           const dy = floor + 2 - it.rect.top;
           let dx = it.rect.left < prevRight + 6 ? prevRight + 6 - it.rect.left : 0;
           if (it.rect.right + dx > bounds.right) dx = bounds.right - it.rect.right;
-          it.el.style.transform = `translate(${Math.round(dx)}px, ${Math.round(dy)}px)`;
+          it.el.style.transform = `translate(${Math.round(unscale(dx))}px, ${Math.round(unscale(dy))}px)`;
           prevRight = it.rect.right + dx;
         }
       }
@@ -370,9 +377,9 @@ function useMarkupLayout(
       }
       const a = anchor.getBoundingClientRect();
       const b = stem.getBoundingClientRect();
-      const x = Math.round(a.left + a.width / 2 - b.left);
-      const h = Math.round(b.top - a.bottom);
-      if (x > 4 && x < b.width - 4 && h > 2 && h < 90) {
+      const x = Math.round(unscale(a.left + a.width / 2 - b.left));
+      const h = Math.round(unscale(b.top - a.bottom));
+      if (x > 4 && x < unscale(b.width) - 4 && h > 2 && h < 90) {
         stem.style.setProperty("--ar-stem-x", `${x}px`);
         stem.style.setProperty("--ar-stem-h", `${h}px`);
       } else {
