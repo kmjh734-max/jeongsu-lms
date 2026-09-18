@@ -115,6 +115,11 @@ export async function updateVocabSet(
   if (input.teacherId !== undefined) payload.teacher_id = input.teacherId;
 
   const supabase = await createClient();
+  if (payload.description !== undefined) {
+    // 학원 교재의 설명 칸은 교재 표시(curriculum_locked)라 건드리지 않는다
+    const { data: row } = await supabase.from("vocab_sets").select("is_locked").eq("id", setId).maybeSingle();
+    if (row?.is_locked) delete payload.description;
+  }
   const { error: updateError } = await supabase
     .from("vocab_sets")
     .update(payload)

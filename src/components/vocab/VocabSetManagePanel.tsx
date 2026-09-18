@@ -123,18 +123,21 @@ export function VocabSetManagePanel({
             disabled={readOnly || saving}
           />
         </div>
-        <div>
-          <label className="ui-label" htmlFor="vocab-set-desc">
-            설명 <span className="font-normal text-slate-400">(선택)</span>
-          </label>
-          <textarea
-            id="vocab-set-desc"
-            className="ui-input min-h-[80px]"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            disabled={readOnly || saving}
-          />
-        </div>
+        {/* 학원 교재는 설명 칸이 교재 표시라 보여 주지 않는다 */}
+        {set.is_locked ? null : (
+          <div>
+            <label className="ui-label" htmlFor="vocab-set-desc">
+              설명 <span className="font-normal text-slate-400">(선택)</span>
+            </label>
+            <textarea
+              id="vocab-set-desc"
+              className="ui-input min-h-[80px]"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={readOnly || saving}
+            />
+          </div>
+        )}
         {role === "admin" ? (
           <div>
             <label className="ui-label" htmlFor="vocab-set-teacher">

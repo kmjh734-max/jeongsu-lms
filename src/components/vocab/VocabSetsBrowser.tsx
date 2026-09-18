@@ -254,12 +254,38 @@ export function VocabSetsBrowser({
     window.open(`${base}/print?${params.toString()}`, "_blank", "noopener,noreferrer");
   }
 
+  async function handleRename(s: VocabSetListRow) {
+    const next = window.prompt("단어장 이름", s.title)?.trim();
+    if (!next || next === s.title) return;
+    setBusy(true);
+    try {
+      const result = await actions.updateVocabSet(s.id, { title: next });
+      if (!result.ok) {
+        showToast(result.message, "bad");
+        return;
+      }
+      setOrdered((list) => list.map((r) => (r.id === s.id ? { ...r, title: next } : r)));
+      showToast("이름을 바꿨어요.");
+      router.refresh();
+    } catch {
+      showToast("이름을 바꾸지 못했어요. 잠시 뒤 다시 해 주세요.", "bad");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function rowMenu(s: VocabSetListRow) {
     return [
       {
         label: "단어 편집",
         icon: "edit",
         onSelect: () => router.push(`${base}/set/${s.id}`),
+      },
+      {
+        label: "이름 바꾸기",
+        icon: "edit",
+        disabled: lockedBlocksWrite(s),
+        onSelect: () => void handleRename(s),
       },
       { label: "배정", icon: "users", onSelect: () => setAssignIds([s.id]) },
       {
