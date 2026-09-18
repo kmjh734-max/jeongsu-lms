@@ -10,7 +10,8 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { tableHeadLabel, type VocabPrintMode } from "@/lib/vocab/paginate-vocab-print";
+import type { VocabPrintMode } from "@/lib/vocab/paginate-vocab-print";
+import { splitPrintTitle, VocabPrintDHeader } from "@/components/vocab/VocabPrintDHeader";
 import type {
   VocabPrintRow,
   VocabPrintSection,
@@ -30,44 +31,6 @@ function estimatePageStridePx(size: VocabPrintSize) {
   // 실제 쪽 높이(B5 257mm, A4 297mm) + 쪽 사이 간격(gap-8)
   const mm = size === "b5" ? 257 : 297;
   return Math.round((mm * 96) / 25.4) + 32;
-}
-
-function PrintPageHeader({
-  sectionTitle,
-  academyName,
-  logoSrc,
-}: {
-  sectionTitle: string;
-  academyName: string;
-  logoSrc: string;
-}) {
-  return (
-    <>
-      <div className="vocab-print-top-line" />
-      <header className="vocab-print-header">
-        <div className="vocab-print-header-left">
-          <div className="vocab-print-logo-box">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoSrc} alt={academyName} className="vocab-print-logo-img" />
-          </div>
-          <div className="vocab-print-book-meta">
-            <p className="vocab-print-series">{academyName}</p>
-            <h2 className="vocab-print-book-title">{sectionTitle}</h2>
-          </div>
-        </div>
-        <div className="vocab-print-header-right">
-          <div className="vocab-print-meta-line">
-            <span>이름</span>
-            <i />
-          </div>
-          <div className="vocab-print-meta-line">
-            <span>날짜</span>
-            <i />
-          </div>
-        </div>
-      </header>
-    </>
-  );
 }
 
 const WorkbookPage = memo(function WorkbookPage({
@@ -107,6 +70,7 @@ const WorkbookPage = memo(function WorkbookPage({
     globalPageNum,
     sectionStartIndex,
   } = page;
+  const titleParts = splitPrintTitle(section.title);
 
   return (
     <article
@@ -114,19 +78,34 @@ const WorkbookPage = memo(function WorkbookPage({
       data-size={size}
       style={pageStyle}
     >
-      <PrintPageHeader
-        sectionTitle={section.title}
-        academyName={academyName}
-        logoSrc={logoSrc}
+      <VocabPrintDHeader
+        badge={mode === "full" ? "IN CONTEXT" : "WORD LIST"}
+        title={titleParts.main}
+        tag={
+          mode === "full"
+            ? "예문 · 동의어 · 반의어"
+            : [`${section.items.length}단어`, titleParts.tag].filter(Boolean).join(" · ")
+        }
       />
+      {pageIndex === 0 ? (
+        <p className="vd-note">
+          {mode === "full"
+            ? "예문 속 단어에 밑줄을 그으며 소리 내어 읽어요. 다 읽으면 ☐에 표시해요."
+            : "소리 내어 3번 읽고 ☐에 표시해요. 외운 뒤에는 점선을 접어 뜻을 가리고 스스로 확인해요."}
+        </p>
+      ) : null}
 
-      <div className="vocab-print-table-head">
-        <div>NO.</div>
-        <div>WORD</div>
-        <div>{tableHeadLabel(mode)}</div>
-      </div>
+      {mode === "full" ? null : (
+        <div className="vd-table-head">
+          <span>No.</span>
+          <span>단어</span>
+          <span>읽기 체크</span>
+          <span />
+          <span>뜻</span>
+        </div>
+      )}
 
-      <div className="vocab-print-list">
+      <div className={`vocab-print-list${mode === "full" ? " vd-list--full" : " vd-list"}`}>
         {pageItems.map((item, rowIndex) => {
           const globalIndex = sectionStartIndex + rowIndex;
           if (!item) {
@@ -138,10 +117,12 @@ const WorkbookPage = memo(function WorkbookPage({
         })}
       </div>
 
-      <footer className="vocab-print-footer">
-        <span>{academyName}</span>
+      <footer className="vocab-print-footer vd-foot">
+        <span className="vd-foot-left">
+          {mode === "full" ? academyName : "✂ 점선을 따라 접으세요"}
+        </span>
         <span>
-          {pageIndex + 1} / {sectionPageTotal}
+          {academyName} · {pageIndex + 1} / {sectionPageTotal}
           {multiSection ? ` · p.${globalPageNum}` : ""}
         </span>
       </footer>

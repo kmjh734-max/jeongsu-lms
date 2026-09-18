@@ -14,6 +14,7 @@ import {
 } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 import { VocabPrintCoverPage } from "@/components/vocab/VocabPrintCoverPage";
+import { splitPrintTitle, VocabPrintDHeader } from "@/components/vocab/VocabPrintDHeader";
 import { VocabPrintExamConfig } from "@/components/vocab/VocabPrintExamConfig";
 import { VocabWorkbookPrintPages } from "@/components/vocab/VocabWorkbookPrintPages";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
@@ -41,6 +42,7 @@ import {
   VOCAB_COVER_FONT_LABELS,
   VOCAB_COVER_THEME_LABELS,
   VOCAB_COVER_LEVELS,
+  resolveVocabCoverLevel,
   type VocabCoverColor,
   VOCAB_COVER_TITLE_SIZE_LABELS,
   type VocabCoverFont,
@@ -180,60 +182,26 @@ function formatNo(globalIndex: number) {
 }
 
 /** "EngCore 중학필수 Day3 최빈출 단어 ★★★" → 큰 제목 "EngCore 중학필수 Day3" + 꼬리표 "최빈출 단어 ★★★" */
-function splitPrintTitle(title: string): { main: string; tag: string } {
-  const m = title.match(/^(.*?Day\s*\d+)\s+(.+)$/i);
-  return m ? { main: m[1]!.trim(), tag: m[2]!.trim() } : { main: title, tag: "" };
-}
-
 function PrintPageHeader({
   sectionTitle,
-  academyName,
-  logoSrc,
   scoreTotal,
+  review,
 }: {
   sectionTitle: string;
-  academyName: string;
-  logoSrc: string;
   /** 시험지면 문항 수(점수 칸에 쓴다) */
   scoreTotal?: number;
+  /** 여러 세트를 모은 누적 시험 */
+  review?: boolean;
 }) {
   const { main, tag } = splitPrintTitle(sectionTitle);
   return (
-    <>
-      <div className="vocab-print-top-line" />
-      <header className="vocab-print-header">
-        <div className="vocab-print-header-left">
-          <div className="vocab-print-logo-box">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoSrc} alt={academyName} className="vocab-print-logo-img" />
-          </div>
-          <div className="vocab-print-book-meta">
-            <p className="vocab-print-series">
-              {academyName}
-              {tag ? <span className="vocab-print-title-tag">{tag}</span> : null}
-            </p>
-            <h2 className="vocab-print-book-title">{main}</h2>
-          </div>
-        </div>
-        <div className="vocab-print-header-right">
-          <div className="vocab-print-meta-line">
-            <span>이름</span>
-            <i />
-          </div>
-          <div className="vocab-print-meta-line">
-            <span>날짜</span>
-            <i />
-          </div>
-          {scoreTotal ? (
-            <div className="vocab-print-meta-line vocab-print-score">
-              <span>점수</span>
-              <i />
-              <b>/ {scoreTotal}</b>
-            </div>
-          ) : null}
-        </div>
-      </header>
-    </>
+    <VocabPrintDHeader
+      badge={review ? "REVIEW TEST" : "DAILY TEST"}
+      title={main}
+      tag={tag}
+      scoreTotal={scoreTotal}
+      passCount={scoreTotal ? Math.ceil(scoreTotal * 0.8) : undefined}
+    />
   );
 }
 
@@ -702,6 +670,8 @@ export function VocabSetPrintView({
     ["--vocab-page-height" as string]: pageDims.height,
   } as React.CSSProperties;
 
+  const accentColor = resolveVocabCoverLevel(cover.color, cover.title, cover.seriesLabel).level.deep;
+
   const workbookPageStyle = useMemo(
     () =>
       ({
@@ -753,9 +723,8 @@ export function VocabSetPrintView({
           >
             <PrintPageHeader
               sectionTitle={headerTitle}
-              academyName={academyName}
-              logoSrc={logoSrc}
               scoreTotal={examGenerated.questions.length}
+              review={sections.length > 1}
             />
 
             <div className="vocab-exam-body">
@@ -812,17 +781,12 @@ export function VocabSetPrintView({
               data-size={size}
               style={examPageStyle}
             >
-              <div className="vocab-print-top-line" />
-              <header className="vocab-print-header">
-                <div className="vocab-print-header-left">
-                  <div className="vocab-print-book-meta">
-                    <p className="vocab-print-series">{academyName} · 교사용</p>
-                    <h2 className="vocab-print-book-title">
-                      {headerTitle} · 정답지
-                    </h2>
-                  </div>
-                </div>
-              </header>
+              <VocabPrintDHeader
+                badge="ANSWER KEY"
+                dark
+                title={`${splitPrintTitle(headerTitle).main} · 정답`}
+                aside={`선생님용 · ${academyName}`}
+              />
               <div className="vocab-answer-key-body">
                 {cols.map((col, colIndex) => (
                   <div key={colIndex} className="vocab-answer-key-col">
@@ -903,9 +867,8 @@ export function VocabSetPrintView({
             >
               <PrintPageHeader
                 sectionTitle={headerTitle}
-                academyName={academyName}
-                logoSrc={logoSrc}
                 scoreTotal={examGenerated.questions.length}
+                review={sections.length > 1}
               />
               <div data-exam-body-zone className="min-h-0 flex-1" />
               <footer className="vocab-print-footer">
@@ -1381,6 +1344,7 @@ export function VocabSetPrintView({
             <div
               id="vocab-print-root"
               data-size={size}
+              style={{ ["--vd" as string]: accentColor } as React.CSSProperties}
               className="flex w-full max-w-[920px] flex-col items-center gap-8 print:max-w-none print:gap-0"
             >
               {cover.enabled ? (
@@ -1488,56 +1452,49 @@ const PrintEntry = memo(function PrintEntry({
     exampleMeaning || exampleSentence
   );
 
+  if (!showFull) {
+    return (
+      <section className="vocab-print-row vd-row">
+        <span className="vd-no">{globalIndex + 1}</span>
+        <span className="vd-word-cell">
+          <span className={`vd-word ${wordDensity}`.trim()}>{item.word}</span>
+          {pos ? <span className="vd-pos">{pos}</span> : null}
+        </span>
+        <span className="vd-checks" aria-hidden>
+          ☐☐☐
+        </span>
+        <span className="vd-fold" aria-hidden />
+        <span className={`vd-meaning ${meaningDensity}`.trim()}>{item.meaning}</span>
+      </section>
+    );
+  }
+
   return (
-    <section className="vocab-print-row">
-      <div className="vocab-print-row-left">
-        <div className="vocab-print-num">{formatNo(globalIndex)}</div>
-        <div className="vocab-print-checks" aria-hidden>
-          <span className="vocab-print-check" />
-          <span className="vocab-print-check" />
-        </div>
+    <section className="vocab-print-row vd-row-full">
+      <div className="vd-full-left">
+        <span className="vd-no">{globalIndex + 1}</span>
+        <span className={`vd-word vd-word--lg ${wordDensity}`.trim()}>{item.word}</span>
+        <span className={`vd-meaning ${meaningDensity}`.trim()}>
+          {item.meaning}
+          {pos ? <span className="vd-pos"> {pos}</span> : null}
+        </span>
+        <span className="vd-checks" aria-hidden>
+          ☐☐☐
+        </span>
       </div>
-
-      <div className="vocab-print-word-box">
-        <h2 className={`vocab-print-word ${wordDensity}`.trim()}>
-          {item.word}
-        </h2>
-      </div>
-
-      <div className="vocab-print-content">
-        <div className="vocab-print-meaning-line">
-          <span className={`vocab-print-meaning ${meaningDensity}`.trim()}>
-            {item.meaning}
-          </span>
-          {pos ? <span className="vocab-print-pos">{pos}</span> : null}
-        </div>
-
-        {showFull && exampleSentence ? (
-          <p className={`vocab-print-example ${exampleDensity}`.trim()}>
+      <div className="vd-full-right">
+        {exampleSentence ? (
+          <p className={`vd-example ${exampleDensity}`.trim()}>
             {highlightWordInSentence(exampleSentence, item.word)}
           </p>
         ) : null}
-
-        {showFull && exampleMeaning ? (
-          <p className={`vocab-print-translation ${translationDensity}`.trim()}>
-            {exampleMeaning}
-          </p>
+        {exampleMeaning ? (
+          <p className={`vd-translation ${translationDensity}`.trim()}>{exampleMeaning}</p>
         ) : null}
-
-        {showFull && (synonyms || antonyms) ? (
-          <div className="vocab-print-meta-tags">
-            {synonyms ? (
-              <span className="vocab-print-tag syn">
-                <span className="label">유의어</span>
-                {synonyms}
-              </span>
-            ) : null}
-            {antonyms ? (
-              <span className="vocab-print-tag ant">
-                <span className="label">반의어</span>
-                {antonyms}
-              </span>
-            ) : null}
+        {synonyms || antonyms ? (
+          <div className="vd-chips">
+            {synonyms ? <span className="vd-chip vd-chip--syn">= {synonyms}</span> : null}
+            {antonyms ? <span className="vd-chip vd-chip--ant">↔ {antonyms}</span> : null}
           </div>
         ) : null}
       </div>

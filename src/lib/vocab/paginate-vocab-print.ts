@@ -47,18 +47,14 @@ export function itemsPerVocabPrintPage(
   font: VocabPrintFontScale = "md",
   spacing: VocabPrintLineSpacing = "normal"
 ): number {
-  let base: number;
-  if (size === "b5") {
-    base = mode === "full" ? 4 : 5;
-  } else if (mode === "full") {
-    base = 5;
-  } else {
-    base = 8;
+  // 단어장은 한 줄짜리 표(한 쪽 20단어), 예문형은 칸이 커서 적게
+  const delta = vocabPrintRowsDelta(font, spacing);
+  if (mode === "full") {
+    const base = size === "b5" ? 5 : 6;
+    return Math.min(size === "b5" ? 8 : 10, Math.max(3, base + delta));
   }
-
-  const min = mode === "full" ? 3 : 4;
-  const max = mode === "full" ? (size === "b5" ? 8 : 10) : size === "b5" ? 10 : 14;
-  return Math.min(max, Math.max(min, base + vocabPrintRowsDelta(font, spacing)));
+  const base = size === "b5" ? 16 : 20;
+  return Math.min(size === "b5" ? 22 : 26, Math.max(10, base + delta * 2));
 }
 
 export function tableHeadLabel(mode: VocabPrintMode): string {
