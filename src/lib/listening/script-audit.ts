@@ -57,6 +57,10 @@ function namesIn(text: string): string[] {
 const COLOR_WORDS =
   /(red|blue|green|yellow|orange|purple|pink|brown|navy|beige|violet|golden)/i;
 
+/** 담화 첫머리에 올 수 있는 감탄사·인사 — 사람 이름이 아니다 */
+const NOT_A_NAME_OPENER =
+  /^(Hello|Hi|Hey|Good|Attention|Welcome|Thank|Thanks|Wow|Oh|Well|Look|Listen|Sorry|Excuse|Okay|OK|Yes|No|Right|Great|Nice|Congratulations|Please|Everyone|Students|Friends|Ladies|Dear|Guess|Today|Finally|First|Now)/;
+
 export function scriptRuleProblems(q: GeneratedListeningQuestion): string[] {
   // 규칙은 화자 표시가 없는 대본으로 본다(담화 첫 문장 검사가 "M:"에 걸리지 않게).
   const text = scriptOf(q, false);
@@ -110,7 +114,9 @@ export function scriptRuleProblems(q: GeneratedListeningQuestion): string[] {
     if (REPLY_OPENERS.some((o) => first.startsWith(o))) {
       out.push("monologue_opening|담화가 앞 대화에 대한 대답처럼 시작한다. 안내·설명의 첫 문장(인사·호출)으로 시작하라.");
     }
-    const vocative = /^[A-Z][a-z]{2,},\s/.test(text) && !/^(Hello|Hi|Good|Attention|Welcome|Thank)/.test(text);
+    // 감탄사·인사로 시작하는 것은 한 사람을 부르는 것이 아니다("Wow, these dogs …")
+    const vocative =
+      /^[A-Z][a-z]{2,},\s/.test(text) && !NOT_A_NAME_OPENER.test(text);
     if (vocative) {
       out.push("monologue_vocative|담화가 특정 한 사람을 부르며 시작한다. 여러 사람에게 하는 안내·설명으로 시작하라.");
     }
