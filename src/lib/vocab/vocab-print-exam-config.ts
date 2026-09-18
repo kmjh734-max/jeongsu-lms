@@ -41,7 +41,7 @@ export const DEFAULT_EXAM_PRINT_CONFIG: ExamPrintConfig = {
 };
 
 export const DEFAULT_EXAM_LAYOUT: ExamPrintLayout = {
-  columns: 1,
+  columns: 2,
   lineSpacing: "normal",
   shuffle: true,
 };
@@ -127,9 +127,10 @@ function readCount(
 }
 
 export function parseExamColumnCount(raw: string | null): ExamColumnCount {
-  const n = raw ? Number.parseInt(raw, 10) : 1;
-  if (n === 2 || n === 3 || n === 4) return n;
-  return 1;
+  // 기본은 2단(한 장에 20문항이 들어가게). 1단은 주소에 exam_cols=1로 남긴다
+  const n = raw ? Number.parseInt(raw, 10) : 2;
+  if (n === 1 || n === 2 || n === 3 || n === 4) return n;
+  return 2;
 }
 
 export function parseExamLineSpacing(raw: string | null): ExamLineSpacing {
@@ -172,7 +173,7 @@ export function examSettingsToSearchParams(
   for (const [k, v] of Object.entries(settings.counts)) {
     if (v > 0) out[k] = String(v);
   }
-  if (settings.layout.columns !== 1) {
+  if (settings.layout.columns !== 2) {
     out.exam_cols = String(settings.layout.columns);
   }
   if (settings.layout.lineSpacing !== "normal") {

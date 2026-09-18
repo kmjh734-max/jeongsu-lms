@@ -177,15 +177,25 @@ function formatNo(globalIndex: number) {
   return String(globalIndex + 1).padStart(4, "0");
 }
 
+/** "EngCore 중학필수 Day3 최빈출 단어 ★★★" → 큰 제목 "EngCore 중학필수 Day3" + 꼬리표 "최빈출 단어 ★★★" */
+function splitPrintTitle(title: string): { main: string; tag: string } {
+  const m = title.match(/^(.*?Day\s*\d+)\s+(.+)$/i);
+  return m ? { main: m[1]!.trim(), tag: m[2]!.trim() } : { main: title, tag: "" };
+}
+
 function PrintPageHeader({
   sectionTitle,
   academyName,
   logoSrc,
+  scoreTotal,
 }: {
   sectionTitle: string;
   academyName: string;
   logoSrc: string;
+  /** 시험지면 문항 수(점수 칸에 쓴다) */
+  scoreTotal?: number;
 }) {
+  const { main, tag } = splitPrintTitle(sectionTitle);
   return (
     <>
       <div className="vocab-print-top-line" />
@@ -196,8 +206,11 @@ function PrintPageHeader({
             <img src={logoSrc} alt={academyName} className="vocab-print-logo-img" />
           </div>
           <div className="vocab-print-book-meta">
-            <p className="vocab-print-series">{academyName}</p>
-            <h2 className="vocab-print-book-title">{sectionTitle}</h2>
+            <p className="vocab-print-series">
+              {academyName}
+              {tag ? <span className="vocab-print-title-tag">{tag}</span> : null}
+            </p>
+            <h2 className="vocab-print-book-title">{main}</h2>
           </div>
         </div>
         <div className="vocab-print-header-right">
@@ -209,6 +222,13 @@ function PrintPageHeader({
             <span>날짜</span>
             <i />
           </div>
+          {scoreTotal ? (
+            <div className="vocab-print-meta-line vocab-print-score">
+              <span>점수</span>
+              <i />
+              <b>/ {scoreTotal}</b>
+            </div>
+          ) : null}
         </div>
       </header>
     </>
@@ -733,6 +753,7 @@ export function VocabSetPrintView({
               sectionTitle={headerTitle}
               academyName={academyName}
               logoSrc={logoSrc}
+              scoreTotal={examGenerated.questions.length}
             />
 
             <div className="vocab-exam-body">
@@ -882,6 +903,7 @@ export function VocabSetPrintView({
                 sectionTitle={headerTitle}
                 academyName={academyName}
                 logoSrc={logoSrc}
+                scoreTotal={examGenerated.questions.length}
               />
               <div data-exam-body-zone className="min-h-0 flex-1" />
               <footer className="vocab-print-footer">
@@ -1358,7 +1380,9 @@ const PrintExamEntry = memo(function PrintExamEntry({
 }) {
   return (
     <section
-      className={`vocab-exam-row${variant === "example" ? " vocab-exam-row--example" : ""}`}
+      className={`vocab-exam-row${variant === "example" ? " vocab-exam-row--example" : ""}${
+        !question.choices && variant !== "example" ? " vocab-exam-row--inline" : ""
+      }`}
     >
       <div className="vocab-exam-q-head">
         <span className="vocab-exam-q-no">{question.number}.</span>
