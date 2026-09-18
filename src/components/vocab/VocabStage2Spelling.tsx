@@ -171,16 +171,12 @@ export function VocabStage2Spelling({
   function checkAnswer() {
     if (!current || wrong || phase !== "study") return;
     if (lockRef.current) return;
+    // 답을 비우고 누르면 '모름' — 틀린 것으로 보고 정답을 보여 준다
     const trimmed = answer.trim();
-    if (!trimmed) {
-      setMessage("답을 입력해주세요.");
-      inputRef.current?.focus();
-      return;
-    }
     lockRef.current = true;
     setMessage(null);
 
-    const isCorrect = gradeSpellingAnswer(current.word, trimmed);
+    const isCorrect = trimmed ? gradeSpellingAnswer(current.word, trimmed) : false;
     const itemId = current.id;
     recorder.push({ itemId, answer: trimmed, round });
 

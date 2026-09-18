@@ -4,6 +4,10 @@ import { createManagedAccount } from "@/lib/admin/manage-user";
 import { isValidUsername, normalizeUsername } from "@/lib/auth/username";
 import { cloneListeningCurriculumToAcademy } from "@/lib/listening/clone-curriculum";
 import { cloneVocabCurriculumToAcademy } from "@/lib/vocab/clone-curriculum";
+import { grantAcademyCredits } from "@/lib/credits";
+
+/** 처음 가입하면 드리는 무료 크레딧 (1크레딧 = 1원) */
+const SIGNUP_BONUS_CREDITS = 2000;
 
 export const runtime = "nodejs";
 // 가입 뒤 듣기·단어 교재를 복사한다(응답은 먼저 보내고 뒤에서 채운다).
@@ -69,8 +73,8 @@ export async function POST(request: Request) {
   const phone = (body.phone ?? "").replace(/[^0-9-]/g, "").trim();
   const email = (body.email ?? "").trim().toLowerCase();
 
-  if (!academyName || academyName.length > 40) return jsonError("학원 이름을 40자 안으로 입력해 주세요.");
-  if (!ownerName || ownerName.length > 20) return jsonError("원장님 성함을 입력해 주세요.");
+  if (!academyName || academyName.length > 40) return jsonError("학원·공부방·교습소 이름을 40자 안으로 입력해 주세요.");
+  if (!ownerName || ownerName.length > 20) return jsonError("이름을 입력해 주세요.");
   if (!isValidUsername(username)) return jsonError("아이디는 영문 소문자·숫자 3~32자로 입력해 주세요.");
   if (password.length < 8) return jsonError("비밀번호는 8자 이상으로 입력해 주세요.");
   if (!/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(phone)) return jsonError("연락처를 휴대폰 번호 형식으로 입력해 주세요.");
@@ -120,7 +124,22 @@ export async function POST(request: Request) {
   }
   const ownerId = String(created.profile.id ?? "");
 
-  // 3) 교재 복사는 뒤에서 (수십 초 걸린다)
+  // 3) 가입 축하 크레딧 (같은 학원에 두 번 주지 않는다)
+  if (ownerId) {
+    try {
+      await grantAcademyCredits(admin, {
+        academyId: academy.id as string,
+        amount: SIGNUP_BONUS_CREDITS,
+        actorId: ownerId,
+        note: "가입 축하 무료 크레딧",
+        idempotencyKey: `signup_bonus:${academy.id}`,
+      });
+    } catch (e) {
+      console.error("[signup] bonus credits failed", e);
+    }
+  }
+
+  // 4) 교재 복사는 뒤에서 (수십 초 걸린다)
   if (ownerId) {
     const targetAcademyId = academy.id as string;
     after(async () => {

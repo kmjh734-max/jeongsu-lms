@@ -238,9 +238,16 @@ export function VocabSetPrintView({
   const [bindingMargin, setBindingMargin] = useState(() =>
     parseVocabPrintBinding(searchParams.get("bind"))
   );
-  const [examSettings, setExamSettings] = useState<ExamPrintSettings>(() =>
-    parseExamPrintSettings(searchParams)
-  );
+  const [examSettings, setExamSettings] = useState<ExamPrintSettings>(() => {
+    const parsed = parseExamPrintSettings(searchParams);
+    if (examConfigTotal(parsed.counts) > 0) return parsed;
+    // 문항 수를 정하지 않았으면 빈 시험지 대신: 세트 단어 전부, 뜻 쓰기 반 + 단어 쓰기 반
+    const n = sections.reduce((sum, s) => sum + s.items.length, 0);
+    return {
+      ...parsed,
+      counts: { ...parsed.counts, meaning_sa: Math.ceil(n / 2), word_sa: Math.floor(n / 2) },
+    };
+  });
   const [printing, setPrinting] = useState(false);
   const [printPreparing, setPrintPreparing] = useState(false);
 

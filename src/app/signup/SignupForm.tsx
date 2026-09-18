@@ -77,7 +77,9 @@ export function SignupForm() {
         <p className="mt-2 text-sm leading-6 text-slate-600">
           아이디 <b className="text-slate-900">{done.username}</b>로 로그인해 주세요.
           <br />
-          단어·듣기 교재는 몇 분 안에 학원에 자동으로 들어갑니다.
+          가입 축하 <b className="text-slate-900">2,000크레딧</b>을 넣어 드렸어요.
+          <br />
+          단어·듣기 교재는 몇 분 안에 자동으로 들어갑니다.
         </p>
         <Link
           href={`/login?academy=${encodeURIComponent(done.slug)}`}
@@ -92,11 +94,11 @@ export function SignupForm() {
   return (
     <form onSubmit={submit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-slate-700">학원 이름</span>
-        <input className={INPUT} value={values.academyName} onChange={set("academyName")} placeholder="예: 정수영어학원" required maxLength={40} />
+        <span className="text-sm font-semibold text-slate-700">학원·공부방·교습소 이름</span>
+        <input className={INPUT} value={values.academyName} onChange={set("academyName")} placeholder="예: 정수영어학원, 해솔공부방 (개인이면 내 이름)" required maxLength={40} />
       </label>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-slate-700">원장님 성함</span>
+        <span className="text-sm font-semibold text-slate-700">이름</span>
         <input className={INPUT} value={values.ownerName} onChange={set("ownerName")} required maxLength={20} autoComplete="name" />
       </label>
       <label className="block space-y-1.5">

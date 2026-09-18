@@ -15,7 +15,7 @@ const FEATURES: Array<{ icon: Parameters<typeof Icon>[0]["name"]; title: string;
 ];
 
 const STEPS = [
-  { title: "가입하기", body: "학원 이름과 원장님 정보로 가입하면 바로 쓸 수 있습니다." },
+  { title: "가입하기", body: "학원·공부방·교습소 이름만 넣고 가입하면 바로 쓸 수 있습니다. 개인 선생님도 됩니다." },
   { title: "크레딧 충전", body: "필요한 만큼 충전하고, 자료를 만들 때만 차감됩니다." },
   { title: "자료 만들고 수업", body: "지문을 넣어 자료를 만들고, 인쇄하거나 학생에게 배정합니다." },
 ];
@@ -52,7 +52,7 @@ export function LandingPage({
               href="/signup"
               className="inline-flex h-11 items-center rounded-md bg-brand-600 px-5 text-[15px] font-semibold text-white hover:bg-brand-700"
             >
-              학원 가입하고 시작하기
+              가입하고 시작하기
             </Link>
             <Link
               href="/pricing"

@@ -158,16 +158,12 @@ export function VocabStage3ExampleBlank({
   function checkAnswer() {
     if (!current || wrong || phase !== "study") return;
     if (lockRef.current) return;
+    // 답을 비우고 누르면 '모름' — 틀린 것으로 보고 정답을 보여 준다
     const trimmed = answer.trim();
-    if (!trimmed) {
-      setMessage("답을 입력해주세요.");
-      inputRef.current?.focus();
-      return;
-    }
     lockRef.current = true;
     setMessage(null);
 
-    const isCorrect = gradeExampleBlankAnswer(current.acceptedAnswers, trimmed);
+    const isCorrect = trimmed ? gradeExampleBlankAnswer(current.acceptedAnswers, trimmed) : false;
     recorder.push({ itemId: current.itemId, answer: trimmed, round });
 
     if (isCorrect) {
