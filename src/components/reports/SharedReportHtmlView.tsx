@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ReportMobileParent } from "@/components/reports/ReportMobileParent";
 import { ReportOverviewPanel } from "@/components/reports/ReportOverviewPanel";
 import Link from "next/link";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
@@ -70,6 +71,20 @@ export function SharedReportHtmlView({
   );
   const generatedLabel = formatLastStudiedDate(report.generatedAt);
   const printHref = `/report/share/${shareToken}?view=print`;
+
+  // 새 리포트(한눈에 보기 자료가 있는 것)는 C안 모바일 화면으로 보여 준다
+  if (report.overview) {
+    return (
+      <ReportMobileParent
+        report={report}
+        comment={learningReport}
+        academyName={academyName}
+        studentName={studentName}
+        printHref={printHref}
+        expiresLabel={formatExpiresLabel(expiresAt)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-50">

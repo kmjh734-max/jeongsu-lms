@@ -561,7 +561,7 @@ export async function getStudentReport(
     }
   }
   const [{ data: examTimes }, { data: dictationTimes }] = await Promise.all([
-    supabase.from("listening_exam_attempts").select("submitted_at").eq("student_id", studentId),
+    supabase.from("listening_exam_attempts").select("submitted_at, score").eq("student_id", studentId),
     supabase.from("listening_dictation_attempts").select("submitted_at").eq("student_id", studentId),
   ]);
   for (const r of examTimes ?? []) mark(r.submitted_at as string);
@@ -576,7 +576,22 @@ export async function getStudentReport(
   const attempted = vocabSetsReport.filter((v) => v.stage4AttemptCount > 0);
   const examWithScore = listeningExam.filter((e) => e.bestScore != null);
   const dictTotal = listeningDictation.reduce((s, d) => s + d.questionCount, 0);
+  // 주차별 점수: 달력 첫날부터 7일씩
+  const weekCount = Math.min(6, Math.max(1, Math.ceil((Date.parse(today) - Date.parse(calendarStart)) / 86400000 / 7 + 1e-9)));
+  const weekOf = (iso: string) => Math.floor((Date.parse(kstDay(iso)) - Date.parse(calendarStart)) / (7 * 86400000));
+  const avg = (xs: number[]) => (xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : null);
+  const weeks = Array.from({ length: weekCount }, (_, i) => {
+    const vocabScores = (finalAttempts ?? [])
+      .filter((a) => inPeriod(a.submitted_at as string) && weekOf(a.submitted_at as string) === i)
+      .map((a) => Number(a.score) || 0);
+    const listenScores = (examTimes ?? [])
+      .filter((a) => inPeriod(a.submitted_at as string) && weekOf(a.submitted_at as string) === i)
+      .map((a) => Number(a.score) || 0);
+    return { label: `${i + 1}주`, vocab: avg(vocabScores), listening: avg(listenScores) };
+  });
+
   const overview = {
+    weeks,
     activeDays: Object.keys(activity).length,
     activity,
     calendarStart,

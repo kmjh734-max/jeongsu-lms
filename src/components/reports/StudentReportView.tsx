@@ -8,7 +8,7 @@ import {
   formatMonthDay,
   NameAvatar,
 } from "@/components/reports/report-ui";
-import { ReportOverviewPanel } from "@/components/reports/ReportOverviewPanel";
+import { ReportDashboard } from "@/components/reports/ReportDashboard";
 import { getReportRangeBounds } from "@/lib/reports/date-range";
 import type { StudentReport, VocabReportSection } from "@/lib/reports/types";
 
@@ -183,7 +183,7 @@ export function StudentReportView({ report, loading = false, onPreview }: Studen
 
       {report.overview ? (
         <div className="mt-4">
-          <ReportOverviewPanel overview={report.overview} />
+          <ReportDashboard report={report} />
         </div>
       ) : (
       <div className="mt-4 grid grid-cols-2 gap-2.5 lg:grid-cols-4">

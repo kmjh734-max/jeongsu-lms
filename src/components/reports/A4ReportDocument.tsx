@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ReportDashboard } from "@/components/reports/ReportDashboard";
 import { ReportOverviewPanel } from "@/components/reports/ReportOverviewPanel";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { formatLastStudiedDate } from "@/lib/progress/enrollment-progress";
@@ -80,91 +81,102 @@ export function A4ReportDocument({
 
   return (
     <article className="a4-report mx-auto box-border w-[210mm] min-h-[297mm] bg-white px-[18mm] py-[16mm] text-[10.5pt] leading-relaxed text-slate-800 shadow-sm print:shadow-none">
-      <header className="border-b border-[#1e3a5f]/30 pb-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            {showLogo && (
-              <div className="mb-2 flex items-center gap-2">
-                <Image
-                  src={logoSrc}
-                  alt={academyName}
-                  width={36}
-                  height={36}
-                  className="h-9 w-9 object-contain"
-                />
-                <span className="text-[9pt] font-medium tracking-wide text-slate-500">
-                  {academyName}
+      {report.overview ? (
+        <>
+          {/* A안 대시보드: 첫 장은 한눈에 보기, 자세한 표는 다음 장부터 */}
+          <ReportDashboard report={report} comment={learningReport} academyName={academyName} print />
+          <div className="break-after-page" />
+        </>
+      ) : (
+        <>
+        <header className="border-b border-[#1e3a5f]/30 pb-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              {showLogo && (
+                <div className="mb-2 flex items-center gap-2">
+                  <Image
+                    src={logoSrc}
+                    alt={academyName}
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 object-contain"
+                  />
+                  <span className="text-[9pt] font-medium tracking-wide text-slate-500">
+                    {academyName}
+                  </span>
+                </div>
+              )}
+              <p className="text-[9pt] font-semibold uppercase tracking-widest text-slate-500">
+                Learning Report
+              </p>
+              <h1 className="mt-0.5 text-[17pt] font-bold tracking-tight text-[#1e3a5f]">
+                {academyName} 학습 리포트
+              </h1>
+              <p className="mt-1 text-[11pt] font-semibold text-slate-900">
+                {report.student.name}
+                <span className="ml-2 font-normal text-slate-500">
+                  {report.rangeLabel}
                 </span>
+              </p>
+            </div>
+            <dl className="shrink-0 text-right text-[9pt] text-slate-600">
+              <div>
+                <dt className="sr-only">아이디</dt>
+                <dd>{report.student.loginId ?? "—"}</dd>
               </div>
-            )}
-            <p className="text-[9pt] font-semibold uppercase tracking-widest text-slate-500">
-              Learning Report
-            </p>
-            <h1 className="mt-0.5 text-[17pt] font-bold tracking-tight text-[#1e3a5f]">
-              {academyName} 학습 리포트
-            </h1>
-            <p className="mt-1 text-[11pt] font-semibold text-slate-900">
-              {report.student.name}
-              <span className="ml-2 font-normal text-slate-500">
-                {report.rangeLabel}
-              </span>
+              <div className="mt-1">
+                <dt className="sr-only">소속 반</dt>
+                <dd>
+                  {report.student.classNames.length > 0
+                    ? report.student.classNames.join(", ")
+                    : "—"}
+                </dd>
+              </div>
+              <div className="mt-1">
+                <dt className="sr-only">생성일</dt>
+                <dd>생성 {generatedLabel}</dd>
+              </div>
+            </dl>
+          </div>
+        </header>
+
+        {report.overview ? (
+          <div className="mt-5 break-inside-avoid">
+            <ReportOverviewPanel overview={report.overview} print />
+          </div>
+        ) : (
+        <div className="mt-5 grid grid-cols-4 gap-2 break-inside-avoid">
+          <MetricCard
+            label="영상 진도율"
+            value={
+              metrics.videoProgressPercent !== null
+                ? `${metrics.videoProgressPercent}%`
+                : "—"
+            }
+          />
+          <MetricCard
+            label="단어장 통과"
+            value={`${metrics.vocabPassedCount}/${metrics.vocabTotalCount || 0}`}
+          />
+          <MetricCard
+            label="복습 필요 단어"
+            value={`${metrics.reviewWordCount}개`}
+          />
+          <MetricCard label="최근 학습일" value={metrics.lastStudiedLabel} />
+        </div>
+        )}
+
+        <section className="mt-5 break-inside-avoid">
+          <h2 className="text-[11pt] font-bold text-[#1e3a5f]">학습 리포트</h2>
+          <div className="mt-2 rounded border border-[#1e3a5f]/15 bg-[#f4f7fb] px-4 py-3">
+            <p className="whitespace-pre-wrap text-[10pt] leading-[1.75] text-slate-700">
+              {learningReport}
             </p>
           </div>
-          <dl className="shrink-0 text-right text-[9pt] text-slate-600">
-            <div>
-              <dt className="sr-only">아이디</dt>
-              <dd>{report.student.loginId ?? "—"}</dd>
-            </div>
-            <div className="mt-1">
-              <dt className="sr-only">소속 반</dt>
-              <dd>
-                {report.student.classNames.length > 0
-                  ? report.student.classNames.join(", ")
-                  : "—"}
-              </dd>
-            </div>
-            <div className="mt-1">
-              <dt className="sr-only">생성일</dt>
-              <dd>생성 {generatedLabel}</dd>
-            </div>
-          </dl>
-        </div>
-      </header>
+        </section>
 
-      {report.overview ? (
-        <div className="mt-5 break-inside-avoid">
-          <ReportOverviewPanel overview={report.overview} print />
-        </div>
-      ) : (
-      <div className="mt-5 grid grid-cols-4 gap-2 break-inside-avoid">
-        <MetricCard
-          label="영상 진도율"
-          value={
-            metrics.videoProgressPercent !== null
-              ? `${metrics.videoProgressPercent}%`
-              : "—"
-          }
-        />
-        <MetricCard
-          label="단어장 통과"
-          value={`${metrics.vocabPassedCount}/${metrics.vocabTotalCount || 0}`}
-        />
-        <MetricCard
-          label="복습 필요 단어"
-          value={`${metrics.reviewWordCount}개`}
-        />
-        <MetricCard label="최근 학습일" value={metrics.lastStudiedLabel} />
-      </div>
+        </>
       )}
-
-      <section className="mt-5 break-inside-avoid">
-        <h2 className="text-[11pt] font-bold text-[#1e3a5f]">학습 리포트</h2>
-        <div className="mt-2 rounded border border-[#1e3a5f]/15 bg-[#f4f7fb] px-4 py-3">
-          <p className="whitespace-pre-wrap text-[10pt] leading-[1.75] text-slate-700">
-            {learningReport}
-          </p>
-        </div>
-      </section>
 
       <section className="mt-5 break-inside-avoid">
         <h2 className="border-b border-slate-200 pb-1 text-[11pt] font-bold text-[#1e3a5f]">

@@ -122,6 +122,8 @@ export interface ReportOverview {
     tasksTotal: number;
   };
   video: { courses: number; lessonsDone: number };
+  /** 주차별 점수(단어 종합테스트·듣기 시험 평균). 기록이 없는 주는 null */
+  weeks?: Array<{ label: string; vocab: number | null; listening: number | null }>;
 }
 
 export interface StudentReport {
