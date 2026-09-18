@@ -24,6 +24,9 @@ export async function hasActiveStudentSeat(
   kind: MonthlySeatKind
 ): Promise<boolean> {
   if (!academyId) return false;
+  // 원장님이 열어 둔 학원(기존 협력 학원 등)은 막지 않는다 — 학생을 넣으면 어차피 이용료가 나간다
+  const { data: academy } = await admin.from("academies").select("settings").eq("id", academyId).maybeSingle();
+  if ((academy?.settings as { print_unlocked?: boolean } | null)?.print_unlocked) return true;
   const featureKey = monthlySeatFeatureKey(kind);
   const pricing = await cachedFeatureCost(featureKey);
   if (!pricing || !pricing.active || pricing.cost <= 0) return true;
