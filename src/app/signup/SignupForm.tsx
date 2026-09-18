@@ -18,6 +18,8 @@ export function SignupForm() {
     phone: "",
     email: "",
   });
+  // 학원회원(학원·공부방·교습소) / 개인회원(개인 선생님)
+  const [memberType, setMemberType] = useState<"academy" | "personal">("academy");
   const [agree, setAgree] = useState({ terms: false, privacy: false, age: false });
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
@@ -45,7 +47,8 @@ export function SignupForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          academyName: values.academyName,
+          memberType,
+          academyName: memberType === "personal" ? "" : values.academyName,
           ownerName: values.ownerName,
           username: values.username,
           password: values.password,
@@ -107,12 +110,36 @@ export function SignupForm() {
 
   return (
     <form onSubmit={submit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1" role="radiogroup" aria-label="회원 종류">
+        {(
+          [
+            ["academy", "학원회원", "학원·공부방·교습소"],
+            ["personal", "개인회원", "개인 선생님·과외"],
+          ] as const
+        ).map(([key, label, sub]) => (
+          <button
+            key={key}
+            type="button"
+            role="radio"
+            aria-checked={memberType === key}
+            onClick={() => setMemberType(key)}
+            className={`rounded-md px-3 py-2 text-center transition ${
+              memberType === key ? "bg-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <span className="block text-[15px] font-bold text-slate-900">{label}</span>
+            <span className="block text-xs text-slate-500">{sub}</span>
+          </button>
+        ))}
+      </div>
+      {memberType === "academy" ? (
+        <label className="block space-y-1.5">
+          <span className="text-sm font-semibold text-slate-700">학원·공부방·교습소 이름</span>
+          <input className={INPUT} value={values.academyName} onChange={set("academyName")} placeholder="예: 정수영어학원, 해솔공부방" required maxLength={40} />
+        </label>
+      ) : null}
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-slate-700">학원·공부방·교습소 이름</span>
-        <input className={INPUT} value={values.academyName} onChange={set("academyName")} placeholder="예: 정수영어학원, 해솔공부방 (개인이면 내 이름)" required maxLength={40} />
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-slate-700">이름</span>
+        <span className="text-sm font-semibold text-slate-700">{memberType === "academy" ? "대표자 이름" : "이름"}</span>
         <input className={INPUT} value={values.ownerName} onChange={set("ownerName")} required maxLength={20} autoComplete="name" />
       </label>
       <label className="block space-y-1.5">

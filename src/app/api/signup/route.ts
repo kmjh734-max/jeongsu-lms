@@ -45,6 +45,7 @@ async function uniqueSlug(admin: ReturnType<typeof createAdminClient>, base: str
 
 export async function POST(request: Request) {
   let body: {
+    memberType?: "academy" | "personal";
     academyName?: string;
     ownerName?: string;
     username?: string;
@@ -66,8 +67,11 @@ export async function POST(request: Request) {
   const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || "unknown";
   if (tooMany(ip)) return jsonError("잠시 뒤에 다시 가입해 주세요.", 429);
 
-  const academyName = (body.academyName ?? "").trim();
+  const memberType = body.memberType === "personal" ? "personal" : "academy";
   const ownerName = (body.ownerName ?? "").trim();
+  // 개인회원은 학원 이름 대신 "이름 선생님"으로 만든다 (자료 머리글·로그인 화면에 쓰인다)
+  const academyName =
+    memberType === "personal" ? `${ownerName} 선생님`.slice(0, 40) : (body.academyName ?? "").trim();
   const username = normalizeUsername(body.username ?? "");
   const password = body.password ?? "";
   const phone = (body.phone ?? "").replace(/[^0-9-]/g, "").trim();
@@ -88,6 +92,7 @@ export async function POST(request: Request) {
   // 1) 학원
   const slug = await uniqueSlug(admin, username);
   const signupInfo = {
+    member_type: memberType,
     owner_name: ownerName,
     contact_email: email,
     agreed_at: new Date().toISOString(),
