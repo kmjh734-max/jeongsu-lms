@@ -28,6 +28,7 @@ function jsonError(message: string, status = 200) {
 }
 
 export async function POST(request: Request) {
+  const startedAt = Date.now();
   try {
     let apiKey: string;
     try {
@@ -144,7 +145,11 @@ export async function POST(request: Request) {
      * 다른 회차·다른 학년과 이야기가 겹치면 그 자리에서 한 번 더 만든다.
      * 문항 하나만 보는 검사로는 알 수 없어, 예전에는 세 학년 시험지가 같은 이야기로 나갔다.
      */
-    if (mode === "exam") {
+    /*
+     * 한 문항 만드는 데 이미 오래 걸렸으면(유형 검사가 여러 번 되돌린 경우) 겹침 때문에
+     * 한 번 더 만들지 않는다 — 화면이 기다리다 끊기면 만든 문항까지 잃는다.
+     */
+    if (mode === "exam" && Date.now() - startedAt < 120_000) {
       const dup = await findDuplicateStories(access.admin, setId, gradeLevel, [
         {
           id: String(slotIndex),
