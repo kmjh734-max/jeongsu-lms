@@ -30,6 +30,15 @@ function rememberChecked(key: string, ms: number) {
   checkedUntil.set(key, Date.now() + ms);
 }
 
+/** 학생이 들어 있는 반 중 보관하지 않은 반 */
+function activeClassMemberships(admin: SupabaseClient, studentId: string) {
+  return admin
+    .from("class_students")
+    .select("class_id, classes!inner(is_active)")
+    .eq("student_id", studentId)
+    .eq("classes.is_active", true);
+}
+
 /** 학생이 지금 듣기 배정(스케줄 과제 또는 세트 배정)을 받고 있는지 */
 async function hasActiveListeningAssignment(
   admin: SupabaseClient,
@@ -50,7 +59,7 @@ async function hasActiveListeningAssignment(
         .eq("is_active", true)
         .limit(1)
         .maybeSingle(),
-      admin.from("class_students").select("class_id").eq("student_id", studentId),
+      activeClassMemberships(admin, studentId),
     ]);
   if (direct || directSchedule) return true;
 
@@ -80,15 +89,21 @@ async function hasVocabAssignment(
   admin: SupabaseClient,
   studentId: string
 ): Promise<boolean> {
-  const [{ data: direct }, { data: memberships }] = await Promise.all([
+  const [{ data: directRows }, { data: memberships }] = await Promise.all([
     admin
       .from("vocab_assignments")
-      .select("id")
+      .select("id, class_id, classes(is_active)")
       .eq("student_id", studentId)
-      .limit(1)
-      .maybeSingle(),
-    admin.from("class_students").select("class_id").eq("student_id", studentId),
+      .limit(50),
+    activeClassMemberships(admin, studentId),
   ]);
+  // 보관한 반에서 받은 배정은 세지 않는다
+  const direct = (directRows ?? []).some((r) => {
+    if (!r.class_id) return true;
+    const c = r.classes as { is_active?: boolean } | { is_active?: boolean }[] | null;
+    const cls = Array.isArray(c) ? c[0] : c;
+    return cls?.is_active !== false;
+  });
   if (direct) return true;
   const classIds = (memberships ?? []).map((r) => r.class_id as string).filter(Boolean);
   if (classIds.length === 0) return false;

@@ -60,7 +60,7 @@ export async function loadClassPageData(
   let classQuery = supabase
     .from("classes")
     .select(
-      "id, name, description, is_active, teacher_id, teacher:profiles!classes_teacher_id_fkey(id, name)"
+      "id, name, description, is_active, teacher_id, academy_id, teacher:profiles!classes_teacher_id_fkey(id, name)"
     )
     .eq("id", classId);
   if (variant === "teacher") classQuery = classQuery.eq("teacher_id", viewerId);
@@ -71,17 +71,20 @@ export async function loadClassPageData(
     classRow.teacher as { id: string; name: string } | { id: string; name: string }[] | null
   );
 
-  let studentQuery = supabase
+  // 반에 넣을 학생은 같은 학원 학생 모두에서 고른다 (원장님이 등록한 학생도 강사가 반에 넣을 수 있게)
+  const studentQuery = admin
     .from("profiles")
     .select("id, name, username, email")
     .eq("role", "student")
     .eq("is_active", true)
-    .order("name");
-  if (variant === "teacher") studentQuery = studentQuery.eq("created_by", viewerId);
+    .eq("academy_id", classRow.academy_id as string)
+    .order("name")
+    .limit(3000);
 
   const [{ data: memberRows }, { data: courseRows }, { data: studentRows }, vocabSetCount] =
     await Promise.all([
-      supabase
+      // 반은 위에서 확인했다. 원장님이 등록한 학생 이름도 보이게 서버에서 읽는다
+      admin
         .from("class_students")
         .select(
           "id, student_id, student:profiles!class_students_student_id_fkey(name, username)"

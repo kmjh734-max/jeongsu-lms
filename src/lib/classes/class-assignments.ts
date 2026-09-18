@@ -121,23 +121,34 @@ export async function syncEnrollmentsForCourse(
     return { enrolledCount: 0, errors: [error.message] };
   }
 
+  // 학생마다 두 번씩 묻지 않고, 이미 등록된 학생을 한 번에 확인한 뒤 나머지를 한 번에 넣는다
+  const studentIds = [...new Set((classStudents ?? []).map((r) => r.student_id as string))];
+  if (studentIds.length === 0) return { enrolledCount: 0, errors: [] };
+
+  const { data: existing, error: lookupError } = await supabase
+    .from("enrollments")
+    .select("student_id")
+    .eq("course_id", courseId)
+    .in("student_id", studentIds);
+  if (lookupError) return { enrolledCount: 0, errors: [lookupError.message] };
+
+  const have = new Set((existing ?? []).map((r) => r.student_id as string));
+  const missing = studentIds.filter((id) => !have.has(id));
+  if (missing.length === 0) return { enrolledCount: 0, errors: [] };
+
+  const { error: insertError } = await supabase.from("enrollments").insert(
+    missing.map((studentId) => ({ student_id: studentId, course_id: courseId, assigned_by: assignedBy }))
+  );
+  if (!insertError) return { enrolledCount: missing.length, errors: [] };
+
+  // 그사이 누가 먼저 넣었으면(중복) 한 명씩 다시 — 드문 경우
   let enrolledCount = 0;
   const errors: string[] = [];
-
-  for (const row of classStudents ?? []) {
-    const result = await ensureEnrollment(
-      supabase,
-      row.student_id,
-      courseId,
-      assignedBy
-    );
-    if (result.error) {
-      errors.push(result.error);
-    } else if (result.created) {
-      enrolledCount += 1;
-    }
+  for (const studentId of missing) {
+    const result = await ensureEnrollment(supabase, studentId, courseId, assignedBy);
+    if (result.error) errors.push(result.error);
+    else if (result.created) enrolledCount += 1;
   }
-
   return { enrolledCount, errors };
 }
 
@@ -433,9 +444,19 @@ export async function removeStudentFromClass(
     return { ok: false, message: humanizeDbError(error.message) };
   }
 
+  // 이 반에서 받은 단어 배정도 거둔다 (남아 있으면 계속 공부·이용료가 나간다)
+  const { error: vocabError } = await supabase
+    .from("vocab_assignments")
+    .delete()
+    .eq("class_id", classId)
+    .eq("student_id", studentId);
+  if (vocabError) {
+    return { ok: false, message: humanizeDbError(vocabError.message) };
+  }
+
   return {
     ok: true,
     message:
-      "반에서 학생이 제거되었습니다. 기존 수강 등록은 유지됩니다.",
+      "반에서 학생을 뺐습니다. 이 반의 단어·듣기 과제도 함께 멈춥니다(동영상 수강 등록은 유지).",
   };
 }

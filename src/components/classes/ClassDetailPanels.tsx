@@ -77,16 +77,21 @@ export function AddStudentButton({
     if (!studentId) return;
     setLoading(true);
     setMessage(null);
-    const result =
-      variant === "admin"
-        ? await adminAddStudentToClass(classId, studentId)
-        : await teacherAddStudentToClass(classId, studentId);
-    setMessage({ type: result.ok ? "success" : "error", text: result.message });
-    if (result.ok) {
-      setStudentId("");
-      router.refresh();
+    try {
+      const result =
+        variant === "admin"
+          ? await adminAddStudentToClass(classId, studentId)
+          : await teacherAddStudentToClass(classId, studentId);
+      setMessage({ type: result.ok ? "success" : "error", text: result.message });
+      if (result.ok) {
+        setStudentId("");
+        router.refresh();
+      }
+    } catch {
+      setMessage({ type: "error", text: "연결이 끊겼어요. 다시 해 주세요." });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -207,24 +212,29 @@ export function ClassStudentTable({
     setMenuFor(null);
     if (
       !window.confirm(
-        `「${row.name}」 학생을 이 반에서 뺄까요?\n이미 수강 중인 강좌와 학습 기록은 그대로 남아요.`
+        `「${row.name}」 학생을 이 반에서 뺄까요?\n이 반의 단어·듣기 과제는 멈추고, 동영상 수강과 학습 기록은 그대로 남아요.`
       )
     ) {
       return;
     }
     setBusy(true);
     setMessage(null);
-    const result =
-      variant === "admin"
-        ? await adminRemoveStudentFromClass(classId, row.studentId)
-        : await teacherRemoveStudentFromClass(classId, row.studentId);
-    setMessage(
-      result.ok
-        ? { type: "success", text: `${row.name} 학생을 반에서 뺐어요.` }
-        : { type: "error", text: result.message }
-    );
-    if (result.ok) router.refresh();
-    setBusy(false);
+    try {
+      const result =
+        variant === "admin"
+          ? await adminRemoveStudentFromClass(classId, row.studentId)
+          : await teacherRemoveStudentFromClass(classId, row.studentId);
+      setMessage(
+        result.ok
+          ? { type: "success", text: `${row.name} 학생을 반에서 뺐어요.` }
+          : { type: "error", text: result.message }
+      );
+      if (result.ok) router.refresh();
+    } catch {
+      setMessage({ type: "error", text: "연결이 끊겼어요. 다시 해 주세요." });
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -494,13 +504,18 @@ export function ClassCoursesPanel({
     if (!courseId) return;
     setLoading(true);
     setMessage(null);
-    const result =
-      variant === "admin"
-        ? await adminAssignCourseToClass(classId, courseId)
-        : await teacherAssignCourseToClass(classId, courseId);
-    setMessage({ type: result.ok ? "success" : "error", text: result.message });
-    if (result.ok) router.refresh();
-    setLoading(false);
+    try {
+      const result =
+        variant === "admin"
+          ? await adminAssignCourseToClass(classId, courseId)
+          : await teacherAssignCourseToClass(classId, courseId);
+      setMessage({ type: result.ok ? "success" : "error", text: result.message });
+      if (result.ok) router.refresh();
+    } catch {
+      setMessage({ type: "error", text: "연결이 끊겼어요. 다시 해 주세요." });
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleUnassign(courseIdToRemove: string, title: string) {
@@ -513,17 +528,22 @@ export function ClassCoursesPanel({
     }
     setLoading(true);
     setMessage(null);
-    const result =
-      variant === "admin"
-        ? await adminRemoveCourseFromClass(classId, courseIdToRemove)
-        : await teacherRemoveCourseFromClass(classId, courseIdToRemove);
-    setMessage(
-      result.ok
-        ? { type: "success", text: `「${title}」 배정을 해제했어요.` }
-        : { type: "error", text: result.message }
-    );
-    if (result.ok) router.refresh();
-    setLoading(false);
+    try {
+      const result =
+        variant === "admin"
+          ? await adminRemoveCourseFromClass(classId, courseIdToRemove)
+          : await teacherRemoveCourseFromClass(classId, courseIdToRemove);
+      setMessage(
+        result.ok
+          ? { type: "success", text: `「${title}」 배정을 해제했어요.` }
+          : { type: "error", text: result.message }
+      );
+      if (result.ok) router.refresh();
+    } catch {
+      setMessage({ type: "error", text: "연결이 끊겼어요. 다시 해 주세요." });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -638,10 +658,15 @@ export function ClassSettingsPanel({
     if (!isAdmin) return;
     setLoading(true);
     setMessage(null);
-    const result = await updateClass(classId, { name, description, teacherId, isActive });
-    setMessage({ type: result.ok ? "success" : "error", text: result.message });
-    if (result.ok) router.refresh();
-    setLoading(false);
+    try {
+      const result = await updateClass(classId, { name, description, teacherId, isActive });
+      setMessage({ type: result.ok ? "success" : "error", text: result.message });
+      if (result.ok) router.refresh();
+    } catch {
+      setMessage({ type: "error", text: "연결이 끊겼어요. 다시 해 주세요." });
+    } finally {
+      setLoading(false);
+    }
   }
 
   const teacherName = teachers.find((t) => t.id === initialTeacherId)?.name ?? "정하지 않음";

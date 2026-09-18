@@ -46,8 +46,10 @@ export async function loadStudentScheduleContext(
       .eq("target_student_id", studentId),
     admin
       .from("class_students")
-      .select("class_id, created_at")
-      .eq("student_id", studentId),
+      // 보관한 반의 과제는 더 나오지 않는다
+      .select("class_id, created_at, classes!inner(is_active)")
+      .eq("student_id", studentId)
+      .eq("classes.is_active", true),
   ]);
 
   for (const row of (direct ?? []) as ScheduleAssignmentRow[]) {

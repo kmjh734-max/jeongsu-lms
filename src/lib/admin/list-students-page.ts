@@ -62,7 +62,13 @@ function one<T>(v: T | T[] | null | undefined): T | null {
 export async function loadStudentsPageData(
   supabase: SupabaseClient,
   filters: StudentsPageFilters,
-  scope: { createdBy?: string; classTeacherId?: string; courseTeacherId?: string } = {}
+  scope: {
+    createdBy?: string;
+    classTeacherId?: string;
+    courseTeacherId?: string;
+    /** 강사 화면: 내가 등록한 학생 + 내 반 학생 (같은 학원 안에서) */
+    teacherVisible?: { teacherId: string; academyId: string };
+  } = {}
 ): Promise<StudentsPageData> {
   const page = Math.max(1, filters.page ?? 1);
   const search = safeTerm(filters.search ?? "");
@@ -104,6 +110,20 @@ export async function loadStudentsPageData(
     .select("id, name, username, email, is_active", { count: "exact" })
     .eq("role", "student");
   if (scope.createdBy) list = list.eq("created_by", scope.createdBy);
+  if (scope.teacherVisible) {
+    const { teacherId, academyId } = scope.teacherVisible;
+    const { data: mine } = await supabase
+      .from("class_students")
+      .select("student_id, classes!inner(teacher_id, is_active)")
+      .eq("classes.teacher_id", teacherId)
+      .eq("classes.is_active", true)
+      .limit(3000);
+    const memberIds = [...new Set((mine ?? []).map((r) => r.student_id as string))];
+    list = list.eq("academy_id", academyId);
+    list = memberIds.length
+      ? list.or(`created_by.eq.${teacherId},id.in.(${memberIds.join(",")})`)
+      : list.eq("created_by", teacherId);
+  }
   if (search) list = list.or(`name.ilike.*${search}*,username.ilike.*${search}*`);
   if (filters.status === "active") list = list.eq("is_active", true);
   if (filters.status === "inactive") list = list.eq("is_active", false);

@@ -34,17 +34,27 @@ export async function POST(request: Request) {
     const admin = clientResult.admin;
     const teacherId = auth.profile.id;
 
-    const { data: student } = await admin
-      .from("profiles")
-      .select("id")
-      .eq("id", studentId)
-      .eq("role", "student")
-      .eq("created_by", teacherId)
-      .maybeSingle();
+    // 내가 등록한 학생이거나 내 반 학생
+    const [{ data: student }, { data: inMyClass }] = await Promise.all([
+      admin
+        .from("profiles")
+        .select("id")
+        .eq("id", studentId)
+        .eq("role", "student")
+        .eq("created_by", teacherId)
+        .maybeSingle(),
+      admin
+        .from("class_students")
+        .select("id, classes!inner(teacher_id)")
+        .eq("student_id", studentId)
+        .eq("classes.teacher_id", teacherId)
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
-    if (!student) {
+    if (!student && !inMyClass) {
       return adminJsonError(
-        "본인이 등록한 학생만 강좌에 배정할 수 있습니다.",
+        "내가 등록한 학생이나 내 반 학생만 강좌에 배정할 수 있습니다.",
         403
       );
     }

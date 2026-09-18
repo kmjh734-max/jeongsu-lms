@@ -139,6 +139,17 @@ export async function updateClass(
   if (input.isActive !== undefined) payload.is_active = input.isActive;
 
   const admin = createAdminClient();
+  if (input.teacherId) {
+    // 이 학원 강사만 담당으로 지정할 수 있다
+    const { data: teacher } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("id", input.teacherId)
+      .eq("academy_id", auth.academyId)
+      .in("role", ["teacher", "admin"])
+      .maybeSingle();
+    if (!teacher) return { ok: false, message: "이 학원 강사만 담당으로 지정할 수 있습니다." };
+  }
   const { error } = await admin
     .from("classes")
     .update(payload)
@@ -151,6 +162,21 @@ export async function updateClass(
 
   revalidateClassPaths(classId);
   return { ok: true, message: "반 정보가 저장되었습니다." };
+}
+
+/** 다른 학원 반을 건드리지 못하게: 이 학원 반인지 확인 */
+async function classInAcademy(
+  admin: ReturnType<typeof createAdminClient>,
+  classId: string,
+  academyId: string
+): Promise<boolean> {
+  const { data } = await admin
+    .from("classes")
+    .select("id")
+    .eq("id", classId)
+    .eq("academy_id", academyId)
+    .maybeSingle();
+  return Boolean(data);
 }
 
 export async function deleteClass(classId: string): Promise<ClassActionResult> {
@@ -214,6 +240,9 @@ export async function adminRemoveStudentFromClass(
   if (!auth.ok) return { ok: false, message: auth.message };
 
   const admin = createAdminClient();
+  if (!(await classInAcademy(admin, classId, auth.academyId))) {
+    return { ok: false, message: "반을 찾을 수 없습니다." };
+  }
   const result = await removeStudentFromClass(admin, classId, studentId);
 
   if (result.ok) revalidateClassPaths(classId);
@@ -248,6 +277,9 @@ export async function adminRemoveCourseFromClass(
   if (!auth.ok) return { ok: false, message: auth.message };
 
   const admin = createAdminClient();
+  if (!(await classInAcademy(admin, classId, auth.academyId))) {
+    return { ok: false, message: "반을 찾을 수 없습니다." };
+  }
   const result = await removeCourseFromClass(admin, classId, courseId);
 
   if (result.ok) revalidateClassPaths(classId);
