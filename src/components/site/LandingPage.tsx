@@ -5,6 +5,54 @@ import { PricingSection } from "@/components/site/PricingSection";
 import { PublicHeader } from "@/components/site/PublicHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import type { PublicFeaturePrice, PublicPackage } from "@/lib/site/load-public-pricing";
+import { CANONICAL_SITE_URL, SITE_NAME } from "@/lib/branding";
+
+/** 검색엔진이 읽는 서비스 정보 */
+const JSON_LD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: CANONICAL_SITE_URL,
+    logo: `${CANONICAL_SITE_URL}/og/engcore-share.png`,
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: SITE_NAME,
+    url: CANONICAL_SITE_URL,
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web",
+    inLanguage: "ko",
+    description:
+      "영어학원을 위한 단어 시험지 출력, 영어듣기평가, 지문 분석서·워크북·변형문제, 온라인 단어학습, 학습 리포트 서비스",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "KRW",
+      description: "가입하면 2,000크레딧 무료, 이후 쓴 만큼 크레딧 결제",
+    },
+  },
+];
+
+/** 위쪽 기능 카드 → 자세한 기능 소개 페이지 */
+const FEATURE_LINK: Record<string, string> = {
+  "지문 분석서": "/features/passage-analysis",
+  "워크북·변형문제": "/features/workbook",
+  영어듣기평가: "/features/listening-test",
+  단어학습: "/features/vocab-app",
+  "학습 리포트": "/features/learning-report",
+};
+
+/** 실제 화면 항목 → 자세한 기능 소개 페이지 */
+const SHOWCASE_LINK: Record<string, string> = {
+  "지문 분석서": "/features/passage-analysis",
+  "워크북·변형문제": "/features/workbook",
+  "영어듣기평가 시험지": "/features/listening-test",
+  "온라인 듣기학습": "/features/listening-test",
+  "학년별 단어장 · 온라인 단어학습": "/features/vocab-app",
+  "단어 시험지 바로 출력": "/features/vocab-test",
+};
 
 const FEATURES: Array<{ icon: Parameters<typeof Icon>[0]["name"]; title: string; body: string }> = [
   { icon: "file", title: "지문 분석서", body: "지문을 넣으면 문장 구조·어법 포인트·직독직해까지 정리된 분석지가 나옵니다." },
@@ -91,6 +139,7 @@ export function LandingPage({
 }) {
   return (
     <div className="min-h-screen bg-slate-50">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <PublicHeader />
 
       <section className="relative overflow-hidden bg-side">
@@ -135,15 +184,27 @@ export function LandingPage({
           수업 준비에 드는 시간을 줄입니다
         </h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          {FEATURES.map((f) => {
+            const card = (
+            <div key={f.title} className="h-full rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
                 <Icon name={f.icon} size={20} />
               </span>
               <p className="mt-4 text-base font-bold text-slate-900">{f.title}</p>
               <p className="mt-1.5 text-sm leading-6 text-slate-600">{f.body}</p>
+              {FEATURE_LINK[f.title] ? (
+                <span className="mt-3 inline-block text-sm font-semibold text-brand-700">자세히 보기 →</span>
+              ) : null}
             </div>
-          ))}
+            );
+            return FEATURE_LINK[f.title] ? (
+              <Link key={f.title} href={FEATURE_LINK[f.title]!} className="block hover:[&>div]:border-brand-300">
+                {card}
+              </Link>
+            ) : (
+              card
+            );
+          })}
         </div>
       </section>
 
@@ -203,6 +264,14 @@ export function LandingPage({
                       </li>
                     ))}
                   </ul>
+                  {SHOWCASE_LINK[item.title] ? (
+                    <Link
+                      href={SHOWCASE_LINK[item.title]!}
+                      className="mt-4 inline-block text-sm font-semibold text-brand-700 hover:underline"
+                    >
+                      자세히 보기 →
+                    </Link>
+                  ) : null}
                 </div>
               </div>
             ))}

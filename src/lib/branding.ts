@@ -26,3 +26,6 @@ export const PRIMARY_COLOR = academyConfig.primaryColor;
 
 /** SNS·카카오톡 미리보기용 절대 URL */
 export const OG_IMAGE_URL = new URL(LOGO_SRC, SITE_URL).toString();
+
+/** 검색엔진·공유 미리보기에 쓰는 대표 주소. engcore.co.kr은 www로 넘어가므로 www를 쓴다 */
+export const CANONICAL_SITE_URL = SITE_URL.replace("://engcore.co.kr", "://www.engcore.co.kr");

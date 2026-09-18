@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import {
+  CANONICAL_SITE_URL,
   PRIMARY_COLOR,
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -12,7 +13,7 @@ import "./globals.css";
 const SHARE_IMAGE = "/og/engcore-share.png";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: new URL(CANONICAL_SITE_URL),
   title: {
     default: SITE_NAME,
     template: `%s · ${SITE_NAME}`,
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: SITE_URL,
+    url: CANONICAL_SITE_URL,
     siteName: SITE_NAME,
     title: SITE_NAME,
     description: SITE_DESCRIPTION,

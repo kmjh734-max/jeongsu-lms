@@ -25,6 +25,10 @@ const PUBLIC_PREFIXES = [
   "/terms",
   "/privacy",
   "/signup",
+  // 검색으로 들어오는 기능 소개와 검색엔진용 파일
+  "/features",
+  "/robots.txt",
+  "/sitemap.xml",
   "/api/signup",
   "/auth/callback",
   "/report/share",

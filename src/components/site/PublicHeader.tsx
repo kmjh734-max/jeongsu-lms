@@ -11,7 +11,7 @@ export function PublicHeader() {
           <span className="hidden text-xs text-slate-500 sm:inline">영어교육의 중심</span>
         </Link>
         <nav className="flex items-center gap-1 text-sm sm:gap-2">
-          <Link href="/#features" className="hidden rounded-md px-3 py-1.5 text-slate-600 hover:bg-slate-100 sm:inline">
+          <Link href="/features" className="hidden rounded-md px-3 py-1.5 text-slate-600 hover:bg-slate-100 sm:inline">
             기능
           </Link>
           <Link href="/pricing" className="rounded-md px-3 py-1.5 text-slate-600 hover:bg-slate-100">
