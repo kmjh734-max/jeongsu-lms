@@ -695,6 +695,13 @@ function pickRandom<T>(list: T[]): T {
  * 무작위로 뽑던 때는 은행이 24개여도 22회차 중 같은 상황이 여러 번 나왔다(생일 선물 고르기 5회 등).
  * 유형마다 시작점을 어긋나게 해(typeId × 7) 여러 유형이 같은 순서로 움직이지 않게 한다.
  */
+/** 학년마다 은행의 시작점을 어긋나게 하는 값 */
+function gradeStep(grade: ListeningGradeLevel | undefined): number {
+  const order: ListeningGradeLevel[] = ["middle1", "middle2", "middle3", "high1", "high2", "high3"];
+  const i = order.indexOf(grade ?? "middle1");
+  return i < 0 ? 0 : i + 1;
+}
+
 function pickRotated<T>(list: T[], rotation: number, typeId: number): T {
   return list[(((rotation + typeId * 7) % list.length) + list.length) % list.length]!;
 }
@@ -725,7 +732,12 @@ export function pickAnswerVariety(
   const candidates = pool.entries.filter((_, i) => usage[i] === min);
   // 아직 아무도 안 쓴 정답이 여럿이면 무작위로 뽑지 말고 회차 번호로 갈라 준다
   // (은행을 넓히면 미사용 정답이 20개 넘게 남아, 연달아 만든 두 회차가 같은 답을 뽑는 일이 생겼다)
-  const entry = rotation >= 0 ? pickRotated(candidates, rotation, typeId) : pickRandom(candidates);
+  /*
+   * 회차 번호만 세면 중1·중2·중3의 같은 회차·같은 번호가 같은 상황을 골라, 세 학년 시험지가
+   * 한 이야기처럼 나왔다(3회차 실측: 같은 번호끼리 소재 겹침 28/60). 학년도 함께 센다.
+   */
+  const step = rotation >= 0 ? rotation + gradeStep(grade) * 5 : -1;
+  const entry = step >= 0 ? pickRotated(candidates, step, typeId) : pickRandom(candidates);
   const freshScenarios = pool.scenarios.filter((s) => !avoidScenarios.includes(s));
   const list = freshScenarios.length > 0 ? freshScenarios : pool.scenarios;
   return {
@@ -733,7 +745,7 @@ export function pickAnswerVariety(
     ...(variant ? { variant } : {}),
     answer: entry.answer,
     hint: entry.hint,
-    scenario: rotation >= 0 ? pickRotated(list, rotation, typeId) : pickRandom(list),
+    scenario: step >= 0 ? pickRotated(list, step, typeId) : pickRandom(list),
   };
 }
 
