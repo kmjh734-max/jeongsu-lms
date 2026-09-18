@@ -59,7 +59,7 @@ const COLOR_WORDS =
 
 /** 담화 첫머리에 올 수 있는 감탄사·인사 — 사람 이름이 아니다 */
 const NOT_A_NAME_OPENER =
-  /^(Hello|Hi|Hey|Good|Attention|Welcome|Thank|Thanks|Wow|Oh|Well|Look|Listen|Sorry|Excuse|Okay|OK|Yes|No|Right|Great|Nice|Congratulations|Please|Everyone|Students|Friends|Ladies|Dear|Guess|Today|Finally|First|Now)/;
+  /^(Hello|Hi|Hey|Good|Attention|Welcome|Thank|Thanks|Wow|Oh|Well|Look|Listen|Sorry|Excuse|Okay|OK|Yes|No|Right|Great|Nice|Congratulations|Please|Everyone|Students|Friends|Ladies|Dear|Guess|Today|Finally|First|Now)\b/;
 
 export function scriptRuleProblems(q: GeneratedListeningQuestion): string[] {
   // 규칙은 화자 표시가 없는 대본으로 본다(담화 첫 문장 검사가 "M:"에 걸리지 않게).
