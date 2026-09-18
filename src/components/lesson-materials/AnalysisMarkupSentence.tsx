@@ -336,6 +336,8 @@ function useMarkupLayout(
       const items = glossEls.map((el) => ({
         el,
         anchor: el.parentElement!.getBoundingClientRect(),
+        // 첫 낱말까지 감싼 칸 — 아래변이 글자 꼬리(g·p·y)까지 내려와, 표시 없는 줄에서도 글자에 닿지 않는다
+        word: (el.closest(".ar-gloss-start") ?? el.parentElement!).getBoundingClientRect(),
         rect: el.getBoundingClientRect(),
       }));
       // 같은 줄끼리 묶는다(닻의 윗변이 거의 같으면 같은 줄)
@@ -347,20 +349,33 @@ function useMarkupLayout(
       }
       for (const line of lines) {
         const top = Math.min(...line.map((it) => it.anchor.top));
-        const textBottom = Math.max(...line.map((it) => it.anchor.bottom));
+        const textBottom = Math.max(...line.map((it) => Math.max(it.anchor.bottom, it.word.bottom)));
         let floor = textBottom;
         for (const m of marks) {
           if (m.height > 0 && m.top >= top - 4 && m.top < textBottom + 30 && m.bottom < textBottom + 34) {
             floor = Math.max(floor, m.bottom);
           }
         }
-        let prevRight = -Infinity;
+        /*
+         * 뜻을 왼쪽부터 놓되, 앞 뜻과 겹치면 오른쪽으로 민다. 밀어서 글상자를 넘으면 억지로 안쪽에
+         * 끼워 넣지 않고(그러면 앞 뜻과 겹쳤다) 한 줄 아래에 놓는다.
+         */
+        const rowRight = [-Infinity, -Infinity];
         for (const it of line.sort((x, y) => x.rect.left - y.rect.left)) {
-          const dy = floor + 2 - it.rect.top;
-          let dx = it.rect.left < prevRight + 6 ? prevRight + 6 - it.rect.left : 0;
-          if (it.rect.right + dx > bounds.right) dx = bounds.right - it.rect.right;
+          const width = it.rect.width;
+          let row = 0;
+          let dx = 0;
+          for (; row < rowRight.length; row++) {
+            dx = it.rect.left < rowRight[row]! + 6 ? rowRight[row]! + 6 - it.rect.left : 0;
+            if (it.rect.left + dx + width <= bounds.right) break;
+          }
+          if (row >= rowRight.length) {
+            row = rowRight.length - 1;
+            dx = bounds.right - it.rect.right;
+          }
+          const dy = floor + 2 - it.rect.top + row * (it.rect.height + 2);
           it.el.style.transform = `translate(${Math.round(unscale(dx))}px, ${Math.round(unscale(dy))}px)`;
-          prevRight = it.rect.right + dx;
+          rowRight[row] = it.rect.left + dx + width;
         }
       }
     }
