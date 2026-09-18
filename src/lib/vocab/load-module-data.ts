@@ -89,6 +89,9 @@ export const loadVocabModuleData = cache(async function loadVocabModuleData(
     s.folderId ? !lockedFolderIds.has(s.folderId) : !s.isLocked
   ).length;
 
+  // 학원 교재는 쉬운 순서로(초등 → 중학 → 고교 → 수능), 나머지는 이름순
+  folders.sort((x, y) => folderLevel(x.name) - folderLevel(y.name) || x.name.localeCompare(y.name, "ko"));
+
   return {
     folders,
     sets,
@@ -101,6 +104,17 @@ export const loadVocabModuleData = cache(async function loadVocabModuleData(
     })),
   };
 });
+
+/** 단어장 폴더의 난이도 순서(쉬운 것이 작다). 모르는 이름은 맨 뒤 */
+export function folderLevel(name: string): number {
+  const order = ["초등", "중학기본", "중학필수", "중학고난도", "고교기본", "고교필수", "수능"];
+  const compact = name.replace(/\s+/g, "");
+  const i = order.findIndex((k) => compact.includes(k));
+  if (i < 0) return 100;
+  // 초등은 Level 번호까지 반영
+  const level = i === 0 ? Number(compact.match(/Level(\d+)/i)?.[1] ?? 0) / 10 : 0;
+  return i + level;
+}
 
 /** 필터에 맞는 세트만 고른다 (세트 탭 목록). */
 export function filterModuleSets(
