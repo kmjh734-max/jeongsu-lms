@@ -9,6 +9,7 @@ import {
   NameAvatar,
 } from "@/components/reports/report-ui";
 import { ReportDashboard } from "@/components/reports/ReportDashboard";
+import { ReviewSetActions } from "@/components/reports/ReviewSetActions";
 import { getReportRangeBounds } from "@/lib/reports/date-range";
 import type { StudentReport, VocabReportSection } from "@/lib/reports/types";
 
@@ -383,6 +384,7 @@ export function StudentReportView({ report, loading = false, onPreview }: Studen
           title="복습 필요 단어"
           aside={report.reviewWords.length > 0 ? `${report.reviewWords.length}개` : undefined}
         >
+          <ReviewSetActions report={report} />
           {report.reviewWords.length === 0 ? (
             <Empty>복습이 필요한 단어가 없어요.</Empty>
           ) : (
