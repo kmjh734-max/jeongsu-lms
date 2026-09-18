@@ -766,11 +766,11 @@ export function StudentRecordWorkspace({
                       <Icon name="upload" size={18} />
                     </span>
                     <span className="mt-3 text-sm font-semibold text-slate-800">
-                      PDF·이미지 파일을 끌어 놓거나 눌러서 고르세요
+                      PDF·HTML·이미지 파일을 끌어 놓거나 눌러서 고르세요
                     </span>
                     <span className="mt-1 text-xs text-slate-500">
                       PDF는 최대 {STUDENT_RECORD_MAX_PDF_PAGES}쪽, 이미지는 한 장에{" "}
-                      {formatBytes(STUDENT_RECORD_MAX_IMAGE_BYTES)}까지 올릴 수 있어요.
+                      {formatBytes(STUDENT_RECORD_MAX_IMAGE_BYTES)}까지 올릴 수 있어요. 나이스에서 저장한 학생부 HTML은 글자를 그대로 읽어 더 빠르고 정확해요.
                     </span>
                     <input
                       type="file"
