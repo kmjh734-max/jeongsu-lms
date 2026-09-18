@@ -4,6 +4,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SignOutButton } from "@/components/layout/SignOutButton";
+import { SuperAdminStats } from "@/components/super-admin/SuperAdminStats";
 import { SuperAdminAcademiesClient } from "@/components/super-admin/SuperAdminAcademiesClient";
 
 export default async function SuperAdminHomePage() {
@@ -86,6 +87,7 @@ export default async function SuperAdminHomePage() {
       <p className="mb-4 text-sm text-slate-600">
         {profile.name} · {profile.email}
       </p>
+      <SuperAdminStats />
       <SuperAdminAcademiesClient initialRows={rows} />
     </div>
   );
