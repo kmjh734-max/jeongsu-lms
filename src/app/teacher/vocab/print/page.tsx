@@ -15,8 +15,8 @@ export default async function TeacherVocabBulkPrintPage({
   searchParams,
 }: PageProps) {
   const { sets: setsParam, back } = await searchParams;
-  const locked = await seatLockScreen("vocab", "/teacher", "/teacher/vocab/sets");
-  if (locked) return locked;
+  // 이용 확인은 자료를 불러오는 동안 함께 한다
+  const lockPromise = seatLockScreen("vocab", "/teacher", "/teacher/vocab/sets");
   const setIds = (setsParam ?? "")
     .split(",")
     .map((s) => s.trim())
@@ -39,6 +39,9 @@ export default async function TeacherVocabBulkPrintPage({
   if (sections.length === 0) notFound();
 
   const backHref = back?.startsWith("/teacher/") ? back : "/teacher/vocab/sets";
+
+  const locked = await lockPromise;
+  if (locked) return locked;
 
   return (
     <Suspense

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   memo,
   startTransition,
@@ -222,7 +222,6 @@ export function VocabSetPrintView({
   academyName = ACADEMY_NAME,
   logoSrc = LOGO_SRC,
 }: VocabSetPrintViewProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState(() =>
     parseVocabPrintMode(searchParams.get("mode") ?? undefined)
@@ -501,8 +500,9 @@ export function VocabSetPrintView({
     if (qs === urlParamsRef.current) return;
     urlParamsRef.current = qs;
     lastWrittenQueryRef.current = qs;
-    router.replace(`?${qs}`);
-  }, [router]);
+    // 주소만 바꾼다 — router.replace는 서버에서 페이지를 통째로 다시 불러와 미리보기가 튄다
+    window.history.replaceState(window.history.state, "", `?${qs}`);
+  }, []);
 
   const queueUrlSync = useCallback(
     (delay = 400) => {

@@ -14,8 +14,8 @@ export default async function AdminVocabBulkPrintPage({
   searchParams,
 }: PageProps) {
   const { sets: setsParam, back } = await searchParams;
-  const locked = await seatLockScreen("vocab", "/admin", "/admin/vocab/sets");
-  if (locked) return locked;
+  // 이용 확인은 자료를 불러오는 동안 함께 한다
+  const lockPromise = seatLockScreen("vocab", "/admin", "/admin/vocab/sets");
   const setIds = (setsParam ?? "")
     .split(",")
     .map((s) => s.trim())
@@ -33,6 +33,9 @@ export default async function AdminVocabBulkPrintPage({
   if (sections.length === 0) notFound();
 
   const backHref = back?.startsWith("/admin/") ? back : "/admin/vocab/sets";
+
+  const locked = await lockPromise;
+  if (locked) return locked;
 
   return (
     <Suspense

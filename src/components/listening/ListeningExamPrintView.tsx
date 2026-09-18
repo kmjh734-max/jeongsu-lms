@@ -385,6 +385,12 @@ export function ListeningExamPrintView({
 }: ListeningExamPrintViewProps) {
   const [examTitle, setExamTitle] = useState(title);
   const [studentName, setStudentName] = useState("");
+  // 제목은 글자 수에 따라 머리글 높이가 바뀔 수 있어, 입력이 멈춘 뒤에만 쪽을 다시 나눈다
+  const [layoutTitle, setLayoutTitle] = useState(title);
+  useEffect(() => {
+    const t = setTimeout(() => setLayoutTitle(examTitle), 400);
+    return () => clearTimeout(t);
+  }, [examTitle]);
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [pages, setPages] = useState<ExamPageLayout[] | null>(null);
   const [answerPages, setAnswerPages] = useState<ExamPageLayout[] | null>(
@@ -599,9 +605,8 @@ export function ListeningExamPrintView({
   }, [
     questions,
     showScript,
-    examTitle,
+    layoutTitle,
     gradeLabel,
-    studentName,
     title,
     setId,
     layoutConfig.gapPx,
@@ -697,9 +702,8 @@ export function ListeningExamPrintView({
     answerPages,
     questions,
     showScript,
-    examTitle,
+    layoutTitle,
     gradeLabel,
-    studentName,
     includeAnswerKey,
   ]);
 

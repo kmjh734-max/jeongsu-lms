@@ -15,15 +15,18 @@ export default async function TeacherListeningPrintPage({
 }) {
   const { setId } = await params;
   const { script } = await searchParams;
-  const locked = await seatLockScreen("listening", "/teacher", `/teacher/listening/${setId}`);
+  // 이용 확인은 자료를 불러오는 동안 함께 한다
+  const lockPromise = seatLockScreen("listening", "/teacher", `/teacher/listening/${setId}`);
+
+  // 권한 확인과 자료 읽기를 함께 (결과는 권한이 있을 때만 쓴다)
+  const [access, loaded] = await Promise.all([
+    assertListeningSetAccess(setId),
+    createClient().then((supabase) => loadListeningSetForEditor(supabase, setId)),
+  ]);
+  if (!access.ok || !loaded) notFound();
+
+  const locked = await lockPromise;
   if (locked) return locked;
-
-  const access = await assertListeningSetAccess(setId);
-  if (!access.ok) notFound();
-
-  const supabase = await createClient();
-  const loaded = await loadListeningSetForEditor(supabase, setId);
-  if (!loaded) notFound();
 
   return (
     <ListeningExamPrintView

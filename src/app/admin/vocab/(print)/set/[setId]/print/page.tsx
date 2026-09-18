@@ -12,8 +12,8 @@ interface PageProps {
 
 export default async function AdminVocabSetPrintPage({ params }: PageProps) {
   const { setId } = await params;
-  const locked = await seatLockScreen("vocab", "/admin", `/admin/vocab/set/${setId}`);
-  if (locked) return locked;
+  // 이용 확인은 자료를 불러오는 동안 함께 한다
+  const lockPromise = seatLockScreen("vocab", "/admin", `/admin/vocab/set/${setId}`);
   const supabase = await createClient();
   const [loaded, branding] = await Promise.all([
     loadVocabSetPrintData(supabase, setId),
@@ -22,6 +22,9 @@ export default async function AdminVocabSetPrintPage({ params }: PageProps) {
   if (!loaded) notFound();
 
   const backHref = `/admin/vocab/set/${setId}`;
+
+  const locked = await lockPromise;
+  if (locked) return locked;
 
   return (
     <Suspense

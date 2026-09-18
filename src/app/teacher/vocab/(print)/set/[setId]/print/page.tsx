@@ -13,8 +13,8 @@ interface PageProps {
 
 export default async function TeacherVocabSetPrintPage({ params }: PageProps) {
   const { setId } = await params;
-  const locked = await seatLockScreen("vocab", "/teacher", `/teacher/vocab/set/${setId}`);
-  if (locked) return locked;
+  // 이용 확인은 자료를 불러오는 동안 함께 한다
+  const lockPromise = seatLockScreen("vocab", "/teacher", `/teacher/vocab/set/${setId}`);
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "teacher") {
     redirect("/login");
@@ -28,6 +28,9 @@ export default async function TeacherVocabSetPrintPage({ params }: PageProps) {
   if (!loaded) notFound();
 
   const backHref = `/teacher/vocab/set/${setId}`;
+
+  const locked = await lockPromise;
+  if (locked) return locked;
 
   return (
     <Suspense

@@ -16,16 +16,9 @@ export async function renderVocabSetPage(
   const supabase = await createClient();
   const base = vocabBasePath(role);
 
-  // 강사는 RLS로 본인 세트 + 학원 교재만 읽을 수 있다
-  const { data: setRow } = await supabase
-    .from("vocab_sets")
-    .select("*")
-    .eq("id", setId)
-    .maybeSingle();
-  if (!setRow) notFound();
-  const set = setRow as VocabSet;
-
-  const [moduleData, itemsRes, progressRows, statsMap] = await Promise.all([
+  // 강사는 RLS로 본인 세트 + 학원 교재만 읽을 수 있다 (다른 것도 함께 읽고, 세트가 없으면 버린다)
+  const [{ data: setRow }, moduleData, itemsRes, progressRows, statsMap] = await Promise.all([
+    supabase.from("vocab_sets").select("*").eq("id", setId).maybeSingle(),
     loadVocabModuleData(role),
     supabase
       .from("vocab_items")
@@ -36,6 +29,8 @@ export async function renderVocabSetPage(
     loadSetStageProgressRows(supabase, setId),
     loadVocabSetStats(supabase, [setId]),
   ]);
+  if (!setRow) notFound();
+  const set = setRow as VocabSet;
 
   const folder = set.folder_id
     ? moduleData.folders.find((f) => f.id === set.folder_id)

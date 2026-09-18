@@ -1,5 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 import { getFeatureCost, koreaYearMonth, monthlySeatFeatureKey, type MonthlySeatKind } from "@/lib/credits";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+/** 이용료 단가는 거의 바뀌지 않아 5분 동안 기억한다 */
+const cachedFeatureCost = unstable_cache(
+  (featureKey: string) => getFeatureCost(createAdminClient(), featureKey),
+  ["seat-feature-cost"],
+  { revalidate: 300 }
+);
 
 /**
  * 단어·듣기 학습 자료(시험지·문제지 출력)는 학원이 학생 이용료를 내고 있을 때만 쓴다.
@@ -16,7 +25,7 @@ export async function hasActiveStudentSeat(
 ): Promise<boolean> {
   if (!academyId) return false;
   const featureKey = monthlySeatFeatureKey(kind);
-  const pricing = await getFeatureCost(admin, featureKey);
+  const pricing = await cachedFeatureCost(featureKey);
   if (!pricing || !pricing.active || pricing.cost <= 0) return true;
 
   const [y, m] = koreaYearMonth().split("-").map(Number);
