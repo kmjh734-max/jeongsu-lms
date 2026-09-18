@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { cookies, headers } from "next/headers";
+import { BUSINESS_INFO } from "@/lib/site/business-info";
 import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { LoginHero, LoginHeroCompact } from "@/components/auth/LoginHero";
@@ -123,10 +124,15 @@ export default async function LoginPage({ searchParams }: PageProps) {
             />
           </Suspense>
         </div>
-        <p className="mt-6 text-center text-xs text-slate-400">
-          <a href="/refund-policy" className="underline hover:text-slate-600">
-            환불 기준
-          </a>
+        <p className="mt-6 text-center text-xs leading-5 text-slate-400">
+          {BUSINESS_INFO.name}
+          {BUSINESS_INFO.registrationNumber ? ` · 사업자등록번호 ${BUSINESS_INFO.registrationNumber}` : ""}
+          <br />
+          <a href="/terms" className="underline hover:text-slate-600">이용약관</a>
+          {" · "}
+          <a href="/privacy" className="font-semibold underline hover:text-slate-600">개인정보처리방침</a>
+          {" · "}
+          <a href="/refund-policy" className="underline hover:text-slate-600">환불 기준</a>
         </p>
       </main>
     </div>

@@ -19,8 +19,13 @@ import type { UserRole } from "@/types/database";
 
 const PUBLIC_PREFIXES = [
   "/login",
-  // 환불 기준 — 통신판매업 신고·결제 고지용으로 누구나 볼 수 있어야 한다
+  // 공개 안내 — 통신판매업 신고·결제대행 심사용으로 누구나 볼 수 있어야 한다
   "/refund-policy",
+  "/pricing",
+  "/terms",
+  "/privacy",
+  "/signup",
+  "/api/signup",
   "/auth/callback",
   "/report/share",
   "/student-record/share",
@@ -35,6 +40,8 @@ const PUBLIC_PREFIXES = [
 ];
 
 function isPublicPath(pathname: string): boolean {
+  // 첫 화면: 로그인 전에는 서비스 소개(페이지가 로그인 여부를 보고 알아서 보낸다)
+  if (pathname === "/") return true;
   if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return true;
   }

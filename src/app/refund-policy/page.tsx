@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { BUSINESS_INFO, REFUND_POLICY_EFFECTIVE_DATE } from "@/lib/site/business-info";
+import { PublicHeader } from "@/components/site/PublicHeader";
+import { SiteFooter } from "@/components/site/SiteFooter";
 
 export const metadata: Metadata = {
   title: "환불 기준 | EngCore",
@@ -35,20 +36,10 @@ export default function RefundPolicyPage() {
     b.email ? { label: "이메일", value: b.email, href: `mailto:${b.email}` } : null,
     b.phone ? { label: "전화", value: b.phone, href: `tel:${b.phone.replace(/[^0-9+]/g, "")}` } : null,
   ].filter(Boolean) as Array<{ label: string; value: string; href: string }>;
-  const businessRows = [
-    ["상호", b.name],
-    ["대표자", b.representative],
-    ["사업자등록번호", b.registrationNumber],
-    ["통신판매업 신고번호", b.mailOrderNumber],
-    ["주소", b.address],
-    ["이메일", b.email],
-    ["전화", b.phone],
-  ].filter(([, v]) => v);
-
   return (
     <div className="min-h-screen bg-slate-50">
+      <PublicHeader />
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
-        <p className="text-sm font-semibold text-brand-600">EngCore</p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">환불 기준</h1>
         <p className="mt-2 text-sm text-slate-500">시행일 {REFUND_POLICY_EFFECTIVE_DATE}</p>
 
@@ -212,23 +203,8 @@ export default function RefundPolicyPage() {
           </section>
         </div>
 
-        {businessRows.length > 0 ? (
-          <dl className="mt-8 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs text-slate-500">
-            {businessRows.map(([k, v]) => (
-              <div key={k} className="contents">
-                <dt>{k}</dt>
-                <dd>{v}</dd>
-              </div>
-            ))}
-          </dl>
-        ) : null}
-
-        <p className="mt-6 text-sm">
-          <Link href="/login" className="text-slate-500 underline">
-            EngCore로 돌아가기
-          </Link>
-        </p>
       </main>
+      <SiteFooter />
     </div>
   );
 }
