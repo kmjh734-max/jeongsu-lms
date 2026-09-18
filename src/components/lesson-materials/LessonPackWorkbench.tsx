@@ -25,6 +25,7 @@ import {
 } from "@/components/lesson-materials/open-new-document";
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 import "./lesson-pack-print-styles.css";
+import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
 
 /** 수업자료 준비(단어·동반의어, 영어 제목)를 동시에 돌리는 지문 수. */
 const LESSON_PACK_PREP_CONCURRENCY = 8;
@@ -56,6 +57,8 @@ export type LessonPackProjectInput = {
  */
 type LessonPackDesignStyle = "a" | "b" | "c";
 const DESIGN_STYLE_KEY = "lesson-pack-design-style";
+/** 쪽번호를 넣을지 (선생님이 자료마다 고른다) */
+const PAGE_NUMBER_KEY = "lesson-pack-page-numbers";
 const DESIGN_STYLES: Array<{ id: LessonPackDesignStyle; label: string; hint: string }> = [
   { id: "a", label: "A", hint: "교재 세리프" },
   { id: "b", label: "B", hint: "깔끔한 산세리프" },
@@ -251,6 +254,28 @@ export function LessonPackWorkbench({
       /* 저장소를 못 쓰면 A */
     }
   }, []);
+  /** 쪽번호 — 인쇄물 오른쪽 아래에 1부터 찍는다. 최종통합자료에 끼울 때는 통합자료가 센다. */
+  const [pageNumbers, setPageNumbers] = useState(false);
+  useEffect(() => {
+    try {
+      setPageNumbers(window.localStorage.getItem(PAGE_NUMBER_KEY) === "on");
+    } catch {
+      /* 저장소를 못 쓰면 끈 채로 */
+    }
+  }, []);
+  const choosePageNumbers = (on: boolean) => {
+    setPageNumbers(on);
+    try {
+      window.localStorage.setItem(PAGE_NUMBER_KEY, on ? "on" : "off");
+    } catch {
+      /* 무시 */
+    }
+  };
+  useEffect(
+    () => watchPageNumbersById("lesson-pack-print-root", pageNumbers && !embedded),
+    [pageNumbers, embedded]
+  );
+
   const chooseDesignStyle = (style: LessonPackDesignStyle) => {
     setDesignStyle(style);
     try {
@@ -1269,6 +1294,16 @@ export function LessonPackWorkbench({
               {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
             </p>
           </div>
+
+          <label className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
+            <span className="text-xs font-bold text-slate-500">쪽번호 넣기</span>
+            <input
+              type="checkbox"
+              checked={pageNumbers}
+              onChange={(e) => choosePageNumbers(e.target.checked)}
+              className="h-4 w-4 accent-violet-500"
+            />
+          </label>
 
           <label className="block space-y-1.5">
             <span className="text-xs font-bold text-slate-500">상단 라벨 (소제목)</span>

@@ -25,6 +25,7 @@ import {
   FrontCover,
   type ContentsEntry,
 } from "@/components/lesson-materials/integrated/BundleSheets";
+import { watchPageNumbers } from "@/lib/lesson-materials/page-numbers";
 
 export type FinalBundleMaterials = {
   lessonPacks: Array<{ docId: string; name: string; projects: LessonPackProjectInput[] }>;
@@ -172,6 +173,16 @@ export function FinalBundleClient({
       observer.disconnect();
       clearInterval(timer);
     };
+  }, []);
+
+  /*
+   * 쪽번호를 장마다 찍는다. 목차의 쪽 번호와 같은 셈법(앞표지 1, 목차 2, …)이라
+   * 목차에 적힌 번호로 그 쪽을 찾을 수 있다. 표지와 뒤표지에는 번호를 적지 않는다.
+   */
+  useEffect(() => {
+    return watchPageNumbers(rootRef.current, true, {
+      skip: (el, i) => i === 0 || el.classList.contains("final-bundle-sheet--last"),
+    });
   }, []);
 
   // 쪽 번호: 앞표지 1, 목차 2, 그다음 간지와 자료 쪽을 차례로 센다.

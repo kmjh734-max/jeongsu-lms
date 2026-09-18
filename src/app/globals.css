@@ -3398,6 +3398,29 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   border-color: #b99aa1;
 }
 
+/*
+ * 쪽번호. 자료 한 장(.lesson-pack-a4-sheet 등)에 data-page-no를 적어 두면 그 자리에 찍힌다.
+ * 화면 미리보기와 종이가 같은 번호를 보여 준다 (page-numbers.ts가 번호를 적는다).
+ */
+[data-page-no]::after {
+  content: attr(data-page-no);
+  position: absolute;
+  bottom: 5.5mm;
+  right: 10mm;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  line-height: 1;
+  z-index: 60;
+}
+
+@media print {
+  [data-page-no]::after {
+    color: #64748b;
+  }
+}
+
 @media print {
 /* 기본은 여백만 0. 용지 크기는 화면별 주입(@page size)이 결정 — PDF 저장에 용지 옵션 없어도 동작 */
   @page {

@@ -31,6 +31,7 @@ import {
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
 import { readAnalysisMarkup } from "@/lib/lesson-materials/analysis-markup";
+import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
 
 /** 분석서를 동시에 만드는 지문 수. 지문 하나가 모델 호출 하나라 8개도 부담이 작다. */
 const ANALYSIS_REPORT_CONCURRENCY = 8;
@@ -140,6 +141,8 @@ const TRANSLATION_MODE_KEY = "analysis-report-translation-mode";
  */
 export type AnalysisDesignStyle = "base" | "a" | "b" | "c";
 const DESIGN_STYLE_KEY = "analysis-report-design-style";
+/** 쪽번호를 넣을지 (선생님이 자료마다 고른다) */
+const PAGE_NUMBER_KEY = "analysis-report-page-numbers";
 const DESIGN_STYLES: Array<{ id: AnalysisDesignStyle; label: string; hint: string }> = [
   { id: "a", label: "A", hint: "교재 세리프" },
   { id: "b", label: "B", hint: "깔끔한 산세리프" },
@@ -417,6 +420,28 @@ export function AnalysisReportWorkbench({
       /* 저장소를 못 쓰면 기본값 */
     }
   }, []);
+  /** 쪽번호 — 인쇄물 오른쪽 아래에 1부터 찍는다. 최종통합자료에 끼울 때는 통합자료가 센다. */
+  const [pageNumbers, setPageNumbers] = useState(false);
+  useEffect(() => {
+    try {
+      setPageNumbers(window.localStorage.getItem(PAGE_NUMBER_KEY) === "on");
+    } catch {
+      /* 저장소를 못 쓰면 끈 채로 */
+    }
+  }, []);
+  const choosePageNumbers = (on: boolean) => {
+    setPageNumbers(on);
+    try {
+      window.localStorage.setItem(PAGE_NUMBER_KEY, on ? "on" : "off");
+    } catch {
+      /* 무시 */
+    }
+  };
+  useEffect(
+    () => watchPageNumbersById("analysis-report-print-root", pageNumbers && !embedded),
+    [pageNumbers, embedded]
+  );
+
   const chooseDesignStyle = (style: AnalysisDesignStyle) => {
     setDesignStyle(style);
     try {
@@ -1010,6 +1035,16 @@ export function AnalysisReportWorkbench({
               {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
             </p>
           </div>
+
+          <label className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
+            <span className="text-[11px] font-bold text-slate-500">쪽번호 넣기</span>
+            <input
+              type="checkbox"
+              checked={pageNumbers}
+              onChange={(e) => choosePageNumbers(e.target.checked)}
+              className="h-4 w-4 accent-violet-500"
+            />
+          </label>
           {designStyle !== "base" ? <link rel="stylesheet" href={DESIGN_FONTS_HREF} /> : null}
 
           <p className="text-xs text-slate-500">{project.title}</p>
