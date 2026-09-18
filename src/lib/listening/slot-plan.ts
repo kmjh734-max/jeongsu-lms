@@ -78,6 +78,9 @@ const DOMAINS = [
  * 회차마다 다른 배역 이름 — 정수학원 중등 66세트의 대본에서 이름 356번 중 Minho 139번, Sora 94번으로
  * 두 이름이 3분의 2였다. 회차 번호로 6명씩 잘라 쓰면 12회차가 지나야 같은 이름이 돌아온다.
  */
+/** 배역·첫 대사를 학년마다 어긋나게 돌리려고 쓰는 학년 순서 */
+const GRADE_ORDER: ListeningGradeLevel[] = ["middle1", "middle2", "middle3", "high1", "high2", "high3"];
+
 const CAST_NAMES = [
   "Jiwon", "Taeho", "Boram", "Sehun", "Nayoung", "Dongha",
   "Yerin", "Junseo", "Miyeon", "Hyunwoo", "Sunwoo", "Chaewon",
@@ -201,12 +204,27 @@ export function planSlotAssignments(
   let d = 0;
   const slotted = slots.filter((s) => needsAnswerSlot(base.get(s)!.code, grade));
   const positions = buildBalancedCorrectAnswerSlots(slotted.length);
-  // 회차마다 다른 배역 6명 — 이름이 Minho·Sora 둘로 쏠리던 것을 회차별로 갈라 놓는다
+  /*
+   * 회차마다 다른 배역 6명 — 이름이 Minho·Sora 둘로 쏠리던 것을 회차별로 갈라 놓는다.
+   * 학년도 함께 센다: 회차 번호만 쓰면 중1·중2·중3의 같은 회차가 같은 이름·같은 첫 대사로
+   * 나와 세 학년 시험지가 한 이야기처럼 보였다(3회차에서 확인, 2026-09-18).
+   */
+  const gradeStep = GRADE_ORDER.indexOf(g) + 1;
   const cast =
     rotation >= 0
-      ? Array.from({ length: 6 }, (_, i) => CAST_NAMES[(rotation * 6 + i) % CAST_NAMES.length]!)
+      ? Array.from(
+          { length: 6 },
+          (_, i) => CAST_NAMES[(rotation * 6 + gradeStep * 7 + i) % CAST_NAMES.length]!
+        )
       : undefined;
-  let openerAt = rotation >= 0 ? rotation : Math.floor(Math.random() * OPENERS.length);
+  /*
+   * 첫 대사 자리. 한 문항씩 만들 때는 이 함수가 슬롯 하나만 받으므로 회차 번호만 쓰면
+   * 스무 문항이 모두 같은 자리에서 시작했다 — 문항 번호와 학년도 함께 센다.
+   */
+  let openerAt =
+    rotation >= 0
+      ? rotation + gradeStep * 3 + (slots[0]?.slotIndex ?? 0)
+      : Math.floor(Math.random() * OPENERS.length);
   for (const s of slots) {
     const { code } = base.get(s)!;
     const plan: SlotPlan = { code };
