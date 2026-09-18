@@ -974,6 +974,106 @@ async function rateGrammarPoints(input: {
   }
 }
 
+/**
+ * 빈칸 추론 자리와 바꿔 쓰기 표현도 시험에 나올 만한 것만 남긴다(선생님 지적 2026-09-18:
+ * "별로 안 중요한 것도 있다"). 어법처럼 한 번에 매겨 점수가 낮은 것을 빼고 높은 것부터 싣는다.
+ * 요약문 빈칸은 코드가 요약문 핵심 어구로 만들므로 매기지 않는다. 실패하면 있는 대로 쓴다.
+ */
+async function rateExamAndParaphrases(input: {
+  apiKey: string;
+  sentences: string[];
+  examPoints: OnePageExamPoint[];
+  paraphrases: OnePageParaphrase[];
+  signal: AbortSignal;
+  usage: Usage;
+  notes: string[];
+}): Promise<{ examPoints: OnePageExamPoint[]; paraphrases: OnePageParaphrase[] }> {
+  const blanks = input.examPoints.filter((e) => e.kind === "blank" || e.kind === "insert");
+  const { paraphrases } = input;
+  if (blanks.length + paraphrases.length === 0) return input;
+  const blankList = blanks
+    .map((e, i) => `B${i + 1}) [${e.kind === "blank" ? "빈칸 추론" : "문장 삽입"}] ${e.kind === "blank" ? `빈칸: ${e.target}` : "이 문장을 뺀다"}
+   문장: ${input.sentences[e.sentenceIndex] ?? ""}`)
+    .join("\n");
+  const paraList = paraphrases
+    .map((p, i) => `P${i + 1}) ${p.expression} (${p.meaningKo})
+   문장: ${input.sentences[p.sentenceIndex] ?? ""}`)
+    .join("\n");
+  try {
+    const res = await requestContent(
+      input.apiKey,
+      `아래는 한 지문에서 뽑은 출제 후보다. 고등학교 내신·모의고사에 실제로 나올 만한지 매겨라.
+
+[지문]
+${input.sentences.join(" ")}
+
+[빈칸 추론·문장 삽입 후보]
+${blankList || "(없음)"}
+
+[바꿔 쓰기 표현 후보]
+${paraList || "(없음)"}
+
+각 후보에 대해 id(B1, P2 …), score(0~5), drop을 답한다.
+- 빈칸 추론: 주제·요지를 담은 어구, 앞뒤 연결어·대조·인과로 답이 하나로 좁혀지는 자리가 높다. 지엽적인 사실·예시·숫자, 문맥 없이도 맞힐 수 있는 뻔한 자리는 drop.
+- 문장 삽입: 지칭어·연결어로 자리가 하나로 정해질 때만 높다.
+- 바꿔 쓰기: 주제와 이어지는 핵심 표현, 서술형·영작에서 그대로 묻는 구동사·숙어·구문이 높다. 흔한 일상 표현(a lot of, in the past), 뜻이 뻔한 구, 지문 흐름과 상관없는 표현은 drop.`,
+      input.signal,
+      {
+        system: "너는 한국 고등학교 내신 영어 출제 검수자다. 정해진 JSON으로만 답한다.",
+        schemaName: "one_page_exam_rating",
+        effort: "low",
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          required: ["items"],
+          properties: {
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["id", "score", "drop"],
+                properties: {
+                  id: { type: "string" },
+                  score: { type: "integer" },
+                  drop: { type: "boolean" },
+                },
+              },
+            },
+          },
+        },
+      }
+    );
+    input.usage.inputTokens += res.usage.inputTokens;
+    input.usage.outputTokens += res.usage.outputTokens;
+    const parsed = parseJsonSafe<{ items?: Array<{ id?: string; score?: number; drop?: boolean }> }>(res.text);
+    const byId = new Map<string, { score: number; drop: boolean }>();
+    for (const it of parsed?.items ?? []) {
+      const id = String(it?.id ?? "").trim().toUpperCase();
+      if (!id) continue;
+      byId.set(id, { score: Math.max(0, Math.min(5, Math.floor(Number(it?.score) || 0))), drop: it?.drop === true });
+    }
+    if (byId.size === 0) return input;
+    const keep = <T,>(list: T[], prefix: string, min: number) => {
+      const scored = list.map((x, i) => ({ x, r: byId.get(`${prefix}${i + 1}`) ?? { score: 3, drop: false } }));
+      const good = scored.filter((s) => !s.r.drop && s.r.score >= 3);
+      // 너무 적게 남으면 점수 높은 것부터 되살린다(자료가 비는 것보다 낫다).
+      const pool = good.length >= min ? good : [...scored].sort((a, b) => b.r.score - a.r.score).slice(0, Math.min(min, scored.length));
+      return { list: [...pool].sort((a, b) => b.r.score - a.r.score).map((s) => s.x), dropped: list.length - pool.length };
+    };
+    const b = keep(blanks, "B", 1);
+    const p = keep(paraphrases, "P", 3);
+    const dropped = b.dropped + p.dropped;
+    if (dropped > 0) input.notes.push(`출제 자리·표현 ${dropped}개 제외(시험에 나올 자리가 아님)`);
+    return {
+      examPoints: [...b.list, ...input.examPoints.filter((e) => e.kind !== "blank" && e.kind !== "insert")],
+      paraphrases: p.list,
+    };
+  } catch {
+    return input;
+  }
+}
+
 async function refillMaterial(input: {
   apiKey: string;
   baseUser: string;
@@ -1495,14 +1595,25 @@ export async function generateOnePageContent(input: {
     const taken = new Set(verifiedGrammar.map((g) => `${g.sentenceIndex}|${g.target.toLowerCase()}`));
     const addGrammar = spare.grammar.filter((g) => !taken.has(`${g.sentenceIndex}|${g.target.toLowerCase()}`));
     if (addGrammar.length) notes.push(`어법 ${addGrammar.length}개 더 뽑음`);
-    const gradedGrammar = await rateGrammarPoints({
-      apiKey,
-      sentences,
-      points: [...verifiedGrammar, ...addGrammar],
-      signal: controller.signal,
-      usage,
-      notes,
-    });
+    const [gradedGrammar, gradedExam] = await Promise.all([
+      rateGrammarPoints({
+        apiKey,
+        sentences,
+        points: [...verifiedGrammar, ...addGrammar],
+        signal: controller.signal,
+        usage,
+        notes,
+      }),
+      rateExamAndParaphrases({
+        apiKey,
+        sentences,
+        examPoints: core.examPoints,
+        paraphrases: translated.paraphrases,
+        signal: controller.signal,
+        usage,
+        notes,
+      }),
+    ]);
     let grammar = spread(gradedGrammar, MAX_GRAMMAR);
     let vocab = vocabDone.vocab.slice(0, MAX_VOCAB);
 
@@ -1552,12 +1663,12 @@ export async function generateOnePageContent(input: {
         surface: r.surface,
         occurrence: r.occurrence,
       })),
-      paraphrases: sortOnePageMarks(translated.paraphrases, sentences, (p) => ({
+      paraphrases: sortOnePageMarks(gradedExam.paraphrases, sentences, (p) => ({
         sentenceIndex: p.sentenceIndex,
         surface: p.expression,
       })),
       // 삽입·순서 표시는 문장 앞에 붙으므로 그 문장의 맨 앞으로 본다.
-      examPoints: sortOnePageMarks(core.examPoints, sentences, (e) => ({
+      examPoints: sortOnePageMarks(gradedExam.examPoints, sentences, (e) => ({
         sentenceIndex: e.sentenceIndex,
         surface: e.kind === "blank" ? e.target : "",
         atSentenceStart: e.kind === "insert" || e.kind === "order",
