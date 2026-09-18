@@ -1,3 +1,4 @@
+import { seatLockScreen } from "@/components/credits/SeatLockedNotice";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { VocabSetPrintView } from "@/components/vocab/VocabSetPrintView";
@@ -11,6 +12,8 @@ interface PageProps {
 
 export default async function AdminVocabSetPrintPage({ params }: PageProps) {
   const { setId } = await params;
+  const locked = await seatLockScreen("vocab", "/admin", `/admin/vocab/set/${setId}`);
+  if (locked) return locked;
   const supabase = await createClient();
   const [loaded, branding] = await Promise.all([
     loadVocabSetPrintData(supabase, setId),

@@ -1,3 +1,4 @@
+import { seatLockScreen } from "@/components/credits/SeatLockedNotice";
 import { notFound } from "next/navigation";
 import { ListeningExamPrintView } from "@/components/listening/ListeningExamPrintView";
 import { createClient } from "@/lib/supabase/server";
@@ -14,6 +15,8 @@ export default async function TeacherListeningPrintPage({
 }) {
   const { setId } = await params;
   const { script } = await searchParams;
+  const locked = await seatLockScreen("listening", "/teacher", `/teacher/listening/${setId}`);
+  if (locked) return locked;
 
   const access = await assertListeningSetAccess(setId);
   if (!access.ok) notFound();

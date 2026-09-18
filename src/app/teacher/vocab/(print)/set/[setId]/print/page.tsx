@@ -1,3 +1,4 @@
+import { seatLockScreen } from "@/components/credits/SeatLockedNotice";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { VocabSetPrintView } from "@/components/vocab/VocabSetPrintView";
@@ -12,6 +13,8 @@ interface PageProps {
 
 export default async function TeacherVocabSetPrintPage({ params }: PageProps) {
   const { setId } = await params;
+  const locked = await seatLockScreen("vocab", "/teacher", `/teacher/vocab/set/${setId}`);
+  if (locked) return locked;
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "teacher") {
     redirect("/login");

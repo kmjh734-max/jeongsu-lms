@@ -1,3 +1,4 @@
+import { seatLockScreen } from "@/components/credits/SeatLockedNotice";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { VocabSetPrintView } from "@/components/vocab/VocabSetPrintView";
@@ -13,6 +14,8 @@ export default async function AdminVocabBulkPrintPage({
   searchParams,
 }: PageProps) {
   const { sets: setsParam, back } = await searchParams;
+  const locked = await seatLockScreen("vocab", "/admin", "/admin/vocab/sets");
+  if (locked) return locked;
   const setIds = (setsParam ?? "")
     .split(",")
     .map((s) => s.trim())

@@ -1,3 +1,4 @@
+import { seatLockScreen } from "@/components/credits/SeatLockedNotice";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { VocabSetPrintView } from "@/components/vocab/VocabSetPrintView";
@@ -14,6 +15,8 @@ export default async function TeacherVocabBulkPrintPage({
   searchParams,
 }: PageProps) {
   const { sets: setsParam, back } = await searchParams;
+  const locked = await seatLockScreen("vocab", "/teacher", "/teacher/vocab/sets");
+  if (locked) return locked;
   const setIds = (setsParam ?? "")
     .split(",")
     .map((s) => s.trim())
