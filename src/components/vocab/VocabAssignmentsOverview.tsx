@@ -23,7 +23,7 @@ type KindFilter = "all" | "class" | "student";
 
 type OverviewSet = AssignmentOverviewGroup["sets"][number];
 
-/** "EngCore 올인원 고교기본 Day12 핵심 빈출 단어 ★★★★" → 묶음 "EngCore 올인원 고교기본", 번호 12 */
+/** "EngCore 고교기본 Day12 핵심 빈출 단어 ★★★★" → 묶음 "EngCore 고교기본", 번호 12 */
 function splitSeries(title: string): { series: string; day: number | null; rest: string } {
   const m = title.match(/^(.*?)\s*day\s*(\d+)\s*(.*)$/i);
   if (!m || !m[1]!.trim()) return { series: title, day: null, rest: "" };
@@ -251,7 +251,7 @@ export function VocabAssignmentsOverview({
 }
 
 /**
- * 배정한 단어장을 교재별 한 줄로 줄여 보여 준다(예: EngCore 올인원 고교기본 · Day 1–85 · 85개).
+ * 배정한 단어장을 교재별 한 줄로 줄여 보여 준다(예: EngCore 고교기본 · Day 1–85 · 85개).
  * 펼치면 Day 번호만 촘촘히 늘어놓아 하나씩 해제할 수 있다.
  */
 function SeriesSummary({
