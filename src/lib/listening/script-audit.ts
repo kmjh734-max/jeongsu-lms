@@ -217,9 +217,17 @@ ${text}
 ${choices.map((c, i) => `${i + 1}) ${c}`).join("\n")}
 정답: ${q.correct_answer}번
 정답 단서: ${q.answer_clue ?? ""}
-해설: ${q.explanation ?? ""}
+해설: ${q.explanation ?? ""}${
+        q.table_data
+          ? `\n표(선택지 ①~⑤는 이 표의 행이다):\n${JSON.stringify((q.table_data as { rows?: unknown }).rows ?? q.table_data)}`
+          : ""
+      }${
+        (q.choice_image_prompts ?? []).filter(Boolean).length > 0
+          ? `\n그림(선택지 ①~⑤는 그림 속 번호다): ${(q.choice_image_prompts ?? []).filter(Boolean).join(" | ")}`
+          : ""
+      }
 
-아래 여덟 가지만 본다. 해당 없으면 빈 배열.
+아래 여덟 가지만 본다. 선택지가 ①~⑤ 번호뿐인 것은 표·그림·짧은 대화 번호를 가리키는 정상 형식이다. 해당 없으면 빈 배열.
 1. 사물·상황이 안 맞음: 주문·구매한 물건에 그 부속이 실제로 딸려 있는지(그 물건에 없는 부품이 왔다고 하면 흠), 그 장소에서 할 수 없는 일을 하는지.
 2. 가진 것과 해결책이 모순: 현금이 없다는데 지폐를 바꿔 준다, 시간이 없다는데 더 오래 걸리는 방법을 받아들인다.
 3. 숫자·시각·거리 계산이 안 맞음: 걸리는 시간과 약속 시각이 어긋난다, 앞에서 거절한 값이 결론이 된다.
