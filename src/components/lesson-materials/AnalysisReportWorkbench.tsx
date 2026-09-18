@@ -296,7 +296,8 @@ function A4Sheet({
           />
         </div>
       ) : null}
-      <span className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
+      {/* 화면에서만 보이는 쪽 안내(2쪽짜리 지문의 1/2). 쪽번호를 켜면 숨긴다 — 두 번호가 겹쳐 보인다 */}
+      <span className="sheet-preview-page-label pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
         {label}
       </span>
     </article>

@@ -3421,6 +3421,11 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   }
 }
 
+/* 쪽번호를 켜면 화면 전용 쪽 안내(1 / 4)는 숨긴다 — 같은 자리에 두 번호가 보인다 */
+[data-page-no] .sheet-preview-page-label {
+  display: none;
+}
+
 @media print {
 /* 기본은 여백만 0. 용지 크기는 화면별 주입(@page size)이 결정 — PDF 저장에 용지 옵션 없어도 동작 */
   @page {
