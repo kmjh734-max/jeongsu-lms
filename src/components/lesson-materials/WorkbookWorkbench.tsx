@@ -362,7 +362,7 @@ function PageShell({
       <p className="wb-page-no pointer-events-none absolute bottom-[8mm] left-0 right-0 text-center text-[12px] text-slate-500">
         - {pageNo} -
       </p>
-      <span className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
+      <span className="sheet-preview-page-label pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
         {pageNo} / {total}
       </span>
     </article>
