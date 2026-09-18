@@ -42,6 +42,11 @@ export function SuperAdminCreditsClient() {
   const [kind, setKind] = useState<"all" | "academy" | "personal">("all");
   const kindOf = (a: AcademyRow) => (a.memberType === "personal" ? "personal" : "academy");
   const shown = kind === "all" ? academies : academies.filter((a) => kindOf(a) === kind);
+  // 보기를 바꾸면 수동 지급 대상도 그 안에서 고른다
+  useEffect(() => {
+    if (shown.length && !shown.some((a) => a.id === selectedId)) setSelectedId(shown[0]!.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kind, academies]);
   const [pricing, setPricing] = useState<Pricing[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [amount, setAmount] = useState("100");
@@ -167,11 +172,9 @@ export function SuperAdminCreditsClient() {
       {error && <Alert variant="error">{error}</Alert>}
       {message && <Alert variant="success">{message}</Alert>}
 
-      <SuperAdminPaymentsPanel />
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold text-slate-900">회원별 잔액</h2>
+      {/* 페이지 전체를 학원회원 / 개인회원으로 나눠 본다(결제 내역·잔액·수동 지급) */}
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <span className="text-sm font-semibold text-slate-700">보기</span>
           <div className="flex gap-1.5">
             {(
               [
@@ -184,7 +187,7 @@ export function SuperAdminCreditsClient() {
                 key={key}
                 type="button"
                 onClick={() => setKind(key)}
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                className={`rounded-full px-3.5 py-1.5 text-sm font-semibold ${
                   kind === key ? "bg-slate-900 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
                 }`}
               >
@@ -192,6 +195,16 @@ export function SuperAdminCreditsClient() {
               </button>
             ))}
           </div>
+      </div>
+
+      <SuperAdminPaymentsPanel
+        visibleIds={kind === "all" ? null : new Set(shown.map((a) => a.id))}
+        kindById={Object.fromEntries(academies.map((a) => [a.id, kindOf(a)]))}
+      />
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-slate-900">회원별 잔액</h2>
         </div>
         <div className="mt-3 overflow-x-auto">
           <table className="ui-table w-full text-sm">
@@ -245,7 +258,7 @@ export function SuperAdminCreditsClient() {
               value={selectedId}
               onChange={(e) => setSelectedId(e.target.value)}
             >
-              {academies.map((a) => (
+              {shown.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
                   {kindOf(a) === "personal" ? " (개인)" : ""}

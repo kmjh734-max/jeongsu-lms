@@ -31,7 +31,14 @@ type Pkg = {
   display_order: number;
 };
 
-export function SuperAdminPaymentsPanel() {
+export function SuperAdminPaymentsPanel({
+  visibleIds = null,
+  kindById = {},
+}: {
+  /** 학원회원·개인회원 중 하나만 볼 때 그 회원들의 id(전체면 null) */
+  visibleIds?: Set<string> | null;
+  kindById?: Record<string, "academy" | "personal">;
+} = {}) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [packages, setPackages] = useState<Pkg[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -148,9 +155,16 @@ export function SuperAdminPaymentsPanel() {
               </tr>
             </thead>
             <tbody>
-              {orders.map((o) => (
+              {orders
+                .filter((o) => !visibleIds || visibleIds.has(o.academy_id))
+                .map((o) => (
                 <tr key={o.id}>
-                  <td className="font-medium">{o.academy_name ?? "—"}</td>
+                  <td className="font-medium">
+                    {o.academy_name ?? "—"}
+                    {kindById[o.academy_id] === "personal" ? (
+                      <span className="ml-1.5 rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-800">개인</span>
+                    ) : null}
+                  </td>
                   <td className="tabular-nums">
                     {Number(o.payment_amount).toLocaleString("ko-KR")}원
                   </td>
