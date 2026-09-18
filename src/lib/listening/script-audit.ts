@@ -146,18 +146,23 @@ export function scriptRuleProblems(q: GeneratedListeningQuestion): string[] {
    *    정답 단서가 색이면 흑백 인쇄에서 빨강·파랑이 비슷한 회색이 되어 문제를 풀 수 없다.
    *    색 이름이 단서·해설·마지막 결정 문장에 있으면 무늬·모양·개수로 바꾸게 한다.
    */
-  const imageChoices =
-    q.needs_image_choices === true || String(q.visual_choice_type ?? "") === "image";
-  if (imageChoices) {
-    const clue = [
-      String(q.answer_clue ?? ""),
-      String(q.explanation ?? ""),
-      last,
-    ].join(" ");
-    const color = clue.match(COLOR_WORDS);
+  /*
+   * 그림을 보고 푸는 문항(선택지판·그림 불일치·그림 상황)은 그림이 흑백이다.
+   * 정답 단서만 보던 때에는 대화 중간에 "the red one", "your blue highlighter"가 남아
+   * 학생이 그림에서 찾을 수 없었다(선생님이 풀어 보고 짚음, 2026-09-18).
+   * 그래서 학생이 듣는 대본 전체와 선택지에 색 이름이 있으면 흠으로 본다.
+   */
+  const typeText = `${q.question_type ?? ""} ${q.instruction ?? ""}`;
+  const pictureQuestion =
+    q.needs_image_choices === true ||
+    ["image", "scene"].includes(String(q.visual_choice_type ?? "")) ||
+    /그림/.test(typeText);
+  if (pictureQuestion) {
+    const heard = [text, ...(Array.isArray(q.choices) ? q.choices.map(String) : [])].join(" ");
+    const color = heard.match(COLOR_WORDS);
     if (color) {
       out.push(
-        `color_clue|그림에서 답을 고르는 문항인데 정답 단서가 색(${color[0]})이다. 시험지는 흑백으로 인쇄된다 — 무늬·모양·개수·크기·적힌 글자로 답이 갈리게 고쳐라.`
+        `color_in_picture_item|그림(흑백)을 보고 푸는 문항인데 대본이나 선택지에 색 이름(${color[0]})이 나온다. 학생은 그림에서 색을 볼 수 없다 — 색 이름을 쓰지 말고 무늬·모양·개수·크기·적힌 글자·하는 동작으로 가리켜라.`
       );
     }
   }
