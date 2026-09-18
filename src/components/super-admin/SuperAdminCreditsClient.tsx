@@ -9,6 +9,7 @@ import {
   formatWon,
 } from "@/lib/credits/pricing-guide";
 import { SuperAdminPaymentsPanel } from "@/components/super-admin/SuperAdminPaymentsPanel";
+import { SuperAdminUsagePanel } from "@/components/super-admin/SuperAdminUsagePanel";
 
 type AcademyRow = {
   id: string;
@@ -201,6 +202,8 @@ export function SuperAdminCreditsClient() {
         visibleIds={kind === "all" ? null : new Set(shown.map((a) => a.id))}
         kindById={Object.fromEntries(academies.map((a) => [a.id, kindOf(a)]))}
       />
+
+      <SuperAdminUsagePanel kind={kind} />
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
