@@ -18,6 +18,7 @@ import {
 import { useStudyRecorder } from "@/lib/vocab/use-study-recorder";
 import type { VocabItem } from "@/types/database";
 import { answerInputGuards, typedOnly } from "@/lib/vocab/typed-only";
+import { englishKeypadProps } from "@/components/ui/EnglishKeypad";
 
 function shuffleIds(ids: string[]): string[] {
   const copy = [...ids];
@@ -347,6 +348,7 @@ export function VocabStage2Spelling({
             }}
             placeholder="영어 스펠링 입력"
             {...answerInputGuards}
+            {...englishKeypadProps}
             enterKeyHint="next"
             aria-label="영어 스펠링 입력"
             aria-invalid={wrong || undefined}

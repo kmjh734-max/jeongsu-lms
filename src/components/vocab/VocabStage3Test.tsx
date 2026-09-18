@@ -19,6 +19,7 @@ import {
 } from "@/lib/vocab/exam-guest-progress";
 import { notifyStudentTodayChanged } from "@/lib/student/today-refresh";
 import { answerInputGuards, typedOnly } from "@/lib/vocab/typed-only";
+import { englishKeypadProps } from "@/components/ui/EnglishKeypad";
 
 function answerKey(q: Stage3ClientQuestion): string {
   return `${q.itemId}:${q.questionType}`;
@@ -289,6 +290,7 @@ export function VocabStage3Test({
             placeholder={isMeaning ? "뜻 입력" : "영어 스펠링 입력"}
             enterKeyHint={isLast ? "done" : "next"}
             {...answerInputGuards}
+            {...(isMeaning ? {} : englishKeypadProps)}
             aria-label={isMeaning ? "뜻 입력" : "영어 스펠링 입력"}
             disabled={submitting}
           />

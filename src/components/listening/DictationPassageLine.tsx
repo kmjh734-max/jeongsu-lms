@@ -4,6 +4,7 @@ import { splitPassageLineByBlanks } from "@/lib/listening/dictation/split-passag
 import type { DictationPassageLineClient } from "@/lib/listening/dictation/types";
 import type { DictationBlankScoreResult } from "@/lib/listening/dictation/types";
 import { answerInputGuards, typedOnly } from "@/lib/vocab/typed-only";
+import { englishKeypadProps } from "@/components/ui/EnglishKeypad";
 
 interface DictationPassageLineProps {
   line: DictationPassageLineClient;
@@ -80,6 +81,7 @@ function DictationInlineBlank({
       className={`mx-0.5 inline-block h-7 rounded border-[1.5px] px-2 align-middle text-sm font-semibold normal-case outline-none transition disabled:cursor-default disabled:opacity-100 ${toneClass}`}
       style={{ width: `${widthCh}ch`, minWidth: "4rem" }}
       {...answerInputGuards}
+      {...englishKeypadProps}
       inputMode="text"
       lang="en"
       aria-label="받아쓰기 빈칸"

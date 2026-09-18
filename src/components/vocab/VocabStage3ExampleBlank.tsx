@@ -15,6 +15,7 @@ import {
 } from "@/lib/vocab/example-blank";
 import { useStudyRecorder } from "@/lib/vocab/use-study-recorder";
 import { answerInputGuards, typedOnly } from "@/lib/vocab/typed-only";
+import { englishKeypadProps } from "@/components/ui/EnglishKeypad";
 
 function shuffleQuestions(questions: ExampleBlankQuestion[]): ExampleBlankQuestion[] {
   const copy = [...questions];
@@ -372,6 +373,7 @@ export function VocabStage3ExampleBlank({
             }}
             placeholder="영어 단어 입력"
             {...answerInputGuards}
+            {...englishKeypadProps}
             enterKeyHint="next"
             aria-label="빈칸 영어 단어 입력"
             aria-invalid={wrong || undefined}

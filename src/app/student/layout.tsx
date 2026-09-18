@@ -3,6 +3,7 @@ import { filterNavItems } from "@/lib/academy-features";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { EnglishKeypad } from "@/components/ui/EnglishKeypad";
 
 const NAV_ITEMS = [
   { href: "/student", label: "내 강의실" },
@@ -31,6 +32,8 @@ export default async function StudentLayout({
   return (
     <DashboardLayout profile={profile} navItems={filterNavItems(NAV_ITEMS)}>
       {children}
+      {/* 휴대폰에서 영어 답 칸에 뜨는 자체 자판(키보드 추천 단어 막기) */}
+      <EnglishKeypad />
     </DashboardLayout>
   );
 }
