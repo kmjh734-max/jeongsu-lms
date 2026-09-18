@@ -16,6 +16,7 @@ type AcademyRow = {
   slug: string;
   status: string;
   balance: number;
+  memberType?: "academy" | "personal";
 };
 
 type Pricing = {
@@ -38,6 +39,9 @@ type Txn = {
 
 export function SuperAdminCreditsClient() {
   const [academies, setAcademies] = useState<AcademyRow[]>([]);
+  const [kind, setKind] = useState<"all" | "academy" | "personal">("all");
+  const kindOf = (a: AcademyRow) => (a.memberType === "personal" ? "personal" : "academy");
+  const shown = kind === "all" ? academies : academies.filter((a) => kindOf(a) === kind);
   const [pricing, setPricing] = useState<Pricing[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [amount, setAmount] = useState("100");
@@ -166,19 +170,42 @@ export function SuperAdminCreditsClient() {
       <SuperAdminPaymentsPanel />
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">학원별 잔액</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-slate-900">회원별 잔액</h2>
+          <div className="flex gap-1.5">
+            {(
+              [
+                ["all", "전체", academies.length],
+                ["academy", "학원회원", academies.filter((a) => kindOf(a) === "academy").length],
+                ["personal", "개인회원", academies.filter((a) => kindOf(a) === "personal").length],
+              ] as const
+            ).map(([key, label, n]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setKind(key)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  kind === key ? "bg-slate-900 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                {label} <span className="tabular-nums opacity-70">{n}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="mt-3 overflow-x-auto">
           <table className="ui-table w-full text-sm">
             <thead>
               <tr>
-                <th>학원</th>
+                <th>이름</th>
+                <th>구분</th>
                 <th>slug</th>
                 <th>상태</th>
                 <th>잔액</th>
               </tr>
             </thead>
             <tbody>
-              {academies.map((a) => (
+              {shown.map((a) => (
                 <tr
                   key={a.id}
                   className={
@@ -187,6 +214,15 @@ export function SuperAdminCreditsClient() {
                   onClick={() => setSelectedId(a.id)}
                 >
                   <td className="font-medium">{a.name}</td>
+                  <td>
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        kindOf(a) === "personal" ? "bg-violet-100 text-violet-800" : "bg-sky-100 text-sky-800"
+                      }`}
+                    >
+                      {kindOf(a) === "personal" ? "개인" : "학원"}
+                    </span>
+                  </td>
                   <td className="font-mono text-xs text-slate-500">{a.slug}</td>
                   <td className="text-xs">{a.status}</td>
                   <td className="tabular-nums font-semibold">
@@ -203,7 +239,7 @@ export function SuperAdminCreditsClient() {
         <h2 className="text-sm font-semibold text-slate-900">수동 지급 / 차감</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block text-xs text-slate-600">
-            학원
+            학원·개인
             <select
               className="ui-input mt-1"
               value={selectedId}
@@ -212,6 +248,7 @@ export function SuperAdminCreditsClient() {
               {academies.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
+                  {kindOf(a) === "personal" ? " (개인)" : ""}
                 </option>
               ))}
             </select>

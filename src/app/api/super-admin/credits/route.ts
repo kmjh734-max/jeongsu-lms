@@ -22,7 +22,7 @@ export async function GET() {
       await Promise.all([
         client.admin
           .from("academies")
-          .select("id, name, slug, status")
+          .select("id, name, slug, status, settings")
           .order("name"),
         client.admin.from("academy_wallets").select("academy_id, balance, updated_at"),
         client.admin
@@ -39,8 +39,13 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      academies: (academies ?? []).map((a) => ({
+      academies: (academies ?? []).map(({ settings, ...a }) => ({
         ...a,
+        // 학원회원 / 개인회원 (직접 가입할 때 고른 것)
+        memberType:
+          (settings as { signup?: { member_type?: string } } | null)?.signup?.member_type === "personal"
+            ? "personal"
+            : "academy",
         balance: (bal.get(a.id as string)?.balance as number) ?? 0,
         wallet_updated_at: bal.get(a.id as string)?.updated_at ?? null,
       })),
