@@ -74,6 +74,7 @@ import {
   applyBalancedChoicePositions,
   applyRandomChoicePosition,
 } from "@/lib/listening/balance-correct-answer";
+import { repairMonologueOpening } from "@/lib/listening/repair-opening";
 import { auditScript, scriptRuleProblems } from "@/lib/listening/script-audit";
 import {
   blindSolveQuestion,
@@ -635,7 +636,10 @@ export async function generateSingleExamQuestion(
      * 대본은 요리 수업을 예약하는 문항" 같은 것이 그대로 지나갔다(2026-09-17 실측: 120문항 중 3개).
      * 여기서 걸리면 무엇이 어긋났는지 적어 다시 만들게 한다 — 검토 표시로 넘기지 않는다.
      */
-    const placed = applyRandomChoicePosition({ ...q, order_index: slotIndex ?? typeId });
+    // 담화가 "Yes, …"처럼 대답 투로 시작하면 첫 마디만 떼어 고친다 (다시 만들 일이 아니다)
+    const placed = repairMonologueOpening(
+      applyRandomChoicePosition({ ...q, order_index: slotIndex ?? typeId })
+    );
     /*
      * 정답 검사(가리고 풀기)와 대본 검사(앞뒤가 맞나)를 함께 돌린다. 지금까지의 검사는 모두
      * "정답이 맞나"만 물어서, 답을 푸는 데 지장이 없는 대본 흠(한 사람 두 이름, 램프에 손잡이,
