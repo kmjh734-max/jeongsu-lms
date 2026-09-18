@@ -16,6 +16,7 @@ import { loadCurriculumVariety } from "@/lib/listening/curriculum-answer-usage";
 import { CREDIT_FEATURES } from "@/lib/credits";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
+import { findDuplicateStories } from "@/lib/listening/set-gate";
 import { examTypeCode, getExamTypeById } from "@/lib/listening/exam-types";
 import { isListeningTypeKey } from "@/lib/listening/type-catalog";
 import type { ListeningGenerationMode } from "@/lib/listening/types";
@@ -115,7 +116,7 @@ export async function POST(request: Request) {
     const prevAnswer = prev?.choices?.[(prev.correct_answer ?? 1) - 1];
     if (prevAnswer) usedAnswers.push(prevAnswer, prevAnswer);
 
-    const generated =
+    let generated =
       mode === "exam"
         ? await generateSingleExamQuestion(
             apiKey,
@@ -138,6 +139,42 @@ export async function POST(request: Request) {
             body.previousProblems,
             gradeLevel
           );
+
+    /*
+     * 다른 회차·다른 학년과 이야기가 겹치면 그 자리에서 한 번 더 만든다.
+     * 문항 하나만 보는 검사로는 알 수 없어, 예전에는 세 학년 시험지가 같은 이야기로 나갔다.
+     */
+    if (mode === "exam") {
+      const dup = await findDuplicateStories(access.admin, setId, gradeLevel, [
+        {
+          id: String(slotIndex),
+          order_index: slotIndex,
+          question_type: generated.question_type ?? null,
+          script_text: generated.script_text ?? null,
+        },
+      ]);
+      if (dup.length > 0) {
+        try {
+          generated = await generateSingleExamQuestion(
+            apiKey,
+            typeId,
+            body.difficultyMode ?? "auto",
+            [...previousProblems, dup[0]!.note],
+            gradeLevel,
+            slotIndex,
+            type1Regeneration,
+            {
+              usedAnswers,
+              typeKey,
+              variant: typeof body.variant === "string" ? body.variant : undefined,
+              rotation: curriculum?.rotation ?? -1,
+            }
+          );
+        } catch {
+          // 다시 만들지 못하면 처음 만든 문항을 그대로 쓴다
+        }
+      }
+    }
 
     if (academyId) {
       await debitLessonCredits({

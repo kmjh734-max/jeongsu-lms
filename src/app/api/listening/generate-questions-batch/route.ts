@@ -15,6 +15,7 @@ import {
 } from "@/lib/listening/persist-questions";
 import type { ListeningGenerationSlot } from "@/lib/listening/generation-slots";
 import { CREDIT_FEATURES } from "@/lib/credits";
+import { tidyGeneratedSet } from "@/lib/listening/finish-set";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import type {
   GeneratedListeningQuestion,
@@ -28,6 +29,7 @@ function jsonError(message: string, status = 200) {
 }
 
 export async function POST(request: Request) {
+  const startedAt = Date.now();
   try {
     let apiKey: string;
     try {
@@ -92,8 +94,33 @@ export async function POST(request: Request) {
       return jsonError(message);
     }
 
-    const questions: GeneratedListeningQuestion[] = generated.questions;
+    let questions: GeneratedListeningQuestion[] = generated.questions;
     const missingSlotIndexes = generated.missingSlotIndexes;
+
+    /*
+     * 세트를 다 만든 뒤 스스로 손본다 — 문항 하나만 봐서는 못 보는 흠(다른 회차·다른 학년과
+     * 같은 이야기, 정답 번호 쏠림)을 여기서 고친다. 선생님이 받아 보고 고쳐 달라고 하지
+     * 않아도 되게, 만든 자리에서 끝낸다(2026-09-18).
+     */
+    if (mode === "exam" && questions.length > 1) {
+      try {
+        const tidied = await tidyGeneratedSet({
+          admin: access.admin,
+          apiKey,
+          setId,
+          gradeLevel,
+          difficultyMode,
+          questions,
+          usedAnswersByType,
+          rotation: variety?.rotation ?? -1,
+          // 경로 상한(300초) 안에서 저장할 시간을 남겨 둔다
+          deadlineAt: startedAt + 250_000,
+        });
+        questions = tidied.questions;
+      } catch {
+        // 손보지 못해도 만든 문항은 그대로 저장한다
+      }
+    }
     if (questions.length === 0) {
       return jsonError("문항을 만들지 못했습니다. 다시 시도해 주세요.");
     }

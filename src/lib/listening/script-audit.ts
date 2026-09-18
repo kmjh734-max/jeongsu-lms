@@ -15,6 +15,7 @@
  */
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
+import { tableRuleProblems } from "@/lib/listening/table-rules";
 
 /** 담화(1인 말하기)가 대화 도중처럼 시작하면 안 되는 말머리 */
 const REPLY_OPENERS = [
@@ -55,7 +56,7 @@ function namesIn(text: string): string[] {
 /** 규칙만으로 잡히는 흠. 모델을 부르지 않는다. */
 /** 흑백 인쇄에서 서로 구별되지 않는 색 이름 (검정·흰색·회색은 흑백에서도 구별되므로 뺀다) */
 const COLOR_WORDS =
-  /(red|blue|green|yellow|orange|purple|pink|brown|navy|beige|violet|golden)/i;
+  /\b(red|blue|green|yellow|orange|purple|pink|brown|navy|beige|violet|golden)\b/i;
 
 /** 담화 첫머리에 올 수 있는 감탄사·인사 — 사람 이름이 아니다 */
 const NOT_A_NAME_OPENER =
@@ -161,6 +162,9 @@ export function scriptRuleProblems(q: GeneratedListeningQuestion): string[] {
     }
   }
 
+  // 6) 표 문항의 표 자체 (사람 이름 열·엉뚱한 열·같은 행)
+  out.push(...tableRuleProblems(q));
+
   return out;
 }
 
@@ -182,6 +186,12 @@ function isAwkwardDialogueType(q: GeneratedListeningQuestion): boolean {
   return /어색/.test(String(q.question_type ?? "")) || /어색/.test(String(q.instruction ?? ""));
 }
 
+/** 그림 상황에 맞는 대화: 그림 한 장으로 정답만 맞아야 하므로 다섯 대화가 서로 다른 장면이어야 한다. */
+function isPictureSituationType(q: GeneratedListeningQuestion): boolean {
+  const t = `${q.question_type ?? ""} ${q.instruction ?? ""}`;
+  return /그림/.test(t) && /상황/.test(t) && /대화/.test(t);
+}
+
 export async function auditScript(
   apiKey: string,
   q: GeneratedListeningQuestion
@@ -189,6 +199,7 @@ export async function auditScript(
   const text = scriptOf(q);
   if (!text || text.length < 40) return { problems: [], skipped: true };
   if (isAwkwardDialogueType(q)) return auditAwkwardDialogue(apiKey, q, text);
+  if (isPictureSituationType(q)) return auditPictureSituation(apiKey, q, text);
   const choices = Array.isArray(q.choices) ? q.choices.map((c) => String(c)) : [];
   try {
     const raw = await listeningChatJson<Record<string, unknown>>(apiKey, {
@@ -228,6 +239,48 @@ ${choices.map((c, i) => `${i + 1}) ${c}`).join("\n")}
  * 어색한 대화 고르기 전용. 어긋난 짝의 번호를 받아 정답 번호와 맞는지 본다.
  * (대본 검사를 그대로 쓰면 일부러 어긋낸 자리를 흠으로 잡아 멀쩡한 문항이 걸린다.)
  */
+/**
+ * 그림 상황에 맞는 대화. 그림은 한 장이라, 정답 말고 다른 대화도 같은 그림으로 그려지면
+ * 문제가 성립하지 않는다(중3 3회 6번: 다섯 대화가 모두 몸이 아픈 상황이었다).
+ * 그림을 그리기 전에 대본만 보고 잡는다 — 그려 놓고 검수에서 걸리면 값과 시간이 든다.
+ */
+async function auditPictureSituation(
+  apiKey: string,
+  q: GeneratedListeningQuestion,
+  text: string
+): Promise<ScriptAuditResult> {
+  try {
+    const raw = await listeningChatJson<Record<string, unknown>>(apiKey, {
+      temperature: 0.1,
+      system: SYSTEM,
+      user: `아래는 짧은 대화 다섯 개다. 시험지에는 ${q.correct_answer}번 대화의 장면만 그림 한 장으로 그린다.
+
+${text}
+
+그 그림(무엇을 하는 장면인지)을 떠올린 뒤, ${q.correct_answer}번 말고도 그 그림에 들어맞는 대화가 있는지 본다.
+장소만 같고 하는 일이 다르면 들어맞는 것이 아니다. 하는 일·주고받는 물건·몸짓이 그림과 같아야 들어맞는 것이다.
+
+{"alsoFit":[번호들],"why":"한국어 한 문장"}`,
+    });
+    const list = Array.isArray(raw.alsoFit) ? raw.alsoFit : [];
+    const nums = list
+      .map((v) => Math.floor(Number(v)))
+      .filter((n) => n >= 1 && n <= 5 && n !== q.correct_answer);
+    if (nums.length > 0) {
+      const why = String(raw.why ?? "").replace(/\s+/g, " ").trim().slice(0, 120);
+      return {
+        problems: [
+          `picture_situation_tie|${nums.join("·")}번도 정답 ${q.correct_answer}번과 같은 그림으로 그려진다. 다섯 대화를 서로 다른 장면(하는 일이 다른 장면)으로 쓰고, 정답만 그림으로 그릴 수 있는 뚜렷한 행동이 되게 하라. ${why}`,
+        ],
+        skipped: false,
+      };
+    }
+    return { problems: [], skipped: false };
+  } catch {
+    return { problems: [], skipped: true };
+  }
+}
+
 async function auditAwkwardDialogue(
   apiKey: string,
   q: GeneratedListeningQuestion,
