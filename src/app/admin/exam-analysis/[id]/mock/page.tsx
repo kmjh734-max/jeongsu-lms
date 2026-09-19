@@ -3,17 +3,18 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getFeatureCost } from "@/lib/credits";
 import { buildMockSlots } from "@/lib/exam-analysis/blueprint";
-import { loadExamAnalysis, loadMaterialPassages } from "@/lib/exam-analysis/load";
+import { loadExamAnalysis, loadExamMocks, loadMaterialPassages } from "@/lib/exam-analysis/load";
 import { ExamMockBuilder } from "@/components/exam-analysis/ExamMockBuilder";
 
 export default async function ExamMockPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const profile = await getCurrentProfile();
   const academyId = profile!.academy_id!;
-  const [data, materials, price] = await Promise.all([
+  const [data, materials, price, mocks] = await Promise.all([
     loadExamAnalysis(id, academyId),
     loadMaterialPassages(academyId),
     getFeatureCost(createAdminClient(), "qg_generate_job"),
+    loadExamMocks(id, academyId),
   ]);
   if (!data) notFound();
   const { slots, groupCount } = buildMockSlots(data.items);
@@ -28,6 +29,7 @@ export default async function ExamMockPage({ params }: { params: Promise<{ id: s
       backHref={`/admin/exam-analysis/${id}`}
       generationsHref="/admin/question-generator/generations"
       pricePerQuestion={price?.cost ?? 80}
+      round={mocks.length + 1}
     />
   );
 }

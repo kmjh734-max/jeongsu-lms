@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { loadOwnAnalysis, requireExamStaff } from "@/lib/exam-analysis/access";
 import { buildMockSlots } from "@/lib/exam-analysis/blueprint";
-import { loadExamAnalysis } from "@/lib/exam-analysis/load";
+import { loadExamAnalysis, loadExamMocks } from "@/lib/exam-analysis/load";
 import { createJobFromConfig } from "@/lib/question-generator/create-job";
 import { runGenerationChunkAndChain } from "@/lib/question-generator/job-chain";
 import type { GenerationRequestConfig } from "@/lib/question-generator/types";
@@ -27,7 +27,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!(await loadOwnAnalysis(id, profile.academy_id))) {
     return NextResponse.json({ ok: false, message: "분석을 찾을 수 없어요." }, { status: 404 });
   }
-  const body = (await request.json().catch(() => ({}))) as { passages?: PassageIn[]; assignment?: number[]; title?: string };
+  const body = (await request.json().catch(() => ({}))) as { passages?: PassageIn[]; assignment?: number[]; title?: string; round?: number };
   const inputs = (body.passages ?? []).slice(0, 30);
   if (inputs.length === 0) {
     return NextResponse.json({ ok: false, message: "시험 범위 지문을 1개 이상 골라 주세요." }, { status: 400 });
@@ -70,13 +70,15 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     return NextResponse.json({ ok: false, message: "분석한 문항이 없어요." }, { status: 400 });
   }
   const { slots } = buildMockSlots(data.items);
+  const round = (await loadExamMocks(id, profile.academy_id)).length + 1;
   const assignment = Array.isArray(body.assignment) ? body.assignment : [];
   // 문장 삽입·무관한 문장은 6문장 이상 지문이 있어야 만들 수 있다. 짧으면 긴 지문으로 옮기고,
   // 긴 지문이 하나도 없으면 같은 난이도의 순서 배열로 바꾼다(빈 번호가 생기지 않게).
   const longEnough = passages.map((p) => countEnglishSentences(p.text) >= MIN_SENTENCES_FOR_INSERTION_IRRELEVANT);
   const blueprint = slots.map((s) => {
     const want = assignment[s.group];
-    let passageIndex = Number.isInteger(want) && want! >= 0 && want! < passages.length ? want! : s.group % passages.length;
+    let passageIndex =
+      Number.isInteger(want) && want! >= 0 && want! < passages.length ? want! : (s.group + round - 1) % passages.length;
     let optionKey = s.optionKey;
     if (/^(sentence_insertion|irrelevant_sentence):/.test(optionKey) && !longEnough[passageIndex]) {
       const alt = longEnough.findIndex(Boolean);
@@ -89,7 +91,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const a = data.analysis;
   const title =
     body.title?.trim().slice(0, 80) ||
-    [a.school_name, a.grade ? `${a.grade}학년` : "", a.subject, "동형모의고사"].filter(Boolean).join(" ");
+    [a.school_name, a.grade ? `${a.grade}학년` : "", a.subject, `동형모의고사 ${round}회`].filter(Boolean).join(" ");
   const config: GenerationRequestConfig = {
     title,
     schoolName: a.school_name ?? "",

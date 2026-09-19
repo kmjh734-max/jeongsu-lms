@@ -23,6 +23,7 @@ export function ExamMockBuilder({
   backHref,
   generationsHref,
   pricePerQuestion,
+  round,
 }: {
   analysisId: string;
   examTitle: string;
@@ -32,6 +33,8 @@ export function ExamMockBuilder({
   backHref: string;
   generationsHref: string;
   pricePerQuestion: number;
+  /** 이번에 만들 회차(이 시험으로 만든 동형모의고사 수 + 1) */
+  round: number;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<"material" | "paste">(materials.length ? "material" : "paste");
@@ -49,7 +52,8 @@ export function ExamMockBuilder({
   }, [slots, groupCount]);
   const assignment = groups.map((_, g) => {
     const o = override[g];
-    return chosen.length ? (o !== undefined && o < chosen.length ? o : g % chosen.length) : -1;
+    // 회차마다 한 칸씩 밀어 같은 지문이 같은 번호에 다시 오지 않게 한다
+    return chosen.length ? (o !== undefined && o < chosen.length ? o : (g + round - 1) % chosen.length) : -1;
   });
 
   const filtered = useMemo(() => {
@@ -101,6 +105,7 @@ export function ExamMockBuilder({
         body: JSON.stringify({
           passages: chosen.map((c) => (c.kind === "material" ? { materialItemId: c.id } : { text: c.text, title: c.title })),
           assignment,
+          round,
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string; jobId?: string };
@@ -122,13 +127,18 @@ export function ExamMockBuilder({
           <Icon name="left" size={16} />
           분석 보고서
         </Link>
-        <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:text-[22px]">동형모의고사 만들기</h1>
+        <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:text-[22px]">동형모의고사 {round}회 만들기</h1>
         <p className="mt-1 text-sm text-slate-500">
           {examTitle}와 같은 번호·유형·난이도·배점으로 새 시험지를 만들어요. 시험 범위 지문만 골라 주세요.
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-700">{slots.length}문항 · {Math.round(total * 10) / 10}점</span>
           <span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-700">원래 시험 지문 {groupCount}개</span>
+          {round > 1 ? (
+            <span className="rounded-full bg-brand-50 px-2.5 py-1 font-semibold text-brand-700">
+              {round - 1}회와 지문 자리가 겹치지 않게 배정했어요
+            </span>
+          ) : null}
           {substituted ? (
             <span className="rounded-full bg-amber-50 px-2.5 py-1 font-semibold text-amber-800">비슷한 유형으로 만드는 문항 {substituted}</span>
           ) : null}
@@ -275,7 +285,7 @@ export function ExamMockBuilder({
           disabled={busy || chosen.length === 0}
           className="h-10 rounded-lg bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
         >
-          {busy ? "만드는 중…" : "동형모의고사 만들기"}
+          {busy ? "만드는 중…" : `동형모의고사 ${round}회 만들기`}
         </button>
       </div>
     </div>
