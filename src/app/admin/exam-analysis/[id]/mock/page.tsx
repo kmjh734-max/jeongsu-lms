@@ -6,8 +6,15 @@ import { buildMockSlots } from "@/lib/exam-analysis/blueprint";
 import { loadExamAnalysis, loadExamMocks, loadMaterialPassages } from "@/lib/exam-analysis/load";
 import { ExamMockBuilder } from "@/components/exam-analysis/ExamMockBuilder";
 
-export default async function ExamMockPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ExamMockPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ passages?: string }>;
+}) {
   const { id } = await params;
+  const { passages } = await searchParams;
   const profile = await getCurrentProfile();
   const academyId = profile!.academy_id!;
   const [data, materials, price, mocks] = await Promise.all([
@@ -30,6 +37,7 @@ export default async function ExamMockPage({ params }: { params: Promise<{ id: s
       generationsHref="/admin/question-generator/generations"
       pricePerQuestion={price?.cost ?? 80}
       round={mocks.length + 1}
+      initialPassageIds={(passages ?? "").split(",").filter(Boolean)}
     />
   );
 }

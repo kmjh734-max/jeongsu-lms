@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { loadOwnAnalysis, requireExamStaff } from "@/lib/exam-analysis/access";
 import { buildMockSlots } from "@/lib/exam-analysis/blueprint";
 import { loadExamAnalysis, loadExamMocks } from "@/lib/exam-analysis/load";
+import { loadAcademyMaterialPassages } from "@/lib/exam-analysis/material-passages";
 import { createJobFromConfig } from "@/lib/question-generator/create-job";
 import { runGenerationChunkAndChain } from "@/lib/question-generator/job-chain";
 import type { GenerationRequestConfig } from "@/lib/question-generator/types";
@@ -13,6 +14,7 @@ import { countEnglishSentences } from "@/lib/question-generator/text-utils";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
+/** materialItemId = 수업자료(lesson_material_projects) id */
 type PassageIn = { materialItemId?: string; text?: string; title?: string };
 
 /**
@@ -33,22 +35,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     return NextResponse.json({ ok: false, message: "시험 범위 지문을 1개 이상 골라 주세요." }, { status: 400 });
   }
 
-  // 수업자료에서 고른 지문은 서버에서 글을 가져온다(내 학원 것만)
+  // 수업자료에서 고른 지문은 서버에서 문장을 이어 붙여 가져온다(내 학원 것만)
   const admin = createAdminClient();
   const materialIds = inputs.map((p) => p.materialItemId).filter((x): x is string => Boolean(x));
   const materials = new Map<string, { title: string; text: string }>();
   if (materialIds.length) {
-    const { data } = await admin
-      .from("lesson_material_items")
-      .select("id, title, english_text, project:lesson_material_projects(title)")
-      .eq("academy_id", profile.academy_id)
-      .in("id", materialIds);
-    for (const m of data ?? []) {
-      const project = Array.isArray(m.project) ? m.project[0] : m.project;
-      materials.set(m.id as string, {
-        title: [project?.title, m.title].filter(Boolean).join(" · "),
-        text: String(m.english_text ?? ""),
-      });
+    for (const m of await loadAcademyMaterialPassages(admin, profile.academy_id, materialIds)) {
+      materials.set(m.projectId, { title: `${m.folder} · ${m.title}`, text: m.text });
     }
   }
   const passages = inputs.map((p, i) => {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { WorkbookCreateModal } from "@/components/lesson-materials/WorkbookCreateModal";
+import { PickExamForMockModal } from "@/components/exam-analysis/PickExamForMockModal";
 import { openNewDocument } from "@/components/lesson-materials/open-new-document";
 import type { LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
 
@@ -23,6 +24,7 @@ export function LessonMaterialsSelectionBar({
   onIntegrated?: () => void;
 }) {
   const [workbookOpen, setWorkbookOpen] = useState(false);
+  const [mockOpen, setMockOpen] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
   const [opening, setOpening] = useState(false);
   if (selectedCount <= 0) return null;
@@ -112,6 +114,14 @@ export function LessonMaterialsSelectionBar({
             <button
               type="button"
               className={btn}
+              title="고른 지문으로, 분석한 학교 시험과 같은 모양의 시험지를 만듭니다"
+              onClick={() => setMockOpen(true)}
+            >
+              🎯 동형모의고사 제작
+            </button>
+            <button
+              type="button"
+              className={btn}
               disabled={!onIntegrated}
               onClick={onIntegrated}
             >
@@ -137,6 +147,9 @@ export function LessonMaterialsSelectionBar({
         </div>
       </div>
 
+      {mockOpen ? (
+        <PickExamForMockModal role={role} projectIds={selectedIds} onClose={() => setMockOpen(false)} />
+      ) : null}
       <WorkbookCreateModal
         role={role}
         projectIds={selectedIds}

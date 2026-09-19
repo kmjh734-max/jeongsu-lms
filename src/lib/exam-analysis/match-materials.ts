@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { loadAcademyMaterialPassages } from "@/lib/exam-analysis/material-passages";
 
 /**
  * 시험지 지문이 학원 수업자료(lesson_material_items) 지문과 같은지 글자로 대조한다.
@@ -28,19 +29,12 @@ export async function matchLessonMaterials(
   const wanted = excerpts.filter((e) => e.excerpt && words(e.excerpt).length >= 8);
   if (wanted.length === 0) return result;
 
-  const { data: materials } = await admin
-    .from("lesson_material_items")
-    .select("id, title, english_text, project:lesson_material_projects(title)")
-    .eq("academy_id", academyId)
-    .limit(3000);
-  const pool = (materials ?? []).map((m) => {
-    const project = Array.isArray(m.project) ? m.project[0] : m.project;
-    return {
-      id: m.id as string,
-      label: [project?.title, m.title].filter(Boolean).join(" · "),
-      set: new Set(shingles(words(String(m.english_text ?? "")))),
-    };
-  });
+  // 수업자료 하나 = 지문 하나(문장들을 이어 붙인 것)와 대조한다
+  const pool = (await loadAcademyMaterialPassages(admin, academyId)).map((m) => ({
+    id: m.firstItemId,
+    label: `${m.folder} · ${m.title}`,
+    set: new Set(shingles(words(m.text))),
+  }));
   if (pool.length === 0) return result;
 
   for (const { key, excerpt } of wanted) {

@@ -24,6 +24,7 @@ export function ExamMockBuilder({
   generationsHref,
   pricePerQuestion,
   round,
+  initialPassageIds = [],
 }: {
   analysisId: string;
   examTitle: string;
@@ -35,11 +36,18 @@ export function ExamMockBuilder({
   pricePerQuestion: number;
   /** 이번에 만들 회차(이 시험으로 만든 동형모의고사 수 + 1) */
   round: number;
+  /** 수업자료에서 골라 들어온 지문(수업자료 id) — 고른 순서대로 미리 넣어 둔다 */
+  initialPassageIds?: string[];
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<"material" | "paste">(materials.length ? "material" : "paste");
   const [query, setQuery] = useState("");
-  const [chosen, setChosen] = useState<Chosen[]>([]);
+  const [chosen, setChosen] = useState<Chosen[]>(() =>
+    initialPassageIds
+      .map((id) => materials.find((m) => m.id === id))
+      .filter((m): m is MaterialPassage => Boolean(m))
+      .map((m) => ({ kind: "material", id: m.id, label: `${m.project} · ${m.title}`, words: m.words }))
+  );
   const [draft, setDraft] = useState({ title: "", text: "" });
   const [override, setOverride] = useState<Record<number, number>>({});
   const [busy, setBusy] = useState(false);

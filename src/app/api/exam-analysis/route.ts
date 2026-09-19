@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { requireExamStaff } from "@/lib/exam-analysis/access";
+import { loadExamAnalyses } from "@/lib/exam-analysis/load";
 
 export const runtime = "nodejs";
 
@@ -42,4 +43,24 @@ export async function POST(request: Request) {
     .single();
   if (error || !data) return NextResponse.json({ ok: false, message: "분석을 시작하지 못했어요." }, { status: 500 });
   return NextResponse.json({ ok: true, id: data.id });
+}
+
+/** 동형모의고사에 쓸 분석 목록(분석이 끝난 것만, 최근 것부터) */
+export async function GET() {
+  const auth = await requireExamStaff();
+  if ("error" in auth) return auth.error;
+  const list = await loadExamAnalyses(auth.profile.academy_id);
+  return NextResponse.json({
+    ok: true,
+    analyses: list
+      .filter((a) => a.status === "ready")
+      .map((a) => ({
+        id: a.id,
+        title: [a.school_name ?? "학교 미입력", a.grade ? `${a.grade}학년` : "", a.subject].filter(Boolean).join(" "),
+        exam: a.exam_label,
+        items: a.counts.n,
+        subjective: a.counts.subj,
+        created_at: a.created_at,
+      })),
+  });
 }
