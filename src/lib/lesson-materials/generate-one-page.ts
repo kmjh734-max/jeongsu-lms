@@ -29,6 +29,12 @@ import {
   onePageGrammarRulesText,
 } from "@/lib/lesson-materials/one-page-grammar-rules";
 import {
+  examBlankFocusRules,
+  examGrammarCase,
+  examGrammarCaseBlock,
+  examParaphraseFocusRules,
+} from "@/lib/lesson-materials/one-page-exam-focus";
+import {
   verifyOnePageGrammar,
   verifyOnePageReferences,
   verifyOnePageTranslations,
@@ -90,6 +96,7 @@ code는 아래 GRAMMAR_RULES에 있는 것만 쓴다. 각 자리는 다음을 �
    말이라 시험 문항이 되지 않는다. right 안에 조동사나 to가 들어가 있어도 마찬가지로 금지다.
 3) 답을 정하는 근거가 같은 문장 안에 드러나 있어야 한다.
 4) 주어가 동사 바로 앞에 있는 인칭·수 일치(I am, you need, they feel, Humans enjoy, There are)는 시험에 나오지 않는다. 수일치는 주어와 동사 사이에 수식어구·관계절이 끼어 있을 때만 낸다.
+- caseId: 아래 "어법 빈출 자리"에 있는 id 그대로. 그 목록에 없는 자리는 내신에 잘 나오지 않으므로 싣지 않는다.
 - code: GRAMMAR_RULES의 코드 그대로.
 - target: 근거와 정답을 함께 담은, 지문에 나온 그대로의 부분(3~12 words). 정리자료에서 이 부분에 밑줄이 그어지므로 explanation이 말하는 것이 모두 이 안에 있어야 한다. 그 문장에 두 번 나오는 부분은 고르지 않는다.
 - right: target 안에서 정답이 되는 낱말(1~3 words), 지문 그대로.
@@ -145,18 +152,24 @@ const EXAM_PROMPT = `${COMMON_HEADER}
 - insert: no는 지문에서 빼내어 <보기>로 줄 문장의 번호(2 이상). 그 문장을 빼내면 앞뒤가 논리로 끊겨(연결어·지칭어가 근거) 자리를 되찾을 수 있어야 한다. target은 "", distractors는 [], splitNos는 [].
 - order: splitNos는 새 덩어리가 시작하는 문장 번호 2~3개를 오름차순으로(모두 2 이상, 첫 덩어리는 1번 문장부터인 주어진 글이다). 덩어리마다 뜻이 이어져야 하고, 덩어리 첫 문장에 연결어·지칭어가 있어 순서를 되찾을 수 있어야 한다. no는 splitNos의 첫 번째 값, target은 "", distractors는 [].
 - reasonKo: 답을 찾는 근거를 한국어 한 줄(15~40자), "~다"로 끝낸다. "중요하다" 같은 말 대신 무엇이 근거인지(연결어·지칭어·대조·인과)를 적는다.
+
+${examBlankFocusRules()}
 `;
 
 /** 바꿔 쓰기 표현(목록이 길어 따로 부른다. 지칭 정리는 코드로 훑어 따로 푼다). */
 const EXTRA_PROMPT = `${COMMON_HEADER}
 [paraphrases] 서술형·바꿔 쓰기에 나올 핵심 표현 4~6개. expression은 지문에 나온 그대로의 2~6 words 어구(낱말 하나짜리는 vocab이 맡는다), meaningKo는 이 문맥에 맞는 짧고 자연스러운 한국어 뜻, paraphrases는 이 문맥에서 바꿔 써도 뜻이 같은 영어 표현 1~2개(지문의 다른 표현을 그대로 베끼지 않는다).
+
+${examParaphraseFocusRules()}
 `;
 
 const GRAMMAR_PROMPT = `${COMMON_HEADER}
 ${GRAMMAR_SECTION}
 
 GRAMMAR_RULES (code(이름): 고르는 기준):
-${onePageGrammarRulesText()}`;
+${onePageGrammarRulesText()}
+
+${examGrammarCaseBlock()}`;
 
 const WORDS_PROMPT = `${COMMON_HEADER}
 ${VOCAB_SECTION}`;
@@ -182,6 +195,7 @@ const GRAMMAR_ITEMS_SCHEMA = {
   items: obj({
     no: int,
     code: str,
+    caseId: str,
     target: str,
     right: str,
     cue: str,
@@ -488,6 +502,22 @@ function checkVocabNote(
  * - 설명이 짚는 근거(cue)까지 밑줄 안에 들어오도록 구간을 넓힌다.
  * - 오답은 굴절·기능어 하나만 다르고 실제로 있는 형태여야 한다(워크북 엔진의 검사를 그대로 쓴다).
  */
+/** 두 형태가 마지막 낱말의 -s(es) 하나로만 갈리는가(복수형 표기 함정) */
+function pluralOnlyPair(right: string, wrong: string): boolean {
+  const a = right.trim().toLowerCase().split(/\s+/);
+  const b = wrong.trim().toLowerCase().split(/\s+/);
+  if (a.length !== b.length) return false;
+  let diff = -1;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] === b[i]) continue;
+    if (diff >= 0) return false;
+    diff = i;
+  }
+  if (diff < 0) return false;
+  const [x, y] = [a[diff]!, b[diff]!].sort((m, n) => m.length - n.length);
+  return y === `${x}s` || y === `${x}es`;
+}
+
 function checkGrammarPoint(
   r: Row,
   sentences: string[],
@@ -534,6 +564,8 @@ function checkGrammarPoint(
 
   const wrong = str1(r.wrong);
   if (!wrong || wrong.toLowerCase() === right.toLowerCase()) return null;
+  // 명사의 단수·복수 표기만 다른 짝(endings/ending)은 고르게 할 수 없다. 동사 수일치는 예외다.
+  if (!code.startsWith("AGREEMENT_") && pluralOnlyPair(right, wrong)) return null;
   // 동사원형만 올 수 있는 자리(조동사·to·사역동사 뒤)는 고를 거리가 없다.
   if (inBareFormSlot(right, wrong, sentence, rightStart)) return null;
   if (!minimalFormPair(right, wrong)) return null;
@@ -546,6 +578,9 @@ function checkGrammarPoint(
   // "어색하다"는 둘 다 된다는 뜻이다. 그런 자리는 싣지 않는다.
   if (WEAK_WORDS.test(wrongWhy)) return null;
 
+  // 교재 빈출 케이스에 해당하면 그 이름·팁을 쓴다(변형문제 어법추론과 같은 목록).
+  const examCase = examGrammarCase(str1(r.caseId));
+
   return {
     sentenceIndex: placed.si,
     code,
@@ -554,7 +589,9 @@ function checkGrammarPoint(
     cue: sentence.slice(cueHit.start, cueHit.end),
     wrong,
     wrongWhy,
-    point: rule.labelKo,
+    point: examCase?.koLabel || rule.labelKo,
+    caseId: examCase?.id,
+    caseTipKo: examCase?.koTip,
     explanation,
   };
 }
@@ -923,7 +960,9 @@ async function rateGrammarPoints(input: {
   try {
     const res = await requestContent(
       input.apiKey,
-      `아래는 한 지문에서 뽑은 어법 선택 후보다. 각각 고등학교 내신·모의고사 어법 문항으로 낼 만한지 매겨라.\n\n${list}\n\n각 후보에 대해:\n- no: 후보 번호\n- score: 0~5. 5는 실제 시험에 그대로 나올 만한 자리, 3은 낼 수는 있는 자리, 1 이하는 내면 안 되는 자리.\n- drop: true면 싣지 않는다.\n다음이면 drop으로 한다: 두 형태가 다 맞는 자리, 오답이 영어에 아예 없는 꼴이라 고를 거리가 안 되는 자리,\n낱말 뜻·연어를 묻는 자리, 중학생도 바로 아는 뻔한 자리(주어 바로 뒤 be동사, 인칭대명사 수일치 등),\n설명과 실제로 묻는 것이 다른 자리.`,
+      `아래는 한 지문에서 뽑은 어법 선택 후보다. 각각 고등학교 내신·모의고사 어법 문항으로 낼 만한지 매겨라.\n\n${list}\n\n각 후보에 대해:\n- no: 후보 번호\n- score: 0~5. 5는 실제 시험에 그대로 나올 만한 자리, 3은 낼 수는 있는 자리, 1 이하는 내면 안 되는 자리.\n- drop: true면 싣지 않는다.\n다음이면 drop으로 한다: 두 형태가 다 맞는 자리, 오답이 영어에 아예 없는 꼴이라 고를 거리가 안 되는 자리,\n낱말 뜻·연어를 묻는 자리, 중학생도 바로 아는 뻔한 자리(주어 바로 뒤 be동사, 인칭대명사 수일치 등),\n설명과 실제로 묻는 것이 다른 자리.
+- 교재 빈출 목록에 없는 자리는 2점 이하로 매긴다.
+- 높은 점수는 문장 구조를 알아야 풀리는 자리(관계사·준동사·병렬·태·시제·비교, 수식어가 끼어든 수일치)에 준다. 철자·연어·인접 수일치는 낮다.`,
       input.signal,
       {
         system: "너는 한국 고등학교 내신 영어 출제 검수자다. 정해진 JSON으로만 답한다.",
@@ -961,9 +1000,10 @@ async function rateGrammarPoints(input: {
       byNo.set(no, { score: Math.max(0, Math.min(5, Math.floor(Number(it?.score) || 0))), drop: it?.drop === true });
     }
     if (byNo.size === 0) return points;
-    const kept = points
-      .map((g, i) => ({ ...g, examScore: byNo.get(i + 1)?.score ?? 3, drop: byNo.get(i + 1)?.drop === true }))
-      .filter((g) => !g.drop || points.length <= 2);
+    const scored = points.map((g, i) => ({ ...g, examScore: byNo.get(i + 1)?.score ?? 3, drop: byNo.get(i + 1)?.drop === true }));
+    const good = scored.filter((g) => !g.drop && g.examScore >= 3);
+    // 시험에 낼 자리가 넉넉하면 낮은 점수는 뺀다. 모자라면 점수 순서로 둔다.
+    const kept = good.length >= MIN_GRAMMAR ? good : scored.filter((g) => !g.drop || points.length <= 2);
     const dropped = points.length - kept.length;
     if (dropped > 0) input.notes.push(`어법 ${dropped}개 제외(시험에 낼 자리가 아님)`);
     // 남은 것이 너무 적으면 버린 것 중 점수가 높은 것부터 되살린다.
@@ -1014,9 +1054,9 @@ ${blankList || "(없음)"}
 ${paraList || "(없음)"}
 
 각 후보에 대해 id(B1, P2 …), score(0~5), drop을 답한다.
-- 빈칸 추론: 주제·요지를 담은 어구, 앞뒤 연결어·대조·인과로 답이 하나로 좁혀지는 자리가 높다. 지엽적인 사실·예시·숫자, 문맥 없이도 맞힐 수 있는 뻔한 자리는 drop.
+- 빈칸 추론: 주제문·결론문에서 요지를 담은 어구, 앞뒤 연결어·대조·인과로 답이 하나로 좁혀지는 자리가 높다(학력평가 31~34번과 같은 자리). 지엽적인 사실·예시·숫자·고유명사, 문맥 없이도 맞힐 수 있는 뻔한 자리, 앞 문장을 그대로 옮기면 되는 자리는 drop.
 - 문장 삽입: 지칭어·연결어로 자리가 하나로 정해질 때만 높다.
-- 바꿔 쓰기: 주제와 이어지는 핵심 표현, 서술형·영작에서 그대로 묻는 구동사·숙어·구문이 높다. 흔한 일상 표현(a lot of, in the past), 뜻이 뻔한 구, 지문 흐름과 상관없는 표현은 drop.`,
+- 바꿔 쓰기: 이 문맥에서만 뜻이 살아나는 표현(비유·관용·함축), 주제문에서 요지를 떠받치는 구, 서술형에 그대로 나오는 구동사·숙어·구문이 높다. 사전 뜻·직역으로 끝나는 구, 흔한 일상 표현(a lot of, in the past), 지문 흐름과 상관없는 표현은 drop.`,
       input.signal,
       {
         system: "너는 한국 고등학교 내신 영어 출제 검수자다. 정해진 JSON으로만 답한다.",
@@ -1582,12 +1622,19 @@ export async function generateOnePageContent(input: {
      * 10개에서 18개로 늘리면서 이 일이 더 자주 생겼다. 그래서 교재가 자주 묻는
      * 어법부터 고른다.
      */
-    const spread = <T extends { code?: string; examScore?: number }>(list: T[], max: number) => {
+    const spread = <T extends { code?: string; caseId?: string; examScore?: number }>(list: T[], max: number) => {
       const freqOf = (x: T) => onePageGrammarRule(String(x.code ?? ""))?.freq ?? 0;
-      // 시험에 나올 자리인지 매긴 점수가 먼저, 같으면 교재가 자주 묻는 어법 순서.
+      // 시험에 나올 자리인지 매긴 점수가 먼저, 같으면 교재 빈출 케이스에 걸린 것, 그 다음 교재가 자주 묻는 어법 순서.
       const scoreOf = (x: T) => (typeof x.examScore === "number" ? x.examScore : 3);
-      const ranked = [...list].sort((a, b) => scoreOf(b) - scoreOf(a) || freqOf(b) - freqOf(a));
-      const first = ranked.filter((x, i) => ranked.findIndex((y) => y.code === x.code) === i);
+      const caseOf = (x: T) => (x.caseId ? 1 : 0);
+      const ranked = [...list].sort((a, b) => scoreOf(b) - scoreOf(a) || caseOf(b) - caseOf(a) || freqOf(b) - freqOf(a));
+      const seen = new Set<string>();
+      const first = ranked.filter((x) => {
+        const key = x.caseId ? `case:${x.caseId}` : `code:${x.code}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
       return [...first, ...ranked.filter((x) => !first.includes(x))].slice(0, max);
     };
     // 검수에서 버려진 자리는 같이 띄워 둔 보충에서 겹치지 않는 것으로 메운다.
@@ -1621,7 +1668,7 @@ export async function generateOnePageContent(input: {
      * 마지막 보충은 한 장이 텅 빌 때만 한다(선생님 지적: 느리다). 여기서 부르는 시간은 통째로
      * 맨 뒤에 붙으므로, 어법이 한둘 모자란 정도면 있는 것으로 만든다.
      */
-    if (grammar.length < 2 || vocab.length < MIN_VOCAB - 2) {
+    if (grammar.length < MIN_GRAMMAR || vocab.length < MIN_VOCAB - 2) {
       const at = Date.now();
       const more = await refillMaterial({
         apiKey,

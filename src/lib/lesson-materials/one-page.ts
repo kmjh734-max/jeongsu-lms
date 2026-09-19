@@ -59,6 +59,10 @@ export type OnePageGrammarPoint = {
   wrongWhy?: string;
   /** 어법 항목 이름(예: 주어-동사 수일치) */
   point: string;
+  /** 교재 빈출 어법 케이스 id(변형문제 어법추론과 같은 목록). 옛 재료에는 없다. */
+  caseId?: string;
+  /** 학생에게 보여 줄 케이스 한 줄 팁 */
+  caseTipKo?: string;
   /** 왜 그 형태인지 한 문장 */
   explanation: string;
 };
