@@ -73,6 +73,24 @@ type ShowcaseItem = {
 
 const SHOWCASE: ShowcaseItem[] = [
   {
+    src: "/landing/exam-report.jpg",
+    w: 1100,
+    h: 964,
+    tag: "NEW · 내신",
+    title: "학교 시험지 분석 보고서",
+    body: "학교 시험지 PDF나 사진을 올리면 문항마다 유형·난이도·배점·서술형 조건을 정리해 A4 두 장 보고서로 만듭니다. 학생이 푼 시험지도 됩니다.",
+    points: ["영역·난이도 분포와 점수가 갈린 문항", "출제 특징과 다음 시험 대비 전략", "우리 학원 수업자료에서 나온 문항(적중) 표시"],
+  },
+  {
+    src: "/landing/exam-mock.jpg",
+    w: 1100,
+    h: 742,
+    tag: "NEW · 내신",
+    title: "동형모의고사",
+    body: "분석한 시험과 같은 번호·유형·난이도·배점으로, 우리 학원 수업자료 지문을 넣어 새 시험지를 만듭니다.",
+    points: ["서술형 조건과 배점까지 그대로", "수업자료에서 지문 고르고 버튼 한 번", "다시 만들 때마다 지문 자리를 바꿔서"],
+  },
+  {
     src: "/landing/analysis.jpg",
     w: 1011,
     h: 1431,
@@ -148,6 +166,14 @@ export function LandingPage({
           className="pointer-events-none absolute -right-40 -top-32 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(37,99,201,0.45),transparent_65%)]"
         />
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+          <a
+            href="#showcase"
+            className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 py-1 pl-1 pr-3 text-sm font-semibold text-white hover:bg-white/15"
+          >
+            <span className="rounded-full bg-[#f3a712] px-2 py-0.5 text-xs font-extrabold text-[#29335c]">NEW</span>
+            학교 시험 분석 · 동형모의고사
+            <span aria-hidden>→</span>
+          </a>
           <p className="text-sm font-semibold text-side-muted">영어학원 운영 플랫폼</p>
           <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
             영어학원의 모든 것을
@@ -208,7 +234,7 @@ export function LandingPage({
         </div>
       </section>
 
-      <section className="bg-white py-14">
+      <section id="showcase" className="scroll-mt-16 bg-white py-14">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <p className="text-sm font-semibold text-brand-600">실제 화면</p>
           <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
