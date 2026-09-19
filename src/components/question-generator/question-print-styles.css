@@ -525,3 +525,11 @@
 .qg-style.qg-style-a .qg-print-cont-label { color: #b23a3a; }
 .qg-style.qg-style-b .qg-print-cont-label { color: #2c6e9e; }
 .qg-style.qg-style-c .qg-print-cont-label { color: #7c2536; }
+
+/* 동형모의고사: "서술 1"처럼 긴 번호는 한 줄로, 칸 너비를 글자에 맞춘다 */
+.qg-style .qg-print-q-num.qg-print-q-num--wide {
+  width: auto !important;
+  min-width: 6.2mm;
+  padding-right: 1.5mm;
+  white-space: nowrap;
+}

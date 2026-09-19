@@ -89,11 +89,16 @@ export function ExamReportView({
   items: initialItems,
   academyName,
   listHref,
+  mocks = [],
+  generationsHref,
 }: {
   analysis: ExamAnalysisRow;
   items: ExamItemRow[];
   academyName: string;
   listHref: string;
+  /** 이 시험으로 만든 동형모의고사 */
+  mocks?: { id: string; title: string; created_at: string; status: string }[];
+  generationsHref: string;
 }) {
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
@@ -202,6 +207,12 @@ export function ExamReportView({
           시험 분석 목록
         </Link>
         <div className="flex flex-wrap gap-2">
+          <Link
+            href={`${listHref}/${analysis.id}/mock`}
+            className="inline-flex h-9 items-center rounded-lg bg-brand-600 px-3.5 text-sm font-semibold text-white hover:bg-brand-700"
+          >
+            동형모의고사 만들기
+          </Link>
           <button
             type="button"
             onClick={() => setEditMeta((v) => !v)}
@@ -235,6 +246,18 @@ export function ExamReportView({
           </button>
         </div>
       </div>
+
+      {mocks.length ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm print:hidden">
+          <span className="font-semibold text-slate-700">만든 동형모의고사</span>
+          {mocks.map((m, i) => (
+            <Link key={m.id} href={`${generationsHref}/${m.id}`} className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100">
+              {mocks.length - i}회 · {new Date(m.created_at).toLocaleDateString("ko-KR")}
+              {m.status !== "completed" ? " · 만드는 중" : ""}
+            </Link>
+          ))}
+        </div>
+      ) : null}
 
       {editMeta ? (
         <div className="grid gap-2 rounded-xl border border-slate-200 bg-white p-3 sm:grid-cols-[repeat(4,minmax(0,1fr))_auto] print:hidden">

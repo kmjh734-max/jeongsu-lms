@@ -421,7 +421,7 @@ function QuestionBlock({
         {!head ? <ContinuedLabel index={index} /> : null}
         {head ? (
           <p className="qg-print-q-head" data-qg-head="">
-            <span className="qg-print-q-num qg-print-count-num">
+            <span className={`qg-print-q-num qg-print-count-num${qNo(q, index).length > 2 ? " qg-print-q-num--wide" : ""}`}>
               {qNo(q, index)}
             </span>{" "}
             {q.instruction}
@@ -455,7 +455,7 @@ function QuestionBlock({
       {head ? (
         <div data-qg-head="">
           <p className="qg-print-q-head">
-            <span className="qg-print-q-num">{qNo(q, index)}</span> {q.instruction}
+            <span className={`qg-print-q-num${qNo(q, index).length > 2 ? " qg-print-q-num--wide" : ""}`}>{qNo(q, index)}</span> {q.instruction}
             {pointsTag(q)}
           </p>
           {isInsertion && extra ? (
@@ -531,7 +531,7 @@ function AnswerBlock({
     <section className={`qg-print-card qg-print-answer-card${cardClass}`}>
       {head ? (
         <p className="qg-print-answer-head" data-qg-head="">
-          <span className="qg-print-q-num">{qNo(q, index)}</span>{" "}
+          <span className={`qg-print-q-num${qNo(q, index).length > 2 ? " qg-print-q-num--wide" : ""}`}>{qNo(q, index)}</span>{" "}
           <span className="qg-print-answer-mark">
             {formatAnswer(q.correct_answer)}
           </span>

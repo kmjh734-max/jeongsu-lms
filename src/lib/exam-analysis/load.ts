@@ -44,3 +44,49 @@ export async function loadExamAnalysis(id: string, academyId: string) {
     .order("order_index");
   return { analysis: data as ExamAnalysisRow, items: (items ?? []) as ExamItemRow[] };
 }
+
+export type MaterialPassage = { id: string; project: string; title: string; words: number; preview: string };
+
+/** 동형모의고사 지문 고르기용: 학원 수업자료 지문 목록(글은 보내지 않고 앞부분만) */
+export async function loadMaterialPassages(academyId: string): Promise<MaterialPassage[]> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("lesson_material_items")
+    .select("id, title, english_text, order_index, project:lesson_material_projects(title, updated_at)")
+    .eq("academy_id", academyId)
+    .limit(3000);
+  return (data ?? [])
+    .map((m) => {
+      const project = Array.isArray(m.project) ? m.project[0] : m.project;
+      const words = String(m.english_text ?? "").split(/\s+/).filter(Boolean);
+      return {
+        id: m.id as string,
+        project: (project?.title as string | undefined) ?? "수업자료",
+        title: (m.title as string) || "지문",
+        words: words.length,
+        preview: words.slice(0, 14).join(" "),
+        order: Number(m.order_index ?? 0),
+        updated: String(project?.updated_at ?? ""),
+      };
+    })
+    .filter((m) => m.words >= 40)
+    .sort((a, b) => b.updated.localeCompare(a.updated) || a.project.localeCompare(b.project, "ko") || a.order - b.order)
+    .map(({ id, project, title, words, preview }) => ({ id, project, title, words, preview }));
+}
+
+/** 이 시험 분석으로 만든 동형모의고사(변형문제 작업) — 최근 것부터 */
+export async function loadExamMocks(analysisId: string, academyId: string) {
+  const { data } = await createAdminClient()
+    .from("question_generation_jobs")
+    .select("id, status, created_at, request_config")
+    .eq("academy_id", academyId)
+    .eq("request_config->>examAnalysisId", analysisId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  return (data ?? []).map((j) => ({
+    id: j.id as string,
+    status: j.status as string,
+    created_at: j.created_at as string,
+    title: String((j.request_config as { title?: string } | null)?.title ?? "동형모의고사"),
+  }));
+}
