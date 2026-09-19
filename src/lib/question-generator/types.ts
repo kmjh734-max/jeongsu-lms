@@ -82,6 +82,18 @@ export interface PassageInput {
   text: string;
 }
 
+/**
+ * 설계도 한 칸(동형모의고사): 시험지 번호 하나 = 문항 하나.
+ * passageIndex는 passages 안의 지문 번호, optionKey는 유형 선택지 key.
+ */
+export interface BlueprintSlot {
+  no: string;
+  passageIndex: number;
+  optionKey: string;
+  level: "상" | "중" | "하";
+  points?: number | null;
+}
+
 export interface GenerationRequestConfig {
   title: string;
   schoolName: string;
@@ -98,6 +110,10 @@ export interface GenerationRequestConfig {
   mode: GenerationMode;
   presetId: string | null;
   counts: GenerationRequestCounts;
+  /** 있으면 counts 대신 이 순서대로 한 문항씩 만든다(동형모의고사) */
+  blueprint?: BlueprintSlot[];
+  /** 동형모의고사를 만든 시험 분석 id */
+  examAnalysisId?: string;
   forceGenerateDespiteWarnings?: boolean;
   /** 자료함(수업자료)에서 지문을 골라 만든 경우 그 지문 id. 있으면 자료함 변형문제 탭에 보인다. */
   lessonProjectIds?: string[];

@@ -20,9 +20,19 @@ export function validateGeneratedQuestion(opts: {
     const slotInPassage =
       option.type === "sentence_insertion" ||
       option.type === "irrelevant_sentence" ||
-      (option.type === "vocabulary" && option.aingkaCode === "어휘추론");
+      (option.type === "vocabulary" && option.aingkaCode === "어휘추론") ||
+      // 어법 추론: 밑줄 ①~⑤가 지문 안에 있고 아래 보기는 없다
+      (option.type === "grammar" &&
+        (option.aingkaCode === "어법추론" || option.aingkaCode === "어법모두고르기"));
 
     if (slotInPassage) {
+      if (option.type === "grammar") {
+        const marks = (q.passageModified ?? "").match(/[①②③④⑤ⓐⓑⓒⓓⓔ]/g) ?? [];
+        if (new Set(marks).size < 5) {
+          warnings.push("지문에 밑줄 번호 5개가 없습니다.");
+          score -= 40;
+        }
+      }
       if (
         option.type === "sentence_insertion" &&
         !(q.questionText || "").trim()

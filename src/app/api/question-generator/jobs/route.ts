@@ -14,6 +14,7 @@ import {
   wordCount,
 } from "@/lib/question-generator/passages";
 import {
+  findOptionByKey,
   sanitizeCounts,
   sumCounts,
 } from "@/lib/question-generator/question-types";
@@ -203,16 +204,34 @@ async function createJobFromConfig(
     }
   }
 
-  const perPassage = sumCounts(config.counts ?? {}).total;
-  if (perPassage <= 0) {
-    return { error: "생성할 문항 수를 1개 이상 선택해 주세요.", status: 400 };
-  }
-  const total = perPassage * passages.length;
-  if (total > MAX_TOTAL_QUESTIONS) {
-    return {
-      error: `한 번에 최대 ${MAX_TOTAL_QUESTIONS}문항까지 생성할 수 있습니다. (지문 ${passages.length}개 × ${perPassage}문항 = ${total})`,
-      status: 400,
-    };
+  let total: number;
+  if (Array.isArray(config.blueprint) && config.blueprint.length > 0) {
+    // 설계도: 칸마다 지문 번호·유형·난이도가 맞는지 확인
+    const bad = config.blueprint.find(
+      (b) =>
+        !Number.isInteger(b.passageIndex) ||
+        b.passageIndex < 0 ||
+        b.passageIndex >= passages.length ||
+        !findOptionByKey(b.optionKey) ||
+        !["상", "중", "하"].includes(b.level)
+    );
+    if (bad) return { error: `설계도 ${bad.no}번 칸이 올바르지 않습니다.`, status: 400 };
+    total = config.blueprint.length;
+    if (total > MAX_TOTAL_QUESTIONS) {
+      return { error: `한 번에 최대 ${MAX_TOTAL_QUESTIONS}문항까지 생성할 수 있습니다.`, status: 400 };
+    }
+  } else {
+    const perPassage = sumCounts(config.counts ?? {}).total;
+    if (perPassage <= 0) {
+      return { error: "생성할 문항 수를 1개 이상 선택해 주세요.", status: 400 };
+    }
+    total = perPassage * passages.length;
+    if (total > MAX_TOTAL_QUESTIONS) {
+      return {
+        error: `한 번에 최대 ${MAX_TOTAL_QUESTIONS}문항까지 생성할 수 있습니다. (지문 ${passages.length}개 × ${perPassage}문항 = ${total})`,
+        status: 400,
+      };
+    }
   }
   for (const n of Object.values(config.counts ?? {})) {
     if (n < 0 || n > MAX_SETS_PER_TYPE) {

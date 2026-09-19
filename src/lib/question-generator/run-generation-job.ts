@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { TargetLevel } from "@/lib/question-generator/difficulty";
 import { analyzePassage } from "@/lib/question-generator/analyze-passage";
 import {
   GENERATION_CONCURRENCY,
@@ -133,10 +134,19 @@ function toRow(
     status: string;
     validationScore: number | null;
     errorMessage?: string | null;
+    slot?: { index: number; itemNo: string; points: number | null; level: string | null } | null;
   }
 ) {
   const approved = opts.status === "approved";
   return {
+    ...(opts.slot
+      ? {
+          slot_index: opts.slot.index,
+          item_no: opts.slot.itemNo,
+          points: opts.slot.points,
+          target_level: opts.slot.level,
+        }
+      : {}),
     passage_id: opts.passageId,
     generation_job_id: opts.jobId,
     option_key: opts.option.key,
@@ -176,6 +186,9 @@ async function generateWithValidation(opts: {
   overallDifficulty: string;
   sourceDetail?: string;
   diversitySlot?: { index: number; total: number; label: string };
+  targetLevel?: TargetLevel | null;
+  /** 다시 만들기 횟수(설계도 칸은 빈자리가 없게 더 시도한다) */
+  retries?: number;
 }): Promise<{
   payload: GeneratedQuestionPayload | null;
   status: "approved";
@@ -185,7 +198,8 @@ async function generateWithValidation(opts: {
 }> {
   let lastError: string | null = null;
 
-  for (let attempt = 1; attempt <= MAX_REGENERATION_ATTEMPTS + 1; attempt++) {
+  const maxAttempts = (opts.retries ?? MAX_REGENERATION_ATTEMPTS) + 1;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const payload = await generateOneQuestion(opts);
       const validation = validateGeneratedQuestion({
@@ -217,7 +231,7 @@ async function generateWithValidation(opts: {
   return {
     payload: null,
     status: "approved",
-    attempt: MAX_REGENERATION_ATTEMPTS + 1,
+    attempt: maxAttempts,
     error: lastError ?? "생성 실패 — 문항 폐기",
   };
 }
@@ -230,6 +244,8 @@ type WorkItem = {
   sourceDetail?: string;
   label: string;
   diversitySlot: { index: number; total: number; label: string };
+  /** 설계도(동형모의고사) 칸 */
+  slot?: { index: number; itemNo: string; points: number | null; level: TargetLevel };
 };
 
 function slotKey(passageId: string, optionKey: string): string {
@@ -479,13 +495,18 @@ export async function runGenerationJob(
 
   const { data: existingRows } = await admin
     .from("generated_english_questions")
-    .select("passage_id, option_key")
+    .select("passage_id, option_key, slot_index")
     .eq("generation_job_id", jobId);
   const existingSlots = new Set(
     (existingRows ?? []).map((r) =>
       slotKey(String(r.passage_id), String(r.option_key ?? ""))
     )
   );
+  /** 설계도 작업: 이미 만든 칸 번호 */
+  const doneSlotIndexes = new Set(
+    (existingRows ?? []).map((r) => r.slot_index).filter((x): x is number => typeof x === "number")
+  );
+  const blueprint = Array.isArray(config.blueprint) && config.blueprint.length > 0 ? config.blueprint : null;
   const isResume = existingSlots.size > 0;
 
   // 신규 생성만 기존 문항 삭제. 재시도는 성공 문항 유지.
@@ -574,7 +595,27 @@ export async function runGenerationJob(
       })
     );
 
-    for (const row of analyzed) {
+    if (blueprint) {
+      // 설계도 순서대로 한 칸에 한 문항
+      blueprint.forEach((b, index) => {
+        if (doneSlotIndexes.has(index)) return;
+        const row = analyzed[b.passageIndex];
+        const option = findOptionByKey(b.optionKey);
+        if (!row || !option) return;
+        work.push({
+          passageId: row.passageId,
+          passageText: row.passageRow.passage,
+          analysis: row.analysis,
+          option,
+          sourceDetail: resolved[b.passageIndex]?.sourceDetail || config.sourceDetail || undefined,
+          label: `${b.no}번 · ${option.label}`,
+          diversitySlot: { index: 0, total: 0, label: option.label },
+          slot: { index, itemNo: b.no, points: b.points ?? null, level: b.level },
+        });
+      });
+    }
+
+    for (const row of blueprint ? [] : analyzed) {
       if (!row) continue;
       const { passageId, passageRow, analysis, pi } = row;
       const meta = resolved[pi];
@@ -606,7 +647,7 @@ export async function runGenerationJob(
       }
     }
 
-    const totalRequested = existingSlots.size + work.length;
+    const totalRequested = blueprint ? blueprint.length : existingSlots.size + work.length;
 
     // 지문별로 슬롯 번호 부여 (동의어·보기단어 다양화 힌트)
     const slotByPassage = new Map<string, number>();
@@ -637,7 +678,7 @@ export async function runGenerationJob(
       return { more: false };
     }
 
-    const initialCompleted = existingSlots.size;
+    const initialCompleted = blueprint ? doneSlotIndexes.size : existingSlots.size;
 
     await updateProgress(
       jobId,
@@ -714,6 +755,8 @@ export async function runGenerationJob(
         overallDifficulty: config.overallDifficulty || "기본",
         sourceDetail: item.sourceDetail,
         diversitySlot: item.diversitySlot,
+        targetLevel: item.slot?.level ?? null,
+        retries: item.slot ? 2 : undefined,
       });
       // 다음 실행이 이 문항을 다시 만든다. 여기서 저장하면 같은 칸이 두 번 생긴다.
       if (abandoned) return;
@@ -735,6 +778,7 @@ export async function runGenerationJob(
             status: "approved",
             validationScore: result.payload.validation?.overallScore ?? null,
             errorMessage: null,
+            slot: item.slot ?? null,
           })
         );
         const tracked = Promise.resolve(insert).finally(() => inserts.delete(tracked));
@@ -790,7 +834,10 @@ export async function runGenerationJob(
     return { more: false };
   } catch (e) {
     const saved = await countSavedQuestions(jobId);
-    const totalRequested = (job.request_config as GenerationRequestConfig)
+    const cfgBlueprint = (job.request_config as GenerationRequestConfig)?.blueprint;
+    const totalRequested = Array.isArray(cfgBlueprint) && cfgBlueprint.length > 0
+      ? cfgBlueprint.length
+      : (job.request_config as GenerationRequestConfig)
       ?.counts
       ? expandCountRequests(
           sanitizeCounts(

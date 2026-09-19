@@ -75,6 +75,8 @@ export async function GET(
       .from("generated_english_questions")
       .select("*")
       .eq("generation_job_id", id)
+      // 동형모의고사(설계도)는 시험지 번호 순서, 나머지는 만든 순서
+      .order("slot_index", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: true });
 
     if (profile.role === "teacher") {

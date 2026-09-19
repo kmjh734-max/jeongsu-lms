@@ -35,6 +35,9 @@ import "./question-print-styles.css";
 
 type QuestionRow = {
   id: string;
+  /** 동형모의고사: 시험지 번호("1", "서술 1")와 배점 */
+  item_no?: string | null;
+  points?: number | null;
   instruction: string;
   question_text: string;
   passage_original: string;
@@ -116,6 +119,15 @@ function extractBannerNo(sourceDetail: string): string | null {
 
 function padNo(n: number): string {
   return String(n).padStart(2, "0");
+}
+
+/** 동형모의고사면 학교 시험지 번호, 아니면 01·02 … */
+function qNo(q: QuestionRow, index: number): string {
+  return q.item_no?.trim() || padNo(index);
+}
+
+function pointsTag(q: QuestionRow): string {
+  return typeof q.points === "number" ? ` [${q.points}점]` : "";
 }
 
 function questionPassage(q: QuestionRow): string {
@@ -410,9 +422,10 @@ function QuestionBlock({
         {head ? (
           <p className="qg-print-q-head" data-qg-head="">
             <span className="qg-print-q-num qg-print-count-num">
-              {padNo(index)}
+              {qNo(q, index)}
             </span>{" "}
             {q.instruction}
+            {pointsTag(q)}
           </p>
         ) : null}
         {units.length > 0 && (
@@ -442,7 +455,8 @@ function QuestionBlock({
       {head ? (
         <div data-qg-head="">
           <p className="qg-print-q-head">
-            <span className="qg-print-q-num">{padNo(index)}</span> {q.instruction}
+            <span className="qg-print-q-num">{qNo(q, index)}</span> {q.instruction}
+            {pointsTag(q)}
           </p>
           {isInsertion && extra ? (
             <div className="qg-print-given-box">{extra}</div>
@@ -517,7 +531,7 @@ function AnswerBlock({
     <section className={`qg-print-card qg-print-answer-card${cardClass}`}>
       {head ? (
         <p className="qg-print-answer-head" data-qg-head="">
-          <span className="qg-print-q-num">{padNo(index)}</span>{" "}
+          <span className="qg-print-q-num">{qNo(q, index)}</span>{" "}
           <span className="qg-print-answer-mark">
             {formatAnswer(q.correct_answer)}
           </span>

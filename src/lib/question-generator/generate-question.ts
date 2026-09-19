@@ -1,3 +1,4 @@
+import { difficultyRule, targetLevelFromOverall, type TargetLevel } from "@/lib/question-generator/difficulty";
 import {
   choiceCraftCommonRules,
   choiceExplanationRules,
@@ -1210,6 +1211,8 @@ export async function generateOneQuestion(opts: {
   sourceDetail?: string;
   /** 같은 지문 내 슬롯 (어휘·paraphrase 다양화) */
   diversitySlot?: { index: number; total: number; label: string };
+  /** 이 문항의 목표 난이도. 없으면 overallDifficulty(내신→중, 고난도→상)를 따른다 */
+  targetLevel?: TargetLevel | null;
 }): Promise<GeneratedQuestionPayload> {
   const { option, passage, analysis } = opts;
 
@@ -1409,6 +1412,7 @@ export async function generateOneQuestion(opts: {
       : "",
     paraphraseSystemHint,
     craftSystemHint,
+    difficultyRule(option, opts.targetLevel ?? targetLevelFromOverall(opts.overallDifficulty)),
     typeRules(option),
   ]
     .filter((line) => line.trim())
@@ -1522,5 +1526,12 @@ export async function generateOneQuestion(opts: {
   );
   const shapeError = assertBasicQuestionShape(payload, option);
   if (shapeError) throw new Error(shapeError);
+  // 어법 추론은 수능처럼 지문 속 ①~⑤로 (정답 번호와 같은 기호)
+  if (option.type === "grammar" && (option.aingkaCode === "어법추론" || option.aingkaCode === "어법모두고르기")) {
+    const toNum: Record<string, string> = { "ⓐ": "①", "ⓑ": "②", "ⓒ": "③", "ⓓ": "④", "ⓔ": "⑤" };
+    const swap = (t?: string | null) => (t ? t.replace(/[ⓐⓑⓒⓓⓔ]/g, (m) => toNum[m] ?? m) : t);
+    payload.passageModified = swap(payload.passageModified) ?? payload.passageModified;
+    payload.explanation = swap(payload.explanation) ?? payload.explanation;
+  }
   return payload;
 }
