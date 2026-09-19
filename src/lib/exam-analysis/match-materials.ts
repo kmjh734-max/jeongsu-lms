@@ -57,3 +57,35 @@ export async function matchLessonMaterials(
   }
   return result;
 }
+
+/** 저장된 문항표를 수업자료와 다시 대조해 적중 칸을 채운다(끄면 비운다). AI는 쓰지 않는다. */
+export async function refreshMaterialMatches(
+  admin: SupabaseClient,
+  analysisId: string,
+  academyId: string,
+  enabled: boolean
+): Promise<number> {
+  const { data: items } = await admin
+    .from("school_exam_items")
+    .select("id, passage_excerpt")
+    .eq("analysis_id", analysisId);
+  const rows = items ?? [];
+  const matches = enabled
+    ? await matchLessonMaterials(
+        admin,
+        academyId,
+        rows.map((r) => ({ key: r.id as string, excerpt: (r.passage_excerpt as string | null) ?? null }))
+      )
+    : new Map<string, { itemId: string; label: string }>();
+  await Promise.all(
+    rows.map((r) => {
+      const m = matches.get(r.id as string);
+      return admin
+        .from("school_exam_items")
+        .update({ matched_item_id: m?.itemId ?? null, matched_label: m?.label ?? null })
+        .eq("id", r.id as string);
+    })
+  );
+  await admin.from("school_exam_analyses").update({ match_materials: enabled }).eq("id", analysisId);
+  return matches.size;
+}

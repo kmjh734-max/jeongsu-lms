@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     grade?: string;
     subject?: string;
     examLabel?: string;
+    matchMaterials?: boolean;
   };
   const pageCount = Math.floor(Number(body.pageCount) || 0);
   if (pageCount < 1 || pageCount > 20) {
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
       grade: clean(body.grade),
       subject: clean(body.subject),
       exam_label: clean(body.examLabel),
+      match_materials: body.matchMaterials !== false,
     })
     .select("id")
     .single();

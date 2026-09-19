@@ -61,6 +61,7 @@ export function ExamUploadPanel({ basePath }: { basePath: string }) {
   const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
   const [meta, setMeta] = useState({ schoolName: "", grade: "", examLabel: "" });
+  const [matchMaterials, setMatchMaterials] = useState(true);
   const [step, setStep] = useState<Step>("idle");
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [message, setMessage] = useState<string | null>(null);
@@ -84,7 +85,7 @@ export function ExamUploadPanel({ basePath }: { basePath: string }) {
       if (pages.length === 0) throw new Error("PDF나 사진 파일을 올려 주세요.");
       if (pages.length > 20) throw new Error("시험지는 20쪽까지 올릴 수 있어요.");
 
-      const { id } = await postJson("/api/exam-analysis", { pageCount: pages.length, ...meta });
+      const { id } = await postJson("/api/exam-analysis", { pageCount: pages.length, ...meta, matchMaterials });
       setStep("reading");
       setProgress({ done: 0, total: pages.length });
 
@@ -153,6 +154,21 @@ export function ExamUploadPanel({ basePath }: { basePath: string }) {
         <input id="exam-label" className={input} placeholder="시험 (예: 2026 1학기 중간)" value={meta.examLabel} disabled={busy}
           onChange={(e) => setMeta({ ...meta, examLabel: e.target.value })} />
       </div>
+
+      <label className="mt-3 flex cursor-pointer items-start gap-2 text-sm text-slate-700">
+        <input
+          id="exam-match"
+          type="checkbox"
+          className="mt-0.5 h-4 w-4 accent-brand-600"
+          checked={matchMaterials}
+          disabled={busy}
+          onChange={(e) => setMatchMaterials(e.target.checked)}
+        />
+        <span>
+          우리 학원 수업자료와 대조하기
+          <span className="block text-xs text-slate-500">시험 지문이 수업자료에 넣어 둔 지문과 같으면 &lsquo;수업자료 적중&rsquo; 문항으로 보여 줘요.</span>
+        </span>
+      </label>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button

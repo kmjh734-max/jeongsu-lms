@@ -2,7 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { ExamAnalysisRow, ExamItemRow } from "@/lib/exam-analysis/types";
 
 const ANALYSIS_COLUMNS =
-  "id, academy_id, school_name, grade, subject, exam_label, status, page_count, missing, note, total_points, features, strategy, error, created_at";
+  "id, academy_id, school_name, grade, subject, exam_label, status, page_count, missing, note, total_points, features, strategy, error, match_materials, created_at";
 
 /** 학원의 시험지 분석 목록 (최근 것부터) + 문항 수 */
 export async function loadExamAnalyses(academyId: string) {

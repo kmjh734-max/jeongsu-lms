@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Icon } from "@/components/layout/NavIcon";
+import { ExamDeleteButton } from "@/components/exam-analysis/ExamDeleteButton";
 import {
   EXAM_CATEGORIES,
   EXAM_LEVELS,
@@ -13,23 +14,75 @@ import {
   type ExamLevel,
 } from "@/lib/exam-analysis/types";
 
-const LV_STYLE: Record<ExamLevel, string> = {
-  하: "bg-[#c9d8f4] text-slate-900",
-  중: "bg-[#5b86d8] text-white",
-  상: "bg-[#16398a] text-white",
-};
-const LV_FILL: Record<ExamLevel, string> = { 하: "#c9d8f4", 중: "#5b86d8", 상: "#16398a" };
+/** 보고서 색: 크림 바탕 위 주황·남색 (승인된 A4 두 쪽 시안) */
+const CREAM = "#fbf7ef";
+const LINE = "#e8dcc5";
+const SOFT = "#6b5f4b";
+const NAVY = "#29335c";
+const LV_BG: Record<ExamLevel, string> = { 하: "#f1e3c6", 중: "#f3a712", 상: "#e4572e" };
+const LV_INK: Record<ExamLevel, string> = { 하: SOFT, 중: "#fff", 상: "#fff" };
 const CAT_COLOR: Record<string, string> = {
-  "대의 파악": "#2159c7",
-  "세부 정보": "#0f8a7e",
-  "논리·추론": "#b7791f",
-  "어법·어휘": "#8a4fc4",
-  서술형: "#c2410c",
-  기타: "#64748b",
+  "대의 파악": "#e4572e",
+  "세부 정보": "#29335c",
+  "논리·추론": "#f3a712",
+  "어법·어휘": "#669bbc",
+  서술형: "#a8c686",
+  기타: "#b8ad98",
 };
 
 const r1 = (x: number) => Math.round(x * 10) / 10;
 const sum = (xs: (number | null)[]) => xs.reduce<number>((s, x) => s + (Number(x) || 0), 0);
+
+function Donut({ parts, total }: { parts: { c: string; n: number }[]; total: number }) {
+  const R = 98;
+  const r = 60;
+  let a = -Math.PI / 2;
+  const n = sum(parts.map((p) => p.n)) || 1;
+  const P = (ang: number, rad: number) => `${R + rad * Math.cos(ang)} ${R + rad * Math.sin(ang)}`;
+  return (
+    <svg viewBox="0 0 196 196" width="196" height="196" role="img" aria-label="영역별 문항 수">
+      {parts.map((p) => {
+        // 한 영역만 있으면 원 하나
+        if (p.n === n) {
+          return (
+            <g key={p.c}>
+              <circle cx={R} cy={R} r={(R + r) / 2} fill="none" stroke={CAT_COLOR[p.c]} strokeWidth={R - r} />
+            </g>
+          );
+        }
+        const a2 = a + (p.n / n) * Math.PI * 2;
+        const big = a2 - a > Math.PI ? 1 : 0;
+        const d = `M ${P(a, R)} A ${R} ${R} 0 ${big} 1 ${P(a2, R)} L ${P(a2, r)} A ${r} ${r} 0 ${big} 0 ${P(a, r)} Z`;
+        a = a2;
+        return <path key={p.c} d={d} fill={CAT_COLOR[p.c]} />;
+      })}
+      <text x={R} y={R} textAnchor="middle" fontSize="32" fontWeight="700" fill="#1f2937">
+        {total}
+      </text>
+      <text x={R} y={R + 20} textAnchor="middle" fontSize="11" fill={SOFT}>
+        문항
+      </text>
+    </svg>
+  );
+}
+
+/** A4 한 쪽 (화면에서도 794×1123px, 인쇄는 210×297mm) */
+function A4Page({ children, footer }: { children: ReactNode; footer: string }) {
+  return (
+    <section
+      className="exam-a4 relative flex min-h-[1123px] w-[794px] shrink-0 flex-col gap-[18px] px-[50px] pb-[52px] pt-[48px] text-[12.5px] leading-normal text-[#1f2937] shadow-[0_8px_26px_rgb(15_25_40/0.16)]"
+      style={{ background: CREAM }}
+    >
+      {children}
+      <div
+        className="absolute bottom-[22px] left-[50px] right-[50px] flex justify-between border-t pt-1.5 text-[10px]"
+        style={{ borderColor: LINE, color: SOFT }}
+      >
+        <span>{footer}</span>
+      </div>
+    </section>
+  );
+}
 
 export function ExamReportView({
   analysis,
@@ -44,6 +97,10 @@ export function ExamReportView({
 }) {
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
+  // 수업자료 대조를 켜고 끄면 서버가 적중 칸을 다시 채운다 → 새 문항표로 바꾼다
+  useEffect(() => setItems(initialItems), [initialItems]);
+  const [matchOn, setMatchOn] = useState(analysis.match_materials);
+  const [matchBusy, setMatchBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editMeta, setEditMeta] = useState(false);
   const [meta, setMeta] = useState({
@@ -68,8 +125,14 @@ export function ExamReportView({
       return { l, n: list.length, pts: r1(sum(list.map((i) => i.points))) };
     });
     const avg = items.length ? r1(sum(items.map((i) => i.difficulty)) / items.length) : 0;
-    return { total, subj, hard, matched, cats, levels, avg, maxN: Math.max(1, ...cats.map((c) => c.n)) };
+    const subjPts = r1(sum(subj.map((i) => i.points)));
+    const decisive = hard
+      .slice()
+      .sort((x, y) => (y.points ?? 0) - (x.points ?? 0) || y.difficulty - x.difficulty)
+      .slice(0, 6);
+    return { total, subj, subjPts, hard, matched, cats, levels, avg, decisive };
   }, [items]);
+  const pct = (x: number) => (s.total ? Math.round((x / s.total) * 100) : 0);
 
   async function saveItem(id: string, patch: { typeName?: string; level?: ExamLevel; points?: number | null }) {
     const before = items;
@@ -107,14 +170,29 @@ export function ExamReportView({
     router.refresh();
   }
 
-  async function remove() {
-    if (!window.confirm("이 시험 분석을 지울까요? 되돌릴 수 없어요.")) return;
-    await fetch(`/api/exam-analysis/${analysis.id}`, { method: "DELETE" });
-    router.push(listHref);
-    router.refresh();
+  async function toggleMatch() {
+    setMatchBusy(true);
+    const next = !matchOn;
+    const res = await fetch(`/api/exam-analysis/${analysis.id}/match`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: next }),
+    });
+    setMatchBusy(false);
+    if (res.ok) {
+      setMatchOn(next);
+      router.refresh();
+    }
   }
 
   const title = [meta.schoolName || "학교 미입력", meta.grade ? `${meta.grade}학년` : "", meta.subject].filter(Boolean).join(" ");
+  const examLine = [meta.examLabel, `선택형 ${items.length - s.subj.length} · 서술형 ${s.subj.length}문항`, `${s.total}점`]
+    .filter(Boolean)
+    .join(" · ");
+  const footer = `${academyName} · 내신 시험 분석 · ${title}`;
+  const showMatched = matchOn && s.matched.length > 0;
+  const pageTotal = showMatched ? 3 : 2;
+  const h3 = "mb-[7px] text-[13.5px] font-bold";
 
   return (
     <div className="space-y-4">
@@ -124,16 +202,57 @@ export function ExamReportView({
           시험 분석 목록
         </Link>
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => setEditing((v) => !v)}
-            className={`h-9 rounded-lg border px-3.5 text-sm font-semibold ${editing ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}>
+          <button
+            type="button"
+            onClick={() => setEditMeta((v) => !v)}
+            className="h-9 rounded-lg border border-slate-300 bg-white px-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            시험 정보 고치기
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditing((v) => !v)}
+            className={`h-9 rounded-lg border px-3.5 text-sm font-semibold ${editing ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+          >
             {editing ? "고치기 끝" : "문항표 고치기"}
           </button>
-          <button type="button" onClick={() => window.print()}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 text-sm font-semibold text-white hover:bg-slate-800">
+          <button
+            type="button"
+            onClick={toggleMatch}
+            disabled={matchBusy}
+            title="시험 지문이 우리 학원 수업자료 지문과 같은지 대조해요"
+            className={`h-9 rounded-lg border px-3.5 text-sm font-semibold disabled:opacity-50 ${matchOn ? "border-emerald-600 bg-emerald-50 text-emerald-700" : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"}`}
+          >
+            {matchBusy ? "대조 중…" : matchOn ? "수업자료 대조 켜짐" : "수업자료 대조 꺼짐"}
+          </button>
+          <ExamDeleteButton id={analysis.id} label={title} redirectTo={listHref} variant="button" />
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 text-sm font-semibold text-white hover:bg-slate-800"
+          >
             <Icon name="print" size={15} /> 인쇄 / PDF
           </button>
         </div>
       </div>
+
+      {editMeta ? (
+        <div className="grid gap-2 rounded-xl border border-slate-200 bg-white p-3 sm:grid-cols-[repeat(4,minmax(0,1fr))_auto] print:hidden">
+          {(["schoolName", "grade", "subject", "examLabel"] as const).map((k) => (
+            <input
+              key={k}
+              id={`meta-${k}`}
+              className="ui-input h-9 text-sm"
+              value={meta[k]}
+              placeholder={{ schoolName: "학교", grade: "학년 (예: 1)", subject: "과목", examLabel: "시험 (예: 2026 1학기 중간)" }[k]}
+              onChange={(e) => setMeta({ ...meta, [k]: e.target.value })}
+            />
+          ))}
+          <button type="button" onClick={saveMeta} disabled={saving} className="h-9 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white disabled:opacity-50">
+            저장
+          </button>
+        </div>
+      ) : null}
 
       {analysis.missing ? (
         <p className="rounded-lg bg-amber-50 px-4 py-2.5 text-sm text-amber-800 print:hidden">
@@ -141,217 +260,356 @@ export function ExamReportView({
         </p>
       ) : null}
 
-      <article className="mx-auto max-w-[860px] space-y-8 rounded-md bg-white px-6 py-8 shadow-[0_10px_30px_rgb(20_30_50/0.10)] sm:px-11 sm:py-10 print:max-w-none print:p-0 print:shadow-none">
-        <header className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-slate-900 pb-4">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold tracking-[0.08em] text-brand-700">내신 시험 분석 보고서</p>
-            {editMeta ? (
-              <div className="mt-2 grid gap-2 sm:grid-cols-4 print:hidden">
-                {(["schoolName", "grade", "subject", "examLabel"] as const).map((k) => (
-                  <input key={k} id={`meta-${k}`} className="ui-input h-9 text-sm" value={meta[k]}
-                    placeholder={{ schoolName: "학교", grade: "학년", subject: "과목", examLabel: "시험" }[k]}
-                    onChange={(e) => setMeta({ ...meta, [k]: e.target.value })} />
+      <div className="overflow-x-auto print:overflow-visible">
+        <div id="exam-report-print-root" className="mx-auto flex w-[794px] flex-col gap-5">
+          {/* 1쪽: 요약 */}
+          <A4Page footer={`${footer} · 1 / ${pageTotal}`}>
+            <div className="flex items-end justify-between gap-3">
+              <div className="min-w-0">
+                <span className="inline-block rounded-[3px] bg-[#1f2937] px-[9px] py-1 text-[10.5px] font-bold tracking-[0.1em]" style={{ color: CREAM }}>
+                  EXAM REPORT
+                </span>
+                <h1 className="mb-0.5 mt-2 text-[27px] font-bold leading-tight tracking-tight">{title}</h1>
+                <p style={{ color: SOFT }}>{examLine}</p>
+              </div>
+              <div className="shrink-0 text-right text-[11px]" style={{ color: SOFT }}>
+                <b className="block text-[14px] text-[#1f2937]">{academyName}</b>
+                분석일 {new Date(analysis.created_at).toLocaleDateString("ko-KR")}
+              </div>
+            </div>
+
+            <div className={`grid gap-[9px] ${showMatched ? "grid-cols-5" : "grid-cols-4"}`}>
+              {[
+                { v: `${items.length}`, l: "전체 문항" },
+                { v: `${s.subjPts}`, l: `서술형 배점 · ${pct(s.subjPts)}%` },
+                { v: `${s.avg}`, l: "평균 난이도 / 5" },
+                { v: `${s.hard.length}`, l: `고난도 문항 · ${r1(sum(s.hard.map((i) => i.points)))}점` },
+                ...(showMatched ? [{ v: `${s.matched.length}`, l: `수업자료 적중 · ${Math.round((s.matched.length / items.length) * 100)}%` }] : []),
+              ].map((k) => (
+                <div key={k.l} className="rounded-[14px] bg-white px-[13px] py-[11px]">
+                  <b className="block text-[29px] leading-[1.1] tabular-nums">{k.v}</b>
+                  <span className="text-[11.5px]" style={{ color: SOFT }}>
+                    {k.l}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-[196px_1fr_1fr] items-center gap-5">
+              <Donut parts={s.cats} total={items.length} />
+              <div>
+                <h3 className={h3} style={{ color: NAVY }}>
+                  영역별
+                </h3>
+                {s.cats.map((c) => (
+                  <div key={c.c} className="flex justify-between border-b border-dashed py-1" style={{ borderColor: LINE }}>
+                    <span>
+                      <i className="mr-1.5 inline-block h-[9px] w-[9px] rounded-full align-[-1px]" style={{ background: CAT_COLOR[c.c] }} />
+                      {c.c}
+                    </span>
+                    <b className="tabular-nums">
+                      {c.n}문항 · {c.pts}점
+                    </b>
+                  </div>
                 ))}
-                <div className="flex gap-2 sm:col-span-4">
-                  <button type="button" onClick={saveMeta} disabled={saving} className="h-8 rounded-md bg-brand-600 px-3 text-sm font-semibold text-white">저장</button>
-                  <button type="button" onClick={() => setEditMeta(false)} className="h-8 rounded-md border border-slate-300 px-3 text-sm">취소</button>
-                </div>
               </div>
-            ) : (
-              <h1 className="mt-1.5 font-serif text-[28px] font-black leading-tight tracking-tight text-slate-900">
-                {title}
-                <button type="button" onClick={() => setEditMeta(true)} className="ml-2 align-middle text-xs font-semibold text-slate-400 hover:text-brand-700 print:hidden">
-                  고치기
-                </button>
-              </h1>
-            )}
-            <p className="mt-1.5 text-sm text-slate-600">
-              {[meta.examLabel, `선택형 ${items.length - s.subj.length}문항`, `서술형 ${s.subj.length}문항`, `${s.total}점`].filter(Boolean).join(" · ")}
-            </p>
-          </div>
-          <div className="text-right text-xs text-slate-500">
-            <b className="block text-[15px] text-slate-900">{academyName}</b>
-            분석일 {new Date(analysis.created_at).toLocaleDateString("ko-KR")}
-          </div>
-        </header>
-
-        <section>
-          <h2 className="mb-3 text-[17px] font-bold">한눈에 보기</h2>
-          <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-slate-200 sm:grid-cols-4">
-            {[
-              { l: "전체 문항", v: `${items.length}`, u: "문항", d: `선택형 ${items.length - s.subj.length} · 서술형 ${s.subj.length}` },
-              { l: "서술형 배점", v: `${r1(sum(s.subj.map((i) => i.points)))}`, u: "점", d: s.total ? `총점의 ${Math.round((sum(s.subj.map((i) => i.points)) / s.total) * 100)}%` : "" },
-              { l: "평균 난이도", v: `${s.avg}`, u: " / 5", d: `상 ${s.hard.length}문항 · ${r1(sum(s.hard.map((i) => i.points)))}점` },
-              { l: "수업자료 적중", v: `${s.matched.length}`, u: "문항", d: s.matched.length ? `${Math.round((s.matched.length / Math.max(1, items.length)) * 100)}% · 우리 학원 수업자료 지문` : "수업자료 지문과 맞는 문항 없음" },
-            ].map((k) => (
-              <div key={k.l} className="border-b border-r border-slate-200 px-4 py-3.5 last:border-r-0 sm:border-b-0">
-                <p className="text-xs text-slate-500">{k.l}</p>
-                <p className="text-[26px] font-bold leading-tight tabular-nums">
-                  {k.v}
-                  <small className="text-sm font-semibold text-slate-600">{k.u}</small>
-                </p>
-                <p className="text-xs text-slate-600">{k.d}</p>
+              <div>
+                <h3 className={h3} style={{ color: NAVY }}>
+                  난이도별
+                </h3>
+                {s.levels.map((l) => (
+                  <div key={l.l} className="border-b border-dashed py-1" style={{ borderColor: LINE }}>
+                    <div className="flex justify-between">
+                      <span>
+                        <i className="mr-1.5 inline-block h-[9px] w-[9px] rounded-full align-[-1px]" style={{ background: LV_BG[l.l] }} />
+                        {l.l}
+                      </span>
+                      <b className="tabular-nums">
+                        {l.n}문항 · {l.pts}점 ({pct(l.pts)}%)
+                      </b>
+                    </div>
+                    <span className="mt-[3px] block h-[5px] overflow-hidden rounded-full bg-white">
+                      <span className="block h-full rounded-full" style={{ width: `${pct(l.pts)}%`, background: LV_BG[l.l] }} />
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="grid gap-7 md:grid-cols-[1.25fr_1fr]">
-          <div>
-            <h2 className="mb-3 text-[17px] font-bold">
-              유형별 분포 <small className="ml-1 text-xs font-medium text-slate-500">문항 수 · 배점</small>
-            </h2>
-            <div className="space-y-2.5">
-              {s.cats.map((c) => (
-                <div key={c.c} className="grid grid-cols-[84px_minmax(0,1fr)_96px] items-center gap-2.5 text-[13px]">
-                  <span>{c.c}</span>
-                  <span className="h-3.5 overflow-hidden rounded-sm bg-slate-100">
-                    <span className="block h-full rounded-sm" style={{ width: `${(c.n / s.maxN) * 100}%`, background: CAT_COLOR[c.c] }} />
-                  </span>
-                  <span className="text-right tabular-nums text-slate-600">
-                    <b className="text-slate-900">{c.n}</b>문항 · {c.pts}점
-                  </span>
-                </div>
-              ))}
             </div>
-          </div>
-          <div>
-            <h2 className="mb-3 text-[17px] font-bold">
-              난이도 분포 <small className="ml-1 text-xs font-medium text-slate-500">배점 기준</small>
-            </h2>
-            <div className="flex h-[34px] overflow-hidden rounded-md text-xs font-semibold">
-              {s.levels.filter((l) => l.pts > 0).map((l) => (
-                <span key={l.l} className={`flex items-center justify-center whitespace-nowrap ${LV_STYLE[l.l]}`} style={{ flex: l.pts }}>
-                  {l.l} {s.total ? Math.round((l.pts / s.total) * 100) : 0}%
-                </span>
-              ))}
-            </div>
-            <div className="mt-2 flex flex-wrap gap-3.5 text-xs text-slate-600">
-              {s.levels.map((l) => (
-                <span key={l.l}>
-                  <i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm align-[-1px]" style={{ background: LV_FILL[l.l] }} />
-                  {l.l} {l.n}문항 · {l.pts}점
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        <section>
-          <h2 className="mb-3 text-[17px] font-bold">
-            시험지 순서대로 본 난이도 <small className="ml-1 text-xs font-medium text-slate-500">굵은 테두리 = 서술형</small>
-          </h2>
-          <div className="grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 26)}, minmax(0, 1fr))` }}>
-            {items.map((i) => (
-              <span key={i.id} title={`${i.item_no} ${i.type_name} · ${i.level}`}
-                className={`flex h-8 items-center justify-center rounded-[3px] text-[11px] font-semibold tabular-nums ${LV_STYLE[i.level]} ${i.is_subjective ? "outline outline-2 -outline-offset-2 outline-slate-900" : ""}`}>
-                {i.item_no.replace("서술 ", "서")}
-              </span>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <h2 className="mb-3 text-[17px] font-bold">문항정보표</h2>
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
-            <table className="w-full min-w-[760px] border-collapse text-[13px]">
-              <thead>
-                <tr className="bg-slate-50 text-left text-xs text-slate-600">
-                  {["번호", "영역", "유형", "난이도", "배점", "수업자료", "평가 요소"].map((h) => (
-                    <th key={h} className="whitespace-nowrap border-b border-slate-200 px-2.5 py-2 font-semibold">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
+            <div>
+              <h3 className={h3} style={{ color: NAVY }}>
+                문항 번호별 난이도
+              </h3>
+              <div className="flex flex-wrap gap-[5px]">
                 {items.map((i) => (
-                  <tr key={i.id} className="border-b border-slate-100 align-top last:border-0">
-                    <td className="whitespace-nowrap px-2.5 py-1.5 font-bold">{i.item_no}</td>
-                    <td className="whitespace-nowrap px-2.5 py-1.5">{i.category}</td>
-                    <td className="whitespace-nowrap px-2.5 py-1.5">
-                      {editing ? (
-                        <select id={`type-${i.id}`} className="ui-input h-8 py-0 text-[13px]" value={i.type_name}
-                          onChange={(e) => saveItem(i.id, { typeName: e.target.value })}>
-                          {!EXAM_TYPE_CHOICES.some((g) => g.names.includes(i.type_name)) ? <option value={i.type_name}>{i.type_name}</option> : null}
-                          {EXAM_TYPE_CHOICES.map((g) => (
-                            <optgroup key={g.category} label={g.category}>
-                              {g.names.map((n) => <option key={n} value={n}>{n}</option>)}
-                            </optgroup>
-                          ))}
-                        </select>
-                      ) : (
-                        <>{i.type_name}{i.edited ? <span className="ml-1 text-[10px] text-brand-600 print:hidden">고침</span> : null}</>
-                      )}
-                    </td>
-                    <td className="px-2.5 py-1.5">
-                      {editing ? (
-                        <select id={`level-${i.id}`} className="ui-input h-8 py-0 text-[13px]" value={i.level}
-                          onChange={(e) => saveItem(i.id, { level: e.target.value as ExamLevel })}>
-                          {EXAM_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
-                        </select>
-                      ) : (
-                        <span className={`inline-block min-w-[22px] rounded px-1.5 text-center text-xs font-bold ${LV_STYLE[i.level]}`}>{i.level}</span>
-                      )}
-                    </td>
-                    <td className="whitespace-nowrap px-2.5 py-1.5 text-right tabular-nums">
-                      {editing ? (
-                        <input id={`points-${i.id}`} type="number" step="0.1" min="0" className="ui-input h-8 w-16 py-0 text-right text-[13px]"
-                          defaultValue={i.points ?? ""}
-                          onBlur={(e) => {
-                            const v = e.target.value === "" ? null : Number(e.target.value);
-                            if (v !== i.points) saveItem(i.id, { points: v });
-                          }} />
-                      ) : (i.points ?? "–")}
-                    </td>
-                    <td className="max-w-[160px] px-2.5 py-1.5 text-xs text-slate-600">{i.matched_label ?? ""}</td>
-                    <td className="px-2.5 py-1.5 text-xs text-slate-500">{(i.grammar_point || i.difficulty_reason || "").slice(0, 70)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        {s.subj.length ? (
-          <section>
-            <h2 className="mb-3 text-[17px] font-bold">
-              서술형 분석 <small className="ml-1 text-xs font-medium text-slate-500">{s.subj.length}문항 · {r1(sum(s.subj.map((i) => i.points)))}점</small>
-            </h2>
-            <div className="space-y-2.5">
-              {s.subj.map((i) => (
-                <div key={i.id} className="grid grid-cols-[60px_minmax(0,1fr)_48px] gap-3 rounded-lg bg-slate-50 px-3.5 py-3">
-                  <span className="font-bold">{i.item_no}</span>
-                  <span>
-                    <b>{i.type_name}</b>
-                    {i.conditions ? <span className="block text-[13px] text-slate-600">{i.conditions}</span> : null}
-                    {i.grammar_point ? <span className="block text-xs text-slate-500">문법: {i.grammar_point}</span> : null}
+                  <span
+                    key={i.id}
+                    title={`${i.item_no} ${i.type_name} · ${i.level}`}
+                    className="flex h-[37px] w-[37px] items-center justify-center rounded-full text-[11px] font-bold tabular-nums"
+                    style={{
+                      background: LV_BG[i.level],
+                      color: LV_INK[i.level],
+                      boxShadow: i.is_subjective ? `0 0 0 2px ${CREAM}, 0 0 0 4px ${NAVY}` : undefined,
+                    }}
+                  >
+                    {i.item_no.replace("서술 ", "서")}
                   </span>
-                  <span className="text-right font-bold tabular-nums">{i.points ?? "–"}점</span>
-                </div>
-              ))}
+                ))}
+              </div>
+              <p className="mt-[5px] text-[10.5px]" style={{ color: SOFT }}>
+                연한색 하 · 노랑 중 · 주황 상 · 테두리 = 서술형
+              </p>
             </div>
-          </section>
-        ) : null}
 
-        <section className="grid gap-7 md:grid-cols-2">
-          <div>
-            <h2 className="mb-3 text-[17px] font-bold">출제 특징</h2>
-            <ul className="list-disc space-y-1.5 pl-5">{analysis.features.map((f) => <li key={f}>{f}</li>)}</ul>
-          </div>
-          <div>
-            <h2 className="mb-3 text-[17px] font-bold">다음 시험 대비 전략</h2>
-            <ul className="list-disc space-y-1.5 pl-5">{analysis.strategy.map((f) => <li key={f}>{f}</li>)}</ul>
-          </div>
-        </section>
+            <div>
+              <h3 className={h3} style={{ color: NAVY }}>
+                출제 특징
+              </h3>
+              <ul className="list-disc space-y-[3px] pl-4">
+                {analysis.features.map((f) => (
+                  <li key={f}>{f}</li>
+                ))}
+              </ul>
+            </div>
 
-        <footer className="flex flex-wrap justify-between gap-3 border-t border-slate-200 pt-3 text-[11px] text-slate-500">
-          <span>{academyName} · 내신 시험 분석</span>
-          <span>난이도는 지문 길이·어휘 수준·유형 난도·선택지·서술형 조건을 종합한 판단입니다.</span>
-        </footer>
-      </article>
+            {s.decisive.length ? (
+              <div>
+                <h3 className={h3} style={{ color: NAVY }}>
+                  점수가 갈린 문항{" "}
+                  <span className="text-[11px] font-semibold" style={{ color: SOFT }}>
+                    난이도 상 · 배점 큰 순
+                  </span>
+                </h3>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {s.decisive.map((i) => (
+                    <div key={i.id} className="rounded-[11px] bg-white px-[11px] py-2">
+                      <div className="flex justify-between font-bold">
+                        <span>
+                          {i.item_no} · {i.type_name}
+                        </span>
+                        <span>{i.points ?? "–"}점</span>
+                      </div>
+                      <p className="mt-px text-[11px]" style={{ color: SOFT }}>
+                        {(i.difficulty_reason ?? "").slice(0, 70)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </A4Page>
 
-      <div className="text-center print:hidden">
-        <button type="button" onClick={remove} className="text-xs text-slate-400 hover:text-red-600">이 시험 분석 지우기</button>
+          {/* 2쪽: 문항정보표 + 서술형·대비 전략 */}
+          <A4Page footer={`${footer} · 2 / ${pageTotal}`}>
+            <div className="flex items-baseline justify-between border-b-2 border-[#1f2937] pb-1.5">
+              <b className="text-[15px]">{title} · 문항정보표</b>
+              <span className="text-[11px]" style={{ color: SOFT }}>
+                {meta.examLabel}
+              </span>
+            </div>
+            <div className="grid flex-1 grid-cols-[1.12fr_1fr] gap-[18px]">
+              <div className="self-start rounded-xl bg-white px-3 py-2">
+                <table className="w-full border-collapse text-[11.5px]">
+                  <thead>
+                    <tr className="text-left text-[10.5px]" style={{ color: SOFT }}>
+                      <th className="px-1 py-1 font-semibold">번호</th>
+                      <th className="px-1 py-1 font-semibold">유형</th>
+                      <th className="px-1 py-1 font-semibold">난이도</th>
+                      <th className="px-1 py-1 text-right font-semibold">배점</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((i) => (
+                      <tr key={i.id} className="border-t align-middle" style={{ borderColor: "#f1ead9" }}>
+                        <td className="whitespace-nowrap px-1 py-[3.5px] font-bold">{i.item_no}</td>
+                        <td className="px-1 py-[3.5px]">
+                          {editing ? (
+                            <select
+                              id={`type-${i.id}`}
+                              className="ui-input h-7 max-w-[170px] py-0 text-[11.5px]"
+                              value={i.type_name}
+                              onChange={(e) => saveItem(i.id, { typeName: e.target.value })}
+                            >
+                              {!EXAM_TYPE_CHOICES.some((g) => g.names.includes(i.type_name)) ? <option value={i.type_name}>{i.type_name}</option> : null}
+                              {EXAM_TYPE_CHOICES.map((g) => (
+                                <optgroup key={g.category} label={g.category}>
+                                  {g.names.map((n) => (
+                                    <option key={n} value={n}>
+                                      {n}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              ))}
+                            </select>
+                          ) : (
+                            <>
+                              {i.type_name}
+                              {i.matched_label ? (
+                                <span className="block text-[10px]" style={{ color: SOFT }}>
+                                  수업자료: {i.matched_label}
+                                </span>
+                              ) : null}
+                            </>
+                          )}
+                        </td>
+                        <td className="px-1 py-[3.5px]">
+                          {editing ? (
+                            <select
+                              id={`level-${i.id}`}
+                              className="ui-input h-7 py-0 text-[11.5px]"
+                              value={i.level}
+                              onChange={(e) => saveItem(i.id, { level: e.target.value as ExamLevel })}
+                            >
+                              {EXAM_LEVELS.map((l) => (
+                                <option key={l} value={l}>
+                                  {l}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className="inline-block w-[22px] rounded-[3px] text-center text-[10.5px] font-bold" style={{ background: LV_BG[i.level], color: LV_INK[i.level] }}>
+                              {i.level}
+                            </span>
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-1 py-[3.5px] text-right tabular-nums">
+                          {editing ? (
+                            <input
+                              id={`points-${i.id}`}
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              className="ui-input h-7 w-14 py-0 text-right text-[11.5px]"
+                              defaultValue={i.points ?? ""}
+                              onBlur={(e) => {
+                                const v = e.target.value === "" ? null : Number(e.target.value);
+                                if (v !== i.points) saveItem(i.id, { points: v });
+                              }}
+                            />
+                          ) : (
+                            (i.points ?? "–")
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="border-t" style={{ borderColor: "#f1ead9" }}>
+                      <td className="px-1 py-[3.5px] font-bold">계</td>
+                      <td className="px-1 py-[3.5px]">{items.length}문항</td>
+                      <td />
+                      <td className="px-1 py-[3.5px] text-right font-bold tabular-nums">{s.total}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="min-w-0">
+                {s.subj.length ? (
+                  <>
+                    <h3 className={h3} style={{ color: NAVY }}>
+                      서술형{" "}
+                      <span className="text-[11px] font-semibold" style={{ color: SOFT }}>
+                        {s.subj.length}문항 · {s.subjPts}점
+                      </span>
+                    </h3>
+                    {s.subj.map((i) => (
+                      <div key={i.id} className="mb-1.5 rounded-[11px] bg-white px-[11px] py-2">
+                        <div className="flex justify-between font-bold">
+                          <span>
+                            {i.item_no} · {i.type_name}
+                          </span>
+                          <span>{i.points ?? "–"}점</span>
+                        </div>
+                        {i.conditions ? (
+                          <p className="mt-px text-[11px]" style={{ color: SOFT }}>
+                            {i.conditions}
+                          </p>
+                        ) : null}
+                        {i.grammar_point ? (
+                          <p className="text-[11px]" style={{ color: NAVY }}>
+                            문법: {i.grammar_point}
+                          </p>
+                        ) : null}
+                      </div>
+                    ))}
+                  </>
+                ) : null}
+                <h3 className={`${h3} mt-3`} style={{ color: NAVY }}>
+                  다음 시험 대비 전략
+                </h3>
+                <ul className="list-disc space-y-[3px] pl-4">
+                  {analysis.strategy.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </A4Page>
+
+          {/* 3쪽: 수업자료 적중 문항 (대조를 켰고 맞은 문항이 있을 때만) */}
+          {showMatched ? (
+            <A4Page footer={`${footer} · 3 / 3`}>
+              <div className="flex items-baseline justify-between border-b-2 border-[#1f2937] pb-1.5">
+                <b className="text-[15px]">{title} · 수업자료 적중 문항</b>
+                <span className="text-[11px]" style={{ color: SOFT }}>
+                  {meta.examLabel}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-[9px]">
+                {[
+                  { v: `${s.matched.length}`, l: `적중 문항 / 전체 ${items.length}` },
+                  { v: `${r1(sum(s.matched.map((i) => i.points)))}`, l: `적중 배점 · 총점의 ${pct(sum(s.matched.map((i) => i.points)))}%` },
+                  { v: `${new Set(s.matched.map((i) => i.matched_item_id)).size}`, l: "맞은 수업자료 지문 수" },
+                ].map((k) => (
+                  <div key={k.l} className="rounded-[14px] bg-white px-[13px] py-[11px]">
+                    <b className="block text-[29px] leading-[1.1] tabular-nums">{k.v}</b>
+                    <span className="text-[11.5px]" style={{ color: SOFT }}>
+                      {k.l}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-xl bg-white px-3 py-2">
+                <table className="w-full border-collapse text-[11.5px]">
+                  <thead>
+                    <tr className="whitespace-nowrap text-left text-[10.5px]" style={{ color: SOFT }}>
+                      <th className="px-1 py-1 font-semibold">번호</th>
+                      <th className="px-1 py-1 font-semibold">유형</th>
+                      <th className="px-1 py-1 font-semibold">난이도</th>
+                      <th className="px-1 py-1 text-right font-semibold">배점</th>
+                      <th className="px-1 py-1 font-semibold">수업자료</th>
+                      <th className="px-1 py-1 font-semibold">시험지 지문 첫 부분</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {s.matched.map((i) => (
+                      <tr key={i.id} className="border-t align-top" style={{ borderColor: "#f1ead9" }}>
+                        <td className="whitespace-nowrap px-1 py-1 font-bold">{i.item_no}</td>
+                        <td className="whitespace-nowrap px-1 py-1">{i.type_name}</td>
+                        <td className="px-1 py-1">
+                          <span className="inline-block w-[22px] rounded-[3px] text-center text-[10.5px] font-bold" style={{ background: LV_BG[i.level], color: LV_INK[i.level] }}>
+                            {i.level}
+                          </span>
+                        </td>
+                        <td className="px-1 py-1 text-right tabular-nums">{i.points ?? "–"}</td>
+                        <td className="px-1 py-1 font-semibold" style={{ color: NAVY }}>
+                          {i.matched_label}
+                        </td>
+                        <td className="px-1 py-1 text-[11px] italic" style={{ color: SOFT }}>
+                          {(i.passage_excerpt ?? "").split(/\s+/).slice(0, 14).join(" ")}…
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-[11px]" style={{ color: SOFT }}>
+                시험 지문 앞부분이 학원 수업자료에 넣어 둔 지문과 같은 문항입니다. 지문을 조금 바꿔 낸 문항도 포함됩니다.
+              </p>
+            </A4Page>
+          ) : null}
+        </div>
       </div>
+
     </div>
   );
 }

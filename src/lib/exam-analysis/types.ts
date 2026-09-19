@@ -55,6 +55,7 @@ export type ExamAnalysisRow = {
   features: string[];
   strategy: string[];
   error: string | null;
+  match_materials: boolean;
   created_at: string;
 };
 

@@ -87,11 +87,15 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
   const items = (raw.items ?? []).filter((i) => i && (i.no ?? "") !== "");
   if (items.length === 0) throw new Error("문항을 찾지 못했습니다. 시험지 쪽이 모두 올라왔는지 확인해 주세요.");
 
-  const matches = await matchLessonMaterials(
-    admin,
-    academyId,
-    items.map((it, i) => ({ key: String(i), excerpt: it.passage_excerpt ?? null }))
-  );
+  const { data: opt } = await admin.from("school_exam_analyses").select("match_materials").eq("id", analysisId).maybeSingle();
+  const matches =
+    opt?.match_materials === false
+      ? new Map<string, { itemId: string; label: string }>()
+      : await matchLessonMaterials(
+          admin,
+          academyId,
+          items.map((it, i) => ({ key: String(i), excerpt: it.passage_excerpt ?? null }))
+        );
 
   const rows = items.map((it, i) => {
     const isSubjective = String(it.format ?? "").startsWith("sub") || String(it.no).includes("서");

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ExamUploadPanel } from "@/components/exam-analysis/ExamUploadPanel";
+import { ExamDeleteButton } from "@/components/exam-analysis/ExamDeleteButton";
 import { loadExamAnalyses } from "@/lib/exam-analysis/load";
 
 const STATUS_LABEL = { reading: "읽는 중", analyzing: "분석 중", ready: "", failed: "분석 실패" } as const;
@@ -21,12 +22,18 @@ export async function ExamAnalysisListPage({ academyId, basePath }: { academyId:
           <h2 className="mb-2.5 text-sm font-bold text-slate-700">분석한 시험 {list.length}</h2>
           <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {list.map((a) => (
-              <li key={a.id}>
+              <li key={a.id} className="relative">
+                <div className="absolute right-2.5 top-2.5 z-10">
+                  <ExamDeleteButton
+                    id={a.id}
+                    label={[a.school_name ?? "학교 미입력", a.grade ? `${a.grade}학년` : "", a.exam_label ?? ""].filter(Boolean).join(" ")}
+                  />
+                </div>
                 <Link
                   href={`${basePath}/${a.id}`}
                   className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-card transition hover:border-brand-200"
                 >
-                  <span className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2 pr-8">
                     <span className="font-bold text-slate-900">
                       {[a.school_name ?? "학교 미입력", a.grade ? `${a.grade}학년` : ""].filter(Boolean).join(" ")}
                     </span>

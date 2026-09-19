@@ -4273,3 +4273,36 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .vocab-print-page--answer-key .vocab-answer-key-body {
   margin-top: 10px;
 }
+
+/* 내신 시험 분석 보고서: A4 두 쪽 그대로 인쇄 */
+@media print {
+  #exam-report-print-root,
+  #exam-report-print-root * {
+    visibility: visible;
+  }
+  #exam-report-print-root {
+    page: app-print-a4;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  #exam-report-print-root .exam-a4 {
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+    break-after: page;
+    page-break-after: always;
+  }
+  #exam-report-print-root .exam-a4:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}
