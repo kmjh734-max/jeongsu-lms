@@ -42,6 +42,7 @@ export function ExamMockBuilder({
   const router = useRouter();
   const [tab, setTab] = useState<"material" | "paste">(materials.length ? "material" : "paste");
   const [query, setQuery] = useState("");
+  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
   const [chosen, setChosen] = useState<Chosen[]>(() =>
     initialPassageIds
       .map((id) => materials.find((m) => m.id === id))
@@ -135,18 +136,13 @@ export function ExamMockBuilder({
           <Icon name="left" size={16} />
           분석 보고서
         </Link>
-        <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:text-[22px]">동형모의고사 {round}회 만들기</h1>
+        <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:text-[22px]">동형모의고사 만들기</h1>
         <p className="mt-1 text-sm text-slate-500">
           {examTitle}와 같은 번호·유형·난이도·배점으로 새 시험지를 만들어요. 시험 범위 지문만 골라 주세요.
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-700">{slots.length}문항 · {Math.round(total * 10) / 10}점</span>
           <span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-700">원래 시험 지문 {groupCount}개</span>
-          {round > 1 ? (
-            <span className="rounded-full bg-brand-50 px-2.5 py-1 font-semibold text-brand-700">
-              {round - 1}회와 지문 자리가 겹치지 않게 배정했어요
-            </span>
-          ) : null}
           {substituted ? (
             <span className="rounded-full bg-amber-50 px-2.5 py-1 font-semibold text-amber-800">비슷한 유형으로 만드는 문항 {substituted}</span>
           ) : null}
@@ -177,27 +173,75 @@ export function ExamMockBuilder({
             materials.length ? (
               <div className="mt-3">
                 <input id="mock-search" className="ui-input h-9 text-sm" placeholder="자료 이름·지문으로 찾기" value={query} onChange={(e) => setQuery(e.target.value)} />
-                <div className="mt-2 max-h-[420px] space-y-3 overflow-y-auto pr-1">
-                  {byProject.map(([project, list]) => (
-                    <div key={project}>
-                      <p className="sticky top-0 bg-white py-1 text-xs font-bold text-slate-500">{project}</p>
-                      <ul className="space-y-1">
-                        {list.map((m) => (
-                          <li key={m.id}>
-                            <label className={`flex cursor-pointer gap-2 rounded-lg border px-2.5 py-2 text-sm ${isChosen(m.id) ? "border-brand-400 bg-brand-50/60" : "border-slate-200 hover:border-slate-300"}`}>
-                              <input type="checkbox" className="mt-0.5 h-4 w-4 accent-brand-600" checked={isChosen(m.id)} onChange={() => toggleMaterial(m)} />
-                              <span className="min-w-0">
-                                <b className="font-semibold text-slate-900">{m.title}</b>
-                                <span className="ml-1.5 text-xs text-slate-400">{m.words}단어</span>
-                                <span className="block truncate text-xs text-slate-500">{m.preview}…</span>
-                              </span>
-                            </label>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
+                <ul className="mt-2 max-h-[440px] space-y-1.5 overflow-y-auto pr-1">
+                  {byProject.map(([folder, list]) => {
+                    // 찾는 중이면 맞는 폴더를 모두 펼친다
+                    const open = openFolders.has(folder) || query.trim().length > 0;
+                    const picked = list.filter((m) => isChosen(m.id)).length;
+                    const all = picked === list.length;
+                    return (
+                      <li key={folder} className="rounded-lg border border-slate-200">
+                        <div className="flex items-center gap-2 px-2.5 py-2">
+                          <input
+                            type="checkbox"
+                            aria-label={`${folder} 전체 선택`}
+                            className="h-4 w-4 accent-brand-600"
+                            checked={all}
+                            ref={(el) => {
+                              if (el) el.indeterminate = picked > 0 && !all;
+                            }}
+                            onChange={() =>
+                              setChosen((prev) => {
+                                const rest = prev.filter((c) => !(c.kind === "material" && list.some((m) => m.id === c.id)));
+                                return all
+                                  ? rest
+                                  : [...rest, ...list.map((m) => ({ kind: "material" as const, id: m.id, label: `${m.project} · ${m.title}`, words: m.words }))];
+                              })
+                            }
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setOpenFolders((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(folder)) next.delete(folder);
+                                else next.add(folder);
+                                return next;
+                              })
+                            }
+                            className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm"
+                          >
+                            <Icon name="folder" size={16} className="shrink-0 text-slate-400" />
+                            <b className="truncate font-semibold text-slate-900">{folder}</b>
+                            <span className="shrink-0 text-xs text-slate-400">
+                              {picked ? `${picked}/` : ""}
+                              {list.length}
+                            </span>
+                            <span className={`ml-auto shrink-0 text-slate-400 transition ${open ? "rotate-180" : ""}`}>
+                              <Icon name="down" size={14} />
+                            </span>
+                          </button>
+                        </div>
+                        {open ? (
+                          <ul className="space-y-1 border-t border-slate-100 px-2 py-2">
+                            {list.map((m) => (
+                              <li key={m.id}>
+                                <label className={`flex cursor-pointer gap-2 rounded-md px-2 py-1.5 text-sm ${isChosen(m.id) ? "bg-brand-50" : "hover:bg-slate-50"}`}>
+                                  <input type="checkbox" className="mt-0.5 h-4 w-4 accent-brand-600" checked={isChosen(m.id)} onChange={() => toggleMaterial(m)} />
+                                  <span className="min-w-0">
+                                    <b className="font-semibold text-slate-900">{m.title}</b>
+                                    <span className="ml-1.5 text-xs text-slate-400">{m.words}단어</span>
+                                    <span className="block truncate text-xs text-slate-500">{m.preview}…</span>
+                                  </span>
+                                </label>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             ) : (
               <p className="mt-3 rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500">아직 수업자료가 없어요. 지문을 직접 붙여 넣어 주세요.</p>
@@ -293,7 +337,7 @@ export function ExamMockBuilder({
           disabled={busy || chosen.length === 0}
           className="h-10 rounded-lg bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
         >
-          {busy ? "만드는 중…" : `동형모의고사 ${round}회 만들기`}
+          {busy ? "만드는 중…" : "동형모의고사 만들기"}
         </button>
       </div>
     </div>

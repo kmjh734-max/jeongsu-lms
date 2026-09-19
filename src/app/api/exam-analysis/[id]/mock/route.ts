@@ -84,7 +84,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const a = data.analysis;
   const title =
     body.title?.trim().slice(0, 80) ||
-    [a.school_name, a.grade ? `${a.grade}학년` : "", a.subject, `동형모의고사 ${round}회`].filter(Boolean).join(" ");
+    [a.school_name, a.grade ? `${a.grade}학년` : "", a.subject, "동형모의고사"].filter(Boolean).join(" ");
   const config: GenerationRequestConfig = {
     title,
     schoolName: a.school_name ?? "",

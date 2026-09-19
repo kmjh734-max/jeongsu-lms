@@ -250,9 +250,9 @@ export function ExamReportView({
       {mocks.length ? (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm print:hidden">
           <span className="font-semibold text-slate-700">만든 동형모의고사</span>
-          {mocks.map((m, i) => (
+          {mocks.map((m) => (
             <Link key={m.id} href={`${generationsHref}/${m.id}`} className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100">
-              {mocks.length - i}회 · {new Date(m.created_at).toLocaleDateString("ko-KR")}
+              {new Date(m.created_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}
               {m.status !== "completed" ? " · 만드는 중" : ""}
             </Link>
           ))}
