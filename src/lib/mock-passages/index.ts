@@ -39,14 +39,21 @@ const COLUMNS = "id, year, month, grade, kind, item_no, english_text, gloss, wor
 
 /** 시험 목록 (학년·연도·월별 지문 수) */
 export async function loadMockExamList(admin: SupabaseClient): Promise<MockExamSummary[]> {
-  const { data } = await admin
-    .from("mock_exam_passages")
-    .select("year, month, grade, kind")
-    .order("year", { ascending: false })
-    .order("month", { ascending: false })
-    .limit(5000);
+  // 한 번에 1,000줄까지만 오므로 나눠 읽는다
+  const data: { year: number; month: number; grade: number; kind: string }[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data: page } = await admin
+      .from("mock_exam_passages")
+      .select("year, month, grade, kind")
+      .order("year", { ascending: false })
+      .order("month", { ascending: false })
+      .order("id")
+      .range(from, from + 999);
+    data.push(...((page ?? []) as typeof data));
+    if (!page || page.length < 1000) break;
+  }
   const map = new Map<string, MockExamSummary>();
-  for (const r of data ?? []) {
+  for (const r of data) {
     const key = mockExamKey(r as MockExamSummary);
     const cur = map.get(key);
     if (cur) cur.count++;
