@@ -88,7 +88,8 @@ export function typeNameFromKey(typeKey: string, isSubjective: boolean): { name:
   }
   const hit = BASE_NAME[base ?? ""];
   if (!hit) return { name: typeKey, category: isSubjective ? "서술형" : "기타" };
-  let [name, category] = hit;
+  const category = hit[1];
+  let name = hit[0];
   if (base === "grammar" && tag.includes("개수")) name = "어법 (개수)";
   if (base === "vocabulary" && tag.includes("개수")) name = "어휘 (개수)";
   if (base === "grammar" && isSubjective) name = "어법 오류 수정";
