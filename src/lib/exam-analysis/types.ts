@@ -37,6 +37,9 @@ export type ExamItemRow = {
   confidence: number | null;
   matched_item_id: string | null;
   matched_label: string | null;
+  /** 모의고사 지문 모음에서 맞은 출처 (예: 24년 고2 6월 학평 24번) */
+  matched_mock_id: string | null;
+  matched_mock_label: string | null;
   edited: boolean;
 };
 

@@ -12,6 +12,7 @@ import {
   MAX_TOTAL_QUESTIONS,
 } from "@/lib/question-generator/constants";
 import { emptyPassageInput } from "@/lib/question-generator/passages";
+import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
 import {
   emptyCounts,
   QUESTION_TYPE_GROUPS,
@@ -73,6 +74,7 @@ export function QuestionGeneratorClient({
   });
   const [presets, setPresets] = useState<PresetRow[]>([]);
   const [passageId, setPassageId] = useState<string | null>(null);
+  const [mockOpen, setMockOpen] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -375,6 +377,19 @@ export function QuestionGeneratorClient({
       return;
     }
     setPassages((prev) => [...prev, emptyPassageInput()]);
+  }
+
+  /** 모의고사 지문 모음에서 고른 지문: 빈 행부터 채우고 모자라면 행을 늘린다 */
+  function addMockPassages(list: PickedMockPassage[]) {
+    setPassages((prev) => {
+      const next = prev.filter((p) => p.text.trim());
+      for (const m of list) {
+        if (next.length >= MAX_PASSAGES) break;
+        next.push({ ...emptyPassageInput(), title: m.shortLabel, sourceDetail: m.label, text: m.text });
+      }
+      return next.length ? next : [emptyPassageInput()];
+    });
+    setMockOpen(false);
   }
 
   function removePassage(index: number) {
@@ -1250,6 +1265,14 @@ export function QuestionGeneratorClient({
               >
                 + 지문 추가
               </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={filledPassages.length >= MAX_PASSAGES}
+                onClick={() => setMockOpen(true)}
+              >
+                모의고사 지문 불러오기
+              </Button>
               <span className="text-xs text-slate-500">
                 {passages.length >= MAX_PASSAGES
                   ? `최대 ${MAX_PASSAGES}개입니다.`
@@ -1257,6 +1280,14 @@ export function QuestionGeneratorClient({
               </span>
             </div>
           </section>
+
+          {mockOpen ? (
+            <MockPassagePickerModal
+              max={MAX_PASSAGES - filledPassages.length}
+              onPick={addMockPassages}
+              onClose={() => setMockOpen(false)}
+            />
+          ) : null}
 
           {showPresetForm && (
             <section className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4">

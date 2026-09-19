@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 import type { MockSlot } from "@/lib/exam-analysis/blueprint";
 import type { MaterialPassage } from "@/lib/exam-analysis/load";
+import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
 
 type Chosen =
   | { kind: "material"; id: string; label: string; words: number }
@@ -41,6 +42,7 @@ export function ExamMockBuilder({
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<"material" | "paste">(materials.length ? "material" : "paste");
+  const [mockOpen, setMockOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
   const [chosen, setChosen] = useState<Chosen[]>(() =>
@@ -92,6 +94,15 @@ export function ExamMockBuilder({
     setMessage(null);
     setChosen((prev) => [...prev, { kind: "text", key: `t${Date.now()}`, title: draft.title.trim() || `붙여 넣은 지문 ${prev.length + 1}`, text: draft.text.trim() }]);
     setDraft({ title: "", text: "" });
+  }
+  function addMock(list: PickedMockPassage[]) {
+    setChosen((prev) => [
+      ...prev,
+      ...list
+        .filter((m) => !prev.some((c) => c.kind === "text" && c.key === `m${m.id}`))
+        .map((m) => ({ kind: "text" as const, key: `m${m.id}`, title: m.label, text: m.text })),
+    ]);
+    setMockOpen(false);
   }
   function move(i: number, d: -1 | 1) {
     setChosen((prev) => {
@@ -160,7 +171,7 @@ export function ExamMockBuilder({
             {(
               [
                 ["material", `수업자료에서 고르기 ${materials.length ? `(${materials.length})` : ""}`],
-                ["paste", "직접 붙여 넣기"],
+                ["paste", "모의고사 · 붙여 넣기"],
               ] as const
             ).map(([k, l]) => (
               <button key={k} type="button" onClick={() => setTab(k)} className={`flex-1 rounded-md py-1.5 ${tab === k ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}>
@@ -248,6 +259,14 @@ export function ExamMockBuilder({
             )
           ) : (
             <div className="mt-3 space-y-2">
+              <button
+                type="button"
+                onClick={() => setMockOpen(true)}
+                className="flex h-10 w-full items-center justify-center rounded-lg border border-brand-300 bg-white text-sm font-semibold text-brand-700 hover:bg-brand-50"
+              >
+                모의고사 지문 불러오기
+              </button>
+              <p className="pt-1 text-xs font-semibold text-slate-500">또는 직접 붙여 넣기</p>
               <input id="mock-paste-title" className="ui-input h-9 text-sm" placeholder="지문 이름 (예: 3과 본문)" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
               <textarea id="mock-paste-text" rows={7} className="ui-input text-sm" placeholder="영어 지문 전체를 붙여 넣으세요" value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} />
               <button type="button" onClick={addText} className="h-9 rounded-lg border border-brand-300 bg-brand-50 px-3.5 text-sm font-semibold text-brand-700 hover:bg-brand-100">
@@ -340,6 +359,7 @@ export function ExamMockBuilder({
           {busy ? "만드는 중…" : "동형모의고사 만들기"}
         </button>
       </div>
+      {mockOpen ? <MockPassagePickerModal onPick={addMock} onClose={() => setMockOpen(false)} /> : null}
     </div>
   );
 }

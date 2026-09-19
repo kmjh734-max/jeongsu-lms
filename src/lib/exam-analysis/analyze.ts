@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ALL_QUESTION_OPTIONS } from "@/lib/question-generator/question-types";
 import { examChat } from "@/lib/exam-analysis/openai";
-import { matchLessonMaterials } from "@/lib/exam-analysis/match-materials";
+import { matchLessonMaterials, matchMockPassages } from "@/lib/exam-analysis/match-materials";
 import { typeNameFromKey } from "@/lib/exam-analysis/types";
 
 type RawItem = {
@@ -97,11 +97,17 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
           items.map((it, i) => ({ key: String(i), excerpt: it.passage_excerpt ?? null }))
         );
 
+  const mockMatches = await matchMockPassages(
+    admin,
+    items.map((it, i) => ({ key: String(i), excerpt: it.passage_excerpt ?? null }))
+  );
+
   const rows = items.map((it, i) => {
     const isSubjective = String(it.format ?? "").startsWith("sub") || String(it.no).includes("서");
     const { name, category } = typeNameFromKey(String(it.type_key ?? "other:기타"), isSubjective);
     const level = LEVELS.has(String(it.level)) ? String(it.level) : "중";
     const match = matches.get(String(i));
+    const mock = mockMatches.get(String(i));
     return {
       analysis_id: analysisId,
       order_index: i,
@@ -123,6 +129,8 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
       confidence: typeof it.confidence === "number" ? it.confidence : null,
       matched_item_id: match?.itemId ?? null,
       matched_label: match?.label ?? null,
+      matched_mock_id: mock?.mockId ?? null,
+      matched_mock_label: mock?.label ?? null,
     };
   });
 

@@ -472,6 +472,11 @@ export function ExamReportView({
                                   수업자료: {i.matched_label}
                                 </span>
                               ) : null}
+                              {i.matched_mock_label ? (
+                                <span className="block text-[10px]" style={{ color: SOFT }}>
+                                  출처: {i.matched_mock_label}
+                                </span>
+                              ) : null}
                             </>
                           )}
                         </td>

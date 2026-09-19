@@ -23,6 +23,7 @@ import {
   splitPassageIntoLinePairs,
 } from "@/lib/lesson-materials/split-sentences";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
 
 /**
  * 삽화 일괄 생성 때 동시에 보내는 요청 수. 이미지 생성은 분당 장수 제한이 낮아서
@@ -114,6 +115,7 @@ export function LessonMaterialsInputWizard({
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
   const [savedItemsCount, setSavedItemsCount] = useState<number>(0);
   const [savedProjectIds, setSavedProjectIds] = useState<string[]>([]);
+  const [mockOpen, setMockOpen] = useState(false);
 
   const saveAction =
     role === "admin"
@@ -189,6 +191,16 @@ export function LessonMaterialsInputWizard({
 
   function addPassage() {
     setPassages((prev) => [...prev, { english: "", korean: "", source: "" }]);
+  }
+
+  /** 모의고사 지문 모음에서 고른 지문: 빈 칸을 지우고 뒤에 붙인다 */
+  function addMockPassages(list: PickedMockPassage[]) {
+    setPassages((prev) => {
+      const kept = prev.filter((p) => p.english.trim() || p.korean.trim());
+      const added = list.map((m) => ({ english: m.text.slice(0, EN_MAX), korean: "", source: m.label }));
+      return [...kept, ...added];
+    });
+    setMockOpen(false);
   }
 
   function removeLastPassage() {
@@ -740,6 +752,13 @@ export function LessonMaterialsInputWizard({
             >
               <span aria-hidden>+</span> 지문 추가하기
             </button>
+            <button
+              type="button"
+              onClick={() => setMockOpen(true)}
+              className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
+            >
+              모의고사 지문 불러오기
+            </button>
 
             <div className="shrink-0">
               <Button
@@ -754,6 +773,10 @@ export function LessonMaterialsInputWizard({
             </div>
           </div>
         </div>
+      ) : null}
+
+      {mockOpen ? (
+        <MockPassagePickerModal onPick={addMockPassages} onClose={() => setMockOpen(false)} />
       ) : null}
 
       {step === 2 && wb ? (
