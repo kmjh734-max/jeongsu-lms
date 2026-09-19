@@ -27,6 +27,7 @@ const NAV_ITEMS = [
   { href: "/admin/students", label: "학생·수강", group: "수업 운영" },
   { href: "/admin/progress", label: "수강 현황", group: "수업 운영" },
   { href: "/admin/reports", label: "학습 리포트", group: "리포트" },
+  { href: "/admin/exam-analysis", label: "내신 시험 분석", group: "리포트" },
   { href: "/admin/student-records", label: "학생부 분석", group: "리포트" },
   { href: "/admin/nelt", label: "NELT 성장 리포트", group: "리포트" },
   { href: "/admin/teachers", label: "강사 관리", group: "관리" },

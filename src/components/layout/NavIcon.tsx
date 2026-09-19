@@ -350,6 +350,7 @@ const SEGMENT_ICON: Record<string, string> = {
   progress: "chart",
   reports: "file",
   "student-records": "clipboard",
+  "exam-analysis": "target",
   nelt: "trend",
   teachers: "badge",
   admins: "shield",
