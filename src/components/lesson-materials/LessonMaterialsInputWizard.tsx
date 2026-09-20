@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
-import { LessonMaterialsStepTop } from "@/components/lesson-materials/LessonMaterialsStepTop";
 import {
   generateLessonMaterialsOrganizationDraftAction as generateAdminOrganizationDraft,
   saveLessonMaterialsFromWizard as saveAdminLessonMaterialsFromWizard,
@@ -614,11 +613,6 @@ export function LessonMaterialsInputWizard({
 
   return (
     <div className="relative px-4">
-      <LessonMaterialsStepTop current={step} />
-      <p className="-mt-1 mb-3 text-center text-xs text-slate-500">
-        저장 위치: <span className="font-semibold text-slate-700">{folderLabel || "미분류"}</span>
-      </p>
-
       {prepLoading ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-200">
           <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">

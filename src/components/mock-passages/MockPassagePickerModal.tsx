@@ -35,6 +35,8 @@ export function MockPassagePickerModal({
   const [source, setSource] = useState<Source>(initialSource);
   const [books, setBooks] = useState<BookSummary[] | null>(null);
   const [bookKey, setBookKey] = useState<string | null>(null);
+  /** 과목 접기·펼치기 (공통영어1·공통영어2·영어1…) */
+  const [openSubjects, setOpenSubjects] = useState<Record<string, boolean>>({});
   const [exams, setExams] = useState<ExamSummary[] | null>(null);
   const [grade, setGrade] = useState(1);
   const [examKey, setExamKey] = useState<string | null>(null);
@@ -162,27 +164,53 @@ export function MockPassagePickerModal({
           {/* 학년 · 시험 */}
           <div className="min-h-0 overflow-y-auto border-b border-slate-100 p-3 sm:border-b-0 sm:border-r">
             {source === "textbook" ? (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {!books ? <p className="py-6 text-center text-sm text-slate-500">불러오는 중…</p> : null}
-                {(books ?? []).map((b) => {
-                  const n = pickedIn(b.key);
+                {/* 과목(공통영어1·공통영어2·영어1…) 아래에 출판사를 편다 */}
+                {[...new Set((books ?? []).map((b) => b.subject))].map((subject) => {
+                  const mine = (books ?? []).filter((b) => b.subject === subject);
+                  const open = openSubjects[subject] ?? mine.some((b) => b.key === bookKey);
+                  const picks = mine.reduce((acc, b) => acc + pickedIn(b.key), 0);
                   return (
-                    <button
-                      key={b.key}
-                      type="button"
-                      onClick={() => setBookKey(b.key)}
-                      className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-sm ${
-                        bookKey === b.key ? "bg-brand-50 font-semibold text-brand-800" : "text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      <span className="min-w-0">
-                        <b className="block truncate">{b.publisher}</b>
-                        <span className="text-xs font-normal text-slate-500">
-                          {b.subject} · 본문 {b.count}
+                    <div key={subject}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenSubjects((p) => ({ ...p, [subject]: !open }))}
+                        className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-sm font-bold text-slate-800 hover:bg-slate-50"
+                      >
+                        <span className="flex items-center gap-1">
+                          <Icon name="chevron" size={14} className={open ? "rotate-90 text-slate-400" : "text-slate-400"} />
+                          {subject}
                         </span>
-                      </span>
-                      {n ? <span className="rounded-full bg-brand-600 px-1.5 text-[11px] font-bold text-white">{n}</span> : null}
-                    </button>
+                        <span className="text-xs font-normal text-slate-400">
+                          {picks ? `고름 ${picks} · ` : ""}
+                          {mine.length}종
+                        </span>
+                      </button>
+                      {open ? (
+                        <div className="mt-0.5 space-y-0.5 pl-4">
+                          {mine.map((b) => {
+                            const n = pickedIn(b.key);
+                            return (
+                              <button
+                                key={b.key}
+                                type="button"
+                                onClick={() => setBookKey(b.key)}
+                                className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm ${
+                                  bookKey === b.key ? "bg-brand-50 font-semibold text-brand-800" : "text-slate-700 hover:bg-slate-50"
+                                }`}
+                              >
+                                <span className="min-w-0 truncate">
+                                  {b.publisher}
+                                  <span className="ml-1 text-xs font-normal text-slate-400">본문 {b.count}</span>
+                                </span>
+                                {n ? <span className="rounded-full bg-brand-600 px-1.5 text-[11px] font-bold text-white">{n}</span> : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
                   );
                 })}
                 {books && books.length === 0 ? (
