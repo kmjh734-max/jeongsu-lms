@@ -221,7 +221,8 @@ const GENERATOR_SYSTEM = `당신은 대한민국 고등학교 영어 내신·수
 - 후보를 넉넉히 만든다: 문장마다 물을 만한 자리가 있으면 모두 낸다(문장당 최대 3곳). 검수에서 절반쯤 빠지므로, 최종에 필요한 수의 두 배를 낸다고 생각하고 아끼지 않는다.
 - meaningKo: 이 문맥에서 원래 낱말의 뜻(짧은 한국어).
 - relation: "antonym"(반의어) | "reversal"(논리를 뒤집는 말) | "other".
-- learningValue: 1~5, 이 자리를 묻는 학습 가치.`;
+- learningValue: 1~5, 이 자리를 묻는 학습 가치.
+- alreadyUsedTargets가 오면 그 낱말들은 빼고 다른 자리를 고른다(같은 자리를 다시 내지 않는다).`;
 
 const GENERATOR_SCHEMA = {
   type: "object",
@@ -258,12 +259,22 @@ const GENERATOR_SCHEMA = {
 } as const;
 
 const AUDITOR_SYSTEM = `당신은 영어 어휘 문항 검수자이다. 각 항목은 지문의 한 자리에 [원래 낱말 / 바꾼 낱말]을 두는 어휘 문항 후보다.
-지문 전체 문맥에서 판정하고, 아래를 모두 만족할 때만 keep, 하나라도 어긋나면 reject 한다.
-1) 원래 낱말(original)은 그 자리에서 문맥에 맞다.
-2) 바꾼 낱말(replacement)은 그 자리에 넣으면 글의 논리·흐름과 명백히 어긋난다. 동의어·유사어이거나, 해석에 따라 말이 되거나, 둘 다 가능하다고 볼 여지가 있으면 reject.
-3) 바꾼 낱말은 실재하는 영어 낱말이고, 그 자리에 넣어도 문법적으로 성립한다(품사·어형·관사·수 일치). 문법만으로 답이 드러나면 reject.
-4) 고등학생 수준에서 문맥으로 판단할 수 있는 낱말이다.
-reason은 한국어로 짧게 쓴다.`;
+
+판정 기준은 "지문에 적힌 내용"이다. 이 글 밖에서 상상할 수 있는 다른 상황은 근거가 되지 않는다.
+예: 글이 밤이 되며 기온이 떨어졌다고 적었으면, dropping을 rising으로 바꾼 자리는 지문과 어긋나므로 keep이다.
+"다른 이야기라면 기온이 오를 수도 있다"는 이유로 reject 하지 않는다.
+
+아래를 모두 만족하면 keep, 하나라도 어긋나면 reject 한다.
+1) 원래 낱말(original)은 그 자리에서 지문의 흐름에 맞다.
+2) 바꾼 낱말(replacement)을 넣으면 지문이 말한 사실·인과·대조와 어긋난다(앞뒤 문장을 근거로 댈 수 있어야 한다).
+3) 바꾼 낱말은 실재하는 영어 낱말이고, 그 자리에서 문법적으로 성립한다(품사·어형·관사·수·전치사 결합). 문법이나 연어만으로 답이 드러나면 reject.
+4) 고등학생이 지문을 읽고 판단할 수 있는 낱말이다.
+
+reject 해야 하는 대표적인 경우:
+- 동의어·유사어라 둘 다 뜻이 통한다.
+- 지문 어디를 봐도 둘 중 하나로 정할 근거가 없다.
+- 바꾼 낱말이 그 자리에서 영어로 어색해(연어·전치사 결합) 뜻을 따지기 전에 걸러진다.
+reason은 한국어로 짧게 쓴다. keep이면 지문의 어느 대목이 근거인지 한 구절로 적는다.`;
 
 const AUDITOR_SCHEMA = {
   type: "object",
@@ -308,6 +319,8 @@ async function generatePairs(input: {
   title: string;
   sentences: Sentence[];
   hints: VocabHint[];
+  /** 이미 뽑은 자리(같은 낱말을 또 내지 않게) */
+  avoidTargets?: string[];
 }): Promise<StoredVocabChoicePair[]> {
   const called = await callGrammarChoiceV2Json({
     stage: "GENERATOR",
@@ -321,6 +334,7 @@ async function generatePairs(input: {
       title: input.title,
       sentences: input.sentences.map((s) => ({ sentenceId: s.id, text: formatWorkbookPassage(s.english) })),
       hints: input.hints.slice(0, 24),
+      ...(input.avoidTargets?.length ? { alreadyUsedTargets: input.avoidTargets.slice(0, 40) } : {}),
     }),
     schemaName: "vocab_choice_generate",
     schema: GENERATOR_SCHEMA as unknown as Record<string, unknown>,
@@ -374,10 +388,17 @@ async function auditPairs(input: {
     hedgeAfterMs: 60_000,
     deadlineMs: 120_000,
   });
-  const parsed = parse<{ results?: Array<{ id?: string; verdict?: string }> }>(called.content);
+  const parsed = parse<{ results?: Array<{ id?: string; verdict?: string; reason?: string }> }>(called.content);
   const keep = new Set(
     (parsed?.results ?? []).filter((r) => r.verdict === "keep").map((r) => String(r.id))
   );
+  if (process.env.VOCAB_AUDIT_LOG === "1") {
+    for (const r of parsed?.results ?? []) {
+      if (r.verdict === "keep") continue;
+      const it = input.pairs[Number(r.id)];
+      if (it) console.log(`  버림: ${it.targetText} → ${it.shownWrong} | ${r.reason ?? ""}`);
+    }
+  }
   return input.pairs.filter((_, i) => keep.has(String(i)));
 }
 
@@ -503,7 +524,29 @@ export async function generateVocabChoiceForPassage(input: {
     const r = checkPair(passage, spans, pair);
     if (r.ok && !located.some((l) => l.start === r.located.start)) located.push(r.located);
   }
-  const kept = await auditPairs({ apiKey, passage, spans, pairs: located });
+  let kept = await auditPairs({ apiKey, passage, spans, pairs: located });
+
+  /*
+   * 검수를 통과하는 비율이 절반쯤이라 긴 지문에서도 대여섯 개에 그쳤다(선생님 지적 2026-09-20).
+   * 검수 기준은 그대로 두고 — 어색한 문항이 들어가면 안 되므로 — 모자랄 때만 다른 자리로
+   * 한 번 더 뽑아 같은 검수를 다시 받는다.
+   */
+  const target = Math.min(MAX_FINAL_ITEMS, Math.max(8, Math.round(sentences.length * 1.2)));
+  if (kept.length < target) {
+    const used = located.map((l) => l.targetText);
+    const more = await generatePairs({ apiKey, title: input.title, sentences, hints: input.hints, avoidTargets: used });
+    const moreLocated: Located[] = [];
+    for (const pair of more) {
+      const r = checkPair(passage, spans, pair);
+      if (!r.ok) continue;
+      if (located.some((l) => l.start === r.located.start) || moreLocated.some((l) => l.start === r.located.start)) continue;
+      moreLocated.push(r.located);
+    }
+    if (moreLocated.length > 0) {
+      const extra = await auditPairs({ apiKey, passage, spans, pairs: moreLocated });
+      kept = [...kept, ...extra];
+    }
+  }
   const cacheToSave: StoredVocabChoiceCache = {
     sourceHash,
     algorithmVersion: VOCAB_CHOICE_ALGORITHM_VERSION,

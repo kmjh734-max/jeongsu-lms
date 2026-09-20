@@ -37,10 +37,29 @@ export function sortStudentPresentationOrder<T extends {
   });
 }
 
+/** 다양성 상한. 시험용으로 갈아 끼울 수 있게 밖에서 받는다. */
+export type RankLimits = {
+  itemsPerSentence: number;
+  maxItems: number;
+  maxAdjAdv: number;
+  subtype: { BASIC: number; CORE: number; MANDATORY: number };
+  /** BASIC을 nonBasic의 몇 분의 1까지 허용할지 */
+  basicShare: number;
+};
+
+export const DEFAULT_RANK_LIMITS: RankLimits = {
+  itemsPerSentence: ITEMS_PER_SENTENCE,
+  maxItems: MAX_ITEMS,
+  maxAdjAdv: MAX_ADJ_ADV,
+  subtype: { BASIC: 1, CORE: 2, MANDATORY: 3 },
+  basicShare: 3,
+};
+
 export function rankCandidates(
   items: ResolvedCandidate[],
   sentenceCount = 24,
-  sentences: ExactSentence[] = []
+  sentences: ExactSentence[] = [],
+  limits: RankLimits = DEFAULT_RANK_LIMITS
 ): { kept: ResolvedCandidate[]; dropped: Array<{ item: ResolvedCandidate; reason: string }> } {
   const sorted = [...items].sort((a, b) => {
     const pr = RANK[a.priority] - RANK[b.priority];
@@ -64,7 +83,7 @@ export function rankCandidates(
   for (const item of sorted) {
     const def = ontologyPoint(item.pointCode);
     const priority = item.priority ?? def?.priority ?? "CORE";
-    const subtypeLimit = priority === "BASIC" ? 1 : priority === "CORE" ? 2 : 3;
+    const subtypeLimit = limits.subtype[priority];
     const used = subtypeCount.get(item.subtypeKey) ?? 0;
     if (item.pointCode === "INDIRECT_QUESTION_ORDER" && indirectQuestions >= 1) {
       dropped.push({ item, reason: "DUPLICATE_SUBTYPE" });
@@ -79,7 +98,7 @@ export function rankCandidates(
       continue;
     }
     if (item.transformCode === "ADJ_ADV") {
-      if (adjAdv >= MAX_ADJ_ADV) {
+      if (adjAdv >= limits.maxAdjAdv) {
         dropped.push({ item, reason: "DUPLICATE_SUBTYPE" });
         continue;
       }
@@ -102,9 +121,9 @@ export function rankCandidates(
   }
 
   const clauseFiltered = applyClauseQuality(kept, dropped, sentences);
-  const cap = Math.min(sentenceCount * ITEMS_PER_SENTENCE, MAX_ITEMS);
+  const cap = Math.min(sentenceCount * limits.itemsPerSentence, limits.maxItems);
   const nonBasic = clauseFiltered.filter((item) => item.priority !== "BASIC");
-  const basicCap = Math.floor(nonBasic.length / 3);
+  const basicCap = Math.floor(nonBasic.length / limits.basicShare);
   let basicUsed = 0;
   const limited: ResolvedCandidate[] = [];
   for (const item of clauseFiltered) {
