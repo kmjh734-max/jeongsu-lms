@@ -47,6 +47,7 @@ export function StudentListeningAudioOnly({
               size="lg"
               audioRef={audioRef}
               autoPlay
+              showSpeed
             />
             <p className="mt-3 text-center text-xs text-side-muted">
               자동으로 재생되지 않으면 재생 버튼을 눌러 주세요.

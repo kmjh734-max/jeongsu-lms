@@ -124,6 +124,7 @@ export function StudentListeningAudioHub({
             src={currentItem.audioUrl}
             variant="inset"
             audioRef={audioRef}
+            showSpeed
             onEnded={mode === "all" ? playNextInQueue : undefined}
           />
         </div>

@@ -646,6 +646,7 @@ export function StudentListeningPractice({
           key={q.audio_url}
           src={q.audio_url}
           audioRef={objectiveAudioRef}
+          showSpeed
         />
       ) : (
         <p className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-700">

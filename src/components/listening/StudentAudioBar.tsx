@@ -11,6 +11,8 @@ import {
 } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 
+const RATES = [0.8, 1, 1.2, 1.5];
+
 type Variant = "light" | "dark" | "inset";
 type Size = "md" | "lg";
 
@@ -20,6 +22,8 @@ interface StudentAudioBarProps {
   variant?: Variant;
   size?: Size;
   playbackRate?: number;
+  /** 배속 버튼을 보여 줄지 (학생 듣기 화면에서 켠다) */
+  showSpeed?: boolean;
   /** 바깥에서 멈추기·되감기 등에 쓰는 오디오 요소 참조 */
   audioRef?: RefObject<HTMLAudioElement | null>;
   autoPlay?: boolean;
@@ -68,8 +72,8 @@ export function StudentAudioBar({
   src,
   variant = "light",
   size = "md",
-  // 학생 듣기는 기본 0.8배속 (선생님 요청, 2026-09-18) — 음 높이는 그대로 두고 느리게
-  playbackRate = 0.8,
+  playbackRate,
+  showSpeed = false,
   audioRef,
   autoPlay = false,
   onEnded,
@@ -78,8 +82,21 @@ export function StudentAudioBar({
   const innerRef = useRef<HTMLAudioElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
-  const rateRef = useRef(playbackRate);
-  rateRef.current = playbackRate;
+  // 배속: 바깥에서 정해 주면 그 값, 아니면 학생이 고른 값(기억해 둠), 그것도 없으면 1.0
+  const [pickedRate, setPickedRate] = useState<number | null>(null);
+  const rate = playbackRate ?? pickedRate ?? 1;
+  const rateRef = useRef(rate);
+  rateRef.current = rate;
+
+  useEffect(() => {
+    if (playbackRate != null) return;
+    try {
+      const saved = Number(window.localStorage.getItem("listening-rate"));
+      if (RATES.includes(saved)) setPickedRate(saved);
+    } catch {
+      /* 저장소를 못 쓰는 경우 — 기본값으로 둔다 */
+    }
+  }, [playbackRate]);
 
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
@@ -96,8 +113,17 @@ export function StudentAudioBar({
 
   useEffect(() => {
     const el = innerRef.current;
-    if (el) el.playbackRate = playbackRate;
-  }, [playbackRate]);
+    if (el) el.playbackRate = rate;
+  }, [rate]);
+
+  function pickRate(next: number) {
+    setPickedRate(next);
+    try {
+      window.localStorage.setItem("listening-rate", String(next));
+    } catch {
+      /* 저장소를 못 쓰면 이번 화면에서만 적용된다 */
+    }
+  }
 
   function toggle() {
     const el = innerRef.current;
@@ -245,6 +271,39 @@ export function StudentAudioBar({
       <span className={`shrink-0 text-xs tabular-nums ${s.time}`}>
         {failed ? "재생할 수 없어요" : `${formatTime(current)} / ${formatTime(duration)}`}
       </span>
+
+      {showSpeed && playbackRate == null && (
+        <div
+          className={`flex shrink-0 overflow-hidden rounded-md ${
+            variant === "light" ? "border border-slate-200" : "ring-1 ring-inset ring-white/20"
+          }`}
+          role="group"
+          aria-label="재생 속도"
+        >
+          {RATES.map((r) => {
+            const active = rate === r;
+            const tone =
+              variant === "light"
+                ? active
+                  ? "bg-slate-900 text-white"
+                  : "bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                : active
+                  ? "bg-white text-side"
+                  : "text-side-text hover:bg-white/10 hover:text-white";
+            return (
+              <button
+                key={r}
+                type="button"
+                onClick={() => pickRate(r)}
+                aria-pressed={active}
+                className={`px-1.5 py-1 text-[11px] font-semibold tabular-nums transition ${tone}`}
+              >
+                {r === 1 ? "1.0x" : `${r}x`}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
