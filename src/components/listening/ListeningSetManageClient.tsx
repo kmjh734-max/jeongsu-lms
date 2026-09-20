@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 import { ListeningAudioBar } from "@/components/listening/ListeningAudioBar";
 import {
@@ -18,30 +18,15 @@ import {
   ListeningQuestionEditor,
   type ListeningQuestionData,
 } from "@/components/listening/ListeningQuestionEditor";
-import { ListeningQuestionPreview } from "@/components/listening/ListeningQuestionPreview";
 import { ListeningVoiceSettings } from "@/components/listening/ListeningVoiceSettings";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import {
-  generateAudioSequential,
-  generateQuestionsSequential,
-} from "@/lib/listening/client-generation";
+import { generateAudioSequential } from "@/lib/listening/client-generation";
 import type { DictationBlankLevel, DictationSetSettings } from "@/lib/listening/dictation/types";
 import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
-import { type ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
-import { getExamTypesForGrade, tierLabel } from "@/lib/listening/exam-types";
-import { imagesPerQuestion } from "@/lib/listening/type-catalog";
 import {
   gradeLevelShort,
-  isHighSchoolListeningGrade,
-  LISTENING_GRADE_OPTIONS,
-  questionCountOptionsForGrade,
   type ListeningGradeLevel,
 } from "@/lib/listening/grade-level";
-import {
-  planCustomGenerationSlots,
-  planRandomGenerationSlots,
-  type ListeningGenerationPlanMode,
-} from "@/lib/listening/generation-slots";
 import type { GenerationPhase } from "@/lib/listening/progress-weights";
 import {
   SPEECH_SPEED_MAP,
@@ -49,7 +34,6 @@ import {
   presetFromSpeed,
   type SpeechSpeedPreset,
 } from "@/lib/listening/speech-speed";
-import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -161,14 +145,7 @@ export function ListeningSetManageClient({
   const [step, setStep] = useState<Step>(
     () => parseStep(initialStep) ?? defaultStep(initialQuestions)
   );
-  const [gradeLevel, setGradeLevel] = useState<ListeningGradeLevel>(initialGradeLevel);
-  const [generationPlanMode, setGenerationPlanMode] =
-    useState<ListeningGenerationPlanMode>("random");
-  const [questionCount, setQuestionCount] = useState<number>(
-    isHighSchoolListeningGrade(initialGradeLevel) ? 17 : 5
-  );
-  const [selectedTypeIds, setSelectedTypeIds] = useState<number[]>([]);
-  const [difficultyMode] = useState<ListeningDifficultyMode>("auto");
+  const gradeLevel = initialGradeLevel;
   const [speechPreset, setSpeechPreset] = useState<SpeechSpeedPreset>(
     presetFromSpeed(initialSpeechSpeed)
   );
@@ -179,16 +156,12 @@ export function ListeningSetManageClient({
   });
   const [dictationDraft, setDictationDraft] = useState<DictationSetSettings>(dictation);
   const [dictationSaved, setDictationSaved] = useState(false);
-  const [previewQuestions, setPreviewQuestions] = useState<
-    GeneratedListeningQuestion[] | null
-  >(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [progressPercent, setProgressPercent] = useState(0);
   const [, setProgressPhase] = useState<GenerationPhase>("idle");
   const [progressDetail, setProgressDetail] = useState<string | null>(null);
   const [progressItems, setProgressItems] = useState<ItemProgressRow[]>([]);
-  const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(
     () =>
       initialQuestions[0]?.id ?? null
@@ -220,20 +193,8 @@ export function ListeningSetManageClient({
     return () => window.clearTimeout(t);
   }, [speedSaved]);
 
-  const isGenerating =
-    busy === "preview" || busy === "ai" || busy === "save" || busy === "gen-flow";
   const isAudioBusy = busy === "audio-all" || busy === "audio-seq";
 
-  const examTypes = useMemo(() => getExamTypesForGrade(gradeLevel), [gradeLevel]);
-
-  const generationSlots = useMemo(() => {
-    if (generationPlanMode === "random") {
-      return planRandomGenerationSlots({ questionCount, examTypes });
-    }
-    return planCustomGenerationSlots({ questionCount, selectedTypeIds, examTypes });
-  }, [generationPlanMode, questionCount, selectedTypeIds, examTypes]);
-
-  const plannedQuestionCount = generationSlots.length;
   const speechSpeedValue = SPEECH_SPEED_MAP[speechPreset];
 
   const total = initialQuestions.length;
@@ -271,211 +232,12 @@ export function ListeningSetManageClient({
     setSelectedId(id);
   }
 
-  function confirmReplaceExistingQuestions(): boolean {
-    if (initialQuestions.length === 0) return true;
-    return window.confirm(
-      `이 세트에 문항 ${initialQuestions.length}개가 있어요. 새로 저장하면 지금 문항과 음성이 지워지고 새 문항으로 바뀌어요. 계속할까요?`
-    );
-  }
-
   const resetProgress = useCallback(() => {
     setProgressPercent(0);
     setProgressPhase("idle");
     setProgressDetail(null);
     setProgressItems([]);
   }, []);
-
-  // ---- ① 문항 만들기 ----
-
-  async function changeGradeLevel(level: ListeningGradeLevel) {
-    if (level === gradeLevel) return;
-    const previous = gradeLevel;
-    setGradeLevel(level);
-    setSelectedTypeIds([]);
-    const options = questionCountOptionsForGrade(level);
-    if (!options.includes(questionCount)) {
-      setQuestionCount(isHighSchoolListeningGrade(level) ? 17 : 20);
-    }
-    const res = await fetch(`/api/listening/sets/${setId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ grade_level: level }),
-    });
-    const data = (await res.json()) as { ok?: boolean; message?: string };
-    if (!data.ok) {
-      setGradeLevel(previous);
-      setMessage(data.message ?? "학년을 저장하지 못했어요.");
-    }
-  }
-
-  function selectQuestionCount(n: number) {
-    setQuestionCount(n);
-    if (selectedTypeIds.length > n) {
-      setSelectedTypeIds((prev) => prev.slice(0, n));
-    }
-  }
-
-  function toggleTypeId(id: number) {
-    setSelectedTypeIds((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= questionCount) return prev;
-      return [...prev, id].sort((a, b) => a - b);
-    });
-  }
-
-  function generatingDetail(phase: GenerationPhase) {
-    if (phase === "generating" || phase === "validating") {
-      setProgressDetail(`${plannedQuestionCount}문항을 만들고 있어요…`);
-    } else if (phase === "saving") {
-      setProgressDetail("저장하고 있어요…");
-    }
-  }
-
-  async function generatePreview() {
-    setBusy("preview");
-    setMessage(null);
-    setPreviewQuestions(null);
-    resetProgress();
-    setProgressDetail("문항을 만들고 있어요…");
-
-    const result = await generateQuestionsSequential({
-      setId,
-      slots: generationSlots,
-      difficultyMode,
-      persist: false,
-      onProgress: (percent, phase, items) => {
-        setProgressPercent(percent);
-        setProgressPhase(phase);
-        setProgressItems(items);
-        generatingDetail(phase);
-      },
-    });
-
-    setBusy(null);
-    resetProgress();
-    if (result.error) {
-      setMessage(result.error);
-      if (result.questions.length) setPreviewQuestions(result.questions);
-      return;
-    }
-    setPreviewQuestions(result.questions);
-    setMessage("미리보기를 만들었어요. 살펴보고 저장해 주세요.");
-  }
-
-  async function savePreview() {
-    if (!previewQuestions?.length) return;
-    if (!confirmReplaceExistingQuestions()) return;
-    setBusy("save");
-    setMessage(null);
-    resetProgress();
-    setProgressDetail("저장하고 있어요…");
-    const items: ItemProgressRow[] = previewQuestions.map((q) => ({
-      orderIndex: q.order_index,
-      status: "saving",
-    }));
-    setProgressItems([...items]);
-    setProgressPercent(50);
-
-    const res = await fetch("/api/listening/generate-questions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        setId,
-        questions: previewQuestions.map((q, i) => ({
-          ...q,
-          order_index: generationSlots[i]?.slotIndex ?? i + 1,
-        })),
-        replaceAll: true,
-      }),
-    });
-    const data = (await res.json()) as { ok?: boolean; message?: string };
-    setBusy(null);
-    resetProgress();
-    if (!data.ok) {
-      setMessage(data.message ?? "저장하지 못했어요.");
-      return;
-    }
-    setPreviewQuestions(null);
-    setMessage("문항을 저장했어요. 검수까지 마친 문항이에요.");
-    router.refresh();
-  }
-
-  async function generateAndSave() {
-    if (!confirmReplaceExistingQuestions()) return;
-    setBusy("gen-flow");
-    setMessage(null);
-    setPreviewQuestions(null);
-    resetProgress();
-    setProgressDetail(`${plannedQuestionCount}문항을 만들어 저장하고 있어요…`);
-
-    const result = await generateQuestionsSequential({
-      setId,
-      slots: generationSlots,
-      difficultyMode,
-      persist: true,
-      onProgress: (percent, phase, items) => {
-        setProgressPercent(percent);
-        setProgressPhase(phase);
-        setProgressItems(items);
-        generatingDetail(phase);
-      },
-    });
-
-    setBusy(null);
-    resetProgress();
-    if (result.error) {
-      setMessage(result.error);
-      router.refresh();
-      return;
-    }
-    setMessage(
-      `${plannedQuestionCount}문항을 만들고 검수까지 마쳤어요. ③ 음성 만들기에서 음성을 만들어 주세요.`
-    );
-    router.refresh();
-  }
-
-  async function regeneratePreviewItem(orderIndex: number) {
-    setRegeneratingIndex(orderIndex);
-    const prev = previewQuestions?.find((q) => q.order_index === orderIndex);
-    const slot = generationSlots.find((s) => s.slotIndex === orderIndex);
-    const res = await fetch("/api/listening/generate-question-item", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        setId,
-        typeId: slot?.typeId ?? orderIndex,
-        orderIndex,
-        mode: "exam",
-        difficultyMode,
-        persist: false,
-        previousProblems: prev?.problems,
-        previousQuestion: prev
-          ? {
-              situation_type: prev.situation_type,
-              choices: prev.choices,
-              correct_answer: prev.correct_answer,
-              script_text: prev.script_text,
-            }
-          : undefined,
-      }),
-    });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      question?: GeneratedListeningQuestion;
-    };
-    setRegeneratingIndex(null);
-    if (!data.ok || !data.question) {
-      setMessage(data.message ?? "다시 만들지 못했어요.");
-      return;
-    }
-    setPreviewQuestions((list) =>
-      (list ?? []).map((q) =>
-        q.order_index === orderIndex ? { ...data.question!, order_index: orderIndex } : q
-      )
-    );
-    setMessage(`${orderIndex}번 문항을 다시 만들었어요.`);
-  }
 
   // ---- ③ 음성 ----
 
@@ -593,41 +355,6 @@ export function ListeningSetManageClient({
 
   // ---- 세트 ----
 
-  /**
-   * 이 세트와 비슷한 새 세트 — 문항 순서·유형·정답 자리는 그대로 두고 소재만 바꾼 회차를 만든다.
-   * 처음부터 만드는 것보다 적게 들고, 새 세트는 같은 폴더에 공개하지 않은 상태로 들어간다.
-   */
-  async function makeVariantSet() {
-    if (
-      !window.confirm(
-        `「${title}」와 비슷한 새 세트를 만들어요. 문항 순서·유형·정답 자리는 그대로 두고 이름·장소·물건·숫자만 바뀌어요. 음성과 그림은 새 세트에서 따로 만들어야 해요. 계속할까요?`
-      )
-    ) {
-      return;
-    }
-    setBusy("variant-set");
-    setMessage(null);
-    const res = await fetch("/api/listening/variant-set", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ setId }),
-    });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      setId?: string;
-      made?: number;
-      missing?: number;
-    };
-    setBusy(null);
-    if (!data.ok || !data.setId) {
-      setMessage(data.message ?? "비슷한 세트를 만들지 못했어요.");
-      return;
-    }
-    router.push(`${basePath}/${data.setId}`);
-    router.refresh();
-  }
-
   async function deleteSet() {
     if (!window.confirm(`「${title}」 세트와 문항·음성·배정을 모두 지울까요?`)) return;
     setBusy("delete");
@@ -645,11 +372,10 @@ export function ListeningSetManageClient({
   // ---- 화면 ----
 
   const steps: Array<{ n: Step; title: string; sub: string; warn?: boolean }> = [
-    { n: 1, title: "문항 만들기", sub: total > 0 ? `${total}문항` : "아직 없어요" },
     {
       n: 2,
       title: "보기·수정",
-      sub: total === 0 ? "문항을 먼저 만들어요" : "검수 끝난 문항",
+      sub: total === 0 ? "아직 문항이 없어요" : `${total}문항`,
     },
     { n: 3, title: "음성 만들기", sub: total > 0 ? `${audioReady}/${total}` : "—" },
     {
@@ -671,19 +397,6 @@ export function ListeningSetManageClient({
   const prevQuestion = selectedIndex > 0 ? initialQuestions[selectedIndex - 1] : null;
   const nextQuestion =
     selectedIndex >= 0 && selectedIndex < total - 1 ? initialQuestions[selectedIndex + 1] : null;
-
-  const planHint =
-    generationPlanMode === "random" || selectedTypeIds.length === 0
-      ? `${plannedQuestionCount}문항을 1번 유형부터 차례로 만들어요.`
-      : selectedTypeIds.length === 1
-        ? `${selectedTypeIds[0]}번 유형으로 ${plannedQuestionCount}문항을 만들어요.`
-        : selectedTypeIds.length >= questionCount
-          ? `고른 유형 ${selectedTypeIds.length}개로 ${plannedQuestionCount}문항을 만들어요.`
-          : `고른 유형 ${selectedTypeIds.length}개를 돌려 가며 ${plannedQuestionCount}문항을 만들어요.`;
-
-  const showGenProgress =
-    (busy === "preview" || busy === "gen-flow" || busy === "save") &&
-    (progressItems.length > 0 || progressPercent > 0);
 
   return (
     <div className="space-y-4">
@@ -732,14 +445,6 @@ export function ListeningSetManageClient({
             >
               <ListeningMenuItem icon="file" href={`${basePath}/${setId}/print?script=1`}>
                 대본 넣어 인쇄
-              </ListeningMenuItem>
-              <ListeningMenuDivider />
-              <ListeningMenuItem
-                icon="copy"
-                disabled={readOnly || !!busy || total === 0}
-                onClick={() => void makeVariantSet()}
-              >
-                {busy === "variant-set" ? "비슷한 세트 만드는 중…" : "이 세트와 비슷한 새 세트"}
               </ListeningMenuItem>
               <ListeningMenuDivider />
               <ListeningMenuItem
@@ -834,197 +539,10 @@ export function ListeningSetManageClient({
         </div>
       ) : null}
 
-      {/* ① 문항 만들기 */}
-      {step === 1 ? (
-        <div className="space-y-4">
-          <section className="space-y-5 rounded-lg border border-slate-200 bg-white p-5 shadow-card">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">문항 만들기</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                유형만 참고해 새 대본과 문항을 만들어요. 기출 문제를 그대로 옮기지 않아요.
-              </p>
-            </div>
-
-            {readOnly ? (
-              <p className="text-sm text-slate-500">학원 교재는 문항을 새로 만들 수 없어요.</p>
-            ) : (
-              <>
-                <div>
-                  <p className="ui-label">학년</p>
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {LISTENING_GRADE_OPTIONS.map((opt) => {
-                      const on = gradeLevel === opt.value;
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          disabled={!!busy}
-                          onClick={() => void changeGradeLevel(opt.value)}
-                          className={`rounded-md border px-3 py-2.5 text-left transition disabled:opacity-60 ${
-                            on
-                              ? "border-brand-600 bg-brand-50"
-                              : "border-slate-200 bg-white hover:border-slate-300"
-                          }`}
-                        >
-                          <span className={`block text-sm font-semibold ${on ? "text-brand-700" : "text-slate-900"}`}>
-                            {opt.label}
-                          </span>
-                          <span className="mt-0.5 block text-xs text-slate-500">{opt.description}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="grid gap-5 lg:grid-cols-2">
-                  <div>
-                    <p className="ui-label">만드는 방식</p>
-                    <div className="inline-flex overflow-hidden rounded-md border border-slate-200 bg-white">
-                      {(
-                        [
-                          { value: "random" as const, label: "차례대로" },
-                          { value: "custom" as const, label: "유형 고르기" },
-                        ] as const
-                      ).map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          disabled={!!busy}
-                          onClick={() => {
-                            setGenerationPlanMode(opt.value);
-                            if (opt.value === "random") setSelectedTypeIds([]);
-                          }}
-                          className={`px-3.5 py-1.5 text-[13px] font-semibold transition ${
-                            generationPlanMode === opt.value
-                              ? "bg-slate-900 text-white"
-                              : "text-slate-700 hover:bg-slate-50"
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="ui-label">문항 수</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {questionCountOptionsForGrade(gradeLevel).map((n) => (
-                        <button
-                          key={n}
-                          type="button"
-                          onClick={() => selectQuestionCount(n)}
-                          className={`h-[30px] rounded-md px-3 text-[13px] font-semibold transition ${
-                            questionCount === n
-                              ? "bg-brand-600 text-white"
-                              : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-                          }`}
-                        >
-                          {n}문항
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {generationPlanMode === "custom" ? (
-                  <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-                    <p className="mb-2 text-xs text-slate-500">
-                      안 고르면 1번 유형부터 차례로 · 하나만 고르면 그 유형으로만 · 여러 개면 돌려 가며{" "}
-                      {questionCount}문항까지 만들어요.
-                    </p>
-                    <div className="grid max-h-56 gap-1 overflow-y-auto sm:grid-cols-2">
-                      {examTypes.map((t) => (
-                        <label
-                          key={t.id}
-                          className="flex cursor-pointer items-start gap-2 rounded px-1.5 py-1 text-xs text-slate-700 hover:bg-white"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedTypeIds.includes(t.id)}
-                            onChange={() => toggleTypeId(t.id)}
-                            className="mt-0.5 h-3.5 w-3.5 accent-brand-600"
-                          />
-                          <span>
-                            {t.id}. {t.question_type}{" "}
-                            <span className="text-slate-400">
-                              ({tierLabel(t.difficulty_tier)}
-                              {t.key && imagesPerQuestion(t.key) > 0 ? " · 그림" : ""})
-                            </span>
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="text-xs text-slate-500">
-                    <p>{planHint}</p>
-                    {total > 0 ? (
-                      <p className="mt-0.5 text-amber-700">
-                        지금 문항 {total}개가 있어요. 새로 저장하면 바뀌어요.
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex shrink-0 gap-2">
-                    <Button
-                      variant="secondary"
-                      disabled={!!busy || isGenerating}
-                      onClick={() => void generatePreview()}
-                    >
-                      {busy === "preview" ? "만드는 중…" : "미리보기 만들기"}
-                    </Button>
-                    <Button disabled={!!busy || isGenerating} onClick={() => void generateAndSave()}>
-                      <Icon name="sparkle" size={16} />
-                      {busy === "gen-flow" ? "만드는 중…" : "바로 만들어 저장"}
-                    </Button>
-                  </div>
-                </div>
-
-                {showGenProgress ? (
-                  <GenerationProgress
-                    title={busy === "save" ? "저장하고 있어요" : "문항을 만들고 있어요"}
-                    percent={progressPercent}
-                    detailMessage={progressDetail ?? undefined}
-                    items={progressItems}
-                  />
-                ) : null}
-              </>
-            )}
-          </section>
-
-          {previewQuestions && previewQuestions.length > 0 ? (
-            <section className="space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-base font-bold text-slate-900">
-                  미리보기 <span className="text-slate-400">{previewQuestions.length}문항</span>
-                </h2>
-                <Button disabled={!!busy || isGenerating} onClick={() => void savePreview()}>
-                  {busy === "save" ? "저장 중…" : "이 문항들 저장"}
-                </Button>
-              </div>
-              {previewQuestions.map((q) => (
-                <ListeningQuestionPreview
-                  key={q.order_index}
-                  question={q}
-                  gradeLevel={gradeLevel}
-                  showActions
-                  regenerateBusy={regeneratingIndex === q.order_index}
-                  onRegenerate={() => void regeneratePreviewItem(q.order_index)}
-                />
-              ))}
-            </section>
-          ) : null}
-        </div>
-      ) : null}
-
       {/* ② 검토·수정 */}
       {step === 2 ? (
         total === 0 ? (
-          <EmptyStep
-            text="아직 문항이 없어요. 먼저 문항을 만들어 주세요."
-            action={<Button onClick={() => goStep(1)}>① 문항 만들기로</Button>}
-          />
+          <EmptyStep text="아직 문항이 없어요. 문항은 따로 만들어 올립니다." />
         ) : (
           <div className="grid gap-4 lg:grid-cols-[250px_minmax(0,1fr)]">
             <aside className="self-start rounded-lg border border-slate-200 bg-white px-2 py-2.5 shadow-card">
@@ -1122,10 +640,7 @@ export function ListeningSetManageClient({
       {/* ③ 음성 만들기 */}
       {step === 3 ? (
         total === 0 ? (
-          <EmptyStep
-            text="음성을 만들 문항이 없어요. 먼저 문항을 만들어 주세요."
-            action={<Button onClick={() => goStep(1)}>① 문항 만들기로</Button>}
-          />
+          <EmptyStep text="음성을 만들 문항이 없어요." />
         ) : (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
             <section className="rounded-lg border border-slate-200 bg-white shadow-card">
@@ -1367,11 +882,11 @@ export function ListeningSetManageClient({
   );
 }
 
-function EmptyStep({ text, action }: { text: string; action: React.ReactNode }) {
+function EmptyStep({ text, action }: { text: string; action?: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
       <p className="text-sm text-slate-600">{text}</p>
-      <div className="mt-4 flex justify-center">{action}</div>
+      {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
     </div>
   );
 }

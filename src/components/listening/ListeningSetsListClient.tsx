@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 import {
   ListeningMenu,
@@ -14,7 +14,6 @@ import {
   ListeningModuleHeader,
   type ListeningBasePath,
 } from "@/components/listening/ListeningModuleHeader";
-import { Button } from "@/components/ui/Button";
 import type {
   ListeningSetFolderItem,
   ListeningSetListItem,
@@ -113,7 +112,6 @@ export function ListeningSetsListClient({
   const [newFolderName, setNewFolderName] = useState("");
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [newSetOpen, setNewSetOpen] = useState(false);
 
   useEffect(() => setFolderList(folders), [folders]);
   useEffect(() => setLocalSets(sets), [sets]);
@@ -179,12 +177,6 @@ export function ListeningSetsListClient({
   });
 
   const notReadyCount = folderScoped.filter((s) => voiceNotReady(s.id)).length;
-  const activeFolderId =
-    folderFilter !== "all" &&
-    folderFilter !== "uncategorized" &&
-    !curriculumFolderIds.has(folderFilter)
-      ? folderFilter
-      : null;
   const filterName =
     folderFilter === "all"
       ? "전체"
@@ -485,11 +477,6 @@ export function ListeningSetsListClient({
         basePath={basePath}
         setCount={localSets.length}
         assignCount={assignCount}
-        action={
-          <Button onClick={() => setNewSetOpen(true)}>
-            <Icon name="plus" size={16} strokeWidth={2} />새 듣기 세트
-          </Button>
-        }
       />
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
@@ -612,10 +599,7 @@ export function ListeningSetsListClient({
             <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
               <Icon name="headphones" size={28} className="mx-auto text-slate-300" />
               <p className="mt-3 font-semibold text-slate-800">아직 듣기 세트가 없어요</p>
-              <p className="mt-1 text-sm text-slate-500">세트를 만들고 문항과 음성을 채워 보세요.</p>
-              <Button className="mt-4" onClick={() => setNewSetOpen(true)}>
-                <Icon name="plus" size={16} strokeWidth={2} />새 듣기 세트
-              </Button>
+              <p className="mt-1 text-sm text-slate-500">세트는 따로 만들어 올립니다.</p>
             </div>
           ) : (
             <div className="rounded-lg border border-slate-200 bg-white shadow-card">
@@ -781,120 +765,6 @@ export function ListeningSetsListClient({
         </section>
       </div>
 
-      {newSetOpen ? (
-        <NewSetDialog
-          basePath={basePath}
-          folderId={activeFolderId}
-          folderName={activeFolderId ? folderNameById.get(activeFolderId) : undefined}
-          onClose={() => setNewSetOpen(false)}
-        />
-      ) : null}
-    </div>
-  );
-}
-
-function NewSetDialog({
-  basePath,
-  folderId,
-  folderName,
-  onClose,
-}: {
-  basePath: ListeningBasePath;
-  folderId: string | null;
-  folderName?: string;
-  onClose: () => void;
-}) {
-  const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!title.trim()) {
-      setError("세트 이름을 적어 주세요.");
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    const res = await fetch("/api/listening/sets", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: title.trim(), folderId }),
-    });
-    const data = await readJson(res);
-    const set = data.set as { id?: string } | undefined;
-    if (!data.ok || !set?.id) {
-      setBusy(false);
-      setError(data.message ?? "세트를 만들지 못했어요.");
-      return;
-    }
-    router.push(`${basePath}/${set.id}`);
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <form
-        onSubmit={submit}
-        className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-card-hover"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="new-listening-set-title"
-      >
-        <div className="flex items-center justify-between">
-          <h2 id="new-listening-set-title" className="text-base font-bold text-slate-900">
-            새 듣기 세트
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="닫기"
-            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-          >
-            <Icon name="x" size={18} />
-          </button>
-        </div>
-        <label className="mt-4 block">
-          <span className="ui-label">세트 이름</span>
-          <input
-            ref={inputRef}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="예: 중2 기말 대비 듣기 A"
-            className="ui-input"
-          />
-        </label>
-        {folderName ? (
-          <p className="mt-2 text-xs text-slate-500">「{folderName}」 폴더에 만들어요.</p>
-        ) : null}
-        {error ? <p className="mt-2 text-sm text-rose-700">{error}</p> : null}
-        <div className="mt-5 flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose}>
-            취소
-          </Button>
-          <Button type="submit" disabled={busy}>
-            {busy ? "만드는 중…" : "만들기"}
-          </Button>
-        </div>
-      </form>
     </div>
   );
 }

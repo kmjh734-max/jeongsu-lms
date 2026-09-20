@@ -136,51 +136,6 @@ function questionContentKey(q: ListeningQuestionData): string {
   ].join("\x1e");
 }
 
-function normalizeRegeneratedQuestion(
-  raw: Record<string, unknown>,
-  fallback: ListeningQuestionData
-): ListeningQuestionData {
-  const rawSegments = Array.isArray(raw.segments) ? raw.segments : [];
-  const segments =
-    rawSegments.length > 0
-      ? rawSegments.map((seg, index) => {
-          const row = seg as Record<string, unknown>;
-          const fallbackSeg = fallback.segments[index];
-          return {
-            id: String(row.id ?? fallbackSeg?.id ?? `seg-${index}`),
-            speaker_type: String(
-              row.speaker_type ?? row.speaker ?? fallbackSeg?.speaker_type ?? "M"
-            ),
-            text: String(row.text ?? ""),
-            audio_url:
-              (row.audio_url as string | null | undefined) ??
-              fallbackSeg?.audio_url ??
-              null,
-          };
-        })
-      : fallback.segments;
-
-  return {
-    ...fallback,
-    instruction: String(raw.instruction ?? fallback.instruction),
-    question_text: String(raw.question_text ?? fallback.question_text),
-    choices: Array.isArray(raw.choices)
-      ? (raw.choices as string[])
-      : fallback.choices,
-    correct_answer: Number(raw.correct_answer ?? fallback.correct_answer),
-    explanation: String(raw.explanation ?? fallback.explanation),
-    answer_clue: String(raw.answer_clue ?? fallback.answer_clue ?? ""),
-    script_translation: String(
-      raw.script_translation ?? fallback.script_translation
-    ),
-    audio_url: (raw.audio_url as string | null | undefined) ?? null,
-    choice_image_prompts: Array.isArray(raw.choice_image_prompts)
-      ? (raw.choice_image_prompts as string[])
-      : fallback.choice_image_prompts,
-    situation_type: String(raw.situation_type ?? fallback.situation_type ?? ""),
-    segments,
-  };
-}
 
 /** 문항 점검에서 나온 경고 문구 (중복 제거) */
 export function questionReviewWarnings(q: ListeningQuestionData): string[] {
@@ -320,9 +275,6 @@ export function ListeningQuestionEditor({
   const blankLine = fixedBlankLine;
   const imageUrls = (question.choice_image_urls ?? []).filter((u) => String(u).trim());
   const promptCount = (question.choice_image_prompts ?? []).filter((p) => String(p).trim()).length;
-  // 그림 선택지는 5칸 한 장으로 그린다 — 그림 1장이면 이미 다 만든 것이다
-  const neededImageCount = promptCount === 5 ? 1 : promptCount;
-  const canMakeImages = !readOnly && promptCount > 0 && imageUrls.length < neededImageCount;
 
   async function saveQuestion() {
     setBusy("save");
@@ -389,117 +341,6 @@ export function ListeningQuestionEditor({
     onUpdated();
   }
 
-  async function regenerateQuestion() {
-    if (
-      !window.confirm(
-        `${question.order_index}번 문항을 다시 만들어요. 지금 대본은 바뀌고 음성은 지워져요. 계속할까요?`
-      )
-    ) {
-      return;
-    }
-    setBusy("regen");
-    setMessage(null);
-    setError(null);
-    const prevProblems = [
-      ...(question.quality_issues?.map((i) => i.message) ?? []),
-      ...((question.answer_validation as AnswerValidationPayload | undefined)
-        ?.problems ?? []),
-    ].filter(Boolean);
-    const res = await fetch("/api/listening/regenerate-question", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        setId,
-        questionId: question.id,
-        // 유형은 서버가 저장된 문항의 이름·지시문으로 정한다 (번호를 유형으로 보내지 않는다)
-        previousProblems: prevProblems,
-      }),
-    });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      audioNeedsRegeneration?: boolean;
-      question?: Record<string, unknown>;
-    };
-    setBusy(null);
-    if (!data.ok) {
-      setError(data.message ?? "다시 만들지 못했어요.");
-      return;
-    }
-    if (data.question) {
-      applyQuestionToEditor(
-        normalizeRegeneratedQuestion(data.question, question)
-      );
-    }
-    setMessage(
-      data.audioNeedsRegeneration
-        ? "문항을 다시 만들었어요. ③ 음성 만들기에서 음성도 다시 만들어 주세요."
-        : "문항을 다시 만들었어요."
-    );
-    onUpdated();
-  }
-
-  /**
-   * 비슷한 문항으로 다시 만들기 — 유형·구조·정답 자리는 그대로 두고
-   * 이름·장소·물건·숫자만 바꾼 문항으로 바꿔 끼운다. 새로 만드는 것보다 적게 든다.
-   */
-  async function makeVariantQuestion() {
-    if (
-      !window.confirm(
-        `${question.order_index}번 문항과 비슷한 문항을 만들어요. 유형과 정답 자리는 그대로 두고 이름·장소·물건·숫자만 바뀌어요. 지금 대본은 바뀌고 음성은 지워져요. 계속할까요?`
-      )
-    ) {
-      return;
-    }
-    setBusy("variant");
-    setMessage(null);
-    setError(null);
-    const res = await fetch("/api/listening/variant-question", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ setId, questionId: question.id }),
-    });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      audioNeedsRegeneration?: boolean;
-      question?: Record<string, unknown>;
-    };
-    setBusy(null);
-    if (!data.ok) {
-      setError(data.message ?? "비슷한 문항을 만들지 못했어요.");
-      return;
-    }
-    if (data.question) {
-      applyQuestionToEditor(normalizeRegeneratedQuestion(data.question, question));
-    }
-    setMessage(
-      data.audioNeedsRegeneration
-        ? "비슷한 문항으로 바꿨어요. ③ 음성 만들기에서 음성도 다시 만들어 주세요."
-        : "비슷한 문항으로 바꿨어요."
-    );
-    onUpdated();
-  }
-
-  async function makeImages() {
-    setBusy("images");
-    setMessage(null);
-    setError(null);
-    const res = await fetch("/api/listening/generate-choice-images", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ setId, questionId: question.id }),
-    });
-    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string };
-    setBusy(null);
-    if (!data.ok) {
-      setError(data.message ?? "그림을 만들지 못했어요. 한 번 더 눌러 주세요.");
-      return;
-    }
-    setMessage("그림을 만들었어요.");
-    onUpdated();
-  }
-
   return (
     <article className="flex min-h-full flex-col gap-4 rounded-lg border border-slate-200 bg-white px-5 py-[18px] shadow-card">
       <header className="flex flex-wrap items-start justify-between gap-3">
@@ -519,25 +360,6 @@ export function ListeningQuestionEditor({
                 저장했어요
               </span>
             ) : null}
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={!!busy}
-              onClick={makeVariantQuestion}
-              title="유형과 정답 자리는 그대로 두고 이름·장소·물건·숫자만 바꿔요"
-            >
-              <Icon name="copy" size={15} />
-              {busy === "variant" ? "만드는 중…" : "비슷한 문항으로 다시 만들기"}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={!!busy}
-              onClick={regenerateQuestion}
-            >
-              <Icon name="rotate" size={15} />
-              {busy === "regen" ? "다시 만드는 중…" : "이 문항 다시 만들기"}
-            </Button>
             <Button size="sm" disabled={!!busy} onClick={() => void saveQuestion()}>
               {busy === "save" ? "저장 중…" : "저장"}
             </Button>
@@ -608,14 +430,6 @@ export function ListeningQuestionEditor({
               <span className="font-semibold text-slate-600">그림 설명</span> {question.choice_image_prompts?.[0]}
             </p>
           ) : null}
-          {canMakeImages ? (
-            <div>
-              <Button variant="secondary" size="sm" disabled={!!busy} onClick={() => void makeImages()}>
-                {busy === "images" ? "그림 만드는 중…" : "그림 만들기"}
-              </Button>
-            </div>
-          ) : null}
-
           <label className="mt-1 block">
             <span className="text-xs font-semibold text-slate-500">해설</span>
             <textarea
