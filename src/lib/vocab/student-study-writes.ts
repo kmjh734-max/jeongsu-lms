@@ -15,7 +15,6 @@ import { gradeSpellingAnswer } from "@/lib/vocab/grade-spelling";
 import { loadStageProgress } from "@/lib/vocab/load-stage-progress";
 import { isStudentAssignedToVocabSet } from "@/lib/vocab/student-assignment";
 import type { VocabItem } from "@/types/database";
-import { recordVocabWrong } from "@/lib/vocab/review";
 
 /*
  * 학생 단어학습 기록(서버 전용).
@@ -293,11 +292,6 @@ export async function recordStage2Batch(
     console.error("[vocab] stage2 attempts insert failed", error);
     return actionError("저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.");
   }
-  // 틀린 단어는 복습 목록으로
-  await recordVocabWrong(
-    admin,
-    inserts.filter((i) => !i.is_correct).map((i) => ({ studentId, itemId: i.item_id, setId, stage: "spelling" as const }))
-  );
   return actionSuccess("기록했어요.");
 }
 
@@ -356,9 +350,5 @@ export async function recordStage3Batch(
     console.error("[vocab] stage3 attempts insert failed", error);
     return actionError("저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.");
   }
-  await recordVocabWrong(
-    admin,
-    inserts.filter((i) => !i.is_correct).map((i) => ({ studentId, itemId: i.item_id, setId, stage: "example" as const }))
-  );
   return actionSuccess("기록했어요.");
 }
