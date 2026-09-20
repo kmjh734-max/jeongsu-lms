@@ -13,6 +13,7 @@ import {
 } from "@/lib/question-generator/constants";
 import { emptyPassageInput } from "@/lib/question-generator/passages";
 import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
+import { sampleLevelFor, typeSampleFor, type SampleLevel, type TypeSample } from "@/lib/question-generator/type-samples";
 import {
   emptyCounts,
   QUESTION_TYPE_GROUPS,
@@ -75,6 +76,8 @@ export function QuestionGeneratorClient({
   const [presets, setPresets] = useState<PresetRow[]>([]);
   const [passageId, setPassageId] = useState<string | null>(null);
   const [mockOpen, setMockOpen] = useState(false);
+  /** 유형에 마우스를 올렸을 때 띄우는 예시 */
+  const [sample, setSample] = useState<{ s: TypeSample; level: SampleLevel; x: number; y: number } | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -541,7 +544,21 @@ export function QuestionGeneratorClient({
       <div className="grid gap-4 lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] lg:items-start">
         {/* 왼쪽: 유형별 세트 */}
         <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
-          <section className="space-y-1.5">
+          <section
+            className="space-y-1.5"
+            onMouseOver={(e) => {
+              const row = (e.target as HTMLElement).closest?.("[data-qtype]") as HTMLElement | null;
+              const s = row ? typeSampleFor(row.dataset.qtype) : null;
+              if (!s) {
+                if (!row) setSample(null);
+                return;
+              }
+              // 목록을 가리지 않게 오른쪽 빈 곳에 띄운다
+              const box = row!.getBoundingClientRect();
+              setSample({ s, level: sampleLevelFor(row!.dataset.qtype), x: box.right + 12, y: box.top });
+            }}
+            onMouseLeave={() => setSample(null)}
+          >
             <div className="flex items-center justify-between px-1">
               <h2 className="text-sm font-semibold text-slate-900">
                 유형별 세트 수
@@ -656,6 +673,7 @@ export function QuestionGeneratorClient({
                               return (
                                 <div
                                   key={key}
+                                data-qtype={key}
                                   className="rounded border border-slate-200 bg-slate-50 px-1.5 py-1"
                                 >
                                   <span className="block truncate text-[11px] font-medium text-slate-800">
@@ -758,6 +776,7 @@ export function QuestionGeneratorClient({
                               return (
                                 <div
                                   key={key}
+                                data-qtype={key}
                                   className="rounded border border-slate-200 bg-slate-50 px-1.5 py-1"
                                 >
                                   <span className="block truncate text-[11px] font-medium text-slate-800">
@@ -863,6 +882,7 @@ export function QuestionGeneratorClient({
                               return (
                                 <div
                                   key={key}
+                                data-qtype={key}
                                   className="rounded border border-slate-200 bg-slate-50 px-1.5 py-1"
                                 >
                                   <span className="block truncate text-[10px] font-medium text-slate-800">
@@ -905,7 +925,7 @@ export function QuestionGeneratorClient({
                             "underlined_inference:en:default:함축의미추론";
                           const n = counts[key] ?? 0;
                           return (
-                            <div className="flex items-center gap-1 rounded border border-slate-200 bg-slate-50 px-1.5 py-1">
+                            <div data-qtype={key} className="flex items-center gap-1 rounded border border-slate-200 bg-slate-50 px-1.5 py-1">
                               <span className="min-w-0 flex-1 truncate text-[11px] text-slate-600">
                                 영어 보기 · 없으면 생략
                               </span>
@@ -971,6 +991,7 @@ export function QuestionGeneratorClient({
                             return (
                               <div
                                 key={key}
+                                data-qtype={key}
                                 className="flex items-center gap-1 rounded border border-slate-100 bg-white px-1.5 py-0.5"
                               >
                                 <span className="min-w-0 flex-1 truncate text-[11px] text-slate-800">
@@ -1027,6 +1048,7 @@ export function QuestionGeneratorClient({
                         return (
                           <div
                             key={row.key}
+                                data-qtype={row.key}
                             className="flex items-center gap-1 rounded border border-slate-100 bg-slate-50/80 px-1.5 py-0.5"
                           >
                             <span className="min-w-0 flex-1 truncate text-[11px] text-slate-800">
@@ -1075,6 +1097,7 @@ export function QuestionGeneratorClient({
                             return (
                               <div
                                 key={opt.key}
+                                data-qtype={opt.key}
                                 className="flex items-center gap-1 rounded border border-slate-100 bg-slate-50/80 px-1.5 py-0.5"
                               >
                                 <span className="min-w-0 flex-1 truncate text-[11px] text-slate-800">
@@ -1280,6 +1303,47 @@ export function QuestionGeneratorClient({
               </span>
             </div>
           </section>
+
+          {sample ? (
+            <div
+              className="pointer-events-none fixed z-50 w-[340px] rounded-xl border border-slate-200 bg-white p-3 shadow-xl"
+              style={{
+                left: Math.min(sample.x, (typeof window === "undefined" ? 1200 : window.innerWidth) - 356),
+                top: Math.max(12, Math.min(sample.y, (typeof window === "undefined" ? 800 : window.innerHeight) - 280)),
+              }}
+            >
+              <p className="text-[13px] font-bold text-slate-900">{sample.s.name}</p>
+              <p className="mt-0.5 text-[11.5px] text-slate-500">{sample.s.shape}</p>
+              <p className="mt-2 rounded-lg bg-slate-50 px-2.5 py-1.5 text-[11.5px] font-semibold text-slate-800">
+                {sample.s.stem}
+              </p>
+              {sample.s.levels ? (
+                <div className="mt-2 space-y-1">
+                  {(["low", "high"] as const).map((lv) => (
+                    <p
+                      key={lv}
+                      className={`rounded-lg px-2 py-1 text-[11.5px] ${
+                        sample.level === lv ? "bg-brand-50 font-semibold text-brand-800" : "text-slate-500"
+                      }`}
+                    >
+                      <b className="mr-1">{lv === "low" ? "하" : "상"}</b>
+                      {sample.s.levels![lv]}
+                    </p>
+                  ))}
+                </div>
+              ) : null}
+              {sample.s.levelNote ? (
+                <p className="mt-2 text-[11px] text-slate-500">{sample.s.levelNote}</p>
+              ) : null}
+              <div className="mt-1.5 space-y-0.5">
+                {sample.s.lines.map((line, i) => (
+                  <p key={i} className="font-serif text-[11.5px] leading-relaxed text-slate-600">
+                    {line.replace(/<\/?u>/g, "")}
+                  </p>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           {mockOpen ? (
             <MockPassagePickerModal
