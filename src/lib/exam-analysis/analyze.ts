@@ -36,7 +36,7 @@ type RawResult = {
   strategy?: string[];
 };
 
-function systemPrompt(): string {
+export function systemPrompt(): string {
   const typeList = ALL_QUESTION_OPTIONS.map((o) => `${o.key} = ${o.label}${o.isObjective ? "" : " (서술형)"}`).join("\n");
   return `당신은 한국 고등학교 영어 내신 시험을 분석하는 전문가다. 옮겨 적은 시험지 글을 보고 문항정보표를 만든다.
 규칙:

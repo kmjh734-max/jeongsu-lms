@@ -76,7 +76,10 @@ export function ExamUploadPanel({ basePath }: { basePath: string }) {
       const pages: string[] = [];
       for (const f of files) {
         if (f.type === "application/pdf" || /\.pdf$/i.test(f.name)) {
-          const jpgs = await pdfFileToJpegFiles(f, { maxPages: 20 });
+          const jpgs = await pdfFileToJpegFiles(f, {
+            maxPages: 20,
+            onProgress: (cur, total) => setProgress({ done: cur, total }),
+          });
           for (const j of jpgs) pages.push(await fileToDataUrl(j));
         } else if (f.type.startsWith("image/")) {
           pages.push(await toJpeg(await fileToDataUrl(f)));
@@ -89,7 +92,10 @@ export function ExamUploadPanel({ basePath }: { basePath: string }) {
       setStep("reading");
       setProgress({ done: 0, total: pages.length });
 
-      // 2) 한 번에 세 쪽씩 읽기. 덜 읽힌 쪽은 두 단으로 잘라 다시
+      /*
+       * 2) 쪽을 한꺼번에 읽는다. 세 쪽씩 읽던 것을 여섯 쪽으로 늘렸다(실측 2026-09-20:
+       *    7쪽 시험지 23초 → 11초). 한 쪽 읽는 데 8~10초라 동시에 읽을수록 그대로 줄어든다.
+       */
       let next = 0;
       let done = 0;
       const worker = async () => {
@@ -103,7 +109,7 @@ export function ExamUploadPanel({ basePath }: { basePath: string }) {
           setProgress({ done, total: pages.length });
         }
       };
-      await Promise.all([worker(), worker(), worker()]);
+      await Promise.all(Array.from({ length: Math.min(6, pages.length) }, () => worker()));
 
       // 3) 문항표·보고서
       setStep("analyzing");
@@ -179,13 +185,19 @@ export function ExamUploadPanel({ basePath }: { basePath: string }) {
         >
           {busy ? "분석 중…" : "분석하기 · 1,500크레딧"}
         </button>
-        {step === "preparing" ? <span className="text-sm text-slate-600">쪽을 준비하고 있어요…</span> : null}
+        {step === "preparing" ? (
+          <span className="text-sm text-slate-600">
+            쪽을 준비하는 중{progress.total ? ` ${progress.done}/${progress.total}쪽` : "…"}
+          </span>
+        ) : null}
         {step === "reading" ? (
           <span className="text-sm text-slate-600">
             시험지 읽는 중 {progress.done}/{progress.total}쪽
           </span>
         ) : null}
-        {step === "analyzing" ? <span className="text-sm text-slate-600">문항을 분석하고 있어요 (1~2분)…</span> : null}
+        {step === "analyzing" ? (
+          <span className="text-sm text-slate-600">문항표 만드는 중 · 보통 1분 남짓 걸려요</span>
+        ) : null}
         {message ? <span className="text-sm text-red-600">{message}</span> : null}
       </div>
       {step === "reading" ? (
