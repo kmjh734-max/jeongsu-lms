@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { deleteTextbookAction, saveTextbookAction } from "@/app/admin/textbooks/actions";
+import { tocFromFile } from "@/lib/textbooks/read-file";
 import type { Textbook } from "@/lib/textbooks";
 
 const SAMPLE = `1과 The World of Words  p.8~21
@@ -19,6 +20,7 @@ export function TextbookBoard({ books }: { books: Textbook[] }) {
   const [subject, setSubject] = useState("");
   const [toc, setToc] = useState("");
   const [busy, setBusy] = useState(false);
+  const [reading, setReading] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   function startNew() {
@@ -94,6 +96,46 @@ export function TextbookBoard({ books }: { books: Textbook[] }) {
             <label htmlFor="tb-subject" className="ui-label">영역 <span className="font-normal text-slate-400">비워도 돼요</span></label>
             <input id="tb-subject" value={subject} onChange={(e) => setSubject(e.target.value)} className="ui-input" placeholder="문법" />
           </div>
+        </div>
+
+        <div className="mt-3">
+          <label className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center hover:border-brand-400">
+            <input
+              id="tb-file"
+              type="file"
+              accept=".xlsx,.xls,.csv,.txt,.pdf,image/*"
+              className="sr-only"
+              disabled={!!reading}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                setMsg(null);
+                setReading(file.name);
+                try {
+                  const text = await tocFromFile(file);
+                  if (text.trim()) {
+                    setToc(text.trim());
+                    if (!title.trim()) setTitle(file.name.replace(/\.[^.]+$/, ""));
+                    setMsg({
+                      ok: true,
+                      text: `${file.name}에서 목차 ${text.trim().split("\n").length}줄을 읽었어요. 확인하고 고쳐 주세요.`,
+                    });
+                  } else {
+                    setMsg({ ok: false, text: "목차를 찾지 못했어요. 글자로 붙여 넣어 주세요." });
+                  }
+                } catch (err) {
+                  setMsg({ ok: false, text: err instanceof Error ? err.message : "파일을 읽지 못했어요." });
+                } finally {
+                  setReading(null);
+                }
+              }}
+            />
+            <span className="text-sm font-semibold text-slate-800">
+              {reading ? `${reading} 읽는 중…` : "엑셀 · PDF · 사진으로 올리기"}
+            </span>
+            <span className="text-xs text-slate-500">읽은 목차는 아래 칸에 들어가요. 고친 뒤 저장하세요.</span>
+          </label>
         </div>
 
         <div className="mt-3">

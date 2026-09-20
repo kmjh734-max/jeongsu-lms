@@ -197,7 +197,8 @@ export function LessonMaterialsInputWizard({
   function addMockPassages(list: PickedMockPassage[]) {
     setPassages((prev) => {
       const kept = prev.filter((p) => p.english.trim() || p.korean.trim());
-      const added = list.map((m) => ({ english: m.text.slice(0, EN_MAX), korean: "", source: m.label }));
+      // 교재에 실린 해석이 있으면 같이 채운다(다시 번역하지 않는다)
+      const added = list.map((m) => ({ english: m.text.slice(0, EN_MAX), korean: (m.korean ?? "").trim(), source: m.label }));
       return [...kept, ...added];
     });
     setMockOpen(false);

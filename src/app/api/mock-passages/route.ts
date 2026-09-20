@@ -29,6 +29,7 @@ export async function GET(req: Request) {
       label: mockPassageLabel(p),
       shortLabel: mockPassageShortLabel(p),
       text: p.english_text,
+      korean: p.korean_text ?? "",
       words: p.word_count,
     })),
   });

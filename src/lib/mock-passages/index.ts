@@ -9,6 +9,7 @@ export type MockPassage = {
   kind: string;
   item_no: string;
   english_text: string;
+  korean_text: string | null;
   gloss: string | null;
   word_count: number;
 };
@@ -35,7 +36,7 @@ export function mockPassageShortLabel(p: Pick<MockPassage, "year" | "month" | "g
 
 export const mockExamKey = (p: { year: number; month: number; grade: number }) => `${p.year}-${p.month}-${p.grade}`;
 
-const COLUMNS = "id, year, month, grade, kind, item_no, english_text, gloss, word_count";
+const COLUMNS = "id, year, month, grade, kind, item_no, english_text, korean_text, gloss, word_count";
 
 /** 시험 목록 (학년·연도·월별 지문 수) */
 export async function loadMockExamList(admin: SupabaseClient): Promise<MockExamSummary[]> {

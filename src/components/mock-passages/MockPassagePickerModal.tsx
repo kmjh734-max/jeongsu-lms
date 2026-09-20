@@ -3,9 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 
-export type PickedMockPassage = { id: string; itemNo: string; label: string; shortLabel: string; text: string };
+export type PickedMockPassage = {
+  id: string;
+  itemNo: string;
+  label: string;
+  shortLabel: string;
+  text: string;
+  /** 교재에 실린 한글 해석(새로 번역하지 않는다) */
+  korean?: string;
+};
 
 type ExamSummary = { key: string; year: number; month: number; grade: number; kind: string; count: number };
+type BookSummary = { key: string; subject: string; publisher: string; count: number };
+type Source = "mock" | "textbook";
 type PassageRow = PickedMockPassage & { words: number };
 
 /** 모의고사 지문 모음에서 지문 불러오기: 학년 → 시험 → 번호 고르기 (여러 시험에서 섞어 골라도 된다) */
@@ -19,6 +29,9 @@ export function MockPassagePickerModal({
   onPick: (list: PickedMockPassage[]) => void;
   onClose: () => void;
 }) {
+  const [source, setSource] = useState<Source>("mock");
+  const [books, setBooks] = useState<BookSummary[] | null>(null);
+  const [bookKey, setBookKey] = useState<string | null>(null);
   const [exams, setExams] = useState<ExamSummary[] | null>(null);
   const [grade, setGrade] = useState(1);
   const [examKey, setExamKey] = useState<string | null>(null);
@@ -35,6 +48,33 @@ export function MockPassagePickerModal({
       })
       .catch(() => setError("목록을 불러오지 못했어요."));
   }, []);
+
+  useEffect(() => {
+    if (source !== "textbook" || books) return;
+    fetch("/api/textbook-passages")
+      .then((r) => r.json())
+      .then((d: { ok?: boolean; books?: BookSummary[]; message?: string }) => {
+        if (d.ok) setBooks(d.books ?? []);
+        else setError(d.message ?? "교과서를 불러오지 못했어요.");
+      })
+      .catch(() => setError("교과서를 불러오지 못했어요."));
+  }, [source, books]);
+
+  // 교과서를 고르면 그 본문들을 읽는다
+  useEffect(() => {
+    if (source !== "textbook") return;
+    const key = bookKey ?? books?.[0]?.key ?? null;
+    if (!key) return;
+    if (!bookKey) setBookKey(key);
+    if (cache[key]) return;
+    fetch(`/api/textbook-passages?book=${encodeURIComponent(key)}`)
+      .then((r) => r.json())
+      .then((d: { ok?: boolean; passages?: PassageRow[]; message?: string }) => {
+        if (d.ok) setCache((c) => ({ ...c, [key]: d.passages ?? [] }));
+        else setError(d.message ?? "본문을 불러오지 못했어요.");
+      })
+      .catch(() => setError("본문을 불러오지 못했어요."));
+  }, [source, books, bookKey, cache]);
 
   const gradeExams = useMemo(() => (exams ?? []).filter((e) => e.grade === grade), [exams, grade]);
   const years = useMemo(() => [...new Set(gradeExams.map((e) => e.year))], [gradeExams]);
@@ -55,7 +95,8 @@ export function MockPassagePickerModal({
       .catch(() => setError("지문을 불러오지 못했어요."));
   }, [examKey, cache]);
 
-  const rows = examKey ? cache[examKey] : undefined;
+  const listKey = source === "mock" ? examKey : bookKey;
+  const rows = listKey ? cache[listKey] : undefined;
   const allOn = !!rows?.length && rows.every((r) => picked.has(r.id));
   const full = max !== undefined && picked.size >= max;
 
@@ -78,7 +119,7 @@ export function MockPassagePickerModal({
     });
   }
 
-  const pickedInExam = (key: string) => {
+  const pickedIn = (key: string) => {
     const list = cache[key];
     return list ? list.filter((r) => picked.has(r.id)).length : 0;
   };
@@ -88,8 +129,24 @@ export function MockPassagePickerModal({
       <div className="flex max-h-[88vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
           <div>
-            <h2 className="text-base font-bold text-slate-900">모의고사 지문 불러오기</h2>
-            <p className="mt-0.5 text-sm text-slate-500">학력평가·모의평가 영어 지문 원문을 번호로 골라 넣어요. 여러 시험에서 섞어 골라도 됩니다.</p>
+            <h2 className="text-base font-bold text-slate-900">지문 불러오기</h2>
+            <p className="mt-0.5 text-sm text-slate-500">
+              {source === "mock"
+                ? "학력평가·모의평가 영어 지문 원문을 번호로 골라 넣어요. 여러 시험에서 섞어 골라도 됩니다."
+                : "우리 학원 교과서 본문을 과·본문 단위로 골라 넣어요. 교재에 실린 해석도 함께 들어갑니다."}
+            </p>
+            <div className="mt-2 inline-flex rounded-lg bg-slate-100 p-1 text-sm font-semibold">
+              {([["mock", "모의고사"], ["textbook", "교과서"]] as const).map(([k, label]) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setSource(k)}
+                  className={`rounded-md px-3 py-1 ${source === k ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
           <button type="button" onClick={onClose} aria-label="닫기" className="text-slate-400 hover:text-slate-700">
             <Icon name="x" size={18} />
@@ -101,6 +158,36 @@ export function MockPassagePickerModal({
         <div className="grid min-h-0 flex-1 grid-cols-1 sm:grid-cols-[240px_minmax(0,1fr)]">
           {/* 학년 · 시험 */}
           <div className="min-h-0 overflow-y-auto border-b border-slate-100 p-3 sm:border-b-0 sm:border-r">
+            {source === "textbook" ? (
+              <div className="space-y-1">
+                {!books ? <p className="py-6 text-center text-sm text-slate-500">불러오는 중…</p> : null}
+                {(books ?? []).map((b) => {
+                  const n = pickedIn(b.key);
+                  return (
+                    <button
+                      key={b.key}
+                      type="button"
+                      onClick={() => setBookKey(b.key)}
+                      className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-sm ${
+                        bookKey === b.key ? "bg-brand-50 font-semibold text-brand-800" : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span className="min-w-0">
+                        <b className="block truncate">{b.publisher}</b>
+                        <span className="text-xs font-normal text-slate-500">
+                          {b.subject} · 본문 {b.count}
+                        </span>
+                      </span>
+                      {n ? <span className="rounded-full bg-brand-600 px-1.5 text-[11px] font-bold text-white">{n}</span> : null}
+                    </button>
+                  );
+                })}
+                {books && books.length === 0 ? (
+                  <p className="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500">아직 올려 둔 교과서 본문이 없어요.</p>
+                ) : null}
+              </div>
+            ) : (
+            <>
             <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
               {[1, 2, 3].map((g) => (
                 <button
@@ -122,7 +209,7 @@ export function MockPassagePickerModal({
                     {gradeExams
                       .filter((e) => e.year === y)
                       .map((e) => {
-                        const n = pickedInExam(e.key);
+                        const n = pickedIn(e.key);
                         return (
                           <button
                             key={e.key}
@@ -143,6 +230,8 @@ export function MockPassagePickerModal({
                 </div>
               ))}
             </div>
+            </>
+            )}
           </div>
 
           {/* 번호 */}
@@ -150,11 +239,11 @@ export function MockPassagePickerModal({
             {rows ? (
               <label className="flex items-center gap-2 border-b border-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
                 <input type="checkbox" checked={allOn} onChange={toggleAll} className="h-4 w-4 accent-brand-600" />
-                이 시험 전체 ({rows.length}지문)
+                {source === "mock" ? "이 시험 전체" : "이 교과서 전체"} ({rows.length}지문)
               </label>
             ) : null}
             <ul className="min-h-[240px] flex-1 overflow-y-auto px-2 py-1">
-              {examKey && !rows ? <li className="py-6 text-center text-sm text-slate-500">불러오는 중…</li> : null}
+              {listKey && !rows ? <li className="py-6 text-center text-sm text-slate-500">불러오는 중…</li> : null}
               {(rows ?? []).map((r) => {
                 const on = picked.has(r.id);
                 return (
@@ -165,7 +254,9 @@ export function MockPassagePickerModal({
                       }`}
                     >
                       <input type="checkbox" checked={on} disabled={!on && full} onChange={() => toggle(r)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
-                      <b className="w-12 shrink-0 text-sm tabular-nums text-slate-900">{r.itemNo}번</b>
+                      <b className={`shrink-0 text-sm text-slate-900 ${source === "mock" ? "w-12 tabular-nums" : "w-28"}`}>
+                        {source === "mock" ? `${r.itemNo}번` : r.itemNo}
+                      </b>
                       <span className="min-w-0 flex-1 truncate font-serif text-[13px] text-slate-600">{r.text}</span>
                       <span className="shrink-0 text-xs tabular-nums text-slate-400">{r.words}단어</span>
                     </label>
@@ -187,7 +278,7 @@ export function MockPassagePickerModal({
             <button
               type="button"
               disabled={picked.size === 0}
-              onClick={() => onPick([...picked.values()].map(({ id, itemNo, label, shortLabel, text }) => ({ id, itemNo, label, shortLabel, text })))}
+              onClick={() => onPick([...picked.values()].map(({ id, itemNo, label, shortLabel, text, korean }) => ({ id, itemNo, label, shortLabel, text, korean })))}
               className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-40"
             >
               {picked.size ? `${picked.size}개 불러오기` : "불러오기"}
