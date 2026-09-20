@@ -204,6 +204,7 @@ const GENERATOR_SYSTEM = `당신은 대한민국 고등학교 영어 내신·수
 
 # 자리(targetText)
 - 글의 논리·주제를 떠받치는 내용어(명사·동사·형용사·부사) 한 낱말. 구동사 등은 두 낱말까지.
+- 반대말이 뚜렷한 낱말을 먼저 고른다(safe↔dead, destroyed↔restored, dropping↔rising처럼). 이런 자리는 지문 내용만 보면 답이 하나로 정해지므로 많을수록 좋다.
 - 고유명사, 숫자, 기능어(관사·대명사·전치사·접속사·조동사·be동사)는 고르지 않는다.
 - 문장 하나에 최대 3곳까지 골라도 된다(한 문장에 물을 만한 낱말이 여럿이면 여럿 고른다). 여러 문장에 고르게 퍼뜨린다.
 - hints의 낱말(핵심 어휘)을 우선 고려하되, 문맥 판단 가치가 없으면 쓰지 않아도 된다.
@@ -404,9 +405,16 @@ async function auditPairs(input: {
 
 // ---------------------------------------------------------------- 선정·조립
 
-/** 문장당 2곳, 서로 붙지 않게, 학습 가치 높은 순으로 고른다. */
+/**
+ * 문장당 상한 안에서, 서로 붙지 않게 고른다.
+ * 선생님 기준(2026-09-20): "반의어만 존재하면 여기저기 만들어도 된다." 그래서 반대말이
+ * 뚜렷한 자리(antonym·reversal)를 앞세우고, 그 다음 학습 가치 순으로 고른다.
+ */
 function selectFinal(pairs: Located[]): Located[] {
-  const ordered = [...pairs].sort((a, b) => b.learningValue - a.learningValue);
+  const rank = (r: string) => (r === "antonym" ? 0 : r === "reversal" ? 1 : 2);
+  const ordered = [...pairs].sort(
+    (a, b) => rank(a.relation) - rank(b.relation) || b.learningValue - a.learningValue
+  );
   const chosen: Located[] = [];
   const perSentence = new Map<string, number>();
   const usedTargets = new Set<string>();
