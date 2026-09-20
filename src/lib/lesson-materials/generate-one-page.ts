@@ -1001,13 +1001,17 @@ async function rateGrammarPoints(input: {
     }
     if (byNo.size === 0) return points;
     const scored = points.map((g, i) => ({ ...g, examScore: byNo.get(i + 1)?.score ?? 3, drop: byNo.get(i + 1)?.drop === true }));
-    const good = scored.filter((g) => !g.drop && g.examScore >= 3);
-    // 시험에 낼 자리가 넉넉하면 낮은 점수는 뺀다. 모자라면 점수 순서로 둔다.
-    const kept = good.length >= MIN_GRAMMAR ? good : scored.filter((g) => !g.drop || points.length <= 2);
+    /*
+     * 선생님 지적(2026-09-20): "2개만 있어도 괜찮아. 정말 이건 나오겠다 하는 중요 어법 자리에 넣어 줘."
+     * 개수를 채우지 않는다. 확실한 자리(4점 이상)만 싣고, 그런 자리가 없을 때만 기준을 내린다.
+     */
+    const sure = scored.filter((g) => !g.drop && g.examScore >= 4);
+    const ok = scored.filter((g) => !g.drop && g.examScore >= 3);
+    const kept = sure.length >= 2 ? sure : ok.length >= 1 ? ok : scored.filter((g) => !g.drop);
     const dropped = points.length - kept.length;
     if (dropped > 0) input.notes.push(`어법 ${dropped}개 제외(시험에 낼 자리가 아님)`);
     // 남은 것이 너무 적으면 버린 것 중 점수가 높은 것부터 되살린다.
-    if (kept.length < 2) return points.map((g, i) => ({ ...g, examScore: byNo.get(i + 1)?.score ?? 3 }));
+    if (kept.length === 0) return points.map((g, i) => ({ ...g, examScore: byNo.get(i + 1)?.score ?? 3 }));
     return kept.map(({ drop: _drop, ...g }) => g);
   } catch {
     return points;
@@ -1668,7 +1672,7 @@ export async function generateOnePageContent(input: {
      * 마지막 보충은 한 장이 텅 빌 때만 한다(선생님 지적: 느리다). 여기서 부르는 시간은 통째로
      * 맨 뒤에 붙으므로, 어법이 한둘 모자란 정도면 있는 것으로 만든다.
      */
-    if (grammar.length < MIN_GRAMMAR || vocab.length < MIN_VOCAB - 2) {
+    if (grammar.length < 1 || vocab.length < MIN_VOCAB - 2) {
       const at = Date.now();
       const more = await refillMaterial({
         apiKey,
