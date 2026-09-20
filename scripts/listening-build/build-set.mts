@@ -8,10 +8,13 @@
  */
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateSetQuestionAudio } from "@/lib/listening/generate-audio";
+import { ensureDictationPreparedForSet } from "@/lib/listening/dictation/prebuild-question";
 import { pathToFileURL } from "url";
 import { resolve } from "path";
 import type { SetSpec } from "./spec.ts";
 import { scriptTextOf } from "./spec.ts";
+import { checkSet } from "./check-set.ts";
+import { templateAt } from "./templates.ts";
 
 const specPath = process.argv[2];
 if (!specPath) throw new Error("쓰는 법: node ... build-set.mts <세트 파일> [--음성]");
@@ -20,6 +23,13 @@ const withAudio = process.argv.includes("--음성");
 const mod = (await import(pathToFileURL(resolve(specPath)).href)) as { spec: SetSpec };
 const spec = mod.spec;
 if (!spec?.questions?.length) throw new Error("문항이 없습니다.");
+
+// 검수부터 — 막음이 하나라도 있으면 올리지 않는다
+const problems = checkSet(spec);
+for (const p of problems) console.log(`  [${p.level}] ${p.order ? `${p.order}번` : "세트"}: ${p.message}`);
+if (problems.some((p) => p.level === "막음")) {
+  throw new Error("검수에서 막혔습니다. 고친 뒤 다시 올려 주세요.");
+}
 
 const admin = createAdminClient();
 const { data: prof } = await admin
@@ -33,7 +43,7 @@ if (!prof) throw new Error("선생님 계정을 못 찾았습니다.");
 let folderId: string | null = null;
 if (spec.folder) {
   const { data: found } = await admin
-    .from("listening_folders")
+    .from("listening_set_folders")
     .select("id")
     .eq("academy_id", prof.academy_id)
     .eq("name", spec.folder)
@@ -41,7 +51,7 @@ if (spec.folder) {
   if (found) folderId = found.id as string;
   else {
     const { data: made, error } = await admin
-      .from("listening_folders")
+      .from("listening_set_folders")
       .insert({ academy_id: prof.academy_id, name: spec.folder, created_by: prof.id })
       .select("id")
       .single();
@@ -96,7 +106,9 @@ for (const q of [...spec.questions].sort((a, b) => a.order - b.order)) {
       set_id: setId,
       order_index: q.order,
       question_type: q.type,
-      instruction: q.instruction,
+      instruction: templateAt(spec.gradeLevel, q.order)?.points3
+        ? `${q.instruction} [3점]`
+        : q.instruction,
       question_text: q.questionText ?? "",
       script_text: scriptTextOf(q),
       script_translation: q.translation,
@@ -131,5 +143,16 @@ if (withAudio) {
   const ok = res.filter((r) => r.ok !== false).length;
   console.log(`음성 ${ok}/${res.length}개 · ${Math.round((Date.now() - t) / 1000)}초`);
 }
+
+// 받아쓰기 빈칸을 미리 만들어 둔다 (학생이 열 때 기다리지 않게)
+try {
+  await ensureDictationPreparedForSet(setId, { includeVariants: false });
+  console.log("받아쓰기 준비 끝");
+} catch (e) {
+  console.log(`받아쓰기 준비 실패: ${e instanceof Error ? e.message : e}`);
+}
+
+// 다 갖춰졌으면 공개로 바꾼다
+await admin.from("listening_sets").update({ is_published: true }).eq("id", setId);
 
 console.log(`끝. 세트 id = ${setId}`);
