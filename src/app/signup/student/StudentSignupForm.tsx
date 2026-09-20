@@ -68,7 +68,7 @@ export function StudentSignupForm({ initialCode }: { initialCode: string }) {
       <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
         <p className="text-base font-bold text-slate-900">{done}</p>
         <p className="mt-2 text-sm text-slate-600">
-          아이디는 방금 적은 휴대전화 번호예요. 학원에서 확인하면 로그인해서 바로 공부할 수 있어요.
+          아이디는 방금 적은 휴대전화 번호예요. 지금 바로 로그인해서 공부할 수 있어요.
         </p>
         <Link href="/login" className="mt-5 inline-block rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-700">
           로그인 화면으로
@@ -170,7 +170,7 @@ export function StudentSignupForm({ initialCode }: { initialCode: string }) {
       {error ? <Alert variant="error">{error}</Alert> : null}
 
       <Button type="submit" disabled={busy || !academyName} className="w-full">
-        {busy ? "가입하는 중…" : "가입 신청"}
+        {busy ? "가입하는 중…" : "가입하기"}
       </Button>
       <p className="text-center text-xs text-slate-500">
         이미 계정이 있으면{" "}

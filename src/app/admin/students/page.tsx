@@ -36,8 +36,9 @@ export default async function AdminStudentsPage({ searchParams }: PageProps) {
         .select(`id, name, username, created_at, ${STUDENT_DETAIL_COLUMNS}`)
         .eq("academy_id", academyId)
         .eq("role", "student")
-        .is("approved_at", null)
-        .order("created_at")
+        .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString())
+        .order("created_at", { ascending: false })
+        .limit(20)
     : { data: [] as Record<string, unknown>[] };
   const pending = (pendingRows ?? []).map((r) => ({
     id: String(r.id),

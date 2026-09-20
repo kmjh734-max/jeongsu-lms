@@ -26,6 +26,8 @@ const NAV_ITEMS = [
   { href: "/admin/classes", label: "반 관리", group: "수업 운영" },
   { href: "/admin/students", label: "학생·수강", group: "수업 운영" },
   { href: "/admin/progress", label: "수강 현황", group: "수업 운영" },
+  { href: "/admin/study-plans", label: "학습일정표", group: "수업 운영" },
+  { href: "/admin/textbooks", label: "교재 목차", group: "수업 운영" },
   { href: "/admin/reports", label: "학습 리포트", group: "리포트" },
   { href: "/admin/exam-analysis", label: "내신 시험 분석", group: "리포트" },
   { href: "/admin/student-records", label: "학생부 분석", group: "리포트" },

@@ -21,9 +21,10 @@ export function StudentJoinPanel({
 }: {
   joinCode: string;
   joinUrl: string;
+  /** 링크로 들어온 최근 학생들 */
   pending: PendingStudent[];
 }) {
-  const [open, setOpen] = useState(pending.length > 0);
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [rows, setRows] = useState(pending);
   const [code, setCode] = useState(joinCode);
@@ -69,10 +70,10 @@ export function StudentJoinPanel({
         className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left"
       >
         <span>
-          <b className="text-sm text-slate-900">학생이 직접 가입하기</b>
+          <b className="text-sm text-slate-900">학생 가입 링크</b>
           <span className="ml-2 text-sm text-slate-500">
             가입 코드 <b className="tracking-[0.15em] text-slate-800">{code}</b>
-            {rows.length > 0 ? ` · 승인 기다리는 학생 ${rows.length}명` : ""}
+            {rows.length > 0 ? ` · 최근 가입 ${rows.length}명` : ""}
           </span>
         </span>
         <Icon name="chevron" size={16} className={open ? "rotate-90 text-slate-400" : "text-slate-400"} />
@@ -103,8 +104,8 @@ export function StudentJoinPanel({
             </button>
           </div>
           <p className="mt-2 text-xs text-slate-500">
-            이 링크를 학생·학부모에게 보내면 학생이 스스로 가입해요. 휴대전화 번호가 아이디가 되고, 여기서 승인해야 쓸 수 있어요.
-            코드를 새로 만들면 예전 링크는 막혀요.
+            이 링크를 학생·학부모에게 보내면 학생이 스스로 가입하고 바로 쓸 수 있어요. 휴대전화 번호가 아이디가 돼요.
+            코드를 새로 만들면 예전 링크는 막히니, 다른 곳에 새면 새로 만드세요.
           </p>
 
           {rows.length > 0 ? (
@@ -121,25 +122,19 @@ export function StudentJoinPanel({
                     <button
                       type="button"
                       disabled={busy === r.id}
-                      onClick={() => void act(r.id, "approve")}
-                      className="h-8 rounded-lg bg-brand-600 px-3 text-xs font-bold text-white hover:bg-brand-700 disabled:opacity-40"
-                    >
-                      승인
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy === r.id}
-                      onClick={() => void act(r.id, "reject")}
+                      onClick={() => {
+                        if (confirm(`${r.name} 학생을 내보낼까요? 계정이 지워져요.`)) void act(r.id, "reject");
+                      }}
                       className="h-8 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
                     >
-                      거절
+                      내보내기
                     </button>
                   </span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">승인을 기다리는 학생이 없어요.</p>
+            <p className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">아직 링크로 가입한 학생이 없어요.</p>
           )}
         </div>
       ) : null}

@@ -61,8 +61,7 @@ export async function POST(request: Request) {
 
     const newId = (result.profile as { id?: string } | null)?.id;
     if (newId) {
-      // 승인 전에는 학습 화면 대신 기다리는 화면을 보여 준다
-      await admin.from("profiles").update({ approved_at: null }).eq("id", newId);
+      // 학원 코드가 있는 링크로 들어온 학생은 바로 쓸 수 있다(선생님 결정 2026-09-20).
       await saveStudentDetails(admin, newId, {
         ...pickStudentDetails(body),
         phone: String(body.phone ?? ""),
@@ -71,7 +70,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      message: `${academy.name}에 가입 신청했어요. 학원에서 확인하면 바로 쓸 수 있어요.`,
+      message: `${academy.name} 학생으로 가입했어요. 바로 로그인해서 공부를 시작하세요.`,
       academyName: academy.name,
     });
   } catch (error) {
