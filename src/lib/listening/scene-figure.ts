@@ -125,6 +125,8 @@ export async function drawCheckedSceneFigure(opts: {
   scenePrompt: string;
   segments: Array<{ speaker: string; text: string }>;
   correctAnswer: number;
+  /** 그림 검수를 건너뛴다(눈으로 보고 고른다) */
+  skipVerify?: boolean;
   maxRetries?: number;
   onAttempt?: (info: { attempt: number; check: SceneCheck; bytes: Buffer }) => void;
 }): Promise<{ bytes: Buffer | null; check: SceneCheck | null; attempts: number }> {
@@ -136,6 +138,7 @@ export async function drawCheckedSceneFigure(opts: {
   const max = opts.maxRetries ?? 1;
   for (let attempt = 0; attempt <= max; attempt++) {
     const bytes = await flattenPngOnWhite(await generateImagePngBytes(prompt));
+    if (opts.skipVerify) return { bytes, check: null, attempts: attempt + 1 };
     const check = await verifySceneFigure(bytes, dialogues, opts.correctAnswer);
     last = check;
     opts.onAttempt?.({ attempt: attempt + 1, check, bytes });
@@ -156,6 +159,7 @@ export async function generateAndSaveSceneImage(opts: {
   scenePrompt: string;
   segments: Array<{ speaker: string; text: string }>;
   correctAnswer: number;
+  skipVerify?: boolean;
 }): Promise<{ urls: string[]; generated: number; check: SceneCheck | null }> {
   const { bytes, check } = await drawCheckedSceneFigure({ ...opts, maxRetries: 1 });
   if (!bytes) {

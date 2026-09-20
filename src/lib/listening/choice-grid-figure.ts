@@ -425,6 +425,8 @@ export async function drawCheckedChoiceGrid(opts: {
   prompts: string[];
   /** 정답 번호(1~5) — 정답 칸은 정답 설명과 반드시 맞아야 통과 */
   answerIndex?: number;
+  /** 그림 검수를 건너뛴다(선생님이 눈으로 보고 고친다 — 검수 호출값을 아낀다) */
+  skipVerify?: boolean;
   maxRetries?: number;
   onAttempt?: (info: { attempt: number; check: ChoiceGridCheck; bytes: Buffer }) => void;
 }): Promise<{ bytes: Buffer | null; check: ChoiceGridCheck | null; attempts: number }> {
@@ -438,6 +440,9 @@ export async function drawCheckedChoiceGrid(opts: {
   for (let attempt = 0; attempt <= max; attempt++) {
     const drawn = await flattenPngOnWhite(await generateImagePngBytes(prompt));
     const bytes = await overlayGridLabels(drawn);
+    if (opts.skipVerify) {
+      return { bytes, check: null, attempts: attempt + 1 };
+    }
     const check = await verifyChoiceGrid(bytes, prompts, opts.answerIndex);
     last = check;
     opts.onAttempt?.({ attempt: attempt + 1, check, bytes });

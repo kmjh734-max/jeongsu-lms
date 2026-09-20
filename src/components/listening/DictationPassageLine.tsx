@@ -82,7 +82,6 @@ function DictationInlineBlank({
       style={{ width: `${widthCh}ch`, minWidth: "4rem" }}
       {...answerInputGuards}
       {...englishKeypadProps}
-      inputMode="text"
       lang="en"
       aria-label="받아쓰기 빈칸"
     />

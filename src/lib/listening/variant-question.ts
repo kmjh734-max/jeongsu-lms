@@ -42,6 +42,9 @@ export interface StoredQuestionForVariant {
   table_data?: unknown;
   previous_turn?: string | null;
   blank_speaker?: string | null;
+  choice_image_prompts?: unknown;
+  visual_choice_type?: string | null;
+  needs_image_choices?: boolean | null;
 }
 
 function segmentsFromScript(script: string): Array<{ speaker: string; text: string }> {
@@ -62,7 +65,7 @@ function segmentsFromScript(script: string): Array<{ speaker: string; text: stri
 export function buildVariantPrompt(
   stored: StoredQuestionForVariant,
   gradeLevel: ListeningGradeLevel,
-  swapHints?: { names?: string[]; scenario?: string }
+  swapHints?: { names?: string[]; scenario?: string; fresh?: boolean; note?: string }
 ): string {
   const choices = Array.isArray(stored.choices) ? stored.choices.map(String) : [];
   const segments = segmentsFromScript(String(stored.script_text ?? ""));
@@ -72,6 +75,29 @@ export function buildVariantPrompt(
     ? `- 사람 이름은 이 목록에서만 고른다: ${swapHints.names.join(", ")}\n`
     : "";
   const scenarioLine = swapHints?.scenario ? `- 새 상황·소재: ${swapHints.scenario}\n` : "";
+  // 새 상황 모드: 형식은 원본을 따르되 이야기는 완전히 새로 쓴다(회차마다 독립된 시험지)
+  const freshBlock = swapHints?.fresh
+    ? `
+[새 상황으로 — 가장 중요]
+- 원본과 같은 이야기로 보이면 안 된다. 주제·상황·사람의 목적·등장 물건·대사 내용을 모두 새로 쓴다.
+- 원본의 소재(예: 원본이 필통 사기면 필통·학용품)는 쓰지 않는다. 위 새 상황을 따른다.
+- 형식(유형, 발화 수, 분량, 정답 자리, 선택지 형식)만 원본을 따른다.
+`
+    : "";
+  const noteLine = swapHints?.note ? `\n[앞선 시도에서 걸린 점 — 이번에는 고친다]\n${swapHints.note}\n` : "";
+  // 그림이 있는 문항은 그림 설명(choice_image_prompts)을 빠뜨리면 그림 없는 문항이 되어 버린다
+  const imagePrompts = Array.isArray(stored.choice_image_prompts)
+    ? (stored.choice_image_prompts as unknown[]).map((x) => String(x ?? "").trim()).filter(Boolean)
+    : [];
+  const imageLine = imagePrompts.length
+    ? `
+[그림 설명 — 반드시 다시 쓴다]
+- 이 문항은 그림 문항이다. choice_image_prompts를 ${imagePrompts.length}개 그대로 채운다(개수와 차례를 지킨다).
+- 원본 그림 설명의 짜임새(라벨 배치, 흑백 선화 같은 지시)는 그대로 두고, 그려야 할 물건과 장면만 새 대본에 맞게 바꾼다.
+- 그림 안에 글자나 숫자를 그리라고 하지 않는다.
+- 이 칸이 비면 그림 없는 문항이 되므로 절대 비우지 않는다.
+`
+    : "";
 
   return `아래는 이미 검수를 통과한 듣기 문항이다. 이 문항과 "같은 문제이되 소재만 다른" 평행 문항 1개를 만든다.
 
@@ -87,7 +113,7 @@ export function buildVariantPrompt(
 - 사람 이름, 장소, 물건, 활동, 요일, 시각·날짜·금액·개수 같은 숫자와 그에 딸린 표현.
 - 정답의 "내용"도 새 소재에 맞게 바꾼다(정답이 놓이는 번호만 그대로).
 - 원본 문장을 그대로 베끼지 않는다. 뜻이 같아도 새 소재에 맞게 다시 쓴다.
-${nameLine}${scenarioLine}
+${nameLine}${scenarioLine}${freshBlock}${noteLine}${imageLine}
 [반드시 다시 계산하는 것]
 - answer_clue: 새 대본에서 정답 근거가 되는 문장을 그대로 옮겨 적는다(원본 문장이 아니라 새 문장).
 - 금액 유형이면 새 단가·수량·할인으로 계산한 값이 정답과 맞아야 하고, 최종 금액은 대본에서 말하지 않는다.
@@ -108,6 +134,12 @@ ${JSON.stringify(
     table_data: stored.table_data ?? null,
     previous_turn: stored.previous_turn ?? null,
     blank_speaker: stored.blank_speaker ?? null,
+    ...(imagePrompts.length
+      ? {
+          visual_choice_type: stored.visual_choice_type ?? "",
+          choice_image_prompts: imagePrompts,
+        }
+      : {}),
   },
   null,
   1
@@ -119,7 +151,7 @@ JSON만 출력한다. order_index는 ${stored.order_index}. 화자는 M, W, ANN�
 학년: ${gradeLevel}${isHighSchoolListeningGrade(gradeLevel) ? " (고등)" : " (중등)"}`;
 }
 
-function templateForStored(
+export function templateForStored(
   stored: StoredQuestionForVariant,
   gradeLevel: ListeningGradeLevel
 ): ExamTypeTemplate | undefined {
@@ -143,7 +175,7 @@ export async function generateVariantQuestion(
   apiKey: string,
   stored: StoredQuestionForVariant,
   gradeLevel: ListeningGradeLevel,
-  swapHints?: { names?: string[]; scenario?: string }
+  swapHints?: { names?: string[]; scenario?: string; fresh?: boolean; note?: string }
 ): Promise<ValidatedListeningQuestion> {
   const template = templateForStored(stored, gradeLevel);
   const system =

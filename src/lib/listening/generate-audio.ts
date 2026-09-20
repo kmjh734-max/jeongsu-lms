@@ -136,10 +136,21 @@ export async function generateQuestionAudio(opts: {
   skipIfFinalExists?: boolean;
 }): Promise<GenerateAudioResult> {
   const { setId, questionId, segmentId } = opts;
-  const speed = opts.speechSpeed ?? EXAM_DEFAULT_SPEECH_SPEED;
   const saveSegments = shouldSaveTtsSegments();
 
   const admin = createAdminClient();
+  let speed = opts.speechSpeed ?? EXAM_DEFAULT_SPEECH_SPEED;
+  if (opts.speechSpeed == null) {
+    // 세트에 정해 둔 배속을 그대로 쓴다
+    const { data: setRow } = await admin
+      .from("listening_sets")
+      .select("speech_speed")
+      .eq("id", setId)
+      .maybeSingle();
+    if (typeof setRow?.speech_speed === "number" && setRow.speech_speed > 0) {
+      speed = setRow.speech_speed;
+    }
+  }
   const resolved =
     opts.resolvedVoices ??
     (await resolveListeningVoiceIds(
@@ -359,8 +370,18 @@ export async function generateSetQuestionAudio(opts: {
 
   const setOverrides = await loadSetVoiceOverrides(admin, opts.setId);
   const resolved = await resolveListeningVoiceIds(setOverrides);
+  // 세트에 정해 둔 배속을 그대로 쓴다(부르는 쪽이 따로 넘기면 그것이 먼저)
+  const { data: setRow } = await admin
+    .from("listening_sets")
+    .select("speech_speed")
+    .eq("id", opts.setId)
+    .maybeSingle();
+  const savedSpeed =
+    typeof setRow?.speech_speed === "number" && setRow.speech_speed > 0
+      ? setRow.speech_speed
+      : null;
   const speechSpeed =
-    opts.speechSpeed ?? speedFromPreset(DEFAULT_SPEECH_SPEED_PRESET);
+    opts.speechSpeed ?? savedSpeed ?? speedFromPreset(DEFAULT_SPEECH_SPEED_PRESET);
 
   const results = await runWithConcurrency(questions, 1, async (q) => {
     try {

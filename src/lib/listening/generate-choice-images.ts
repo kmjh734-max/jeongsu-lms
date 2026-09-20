@@ -514,6 +514,8 @@ export async function generateAndSaveChoiceImages(opts: {
   choiceGridAnswerIndex?: number;
   figureContext?: CompositeFigureContext;
   skipIfPresent?: boolean;
+  /** 그림 검수를 건너뛴다(눈으로 보고 고르는 경우) */
+  skipVerify?: boolean;
   force?: boolean;
   maxLabelRetries?: number;
   /** 합성 그림 검수 결과를 시도마다 받는다 (스크립트에서 그림 확인용) */
@@ -556,6 +558,7 @@ export async function generateAndSaveChoiceImages(opts: {
     const { bytes, check, attempts } = await drawCheckedChoiceGrid({
       prompts,
       answerIndex: opts.choiceGridAnswerIndex,
+      skipVerify: opts.skipVerify,
       maxRetries: opts.maxLabelRetries ?? 2,
     });
     if (!bytes) {
@@ -601,6 +604,10 @@ export async function generateAndSaveChoiceImages(opts: {
         break;
       }
 
+      if (opts.skipVerify) {
+        bytes = candidate;
+        break;
+      }
       const check = await verifyCompositeFigure(candidate, opts.figureContext, specs);
       lastCheck = check;
       opts.onAttempt?.({ attempt: attempt + 1, check, bytes: candidate });
