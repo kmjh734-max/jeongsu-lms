@@ -1,6 +1,5 @@
 import { after, NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { getElevenLabsApiKey } from "@/lib/listening/elevenlabs/resolve-voices";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureDictationPreparedForSet } from "@/lib/listening/dictation/prebuild-question";
 import { generateSetQuestionAudio } from "@/lib/listening/generate-audio";
@@ -18,12 +17,6 @@ export async function POST(request: Request) {
     const profile = await getCurrentProfile();
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return jsonError("권한이 없습니다.", 403);
-    }
-
-    try {
-      getElevenLabsApiKey();
-    } catch (e) {
-      return jsonError(e instanceof Error ? e.message : "ElevenLabs 설정 오류");
     }
 
     const body = (await request.json()) as {
@@ -82,14 +75,14 @@ export async function POST(request: Request) {
       ok: okCount > 0,
       message:
         okCount === results.length
-          ? `${results.length}개 문항 ElevenLabs 음원 생성 완료`
+          ? `${results.length}개 문항 음원 생성 완료`
           : `${okCount}/${results.length}개 성공 (실패 문항 메시지 확인)`,
       results,
-      provider: "elevenlabs",
+      provider: "edge",
     });
   } catch (e) {
     const message =
-      e instanceof Error ? e.message : "ElevenLabs 일괄 음원 생성에 실패했습니다.";
+      e instanceof Error ? e.message : "일괄 음원 생성에 실패했습니다.";
     return jsonError(message);
   }
 }

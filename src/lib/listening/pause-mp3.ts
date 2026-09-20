@@ -1,32 +1,39 @@
-import { readFile } from "fs/promises";
+import { execFileSync } from "child_process";
+import { readFileSync, rmSync } from "fs";
 import { join } from "path";
-import { concatMp3Buffers } from "@/lib/listening/concat-mp3-buffers";
+import { tmpdir } from "os";
+import ffmpeg from "@ffmpeg-installer/ffmpeg";
 
-let cached500: Buffer | null = null;
-let cached700: Buffer | null = null;
+/**
+ * 발화 사이 쉼(무음) mp3.
+ *
+ * Edge 음성과 같은 포맷(24kHz·48kbps·모노)으로 ffmpeg가 만들어 준다. 손으로 빈 프레임을 만들면
+ * ffmpeg가 이어 붙이다 중간에 멈춰서 음원이 잘린다(2026-09-21에 겪음).
+ */
+const cache = new Map<number, Buffer>();
 
-/** ffmpeg anullsrc 44.1kHz 128k stereo — scripts/generate-listening-pauses.ts 로 생성 */
-async function loadPause500(): Promise<Buffer> {
-  if (cached500) return cached500;
-  const path = join(process.cwd(), "public", "audio", "listening-pause-500ms.mp3");
-  cached500 = await readFile(path);
-  return cached500;
-}
-
-async function loadPause700(): Promise<Buffer> {
-  if (cached700) return cached700;
-  const dedicated = join(process.cwd(), "public", "audio", "listening-pause-700ms.mp3");
-  try {
-    cached700 = await readFile(dedicated);
-    return cached700;
-  } catch {
-    const base = await loadPause500();
-    cached700 = concatMp3Buffers([base, base]);
-    return cached700;
-  }
+export function silenceBufferMs(ms: number): Buffer {
+  const cached = cache.get(ms);
+  if (cached) return cached;
+  const out = join(tmpdir(), `listening-pause-${ms}.mp3`);
+  execFileSync(
+    ffmpeg.path,
+    [
+      "-f", "lavfi",
+      "-i", "anullsrc=r=24000:cl=mono",
+      "-t", (ms / 1000).toFixed(3),
+      "-c:a", "libmp3lame",
+      "-b:a", "48k",
+      "-y", out,
+    ],
+    { stdio: "pipe" }
+  );
+  const buf = readFileSync(out);
+  rmSync(out, { force: true });
+  cache.set(ms, buf);
+  return buf;
 }
 
 export async function getPauseBufferMs(ms: 500 | 700): Promise<Buffer> {
-  if (ms <= 500) return loadPause500();
-  return loadPause700();
+  return silenceBufferMs(ms);
 }

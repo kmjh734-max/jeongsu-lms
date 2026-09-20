@@ -26,7 +26,7 @@ function assertCompatibleMp3Concat(buffers: Buffer[]): void {
     if (ref.version !== info.version || ref.sampleRateIdx !== info.sampleRateIdx) {
       throw new Error(
         `${n + 1}번째 mp3 포맷이 첫 파일과 다릅니다 (MPEG v${ref.version}/${ref.sampleRateIdx} vs v${info.version}/${info.sampleRateIdx}). ` +
-          "ElevenLabs 음성과 OpenAI TTS pause 파일을 섞지 마세요. listening-pause-500ms.mp3를 다시 생성하세요."
+          "음성과 쉼(무음) 파일의 포맷이 다릅니다. 둘 다 24kHz 모노 mp3여야 합니다."
       );
     }
   }

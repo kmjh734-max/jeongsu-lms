@@ -9,7 +9,7 @@ function escapeConcatPath(filePath: string): string {
 
 /**
  * ffmpeg concat + libmp3lame 재인코딩.
- * 서로 다른 인코더(ElevenLabs + lavf pause)를 버퍼로 이어붙이면 브라우저가 2번째 대사부터 재생하지 않음.
+ * 서로 다른 인코더로 만든 mp3를 버퍼로 이어붙이면 브라우저가 2번째 대사부터 재생하지 않음.
  */
 export async function concatMp3FilesWithFfmpeg(
   inputPaths: string[],

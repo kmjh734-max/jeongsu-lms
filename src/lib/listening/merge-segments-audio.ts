@@ -6,7 +6,7 @@ import { concatMp3Files } from "@/lib/listening/concat-mp3";
 import { isNonSpokenSegmentText } from "@/lib/listening/fix-continuation-question";
 import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import { responseEndSpeaker } from "@/lib/listening/question-display";
-import { trimElevenLabsSegmentPadding } from "@/lib/listening/mp3-frame-utils";
+import { trimTtsSegmentPadding } from "@/lib/listening/mp3-frame-utils";
 import {
   finalStoragePath,
   legacySegmentStoragePath,
@@ -131,7 +131,7 @@ export async function mergeQuestionAudioFromSegments(opts: {
           raw = Buffer.from(await legacy.data.arrayBuffer());
         }
       }
-      await writeFile(localPath, trimElevenLabsSegmentPadding(raw));
+      await writeFile(localPath, trimTtsSegmentPadding(raw));
       localPaths.push(localPath);
     }
 

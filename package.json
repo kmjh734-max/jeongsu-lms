@@ -24,6 +24,7 @@
     "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "ws": "^8.21.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -31,6 +32,7 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.5",
+    "@types/ws": "^8.18.1",
     "eslint": "^9.27.0",
     "eslint-config-next": "^15.3.3",
     "postcss": "^8.5.3",

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { getElevenLabsApiKey } from "@/lib/listening/elevenlabs/resolve-voices";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateQuestionAudio } from "@/lib/listening/generate-audio";
 import { EXAM_DEFAULT_SPEECH_SPEED } from "@/lib/listening/speech-speed";
@@ -22,12 +21,6 @@ export async function POST(request: Request) {
     const profile = await getCurrentProfile();
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return jsonError("권한이 없습니다.", 403);
-    }
-
-    try {
-      getElevenLabsApiKey();
-    } catch (e) {
-      return jsonError(e instanceof Error ? e.message : "ElevenLabs 설정 오류");
     }
 
     const body = (await request.json()) as {
@@ -126,7 +119,7 @@ export async function POST(request: Request) {
     });
   } catch (e) {
     const message =
-      e instanceof Error ? e.message : "ElevenLabs 음원 생성에 실패했습니다.";
+      e instanceof Error ? e.message : "음원 생성에 실패했습니다.";
     return jsonError(message);
   }
 }

@@ -1,20 +1,20 @@
 import { mkdtemp, readFile, rm, writeFile } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
-import { generateElevenLabsSpeechSegment } from "@/lib/listening/audioProviders/elevenlabsTts";
-import { shouldSaveTtsSegments } from "@/lib/listening/audioProviders/elevenlabs-config";
+import { generateEdgeSpeechSegment } from "@/lib/listening/audioProviders/edgeTts";
+import { shouldSaveTtsSegments } from "@/lib/listening/audioProviders/tts-config";
 import {
   resolveListeningVoiceIds,
   type ListeningSetVoiceOverrides,
   type ResolvedListeningVoices,
-} from "@/lib/listening/elevenlabs/resolve-voices";
+} from "@/lib/listening/edge-voices";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { concatMp3Files } from "@/lib/listening/concat-mp3";
 import { isNonSpokenSegmentText } from "@/lib/listening/fix-continuation-question";
 import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import { responseBlankLine, responseEndSpeaker } from "@/lib/listening/question-display";
-import { trimElevenLabsSegmentPadding } from "@/lib/listening/mp3-frame-utils";
+import { trimTtsSegmentPadding } from "@/lib/listening/mp3-frame-utils";
 import { getPauseBufferMs } from "@/lib/listening/pause-mp3";
 import {
   finalStoragePath,
@@ -57,7 +57,7 @@ function segmentsForAudio(
 
 export interface GenerateAudioResult {
   audioUrl: string;
-  provider: "elevenlabs";
+  provider: "edge";
 }
 
 async function downloadSegmentToFile(
@@ -98,14 +98,13 @@ async function synthesizeSegmentToFile(
   speed: number,
   destPath: string
 ): Promise<Buffer> {
-  const raw = await generateElevenLabsSpeechSegment({
+  const raw = await generateEdgeSpeechSegment({
     text,
     speaker,
-    apiKey: resolved.apiKey,
-    voiceId: resolved.voiceIds[speaker],
+    voice: resolved.voiceIds[speaker],
     speed,
   });
-  const buffer = trimElevenLabsSegmentPadding(raw);
+  const buffer = trimTtsSegmentPadding(raw);
   await writeFile(destPath, buffer);
   return buffer;
 }
@@ -153,9 +152,7 @@ export async function generateQuestionAudio(opts: {
   }
   const resolved =
     opts.resolvedVoices ??
-    (await resolveListeningVoiceIds(
-      await loadSetVoiceOverrides(admin, setId)
-    ));
+    resolveListeningVoiceIds(await loadSetVoiceOverrides(admin, setId));
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.");
 
@@ -182,7 +179,7 @@ export async function generateQuestionAudio(opts: {
     !segmentId &&
     questionMeta?.audio_url?.trim()
   ) {
-    return { audioUrl: questionMeta.audio_url.trim(), provider: "elevenlabs" };
+    return { audioUrl: questionMeta.audio_url.trim(), provider: "edge" };
   }
 
   if (!opts.skipRepair) {
@@ -329,7 +326,7 @@ export async function generateQuestionAudio(opts: {
     const audioUrl = publicAudioUrl(supabaseUrl, finalPath);
     await updateQuestionAudioUrl(admin, questionId, audioUrl);
 
-    return { audioUrl, provider: "elevenlabs" };
+    return { audioUrl, provider: "edge" };
   } finally {
     await rm(workDir, { recursive: true, force: true }).catch(() => undefined);
   }
@@ -369,7 +366,7 @@ export async function generateSetQuestionAudio(opts: {
   await repairSetMwDialogueInDb(admin, opts.setId);
 
   const setOverrides = await loadSetVoiceOverrides(admin, opts.setId);
-  const resolved = await resolveListeningVoiceIds(setOverrides);
+  const resolved = resolveListeningVoiceIds(setOverrides);
   // 세트에 정해 둔 배속을 그대로 쓴다(부르는 쪽이 따로 넘기면 그것이 먼저)
   const { data: setRow } = await admin
     .from("listening_sets")

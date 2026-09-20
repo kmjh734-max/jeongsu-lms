@@ -112,13 +112,18 @@ export function collectMpeg1Layer3Frames(buf: Buffer): Buffer[] {
 }
 
 /**
- * ElevenLabs TTS 끝의 동일 패딩 프레임만 제거 (과도하게 자르면 다음 대사가 끊김)
+ * TTS 끝의 동일 패딩 프레임만 제거 (과도하게 자르면 다음 대사가 끊김)
  */
-export function trimElevenLabsSegmentPadding(buf: Buffer): Buffer {
+export function trimTtsSegmentPadding(buf: Buffer): Buffer {
   const headerEnd = firstMpeg1Layer3FrameOffset(buf);
   const prefix = buf.subarray(0, headerEnd);
   const frames = collectMpeg1Layer3Frames(buf);
   if (frames.length <= 2) return buf;
+
+  // Edge 음성은 MPEG-2(24kHz)라 이 프레임 훑기로는 제대로 안 읽힌다.
+  // 읽어 낸 프레임이 파일 대부분을 덮지 못하면 손대지 않는다(예전에 32KB가 2KB로 잘렸다).
+  const covered = frames.reduce((n, f) => n + f.length, 0);
+  if (covered < (buf.length - headerEnd) * 0.9) return buf;
 
   const tailRef = frames[frames.length - 1]!;
   let end = frames.length;

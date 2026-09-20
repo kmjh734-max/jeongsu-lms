@@ -111,7 +111,7 @@ export default function PrivacyPage() {
                 <td className={TD}>이용자가 넣은 지문·문장, 학생부 분석을 요청한 경우 그 학생부 내용</td>
               </tr>
               <tr>
-                <td className={TD}>ElevenLabs, Inc. (미국)</td>
+                <td className={TD}>Microsoft Corporation (미국)</td>
                 <td className={TD}>듣기 음성 만들기</td>
                 <td className={TD}>듣기 대본 (개인정보 없음)</td>
               </tr>
