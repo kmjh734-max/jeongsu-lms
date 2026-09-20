@@ -49,8 +49,9 @@ export function pickStudentDetails(body: Record<string, unknown>): StudentDetail
 export async function saveStudentDetails(
   admin: SupabaseClient,
   studentId: string,
-  details: StudentDetailsInput
+  input: StudentDetailsInput
 ): Promise<void> {
+  const details: StudentDetailsInput = { ...input, phone: input.phone === undefined ? undefined : normalizePhone(input.phone) };
   const patch: Record<string, unknown> = {};
   if (details.birthDate !== undefined) patch.birth_date = details.birthDate;
   if (details.phone !== undefined) patch.phone = details.phone;
