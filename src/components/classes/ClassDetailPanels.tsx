@@ -634,6 +634,10 @@ interface ClassSettingsPanelProps {
   initialIsActive: boolean;
   /** 수업 요일(0=월 … 6=일). 비어 있으면 월~금 */
   initialWeekdays?: number[];
+  /** 수업 시간 "HH:MM" (학습일정표 머리에 들어간다) */
+  initialStartTime?: string;
+  initialEndTime?: string;
+  initialRoom?: string;
   teachers: { id: string; name: string }[];
 }
 
@@ -647,9 +651,15 @@ export function ClassSettingsPanel({
   initialTeacherId,
   initialIsActive,
   initialWeekdays = [],
+  initialStartTime = "",
+  initialEndTime = "",
+  initialRoom = "",
   teachers,
 }: ClassSettingsPanelProps) {
   const [weekdays, setWeekdays] = useState<number[]>(initialWeekdays);
+  const [startTime, setStartTime] = useState(initialStartTime);
+  const [endTime, setEndTime] = useState(initialEndTime);
+  const [room, setRoom] = useState(initialRoom);
   const isAdmin = variant === "admin";
   const router = useRouter();
   const [name, setName] = useState(initialName);
@@ -665,7 +675,7 @@ export function ClassSettingsPanel({
     setLoading(true);
     setMessage(null);
     try {
-      const result = await updateClass(classId, { name, description, teacherId, isActive, weekdays });
+      const result = await updateClass(classId, { name, description, teacherId, isActive, weekdays, startTime, endTime, room });
       setMessage({ type: result.ok ? "success" : "error", text: result.message });
       if (result.ok) router.refresh();
     } catch {
@@ -752,6 +762,20 @@ export function ClassSettingsPanel({
                 학습 리포트 달력에서 수업 요일에 공부를 안 한 날만 &lsquo;빠진 날&rsquo;로 표시해요. 비워 두면 월~금으로 봐요.
               </p>
             </fieldset>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label htmlFor="class-start" className="ui-label">수업 시작</label>
+                <input id="class-start" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="ui-input" />
+              </div>
+              <div>
+                <label htmlFor="class-end" className="ui-label">수업 끝</label>
+                <input id="class-end" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="ui-input" />
+              </div>
+              <div>
+                <label htmlFor="class-room" className="ui-label">강의실</label>
+                <input id="class-room" value={room} onChange={(e) => setRoom(e.target.value)} className="ui-input" placeholder="A반" />
+              </div>
+            </div>
             <label className="flex items-start gap-2 text-sm text-slate-700">
               <input
                 type="checkbox"

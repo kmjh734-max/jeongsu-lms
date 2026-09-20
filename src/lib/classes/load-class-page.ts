@@ -28,6 +28,9 @@ export interface ClassPageData {
   description: string | null;
   isActive: boolean;
   weekdays: number[];
+  startTime: string;
+  endTime: string;
+  room: string;
   teacherId: string | null;
   teacherName: string | null;
   members: ClassMember[];
@@ -61,7 +64,7 @@ export async function loadClassPageData(
   let classQuery = supabase
     .from("classes")
     .select(
-      "id, name, description, is_active, weekdays, teacher_id, academy_id, teacher:profiles!classes_teacher_id_fkey(id, name)"
+      "id, name, description, is_active, weekdays, start_time, end_time, room, teacher_id, academy_id, teacher:profiles!classes_teacher_id_fkey(id, name)"
     )
     .eq("id", classId);
   if (variant === "teacher") classQuery = classQuery.eq("teacher_id", viewerId);
@@ -129,6 +132,10 @@ export async function loadClassPageData(
     description: (classRow.description as string | null) ?? null,
     isActive: Boolean(classRow.is_active),
     weekdays: ((classRow as { weekdays?: number[] | null }).weekdays ?? []).map(Number),
+    // "18:30:00" → "18:30" (시간 입력 칸이 쓰는 꼴)
+    startTime: String((classRow as { start_time?: string | null }).start_time ?? "").slice(0, 5),
+    endTime: String((classRow as { end_time?: string | null }).end_time ?? "").slice(0, 5),
+    room: String((classRow as { room?: string | null }).room ?? ""),
     teacherId: (classRow.teacher_id as string | null) ?? null,
     teacherName: teacher?.name ?? null,
     members,

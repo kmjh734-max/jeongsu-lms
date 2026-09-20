@@ -294,6 +294,7 @@ export function StudentsBoard({
           flash={actions.flash}
           onSubmit={actions.create}
           onClose={() => setDialog(null)}
+          withStudentDetails
         />
       ) : null}
       {dialog?.kind === "edit" ? (

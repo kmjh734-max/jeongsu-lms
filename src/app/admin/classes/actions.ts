@@ -125,6 +125,10 @@ export async function updateClass(
     isActive?: boolean;
     /** 수업 요일(0=월 … 6=일) */
     weekdays?: number[];
+    /** 수업 시간 (학습일정표 머리에 그대로 들어간다) */
+    startTime?: string;
+    endTime?: string;
+    room?: string;
   }
 ): Promise<ClassActionResult> {
   const auth = await requireAdmin();
@@ -143,6 +147,10 @@ export async function updateClass(
     const days = [...new Set(input.weekdays.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))].sort();
     payload.weekdays = days.length ? days : null;
   }
+  const timeOf = (v: string | undefined) => (/^\d{2}:\d{2}$/.test(String(v ?? "")) ? `${v}:00` : null);
+  if (input.startTime !== undefined) payload.start_time = timeOf(input.startTime);
+  if (input.endTime !== undefined) payload.end_time = timeOf(input.endTime);
+  if (input.room !== undefined) payload.room = input.room.trim() || null;
 
   const admin = createAdminClient();
   if (input.teacherId) {

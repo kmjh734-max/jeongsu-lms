@@ -205,7 +205,7 @@ export function useAccountActions(apiBasePath: string, roleLabel: string) {
     [router]
   );
 
-  const create = (body: { name: string; username: string; password: string }) =>
+  const create = (body: { name: string; username: string; password: string } & Record<string, unknown>) =>
     call(
       apiBasePath,
       { method: "POST", body: JSON.stringify(body) },
@@ -213,7 +213,7 @@ export function useAccountActions(apiBasePath: string, roleLabel: string) {
       "등록하지 못했어요."
     );
 
-  const update = (id: string, body: { name: string; username?: string }) =>
+  const update = (id: string, body: { name: string; username?: string } & Record<string, unknown>) =>
     call(
       `${apiBasePath}/${id}`,
       { method: "PATCH", body: JSON.stringify(body) },
@@ -291,16 +291,29 @@ export function AccountCreateModal({
   flash,
   onSubmit,
   onClose,
+  withStudentDetails,
 }: {
   roleLabel: string;
   busy: boolean;
   flash: Flash;
-  onSubmit: (body: { name: string; username: string; password: string }) => Promise<boolean>;
+  onSubmit: (body: { name: string; username: string; password: string } & Record<string, unknown>) => Promise<boolean>;
   onClose: () => void;
+  /** 학생 등록에서는 학교·학년·연락처를 같이 받는다(학습일정표에 쓴다) */
+  withStudentDetails?: boolean;
 }) {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [details, setDetails] = useState({
+    school: "",
+    schoolGrade: "",
+    birthDate: "",
+    phone: "",
+    parentPhone: "",
+    enrolledOn: "",
+  });
+  const setField = (k: keyof typeof details) => (e: { target: { value: string } }) =>
+    setDetails((d) => ({ ...d, [k]: e.target.value }));
 
   return (
     <Modal
@@ -312,7 +325,7 @@ export function AccountCreateModal({
         className="space-y-4"
         onSubmit={async (e) => {
           e.preventDefault();
-          if (await onSubmit({ name, username, password })) onClose();
+          if (await onSubmit({ name, username, password, ...(withStudentDetails ? details : {}) })) onClose();
         }}
       >
         <Field label="이름">
@@ -346,6 +359,31 @@ export function AccountCreateModal({
             className="ui-input"
           />
         </Field>
+        {withStudentDetails ? (
+          <div className="rounded-xl bg-slate-50 p-3">
+            <p className="mb-2 text-xs font-semibold text-slate-600">학습일정표·상담에 쓰는 정보 (나중에 채워도 돼요)</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="학교">
+                <input value={details.school} onChange={setField("school")} className="ui-input" placeholder="동암중" />
+              </Field>
+              <Field label="학년">
+                <input value={details.schoolGrade} onChange={setField("schoolGrade")} className="ui-input" placeholder="중2" />
+              </Field>
+              <Field label="생년월일">
+                <input type="date" value={details.birthDate} onChange={setField("birthDate")} className="ui-input" />
+              </Field>
+              <Field label="입학일">
+                <input type="date" value={details.enrolledOn} onChange={setField("enrolledOn")} className="ui-input" />
+              </Field>
+              <Field label="본인 전화">
+                <input value={details.phone} onChange={setField("phone")} className="ui-input" placeholder="010-0000-0000" inputMode="numeric" />
+              </Field>
+              <Field label="학부모 전화">
+                <input value={details.parentPhone} onChange={setField("parentPhone")} className="ui-input" placeholder="010-0000-0000" inputMode="numeric" />
+              </Field>
+            </div>
+          </div>
+        ) : null}
         {flash?.type === "error" ? <Alert variant="error">{flash.text}</Alert> : null}
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="secondary" onClick={onClose}>

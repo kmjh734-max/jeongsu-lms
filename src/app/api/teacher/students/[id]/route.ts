@@ -3,6 +3,7 @@ import { adminJsonError, getAdminClientSafe } from "@/lib/admin/api-json";
 import { updateManagedAccount } from "@/lib/admin/manage-user";
 import { requireTeacherApi } from "@/lib/auth/require-teacher-api";
 import { staffAcademyScope } from "@/lib/tenant/academy-scope";
+import { pickStudentDetails, saveStudentDetails } from "@/lib/accounts/student-details";
 
 export const runtime = "nodejs";
 
@@ -24,7 +25,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     const { id } = await context.params;
 
-    let body: { name?: string; is_active?: boolean };
+    let body: Record<string, unknown> & { name?: string; is_active?: boolean };
     try {
       body = await request.json();
     } catch {
@@ -47,6 +48,8 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (!result.ok) {
       return adminJsonError(result.message, result.status);
     }
+
+    await saveStudentDetails(clientResult.admin, id, pickStudentDetails(body));
 
     return NextResponse.json({
       ok: true,
