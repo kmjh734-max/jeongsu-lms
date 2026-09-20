@@ -115,7 +115,8 @@ export function LessonMaterialsInputWizard({
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
   const [savedItemsCount, setSavedItemsCount] = useState<number>(0);
   const [savedProjectIds, setSavedProjectIds] = useState<string[]>([]);
-  const [mockOpen, setMockOpen] = useState(false);
+  /** 지문 불러오기 창: 모의고사·교과서 중 어느 쪽으로 열지 */
+  const [mockOpen, setMockOpen] = useState<null | "mock" | "textbook">(null);
 
   const saveAction =
     role === "admin"
@@ -201,7 +202,7 @@ export function LessonMaterialsInputWizard({
       const added = list.map((m) => ({ english: m.text.slice(0, EN_MAX), korean: (m.korean ?? "").trim(), source: m.label }));
       return [...kept, ...added];
     });
-    setMockOpen(false);
+    setMockOpen(null);
   }
 
   function removeLastPassage() {
@@ -755,10 +756,17 @@ export function LessonMaterialsInputWizard({
             </button>
             <button
               type="button"
-              onClick={() => setMockOpen(true)}
+              onClick={() => setMockOpen("mock")}
               className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
             >
               모의고사 지문 불러오기
+            </button>
+            <button
+              type="button"
+              onClick={() => setMockOpen("textbook")}
+              className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
+            >
+              교과서 지문 불러오기
             </button>
 
             <div className="shrink-0">
@@ -777,7 +785,11 @@ export function LessonMaterialsInputWizard({
       ) : null}
 
       {mockOpen ? (
-        <MockPassagePickerModal onPick={addMockPassages} onClose={() => setMockOpen(false)} />
+        <MockPassagePickerModal
+          initialSource={mockOpen}
+          onPick={addMockPassages}
+          onClose={() => setMockOpen(null)}
+        />
       ) : null}
 
       {step === 2 && wb ? (

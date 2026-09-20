@@ -23,13 +23,16 @@ export function MockPassagePickerModal({
   max,
   onPick,
   onClose,
+  initialSource = "mock",
 }: {
   /** 더 넣을 수 있는 지문 수 (없으면 제한 없음) */
   max?: number;
   onPick: (list: PickedMockPassage[]) => void;
   onClose: () => void;
+  /** 열자마자 보여 줄 갈래 */
+  initialSource?: Source;
 }) {
-  const [source, setSource] = useState<Source>("mock");
+  const [source, setSource] = useState<Source>(initialSource);
   const [books, setBooks] = useState<BookSummary[] | null>(null);
   const [bookKey, setBookKey] = useState<string | null>(null);
   const [exams, setExams] = useState<ExamSummary[] | null>(null);
