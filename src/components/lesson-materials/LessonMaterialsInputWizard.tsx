@@ -94,7 +94,7 @@ export function LessonMaterialsInputWizard({
   folderLabel = null,
 }: {
   role: "admin" | "teacher";
-  /** 자료함에서 고른 폴더("unfiled"는 미분류). 없으면 기본 폴더에 넣는다. */
+  /** 자료함에서 고른 폴더("unfiled"는 미분류). 없으면 미분류에 넣는다. */
   folderId?: string | null;
   /** 저장 위치로 보여 줄 폴더 이름 */
   folderLabel?: string | null;
@@ -616,7 +616,7 @@ export function LessonMaterialsInputWizard({
     <div className="relative px-4">
       <LessonMaterialsStepTop current={step} />
       <p className="-mt-1 mb-3 text-center text-xs text-slate-500">
-        저장 위치: <span className="font-semibold text-slate-700">{folderLabel || "기본 폴더"}</span>
+        저장 위치: <span className="font-semibold text-slate-700">{folderLabel || "미분류"}</span>
       </p>
 
       {prepLoading ? (

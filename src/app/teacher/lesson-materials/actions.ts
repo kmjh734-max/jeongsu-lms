@@ -34,7 +34,7 @@ export async function saveLessonMaterialsFromWizard(input: {
   illustrationPrompt?: string | null;
   illustrationUrl?: string | null;
   illustrationCaptions?: string[] | null;
-  /** 넣을 폴더 id. "unfiled"면 미분류, 없으면 기본 폴더. */
+  /** 넣을 폴더 id. 비어 있거나 "unfiled"면 미분류. */
   folderId?: string | null;
 }): Promise<ActionResult & { projectId?: string }> {
   const profile = await getCurrentProfile();
@@ -59,12 +59,13 @@ export async function saveLessonMaterialsFromWizard(input: {
 
   const supabase = await createClient();
 
-  // 자료함에서 폴더를 고른 채 "새 자료 추가"를 눌렀으면 그 폴더에("unfiled"는 미분류) 넣는다.
-  // 고른 폴더가 없거나 찾을 수 없으면 예전처럼 기본 폴더에 넣는다.
+  /*
+   * 자료함에서 폴더를 고른 채 "새 자료 추가"를 눌렀으면 그 폴더에 넣는다.
+   * 고른 폴더가 없으면 미분류에 둔다(선생님 지적 2026-09-20: 기본 폴더를 만들지 말 것).
+   */
   const wantedFolder = input.folderId?.trim() || null;
   let folderId: string | undefined;
-  const unfiled = wantedFolder === "unfiled";
-  if (wantedFolder && !unfiled) {
+  if (wantedFolder && wantedFolder !== "unfiled") {
     const { data: chosen } = await supabase
       .from("lesson_material_folders")
       .select("id")
@@ -72,32 +73,6 @@ export async function saveLessonMaterialsFromWizard(input: {
       .eq("academy_id", academyId)
       .maybeSingle();
     folderId = (chosen?.id as string | undefined) ?? undefined;
-  }
-  if (!folderId && !unfiled) {
-    const folderName = "기본 폴더";
-    const { data: folderRow, error: folderSelectErr } = await supabase
-      .from("lesson_material_folders")
-      .select("id")
-      .eq("name", folderName)
-      .eq("created_by", profile.id)
-      .maybeSingle();
-    if (folderSelectErr) return actionError(folderSelectErr.message);
-
-    folderId = folderRow?.id as string | undefined;
-    if (!folderId) {
-      const { data: folderInsert, error: folderInsertErr } = await supabase
-        .from("lesson_material_folders")
-        .insert({
-          name: folderName,
-          teacher_id: profile.id,
-          created_by: profile.id,
-          academy_id: academyId,
-        })
-        .select("id")
-        .single();
-      if (folderInsertErr) return actionError(folderInsertErr.message);
-      folderId = folderInsert?.id as string | undefined;
-    }
   }
 
   const projectTitle =
