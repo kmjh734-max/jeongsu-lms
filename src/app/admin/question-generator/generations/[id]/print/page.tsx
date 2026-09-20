@@ -11,7 +11,7 @@ export default async function Page({
   const { id } = await params;
   const sp = await searchParams;
   const mode = sp.mode === "answers" ? "answers" : "exam";
-  const layout = sp.layout === "byType" ? "byType" : "mixed";
+  const layout = sp.layout === "byType" || sp.layout === "byPassage" ? sp.layout : "mixed";
   const branding = await getAcademyBrandingForCurrentUser();
   return (
     <QuestionPrintView

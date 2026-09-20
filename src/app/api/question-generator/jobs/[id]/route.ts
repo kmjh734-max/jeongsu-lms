@@ -84,7 +84,18 @@ export async function GET(
     }
 
     const { data: questions } = await qQuery;
-    return jsonOk({ job, questions: questions ?? [] });
+
+    // 지문 순서로 출력할 때 쓸 지문 이름(문항 위에 작게 단다)
+    const passageIds = [...new Set((questions ?? []).map((q) => q.passage_id).filter(Boolean))] as string[];
+    let passages: Array<{ id: string; title: string | null; source_detail: string | null }> = [];
+    if (passageIds.length > 1) {
+      const { data } = await supabase
+        .from("english_source_passages")
+        .select("id, title, source_detail")
+        .in("id", passageIds);
+      passages = data ?? [];
+    }
+    return jsonOk({ job, questions: questions ?? [], passages });
   } catch (e) {
     if (e instanceof Response) return e;
     return jsonError("조회에 실패했습니다.", 500);

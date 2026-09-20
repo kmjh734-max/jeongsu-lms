@@ -48,11 +48,12 @@ type QuestionRow = {
   question_type?: string;
   category?: string;
   option_key?: string | null;
+  passage_id?: string | null;
   hard_words?: Array<{ word: string; meaning: string }> | null;
   choice_language?: string | null;
 };
 
-type PrintLayoutMode = "mixed" | "byType";
+type PrintLayoutMode = "mixed" | "byType" | "byPassage";
 
 type DisplayItem = {
   kind: "q";
@@ -372,9 +373,12 @@ function QuestionBlock({
   q,
   index,
   part,
+  passageName,
 }: {
   q: QuestionRow;
   index: number;
+  /** 지문이 여럿일 때 문항 위에 작게 다는 지문 이름 */
+  passageName?: string;
   /** 한 단보다 긴 문항을 나눠 실을 때 이 부분(없으면 문항 전체). */
   part?: PrintPiecePart;
 }) {
@@ -419,6 +423,7 @@ function QuestionBlock({
     return (
       <section className={`qg-print-card qg-print-count-card${cardClass}`}>
         {!head ? <ContinuedLabel index={index} /> : null}
+        {head && passageName ? <p className="qg-print-q-source" data-qg-head="">{passageName}</p> : null}
         {head ? (
           <p className="qg-print-q-head" data-qg-head="">
             <span className={`qg-print-q-num qg-print-count-num${qNo(q, index).length > 2 ? " qg-print-q-num--wide" : ""}`}>
@@ -454,6 +459,7 @@ function QuestionBlock({
       {!head ? <ContinuedLabel index={index} /> : null}
       {head ? (
         <div data-qg-head="">
+          {passageName ? <p className="qg-print-q-source">{passageName}</p> : null}
           <p className="qg-print-q-head">
             <span className={`qg-print-q-num${qNo(q, index).length > 2 ? " qg-print-q-num--wide" : ""}`}>{qNo(q, index)}</span> {q.instruction}
             {pointsTag(q)}
@@ -619,6 +625,8 @@ export function QuestionPrintView({
   const [grade, setGrade] = useState("");
   const [sourceDetail, setSourceDetail] = useState("");
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
+  /** 지문 id → 지문 이름(문항 위에 작게 단다) */
+  const [passageNames, setPassageNames] = useState<Record<string, string>>({});
   const [printLayout, setPrintLayout] = useState<PrintLayoutMode>(layoutProp);
   const [vocabSetId, setVocabSetId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -689,6 +697,14 @@ export function QuestionPrintView({
     setGrade(nextGrade);
     setSourceDetail(nextDetail);
     setQuestions(data.questions ?? []);
+    setPassageNames(
+      Object.fromEntries(
+        ((data.passages ?? []) as Array<{ id: string; title: string | null; source_detail: string | null }>).map((p) => [
+          p.id,
+          (p.title || p.source_detail || "").trim(),
+        ])
+      )
+    );
     setVocabSetId(
       typeof job?.vocab_set_id === "string" ? job.vocab_set_id : null
     );
@@ -762,6 +778,39 @@ export function QuestionPrintView({
 
   const displayItems: DisplayItem[] = useMemo(() => {
     if (questions.length === 0) return [];
+    /*
+     * 지문 순서로 한 바퀴: 지문을 넣은 순서대로 한 문항씩 돌고, 다시 첫 지문으로 돌아온다.
+     * (선생님 요청 2026-09-20: "전체 세트가 순서대로 한 바퀴 돌고 다시 18번 문제부터 쭉")
+     */
+    if (printLayout === "byPassage") {
+      const order: string[] = [];
+      const byPassage = new Map<string, QuestionRow[]>();
+      for (const q of questions) {
+        const key = q.passage_id ?? "";
+        if (!byPassage.has(key)) {
+          byPassage.set(key, []);
+          order.push(key);
+        }
+        byPassage.get(key)!.push(q);
+      }
+      // 한 지문 안에서는 유형 차례대로 돌아 회차마다 같은 순서가 되게 한다.
+      for (const key of order) {
+        const list = byPassage.get(key)!;
+        byPassage.set(key, groupQuestionsByPrintType(list).flatMap((g) => g.items));
+      }
+      const rounds = Math.max(...order.map((k) => byPassage.get(k)!.length));
+      const items: DisplayItem[] = [];
+      let num = 1;
+      for (let r = 0; r < rounds; r++) {
+        for (const key of order) {
+          const q = byPassage.get(key)![r];
+          if (!q) continue;
+          items.push({ kind: "q", id: q.id, q, num });
+          num++;
+        }
+      }
+      return items;
+    }
     if (printLayout !== "byType") {
       return questions.map((q, i) => ({
         kind: "q" as const,
@@ -1101,7 +1150,7 @@ export function QuestionPrintView({
   function renderDisplayItem(item: DisplayItem | undefined, part?: PrintPiecePart) {
     if (!item) return null;
     return mode === "exam" ? (
-      <QuestionBlock q={item.q} index={item.num} part={part} />
+      <QuestionBlock q={item.q} index={item.num} part={part} passageName={passageNames[item.q.passage_id ?? ""]} />
     ) : (
       <AnswerBlock q={item.q} index={item.num} part={part} />
     );
@@ -1239,6 +1288,17 @@ export function QuestionPrintView({
                 onClick={() => setPrintLayout("byType")}
               >
                 유형별 출력
+              </button>
+              <button
+                type="button"
+                className={`rounded-lg px-3 py-2 text-left text-xs font-semibold ${
+                  printLayout === "byPassage"
+                    ? "bg-brand-700 text-white"
+                    : "border border-slate-200 bg-white text-slate-700"
+                }`}
+                onClick={() => setPrintLayout("byPassage")}
+              >
+                지문 순서로 한 바퀴
               </button>
             </div>
           )}

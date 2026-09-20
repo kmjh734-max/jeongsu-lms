@@ -533,3 +533,16 @@
   padding-right: 1.5mm;
   white-space: nowrap;
 }
+
+/* 문항 위에 작게 다는 지문 이름(지문이 여럿일 때) */
+.qg-print-q-source {
+  margin: 0 0 1mm;
+  /* 이름이 길면 한 줄에서 자른다(문항이 밀리지 않게) */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 7.6pt;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #8a8f98;
+}
