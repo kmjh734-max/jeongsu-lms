@@ -1213,6 +1213,8 @@ export async function generateOneQuestion(opts: {
   diversitySlot?: { index: number; total: number; label: string };
   /** 이 문항의 목표 난이도. 없으면 overallDifficulty(내신→중, 고난도→상)를 따른다 */
   targetLevel?: TargetLevel | null;
+  /** 어법·어휘에서 지문을 바꿔 써도 되는지(기본은 원문 그대로) */
+  paraphraseGrammarVocab?: boolean;
 }): Promise<GeneratedQuestionPayload> {
   const { option, passage, analysis } = opts;
 
@@ -1409,6 +1411,17 @@ export async function generateOneQuestion(opts: {
       : "",
     option.type === "grammar"
       ? "- 어법: ‘이번 문항’ 문법을 따르고, 해설은 쉬운 한글만(voice/relative/CASE id 금지)."
+      : "",
+    /*
+     * 선생님 지적(2026-09-20): 어법·어휘가 지문을 재진술한다. 기본은 원문 그대로 두고
+     * 밑줄 자리만 바꾼다. 재진술은 선생님이 켰을 때만 한다.
+     */
+    (option.type === "grammar" || option.type === "vocabulary") && !opts.paraphraseGrammarVocab
+      ? `- KEEP THE PASSAGE VERBATIM: copy the original passage word for word into passageModified. The ONLY allowed change is the wording inside the marked spots (ⓐ~/①~). Do not reword, shorten, merge, split or reorder any sentence.
+- Pick the marked spots from structures the passage ALREADY has (수일치·관계사·준동사·병렬·태·시제·비교 등 원문에 있는 것). If a target grammar point does not exist in this passage, choose another point that does — never rewrite a sentence to plant one.`
+      : "",
+    (option.type === "grammar" || option.type === "vocabulary") && opts.paraphraseGrammarVocab
+      ? "- 지문 재진술 켜짐: 밑줄 자리를 만들기 위해 문장을 바꿔 써도 된다(원문 뜻은 지킬 것)."
       : "",
     paraphraseSystemHint,
     craftSystemHint,

@@ -5,11 +5,49 @@ import type {
   QuestionValidation,
 } from "@/lib/question-generator/types";
 
+/** 지문에서 낱말만 뽑아 센다(밑줄 기호·문장부호는 뺀다) */
+function passageWords(text: string): string[] {
+  return (text || "")
+    .replace(/<\/?u>/g, " ")
+    .replace(/[ⓐ-ⓩ①-⑳]/g, " ")
+    .toLowerCase()
+    .replace(/[^a-z' ]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+/**
+ * 어법·어휘는 지문을 다시 쓰면 안 된다(선생님 지적 2026-09-20: "어법 개수가 지문을 재진술한다").
+ * 밑줄 자리의 낱말만 바뀌어야 하므로, 원문 낱말이 그대로 남은 비율로 가린다.
+ * 재진술을 켜고 만든 문항은 이 검사를 건너뛴다.
+ */
+export function passageKeptRatio(original: string, modified: string): number {
+  const a = passageWords(original);
+  const b = passageWords(modified);
+  if (a.length < 20 || b.length < 20) return 1;
+  const bag = new Map<string, number>();
+  for (const w of a) bag.set(w, (bag.get(w) ?? 0) + 1);
+  let same = 0;
+  for (const w of b) {
+    const n = bag.get(w) ?? 0;
+    if (n > 0) {
+      same++;
+      bag.set(w, n - 1);
+    }
+  }
+  return same / b.length;
+}
+
+/** 어법·어휘에서 지문을 그대로 두었다고 볼 최저선(밑줄 6곳이 바뀌어도 넘는 값) */
+export const PASSAGE_KEEP_MIN = 0.9;
+
 /** 로컬 형태 검수만 (AI 검수 호출 없음 — 속도 우선) */
 export function validateGeneratedQuestion(opts: {
   passage: string;
   option: QuestionTypeOption;
   question: GeneratedQuestionPayload;
+  /** 지문 재진술을 켜고 만든 문항이면 원문 대조를 건너뛴다 */
+  allowParaphrase?: boolean;
 }): QuestionValidation {
   const q = opts.question;
   const option = opts.option;
@@ -68,6 +106,19 @@ export function validateGeneratedQuestion(opts: {
         warnings.push("개수 보기가 1개~5개 형식이 아닙니다.");
         score -= 40;
       }
+    }
+  }
+
+  // 어법·어휘: 밑줄 자리 말고 지문을 고쳐 쓰면 버린다
+  if (
+    !opts.allowParaphrase &&
+    (option.type === "grammar" || option.type === "vocabulary") &&
+    (q.passageModified ?? "").trim()
+  ) {
+    const kept = passageKeptRatio(opts.passage, q.passageModified ?? "");
+    if (kept < PASSAGE_KEEP_MIN) {
+      warnings.push(`지문을 고쳐 썼습니다(원문 유지 ${Math.round(kept * 100)}%). 원문 그대로 다시 만듭니다.`);
+      score -= 45;
     }
   }
 

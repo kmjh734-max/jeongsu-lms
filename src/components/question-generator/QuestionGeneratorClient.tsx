@@ -76,6 +76,8 @@ export function QuestionGeneratorClient({
   const [presets, setPresets] = useState<PresetRow[]>([]);
   const [passageId, setPassageId] = useState<string | null>(null);
   const [mockOpen, setMockOpen] = useState(false);
+  /** 어법·어휘에서 지문을 바꿔 쓸지(기본은 원문 그대로) */
+  const [paraphraseGV, setParaphraseGV] = useState(false);
   /** 유형에 마우스를 올렸을 때 띄우는 예시 */
   const [sample, setSample] = useState<{ s: TypeSample; level: SampleLevel; x: number; y: number } | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -138,10 +140,12 @@ export function QuestionGeneratorClient({
       mode: modeTab === "custom" ? "custom" : "preset",
       presetId: modeTab.startsWith("preset:") ? modeTab.slice(7) : null,
       counts,
+      ...(paraphraseGV ? { paraphraseGrammarVocab: true } : {}),
       ...(lessonProjectIds.length ? { lessonProjectIds } : {}),
     }),
     [
       lessonProjectIds,
+      paraphraseGV,
       title,
       schoolName,
       grade,
@@ -1074,6 +1078,18 @@ export function QuestionGeneratorClient({
                           </div>
                         );
                       })}
+                      <label className="mt-1 flex items-start gap-2 rounded-lg bg-slate-50 px-2 py-1.5 text-[11px] text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={paraphraseGV}
+                          onChange={(e) => setParaphraseGV(e.target.checked)}
+                          className="mt-0.5 h-3.5 w-3.5 accent-brand-600"
+                        />
+                        <span>
+                          <b className="block text-slate-800">지문 바꿔 쓰기</b>
+                          꺼 두면 지문이 원문 그대로 나오고, 밑줄 자리만 바뀝니다. 켜면 밑줄 자리를 만들려고 문장도 바꿔 씁니다.
+                        </span>
+                      </label>
                       <Button
                         type="button"
                         variant="secondary"

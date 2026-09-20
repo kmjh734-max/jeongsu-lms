@@ -107,6 +107,8 @@ export interface GenerationRequestConfig {
   passages?: PassageInput[];
   /** 생성 시 저장된 지문 row id 목록 */
   passageIds?: string[];
+  /** 어법·어휘에서 지문을 바꿔 쓸지(기본은 원문 그대로) */
+  paraphraseGrammarVocab?: boolean;
   mode: GenerationMode;
   presetId: string | null;
   counts: GenerationRequestCounts;

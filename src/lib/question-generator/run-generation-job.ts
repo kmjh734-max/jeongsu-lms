@@ -187,6 +187,8 @@ async function generateWithValidation(opts: {
   sourceDetail?: string;
   diversitySlot?: { index: number; total: number; label: string };
   targetLevel?: TargetLevel | null;
+  /** 어법·어휘에서 지문을 바꿔 써도 되는지(기본은 원문 그대로) */
+  paraphraseGrammarVocab?: boolean;
   /** 다시 만들기 횟수(설계도 칸은 빈자리가 없게 더 시도한다) */
   retries?: number;
 }): Promise<{
@@ -206,6 +208,7 @@ async function generateWithValidation(opts: {
         passage: opts.passage,
         option: opts.option,
         question: payload,
+        allowParaphrase: opts.paraphraseGrammarVocab === true,
       });
       payload.validation = validation;
 
@@ -756,6 +759,7 @@ export async function runGenerationJob(
         sourceDetail: item.sourceDetail,
         diversitySlot: item.diversitySlot,
         targetLevel: item.slot?.level ?? null,
+        paraphraseGrammarVocab: config.paraphraseGrammarVocab === true,
         retries: item.slot ? 2 : undefined,
       });
       // 다음 실행이 이 문항을 다시 만든다. 여기서 저장하면 같은 칸이 두 번 생긴다.
