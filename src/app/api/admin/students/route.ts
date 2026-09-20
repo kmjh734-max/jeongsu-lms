@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminJsonError, getAdminClientSafe } from "@/lib/admin/api-json";
 import { createManagedAccount } from "@/lib/admin/manage-user";
+import { pickStudentDetails, saveStudentDetails } from "@/lib/accounts/student-details";
 import { requireAdminApi } from "@/lib/auth/require-admin-api";
 
 export const runtime = "nodejs";
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
       return clientResult.response;
     }
 
-    let body: { name?: string; username?: string; password?: string };
+    let body: Record<string, unknown> & { name?: string; username?: string; password?: string };
     try {
       body = await request.json();
     } catch {
@@ -36,6 +37,10 @@ export async function POST(request: Request) {
     if (!result.ok) {
       return adminJsonError(result.message, result.status);
     }
+
+    // 생년월일·연락처는 계정을 만든 뒤 함께 저장한다(학습일정표·리포트 발송에 쓴다)
+    const newId = (result.profile as { id?: string } | null)?.id;
+    if (newId) await saveStudentDetails(clientResult.admin, newId, pickStudentDetails(body));
 
     return NextResponse.json({
       ok: true,

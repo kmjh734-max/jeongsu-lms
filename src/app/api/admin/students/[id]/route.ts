@@ -6,6 +6,7 @@ import {
 } from "@/lib/admin/manage-user";
 import { requireAdminApi } from "@/lib/auth/require-admin-api";
 import { staffAcademyScope } from "@/lib/tenant/academy-scope";
+import { pickStudentDetails, saveStudentDetails } from "@/lib/accounts/student-details";
 
 export const runtime = "nodejs";
 
@@ -27,7 +28,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     const { id } = await context.params;
 
-    let body: {
+    let body: Record<string, unknown> & {
       name?: string;
       username?: string;
       is_active?: boolean;
@@ -55,6 +56,8 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (!result.ok) {
       return adminJsonError(result.message, result.status);
     }
+
+    await saveStudentDetails(clientResult.admin, id, pickStudentDetails(body));
 
     return NextResponse.json({
       ok: true,
