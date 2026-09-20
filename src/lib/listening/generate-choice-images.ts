@@ -508,6 +508,10 @@ export async function generateAndSaveChoiceImages(opts: {
   questionId: string;
   prompts: string[];
   compositeLabeledFigure?: boolean;
+  /** 사람이 쓴 그림 설명을 그대로 쓴다 — 안에서 다시 계획을 세우지 않는다 */
+  promptAsIs?: boolean;
+  /** 그림 크기 (가로로 긴 장면은 1536x1024) */
+  imageSize?: ListeningImageSize;
   /** 그림 선택지 5개를 한 장(5칸)으로 합쳐 그린다 — 그림값이 1/5로 준다 */
   choiceGrid?: boolean;
   /** 5칸 그림판의 정답 번호(1~5) — 정답 칸은 정답 설명과 맞아야 통과한다 */
@@ -589,7 +593,9 @@ export async function generateAndSaveChoiceImages(opts: {
     let bytes: Buffer | null = null;
     let specs: FigureLabelSpec[] = [];
     let attemptPrompt: string;
-    if (composite && prompts.length === 1) {
+    if (opts.promptAsIs) {
+      attemptPrompt = prompts[i]!;
+    } else if (composite && prompts.length === 1) {
       const planned = await enrichCompositeScenePrompt(prompts[i]!, opts.figureContext);
       attemptPrompt = planned.prompt;
       specs = planned.specs;
@@ -598,7 +604,9 @@ export async function generateAndSaveChoiceImages(opts: {
     }
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      const candidate = await flattenPngOnWhite(await generateImagePngBytes(attemptPrompt));
+      const candidate = await flattenPngOnWhite(
+        await generateImagePngBytes(attemptPrompt, opts.imageSize ? { size: opts.imageSize } : undefined)
+      );
       if (!(composite && prompts.length === 1)) {
         bytes = candidate;
         break;
