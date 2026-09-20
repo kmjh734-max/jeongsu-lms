@@ -20,8 +20,9 @@ const RANK: Record<GrammarPriority, number> = {
  * 자리가 겹치는 후보는 아래 overlap 검사가 그대로 막으므로, 같은 네모가 두 번
  * 나오지는 않는다.
  */
-const MAX_ITEMS = 36;
-const ITEMS_PER_SENTENCE = 3;
+/* 2026-09-20 선생님 요청으로 한 번 더 올린다(문장당 3 → 4, 지문당 36 → 48). */
+const MAX_ITEMS = 48;
+const ITEMS_PER_SENTENCE = 4;
 const MAX_ADJ_ADV = 3;
 
 export function sortStudentPresentationOrder<T extends {

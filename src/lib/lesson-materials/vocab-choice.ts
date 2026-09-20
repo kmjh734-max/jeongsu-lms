@@ -25,8 +25,12 @@ import {
 
 export const VOCAB_CHOICE_ALGORITHM_VERSION = "vocab-choice-v1";
 /** 한 지문에 싣는 어휘 선택 자리 수 상한. */
-const MAX_FINAL_ITEMS = 10;
-const MAX_PER_SENTENCE = 2;
+/*
+ * 선생님 요청(2026-09-20): "문장당 어휘 개수가 더 많으면 좋겠다. 한 문장에 여럿 들어가도 된다."
+ * 문장당 2곳·전체 10개는 긴 지문에서도 열 자리에서 끊겼다. 3곳·16개로 올린다.
+ */
+const MAX_FINAL_ITEMS = 16;
+const MAX_PER_SENTENCE = 3;
 
 export type StoredVocabChoicePair = {
   sentenceId: string;
@@ -201,7 +205,7 @@ const GENERATOR_SYSTEM = `당신은 대한민국 고등학교 영어 내신·수
 # 자리(targetText)
 - 글의 논리·주제를 떠받치는 내용어(명사·동사·형용사·부사) 한 낱말. 구동사 등은 두 낱말까지.
 - 고유명사, 숫자, 기능어(관사·대명사·전치사·접속사·조동사·be동사)는 고르지 않는다.
-- 문장 하나에 최대 2곳. 여러 문장에 고르게 퍼뜨린다.
+- 문장 하나에 최대 3곳까지 골라도 된다(한 문장에 물을 만한 낱말이 여럿이면 여럿 고른다). 여러 문장에 고르게 퍼뜨린다.
 - hints의 낱말(핵심 어휘)을 우선 고려하되, 문맥 판단 가치가 없으면 쓰지 않아도 된다.
 - targetText는 문장에 적힌 그대로(대소문자·어형 포함) 복사한다. 같은 문장에 여러 번 나오면 occurrence로 몇 번째(1부터)인지 적는다.
 
@@ -214,7 +218,7 @@ const GENERATOR_SYSTEM = `당신은 대한민국 고등학교 영어 내신·수
 - 고등학생이 알 만한 수준의 낱말을 쓴다.
 
 # 개수
-- 후보를 넉넉히 만든다(지문 문장 수에 따라 10~14개). 뒤에서 검수로 일부가 빠진다.
+- 후보를 넉넉히 만든다: 문장마다 물을 만한 자리가 있으면 모두 낸다(문장당 최대 3곳). 검수에서 절반쯤 빠지므로, 최종에 필요한 수의 두 배를 낸다고 생각하고 아끼지 않는다.
 - meaningKo: 이 문맥에서 원래 낱말의 뜻(짧은 한국어).
 - relation: "antonym"(반의어) | "reversal"(논리를 뒤집는 말) | "other".
 - learningValue: 1~5, 이 자리를 묻는 학습 가치.`;
@@ -226,7 +230,7 @@ const GENERATOR_SCHEMA = {
   properties: {
     items: {
       type: "array",
-      maxItems: 16,
+      maxItems: 32,
       items: {
         type: "object",
         additionalProperties: false,
@@ -468,6 +472,8 @@ export async function generateVocabChoiceForPassage(input: {
   section: WorkbookVocabChoiceSection | null;
   cacheToSave: StoredVocabChoiceCache | null;
   reason?: string;
+  /** 모델 후보 → 자리 확인 → 검수 → 최종, 단계별 개수 */
+  funnel?: { raw: number; located: number; audited: number; final: number };
 }> {
   const sentences = input.sentences.filter((s) => s.english.trim());
   const passage = joinWorkbookPassageLines(sentences.map((s) => s.english));
@@ -504,10 +510,12 @@ export async function generateVocabChoiceForPassage(input: {
     pairs: kept.map(({ start: _s, end: _e, shownWrong: _w, ...pair }) => pair),
     createdAt: new Date().toISOString(),
   };
-  const section = buildSection({ ...input, passage, pairs: selectFinal(kept) });
+  const final = selectFinal(kept);
+  const section = buildSection({ ...input, passage, pairs: final });
   return {
     section,
     cacheToSave,
     reason: section ? undefined : "검수를 통과한 어휘 문항이 없습니다.",
+    funnel: { raw: raw.length, located: located.length, audited: kept.length, final: final.length },
   };
 }
