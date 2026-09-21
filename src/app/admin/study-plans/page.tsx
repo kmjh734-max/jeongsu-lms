@@ -197,10 +197,7 @@ export default async function StudyPlansPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <PageHeader
-        title="학습일정표"
-        description="선생님 → 반 → 학생 차례로 고르면 그 달 계획이 나와요. 학생은 자기 아이디로 로그인해 자기 것만 봐요."
-      />
+      <PageHeader title="학습일정표" />
 
       <StudyPlanPicker
         teachers={teachers}
