@@ -6,6 +6,7 @@ import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { formatLastStudiedDate } from "@/lib/progress/enrollment-progress";
 import { computeReportMetrics } from "@/lib/reports/report-metrics";
 import { parseReviewWordDisplay } from "@/lib/reports/review-word-display";
+import { reviewWordSlice, vocabScoreLine } from "@/lib/reports/report-shape";
 import { resolveLearningReportText } from "@/lib/reports/resolve-learning-report-text";
 import type { StudentReport } from "@/lib/reports/types";
 
@@ -306,6 +307,7 @@ export function SharedReportHtmlView({
                     {[set.stage1Completed, set.stage2Completed, set.stage3Completed]
                       .map((d) => (d ? "✓" : "·"))
                       .join(" ")}
+                    {vocabScoreLine(set) ? ` · ${vocabScoreLine(set)}` : ""}
                   </p>
                 </li>
               ))}
@@ -320,7 +322,7 @@ export function SharedReportHtmlView({
             </p>
           ) : (
             <ul className="space-y-2">
-              {report.reviewWords.slice(0, 15).map((word) => {
+              {reviewWordSlice(report).rows.map((word) => {
                 const { word: w, meaning, reason } = parseReviewWordDisplay(word);
                 return (
                   <li
@@ -341,9 +343,9 @@ export function SharedReportHtmlView({
                   </li>
                 );
               })}
-              {report.reviewWords.length > 15 && (
+              {reviewWordSlice(report).extra > 0 && (
                 <p className="text-center text-xs text-slate-500">
-                  외 {report.reviewWords.length - 15}개
+                  외 {reviewWordSlice(report).extra}개
                 </p>
               )}
             </ul>

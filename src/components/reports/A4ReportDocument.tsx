@@ -4,6 +4,7 @@ import { ReportOverviewPanel } from "@/components/reports/ReportOverviewPanel";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { formatLastStudiedDate } from "@/lib/progress/enrollment-progress";
 import { parseReviewWordDisplay } from "@/lib/reports/review-word-display";
+import { reviewWordSlice } from "@/lib/reports/report-shape";
 import { resolveLearningReportText } from "@/lib/reports/resolve-learning-report-text";
 import { computeReportMetrics } from "@/lib/reports/report-metrics";
 import type { StudentReport } from "@/lib/reports/types";
@@ -83,8 +84,7 @@ export function A4ReportDocument({
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
-  const reviewRows = report.reviewWords.slice(0, 10);
-  const reviewExtra = report.reviewWords.length - reviewRows.length;
+  const { rows: reviewRows, extra: reviewExtra } = reviewWordSlice(report);
 
   return (
     <article className="a4-report mx-auto box-border w-[210mm] min-h-[297mm] bg-white px-[18mm] py-[16mm] text-[10.5pt] leading-relaxed text-slate-800 shadow-sm print:shadow-none">
