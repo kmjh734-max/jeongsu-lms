@@ -78,8 +78,9 @@ const WorkbookPage = memo(function WorkbookPage({
       data-size={size}
       style={pageStyle}
     >
+      {/* 배지에는 브랜드를 둔다 — 자료 갈래는 아래 tag 줄이 이미 말해 준다 */}
       <VocabPrintDHeader
-        badge={mode === "full" ? "IN CONTEXT" : "WORD LIST"}
+        badge="EngCore"
         title={titleParts.main}
         tag={
           mode === "full"
