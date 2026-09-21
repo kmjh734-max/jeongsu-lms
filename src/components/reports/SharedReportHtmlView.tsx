@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { ReportMobileParent } from "@/components/reports/ReportMobileParent";
-import { ReportOverviewPanel } from "@/components/reports/ReportOverviewPanel";
+import { ReportDashboard } from "@/components/reports/ReportDashboard";
 import Link from "next/link";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { formatLastStudiedDate } from "@/lib/progress/enrollment-progress";
@@ -64,6 +64,12 @@ export function SharedReportHtmlView({
   logoSrc = LOGO_SRC,
 }: SharedReportHtmlViewProps) {
   const metrics = computeReportMetrics(report);
+  // 선생님이 보낸 안내문구 전체 — 카카오톡에는 앞부분만 실리므로 여기서 다 보여 준다
+  const teacherNote = parentMessage
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   const learningReport = resolveLearningReportText(
     report,
     parentMessage,
@@ -146,7 +152,8 @@ export function SharedReportHtmlView({
 
       <main className="mx-auto max-w-lg space-y-4 px-4 py-6 sm:max-w-2xl sm:px-6 sm:py-8">
         {report.overview ? (
-          <ReportOverviewPanel overview={report.overview} />
+          // 인쇄용 A4 첫 장과 같은 것을 본다 — 달력·출결 비율까지 그대로
+          <ReportDashboard report={report} comment={learningReport} academyName={academyName} />
         ) : (
         <div className="grid grid-cols-2 gap-3">
           <MetricTile
@@ -168,6 +175,29 @@ export function SharedReportHtmlView({
           <MetricTile label="최근 학습일" value={metrics.lastStudiedLabel} />
         </div>
         )}
+
+        {teacherNote ? (
+          <SectionCard title={`${academyName} 선생님 말씀`}>
+            <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-slate-700">
+              {teacherNote}
+            </p>
+          </SectionCard>
+        ) : null}
+
+        {report.studyPlan ? (
+          <SectionCard title="학습일정표">
+            <p className="text-[15px] leading-relaxed text-slate-700">{report.studyPlan.line}</p>
+            {report.studyPlan.areaLines.length ? (
+              <ul className="mt-2 space-y-1">
+                {report.studyPlan.areaLines.map((t) => (
+                  <li key={t} className="text-sm leading-relaxed text-slate-600">
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </SectionCard>
+        ) : null}
 
         <SectionCard title="학습 리포트">
           <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-slate-700">
@@ -215,6 +245,30 @@ export function SharedReportHtmlView({
                       ))}
                     </ul>
                   )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+
+        <SectionCard title="듣기 스케줄">
+          {report.listeningSchedule.length === 0 ? (
+            <p className="text-sm text-slate-600">
+              {report.rangeLabel} 기준 듣기 스케줄 학습 기록이 없습니다.
+            </p>
+          ) : (
+            <ul className="space-y-2.5">
+              {report.listeningSchedule.map((sch) => (
+                <li key={sch.assignmentId} className="rounded-xl bg-slate-50 px-3 py-2.5">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <b className="min-w-0 truncate text-sm font-semibold text-slate-900">{sch.title}</b>
+                    <span className="shrink-0 text-sm tabular-nums text-slate-600">
+                      {sch.completedTasks}/{sch.totalTasks}
+                    </span>
+                  </div>
+                  {sch.summaryLine ? (
+                    <p className="mt-1 text-xs leading-relaxed text-slate-600">{sch.summaryLine}</p>
+                  ) : null}
                 </li>
               ))}
             </ul>

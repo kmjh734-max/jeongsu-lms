@@ -71,18 +71,23 @@ export function fitsKakaoText(raw: string): boolean {
 }
 
 /**
- * 카카오톡이 한 번에 보여 주는 200자에 맞춰 앞부분만 남긴다.
+ * 카카오톡에 실을 수 있는 길이로 줄인다.
  *
- * 학습 리포트 안내문은 거의 언제나 200자를 넘는다. 그렇다고 안 보내면
- * 버튼이 아무것도 안 하는 것처럼 보이므로, 미리보기에서 본 첫머리를 그대로 보내고
- * 나머지는 「리포트 보기」 버튼 너머에 둔다. 줄 단위로 끊어 말이 잘리지 않게 한다.
+ * 카카오톡 글자 템플릿은 200자까지만 싣는다. 학습 리포트 안내문은 거의 언제나 그보다
+ * 길다. 넘치면 안 보내던 때가 있었는데, 그러면 단추가 안 눌리는 것처럼 보였다.
+ * 그래서 앞부분을 줄 단위로 끊어 보내고 나머지는 링크 너머에 둔다.
+ * 링크를 연 화면 맨 위에 안내문구 전체가 다시 나오므로 잘려도 잃는 것은 없다.
+ *
+ * 카카오가 길이를 어떻게 세는지 정확히 알 수 없어 180자까지만 채운다.
  */
+export const KAKAO_TEXT_SAFE_CHARS = 180;
+
 export function shortenForKakaoText(raw: string): string {
   const body = buildKakaoSdkTextBody(raw);
-  if (body.length <= KAKAO_TEXT_MAX_CHARS) return body;
+  if (body.length <= KAKAO_TEXT_SAFE_CHARS) return body;
 
-  const tail = "\n\n아래 버튼에서 전체 리포트를 보실 수 있습니다.";
-  const room = KAKAO_TEXT_MAX_CHARS - tail.length;
+  const tail = "\n\n(이어지는 내용은 아래 버튼에서 보실 수 있습니다.)";
+  const room = KAKAO_TEXT_SAFE_CHARS - tail.length;
 
   const lines = body.split("\n");
   const kept: string[] = [];
@@ -93,7 +98,7 @@ export function shortenForKakaoText(raw: string): string {
     kept.push(line);
     used += add;
   }
-  // 첫 줄부터 너무 길면 글자 단위로 끊는다
+  // 첫 줄부터 room 보다 길면 글자 단위로 끊는다
   const head = kept.length > 0 ? kept.join("\n").trimEnd() : body.slice(0, room).trimEnd();
   return `${head}${tail}`;
 }
