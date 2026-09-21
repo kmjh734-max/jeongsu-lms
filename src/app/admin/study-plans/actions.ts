@@ -5,7 +5,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createStudyPlan, saveStudyPlanRows, type Attendance, type PlanRow } from "@/lib/study-plan";
 import { isStudyPlanEnabled } from "@/lib/study-plan/access";
-import { monthSessionDates, sessionsPerWeekFrom } from "@/lib/study-plan/weekday-dates";
+import { monthSessionDates, sessionsPerWeekFrom, weekdayLabel } from "@/lib/study-plan/weekday-dates";
 import { studentClassWeekdays } from "@/lib/study-plan/student-weekdays";
 
 type Result = { ok: boolean; message: string };
@@ -98,4 +98,38 @@ export async function savePlanAction(input: {
   );
   revalidatePath("/admin/study-plans");
   return { ok: true, message: "저장했어요." };
+}
+
+/** 이 학생이 다니는 반의 수업 요일로 그 달 회차 수와 날짜를 뽑아 준다 */
+export async function classScheduleAction(input: {
+  studentId: string;
+  year: number;
+  month: number;
+}): Promise<
+  | { ok: true; label: string; sessionsPerWeek: number; sessionDates: Record<string, string[]> }
+  | { ok: false; message: string }
+> {
+  const profile = await staff();
+  if (!profile) return { ok: false, message: "권한이 없어요." };
+  const admin = createAdminClient();
+
+  const { data: student } = await admin
+    .from("profiles")
+    .select("id, academy_id")
+    .eq("id", input.studentId)
+    .maybeSingle();
+  if (!student || student.academy_id !== profile.academy_id) {
+    return { ok: false, message: "우리 학원 학생이 아니에요." };
+  }
+
+  const weekdays = await studentClassWeekdays(admin, input.studentId);
+  if (weekdays.length === 0) {
+    return { ok: false, message: "이 학생 반에 수업 요일이 아직 정해져 있지 않아요." };
+  }
+  return {
+    ok: true,
+    label: weekdayLabel(weekdays),
+    sessionsPerWeek: sessionsPerWeekFrom(weekdays),
+    sessionDates: monthSessionDates(input.year, input.month, weekdays),
+  };
 }

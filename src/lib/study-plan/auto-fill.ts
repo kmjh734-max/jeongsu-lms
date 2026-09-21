@@ -237,6 +237,34 @@ function dayNumberOf(title: string): number | null {
 }
 
 /**
+ * 교재명 칸에 넣을 단어장 이름 하나를 고른다.
+ *
+ * 제목은 "EngCore 중학필수 Day57 주요 필수 단어 ★"처럼 길다. 교재명 칸에는
+ * 책 이름만 있으면 되므로 Day 앞까지 자르고, 배정된 것이 여러 개면
+ * 낱말 단위로 겹치는 앞머리만 남긴다 → "EngCore 중학필수".
+ */
+function bookNameOf(titles: string[]): string {
+  const names = titles
+    .map((t) => {
+      const cut = /^(.*?)\s*day\s*0*\d+/i.exec(t);
+      return (cut ? cut[1]! : t).trim();
+    })
+    .filter(Boolean);
+  if (names.length === 0) return "";
+  if (names.length === 1) return names[0]!;
+
+  const words = names.map((n) => n.split(/\s+/));
+  const head: string[] = [];
+  for (let i = 0; i < words[0]!.length; i += 1) {
+    const w = words[0]![i];
+    if (words.every((ws) => ws[i] === w)) head.push(w!);
+    else break;
+  }
+  // 겹치는 앞머리가 없으면 첫 이름을 그대로 쓴다
+  return head.length ? head.join(" ") : names[0]!;
+}
+
+/**
  * 배정된 듣기·단어를 일정표 회차에 차례대로 깔아 준다.
  *
  * 듣기는 배정할 때 이미 날짜별로 몇 번 문항을 풀지가 정해져 있으므로,
@@ -321,7 +349,7 @@ async function listeningPlanRow(
 
   /** 회차 → 세트 이름 → 문항 번호들 */
   const perSlot = new Map<string, Map<string, number[]>>();
-  const books: string[] = [];
+  const titles: string[] = [];
   for (const t of tasks) {
     const date = String(t.task_date);
     // 이 날짜가 속하는 회차 = 날짜가 이 날 이하인 마지막 회차
@@ -332,7 +360,7 @@ async function listeningPlanRow(
     if (slot < 0) continue; // 첫 회차보다 이른 날은 건너뛴다
 
     const title = one(t.set as { title: string } | { title: string }[] | null)?.title ?? "듣기";
-    if (!books.includes(title)) books.push(title);
+    if (!titles.includes(title)) titles.push(title);
     const key = `${slots[slot]!.week}-${slots[slot]!.index}`;
     const per = perSlot.get(key) ?? new Map<string, number[]>();
     const nums = per.get(title) ?? [];
@@ -344,9 +372,18 @@ async function listeningPlanRow(
     perSlot.set(key, per);
   }
 
+  // 교재명은 세트가 든 폴더 이름 하나 — "중3 듣기"
+  const { data: folder } = await admin
+    .from("listening_sets")
+    .select("folder:listening_set_folders(name)")
+    .in("id", [...new Set(tasks.map((t) => String(t.set_id)))])
+    .limit(1)
+    .maybeSingle();
+  const folderName = one(folder?.folder as { name: string } | { name: string }[] | null)?.name ?? "";
+
   return {
     area: "듣기",
-    textbook: books.join(", "),
+    textbook: folderName || bookNameOf(titles),
     cells: slots.map((s) => {
       const per = perSlot.get(`${s.week}-${s.index}`);
       const text = per
@@ -399,22 +436,15 @@ async function vocabPlanRow(
   if (withDay.length === 0) {
     return {
       area: "영단어",
-      textbook: titles.join(", "),
+      textbook: bookNameOf(titles),
       cells: slots.map((s, i) => ({ week: s.week, index: s.index, text: titles[i] ?? "" })),
     };
-  }
-
-  // 교재명은 Day 번호를 뺀 이름
-  const books: string[] = [];
-  for (const { title } of withDay) {
-    const name = title.replace(/day\s*0*\d+\s*/i, "").replace(/\s{2,}/g, " ").trim();
-    if (name && !books.includes(name)) books.push(name);
   }
 
   const days = withDay.map((x) => x.day);
   return {
     area: "영단어",
-    textbook: books.join(", "),
+    textbook: bookNameOf(withDay.map((x) => x.title)),
     cells: slots.map((s, i) => {
       const chunk = days.slice(i * per, i * per + per);
       return { week: s.week, index: s.index, text: chunk.length ? `Day ${chunk.join(", ")}` : "" };

@@ -1,10 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { weeksInMonth } from "./weekday-dates";
 
 /**
  * 학습일정표 — 학생 한 명의 한 달 계획.
  * 엑셀 양식(정수학원 1:1 맞춤 PLAN)을 그대로 옮긴다: 주차 × 영역 × 수업 회차.
  */
-export const DEFAULT_AREAS = ["영단어", "클래스카드", "문법", "독해", "듣기"];
+export const DEFAULT_AREAS = ["영단어", "문법", "독해", "듣기"];
+/** 기본 주차. 실제 표는 그 달이 걸치는 주 수를 쓴다 — weeksInMonth 참고 */
 export const WEEKS = [1, 2, 3, 4];
 
 export type PlanEntry = { progress: string; homework: string; note: string };
@@ -137,7 +139,7 @@ export async function createStudyPlan(
     ? [...new Map(previous.rows.filter((r) => r.week === 1).map((r) => [r.area, r.textbook])).entries()]
     : DEFAULT_AREAS.map((a) => [a, ""] as [string, string]);
 
-  const rows = WEEKS.flatMap((week) =>
+  const rows = weeksInMonth(input.year, input.month).flatMap((week) =>
     areas.map(([area, textbook], i) => ({
       plan_id: plan.id,
       week,

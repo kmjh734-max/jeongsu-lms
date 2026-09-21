@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
-import { createPlanAction, savePlanAction } from "@/app/admin/study-plans/actions";
-import { loadAssignedPlan, loadAutoFill, type AutoFillArea } from "@/lib/study-plan/auto-fill";
+import { classScheduleAction, createPlanAction, savePlanAction } from "@/app/admin/study-plans/actions";
+import { loadAssignedPlan, type AutoFillArea } from "@/lib/study-plan/auto-fill";
 import {
   ATTENDANCE_LABELS,
-  WEEKS,
   emptyEntry,
   type Attendance,
   type PlanEntry,
   type StudyPlan,
 } from "@/lib/study-plan";
+import { WEEKDAY_LABELS, weeksInMonth } from "@/lib/study-plan/weekday-dates";
 import { UnitPickerModal } from "@/components/textbooks/UnitPickerModal";
 import type { Textbook } from "@/lib/textbooks";
 
@@ -29,6 +29,13 @@ export type PlanStudent = {
 };
 
 type Row = { week: number; area: string; textbook: string; orderIndex: number; entries: PlanEntry[] };
+
+/** "2026-09-21" → "월" */
+function weekdayOf(iso: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
+  const d = new Date(`${iso}T00:00:00Z`);
+  return WEEKDAY_LABELS[(d.getUTCDay() + 6) % 7] ?? "";
+}
 
 /** 밀려온 진도를 원래 있던 글 앞에 붙인다 */
 function joinPushed(moved: string, existing: string): string {
@@ -68,7 +75,48 @@ export function StudyPlanEditor({
   /** 단어를 한 회차에 며칠 치씩 볼지 */
   const [vocabDays, setVocabDays] = useState(2);
 
-  const areas = [...new Map(rows.filter((r) => r.week === WEEKS[0]).map((r) => [r.area, r.orderIndex])).keys()];
+  /** 이 달이 실제로 걸치는 주차 — 9월이면 1~5주 */
+  const weeks = useMemo(() => weeksInMonth(year, month), [year, month]);
+  const areas = [...new Map(rows.filter((r) => r.week === weeks[0]).map((r) => [r.area, r.orderIndex])).keys()];
+
+  /** 저장된 일정표에 없는 주차 줄을 채워 넣는다 (4주로 만든 표를 5주 달에 열 때) */
+  useEffect(() => {
+    setRows((prev) => {
+      if (prev.length === 0) return prev;
+      const have = new Set(prev.map((r) => r.week));
+      const missing = weeks.filter((w) => !have.has(w));
+      if (missing.length === 0) return prev;
+      const shape = [...new Map(prev.filter((r) => r.week === weeks[0]).map((r) => [r.area, r])).values()];
+      return [
+        ...prev,
+        ...missing.flatMap((week) =>
+          shape.map((r) => ({
+            week,
+            area: r.area,
+            textbook: r.textbook,
+            orderIndex: r.orderIndex,
+            entries: Array.from({ length: sessions }, emptyEntry),
+          })),
+        ),
+      ];
+    });
+    // 주차가 바뀔 때만
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weeks.length]);
+
+  /** 날짜가 아직 하나도 없으면 반 요일로 알아서 채운다 */
+  useEffect(() => {
+    if (!plan) return;
+    if (Object.values(dates).flat().filter(Boolean).length > 0) return;
+    void (async () => {
+      const r = await classScheduleAction({ studentId: student.id, year, month });
+      if (!r.ok) return;
+      changeSessions(r.sessionsPerWeek);
+      setDates(r.sessionDates);
+    })();
+    // 처음 열 때 한 번
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan?.id]);
 
   function patch(week: number, area: string, apply: (r: Row) => Row) {
     setRows((prev) => prev.map((r) => (r.week === week && r.area === area ? apply(r) : r)));
@@ -86,7 +134,7 @@ export function StudyPlanEditor({
     const name = `새 영역 ${areas.length + 1}`;
     setRows((prev) => [
       ...prev,
-      ...WEEKS.map((week) => ({ week, area: name, textbook: "", orderIndex: areas.length, entries: Array.from({ length: sessions }, emptyEntry) })),
+      ...weeks.map((week) => ({ week, area: name, textbook: "", orderIndex: areas.length, entries: Array.from({ length: sessions }, emptyEntry) })),
     ]);
   }
 
@@ -109,6 +157,28 @@ export function StudyPlanEditor({
     const r = await createPlanAction({ studentId: student.id, year, month, sessionsPerWeek: sessions });
     setMsg({ ok: r.ok, text: r.message });
     setBusy(false);
+  }
+
+  /**
+   * 반 수업 요일로 주당 회차 수와 그 달 날짜를 한꺼번에 채운다.
+   * 월수금 반이면 3회차가 되고 날짜가 요일에 맞춰 촤르륵 들어간다.
+   */
+  async function applyClassWeekdays() {
+    setFilling("요일");
+    setMsg(null);
+    try {
+      const r = await classScheduleAction({ studentId: student.id, year, month });
+      if (!r.ok) {
+        setMsg({ ok: false, text: r.message });
+        return;
+      }
+      changeSessions(r.sessionsPerWeek);
+      setDates(r.sessionDates);
+      const n = Object.values(r.sessionDates).flat().filter(Boolean).length;
+      setMsg({ ok: true, text: `${r.label} 반이라 ${r.sessionsPerWeek}회차로 두고 날짜 ${n}개를 넣었어요. 저장을 눌러 주세요.` });
+    } finally {
+      setFilling(null);
+    }
   }
 
   /** 이 주의 회차 출결 */
@@ -134,7 +204,7 @@ export function StudyPlanEditor({
   /** 결석한 회차의 진도·숙제를 다음 회차로 밀어 넣는다 */
   function pushToNextSession(week: number, i: number) {
     setRows((prev) => {
-      const flat = WEEKS.flatMap((w) =>
+      const flat = weeks.flatMap((w) =>
         Array.from({ length: sessions }, (_, k) => ({ week: w, index: k })),
       );
       const at = flat.findIndex((f) => f.week === week && f.index === i);
@@ -184,40 +254,44 @@ export function StudyPlanEditor({
     return null;
   }
 
-  /** 그 영역 줄을 학생이 실제로 한 듣기·단어 기록으로 채운다 */
-  async function fillFromRecords(area: string) {
-    const kind = autoFillArea(area);
-    if (!kind) return;
-    setFilling(area);
-    setMsg(null);
-    try {
-      const r = await loadAutoFill({ studentId: student.id, area: kind, sessionDates: dates });
-      if (!r.ok) {
-        setMsg({ ok: false, text: r.message });
-        return;
-      }
-      const found = r.cells.filter((c) => c.text.trim());
-      setRows((prev) =>
-        prev.map((row) => {
-          if (row.area !== area) return row;
-          return {
-            ...row,
-            entries: row.entries.map((e, i) => {
-              const cell = r.cells.find((c) => c.week === row.week && c.index === i);
-              return cell && cell.text.trim() ? { ...e, progress: cell.text } : e;
-            }),
-          };
-        }),
+  /** "Day 3, 4" → [3, 4] */
+  function daysOf(text: string): number[] {
+    if (!/^\s*day/i.test(text)) return [];
+    return (text.match(/\d+/g) ?? []).map(Number).filter((n) => n > 0);
+  }
+
+  /**
+   * 진도 칸을 고친다. 단어 줄에서 "Day 3, 4"처럼 고치면, 뒤 회차를 같은 묶음 크기로
+   * 5,6 · 7,8 … 이어서 다시 매긴다. 선생님이 한 칸만 옮겨도 나머지가 따라온다.
+   */
+  function setProgressAt(week: number, area: string, index: number, text: string) {
+    const days = daysOf(text);
+    setRows((prev) => {
+      const flat = weeks.flatMap((w) =>
+        Array.from({ length: sessions }, (_, k) => ({ week: w, index: k })),
       );
-      setMsg({
-        ok: true,
-        text: found.length
-          ? `${area} 줄을 학생이 실제로 한 것으로 ${found.length}칸 채웠어요. 저장을 눌러 주세요.`
-          : "그 날짜에 한 기록이 아직 없어요.",
+      const at = flat.findIndex((f) => f.week === week && f.index === index);
+      const per = days.length;
+      let nextDay = days.length ? Math.max(...days) + 1 : 0;
+
+      return prev.map((r) => {
+        if (r.area !== area) return r;
+        return {
+          ...r,
+          entries: r.entries.map((x, k) => {
+            if (r.week === week && k === index) return { ...x, progress: text };
+            if (per === 0 || at < 0) return x;
+            const pos = flat.findIndex((f) => f.week === r.week && f.index === k);
+            if (pos <= at) return x;
+            // 원래 Day 로 적혀 있던 칸만 다시 매긴다
+            if (daysOf(x.progress).length === 0) return x;
+            const chunk = Array.from({ length: per }, (_, n) => nextDay + n);
+            nextDay += per;
+            return { ...x, progress: `Day ${chunk.join(", ")}` };
+          }),
+        };
       });
-    } finally {
-      setFilling(null);
-    }
+    });
   }
 
   /**
@@ -248,7 +322,7 @@ export function StudyPlanEditor({
           if (!target) {
             next = [
               ...next,
-              ...WEEKS.map((week) => ({
+              ...weeks.map((week) => ({
                 week,
                 area: name,
                 textbook: "",
@@ -357,6 +431,9 @@ export function StudyPlanEditor({
             </select>
             치
           </label>
+          <Button variant="secondary" onClick={() => void applyClassWeekdays()} disabled={filling !== null}>
+            {filling === "요일" ? "채우는 중…" : "반 요일로 날짜 채우기"}
+          </Button>
           <Button variant="secondary" onClick={() => void pullAssigned()} disabled={filling !== null}>
             {filling === "배정" ? "가져오는 중…" : "배정된 듣기·단어 채우기"}
           </Button>
@@ -381,7 +458,7 @@ export function StudyPlanEditor({
         />
       ) : null}
 
-      {WEEKS.map((week) => (
+      {weeks.map((week) => (
         <section key={week} className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
           <table className="w-full min-w-[900px] border-collapse text-sm">
             <thead>
@@ -392,7 +469,10 @@ export function StudyPlanEditor({
                 {Array.from({ length: sessions }, (_, i) => (
                   <th key={i} className="px-2 py-2">
                     <span className="block">
-                      {i + 1}회차 <span className="font-normal text-slate-400">진도 / 숙제 / 특이사항</span>
+                      {i + 1}회차
+                      {weekdayOf(dates[String(week)]?.[i] ?? "") ? (
+                        <span className="ml-1 text-brand-600">({weekdayOf(dates[String(week)]?.[i] ?? "")})</span>
+                      ) : null}
                     </span>
                     <input
                       type="date"
@@ -446,9 +526,9 @@ export function StudyPlanEditor({
                 if (!row) return null;
                 return (
                   <tr key={area} className="border-t border-slate-100 align-top">
-                    <td className="px-2 py-2 text-xs text-slate-400">{week === WEEKS[0] ? "" : ""}</td>
+                    <td className="px-2 py-2 text-xs text-slate-400">{week === weeks[0] ? "" : ""}</td>
                     <td className="p-1">
-                      {week === WEEKS[0] ? (
+                      {week === weeks[0] ? (
                         <div className="flex items-center gap-1">
                           <input
                             value={row.area}
@@ -462,49 +542,38 @@ export function StudyPlanEditor({
                       ) : (
                         <span className="px-1 text-slate-700">{row.area}</span>
                       )}
-                      {week === WEEKS[0] && autoFillArea(area) ? (
-                        <button
-                          type="button"
-                          onClick={() => void fillFromRecords(area)}
-                          disabled={filling !== null}
-                          title="학생이 실제로 한 것을 회차 날짜에 맞춰 진도 칸에 채워요"
-                          className="mt-1 w-full rounded border border-brand-200 bg-brand-50 px-1 py-0.5 text-[11px] font-semibold text-brand-700 hover:bg-brand-100 disabled:opacity-50"
-                        >
-                          {filling === area ? "가져오는 중…" : "학습 기록 가져오기"}
-                        </button>
-                      ) : null}
                     </td>
                     <td className="p-1">
-                      {week === WEEKS[0] ? (
+                      {week === weeks[0] ? (
                         <input value={row.textbook} onChange={(e) => setTextbook(area, e.target.value)} className="ui-input h-8 text-sm" placeholder="교재명" />
                       ) : (
                         <span className="px-1 text-slate-500">{row.textbook}</span>
                       )}
                     </td>
-                    {row.entries.map((entry, i) => (
+                    {row.entries.map((entry, i) => {
+                      const linked = autoFillArea(area) !== null;
+                      return (
                       <td key={i} className="p-1">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1">
                             <input
                               value={entry.progress}
-                              onChange={(e) =>
-                                patch(week, area, (r) => ({
-                                  ...r,
-                                  entries: r.entries.map((x, k) => (k === i ? { ...x, progress: e.target.value } : x)),
-                                }))
-                              }
+                              onChange={(e) => setProgressAt(week, area, i, e.target.value)}
                               className="ui-input h-8 flex-1 text-sm"
-                              placeholder="학습진도"
+                              placeholder={linked ? "진도" : "학습진도"}
                             />
-                            <button
-                              type="button"
-                              onClick={() => setPicking({ week, area, index: i })}
-                              title="교재 목차에서 고르기"
-                              className="h-8 shrink-0 rounded-md border border-slate-200 px-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-                            >
-                              목차
-                            </button>
+                            {linked ? null : (
+                              <button
+                                type="button"
+                                onClick={() => setPicking({ week, area, index: i })}
+                                title="교재 목차에서 고르기"
+                                className="h-8 shrink-0 rounded-md border border-slate-200 px-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                              >
+                                목차
+                              </button>
+                            )}
                           </div>
+                          {linked ? null : (
                           <input
                             value={entry.homework}
                             onChange={(e) =>
@@ -516,6 +585,7 @@ export function StudyPlanEditor({
                             className="ui-input h-8 text-sm"
                             placeholder="숙제"
                           />
+                          )}
                           <input
                             value={entry.note}
                             onChange={(e) =>
@@ -529,7 +599,8 @@ export function StudyPlanEditor({
                           />
                         </div>
                       </td>
-                    ))}
+                      );
+                    })}
                   </tr>
                 );
               })}
