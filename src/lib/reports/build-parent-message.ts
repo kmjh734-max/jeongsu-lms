@@ -113,6 +113,14 @@ export function buildParentReportMessage({
     );
   }
 
+  // 학습일정표에 적어 둔 진도 — 문법·독해처럼 시스템 밖에서 한 것이 여기로 들어온다.
+  // 단어·듣기는 위에서 이미 적었으므로 겹치지 않게 뺀다.
+  const already = /^(영단어|단어|어휘|듣기)/;
+  for (const line of report.studyPlan?.areaLines ?? []) {
+    if (already.test(line.trim())) continue;
+    lines.push(`· ${line.trim()}`);
+  }
+
   // 선생님이 손본 글이 있으면 그대로 덧붙인다
   const reflected = learningReportText?.trim();
   if (reflected) lines.push("", reflected);

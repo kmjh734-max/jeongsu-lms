@@ -130,6 +130,7 @@ export function ReportMobileParent({
   const lessonTotal = report.courses.reduce((s, c) => s + c.totalLessons, 0);
   const lessonDone = report.courses.reduce((s, c) => s + c.completedLessons, 0);
   const { rows: reviewRows, extra: reviewExtra } = reviewWordSlice(report);
+  const plan = report.studyPlan;
 
   // 한 것만 보여 준다 — 안 한 것을 '기록 없음'으로 적으면 읽을 것만 늘어난다
   const tiles: Array<[string, string, string, string]> = [
@@ -313,6 +314,29 @@ export function ReportMobileParent({
             </>
           ) : null}
         </Card>
+
+        {plan && plan.areaLines.length > 0 ? (
+          <Card title="학습일정표" note={plan.monthLabel}>
+            <ul className="mt-2.5">
+              {plan.areaLines.map((line) => {
+                const at = line.indexOf(":");
+                const area = at > 0 ? line.slice(0, at) : line;
+                const body = at > 0 ? line.slice(at + 1).trim() : "";
+                return (
+                  <li
+                    key={line}
+                    className="flex gap-2.5 border-t border-slate-200 py-2 first:border-t-0 first:pt-0.5"
+                  >
+                    <span className="w-14 shrink-0 text-xs font-bold text-slate-500">{area}</span>
+                    <span className="min-w-0 flex-1 text-[13px] leading-snug text-slate-800">
+                      {body}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+        ) : null}
 
         {comment.trim() ? (
           <Card title="선생님 한마디">
