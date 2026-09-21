@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { createPlanAction, savePlanAction } from "@/app/admin/study-plans/actions";
-import { loadAssignedTitles, loadAutoFill, type AutoFillArea } from "@/lib/study-plan/auto-fill";
+import { loadAssignedPlan, loadAutoFill, type AutoFillArea } from "@/lib/study-plan/auto-fill";
 import {
   ATTENDANCE_LABELS,
   WEEKS,
@@ -65,6 +65,8 @@ export function StudyPlanEditor({
   const [picking, setPicking] = useState<{ week: number; area: string; index: number } | null>(null);
   /** 듣기·단어에서 끌어오는 중인 영역 이름 */
   const [filling, setFilling] = useState<string | null>(null);
+  /** 단어를 한 회차에 며칠 치씩 볼지 */
+  const [vocabDays, setVocabDays] = useState(2);
 
   const areas = [...new Map(rows.filter((r) => r.week === WEEKS[0]).map((r) => [r.area, r.orderIndex])).keys()];
 
@@ -219,55 +221,60 @@ export function StudyPlanEditor({
   }
 
   /**
-   * 배정된 듣기 세트·단어장을 일정표 교재명 칸에 넣는다.
+   * 배정된 듣기·단어를 일정표 회차에 그대로 깔아 넣는다.
    * '듣기'·'영단어' 영역이 없으면 만들어서 넣는다.
    */
   async function pullAssigned() {
     setFilling("배정");
     setMsg(null);
     try {
-      const r = await loadAssignedTitles(student.id);
+      const r = await loadAssignedPlan({
+        studentId: student.id,
+        sessionDates: dates,
+        vocabDaysPerSession: vocabDays,
+      });
       if (!r.ok) {
         setMsg({ ok: false, text: r.message });
-        return;
-      }
-      const wanted: Array<{ name: string; titles: string[] }> = [
-        { name: "듣기", titles: r.listening },
-        { name: "영단어", titles: r.vocab },
-      ].filter((w) => w.titles.length > 0);
-      if (wanted.length === 0) {
-        setMsg({ ok: false, text: "이 학생에게 배정된 듣기·단어가 아직 없어요." });
         return;
       }
 
       setRows((prev) => {
         let next = [...prev];
         let order = areas.length;
-        for (const w of wanted) {
-          const target = next.find((row) => autoFillArea(row.area) === autoFillArea(w.name));
-          const text = w.titles.join(", ");
-          if (target) {
-            next = next.map((row) => (row.area === target.area ? { ...row, textbook: text } : row));
-          } else {
+        for (const fill of r.rows) {
+          const kind = autoFillArea(fill.area);
+          const target = next.find((row) => autoFillArea(row.area) === kind);
+          const name = target?.area ?? fill.area;
+          if (!target) {
             next = [
               ...next,
               ...WEEKS.map((week) => ({
                 week,
-                area: w.name,
-                textbook: text,
+                area: name,
+                textbook: "",
                 orderIndex: order,
                 entries: Array.from({ length: sessions }, emptyEntry),
               })),
             ];
             order += 1;
           }
+          next = next.map((row) => {
+            if (row.area !== name) return row;
+            return {
+              ...row,
+              textbook: fill.textbook || row.textbook,
+              entries: row.entries.map((e, i) => {
+                const cell = fill.cells.find((c) => c.week === row.week && c.index === i);
+                return cell && cell.text.trim() ? { ...e, progress: cell.text } : e;
+              }),
+            };
+          });
         }
         return next;
       });
-      setMsg({
-        ok: true,
-        text: `배정된 것을 ${wanted.map((w) => w.name).join("·")} 줄 교재명에 넣었어요. 저장을 눌러 주세요.`,
-      });
+
+      const filled = r.rows.map((f) => `${f.area} ${f.cells.filter((c) => c.text.trim()).length}칸`);
+      setMsg({ ok: true, text: `${filled.join(" · ")}을 채웠어요. 저장을 눌러 주세요.` });
     } finally {
       setFilling(null);
     }
@@ -338,9 +345,20 @@ export function StudyPlanEditor({
             ))}
           </select>
         </label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-sm text-slate-600">
+            단어 한 회차에
+            <select value={vocabDays} onChange={(e) => setVocabDays(Number(e.target.value))} className="ui-input mx-1 inline-block h-9 w-20">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n}일
+                </option>
+              ))}
+            </select>
+            치
+          </label>
           <Button variant="secondary" onClick={() => void pullAssigned()} disabled={filling !== null}>
-            {filling === "배정" ? "가져오는 중…" : "배정된 듣기·단어 가져오기"}
+            {filling === "배정" ? "가져오는 중…" : "배정된 듣기·단어 채우기"}
           </Button>
           <Button variant="secondary" onClick={addArea}>+ 영역 추가</Button>
           <Button onClick={save} disabled={busy}>{busy ? "저장 중…" : "저장"}</Button>
