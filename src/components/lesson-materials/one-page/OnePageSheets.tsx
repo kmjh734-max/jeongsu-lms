@@ -17,10 +17,10 @@ import {
   splitSentenceForSummary,
   splitSummaryByKeywords,
   stripMarkup,
-  type OnePageChoiceBlock,
   type OnePageContent,
   type OnePageRun,
   type OnePageTestPassage,
+  type OnePageTestRow,
 } from "@/lib/lesson-materials/one-page";
 import "./one-page-print-styles.css";
 
@@ -99,6 +99,29 @@ ruby.op-voc rt .op-vocw i{display:block;font-style:normal;white-space:nowrap}
 .op-choice{text-align:justify;line-height:1.62;margin:0}
 .op-choice sup{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.68em;margin-right:.05em}
 .op-choice b{font-weight:800;white-space:nowrap}
+.op-ts{text-align:justify;line-height:1.72;margin:0 0 .08em;font-size:1.02em}
+.op-ts .op-tsn{font-family:ui-sans-serif,system-ui,sans-serif;font-weight:900;color:#b91c1c;margin-right:.28em}
+.op-ts sup{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.62em;font-weight:700;color:#b91c1c;margin-left:.04em}
+.op-tc{font-weight:800;white-space:nowrap}
+.op-tr{text-underline-offset:.18em}
+.op-tx{background:#fef3c7;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.op-ti{font-weight:800;border-bottom:1.6px dotted #b91c1c}
+.op-tt{margin:.12em 0 .3em 1.4em;padding:.25em .6em;border-left:1.6px solid #d1d5db;background:#f9fafb;break-inside:avoid}
+.op-ttq{margin:0;font-family:ui-sans-serif,system-ui,sans-serif;font-size:.82em;font-weight:800;color:#374151;line-height:1.45}
+.op-ttc{font-weight:600;color:#6b7280}
+.op-ttw{margin:.1em 0 0;font-family:ui-sans-serif,system-ui,sans-serif;font-size:.82em;font-weight:500;line-height:1.45}
+.op-ttl{border-bottom:1.1px solid #9ca3af;height:1.1em;margin-top:.15em}
+.op-tref{margin:.05em 0 .22em 1.4em;display:flex;flex-wrap:wrap;align-items:flex-end;gap:.2em 1.1em;font-size:.82em}
+.op-tref .op-ttq{font-size:1em}
+.op-trb{display:flex;align-items:flex-end;gap:.25em;min-width:13em;flex:1 1 13em}
+.op-trb sup{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.8em;font-weight:700;color:#b91c1c;flex-shrink:0}
+.op-trb em{font-style:normal;font-weight:700;flex-shrink:0}
+.op-trb i{flex-grow:1;border-bottom:1.1px dotted #9ca3af;height:.95em}
+.op-tex{display:grid;grid-template-columns:1fr 1fr;column-gap:1.2em;font-size:.88em}
+.op-tex > div{display:flex;align-items:flex-end;gap:.28em;line-height:1.75}
+.op-tex sup{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.78em;font-weight:700;color:#b45309;flex-shrink:0}
+.op-tex em{font-style:normal;font-weight:700;flex-shrink:0}
+.op-tex i{flex-grow:1;border-bottom:1.1px dotted #9ca3af;height:.95em}
 .op-w{margin-top:.5em;break-inside:avoid}
 .op-w .op-chunks{font-family:ui-sans-serif,system-ui,sans-serif;font-weight:700;font-size:.95em;line-height:1.45;padding-left:1.35em;text-indent:-1.35em}
 .op-w .op-wko{background:#f3f4f6;border-radius:.35em;padding:.22em .6em;margin:.25em 0 0 1.35em;font-size:.85em;color:#4b5563}
@@ -515,22 +538,85 @@ function SectionTitle({ children }: { children: ReactNode }) {
   return <h2 className="op-h">{children}</h2>;
 }
 
-function ChoicePassage({ block }: { block: OnePageChoiceBlock }) {
+/** 본문 한 문장 — 고르는 자리·지칭어·중요표현·함축의미 표시를 그대로 그린다. */
+function TestSentence({ row }: { row: OnePageTestRow }) {
   return (
-    <p className="op-choice op-en">
-      {block.segments.map((seg, i) =>
-        seg.type === "text" ? (
-          <Fragment key={i}>{stripMarkup(seg.text)}</Fragment>
-        ) : (
-          <Fragment key={i}>
-            <sup>{seg.number}</sup>
-            <b>
-              [{seg.leftText} / {seg.rightText}]
-            </b>
-          </Fragment>
-        )
-      )}
+    <p className="op-ts op-en">
+      <b className="op-tsn">{String(row.no).padStart(2, "0")}</b>
+      {row.segments.map((seg, i) => {
+        if (seg.type === "text") return <Fragment key={i}>{stripMarkup(seg.text)}</Fragment>;
+        if (seg.type === "choice") {
+          return (
+            <Fragment key={i}>
+              <b className="op-tc">
+                [{seg.leftText} / {seg.rightText}]
+              </b>
+              <sup>{seg.number})</sup>
+            </Fragment>
+          );
+        }
+        if (seg.type === "ref") {
+          return (
+            <Fragment key={i}>
+              <u className="op-tr">{seg.text}</u>
+              <sup>{seg.mark}</sup>
+            </Fragment>
+          );
+        }
+        if (seg.type === "expr") {
+          return (
+            <Fragment key={i}>
+              <span className="op-tx">{seg.text}</span>
+              <sup>{seg.mark}</sup>
+            </Fragment>
+          );
+        }
+        return (
+          <span key={i} className="op-ti">
+            {seg.text}
+          </span>
+        );
+      })}
     </p>
+  );
+}
+
+/** 문장에 딸린 문항들(지칭·함축의미·영작). 올인원처럼 그 문장 바로 아래에 둔다. */
+function TestTasks({ row }: { row: OnePageTestRow }) {
+  return (
+    <>
+      {row.imps.map((m, i) => (
+        <div key={`i${i}`} className="op-tt">
+          <p className="op-ttq">
+            ▸ 밑줄 친 <b className="op-en">{m.surface}</b> 이(가) 의미하는 바를 제시어를 바르게 나열하여 서술하시오
+          </p>
+          <p className="op-ttw op-en">( {m.words.join(" / ")} )</p>
+          <div className="op-ttl" />
+        </div>
+      ))}
+      {row.refs.length > 0 ? (
+        <div className="op-tref">
+          <span className="op-ttq">▸ 밑줄 친 말이 가리키는 것을 쓰시오</span>
+          {row.refs.map((r) => (
+            <span key={r.mark} className="op-trb">
+              <sup>{r.mark}</sup>
+              <em className="op-en">{r.surface}</em>
+              <i />
+            </span>
+          ))}
+        </div>
+      ) : null}
+      {row.writing ? (
+        <div className="op-tt">
+          <p className="op-ttq">
+            ▸ 해석에 맞춰 영작하시오 <span className="op-ttc">(제시어를 모두 쓰고 필요하면 어형 변화)</span>{" "}
+            {row.writing.korean}
+          </p>
+          <p className="op-ttw op-en">( {row.writing.words.join(" / ")} )</p>
+          <div className="op-ttl" />
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -552,7 +638,7 @@ export function OnePageTestSheet({
   return (
     <FitSheet
       baseFontPx={11}
-      fitKey={`${passage.projectId}|${passage.sourceHash}|${passage.grammar?.from}|${passage.vocab?.from}|${designKey}`}
+      fitKey={`${passage.projectId}|${passage.sourceHash}|${passage.rows.length}|${passage.choiceAnswers.length}|${designKey}`}
       isLast={isLast}
       label={passage.title}
       variant="test"
@@ -573,25 +659,53 @@ export function OnePageTestSheet({
         </div>
       </header>
 
-      {passage.order ? (
+      <NumberedSection no={next()} className="op-q">
+        <SectionTitle>
+          본문
+          <span className="op-legend">
+            [ ] 안에서 알맞은 말 고르기 · <u>밑줄</u> 지칭어 · <span className="op-tx">표시</span> 중요표현 ·{" "}
+            <span className="op-ti">점선</span> 함축의미
+          </span>
+        </SectionTitle>
+        {passage.rows.map((row) => (
+          <Fragment key={row.no}>
+            <TestSentence row={row} />
+            <TestTasks row={row} />
+          </Fragment>
+        ))}
+      </NumberedSection>
+
+      {passage.expressions.length > 0 ? (
         <NumberedSection no={next()} className="op-q">
-          <SectionTitle>문장 순서 배열</SectionTitle>
-          <div className="op-given op-en">{passage.order.given}</div>
-          {passage.order.items.map((it) => (
-            <p key={it.label} className="op-oitem op-en">
-              <b>({it.label})</b>
-              {it.text}
-            </p>
-          ))}
-          <p className="op-ansline" style={{ marginBottom: 0 }}>
-            Answer :
-            {passage.order.items.map((it, i) => (
-              <Fragment key={it.label}>
-                {i > 0 ? "→" : null}
+          <SectionTitle>중요표현</SectionTitle>
+          <div className="op-tex">
+            {passage.expressions.map((e) => (
+              <div key={e.mark}>
+                <sup>{e.mark}</sup>
+                <em className="op-en">{e.surface}</em>
                 <i />
-              </Fragment>
+              </div>
             ))}
-          </p>
+          </div>
+        </NumberedSection>
+      ) : null}
+
+      {passage.tf.length > 0 ? (
+        <NumberedSection no={next()} className="op-q">
+          <SectionTitle>내용 확인</SectionTitle>
+          <ol className="op-list op-tf">
+            {passage.tf.map((t, i) => (
+              <li key={i} className="op-en">
+                <span className="op-num">({i + 1})</span>
+                <span className="op-tf-text">{t.statement}</span>
+                {/* 문장 끝에 동그라미 칠 T · F */}
+                <span className="op-tfm">
+                  <i>T</i>
+                  <i>F</i>
+                </span>
+              </li>
+            ))}
+          </ol>
         </NumberedSection>
       ) : null}
 
@@ -618,60 +732,6 @@ export function OnePageTestSheet({
           </p>
         </NumberedSection>
       ) : null}
-
-      {passage.tf.length > 0 ? (
-        <NumberedSection no={next()} className="op-q">
-          <SectionTitle>T/F</SectionTitle>
-          <ol className="op-list op-tf">
-            {passage.tf.map((t, i) => (
-              <li key={i} className="op-en">
-                <span className="op-num">({i + 1})</span>
-                <span className="op-tf-text">{t.statement}</span>
-                {/* 문장 끝에 동그라미 칠 T · F */}
-                <span className="op-tfm">
-                  <i>T</i>
-                  <i>F</i>
-                </span>
-              </li>
-            ))}
-          </ol>
-        </NumberedSection>
-      ) : null}
-
-      {passage.grammar || passage.vocab ? (
-        <div className={passage.grammar && passage.vocab ? "op-two" : ""}>
-          {passage.grammar ? (
-            <NumberedSection no={next()} className="op-q">
-              <SectionTitle>어법 선택</SectionTitle>
-              <ChoicePassage block={passage.grammar} />
-            </NumberedSection>
-          ) : null}
-          {passage.vocab ? (
-            <NumberedSection no={next()} className="op-q">
-              <SectionTitle>어휘 선택</SectionTitle>
-              <ChoicePassage block={passage.vocab} />
-            </NumberedSection>
-          ) : null}
-        </div>
-      ) : null}
-
-      {passage.writing.length > 0 ? (
-        <NumberedSection no={next()} className="op-q">
-          <SectionTitle>주요문장 영작</SectionTitle>
-          {passage.writing.map((w, i) => (
-            <div key={i} className="op-w">
-              <p className="op-chunks" style={{ margin: 0 }}>
-                <span className="op-wn">{i + 1}.</span>
-                {w.words.join(" / ")}
-              </p>
-              <p className="op-wko" style={{ marginBottom: 0 }}>
-                해석 : {w.korean}
-              </p>
-              <div className="op-wline" />
-            </div>
-          ))}
-        </NumberedSection>
-      ) : null}
     </FitSheet>
   );
 }
@@ -685,15 +745,63 @@ function answerRows(p: OnePageTestPassage): Array<{ label: string; value: ReactN
   const label = (name: string) => `${++no}. ${name}`;
   const items = (list: Array<[string, string]>, en = true) => (
     <span className={en ? "op-en" : undefined}>
-      {list.map(([no, text], i) => (
+      {list.map(([mark, text], i) => (
         <span key={i} className="op-ai">
-          <b>{no}</b>
+          <b>{mark}</b>
           {text}
         </span>
       ))}
     </span>
   );
-  if (p.order) rows.push({ label: label("순서 배열"), value: p.order.answer.map((a) => `(${a})`).join(" → ") });
+
+  if (p.choiceAnswers.length) {
+    rows.push({
+      label: label("어법·어휘 고르기"),
+      value: items(p.choiceAnswers.map((a, i) => [String(i + 1), a])),
+    });
+  }
+  const refs = p.rows.flatMap((r) => r.refs);
+  if (refs.length) rows.push({ label: label("지칭"), value: items(refs.map((r) => [r.mark, r.answer])) });
+  const imps = p.rows.flatMap((r) => r.imps);
+  if (imps.length) {
+    rows.push({
+      label: label("함축의미"),
+      value: (
+        <span className="op-en">
+          {imps.map((m, i) => (
+            <span key={i} style={{ display: "block" }}>
+              {m.surface} — {m.answer}
+            </span>
+          ))}
+        </span>
+      ),
+    });
+  }
+  const writing = p.rows.map((r) => r.writing).filter((w): w is NonNullable<typeof w> => !!w);
+  if (writing.length) {
+    rows.push({
+      label: label("영작"),
+      value: (
+        <span className="op-en">
+          {writing.map((w, i) => (
+            <span key={i} style={{ display: "block" }}>
+              {i + 1}. {w.answer}
+            </span>
+          ))}
+        </span>
+      ),
+    });
+  }
+  if (p.expressions.length) {
+    rows.push({
+      label: label("중요표현"),
+      value: items(
+        p.expressions.map((e) => [e.mark, e.answer]),
+        false
+      ),
+    });
+  }
+  if (p.tf.length) rows.push({ label: label("내용 확인"), value: items(p.tf.map((t, i) => [`(${i + 1})`, t.answer]), false) });
   if (p.summary) {
     rows.push({
       label: label("요약문"),
@@ -701,24 +809,6 @@ function answerRows(p: OnePageTestPassage): Array<{ label: string; value: ReactN
         p.summary.segments
           .filter((s): s is Extract<typeof s, { type: "blank" }> => s.type === "blank")
           .map((s) => [circledNumber(s.number - 1), s.answer])
-      ),
-    });
-  }
-  if (p.tf.length) rows.push({ label: label("T/F"), value: items(p.tf.map((t, i) => [`(${i + 1})`, t.answer]), false) });
-  const choice = (b: OnePageChoiceBlock) => items(b.answers.map((a, i) => [String(i + 1), a]));
-  if (p.grammar) rows.push({ label: label("어법 선택"), value: choice(p.grammar) });
-  if (p.vocab) rows.push({ label: label("어휘 선택"), value: choice(p.vocab) });
-  if (p.writing.length) {
-    rows.push({
-      label: label("영작"),
-      value: (
-        <span className="op-en">
-          {p.writing.map((w, i) => (
-            <span key={i} style={{ display: "block" }}>
-              {i + 1}. {w.answer}
-            </span>
-          ))}
-        </span>
       ),
     });
   }

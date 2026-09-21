@@ -20,7 +20,7 @@ import {
 } from "@/lib/lesson-materials/workbook-types";
 
 /** 재료 형식이 바뀌면 올린다. 옛 형식 재료는 열 때 한 번 새로 만든다. */
-export const ONE_PAGE_CONTENT_VERSION = "op-8";
+export const ONE_PAGE_CONTENT_VERSION = "op-9";
 
 /** 시험지 어법 선택·어휘 선택 문항 수(양식: 10문항씩) */
 export const ONE_PAGE_CHOICE_MAX = 10;
@@ -91,6 +91,20 @@ export type OnePageReference = {
   occurrence?: number;
 };
 
+/**
+ * 문맥에서만 풀리는 말(비유·인용부호 안의 말·앞을 받는 짧은 구)과 그것이 뜻하는 바.
+ * 올인원 자료의 "밑줄 친 …이 의미하는 바를 서술하시오" 문항이 된다.
+ */
+export type OnePageImplication = {
+  sentenceIndex: number;
+  /** 본문에 나온 그대로의 표현 */
+  expression: string;
+  /** 이 문맥에서 뜻하는 바(영어 한 문장 — 제시어와 정답이 된다) */
+  meaningEn: string;
+  /** 한국어 풀이(짧게) */
+  meaningKo: string;
+};
+
 /** 이 지문으로 낼 만한 시험 유형 표시(빈칸 추론·문장 삽입·순서 배열·요약문 빈칸) */
 export type OnePageExamPointKind = "blank" | "insert" | "order" | "summary";
 
@@ -137,6 +151,8 @@ export type OnePageContent = {
   grammar: OnePageGrammarPoint[];
   /** 지칭 정리(옛 재료에는 없다) */
   references?: OnePageReference[];
+  /** 함축의미(옛 재료에는 없다) */
+  implications?: OnePageImplication[];
   /** 유력 출제 포인트(옛 재료에는 없다) */
   examPoints?: OnePageExamPoint[];
   paraphrases: OnePageParaphrase[];
@@ -530,6 +546,30 @@ export type OnePageBlankSegment =
   | { type: "text"; text: string }
   | { type: "blank"; number: number; answer: string };
 
+/**
+ * 시험지 본문 한 문장의 조각. 올인원 자료처럼 본문 위에서 바로 고르고 답하게 한다.
+ * choice=어법·어휘 고르기, ref=지칭어(밑줄), expr=중요표현(뜻 쓰기), imp=함축의미.
+ */
+export type OnePageTestSegment =
+  | { type: "text"; text: string }
+  | { type: "choice"; number: number; leftText: string; rightText: string }
+  | { type: "ref"; mark: string; text: string }
+  | { type: "expr"; mark: string; text: string }
+  | { type: "imp"; text: string };
+
+/** 본문 한 문장과 그 문장에 딸린 문항들 */
+export type OnePageTestRow = {
+  /** 1부터 센 문장 번호 */
+  no: number;
+  segments: OnePageTestSegment[];
+  /** 이 문장의 지칭어 — 가리키는 것을 쓰게 한다 */
+  refs: Array<{ mark: string; surface: string; answer: string }>;
+  /** 이 문장의 함축의미 — 뜻하는 바를 제시어로 서술하게 한다 */
+  imps: Array<{ surface: string; words: string[]; answer: string; meaningKo: string }>;
+  /** 이 문장의 주요문장 영작(없으면 null) */
+  writing: { words: string[]; korean: string; answer: string } | null;
+};
+
 export type OnePageTestPassage = {
   projectId: string;
   /** 만들 때의 원문 해시. 원문이 바뀌면 시험지를 다시 조립한다. */
@@ -537,12 +577,14 @@ export type OnePageTestPassage = {
   title: string;
   titleEn: string;
   source: string | null;
-  order: OnePageSentenceOrder | null;
+  /** 본문(문장마다 문항이 딸린다) */
+  rows: OnePageTestRow[];
+  /** 어법·어휘 고르기 정답(번호순) */
+  choiceAnswers: string[];
+  /** 본문에 표시한 중요표현 — 뜻을 쓰게 한다 */
+  expressions: Array<{ mark: string; surface: string; answer: string }>;
   summary: { segments: OnePageBlankSegment[]; ko: string } | null;
   tf: OnePageTfItem[];
-  grammar: OnePageChoiceBlock | null;
-  vocab: OnePageChoiceBlock | null;
-  writing: Array<{ words: string[]; korean: string; answer: string }>;
 };
 
 export type OnePageTestPayload = {
@@ -550,6 +592,64 @@ export type OnePageTestPayload = {
   createdAt: string;
   passages: OnePageTestPassage[];
 };
+
+/** 시험지에 실을 어법·어휘 고르기 총 문항 수(올인원 양식: 본문 한 벌에 몰아 넣는다) */
+export const ONE_PAGE_MERGED_CHOICE_MAX = 16;
+/** 시험지에 실을 지칭 문항 수 */
+const TEST_REFERENCE_MAX = 8;
+/** 시험지에 실을 함축의미 문항 수 */
+const TEST_IMPLICATION_MAX = 2;
+/** 시험지에 실을 T/F 문항 수 */
+const TEST_TF_MAX = 3;
+
+type SentenceChoice = { start: number; end: number; left: string; right: string; correct: string };
+
+/** 이어 붙인 본문 위의 자리를 문장 번호와 문장 안의 자리로 되돌린다. */
+function choicesBySentence(
+  source: OnePageChoiceSource | null,
+  english: string[],
+  max: number
+): Map<number, SentenceChoice[]> {
+  const out = new Map<number, SentenceChoice[]>();
+  if (!source) return out;
+  const passage = source.sourcePassage;
+  const starts = locateSentenceStarts(passage, english);
+  const valid = source.items
+    .filter((it) => it.startCharIndex >= 0 && it.endCharIndex <= passage.length && it.startCharIndex < it.endCharIndex)
+    .sort((a, b) => a.startCharIndex - b.startCharIndex)
+    .filter((it, i, arr) => i === 0 || it.startCharIndex >= arr[i - 1]!.endCharIndex);
+  const chosen =
+    valid.length <= max
+      ? valid
+      : valid
+          .map((it, i) => ({ it, i }))
+          .sort((a, b) => (b.it.learningValue ?? 0) - (a.it.learningValue ?? 0) || a.i - b.i)
+          .slice(0, max)
+          .map((row) => row.it)
+          .sort((a, b) => a.startCharIndex - b.startCharIndex);
+  for (const it of chosen) {
+    // 그 자리를 통째로 담고 있는 문장을 찾는다.
+    let si = -1;
+    for (let i = 0; i < starts.length; i++) {
+      const from = starts[i];
+      if (from == null || from > it.startCharIndex) continue;
+      const to = from + formatWorkbookPassage(english[i] ?? "").length;
+      if (it.endCharIndex <= to) si = i;
+    }
+    if (si < 0) continue;
+    const base = starts[si]!;
+    const list = out.get(si) ?? [];
+    list.push({
+      start: it.startCharIndex - base,
+      end: it.endCharIndex - base,
+      left: it.leftText,
+      right: it.rightText,
+      correct: it.correctSide === "left" ? it.leftText : it.rightText,
+    });
+    out.set(si, list);
+  }
+  return out;
+}
 
 export function buildOnePageTestPassage(input: {
   projectId: string;
@@ -563,18 +663,137 @@ export function buildOnePageTestPassage(input: {
   vocabSection: OnePageChoiceSource | null;
 }): OnePageTestPassage {
   const english = input.sentences.map((s) => s.english);
-  const seed = `${input.projectId}|${input.content.sourceHash}`;
-  const fallback = fallbackChoiceSources(english, input.content, seed);
-  const summaryParts = splitSummaryByKeywords(input.content.summaryEn, input.content.summaryKeywords);
+  const content = input.content;
+  const seed = `${input.projectId}|${content.sourceHash}`;
+  const fallback = fallbackChoiceSources(english, content, seed);
+  const grammarAt = choicesBySentence(
+    input.grammarSection?.items?.length ? input.grammarSection : fallback.grammar,
+    english,
+    ONE_PAGE_CHOICE_MAX
+  );
+  const vocabAt = choicesBySentence(
+    input.vocabSection?.items?.length ? input.vocabSection : fallback.vocab,
+    english,
+    ONE_PAGE_CHOICE_MAX
+  );
+
+  const writingAt = new Set(pickWritingIndexes(input.sentences, content.keySentenceIndexes));
+  const implications = (content.implications ?? []).slice(0, TEST_IMPLICATION_MAX);
+
+  type Mark = {
+    start: number;
+    end: number;
+    kind: "choice" | "imp" | "expr" | "ref";
+    left?: string;
+    right?: string;
+    correct?: string;
+    answer?: string;
+    meaningKo?: string;
+    meaningEn?: string;
+  };
+
+  const rows: OnePageTestRow[] = [];
+  const choiceAnswers: string[] = [];
+  const expressions: OnePageTestPassage["expressions"] = [];
+  let choiceNo = 0;
+  let refNo = 0;
+  let exprNo = 0;
+
+  english.forEach((raw, si) => {
+    const text = formatWorkbookPassage(raw);
+    if (!text) return;
+
+    const marks: Mark[] = [];
+    const add = (m: Mark) => {
+      if (m.start < 0 || m.end > text.length || m.start >= m.end) return;
+      if (marks.some((x) => m.start < x.end && x.start < m.end)) return;
+      marks.push(m);
+    };
+    const put = (kind: Mark["kind"], phrase: string, rest: Partial<Mark>, occurrence = 0) => {
+      const hit = findPhraseAt(text, phrase, occurrence);
+      if (hit) add({ ...hit, kind, ...rest });
+    };
+    const countOf = (kind: Mark["kind"]) => marks.filter((m) => m.kind === kind).length;
+
+    // 자리가 겹치면 어법 → 함축의미 → 중요표현 → 지칭 → 어휘 차례로 살린다.
+    for (const c of grammarAt.get(si) ?? []) {
+      if (choiceNo + countOf("choice") >= ONE_PAGE_MERGED_CHOICE_MAX) break;
+      add({ start: c.start, end: c.end, kind: "choice", left: c.left, right: c.right, correct: c.correct });
+    }
+    for (const m of implications) {
+      if (m.sentenceIndex !== si || !m.meaningEn) continue;
+      put("imp", m.expression, { answer: m.meaningEn, meaningKo: m.meaningKo, meaningEn: m.meaningEn });
+    }
+    for (const p of content.paraphrases) {
+      if (p.sentenceIndex !== si || exprNo + countOf("expr") >= CIRCLED_HANGUL.length) continue;
+      put("expr", p.expression, { answer: p.meaningKo });
+    }
+    for (const r of content.references ?? []) {
+      if (r.sentenceIndex !== si || refNo + countOf("ref") >= TEST_REFERENCE_MAX) continue;
+      put("ref", r.surface, { answer: r.referent }, r.occurrence ?? 0);
+    }
+    for (const c of vocabAt.get(si) ?? []) {
+      if (choiceNo + countOf("choice") >= ONE_PAGE_MERGED_CHOICE_MAX) break;
+      add({ start: c.start, end: c.end, kind: "choice", left: c.left, right: c.right, correct: c.correct });
+    }
+
+    marks.sort((a, b) => a.start - b.start);
+    const segments: OnePageTestSegment[] = [];
+    const refs: OnePageTestRow["refs"] = [];
+    const imps: OnePageTestRow["imps"] = [];
+    let cursor = 0;
+    for (const m of marks) {
+      if (cursor < m.start) segments.push({ type: "text", text: text.slice(cursor, m.start) });
+      const surface = text.slice(m.start, m.end);
+      if (m.kind === "choice") {
+        choiceNo += 1;
+        segments.push({ type: "choice", number: choiceNo, leftText: m.left ?? "", rightText: m.right ?? "" });
+        choiceAnswers.push(m.correct ?? "");
+      } else if (m.kind === "ref") {
+        const mark = circledLetter(refNo);
+        refNo += 1;
+        segments.push({ type: "ref", mark, text: surface });
+        refs.push({ mark, surface, answer: m.answer ?? "" });
+      } else if (m.kind === "expr") {
+        const mark = circledHangul(exprNo);
+        exprNo += 1;
+        segments.push({ type: "expr", mark, text: surface });
+        expressions.push({ mark, surface, answer: m.answer ?? "" });
+      } else {
+        segments.push({ type: "imp", text: surface });
+        imps.push({
+          surface,
+          words: scrambleSentenceWords(m.meaningEn ?? "", `${seed}#i${si}`),
+          answer: m.meaningEn ?? "",
+          meaningKo: m.meaningKo ?? "",
+        });
+      }
+      cursor = m.end;
+    }
+    if (cursor < text.length) segments.push({ type: "text", text: text.slice(cursor) });
+
+    // 문항이 한 문장에 몰리면 읽기 힘들다 — 함축의미가 붙은 문장에는 영작을 두지 않는다.
+    const korean = input.sentences[si]!.korean.replace(/\s+/g, " ").trim();
+    const writing =
+      writingAt.has(si) && imps.length === 0 && korean
+        ? { words: scrambleSentenceWords(raw, `${seed}#w${si}`), korean, answer: answerSentence(raw) }
+        : null;
+
+    rows.push({ no: rows.length + 1, segments, refs, imps, writing });
+  });
+
+  const summaryParts = splitSummaryByKeywords(content.summaryEn, content.summaryKeywords);
   const blanks = summaryParts.filter((p) => p.keywordIndex !== null).length;
-  const writing = pickWritingIndexes(input.sentences, input.content.keySentenceIndexes);
+
   return {
     projectId: input.projectId,
-    sourceHash: input.content.sourceHash,
+    sourceHash: content.sourceHash,
     title: input.title,
-    titleEn: (input.titleEn ?? "").trim() || input.content.titleEn,
+    titleEn: (input.titleEn ?? "").trim() || content.titleEn,
     source: input.source,
-    order: buildOnePageSentenceOrder(english, seed),
+    rows,
+    choiceAnswers,
+    expressions,
     summary:
       blanks > 0
         ? {
@@ -583,21 +802,10 @@ export function buildOnePageTestPassage(input: {
                 ? { type: "text" as const, text: p.text }
                 : { type: "blank" as const, number: p.keywordIndex + 1, answer: p.text }
             ),
-            ko: input.content.summaryKo,
+            ko: content.summaryKo,
           }
         : null,
-    tf: input.content.tf.slice(0, 5),
-    grammar:
-      (input.grammarSection && buildChoiceBlock(input.grammarSection, "workbook")) ||
-      buildChoiceBlock(fallback.grammar, "material"),
-    vocab:
-      (input.vocabSection && buildChoiceBlock(input.vocabSection, "workbook")) ||
-      buildChoiceBlock(fallback.vocab, "material"),
-    writing: writing.map((i) => ({
-      words: scrambleSentenceWords(input.sentences[i]!.english, `${seed}#w${i}`),
-      korean: input.sentences[i]!.korean.replace(/\s+/g, " ").trim(),
-      answer: answerSentence(input.sentences[i]!.english),
-    })),
+    tf: content.tf.slice(0, TEST_TF_MAX),
   };
 }
 

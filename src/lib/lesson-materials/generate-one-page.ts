@@ -15,6 +15,7 @@ import {
   type OnePageExamPoint,
   type OnePageExamPointKind,
   type OnePageGrammarPoint,
+  type OnePageImplication,
   type OnePageParaphrase,
   type OnePageReference,
   type OnePageTfItem,
@@ -161,6 +162,13 @@ const EXTRA_PROMPT = `${COMMON_HEADER}
 [paraphrases] 서술형·바꿔 쓰기에 나올 핵심 표현 4~6개. expression은 지문에 나온 그대로의 2~6 words 어구(낱말 하나짜리는 vocab이 맡는다), meaningKo는 이 문맥에 맞는 짧고 자연스러운 한국어 뜻, paraphrases는 이 문맥에서 바꿔 써도 뜻이 같은 영어 표현 1~2개(지문의 다른 표현을 그대로 베끼지 않는다).
 
 ${examParaphraseFocusRules()}
+
+[implications] 문맥에서만 풀리는 말 0~2개. 올인원 자료의 "밑줄 친 …이 의미하는 바를 서술하시오" 문항이 된다.
+- expression: 지문에 나온 그대로의 1~5 words. 따옴표 안의 말, 비유, 앞 내용을 통째로 받는 짧은 구처럼 글자 뜻만으로는 풀리지 않는 것만 고른다.
+- 낱말 뜻만 알면 되는 말(vocab이 맡는다), 단순한 지칭어(it·this·they), paraphrases에 이미 넣은 표현은 고르지 않는다.
+- meaningEn: 그 말이 이 문맥에서 뜻하는 바를 지문의 다른 문장을 베끼지 않고 8~16 words 한 구절로. 이것이 제시어와 정답이 되므로 문장부호 없이 자연스럽게 이어지는 말로 적는다.
+- meaningKo: 같은 뜻을 한국어 한 줄로(20~45자).
+- 지문에 그런 말이 없으면 빈 배열로 둔다(억지로 만들지 않는다).
 `;
 
 const GRAMMAR_PROMPT = `${COMMON_HEADER}
@@ -219,6 +227,10 @@ const EXTRA_SCHEMA = obj({
     type: "array",
     items: obj({ no: int, expression: str, meaningKo: str, paraphrases: strList }),
   },
+  implications: {
+    type: "array",
+    items: obj({ no: int, expression: str, meaningEn: str, meaningKo: str }),
+  },
 });
 
 const EXAM_SCHEMA = obj({
@@ -249,6 +261,7 @@ type RawContent = {
   vocab?: unknown;
   grammar?: unknown;
   paraphrases?: unknown;
+  implications?: unknown;
   references?: unknown;
   examPoints?: unknown;
   tf?: unknown;
@@ -736,6 +749,7 @@ type CheckedCore = {
   summaryKo: string;
   flow: OnePageContent["flow"];
   paraphrases: OnePageParaphrase[];
+  implications: OnePageImplication[];
   examPoints: OnePageExamPoint[];
   tf: OnePageTfItem[];
   keySentenceIndexes: number[];
@@ -744,7 +758,10 @@ type CheckedCore = {
 
 /** 주제·요약문·도식화·바꿔 쓰기 표현·출제 포인트·T/F·핵심 문장을 거른다(낱말·어법·지칭은 따로 온다). */
 function checkCore(
-  raw: Pick<RawContent, "topicKo" | "titleEn" | "summary" | "flow" | "paraphrases" | "examPoints" | "tf" | "keySentences">,
+  raw: Pick<
+    RawContent,
+    "topicKo" | "titleEn" | "summary" | "flow" | "paraphrases" | "implications" | "examPoints" | "tf" | "keySentences"
+  >,
   sentences: string[]
 ): CheckedCore {
   const problems: string[] = [];
@@ -782,6 +799,24 @@ function checkCore(
     if (paraphrases.length >= 6) break;
   }
   if (paraphrases.length < 3) problems.push("바꿔 쓰기 표현 부족(expression은 지문 그대로)");
+
+  // 함축의미: 지문에 그대로 있는 말이어야 하고, 이미 바꿔 쓰기 표현으로 쓴 말은 뺀다.
+  const implications: OnePageImplication[] = [];
+  for (const r of rows(raw.implications)) {
+    const placed = placeIn(r.no, str1(r.expression));
+    const meaningEn = str1(r.meaningEn);
+    if (!placed || !meaningEn) continue;
+    if (meaningEn.split(/\s+/).length < 5) continue;
+    if (paraphrases.some((x) => sameWords(x.expression, placed.exact))) continue;
+    if (implications.some((x) => sameWords(x.expression, placed.exact))) continue;
+    implications.push({
+      sentenceIndex: placed.si,
+      expression: placed.exact,
+      meaningEn,
+      meaningKo: str1(r.meaningKo),
+    });
+    if (implications.length >= 2) break;
+  }
 
   const examPoints = checkExamPoints(raw.examPoints, sentences, {
     en: summaryEn,
@@ -828,6 +863,7 @@ function checkCore(
     summaryKo,
     flow,
     paraphrases,
+    implications,
     examPoints,
     tf,
     keySentenceIndexes: [...picked].sort((a, b) => a - b),
@@ -1586,6 +1622,7 @@ export async function generateOnePageContent(input: {
           {
             ...core,
             paraphrases: parseJsonSafe<{ paraphrases?: unknown }>(extraRes.text)?.paraphrases ?? [],
+            implications: parseJsonSafe<{ implications?: unknown }>(extraRes.text)?.implications ?? [],
             examPoints: parseJsonSafe<{ examPoints?: unknown }>(examRes.text)?.examPoints ?? [],
           },
           sentences
@@ -1717,6 +1754,10 @@ export async function generateOnePageContent(input: {
       paraphrases: sortOnePageMarks(gradedExam.paraphrases, sentences, (p) => ({
         sentenceIndex: p.sentenceIndex,
         surface: p.expression,
+      })),
+      implications: sortOnePageMarks(core.implications, sentences, (m) => ({
+        sentenceIndex: m.sentenceIndex,
+        surface: m.expression,
       })),
       // 삽입·순서 표시는 문장 앞에 붙으므로 그 문장의 맨 앞으로 본다.
       examPoints: sortOnePageMarks(gradedExam.examPoints, sentences, (e) => ({
