@@ -57,23 +57,13 @@ export type KakaoShareResult =
 
 export { buildKakaoPasteMessage, KAKAO_PRODUCT_LINK_HINT, validateShareUrlForKakao };
 
-/** 카카오 기본 텍스트 템플릿 표시 한도 */
-export const KAKAO_TEXT_MAX_CHARS = 200;
-
 /**
- * 카카오 text 본문: 안내문만 (URL 제외).
- * 링크는 「자세히 보기」버튼(link)으로만 연다.
- * 본문에 URL을 넣으면 200자 제한에 잘려 404가 난다.
- */
-/**
- * 카카오 기본 텍스트 템플릿이 한 번에 보여 준다고 적어 둔 길이(200자) 안인지.
+ * 카카오 텍스트 템플릿에는 길이 제한을 두지 않는다.
  *
- * 실제로는 이보다 길어도 그대로 실려 간다. 2026-09-21 에 이 값을 믿고 긴 글을
- * 잘라 보냈다가 안내문구가 반 토막 났다. 그래서 보낼 때는 쓰지 않는다.
+ * 전에 200자로 적어 두고 그 값을 믿고 잘라 보냈다가 안내문구가 반 토막 났다.
+ * 실제로는 NELT 성장리포트가 같은 길로 900자 넘는 글을 보내 왔고 그대로 도착한다.
+ * 그러니 자르지 말고 쓴 그대로 보낸다.
  */
-export function fitsKakaoText(raw: string): boolean {
-  return buildKakaoSdkTextBody(raw).length <= KAKAO_TEXT_MAX_CHARS;
-}
 
 export function buildKakaoSdkTextBody(raw: string): string {
   const body = raw

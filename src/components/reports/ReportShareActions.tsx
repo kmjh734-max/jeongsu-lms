@@ -179,7 +179,8 @@ export function ReportShareActions({
         onOpenPrint();
         showStatus("카카오톡 창이 열렸어요. 보낼 대화방을 골라 주세요. 보낸 글은 옆 미리보기와 같아요.");
       } else if (result.fallback) {
-        showStatus(KAKAO_FALLBACK_MESSAGE);
+        // 왜 못 보냈는지 그대로 알려 준다 — '링크를 복사했어요'만 뜨면 손쓸 데가 없다
+        showStatus(result.message || KAKAO_FALLBACK_MESSAGE);
       } else {
         showError(result.message);
       }
