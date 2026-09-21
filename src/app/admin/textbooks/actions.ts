@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseTableOfContents, saveTextbook } from "@/lib/textbooks";
+import { isStudyPlanEnabled } from "@/lib/study-plan/access";
 
 type Result = { ok: boolean; message: string };
 
@@ -16,6 +17,9 @@ export async function saveTextbookAction(input: {
 }): Promise<Result> {
   const profile = await getCurrentProfile();
   if (!profile || !["admin", "teacher"].includes(profile.role) || !profile.academy_id) {
+    return { ok: false, message: "권한이 없어요." };
+  }
+  if (!(await isStudyPlanEnabled(profile.academy_id))) {
     return { ok: false, message: "권한이 없어요." };
   }
   const title = input.title.trim();
@@ -45,6 +49,9 @@ export async function saveTextbookAction(input: {
 export async function deleteTextbookAction(textbookId: string): Promise<Result> {
   const profile = await getCurrentProfile();
   if (!profile || !["admin", "teacher"].includes(profile.role) || !profile.academy_id) {
+    return { ok: false, message: "권한이 없어요." };
+  }
+  if (!(await isStudyPlanEnabled(profile.academy_id))) {
     return { ok: false, message: "권한이 없어요." };
   }
   const admin = createAdminClient();

@@ -4,12 +4,14 @@ import { revalidatePath } from "next/cache";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createStudyPlan, saveStudyPlanRows, type PlanRow } from "@/lib/study-plan";
+import { isStudyPlanEnabled } from "@/lib/study-plan/access";
 
 type Result = { ok: boolean; message: string };
 
 async function staff() {
   const profile = await getCurrentProfile();
   if (!profile || !["admin", "teacher"].includes(profile.role) || !profile.academy_id) return null;
+  if (!(await isStudyPlanEnabled(profile.academy_id))) return null;
   return profile;
 }
 

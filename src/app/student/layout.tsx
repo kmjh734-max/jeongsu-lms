@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { filterNavItems } from "@/lib/academy-features";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { isStudyPlanEnabled, isStudyPlanNavItem } from "@/lib/study-plan/access";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { EnglishKeypad } from "@/components/ui/EnglishKeypad";
 
@@ -48,8 +49,12 @@ export default async function StudentLayout({
     );
   }
 
+  const navItems = (await isStudyPlanEnabled(profile.academy_id))
+    ? NAV_ITEMS
+    : NAV_ITEMS.filter((i) => !isStudyPlanNavItem(i.href));
+
   return (
-    <DashboardLayout profile={profile} navItems={filterNavItems(NAV_ITEMS)}>
+    <DashboardLayout profile={profile} navItems={filterNavItems(navItems)}>
       {children}
       {/* 휴대폰에서 영어 답 칸에 뜨는 자체 자판(키보드 추천 단어 막기) */}
       <EnglishKeypad />

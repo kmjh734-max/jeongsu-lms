@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { WEEKS, listStudyPlans, loadStudyPlan } from "@/lib/study-plan";
+import { isStudyPlanEnabled } from "@/lib/study-plan/access";
 
 interface PageProps {
   searchParams: Promise<{ year?: string; month?: string }>;
@@ -11,6 +13,7 @@ interface PageProps {
 /** 학생이 보는 내 학습일정표 */
 export default async function StudentPlanPage({ searchParams }: PageProps) {
   const [profile, sp] = await Promise.all([getCurrentProfile(), searchParams]);
+  if (!(await isStudyPlanEnabled(profile?.academy_id))) notFound();
   const admin = createAdminClient();
   const now = new Date();
   const year = Number(sp.year) || now.getFullYear();

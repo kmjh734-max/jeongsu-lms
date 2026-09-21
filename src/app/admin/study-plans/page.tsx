@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadStudyPlan } from "@/lib/study-plan";
+import { isStudyPlanEnabled } from "@/lib/study-plan/access";
 import { StudyPlanEditor, type PlanStudent } from "@/components/study-plan/StudyPlanEditor";
 import { listTextbooks } from "@/lib/textbooks";
 
@@ -15,6 +17,7 @@ const WEEKDAY = ["월", "화", "수", "목", "금", "토", "일"];
 /** 학습일정표 — 학생 한 명의 한 달 계획을 채운다 */
 export default async function StudyPlansPage({ searchParams }: PageProps) {
   const [profile, sp] = await Promise.all([getCurrentProfile(), searchParams]);
+  if (!(await isStudyPlanEnabled(profile?.academy_id))) notFound();
   const admin = createAdminClient();
   const academyId = profile?.academy_id ?? null;
   const now = new Date();

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { filterNavItems } from "@/lib/academy-features";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { isStudyPlanEnabled, isStudyPlanNavItem } from "@/lib/study-plan/access";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Suspense } from "react";
 import { LowCreditBanner } from "@/components/credits/LowCreditBanner";
@@ -48,12 +49,18 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
+  const [personal, studyPlan] = await Promise.all([
+    isPersonalMember(profile.academy_id),
+    isStudyPlanEnabled(profile.academy_id),
+  ]);
+  let navItems = NAV_ITEMS;
+  if (personal) navItems = navItems.filter((i) => !TEAM_ONLY.has(i.href));
+  if (!studyPlan) navItems = navItems.filter((i) => !isStudyPlanNavItem(i.href));
+
   return (
     <DashboardLayout
       profile={profile}
-      navItems={filterNavItems(
-        (await isPersonalMember(profile.academy_id)) ? NAV_ITEMS.filter((i) => !TEAM_ONLY.has(i.href)) : NAV_ITEMS
-      )}
+      navItems={filterNavItems(navItems)}
     >
       <LowCreditBanner academyId={profile.academy_id} canCharge />
       <Suspense fallback={null}>
