@@ -74,17 +74,20 @@ export function monthSessionDates(
   for (const w of weeks) out[String(w)] = [];
   if (!weekdays?.length) return out;
 
-  const want = new Set(weekdays.filter((d) => d >= 0 && d <= 6));
-  if (want.size === 0) return out;
+  // 회차 자리는 요일 차례를 따른다 — 월수금 반이면 1회차=월, 2회차=수, 3회차=금
+  const order = [...new Set(weekdays.filter((d) => d >= 0 && d <= 6))].sort((a, b) => a - b);
+  if (order.length === 0) return out;
+  for (const w of weeks) out[String(w)] = Array.from({ length: order.length }, () => "");
 
   const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
   for (let day = 1; day <= lastDay; day += 1) {
     const d = new Date(Date.UTC(year, month - 1, day));
-    if (!want.has(toMonFirst(d.getUTCDay()))) continue;
+    const slot = order.indexOf(toMonFirst(d.getUTCDay()));
+    if (slot < 0) continue;
     const week = weekOf.get(day) ?? 1;
-    out[String(week)]!.push(
-      `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
-    );
+    // 그 주에 그 요일이 없으면 자리는 빈 채로 남는다 (9월 1주에는 월요일이 없다)
+    out[String(week)]![slot] =
+      `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   }
   return out;
 }

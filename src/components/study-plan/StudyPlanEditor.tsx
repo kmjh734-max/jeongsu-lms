@@ -75,11 +75,28 @@ export function StudyPlanEditor({
   /** 단어를 한 회차에 며칠 치씩 볼지 */
   const [vocabDays, setVocabDays] = useState(2);
 
-  /** 이 달이 실제로 걸치는 주차 — 9월이면 1~5주 */
-  const weeks = useMemo(() => weeksInMonth(year, month), [year, month]);
-  const areas = [...new Map(rows.filter((r) => r.week === weeks[0]).map((r) => [r.area, r.orderIndex])).keys()];
+  /** 이 달이 달력상 걸치는 주차 — 9월이면 1~5주 */
+  const monthWeeks = useMemo(() => weeksInMonth(year, month), [year, month]);
 
-  /** 저장된 일정표에 없는 주차 줄을 채워 넣는다 (4주로 만든 표를 5주 달에 열 때) */
+  /**
+   * 표에 실제로 그릴 주차.
+   *
+   * 학생이 달 중간에 들어오면 1·2주차는 쓸 일이 없으니 뺄 수 있게 한다.
+   * 저장된 일정표가 있으면 거기 있는 주차를 따르되, 그 뒤로 달력에 더 있는 주차는
+   * 붙여 준다(4주로 만들어 둔 표를 5주짜리 달에 열 때).
+   */
+  const [weeks, setWeeks] = useState<number[]>(() => {
+    const stored = [...new Set((plan?.rows ?? []).map((r) => r.week))].sort((a, b) => a - b);
+    if (stored.length === 0) return monthWeeks;
+    const last = stored[stored.length - 1]!;
+    return [...stored, ...monthWeeks.filter((w) => w > last)];
+  });
+
+  const areas = [...new Map(rows.filter((r) => r.week === weeks[0]).map((r) => [r.area, r.orderIndex])).keys()];
+  /** 뺐다가 되돌릴 수 있는 주차 */
+  const droppedWeeks = monthWeeks.filter((w) => !weeks.includes(w));
+
+  /** 표에 있는 주차인데 줄이 없으면 만들어 넣는다 */
   useEffect(() => {
     setRows((prev) => {
       if (prev.length === 0) return prev;
@@ -100,9 +117,29 @@ export function StudyPlanEditor({
         ),
       ];
     });
-    // 주차가 바뀔 때만
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weeks.length]);
+  }, [weeks, sessions]);
+
+  /** 이 주차를 표에서 뺀다 — 달 중간에 들어온 학생의 앞 주차를 지울 때 */
+  function removeWeek(week: number) {
+    setWeeks((prev) => prev.filter((w) => w !== week));
+    setRows((prev) => prev.filter((r) => r.week !== week));
+    setDates((prev) => {
+      const next = { ...prev };
+      delete next[String(week)];
+      return next;
+    });
+    setAttendance((prev) => {
+      const next = { ...prev };
+      delete next[String(week)];
+      return next;
+    });
+  }
+
+  /** 뺐던 주차를 되돌린다 */
+  function restoreWeek(week: number) {
+    setWeeks((prev) => [...prev, week].sort((a, b) => a - b));
+    setDates((prev) => ({ ...prev, [String(week)]: [] }));
+  }
 
   /** 날짜가 아직 하나도 없으면 반 요일로 알아서 채운다 */
   useEffect(() => {
@@ -446,6 +483,22 @@ export function StudyPlanEditor({
 
       {msg ? <Alert variant={msg.ok ? "success" : "error"}>{msg.text}</Alert> : null}
 
+      {droppedWeeks.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+          <span>뺀 주차</span>
+          {droppedWeeks.map((w) => (
+            <button
+              key={w}
+              type="button"
+              onClick={() => restoreWeek(w)}
+              className="rounded border border-slate-300 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 hover:bg-white hover:text-brand-700"
+            >
+              {w}주 되돌리기
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       {picking ? (
         <UnitPickerModal
           books={books}
@@ -465,7 +518,17 @@ export function StudyPlanEditor({
           <table className="w-full min-w-[900px] border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50 text-left text-xs font-bold text-slate-600">
-                <th className="w-20 px-2 py-2">{week}주</th>
+                <th className="w-20 px-2 py-2">
+                  <span className="block">{week}주</span>
+                  <button
+                    type="button"
+                    onClick={() => removeWeek(week)}
+                    title="이 주차를 표에서 뺍니다"
+                    className="mt-1 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                  >
+                    주차 빼기
+                  </button>
+                </th>
                 <th className="w-28 px-2 py-2">영역</th>
                 <th className="w-40 px-2 py-2">교재명</th>
                 {Array.from({ length: sessions }, (_, i) => (
