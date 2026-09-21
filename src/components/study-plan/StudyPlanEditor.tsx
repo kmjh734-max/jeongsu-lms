@@ -13,6 +13,7 @@ import {
   type StudyPlan,
 } from "@/lib/study-plan";
 import { WEEKDAY_LABELS, weeksInMonth } from "@/lib/study-plan/weekday-dates";
+import { hasHolidayTable, holidayNameOf } from "@/lib/study-plan/holidays";
 import { UnitPickerModal } from "@/components/textbooks/UnitPickerModal";
 import type { Textbook } from "@/lib/textbooks";
 
@@ -118,6 +119,33 @@ export function StudyPlanEditor({
       ];
     });
   }, [weeks, sessions]);
+
+  /**
+   * 공휴일에 걸린 회차를 자동으로 '공휴일'로 둔다.
+   *
+   * 이미 선생님이 뭔가 찍어 둔 회차는 건드리지 않는다. 손으로 고친 것이
+   * 화면을 다시 그릴 때마다 되돌아가면 안 되기 때문이다.
+   */
+  useEffect(() => {
+    if (!hasHolidayTable(year)) return;
+    setAttendance((prev) => {
+      let touched = false;
+      const next = { ...prev };
+      for (const week of weeks) {
+        const list = [...(next[String(week)] ?? [])];
+        while (list.length < sessions) list.push("");
+        (dates[String(week)] ?? []).forEach((d, i) => {
+          if (!d || i >= sessions) return;
+          if (list[i]) return; // 이미 적어 둔 회차는 그대로
+          if (!holidayNameOf(d)) return;
+          list[i] = "holiday";
+          touched = true;
+        });
+        next[String(week)] = list;
+      }
+      return touched ? next : prev;
+    });
+  }, [dates, weeks, sessions, year]);
 
   /** 이 주차를 표에서 뺀다 — 달 중간에 들어온 학생의 앞 주차를 지울 때 */
   function removeWeek(week: number) {
@@ -537,6 +565,11 @@ export function StudyPlanEditor({
                       {i + 1}회차
                       {weekdayOf(dates[String(week)]?.[i] ?? "") ? (
                         <span className="ml-1 text-brand-600">({weekdayOf(dates[String(week)]?.[i] ?? "")})</span>
+                      ) : null}
+                      {holidayNameOf(dates[String(week)]?.[i] ?? "") ? (
+                        <span className="ml-1 font-normal text-rose-500">
+                          {holidayNameOf(dates[String(week)]?.[i] ?? "")}
+                        </span>
                       ) : null}
                     </span>
                     <input
