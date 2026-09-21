@@ -65,48 +65,14 @@ export const KAKAO_TEXT_MAX_CHARS = 200;
  * 링크는 「자세히 보기」버튼(link)으로만 연다.
  * 본문에 URL을 넣으면 200자 제한에 잘려 404가 난다.
  */
-/** 이 글을 줄이지 않고 그대로 보낼 수 있는지 */
+/**
+ * 카카오 기본 텍스트 템플릿이 한 번에 보여 준다고 적어 둔 길이(200자) 안인지.
+ *
+ * 실제로는 이보다 길어도 그대로 실려 간다. 2026-09-21 에 이 값을 믿고 긴 글을
+ * 잘라 보냈다가 안내문구가 반 토막 났다. 그래서 보낼 때는 쓰지 않는다.
+ */
 export function fitsKakaoText(raw: string): boolean {
   return buildKakaoSdkTextBody(raw).length <= KAKAO_TEXT_MAX_CHARS;
-}
-
-/**
- * 카카오톡에 실을 수 있는 길이로 줄인다.
- *
- * 카카오톡 글자 템플릿은 200자까지만 싣는다. 학습 리포트 안내문은 거의 언제나 그보다
- * 길다. 넘치면 안 보내던 때가 있었는데, 그러면 단추가 안 눌리는 것처럼 보였다.
- * 그래서 앞부분을 줄 단위로 끊어 보내고 나머지는 링크 너머에 둔다.
- * 링크를 연 화면 맨 위에 안내문구 전체가 다시 나오므로 잘려도 잃는 것은 없다.
- *
- * 카카오가 길이를 어떻게 세는지 정확히 알 수 없어 180자까지만 채운다.
- */
-export const KAKAO_TEXT_SAFE_CHARS = 180;
-
-export function shortenForKakaoText(raw: string): string {
-  const body = buildKakaoSdkTextBody(raw);
-  if (body.length <= KAKAO_TEXT_SAFE_CHARS) return body;
-
-  const tail = "\n\n아래 \u300c자세히 보기\u300d에서 전체 리포트를 확인해 주세요.";
-  const room = KAKAO_TEXT_SAFE_CHARS - tail.length;
-
-  // 안내문구는 인사말 뒤에 '1. 학습 리포트' 처럼 번호 붙은 칸이 이어진다.
-  // 칸 가운데서 끊으면 말이 잘린 티가 나므로, 첫 칸이 시작되기 전에서 끊는다.
-  const lines = body.split("\n");
-  const sectionAt = lines.findIndex((line) => /^\s*\d+\s*[.)]\s+\S/.test(line));
-  const greeting = sectionAt > 0 ? lines.slice(0, sectionAt).join("\n").trimEnd() : "";
-  if (greeting && greeting.length <= room) return `${greeting}${tail}`;
-
-  // 인사말만으로도 넘치면 줄 단위로 채운다
-  const kept: string[] = [];
-  let used = 0;
-  for (const line of lines) {
-    const add = kept.length === 0 ? line.length : line.length + 1;
-    if (used + add > room) break;
-    kept.push(line);
-    used += add;
-  }
-  const head = kept.length > 0 ? kept.join("\n").trimEnd() : body.slice(0, room).trimEnd();
-  return `${head}${tail}`;
 }
 
 export function buildKakaoSdkTextBody(raw: string): string {
@@ -146,8 +112,7 @@ function buildTextPayload(params: KakaoShareParams): Record<string, unknown> {
   const raw =
     params.pasteMessage ??
     buildKakaoPasteMessage({ ...params, shareUrl });
-  // 200자를 넘으면 첫머리만 보내고 나머지는 「자세히 보기」 너머에 둔다
-  const text = shortenForKakaoText(raw);
+  const text = buildKakaoSdkTextBody(raw);
   return {
     objectType: "text",
     text,
