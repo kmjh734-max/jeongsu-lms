@@ -1473,19 +1473,17 @@ const PrintEntry = memo(function PrintEntry({
     <section className="vocab-print-row vd-row-full">
       <div className="vd-full-left">
         <span className="vd-no">{globalIndex + 1}</span>
-        {/* 단어장은 낱말 오른쪽에 뜻이 붙는 것이 익은 모양이다 */}
-        <span className="vd-full-wordline">
-          <span className={`vd-word vd-word--lg ${wordDensity}`.trim()}>{item.word}</span>
-          <span className={`vd-meaning ${meaningDensity}`.trim()}>
-            {item.meaning}
-            {pos ? <span className="vd-pos"> {pos}</span> : null}
-          </span>
-        </span>
+        <span className={`vd-word vd-word--lg ${wordDensity}`.trim()}>{item.word}</span>
         <span className="vd-checks" aria-hidden>
           ☐☐☐
         </span>
       </div>
       <div className="vd-full-right">
+        {/* 뜻을 예문 바로 위에 굵게 둔다 — 예문을 읽기 전에 먼저 눈에 들어와야 한다 */}
+        <p className={`vd-meaning vd-meaning--top ${meaningDensity}`.trim()}>
+          {item.meaning}
+          {pos ? <span className="vd-pos"> {pos}</span> : null}
+        </p>
         {exampleSentence ? (
           <p className={`vd-example ${exampleDensity}`.trim()}>
             {highlightWordInSentence(exampleSentence, item.word)}
