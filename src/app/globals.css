@@ -4174,14 +4174,23 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   font-size: calc(var(--vocab-meaning-size) * 0.82);
 }
 .vocab-print-row.vd-row-full {
-  grid-template-columns: 150px minmax(0, 1fr);
+  /* 낱말 옆에 뜻이 나란히 서므로 왼쪽 칸을 넓게 둔다 */
+  grid-template-columns: 208px minmax(0, 1fr);
   gap: 16px;
   padding: 10px 0;
   border-bottom: 1px solid #e5e7eb;
 }
 .vocab-print-page--b5 .vocab-print-row.vd-row-full {
-  grid-template-columns: 124px minmax(0, 1fr);
+  grid-template-columns: 172px minmax(0, 1fr);
   gap: 12px;
+}
+/* 낱말 + 뜻 한 줄 — 자리가 모자라면 뜻이 아래로 접힌다 */
+.vd-full-wordline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
 }
 .vd-full-left {
   display: flex;
