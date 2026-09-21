@@ -17,16 +17,22 @@ export interface StudyPlanReportSection {
   line: string;
 }
 
+/**
+ * 기간에 걸친 달 목록. 너무 길어지지 않게 최근 12달까지만 본다.
+ *
+ * 앞에서부터 12달을 세면 '전체 기간' 리포트에서 정작 이번 달이 잘려 나간다
+ * (2025-09 ~ 2026-09 은 13달이라 2026-09 가 빠졌다). 그래서 뒤에서부터 센다.
+ */
 function monthsBetween(from: string, to: string): Array<{ year: number; month: number }> {
   const out: Array<{ year: number; month: number }> = [];
   const a = new Date(`${from}T00:00:00Z`);
   const b = new Date(`${to}T00:00:00Z`);
   const cur = new Date(Date.UTC(a.getUTCFullYear(), a.getUTCMonth(), 1));
-  while (cur <= b && out.length < 12) {
+  while (cur <= b && out.length < 120) {
     out.push({ year: cur.getUTCFullYear(), month: cur.getUTCMonth() + 1 });
     cur.setUTCMonth(cur.getUTCMonth() + 1);
   }
-  return out;
+  return out.slice(-12);
 }
 
 /**

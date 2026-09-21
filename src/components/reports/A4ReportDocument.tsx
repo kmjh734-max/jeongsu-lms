@@ -76,6 +76,13 @@ export function A4ReportDocument({
     learningReportText
   );
 
+  // 선생님이 쓴 안내문구 전체 — 학부모 화면과 같은 것을 담는다
+  const teacherNote = parentMessage
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
   const reviewRows = report.reviewWords.slice(0, 10);
   const reviewExtra = report.reviewWords.length - reviewRows.length;
 
@@ -85,6 +92,31 @@ export function A4ReportDocument({
         <>
           {/* A안 대시보드: 첫 장은 한눈에 보기, 자세한 표는 다음 장부터 */}
           <ReportDashboard report={report} comment={learningReport} academyName={academyName} print />
+
+          {/* 학부모 화면과 같은 것을 담는다 — 한쪽에만 있으면 선생님이 본 것과 어긋난다 */}
+          {teacherNote ? (
+            <section className="mt-4 break-inside-avoid rounded-lg border border-slate-200 p-3">
+              <h2 className="text-[13px] font-bold text-slate-900">{academyName} 선생님 말씀</h2>
+              <p className="mt-1 whitespace-pre-wrap text-[11px] leading-5 text-slate-700">{teacherNote}</p>
+            </section>
+          ) : null}
+
+          {report.studyPlan ? (
+            <section className="mt-3 break-inside-avoid rounded-lg border border-slate-200 p-3">
+              <h2 className="text-[13px] font-bold text-slate-900">학습일정표</h2>
+              <p className="mt-1 text-[12px] text-slate-700">{report.studyPlan.line}</p>
+              {report.studyPlan.areaLines.length ? (
+                <ul className="mt-1.5 space-y-0.5">
+                  {report.studyPlan.areaLines.map((t) => (
+                    <li key={t} className="text-[11px] leading-5 text-slate-600">
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          ) : null}
+
           <div className="break-after-page" />
         </>
       ) : (

@@ -86,10 +86,17 @@ export function shortenForKakaoText(raw: string): string {
   const body = buildKakaoSdkTextBody(raw);
   if (body.length <= KAKAO_TEXT_SAFE_CHARS) return body;
 
-  const tail = "\n\n(이어지는 내용은 아래 버튼에서 보실 수 있습니다.)";
+  const tail = "\n\n아래 \u300c자세히 보기\u300d에서 전체 리포트를 확인해 주세요.";
   const room = KAKAO_TEXT_SAFE_CHARS - tail.length;
 
+  // 안내문구는 인사말 뒤에 '1. 학습 리포트' 처럼 번호 붙은 칸이 이어진다.
+  // 칸 가운데서 끊으면 말이 잘린 티가 나므로, 첫 칸이 시작되기 전에서 끊는다.
   const lines = body.split("\n");
+  const sectionAt = lines.findIndex((line) => /^\s*\d+\s*[.)]\s+\S/.test(line));
+  const greeting = sectionAt > 0 ? lines.slice(0, sectionAt).join("\n").trimEnd() : "";
+  if (greeting && greeting.length <= room) return `${greeting}${tail}`;
+
+  // 인사말만으로도 넘치면 줄 단위로 채운다
   const kept: string[] = [];
   let used = 0;
   for (const line of lines) {
@@ -98,7 +105,6 @@ export function shortenForKakaoText(raw: string): string {
     kept.push(line);
     used += add;
   }
-  // 첫 줄부터 room 보다 길면 글자 단위로 끊는다
   const head = kept.length > 0 ? kept.join("\n").trimEnd() : body.slice(0, room).trimEnd();
   return `${head}${tail}`;
 }
