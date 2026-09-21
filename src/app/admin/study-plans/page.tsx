@@ -197,7 +197,15 @@ export default async function StudyPlansPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <PageHeader title="학습일정표" />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <PageHeader title="학습일정표" />
+        <Link
+          href="/admin/textbooks"
+          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+        >
+          교재 목차
+        </Link>
+      </div>
 
       <StudyPlanPicker
         teachers={teachers}

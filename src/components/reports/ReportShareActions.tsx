@@ -14,7 +14,8 @@ import {
 import {
   copyKakaoPasteMessage,
   isKakaoShareConfigured,
-  loadKakaoSdkForReports,
+  ensureKakaoSdkReady,
+  fitsKakaoText,
   shareReportViaKakao,
   validateShareUrlForKakao,
 } from "@/lib/kakao/share-report";
@@ -66,7 +67,8 @@ export function ReportShareActions({
 
   useEffect(() => {
     if (kakaoConfigured) {
-      void loadKakaoSdkForReports().catch(() => {
+      // 미리 켜 둬야 버튼을 눌렀을 때 바로 카카오톡 창이 뜬다
+      void ensureKakaoSdkReady().catch(() => {
         /* 실패 시 보내기 버튼을 누를 때 다시 시도 */
       });
     }
@@ -176,7 +178,15 @@ export function ReportShareActions({
       if (result.ok) {
         // 보낸 글을 눈으로 확인할 수 있게 미리보기를 함께 띄운다
         onOpenPrint();
-        showStatus("카카오톡 창이 열렸어요. 보낼 대화방을 골라 주세요. 보낸 글은 옆 미리보기와 같아요.");
+        if (fitsKakaoText(paste)) {
+          showStatus("카카오톡 창이 열렸어요. 보낼 대화방을 골라 주세요. 보낸 글은 옆 미리보기와 같아요.");
+        } else {
+          // 카카오톡은 한 번에 200자까지만 보여 준다 — 나머지는 링크 너머에 있다
+          await navigator.clipboard.writeText(paste).catch(() => {});
+          showStatus(
+            "카카오톡 창이 열렸어요. 안내 문구가 길어 첫머리만 보내고 나머지는 링크에 담았어요. 글 전체도 복사해 두었으니 필요하면 채팅창에 붙여넣으세요.",
+          );
+        }
       } else if (result.fallback) {
         showStatus(KAKAO_FALLBACK_MESSAGE);
       } else {

@@ -65,9 +65,37 @@ export const KAKAO_TEXT_MAX_CHARS = 200;
  * 링크는 「자세히 보기」버튼(link)으로만 연다.
  * 본문에 URL을 넣으면 200자 제한에 잘려 404가 난다.
  */
-/** 이 글을 카카오톡 공유 API로 그대로 보낼 수 있는지 (넘으면 엉뚱한 기본 카드가 나간다) */
+/** 이 글을 줄이지 않고 그대로 보낼 수 있는지 */
 export function fitsKakaoText(raw: string): boolean {
   return buildKakaoSdkTextBody(raw).length <= KAKAO_TEXT_MAX_CHARS;
+}
+
+/**
+ * 카카오톡이 한 번에 보여 주는 200자에 맞춰 앞부분만 남긴다.
+ *
+ * 학습 리포트 안내문은 거의 언제나 200자를 넘는다. 그렇다고 안 보내면
+ * 버튼이 아무것도 안 하는 것처럼 보이므로, 미리보기에서 본 첫머리를 그대로 보내고
+ * 나머지는 「리포트 보기」 버튼 너머에 둔다. 줄 단위로 끊어 말이 잘리지 않게 한다.
+ */
+export function shortenForKakaoText(raw: string): string {
+  const body = buildKakaoSdkTextBody(raw);
+  if (body.length <= KAKAO_TEXT_MAX_CHARS) return body;
+
+  const tail = "\n\n아래 버튼에서 전체 리포트를 보실 수 있습니다.";
+  const room = KAKAO_TEXT_MAX_CHARS - tail.length;
+
+  const lines = body.split("\n");
+  const kept: string[] = [];
+  let used = 0;
+  for (const line of lines) {
+    const add = kept.length === 0 ? line.length : line.length + 1;
+    if (used + add > room) break;
+    kept.push(line);
+    used += add;
+  }
+  // 첫 줄부터 너무 길면 글자 단위로 끊는다
+  const head = kept.length > 0 ? kept.join("\n").trimEnd() : body.slice(0, room).trimEnd();
+  return `${head}${tail}`;
 }
 
 export function buildKakaoSdkTextBody(raw: string): string {
@@ -107,7 +135,8 @@ function buildTextPayload(params: KakaoShareParams): Record<string, unknown> {
   const raw =
     params.pasteMessage ??
     buildKakaoPasteMessage({ ...params, shareUrl });
-  const text = buildKakaoSdkTextBody(raw);
+  // 200자를 넘으면 첫머리만 보내고 나머지는 「자세히 보기」 너머에 둔다
+  const text = shortenForKakaoText(raw);
   return {
     objectType: "text",
     text,
@@ -206,14 +235,6 @@ export async function shareReportViaKakao(
       message:
         "NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY(자바스크립트 키)가 설정되어 있지 않습니다.",
     };
-  }
-
-  // 안내 문구가 카카오 한계보다 길면 보내 봐야 엉뚱한 카드가 나간다 — 통째로 복사해 준다
-  if (params.pasteMessage && !fitsKakaoText(params.pasteMessage)) {
-    return copyFullText(
-      params.pasteMessage,
-      "안내 문구가 카카오톡이 한 번에 보낼 수 있는 길이를 넘어서, 글 전체를 복사했어요. 카카오톡 채팅창에 붙여넣어 주세요.",
-    );
   }
 
   const ready = await ensureKakaoSdkReady();
