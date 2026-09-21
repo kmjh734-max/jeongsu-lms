@@ -5,6 +5,7 @@ import { getFeatureCost } from "@/lib/credits";
 import { buildMockSlots } from "@/lib/exam-analysis/blueprint";
 import { loadExamAnalysis, loadExamMocks, loadMaterialPassages } from "@/lib/exam-analysis/load";
 import { ExamMockBuilder } from "@/components/exam-analysis/ExamMockBuilder";
+import { isTextbookPassageOpen } from "@/lib/textbooks/shared-passages";
 
 export default async function ExamMockPage({
   params,
@@ -17,11 +18,13 @@ export default async function ExamMockPage({
   const { passages } = await searchParams;
   const profile = await getCurrentProfile();
   const academyId = profile!.academy_id!;
-  const [data, materials, price, mocks] = await Promise.all([
+  const admin = createAdminClient();
+  const [data, materials, price, mocks, textbookOpen] = await Promise.all([
     loadExamAnalysis(id, academyId),
     loadMaterialPassages(academyId),
-    getFeatureCost(createAdminClient(), "qg_generate_job"),
+    getFeatureCost(admin, "qg_generate_job"),
     loadExamMocks(id, academyId),
+    isTextbookPassageOpen(admin, academyId),
   ]);
   if (!data) notFound();
   const { slots, groupCount } = buildMockSlots(data.items);
@@ -38,6 +41,7 @@ export default async function ExamMockPage({
       pricePerQuestion={price?.cost ?? 80}
       round={mocks.length + 1}
       initialPassageIds={(passages ?? "").split(",").filter(Boolean)}
+      textbookOpen={textbookOpen}
     />
   );
 }

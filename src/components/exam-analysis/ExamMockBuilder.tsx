@@ -26,6 +26,7 @@ export function ExamMockBuilder({
   pricePerQuestion,
   round,
   initialPassageIds = [],
+  textbookOpen = false,
 }: {
   analysisId: string;
   examTitle: string;
@@ -35,6 +36,8 @@ export function ExamMockBuilder({
   backHref: string;
   generationsHref: string;
   pricePerQuestion: number;
+  /** 교과서 본문을 열어 준 학원인지 — 아니면 교과서 단추를 아예 안 보인다 */
+  textbookOpen?: boolean;
   /** 이번에 만들 회차(이 시험으로 만든 동형모의고사 수 + 1) */
   round: number;
   /** 수업자료에서 골라 들어온 지문(수업자료 id) — 고른 순서대로 미리 넣어 둔다 */
@@ -43,6 +46,8 @@ export function ExamMockBuilder({
   const router = useRouter();
   const [tab, setTab] = useState<"material" | "paste">(materials.length ? "material" : "paste");
   const [mockOpen, setMockOpen] = useState(false);
+  /** 지문 고르기 창을 열 때 모의고사·교과서 중 어느 쪽부터 보일지 */
+  const [pickerSource, setPickerSource] = useState<"mock" | "textbook">("mock");
   const [query, setQuery] = useState("");
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
   const [chosen, setChosen] = useState<Chosen[]>(() =>
@@ -261,11 +266,26 @@ export function ExamMockBuilder({
             <div className="mt-3 space-y-2">
               <button
                 type="button"
-                onClick={() => setMockOpen(true)}
+                onClick={() => {
+                  setPickerSource("mock");
+                  setMockOpen(true);
+                }}
                 className="flex h-10 w-full items-center justify-center rounded-lg border border-brand-300 bg-white text-sm font-semibold text-brand-700 hover:bg-brand-50"
               >
                 모의고사 지문 불러오기
               </button>
+              {textbookOpen ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPickerSource("textbook");
+                    setMockOpen(true);
+                  }}
+                  className="flex h-10 w-full items-center justify-center rounded-lg border border-brand-300 bg-white text-sm font-semibold text-brand-700 hover:bg-brand-50"
+                >
+                  교과서 지문 불러오기
+                </button>
+              ) : null}
               <p className="pt-1 text-xs font-semibold text-slate-500">또는 직접 붙여 넣기</p>
               <input id="mock-paste-title" className="ui-input h-9 text-sm" placeholder="지문 이름 (예: 3과 본문)" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
               <textarea id="mock-paste-text" rows={7} className="ui-input text-sm" placeholder="영어 지문 전체를 붙여 넣으세요" value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} />
@@ -359,7 +379,13 @@ export function ExamMockBuilder({
           {busy ? "만드는 중…" : "동형모의고사 만들기"}
         </button>
       </div>
-      {mockOpen ? <MockPassagePickerModal onPick={addMock} onClose={() => setMockOpen(false)} /> : null}
+      {mockOpen ? (
+        <MockPassagePickerModal
+          initialSource={pickerSource}
+          onPick={addMock}
+          onClose={() => setMockOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

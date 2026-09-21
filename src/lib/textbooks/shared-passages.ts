@@ -26,3 +26,14 @@ export async function resolveTextbookPassageAcademyId(
   const { data: owner } = await admin.from("academies").select("id").eq("slug", OWNER_SLUG).maybeSingle();
   return (owner?.id as string | undefined) ?? academyId;
 }
+
+/** 이 학원이 교과서 본문을 쓸 수 있는지 — 화면에 단추를 보일지 정할 때 쓴다 */
+export async function isTextbookPassageOpen(
+  admin: SupabaseClient,
+  academyId: string | null | undefined,
+): Promise<boolean> {
+  if (!academyId) return false;
+  const { data } = await admin.from("academies").select("slug").eq("id", academyId).maybeSingle();
+  const slug = String(data?.slug ?? "");
+  return slug === OWNER_SLUG || OPENED_SLUGS.includes(slug);
+}
