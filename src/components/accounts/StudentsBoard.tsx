@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { createClass } from "@/app/admin/classes/actions";
 import type {
   StudentListRow,
   StudentStatusFilter,
@@ -295,6 +296,15 @@ export function StudentsBoard({
           onSubmit={actions.create}
           onClose={() => setDialog(null)}
           withStudentDetails
+          classOptions={variant === "admin" ? classOptions : undefined}
+          onCreateClass={
+            variant === "admin"
+              ? async (name) => {
+                  const r = await createClass({ name });
+                  return r.ok ? (r.classId ?? null) : null;
+                }
+              : undefined
+          }
         />
       ) : null}
       {dialog?.kind === "edit" ? (

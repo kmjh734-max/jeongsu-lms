@@ -292,6 +292,8 @@ export function AccountCreateModal({
   onSubmit,
   onClose,
   withStudentDetails,
+  classOptions,
+  onCreateClass,
 }: {
   roleLabel: string;
   busy: boolean;
@@ -300,6 +302,10 @@ export function AccountCreateModal({
   onClose: () => void;
   /** 학생 등록에서는 학교·학년·연락처를 같이 받는다(학습일정표에 쓴다) */
   withStudentDetails?: boolean;
+  /** 등록하면서 넣을 반 고르기 */
+  classOptions?: { id: string; name: string }[];
+  /** 그 자리에서 새 반 만들기 — 만든 반의 id를 돌려준다 */
+  onCreateClass?: (name: string) => Promise<string | null>;
 }) {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -315,6 +321,34 @@ export function AccountCreateModal({
   const setField = (k: keyof typeof details) => (e: { target: { value: string } }) =>
     setDetails((d) => ({ ...d, [k]: e.target.value }));
 
+  const [classIds, setClassIds] = useState<string[]>([]);
+  const [extraClasses, setExtraClasses] = useState<{ id: string; name: string }[]>([]);
+  const [newClassName, setNewClassName] = useState("");
+  const [makingClass, setMakingClass] = useState(false);
+  const [classBusy, setClassBusy] = useState(false);
+  const [classError, setClassError] = useState<string | null>(null);
+  const allClasses = [...(classOptions ?? []), ...extraClasses];
+
+  async function makeClass() {
+    const name = newClassName.trim();
+    if (!name || !onCreateClass) return;
+    setClassBusy(true);
+    setClassError(null);
+    try {
+      const id = await onCreateClass(name);
+      if (!id) {
+        setClassError("반을 만들지 못했어요.");
+        return;
+      }
+      setExtraClasses((v) => [...v, { id, name }]);
+      setClassIds((v) => [...v, id]);
+      setNewClassName("");
+      setMakingClass(false);
+    } finally {
+      setClassBusy(false);
+    }
+  }
+
   return (
     <Modal
       title={`${roleLabel} 등록`}
@@ -325,7 +359,16 @@ export function AccountCreateModal({
         className="space-y-4"
         onSubmit={async (e) => {
           e.preventDefault();
-          if (await onSubmit({ name, username, password, ...(withStudentDetails ? details : {}) })) onClose();
+          if (
+            await onSubmit({
+              name,
+              username,
+              password,
+              ...(withStudentDetails ? details : {}),
+              ...(classOptions ? { classIds } : {}),
+            })
+          )
+            onClose();
         }}
       >
         <Field label="이름">
@@ -359,6 +402,80 @@ export function AccountCreateModal({
             className="ui-input"
           />
         </Field>
+        {classOptions ? (
+          <div className="rounded-xl bg-slate-50 p-3">
+            <p className="mb-2 text-xs font-semibold text-slate-600">
+              반 (넣으면 그 반의 강좌·단어·듣기가 바로 함께 배정돼요)
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {allClasses.map((c) => {
+                const on = classIds.includes(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() =>
+                      setClassIds((v) => (on ? v.filter((x) => x !== c.id) : [...v, c.id]))
+                    }
+                    className={`rounded-lg border px-2.5 py-1 text-[13px] font-semibold transition ${
+                      on
+                        ? "border-brand-600 bg-brand-50 text-brand-700"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {on ? "✓ " : ""}
+                    {c.name}
+                  </button>
+                );
+              })}
+              {allClasses.length === 0 && !makingClass ? (
+                <span className="text-[13px] text-slate-500">아직 반이 없어요.</span>
+              ) : null}
+              {onCreateClass && !makingClass ? (
+                <button
+                  type="button"
+                  onClick={() => setMakingClass(true)}
+                  className="rounded-lg border border-dashed border-slate-300 bg-white px-2.5 py-1 text-[13px] font-semibold text-slate-600 hover:bg-slate-100"
+                >
+                  + 새 반 만들기
+                </button>
+              ) : null}
+            </div>
+            {makingClass ? (
+              <div className="mt-2 flex gap-1.5">
+                <input
+                  autoFocus
+                  value={newClassName}
+                  onChange={(e) => setNewClassName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void makeClass();
+                    }
+                  }}
+                  placeholder="반 이름 (예: 중2 월수금 A)"
+                  className="ui-input h-9 flex-1 text-sm"
+                />
+                <Button type="button" size="sm" disabled={classBusy || !newClassName.trim()} onClick={() => void makeClass()}>
+                  {classBusy ? "만드는 중…" : "만들기"}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setMakingClass(false);
+                    setNewClassName("");
+                    setClassError(null);
+                  }}
+                >
+                  취소
+                </Button>
+              </div>
+            ) : null}
+            {classError ? <p className="mt-1.5 text-[13px] text-rose-600">{classError}</p> : null}
+          </div>
+        ) : null}
         {withStudentDetails ? (
           <div className="rounded-xl bg-slate-50 p-3">
             <p className="mb-2 text-xs font-semibold text-slate-600">학습일정표·상담에 쓰는 정보 (나중에 채워도 돼요)</p>

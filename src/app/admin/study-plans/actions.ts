@@ -5,6 +5,8 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createStudyPlan, saveStudyPlanRows, type PlanRow } from "@/lib/study-plan";
 import { isStudyPlanEnabled } from "@/lib/study-plan/access";
+import { monthSessionDates, sessionsPerWeekFrom } from "@/lib/study-plan/weekday-dates";
+import { studentClassWeekdays } from "@/lib/study-plan/student-weekdays";
 
 type Result = { ok: boolean; message: string };
 
@@ -35,19 +37,29 @@ export async function createPlanAction(input: {
     return { ok: false, message: "우리 학원 학생이 아니에요." };
   }
 
+  // 반에 수업 요일이 정해져 있으면 회차 수와 날짜를 그대로 따라간다
+  const weekdays = await studentClassWeekdays(admin, input.studentId);
+  const sessions = weekdays.length ? sessionsPerWeekFrom(weekdays) : input.sessionsPerWeek;
+
   const prevMonth = input.month === 1 ? 12 : input.month - 1;
   const prevYear = input.month === 1 ? input.year - 1 : input.year;
   try {
-    await createStudyPlan(admin, {
+    const plan = await createStudyPlan(admin, {
       academyId: profile.academy_id as string,
       studentId: input.studentId,
       year: input.year,
       month: input.month,
-      sessionsPerWeek: input.sessionsPerWeek,
+      sessionsPerWeek: sessions,
       teacherId: profile.id,
       createdBy: profile.id,
       copyFrom: { year: prevYear, month: prevMonth },
     });
+    if (weekdays.length) {
+      await admin
+        .from("study_plans")
+        .update({ session_dates: monthSessionDates(input.year, input.month, weekdays) })
+        .eq("id", plan.id);
+    }
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : "만들지 못했어요." };
   }

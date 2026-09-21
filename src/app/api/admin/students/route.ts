@@ -3,6 +3,7 @@ import { adminJsonError, getAdminClientSafe } from "@/lib/admin/api-json";
 import { createManagedAccount } from "@/lib/admin/manage-user";
 import { pickStudentDetails, saveStudentDetails } from "@/lib/accounts/student-details";
 import { requireAdminApi } from "@/lib/auth/require-admin-api";
+import { addStudentToClass } from "@/lib/classes/class-assignments";
 
 export const runtime = "nodejs";
 
@@ -42,9 +43,32 @@ export async function POST(request: Request) {
     const newId = (result.profile as { id?: string } | null)?.id;
     if (newId) await saveStudentDetails(clientResult.admin, newId, pickStudentDetails(body));
 
+    // 등록하면서 고른 반에 바로 넣는다 — 반의 강좌·단어·듣기가 함께 따라간다
+    const classIds = Array.isArray(body.classIds)
+      ? [...new Set(body.classIds.map((v) => String(v)).filter(Boolean))]
+      : [];
+    const failed: string[] = [];
+    if (newId && classIds.length > 0) {
+      for (const classId of classIds) {
+        const r = await addStudentToClass(clientResult.admin, {
+          classId,
+          studentId: newId,
+          assignedBy: auth.profile.id,
+          academyId: auth.profile.academy_id ?? undefined,
+        });
+        if (!r.ok) failed.push(r.message);
+      }
+    }
+
+    const added = classIds.length - failed.length;
     return NextResponse.json({
       ok: true,
-      message: result.message,
+      message:
+        failed.length > 0
+          ? `${result.message} 반 넣기에서 막힌 것이 있어요: ${failed[0]}`
+          : added > 0
+            ? `${result.message} 반 ${added}개에 넣었어요.`
+            : result.message,
       student: result.profile,
     });
   } catch (error) {
