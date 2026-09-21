@@ -12,12 +12,13 @@ export const WEEKS = [1, 2, 3, 4];
 export type PlanEntry = { progress: string; homework: string; note: string };
 
 /** 회차 출결 — 빈 문자열은 아직 적지 않음 */
-export type Attendance = "" | "present" | "late" | "absent" | "makeup";
+export type Attendance = "" | "present" | "late" | "absent" | "makeup" | "holiday";
 export const ATTENDANCE_LABELS: Record<Exclude<Attendance, "">, string> = {
   present: "출석",
   late: "지각",
   absent: "결석",
   makeup: "보강",
+  holiday: "공휴일",
 };
 export type PlanRow = {
   id: string;

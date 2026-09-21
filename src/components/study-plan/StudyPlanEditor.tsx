@@ -187,8 +187,8 @@ export function StudyPlanEditor({
   }
 
   /**
-   * 회차 출결을 바꾼다. 결석으로 바꾸면 그날 적어 둔 진도·숙제를 다음 회차로 밀고,
-   * 결석을 풀면 밀었던 것을 되돌리지 않는다(이미 손으로 고쳤을 수 있다).
+   * 회차 출결을 바꾼다. 결석·공휴일로 바꾸면 그날 적어 둔 진도·숙제를 다음 회차로 밀고,
+   * 되돌릴 때는 밀었던 것을 되돌리지 않는다(이미 손으로 고쳤을 수 있다).
    */
   function setAttendanceAt(week: number, i: number, next: Attendance) {
     const before = attendanceAt(week, i);
@@ -198,7 +198,9 @@ export function StudyPlanEditor({
       list[i] = next;
       return { ...prev, [String(week)]: list };
     });
-    if (next === "absent" && before !== "absent") pushToNextSession(week, i);
+    // 수업이 없는 날(결석·공휴일)은 그날 진도를 다음 회차로 넘긴다
+    const skips = (a: Attendance) => a === "absent" || a === "holiday";
+    if (skips(next) && !skips(before)) pushToNextSession(week, i);
   }
 
   /** 결석한 회차의 진도·숙제를 다음 회차로 밀어 넣는다 */
@@ -486,7 +488,7 @@ export function StudyPlanEditor({
                       }
                       className="ui-input mt-1 h-7 w-[9.5rem] text-xs font-normal"
                     />
-                    <div className="mt-1 flex gap-0.5">
+                    <div className="mt-1 flex flex-wrap gap-0.5">
                       {(Object.keys(ATTENDANCE_LABELS) as Array<keyof typeof ATTENDANCE_LABELS>).map((key) => {
                         const on = attendanceAt(week, i) === key;
                         return (
@@ -495,11 +497,11 @@ export function StudyPlanEditor({
                             type="button"
                             onClick={() => setAttendanceAt(week, i, on ? "" : key)}
                             title={
-                              key === "absent"
-                                ? "결석으로 바꾸면 이 회차의 진도·숙제가 다음 회차로 넘어가요"
+                              key === "absent" || key === "holiday"
+                                ? `${ATTENDANCE_LABELS[key]}로 두면 이 회차의 진도·숙제가 다음 회차로 넘어가요`
                                 : ATTENDANCE_LABELS[key]
                             }
-                            className={`h-6 flex-1 rounded border text-[11px] font-semibold transition ${
+                            className={`h-6 min-w-[2.6rem] flex-1 rounded border text-[11px] font-semibold transition ${
                               on
                                 ? key === "absent"
                                   ? "border-rose-500 bg-rose-50 text-rose-700"
@@ -507,7 +509,9 @@ export function StudyPlanEditor({
                                     ? "border-amber-500 bg-amber-50 text-amber-700"
                                     : key === "makeup"
                                       ? "border-violet-500 bg-violet-50 text-violet-700"
-                                      : "border-emerald-500 bg-emerald-50 text-emerald-700"
+                                      : key === "holiday"
+                                        ? "border-slate-500 bg-slate-100 text-slate-700"
+                                        : "border-emerald-500 bg-emerald-50 text-emerald-700"
                                 : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50"
                             }`}
                           >

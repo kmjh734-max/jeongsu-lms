@@ -62,7 +62,7 @@ export async function loadStudyPlanSection(
     .in("plan_id", planIds)
     .order("order_index");
 
-  const count = { present: 0, late: 0, absent: 0, makeup: 0 };
+  const count = { present: 0, late: 0, absent: 0, makeup: 0, holiday: 0 };
   let sessionsPlanned = 0;
   for (const p of wanted) {
     const dates = (p.session_dates ?? {}) as Record<string, string[]>;
@@ -102,6 +102,7 @@ export async function loadStudyPlanSection(
       : `${first.year}년 ${first.month}월 ~ ${last.year}년 ${last.month}월`;
 
   const done = count.present + count.late + count.makeup;
+  // 공휴일은 애초에 수업이 없던 날이라 참여율에서 뺀다
   const marked = done + count.absent;
   const parts: string[] = [];
   if (marked > 0) {
@@ -113,7 +114,9 @@ export async function loadStudyPlanSection(
   } else if (sessionsPlanned > 0) {
     parts.push(`수업 ${sessionsPlanned}회 예정`);
   }
-  if (count.absent > 0) parts.push("결석한 회차의 진도는 다음 회차로 넘겼습니다");
+  if (count.absent + count.holiday > 0) {
+    parts.push("수업이 없던 회차의 진도는 다음 회차로 넘겼습니다");
+  }
 
   return {
     monthLabel,
