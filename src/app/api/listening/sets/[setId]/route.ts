@@ -3,7 +3,10 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { deleteListeningSet } from "@/lib/listening/delete-set";
 import { ensureDictationPreparedForSet } from "@/lib/listening/dictation/prebuild-question";
 import { assertFolderAccessible } from "@/lib/listening/folder-access";
-import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
+import {
+  assertListeningSetDeletable,
+  assertListeningSetWritable,
+} from "@/lib/listening/listening-api-auth";
 import { createClient } from "@/lib/supabase/server";
 
 function jsonError(message: string, status = 200) {
@@ -37,6 +40,8 @@ export async function PATCH(
       dictation_randomize_on_retry?: boolean;
       dictation_lock_next_until_pass?: boolean;
       folderId?: string | null;
+      /** 학원 DB로 둘지 — 관리자만 바꿀 수 있다 */
+      is_locked?: boolean;
     };
 
     const supabase = await createClient();
@@ -105,6 +110,10 @@ export async function PATCH(
     if (body.folderId !== undefined) {
       patch.folder_id = body.folderId;
     }
+    // 학원 DB 표시는 관리자만 — 교사는 잠긴 세트에 여기까지 오지도 못한다
+    if (typeof body.is_locked === "boolean" && profile.role === "admin") {
+      patch.is_locked = body.is_locked;
+    }
 
     if (Object.keys(patch).length === 0) {
       return jsonError("변경할 내용이 없습니다.");
@@ -148,8 +157,8 @@ export async function DELETE(
     }
 
     const { setId } = await context.params;
-    const writable = await assertListeningSetWritable(setId);
-    if (!writable.ok) return jsonError(writable.message, writable.status);
+    const deletable = await assertListeningSetDeletable(setId);
+    if (!deletable.ok) return jsonError(deletable.message, deletable.status);
 
     await deleteListeningSet(setId);
 

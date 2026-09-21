@@ -40,6 +40,11 @@ const { data: prof } = await admin
 if (!prof) throw new Error("선생님 계정을 못 찾았습니다.");
 
 // 폴더
+/** "중3 20회" → 20 — 목록에서 회차 차례대로 보이게 하는 정렬 번호 */
+function roundOf(title: string): number {
+  return Number(/(\d+)\s*회/.exec(title)?.[1] ?? 0);
+}
+
 let folderId: string | null = null;
 if (spec.folder) {
   const { data: found } = await admin
@@ -75,7 +80,13 @@ if (existing) {
   await admin.from("listening_questions").delete().eq("set_id", setId);
   await admin
     .from("listening_sets")
-    .update({ grade_level: spec.gradeLevel, speech_speed: spec.speechSpeed, folder_id: folderId })
+    .update({
+      grade_level: spec.gradeLevel,
+      speech_speed: spec.speechSpeed,
+      folder_id: folderId,
+      is_locked: true,
+      order_index: roundOf(spec.title),
+    })
     .eq("id", setId);
   console.log(`이미 있는 세트를 비우고 다시 채웁니다: ${spec.title}`);
 } else {
@@ -90,6 +101,9 @@ if (existing) {
       created_by: prof.id,
       teacher_id: prof.id,
       is_published: false,
+      // 여기서 만드는 것은 모두 학원 DB 자료다 — 선생님이 지우지 못한다
+      is_locked: true,
+      order_index: roundOf(spec.title),
     })
     .select("id")
     .single();

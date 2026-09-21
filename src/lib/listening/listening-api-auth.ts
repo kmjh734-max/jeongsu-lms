@@ -118,6 +118,23 @@ export async function assertListeningSetAccess(
   };
 }
 
+/**
+ * 학원 DB 세트는 잠금을 풀기 전에는 아무도 지울 수 없다.
+ * 지우는 쪽은 service-role 로 도니 RLS 가 걸리지 않는다. 그래서 여기서 막는다.
+ */
+export async function assertListeningSetDeletable(setId: string) {
+  const access = await assertListeningSetAccess(setId);
+  if (!access.ok) return access;
+  if (access.setRow.is_locked) {
+    return {
+      ok: false as const,
+      message: "학원 DB 자료는 지울 수 없습니다. 꼭 지워야 하면 먼저 잠금을 풀어 주세요.",
+      status: 403,
+    };
+  }
+  return access;
+}
+
 /** Teachers cannot mutate locked curriculum sets; admins can. */
 export async function assertListeningSetWritable(setId: string) {
   const access = await assertListeningSetAccess(setId);
