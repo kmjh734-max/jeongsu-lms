@@ -280,6 +280,7 @@ export function OnePageWorkbench({
           role,
           projectId: project.id,
           forceRegenerate,
+          kind: mode,
         });
         if (!res.ok) return res.message;
         content = res.content;

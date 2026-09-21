@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       forceRegenerate?: boolean;
       id?: string;
       payload?: unknown;
+      kind?: "summary" | "test";
     };
     const role = body.role === "admin" ? "admin" : "teacher";
     if (body.op === "saveTest") {
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
       await prepareOnePageContentAction(role, {
         projectId: String(body.projectId ?? ""),
         forceRegenerate: body.forceRegenerate === true,
+        kind: body.kind === "test" ? "test" : "summary",
       })
     );
   } catch (e) {

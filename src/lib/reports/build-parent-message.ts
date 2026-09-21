@@ -1,5 +1,4 @@
 import { ACADEMY_NAME } from "@/lib/branding";
-import { formatReviewWordParentLine, formatVocabSetParentLine } from "@/lib/reports/format-lines";
 import type { StudentReport } from "@/lib/reports/types";
 
 export interface ParentMessageInput {
@@ -10,94 +9,124 @@ export interface ParentMessageInput {
   academyName?: string;
 }
 
+/** 목록이 길어지면 앞의 몇 개만 적고 나머지는 수로 적는다 */
+function few(items: string[], keep: number): string[] {
+  if (items.length <= keep) return items;
+  return [...items.slice(0, keep), `외 ${items.length - keep}개`];
+}
+
+/**
+ * 학부모께 보낼 안내문구.
+ *
+ * 전에는 번호 붙은 다섯 칸에 강의 제목과 낱말을 모두 늘어놓아 카톡 화면을 넘겼다.
+ * 학부모가 한 번에 읽을 수 있도록 갈래마다 한 줄로 줄이고, 자세한 것은 링크에 맡긴다.
+ */
 export function buildParentReportMessage({
   report,
   learningReportText,
   academyName = ACADEMY_NAME,
 }: ParentMessageInput): string {
   const studentName = report.student.name;
+  const o = report.overview;
+
   const lines: string[] = [
     `[${studentName} 학생 학습 리포트]`,
     "",
     `안녕하세요. ${academyName}입니다.`,
-    `${report.rangeLabel} 기준 ${studentName} 학생의 온라인 학습 현황을 안내드립니다.`,
+    `${report.rangeLabel} ${studentName} 학생의 학습 현황을 알려 드립니다.`,
     "",
-    "1. 학습 리포트",
   ];
 
-  const reflected = learningReportText?.trim();
-  if (reflected) {
-    lines.push(reflected);
+  // 출결 — 일정표에 찍어 둔 것이 있을 때만
+  const att = report.studyPlan?.attendance;
+  if (att) {
+    const came = att.present + att.late + att.makeup;
+    const planned = came + att.absent;
+    if (planned > 0) {
+      const extra = [
+        att.late > 0 ? `지각 ${att.late}회` : "",
+        att.absent > 0 ? `결석 ${att.absent}회` : "",
+        att.makeup > 0 ? `보강 ${att.makeup}회` : "",
+      ].filter(Boolean);
+      lines.push(
+        `· 출결 — 수업 ${planned}회 중 ${came}회 참여` +
+          (extra.length ? ` (${extra.join(", ")})` : ""),
+      );
+    }
+  }
+
+  // 단어
+  if (report.vocabSets.length === 0) {
+    lines.push("· 단어 — 이 기간에 학습한 단어장이 없습니다");
   } else {
+    const passed = report.vocabSets.filter((s) => s.stage4Passed);
+    const head =
+      `· 단어 — ${report.vocabSets.length}세트 중 ${passed.length}세트 합격` +
+      (o?.vocab.avgScore != null ? ` (종합테스트 ${o.vocab.avgScore}점)` : "");
+    lines.push(head);
+    for (const t of few(
+      report.vocabSets.map(
+        (s) => `   ${s.setTitle} — ${s.stage4Passed ? `합격 ${s.stage4BestScore}점` : s.statusLabel}`,
+      ),
+      3,
+    )) {
+      lines.push(t);
+    }
+  }
+
+  // 듣기 — 받아쓰기·시험을 한 줄씩
+  const listen: string[] = [];
+  for (const d of report.listeningDictation) {
+    listen.push(
+      `   ${d.setTitle} 받아쓰기 — ${d.questionCount}문항 중 ${d.passedQuestionCount}문항 통과` +
+        (d.averageBestScore != null ? `, 평균 ${d.averageBestScore}점` : ""),
+    );
+  }
+  for (const e of report.listeningExam) {
+    listen.push(
+      `   ${e.setTitle} 시험 — ${e.questionCount}문항` +
+        (e.bestScore != null ? `, 최고 ${e.bestScore}점` : ""),
+    );
+  }
+  if (listen.length === 0) {
+    lines.push("· 듣기 — 이 기간에 학습 기록이 없습니다");
+  } else {
+    lines.push("· 듣기");
+    for (const t of few(listen, 3)) lines.push(t);
+  }
+
+  // 영상
+  if (report.courses.length === 0) {
+    lines.push("· 영상 — 이 기간에 학습한 강좌가 없습니다");
+  } else {
+    for (const t of few(
+      report.courses.map(
+        (c) =>
+          `· 영상 — ${c.courseTitle} ${c.totalLessons}강 중 ${c.completedLessons}강 (${c.progressPercent}%)`,
+      ),
+      2,
+    )) {
+      lines.push(t);
+    }
+  }
+
+  // 복습할 낱말 — 집에서 할 일이라 낱말을 그대로 적는다
+  if (report.reviewWords.length === 0) {
+    lines.push("· 복습할 낱말 — 없습니다");
+  } else {
+    const words = report.reviewWords.slice(0, 10).map((w) => w.word);
     lines.push(
-      `${report.summary.videoLine} ${report.summary.vocabLine} ${report.summary.reviewLine} ${report.summary.listeningScheduleLine} ${report.summary.listeningDictationLine} ${report.summary.listeningExamLine}`
+      `· 복습할 낱말 ${report.reviewWords.length}개 — ${words.join(", ")}` +
+        (report.reviewWords.length > words.length ? " 외" : ""),
     );
   }
 
-  lines.push("", "2. 영상 학습 현황");
+  // 선생님이 손본 글이 있으면 그대로 덧붙인다
+  const reflected = learningReportText?.trim();
+  if (reflected) lines.push("", reflected);
 
-  if (report.courses.length === 0) {
-    lines.push(`- ${report.rangeLabel} 기준 학습한 영상 강좌가 없습니다.`);
-  } else {
-    for (const course of report.courses) {
-      lines.push(
-        `- ${course.courseTitle} 강좌는 총 ${course.totalLessons}강 중 ${course.completedLessons}강을 완료하여 진도율은 ${course.progressPercent}%입니다.`
-      );
-      if (course.completedLessonsList.length > 0) {
-        lines.push("  완료한 영상:");
-        for (const title of course.completedLessonsList) {
-          lines.push(`  · ${title}`);
-        }
-      }
-    }
-  }
-
-  lines.push("", "3. 단어학습 현황");
-
-  if (report.vocabSets.length === 0) {
-    lines.push(`- ${report.rangeLabel} 기준 학습한 단어장이 없습니다.`);
-  } else {
-    for (const set of report.vocabSets) {
-      lines.push(formatVocabSetParentLine(set));
-    }
-  }
-
-  lines.push("", "4. 복습 필요 단어");
-
-  if (report.reviewWords.length === 0) {
-    lines.push("- 현재 특별히 복습이 필요한 단어는 없습니다.");
-  } else {
-    for (const word of report.reviewWords.slice(0, 30)) {
-      lines.push(formatReviewWordParentLine(word));
-    }
-    if (report.reviewWords.length > 30) {
-      lines.push(`- 외 ${report.reviewWords.length - 30}개`);
-    }
-  }
-
-  lines.push("", "5. 듣기 학습 현황");
-
-  if (
-    report.listeningSchedule.length === 0 &&
-    report.listeningDictation.length === 0 &&
-    report.listeningExam.length === 0
-  ) {
-    lines.push("- 기간 내 듣기 학습 기록이 없습니다.");
-  } else {
-    for (const s of report.listeningSchedule) {
-      lines.push(`- [스케줄] ${s.title}: ${s.summaryLine}`);
-    }
-    for (const d of report.listeningDictation) {
-      lines.push(`- [Dictation] ${d.setTitle}: ${d.summaryLine}`);
-    }
-    for (const e of report.listeningExam) {
-      lines.push(`- [시험] ${e.setTitle}: ${e.summaryLine}`);
-    }
-  }
-
-  lines.push("");
-  lines.push("앞으로도 꾸준히 학습할 수 있도록 지도하겠습니다.");
-  lines.push("감사합니다.");
+  lines.push("", "자세한 내용은 아래 링크에서 보실 수 있습니다.");
+  lines.push("앞으로도 꾸준히 지도하겠습니다. 감사합니다.");
 
   return lines.join("\n");
 }

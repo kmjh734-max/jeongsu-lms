@@ -24,8 +24,13 @@ export const LESSON_CREDIT_FEATURES = {
   workbookTf: "lesson_workbook_tf",
   /** 지문 삽화, 장당 */
   illustration: "lesson_illustration",
-  /** 1장 요약직보자료·1장 테스트 재료(주제·요약문·동반의어·어법 포인트·T/F 등), 지문당 */
-  onePage: "lesson_one_page",
+  /**
+   * 1장 요약직보자료, 지문당. 재료(주제·요약문·동반의어·어법 포인트·T/F)는 테스트와 함께 쓰지만
+   * 값은 자료마다 따로 매긴다. 같은 지문으로 다시 열면 더 받지 않는다.
+   */
+  onePageSummary: "lesson_one_page_summary",
+  /** 1장 테스트, 지문당 */
+  onePageTest: "lesson_one_page_test",
 } as const;
 
 export type LessonCreditFeature =

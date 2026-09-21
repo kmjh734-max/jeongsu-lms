@@ -35,7 +35,7 @@ async function requireRole(role: Role) {
  */
 export async function prepareOnePageContentAction(
   role: Role,
-  input: { projectId: string; forceRegenerate?: boolean }
+  input: { projectId: string; forceRegenerate?: boolean; kind?: "summary" | "test" }
 ): Promise<{ ok: true; content: OnePageContent; generated: boolean } | { ok: false; message: string }> {
   const { profile, error } = await requireRole(role);
   if (error) return { ok: false, message: error };
@@ -66,26 +66,38 @@ export async function prepareOnePageContentAction(
   const english = onePageSentences(items ?? []).map((s) => s.english);
 
   const pack = (project.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+  const feature =
+    input.kind === "test" ? LESSON_CREDIT_FEATURES.onePageTest : LESSON_CREDIT_FEATURES.onePageSummary;
+  const label = input.kind === "test" ? "1장 테스트" : "1장 요약직보자료";
+  // 같은 지문·같은 갈래는 한 번만 받는다(다시 열거나 다시 만들어도 더 받지 않는다)
+  const once = `${feature}:${project.id}`;
+
+  const shortfall = await lessonCreditShortfall(profile!.academy_id!, feature);
+  if (shortfall) return { ok: false, message: shortfall };
+
+  // 재료가 이미 있어도 이 갈래로는 처음이면 값을 매긴다 — 자료 하나가 값 하나다
+  const charge = () =>
+    debitLessonCredits({
+      academyId: profile!.academy_id!,
+      actorId: profile!.id,
+      featureKey: feature,
+      projectId: project.id as string,
+      idempotencyKey: once,
+      note: `${label} · ${project.title}`,
+    });
+
   if (!input.forceRegenerate && isOnePageContentFresh(pack.onePageContent, english)) {
+    await charge();
     return { ok: true, content: pack.onePageContent, generated: false };
   }
-
-  const shortfall = await lessonCreditShortfall(profile!.academy_id!, LESSON_CREDIT_FEATURES.onePage);
-  if (shortfall) return { ok: false, message: shortfall };
 
   try {
     const { content } = await generateOnePageContent({ title: project.title as string, sentences: english });
     await patchLessonPack(supabase, project.id as string, pack, { onePageContent: content });
-    await debitLessonCredits({
-      academyId: profile!.academy_id!,
-      actorId: profile!.id,
-      featureKey: LESSON_CREDIT_FEATURES.onePage,
-      projectId: project.id as string,
-      note: `1장 자료 · ${project.title}`,
-    });
+    await charge();
     return { ok: true, content, generated: true };
   } catch (e) {
-    return { ok: false, message: e instanceof Error ? e.message : "1장 자료를 만들지 못했습니다." };
+    return { ok: false, message: e instanceof Error ? e.message : `${label}를 만들지 못했습니다.` };
   }
 }
 
