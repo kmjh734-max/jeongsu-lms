@@ -9,7 +9,7 @@ const OWNER_SLUG = "jeongsu";
  * 여기에 적힌 학원만 교과서 본문을 볼 수 있다. 열어 달라는 말을 들은 곳만 한 줄씩 넣는다.
  * (학원 slug는 super-admin 학원 목록에 있는 그 값이다)
  */
-const OPENED_SLUGS = ["bornenglish", "gukje"];
+const OPENED_SLUGS = ["bornenglish", "gukje", "willing"];
 
 /**
  * 이 학원이 교과서 본문을 어느 학원 것으로 봐야 하는지 알려 준다.
