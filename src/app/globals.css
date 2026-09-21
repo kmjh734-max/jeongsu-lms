@@ -4125,21 +4125,25 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   min-width: 0;
 }
 .vd-word {
-  font-size: calc(var(--vocab-main-word-size) * 0.76);
+  --vd-word-base: calc(var(--vocab-main-word-size) * 0.76);
+  font-size: var(--vd-word-base);
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.01em;
   color: #111827;
   overflow-wrap: anywhere;
 }
+/* 긴 낱말은 크기를 깎기 전에 자간부터 좁힌다 — 짧은 낱말 옆에서 작아 보이지 않게 */
 .vd-word.vocab-print-density--sm {
-  font-size: calc(var(--vocab-main-word-size) * 0.68);
+  font-size: calc(var(--vd-word-base) * 0.94);
+  letter-spacing: -0.03em;
 }
 .vd-word.vocab-print-density--xs {
-  font-size: calc(var(--vocab-main-word-size) * 0.6);
+  font-size: calc(var(--vd-word-base) * 0.86);
+  letter-spacing: -0.045em;
 }
 .vd-word--lg {
-  font-size: calc(var(--vocab-main-word-size) * 0.98);
+  --vd-word-base: calc(var(--vocab-main-word-size) * 0.98);
   font-weight: 900;
 }
 .vd-pos {

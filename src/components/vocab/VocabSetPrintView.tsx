@@ -1414,8 +1414,8 @@ function printDensityClass(
   const len = t.length;
 
   if (kind === "word") {
-    if (len >= 14) return "vocab-print-density--xs";
-    if (len >= 11) return "vocab-print-density--sm";
+    if (len >= 15) return "vocab-print-density--xs";
+    if (len >= 12) return "vocab-print-density--sm";
     return "";
   }
   if (kind === "meaning") {
