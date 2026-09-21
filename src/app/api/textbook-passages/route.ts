@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireExamStaff } from "@/lib/exam-analysis/access";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveTextbookPassageAcademyId } from "@/lib/textbooks/shared-passages";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,7 @@ export async function GET(req: Request) {
   const auth = await requireExamStaff();
   if ("error" in auth) return auth.error;
   const admin = createAdminClient();
-  const academyId = auth.profile.academy_id;
+  const academyId = await resolveTextbookPassageAcademyId(admin, auth.profile.academy_id);
 
   const book = new URL(req.url).searchParams.get("book");
   if (!book) {
