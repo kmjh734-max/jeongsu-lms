@@ -131,23 +131,22 @@ export function ReportMobileParent({
   const lessonDone = report.courses.reduce((s, c) => s + c.completedLessons, 0);
   const { rows: reviewRows, extra: reviewExtra } = reviewWordSlice(report);
 
+  // 한 것만 보여 준다 — 안 한 것을 '기록 없음'으로 적으면 읽을 것만 늘어난다
   const tiles: Array<[string, string, string, string]> = [
     [`${o.activeDays}일`, "학습한 날", `수업일 ${classDayCount}일 중`, GREEN_INK],
-    [
-      o.vocab.setsStudied ? `${o.vocab.setsPassed}세트` : "—",
-      "단어 합격",
-      o.vocab.setsStudied ? `${o.vocab.setsStudied}세트 중` : "기록 없음",
-      GREEN_INK,
-    ],
-    dictAvg != null
-      ? [`${dictAvg}점`, "받아쓰기", "평균", VIOLET]
-      : [
-          o.listening.examAvg != null ? `${o.listening.examAvg}점` : "—",
-          "듣기 평균",
-          o.listening.examAvg != null ? "시험" : "기록 없음",
-          VIOLET,
-        ],
   ];
+  if (o.vocab.setsStudied) {
+    tiles.push([
+      `${o.vocab.setsPassed}세트`,
+      "단어 합격",
+      `${o.vocab.setsStudied}세트 중`,
+      GREEN_INK,
+    ]);
+  }
+  if (dictAvg != null) tiles.push([`${dictAvg}점`, "받아쓰기", "평균", VIOLET]);
+  else if (o.listening.examAvg != null) {
+    tiles.push([`${o.listening.examAvg}점`, "듣기 평균", "시험", VIOLET]);
+  }
 
   // ----- 한 줄 결론 — 숫자를 안 읽어도 이 문장이면 된다 -----
   const verdict: string[] = [];
@@ -216,7 +215,10 @@ export function ReportMobileParent({
           </p>
         </header>
 
-        <div className="mx-4 -mt-[52px] grid grid-cols-3 gap-1 rounded-[18px] bg-white p-4 shadow-[0_8px_26px_rgba(19,41,75,0.14)]">
+        <div
+          className="mx-4 -mt-[52px] grid gap-1 rounded-[18px] bg-white p-4 shadow-[0_8px_26px_rgba(19,41,75,0.14)]"
+          style={{ gridTemplateColumns: `repeat(${tiles.length}, minmax(0, 1fr))` }}
+        >
           {tiles.map(([value, label, sub, color]) => (
             <div key={label} className="flex flex-col items-center gap-px text-center">
               <b className="text-[21px] font-black leading-tight tabular-nums" style={{ color }}>
@@ -320,12 +322,8 @@ export function ReportMobileParent({
           </Card>
         ) : null}
 
-        <Card title="집에서 함께 복습해 주세요" tint="#fff7ed">
-          {reviewRows.length === 0 ? (
-            <p className="mt-2.5 text-[13px] text-slate-500">
-              이번 달에는 특별히 복습이 필요한 낱말이 없습니다.
-            </p>
-          ) : (
+        {reviewRows.length > 0 ? (
+          <Card title="집에서 함께 복습해 주세요" tint="#fff7ed">
             <>
               <ul className="mt-3 flex flex-col gap-1.5">
                 {reviewRows.map((w) => (
@@ -346,22 +344,18 @@ export function ReportMobileParent({
                 <p className="mt-2 text-[11px] text-slate-500">외 {reviewExtra}개</p>
               ) : null}
             </>
-          )}
-        </Card>
+          </Card>
+        ) : null}
 
-        <Card
-          title="단어학습"
-          note={
-            o.vocab.setsStudied
-              ? `${o.vocab.setsStudied}세트 중 ${o.vocab.setsPassed}세트 합격`
-              : undefined
-          }
-        >
-          {report.vocabSets.length === 0 ? (
-            <p className="mt-2.5 text-[13px] text-slate-500">
-              {report.rangeLabel} 기준 학습한 단어장이 없습니다.
-            </p>
-          ) : (
+        {report.vocabSets.length > 0 ? (
+          <Card
+            title="단어학습"
+            note={
+              o.vocab.setsStudied
+                ? `${o.vocab.setsStudied}세트 중 ${o.vocab.setsPassed}세트 합격`
+                : undefined
+            }
+          >
             <ul className="mt-2.5">
               {report.vocabSets.map((set) => (
                 <Row
@@ -379,15 +373,11 @@ export function ReportMobileParent({
                 />
               ))}
             </ul>
-          )}
-        </Card>
+          </Card>
+        ) : null}
 
-        <Card title="듣기">
-          {dict.length === 0 && report.listeningExam.length === 0 ? (
-            <p className="mt-2.5 text-[13px] text-slate-500">
-              {report.rangeLabel} 기준 듣기 학습 기록이 없습니다.
-            </p>
-          ) : (
+        {dict.length > 0 || report.listeningExam.length > 0 ? (
+          <Card title="듣기">
             <>
               <ul className="mt-2.5">
                 {dict.map((d) => (
@@ -440,15 +430,11 @@ export function ReportMobileParent({
                 </div>
               ) : null}
             </>
-          )}
-        </Card>
+          </Card>
+        ) : null}
 
-        <Card title="영상 강의" note={lessonTotal ? `${lessonTotal}강 중 ${lessonDone}강` : undefined}>
-          {report.courses.length === 0 ? (
-            <p className="mt-2.5 text-[13px] text-slate-500">
-              {report.rangeLabel} 기준 학습한 영상 강좌가 없습니다.
-            </p>
-          ) : (
+        {report.courses.length > 0 ? (
+          <Card title="영상 강의" note={lessonTotal ? `${lessonTotal}강 중 ${lessonDone}강` : undefined}>
             <ul className="mt-2.5">
               {report.courses.map((c) => (
                 <Row
@@ -459,8 +445,8 @@ export function ReportMobileParent({
                 />
               ))}
             </ul>
-          )}
-        </Card>
+          </Card>
+        ) : null}
 
         <div className="mx-4">
           <Link

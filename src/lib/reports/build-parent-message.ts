@@ -56,9 +56,7 @@ export function buildParentReportMessage({
   }
 
   // 단어
-  if (report.vocabSets.length === 0) {
-    lines.push("· 단어 — 이 기간에 학습한 단어장이 없습니다");
-  } else {
+  if (report.vocabSets.length > 0) {
     const passed = report.vocabSets.filter((s) => s.stage4Passed);
     const head =
       `· 단어 — ${report.vocabSets.length}세트 중 ${passed.length}세트 합격` +
@@ -88,17 +86,13 @@ export function buildParentReportMessage({
         (e.bestScore != null ? `, 최고 ${e.bestScore}점` : ""),
     );
   }
-  if (listen.length === 0) {
-    lines.push("· 듣기 — 이 기간에 학습 기록이 없습니다");
-  } else {
+  if (listen.length > 0) {
     lines.push("· 듣기");
     for (const t of few(listen, 3)) lines.push(t);
   }
 
   // 영상
-  if (report.courses.length === 0) {
-    lines.push("· 영상 — 이 기간에 학습한 강좌가 없습니다");
-  } else {
+  if (report.courses.length > 0) {
     for (const t of few(
       report.courses.map(
         (c) =>
@@ -111,9 +105,7 @@ export function buildParentReportMessage({
   }
 
   // 복습할 낱말 — 집에서 할 일이라 낱말을 그대로 적는다
-  if (report.reviewWords.length === 0) {
-    lines.push("· 복습할 낱말 — 없습니다");
-  } else {
+  if (report.reviewWords.length > 0) {
     const words = report.reviewWords.slice(0, 10).map((w) => w.word);
     lines.push(
       `· 복습할 낱말 ${report.reviewWords.length}개 — ${words.join(", ")}` +

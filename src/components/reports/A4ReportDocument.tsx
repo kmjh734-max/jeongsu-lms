@@ -226,15 +226,12 @@ export function A4ReportDocument({
         </>
       )}
 
+      {report.courses.length > 0 ? (
       <section className="mt-5 break-inside-avoid">
         <h2 className="border-b border-slate-200 pb-1 text-[11pt] font-bold text-[#1e3a5f]">
           영상 학습 현황
         </h2>
-        {report.courses.length === 0 ? (
-          <p className="mt-2 text-[10pt] text-slate-600">
-            {report.rangeLabel} 기준 학습한 영상 강좌가 없습니다.
-          </p>
-        ) : (
+        {(
           <table className="mt-2 w-full border-collapse text-[9.5pt]">
             <thead>
               <tr className="border-b border-[#1e3a5f]/25 text-slate-600">
@@ -272,16 +269,14 @@ export function A4ReportDocument({
           </table>
         )}
       </section>
+      ) : null}
 
+      {report.listeningSchedule.length > 0 ? (
       <section className="mt-5 break-inside-avoid">
         <h2 className="border-b border-slate-200 pb-1 text-[11pt] font-bold text-[#1e3a5f]">
           듣기 스케줄 (일일 과제)
         </h2>
-        {report.listeningSchedule.length === 0 ? (
-          <p className="mt-2 text-[10pt] text-slate-600">
-            {report.rangeLabel} 기준 듣기 스케줄 학습 기록이 없습니다.
-          </p>
-        ) : (
+        {(
           <table className="mt-2 w-full border-collapse text-[9.5pt]">
             <thead>
               <tr className="border-b border-[#1e3a5f]/25 text-slate-600">
@@ -306,16 +301,14 @@ export function A4ReportDocument({
           </table>
         )}
       </section>
+      ) : null}
 
+      {report.vocabSets.length > 0 ? (
       <section className="mt-5 break-inside-avoid">
         <h2 className="border-b border-slate-200 pb-1 text-[11pt] font-bold text-[#1e3a5f]">
           단어학습 현황
         </h2>
-        {report.vocabSets.length === 0 ? (
-          <p className="mt-2 text-[10pt] text-slate-600">
-            {report.rangeLabel} 기준 학습한 단어장이 없습니다.
-          </p>
-        ) : (
+        {(
           <table className="mt-2 w-full border-collapse text-[8.5pt]">
             <thead>
               <tr className="border-b border-[#1e3a5f]/25 text-slate-600">
@@ -360,16 +353,14 @@ export function A4ReportDocument({
           </table>
         )}
       </section>
+      ) : null}
 
+      {reviewRows.length > 0 ? (
       <section className="mt-5 break-inside-avoid">
         <h2 className="border-b border-slate-200 pb-1 text-[11pt] font-bold text-[#1e3a5f]">
           복습 필요 단어
         </h2>
-        {reviewRows.length === 0 ? (
-          <p className="mt-2 text-[10pt] text-slate-600">
-            현재 특별히 복습이 필요한 단어는 없습니다.
-          </p>
-        ) : (
+        {(
           <>
             <table className="mt-2 w-full border-collapse text-[9.5pt]">
               <thead>
@@ -399,6 +390,7 @@ export function A4ReportDocument({
           </>
         )}
       </section>
+      ) : null}
 
       <footer className="mt-8 border-t border-slate-200 pt-4 text-[9.5pt] text-slate-600">
         <p>앞으로도 꾸준히 학습할 수 있도록 지도하겠습니다.</p>
