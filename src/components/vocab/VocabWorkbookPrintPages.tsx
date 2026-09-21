@@ -122,9 +122,9 @@ const WorkbookPage = memo(function WorkbookPage({
         <span className="vd-foot-left">
           {mode === "full" ? academyName : "✂ 점선을 따라 접으세요"}
         </span>
+        {/* 학원 이름은 왼쪽에 이미 있다 — 여기는 쪽 번호만 둔다 */}
         <span>
-          {academyName} · {pageIndex + 1} / {sectionPageTotal}
-          {multiSection ? ` · p.${globalPageNum}` : ""}
+          {multiSection ? `p.${globalPageNum}` : `${pageIndex + 1} / ${sectionPageTotal}`}
         </span>
       </footer>
     </article>
