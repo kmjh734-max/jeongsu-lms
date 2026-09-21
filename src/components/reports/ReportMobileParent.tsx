@@ -1,14 +1,25 @@
+import Image from "next/image";
 import Link from "next/link";
 import { classDaySet, compareLines } from "@/components/reports/ReportDashboard";
+import { ATTENDANCE_LABELS } from "@/lib/study-plan";
+import { reviewWordSlice } from "@/lib/reports/report-shape";
 import type { StudentReport } from "@/lib/reports/types";
 
 /**
- * 학습 리포트 C안(학부모 모바일형) — 카톡 링크로 여는 학부모 화면.
- * 한 문장 머리글 · 세 가지 수치 · 선생님 말씀 · 공부한 날 달력 · 과목별 막대 · 복습 단어 · PDF 저장.
+ * 학습 리포트 학부모 화면 — 카톡 링크로 여는 그 화면.
+ *
+ * 인쇄용 A4와 같은 것을 담되 모양만 휴대폰에 맞춘다. 학부모는 카톡에서 안내문구를
+ * 이미 읽고 들어오므로, 여기서는 "그래서 어땠나"에 먼저 답하고 근거를 아래에 둔다.
+ * 안 오는 요일은 달력에 그리지 않는다(월수금 반이면 세 칸).
  */
 
 const NAVY = "#13294b";
-const WEEKDAYS = ["월", "화", "수", "목", "금", "토", "일"];
+const GREEN = "#16a34a";
+const GREEN_INK = "#15803d";
+const VIOLET = "#7c3aed";
+const AMBER = "#ea580c";
+const ROSE = "#e11d48";
+const WEEKDAY_NAMES = ["월", "화", "수", "목", "금", "토", "일"];
 
 function addDays(ymd: string, n: number): string {
   const d = new Date(`${ymd}T00:00:00Z`);
@@ -18,17 +29,62 @@ function addDays(ymd: string, n: number): string {
 function weekdayIndex(ymd: string): number {
   return (new Date(`${ymd}T00:00:00Z`).getUTCDay() + 6) % 7;
 }
-/** 이름 끝 두 글자로 부른다(김민지 → 민지) */
-function callName(name: string): string {
-  const n = name.trim();
-  return /^[가-힣]{3}$/.test(n) ? n.slice(1) : n;
+/** "2026-09-01" → "2026. 09. 01" */
+function dotted(ymd: string): string {
+  return ymd.replace(/-/g, ". ");
 }
 
-function Card({ children, tint = "#ffffff" }: { children: React.ReactNode; tint?: string }) {
+function Card({
+  title,
+  note,
+  tint,
+  children,
+}: {
+  title: string;
+  note?: string;
+  tint?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="mx-4 flex flex-col gap-3 rounded-2xl p-[18px]" style={{ background: tint }}>
+    <section
+      className="mx-4 rounded-2xl border border-slate-200 p-[18px]"
+      style={{ background: tint ?? "#fff", borderColor: tint ? "transparent" : undefined }}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="text-[15px] font-extrabold tracking-[-0.01em] text-slate-900">{title}</h2>
+        {note ? <span className="text-[11px] tabular-nums text-slate-500">{note}</span> : null}
+      </div>
       {children}
     </section>
+  );
+}
+
+/** 제목 한 줄 + 표시 + 사실 한 조각 */
+function Row({
+  title,
+  pill,
+  pillTone = "go",
+  fact,
+}: {
+  title: string;
+  pill?: string;
+  pillTone?: "ok" | "go";
+  fact?: string;
+}) {
+  return (
+    <li className="flex flex-wrap items-center gap-1.5 border-t border-slate-200 py-2 first:border-t-0 first:pt-0.5">
+      <b className="min-w-0 basis-full text-[13px] font-bold leading-snug text-slate-900">{title}</b>
+      {pill ? (
+        <span
+          className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ${
+            pillTone === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-slate-200 text-slate-600"
+          }`}
+        >
+          {pill}
+        </span>
+      ) : null}
+      {fact ? <span className="text-xs tabular-nums text-slate-500">{fact}</span> : null}
+    </li>
   );
 }
 
@@ -39,6 +95,7 @@ export function ReportMobileParent({
   studentName,
   printHref,
   expiresLabel,
+  logoSrc,
 }: {
   report: StudentReport;
   comment: string;
@@ -46,71 +103,136 @@ export function ReportMobileParent({
   studentName: string;
   printHref: string;
   expiresLabel: string;
+  logoSrc?: string;
 }) {
   const o = report.overview;
   if (!o) return null;
 
+  // ----- 달력: 이 아이가 오는 요일만 칸을 만든다 -----
+  const classDays = [...classDaySet(o)].sort((a, b) => a - b);
+  const weeks: Array<Array<{ ymd: string; state: "done" | "missed" | "none" }>> = [];
   const first = addDays(o.calendarStart, -weekdayIndex(o.calendarStart));
-  const last = addDays(o.calendarEnd, 6 - weekdayIndex(o.calendarEnd));
-  const classDays_ = classDaySet(o);
-  const changes = compareLines(o);
-  const cells: Array<{ ymd: string; state: string }> = [];
-  for (let d = first; d <= last && cells.length < 49; d = addDays(d, 1)) {
-    const inside = d >= o.calendarStart && d <= o.calendarEnd;
-    const studied = (o.activity[d] ?? 0) > 0;
-    cells.push({ ymd: d, state: !inside ? "out" : studied ? "done" : !classDays_.has(weekdayIndex(d)) ? "off" : "missed" });
+  for (let d = first; d <= o.calendarEnd; d = addDays(d, 7)) {
+    const row = classDays.map((wd) => {
+      const day = addDays(d, wd);
+      if (day < o.calendarStart || day > o.calendarEnd) return { ymd: day, state: "none" as const };
+      return { ymd: day, state: (o.activity[day] ?? 0) > 0 ? ("done" as const) : ("missed" as const) };
+    });
+    if (row.some((c) => c.state !== "none")) weeks.push(row);
   }
-  const classDays = cells.filter((c) => c.state === "done" || c.state === "missed").length;
-  const style = (s: string) =>
-    s === "done"
-      ? { background: "#16a34a", color: "#fff" }
-      : s === "missed"
-        ? { background: "#fde2e2", color: "#b91c1c" }
-        : s === "off"
-          ? { background: "#f1f3f6", color: "#9aa3b0" }
-          : { background: "transparent", color: "transparent" };
+  const classDayCount = weeks.flat().filter((c) => c.state !== "none").length;
+  const studiedOnClassDays = weeks.flat().filter((c) => c.state === "done").length;
 
+  // ----- 수치 -----
+  const changes = compareLines(o);
+  const dict = report.listeningDictation;
+  const dictAvg = dict.find((d) => d.averageBestScore != null)?.averageBestScore ?? null;
   const lessonTotal = report.courses.reduce((s, c) => s + c.totalLessons, 0);
   const lessonDone = report.courses.reduce((s, c) => s + c.completedLessons, 0);
-  const dictTotal = o.listening.dictationTotal ?? 0;
-  const dictPassed = o.listening.dictationPassed ?? 0;
-  const vocabPct = o.vocab.setsStudied ? Math.round((o.vocab.setsPassed / o.vocab.setsStudied) * 100) : null;
+  const { rows: reviewRows, extra: reviewExtra } = reviewWordSlice(report);
 
-  const areas = [
-    { name: "단어", text: o.vocab.setsStudied ? `${o.vocab.setsStudied}세트 중 ${o.vocab.setsPassed} 합격` : "기록 없음", pct: vocabPct, color: "#16a34a" },
-    { name: "듣기", text: o.listening.examAvg != null ? `평균 ${o.listening.examAvg}점` : "기록 없음", pct: o.listening.examAvg, color: "#7c3aed" },
-    { name: "받아쓰기", text: dictTotal ? `${dictPassed}/${dictTotal}문항` : "기록 없음", pct: dictTotal ? Math.round((dictPassed / dictTotal) * 100) : null, color: "#ea580c" },
-    { name: "영상", text: lessonTotal ? `${lessonTotal}강 중 ${lessonDone}강` : "기록 없음", pct: lessonTotal ? Math.round((lessonDone / lessonTotal) * 100) : null, color: "#0891b2" },
+  const tiles: Array<[string, string, string, string]> = [
+    [`${o.activeDays}일`, "학습한 날", `수업일 ${classDayCount}일 중`, GREEN_INK],
+    [
+      o.vocab.setsStudied ? `${o.vocab.setsPassed}세트` : "—",
+      "단어 합격",
+      o.vocab.setsStudied ? `${o.vocab.setsStudied}세트 중` : "기록 없음",
+      GREEN_INK,
+    ],
+    dictAvg != null
+      ? [`${dictAvg}점`, "받아쓰기", "평균", VIOLET]
+      : [
+          o.listening.examAvg != null ? `${o.listening.examAvg}점` : "—",
+          "듣기 평균",
+          o.listening.examAvg != null ? "시험" : "기록 없음",
+          VIOLET,
+        ],
   ];
 
+  // ----- 한 줄 결론 — 숫자를 안 읽어도 이 문장이면 된다 -----
+  const verdict: string[] = [];
+  if (o.vocab.setsStudied) {
+    verdict.push(
+      `단어 ${o.vocab.setsStudied}세트 중 ${o.vocab.setsPassed}세트를 합격했고` +
+        (o.vocab.avgScore != null ? `(종합테스트 ${o.vocab.avgScore}점)` : ""),
+    );
+  }
+  if (dictAvg != null) verdict.push(`받아쓰기는 평균 ${dictAvg}점입니다.`);
+  else if (verdict.length) verdict[verdict.length - 1] += ".";
+
+  // ----- 출결 비율 — 일정표에 찍어 둔 것이 있을 때만 -----
+  const att = report.studyPlan?.attendance;
+  const attMarked = att ? att.present + att.late + att.absent + att.makeup : 0;
+  const attRows = (att && attMarked > 0
+    ? ([
+        ["present", att.present, GREEN],
+        ["late", att.late, AMBER],
+        ["absent", att.absent, ROSE],
+        ["makeup", att.makeup, VIOLET],
+      ] as const)
+    : []
+  ).filter(([, n]) => n > 0);
+
+  const period = [
+    report.student.classNames.join(", "),
+    report.rangeLabel,
+    `${dotted(o.calendarStart)} ~ ${dotted(o.calendarEnd)}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <div className="min-h-screen" style={{ background: "#f4f6fa", WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}>
-      <div className="mx-auto flex max-w-md flex-col gap-3 pb-8">
-        <header className="flex flex-col gap-1.5 px-[22px] pb-[60px] pt-7 text-white" style={{ background: NAVY }}>
-          <p className="text-xs font-bold" style={{ color: "#9fb4d6" }}>
-            {academyName} · {report.rangeLabel} 학습 리포트
-          </p>
-          <h1 className="text-2xl font-black leading-snug">
-            {callName(studentName)}(이)가 {report.rangeLabel}
-            <br />
-            {o.activeDays}일 동안 공부했어요
+    <div
+      className="min-h-screen"
+      style={{ background: "#eef1f6", WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}
+    >
+      <div className="mx-auto flex max-w-md flex-col gap-3 pb-10">
+        <header
+          className="px-[22px] pb-[68px] pt-6 text-white"
+          style={{ background: `linear-gradient(160deg, ${NAVY} 0%, #1d3a66 100%)` }}
+        >
+          <div className="flex items-center gap-2.5">
+            {logoSrc ? (
+              <Image
+                src={logoSrc}
+                alt={academyName}
+                width={34}
+                height={34}
+                className="h-[34px] w-[34px] shrink-0 rounded-[9px] bg-white object-contain p-[3px]"
+              />
+            ) : null}
+            <div className="min-w-0">
+              <p className="text-[13px] font-bold">{academyName}</p>
+              <p className="text-[10px] font-bold tracking-[0.22em]" style={{ color: "#93aacd" }}>
+                LEARNING REPORT
+              </p>
+            </div>
+          </div>
+          <h1 className="mt-[18px] text-[23px] font-black leading-[1.35] tracking-[-0.01em]">
+            {studentName} 학생 학습 리포트
           </h1>
+          <p className="mt-2 text-xs" style={{ color: "#b9c8de" }}>
+            {period}
+          </p>
         </header>
 
-        <div className="mx-4 -mt-[52px] grid grid-cols-3 gap-2 rounded-2xl bg-white p-[18px] shadow-[0_6px_20px_rgba(19,41,75,0.12)]">
-          {[
-            [vocabPct != null ? `${vocabPct}%` : "—", "단어 합격", "#15803d"],
-            [o.listening.examAvg != null ? `${o.listening.examAvg}점` : "—", "듣기 평균", "#6d28d9"],
-            [`${lessonDone}강`, "영상 완료", "#0e7490"],
-          ].map(([v, l, c]) => (
-            <div key={l} className="flex flex-col items-center gap-0.5">
-              <span className="text-[22px] font-black" style={{ color: c }}>
-                {v}
-              </span>
-              <span className="text-[11px] text-slate-500">{l}</span>
+        <div className="mx-4 -mt-[52px] grid grid-cols-3 gap-1 rounded-[18px] bg-white p-4 shadow-[0_8px_26px_rgba(19,41,75,0.14)]">
+          {tiles.map(([value, label, sub, color]) => (
+            <div key={label} className="flex flex-col items-center gap-px text-center">
+              <b className="text-[21px] font-black leading-tight tabular-nums" style={{ color }}>
+                {value}
+              </b>
+              <span className="text-[11px] text-slate-500">{label}</span>
+              <span className="text-[10px] text-slate-400">{sub}</span>
             </div>
           ))}
         </div>
+
+        {verdict.length ? (
+          <p className="mx-4 text-[14.5px] leading-[1.7] text-slate-800">
+            이번 달 {verdict.join(" ")}
+          </p>
+        ) : null}
 
         {changes.length ? (
           <div className="mx-4 flex flex-wrap items-center gap-1.5 text-xs">
@@ -119,7 +241,10 @@ export function ReportMobileParent({
               <span
                 key={l.text}
                 className="rounded-full px-2.5 py-1 font-bold"
-                style={{ background: l.up ? "#dcfce7" : "#fee2e2", color: l.up ? "#166534" : "#b91c1c" }}
+                style={{
+                  background: l.up ? "#dcfce7" : "#fee2e2",
+                  color: l.up ? "#166534" : "#b91c1c",
+                }}
               >
                 {l.up ? "▲" : "▼"} {l.text}
               </span>
@@ -127,41 +252,36 @@ export function ReportMobileParent({
           </div>
         ) : null}
 
-        {comment.trim() ? (
-          <Card>
-            <h2 className="text-[15px] font-extrabold text-slate-900">선생님이 전해요</h2>
-            <p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">{comment.trim()}</p>
-          </Card>
-        ) : null}
-
-        <Card>
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-[15px] font-extrabold text-slate-900">공부한 날</h2>
-            <span className="text-xs text-slate-500">
-              {classDays}일 중 {o.activeDays}일
-            </span>
-          </div>
-          <div className="grid grid-cols-7 gap-1.5">
-            {WEEKDAYS.map((w) => (
-              <span key={w} className="text-center text-[10px] font-bold text-slate-400">
-                {w}
+        <Card title="출석·학습 달력" note={`수업일 ${classDayCount}일 중 ${studiedOnClassDays}일`}>
+          <div
+            className="mt-3 grid gap-2"
+            style={{ gridTemplateColumns: `repeat(${classDays.length}, minmax(0, 1fr))` }}
+          >
+            {classDays.map((wd) => (
+              <span key={wd} className="text-center text-[10px] font-bold text-slate-400">
+                {WEEKDAY_NAMES[wd]}
               </span>
             ))}
-            {cells.map((c) => (
+            {weeks.flat().map((c) => (
               <span
                 key={c.ymd}
-                className="flex h-9 items-center justify-center rounded-lg text-xs font-bold tabular-nums"
-                style={style(c.state)}
+                className="flex h-[42px] items-center justify-center rounded-[11px] text-sm font-bold tabular-nums"
+                style={
+                  c.state === "done"
+                    ? { background: GREEN, color: "#fff" }
+                    : c.state === "missed"
+                      ? { background: "#fee2e2", color: "#be123c" }
+                      : { background: "transparent", color: "transparent" }
+                }
               >
-                {c.state === "out" ? "" : Number(c.ymd.slice(8))}
+                {c.state === "none" ? "" : Number(c.ymd.slice(8))}
               </span>
             ))}
           </div>
-          <div className="flex gap-3 text-[11px] text-slate-600">
+          <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-slate-600">
             {[
-              ["공부함", "#16a34a"],
-              ["빠진 날", "#fde2e2"],
-              ["쉬는 날", "#f1f3f6"],
+              ["학습함", GREEN],
+              ["빠진 날", "#fee2e2"],
             ].map(([t, c]) => (
               <span key={t} className="flex items-center gap-1">
                 <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: c }} />
@@ -169,54 +289,200 @@ export function ReportMobileParent({
               </span>
             ))}
           </div>
+
+          {attRows.length > 0 ? (
+            <>
+              <div className="mt-3 flex h-[9px] overflow-hidden rounded-full bg-slate-100">
+                {attRows.map(([key, n, color]) => (
+                  <span key={key} style={{ width: `${(n / attMarked) * 100}%`, background: color }} />
+                ))}
+              </div>
+              <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-600">
+                {attRows.map(([key, n, color]) => (
+                  <span key={key} className="flex items-center gap-1">
+                    <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: color }} />
+                    {ATTENDANCE_LABELS[key]} {n}회
+                    <b className="tabular-nums text-slate-900">
+                      {Math.round((n / attMarked) * 100)}%
+                    </b>
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : null}
         </Card>
 
-        <Card>
-          <h2 className="text-[15px] font-extrabold text-slate-900">과목별로 보기</h2>
-          {areas.map((a) => (
-            <div key={a.name} className="flex flex-col gap-1.5">
-              <div className="flex justify-between text-[13px]">
-                <b className="text-slate-900">{a.name}</b>
-                <span className="text-slate-500">{a.text}</span>
-              </div>
-              <div className="h-2.5 overflow-hidden rounded-full" style={{ background: "#edf0f4" }}>
-                <div className="h-full rounded-full" style={{ width: `${a.pct ?? 0}%`, background: a.color }} />
-              </div>
-            </div>
-          ))}
-        </Card>
-
-        {report.reviewWords.length ? (
-          <Card tint="#fff7ed">
-            <h2 className="text-[15px] font-extrabold" style={{ color: "#9a3412" }}>
-              집에서 함께 복습해 주세요
-            </h2>
-            <div className="flex flex-wrap gap-1.5">
-              {report.reviewWords.slice(0, 16).map((w) => (
-                <span
-                  key={w.itemId}
-                  title={w.meaning}
-                  className="rounded-full bg-white px-3 py-1 text-[13px] font-semibold"
-                  style={{ color: "#9a3412" }}
-                >
-                  {w.word}
-                  <span className="ml-1 font-normal text-slate-500">{w.meaning.split(/[;,]/)[0]}</span>
-                </span>
-              ))}
-            </div>
+        {comment.trim() ? (
+          <Card title="선생님 한마디">
+            <p className="mt-2.5 whitespace-pre-wrap text-sm leading-7 text-slate-700">
+              {comment.trim()}
+            </p>
           </Card>
         ) : null}
+
+        <Card title="집에서 함께 복습해 주세요" tint="#fff7ed">
+          {reviewRows.length === 0 ? (
+            <p className="mt-2.5 text-[13px] text-slate-500">
+              이번 달에는 특별히 복습이 필요한 낱말이 없습니다.
+            </p>
+          ) : (
+            <>
+              <ul className="mt-3 flex flex-col gap-1.5">
+                {reviewRows.map((w) => (
+                  <li key={w.itemId} className="flex flex-wrap items-baseline gap-x-2 text-[13px]">
+                    <b className="font-bold" style={{ color: "#9a3412" }}>
+                      {w.word}
+                    </b>
+                    <span className="text-slate-600">{w.meaning.split(/[;,]/)[0]}</span>
+                    {w.wrongCount > 0 ? (
+                      <span className="text-[11px] tabular-nums text-slate-400">
+                        {w.wrongCount}번 틀림
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+              {reviewExtra > 0 ? (
+                <p className="mt-2 text-[11px] text-slate-500">외 {reviewExtra}개</p>
+              ) : null}
+            </>
+          )}
+        </Card>
+
+        <Card
+          title="단어학습"
+          note={
+            o.vocab.setsStudied
+              ? `${o.vocab.setsStudied}세트 중 ${o.vocab.setsPassed}세트 합격`
+              : undefined
+          }
+        >
+          {report.vocabSets.length === 0 ? (
+            <p className="mt-2.5 text-[13px] text-slate-500">
+              {report.rangeLabel} 기준 학습한 단어장이 없습니다.
+            </p>
+          ) : (
+            <ul className="mt-2.5">
+              {report.vocabSets.map((set) => (
+                <Row
+                  key={set.setId}
+                  title={set.setTitle}
+                  pill={set.stage4Passed ? "합격" : set.statusLabel}
+                  pillTone={set.stage4Passed ? "ok" : "go"}
+                  fact={
+                    set.stage4AttemptCount > 0
+                      ? `종합테스트 ${set.stage4BestScore}점`
+                      : set.itemCount > 0
+                        ? `낱말 ${set.itemCount}개`
+                        : undefined
+                  }
+                />
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card title="듣기">
+          {dict.length === 0 && report.listeningExam.length === 0 ? (
+            <p className="mt-2.5 text-[13px] text-slate-500">
+              {report.rangeLabel} 기준 듣기 학습 기록이 없습니다.
+            </p>
+          ) : (
+            <>
+              <ul className="mt-2.5">
+                {dict.map((d) => (
+                  <Row
+                    key={`d-${d.setId}`}
+                    title={d.setTitle}
+                    pill={`${d.passedQuestionCount}/${d.questionCount}문항`}
+                    pillTone="ok"
+                    fact={
+                      [
+                        d.averageBestScore != null ? `받아쓰기 ${d.averageBestScore}점` : "",
+                        d.totalAttempts > 0 ? `${d.totalAttempts}회 응시` : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ") || undefined
+                    }
+                  />
+                ))}
+                {report.listeningExam.map((e) => (
+                  <Row
+                    key={`e-${e.setId}`}
+                    title={`${e.setTitle} 시험`}
+                    pill={e.bestScore != null ? `${e.bestScore}점` : undefined}
+                    pillTone="ok"
+                    fact={
+                      [
+                        `${e.questionCount}문항`,
+                        e.attemptCount > 0 ? `${e.attemptCount}회 응시` : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")
+                    }
+                  />
+                ))}
+              </ul>
+              {dict.some((d) => d.frequentWrongWords.length > 0) ? (
+                <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-bold" style={{ color: "#9a3412" }}>
+                    자주 틀린 낱말
+                  </span>
+                  {[...new Set(dict.flatMap((d) => d.frequentWrongWords))].slice(0, 8).map((w) => (
+                    <span
+                      key={w}
+                      className="rounded-full px-2.5 py-0.5 text-[12.5px] font-bold"
+                      style={{ background: "#fff7ed", color: "#9a3412" }}
+                    >
+                      {w}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </>
+          )}
+        </Card>
+
+        <Card title="영상 강의" note={lessonTotal ? `${lessonTotal}강 중 ${lessonDone}강` : undefined}>
+          {report.courses.length === 0 ? (
+            <p className="mt-2.5 text-[13px] text-slate-500">
+              {report.rangeLabel} 기준 학습한 영상 강좌가 없습니다.
+            </p>
+          ) : (
+            <ul className="mt-2.5">
+              {report.courses.map((c) => (
+                <Row
+                  key={c.courseId}
+                  title={c.courseTitle}
+                  pill={`${c.progressPercent}%`}
+                  fact={`${c.totalLessons}강 중 ${c.completedLessons}강`}
+                />
+              ))}
+            </ul>
+          )}
+        </Card>
 
         <div className="mx-4">
           <Link
             href={printHref}
-            className="flex min-h-12 items-center justify-center rounded-xl text-sm font-bold text-white"
+            className="flex min-h-[50px] items-center justify-center rounded-[14px] text-sm font-bold text-white"
             style={{ background: NAVY }}
           >
             PDF 저장 / 인쇄
           </Link>
         </div>
-        <p className="text-center text-[11px] text-slate-400">{expiresLabel}까지 볼 수 있어요</p>
+        <p className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
+          {logoSrc ? (
+            <Image
+              src={logoSrc}
+              alt=""
+              width={22}
+              height={22}
+              className="h-[22px] w-[22px] rounded-md bg-white object-contain p-0.5"
+            />
+          ) : null}
+          {academyName} · {expiresLabel}까지 볼 수 있어요
+        </p>
       </div>
     </div>
   );

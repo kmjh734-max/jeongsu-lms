@@ -89,6 +89,7 @@ export function SharedReportHtmlView({
         studentName={studentName}
         printHref={printHref}
         expiresLabel={formatExpiresLabel(expiresAt)}
+        logoSrc={logoSrc}
       />
     );
   }
