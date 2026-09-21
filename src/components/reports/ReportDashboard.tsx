@@ -120,18 +120,36 @@ export function ReportDashboard({
   const o = report.overview;
   if (!o) return null;
 
-  // ----- 달력: 학습함 / 빠진 날(평일) / 쉬는 날(주말) -----
+  // ----- 달력: 이 아이가 오는 날만 칠한다 -----
+  // 수업이 없는 날에 집에서 한 것까지 칠하면 토요일이 초록이 되어 출결과 어긋난다.
   const first = addDays(o.calendarStart, -weekdayIndex(o.calendarStart));
   const last = addDays(o.calendarEnd, 6 - weekdayIndex(o.calendarEnd));
   const classDays_ = classDaySet(o);
   const cells: Array<{ ymd: string; state: "done" | "missed" | "off" | "out" }> = [];
   for (let d = first; d <= last && cells.length < 49; d = addDays(d, 1)) {
     const inside = d >= o.calendarStart && d <= o.calendarEnd;
+    const isClassDay = classDays_.has(weekdayIndex(d));
     const studied = (o.activity[d] ?? 0) > 0;
-    const noClass = !classDays_.has(weekdayIndex(d));
-    cells.push({ ymd: d, state: !inside ? "out" : studied ? "done" : noClass ? "off" : "missed" });
+    cells.push({
+      ymd: d,
+      state: !inside ? "out" : !isClassDay ? "off" : studied ? "done" : "missed",
+    });
   }
   const classDays = cells.filter((c) => c.state === "done" || c.state === "missed").length;
+
+  // ----- 출결 비율 — 학습일정표에 찍어 둔 것이 있을 때만 -----
+  const att = report.studyPlan?.attendance;
+  const attMarked = att
+    ? att.present + att.late + att.absent + att.makeup
+    : 0;
+  const attRows = att && attMarked > 0
+    ? ([
+        ["출석", att.present, GREEN],
+        ["지각", att.late, "#f59e0b"],
+        ["결석", att.absent, "#e11d48"],
+        ["보강", att.makeup, "#8b5cf6"],
+      ] as const).filter(([, n]) => n > 0)
+    : [];
   const cellStyle = (s: string) =>
     s === "done"
       ? { background: GREEN, color: "#fff" }
@@ -259,7 +277,7 @@ export function ReportDashboard({
               {[
                 ["학습함", GREEN],
                 ["빠진 날", "#fde2e2"],
-                ["쉬는 날", "#f1f3f6"],
+                ["오지 않는 날", "#f1f3f6"],
               ].map(([t, c]) => (
                 <span key={t} className="flex items-center gap-1">
                   <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: c }} />
@@ -267,6 +285,34 @@ export function ReportDashboard({
                 </span>
               ))}
             </div>
+
+            {attRows.length > 0 ? (
+              <div className="mt-3 border-t border-slate-100 pt-3">
+                <p className="text-[11px] font-bold text-slate-500">
+                  출결 {attMarked}회
+                </p>
+                <div className="mt-1.5 flex h-2 overflow-hidden rounded-full bg-slate-100">
+                  {attRows.map(([label, n, color]) => (
+                    <span
+                      key={label}
+                      title={`${label} ${n}회`}
+                      style={{ width: `${(n / attMarked) * 100}%`, background: color }}
+                    />
+                  ))}
+                </div>
+                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-600">
+                  {attRows.map(([label, n, color]) => (
+                    <span key={label} className="flex items-center gap-1">
+                      <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: color }} />
+                      {label} {n}회
+                      <b className="tabular-nums text-slate-900">
+                        {Math.round((n / attMarked) * 100)}%
+                      </b>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="flex flex-col rounded-xl border border-slate-200 p-4">

@@ -151,46 +151,6 @@ function buildTextPayload(params: KakaoShareParams): Record<string, unknown> {
   };
 }
 
-function buildFeedPayload(
-  params: KakaoShareParams,
-  includeImage: boolean
-): Record<string, unknown> {
-  const { studentName, periodLabel } = params;
-  const shareUrl = normalizeShareUrl(params.shareUrl);
-  const title = params.feedTitle ?? `${studentName} 학생 학습 리포트`;
-  const description =
-    params.feedDescription ?? `${periodLabel} 온라인 학습 현황 리포트입니다.`;
-
-  const content: Record<string, unknown> = {
-    title,
-    description,
-    link: {
-      mobileWebUrl: shareUrl,
-      webUrl: shareUrl,
-    },
-  };
-
-  if (includeImage) {
-    const imageUrl = getAbsoluteLogoUrl(shareUrl, params.logoSrc);
-    if (imageUrl) {
-      content.imageUrl = imageUrl;
-    }
-  }
-
-  return {
-    objectType: "feed",
-    content,
-    buttons: [
-      {
-        title: params.buttonTitle ?? "리포트 보기",
-        link: {
-          mobileWebUrl: shareUrl,
-          webUrl: shareUrl,
-        },
-      },
-    ],
-  };
-}
 
 function formatKakaoShareError(error: unknown): string | null {
   const text =
@@ -250,40 +210,15 @@ export async function shareReportViaKakao(
   if (textResult.ok) {
     return { ok: true, method: "text" };
   }
+  // 글이 실패했다고 링크 카드(scrap·feed)로 바꿔 보내면 안내 문구가 통째로 빠진다.
+  // 선생님이 미리보기에서 본 글이 안 나가느니, 보내지 않고 복사해 주는 편이 낫다.
   const textErr = formatKakaoShareError(textResult.error);
-  if (textErr) {
-    return { ok: false, fallback: false, message: textErr };
-  }
-
-  const scrapResult = trySend(() =>
-    kakao.Share.sendScrap({ requestUrl: shareUrl })
-  );
-  if (scrapResult.ok) {
-    return { ok: true, method: "scrap" };
-  }
-
-  const feedImageResult = trySend(() =>
-    kakao.Share.sendDefault(buildFeedPayload(params, true))
-  );
-  if (feedImageResult.ok) {
-    return { ok: true, method: "feed" };
-  }
-
-  const feedResult = trySend(() =>
-    kakao.Share.sendDefault(buildFeedPayload(params, false))
-  );
-  if (feedResult.ok) {
-    return { ok: true, method: "feed" };
-  }
-
-  const feedErr = formatKakaoShareError(feedImageResult.error ?? feedResult.error);
-  if (feedErr) {
-    return { ok: false, fallback: false, message: feedErr };
-  }
-
-  return copyFallback(
-    shareUrl,
-    `카카오톡보내기를 사용할 수 없어 리포트 링크를 복사했습니다. ${KAKAO_PRODUCT_LINK_HINT}`
+  const raw = params.pasteMessage ?? buildKakaoPasteMessage({ ...params, shareUrl });
+  return copyFullText(
+    raw,
+    textErr
+      ? `카카오톡이 글을 받지 않았어요(${textErr}). 글 전체를 복사했으니 채팅창에 붙여넣어 주세요.`
+      : "카카오톡으로 글을 보내지 못해 글 전체를 복사했어요. 채팅창에 붙여넣어 주세요.",
   );
 }
 
