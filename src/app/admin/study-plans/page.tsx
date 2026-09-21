@@ -7,11 +7,21 @@ import { loadStudyPlan } from "@/lib/study-plan";
 import { isStudyPlanEnabled } from "@/lib/study-plan/access";
 import { weekdayLabel } from "@/lib/study-plan/weekday-dates";
 import { StudyPlanEditor, type PlanStudent } from "@/components/study-plan/StudyPlanEditor";
-import { StudyPlanPicker, type PickerClass } from "@/components/study-plan/StudyPlanPicker";
+import {
+  StudyPlanPicker,
+  type PickerClass,
+  type PickerTeacher,
+} from "@/components/study-plan/StudyPlanPicker";
 import { listTextbooks } from "@/lib/textbooks";
 
 interface PageProps {
-  searchParams: Promise<{ student?: string; class?: string; year?: string; month?: string }>;
+  searchParams: Promise<{
+    student?: string;
+    class?: string;
+    teacher?: string;
+    year?: string;
+    month?: string;
+  }>;
 }
 
 /** 반 이름 옆에 붙는 한 줄: "월수금 17:00~19:00" */
@@ -37,7 +47,8 @@ export default async function StudyPlansPage({ searchParams }: PageProps) {
   const year = Number(sp.year) || now.getFullYear();
   const month = Number(sp.month) || now.getMonth() + 1;
 
-  const [{ data: students }, { data: classRows }, { data: memberRows }] = await Promise.all([
+  const [{ data: students }, { data: classRows }, { data: memberRows }, { data: teacherRows }] =
+    await Promise.all([
     academyId
       ? admin
           .from("profiles")
@@ -50,14 +61,22 @@ export default async function StudyPlansPage({ searchParams }: PageProps) {
     academyId
       ? admin
           .from("classes")
-          .select("id, name, weekdays, start_time, end_time, is_active")
+          .select("id, name, weekdays, start_time, end_time, is_active, teacher_id")
           .eq("academy_id", academyId)
           .order("name")
       : Promise.resolve({ data: [] as Record<string, unknown>[] }),
-    academyId
-      ? admin.from("class_students").select("class_id, student_id")
-      : Promise.resolve({ data: [] as Record<string, unknown>[] }),
-  ]);
+      academyId
+        ? admin.from("class_students").select("class_id, student_id")
+        : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+      academyId
+        ? admin
+            .from("profiles")
+            .select("id, name")
+            .eq("academy_id", academyId)
+            .in("role", ["teacher", "admin"])
+            .order("name")
+        : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+    ]);
 
   const list = students ?? [];
   const byId = new Map(list.map((s) => [String(s.id), s]));
@@ -88,12 +107,24 @@ export default async function StudyPlansPage({ searchParams }: PageProps) {
       time: classTimeLabel(
         c as { weekdays?: number[] | null; start_time?: string | null; end_time?: string | null },
       ),
+      teacherId: String(c.teacher_id ?? ""),
       students: (studentIdsByClass.get(String(c.id)) ?? []).map(toPicker),
     }));
   const loose = list.filter((s) => !inSomeClass.has(String(s.id))).map((s) => toPicker(String(s.id)));
-  if (loose.length > 0) classes.push({ id: "", name: "반 없음", time: null, students: loose });
+  if (loose.length > 0) {
+    classes.push({ id: "", name: "반 없음", time: null, teacherId: "", students: loose });
+  }
 
-  // 고른 반·학생 — 주소에 없으면 학생이 있는 첫 반의 첫 학생
+  // 반을 맡고 있는 선생님만 보여 준다. 담당이 비어 있는 반은 '담당 없음' 칸으로.
+  const teacherName = new Map((teacherRows ?? []).map((t) => [String(t.id), String(t.name ?? "")]));
+  const usedTeacherIds = [...new Set(classes.map((c) => c.teacherId))];
+  const teachers: PickerTeacher[] = usedTeacherIds
+    .filter((id) => id !== "")
+    .map((id) => ({ id, name: teacherName.get(id) ?? "이름 없음" }))
+    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
+  if (usedTeacherIds.includes("")) teachers.push({ id: "", name: "담당 없음" });
+
+  // 고른 선생님·반·학생 — 주소에 없으면 학생이 있는 첫 반의 첫 학생
   const wantedClass = sp.class ?? null;
   const currentClass =
     (wantedClass !== null ? classes.find((c) => c.id === wantedClass) : null) ??
@@ -102,6 +133,11 @@ export default async function StudyPlansPage({ searchParams }: PageProps) {
     classes[0] ??
     null;
   const classId = currentClass?.id ?? "";
+  const teacherId =
+    (sp.teacher !== undefined && teachers.some((t) => t.id === sp.teacher) ? sp.teacher : null) ??
+    currentClass?.teacherId ??
+    teachers[0]?.id ??
+    "";
   const studentId =
     (sp.student && currentClass?.students.some((s) => s.id === sp.student) ? sp.student : null) ??
     currentClass?.students[0]?.id ??
@@ -140,8 +176,15 @@ export default async function StudyPlansPage({ searchParams }: PageProps) {
       }
     : null;
 
-  const link = (o: { classId?: string; studentId?: string; y?: number; m?: number }) => {
+  const link = (o: {
+    teacherId?: string;
+    classId?: string;
+    studentId?: string;
+    y?: number;
+    m?: number;
+  }) => {
     const q = new URLSearchParams({
+      teacher: o.teacherId ?? teacherId,
       class: o.classId ?? classId,
       student: o.studentId ?? studentId,
       year: String(o.y ?? year),
@@ -156,14 +199,16 @@ export default async function StudyPlansPage({ searchParams }: PageProps) {
     <div>
       <PageHeader
         title="학습일정표"
-        description="반을 고르고 학생을 고르면 그 달 계획이 나와요. 학생은 자기 아이디로 로그인해 자기 것만 봐요."
+        description="선생님 → 반 → 학생 차례로 고르면 그 달 계획이 나와요. 학생은 자기 아이디로 로그인해 자기 것만 봐요."
       />
 
       <StudyPlanPicker
+        teachers={teachers}
         classes={classes}
+        selectedTeacherId={teacherId}
         selectedClassId={classId}
         selectedStudentId={studentId}
-        href={(o) => link({ classId: o.classId, studentId: o.studentId })}
+        href={(o) => link({ teacherId: o.teacherId, classId: o.classId, studentId: o.studentId })}
       />
 
       <div className="mb-4 flex items-center justify-end gap-1">

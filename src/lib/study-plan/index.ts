@@ -8,6 +8,15 @@ export const DEFAULT_AREAS = ["영단어", "클래스카드", "문법", "독해"
 export const WEEKS = [1, 2, 3, 4];
 
 export type PlanEntry = { progress: string; homework: string; note: string };
+
+/** 회차 출결 — 빈 문자열은 아직 적지 않음 */
+export type Attendance = "" | "present" | "late" | "absent" | "makeup";
+export const ATTENDANCE_LABELS: Record<Exclude<Attendance, "">, string> = {
+  present: "출석",
+  late: "지각",
+  absent: "결석",
+  makeup: "보강",
+};
 export type PlanRow = {
   id: string;
   week: number;
@@ -26,6 +35,8 @@ export type StudyPlan = {
   note: string;
   /** 주차별 수업 날짜: { "1": ["2026-09-01", …] } */
   sessionDates: Record<string, string[]>;
+  /** 주차별 회차 출결: { "1": ["present", "absent", …] } */
+  attendance: Record<string, Attendance[]>;
   rows: PlanRow[];
 };
 
@@ -52,7 +63,7 @@ export async function loadStudyPlan(
 ): Promise<StudyPlan | null> {
   const { data: plan } = await admin
     .from("study_plans")
-    .select("id, student_id, year, month, sessions_per_week, teacher_id, note, session_dates")
+    .select("id, student_id, year, month, sessions_per_week, teacher_id, note, session_dates, attendance")
     .eq("student_id", studentId)
     .eq("year", year)
     .eq("month", month)
@@ -76,6 +87,7 @@ export async function loadStudyPlan(
     teacherId: (plan.teacher_id as string | null) ?? null,
     note: String(plan.note ?? ""),
     sessionDates: (plan.session_dates ?? {}) as Record<string, string[]>,
+    attendance: (plan.attendance ?? {}) as Record<string, Attendance[]>,
     rows: (rows ?? []).map((r) => ({
       id: r.id as string,
       week: Number(r.week),
@@ -146,13 +158,15 @@ export async function saveStudyPlanRows(
   planId: string,
   sessionsPerWeek: number,
   rows: Array<Omit<PlanRow, "id">>,
-  sessionDates?: Record<string, string[]>
+  sessionDates?: Record<string, string[]>,
+  attendance?: Record<string, Attendance[]>
 ): Promise<void> {
   await admin
     .from("study_plans")
     .update({
       sessions_per_week: sessionsPerWeek,
       ...(sessionDates ? { session_dates: sessionDates } : {}),
+      ...(attendance ? { attendance } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq("id", planId);

@@ -19,7 +19,10 @@ export interface ProgressRow extends EnrollmentProgressRow {
 
 export interface ProgressPageData {
   rows: ProgressRow[];
-  classes: { id: string; name: string }[];
+  /** 반 — 담당 선생님으로 거를 수 있게 teacherId를 함께 준다 */
+  classes: { id: string; name: string; teacherId: string }[];
+  /** 반을 맡고 있는 선생님 (담당 없는 반이 있으면 맨 뒤에 "담당 없음") */
+  teachers: { id: string; name: string }[];
   /** 수강이 너무 많아 최근 배정분만 읽었는지 */
   truncated: boolean;
   limit: number;
@@ -30,21 +33,25 @@ export async function loadProgressPageData(
   options?: { teacherId?: string; enrollmentLimit?: number }
 ): Promise<ProgressPageData> {
   const limit = options?.enrollmentLimit ?? DEFAULT_ENROLLMENT_LIMIT;
-  const empty: ProgressPageData = { rows: [], classes: [], truncated: false, limit };
+  const empty: ProgressPageData = { rows: [], classes: [], teachers: [], truncated: false, limit };
 
   // enrollments는 academy_id가 없어, RLS가 적용된 courses로 먼저 범위를 좁힌다
   let courseQuery = supabase.from("courses").select("id");
   let classQuery = supabase
     .from("classes")
-    .select("id, name")
+    .select("id, name, teacher_id")
     .eq("is_active", true)
     .order("name");
   if (options?.teacherId) {
     courseQuery = courseQuery.eq("teacher_id", options.teacherId);
     classQuery = classQuery.eq("teacher_id", options.teacherId);
   }
-  const classesPromise = Promise.resolve(classQuery).then(
-    ({ data }) => (data ?? []) as { id: string; name: string }[]
+  const classesPromise = Promise.resolve(classQuery).then(({ data }) =>
+    ((data ?? []) as Array<{ id: string; name: string; teacher_id: string | null }>).map((c) => ({
+      id: c.id,
+      name: c.name,
+      teacherId: c.teacher_id ?? "",
+    }))
   );
   // 반 학생·반 강좌는 반 목록만 있으면 되니 수강 목록을 기다리지 않고 바로 읽는다
   const classIdsPromise = classesPromise.then((rows) => rows.map((c) => c.id));
@@ -172,7 +179,26 @@ export async function loadProgressPageData(
       };
     }),
     classes,
+    teachers: await teachersOf(supabase, classes),
     truncated,
     limit,
   };
+}
+
+/** 반을 맡고 있는 선생님만 추린다 */
+async function teachersOf(
+  supabase: SupabaseClient,
+  classes: { teacherId: string }[],
+): Promise<{ id: string; name: string }[]> {
+  const ids = [...new Set(classes.map((c) => c.teacherId))];
+  const named = ids.filter((id) => id !== "");
+  const { data } = named.length
+    ? await supabase.from("profiles").select("id, name").in("id", named)
+    : { data: [] as { id: string; name: string }[] };
+  const byId = new Map((data ?? []).map((r) => [String(r.id), String(r.name ?? "이름 없음")]));
+  const out = named
+    .map((id) => ({ id, name: byId.get(id) ?? "이름 없음" }))
+    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
+  if (ids.includes("")) out.push({ id: "", name: "담당 없음" });
+  return out;
 }

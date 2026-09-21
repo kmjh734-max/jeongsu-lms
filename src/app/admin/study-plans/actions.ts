@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createStudyPlan, saveStudyPlanRows, type PlanRow } from "@/lib/study-plan";
+import { createStudyPlan, saveStudyPlanRows, type Attendance, type PlanRow } from "@/lib/study-plan";
 import { isStudyPlanEnabled } from "@/lib/study-plan/access";
 import { monthSessionDates, sessionsPerWeekFrom } from "@/lib/study-plan/weekday-dates";
 import { studentClassWeekdays } from "@/lib/study-plan/student-weekdays";
@@ -73,6 +73,7 @@ export async function savePlanAction(input: {
   sessionsPerWeek: number;
   rows: Array<Omit<PlanRow, "id">>;
   sessionDates?: Record<string, string[]>;
+  attendance?: Record<string, Attendance[]>;
 }): Promise<Result> {
   const profile = await staff();
   if (!profile) return { ok: false, message: "권한이 없어요." };
@@ -87,7 +88,14 @@ export async function savePlanAction(input: {
     return { ok: false, message: "우리 학원 일정표가 아니에요." };
   }
 
-  await saveStudyPlanRows(admin, input.planId, input.sessionsPerWeek, input.rows, input.sessionDates);
+  await saveStudyPlanRows(
+    admin,
+    input.planId,
+    input.sessionsPerWeek,
+    input.rows,
+    input.sessionDates,
+    input.attendance,
+  );
   revalidatePath("/admin/study-plans");
   return { ok: true, message: "저장했어요." };
 }

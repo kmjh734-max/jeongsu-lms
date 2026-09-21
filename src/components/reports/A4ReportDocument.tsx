@@ -140,6 +140,22 @@ export function A4ReportDocument({
           </div>
         </header>
 
+        {report.studyPlan ? (
+          <section className="mt-5 break-inside-avoid rounded-lg border border-slate-200 p-3">
+            <h2 className="text-[13px] font-bold text-slate-900">학습일정표</h2>
+            <p className="mt-1 text-[12px] text-slate-700">{report.studyPlan.line}</p>
+            {report.studyPlan.areaLines.length ? (
+              <ul className="mt-1.5 space-y-0.5">
+                {report.studyPlan.areaLines.map((t) => (
+                  <li key={t} className="text-[11px] leading-5 text-slate-600">
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </section>
+        ) : null}
+
         {report.overview ? (
           <div className="mt-5 break-inside-avoid">
             <ReportOverviewPanel overview={report.overview} print />

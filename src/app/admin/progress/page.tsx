@@ -16,6 +16,7 @@ export default async function AdminProgressPage() {
       <ProgressOverview
         rows={data.rows}
         classes={data.classes}
+        teachers={data.teachers}
         todayIso={todayIso}
         weekStart={weekStartInstant(todayIso)}
         truncated={data.truncated}

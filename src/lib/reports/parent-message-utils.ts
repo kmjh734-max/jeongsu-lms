@@ -50,3 +50,21 @@ export function replaceLearningReportSection(
     ...lines.slice(endIdx),
   ].join("\n");
 }
+
+/**
+ * 화면에서 미리 본 안내 문구에 리포트 링크를 붙인다.
+ *
+ * 카카오톡으로 보내는 글과 화면에 보이는 글이 같아야 하므로, 보내기 직전에 이 글을
+ * 그대로 본문으로 쓴다. 이미 링크가 들어 있으면 그 자리의 주소만 새 것으로 바꾼다.
+ */
+export function attachReportLinkToMessage(message: string, shareUrl: string): string {
+  const url = shareUrl.trim();
+  const base = message.trim();
+  if (!url) return base;
+  if (base.includes(url)) return base;
+  if (/https?:\/\/\S+/i.test(base)) {
+    return base.replace(/https?:\/\/\S+/gi, url);
+  }
+  if (!base) return url;
+  return `${base}\n\n아래 링크에서 확인해 주세요.\n${url}`;
+}

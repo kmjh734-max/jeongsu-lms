@@ -1,3 +1,4 @@
+import type { StudyPlanReportSection } from "@/lib/reports/study-plan-section";
 export type ReportRange = "all" | "7d" | "30d" | "month";
 
 export interface ReportStudentOption {
@@ -162,4 +163,6 @@ export interface StudentReport {
   reviewWords: ReviewWordRow[];
   /** 예전에 저장한 리포트에는 없다 */
   overview?: ReportOverview;
+  /** 학습일정표 요약 — 일정표가 없으면 빠진다 */
+  studyPlan?: StudyPlanReportSection;
 }

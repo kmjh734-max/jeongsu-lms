@@ -65,6 +65,11 @@ export const KAKAO_TEXT_MAX_CHARS = 200;
  * 링크는 「자세히 보기」버튼(link)으로만 연다.
  * 본문에 URL을 넣으면 200자 제한에 잘려 404가 난다.
  */
+/** 이 글을 카카오톡 공유 API로 그대로 보낼 수 있는지 (넘으면 엉뚱한 기본 카드가 나간다) */
+export function fitsKakaoText(raw: string): boolean {
+  return buildKakaoSdkTextBody(raw).length <= KAKAO_TEXT_MAX_CHARS;
+}
+
 export function buildKakaoSdkTextBody(raw: string): string {
   const body = raw
     .replace(/https?:\/\/\S+/gi, "")
@@ -83,7 +88,8 @@ export async function copyKakaoPasteMessage(
   params: KakaoShareParams
 ): Promise<{ ok: boolean; message: string }> {
   const shareUrl = normalizeShareUrl(params.shareUrl);
-  const text = buildKakaoPasteMessage({ ...params, shareUrl });
+  // 화면에서 미리 본 글이 있으면 그것을 그대로 복사한다
+  const text = params.pasteMessage ?? buildKakaoPasteMessage({ ...params, shareUrl });
   try {
     await navigator.clipboard.writeText(text);
     return {
@@ -202,6 +208,14 @@ export async function shareReportViaKakao(
     };
   }
 
+  // 안내 문구가 카카오 한계보다 길면 보내 봐야 엉뚱한 카드가 나간다 — 통째로 복사해 준다
+  if (params.pasteMessage && !fitsKakaoText(params.pasteMessage)) {
+    return copyFullText(
+      params.pasteMessage,
+      "안내 문구가 카카오톡이 한 번에 보낼 수 있는 길이를 넘어서, 글 전체를 복사했어요. 카카오톡 채팅창에 붙여넣어 주세요.",
+    );
+  }
+
   const ready = await ensureKakaoSdkReady();
   if (!ready.ok) {
     return copyFallback(shareUrl, `${ready.message} 리포트 링크를 복사했습니다.`);
@@ -250,6 +264,20 @@ export async function shareReportViaKakao(
     shareUrl,
     `카카오톡보내기를 사용할 수 없어 리포트 링크를 복사했습니다. ${KAKAO_PRODUCT_LINK_HINT}`
   );
+}
+
+/** 글 전체를 복사해 두고, 붙여넣어 보내라고 알린다 */
+async function copyFullText(text: string, message: string): Promise<KakaoShareResult> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return { ok: false, fallback: true, message };
+  } catch {
+    return {
+      ok: false,
+      fallback: false,
+      message: "안내 문구가 너무 길어 카카오톡으로 바로 보낼 수 없어요. 글을 직접 복사해 주세요.",
+    };
+  }
 }
 
 async function copyFallback(

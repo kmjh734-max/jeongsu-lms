@@ -19,6 +19,7 @@ import {
   validateShareUrlForKakao,
 } from "@/lib/kakao/share-report";
 import {
+  attachReportLinkToMessage,
   extractLearningReportSection,
   replaceLearningReportSection,
 } from "@/lib/reports/parent-message-utils";
@@ -157,15 +158,25 @@ export function ReportShareActions({
     try {
       const url = await ensureShareLink();
       if (!url) return;
+      // 화면에서 미리 본 안내 문구를 그대로 보낸다
+      const paste = attachReportLinkToMessage(parentMessage, url);
+      if (paste !== parentMessage) {
+        onParentMessageChange(paste);
+        // 링크를 덧붙인 것뿐이므로 방금 만든 링크를 그대로 쓴다
+        setSharedMessage(paste);
+      }
       const result = await shareReportViaKakao({
         studentName: report.student.name,
         periodLabel: report.rangeLabel,
         shareUrl: url,
+        pasteMessage: paste,
         academyName,
         logoSrc,
       });
       if (result.ok) {
-        showStatus("카카오톡 창이 열렸어요. 보낼 대화방을 골라 주세요.");
+        // 보낸 글을 눈으로 확인할 수 있게 미리보기를 함께 띄운다
+        onOpenPrint();
+        showStatus("카카오톡 창이 열렸어요. 보낼 대화방을 골라 주세요. 보낸 글은 옆 미리보기와 같아요.");
       } else if (result.fallback) {
         showStatus(KAKAO_FALLBACK_MESSAGE);
       } else {
@@ -191,10 +202,16 @@ export function ReportShareActions({
     if (!report) return;
     const url = await ensureShareLink();
     if (!url) return;
+    const paste = attachReportLinkToMessage(parentMessage, url);
+    if (paste !== parentMessage) {
+      onParentMessageChange(paste);
+      setSharedMessage(paste);
+    }
     const result = await copyKakaoPasteMessage({
       studentName: report.student.name,
       periodLabel: report.rangeLabel,
       shareUrl: url,
+      pasteMessage: paste,
       academyName,
       logoSrc,
     });

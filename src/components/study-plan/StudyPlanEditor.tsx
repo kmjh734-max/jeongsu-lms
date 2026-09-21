@@ -4,7 +4,15 @@ import { useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { createPlanAction, savePlanAction } from "@/app/admin/study-plans/actions";
-import { WEEKS, emptyEntry, type PlanEntry, type StudyPlan } from "@/lib/study-plan";
+import { loadAssignedTitles, loadAutoFill, type AutoFillArea } from "@/lib/study-plan/auto-fill";
+import {
+  ATTENDANCE_LABELS,
+  WEEKS,
+  emptyEntry,
+  type Attendance,
+  type PlanEntry,
+  type StudyPlan,
+} from "@/lib/study-plan";
 import { UnitPickerModal } from "@/components/textbooks/UnitPickerModal";
 import type { Textbook } from "@/lib/textbooks";
 
@@ -21,6 +29,16 @@ export type PlanStudent = {
 };
 
 type Row = { week: number; area: string; textbook: string; orderIndex: number; entries: PlanEntry[] };
+
+/** 밀려온 진도를 원래 있던 글 앞에 붙인다 */
+function joinPushed(moved: string, existing: string): string {
+  const a = moved.trim();
+  const b = existing.trim();
+  if (!a) return existing;
+  if (!b) return a;
+  if (b.includes(a)) return existing;
+  return `${a} / ${b}`;
+}
 
 /** 학습일정표 편집 — 주차 × 영역 × 수업 회차 */
 export function StudyPlanEditor({
@@ -40,10 +58,13 @@ export function StudyPlanEditor({
   const [sessions, setSessions] = useState(plan?.sessionsPerWeek ?? 3);
   const [rows, setRows] = useState<Row[]>(plan?.rows ?? []);
   const [dates, setDates] = useState<Record<string, string[]>>(plan?.sessionDates ?? {});
+  const [attendance, setAttendance] = useState<Record<string, Attendance[]>>(plan?.attendance ?? {});
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   /** 목차에서 고르기: 어느 칸에 넣을지 */
   const [picking, setPicking] = useState<{ week: number; area: string; index: number } | null>(null);
+  /** 듣기·단어에서 끌어오는 중인 영역 이름 */
+  const [filling, setFilling] = useState<string | null>(null);
 
   const areas = [...new Map(rows.filter((r) => r.week === WEEKS[0]).map((r) => [r.area, r.orderIndex])).keys()];
 
@@ -88,10 +109,180 @@ export function StudyPlanEditor({
     setBusy(false);
   }
 
+  /** 이 주의 회차 출결 */
+  function attendanceAt(week: number, i: number): Attendance {
+    return attendance[String(week)]?.[i] ?? "";
+  }
+
+  /**
+   * 회차 출결을 바꾼다. 결석으로 바꾸면 그날 적어 둔 진도·숙제를 다음 회차로 밀고,
+   * 결석을 풀면 밀었던 것을 되돌리지 않는다(이미 손으로 고쳤을 수 있다).
+   */
+  function setAttendanceAt(week: number, i: number, next: Attendance) {
+    const before = attendanceAt(week, i);
+    setAttendance((prev) => {
+      const list = [...(prev[String(week)] ?? [])];
+      while (list.length < sessions) list.push("");
+      list[i] = next;
+      return { ...prev, [String(week)]: list };
+    });
+    if (next === "absent" && before !== "absent") pushToNextSession(week, i);
+  }
+
+  /** 결석한 회차의 진도·숙제를 다음 회차로 밀어 넣는다 */
+  function pushToNextSession(week: number, i: number) {
+    setRows((prev) => {
+      const flat = WEEKS.flatMap((w) =>
+        Array.from({ length: sessions }, (_, k) => ({ week: w, index: k })),
+      );
+      const at = flat.findIndex((f) => f.week === week && f.index === i);
+      const to = at >= 0 ? flat[at + 1] : undefined;
+      if (!to) return prev; // 마지막 회차면 밀 곳이 없다
+
+      return prev.map((r) => {
+        const isFrom = r.week === week;
+        const isTo = r.week === to.week;
+        if (!isFrom && !isTo) return r;
+
+        const from = prev.find((x) => x.week === week && x.area === r.area);
+        const moved = from?.entries[i];
+        if (!moved || (!moved.progress.trim() && !moved.homework.trim())) return r;
+
+        if (isFrom && isTo) {
+          // 같은 주 안에서 다음 회차로
+          return {
+            ...r,
+            entries: r.entries.map((x, k) => {
+              if (k === i) return { ...x, progress: "", homework: "" };
+              if (k === to.index) return { ...x, progress: joinPushed(moved.progress, x.progress), homework: joinPushed(moved.homework, x.homework) };
+              return x;
+            }),
+          };
+        }
+        if (isFrom) {
+          return { ...r, entries: r.entries.map((x, k) => (k === i ? { ...x, progress: "", homework: "" } : x)) };
+        }
+        return {
+          ...r,
+          entries: r.entries.map((x, k) =>
+            k === to.index
+              ? { ...x, progress: joinPushed(moved.progress, x.progress), homework: joinPushed(moved.homework, x.homework) }
+              : x,
+          ),
+        };
+      });
+    });
+  }
+
+  /** 영역 이름을 보고 듣기·단어 중 무엇과 이어지는지 고른다 */
+  function autoFillArea(area: string): AutoFillArea | null {
+    const t = area.replace(/\s/g, "");
+    if (t.includes("듣기")) return "listening";
+    if (t.includes("단어") || t.includes("어휘")) return "vocab";
+    return null;
+  }
+
+  /** 그 영역 줄을 학생이 실제로 한 듣기·단어 기록으로 채운다 */
+  async function fillFromRecords(area: string) {
+    const kind = autoFillArea(area);
+    if (!kind) return;
+    setFilling(area);
+    setMsg(null);
+    try {
+      const r = await loadAutoFill({ studentId: student.id, area: kind, sessionDates: dates });
+      if (!r.ok) {
+        setMsg({ ok: false, text: r.message });
+        return;
+      }
+      const found = r.cells.filter((c) => c.text.trim());
+      setRows((prev) =>
+        prev.map((row) => {
+          if (row.area !== area) return row;
+          return {
+            ...row,
+            entries: row.entries.map((e, i) => {
+              const cell = r.cells.find((c) => c.week === row.week && c.index === i);
+              return cell && cell.text.trim() ? { ...e, progress: cell.text } : e;
+            }),
+          };
+        }),
+      );
+      setMsg({
+        ok: true,
+        text: found.length
+          ? `${area} 줄을 학생이 실제로 한 것으로 ${found.length}칸 채웠어요. 저장을 눌러 주세요.`
+          : "그 날짜에 한 기록이 아직 없어요.",
+      });
+    } finally {
+      setFilling(null);
+    }
+  }
+
+  /**
+   * 배정된 듣기 세트·단어장을 일정표 교재명 칸에 넣는다.
+   * '듣기'·'영단어' 영역이 없으면 만들어서 넣는다.
+   */
+  async function pullAssigned() {
+    setFilling("배정");
+    setMsg(null);
+    try {
+      const r = await loadAssignedTitles(student.id);
+      if (!r.ok) {
+        setMsg({ ok: false, text: r.message });
+        return;
+      }
+      const wanted: Array<{ name: string; titles: string[] }> = [
+        { name: "듣기", titles: r.listening },
+        { name: "영단어", titles: r.vocab },
+      ].filter((w) => w.titles.length > 0);
+      if (wanted.length === 0) {
+        setMsg({ ok: false, text: "이 학생에게 배정된 듣기·단어가 아직 없어요." });
+        return;
+      }
+
+      setRows((prev) => {
+        let next = [...prev];
+        let order = areas.length;
+        for (const w of wanted) {
+          const target = next.find((row) => autoFillArea(row.area) === autoFillArea(w.name));
+          const text = w.titles.join(", ");
+          if (target) {
+            next = next.map((row) => (row.area === target.area ? { ...row, textbook: text } : row));
+          } else {
+            next = [
+              ...next,
+              ...WEEKS.map((week) => ({
+                week,
+                area: w.name,
+                textbook: text,
+                orderIndex: order,
+                entries: Array.from({ length: sessions }, emptyEntry),
+              })),
+            ];
+            order += 1;
+          }
+        }
+        return next;
+      });
+      setMsg({
+        ok: true,
+        text: `배정된 것을 ${wanted.map((w) => w.name).join("·")} 줄 교재명에 넣었어요. 저장을 눌러 주세요.`,
+      });
+    } finally {
+      setFilling(null);
+    }
+  }
+
   async function save() {
     if (!plan) return;
     setBusy(true);
-    const r = await savePlanAction({ planId: plan.id, sessionsPerWeek: sessions, rows, sessionDates: dates });
+    const r = await savePlanAction({
+      planId: plan.id,
+      sessionsPerWeek: sessions,
+      rows,
+      sessionDates: dates,
+      attendance,
+    });
     setMsg({ ok: r.ok, text: r.message });
     setBusy(false);
   }
@@ -148,6 +339,9 @@ export function StudyPlanEditor({
           </select>
         </label>
         <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => void pullAssigned()} disabled={filling !== null}>
+            {filling === "배정" ? "가져오는 중…" : "배정된 듣기·단어 가져오기"}
+          </Button>
           <Button variant="secondary" onClick={addArea}>+ 영역 추가</Button>
           <Button onClick={save} disabled={busy}>{busy ? "저장 중…" : "저장"}</Button>
         </div>
@@ -194,6 +388,36 @@ export function StudyPlanEditor({
                       }
                       className="ui-input mt-1 h-7 w-[9.5rem] text-xs font-normal"
                     />
+                    <div className="mt-1 flex gap-0.5">
+                      {(Object.keys(ATTENDANCE_LABELS) as Array<keyof typeof ATTENDANCE_LABELS>).map((key) => {
+                        const on = attendanceAt(week, i) === key;
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setAttendanceAt(week, i, on ? "" : key)}
+                            title={
+                              key === "absent"
+                                ? "결석으로 바꾸면 이 회차의 진도·숙제가 다음 회차로 넘어가요"
+                                : ATTENDANCE_LABELS[key]
+                            }
+                            className={`h-6 flex-1 rounded border text-[11px] font-semibold transition ${
+                              on
+                                ? key === "absent"
+                                  ? "border-rose-500 bg-rose-50 text-rose-700"
+                                  : key === "late"
+                                    ? "border-amber-500 bg-amber-50 text-amber-700"
+                                    : key === "makeup"
+                                      ? "border-violet-500 bg-violet-50 text-violet-700"
+                                      : "border-emerald-500 bg-emerald-50 text-emerald-700"
+                                : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50"
+                            }`}
+                          >
+                            {ATTENDANCE_LABELS[key]}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </th>
                 ))}
               </tr>
@@ -220,6 +444,17 @@ export function StudyPlanEditor({
                       ) : (
                         <span className="px-1 text-slate-700">{row.area}</span>
                       )}
+                      {week === WEEKS[0] && autoFillArea(area) ? (
+                        <button
+                          type="button"
+                          onClick={() => void fillFromRecords(area)}
+                          disabled={filling !== null}
+                          title="학생이 실제로 한 것을 회차 날짜에 맞춰 진도 칸에 채워요"
+                          className="mt-1 w-full rounded border border-brand-200 bg-brand-50 px-1 py-0.5 text-[11px] font-semibold text-brand-700 hover:bg-brand-100 disabled:opacity-50"
+                        >
+                          {filling === area ? "가져오는 중…" : "학습 기록 가져오기"}
+                        </button>
+                      ) : null}
                     </td>
                     <td className="p-1">
                       {week === WEEKS[0] ? (

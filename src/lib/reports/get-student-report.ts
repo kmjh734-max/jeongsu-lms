@@ -5,6 +5,7 @@ import {
   unwrapRelation,
 } from "@/lib/progress/enrollment-progress";
 import { canViewStudentReport } from "@/lib/reports/access";
+import { loadStudyPlanSection } from "@/lib/reports/study-plan-section";
 import {
   getReportRangeBounds,
   getReportRangeLabel,
@@ -669,8 +670,15 @@ export async function getStudentReport(
     video: { courses: courses.length, lessonsDone: completedLessons },
   };
 
+  const studyPlan = await loadStudyPlanSection(supabase, student.id as string, {
+    // 기간을 안 정하면(all) 최근 1년치 일정표를 본다
+    from: (bounds.start ?? new Date(bounds.end.getTime() - 365 * 86400000)).toISOString().slice(0, 10),
+    to: bounds.end.toISOString().slice(0, 10),
+  });
+
   return {
     overview,
+    ...(studyPlan ? { studyPlan } : {}),
     generatedAt,
     range,
     rangeLabel,

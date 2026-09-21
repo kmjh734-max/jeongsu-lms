@@ -38,19 +38,22 @@ function after(iso: string | null, startMs: number): boolean {
 export function ProgressOverview({
   rows,
   classes,
+  teachers,
   todayIso,
   weekStart,
   truncated,
   limit,
 }: {
   rows: ProgressRow[];
-  classes: { id: string; name: string }[];
+  classes: { id: string; name: string; teacherId: string }[];
+  teachers: { id: string; name: string }[];
   todayIso: string;
   /** 이번 주 월요일 0시 (한국) */
   weekStart: string;
   truncated: boolean;
   limit: number;
 }) {
+  const [teacherFilter, setTeacherFilter] = useState("all");
   const [classFilter, setClassFilter] = useState("all");
   const [courseFilter, setCourseFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -74,6 +77,11 @@ export function ProgressOverview({
   const filtered = useMemo(() => {
     const list = rows.filter((r) => {
       if (classFilter !== "all" && !r.classIds.includes(classFilter)) return false;
+      if (teacherFilter !== "all" && classFilter === "all") {
+        // 선생님만 고른 상태 — 그 선생님 반 학생만 본다
+        const mine = classes.filter((c) => c.teacherId === teacherFilter).map((c) => c.id);
+        if (!r.classIds.some((id) => mine.includes(id))) return false;
+      }
       if (courseFilter !== "all" && r.courseId !== courseFilter) return false;
       return matchesStudentSearch(r, search);
     });
@@ -134,13 +142,39 @@ export function ProgressOverview({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="grid gap-2 sm:grid-cols-3 lg:flex">
           <select
+            value={teacherFilter}
+            onChange={(e) => {
+              const next = e.target.value;
+              setTeacherFilter(next);
+              // 선생님을 바꾸면 그 선생님 반이 아닌 반 고르기는 풀어 준다
+              if (
+                next !== "all" &&
+                classFilter !== "all" &&
+                !classes.some((c) => c.id === classFilter && c.teacherId === next)
+              ) {
+                resetOpen(setClassFilter)("all");
+              }
+            }}
+            aria-label="선생님"
+            className="ui-select h-9 py-0 lg:w-40"
+          >
+            <option value="all">선생님: 전체</option>
+            {teachers.map((t) => (
+              <option key={t.id || "none"} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+          <select
             value={classFilter}
             onChange={(e) => resetOpen(setClassFilter)(e.target.value)}
             aria-label="반"
             className="ui-select h-9 py-0 lg:w-44"
           >
             <option value="all">반: 전체</option>
-            {classes.map((c) => (
+            {classes
+              .filter((c) => teacherFilter === "all" || c.teacherId === teacherFilter)
+              .map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
