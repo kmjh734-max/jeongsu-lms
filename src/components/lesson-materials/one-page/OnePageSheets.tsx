@@ -111,6 +111,9 @@ ruby.op-voc rt .op-vocw i{display:block;font-style:normal;white-space:nowrap}
 .op-ttc{font-weight:600;color:#6b7280}
 .op-ttw{margin:.1em 0 0;font-family:ui-sans-serif,system-ui,sans-serif;font-size:.82em;font-weight:500;line-height:1.45}
 .op-ttl{border-bottom:1.1px solid #9ca3af;height:1.1em;margin-top:.15em}
+.op-timp{margin:.05em 0 .22em 1.4em;display:flex;align-items:flex-end;gap:.35em;font-size:.82em}
+.op-timp i{flex-grow:1;border-bottom:1.1px dotted #9ca3af;height:.95em}
+.op-timp .op-ttq{font-size:1em;flex-shrink:0}
 .op-tref{margin:.05em 0 .22em 1.4em;display:flex;flex-wrap:wrap;align-items:flex-end;gap:.2em 1.1em;font-size:.82em}
 .op-tref .op-ttq{font-size:1em}
 .op-trb{display:flex;align-items:flex-end;gap:.25em;min-width:13em;flex:1 1 13em}
@@ -586,12 +589,11 @@ function TestTasks({ row }: { row: OnePageTestRow }) {
   return (
     <>
       {row.imps.map((m, i) => (
-        <div key={`i${i}`} className="op-tt">
-          <p className="op-ttq">
-            ▸ 밑줄 친 <b className="op-en">{m.surface}</b> 이(가) 의미하는 바를 제시어를 바르게 나열하여 서술하시오
-          </p>
-          <p className="op-ttw op-en">( {m.words.join(" / ")} )</p>
-          <div className="op-ttl" />
+        <div key={`i${i}`} className="op-timp">
+          <span className="op-ttq">
+            ▸ 밑줄 친 <b className="op-en">{m.surface}</b> 이(가) 의미하는 바를 쓰시오
+          </span>
+          <i />
         </div>
       ))}
       {row.refs.length > 0 ? (
@@ -767,10 +769,10 @@ function answerRows(p: OnePageTestPassage): Array<{ label: string; value: ReactN
     rows.push({
       label: label("함축의미"),
       value: (
-        <span className="op-en">
+        <span>
           {imps.map((m, i) => (
             <span key={i} style={{ display: "block" }}>
-              {m.surface} — {m.answer}
+              <b className="op-en">{m.surface}</b> — {m.answer}
             </span>
           ))}
         </span>

@@ -564,8 +564,8 @@ export type OnePageTestRow = {
   segments: OnePageTestSegment[];
   /** 이 문장의 지칭어 — 가리키는 것을 쓰게 한다 */
   refs: Array<{ mark: string; surface: string; answer: string }>;
-  /** 이 문장의 함축의미 — 뜻하는 바를 제시어로 서술하게 한다 */
-  imps: Array<{ surface: string; words: string[]; answer: string; meaningKo: string }>;
+  /** 이 문장의 함축의미 — 그 말이 문맥에서 뜻하는 바를 쓰게 한다 */
+  imps: Array<{ surface: string; answer: string }>;
   /** 이 문장의 주요문장 영작(없으면 null) */
   writing: { words: string[]; korean: string; answer: string } | null;
 };
@@ -689,7 +689,6 @@ export function buildOnePageTestPassage(input: {
     correct?: string;
     answer?: string;
     meaningKo?: string;
-    meaningEn?: string;
   };
 
   const rows: OnePageTestRow[] = [];
@@ -721,8 +720,8 @@ export function buildOnePageTestPassage(input: {
       add({ start: c.start, end: c.end, kind: "choice", left: c.left, right: c.right, correct: c.correct });
     }
     for (const m of implications) {
-      if (m.sentenceIndex !== si || !m.meaningEn) continue;
-      put("imp", m.expression, { answer: m.meaningEn, meaningKo: m.meaningKo, meaningEn: m.meaningEn });
+      if (m.sentenceIndex !== si || !m.meaningKo) continue;
+      put("imp", m.expression, { meaningKo: m.meaningKo });
     }
     for (const p of content.paraphrases) {
       if (p.sentenceIndex !== si || exprNo + countOf("expr") >= CIRCLED_HANGUL.length) continue;
@@ -761,12 +760,7 @@ export function buildOnePageTestPassage(input: {
         expressions.push({ mark, surface, answer: m.answer ?? "" });
       } else {
         segments.push({ type: "imp", text: surface });
-        imps.push({
-          surface,
-          words: scrambleSentenceWords(m.meaningEn ?? "", `${seed}#i${si}`),
-          answer: m.meaningEn ?? "",
-          meaningKo: m.meaningKo ?? "",
-        });
+        imps.push({ surface, answer: m.meaningKo ?? "" });
       }
       cursor = m.end;
     }
