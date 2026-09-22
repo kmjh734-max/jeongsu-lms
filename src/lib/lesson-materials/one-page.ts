@@ -402,10 +402,16 @@ export function answerSentence(english: string): string {
 /** 영작 문장: 재료가 고른 문장, 모자라면 알맞은 길이의 긴 문장으로 채운다. 해석이 없는 문장은 뺀다. */
 function pickWritingIndexes(
   sentences: Array<{ english: string; korean: string }>,
-  keyIndexes: number[]
+  keyIndexes: number[],
+  /** 어법 자리가 있는 문장은 영작으로 쓰지 않는다(그 문장은 본문에서 지워지므로 어법을 잃는다) */
+  exclude?: Set<number>
 ): number[] {
   const usable = (i: number) =>
-    i >= 0 && i < sentences.length && !!sentences[i]!.english.trim() && !!sentences[i]!.korean.trim();
+    i >= 0 &&
+    i < sentences.length &&
+    !exclude?.has(i) &&
+    !!sentences[i]!.english.trim() &&
+    !!sentences[i]!.korean.trim();
   const words = (i: number) => answerSentence(sentences[i]!.english).split(/\s+/).length;
   const chosen: number[] = [];
   for (const i of keyIndexes) {
@@ -555,7 +561,9 @@ export type OnePageTestSegment =
   | { type: "choice"; number: number; leftText: string; rightText: string }
   | { type: "ref"; mark: string; text: string }
   | { type: "expr"; mark: string; text: string }
-  | { type: "imp"; text: string };
+  | { type: "imp"; text: string }
+  /** 영작으로 낼 문장 — 본문에서 영어를 지우고 해석만 남긴다 */
+  | { type: "ko"; text: string };
 
 /** 본문 한 문장과 그 문장에 딸린 문항들 */
 export type OnePageTestRow = {
@@ -677,8 +685,12 @@ export function buildOnePageTestPassage(input: {
     ONE_PAGE_CHOICE_MAX
   );
 
-  const writingAt = new Set(pickWritingIndexes(input.sentences, content.keySentenceIndexes));
   const implications = (content.implications ?? []).slice(0, TEST_IMPLICATION_MAX);
+
+  // 영작으로 낼 문장은 본문에서 영어를 지우므로, 어법·함축의미 자리가 있는 문장은 고르지 않는다.
+  const keepEnglish = new Set<number>(grammarAt.keys());
+  for (const m of implications) keepEnglish.add(m.sentenceIndex);
+  const writingAt = new Set(pickWritingIndexes(input.sentences, content.keySentenceIndexes, keepEnglish));
 
   type Mark = {
     start: number;
@@ -701,6 +713,19 @@ export function buildOnePageTestPassage(input: {
   english.forEach((raw, si) => {
     const text = formatWorkbookPassage(raw);
     if (!text) return;
+
+    // 영작 문장: 영어를 그대로 두면 바로 위에 답이 있는 꼴이라, 해석만 남기고 문항은 그것 하나만 둔다.
+    const koreanOf = input.sentences[si]!.korean.replace(/\s+/g, " ").trim();
+    if (writingAt.has(si) && koreanOf) {
+      rows.push({
+        no: rows.length + 1,
+        segments: [{ type: "ko", text: koreanOf }],
+        refs: [],
+        imps: [],
+        writing: { words: scrambleSentenceWords(raw, `${seed}#w${si}`), korean: koreanOf, answer: answerSentence(raw) },
+      });
+      return;
+    }
 
     const marks: Mark[] = [];
     const add = (m: Mark) => {
@@ -766,14 +791,7 @@ export function buildOnePageTestPassage(input: {
     }
     if (cursor < text.length) segments.push({ type: "text", text: text.slice(cursor) });
 
-    // 문항이 한 문장에 몰리면 읽기 힘들다 — 함축의미가 붙은 문장에는 영작을 두지 않는다.
-    const korean = input.sentences[si]!.korean.replace(/\s+/g, " ").trim();
-    const writing =
-      writingAt.has(si) && imps.length === 0 && korean
-        ? { words: scrambleSentenceWords(raw, `${seed}#w${si}`), korean, answer: answerSentence(raw) }
-        : null;
-
-    rows.push({ no: rows.length + 1, segments, refs, imps, writing });
+    rows.push({ no: rows.length + 1, segments, refs, imps, writing: null });
   });
 
   const summaryParts = splitSummaryByKeywords(content.summaryEn, content.summaryKeywords);

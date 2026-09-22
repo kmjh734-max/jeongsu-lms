@@ -81,6 +81,7 @@ const VOCAB_SECTION = `[vocab] 이 지문의 뜻을 떠받치는 핵심 낱말(�
 - 고르는 기준은 '어려운 낱말'이 아니라 '내용상 중요한 낱말'이다. 그 낱말을 반대말로 바꾸면 글의 흐름·주장이 뒤집히는 낱말을 먼저 고른다(increase↔decrease, sustain↔lose, necessarily↔hardly). 어렵기만 하고 바꿔도 논지가 그대로인 낱말은 넣지 않는다.
 - 진짜 반대말이 있는 낱말을 먼저 고른다. 반대말이 없는 낱말(astronomy, novel, experience처럼 반의어가 빈 낱말)은 논지를 가르는 낱말에 밀린다.
 - 앞에 쓴 것일수록 논지가 더 많이 걸린 낱말이 되게 순서를 매겨 낸다.
+- 이 지문의 키워드를 먼저 고른다: 주제문·요약문에 들어갈 말, 지문에서 되풀이되거나 다른 말로 바꿔 다시 나오는 말, 그 낱말을 모르면 글을 못 읽는 말. 지나가는 자리의 낱말은 뒤로 민다.
 - 고를 것: 글의 주제·논지를 나르는 내용어(명사·동사·형용사·부사). 쉬운 낱말이라도 논지를 가르면 넣는다.
 - 빼야 할 것: 중학 수준의 쉬운 낱말(steal, cash, money, help, balance), 고유명사·약어(NEAs, Jackson High School), 숫자·단위, 두 낱말 이상의 구(그런 표현은 paraphrases로 보낸다), 한 지문에서 같은 어근인 낱말(diversify·diversity·variety 중 하나만).
 - surface: 지문에 나온 형태 그대로의 낱말 하나(하이픈으로 이어진 낱말은 하나로 본다). 구는 안 된다. no: 그 낱말이 나온 문장.
@@ -159,7 +160,7 @@ ${examBlankFocusRules()}
 
 /** 바꿔 쓰기 표현(목록이 길어 따로 부른다. 지칭 정리는 코드로 훑어 따로 푼다). */
 const EXTRA_PROMPT = `${COMMON_HEADER}
-[paraphrases] 서술형·바꿔 쓰기에 나올 핵심 표현 4~6개. expression은 지문에 나온 그대로의 2~6 words 어구(낱말 하나짜리는 vocab이 맡는다), meaningKo는 이 문맥에 맞는 짧고 자연스러운 한국어 뜻, paraphrases는 이 문맥에서 바꿔 써도 뜻이 같은 영어 표현 1~2개(지문의 다른 표현을 그대로 베끼지 않는다).
+[paraphrases] 서술형·바꿔 쓰기에 나올 핵심 표현 4~6개. 고등학생이 뜻을 이미 아는 기초 표현(a lot of, in order to, such as, for example, the same as, kind of, a number of 같은 것)과 글자 뜻 그대로인 표현은 넣지 않는다. 이 지문에서만 쓰이는 말, 문맥이 있어야 풀리는 말, 내신 서술형에서 바꿔 쓰게 할 만한 말을 고른다. expression은 지문에 나온 그대로의 2~6 words 어구(낱말 하나짜리는 vocab이 맡는다), meaningKo는 이 문맥에 맞는 짧고 자연스러운 한국어 뜻, paraphrases는 이 문맥에서 바꿔 써도 뜻이 같은 영어 표현 1~2개(지문의 다른 표현을 그대로 베끼지 않는다).
 
 ${examParaphraseFocusRules()}
 
@@ -325,8 +326,8 @@ function locateKeywords(summary: string, raw: unknown): string[] {
  * 30초 넘게 붙으므로(선생님 지적: 느리다) 정말 허전할 때만 부른다.
  */
 export const MIN_GRAMMAR = 3;
-/** 한 장에 싣는 최대 개수 */
-const MAX_GRAMMAR = 6;
+/** 한 장에 싣는 최대 개수(선생님 지적 2026-09-22: 어법 포인트가 모자란다) */
+const MAX_GRAMMAR = 8;
 /** 정리자료에 싣는 낱말 수 상한(선생님 요청: 10~12개) */
 const MAX_VOCAB = 12;
 /**
@@ -337,7 +338,7 @@ const MAX_VOCAB = 12;
  * 한 장에 싣는 것은 6개인데 18개까지 받아 두면 답이 길어져 그만큼 더 기다리고,
  * 교재가 거의 묻지 않는 자리까지 올라온다. 12면 검수에서 몇 개 버려도 6은 남는다.
  */
-const GRAMMAR_CANDIDATES = 9;
+const GRAMMAR_CANDIDATES = 12;
 /** 보충(모자란 어법을 더 뽑는 호출)을 기다리는 한도. 늦으면 있는 것으로 만든다. */
 const SPARE_DEADLINE_MS = 40_000;
 /**
