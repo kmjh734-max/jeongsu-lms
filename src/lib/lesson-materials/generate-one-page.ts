@@ -160,11 +160,11 @@ ${examBlankFocusRules()}
 
 /** 바꿔 쓰기 표현(목록이 길어 따로 부른다. 지칭 정리는 코드로 훑어 따로 푼다). */
 const EXTRA_PROMPT = `${COMMON_HEADER}
-[paraphrases] 서술형·바꿔 쓰기에 나올 핵심 표현 4~6개. 고등학생이 뜻을 이미 아는 기초 표현(a lot of, in order to, such as, for example, the same as, kind of, a number of 같은 것)과 글자 뜻 그대로인 표현은 넣지 않는다. 이 지문에서만 쓰이는 말, 문맥이 있어야 풀리는 말, 내신 서술형에서 바꿔 쓰게 할 만한 말을 고른다. expression은 지문에 나온 그대로의 2~6 words 어구(낱말 하나짜리는 vocab이 맡는다), meaningKo는 이 문맥에 맞는 짧고 자연스러운 한국어 뜻, paraphrases는 이 문맥에서 바꿔 써도 뜻이 같은 영어 표현 1~2개(지문의 다른 표현을 그대로 베끼지 않는다).
+[paraphrases] 서술형·바꿔 쓰기에 나올 핵심 표현 7~9개(검수에서 걸러 4~5개만 싣는다. 넉넉히 내되 아래 기준을 지킨다). 고등학생이 뜻을 이미 아는 기초 표현(a lot of, in order to, such as, for example, the same as, kind of, a number of 같은 것)과 글자 뜻 그대로인 표현은 넣지 않는다. 이 지문에서만 쓰이는 말, 문맥이 있어야 풀리는 말, 내신 서술형에서 바꿔 쓰게 할 만한 말을 고른다. expression은 지문에 나온 그대로의 2~6 words 어구(낱말 하나짜리는 vocab이 맡는다), meaningKo는 이 문맥에 맞는 짧고 자연스러운 한국어 뜻, paraphrases는 이 문맥에서 바꿔 써도 뜻이 같은 영어 표현 1~2개(지문의 다른 표현을 그대로 베끼지 않는다).
 
 ${examParaphraseFocusRules()}
 
-[implications] 문맥에서만 풀리는 말 0~2개. 올인원 자료의 "밑줄 친 …이 의미하는 바를 서술하시오" 문항이 된다.
+[implications] 문맥에서만 풀리는 말 0~4개(검수에서 걸러 2개만 싣는다). 올인원 자료의 "밑줄 친 …이 의미하는 바를 서술하시오" 문항이 된다.
 - expression: 지문에 나온 그대로의 1~5 words. 따옴표 안의 말, 비유, 앞 내용을 통째로 받는 짧은 구처럼 글자 뜻만으로는 풀리지 않는 것만 고른다.
 - 낱말 뜻만 알면 되는 말(vocab이 맡는다), 단순한 지칭어(it·this·they), paraphrases에 이미 넣은 표현은 고르지 않는다.
 - meaningEn: 그 말이 이 문맥에서 뜻하는 바를 지문의 다른 문장을 베끼지 않고 8~16 words 한 구절로(뜻을 잡는 데만 쓴다).
@@ -346,7 +346,7 @@ const SPARE_DEADLINE_MS = 40_000;
  * 끄는 일이 있어, 그런 조각만 끊고 나머지로 만든다(조각은 서로 기다리지 않는다).
  */
 const GRAMMAR_CHUNK_DEADLINE_MS = 58_000;
-const VOCAB_CANDIDATES = 18;
+const VOCAB_CANDIDATES = 22;
 /** 정리자료 한 장에 실을 낱말 수(검수에서 빠져 이보다 적어지면 더 뽑는다). */
 export const MIN_VOCAB = 10;
 /** 지칭 정리에 싣는 최대 개수(선생님 요청: 지문의 지칭어를 모두 싣는다. 넘치면 두 쪽으로 간다). */
@@ -799,7 +799,7 @@ function checkCore(
       meaningKo: str1(r.meaningKo),
       paraphrases: alts,
     });
-    if (paraphrases.length >= 6) break;
+    if (paraphrases.length >= 9) break;
   }
   if (paraphrases.length < 3) problems.push("바꿔 쓰기 표현 부족(expression은 지문 그대로)");
 
@@ -818,7 +818,7 @@ function checkCore(
       meaningEn,
       meaningKo: str1(r.meaningKo),
     });
-    if (implications.length >= 2) break;
+    if (implications.length >= 4) break;
   }
 
   const examPoints = checkExamPoints(raw.examPoints, sentences, {
@@ -1067,13 +1067,18 @@ async function rateExamAndParaphrases(input: {
   sentences: string[];
   examPoints: OnePageExamPoint[];
   paraphrases: OnePageParaphrase[];
+  implications: OnePageImplication[];
   signal: AbortSignal;
   usage: Usage;
   notes: string[];
-}): Promise<{ examPoints: OnePageExamPoint[]; paraphrases: OnePageParaphrase[] }> {
+}): Promise<{
+  examPoints: OnePageExamPoint[];
+  paraphrases: OnePageParaphrase[];
+  implications: OnePageImplication[];
+}> {
   const blanks = input.examPoints.filter((e) => e.kind === "blank" || e.kind === "insert");
-  const { paraphrases } = input;
-  if (blanks.length + paraphrases.length === 0) return input;
+  const { paraphrases, implications } = input;
+  if (blanks.length + paraphrases.length + implications.length === 0) return input;
   const blankList = blanks
     .map((e, i) => `B${i + 1}) [${e.kind === "blank" ? "빈칸 추론" : "문장 삽입"}] ${e.kind === "blank" ? `빈칸: ${e.target}` : "이 문장을 뺀다"}
    문장: ${input.sentences[e.sentenceIndex] ?? ""}`)
@@ -1081,6 +1086,10 @@ async function rateExamAndParaphrases(input: {
   const paraList = paraphrases
     .map((p, i) => `P${i + 1}) ${p.expression} (${p.meaningKo})
    문장: ${input.sentences[p.sentenceIndex] ?? ""}`)
+    .join("\n");
+  const impList = implications
+    .map((m, i) => `I${i + 1}) ${m.expression} → ${m.meaningKo}
+   문장: ${input.sentences[m.sentenceIndex] ?? ""}`)
     .join("\n");
   try {
     const res = await requestContent(
@@ -1096,10 +1105,16 @@ ${blankList || "(없음)"}
 [바꿔 쓰기 표현 후보]
 ${paraList || "(없음)"}
 
-각 후보에 대해 id(B1, P2 …), score(0~5), drop을 답한다.
+[함축의미 후보]
+${impList || "(없음)"}
+
+각 후보에 대해 id(B1, P2, I1 …), score(0~5), drop을 답한다.
 - 빈칸 추론: 주제문·결론문에서 요지를 담은 어구, 앞뒤 연결어·대조·인과로 답이 하나로 좁혀지는 자리가 높다(학력평가 31~34번과 같은 자리). 지엽적인 사실·예시·숫자·고유명사, 문맥 없이도 맞힐 수 있는 뻔한 자리, 앞 문장을 그대로 옮기면 되는 자리는 drop.
 - 문장 삽입: 지칭어·연결어로 자리가 하나로 정해질 때만 높다.
-- 바꿔 쓰기: 이 문맥에서만 뜻이 살아나는 표현(비유·관용·함축), 주제문에서 요지를 떠받치는 구, 서술형에 그대로 나오는 구동사·숙어·구문이 높다. 사전 뜻·직역으로 끝나는 구, 흔한 일상 표현(a lot of, in the past), 지문 흐름과 상관없는 표현은 drop.`,
+- 바꿔 쓰기: 이 문맥에서만 뜻이 살아나는 표현(비유·관용·함축), 주제문에서 요지를 떠받치는 구, 서술형에 그대로 나오는 구동사·숙어·구문이 높다. 사전 뜻·직역으로 끝나는 구, 흔한 일상 표현(a lot of, in the past), 지문 흐름과 상관없는 표현은 drop.
+- 함축의미: "밑줄 친 …이 의미하는 바를 쓰시오"로 낼 자리다. 글자 뜻만으로는 풀리지 않고 앞뒤를 읽어야 풀리는 말(따옴표 안의 말, 비유, 앞 내용을 통째로 받는 구)이 높다.
+  풀이(→ 뒤의 한국어)도 함께 본다: 그 문장을 그대로 해석한 것, 표현을 말만 바꿔 되풀이한 것, 두루뭉술해서 채점할 수 없는 것은 drop.
+  낱말 뜻만 알면 풀리는 말, 단순한 지칭어(it·this·they), 바꿔 쓰기 후보와 겹치는 말도 drop.`,
       input.signal,
       {
         system: "너는 한국 고등학교 내신 영어 출제 검수자다. 정해진 JSON으로만 답한다.",
@@ -1137,20 +1152,29 @@ ${paraList || "(없음)"}
       byId.set(id, { score: Math.max(0, Math.min(5, Math.floor(Number(it?.score) || 0))), drop: it?.drop === true });
     }
     if (byId.size === 0) return input;
-    const keep = <T,>(list: T[], prefix: string, min: number) => {
+    const keep = <T,>(list: T[], prefix: string, min: number, bar = 3, cap = Number.MAX_SAFE_INTEGER) => {
       const scored = list.map((x, i) => ({ x, r: byId.get(`${prefix}${i + 1}`) ?? { score: 3, drop: false } }));
-      const good = scored.filter((s) => !s.r.drop && s.r.score >= 3);
+      const good = scored.filter((s) => !s.r.drop && s.r.score >= bar).slice(0, cap);
       // 너무 적게 남으면 점수 높은 것부터 되살린다(자료가 비는 것보다 낫다).
-      const pool = good.length >= min ? good : [...scored].sort((a, b) => b.r.score - a.r.score).slice(0, Math.min(min, scored.length));
+      const pool =
+        good.length >= min
+          ? good
+          : [...scored]
+              .filter((s) => !s.r.drop)
+              .sort((a, b) => b.r.score - a.r.score)
+              .slice(0, Math.min(min, scored.length));
       return { list: [...pool].sort((a, b) => b.r.score - a.r.score).map((s) => s.x), dropped: list.length - pool.length };
     };
     const b = keep(blanks, "B", 1);
-    const p = keep(paraphrases, "P", 3);
-    const dropped = b.dropped + p.dropped;
+    // 선생님 지적 2026-09-22: 중요표현·함축의미의 질을 올린다 — 넉넉히 받아 4점 이상만 싣는다.
+    const p = keep(paraphrases, "P", 3, 4, 5);
+    const m = keep(implications, "I", 0, 4, 2);
+    const dropped = b.dropped + p.dropped + m.dropped;
     if (dropped > 0) input.notes.push(`출제 자리·표현 ${dropped}개 제외(시험에 나올 자리가 아님)`);
     return {
       examPoints: [...b.list, ...input.examPoints.filter((e) => e.kind !== "blank" && e.kind !== "insert")],
       paraphrases: p.list,
+      implications: m.list,
     };
   } catch {
     return input;
@@ -1700,6 +1724,7 @@ export async function generateOnePageContent(input: {
         sentences,
         examPoints: core.examPoints,
         paraphrases: translated.paraphrases,
+        implications: core.implications,
         signal: controller.signal,
         usage,
         notes,
@@ -1758,7 +1783,7 @@ export async function generateOnePageContent(input: {
         sentenceIndex: p.sentenceIndex,
         surface: p.expression,
       })),
-      implications: sortOnePageMarks(core.implications, sentences, (m) => ({
+      implications: sortOnePageMarks(gradedExam.implications, sentences, (m) => ({
         sentenceIndex: m.sentenceIndex,
         surface: m.expression,
       })),
