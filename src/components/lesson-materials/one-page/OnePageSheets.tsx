@@ -111,7 +111,6 @@ ruby.op-voc rt .op-vocw i{display:block;font-style:normal;white-space:nowrap}
 .op-ttc{font-weight:600;color:#6b7280}
 .op-ttw{margin:.1em 0 0;font-family:ui-sans-serif,system-ui,sans-serif;font-size:.82em;font-weight:500;line-height:1.45}
 .op-ttl{border-bottom:1.1px solid #9ca3af;height:1.1em;margin-top:.15em}
-.op-tko{font-family:ui-sans-serif,system-ui,sans-serif;font-weight:600;color:#1f2937}
 .op-timp{margin:.05em 0 .22em 1.4em;display:flex;align-items:flex-end;gap:.35em;font-size:.82em}
 .op-timp i{flex-grow:1;border-bottom:1.1px dotted #9ca3af;height:.95em}
 .op-timp .op-ttq{font-size:1em;flex-shrink:0}
@@ -575,13 +574,6 @@ function TestSentence({ row }: { row: OnePageTestRow }) {
             </Fragment>
           );
         }
-        if (seg.type === "ko") {
-          return (
-            <span key={i} className="op-tko">
-              [ {seg.text} ]
-            </span>
-          );
-        }
         return (
           <span key={i} className="op-ti">
             {seg.text}
@@ -619,8 +611,8 @@ function TestTasks({ row }: { row: OnePageTestRow }) {
       {row.writing ? (
         <div className="op-tt">
           <p className="op-ttq">
-            ▸ 위 해석에 맞춰 영작하시오{" "}
-            <span className="op-ttc">(제시어를 모두 쓰고 필요하면 어형 변화)</span>
+            ▸ 해석에 맞춰 영작하시오 <span className="op-ttc">(제시어를 모두 쓰고 필요하면 어형 변화)</span>{" "}
+            {row.writing.korean}
           </p>
           <p className="op-ttw op-en">( {row.writing.words.join(" / ")} )</p>
           <div className="op-ttl" />
