@@ -1153,17 +1153,18 @@ ${impList || "(없음)"}
     }
     if (byId.size === 0) return input;
     const keep = <T,>(list: T[], prefix: string, min: number, bar = 3, cap = Number.MAX_SAFE_INTEGER) => {
-      const scored = list.map((x, i) => ({ x, r: byId.get(`${prefix}${i + 1}`) ?? { score: 3, drop: false } }));
-      const good = scored.filter((s) => !s.r.drop && s.r.score >= bar).slice(0, cap);
-      // 너무 적게 남으면 점수 높은 것부터 되살린다(자료가 비는 것보다 낫다).
-      const pool =
-        good.length >= min
-          ? good
-          : [...scored]
-              .filter((s) => !s.r.drop)
-              .sort((a, b) => b.r.score - a.r.score)
-              .slice(0, Math.min(min, scored.length));
-      return { list: [...pool].sort((a, b) => b.r.score - a.r.score).map((s) => s.x), dropped: list.length - pool.length };
+      const scored = list
+        .map((x, i) => ({ x, r: byId.get(`${prefix}${i + 1}`) ?? { score: 3, drop: false } }))
+        .sort((a, b) => b.r.score - a.r.score);
+      const strict = scored.filter((s) => !s.r.drop && s.r.score >= bar);
+      // 합격선을 넘는 것이 모자라면 기준을 한 칸 내리고, 그래도 없으면 점수 높은 것부터 되살린다.
+      // 검수가 후보를 모두 버려 자료가 통째로 비는 일을 막는다.
+      const loose = scored.filter((s) => !s.r.drop);
+      const pool = (strict.length >= min ? strict : loose.length > 0 ? loose : scored).slice(
+        0,
+        Math.max(cap === Number.MAX_SAFE_INTEGER ? scored.length : cap, min)
+      );
+      return { list: pool.map((s) => s.x), dropped: list.length - pool.length };
     };
     const b = keep(blanks, "B", 1);
     // 선생님 지적 2026-09-22: 중요표현·함축의미의 질을 올린다 — 넉넉히 받아 4점 이상만 싣는다.
