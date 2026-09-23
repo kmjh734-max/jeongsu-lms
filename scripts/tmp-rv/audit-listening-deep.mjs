@@ -146,23 +146,6 @@ for (const s of sets) {
       }
     }
 
-    // G. 지시문 속 우리말 낱말이 대본·보기 어디에도 걸리지 않는다(지시문이 딴 자료의 것)
-    if (q.instruction && script) {
-      const key = String(q.instruction).match(/[가-힣]{2,}/g) ?? [];
-      const STOP = new Set(["대화를", "듣고", "다음", "고르시오", "가장", "적절한", "것을", "남자가", "여자가",
-        "두", "사람이", "보면서", "이어질", "마지막", "말에", "대한", "응답으로", "관해", "언급되지", "않은",
-        "그림에서", "내용과", "일치하지", "지불할", "금액을", "무엇에", "관한", "설명인지", "표를", "다음을",
-        "여학생이", "남학생이", "할", "일로", "심정으로", "의견으로", "목적으로", "이유를", "직후에", "것이",
-        "아닌", "어색한", "상황에", "맞는", "대화를", "말로", "지칭하는", "위치는", "바른", "주제로", "요지로",
-        "에게", "하는", "말의", "담화", "듣고,"]);
-      const words = key.filter((w) => w.length >= 2 && !STOP.has(w));
-      // 지시문 낱말 중 하나라도 보기나 우리말 해설에 걸리면 맞는 것으로 본다
-      const hay = norm(`${choices.join(" ")} ${exp} ${q.answer_clue ?? ""}`);
-      const anchored = words.some((w) => hay.includes(norm(w)) || hay.includes(norm(w.slice(0, 2))));
-      if (words.length >= 2 && !anchored) {
-        add("지시문 의심", s.title, no, `${q.instruction}`);
-      }
-    }
   }
 }
 
