@@ -43,7 +43,7 @@ export const spec: SetSpec = {
     {
       order: 2,
       type: "의견 파악",
-      instruction: "대화를 듣고, 남자의 의견으로 가장 적절한 것을 고르시오.",
+      instruction: "대화를 듣고, 여자의 의견으로 가장 적절한 것을 고르시오.",
       lines: [
         ["W", "Minjae, you've been reading that same chapter for three days."],
         ["M", "I'm underlining everything that might come up on the test."],
