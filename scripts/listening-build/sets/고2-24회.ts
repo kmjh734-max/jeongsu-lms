@@ -26,16 +26,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "사물함을 매일 비워 달라고 알리려고",
         "사물함 사용료 인상을 알리려고",
         "탈의실 공사를 안내하려고",
+        "사물함을 매일 비워 달라고 알리려고",
         "분실물 보관 기간을 알리려고",
         "월 사물함 신청을 받으려고",
       ],
-      answer: 1,
+      answer: 3,
       clue: "So beginning on the first of next month, every locker will be emptied at closing time.",
       explanation:
-        "남자는 다음 달 1일부터 문 닫을 때 모든 사물함을 비운다며 저녁마다 물건을 가져가 달라고 알린다. 따라서 답은 ①이다.",
+        "남자는 다음 달 1일부터 문 닫을 때 모든 사물함을 비운다며 저녁마다 물건을 가져가 달라고 알린다. 따라서 답은 ③이다.",
       translation: [
         "M: 노스게이트 주민 센터 회원 여러분, 안녕하세요. 안내 데스크 임준호입니다. 탈의실 사물함 때문에 연락드립니다. 센터가 문을 연 이래 회원들이 물건을 밤새 사물함에 두고 가셔서, 지금은 몇 달째 열리지 않은 사물함이 마흔 개가 넘습니다. 그래서 저녁에 오시는 회원들이 빈 사물함을 아예 찾지 못하는 일이 잦습니다. 그래서 다음 달 1일부터는 문 닫는 시각에 모든 사물함을 비우겠습니다. 안에 남은 물건은 안내 데스크에서 2주 동안 보관합니다. 더 오래 사물함이 필요하시면 2층에 월 단위로 빌려 드리는 사물함이 있습니다. 저녁마다 물건을 가져가 주시기 바랍니다. 이해해 주셔서 감사합니다.",
       ].join("\n"),
@@ -59,16 +59,16 @@ export const spec: SetSpec = {
         ["W", "Finish one before you open the next, even a short one."],
       ],
       choices: [
-        "책은 여러 권을 함께 읽어야 한다",
         "책은 한 권씩 끝까지 읽어야 한다",
+        "책은 여러 권을 함께 읽어야 한다",
         "독서량은 쪽수로 재야 한다",
         "어려운 책부터 읽어야 한다",
         "독서 기록을 남겨야 한다",
       ],
-      answer: 2,
+      answer: 1,
       clue: "Finish one before you open the next, even a short one.",
       explanation:
-        "여자는 마지막 3분의 1에서 부분들이 이어진다며, 짧은 책이라도 한 권을 끝내고 다음 책을 펴라고 말한다. 따라서 답은 ②이다.",
+        "여자는 마지막 3분의 1에서 부분들이 이어진다며, 짧은 책이라도 한 권을 끝내고 다음 책을 펴라고 말한다. 따라서 답은 ①이다.",
       translation: [
         "M: 혜린아, 나 요즘 책 네 권을 동시에 읽고 있어.",
         "W: 네 권? 각각 어디까지 읽었는데?",
@@ -191,14 +191,14 @@ export const spec: SetSpec = {
       choices: [
         "무대 설치하기",
         "안내지 인쇄하기",
-        "조율사를 강당에 들여보내기",
         "초청 가수 데려오기",
         "피아노 옮기기",
+        "조율사를 강당에 들여보내기",
       ],
-      answer: 3,
+      answer: 5,
       clue: "Then I'll take the key and let the tuner in.",
       explanation:
-        "무대와 안내지는 끝났고 남자는 가수를 데리러 가야 하므로, 여자가 열쇠를 받아 조율사를 강당에 들여보내기로 한다. 따라서 답은 ③이다.",
+        "무대와 안내지는 끝났고 남자는 가수를 데리러 가야 하므로, 여자가 열쇠를 받아 조율사를 강당에 들여보내기로 한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 혜린아, 자선 음악회가 오늘 저녁 7시에 시작해.",
         "W: 알아. 강당 무대는 설치됐어?",
@@ -232,11 +232,11 @@ export const spec: SetSpec = {
         ["W", "Then you get fifty percent off the soil."],
         ["M", "That's a good deal. I'll pay in cash."],
       ],
-      choices: ["$44.00", "$51.00", "$58.00", "$64.00", "$70.00"],
-      answer: 1,
+      choices: ["$51.00", "$58.00", "$44.00", "$64.00", "$70.00"],
+      answer: 3,
       clue: "Then you get fifty percent off the soil.",
       explanation:
-        "화분 6개 30달러와 흙 4포대 28달러를 더하면 58달러이고, 흙값 28달러의 절반인 14달러를 빼면 44달러이다. 따라서 답은 ①이다.",
+        "화분 6개 30달러와 흙 4포대 28달러를 더하면 58달러이고, 흙값 28달러의 절반인 14달러를 빼면 44달러이다. 따라서 답은 ③이다.",
       translation: [
         "W: 그린힐 원예점입니다. 무엇을 도와드릴까요?",
         "M: 작은 화분 여섯 개랑 흙 네 포대 주세요.",
@@ -269,16 +269,16 @@ export const spec: SetSpec = {
         ["W", "One meter forty. I'd have to cut it to fit, and I won't do that."],
       ],
       choices: [
+        "작품이 규격보다 커서",
         "그림을 끝내지 못해서",
         "출품비가 부담스러워서",
-        "작품이 규격보다 커서",
         "다른 전시와 겹쳐서",
         "작품이 마음에 들지 않아서",
       ],
-      answer: 3,
+      answer: 1,
       clue: "The rules say the work has to be under one meter wide.",
       explanation:
-        "그림은 10월에 다 그렸고 출품비도 동아리가 내 주지만, 작품이 규정 폭인 1미터를 넘어 1미터 40이기 때문이다. 따라서 답은 ③이다.",
+        "그림은 10월에 다 그렸고 출품비도 동아리가 내 주지만, 작품이 규정 폭인 1미터를 넘어 1미터 40이기 때문이다. 따라서 답은 ①이다.",
       translation: [
         "M: 혜린아, 전시 목록에 네 이름이 없네.",
         "W: 올해는 안 내기로 했어.",
@@ -310,11 +310,11 @@ export const spec: SetSpec = {
         ["M", "Three stations, at three, six and nine kilometers."],
         ["W", "Then let's sign up this week."],
       ],
-      choices: ["열리는 날", "코스 길이", "출발 장소", "참가비", "제한 시간"],
-      answer: 5,
+      choices: ["열리는 날", "코스 길이", "출발 장소", "제한 시간", "참가비"],
+      answer: 4,
       clue: "제한 시간은 대화에서 언급되지 않았다.",
       explanation:
-        "날짜(6월 둘째 주 금요일 저녁 8시), 코스 길이(10킬로미터), 출발 장소(옛 철교 옆 광장), 참가비(2만 5천 원)는 언급되지만 제한 시간은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "날짜(6월 둘째 주 금요일 저녁 8시), 코스 길이(10킬로미터), 출발 장소(옛 철교 옆 광장), 참가비(2만 5천 원)는 언급되지만 제한 시간은 언급되지 않았다. 따라서 답은 ④이다.",
       translation: [
         "M: 혜린아, 리버사이드 야간 달리기 신청할 거야?",
         "W: 포스터는 봤어. 언제야?",
@@ -348,15 +348,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "1912년부터 같은 건물에서 운영되었다",
+        "예약 없이 갈 수 있다",
         "화요일과 목요일 오전에만 한다",
         "한 번에 열두 명까지 참여한다",
-        "예약 없이 갈 수 있다",
         "방문객에게 빵 한 덩이를 준다",
       ],
-      answer: 4,
+      answer: 2,
       clue: "Booking is required, and you can book by phone or on their website.",
       explanation:
-        "예약이 필요하다고 했으므로 예약 없이 갈 수 있다는 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "예약이 필요하다고 했으므로 예약 없이 갈 수 있다는 ②는 내용과 다르다. 따라서 답은 ②이다.",
       translation: [
         "W: 올드밀 제과점 견학을 소개해 드리겠습니다. 이 제과점은 1912년부터 같은 돌 건물에서 운영되어 왔습니다. 견학은 화요일과 목요일 오전 10시에만 합니다. 한 번에 90분쯤 걸리고 열두 명까지 참여할 수 있습니다. 예약이 필요하며, 전화나 누리집으로 예약할 수 있습니다. 견학은 가게에서 끝나는데, 방문객마다 집에 가져갈 빵 한 덩이를 받습니다. 안전상의 이유로 일곱 살 미만 어린이는 제분실에 들어갈 수 없습니다.",
       ].join("\n"),
@@ -380,17 +380,17 @@ export const spec: SetSpec = {
         ["W", "Good idea. I always forget mine."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 3,
+      answer: 5,
       clue: "Weekend only. My weekday evenings are all taken.",
       explanation:
-        "주말이고, 사전 교육이 없으며, 30분 이내 거리인 활동을 고른다. 세 조건을 모두 채우는 것은 ③이다.",
+        "주말이고, 사전 교육이 없으며, 30분 이내 거리인 활동을 고른다. 세 조건을 모두 채우는 것은 ⑤이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "When: Weekday / Training: No / Travel: 20 minutes" },
           { no: 2, label: "②", value: "When: Weekend / Training: Yes / Travel: 15 minutes" },
-          { no: 3, label: "③", value: "When: Weekend / Training: No / Travel: 25 minutes" },
-          { no: 4, label: "④", value: "When: Weekend / Training: No / Travel: 50 minutes" },
-          { no: 5, label: "⑤", value: "When: Weekday / Training: Yes / Travel: 10 minutes" },
+          { no: 3, label: "③", value: "When: Weekend / Training: No / Travel: 50 minutes" },
+          { no: 4, label: "④", value: "When: Weekday / Training: Yes / Travel: 10 minutes" },
+          { no: 5, label: "⑤", value: "When: Weekend / Training: No / Travel: 25 minutes" },
         ],
       },
       translation: [
@@ -421,15 +421,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "I always ride the shuttle home.",
-        "I'll take the twelve, then.",
         "There is no back gate.",
+        "I'll take the twelve, then.",
         "The study session was cancelled.",
         "I'll walk the whole way.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "The city bus number twelve stops right at the back gate.",
       explanation:
-        "남자가 12번 시내버스가 후문에 선다고 알려 주었으므로, 그 버스를 타겠다는 ②가 가장 자연스럽다.",
+        "남자가 12번 시내버스가 후문에 선다고 알려 주었으므로, 그 버스를 타겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 준호야, 연휴에 학교 셔틀 운행해?",
         "M: 오전에만. 오후에는 안 해.",
@@ -450,16 +450,16 @@ export const spec: SetSpec = {
         ["W", "It's under materials, not notices. That's where she puts them."],
       ],
       choices: [
+        "I'll look under materials.",
         "My report is already finished.",
         "There is no class page.",
         "I'll ask for an extension.",
-        "I'll look under materials.",
         "The rubric was in the notices.",
       ],
-      answer: 4,
+      answer: 1,
       clue: "It's under materials, not notices. That's where she puts them.",
       explanation:
-        "여자가 자료 게시판에 있다고 알려 주었으므로, 자료 쪽을 보겠다는 ④가 가장 자연스럽다.",
+        "여자가 자료 게시판에 있다고 알려 주었으므로, 자료 쪽을 보겠다는 ①이 가장 자연스럽다.",
       translation: [
         "M: 혜린아, 과학 보고서가 금요일까지인데 채점 기준표를 잃어버렸어.",
         "W: 학급 페이지는 봤어?",
@@ -490,13 +490,13 @@ export const spec: SetSpec = {
         "I'll keep studying by myself.",
         "There is no study group this term.",
         "I'm sure about every unit already.",
-        "I'd rather teach the group myself.",
         "I'll go on Thursday with the chemistry unit.",
+        "I'd rather teach the group myself.",
       ],
-      answer: 5,
+      answer: 4,
       clue: "Go once and bring the unit you're least sure about.",
       explanation:
-        "남자가 한 번 가 보고 가장 자신 없는 단원을 가져가라고 했으므로, 목요일에 화학 단원을 갖고 가겠다는 ⑤가 가장 자연스럽다.",
+        "남자가 한 번 가 보고 가장 자신 없는 단원을 가져가라고 했으므로, 목요일에 화학 단원을 갖고 가겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 혜린아, 스터디 모임 초대를 세 번이나 거절했더라.",
         "W: 나는 혼자 하는 게 나아. 늘 그랬어.",
@@ -531,16 +531,16 @@ export const spec: SetSpec = {
         ["W", "Put it in a spreadsheet and let it add the column for you."],
       ],
       choices: [
-        "I'll set up a spreadsheet tonight.",
         "I'll do it once more by hand.",
+        "I'll set up a spreadsheet tonight.",
         "The club has no budget.",
         "My totals are always correct.",
         "I'll ask someone else to do it.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Put it in a spreadsheet and let it add the column for you.",
       explanation:
-        "여자가 표 계산 프로그램에 넣어 합계를 맡기라고 했으므로, 오늘 밤 만들겠다는 ①이 가장 자연스럽다.",
+        "여자가 표 계산 프로그램에 넣어 합계를 맡기라고 했으므로, 오늘 밤 만들겠다는 ②가 가장 자연스럽다.",
       translation: [
         "W: 준호야, 이번 주에 동아리 예산을 네 번이나 다시 썼네.",
         "M: 숫자가 자꾸 다르게 나와.",
@@ -579,15 +579,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "Let's cancel the sound for this play.",
-        "Print the cue list and share the file with us.",
         "You should memorize the list more carefully.",
         "Let's move the play to next week.",
         "You should skip your dentist appointment.",
+        "Print the cue list and share the file with us.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "She wants to tell him to print the cue list and share the file with the crew before Friday.",
       explanation:
-        "보라는 금요일 전에 큐 목록을 인쇄하고 파일을 다른 사람들과 나누라고 말하려 하므로 ②가 가장 적절하다.",
+        "보라는 금요일 전에 큐 목록을 인쇄하고 파일을 다른 사람들과 나누라고 말하려 하므로 ⑤가 가장 적절하다.",
       translation: [
         "W: 보라와 한준이는 금요일에 막을 올리는 학교 연극의 음향석을 맡고 있습니다. 한준이는 큐 목록을 혼자 다 만들었고 통째로 외우고 있습니다. 수요일 연습 때 보라는 그 큐 목록이 한준이 노트북에만 있고, 인쇄본도 없고 다른 사람과 나눈 파일도 없다는 것을 알아챕니다. 한준이는 금요일 오후에 치과 예약이 있어서 막이 오르기 10분 전에야 올지도 모른다고 말했습니다. 노트북이 말을 듣지 않거나 한준이가 늦으면, 그 자리의 누구도 어떤 소리를 언제 틀어야 하는지 알지 못합니다. 보라는 한준이가 일 자체를 대충 한 것이 아니라 그것이 한 벌뿐이라는 점에만 무심했다고 생각합니다. 보라는 금요일 전에 큐 목록을 인쇄하고 파일을 팀원들과 나누라고 말하고 싶습니다. 이런 상황에서 보라가 한준이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -615,16 +615,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "why deserts cool so sharply after sunset",
         "how sand stores heat during the day",
         "why coastal towns are warmer than inland ones",
+        "why deserts cool so sharply after sunset",
         "how deserts were formed over time",
         "why water vapour rises into the atmosphere",
       ],
-      answer: 1,
+      answer: 3,
       clue: "The difference between them is not how much heat arrives. It is how long the air can hold on to it.",
       explanation:
-        "남자는 사막 공기에 수증기가 거의 없어 낮에 흡수한 열이 밤에 곧장 빠져나가기 때문이라고 설명한다. 따라서 답은 ①이다.",
+        "남자는 사막 공기에 수증기가 거의 없어 낮에 흡수한 열이 밤에 곧장 빠져나가기 때문이라고 설명한다. 따라서 답은 ③이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 사막이 왜 밤에 그렇게 추워지는지 이야기하려 합니다. 사람들이 이 사실에 자주 놀랍니다. 한낮에 45도까지 오르는 곳이 새벽 전에 영하 가까이 떨어집니다. 하루 만에 40도가 오르내리는 것이지요. 이유는 모래가 아닙니다. 그 위의 공기입니다. 대기 중 수증기는 땅에서 올라오는 열을 붙잡아 담요처럼 지표 가까이에 가둡니다. 사막 공기에는 수증기가 거의 없습니다. 그래서 해가 지면 땅이 하루 종일 빨아들인 열이 아무것도 막지 않는 채로 곧장 위로 빠져나갑니다. 같은 위도의 습한 해안 마을은 밤새 거의 식지 않습니다. 둘의 차이는 열이 얼마나 오느냐가 아닙니다. 공기가 그것을 얼마나 오래 붙들 수 있느냐입니다.",
       ].join("\n"),
@@ -642,16 +642,16 @@ export const spec: SetSpec = {
         ["M", "A humid coastal town at the same latitude barely cools at all overnight."],
       ],
       choices: [
+        "strong winds carrying heat away from the sand",
         "a forty-degree swing within one day",
         "water vapour trapping heat like a blanket",
         "desert air carrying almost no water vapour",
         "a humid coastal town staying warm overnight",
-        "strong winds carrying heat away from the sand",
       ],
-      answer: 5,
+      answer: 1,
       clue: "Desert air carries almost no water vapour, so once the sun sets, the heat the ground absorbed all day escapes straight upward.",
       explanation:
-        "하루 40도 차이, 수증기가 담요처럼 열을 가둔다는 것, 사막 공기에 수증기가 거의 없다는 것, 습한 해안 마을이 밤에 식지 않는다는 것은 언급되지만 강한 바람이 열을 실어 간다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "하루 40도 차이, 수증기가 담요처럼 열을 가둔다는 것, 사막 공기에 수증기가 거의 없다는 것, 습한 해안 마을이 밤에 식지 않는다는 것은 언급되지만 강한 바람이 열을 실어 간다는 것은 언급되지 않았다. 따라서 답은 ①이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

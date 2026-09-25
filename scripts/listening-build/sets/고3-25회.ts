@@ -29,16 +29,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "교내 백분위와 전국 백분위가 다름을 알리려고",
         "모의고사 일정 변경을 알리려고",
         "성적표 재발급을 안내하려고",
         "대학 입시 설명회를 알리려고",
         "채점 오류를 사과하려고",
+        "교내 백분위와 전국 백분위가 다름을 알리려고",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Our percentile is calculated within this school only, using the roughly four hundred students who sat the exam here.",
       explanation:
-        "남자는 성적표의 백분위가 교내 기준이며 대학이 보는 전국 백분위는 3주 뒤에 나온다는 것을 알린다. 따라서 답은 ①이다.",
+        "남자는 성적표의 백분위가 교내 기준이며 대학이 보는 전국 백분위는 3주 뒤에 나온다는 것을 알린다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 학부모님과 학생 여러분, 안녕하세요. 학교 행정실 남현우입니다. 어제 나간 모의고사 성적 때문에 알려 드립니다. 성적표에 찍힌 백분위가 대학 입시에 쓰이는 백분위와 같은 것인지 여러 가정에서 물어 오셨습니다. 같지 않으며, 그것을 계획 세우기 전에 분명히 해 두고 싶습니다. 저희 백분위는 이 학교에서 시험을 본 사백 명 남짓만을 놓고 계산한 교내 기준입니다. 대학이 보는 전국 백분위는 시험 기관에서 3주쯤 뒤에 나옵니다. 여기서 상위권인 학생이 전국에서는 아주 다른 자리에 있을 수 있고, 그 방향은 위일 수도 아래일 수도 있습니다. 기관의 성적표가 나온 뒤에 판단해 주시기 바랍니다. 감사합니다.",
       ].join("\n"),
@@ -63,15 +63,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "지원은 많이 할수록 유리하다",
-        "지원 수를 줄이고 서류의 질을 높여야 한다",
         "자기소개서는 미리 써 두어야 한다",
+        "지원 수를 줄이고 서류의 질을 높여야 한다",
         "대학은 성적으로 정해야 한다",
         "진학 상담을 자주 받아야 한다",
       ],
-      answer: 2,
+      answer: 3,
       clue: "Eight, and write sixteen essays you would not be embarrassed by.",
       explanation:
-        "여자는 지원처를 넓히면 서류가 얇아진다며, 여덟 곳으로 줄이고 부끄럽지 않을 글을 쓰라고 말한다. 따라서 답은 ②이다.",
+        "여자는 지원처를 넓히면 서류가 얇아진다며, 여덟 곳으로 줄이고 부끄럽지 않을 글을 쓰라고 말한다. 따라서 답은 ③이다.",
       translation: [
         "M: 지원아, 나 지원할 대학을 마흔 곳 적어 뒀어.",
         "W: 마흔? 그럼 글은 몇 편이야?",
@@ -109,16 +109,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "지표는 그것을 쉽게 올리는 방법까지 따져 정해야 한다",
         "숫자로 평가하면 안 된다",
         "병원과 학교는 다르게 평가해야 한다",
         "정직한 보고가 가장 중요하다",
-        "지표는 그것을 쉽게 올리는 방법까지 따져 정해야 한다",
         "평가는 자주 바꾸어야 한다",
       ],
-      answer: 4,
+      answer: 1,
       clue: "If someone wanted to move this number without doing the real work, what is the easiest way?",
       explanation:
-        "남자는 지표가 평가에 쓰이면 사람들이 그 숫자에 반응한다며, 지표를 고를 때 그것을 쉽게 올릴 방법까지 물어야 한다고 말한다. 따라서 답은 ④이다.",
+        "남자는 지표가 평가에 쓰이면 사람들이 그 숫자에 반응한다며, 지표를 고를 때 그것을 쉽게 올릴 방법까지 물어야 한다고 말한다. 따라서 답은 ①이다.",
       translation: [
         "M: 어떤 지표든 사람들이 그것으로 평가받기 시작하면 이상한 일이 일어납니다. 대기 시간으로 평가받는 병원은 대기 시간을 줄입니다. 때로는 쉬운 환자를 먼저 봄으로써요. 합격률로 평가받는 학교는 합격률을 올립니다. 때로는 경계에 선 학생을 어려운 과목에서 돌려세움으로써요. 어느 경우든 숫자는 좋아지고, 그 숫자가 대신하기로 했던 것은 좋아지지 않습니다. 이것은 대개 부정직함이 아닙니다. 사람들은 세어지는 것에 반응하고, 세어지는 것은 결코 전부가 아닙니다. 그러니 지표를 고를 때는 곧바로 두 번째 질문을 하세요. 누군가 진짜 일을 하지 않고 이 숫자를 움직이고 싶다면 가장 쉬운 방법은 무엇인가. 그 답이 무엇이든, 결국 여러분이 얻게 될 것이 바로 그것입니다.",
       ].join("\n"),
@@ -191,15 +191,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "면접관에게 연락하기",
-        "명단 붙이기",
         "의자와 탁자 옮기기",
+        "명단 붙이기",
         "면접관 안내하기",
         "체육관 청소하기",
       ],
-      answer: 3,
+      answer: 2,
       clue: "Then I'll bring the chairs and tables into the three rooms.",
       explanation:
-        "면접관 확인과 명단은 끝났고 남자는 면접관을 안내해야 하므로, 여자가 의자와 탁자를 세 방에 옮기기로 한다. 따라서 답은 ③이다.",
+        "면접관 확인과 명단은 끝났고 남자는 면접관을 안내해야 하므로, 여자가 의자와 탁자를 세 방에 옮기기로 한다. 따라서 답은 ②이다.",
       translation: [
         "M: 지원아, 모의 면접이 2시에 시작해.",
         "W: 알아. 동문 면접관 세 분 확답 왔어?",
@@ -233,11 +233,11 @@ export const spec: SetSpec = {
         ["W", "Then I can take twenty percent off the prints, but not the file."],
         ["M", "Understood. I'll pay by card."],
       ],
-      choices: ["$72.00", "$80.00", "$82.00", "$90.00", "$100.00"],
-      answer: 3,
+      choices: ["$72.00", "$80.00", "$90.00", "$100.00", "$82.00"],
+      answer: 5,
       clue: "Then I can take twenty percent off the prints, but not the file.",
       explanation:
-        "사진 여섯 세트 90달러에서 20퍼센트를 빼면 72달러이고, 할인이 안 되는 파일 값 10달러를 더하면 82달러이다. 따라서 답은 ③이다.",
+        "사진 여섯 세트 90달러에서 20퍼센트를 빼면 72달러이고, 할인이 안 되는 파일 값 10달러를 더하면 82달러이다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 브라이트라인 사진관입니다. 무엇을 도와드릴까요?",
         "M: 원서용 사진 여섯 세트 부탁드려요.",
@@ -317,11 +317,11 @@ export const spec: SetSpec = {
         ["M", "The top three get published in the city magazine."],
         ["W", "Then I'll start tonight and show you a draft on Sunday."],
       ],
-      choices: ["마감일", "분량", "주제", "심사위원", "참가 자격"],
-      answer: 5,
+      choices: ["참가 자격", "마감일", "분량", "주제", "심사위원"],
+      answer: 1,
       clue: "참가 자격은 대화에서 언급되지 않았다.",
       explanation:
-        "마감일(10월 30일 자정), 분량(1200~1500단어), 주제(경계), 심사위원(작가 두 명과 교수 한 명)은 언급되지만 참가 자격은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "마감일(10월 30일 자정), 분량(1200~1500단어), 주제(경계), 심사위원(작가 두 명과 교수 한 명)은 언급되지만 참가 자격은 언급되지 않았다. 따라서 답은 ①이다.",
       translation: [
         "M: 지원아, 가을 글쓰기 대회 나갈 거야?",
         "W: 나갈지도. 2년 전에 냈다가 아무 소득이 없었어.",
@@ -394,17 +394,17 @@ export const spec: SetSpec = {
         ["W", "Book two seats next to each other if you can."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 5,
+      answer: 2,
       clue: "Agreed. A full partition, not a half one.",
       explanation:
-        "칸막이가 전면이고, 10시 이후까지 열며, 월 15만 원 이하인 좌석을 고른다. 세 조건을 모두 채우는 것은 ⑤이다.",
+        "칸막이가 전면이고, 10시 이후까지 열며, 월 15만 원 이하인 좌석을 고른다. 세 조건을 모두 채우는 것은 ②이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Partition: Half / Open until: 11 p.m. / Fee: 110,000 won" },
-          { no: 2, label: "②", value: "Partition: Full / Open until: 9 p.m. / Fee: 100,000 won" },
-          { no: 3, label: "③", value: "Partition: Full / Open until: midnight / Fee: 190,000 won" },
-          { no: 4, label: "④", value: "Partition: Half / Open until: midnight / Fee: 95,000 won" },
-          { no: 5, label: "⑤", value: "Partition: Full / Open until: 11 p.m. / Fee: 140,000 won" },
+          { no: 2, label: "②", value: "Partition: Full / Open until: 11 p.m. / Fee: 140,000 won" },
+          { no: 3, label: "③", value: "Partition: Full / Open until: 9 p.m. / Fee: 100,000 won" },
+          { no: 4, label: "④", value: "Partition: Full / Open until: midnight / Fee: 190,000 won" },
+          { no: 5, label: "⑤", value: "Partition: Half / Open until: midnight / Fee: 95,000 won" },
         ],
       },
       translation: [
@@ -435,15 +435,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The shuttle was cancelled.",
-        "I'll go past the gym, then.",
         "My exam is on Sunday.",
         "I'll use the main gate anyway.",
         "There is no east gate.",
+        "I'll go past the gym, then.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "Go past the gym and turn left. It's five minutes from the main gate.",
       explanation:
-        "남자가 체육관을 지나 왼쪽으로 돌라고 알려 주었으므로, 체육관을 지나가겠다는 ②가 가장 자연스럽다.",
+        "남자가 체육관을 지나 왼쪽으로 돌라고 알려 주었으므로, 체육관을 지나가겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "W: 준영아, 토요일에 고사장 가는 셔틀 다녀?",
         "M: 다녀. 그런데 정문 말고 동문에서 출발해.",
@@ -464,16 +464,16 @@ export const spec: SetSpec = {
         ["W", "It's free at the desk but not online. Pay it and it goes through."],
       ],
       choices: [
-        "I'll pay the fee tonight.",
         "I already got my transcript.",
         "The fee was refunded.",
+        "I'll pay the fee tonight.",
         "I'm not a current student.",
         "I'll request it again online.",
       ],
-      answer: 1,
+      answer: 3,
       clue: "It's free at the desk but not online. Pay it and it goes through.",
       explanation:
-        "여자가 수수료를 내면 처리된다고 했으므로, 오늘 밤 내겠다는 ①이 가장 자연스럽다.",
+        "여자가 수수료를 내면 처리된다고 했으므로, 오늘 밤 내겠다는 ③이 가장 자연스럽다.",
       translation: [
         "M: 지원아, 내 성적증명서 신청이 일주일째 대기 중이야.",
         "W: 발급 수수료는 냈어?",
@@ -501,16 +501,16 @@ export const spec: SetSpec = {
         ["M", "Sit with a group from another class once a week and see what breaks."],
       ],
       choices: [
-        "I'll study alone from now on.",
         "I'll join another group on Wednesdays.",
+        "I'll study alone from now on.",
         "Our group explains everything well.",
         "I'll leave the group for good.",
         "Agreement is the same as understanding.",
       ],
-      answer: 2,
+      answer: 1,
       clue: "Sit with a group from another class once a week and see what breaks.",
       explanation:
-        "남자가 일주일에 한 번 다른 반 모둠과 앉아 보라고 했으므로, 수요일에 다른 모둠에 가겠다는 ②가 가장 자연스럽다.",
+        "남자가 일주일에 한 번 다른 반 모둠과 앉아 보라고 했으므로, 수요일에 다른 모둠에 가겠다는 ①이 가장 자연스럽다.",
       translation: [
         "M: 지원아, 3월부터 같은 친구 여섯 명이랑만 공부했네.",
         "W: 같은 과목을 보니까 효율적이야.",
@@ -592,16 +592,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "Let's cut it to ten minutes so the last photos play.",
         "We should add more photos to the beginning.",
+        "Let's cut it to ten minutes so the last photos play.",
         "Let's ask for a longer ceremony.",
         "We should play it without any sound.",
         "Let's move the slideshow to next week.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "She wants to tell him to cut it to ten minutes so the third-year photos are reached.",
       explanation:
-        "은비는 3학년 사진까지 나오도록 10분으로 줄이자고 말하려 하므로 ①이 가장 적절하다.",
+        "은비는 3학년 사진까지 나오도록 10분으로 줄이자고 말하려 하므로 ②가 가장 적절하다.",
       translation: [
         "W: 은비와 찬호는 금요일에 틀 졸업 영상을 만들고 있습니다. 찬호는 모든 반에서 사진을 모아 보기 좋게 엮었습니다. 은비는 영상이 28분짜리인데, 식순에는 교장 선생님 말씀과 시상 사이에 10분만 배정되어 있다는 것을 알아챕니다. 작년에는 한 순서가 길어지자 영상 중간에 소리가 끊겼고, 마지막 세 반은 화면에 아예 나오지 못했습니다. 찬호는 모두가 보려고 온 3학년 사진을 맨 끝에 두었습니다. 이틀이 남았고 파일은 오후 한나절이면 줄일 수 있습니다. 은비는 3학년 사진까지 닿도록 10분으로 줄이자고 말하고 싶습니다. 이런 상황에서 은비가 찬호에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -629,16 +629,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "why photos of the moon look different from what we see",
         "how phone cameras measure distance",
         "why the moon looks larger near the horizon",
         "how astronomers photograph distant planets",
         "why night photography needs a tripod",
+        "why photos of the moon look different from what we see",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Two separate things went wrong. The first is size.",
       explanation:
-        "남자는 넓은 화각과 밝기 측정 방식 때문에 달 사진이 눈으로 본 것과 달라진다고 설명한다. 따라서 답은 ①이다.",
+        "남자는 넓은 화각과 밝기 측정 방식 때문에 달 사진이 눈으로 본 것과 달라진다고 설명한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 달 사진이 왜 우리가 본 것과 거의 닮지 않는지 이야기하려 합니다. 밖에 서면 달은 크고 밝습니다. 휴대폰을 들어 찍으면 돌아오는 것은 작고 하얀 점입니다. 두 가지가 따로 어긋났습니다. 첫째는 크기입니다. 넓은 휴대폰 렌즈는 엄청난 양의 하늘을 한 화면에 담고, 그 하늘에 견주면 달은 정말로 작습니다. 여러분의 눈은 나머지 하늘을 무시하고 모든 것을 달에 겨누고 있었던 것입니다. 둘째는 밝기입니다. 카메라는 어두운 장면 전체를 재고 그것을 밝히려고 열어 주는데, 그러면 그 하나의 밝은 물체가 아무 무늬도 없는 원반으로 날아갑니다. 눈은 장면을 부분마다 따로 맞춥니다. 카메라는 그럴 수 없어서 하나를 골라야 합니다.",
       ].join("\n"),
@@ -658,14 +658,14 @@ export const spec: SetSpec = {
       choices: [
         "a wide lens fitting a lot of sky in one frame",
         "the eye ignoring the rest of the sky",
+        "a tripod removing shake from the photo",
         "the camera brightening a dark scene",
         "the eye adjusting part of a scene at a time",
-        "a tripod removing shake from the photo",
       ],
-      answer: 5,
+      answer: 3,
       clue: "A wide phone lens fits an enormous amount of sky into one frame, and against all that sky the moon is genuinely tiny.",
       explanation:
-        "넓은 렌즈가 하늘을 많이 담는 것, 눈이 나머지 하늘을 무시하는 것, 카메라가 어두운 장면을 밝히는 것, 눈이 부분마다 맞추는 것은 언급되지만 삼각대가 흔들림을 없앤다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "넓은 렌즈가 하늘을 많이 담는 것, 눈이 나머지 하늘을 무시하는 것, 카메라가 어두운 장면을 밝히는 것, 눈이 부분마다 맞추는 것은 언급되지만 삼각대가 흔들림을 없앤다는 것은 언급되지 않았다. 따라서 답은 ③이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

@@ -61,16 +61,16 @@ export const spec: SetSpec = {
         ["M", "Move two hours this week and look at the result before you argue with me."],
       ],
       choices: [
-        "공부 시간은 성적이 움직이는 쪽으로 옮겨야 한다",
         "모든 과목을 똑같이 공부해야 한다",
         "잘하는 과목을 더 붙잡아야 한다",
         "하루 공부량을 줄여야 한다",
         "과목마다 다른 교재를 써야 한다",
+        "공부 시간은 성적이 움직이는 쪽으로 옮겨야 한다",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Then the hours aren't worth the same, and you're spending them as if they were.",
       explanation:
-        "남자는 잘하는 과목의 두 번째 시간과 약한 과목의 두 번째 시간이 값이 다르다며, 성적이 움직이는 쪽으로 시간을 옮기라고 말한다. 따라서 답은 ①이다.",
+        "남자는 잘하는 과목의 두 번째 시간과 약한 과목의 두 번째 시간이 값이 다르다며, 성적이 움직이는 쪽으로 시간을 옮기라고 말한다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 준호야, 나 모든 과목을 하루 두 시간씩 똑같이 해.",
         "M: 똑같이. 이미 잘하는 두 과목까지?",
@@ -109,15 +109,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "목표는 높게 잡아야 한다",
-        "계획은 의지보다 조건을 잘 짜는 문제이다",
         "아침에 공부해야 한다",
+        "계획은 의지보다 조건을 잘 짜는 문제이다",
         "계획은 매일 새로 써야 한다",
         "남과 함께 공부해야 한다",
       ],
-      answer: 2,
+      answer: 3,
       clue: "Design for the ordinary version of yourself, the tired one.",
       explanation:
-        "남자는 계획이 무너지는 이유가 의지가 아니라 매일 댈 수 없는 조건을 요구하는 설계에 있다고 말한다. 따라서 답은 ②이다.",
+        "남자는 계획이 무너지는 이유가 의지가 아니라 매일 댈 수 없는 조건을 요구하는 설계에 있다고 말한다. 따라서 답은 ③이다.",
       translation: [
         "M: 계획이 무너지면 거의 모두가 자기 의지가 부족했다고 결론짓고, 계획을 들여다보는 사람은 거의 없습니다. 시작하는 쪽이 틀렸습니다. 밤 11시에 당신이 또렷할 것을 전제로 하거나, 시작하기 전에 알맞은 쪽을 찾아낼 것을 전제로 하는 계획은, 당신의 성품 때문에 실패한 계획이 아닙니다. 매일 댈 수 없는 조건을 요구한 계획입니다. 평범한 판본의 자신, 피곤한 자신을 기준으로 설계하세요. 책은 전날 밤에 책상 위에 올려 두세요. 첫걸음은 거절하는 것이 우스꽝스러울 만큼 작게 만드세요. 의지는 그러기로 마음먹는다고 더 생기는 것이 아닙니다. 주변의 배치가 잘못 짜였을 때 필요해지는 것입니다.",
       ].join("\n"),
@@ -197,13 +197,13 @@ export const spec: SetSpec = {
         "면접실 예약하기",
         "질문지 인쇄하기",
         "교실 정리하기",
-        "안내문 붙이기",
         "졸업생에게 연락하기",
+        "안내문 붙이기",
       ],
-      answer: 5,
+      answer: 4,
       clue: "Then I'll call the two graduates myself.",
       explanation:
-        "예약과 인쇄는 끝났고 여자는 2시부터 교실을 준비해야 하므로, 남자가 졸업생 두 명에게 연락하기로 한다. 따라서 답은 ⑤이다.",
+        "예약과 인쇄는 끝났고 여자는 2시부터 교실을 준비해야 하므로, 남자가 졸업생 두 명에게 연락하기로 한다. 따라서 답은 ④이다.",
       translation: [
         "W: 준호야, 모의 면접이 목요일 4시야.",
         "M: 알아. 교실은 예약했어?",
@@ -277,13 +277,13 @@ export const spec: SetSpec = {
         "모이는 시간이 이른 아침이라서",
         "회원들과 맞지 않아서",
         "모임 장소가 멀어서",
-        "필요한 과목을 다루지 않아서",
         "회비가 부담되어서",
+        "필요한 과목을 다루지 않아서",
       ],
-      answer: 4,
+      answer: 5,
       clue: "We spend the whole two hours on the subject I'm already strongest in.",
       explanation:
-        "시간도 사람도 괜찮지만, 모임이 이미 잘하는 과목만 두 시간 내내 다루고 정작 필요한 과목은 아무도 듣지 않기 때문이다. 따라서 답은 ④이다.",
+        "시간도 사람도 괜찮지만, 모임이 이미 잘하는 과목만 두 시간 내내 다루고 정작 필요한 과목은 아무도 듣지 않기 때문이다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 소라야, 스터디에 그만둔다고 했다며.",
         "W: 응, 이번 달 말까지만.",
@@ -315,11 +315,11 @@ export const spec: SetSpec = {
         ["M", "Twenty-five, and the list was already half full after one day."],
         ["W", "Then let's register tonight before it fills up."],
       ],
-      choices: ["운영 기간", "장소", "다루는 내용", "정원", "준비물"],
-      answer: 5,
+      choices: ["운영 기간", "장소", "준비물", "다루는 내용", "정원"],
+      answer: 3,
       clue: "준비물은 대화에서 언급되지 않았다.",
       explanation:
-        "기간(11월 토요일 네 번), 장소(시립도서관 세미나실), 내용(구성, 근거, 고쳐쓰기), 정원(스물다섯 명)은 언급되지만 준비물은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "기간(11월 토요일 네 번), 장소(시립도서관 세미나실), 내용(구성, 근거, 고쳐쓰기), 정원(스물다섯 명)은 언급되지만 준비물은 언급되지 않았다. 따라서 답은 ③이다.",
       translation: [
         "M: 소라야, 이스트포트 에세이 워크숍 공고 봤어?",
         "W: 오늘 아침에 게시판에서 봤어. 얼마 동안 해?",
@@ -352,16 +352,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "자리를 미리 예약할 수 있다",
         "2016년에 문을 열었다",
         "저녁 6시부터 새벽 1시까지 연다",
-        "자리를 미리 예약할 수 있다",
         "구민 카드가 있으면 누구나 쓸 수 있다",
         "매달 첫째 월요일에 문을 닫는다",
       ],
-      answer: 3,
+      answer: 1,
       clue: "Seats are allotted at the desk and cannot be booked in advance.",
       explanation:
-        "자리는 창구에서 배정받고 미리 예약할 수 없다고 했으므로 예약할 수 있다는 ③은 내용과 다르다. 따라서 답은 ③이다.",
+        "자리는 창구에서 배정받고 미리 예약할 수 없다고 했으므로 예약할 수 있다는 ①은 내용과 다르다. 따라서 답은 ①이다.",
       translation: [
         "W: 브룩베일 야간 도서관을 안내해 드리겠습니다. 2016년에 문을 열었고 학교가 아니라 구에서 운영합니다. 열람실은 저녁 6시부터 새벽 1시까지 엽니다. 자리는 창구에서 배정받으며 미리 예약할 수 없습니다. 구민 카드가 있으면 어느 학교에 다니든 이용할 수 있습니다. 위층에서는 음식을 먹을 수 없고 1층에 작은 방이 있습니다. 매달 첫째 월요일에는 문을 닫습니다.",
       ].join("\n"),
@@ -456,15 +456,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The site takes word files.",
-        "I'll save it again as a PDF.",
         "I haven't written the form yet.",
         "I'll post it by mail instead.",
         "My form uploaded fine.",
+        "I'll save it again as a PDF.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "The site only takes PDF. Save it again as a PDF.",
       explanation:
-        "여자가 사이트는 PDF만 받으니 PDF로 다시 저장하라고 했으므로, 그렇게 하겠다는 ②가 가장 자연스럽다.",
+        "여자가 사이트는 PDF만 받으니 PDF로 다시 저장하라고 했으므로, 그렇게 하겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 소라야, 신청서가 사이트에 안 올라가.",
         "W: 어떤 형식으로 저장했어?",
@@ -494,14 +494,14 @@ export const spec: SetSpec = {
       choices: [
         "I'll rewrite the opening once more.",
         "I'll hand it in as it is.",
-        "I never write essays.",
         "I'll write two body paragraphs tonight.",
+        "I never write essays.",
         "I'd rather change the topic.",
       ],
-      answer: 4,
+      answer: 3,
       clue: "Write two body paragraphs tonight and see which opening they ask for.",
       explanation:
-        "여자가 오늘 밤 본론 두 단락을 쓰라고 했으므로, 그렇게 하겠다는 ④가 가장 자연스럽다.",
+        "여자가 오늘 밤 본론 두 단락을 쓰라고 했으므로, 그렇게 하겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 준호야, 너 에세이 첫 단락을 열한 번 고쳐 썼어.",
         "M: 그게 제대로 돼야 다음으로 갈 수 있어.",
@@ -535,16 +535,16 @@ export const spec: SetSpec = {
         ["M", "Then swap them. Hard subject first, lists at midnight."],
       ],
       choices: [
+        "I'll do the hard subject first from tomorrow.",
         "I'll keep the same order tomorrow.",
         "I'll stop studying at night.",
-        "I'll do the hard subject first from tomorrow.",
         "The lists are the hardest part.",
         "I'd rather go to bed earlier only.",
       ],
-      answer: 3,
+      answer: 1,
       clue: "Then swap them. Hard subject first, lists at midnight.",
       explanation:
-        "남자가 어려운 과목을 먼저 하고 단어는 밤에 하라고 했으므로, 내일부터 어려운 과목을 먼저 하겠다는 ③이 가장 자연스럽다.",
+        "남자가 어려운 과목을 먼저 하고 단어는 밤에 하라고 했으므로, 내일부터 어려운 과목을 먼저 하겠다는 ①이 가장 자연스럽다.",
       translation: [
         "M: 소라야, 지쳐 보여. 몇 시까지 깨어 있었어?",
         "W: 2시 반. 제일 어려운 과목을 마지막에 해.",
@@ -617,16 +617,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "why sound travels through steel better than through air",
         "how railway tracks are welded together",
+        "why sound travels through steel better than through air",
         "why trains slow down on curves",
         "how engineers measure the weight of a train",
         "why stations are built away from town centres",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Sound travels through steel many times faster than it travels through air.",
       explanation:
-        "여자는 소리가 강철에서 공기보다 훨씬 빠르고 덜 잃으며 멀리 간다고 설명한다. 따라서 답은 ①이다.",
+        "여자는 소리가 강철에서 공기보다 훨씬 빠르고 덜 잃으며 멀리 간다고 설명한다. 따라서 답은 ②이다.",
       translation: [
         "W: 안녕하세요, 여러분. 오늘은 긴 기차가 보이기 전에 들리는 이유를 이야기하려 합니다. 소리는 공기보다 강철 속에서 몇 배나 빠르게 가고, 가는 동안 잃는 것도 훨씬 적습니다. 트인 곳에서라면 몇백 미터 만에 사그라들 진동이, 이어진 선로를 따라서는 몇 킬로미터를 달릴 수 있습니다. 그래서 선로에 귀를 대면 공기가 아직 전해 주지 않은 기차를 붙잡게 됩니다. 같은 성질이 기술자들이 다투는 이음매와 용접 문제도 설명해 주고, 금이 간 선로를 보는 것이 아니라 듣는 것으로 찾아내는 이유도 설명해 줍니다. 금속은 기차의 무게만 나르는 것이 아닙니다. 기차의 소식을 나릅니다.",
       ].join("\n"),

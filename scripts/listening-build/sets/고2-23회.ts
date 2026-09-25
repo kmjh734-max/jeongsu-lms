@@ -27,16 +27,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "수영장 이용료 인상을 알리려고",
         "아침 개장 시각 변경을 알리려고",
+        "수영장 이용료 인상을 알리려고",
         "버스 노선 변경을 안내하려고",
         "수영 강습 신청을 받으려고",
         "시설 점검 휴관을 알리려고",
       ],
-      answer: 2,
+      answer: 1,
       clue: "Beginning on the first of next month, they will open at five thirty instead.",
       explanation:
-        "남자는 첫차가 5시 20분에 도착하게 되어 다음 달 1일부터 평일 아침 개장 시각을 5시 30분으로 앞당긴다고 알린다. 따라서 답은 ②이다.",
+        "남자는 첫차가 5시 20분에 도착하게 되어 다음 달 1일부터 평일 아침 개장 시각을 5시 30분으로 앞당긴다고 알린다. 따라서 답은 ①이다.",
       translation: [
         "M: 웨스트브룩 주민 수영장 회원 여러분, 안녕하세요. 시설 관리자 강다니엘입니다. 아침 수영 시간 변경을 알려 드리려고 씁니다. 지난 3년 동안 평일 아침 자유 수영 레인은 6시에 열었습니다. 다음 달 1일부터는 5시 30분에 엽니다. 직원을 늘려서가 아닙니다. 시에서 버스 시간표를 바꿔, 이 동네로 오는 첫차가 이제 5시 20분에 도착하기 때문입니다. 여러분 중 몇 분이 추운 바깥에서 40분을 서 있었다고 알려 주셨습니다. 닫는 시각은 그대로여서 평일 아침마다 30분이 늘어납니다. 새 시간표는 금요일까지 두 출입구에 모두 붙이겠습니다. 감사합니다.",
       ].join("\n"),
@@ -60,16 +60,16 @@ export const spec: SetSpec = {
         ["W", "Answer them all at once, twice a day. Nobody waits more than four hours."],
       ],
       choices: [
-        "연락은 모아서 정해진 때에 답해야 한다",
         "연락은 바로 답해야 예의다",
         "공부는 조용한 곳에서 해야 한다",
         "휴대폰은 아예 꺼 두어야 한다",
+        "연락은 모아서 정해진 때에 답해야 한다",
         "모둠 과제는 얼굴을 보고 해야 한다",
       ],
-      answer: 1,
+      answer: 4,
       clue: "Answer them all at once, twice a day. Nobody waits more than four hours.",
       explanation:
-        "여자는 주의를 되찾는 데 드는 시간이 크다며, 하루 두 번 모아서 한꺼번에 답하라고 말한다. 따라서 답은 ①이다.",
+        "여자는 주의를 되찾는 데 드는 시간이 크다며, 하루 두 번 모아서 한꺼번에 답하라고 말한다. 따라서 답은 ④이다.",
       translation: [
         "M: 예린아, 나 요즘 메시지 오면 바로바로 답해.",
         "W: 전부? 공부할 때도?",
@@ -232,11 +232,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take fifteen percent off the class fee."],
         ["W", "Perfect. I'll pay the whole thing now."],
       ],
-      choices: ["$68.00", "$85.00", "$100.00", "$112.20", "$132.00"],
-      answer: 2,
+      choices: ["$85.00", "$68.00", "$100.00", "$112.20", "$132.00"],
+      answer: 1,
       clue: "Then I can take fifteen percent off the class fee.",
       explanation:
-        "네 명의 수업료 100달러에서 유약 작업은 빼고, 학생 할인 15퍼센트를 빼면 85달러이다. 따라서 답은 ②이다.",
+        "네 명의 수업료 100달러에서 유약 작업은 빼고, 학생 할인 15퍼센트를 빼면 85달러이다. 따라서 답은 ①이다.",
       translation: [
         "M: 파인힐 도예 공방입니다. 무엇을 도와드릴까요?",
         "W: 초보자 물레 수업을 네 명으로 예약하고 싶어요.",
@@ -271,14 +271,14 @@ export const spec: SetSpec = {
       choices: [
         "곡이 너무 어려워서",
         "참가비가 올라서",
-        "손목을 삐어서",
         "연습 시간이 없어서",
+        "손목을 삐어서",
         "다른 대회와 겹쳐서",
       ],
-      answer: 3,
+      answer: 4,
       clue: "I slipped on the stairs three weeks ago and sprained it.",
       explanation:
-        "곡도 외웠고 참가비도 동아리가 냈지만, 3주 전에 계단에서 미끄러져 손목을 삐어 6주 더 피아노를 칠 수 없기 때문이다. 따라서 답은 ③이다.",
+        "곡도 외웠고 참가비도 동아리가 냈지만, 3주 전에 계단에서 미끄러져 손목을 삐어 6주 더 피아노를 칠 수 없기 때문이다. 따라서 답은 ④이다.",
       translation: [
         "M: 예린아, 발표회 순서에 네가 없네. 무슨 일이야?",
         "W: 지난 월요일에 빠지기로 했어.",
@@ -310,11 +310,11 @@ export const spec: SetSpec = {
         ["M", "Bring a hat. There's no shade up there at all."],
         ["W", "Good point. I'll sign us both up tonight."],
       ],
-      choices: ["열리는 날짜", "열리는 장소", "강사", "참가비", "정원"],
-      answer: 5,
+      choices: ["열리는 날짜", "정원", "열리는 장소", "강사", "참가비"],
+      answer: 2,
       clue: "정원은 대화에서 언급되지 않았다.",
       explanation:
-        "날짜(5월 11일부터 세 번의 토요일), 장소(시립 도서관 옥상), 강사(조경 건축가), 참가비(2만 원)는 언급되지만 정원은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "날짜(5월 11일부터 세 번의 토요일), 장소(시립 도서관 옥상), 강사(조경 건축가), 참가비(2만 원)는 언급되지만 정원은 언급되지 않았다. 따라서 답은 ②이다.",
       translation: [
         "M: 예린아, 옥상 정원 워크숍 안내문 봤어?",
         "W: 포스터는 봤는데 안 읽었어. 언제야?",
@@ -350,13 +350,13 @@ export const spec: SetSpec = {
         "관리소에서 시작한다",
         "길이가 9킬로미터이다",
         "일 년 내내 열려 있다",
-        "줄을 매면 개를 데려갈 수 있다",
         "중간에 대피소가 하나 있다",
+        "줄을 매면 개를 데려갈 수 있다",
       ],
-      answer: 4,
+      answer: 5,
       clue: "Dogs are not allowed anywhere on the trail, even on a leash.",
       explanation:
-        "줄을 매도 개는 어디에도 데려갈 수 없다고 했으므로 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "줄을 매도 개는 어디에도 데려갈 수 없다고 했으므로 ⑤는 내용과 다르다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 랜턴록 등산로를 소개해 드리겠습니다. 이 길은 관리소에서 시작해 정상까지 9킬로미터 이어집니다. 그 거리 동안 고도가 약 800미터 꾸준히 올라갑니다. 길은 일 년 내내 열려 있지만, 눈이 많이 오면 윗부분은 닫힙니다. 개는 줄을 매도 이 길 어디에도 데려올 수 없습니다. 중간 지점에 대피소가 하나 있는데 물과 지붕은 있지만 잠자리는 없습니다. 어두워지기 전에 돌아오려면 아침 10시 전에 출발하시는 것이 좋습니다.",
       ].join("\n"),
@@ -380,16 +380,16 @@ export const spec: SetSpec = {
         ["M", "Send me the confirmation when it comes through."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 4,
+      answer: 3,
       clue: "Six, counting the two who joined last week.",
       explanation:
-        "여섯 명 이상 들어가고, 화이트보드가 있으며, 시간당 2만 원 이하인 방을 고른다. 세 조건을 모두 채우는 것은 ④이다.",
+        "여섯 명 이상 들어가고, 화이트보드가 있으며, 시간당 2만 원 이하인 방을 고른다. 세 조건을 모두 채우는 것은 ③이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Seats: 4 / Whiteboard: Yes / Price: 12,000 won per hour" },
           { no: 2, label: "②", value: "Seats: 8 / Whiteboard: No / Price: 15,000 won per hour" },
-          { no: 3, label: "③", value: "Seats: 6 / Whiteboard: Yes / Price: 26,000 won per hour" },
-          { no: 4, label: "④", value: "Seats: 8 / Whiteboard: Yes / Price: 18,000 won per hour" },
+          { no: 3, label: "③", value: "Seats: 8 / Whiteboard: Yes / Price: 18,000 won per hour" },
+          { no: 4, label: "④", value: "Seats: 6 / Whiteboard: Yes / Price: 26,000 won per hour" },
           { no: 5, label: "⑤", value: "Seats: 5 / Whiteboard: Yes / Price: 10,000 won per hour" },
         ],
       },
@@ -453,13 +453,13 @@ export const spec: SetSpec = {
         "Gate three is much closer.",
         "I'm not going to the museum.",
         "The bus was cancelled today.",
-        "Ten minutes is plenty of time.",
         "I'll leave earlier, then.",
+        "Ten minutes is plenty of time.",
       ],
-      answer: 5,
+      answer: 4,
       clue: "It is, so give yourself ten extra minutes.",
       explanation:
-        "여자가 10분 더 여유를 두라고 했으므로, 더 일찍 나서겠다는 ⑤가 가장 자연스럽다.",
+        "여자가 10분 더 여유를 두라고 했으므로, 더 일찍 나서겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 예린아, 박물관 가는 버스 3번 승강장에서 타지?",
         "W: 예전엔 그랬어. 지난달에 7번으로 옮겼어.",
@@ -487,16 +487,16 @@ export const spec: SetSpec = {
         ["W", "Keep a shared folder photo of each one. The locker holds the paper."],
       ],
       choices: [
-        "I'll photograph them this weekend.",
         "My locker is already full of books.",
+        "I'll photograph them this weekend.",
         "I'd rather carry everything as before.",
         "I don't take six subjects.",
         "Nine kilograms feels light to me.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Keep a shared folder photo of each one. The locker holds the paper.",
       explanation:
-        "여자가 각 노트를 사진으로 찍어 두고 종이는 사물함에 두라고 했으므로, 주말에 찍겠다는 ①이 가장 자연스럽다.",
+        "여자가 각 노트를 사진으로 찍어 두고 종이는 사물함에 두라고 했으므로, 주말에 찍겠다는 ②가 가장 자연스럽다.",
       translation: [
         "W: 민우야, 한 학기 내내 여섯 과목 노트를 그 가방에 넣고 다니네.",
         "M: 방과 후에 어떤 게 필요할지 모르니까.",
@@ -533,14 +533,14 @@ export const spec: SetSpec = {
       choices: [
         "I'll take every weekend from now on.",
         "I'm going to quit volunteering.",
-        "I'll tell them my available weekends.",
         "They never put me on the list.",
         "I don't mind losing my Saturdays.",
+        "I'll tell them my available weekends.",
       ],
-      answer: 3,
+      answer: 5,
       clue: "Reliable people are allowed to say which weekends they can do.",
       explanation:
-        "남자는 믿음직한 사람도 가능한 주말을 말할 수 있다고 했으므로, 가능한 주말을 알리겠다는 ③이 가장 자연스럽다.",
+        "남자는 믿음직한 사람도 가능한 주말을 말할 수 있다고 했으므로, 가능한 주말을 알리겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 예린아, 봉사 일정을 또 받았다며.",
         "W: 사람이 모자랐어. 누군가는 해야지.",
@@ -579,16 +579,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "Let's stand the books up so the covers show.",
         "Let's move the table to another hallway.",
         "We should lower every price by half.",
+        "Let's stand the books up so the covers show.",
         "Let's open the stand three mornings a week.",
         "We should stop selling used books.",
       ],
-      answer: 1,
+      answer: 3,
       clue: "She wants to suggest that they display the books face out instead of flat in the boxes.",
       explanation:
-        "하은이는 표지가 보이도록 책을 세워 놓자고 제안하려 하므로 ①이 가장 적절하다.",
+        "하은이는 표지가 보이도록 책을 세워 놓자고 제안하려 하므로 ③이 가장 적절하다.",
       translation: [
         "W: 하은이와 지우는 학교 중고 책방을 함께 운영합니다. 일주일에 두 번 아침에 복도에 작은 탁자를 펴는 것입니다. 지난 학기에는 거의 팔리지 않았고, 두 사람은 그 이유를 알아내려 애쓰고 있습니다. 오늘 아침 하은이는 한 시간 동안 복도를 유심히 봅니다. 학생들이 탁자 앞을 속도도 줄이지 않고 지나가는 것을 봅니다. 바빠서가 아니라, 책이 상자 안에 눕혀져 옆면만 보이는 탓에 무슨 책인지 아무도 알 수 없기 때문입니다. 걸음을 멈추는 몇 안 되는 학생들도 책을 뒤집어 표지를 본 뒤에야 집어 듭니다. 하은이는 표지가 전부라는 것을, 그리고 책을 세워 놓는 데는 돈 한 푼 들지 않는다는 것을 깨닫습니다. 하은이는 책을 상자에 눕히지 말고 표지가 보이게 세워 두자고 제안하고 싶습니다. 이런 상황에서 하은이가 지우에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -614,16 +614,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "how bridges are designed to move rather than stay rigid",
         "why steel is the cheapest building material",
         "how traffic noise is reduced on long bridges",
         "why suspension bridges cost more to build",
         "how engineers measure summer temperatures",
-        "how bridges are designed to move rather than stay rigid",
       ],
-      answer: 5,
+      answer: 1,
       clue: "A suspension bridge is designed to move sideways in strong wind, because a structure that bends survives forces that snap a rigid one.",
       explanation:
-        "남자는 다리가 팽창 이음과 흔들림을 허용하도록 설계되며, 휘는 구조가 뻣뻣한 구조보다 버틴다고 설명한다. 따라서 답은 ⑤이다.",
+        "남자는 다리가 팽창 이음과 흔들림을 허용하도록 설계되며, 휘는 구조가 뻣뻣한 구조보다 버틴다고 설명한다. 따라서 답은 ①이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 다리를 왜 움직이게 짓는지 이야기하려 합니다. 완전히 굳어 보이는 다리도 사실은 하루 종일 흔들리고, 늘어나고, 가라앉습니다. 강철은 여름 더위에 늘고 겨울밤에 줄어드는데, 긴 다리는 7월과 1월 사이에 반 미터까지 달라질 수 있습니다. 양 끝이 콘크리트에 고정돼 있다면 그 힘이 구조를 갈라 버릴 것입니다. 그래서 기술자들은 팽창 이음을 넣습니다. 차 바퀴가 지날 때 느껴지는 그 쇠 이빨 모양이지요. 상판이 흔들리도록 두기도 합니다. 현수교는 강한 바람에 옆으로 움직이도록 설계됩니다. 휘는 구조가, 뻣뻣한 구조를 부러뜨리는 힘을 견디기 때문입니다. 믿을 만한 다리는 움직이기를 거부하는 다리가 아닙니다. 갈 곳을 마련해 준 다리입니다.",
       ].join("\n"),

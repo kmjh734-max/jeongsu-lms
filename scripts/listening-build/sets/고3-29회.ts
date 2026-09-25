@@ -27,16 +27,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "서류를 사진 말고 원본 파일로 보내 달라고 하려고",
         "서류 제출 기한을 알리려고",
         "복사기 사용법을 안내하려고",
+        "서류를 사진 말고 원본 파일로 보내 달라고 하려고",
         "상담 신청 방법을 알리려고",
         "입시 설명회를 알리려고",
       ],
-      answer: 1,
+      answer: 3,
       clue: "So from Monday, please send the original file, not a picture of it.",
       explanation:
-        "남자는 화면이나 종이를 찍은 사진은 검사 프로그램에서 열 수 없다며 원본 파일을 보내 달라고 부탁한다. 따라서 답은 ①이다.",
+        "남자는 화면이나 종이를 찍은 사진은 검사 프로그램에서 열 수 없다며 원본 파일을 보내 달라고 부탁한다. 따라서 답은 ③이다.",
       translation: [
         "M: 학생 여러분, 안녕하세요. 입시지원실 심입니다. 저희에게 검토를 맡기는 서류 이야기를 하려고 합니다. 나가기 전에 하나하나 다 읽고 있고, 그 일은 기쁘게 하고 있습니다. 문제는 형식입니다. 들어오는 것의 절반쯤이 화면이나 인쇄한 종이를 찍은 사진인데, 사진은 검사 프로그램에서 열 수가 없습니다. 그러니 월요일부터는 사진 말고 원본 파일을 보내 주세요. 종이만 있다면 사무실 스캐너를 5시까지 무료로 쓰실 수 있습니다. 열 수 있는 파일은 그날 안에 검토됩니다. 사진은 누군가 다시 입력할 시간이 날 때까지 기다립니다. 감사합니다.",
       ].join("\n"),
@@ -60,16 +60,16 @@ export const spec: SetSpec = {
         ["W", "Normal speed, and pause whenever something surprises you."],
       ],
       choices: [
+        "강의는 생각할 틈이 있는 속도로 들어야 한다",
         "강의는 빠르게 들어야 시간을 아낀다",
         "녹음은 두 번 들어야 한다",
         "필기를 하며 들어야 한다",
-        "강의는 생각할 틈이 있는 속도로 들어야 한다",
         "모르는 부분은 건너뛰어야 한다",
       ],
-      answer: 4,
+      answer: 1,
       clue: "Normal speed, and pause whenever something surprises you.",
       explanation:
-        "여자는 빠르게 들으면 '왜?'라고 멈칫할 순간이 지나가 버린다며, 보통 속도로 듣고 놀랄 때 멈추라고 말한다. 따라서 답은 ④이다.",
+        "여자는 빠르게 들으면 '왜?'라고 멈칫할 순간이 지나가 버린다며, 보통 속도로 듣고 놀랄 때 멈추라고 말한다. 따라서 답은 ①이다.",
       translation: [
         "M: 채은아, 나 강의 녹음을 두 배속으로 듣고 있어.",
         "W: 두 배? 얼마나 따라가?",
@@ -108,15 +108,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "놀라운 연구일수록 믿을 만하다",
-        "연구 결과는 참여자 수를 먼저 확인해야 한다",
         "연구는 여러 번 반복해야 한다",
         "통계는 배우기 어렵다",
+        "연구 결과는 참여자 수를 먼저 확인해야 한다",
         "언론 보도를 믿으면 안 된다",
       ],
-      answer: 2,
+      answer: 4,
       clue: "look for the number of participants before you look at anything else",
       explanation:
-        "남자는 작은 연구일수록 우연히 큰 효과가 나오기 쉽다며, 결과를 보기 전에 참여자 수를 먼저 보라고 말한다. 따라서 답은 ②이다.",
+        "남자는 작은 연구일수록 우연히 큰 효과가 나오기 쉽다며, 결과를 보기 전에 참여자 수를 먼저 보라고 말한다. 따라서 답은 ④이다.",
       translation: [
         "M: 어떤 연구가 무엇을 밝혀냈다는 말을 들을 때, 우리는 그것이 무슨 뜻인지를 결정하는 질문을 거의 하지 않습니다. 몇 명이 참여했는가입니다. 열두 명에게서 나온 놀라운 결과와 사천 명에게서 나온 밋밋한 결과는 무게가 아주 다른데, 널리 퍼지는 쪽은 놀라운 쪽입니다. 작은 연구는 불확실성만 큰 것이 아닙니다. 우연히 큰 효과를 보여 줄 가능성이 가장 높은 쪽이기도 합니다. 특이한 사람 몇 명이 작은 평균을 멀리까지 옮길 수 있기 때문입니다. 그리고 그것이 바로 편집자가 싣고 싶어 하는 종류의 결과입니다. 그러니 다음에 어떤 발견이 놀랍게 들리거든, 다른 무엇을 보기 전에 참여자 수를 먼저 찾아보세요.",
       ].join("\n"),
@@ -190,14 +190,14 @@ export const spec: SetSpec = {
       choices: [
         "책상 간격 재기",
         "답안지 세기",
-        "시계와 받침대 가져오기",
         "감독관에게 설명하기",
         "체육관 청소하기",
+        "시계와 받침대 가져오기",
       ],
-      answer: 3,
+      answer: 5,
       clue: "Then I'll fetch the clock and the stand.",
       explanation:
-        "책상과 답안지는 끝났고 남자는 감독관들에게 설명해야 하므로, 여자가 시계와 받침대를 가져오기로 한다. 따라서 답은 ③이다.",
+        "책상과 답안지는 끝났고 남자는 감독관들에게 설명해야 하므로, 여자가 시계와 받침대를 가져오기로 한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 채은아, 모의고사가 9시에 체육관에서 시작해.",
         "W: 알아. 책상 간격은 맞췄어?",
@@ -231,11 +231,11 @@ export const spec: SetSpec = {
         ["W", "Then I can take twenty-five percent off the frames."],
         ["M", "Thank you. I'll pay now and collect on Thursday."],
       ],
-      choices: ["$99.00", "$108.00", "$121.50", "$132.00", "$162.00"],
-      answer: 1,
+      choices: ["$108.00", "$121.50", "$99.00", "$132.00", "$162.00"],
+      answer: 3,
       clue: "Then I can take twenty-five percent off the frames.",
       explanation:
-        "액자 6개 132달러에서 유리는 빼고, 25퍼센트를 빼면 99달러이다. 따라서 답은 ①이다.",
+        "액자 6개 132달러에서 유리는 빼고, 25퍼센트를 빼면 99달러이다. 따라서 답은 ③이다.",
       translation: [
         "W: 애시그로브 액자점입니다. 무엇을 도와드릴까요?",
         "M: 사진 여섯 장을 같은 크기로 액자에 넣고 싶어요.",
@@ -268,16 +268,16 @@ export const spec: SetSpec = {
         ["W", "The times are assigned, not chosen. I asked on the first day."],
       ],
       choices: [
+        "대학 면접과 겹쳐서",
         "참가비가 부담스러워서",
         "일정이 방학과 겹쳐서",
-        "대학 면접과 겹쳐서",
         "건강이 좋지 않아서",
         "가족 여행을 가서",
       ],
-      answer: 3,
+      answer: 1,
       clue: "The university one. They assigned me the second day of the camp.",
       explanation:
-        "참가비도 해결되었고 날짜도 괜찮지만, 대학 면접이 캠프 둘째 날로 배정되었고 시간을 고를 수 없기 때문이다. 따라서 답은 ③이다.",
+        "참가비도 해결되었고 날짜도 괜찮지만, 대학 면접이 캠프 둘째 날로 배정되었고 시간을 고를 수 없기 때문이다. 따라서 답은 ①이다.",
       translation: [
         "M: 채은아, 겨울 캠프 명단에 네가 없네.",
         "W: 월요일에 이름을 뺐어.",
@@ -309,11 +309,11 @@ export const spec: SetSpec = {
         ["M", "Eighty thousand won, with meals and the room included."],
         ["W", "Then let's apply before the list closes."],
       ],
-      choices: ["운영 기간", "장소", "진행 방식", "진행자", "선발 기준"],
-      answer: 5,
+      choices: ["운영 기간", "장소", "진행 방식", "선발 기준", "진행자"],
+      answer: 4,
       clue: "선발 기준은 대화에서 언급되지 않았다.",
       explanation:
-        "기간(2월 12일부터 14일까지), 장소(호수 건너편 게스트하우스), 진행 방식(오전 워크숍·오후 집필·저녁 낭독), 진행자(작가 두 명과 잡지 편집자)는 언급되지만 선발 기준은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "기간(2월 12일부터 14일까지), 장소(호수 건너편 게스트하우스), 진행 방식(오전 워크숍·오후 집필·저녁 낭독), 진행자(작가 두 명과 잡지 편집자)는 언급되지만 선발 기준은 언급되지 않았다. 따라서 답은 ④이다.",
       translation: [
         "M: 채은아, 레이크뷰 글쓰기 모임 봤어?",
         "W: 안내문 봤어. 언제 해?",
@@ -347,15 +347,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "옛 시청 꼭대기 층에 있다",
+        "음식을 가져와 먹을 수 있다",
         "주말에는 문을 닫는다",
         "좌석이 아흔 개이다",
         "책을 빌리려면 회원증이 필요하다",
-        "음식을 가져와 먹을 수 있다",
       ],
-      answer: 5,
+      answer: 2,
       clue: "Drinks in closed bottles are allowed, though food is not.",
       explanation:
-        "뚜껑 닫은 음료는 되지만 음식은 안 된다고 했으므로 ⑤는 내용과 다르다. 따라서 답은 ⑤이다.",
+        "뚜껑 닫은 음료는 되지만 음식은 안 된다고 했으므로 ②는 내용과 다르다. 따라서 답은 ②이다.",
       translation: [
         "W: 레드우드 열람실을 소개해 드리겠습니다. 옛 시청 꼭대기 층에 있고 2012년에 일반에 개방했습니다. 평일에는 10시부터 8시까지 열고 주말에는 닫습니다. 좌석은 아흔 개이고 그중 절반쯤이 창가에 있습니다. 누구나 이용할 수 있지만 책을 빌리려면 회원증이 필요합니다. 뚜껑을 닫은 음료는 가져올 수 있지만 음식은 안 됩니다. 승강기가 꼭대기 층까지 닿아서 누구나 올라올 수 있습니다.",
       ].join("\n"),
@@ -379,17 +379,17 @@ export const spec: SetSpec = {
         ["W", "Then we're set."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 4,
+      answer: 5,
       clue: "Within three days. The deadline is the end of the month.",
       explanation:
-        "사흘 안에 답이 오고, 사람이 읽어 주며, 5만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ④이다.",
+        "사흘 안에 답이 오고, 사람이 읽어 주며, 5만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ⑤이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Turnaround: 7 days / Reader: Person / Fee: 30,000 won" },
           { no: 2, label: "②", value: "Turnaround: 1 day / Reader: Automatic / Fee: 20,000 won" },
           { no: 3, label: "③", value: "Turnaround: 2 days / Reader: Person / Fee: 80,000 won" },
-          { no: 4, label: "④", value: "Turnaround: 3 days / Reader: Person / Fee: 45,000 won" },
-          { no: 5, label: "⑤", value: "Turnaround: 5 days / Reader: Automatic / Fee: 15,000 won" },
+          { no: 4, label: "④", value: "Turnaround: 5 days / Reader: Automatic / Fee: 15,000 won" },
+          { no: 5, label: "⑤", value: "Turnaround: 3 days / Reader: Person / Fee: 45,000 won" },
         ],
       },
       translation: [
@@ -420,15 +420,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The room is closed on holidays.",
-        "I'll register on the app tonight.",
         "I don't use the self-study room.",
+        "I'll register on the app tonight.",
         "There is no school app.",
         "I'll just turn up on the day.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "On the school app, under room booking. It takes a minute.",
       explanation:
-        "남자가 학교 앱의 공간 예약에서 하라고 알려 주었으므로, 오늘 밤 앱에서 신청하겠다는 ②가 가장 자연스럽다.",
+        "남자가 학교 앱의 공간 예약에서 하라고 알려 주었으므로, 오늘 밤 앱에서 신청하겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 준희야, 공휴일에 자습실 열어?",
         "M: 열어. 그런데 전날 신청해야 해.",
@@ -449,16 +449,16 @@ export const spec: SetSpec = {
         ["W", "Electives are entered separately. Ask the subject teacher to submit it."],
       ],
       choices: [
-        "My transcript is complete.",
         "I'll ask the subject teacher.",
+        "My transcript is complete.",
         "I never took an elective.",
         "The grade was already entered.",
         "I'll request a new transcript.",
       ],
-      answer: 2,
+      answer: 1,
       clue: "Electives are entered separately. Ask the subject teacher to submit it.",
       explanation:
-        "여자가 선택 과목 선생님께 입력을 부탁하라고 했으므로, 그렇게 하겠다는 ②가 가장 자연스럽다.",
+        "여자가 선택 과목 선생님께 입력을 부탁하라고 했으므로, 그렇게 하겠다는 ①이 가장 자연스럽다.",
       translation: [
         "M: 채은아, 내 성적증명서에 성적 하나가 빠져 있어.",
         "W: 어느 과목?",
@@ -486,16 +486,16 @@ export const spec: SetSpec = {
         ["M", "Write four hundred words you don't like and keep them."],
       ],
       choices: [
-        "I'll write four hundred words tonight.",
         "I'll wait until the idea is clear.",
         "I already finished the statement.",
         "I never put anything off.",
+        "I'll write four hundred words tonight.",
         "I'd rather not apply at all.",
       ],
-      answer: 1,
+      answer: 4,
       clue: "Write four hundred words you don't like and keep them.",
       explanation:
-        "남자가 마음에 안 들어도 400단어를 써서 남기라고 했으므로, 오늘 밤 그렇게 하겠다는 ①이 가장 자연스럽다.",
+        "남자가 마음에 안 들어도 400단어를 써서 남기라고 했으므로, 오늘 밤 그렇게 하겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 채은아, 9월부터 자기소개서를 미루고 있네.",
         "W: 생각이 분명해지면 시작하려고.",
@@ -530,16 +530,16 @@ export const spec: SetSpec = {
         ["W", "Put the lamp on a timer that switches off at eleven."],
       ],
       choices: [
-        "I'll set a timer for eleven.",
         "I'll keep reading with the light on.",
+        "I'll set a timer for eleven.",
         "My mornings are already fine.",
         "I never read before bed.",
         "I'll sleep with my eyes open.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Put the lamp on a timer that switches off at eleven.",
       explanation:
-        "여자가 11시에 꺼지는 타이머에 스탠드를 연결하라고 했으므로, 타이머를 맞추겠다는 ①이 가장 자연스럽다.",
+        "여자가 11시에 꺼지는 타이머에 스탠드를 연결하라고 했으므로, 타이머를 맞추겠다는 ②가 가장 자연스럽다.",
       translation: [
         "W: 준희야, 너 또 불 켜 놓고 자더라.",
         "M: 책 읽다가 잠들어서 스위치까지 못 가.",
@@ -581,13 +581,13 @@ export const spec: SetSpec = {
         "We should build a second box tonight.",
         "Let's collect coins instead of clothes.",
         "We should move the box to another corridor.",
-        "Let's cut the opening wider before Friday.",
         "Let's end the donation drive early.",
+        "Let's cut the opening wider before Friday.",
       ],
-      answer: 4,
+      answer: 5,
       clue: "She wants to tell him to cut the opening wider before Friday.",
       explanation:
-        "혜림이는 금요일 전에 투입구를 더 넓게 자르자고 말하려 하므로 ④가 가장 적절하다.",
+        "혜림이는 금요일 전에 투입구를 더 넓게 자르자고 말하려 하므로 ⑤가 가장 적절하다.",
       translation: [
         "W: 혜림이와 도윤이는 금요일에 끝나는 학교 기부 행사를 맡고 있습니다. 도윤이는 큰 수거함을 만들어 중앙 복도에 두었고, 상자는 튼튼하고 칠도 곱게 되어 있습니다. 수요일에 혜림이는 윗면의 투입구가 10센티미터밖에 안 된다는 것을 알아챕니다. 행사가 옷을 모으는 것으로 바뀌기 전에 동전용으로 잘랐기 때문입니다. 목도리보다 큰 것은 들어가지 않고, 학생들은 그 옆 바닥에 봉투를 놓고 가기 시작했습니다. 미술실 조각칼이면 투입구를 넓히는 데 10분이면 되고, 상자 자체는 상하지 않습니다. 혜림이는 도윤이가 오후를 꼬박 들인 상자를 바꾸기를 바라지 않습니다. 혜림이는 금요일 전에 투입구를 더 넓게 자르자고 말하고 싶습니다. 이런 상황에서 혜림이가 도윤이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -614,15 +614,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "why shouting is louder than whispering",
-        "how a curved wall carries a whisper without amplifying it",
         "how galleries are designed for paintings",
+        "how a curved wall carries a whisper without amplifying it",
         "why sound travels faster in water",
         "how echoes are removed from a recording",
       ],
-      answer: 2,
+      answer: 3,
       clue: "It is simply refusing to let the sound spread.",
       explanation:
-        "남자는 굽은 벽이 소리를 곡선을 따라 되돌려 퍼지지 못하게 하기 때문에 속삭임이 멀리 간다고 설명한다. 따라서 답은 ②이다.",
+        "남자는 굽은 벽이 소리를 곡선을 따라 되돌려 퍼지지 못하게 하기 때문에 속삭임이 멀리 간다고 설명한다. 따라서 답은 ③이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 속삭임이 왜 트인 방을 가로지를 때보다 굽은 벽을 따라 훨씬 멀리 가는지 이야기하려 합니다. 소리는 나는 곳에서 사방으로 퍼져 나가고, 트인 공간에서는 퍼지면서 금방 옅어집니다. 매끄럽게 굽은 벽은 다른 일을 합니다. 반사될 때마다 소리를 바깥쪽이 아니라 곡선을 따라 보내서, 소리가 방에 에너지를 빼앗기지 않고 대부분을 지닙니다. 둥근 회랑에서는 한쪽 벽에서 낸 속삭임이 한가운데를 가로지르는 외침보다 크게 반대편에 닿습니다. 그 벽은 아무것도 키우고 있지 않습니다. 그저 소리가 퍼지지 못하게 막고 있을 뿐입니다.",
       ].join("\n"),
@@ -640,16 +640,16 @@ export const spec: SetSpec = {
         ["M", "The wall is not amplifying anything."],
       ],
       choices: [
+        "thick curtains absorbing an echo",
         "sound thinning out as it spreads",
         "reflections sending sound along the curve",
         "the sound keeping most of its energy",
         "a whisper beating a shout across the middle",
-        "thick curtains absorbing an echo",
       ],
-      answer: 5,
+      answer: 1,
       clue: "Sound spreads outward in all directions from its source, and in an open space it thins out quickly as it spreads.",
       explanation:
-        "소리가 퍼지며 옅어진다는 것, 반사가 소리를 곡선을 따라 보낸다는 것, 에너지를 대부분 지닌다는 것, 속삭임이 외침보다 크게 닿는다는 것은 언급되지만 두꺼운 커튼이 울림을 빨아들인다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "소리가 퍼지며 옅어진다는 것, 반사가 소리를 곡선을 따라 보낸다는 것, 에너지를 대부분 지닌다는 것, 속삭임이 외침보다 크게 닿는다는 것은 언급되지만 두꺼운 커튼이 울림을 빨아들인다는 것은 언급되지 않았다. 따라서 답은 ①이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

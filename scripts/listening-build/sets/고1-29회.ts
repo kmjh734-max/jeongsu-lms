@@ -108,15 +108,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "비판은 솔직하게 해야 한다",
+        "피드백은 질문을 구체적으로 해야 얻는다",
         "글은 여러 사람에게 보여야 한다",
         "칭찬도 도움이 된다",
-        "피드백은 질문을 구체적으로 해야 얻는다",
         "피드백은 빨리 받아야 한다",
       ],
-      answer: 4,
+      answer: 2,
       clue: "The quality of feedback you get is mostly decided before the other person has read a single line.",
       explanation:
-        "여자는 '어때?'라는 물음은 칭찬만 부른다며, 어디서 막혔는지처럼 자리를 가리키게 하는 질문을 하라고 말한다. 따라서 답은 ④이다.",
+        "여자는 '어때?'라는 물음은 칭찬만 부른다며, 어디서 막혔는지처럼 자리를 가리키게 하는 질문을 하라고 말한다. 따라서 답은 ②이다.",
       translation: [
         "W: 자기 작업에 대해 누군가에게 의견을 구할 때 무슨 일이 일어나는지 생각해 보세요. 그것을 건네며 어떠냐고 묻습니다. 그 질문은 읽는 사람을 심사자 자리에 앉히고, 예의 바른 심사자는 좋았다고 말합니다. 여러분은 아무것도 얻지 못하고, 둘 다 대화가 잘 끝났다고 느낍니다. 이제 질문을 바꿔 보세요. 어디서 헷갈렸는지, 하나를 꼭 덜어내야 한다면 어느 부분을 덜겠는지 물어보세요. 둘 다 칭찬으로는 답할 수 없습니다. 읽는 사람이 어떤 자리를 가리켜야 하고, 자리는 손볼 수 있는 것입니다. 여러분이 받는 의견의 질은 상대가 한 줄도 읽기 전에 대부분 정해집니다.",
       ].join("\n"),
@@ -231,11 +231,11 @@ export const spec: SetSpec = {
         ["W", "Then I can take twenty-five percent off the brush sets, but not the pads."],
         ["M", "Thank you. I'll pay by card."],
       ],
-      choices: ["$75.75", "$87.00", "$93.00", "$101.00", "$129.00"],
-      answer: 2,
+      choices: ["$87.00", "$75.75", "$93.00", "$101.00", "$129.00"],
+      answer: 1,
       clue: "Then I can take twenty-five percent off the brush sets, but not the pads.",
       explanation:
-        "붓 4세트 56달러에서 25퍼센트를 빼면 42달러이고, 할인이 안 되는 스케치북 5권 45달러를 더하면 87달러이다. 따라서 답은 ②이다.",
+        "붓 4세트 56달러에서 25퍼센트를 빼면 42달러이고, 할인이 안 되는 스케치북 5권 45달러를 더하면 87달러이다. 따라서 답은 ①이다.",
       translation: [
         "W: 시더 공예점입니다. 무엇을 드릴까요?",
         "M: 스케치북 다섯 권이랑 붓 네 세트 주세요.",
@@ -270,14 +270,14 @@ export const spec: SetSpec = {
       choices: [
         "목이 아파서",
         "연습이 늦게 끝나서",
-        "보충 수업과 겹쳐서",
         "가족 행사가 있어서",
+        "보충 수업과 겹쳐서",
         "아르바이트를 해서",
       ],
-      answer: 3,
+      answer: 4,
       clue: "Seven is fine. It's the maths supplementary class.",
       explanation:
-        "목도 나았고 늦게 끝나는 것도 괜찮지만, 목요일 5시부터 7시까지 수학 보충 수업이 있고 출석을 확인하기 때문이다. 따라서 답은 ③이다.",
+        "목도 나았고 늦게 끝나는 것도 괜찮지만, 목요일 5시부터 7시까지 수학 보충 수업이 있고 출석을 확인하기 때문이다. 따라서 답은 ④이다.",
       translation: [
         "M: 예린아, 목요일 연습에 또 안 왔더라.",
         "W: 빠질 수밖에 없었어. 다음 주 목요일도 못 가.",
@@ -309,11 +309,11 @@ export const spec: SetSpec = {
         ["M", "Forty thousand won, ingredients included."],
         ["W", "Then let's sign up this weekend."],
       ],
-      choices: ["운영 기간", "장소", "수업 내용", "준비물", "정원"],
-      answer: 5,
+      choices: ["운영 기간", "정원", "장소", "수업 내용", "준비물"],
+      answer: 2,
       clue: "정원은 대화에서 언급되지 않았다.",
       explanation:
-        "기간(4월 6일부터 네 번의 토요일), 장소(우체국 옆 빵집), 수업 내용(빵과 페이스트리), 준비물(앞치마와 통)은 언급되지만 정원은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "기간(4월 6일부터 네 번의 토요일), 장소(우체국 옆 빵집), 수업 내용(빵과 페이스트리), 준비물(앞치마와 통)은 언급되지만 정원은 언급되지 않았다. 따라서 답은 ②이다.",
       translation: [
         "M: 예린아, 오처드레인 제과 수업 안내문 봤어?",
         "W: 마을 게시판에서 봤어. 언제 해?",
@@ -349,13 +349,13 @@ export const spec: SetSpec = {
         "2008년에 문을 열었다",
         "레인이 여섯 개이다",
         "주말에는 6시에 닫는다",
-        "수영모는 쓰지 않아도 된다",
         "사물함에 동전이 필요하다",
+        "수영모는 쓰지 않아도 된다",
       ],
-      answer: 4,
+      answer: 5,
       clue: "Swimming caps are required for everyone, and they are sold at the front desk.",
       explanation:
-        "수영모는 모두가 써야 한다고 했으므로 쓰지 않아도 된다는 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "수영모는 모두가 써야 한다고 했으므로 쓰지 않아도 된다는 ⑤는 내용과 다르다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 오크사이드 시민 수영장을 소개해 드리겠습니다. 2008년에 문을 열었고 25미터 레인이 여섯 개 있습니다. 평일에는 아침 6시부터 밤 9시까지 일반 수영을 합니다. 주말에는 청소 일정 때문에 6시에 닫습니다. 수영모는 모두 써야 하고 안내 데스크에서 팝니다. 사물함은 돌려받는 동전을 넣어야 하니 하나 챙겨 오세요. 여덟 살 미만 어린이는 언제나 어른이 팔 닿는 거리에 있어야 합니다.",
       ].join("\n"),
@@ -379,15 +379,15 @@ export const spec: SetSpec = {
         ["W", "It should arrive by Friday."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 2,
+      answer: 3,
       clue: "At least 20,000, so it can charge four phones.",
       explanation:
-        "용량이 2만 이상이고, 고속 충전이 되며, 4만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ②이다.",
+        "용량이 2만 이상이고, 고속 충전이 되며, 4만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ③이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Capacity: 10,000 / Fast charging: Yes / Price: 25,000 won" },
-          { no: 2, label: "②", value: "Capacity: 20,000 / Fast charging: Yes / Price: 38,000 won" },
-          { no: 3, label: "③", value: "Capacity: 25,000 / Fast charging: No / Price: 30,000 won" },
+          { no: 2, label: "②", value: "Capacity: 25,000 / Fast charging: No / Price: 30,000 won" },
+          { no: 3, label: "③", value: "Capacity: 20,000 / Fast charging: Yes / Price: 38,000 won" },
           { no: 4, label: "④", value: "Capacity: 30,000 / Fast charging: Yes / Price: 62,000 won" },
           { no: 5, label: "⑤", value: "Capacity: 15,000 / Fast charging: No / Price: 18,000 won" },
         ],
@@ -419,16 +419,16 @@ export const spec: SetSpec = {
         ["M", "Then take three to four. Nobody has it booked before the band."],
       ],
       choices: [
-        "The music room is never free.",
         "I'll take three to four, then.",
+        "The music room is never free.",
         "I don't need the room at all.",
         "The band plays on Thursdays.",
         "Forty minutes is too short.",
       ],
-      answer: 2,
+      answer: 1,
       clue: "Then take three to four. Nobody has it booked before the band.",
       explanation:
-        "남자가 3시부터 4시까지 비어 있다고 알려 주었으므로, 그 시간을 쓰겠다는 ②가 가장 자연스럽다.",
+        "남자가 3시부터 4시까지 비어 있다고 알려 주었으므로, 그 시간을 쓰겠다는 ①이 가장 자연스럽다.",
       translation: [
         "W: 민혁아, 금요일 오후에 음악실 비어?",
         "M: 비어. 그런데 4시부터는 밴드가 써.",
@@ -450,15 +450,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "My payment went through fine.",
-        "I'll get the number from the chat.",
         "There is no club fee.",
         "The old number still works.",
+        "I'll get the number from the chat.",
         "I'll pay in cash instead.",
       ],
-      answer: 2,
+      answer: 4,
       clue: "In September. The new number is on the club chat, pinned at the top.",
       explanation:
-        "여자가 새 계좌번호가 대화방 맨 위에 고정돼 있다고 했으므로, 거기서 번호를 확인하겠다는 ②가 가장 자연스럽다.",
+        "여자가 새 계좌번호가 대화방 맨 위에 고정돼 있다고 했으므로, 거기서 번호를 확인하겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 예린아, 동아리비 송금이 안 됐어.",
         "W: 예전 공지에 있던 계좌번호 썼어?",
@@ -486,16 +486,16 @@ export const spec: SetSpec = {
         ["W", "Then come back and race the person you were in September."],
       ],
       choices: [
-        "I'll come back on Wednesday.",
         "I'll wait until I'm faster.",
+        "I'll come back on Wednesday.",
         "I've never run five kilometers.",
         "I'm the fastest in the club.",
         "I'd rather run alone forever.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Then come back and race the person you were in September.",
       explanation:
-        "여자가 9월의 자신과 겨루러 돌아오라고 했으므로, 수요일에 돌아가겠다는 ①이 가장 자연스럽다.",
+        "여자가 9월의 자신과 겨루러 돌아오라고 했으므로, 수요일에 돌아가겠다는 ②가 가장 자연스럽다.",
       translation: [
         "W: 민혁아, 너 달리기 동아리에 안 나오더라.",
         "M: 거기서 내가 제일 느려. 한참 느려.",
@@ -530,16 +530,16 @@ export const spec: SetSpec = {
         ["M", "Use last week's timetable again and spend the morning on chemistry."],
       ],
       choices: [
-        "I'll reuse last week's and study instead.",
         "I'll make an eighth timetable.",
         "My timetables always work.",
         "I never plan anything.",
         "I'll skip chemistry this week.",
+        "I'll reuse last week's and study instead.",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Use last week's timetable again and spend the morning on chemistry.",
       explanation:
-        "남자가 지난주 시간표를 그대로 쓰고 그 시간에 화학을 하라고 했으므로, 그렇게 하겠다는 ①이 가장 자연스럽다.",
+        "남자가 지난주 시간표를 그대로 쓰고 그 시간에 화학을 하라고 했으므로, 그렇게 하겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 예린아, 너 일요일마다 시간표를 다시 짜더라.",
         "W: 지난 것이 잘 안 맞아서 더 나은 걸 만드는 거야.",
@@ -580,14 +580,14 @@ export const spec: SetSpec = {
       choices: [
         "We should lower every price by half.",
         "Let's take the stickers off and use a list.",
+        "Let's move the stickers to the back covers.",
         "We should hold the sale next month.",
         "Let's price another hundred books today.",
-        "Let's move the stickers to the back covers.",
       ],
-      answer: 5,
+      answer: 3,
       clue: "She wants to tell him to move the stickers to the back covers.",
       explanation:
-        "채원이는 가격표를 뒤표지로 옮기자고 말하려 하므로 ⑤가 가장 적절하다.",
+        "채원이는 가격표를 뒤표지로 옮기자고 말하려 하므로 ③이 가장 적절하다.",
       translation: [
         "W: 채원이와 성재는 금요일에 여는 학교 헌책 판매를 맡고 있습니다. 성재는 책 육백 권을 하나하나 손으로 값 매기고 작은 스티커에 값을 적었는데, 오후 이틀이 걸렸습니다. 수요일에 채원이는 성재가 그 스티커를 앞표지에, 제목과 표지 그림 바로 위에 붙였다는 것을 알아챕니다. 사는 사람은 표지를 보고 책을 집는데, 이제 표지의 절반이 가려져 있습니다. 스티커를 뒤로 옮기는 데는 두 사람이 한 시간이면 되고, 떼어지는 종류라서 깨끗하게 떨어집니다. 채원이는 값 자체는 정확하기 때문에 성재의 수고가 헛되었다고 여기게 하고 싶지 않습니다. 채원이는 스티커를 뒤표지로 옮기자고 말하고 싶습니다. 이런 상황에서 채원이가 성재에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -644,13 +644,13 @@ export const spec: SetSpec = {
         "one sheet giving way almost at once",
         "tearing concentrating force at one point",
         "sheets sliding against one another",
-        "a rope of thin fibers outlasting one strand",
         "wet paper tearing more easily",
+        "a rope of thin fibers outlasting one strand",
       ],
-      answer: 5,
+      answer: 4,
       clue: "One sheet gives way almost at once, and you might expect ten sheets to need ten times the force.",
       explanation:
-        "한 장이 곧바로 찢어진다는 것, 찢기가 한 점에 힘을 모은다는 것, 종이들이 서로 미끄러진다는 것, 가는 섬유 밧줄이 더 오래 버틴다는 것은 언급되지만 젖은 종이가 더 잘 찢어진다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "한 장이 곧바로 찢어진다는 것, 찢기가 한 점에 힘을 모은다는 것, 종이들이 서로 미끄러진다는 것, 가는 섬유 밧줄이 더 오래 버틴다는 것은 언급되지만 젖은 종이가 더 잘 찢어진다는 것은 언급되지 않았다. 따라서 답은 ④이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

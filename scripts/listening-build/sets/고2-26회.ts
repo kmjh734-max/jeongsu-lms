@@ -27,16 +27,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "읽기 지도로 과목을 바꿔 달라고 부탁하려고",
         "자원봉사자를 새로 모집하려고",
+        "읽기 지도로 과목을 바꿔 달라고 부탁하려고",
         "봉사 시간 인정 기준을 알리려고",
         "수학 지도 교재를 안내하려고",
         "봉사 시작일 변경을 알리려고",
       ],
-      answer: 1,
+      answer: 2,
       clue: "If you are comfortable reading picture books aloud, please change your subject.",
       explanation:
-        "남자는 수학 지도자는 넘치고 읽기 지도자는 부족하다며 과목을 읽기로 바꿔 달라고 부탁한다. 따라서 답은 ①이다.",
+        "남자는 수학 지도자는 넘치고 읽기 지도자는 부족하다며 과목을 읽기로 바꿔 달라고 부탁한다. 따라서 답은 ②이다.",
       translation: [
         "M: 여러분, 안녕하세요. 학생 봉사 센터 하민석입니다. 2주 뒤에 시작하는 학습 지원 활동 때문에 씁니다. 스물여덟 분이 지도자로 신청해 주셨는데, 여태 가장 많은 수입니다. 문제는 그중 스물다섯 분이 수학을 골랐고, 아이들이 가장 많이 원한 읽기는 세 분뿐이라는 것입니다. 그래서 수학 지도자는 방을 가득 채웠고 읽기는 대기 명단이 생겼습니다. 그림책을 소리 내어 읽어 주는 것이 어렵지 않다면 과목을 바꿔 주세요. 여러분이 대단한 독서가일 필요는 없습니다. 일곱 살 아이를 재촉하지 않을 사람이면 됩니다. 금요일까지 신청 화면에서 과목을 바꿔 주시기 바랍니다. 감사합니다.",
       ].join("\n"),
@@ -63,13 +63,13 @@ export const spec: SetSpec = {
         "예습보다 복습이 중요하다",
         "수업은 집중해서 들어야 한다",
         "교과서는 여러 번 읽어야 한다",
-        "예습은 질문을 찾기 위해 해야 한다",
         "질문은 수업 중에 해야 한다",
+        "예습은 질문을 찾기 위해 해야 한다",
       ],
-      answer: 4,
+      answer: 5,
       clue: "Exactly. Read ahead to get confused on purpose.",
       explanation:
-        "여자는 답이 아니라 질문을 찾으려고 미리 읽어야 한다며, 일부러 막히려고 예습하라고 말한다. 따라서 답은 ④이다.",
+        "여자는 답이 아니라 질문을 찾으려고 미리 읽어야 한다며, 일부러 막히려고 예습하라고 말한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 채린아, 나 모든 수업을 세 단원씩 앞서서 읽고 있어.",
         "W: 앞서서? 그럼 이미 알고 수업에 들어가는 거네.",
@@ -109,14 +109,14 @@ export const spec: SetSpec = {
       choices: [
         "전문가에게 배워야 실력이 는다",
         "설명은 짧을수록 좋다",
+        "잘 아는 사람일수록 초보의 어려움을 보지 못한다",
         "배움에는 반복이 필요하다",
         "질문을 많이 해야 잘 배운다",
-        "잘 아는 사람일수록 초보의 어려움을 보지 못한다",
       ],
-      answer: 5,
+      answer: 3,
       clue: "not the person who knows it best, but the person who learned it most recently",
       explanation:
-        "남자는 익숙해지면 작은 단계들이 보이지 않게 된다며, 가장 최근에 배운 사람이 오히려 잘 가르친다고 말한다. 따라서 답은 ⑤이다.",
+        "남자는 익숙해지면 작은 단계들이 보이지 않게 된다며, 가장 최근에 배운 사람이 오히려 잘 가르친다고 말한다. 따라서 답은 ③이다.",
       translation: [
         "M: 전문가가 자기 분야를 초보에게 설명할 때 무슨 일이 일어나는지 생각해 보세요. 대개 모두의 예상보다 잘되지 않는데, 전문가가 불분명해서가 아닙니다. 그들은 아주 분명합니다. 문제는 그들이 더는 알아채지 못하게 된 것들입니다. 10년이 지나면 한때 힘이 들던 단계들이 서로 접혀 들어가고, 머릿속에 남는 것은 하나의 매끄러운 동작입니다. 설명할 때 그들은 그 매끄러운 동작을 설명합니다. 더 작은 단계들이 이제 그들에게 보이지 않기 때문입니다. 초보자는 여섯 가지 일이 일어난 자리에서 한 문장을 듣습니다. 그래서 어떤 분야를 가장 잘 가르치는 사람은 종종 그것을 가장 잘 아는 사람이 아니라, 가장 최근에 배워서 어디가 울퉁불퉁했는지 아직 기억하는 사람입니다.",
       ].join("\n"),
@@ -190,14 +190,14 @@ export const spec: SetSpec = {
       choices: [
         "이름표 인쇄하기",
         "발표 자료 만들기",
-        "간식 가져오기",
         "프로젝터 설치하기",
+        "간식 가져오기",
         "소리 확인하기",
       ],
-      answer: 3,
+      answer: 4,
       clue: "Then I'll walk over and bring the snacks back.",
       explanation:
-        "이름표와 발표 자료는 끝났고 남자는 프로젝터와 소리를 맡아야 하므로, 여자가 가게에서 간식을 가져오기로 한다. 따라서 답은 ③이다.",
+        "이름표와 발표 자료는 끝났고 남자는 프로젝터와 소리를 맡아야 하므로, 여자가 가게에서 간식을 가져오기로 한다. 따라서 답은 ④이다.",
       translation: [
         "M: 채린아, 동아리 설명회가 4시에 소강당에서 있어.",
         "W: 알아. 이름표는 다 됐어?",
@@ -231,11 +231,11 @@ export const spec: SetSpec = {
         ["W", "Then I can take twenty percent off the compost, but not the trays."],
         ["M", "Thank you. I'll pay in cash."],
       ],
-      choices: ["$71.20", "$79.40", "$82.40", "$89.00", "$93.00"],
-      answer: 3,
+      choices: ["$71.20", "$82.40", "$79.40", "$89.00", "$93.00"],
+      answer: 2,
       clue: "Then I can take twenty percent off the compost, but not the trays.",
       explanation:
-        "퇴비 3포대 33달러에서 20퍼센트를 빼면 26.40달러이고, 할인이 안 되는 모판 8개 56달러를 더하면 82.40달러이다. 따라서 답은 ③이다.",
+        "퇴비 3포대 33달러에서 20퍼센트를 빼면 26.40달러이고, 할인이 안 되는 모판 8개 56달러를 더하면 82.40달러이다. 따라서 답은 ②이다.",
       translation: [
         "W: 펀힐 원예 센터입니다. 무엇을 도와드릴까요?",
         "M: 모판 여덟 개랑 퇴비 세 포대 주세요.",
@@ -270,14 +270,14 @@ export const spec: SetSpec = {
       choices: [
         "어학 점수가 모자라서",
         "비용이 부담스러워서",
-        "할머니를 돌봐야 해서",
         "성적이 떨어져서",
         "다른 학교로 옮겨서",
+        "할머니를 돌봐야 해서",
       ],
-      answer: 3,
+      answer: 5,
       clue: "My grandmother had surgery last month and I'm helping at home.",
       explanation:
-        "어학 점수도 비용도 해결되었지만, 수술하신 할머니 때문에 겨울 내내 집안일을 도와야 하기 때문이다. 따라서 답은 ③이다.",
+        "어학 점수도 비용도 해결되었지만, 수술하신 할머니 때문에 겨울 내내 집안일을 도와야 하기 때문이다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 채린아, 교환 학생 지원서 안 냈어?",
         "W: 내년까지 미루려고.",
@@ -309,11 +309,11 @@ export const spec: SetSpec = {
         ["M", "Ten minutes early is usually enough."],
         ["W", "Then let's go on the next one."],
       ],
-      choices: ["열리는 요일", "출발 장소", "걷는 거리", "쌍안경 대여", "참가비"],
-      answer: 5,
+      choices: ["열리는 요일", "출발 장소", "참가비", "걷는 거리", "쌍안경 대여"],
+      answer: 3,
       clue: "참가비는 대화에서 언급되지 않았다.",
       explanation:
-        "요일(격주 토요일 아침), 출발 장소(정수장 뒤 보행교), 거리(3킬로미터), 쌍안경 대여(열 개 선착순)는 언급되지만 참가비는 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "요일(격주 토요일 아침), 출발 장소(정수장 뒤 보행교), 거리(3킬로미터), 쌍안경 대여(열 개 선착순)는 언급되지만 참가비는 언급되지 않았다. 따라서 답은 ③이다.",
       translation: [
         "M: 채린아, 리버벤드 새 관찰 걷기 들어 봤어?",
         "W: 도서관 게시판에서 봤어. 언제야?",
@@ -346,16 +346,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "회비를 내야 한다",
         "2004년부터 같은 건물을 써 왔다",
         "해마다 세 편을 올린다",
         "오디션은 1월에만 본다",
-        "회비를 내야 한다",
         "연습은 화요일과 목요일 저녁에 한다",
       ],
-      answer: 4,
+      answer: 1,
       clue: "Members pay no fee, because the theater is funded by ticket sales and a city grant.",
       explanation:
-        "회비가 없다고 했으므로 회비를 내야 한다는 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "회비가 없다고 했으므로 회비를 내야 한다는 ①은 내용과 다르다. 따라서 답은 ①이다.",
       translation: [
         "W: 스톤게이트 청소년 극단을 소개해 드리겠습니다. 2004년부터 창고를 고친 같은 건물에서 운영해 왔습니다. 해마다 봄, 여름, 겨울에 한 편씩 모두 세 편을 올립니다. 열다섯 살부터 스물두 살까지 누구나 들어올 수 있고, 오디션은 1월에만 봅니다. 극단은 표 판매와 시 지원금으로 운영되기 때문에 단원은 회비를 내지 않습니다. 연습은 화요일과 목요일 저녁에 하고, 매번 출석을 확인합니다. 건물에 승강기가 없어서 위층 연습실은 계단으로 올라갑니다.",
       ].join("\n"),
@@ -385,16 +385,16 @@ export const spec: SetSpec = {
         ["W", "Good. I always forget mine and have to go back."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 2,
+      answer: 4,
       clue: "In person. I want to ask questions afterward.",
       explanation:
-        "대면이고, 실습이 있으며, 세 시간 미만인 특강을 고른다. 세 조건을 모두 채우는 것은 ②이다.",
+        "대면이고, 실습이 있으며, 세 시간 미만인 특강을 고른다. 세 조건을 모두 채우는 것은 ④이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Format: Online / Hands-on: Yes / Length: 2 hours" },
-          { no: 2, label: "②", value: "Format: In person / Hands-on: Yes / Length: 2.5 hours" },
-          { no: 3, label: "③", value: "Format: In person / Hands-on: No / Length: 1.5 hours" },
-          { no: 4, label: "④", value: "Format: In person / Hands-on: Yes / Length: 5 hours" },
+          { no: 2, label: "②", value: "Format: In person / Hands-on: No / Length: 1.5 hours" },
+          { no: 3, label: "③", value: "Format: In person / Hands-on: Yes / Length: 5 hours" },
+          { no: 4, label: "④", value: "Format: In person / Hands-on: Yes / Length: 2.5 hours" },
           { no: 5, label: "⑤", value: "Format: Online / Hands-on: No / Length: 1 hour" },
         ],
       },
@@ -461,16 +461,16 @@ export const spec: SetSpec = {
         ["W", "Scroll to the bottom. The guardian's phone number is easy to miss."],
       ],
       choices: [
-        "I'll check the bottom field.",
         "My form was accepted already.",
         "There is no guardian field.",
         "I'll apply again next year.",
         "The message says nothing.",
+        "I'll check the bottom field.",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Scroll to the bottom. The guardian's phone number is easy to miss.",
       explanation:
-        "여자가 맨 아래 보호자 전화번호 칸을 보라고 했으므로, 아래 칸을 확인하겠다는 ①이 가장 자연스럽다.",
+        "여자가 맨 아래 보호자 전화번호 칸을 보라고 했으므로, 아래 칸을 확인하겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 채린아, 내 장학금 신청서가 자꾸 반려돼.",
         "W: 오류 메시지에 뭐라고 나와?",
@@ -498,16 +498,16 @@ export const spec: SetSpec = {
         ["M", "Send the third one to two members and ask what they think it says."],
       ],
       choices: [
-        "I'll send it to two members today.",
         "I'll write a tenth version tonight.",
         "Nobody reads club notices anyway.",
+        "I'll send it to two members today.",
         "My notice is already perfectly clear.",
         "I'd rather not post anything.",
       ],
-      answer: 1,
+      answer: 3,
       clue: "Send the third one to two members and ask what they think it says.",
       explanation:
-        "남자가 세 번째 판본을 부원 두 명에게 보내 어떻게 읽히는지 물어보라고 했으므로, 오늘 보내겠다는 ①이 가장 자연스럽다.",
+        "남자가 세 번째 판본을 부원 두 명에게 보내 어떻게 읽히는지 물어보라고 했으므로, 오늘 보내겠다는 ③이 가장 자연스럽다.",
       translation: [
         "M: 채린아, 일주일 내내 같은 동아리 공지를 다시 쓰고 있네.",
         "W: 모두가 한 번에 알아들었으면 해서.",
@@ -589,15 +589,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "We should water them again this evening.",
-        "Let's move the trays into the shade now.",
         "Let's grow twice as many next year.",
         "We should cancel the plant sale.",
+        "Let's move the trays into the shade now.",
         "Let's load them into the van tonight.",
       ],
-      answer: 2,
+      answer: 4,
       clue: "She wants to tell him to move the trays into the shade before they wilt.",
       explanation:
-        "승아는 모판이 시들기 전에 그늘로 옮기자고 말하려 하므로 ②가 가장 적절하다.",
+        "승아는 모판이 시들기 전에 그늘로 옮기자고 말하려 하므로 ④가 가장 적절하다.",
       translation: [
         "W: 승아와 도연이는 토요일 아침에 열리는 학교 식물 판매를 준비하고 있습니다. 도연이는 두 달 동안 씨앗에서 모종 여든 개를 길렀고 상태도 좋습니다. 금요일 오후, 승아는 도연이가 모판을 전부 온실 밖 콘크리트 위, 한낮 볕이 그대로 드는 곳에 두었다는 것을 알아챕니다. 그 바닥은 저녁까지 열을 품고 있습니다. 바깥쪽 모판의 잎은 벌써 가장자리가 말리고 있습니다. 온실 처마 밑에는 그늘진 빈자리가 있고, 세 걸음이면 닿습니다. 승아는 도연이가 아침에 싣기 쉬우라고 밖에 내놓았다는 것을 알고, 그것이 나름 합리적이라는 것도, 그늘도 정문에서 똑같이 가깝다는 것도 압니다. 승아는 모판이 시들기 전에 그늘로 옮기자고 말하고 싶습니다. 이런 상황에서 승아가 도연이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -625,15 +625,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "why some people have faster reflexes than others",
+        "how the brain predicts where a moving ball will be",
         "how light travels from an object to the eye",
         "why ball sports are hard to learn as an adult",
-        "how the brain predicts where a moving ball will be",
         "how athletes train their eyesight",
       ],
-      answer: 4,
+      answer: 2,
       clue: "It takes the last position and the speed and puts your hand where the ball is going to be.",
       explanation:
-        "여자는 시각 신호에 걸리는 시간 때문에 뇌가 공의 위치를 예측해 손을 미리 보낸다고 설명한다. 따라서 답은 ④이다.",
+        "여자는 시각 신호에 걸리는 시간 때문에 뇌가 공의 위치를 예측해 손을 미리 보낸다고 설명한다. 따라서 답은 ②이다.",
       translation: [
         "W: 안녕하세요, 여러분. 오늘은 우리가 왜 눈이 다 보지도 못한 공을 잡을 수 있는지 이야기하려 합니다. 빛이 눈에 닿는 데 시간이 걸리고, 눈이 신호를 보내는 데 시간이 걸리고, 뇌가 그것을 이해하는 데 또 시간이 걸립니다. 다 합치면 10분의 1초쯤입니다. 초속 30미터로 날아오는 공은 그 사이에 3미터를 움직입니다. 우리가 본 것에 따라 움직인다면 우리는 늘 공보다 3미터 뒤에 손을 뻗을 것입니다. 그래서 뇌는 다른 일을 합니다. 예측합니다. 마지막 위치와 속도를 가지고, 공이 가 있을 자리에 여러분의 손을 놓습니다. 그래서 갑자기 방향이 바뀌는 공에 우리는 완전히 속습니다. 예측은 이미 끝났고, 손은 이미 가고 있었으니까요.",
       ].join("\n"),

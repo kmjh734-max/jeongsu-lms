@@ -62,11 +62,11 @@ export const spec: SetSpec = {
         ["W", "We go out and shoot, then pick the best photos together."],
         ["M", "That sounds like something I'd enjoy."],
       ],
-      choices: ["모이는 요일", "모이는 장소", "필요한 장비", "하는 활동", "회원 수"],
-      answer: 5,
+      choices: ["모이는 요일", "모이는 장소", "필요한 장비", "회원 수", "하는 활동"],
+      answer: 4,
       clue: "회원 수는 대화에서 언급되지 않았다.",
       explanation:
-        "모이는 요일(금요일), 장소(미술실 옆 작은 방), 필요한 장비(동아리 카메라 공유), 활동(촬영 후 사진 고르기)은 언급되지만 회원 수는 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "모이는 요일(금요일), 장소(미술실 옆 작은 방), 필요한 장비(동아리 카메라 공유), 활동(촬영 후 사진 고르기)은 언급되지만 회원 수는 언급되지 않았다. 따라서 답은 ④이다.",
       translation: [
         "M: 나리야, 너 사진 동아리 들어갔지?",
         "W: 응, 매주 금요일 마지막 수업 끝나고 모여.",
@@ -130,11 +130,11 @@ export const spec: SetSpec = {
         ["W", "Good. I'll come out through the side door."],
         ["M", "I'll wait for you by the bicycle rack."],
       ],
-      choices: ["4:00 p.m.", "4:30 p.m.", "5:00 p.m.", "5:30 p.m.", "6:00 p.m."],
-      answer: 3,
+      choices: ["4:00 p.m.", "4:30 p.m.", "5:30 p.m.", "6:00 p.m.", "5:00 p.m."],
+      answer: 5,
       clue: "Then let's meet when you finish tidying up.",
       explanation:
-        "워크숍이 4시 30분에 끝나고 정리에 30분이 걸리므로 만나는 시각은 5시이다. 따라서 답은 ③이다.",
+        "워크숍이 4시 30분에 끝나고 정리에 30분이 걸리므로 만나는 시각은 5시이다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 나리야, 글쓰기 워크숍 몇 시에 끝나?",
         "W: 오후 4시 30분까지 해.",
@@ -161,11 +161,11 @@ export const spec: SetSpec = {
         ["W", "It's four fifty-eight now."],
         ["M", "I can hardly breathe. Two more minutes."],
       ],
-      choices: ["bored", "nervous", "thankful", "angry", "proud"],
-      answer: 2,
+      choices: ["bored", "thankful", "nervous", "angry", "proud"],
+      answer: 3,
       clue: "I can hardly breathe. Two more minutes.",
       explanation:
-        "곧 발표될 농구부 명단을 앞두고 숨도 잘 못 쉬겠다고 했으므로 남자의 심정은 '긴장한(nervous)'이다. 따라서 답은 ②이다.",
+        "곧 발표될 농구부 명단을 앞두고 숨도 잘 못 쉬겠다고 했으므로 남자의 심정은 '긴장한(nervous)'이다. 따라서 답은 ③이다.",
       translation: [
         "W: 민재야, 휴대폰만 계속 보네. 무슨 일이야?",
         "M: 감독님이 5시에 팀 명단을 올리셔.",
@@ -264,11 +264,11 @@ export const spec: SetSpec = {
             "Please come and support your classmates.",
         ],
       ],
-      choices: ["열리는 날", "열리는 장소", "여는 시각", "팔 수 있는 물건", "표 가격"],
-      answer: 5,
+      choices: ["열리는 날", "표 가격", "열리는 장소", "여는 시각", "팔 수 있는 물건"],
+      answer: 2,
       clue: "표 가격은 방송에서 언급되지 않았다.",
       explanation:
-        "열리는 날(다음 주 토요일), 장소(두 건물 사이 안뜰), 여는 시각(10시), 팔 수 있는 물건(책·옷·작은 장난감)은 언급되지만 표 가격은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "열리는 날(다음 주 토요일), 장소(두 건물 사이 안뜰), 여는 시각(10시), 팔 수 있는 물건(책·옷·작은 장난감)은 언급되지만 표 가격은 언급되지 않았다. 따라서 답은 ②이다.",
       translation: [
         "W: 안녕하세요, 여러분. 봄 벼룩시장이 다음 주 토요일에 열립니다. 두 학교 건물 사이 안뜰에서 진행됩니다. 반마다 탁자 하나씩 받고, 탁자는 10시에 엽니다. 더 이상 쓰지 않는 책, 옷, 작은 장난감을 팔 수 있습니다. 모은 돈은 모두 지역 어린이 도서관에 전달합니다. 오셔서 친구들을 응원해 주세요.",
       ].join("\n"),
@@ -287,11 +287,11 @@ export const spec: SetSpec = {
             "People say goodbye here with tears and hugs almost every day.",
         ],
       ],
-      choices: ["기차역", "공항", "항구", "버스 터미널", "우체국"],
-      answer: 2,
+      choices: ["기차역", "항구", "버스 터미널", "우체국", "공항"],
+      answer: 5,
       clue: "Through the big windows you can watch planes take off and land.",
       explanation:
-        "표와 여권을 보여 주고 큰 창으로 비행기가 뜨고 내리는 것을 보는 곳은 공항이다. 따라서 답은 ②이다.",
+        "표와 여권을 보여 주고 큰 창으로 비행기가 뜨고 내리는 것을 보는 곳은 공항이다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 이곳은 멀리 여행을 가고 싶을 때 찾는 건물입니다. 안으로 들어가기 전에 표와 여권을 보여 줍니다. 짐은 움직이는 벨트를 타고 가서 마지막에 다시 돌아옵니다. 큰 창문으로 비행기가 뜨고 내리는 것을 볼 수 있습니다. 사람들은 거의 매일 여기서 눈물과 포옹으로 작별 인사를 합니다.",
       ].join("\n"),
@@ -377,17 +377,17 @@ export const spec: SetSpec = {
         ["M", "Good. I'll register online tonight."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 5,
+      answer: 4,
       clue: "No, I work at the library until noon every day.",
       explanation:
-        "오후에 시작하고 4주 이하인 강좌를 고른다. 두 조건을 모두 채우는 것은 ⑤이다.",
+        "오후에 시작하고 4주 이하인 강좌를 고른다. 두 조건을 모두 채우는 것은 ④이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Time: Morning / Length: 3 weeks / Course: Coding" },
           { no: 2, label: "②", value: "Time: Afternoon / Length: 6 weeks / Course: Coding" },
           { no: 3, label: "③", value: "Time: Morning / Length: 4 weeks / Course: Cooking" },
-          { no: 4, label: "④", value: "Time: Afternoon / Length: 8 weeks / Course: Cooking" },
-          { no: 5, label: "⑤", value: "Time: Afternoon / Length: 4 weeks / Course: Coding" },
+          { no: 4, label: "④", value: "Time: Afternoon / Length: 4 weeks / Course: Coding" },
+          { no: 5, label: "⑤", value: "Time: Afternoon / Length: 8 weeks / Course: Cooking" },
         ],
       },
       translation: [
@@ -419,11 +419,11 @@ export const spec: SetSpec = {
         ["M", "October 11th works. It's a Saturday."],
         ["W", "Perfect. Let's take the nine o'clock bus."],
       ],
-      choices: ["10월 3일", "10월 5일", "10월 11일", "10월 12일", "10월 14일"],
-      answer: 3,
+      choices: ["10월 3일", "10월 11일", "10월 5일", "10월 12일", "10월 14일"],
+      answer: 2,
       clue: "Oh, right. Then let's go on October 11th.",
       explanation:
-        "3일은 공휴일 휴관이고, 5일은 다음 날 시험이 있으며, 14일은 봉사 프로그램이 끝난 뒤다. 두 사람은 10월 11일에 가기로 한다. 따라서 답은 ③이다.",
+        "3일은 공휴일 휴관이고, 5일은 다음 날 시험이 있으며, 14일은 봉사 프로그램이 끝난 뒤다. 두 사람은 10월 11일에 가기로 한다. 따라서 답은 ②이다.",
       translation: [
         "M: 나리야, 동물 보호소 언제 갈까?",
         "W: 10월 3일 어때? 공휴일이야.",
@@ -483,16 +483,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "화장실 사용 제한을 알리려고",
         "청소 당번을 안내하려고",
         "거울 구입을 부탁하려고",
+        "화장실 사용 제한을 알리려고",
         "학생회 회의를 알리려고",
         "시설 신고 방법을 안내하려고",
       ],
-      answer: 1,
+      answer: 3,
       clue: "Until then, please use the restrooms on the first or third floor.",
       explanation:
-        "2층 화장실 거울 교체 공사로 4·5교시 동안 그곳을 쓸 수 없으니 다른 층을 이용하라고 알리는 방송이다. 따라서 답은 ①이다.",
+        "2층 화장실 거울 교체 공사로 4·5교시 동안 그곳을 쓸 수 없으니 다른 층을 이용하라고 알리는 방송이다. 따라서 답은 ③이다.",
       translation: [
         "M: 안내 말씀 드립니다. 학생회입니다. 오늘 아침 2층 화장실 거울이 깨졌습니다. 4교시와 5교시 동안 작업자들이 거울을 교체합니다. 그때까지는 1층이나 3층 화장실을 이용해 주세요. 작업이 끝나는 대로 알려 드리겠습니다. 양해해 주셔서 감사합니다.",
       ].join("\n"),
@@ -511,11 +511,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take five dollars off for you."],
         ["W", "Thank you. Here is my card."],
       ],
-      choices: ["$23", "$25", "$27", "$28", "$30"],
-      answer: 2,
+      choices: ["$25", "$23", "$27", "$28", "$30"],
+      answer: 1,
       clue: "Then I can take five dollars off for you.",
       explanation:
-        "공책 3권 12달러와 소설 2권 18달러를 더하면 30달러이고, 회원 할인 5달러를 빼면 25달러이다. 따라서 답은 ②이다.",
+        "공책 3권 12달러와 소설 2권 18달러를 더하면 30달러이고, 회원 할인 5달러를 빼면 25달러이다. 따라서 답은 ①이다.",
       translation: [
         "M: 서점에 오신 걸 환영합니다. 다 찾으셨나요?",
         "W: 네, 공책 세 권이랑 소설 두 권 주세요.",
@@ -584,16 +584,16 @@ export const spec: SetSpec = {
         ["W", "The music shop by the bus stop sells them cheaply."],
       ],
       choices: [
-        "I'll go there after class today.",
         "My guitar has no strings.",
+        "I'll go there after class today.",
         "I changed them last week.",
         "The shop closed two years ago.",
         "I never play the guitar.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "The music shop by the bus stop sells them cheaply.",
       explanation:
-        "여자가 버스 정류장 옆 악기점에서 싸게 판다고 알려 주었으므로, 오늘 수업 끝나고 가 보겠다는 ①이 가장 자연스럽다.",
+        "여자가 버스 정류장 옆 악기점에서 싸게 판다고 알려 주었으므로, 오늘 수업 끝나고 가 보겠다는 ②가 가장 자연스럽다.",
       translation: [
         "W: 민재야, 오늘 기타 소리가 좀 이상해.",
         "M: 나도 느꼈는데, 어느 줄인지 모르겠어.",
@@ -625,16 +625,16 @@ export const spec: SetSpec = {
         ["M", "Cactus and snake plants are the easiest to keep."],
       ],
       choices: [
-        "Let's get those two kinds then.",
         "All plants need daily water.",
         "Our classroom has no windows.",
         "The holiday lasted one day.",
         "I'll water them every hour.",
+        "Let's get those two kinds then.",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Cactus and snake plants are the easiest to keep.",
       explanation:
-        "남자가 선인장과 산세비에리아가 기르기 쉽다고 했으므로, 그 두 가지를 사자는 ①이 가장 자연스럽다.",
+        "남자가 선인장과 산세비에리아가 기르기 쉽다고 했으므로, 그 두 가지를 사자는 ⑤가 가장 자연스럽다.",
       translation: [
         "W: 민재야, 우리 반 화분 자리가 휑해졌어.",
         "M: 연휴 동안 화분 두 개가 말라 죽었어.",
@@ -668,14 +668,14 @@ export const spec: SetSpec = {
       choices: [
         "Let's hang the banner lower.",
         "The festival starts next month.",
-        "I'll buy a new banner today.",
         "That box is cracked. Get down.",
+        "I'll buy a new banner today.",
         "Our booth is already finished.",
       ],
-      answer: 4,
+      answer: 3,
       clue: "She is afraid it will break under his weight.",
       explanation:
-        "도윤이가 금이 간 상자 위에 올라서 있어 부서질까 봐 걱정되므로, 상자에 금이 갔으니 내려오라고 말하는 ④가 가장 적절하다.",
+        "도윤이가 금이 간 상자 위에 올라서 있어 부서질까 봐 걱정되므로, 상자에 금이 갔으니 내려오라고 말하는 ③이 가장 적절하다.",
       translation: [
         "W: 혜원이와 도윤이는 학교 축제 부스를 준비하고 있습니다. 두 사람은 탁자 앞에 긴 현수막을 걸어야 합니다. 도윤이는 틀 위쪽에 닿으려고 플라스틱 상자 위에 올라서 있습니다. 혜원이는 그 상자 한쪽에 금이 간 것을 봅니다. 혜원이는 도윤이 무게에 상자가 부서질까 봐 걱정합니다. 이런 상황에서 혜원이가 도윤이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),

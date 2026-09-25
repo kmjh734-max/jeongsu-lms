@@ -30,15 +30,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "교복 값 인상을 알리려고",
-        "분실물 보관 기간을 안내하려고",
         "교복 나눔 행사 참여를 권유하려고",
+        "분실물 보관 기간을 안내하려고",
         "복장 규정 변경을 알리려고",
         "학생회 선거 일정을 안내하려고",
       ],
-      answer: 3,
+      answer: 2,
       clue: "Next Thursday we are holding a uniform sharing day in the front hall.",
       explanation:
-        "남자는 목요일에 교복 나눔 행사를 연다며 작아진 교복을 가져오고 필요한 것을 가져가라고 권한다. 따라서 답은 ③이다.",
+        "남자는 목요일에 교복 나눔 행사를 연다며 작아진 교복을 가져오고 필요한 것을 가져가라고 권한다. 따라서 답은 ②이다.",
       translation: [
         "M: 여러분, 안녕하세요. 학생회 준호입니다. 다음 주 목요일에 중앙 현관에서 교복 나눔의 날을 엽니다. 해마다 이백 명쯤이 아직 멀쩡한 재킷을 입지 못할 만큼 자라고, 해마다 1학년 학생들이 바로 그 재킷을 새로 삽니다. 그러니 이제 맞지 않는 옷이 있으면 빨아서 단추를 달아, 이번 주 아침 아무 때나 게시판 옆 탁자에 두고 가세요. 목요일에는 가져온 것이 있든 없든 필요한 것을 탁자에서 무료로 가져가시면 됩니다. 세지도 않고 적지도 않습니다. 오늘 밤에 옷장을 한 번 봐 주세요. 감사합니다.",
       ].join("\n"),
@@ -62,16 +62,16 @@ export const spec: SetSpec = {
         ["W", "Take the page with you and point at the line."],
       ],
       choices: [
-        "질문을 미루면 나중에 더 큰 시간을 쓴다",
         "혼자 오래 붙잡고 있어야 실력이 는다",
         "문제집을 여러 권 풀어야 한다",
         "수업 전에 예습을 해야 한다",
         "친구에게 먼저 물어봐야 한다",
+        "질문을 미루면 나중에 더 큰 시간을 쓴다",
       ],
-      answer: 1,
+      answer: 5,
       clue: "A question you postpone gets more expensive every day.",
       explanation:
-        "여자는 2분이면 될 질문을 나흘 동안 미뤘다며, 미룬 질문은 날마다 값이 올라간다고 말한다. 따라서 답은 ①이다.",
+        "여자는 2분이면 될 질문을 나흘 동안 미뤘다며, 미룬 질문은 날마다 값이 올라간다고 말한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 소라야, 나 월요일부터 같은 물리 문제에 막혀 있어.",
         "W: 나흘이네. 류 선생님께 여쭤봤어?",
@@ -112,14 +112,14 @@ export const spec: SetSpec = {
       choices: [
         "매일 같은 시간에 공부해야 한다",
         "문제를 많이 풀어야 한다",
+        "틀린 것을 기록해 두어야 같은 실수를 줄인다",
         "맞힌 문제를 다시 봐야 한다",
         "공부 계획을 주 단위로 세워야 한다",
-        "틀린 것을 기록해 두어야 같은 실수를 줄인다",
       ],
-      answer: 5,
+      answer: 3,
       clue: "Keep one notebook for errors alone.",
       explanation:
-        "여자는 오답만 따로 적고 그때 왜 맞다고 생각했는지까지 쓰면 반복되는 실수의 정체를 알 수 있다고 말한다. 따라서 답은 ⑤이다.",
+        "여자는 오답만 따로 적고 그때 왜 맞다고 생각했는지까지 쓰면 반복되는 실수의 정체를 알 수 있다고 말한다. 따라서 답은 ③이다.",
       translation: [
         "W: 거의 모두가 맞힌 것을 다시 보고, 틀린 것을 기록해 두는 사람은 거의 없습니다. 거꾸로 된 일입니다. 빨간 펜으로 고치기만 한 실수는 그 쪽을 덮는 순간 사라지고, 3주 뒤에 같은 실수인 줄도 모른 채 다시 합니다. 오답만 적는 공책을 한 권 두세요. 문제를 쓰고, 내가 한 것을 쓰고, 그때 왜 그것이 맞아 보였는지를 한 줄로 쓰세요. 그 마지막 줄이 핵심입니다. 반복되는 것은 문제가 아니라 그 생각이기 때문입니다. 두 달이 지나면 백 개의 실수가 사실은 여섯 개였다는 것을 알게 되고, 여섯은 손을 쓸 수 있는 숫자입니다.",
       ].join("\n"),
@@ -194,15 +194,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "현수막 달기",
-        "행정실에 전기 사용 신청하기",
         "물품 사 오기",
         "밴드와 연습하기",
+        "행정실에 전기 사용 신청하기",
         "부스 자리 정하기",
       ],
-      answer: 2,
+      answer: 4,
       clue: "Then I'll go to the office and apply for the power.",
       explanation:
-        "현수막과 물품은 끝났고 남자는 매일 오후 밴드 연습이 있으므로, 여자가 행정실에 전기 사용을 신청하기로 한다. 따라서 답은 ②이다.",
+        "현수막과 물품은 끝났고 남자는 매일 오후 밴드 연습이 있으므로, 여자가 행정실에 전기 사용을 신청하기로 한다. 따라서 답은 ④이다.",
       translation: [
         "M: 소라야, 우리 축제 부스가 금요일 1시에 열어.",
         "W: 알아. 현수막은 다 했어?",
@@ -236,11 +236,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take twenty-five percent off the notebooks, but not the folders."],
         ["W", "Thank you. I'll pay by card."],
       ],
-      choices: ["$36.00", "$40.00", "$42.00", "$45.00", "$48.00"],
-      answer: 3,
+      choices: ["$36.00", "$42.00", "$40.00", "$45.00", "$48.00"],
+      answer: 2,
       clue: "Then I can take twenty-five percent off the notebooks, but not the folders.",
       explanation:
-        "공책 4권 24달러에서 25퍼센트를 빼면 18달러이고, 할인이 안 되는 서류철 3개 24달러를 더하면 42달러이다. 따라서 답은 ③이다.",
+        "공책 4권 24달러에서 25퍼센트를 빼면 18달러이고, 할인이 안 되는 서류철 3개 24달러를 더하면 42달러이다. 따라서 답은 ②이다.",
       translation: [
         "M: 코너 문구점입니다. 무엇을 드릴까요?",
         "W: 공책 네 권이랑 서류철 세 개 주세요.",
@@ -273,16 +273,16 @@ export const spec: SetSpec = {
         ["M", "Which is why my Saturday and Sunday are gone."],
       ],
       choices: [
-        "동아리 발표 준비를 해야 해서",
         "아침에 일찍 일어나기 힘들어서",
         "가족 여행을 가서",
         "몸이 아파서",
         "교통편이 없어서",
+        "동아리 발표 준비를 해야 해서",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Our club presentation moved to Monday morning.",
       explanation:
-        "이른 시간도 괜찮고 가족도 집에 있지만, 동아리 발표가 월요일 아침으로 옮겨져 주말 내내 준비해야 하기 때문이다. 따라서 답은 ①이다.",
+        "이른 시간도 괜찮고 가족도 집에 있지만, 동아리 발표가 월요일 아침으로 옮겨져 주말 내내 준비해야 하기 때문이다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 상민아, 주말 봉사 명단에 네가 없네.",
         "M: 월요일에 뺐어.",
@@ -314,11 +314,11 @@ export const spec: SetSpec = {
         ["W", "The form closes at the end of this month."],
         ["M", "Then let's fill it in tomorrow."],
       ],
-      choices: ["운영 기간", "장소", "준비물", "참가비", "수료증 발급"],
-      answer: 5,
+      choices: ["운영 기간", "장소", "수료증 발급", "준비물", "참가비"],
+      answer: 3,
       clue: "수료증 발급은 대화에서 언급되지 않았다.",
       explanation:
-        "기간(겨울 방학 둘째 주 닷새), 장소(시 청소년센터 미디어실), 준비물(노트북과 전원선), 참가비(3만 원)는 언급되지만 수료증 발급은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "기간(겨울 방학 둘째 주 닷새), 장소(시 청소년센터 미디어실), 준비물(노트북과 전원선), 참가비(3만 원)는 언급되지만 수료증 발급은 언급되지 않았다. 따라서 답은 ③이다.",
       translation: [
         "W: 상민아, 리버뱅크 코딩 캠프 봤어?",
         "M: 포스터 봤어. 며칠 해?",
@@ -351,16 +351,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "2005년에 문을 열었다",
         "여름에만 운영한다",
+        "2005년에 문을 열었다",
         "수영모를 반드시 써야 한다",
         "사물함은 무료이다",
         "초보 강습은 토요일 오전에만 있다",
       ],
-      answer: 2,
+      answer: 1,
       clue: "The pool is open all year and closes for two weeks in September for cleaning.",
       explanation:
-        "수영장은 일 년 내내 열고 9월에 2주만 닫는다고 했으므로 여름에만 운영한다는 ②는 내용과 다르다. 따라서 답은 ②이다.",
+        "수영장은 일 년 내내 열고 9월에 2주만 닫는다고 했으므로 여름에만 운영한다는 ①은 내용과 다르다. 따라서 답은 ①이다.",
       translation: [
         "M: 스톤필드 주민 수영장을 안내해 드리겠습니다. 2005년에 문을 열었고 여섯 개 레인과 별도의 얕은 수영장이 있습니다. 일 년 내내 열고 청소를 위해 9월에 2주 동안 닫습니다. 레인 수영은 아침 6시부터 밤 9시까지 합니다. 물에 들어가는 사람은 모두 수영모를 써야 합니다. 사물함은 무료이지만 열쇠를 빼려면 동전이 필요합니다. 초보자 강습은 토요일 오전에만 있습니다.",
       ].join("\n"),
@@ -384,16 +384,16 @@ export const spec: SetSpec = {
         ["M", "It should be here by Thursday."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 3,
+      answer: 4,
       clue: "At least ten hours. We record the whole sports day.",
       explanation:
-        "녹음 시간이 10시간 이상이고, 무게가 200그램 미만이며, 9만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ③이다.",
+        "녹음 시간이 10시간 이상이고, 무게가 200그램 미만이며, 9만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ④이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Recording: 6 hours / Weight: 150 g / Price: 50,000 won" },
           { no: 2, label: "②", value: "Recording: 12 hours / Weight: 300 g / Price: 70,000 won" },
-          { no: 3, label: "③", value: "Recording: 15 hours / Weight: 180 g / Price: 85,000 won" },
-          { no: 4, label: "④", value: "Recording: 20 hours / Weight: 160 g / Price: 130,000 won" },
+          { no: 3, label: "③", value: "Recording: 20 hours / Weight: 160 g / Price: 130,000 won" },
+          { no: 4, label: "④", value: "Recording: 15 hours / Weight: 180 g / Price: 85,000 won" },
           { no: 5, label: "⑤", value: "Recording: 8 hours / Weight: 120 g / Price: 40,000 won" },
         ],
       },
@@ -425,15 +425,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "I'll wait at the front gate.",
+        "I'll be at the side gate by ten to eight.",
         "The bus leaves at nine.",
         "I'm not going to the museum.",
-        "I'll be at the side gate by ten to eight.",
         "There is no bus this year.",
       ],
-      answer: 4,
+      answer: 2,
       clue: "Eight sharp. Be at the side gate by ten to.",
       explanation:
-        "남자가 8시 정각 출발이니 10분 전까지 옆문에 오라고 했으므로, 그렇게 하겠다는 ④가 가장 자연스럽다.",
+        "남자가 8시 정각 출발이니 10분 전까지 옆문에 오라고 했으므로, 그렇게 하겠다는 ②가 가장 자연스럽다.",
       translation: [
         "W: 민준아, 박물관 버스가 정문에서 출발해?",
         "M: 예전엔 그랬는데 올해는 옆문으로 옮겼어.",
@@ -454,16 +454,16 @@ export const spec: SetSpec = {
         ["W", "You can, twice. Renew it tonight before the fine grows."],
       ],
       choices: [
-        "I'll renew it online tonight.",
         "I'll pay the fine next month.",
         "The book isn't overdue at all.",
         "I never borrow library books.",
         "I'll return it after the exams.",
+        "I'll renew it online tonight.",
       ],
-      answer: 1,
+      answer: 5,
       clue: "You can, twice. Renew it tonight before the fine grows.",
       explanation:
-        "여자가 오늘 밤에 온라인으로 연장하라고 했으므로, 그렇게 하겠다는 ①이 가장 자연스럽다.",
+        "여자가 오늘 밤에 온라인으로 연장하라고 했으므로, 그렇게 하겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 채린아, 도서관 책이 사흘 연체됐어.",
         "W: 온라인으로 연장했어?",
@@ -492,15 +492,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "I'll write twelve items tomorrow.",
-        "I'll write only three tomorrow.",
         "I'll stop planning altogether.",
+        "I'll write only three tomorrow.",
         "I always finish my whole list.",
         "I'd rather keep a paper diary.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "Then write those three and stop.",
       explanation:
-        "여자가 정말 중요한 세 가지만 적고 멈추라고 했으므로, 내일은 세 개만 쓰겠다는 ②가 가장 자연스럽다.",
+        "여자가 정말 중요한 세 가지만 적고 멈추라고 했으므로, 내일은 세 개만 쓰겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 상민아, 너 아침마다 계획 쓰지?",
         "M: 열 개. 네 개쯤 끝내.",
@@ -535,16 +535,16 @@ export const spec: SetSpec = {
         ["M", "Read to the end of the paragraph first, then look up what still matters."],
       ],
       choices: [
+        "I'll finish the paragraph before looking anything up.",
         "I'll look up every word as before.",
         "I'll stop reading English articles.",
         "I already finish a page in five minutes.",
-        "I'll finish the paragraph before looking anything up.",
         "I'll read it in Korean instead.",
       ],
-      answer: 4,
+      answer: 1,
       clue: "Read to the end of the paragraph first, then look up what still matters.",
       explanation:
-        "남자가 문단 끝까지 읽고 나서 찾아보라고 했으므로, 문단을 끝내고 찾겠다는 ④가 가장 자연스럽다.",
+        "남자가 문단 끝까지 읽고 나서 찾아보라고 했으므로, 문단을 끝내고 찾겠다는 ①이 가장 자연스럽다.",
       translation: [
         "M: 소라야, 그 영어 기사 하나를 30분째 보고 있네.",
         "W: 첫 쪽 절반까지밖에 못 왔어.",
@@ -585,13 +585,13 @@ export const spec: SetSpec = {
         "We should stop the stretching session.",
         "Let's move the session to the playground.",
         "We should hand out a printed sheet.",
-        "Let's use a different set of stretches.",
         "Let's face the same way as the students.",
+        "Let's use a different set of stretches.",
       ],
-      answer: 5,
+      answer: 4,
       clue: "She wants to tell him to face the same way as the students.",
       explanation:
-        "세아는 학생들과 같은 쪽을 보고 동작을 보여 주자고 말하려 하므로 ⑤가 가장 적절하다.",
+        "세아는 학생들과 같은 쪽을 보고 동작을 보여 주자고 말하려 하므로 ④가 가장 적절하다.",
       translation: [
         "W: 세아와 민재는 학교 체육관에서 아침 스트레칭 시간을 이끕니다. 민재는 앞에서 학생들을 마주 보고 서서 동작을 하나씩 보여 주고, 세아는 줄 사이를 다니며 헤매는 학생을 도와줍니다. 이번 주에 세아는 아침마다 같은 것을 봅니다. 민재가 오른팔을 들라고 말하면서 자기 오른팔을 드는데, 학생들을 마주 보고 있으니 학생들 눈에는 그 팔이 왼쪽에서 올라갑니다. 그래서 체육관의 절반이 반대 팔을 들고는 주위를 둘러봅니다. 민재가 그냥 돌아서서 학생들과 같은 쪽을 보면, 학생들이 따라 하는 것이 그대로 맞아떨어집니다. 세아는 학생들과 같은 쪽을 보자고 말하고 싶습니다. 이런 상황에서 세아가 민재에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -647,13 +647,13 @@ export const spec: SetSpec = {
         "sound reaching your ear through the bones of the skull",
         "bone carrying low tones better than air",
         "a recording keeping only the sound that travelled through air",
-        "singers losing their voice after a long concert",
         "people disliking their own recorded voice at first",
+        "singers losing their voice after a long concert",
       ],
-      answer: 4,
+      answer: 5,
       clue: "Bone carries the low tones far better than air does.",
       explanation:
-        "두개골을 통해 소리가 들어온다는 것, 뼈가 낮은 음을 더 잘 전달한다는 것, 녹음이 공기로 간 길만 남긴다는 것, 처음에는 싫어한다는 것은 언급되지만 가수가 공연 뒤 목이 쉰다는 것은 언급되지 않았다. 따라서 답은 ④이다.",
+        "두개골을 통해 소리가 들어온다는 것, 뼈가 낮은 음을 더 잘 전달한다는 것, 녹음이 공기로 간 길만 남긴다는 것, 처음에는 싫어한다는 것은 언급되지만 가수가 공연 뒤 목이 쉰다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

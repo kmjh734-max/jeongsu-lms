@@ -60,15 +60,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "모의고사는 매일 봐야 한다",
-        "모의고사 횟수를 줄이고 오답을 다뤄야 한다",
         "시험은 시간을 재고 봐야 한다",
         "오답 노트를 만들어야 한다",
+        "모의고사 횟수를 줄이고 오답을 다뤄야 한다",
         "실전 감각이 가장 중요하다",
       ],
-      answer: 2,
+      answer: 4,
       clue: "Right. Do two a week and spend the other days on the eleven papers.",
       explanation:
-        "남자는 모의고사가 위치를 알려 줄 뿐 실력을 옮기지는 않는다며, 횟수를 줄이고 틀린 문제를 다루라고 말한다. 따라서 답은 ②이다.",
+        "남자는 모의고사가 위치를 알려 줄 뿐 실력을 옮기지는 않는다며, 횟수를 줄이고 틀린 문제를 다루라고 말한다. 따라서 답은 ④이다.",
       translation: [
         "W: 진우야, 나 매일 모의고사를 한 세트씩 풀고 있어.",
         "M: 매일? 틀린 건 언제 봐?",
@@ -108,15 +108,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "지각은 변명할 수 없다",
+        "사람 탓을 하기 전에 상황을 살펴야 한다",
         "성격은 쉽게 바뀌지 않는다",
         "남을 이해하려 노력해야 한다",
-        "사람 탓을 하기 전에 상황을 살펴야 한다",
         "문제는 빨리 해결해야 한다",
       ],
-      answer: 4,
+      answer: 2,
       clue: "Before you decide someone is careless, ask what their morning looked like.",
       explanation:
-        "여자는 문제를 사람으로 보면 사람을 바꾸고 상황으로 보면 상황을 바꾼다며, 사람 탓 전에 상황을 물으라고 말한다. 따라서 답은 ④이다.",
+        "여자는 문제를 사람으로 보면 사람을 바꾸고 상황으로 보면 상황을 바꾼다며, 사람 탓 전에 상황을 물으라고 말한다. 따라서 답은 ②이다.",
       translation: [
         "W: 우리는 보통 남의 행동은 그 사람이 어떤 사람인가로 설명하고, 자기 행동은 자기가 처했던 상황으로 설명합니다. 다른 사람이 늦은 것은 그 사람이 덜렁대서입니다. 내가 늦은 것은 전철이 멈춰서입니다. 두 설명 모두 우리가 선 자리에서는 당연해 보이고, 그중 하나만 상황을 알고 있습니다. 이것은 들리는 것보다 중요합니다. 문제가 사람이라고 믿으면 사람을 바꾸게 되기 때문입니다. 상황이라고 믿으면 상황을 바꾸고, 다음 사람은 더 잘하게 됩니다. 누군가를 덜렁댄다고 판단하기 전에, 그 사람의 아침이 어땠는지, 그런 아침에 제시간에 올 수 있었을 사람이 있었을지 물어보세요.",
       ].join("\n"),
@@ -231,11 +231,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take ten percent off the printing, but not the covers."],
         ["W", "Thank you. I'll pay now."],
       ],
-      choices: ["$108.00", "$126.00", "$128.00", "$140.00", "$154.00"],
-      answer: 3,
+      choices: ["$128.00", "$108.00", "$126.00", "$140.00", "$154.00"],
+      answer: 1,
       clue: "Then I can take ten percent off the printing, but not the covers.",
       explanation:
-        "인쇄비 120달러에서 10퍼센트를 빼면 108달러이고, 할인이 안 되는 표지 20달러를 더하면 128달러이다. 따라서 답은 ③이다.",
+        "인쇄비 120달러에서 10퍼센트를 빼면 108달러이고, 할인이 안 되는 표지 20달러를 더하면 128달러이다. 따라서 답은 ①이다.",
       translation: [
         "M: 로완 인쇄소입니다. 무엇을 도와드릴까요?",
         "W: 제 포트폴리오 열 부, 한 부에 서른 쪽이요.",
@@ -270,14 +270,14 @@ export const spec: SetSpec = {
       choices: [
         "성적이 떨어져서",
         "회원들과 다퉈서",
-        "집안일을 도와야 해서",
         "전학을 가게 되어서",
+        "집안일을 도와야 해서",
         "다른 동아리를 맡아서",
       ],
-      answer: 3,
+      answer: 4,
       clue: "My father starts treatment next month and I'll be at home more.",
       explanation:
-        "성적도 회원 관계도 문제가 아니고, 아버지 치료 때문에 오후에 집에 있어야 하기 때문이다. 따라서 답은 ③이다.",
+        "성적도 회원 관계도 문제가 아니고, 아버지 치료 때문에 오후에 집에 있어야 하기 때문이다. 따라서 답은 ④이다.",
       translation: [
         "W: 진우야, 학생회에서 물러난다며.",
         "M: 이달 말에, 응.",
@@ -309,11 +309,11 @@ export const spec: SetSpec = {
         ["W", "A hundred thousand won, including all meals."],
         ["M", "Then let's apply before the deadline."],
       ],
-      choices: ["운영 기간", "장소", "숙박", "일정 내용", "선발 방법"],
-      answer: 5,
+      choices: ["운영 기간", "선발 방법", "장소", "숙박", "일정 내용"],
+      answer: 2,
       clue: "선발 방법은 대화에서 언급되지 않았다.",
       explanation:
-        "기간(1월 5일부터 8일까지), 장소(대학 동쪽 캠퍼스 연수원), 숙박(연수원 기숙사), 일정 내용(논증 구조와 실전 라운드)은 언급되지만 선발 방법은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "기간(1월 5일부터 8일까지), 장소(대학 동쪽 캠퍼스 연수원), 숙박(연수원 기숙사), 일정 내용(논증 구조와 실전 라운드)은 언급되지만 선발 방법은 언급되지 않았다. 따라서 답은 ②이다.",
       translation: [
         "W: 진우야, 겨울 토론 캠프 지원할 거야?",
         "M: 페이지는 봤어. 언제 해?",
@@ -349,13 +349,13 @@ export const spec: SetSpec = {
         "주차장에서 3킬로미터이다",
         "계단 길로 200미터를 오른다",
         "일 년 내내 아침 6시부터 연다",
-        "길에 조명이 설치되어 있다",
         "쉼터 두 곳에 벤치가 있다",
+        "길에 조명이 설치되어 있다",
       ],
-      answer: 4,
+      answer: 5,
       clue: "There is no lighting on the path, so a torch is needed after dark.",
       explanation:
-        "길에 조명이 없어 어두워지면 손전등이 필요하다고 했으므로 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "길에 조명이 없어 어두워지면 손전등이 필요하다고 했으므로 ⑤는 내용과 다르다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 힐뷰 천문대 산책로를 소개해 드리겠습니다. 이 길은 주차장에서 능선 위 천문대까지 3킬로미터 이어집니다. 200미터쯤 오르는데, 전부 계단 길입니다. 문은 일 년 내내 아침 6시부터 밤 10시까지 엽니다. 길에는 조명이 없어서 어두워지면 손전등이 필요합니다. 중간의 쉼터 두 곳에는 벤치가 있지만 물은 없습니다. 천문대 자체는 금요일과 토요일 저녁에 무료로 들어갈 수 있습니다.",
       ].join("\n"),
@@ -379,17 +379,17 @@ export const spec: SetSpec = {
         ["M", "I'll book the earliest slot they have."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 5,
+      answer: 3,
       clue: "Face-to-face. I never understand written comments alone.",
       explanation:
-        "대면이고, 두 번 이상 첨삭해 주며, 7만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ⑤이다.",
+        "대면이고, 두 번 이상 첨삭해 주며, 7만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ③이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Format: Written / Drafts covered: 2 / Fee: 40,000 won" },
           { no: 2, label: "②", value: "Format: Face-to-face / Drafts covered: 1 / Fee: 45,000 won" },
-          { no: 3, label: "③", value: "Format: Face-to-face / Drafts covered: 3 / Fee: 95,000 won" },
-          { no: 4, label: "④", value: "Format: Written / Drafts covered: 3 / Fee: 55,000 won" },
-          { no: 5, label: "⑤", value: "Format: Face-to-face / Drafts covered: 2 / Fee: 65,000 won" },
+          { no: 3, label: "③", value: "Format: Face-to-face / Drafts covered: 2 / Fee: 65,000 won" },
+          { no: 4, label: "④", value: "Format: Face-to-face / Drafts covered: 3 / Fee: 95,000 won" },
+          { no: 5, label: "⑤", value: "Format: Written / Drafts covered: 3 / Fee: 55,000 won" },
         ],
       },
       translation: [
@@ -419,16 +419,16 @@ export const spec: SetSpec = {
         ["W", "Use the reading room on two. It's just as quiet after four."],
       ],
       choices: [
-        "The library is closed all week.",
         "I'll use the reading room, then.",
+        "The library is closed all week.",
         "I don't study in libraries.",
         "The third floor is open.",
         "I'll come before four.",
       ],
-      answer: 2,
+      answer: 1,
       clue: "Use the reading room on two. It's just as quiet after four.",
       explanation:
-        "여자가 2층 열람실을 쓰라고 했으므로, 그 열람실을 쓰겠다는 ②가 가장 자연스럽다.",
+        "여자가 2층 열람실을 쓰라고 했으므로, 그 열람실을 쓰겠다는 ①이 가장 자연스럽다.",
       translation: [
         "M: 선화야, 시험 주간에 도서관 열어?",
         "W: 열어. 그런데 3층은 수리 때문에 닫아.",
@@ -450,15 +450,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "My request already arrived.",
-        "I'll email her today.",
         "There is no portal.",
         "I'll wait another week.",
+        "I'll email her today.",
         "The portal sends every day.",
       ],
-      answer: 2,
+      answer: 4,
       clue: "The portal only sends on Fridays. Email her directly today.",
       explanation:
-        "남자가 오늘 직접 메일을 보내라고 했으므로, 오늘 메일을 보내겠다는 ②가 가장 자연스럽다.",
+        "남자가 오늘 직접 메일을 보내라고 했으므로, 오늘 메일을 보내겠다는 ④가 가장 자연스럽다.",
       translation: [
         "W: 진우야, 내 추천서 요청이 선생님께 안 갔어.",
         "M: 포털로 보냈어, 메일로 보냈어?",
@@ -486,16 +486,16 @@ export const spec: SetSpec = {
         ["W", "Do that tonight instead of a fifth reading."],
       ],
       choices: [
-        "I'll write it out from memory tonight.",
         "I'll read the unit once more.",
+        "I'll write it out from memory tonight.",
         "The page already feels known.",
         "I've never reread anything.",
         "I'd rather skip the unit.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Do that tonight instead of a fifth reading.",
       explanation:
-        "여자가 다섯 번째로 읽는 대신 책을 덮고 써 보라고 했으므로, 오늘 밤 기억으로 써 보겠다는 ①이 가장 자연스럽다.",
+        "여자가 다섯 번째로 읽는 대신 책을 덮고 써 보라고 했으므로, 오늘 밤 기억으로 써 보겠다는 ②가 가장 자연스럽다.",
       translation: [
         "W: 진우야, 2주째 같은 단원을 다시 읽고 있네.",
         "M: 아직 안 들어와서.",
@@ -530,16 +530,16 @@ export const spec: SetSpec = {
         ["M", "Mute the group and let calls through. Urgent things get called in."],
       ],
       choices: [
-        "I'll mute the group and allow calls.",
         "I'll keep it on all night.",
         "Nobody ever messages me.",
         "I never wake up at night.",
         "I'll leave the group entirely.",
+        "I'll mute the group and allow calls.",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Mute the group and let calls through. Urgent things get called in.",
       explanation:
-        "남자가 단체방은 무음으로 하고 전화만 열어 두라고 했으므로, 그렇게 하겠다는 ①이 가장 자연스럽다.",
+        "남자가 단체방은 무음으로 하고 전화만 열어 두라고 했으므로, 그렇게 하겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 선화야, 너 밤새 단체방 알림을 켜 두더라.",
         "W: 누가 나를 찾을 수도 있잖아. 무음으로 하는 게 무례한 것 같아.",
@@ -578,15 +578,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "We should start the whole letter again.",
-        "Let's ask those eleven to go over their lines in pen.",
         "Let's leave the pencil lines as they are.",
+        "Let's ask those eleven to go over their lines in pen.",
         "We should give the letter next year instead.",
         "Let's remove the pencil lines from the sheet.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "She wants to tell him to ask those eleven to go over their lines in pen.",
       explanation:
-        "소율이는 연필로 쓴 열한 명에게 펜으로 덧써 달라고 하자고 말하려 하므로 ②가 가장 적절하다.",
+        "소율이는 연필로 쓴 열한 명에게 펜으로 덧써 달라고 하자고 말하려 하므로 ③이 가장 적절하다.",
       translation: [
         "W: 소율이와 건우는 담임 선생님께 드릴 학년 전체의 작별 편지를 준비하고 있습니다. 건우는 서른두 명 모두에게서 손으로 쓴 한 줄씩을 받아 큰 종이 한 장에 붙였고, 저녁 사흘이 걸렸습니다. 목요일에 소율이는 햇빛 아래에서 그 종이를 보다가, 그중 열한 줄이 연필로 쓰였고 종이를 만질 때마다 이미 번지고 있다는 것을 봅니다. 이 편지는 액자에 넣어 보관할 것이고, 연필은 계속 흐려집니다. 책상마다 펜이 있고, 그 열한 명은 오늘 다 학교에 있습니다. 소율이는 종이를 통째로 다시 만들기를 바라지 않고, 그 열한 줄만 펜으로 다시 쓰기를 바랍니다. 소율이는 그 열한 명에게 자기 줄을 펜으로 덧써 달라고 하자고 말하고 싶습니다. 이런 상황에서 소율이가 건우에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -642,13 +642,13 @@ export const spec: SetSpec = {
         "fingertips having many nerve endings",
         "a paper edge tearing rather than slicing",
         "a shallow cut bleeding very little",
-        "the wound staying open to the air",
         "cold water easing the pain",
+        "the wound staying open to the air",
       ],
-      answer: 5,
+      answer: 4,
       clue: "Fingertips carry far more nerve endings per square centimeter than almost anywhere else.",
       explanation:
-        "손끝에 신경 끝이 많다는 것, 종이 가장자리가 찢는다는 것, 얕은 상처는 피가 거의 안 난다는 것, 상처가 공기에 열린 채 남는다는 것은 언급되지만 찬물이 통증을 덜어 준다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "손끝에 신경 끝이 많다는 것, 종이 가장자리가 찢는다는 것, 얕은 상처는 피가 거의 안 난다는 것, 상처가 공기에 열린 채 남는다는 것은 언급되지만 찬물이 통증을 덜어 준다는 것은 언급되지 않았다. 따라서 답은 ④이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

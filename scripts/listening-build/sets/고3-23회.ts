@@ -272,14 +272,14 @@ export const spec: SetSpec = {
       choices: [
         "시험 일정과 겹쳐서",
         "추천인이 모자라서",
-        "3월에 전학을 가게 되어서",
         "성적이 떨어져서",
+        "3월에 전학을 가게 되어서",
         "다른 후보를 돕기로 해서",
       ],
-      answer: 3,
+      answer: 4,
       clue: "I'm moving to my aunt's city in March.",
       explanation:
-        "시험 일정도 추천인도 문제가 아니었고, 3월에 전학을 가게 되어 끝내지 못할 임기를 시작할 수 없기 때문이다. 따라서 답은 ③이다.",
+        "시험 일정도 추천인도 문제가 아니었고, 3월에 전학을 가게 되어 끝내지 못할 임기를 시작할 수 없기 때문이다. 따라서 답은 ④이다.",
       translation: [
         "M: 채연아, 후보 명단에 네 이름이 없네.",
         "W: 올해는 안 나가기로 했어.",
@@ -311,11 +311,11 @@ export const spec: SetSpec = {
         ["M", "They weigh everything collected and post the total."],
         ["W", "Then let's go and make the number bigger."],
       ],
-      choices: ["열리는 날", "모이는 장소", "준비물", "주최 기관", "참가 인원"],
-      answer: 5,
+      choices: ["열리는 날", "참가 인원", "모이는 장소", "준비물", "주최 기관"],
+      answer: 2,
       clue: "참가 인원은 대화에서 언급되지 않았다.",
       explanation:
-        "날짜(4월 마지막 토요일), 장소(등대 옆 주차장), 준비물(모자와 물), 주최(시 환경과와 대학 동아리)는 언급되지만 참가 인원은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "날짜(4월 마지막 토요일), 장소(등대 옆 주차장), 준비물(모자와 물), 주최(시 환경과와 대학 동아리)는 언급되지만 참가 인원은 언급되지 않았다. 따라서 답은 ②이다.",
       translation: [
         "M: 채연아, 해안 정화의 날 들었어?",
         "W: 해변에서 하는 거? 언제야?",
@@ -351,13 +351,13 @@ export const spec: SetSpec = {
         "1798년에 지어졌다",
         "월요일과 화요일에 문을 닫는다",
         "입장료가 없다",
-        "집 안에서도 사진을 찍을 수 있다",
         "영어 안내가 하루 두 번 있다",
+        "집 안에서도 사진을 찍을 수 있다",
       ],
-      answer: 4,
+      answer: 5,
       clue: "Photography is allowed in the garden but not inside the house itself.",
       explanation:
-        "정원에서는 사진을 찍을 수 있지만 집 안에서는 안 된다고 했으므로 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "정원에서는 사진을 찍을 수 있지만 집 안에서는 안 된다고 했으므로 ⑤는 내용과 다르다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 아버하우스 박물관을 소개해 드리겠습니다. 이 도에서 아직 서 있는 가장 오래된 목조 주택으로, 1798년에 지어졌습니다. 박물관은 수요일부터 일요일까지 열고, 월요일과 화요일은 닫습니다. 입장료는 누구에게나 무료이며, 문에서 표를 받지 않습니다. 사진은 정원에서는 찍을 수 있지만 집 안에서는 안 됩니다. 영어 안내는 하루 두 번, 11시와 3시에 있습니다. 위층은 좁은 계단으로만 올라갈 수 있어서 휠체어로는 갈 수 없습니다.",
       ].join("\n"),
@@ -381,17 +381,17 @@ export const spec: SetSpec = {
         ["M", "Send me the booking number when it comes."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 5,
+      answer: 3,
       clue: "A booth. I can't focus with people walking behind me.",
       explanation:
-        "부스형이고, 자리에 콘센트가 있으며, 시간당 5천 원 이하인 자리를 고른다. 세 조건을 모두 채우는 것은 ⑤이다.",
+        "부스형이고, 자리에 콘센트가 있으며, 시간당 5천 원 이하인 자리를 고른다. 세 조건을 모두 채우는 것은 ③이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Type: Open desk / Outlet: Yes / Price: 3,000 won per hour" },
           { no: 2, label: "②", value: "Type: Booth / Outlet: No / Price: 3,500 won per hour" },
-          { no: 3, label: "③", value: "Type: Booth / Outlet: Yes / Price: 7,000 won per hour" },
-          { no: 4, label: "④", value: "Type: Open desk / Outlet: No / Price: 2,500 won per hour" },
-          { no: 5, label: "⑤", value: "Type: Booth / Outlet: Yes / Price: 4,500 won per hour" },
+          { no: 3, label: "③", value: "Type: Booth / Outlet: Yes / Price: 4,500 won per hour" },
+          { no: 4, label: "④", value: "Type: Booth / Outlet: Yes / Price: 7,000 won per hour" },
+          { no: 5, label: "⑤", value: "Type: Open desk / Outlet: No / Price: 2,500 won per hour" },
         ],
       },
       translation: [
@@ -421,16 +421,16 @@ export const spec: SetSpec = {
         ["W", "It does, from ten to five, through the side entrance."],
       ],
       choices: [
-        "The annex closed last year.",
         "I'll use the side entrance, then.",
+        "The annex closed last year.",
         "I don't need to study at all.",
         "The main building never closes.",
         "I'll go there at eight in the morning.",
       ],
-      answer: 2,
+      answer: 1,
       clue: "It does, from ten to five, through the side entrance.",
       explanation:
-        "여자가 별관은 옆문으로 10시부터 5시까지 연다고 했으므로, 옆문으로 가겠다는 ②가 가장 자연스럽다.",
+        "여자가 별관은 옆문으로 10시부터 5시까지 연다고 했으므로, 옆문으로 가겠다는 ①이 가장 자연스럽다.",
       translation: [
         "M: 채연아, 공휴일에 도서관 열어?",
         "W: 본관은 닫는데 별관은 열어.",
@@ -453,14 +453,14 @@ export const spec: SetSpec = {
       choices: [
         "My interview is on Saturday.",
         "The train takes five hours.",
-        "I'll change my ticket to six.",
         "I'll drive there instead.",
+        "I'll change my ticket to six.",
         "Fifty minutes is more than enough.",
       ],
-      answer: 3,
+      answer: 4,
       clue: "That leaves you fifty minutes to cross the city. Book the six o'clock.",
       explanation:
-        "남자가 6시 기차를 예약하라고 했으므로, 표를 6시로 바꾸겠다는 ③이 가장 자연스럽다.",
+        "남자가 6시 기차를 예약하라고 했으므로, 표를 6시로 바꾸겠다는 ④가 가장 자연스럽다.",
       translation: [
         "W: 도현아, 내 면접이 금요일 10시에 서울에서 있어.",
         "M: 여기서 기차로 얼마나 걸려?",
@@ -488,16 +488,16 @@ export const spec: SetSpec = {
         ["M", "Take this year's messy data and write exactly what it did instead."],
       ],
       choices: [
-        "I'll write up the results as they came out.",
         "I'll change my hypothesis to fit the data.",
+        "I'll write up the results as they came out.",
         "I'll drop out again this year.",
         "My data always matches perfectly.",
         "I'll ask the judges to change the rules.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Take this year's messy data and write exactly what it did instead.",
       explanation:
-        "남자가 올해의 어지러운 자료를 있는 그대로 써 내라고 했으므로, 나온 대로 결과를 정리해 쓰겠다는 ①이 가장 자연스럽다.",
+        "남자가 올해의 어지러운 자료를 있는 그대로 써 내라고 했으므로, 나온 대로 결과를 정리해 쓰겠다는 ②가 가장 자연스럽다.",
       translation: [
         "M: 채연아, 너 과학 전시회를 3년 연속 중간에 그만뒀네.",
         "W: 늘 시작은 하는데 중간 어디쯤에서 멈춰.",
@@ -533,15 +533,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "I'll present the whole thing alone.",
-        "I'll hand out a slide to each of them.",
         "There are no slides in this project.",
         "They already know the material.",
         "I'll ask for a different group.",
+        "I'll hand out a slide to each of them.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "Give each of them one slide tonight and walk them through it.",
       explanation:
-        "여자가 오늘 밤 한 사람에게 한 장씩 맡기고 설명해 주라고 했으므로, 각자에게 한 장씩 나눠 주겠다는 ②가 가장 자연스럽다.",
+        "여자가 오늘 밤 한 사람에게 한 장씩 맡기고 설명해 주라고 했으므로, 각자에게 한 장씩 나눠 주겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "W: 도현아, 모둠 과제를 또 혼자 떠맡고 있네.",
         "M: 다 설명하는 것보다 그게 빨라.",
@@ -581,14 +581,14 @@ export const spec: SetSpec = {
       choices: [
         "You should work a little more slowly today.",
         "Let's move the adult fiction section upstairs.",
-        "We should stop shelving returned books.",
         "Let's shelve those picture books in the children's corner.",
+        "We should stop shelving returned books.",
         "Let's ask the parents to look downstairs.",
       ],
-      answer: 4,
+      answer: 3,
       clue: "She wants to tell him to shelve the picture books in the children's corner instead.",
       explanation:
-        "예은이는 그림책을 어린이 자리에 꽂자고 말하려 하므로 ④가 가장 적절하다.",
+        "예은이는 그림책을 어린이 자리에 꽂자고 말하려 하므로 ③이 가장 적절하다.",
       translation: [
         "M: 예은이와 서한이는 토요일 아침마다 동네 작은 도서관에서 함께 봉사합니다. 주된 일은 한 주 동안 반납된 책을 서가에 꽂는 것입니다. 서한이는 손이 빨라서 이번 달에 누구보다 많은 책을 꽂았습니다. 오늘 아침 예은이는 서한이가 반납된 그림책을 성인 소설 서가의 맨 아래 칸에 꽂고 있는 것을 봅니다. 그 칸이 마침 비어 있기 때문입니다. 도서관을 쓰는 아이들은 거기서 그림책을 찾을 수 없고, 지난주에는 학부모 두 분이 사서에게 그림책이 어디로 갔느냐고 물었습니다. 예은이는 서한이가 일 자체를 대충 하는 것이 아니라 책이 어디에 놓이는지에만 무심하다는 것을 알고, 어린이 자리도 맨 위 칸을 쓰면 자리가 난다는 것을 압니다. 예은이는 그림책을 어린이 자리에 꽂자고 말하고 싶습니다. 이런 상황에서 예은이가 서한이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -645,13 +645,13 @@ export const spec: SetSpec = {
         "watching the same short film of a collision",
         "being asked how fast the cars were going",
         "having one word in the question replaced",
-        "being asked a week later about broken glass",
         "being shown the film a second time",
+        "being asked a week later about broken glass",
       ],
-      answer: 5,
+      answer: 4,
       clue: "A week later the same people were asked whether they had seen broken glass.",
       explanation:
-        "같은 영상 보기, 속도 질문받기, 질문의 단어 하나가 바뀌기, 일주일 뒤 깨진 유리에 대해 질문받기는 언급되지만 영상을 두 번째로 보여 준 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "같은 영상 보기, 속도 질문받기, 질문의 단어 하나가 바뀌기, 일주일 뒤 깨진 유리에 대해 질문받기는 언급되지만 영상을 두 번째로 보여 준 것은 언급되지 않았다. 따라서 답은 ④이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

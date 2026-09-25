@@ -26,16 +26,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "자전거 보관대의 방치 자전거를 정리한다고 알리려고",
         "자전거 등록 방법을 안내하려고",
         "후문 출입을 통제한다고 알리려고",
         "자전거 도난 사고를 알리려고",
         "보관대 공사를 안내하려고",
+        "자전거 보관대의 방치 자전거를 정리한다고 알리려고",
       ],
-      answer: 1,
+      answer: 5,
       clue: "So this Friday we will tie a yellow tag to every bike in the shed.",
       explanation:
-        "남자는 자리가 없다며 금요일에 모든 자전거에 표를 달고, 다음 달 말까지 남아 있는 것은 창고로 옮긴다고 알린다. 따라서 답은 ①이다.",
+        "남자는 자리가 없다며 금요일에 모든 자전거에 표를 달고, 다음 달 말까지 남아 있는 것은 창고로 옮긴다고 알린다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 여러분, 안녕하세요. 학교 행정실 위입니다. 후문 옆 자전거 보관대 이야기를 하려고 합니다. 예순 대가 들어가는데, 지금 그중 마흔 대가 4월부터 움직이지 않았습니다. 일부는 이미 떠난 학생 것이고, 일부는 그냥 잊힌 것입니다. 요즘 자전거를 타고 오는 학생들은 세워 둘 자리가 없습니다. 그래서 이번 주 금요일에 보관대의 모든 자전거에 노란 표를 답니다. 본인 자전거이고 쓰고 있다면 그 표를 떼어 주세요. 다음 달 말까지 표가 그대로 붙어 있는 것은 창고로 옮깁니다. 버리지는 않습니다. 금요일에 확인해 주세요. 감사합니다.",
       ].join("\n"),
@@ -61,14 +61,14 @@ export const spec: SetSpec = {
       choices: [
         "공부는 아침에 해야 한다",
         "낮잠을 자야 한다",
-        "공부 시간을 정해 두어야 한다",
         "잠을 줄여 공부 시간을 늘리면 오히려 남는 것이 적다",
+        "공부 시간을 정해 두어야 한다",
         "복습은 그날 안에 해야 한다",
       ],
-      answer: 4,
+      answer: 3,
       clue: "Three hours of tired reading isn't three hours of anything.",
       explanation:
-        "여자는 잠자는 동안 그날 공부가 정리된다며, 피곤한 세 시간은 세 시간이 아니라고 말한다. 따라서 답은 ④이다.",
+        "여자는 잠자는 동안 그날 공부가 정리된다며, 피곤한 세 시간은 세 시간이 아니라고 말한다. 따라서 답은 ③이다.",
       translation: [
         "M: 채린아, 나 공부 시간을 늘리려고 네 시간만 자.",
         "W: 네 시간? 얼마나 그러고 있어?",
@@ -105,16 +105,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "실력이 느는 것이 안 보이는 구간을 견뎌야 한다",
         "재능이 있어야 실력이 는다",
         "연습은 매일 해야 한다",
         "목표를 낮게 잡아야 한다",
         "여러 가지를 함께 배워야 한다",
-        "실력이 느는 것이 안 보이는 구간을 견뎌야 한다",
       ],
-      answer: 5,
+      answer: 1,
       clue: "They are the ones who keep going while nothing seems to be happening.",
       explanation:
-        "여자는 평평한 구간이 능력에 대한 신호가 아니라 향상의 모습이라며, 그때 계속하는 사람이 잘하게 된다고 말한다. 따라서 답은 ⑤이다.",
+        "여자는 평평한 구간이 능력에 대한 신호가 아니라 향상의 모습이라며, 그때 계속하는 사람이 잘하게 된다고 말한다. 따라서 답은 ①이다.",
       translation: [
         "W: 모든 기술에는 늘고 있는 것이 눈에 보이지 않게 되는 단계가 있고, 거의 모두가 거기서 그만둡니다. 처음에는 한 주가 지난주와 달라 보입니다. 나중에는 석 달을 해도 이름 붙이기 어려운 변화만 남습니다. 실제로는 있는 변화인데도요. 실수는 그 평평한 구간을 능력에 대한 전갈로 읽는 것입니다. 그렇지 않습니다. 쉬운 몫을 이미 거둬들인 뒤의 향상은 그렇게 생겼습니다. 잘하게 되는 사람은 정체를 겪지 않는 사람이 아닙니다. 아무 일도 일어나지 않는 것처럼 보이는 동안에도 계속하는 사람입니다. 이 구간이 온다는 것을 미리 들었기 때문입니다.",
       ].join("\n"),
@@ -187,15 +187,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "게시판 설치하기",
-        "심사표 인쇄하기",
         "연장선 받아 오기",
+        "심사표 인쇄하기",
         "심사위원에게 설명하기",
         "체육관 청소하기",
       ],
-      answer: 3,
+      answer: 2,
       clue: "Then I'll get the extension lead from the storeroom.",
       explanation:
-        "게시판과 심사표는 끝났고 여자는 심사위원에게 설명해야 하므로, 남자가 창고에서 연장선을 받아 오기로 한다. 따라서 답은 ③이다.",
+        "게시판과 심사표는 끝났고 여자는 심사위원에게 설명해야 하므로, 남자가 창고에서 연장선을 받아 오기로 한다. 따라서 답은 ②이다.",
       translation: [
         "W: 상민아, 과학 전시회가 11시에 체육관에서 열려.",
         "M: 알아. 게시판은 세웠어?",
@@ -229,11 +229,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take twenty percent off the workbooks, but not the dictionaries."],
         ["W", "Thank you. I'll pay by card."],
       ],
-      choices: ["$120.00", "$132.00", "$138.00", "$150.00", "$168.00"],
-      answer: 2,
+      choices: ["$120.00", "$138.00", "$150.00", "$168.00", "$132.00"],
+      answer: 5,
       clue: "Then I can take twenty percent off the workbooks, but not the dictionaries.",
       explanation:
-        "문제집 6권 90달러에서 20퍼센트를 빼면 72달러이고, 할인이 안 되는 사전 3권 60달러를 더하면 132달러이다. 따라서 답은 ②이다.",
+        "문제집 6권 90달러에서 20퍼센트를 빼면 72달러이고, 할인이 안 되는 사전 3권 60달러를 더하면 132달러이다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 브라이트사이드 서점입니다. 무엇을 드릴까요?",
         "W: 문제집 여섯 권이랑 사전 세 권 주세요.",
@@ -307,11 +307,11 @@ export const spec: SetSpec = {
         ["M", "Fifty thousand won, with all meals included."],
         ["W", "Then let's apply this week."],
       ],
-      choices: ["운영 기간", "장소", "활동 내용", "준비물", "정원"],
-      answer: 5,
+      choices: ["정원", "운영 기간", "장소", "활동 내용", "준비물"],
+      answer: 1,
       clue: "정원은 대화에서 언급되지 않았다.",
       explanation:
-        "기간(1월 9일부터 11일까지), 장소(저수지 위 청소년 수련관), 활동(오전 팀 게임과 오후 워크숍), 준비물(침낭과 실내화)은 언급되지만 정원은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "기간(1월 9일부터 11일까지), 장소(저수지 위 청소년 수련관), 활동(오전 팀 게임과 오후 워크숍), 준비물(침낭과 실내화)은 언급되지만 정원은 언급되지 않았다. 따라서 답은 ①이다.",
       translation: [
         "M: 채린아, 파인우드 겨울 캠프 봤어?",
         "W: 안내지 봤어. 언제야?",
@@ -377,16 +377,16 @@ export const spec: SetSpec = {
         ["W", "It should arrive by Wednesday."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 4,
+      answer: 2,
       clue: "At least eight hours. Our sessions run all afternoon.",
       explanation:
-        "배터리가 8시간 이상이고, 방수가 되며, 8만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ④이다.",
+        "배터리가 8시간 이상이고, 방수가 되며, 8만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ②이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Battery: 5 hours / Waterproof: Yes / Price: 45,000 won" },
-          { no: 2, label: "②", value: "Battery: 12 hours / Waterproof: No / Price: 55,000 won" },
-          { no: 3, label: "③", value: "Battery: 10 hours / Waterproof: Yes / Price: 120,000 won" },
-          { no: 4, label: "④", value: "Battery: 9 hours / Waterproof: Yes / Price: 72,000 won" },
+          { no: 2, label: "②", value: "Battery: 9 hours / Waterproof: Yes / Price: 72,000 won" },
+          { no: 3, label: "③", value: "Battery: 12 hours / Waterproof: No / Price: 55,000 won" },
+          { no: 4, label: "④", value: "Battery: 10 hours / Waterproof: Yes / Price: 120,000 won" },
           { no: 5, label: "⑤", value: "Battery: 6 hours / Waterproof: No / Price: 30,000 won" },
         ],
       },
@@ -418,15 +418,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The gym opens at eight.",
-        "I'll sign in at the side window.",
         "I don't go to the gym.",
         "The office is closed all day.",
         "I'll come after school instead.",
+        "I'll sign in at the side window.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "The side window is open from seven. Sign in there.",
       explanation:
-        "남자가 7시부터 열리는 옆 창구에서 등록하라고 했으므로, 거기서 하겠다는 ②가 가장 자연스럽다.",
+        "남자가 7시부터 열리는 옆 창구에서 등록하라고 했으므로, 거기서 하겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "W: 상민아, 내일 등교 전에 체육관 열어?",
         "M: 열어. 7시부터. 그런데 먼저 사무실에서 등록해야 해.",
@@ -448,15 +448,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "My attachment worked fine.",
-        "I'll upload it and send a link.",
         "I don't have a school email.",
+        "I'll upload it and send a link.",
         "The file is only two megabytes.",
         "I'll record the video again.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "Email caps at twenty. Upload it to the shared drive and send the link.",
       explanation:
-        "여자가 공유 드라이브에 올리고 링크를 보내라고 했으므로, 그렇게 하겠다는 ②가 가장 자연스럽다.",
+        "여자가 공유 드라이브에 올리고 링크를 보내라고 했으므로, 그렇게 하겠다는 ③이 가장 자연스럽다.",
       translation: [
         "M: 소라야, 학교 메일에 파일이 안 붙어.",
         "W: 붙이는 파일이 얼마나 커?",
@@ -528,16 +528,16 @@ export const spec: SetSpec = {
         ["M", "After that you know exactly which three lines are missing."],
       ],
       choices: [
-        "I'll cover it and say it tonight.",
         "I'll read it twice more.",
         "The page is already memorized.",
         "I never read my notes.",
+        "I'll cover it and say it tonight.",
         "I'd rather skip that page.",
       ],
-      answer: 1,
+      answer: 4,
       clue: "After that you know exactly which three lines are missing.",
       explanation:
-        "남자가 쪽을 덮고 소리 내어 말해 보라고 했으므로, 오늘 밤 덮고 말해 보겠다는 ①이 가장 자연스럽다.",
+        "남자가 쪽을 덮고 소리 내어 말해 보라고 했으므로, 오늘 밤 덮고 말해 보겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 채린아, 일주일 내내 같은 필기 한 쪽을 읽고 있네.",
         "W: 완전히 외우고 싶어서.",
@@ -577,15 +577,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "We should throw away the oldest items.",
-        "Let's hold the lost property day next week.",
         "Let's regroup everything by kind instead of month.",
+        "Let's hold the lost property day next week.",
         "We should add two more tables.",
         "Let's ask students which month they lost things.",
       ],
-      answer: 3,
+      answer: 2,
       clue: "She wants to tell him to regroup the items by kind instead of by month.",
       explanation:
-        "서연이는 물건을 달별이 아니라 종류별로 다시 묶자고 말하려 하므로 ③이 가장 적절하다.",
+        "서연이는 물건을 달별이 아니라 종류별로 다시 묶자고 말하려 하므로 ②가 가장 적절하다.",
       translation: [
         "W: 서연이와 준혁이는 금요일에 여는 학교 분실물의 날을 맡고 있습니다. 준혁이는 물건 사백 개를 중앙 현관 탁자에 늘어놓고 들어온 달별로 묶었는데, 오후 이틀이 걸렸고 정리도 깔끔합니다. 수요일에 서연이는 학생 몇 명이 물건을 찾는 것을 보다가, 자기가 몇 월에 잃어버렸는지 아는 사람이 아무도 없어서 저마다 탁자를 처음부터 끝까지 훑고 있다는 것을 알게 됩니다. 대신 종류별로, 물병 탁자 하나, 옷 탁자 하나, 열쇠 탁자 하나로 묶으면 한 시간쯤이면 되고 탁자는 이미 놓여 있습니다. 서연이는 준혁이의 정리가 헛되었다고 여기게 하고 싶지 않습니다. 서연이는 물건을 달별이 아니라 종류별로 다시 묶자고 말하고 싶습니다. 이런 상황에서 서연이가 준혁이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -611,16 +611,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "why boiling water stays at the same temperature",
         "how steam is used to drive a turbine",
         "why metal pots heat faster than glass ones",
         "how thermometers are made accurate",
         "why food tastes better when boiled slowly",
+        "why boiling water stays at the same temperature",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Once water reaches a hundred degrees, extra energy does not raise the temperature.",
       explanation:
-        "여자는 끓는 물에 들어간 여분의 에너지가 온도를 올리지 않고 증기로 바꾸는 데 쓰인다고 설명한다. 따라서 답은 ①이다.",
+        "여자는 끓는 물에 들어간 여분의 에너지가 온도를 올리지 않고 증기로 바꾸는 데 쓰인다고 설명한다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 안녕하세요, 여러분. 오늘은 냄비의 물이 불을 아무리 세게 올려도 왜 같은 온도에 머무는지 이야기하려 합니다. 물이 100도에 닿고 나면, 더 들어가는 에너지는 온도를 올리지 않습니다. 액체를 붙들고 있는 결합을 끊는 데 쓰여 물을 증기로 바꿉니다. 온도계는 가만히 있고 냄비만 더 빨리 비어 갑니다. 그래서 펄펄 끓여도 잔잔히 끓일 때보다 음식이 빨리 익지 않고, 센 불이 사 주는 것은 증기로 가득한 부엌뿐입니다. 이것은 밀폐된 압력솥이 왜 다른지도 설명해 줍니다. 증기를 가두면 압력이 올라가고, 높은 압력에서는 물이 끓기 전에 100도를 넘어설 수 있습니다.",
       ].join("\n"),
@@ -640,14 +640,14 @@ export const spec: SetSpec = {
       choices: [
         "extra energy not raising the temperature",
         "energy breaking the bonds in the liquid",
+        "salt raising the boiling point of water",
         "food not cooking faster on a furious boil",
         "a pressure cooker trapping the steam",
-        "salt raising the boiling point of water",
       ],
-      answer: 5,
+      answer: 3,
       clue: "Once water reaches a hundred degrees, extra energy does not raise the temperature.",
       explanation:
-        "여분의 에너지가 온도를 올리지 않는다는 것, 그 에너지가 결합을 끊는다는 것, 센 불에서도 음식이 빨리 익지 않는다는 것, 압력솥이 증기를 가둔다는 것은 언급되지만 소금이 끓는점을 올린다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "여분의 에너지가 온도를 올리지 않는다는 것, 그 에너지가 결합을 끊는다는 것, 센 불에서도 음식이 빨리 익지 않는다는 것, 압력솥이 증기를 가둔다는 것은 언급되지만 소금이 끓는점을 올린다는 것은 언급되지 않았다. 따라서 답은 ③이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

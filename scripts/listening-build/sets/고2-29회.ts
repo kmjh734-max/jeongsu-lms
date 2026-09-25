@@ -27,16 +27,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "사진과 함께 인물 이름을 보내 달라고 부탁하려고",
         "사진 공모전을 알리려고",
         "신문 발행일 변경을 알리려고",
+        "사진과 함께 인물 이름을 보내 달라고 부탁하려고",
         "사진 촬영 방법을 안내하려고",
         "기자단 모집을 알리려고",
       ],
-      answer: 1,
+      answer: 3,
       clue: "So from this issue, please send the names of the people in the picture in the same message as the file.",
       explanation:
-        "여자는 이름을 알 수 없어 사진을 못 싣는다며 파일과 같은 메시지에 인물 이름을 보내 달라고 부탁한다. 따라서 답은 ①이다.",
+        "여자는 이름을 알 수 없어 사진을 못 싣는다며 파일과 같은 메시지에 인물 이름을 보내 달라고 부탁한다. 따라서 답은 ③이다.",
       translation: [
         "W: 여러분, 안녕하세요. 학교 신문부 류입니다. 여러분이 보내 주시는 사진 이야기를 하려고 합니다. 호마다 동아리 행사 사진을 예순 장쯤 받는데, 저희는 설명을 붙일 수 있는 사진만 실을 수 있습니다. 지난달에는 좋은 사진 아홉 장을 빼야 했습니다. 거기 누가 있는지 아무도 알려 주지 못했기 때문입니다. 그러니 이번 호부터는 파일과 같은 메시지에 사진 속 사람들의 이름을 적어 보내 주세요. 긴 설명은 필요 없습니다. 왼쪽부터 오른쪽으로 적어 주시면 됩니다. 아무도 이름을 댈 수 없는 사진은 저희가 쓸 수 없는 사진입니다. 감사합니다.",
       ].join("\n"),
@@ -60,16 +60,16 @@ export const spec: SetSpec = {
         ["M", "Study with one person, and take turns being the one who explains."],
       ],
       choices: [
+        "스터디는 작게 해야 스스로 생각하게 된다",
         "스터디는 사람이 많을수록 좋다",
         "모르는 것은 바로 물어야 한다",
         "공부는 혼자 해야 한다",
-        "스터디는 작게 해야 스스로 생각하게 된다",
         "설명은 잘하는 사람이 맡아야 한다",
       ],
-      answer: 4,
+      answer: 1,
       clue: "Study with one person, and take turns being the one who explains.",
       explanation:
-        "남자는 일곱 명이면 어려운 부분이 늘 남에게 간다며, 둘이서 설명을 번갈아 맡으라고 말한다. 따라서 답은 ④이다.",
+        "남자는 일곱 명이면 어려운 부분이 늘 남에게 간다며, 둘이서 설명을 번갈아 맡으라고 말한다. 따라서 답은 ①이다.",
       translation: [
         "W: 태양아, 나 저녁마다 일곱 명이서 같이 공부해.",
         "M: 일곱 명? 그 크기에서 질문이 어떻게 답해져?",
@@ -109,13 +109,13 @@ export const spec: SetSpec = {
         "전문 용어를 많이 알아야 한다",
         "의학과 심리학은 다르게 접근해야 한다",
         "질문을 많이 해야 한다",
-        "모르는 것은 인정해야 한다",
         "설명처럼 들리는 용어를 풀어서 확인해야 한다",
+        "모르는 것은 인정해야 한다",
       ],
-      answer: 5,
+      answer: 4,
       clue: "try replacing it with its plain meaning and see whether the sentence still stands",
       explanation:
-        "여자는 이름이 답처럼 느껴져 질문이 멈춘다며, 용어를 쉬운 말로 바꿔 문장이 남는지 보라고 말한다. 따라서 답은 ⑤이다.",
+        "여자는 이름이 답처럼 느껴져 질문이 멈춘다며, 용어를 쉬운 말로 바꿔 문장이 남는지 보라고 말한다. 따라서 답은 ④이다.",
       translation: [
         "W: 모든 분야에는 설명처럼 들리지만 설명이 아닌 말들이 있습니다. 의학에서 어떤 통증이 '특발성'이라고 말하는 것은 원인을 모른다는 뜻입니다. 심리학에서 누군가에게 '동기가 없다'고 말하는 것은 그 사람을 움직일 무언가를 아직 찾지 못했다는 뜻인 경우가 많습니다. 이런 용어는 자기 한계를 이미 아는 사람들 사이에서는 쓸모 있는 줄임말입니다. 위험한 것은 그 말이 다른 사람과의 대화에 하는 일입니다. 그 단어가 도착하면 전문적으로 들리고, 모두가 묻기를 멈춥니다. 이름이 답처럼 느껴지기 때문입니다. 그러니 어떤 용어가 논의를 닫는 데 쓰이는 것을 들으면, 그것을 쉬운 말로 바꿔 넣고 그 문장이 그대로 서 있는지 보세요. 남는 것은 대개 아무도 풀지 못한 질문에 대한 정직한 묘사입니다.",
       ].join("\n"),
@@ -189,14 +189,14 @@ export const spec: SetSpec = {
       choices: [
         "무대 표시하기",
         "표 세기",
-        "피아노 옮기기",
         "출연자 맞이하기",
         "강당 청소하기",
+        "피아노 옮기기",
       ],
-      answer: 3,
+      answer: 5,
       clue: "Then I'll get the key and move the piano.",
       explanation:
-        "무대와 표는 끝났고 여자는 출연자를 맞아야 하므로, 남자가 열쇠를 받아 피아노를 옮기기로 한다. 따라서 답은 ③이다.",
+        "무대와 표는 끝났고 여자는 출연자를 맞아야 하므로, 남자가 열쇠를 받아 피아노를 옮기기로 한다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 태양아, 자선 음악회가 7시에 강당에서 시작해.",
         "M: 알아. 무대는 세 팀에 맞게 잡았어?",
@@ -230,11 +230,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take twenty-five percent off the teas, but not the cake."],
         ["W", "Thank you. I'll pay by card."],
       ],
-      choices: ["$36.00", "$42.00", "$48.00", "$54.00", "$62.00"],
-      answer: 2,
+      choices: ["$36.00", "$48.00", "$42.00", "$54.00", "$62.00"],
+      answer: 3,
       clue: "Then I can take twenty-five percent off the teas, but not the cake.",
       explanation:
-        "차 6잔 24달러에서 25퍼센트를 빼면 18달러이고, 할인이 안 되는 케이크 4조각 24달러를 더하면 42달러이다. 따라서 답은 ②이다.",
+        "차 6잔 24달러에서 25퍼센트를 빼면 18달러이고, 할인이 안 되는 케이크 4조각 24달러를 더하면 42달러이다. 따라서 답은 ③이다.",
       translation: [
         "M: 페어몬트 북카페입니다. 무엇을 드릴까요?",
         "W: 케이크 네 조각이랑 차 여섯 잔 주세요.",
@@ -267,16 +267,16 @@ export const spec: SetSpec = {
         ["M", "We drive down in the morning and come back late. I can't split it."],
       ],
       choices: [
+        "집안 행사가 있어서",
         "손목을 다쳐서",
         "연습이 너무 많아서",
-        "집안 행사가 있어서",
         "다른 밴드로 옮겨서",
         "악기가 고장 나서",
       ],
-      answer: 3,
+      answer: 1,
       clue: "The concert is on the day of my grandfather's memorial.",
       explanation:
-        "손목도 나았고 연습도 감당할 수 있지만, 공연 날이 할아버지 제사와 겹쳐 하루를 다 써야 하기 때문이다. 따라서 답은 ③이다.",
+        "손목도 나았고 연습도 감당할 수 있지만, 공연 날이 할아버지 제사와 겹쳐 하루를 다 써야 하기 때문이다. 따라서 답은 ①이다.",
       translation: [
         "W: 태양아, 이번 밴드 순서에 네가 없네.",
         "M: 지난주에 이번엔 빠지겠다고 했어.",
@@ -308,11 +308,11 @@ export const spec: SetSpec = {
         ["W", "Every stall takes cards now. They changed that last year."],
         ["M", "Then let's go on Friday."],
       ],
-      choices: ["여는 날", "여는 장소", "파는 물건", "앉을 자리", "주차 안내"],
-      answer: 5,
+      choices: ["여는 날", "여는 장소", "파는 물건", "주차 안내", "앉을 자리"],
+      answer: 4,
       clue: "주차 안내는 대화에서 언급되지 않았다.",
       explanation:
-        "여는 날(금·토 저녁), 장소(옛 철교 아래 산책로), 파는 물건(음식과 수공예품), 앉을 자리(긴 탁자 스무 개쯤)는 언급되지만 주차 안내는 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "여는 날(금·토 저녁), 장소(옛 철교 아래 산책로), 파는 물건(음식과 수공예품), 앉을 자리(긴 탁자 스무 개쯤)는 언급되지만 주차 안내는 언급되지 않았다. 따라서 답은 ④이다.",
       translation: [
         "W: 태양아, 리버사이드 야시장 가 봤어?",
         "M: 아직. 언제 열어?",
@@ -346,15 +346,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "1998년에 만들어졌다",
+        "공연복을 무료로 준다",
         "월요일 저녁에 연습한다",
         "오디션은 2월과 8월에 있다",
-        "공연복을 무료로 준다",
         "월 회비가 없다",
       ],
-      answer: 4,
+      answer: 2,
       clue: "Sheet music is provided, but members buy their own concert uniform.",
       explanation:
-        "악보는 제공하지만 공연복은 단원이 직접 산다고 했으므로 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "악보는 제공하지만 공연복은 단원이 직접 산다고 했으므로 ②는 내용과 다르다. 따라서 답은 ②이다.",
       translation: [
         "M: 스톤브룩 청소년 합창단을 소개해 드리겠습니다. 1998년에 만들어졌고 열두 살부터 열여덟 살까지 쉰 명쯤이 활동합니다. 연습은 월요일 저녁에 밀가의 교회 강당에서 합니다. 새 단원은 짧은 오디션으로 뽑는데 2월과 8월에 있습니다. 악보는 제공하지만 공연복은 단원이 직접 삽니다. 합창단은 해마다 네 번 공연하고 그중 두 번은 야외에서 합니다. 지역 회사가 강당 대여료를 내 주기 때문에 월 회비는 없습니다.",
       ].join("\n"),
@@ -378,17 +378,17 @@ export const spec: SetSpec = {
         ["M", "Good idea. I'll put that in the message."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 4,
+      answer: 5,
       clue: "At least a hundred and fifty. We sold that many last year.",
       explanation:
-        "좌석이 150석 이상이고, 음향 장비가 있으며, 30만 원 이하인 곳을 고른다. 세 조건을 모두 채우는 것은 ④이다.",
+        "좌석이 150석 이상이고, 음향 장비가 있으며, 30만 원 이하인 곳을 고른다. 세 조건을 모두 채우는 것은 ⑤이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Seats: 80 / Sound system: Yes / Rate: 150,000 won" },
           { no: 2, label: "②", value: "Seats: 200 / Sound system: No / Rate: 180,000 won" },
           { no: 3, label: "③", value: "Seats: 160 / Sound system: Yes / Rate: 420,000 won" },
-          { no: 4, label: "④", value: "Seats: 180 / Sound system: Yes / Rate: 270,000 won" },
-          { no: 5, label: "⑤", value: "Seats: 120 / Sound system: No / Rate: 90,000 won" },
+          { no: 4, label: "④", value: "Seats: 120 / Sound system: No / Rate: 90,000 won" },
+          { no: 5, label: "⑤", value: "Seats: 180 / Sound system: Yes / Rate: 270,000 won" },
         ],
       },
       translation: [
@@ -419,15 +419,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The art room is closed on Saturdays.",
-        "I'll sign it out before five.",
         "I don't need the art room.",
+        "I'll sign it out before five.",
         "There is no rule about keys.",
         "I'll go on Sunday instead.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "It started this term. Sign it out at the office before five today.",
       explanation:
-        "여자가 오늘 5시 전에 사무실에서 열쇠를 받아 두라고 했으므로, 그렇게 하겠다는 ②가 가장 자연스럽다.",
+        "여자가 오늘 5시 전에 사무실에서 열쇠를 받아 두라고 했으므로, 그렇게 하겠다는 ③이 가장 자연스럽다.",
       translation: [
         "M: 예림아, 토요일 아침에 미술실 열어?",
         "W: 열어. 그런데 금요일에 열쇠를 받아 둬야 해.",
@@ -448,16 +448,16 @@ export const spec: SetSpec = {
         ["M", "Export it as a PDF and bring that as well, just in case."],
       ],
       choices: [
-        "My file opens perfectly.",
         "I'll bring a PDF too.",
+        "My file opens perfectly.",
         "I don't have a presentation.",
         "The school computers are new.",
         "I'll present without slides.",
       ],
-      answer: 2,
+      answer: 1,
       clue: "Export it as a PDF and bring that as well, just in case.",
       explanation:
-        "남자가 PDF로도 뽑아 가져오라고 했으므로, PDF도 가져오겠다는 ②가 가장 자연스럽다.",
+        "남자가 PDF로도 뽑아 가져오라고 했으므로, PDF도 가져오겠다는 ①이 가장 자연스럽다.",
       translation: [
         "W: 태양아, 내 발표 파일이 학교 컴퓨터에서 안 열려.",
         "M: 집에서 뭘로 만들었는데?",
@@ -485,16 +485,16 @@ export const spec: SetSpec = {
         ["W", "Ask the plain question with a date in it, and no apology."],
       ],
       choices: [
-        "I'll ask with a date and no apology.",
         "I'll apologize a bit less often.",
         "Nobody ever answers me.",
         "I never ask about deadlines.",
+        "I'll ask with a date and no apology.",
         "I'd rather someone else asked.",
       ],
-      answer: 1,
+      answer: 4,
       clue: "Ask the plain question with a date in it, and no apology.",
       explanation:
-        "여자가 사과 없이 날짜를 넣어 그대로 물으라고 했으므로, 그렇게 하겠다는 ①이 가장 자연스럽다.",
+        "여자가 사과 없이 날짜를 넣어 그대로 물으라고 했으므로, 그렇게 하겠다는 ④가 가장 자연스럽다.",
       translation: [
         "W: 태양아, 너 모둠 메시지마다 사과를 하더라.",
         "M: 내가 요구가 많다고 여겨지는 게 싫어서.",
@@ -529,16 +529,16 @@ export const spec: SetSpec = {
         ["M", "Look at tomorrow's timetable and take only those two."],
       ],
       choices: [
-        "I'll check the timetable before I leave.",
         "I'll keep taking all of them.",
+        "I'll check the timetable before I leave.",
         "My bag weighs almost nothing.",
         "I open every book at home.",
         "I'll buy a second set of books.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Look at tomorrow's timetable and take only those two.",
       explanation:
-        "남자가 내일 시간표를 보고 두 권만 챙기라고 했으므로, 나가기 전에 시간표를 보겠다는 ①이 가장 자연스럽다.",
+        "남자가 내일 시간표를 보고 두 권만 챙기라고 했으므로, 나가기 전에 시간표를 보겠다는 ②가 가장 자연스럽다.",
       translation: [
         "M: 예림아, 너 매일 밤 교과서를 전부 집에 들고 가더라.",
         "W: 어떤 게 필요할지 모르니까.",
@@ -579,14 +579,14 @@ export const spec: SetSpec = {
       choices: [
         "We should make the description even longer.",
         "Let's take the poster down completely.",
-        "Let's put the meeting day on a big second poster.",
         "We should move the booth to another hall.",
         "Let's read the poster aloud to visitors.",
+        "Let's put the meeting day on a big second poster.",
       ],
-      answer: 3,
+      answer: 5,
       clue: "She wants to tell him to put the meeting day and room on a big second poster.",
       explanation:
-        "서린이는 모임 요일과 장소를 큰 글씨의 두 번째 포스터에 적자고 말하려 하므로 ③이 가장 적절하다.",
+        "서린이는 모임 요일과 장소를 큰 글씨의 두 번째 포스터에 적자고 말하려 하므로 ⑤가 가장 적절하다.",
       translation: [
         "M: 서린이와 민호는 학교 축제에 낼 동아리 안내 부스를 준비하고 있습니다. 민호는 동아리가 하는 일을 전부 길게 써서 큰 포스터 한 장에 인쇄했는데, 글은 잘 읽히고 배치도 깔끔합니다. 목요일에 서린이는 방문객이 지나갈 자리에 서 보다가, 그 포스터를 읽는 데 2분쯤 걸린다는 것을 알게 됩니다. 그런데 부스 앞에 10초 넘게 서 있는 사람은 없습니다. 방문객에게 꼭 필요한 한 가지, 곧 모임 요일과 장소는 여덟째 줄에 있고 아무도 거기까지 가지 못합니다. 상자에는 빈 포스터 판 한 장과 매직펜이 있어서, 짧은 큰 글씨 포스터는 10분이면 만들 수 있습니다. 서린이는 모임 요일과 장소를 큰 글씨의 두 번째 포스터에 적자고 말하고 싶습니다. 이런 상황에서 서린이가 민호에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -613,16 +613,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "why hot roads appear to have puddles on them",
         "how tarmac is made to survive summer heat",
         "why deserts receive so little rainfall",
+        "why hot roads appear to have puddles on them",
         "how the eye judges the distance of objects",
         "why the sky looks blue in the afternoon",
       ],
-      answer: 1,
+      answer: 3,
       clue: "What looks like a puddle is a reflection of the sky that never touched the ground at all.",
       explanation:
-        "여자는 뜨거운 공기층이 빛을 휘게 해 하늘이 노면에 비쳐 보이는 것이라고 설명한다. 따라서 답은 ①이다.",
+        "여자는 뜨거운 공기층이 빛을 휘게 해 하늘이 노면에 비쳐 보이는 것이라고 설명한다. 따라서 답은 ③이다.",
       translation: [
         "W: 안녕하세요, 여러분. 오늘은 완전히 말라 있는 도로가 더운 날에 왜 젖어 보이는지 이야기하려 합니다. 뜨거운 아스팔트 바로 위의 공기는 1미터 위의 공기보다 훨씬 따뜻하고, 따뜻한 공기는 찬 공기와 다르게 빛을 휘게 합니다. 하늘에서 그 뜨거운 층으로 오던 빛은 땅에 닿기도 전에 위로 휘고, 위가 아니라 아래에서 여러분 눈에 도착합니다. 뇌는 빛이 곧게 온다고 가정하기 때문에 하늘 한 조각을 노면에 놓아 버립니다. 웅덩이처럼 보이는 것은 땅에 닿은 적도 없는 하늘의 반사입니다. 같은 휘어짐이 사막의 지평선에 없는 물이 보이는 이유도 설명해 줍니다.",
       ].join("\n"),
@@ -640,16 +640,16 @@ export const spec: SetSpec = {
         ["W", "The same bending explains why a desert horizon can show water that is not there."],
       ],
       choices: [
+        "rain cooling the road within minutes",
         "air above tarmac being warmer than air higher up",
         "light being bent upward before reaching the ground",
         "the brain assuming light travels straight",
         "a desert horizon showing water that is not there",
-        "rain cooling the road within minutes",
       ],
-      answer: 5,
+      answer: 1,
       clue: "Air just above hot tarmac is much warmer than the air a meter higher.",
       explanation:
-        "아스팔트 위 공기가 더 따뜻하다는 것, 빛이 땅에 닿기 전에 위로 휜다는 것, 뇌가 빛이 곧게 온다고 가정한다는 것, 사막 지평선에 없는 물이 보인다는 것은 언급되지만 비가 도로를 금방 식힌다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "아스팔트 위 공기가 더 따뜻하다는 것, 빛이 땅에 닿기 전에 위로 휜다는 것, 뇌가 빛이 곧게 온다고 가정한다는 것, 사막 지평선에 없는 물이 보인다는 것은 언급되지만 비가 도로를 금방 식힌다는 것은 언급되지 않았다. 따라서 답은 ①이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

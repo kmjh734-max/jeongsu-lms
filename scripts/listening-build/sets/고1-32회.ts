@@ -64,13 +64,13 @@ export const spec: SetSpec = {
         "발표 자료를 많이 만들어야 한다",
         "발표는 통째로 외워야 한다",
         "청중과 눈을 맞춰야 한다",
-        "발표 연습은 소리 내어 해 봐야 한다",
         "발표 시간을 줄여야 한다",
+        "발표 연습은 소리 내어 해 봐야 한다",
       ],
-      answer: 4,
+      answer: 5,
       clue: "Say the whole thing out loud once and you'll find them in a minute.",
       explanation:
-        "여자는 눈으로 읽는 것은 발표 연습이 아니라며, 소리 내어 말해 봐야 무너지는 문장을 찾을 수 있다고 말한다. 따라서 답은 ④이다.",
+        "여자는 눈으로 읽는 것은 발표 연습이 아니라며, 소리 내어 말해 봐야 무너지는 문장을 찾을 수 있다고 말한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 소라야, 나 발표문 아홉 번 읽었어.",
         "W: 읽었어, 말했어?",
@@ -193,13 +193,13 @@ export const spec: SetSpec = {
         "영사기 점검하기",
         "간식 사 오기",
         "의자 배치하기",
-        "안내문 붙이기",
         "암막 커튼 빌려 오기",
+        "안내문 붙이기",
       ],
-      answer: 5,
+      answer: 4,
       clue: "Then I'll go and borrow the blackout curtains.",
       explanation:
-        "영사기와 간식은 끝났고 여자는 의자를 놓아야 하므로, 남자가 사무실에서 암막 커튼을 빌려 오기로 한다. 따라서 답은 ⑤이다.",
+        "영사기와 간식은 끝났고 여자는 의자를 놓아야 하므로, 남자가 사무실에서 암막 커튼을 빌려 오기로 한다. 따라서 답은 ④이다.",
       translation: [
         "W: 상민아, 학급 영화의 밤이 내일 6시에 시작해.",
         "M: 알아. 영사기는 누가 확인했어?",
@@ -233,11 +233,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take thirty percent off the aprons this week, but not the easels."],
         ["W", "Thank you. I'll pay by card."],
       ],
-      choices: ["$70.00", "$80.00", "$85.00", "$95.00", "$100.00"],
-      answer: 3,
+      choices: ["$70.00", "$85.00", "$80.00", "$95.00", "$100.00"],
+      answer: 2,
       clue: "Then I can take thirty percent off the aprons this week, but not the easels.",
       explanation:
-        "앞치마 5장 50달러에서 30퍼센트를 빼면 35달러이고, 할인이 안 되는 이젤 2개 50달러를 더하면 85달러이다. 따라서 답은 ③이다.",
+        "앞치마 5장 50달러에서 30퍼센트를 빼면 35달러이고, 할인이 안 되는 이젤 2개 50달러를 더하면 85달러이다. 따라서 답은 ②이다.",
       translation: [
         "M: 힐사이드 화방입니다. 무엇을 찾으세요?",
         "W: 앞치마 다섯 장이랑 이젤 두 개 주세요.",
@@ -273,13 +273,13 @@ export const spec: SetSpec = {
         "회비가 부담되어서",
         "시험 기간이라서",
         "교통편이 없어서",
-        "동생을 돌봐야 해서",
         "다친 곳이 있어서",
+        "동생을 돌봐야 해서",
       ],
-      answer: 4,
+      answer: 5,
       clue: "He's seven. Someone has to be at home with him.",
       explanation:
-        "회비는 동아리가 내 주고 시험은 그다음 주라 괜찮지만, 그 주말에 부모님이 출장이어서 일곱 살 동생과 집에 있어야 하기 때문이다. 따라서 답은 ④이다.",
+        "회비는 동아리가 내 주고 시험은 그다음 주라 괜찮지만, 그 주말에 부모님이 출장이어서 일곱 살 동생과 집에 있어야 하기 때문이다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 소라야, 토론 동아리 답사 명단에 네 이름이 없네.",
         "W: 어제 뺐어.",
@@ -311,11 +311,11 @@ export const spec: SetSpec = {
         ["M", "I'll bring the form to school."],
         ["W", "Then we can hand them in together."],
       ],
-      choices: ["운영 기간", "장소", "참가비", "준비물", "강사"],
-      answer: 5,
+      choices: ["운영 기간", "장소", "강사", "참가비", "준비물"],
+      answer: 3,
       clue: "강사는 대화에서 언급되지 않았다.",
       explanation:
-        "기간(10월부터 여섯 주 토요일), 장소(여객선 터미널 옆 주민센터), 참가비(1만 2천 원), 준비물(카메라나 휴대전화와 공책)은 언급되지만 강사는 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "기간(10월부터 여섯 주 토요일), 장소(여객선 터미널 옆 주민센터), 참가비(1만 2천 원), 준비물(카메라나 휴대전화와 공책)은 언급되지만 강사는 언급되지 않았다. 따라서 답은 ③이다.",
       translation: [
         "M: 채린아, 하버 사진 강좌 공고 봤어?",
         "W: 게시판에서 봤어. 얼마 동안 해?",
@@ -348,16 +348,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "관람은 45분 동안 진행된다",
         "1998년에 문을 열었다",
         "월요일에는 문을 닫는다",
-        "관람은 45분 동안 진행된다",
         "흐린 날에는 실내에서 진행한다",
         "학생은 무료로 입장한다",
       ],
-      answer: 3,
+      answer: 1,
       clue: "Each guided tour lasts ninety minutes and begins at seven in the evening.",
       explanation:
-        "관람은 90분 동안 진행된다고 했으므로 45분이라는 ③은 내용과 다르다. 따라서 답은 ③이다.",
+        "관람은 90분 동안 진행된다고 했으므로 45분이라는 ①은 내용과 다르다. 따라서 답은 ①이다.",
       translation: [
         "M: 메이플힐 천문대를 안내해 드리겠습니다. 1998년에 문을 열었고 옛 저수지 위 능선에 있습니다. 화요일부터 일요일까지 열고 월요일마다 문을 닫습니다. 안내 관람은 한 번에 90분이며 저녁 7시에 시작합니다. 주망원경은 하늘이 맑을 때만 들여다봅니다. 흐린 밤에는 관람이 실내 돔 극장으로 옮겨집니다. 입장권은 정문에서 학생증을 보이면 무료입니다.",
       ].join("\n"),
@@ -421,16 +421,16 @@ export const spec: SetSpec = {
         ["M", "It is. Ask for the spare there."],
       ],
       choices: [
-        "I'll ask for the spare at the office.",
         "I already have the club room key.",
+        "I'll ask for the spare at the office.",
         "The office is closed all week.",
         "I'll wait until the key comes back.",
         "There is no spare key anywhere.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "It is. Ask for the spare there.",
       explanation:
-        "남자가 점심시간에 사무실에서 여벌 열쇠를 달라고 하라고 했으므로, 그렇게 하겠다는 ①이 가장 자연스럽다.",
+        "남자가 점심시간에 사무실에서 여벌 열쇠를 달라고 하라고 했으므로, 그렇게 하겠다는 ②가 가장 자연스럽다.",
       translation: [
         "W: 상민아, 동아리방 열쇠 돌아왔어?",
         "M: 아직. 그런데 위 선생님이 사무실에 여벌을 두셔.",
@@ -452,15 +452,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "I'll send all fifty at once.",
-        "I'll send it in batches of twenty.",
         "The printer has never jammed.",
         "I only printed two pages.",
         "I don't need to print anything.",
+        "I'll send it in batches of twenty.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "It jams over twenty. Send it in batches of twenty.",
       explanation:
-        "여자가 스무 장씩 나눠 보내라고 했으므로, 그렇게 하겠다는 ②가 가장 자연스럽다.",
+        "여자가 스무 장씩 나눠 보내라고 했으므로, 그렇게 하겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 채린아, 자습실 인쇄기가 자꾸 걸려.",
         "W: 한 번에 몇 장 보내는데?",
@@ -488,16 +488,16 @@ export const spec: SetSpec = {
         ["W", "Slower tonight, or wrong on Friday. Try it once."],
       ],
       choices: [
-        "I'll test myself the other way tonight.",
         "I'll read the whole list again.",
         "I never study vocabulary at all.",
+        "I'll test myself the other way tonight.",
         "The test was far too easy.",
         "I'd rather drop the subject.",
       ],
-      answer: 1,
+      answer: 3,
       clue: "Slower tonight, or wrong on Friday. Try it once.",
       explanation:
-        "여자가 한국어에서 영어로 방향을 바꿔 확인해 보라고 했으므로, 오늘 밤 반대 방향으로 해 보겠다는 ①이 가장 자연스럽다.",
+        "여자가 한국어에서 영어로 방향을 바꿔 확인해 보라고 했으므로, 오늘 밤 반대 방향으로 해 보겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 상민아, 단어 시험 또 잘 못 봤다고 했지.",
         "M: 전날 밤에는 다 알았어.",
@@ -532,16 +532,16 @@ export const spec: SetSpec = {
         ["M", "That sentence is better than the whole poster."],
       ],
       choices: [
+        "I'll add what we do in one line.",
         "I'll take the posters down.",
         "The posters are fine as they are.",
-        "I'll add what we do in one line.",
         "Nobody joins clubs anymore.",
         "I'll print twice as many posters.",
       ],
-      answer: 3,
+      answer: 1,
       clue: "One line. What you actually did last Thursday.",
       explanation:
-        "남자가 지난주에 실제로 한 일을 한 줄로 넣으라고 했으므로, 무엇을 하는지 한 줄 넣겠다는 ③이 가장 자연스럽다.",
+        "남자가 지난주에 실제로 한 일을 한 줄로 넣으라고 했으므로, 무엇을 하는지 한 줄 넣겠다는 ①이 가장 자연스럽다.",
       translation: [
         "M: 소라야, 동아리 신청 책상에 몇 명이나 왔어?",
         "W: 두 명. 포스터를 마흔 장 붙였는데.",
@@ -580,15 +580,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "We should stop reading the notices.",
-        "Let's read the notices at the end instead.",
         "We should start the broadcast earlier.",
         "Let's make the whole broadcast shorter.",
+        "Let's read the notices at the end instead.",
         "We should print the notices on paper.",
       ],
-      answer: 2,
+      answer: 4,
       clue: "She wants to tell him to read the notices at the end of the broadcast instead.",
       explanation:
-        "하린이는 전달 사항을 방송 끝에 읽자고 말하려 하므로 ②가 가장 적절하다.",
+        "하린이는 전달 사항을 방송 끝에 읽자고 말하려 하므로 ④가 가장 적절하다.",
       translation: [
         "W: 하린이와 태오는 학교 아침 방송을 함께 맡고 있습니다. 태오는 여는 음악이 끝난 뒤 처음 2분 동안 그날의 전달 사항을 읽는데, 방송 순서가 늘 그렇게 짜여 있었기 때문입니다. 이번 주에 하린이는 복도에 서서 현관을 지켜보다가, 학생들이 8시 20분까지 계속 들어오기 때문에 전달 사항을 읽는 동안 대부분이 아직 계단에 있다는 것을 알게 됩니다. 방송이 끝날 무렵에는 교실이 다 찹니다. 전달 사항을 마지막 2분으로 옮기면 다른 것은 아무것도 달라지지 않고 손이 더 가지도 않습니다. 하린이는 전달 사항을 방송 끝에 읽자고 말하고 싶습니다. 이런 상황에서 하린이가 태오에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -615,16 +615,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "why bridges are built with gaps that can open and close",
         "how steel cables are spun for a suspension bridge",
+        "why bridges are built with gaps that can open and close",
         "why concrete lasts longer than wood",
         "how traffic loads are measured on a bridge",
         "why rivers are crossed at their narrowest point",
       ],
-      answer: 1,
+      answer: 2,
       clue: "So engineers leave a joint at the end of each span.",
       explanation:
-        "남자는 다리가 열을 받으면 늘어나기 때문에 각 구간 끝에 여닫히는 이음매를 둔다고 설명한다. 따라서 답은 ①이다.",
+        "남자는 다리가 열을 받으면 늘어나기 때문에 각 구간 끝에 여닫히는 이음매를 둔다고 설명한다. 따라서 답은 ②이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 긴 다리를 차로 건널 때 느껴지는 틈에 대해 이야기하려 합니다. 그것은 망가진 것도 아니고 일을 대충 한 것도 아닙니다. 강철과 콘크리트는 열을 받으면 자라고, 길이가 1킬로미터인 다리는 겨울밤보다 더운 오후에 몇 센티미터 더 길어질 수 있습니다. 양 끝이 도로에 단단히 고정되어 있다면 그 늘어남이 갈 곳이 없어 상판이 휘거나 갈라질 것입니다. 그래서 기술자들은 각 구간 끝에 이음매를 둡니다. 흔히 빗 두 개가 서로 맞물려 미끄러지는 모양인데, 여름에는 닫히고 겨울에는 벌어집니다. 지나갈 때 느껴지는 덜컹임은 다리가 크기를 바꾸도록 허락받고 있다는 소리입니다.",
       ].join("\n"),

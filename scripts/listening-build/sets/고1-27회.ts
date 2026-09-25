@@ -28,16 +28,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "체육관에서 실내화를 신어 달라고 당부하려고",
         "체육관 바닥 공사를 알리려고",
+        "체육관에서 실내화를 신어 달라고 당부하려고",
         "실내화 구입 방법을 안내하려고",
         "체육관 이용 시간 변경을 알리려고",
         "체육 수업 준비물을 알리려고",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Please change your shoes before you step on.",
       explanation:
-        "남자는 새로 깐 체육관 바닥에 자국이 남는다며 들어가기 전에 실내화로 갈아 신어 달라고 당부한다. 따라서 답은 ①이다.",
+        "남자는 새로 깐 체육관 바닥에 자국이 남는다며 들어가기 전에 실내화로 갈아 신어 달라고 당부한다. 따라서 답은 ②이다.",
       translation: [
         "M: 여러분, 안녕하세요. 체육부 구입니다. 체육관 바닥 이야기를 하려고 합니다. 나무 바닥을 8월에 새로 깔았고, 학교에서 큰돈을 들였습니다. 그 뒤로 매주 가운데 원 주변에서 검은 자국을 발견합니다. 바깥 신발에서 나는 것이고 지워지지 않습니다. 규칙은 늘 실내화만 신는 것이었지만, 바닥이 이미 낡아 보일 때는 그 규칙을 잊기 쉬웠습니다. 이제는 그렇지 않습니다. 월요일부터 출입구마다 신발장을 두고, 점심시간에는 선생님이 문 앞에 계실 것입니다. 들어서기 전에 신발을 갈아 신어 주세요. 감사합니다.",
       ].join("\n"),
@@ -64,13 +64,13 @@ export const spec: SetSpec = {
         "일찍 자야 일찍 일어난다",
         "아침 운동이 잠을 깨워 준다",
         "잠은 충분히 자야 한다",
-        "알람은 하나만 맞춰야 한다",
         "휴대폰은 멀리 두어야 한다",
+        "알람은 하나만 맞춰야 한다",
       ],
-      answer: 4,
+      answer: 5,
       clue: "Exactly. Set one, at the time you actually have to get up.",
       explanation:
-        "여자는 여러 알람이 잠만 끊어 놓고 알람을 무시하도록 길들인다며, 실제로 일어나야 할 시각에 하나만 맞추라고 말한다. 따라서 답은 ④이다.",
+        "여자는 여러 알람이 잠만 끊어 놓고 알람을 무시하도록 길들인다며, 실제로 일어나야 할 시각에 하나만 맞추라고 말한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 혜원아, 나 아침마다 알람을 다섯 개 맞추기 시작했어.",
         "W: 다섯 개? 첫 알람이 몇 시에 울리는데?",
@@ -112,14 +112,14 @@ export const spec: SetSpec = {
       choices: [
         "회의는 표결로 끝내야 한다",
         "모두의 의견을 똑같이 존중해야 한다",
-        "결정은 빨리 내려야 한다",
         "정보가 중요한 결정은 표결보다 경험을 들어야 한다",
+        "결정은 빨리 내려야 한다",
         "토론은 짧을수록 좋다",
       ],
-      answer: 4,
+      answer: 3,
       clue: "Before the hands go up, ask who here has done this before, and let that person talk for two minutes.",
       explanation:
-        "남자는 표결이 이유를 지워 버린다며, 손을 들기 전에 해 본 사람의 이야기를 들으라고 말한다. 따라서 답은 ④이다.",
+        "남자는 표결이 이유를 지워 버린다며, 손을 들기 전에 해 본 사람의 이야기를 들으라고 말한다. 따라서 답은 ③이다.",
       translation: [
         "M: 어떤 모임이 두 가지 중에서 골라야 할 때면, 결국 누군가 표결하자고 말합니다. 공정해 보이고 토론을 끝내 주는데, 대개 그래서 나오는 제안입니다. 그런데 표결은 그 방에 특정한 일을 합니다. 누가 무엇을 알고 있든 그것을 하나의 표시로 바꾸고, 표시는 아무 이유도 함께 지고 가지 않습니다. 그 거래처와 3년을 일해 본 사람이, 어제 그 이름을 처음 들은 사람과 정확히 같은 한 표가 됩니다. 그것은 선거에는 맞는 규칙입니다. 거기서는 일부러 한 시민을 다른 시민보다 무겁게 치지 않으니까요. 그러나 정보에 달린 결정에는 나쁜 규칙입니다. 손이 올라가기 전에, 여기서 이 일을 해 본 사람이 누구인지 묻고 그 사람에게 2분을 주세요.",
       ].join("\n"),
@@ -199,14 +199,14 @@ export const spec: SetSpec = {
       choices: [
         "문제지 복사하기",
         "버저 점검하기",
-        "상품 받아 오기",
         "프로젝터 설치하기",
+        "상품 받아 오기",
         "점수판 만들기",
       ],
-      answer: 3,
+      answer: 4,
       clue: "Then I'll get the vouchers from Mr. Song.",
       explanation:
-        "문제지와 버저는 끝났고 남자는 프로젝터와 점수판을 맡아야 하므로, 여자가 송 선생님께 상품을 받아 오기로 한다. 따라서 답은 ③이다.",
+        "문제지와 버저는 끝났고 남자는 프로젝터와 점수판을 맡아야 하므로, 여자가 송 선생님께 상품을 받아 오기로 한다. 따라서 답은 ④이다.",
       translation: [
         "M: 혜원아, 과학 퀴즈가 3시에 204호에서 시작해.",
         "W: 알아. 일주일 내내 날짜를 세고 있었어.",
@@ -285,14 +285,14 @@ export const spec: SetSpec = {
       choices: [
         "발목을 다쳐서",
         "참가비가 올라서",
-        "어학 시험을 봐야 해서",
         "가족 여행을 가서",
         "아르바이트가 있어서",
+        "어학 시험을 봐야 해서",
       ],
-      answer: 3,
+      answer: 5,
       clue: "I'm taking the language test that Saturday morning.",
       explanation:
-        "발목도 나았고 참가비도 해결되었지만, 그 토요일 아침에 어학 시험이 있고 다음 회차는 지원 마감 뒤이기 때문이다. 따라서 답은 ③이다.",
+        "발목도 나았고 참가비도 해결되었지만, 그 토요일 아침에 어학 시험이 있고 다음 회차는 지원 마감 뒤이기 때문이다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 혜원아, 토요일 캠프 명단에 네가 없네.",
         "W: 월요일에 이름을 뺐어.",
@@ -324,11 +324,11 @@ export const spec: SetSpec = {
         ["M", "A guide talks about the harbor's history the whole way out."],
         ["W", "Then let's take the ten o'clock next Saturday."],
       ],
-      choices: ["운항 기간", "출발 장소", "소요 시간", "요금", "정원"],
-      answer: 5,
+      choices: ["운항 기간", "출발 장소", "정원", "소요 시간", "요금"],
+      answer: 3,
       clue: "정원은 대화에서 언급되지 않았다.",
       explanation:
-        "운항 기간(4월부터 10월까지 매일), 출발 장소(어시장 옆 옛 부두), 소요 시간(90분), 요금(1만 2천 원, 학생 반값)은 언급되지만 정원은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "운항 기간(4월부터 10월까지 매일), 출발 장소(어시장 옆 옛 부두), 소요 시간(90분), 요금(1만 2천 원, 학생 반값)은 언급되지만 정원은 언급되지 않았다. 따라서 답은 ③이다.",
       translation: [
         "M: 혜원아, 하버라인 여객선 관광 봤어?",
         "W: 안내지 봤어. 언제 운항해?",
@@ -361,16 +361,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "처음 온 사람도 바로 오를 수 있다",
         "버스 터미널에서 두 블록 거리에 있다",
         "주말에는 9시부터 연다",
         "신발과 초크 가방을 빌려준다",
-        "처음 온 사람도 바로 오를 수 있다",
         "열네 살 미만은 어른과 함께 와야 한다",
       ],
-      answer: 4,
+      answer: 1,
       clue: "First-time visitors must watch a ten-minute safety video before climbing.",
       explanation:
-        "처음 온 사람은 10분짜리 안전 영상을 보고 나서야 오를 수 있다고 했으므로 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "처음 온 사람은 10분짜리 안전 영상을 보고 나서야 오를 수 있다고 했으므로 ①은 내용과 다르다. 따라서 답은 ①이다.",
       translation: [
         "W: 레드스톤 클라이밍장을 소개해 드리겠습니다. 2015년에 버스 터미널에서 두 블록 떨어진, 공장을 고친 건물에서 문을 열었습니다. 평일에는 정오부터 11시까지, 주말에는 9시부터 엽니다. 신발과 초크 가방은 계산대에서 3천 원에 빌려줍니다. 처음 오신 분은 오르기 전에 10분짜리 안전 영상을 보셔야 합니다. 건물 어디에도 밧줄은 없고, 두꺼운 매트가 깔린 볼더링 벽만 있습니다. 열네 살 미만은 언제나 어른과 함께 와야 합니다.",
       ].join("\n"),
@@ -394,17 +394,17 @@ export const spec: SetSpec = {
         ["W", "I will. It usually arrives by email in an hour."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 5,
+      answer: 4,
       clue: "Six, so anything under six is out.",
       explanation:
-        "여섯 명 이상 쓸 수 있고, 화덕이 있으며, 하룻밤 7만 원 이하인 자리를 고른다. 세 조건을 모두 채우는 것은 ⑤이다.",
+        "여섯 명 이상 쓸 수 있고, 화덕이 있으며, 하룻밤 7만 원 이하인 자리를 고른다. 세 조건을 모두 채우는 것은 ④이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Capacity: 4 / Fire pit: Yes / Price: 40,000 won per night" },
           { no: 2, label: "②", value: "Capacity: 8 / Fire pit: No / Price: 50,000 won per night" },
           { no: 3, label: "③", value: "Capacity: 6 / Fire pit: Yes / Price: 95,000 won per night" },
-          { no: 4, label: "④", value: "Capacity: 5 / Fire pit: Yes / Price: 35,000 won per night" },
-          { no: 5, label: "⑤", value: "Capacity: 8 / Fire pit: Yes / Price: 65,000 won per night" },
+          { no: 4, label: "④", value: "Capacity: 8 / Fire pit: Yes / Price: 65,000 won per night" },
+          { no: 5, label: "⑤", value: "Capacity: 5 / Fire pit: Yes / Price: 35,000 won per night" },
         ],
       },
       translation: [
@@ -465,15 +465,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "My application was accepted.",
-        "I'll email the leader today.",
         "There is no club leader.",
         "Eleven days is normal.",
         "I'll apply to a different club.",
+        "I'll email the leader today.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "Then something's stuck. Email the club leader directly.",
       explanation:
-        "남자가 동아리 대표에게 직접 메일을 보내라고 했으므로, 오늘 메일을 보내겠다는 ②가 가장 자연스럽다.",
+        "남자가 동아리 대표에게 직접 메일을 보내라고 했으므로, 오늘 메일을 보내겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "W: 상준아, 내 동아리 신청이 계속 검토 중이라고 떠.",
         "M: 며칠째 그래?",
@@ -501,16 +501,16 @@ export const spec: SetSpec = {
         ["W", "Give each of them one slide tonight and walk them through it."],
       ],
       choices: [
-        "I'll hand out one slide each tonight.",
         "I'll present the whole thing myself.",
         "There are no slides in this project.",
+        "I'll hand out one slide each tonight.",
         "They already know every slide.",
         "I'll ask to change groups.",
       ],
-      answer: 1,
+      answer: 3,
       clue: "Give each of them one slide tonight and walk them through it.",
       explanation:
-        "여자가 오늘 밤 한 사람에게 한 장씩 맡기고 설명해 주라고 했으므로, 한 장씩 나눠 주겠다는 ①이 가장 자연스럽다.",
+        "여자가 오늘 밤 한 사람에게 한 장씩 맡기고 설명해 주라고 했으므로, 한 장씩 나눠 주겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 상준아, 또 모둠 발표 자료를 혼자 떠맡고 있네.",
         "M: 네 명한테 틀을 설명하는 것보다 빨라서.",
@@ -594,14 +594,14 @@ export const spec: SetSpec = {
       choices: [
         "We should weigh everything again next month.",
         "Let's remove the paper bin data entirely.",
-        "Let's turn that table into one line graph.",
         "We should submit the report on Tuesday.",
+        "Let's turn that table into one line graph.",
         "Let's add thirty more rows to the table.",
       ],
-      answer: 3,
+      answer: 4,
       clue: "He wants to tell her to turn the table into one line graph.",
       explanation:
-        "하준이는 표를 꺾은선 그래프 하나로 바꾸자고 말하려 하므로 ③이 가장 적절하다.",
+        "하준이는 표를 꺾은선 그래프 하나로 바꾸자고 말하려 하므로 ④가 가장 적절하다.",
       translation: [
         "M: 하준이와 미라는 월요일이 마감인 학급 재활용 보고서를 준비하고 있습니다. 미라는 두 달치 무게 자료를 모아 긴 표로 다 입력했습니다. 숫자는 정확하고 표도 깔끔합니다. 금요일에 하준이는 그것을 쭉 읽다가, 표만으로는 학급이 증명하려던 한 가지가 드러나지 않는다는 것을 깨닫습니다. 그것은 인쇄기가 위층으로 옮겨진 뒤로 종이 수거함이 두 배 빨리 찬다는 사실입니다. 읽는 사람이 그것을 보려면 서른 줄을 눈으로 견줘야 합니다. 같은 숫자를 간단한 꺾은선 그래프로 그리면 한눈에 보이고, 미라에게는 이미 표 계산 파일이 있어서 몇 분이면 됩니다. 하준이는 표를 꺾은선 그래프 하나로 바꾸자고 말하고 싶습니다. 이런 상황에서 하준이가 미라에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -627,16 +627,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "why metal feels colder than wood at the same temperature",
         "how thermometers measure room temperature",
+        "why metal feels colder than wood at the same temperature",
         "why wooden furniture lasts longer than metal",
         "how heat moves through the air in a room",
         "why our hands are more sensitive than our feet",
       ],
-      answer: 1,
+      answer: 2,
       clue: "It is how fast each one takes heat from your hand.",
       explanation:
-        "여자는 피부가 온도가 아니라 열이 빠져나가는 속도를 느낀다며, 그래서 금속이 나무보다 차갑게 느껴진다고 설명한다. 따라서 답은 ①이다.",
+        "여자는 피부가 온도가 아니라 열이 빠져나가는 속도를 느낀다며, 그래서 금속이 나무보다 차갑게 느껴진다고 설명한다. 따라서 답은 ②이다.",
       translation: [
         "W: 안녕하세요, 여러분. 오늘은 같은 방에 놓여 있는데도 숟가락이 나무 탁자보다 왜 더 차갑게 느껴지는지 이야기하려 합니다. 각각에 온도계를 대면 같은 숫자가 나옵니다. 차이는 온도가 아닙니다. 각각이 여러분 손에서 열을 얼마나 빨리 가져가느냐입니다. 금속은 열을 빠르게 옮깁니다. 그래서 숟가락에 닿는 순간 피부에서 온기를 빼앗아 가고, 신경은 차갑다고 보고합니다. 나무는 열을 천천히 옮깁니다. 손이 닿는 표면이 거의 곧바로 데워져서 더 가져가기를 멈추고, 그래서 아무 느낌이 없습니다. 피부에는 온도를 직접 재는 방법이 없습니다. 열이 나가는지 들어오는지만 잴 수 있습니다. 그래서 같은 방이 손에는 서로 다른 두 방처럼 느껴질 수 있는 것입니다.",
       ].join("\n"),

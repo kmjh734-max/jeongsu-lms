@@ -27,16 +27,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "예약표를 연필 대신 펜으로 쓰라고 알리려고",
         "동아리방 배정을 다시 한다고 알리려고",
         "예약 시간을 줄인다고 알리려고",
         "동아리 등록을 받으려고",
         "복도 공사를 안내하려고",
+        "예약표를 연필 대신 펜으로 쓰라고 알리려고",
       ],
-      answer: 1,
+      answer: 5,
       clue: "So from Monday the sheet will be replaced by a board with a pen on a string.",
       explanation:
-        "남자는 연필로 쓴 이름이 지워져 문제가 생긴다며 월요일부터 펜으로 쓰는 판으로 바꾼다고 알린다. 따라서 답은 ①이다.",
+        "남자는 연필로 쓴 이름이 지워져 문제가 생긴다며 월요일부터 펜으로 쓰는 판으로 바꾼다고 알린다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 여러분, 안녕하세요. 학생회 설우진입니다. 복도에 있는 동아리방 예약표 이야기를 하려고 합니다. 잘 굴러가고 있고 거의 모든 시간이 쓰입니다. 문제는 이름을 연필로 쓰다 보니 다음에 오는 사람이 지워 버린다는 것입니다. 지난달에 그렇게 세 동아리가 시간을 잃었고, 누가 먼저 예약했는지 아무도 증명하지 못했습니다. 그래서 월요일부터 예약표를 끈 달린 펜이 있는 판으로 바꿉니다. 펜으로 쓰시고, 계획이 바뀌면 이름 위에 줄 하나만 그어 주세요. 그래야 다음 사람이 예약이 있었다는 걸 볼 수 있습니다. 규칙은 그대로입니다. 연필만 사라집니다. 감사합니다.",
       ].join("\n"),
@@ -62,14 +62,14 @@ export const spec: SetSpec = {
       choices: [
         "공부는 완전히 조용한 곳에서 해야 한다",
         "음악은 집중에 도움이 된다",
-        "텔레비전은 보지 말아야 한다",
         "공부할 때 소리보다 화면이 방해가 된다",
+        "텔레비전은 보지 말아야 한다",
         "휴식 시간을 정해 두어야 한다",
       ],
-      answer: 4,
+      answer: 3,
       clue: "The picture. Sound alone never pulled anyone's eyes away from a page.",
       explanation:
-        "여자는 소리만으로는 눈이 책에서 떨어지지 않는다며, 문제는 소음이 아니라 화면이라고 말한다. 따라서 답은 ④이다.",
+        "여자는 소리만으로는 눈이 책에서 떨어지지 않는다며, 문제는 소음이 아니라 화면이라고 말한다. 따라서 답은 ③이다.",
       translation: [
         "M: 민서야, 나 텔레비전을 틀어 놓고 공부해.",
         "W: 켜 놓고 보지는 않는 거야?",
@@ -107,16 +107,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "이해 안 되는 결정은 동기보다 상황을 물어야 한다",
         "결정은 빨리 내려야 한다",
         "사람의 성격은 잘 바뀌지 않는다",
         "정보는 공유해야 한다",
-        "이해 안 되는 결정은 동기보다 상황을 물어야 한다",
         "마감을 지키는 것이 중요하다",
       ],
-      answer: 4,
+      answer: 1,
       clue: "Ask what they knew and what they were allowed to choose from, and most puzzling decisions stop being puzzling.",
       explanation:
-        "남자는 동기를 찾는 것이 통찰처럼 느껴지지만 쓸모 있는 문을 닫는다며, 무엇을 알았고 무엇 중에서 골랐는지 물으라고 말한다. 따라서 답은 ④이다.",
+        "남자는 동기를 찾는 것이 통찰처럼 느껴지지만 쓸모 있는 문을 닫는다며, 무엇을 알았고 무엇 중에서 골랐는지 물으라고 말한다. 따라서 답은 ①이다.",
       translation: [
         "M: 누군가 우리가 동의하지 않는 결정을 내리면, 우리는 보통 그 사람이 무엇을 원했는가로 설명합니다. 게을렀다, 부주의했다, 잘 보이려 했다. 거의 언제나 더 밋밋한 설명이 있고, 거의 언제나 그것이 맞습니다. 그 사람에게는 우리가 가진 정보가 없었습니다. 우리가 보지 못한 마감에 맞춰 일하고 있었습니다. 우리에게 당연해 보이는 선택지가 그 사람이 받은 목록에는 없었습니다. 동기를 집어 드는 것은 통찰처럼 느껴지지만, 쓸모 있는 곳으로 이어지는 유일한 문을 닫아 버립니다. 그 사람이 무엇을 알았고 무엇 중에서 고를 수 있었는지 물어보세요. 그러면 알 수 없던 결정 대부분이 알 수 없는 일이기를 그칩니다.",
       ].join("\n"),
@@ -189,15 +189,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "게시판 설치하기",
-        "안내지 접기",
         "마이크 빌려 오기",
+        "안내지 접기",
         "프로젝터 점검하기",
         "소강당 청소하기",
       ],
-      answer: 3,
+      answer: 2,
       clue: "Then I'll go and borrow the microphone.",
       explanation:
-        "게시판과 안내지는 끝났고 남자는 프로젝터를 점검해야 하므로, 여자가 연극 동아리에서 마이크를 빌려 오기로 한다. 따라서 답은 ③이다.",
+        "게시판과 안내지는 끝났고 남자는 프로젝터를 점검해야 하므로, 여자가 연극 동아리에서 마이크를 빌려 오기로 한다. 따라서 답은 ②이다.",
       translation: [
         "M: 민서야, 동아리 발표회가 4시에 소강당에서 시작해.",
         "W: 알아. 게시판은 세웠어?",
@@ -231,11 +231,11 @@ export const spec: SetSpec = {
         ["W", "Then I can take twenty percent off the ukuleles, but not the strings."],
         ["M", "Thank you. I'll pay by card."],
       ],
-      choices: ["$120.00", "$145.60", "$152.00", "$182.00", "$218.00"],
-      answer: 3,
+      choices: ["$120.00", "$145.60", "$182.00", "$218.00", "$152.00"],
+      answer: 5,
       clue: "Then I can take twenty percent off the ukuleles, but not the strings.",
       explanation:
-        "우쿨렐레 3대 150달러에서 20퍼센트를 빼면 120달러이고, 할인이 안 되는 줄 4세트 32달러를 더하면 152달러이다. 따라서 답은 ③이다.",
+        "우쿨렐레 3대 150달러에서 20퍼센트를 빼면 120달러이고, 할인이 안 되는 줄 4세트 32달러를 더하면 152달러이다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 할로레인 악기점입니다. 무엇을 드릴까요?",
         "M: 우쿨렐레 세 대랑 줄 네 세트 주세요.",
@@ -309,11 +309,11 @@ export const spec: SetSpec = {
         ["M", "Three thousand won, and children get in free."],
         ["W", "Then let's go on the Sunday."],
       ],
-      choices: ["열리는 날", "열리는 장소", "참여 작가", "체험 활동", "주차 안내"],
-      answer: 5,
+      choices: ["주차 안내", "열리는 날", "열리는 장소", "참여 작가", "체험 활동"],
+      answer: 1,
       clue: "주차 안내는 대화에서 언급되지 않았다.",
       explanation:
-        "날짜(12월 7·8일), 장소(복원한 옛 역사), 참여 작가(목공·도예·뜨개 오십 명쯤), 체험 활동(하루 세 번 워크숍)은 언급되지만 주차 안내는 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "날짜(12월 7·8일), 장소(복원한 옛 역사), 참여 작가(목공·도예·뜨개 오십 명쯤), 체험 활동(하루 세 번 워크숍)은 언급되지만 주차 안내는 언급되지 않았다. 따라서 답은 ①이다.",
       translation: [
         "M: 민서야, 펀브룩 공예 장터 들어 봤어?",
         "W: 전단 봤어. 언제야?",
@@ -420,15 +420,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The computer room is closed.",
-        "I'll use the library printer.",
         "I don't need to print anything.",
         "The printer has plenty of toner.",
         "I'll print it at home tonight.",
+        "I'll use the library printer.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "Then use the library printer. It's working and it's free today.",
       explanation:
-        "남자가 도서관 인쇄기를 쓰라고 했으므로, 그 인쇄기를 쓰겠다는 ②가 가장 자연스럽다.",
+        "남자가 도서관 인쇄기를 쓰라고 했으므로, 그 인쇄기를 쓰겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "W: 우진아, 오늘 방과 후에 컴퓨터실 열어?",
         "M: 열어. 그런데 인쇄기에 토너가 없어.",
@@ -450,15 +450,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "My application was approved.",
-        "I'll message the president today.",
         "There is no club president.",
+        "I'll message the president today.",
         "Nine days is normal.",
         "I'll apply to a different club.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "Then it's stuck. Message the club president directly today.",
       explanation:
-        "여자가 오늘 회장에게 직접 연락하라고 했으므로, 오늘 연락하겠다는 ②가 가장 자연스럽다.",
+        "여자가 오늘 회장에게 직접 연락하라고 했으므로, 오늘 연락하겠다는 ③이 가장 자연스럽다.",
       translation: [
         "M: 민서야, 내 동아리 신청이 아직 승인이 안 됐어.",
         "W: 보낸 지 얼마나 됐어?",
@@ -530,16 +530,16 @@ export const spec: SetSpec = {
         ["W", "Finish the night before and read it over in the morning."],
       ],
       choices: [
-        "I'll finish a night early and reread it.",
         "I'll keep working until midnight.",
         "My work has no small mistakes.",
         "I reread everything twice already.",
+        "I'll finish a night early and reread it.",
         "I'll hand it in late instead.",
       ],
-      answer: 1,
+      answer: 4,
       clue: "Finish the night before and read it over in the morning.",
       explanation:
-        "여자가 전날 밤에 끝내고 아침에 다시 읽으라고 했으므로, 하루 일찍 끝내고 다시 읽겠다는 ①이 가장 자연스럽다.",
+        "여자가 전날 밤에 끝내고 아침에 다시 읽으라고 했으므로, 하루 일찍 끝내고 다시 읽겠다는 ④가 가장 자연스럽다.",
       translation: [
         "W: 우진아, 너 과제를 매번 마지막 날 밤에 내더라.",
         "M: 그래도 다 제때 끝내잖아.",
@@ -579,15 +579,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "We should bake another two hundred.",
+        "Let's move the cookies into clear bags.",
         "Let's lower the price of every bag.",
         "We should open the stall an hour later.",
         "Let's untie the bags for each buyer.",
-        "Let's move the cookies into clear bags.",
       ],
-      answer: 5,
+      answer: 2,
       clue: "She wants to tell him to move the cookies into the clear bags.",
       explanation:
-        "유나는 과자를 속이 보이는 봉투로 옮기자고 말하려 하므로 ⑤가 가장 적절하다.",
+        "유나는 과자를 속이 보이는 봉투로 옮기자고 말하려 하므로 ②가 가장 적절하다.",
       translation: [
         "W: 유나와 석진이는 학교 장터의 날에 낼 학급 가게를 준비하고 있습니다. 석진이는 쿠키 이백 개를 구워 종이봉투에 담았고, 봉투는 반듯하게 접혀 끈으로 묶여 있습니다. 목요일에 유나는 봉투가 완전히 닫혀 있어서, 사는 사람이 하나를 풀어 보지 않으면 안에 무엇이 있는지 알 수 없다는 것을 알아챕니다. 작년에 다 팔린 가게는 음식이 보이는 가게들이었습니다. 창고에는 속이 보이는 봉투가 한 통 있고, 두 사람이면 30분쯤이면 옮길 수 있습니다. 유나는 쿠키 자체가 아주 잘 나왔기 때문에 그 수고가 헛되기를 바라지 않습니다. 유나는 쿠키를 속이 보이는 봉투로 옮기자고 말하고 싶습니다. 이런 상황에서 유나가 석진이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -614,16 +614,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "how shape rather than weight decides whether something floats",
         "how ships are built from steel plates",
         "why stones are heavier than they look",
         "how water pressure increases with depth",
         "why metal rusts faster in seawater",
+        "how shape rather than weight decides whether something floats",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Change the shape and nothing else, and the same piece of steel can either sink or carry a thousand tonnes.",
       explanation:
-        "남자는 뜨느냐를 정하는 것이 무게가 아니라 밀어내는 물의 양, 곧 모양이라고 설명한다. 따라서 답은 ①이다.",
+        "남자는 뜨느냐를 정하는 것이 무게가 아니라 밀어내는 물의 양, 곧 모양이라고 설명한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 무거운 배는 뜨는데 작은 돌은 왜 가라앉는지 이야기하려 합니다. 흔한 답은 배가 쇠로 만들어졌지만 안에 공기가 가득하다는 것입니다. 맞는 말이지만 정작 중요한 부분을 건너뜁니다. 무언가가 뜨느냐를 정하는 것은 그 무게가 아니라, 그것이 들어가려고 얼마나 많은 물을 밀어내야 하느냐입니다. 배의 선체는 엄청난 부피의 물을 밀어내도록 만들어졌고, 밀려난 물의 무게가 배보다 무겁습니다. 같은 무게의 돌은 차지하는 자리가 아주 작아서 밀어내는 물이 거의 없습니다. 모양만 바꾸고 다른 것은 그대로 두면, 같은 쇳덩이가 가라앉을 수도 있고 천 톤을 실어 나를 수도 있습니다.",
       ].join("\n"),
@@ -643,14 +643,14 @@ export const spec: SetSpec = {
       choices: [
         "the usual answer about metal full of air",
         "how much water something pushes aside",
+        "salt water being denser than fresh water",
         "the displaced water weighing more than the ship",
         "a stone pushing aside almost nothing",
-        "salt water being denser than fresh water",
       ],
-      answer: 5,
+      answer: 3,
       clue: "The usual answer is that the ship is made of metal but full of air.",
       explanation:
-        "쇠지만 공기가 가득하다는 흔한 답, 얼마나 많은 물을 밀어내는가, 밀려난 물이 배보다 무겁다는 것, 돌은 거의 밀어내지 않는다는 것은 언급되지만 바닷물이 민물보다 밀도가 높다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "쇠지만 공기가 가득하다는 흔한 답, 얼마나 많은 물을 밀어내는가, 밀려난 물이 배보다 무겁다는 것, 돌은 거의 밀어내지 않는다는 것은 언급되지만 바닷물이 민물보다 밀도가 높다는 것은 언급되지 않았다. 따라서 답은 ③이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

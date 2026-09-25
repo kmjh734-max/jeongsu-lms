@@ -28,16 +28,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "보건실은 꼭 필요한 경우에만 이용해 달라고 하려고",
         "보건실 운영 시간 변경을 알리려고",
         "건강 검진 일정을 안내하려고",
         "도서관 휴게 공간 신설을 알리려고",
         "점심시간 변경을 알리려고",
+        "보건실은 꼭 필요한 경우에만 이용해 달라고 하려고",
       ],
-      answer: 1,
+      answer: 5,
       clue: "From next week, please come to the health room only if you cannot stay in class, not simply because you are tired.",
       explanation:
-        "여자는 침대가 넷뿐이라며 수업에 있을 수 없는 경우에만 보건실에 와 달라고 부탁한다. 따라서 답은 ①이다.",
+        "여자는 침대가 넷뿐이라며 수업에 있을 수 없는 경우에만 보건실에 와 달라고 부탁한다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 여러분, 안녕하세요. 보건 교사 류입니다. 학생들이 보건실을 쓰는 방식에 대해 말씀드리려 합니다. 9월부터 하루에 열다섯 명쯤이 누우러 오고, 그중 절반 가까이가 점심 직후 같은 두 교시에 몰립니다. 침대는 넷뿐이라서, 정말 아픈 학생이 나중에 다시 오라는 말을 듣는 일이 생깁니다. 다음 주부터는 그저 피곤해서가 아니라 수업에 있을 수 없을 때만 보건실에 와 주세요. 피곤하다면 도서관 독서 코너가 하루 종일 열려 있고 아무도 나가라고 하지 않습니다. 침대는 그것이 필요한 학생들에게 남겨 두어야 합니다. 감사합니다.",
       ].join("\n"),
@@ -63,14 +63,14 @@ export const spec: SetSpec = {
       choices: [
         "공부는 조용한 곳에서 해야 한다",
         "카페에서 공부하면 안 된다",
-        "공부 시간은 길수록 좋다",
         "졸리는 것은 장소가 아니라 시간을 바꿔 풀어야 한다",
+        "공부 시간은 길수록 좋다",
         "집중은 훈련으로 늘어난다",
       ],
-      answer: 4,
+      answer: 3,
       clue: "Go at ten, not at three. A quiet room is only boring when you're tired.",
       explanation:
-        "남자는 조용한 방이 지루한 것은 피곤할 때뿐이라며, 장소가 아니라 가는 시간을 바꾸라고 말한다. 따라서 답은 ④이다.",
+        "남자는 조용한 방이 지루한 것은 피곤할 때뿐이라며, 장소가 아니라 가는 시간을 바꾸라고 말한다. 따라서 답은 ③이다.",
       translation: [
         "W: 진호야, 나 요즘 매일 역 근처 카페에서 공부해.",
         "M: 매일? 얼마나 있어?",
@@ -108,16 +108,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "의견이 갈릴 때는 서로 무엇을 지키려는지 물어야 한다",
         "결정은 빨리 내려야 한다",
         "회의는 짧게 해야 한다",
         "일정은 여유 있게 잡아야 한다",
         "약속은 반드시 지켜야 한다",
-        "의견이 갈릴 때는 서로 무엇을 지키려는지 물어야 한다",
       ],
-      answer: 5,
+      answer: 1,
       clue: "It is asking what the other person is afraid of losing.",
       explanation:
-        "여자는 사람들이 날짜가 아니라 각자 지키려는 것 때문에 부딪힌다며, 상대가 무엇을 잃을까 두려워하는지 물으라고 말한다. 따라서 답은 ⑤이다.",
+        "여자는 사람들이 날짜가 아니라 각자 지키려는 것 때문에 부딪힌다며, 상대가 무엇을 잃을까 두려워하는지 물으라고 말한다. 따라서 답은 ①이다.",
       translation: [
         "W: 사람들이 어떤 결정을 두고 다툴 때는 보통 답을 두고 다툽니다. 이 길로 갈까 저 길로 갈까. 마감을 금요일로 할까 월요일로 할까. 거의 입 밖으로 나오지 않는 것은 각자가 무엇을 지키려 하는가입니다. 한 사람은 일정을 지키고 있습니다. 다른 사람은 일의 완성도를 지키고 있습니다. 또 한 사람은 이 방 밖의 누군가에게 한 약속을 지키고 있습니다. 그 어느 것도 이상하지 않고, 금요일이냐 월요일이냐라는 문장 안에서는 어느 것도 보이지 않습니다. 그래서 논쟁은 제자리를 돕니다. 그 안의 사람들이 실은 날짜를 두고 어긋나 있는 것이 아니기 때문입니다. 가장 빨리 빠져나오는 길은 거의 언제나 내 날짜에 대한 더 좋은 논거가 아닙니다. 상대가 무엇을 잃을까 두려워하는지 묻는 것입니다.",
       ].join("\n"),
@@ -190,15 +190,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "이름표 놓기",
-        "유인물 복사하기",
         "프로젝터 맡기기",
+        "유인물 복사하기",
         "자리 배치 정하기",
         "교실 청소하기",
       ],
-      answer: 3,
+      answer: 2,
       clue: "Then I'll take the projector to the office before six.",
       explanation:
-        "이름표와 유인물은 끝났고 여자는 담임 선생님을 만나야 하므로, 남자가 6시 전에 프로젝터를 행정실에 맡기기로 한다. 따라서 답은 ③이다.",
+        "이름표와 유인물은 끝났고 여자는 담임 선생님을 만나야 하므로, 남자가 6시 전에 프로젝터를 행정실에 맡기기로 한다. 따라서 답은 ②이다.",
       translation: [
         "W: 진호야, 학부모 공개 수업이 내일 10시야.",
         "M: 알아. 책상에 이름표는 놨어?",
@@ -232,11 +232,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take thirty percent off the strings, but not the capos."],
         ["W", "Perfect. I'll pay by card."],
       ],
-      choices: ["$63.00", "$72.00", "$78.00", "$84.00", "$90.00"],
-      answer: 2,
+      choices: ["$63.00", "$78.00", "$84.00", "$90.00", "$72.00"],
+      answer: 5,
       clue: "Then I can take thirty percent off the strings, but not the capos.",
       explanation:
-        "줄 5세트 60달러에서 30퍼센트를 빼면 42달러이고, 할인이 안 되는 카포 2개 30달러를 더하면 72달러이다. 따라서 답은 ②이다.",
+        "줄 5세트 60달러에서 30퍼센트를 빼면 42달러이고, 할인이 안 되는 카포 2개 30달러를 더하면 72달러이다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 우드로 악기점입니다. 무엇을 도와드릴까요?",
         "W: 기타 줄 다섯 세트랑 카포 두 개 주세요.",
@@ -310,11 +310,11 @@ export const spec: SetSpec = {
         ["W", "Paper and brushes are provided. You only bring an apron."],
         ["M", "Then I'll sign up this week."],
       ],
-      choices: ["운영 기간", "장소", "수업 내용", "준비물", "수강료"],
-      answer: 5,
+      choices: ["수강료", "운영 기간", "장소", "수업 내용", "준비물"],
+      answer: 1,
       clue: "수강료는 대화에서 언급되지 않았다.",
       explanation:
-        "기간(3월 4일부터 여섯 번의 토요일), 장소(호숫가 주민 센터), 수업 내용(수채화와 잉크 드로잉), 준비물(앞치마)은 언급되지만 수강료는 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "기간(3월 4일부터 여섯 번의 토요일), 장소(호숫가 주민 센터), 수업 내용(수채화와 잉크 드로잉), 준비물(앞치마)은 언급되지만 수강료는 언급되지 않았다. 따라서 답은 ①이다.",
       translation: [
         "W: 진호야, 레이크사이드 미술 수업 안내문 봤어?",
         "M: 복도에서 포스터 봤어. 언제 해?",
@@ -380,16 +380,16 @@ export const spec: SetSpec = {
         ["M", "Will do. It should arrive by Thursday."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 4,
+      answer: 2,
       clue: "Wired. Wireless adds a delay when we monitor.",
       explanation:
-        "유선이고, 밀폐형이며, 10만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ④이다.",
+        "유선이고, 밀폐형이며, 10만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ②이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Type: Wireless / Back: Closed / Price: 85,000 won" },
-          { no: 2, label: "②", value: "Type: Wired / Back: Open / Price: 60,000 won" },
-          { no: 3, label: "③", value: "Type: Wired / Back: Closed / Price: 145,000 won" },
-          { no: 4, label: "④", value: "Type: Wired / Back: Closed / Price: 95,000 won" },
+          { no: 2, label: "②", value: "Type: Wired / Back: Closed / Price: 95,000 won" },
+          { no: 3, label: "③", value: "Type: Wired / Back: Open / Price: 60,000 won" },
+          { no: 4, label: "④", value: "Type: Wired / Back: Closed / Price: 145,000 won" },
           { no: 5, label: "⑤", value: "Type: Wireless / Back: Open / Price: 70,000 won" },
         ],
       },
@@ -421,15 +421,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The library has no printer.",
-        "I'll print it in the library, then.",
         "I already printed the poster.",
         "My student card expired.",
         "I don't need to print anything.",
+        "I'll print it in the library, then.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "Use the library printer. It takes the same student card.",
       explanation:
-        "여자가 도서관 인쇄기를 쓰라고 했으므로, 거기서 인쇄하겠다는 ②가 가장 자연스럽다.",
+        "여자가 도서관 인쇄기를 쓰라고 했으므로, 거기서 인쇄하겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 수진아, 동아리 박람회 때 컴퓨터실 열어?",
         "W: 닫아. 박람회가 그 복도를 써.",
@@ -451,15 +451,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "My locker locks fine.",
-        "I'll report it at the office.",
         "I don't use the gym at all.",
+        "I'll report it at the office.",
         "The dial is completely broken.",
         "I'll buy my own lock.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "Then it's bent. Report it at the gym office and they'll reassign you.",
       explanation:
-        "남자가 체육관 사무실에 알리면 자리를 바꿔 준다고 했으므로, 사무실에 알리겠다는 ②가 가장 자연스럽다.",
+        "남자가 체육관 사무실에 알리면 자리를 바꿔 준다고 했으므로, 사무실에 알리겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 진호야, 체육관 사물함이 제대로 안 잠겨.",
         "M: 다이얼 문제야, 문 자체 문제야?",
@@ -531,16 +531,16 @@ export const spec: SetSpec = {
         ["M", "Pick two afternoons, tell everyone, and keep the rest for yourself."],
       ],
       choices: [
-        "I'll set two afternoons and say so.",
         "I'll keep helping whenever asked.",
         "Nobody ever asks me for help.",
         "I'll stop tutoring completely.",
+        "I'll set two afternoons and say so.",
         "Eleven hours is not very many.",
       ],
-      answer: 1,
+      answer: 4,
       clue: "Pick two afternoons, tell everyone, and keep the rest for yourself.",
       explanation:
-        "남자가 오후 두 번을 정해 알리고 나머지는 자기 몫으로 두라고 했으므로, 두 오후를 정해 알리겠다는 ①이 가장 자연스럽다.",
+        "남자가 오후 두 번을 정해 알리고 나머지는 자기 몫으로 두라고 했으므로, 두 오후를 정해 알리겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 수진아, 너 과외 부탁을 다 들어주더라.",
         "W: 막혔으니까 묻는 거잖아. 그걸 어떻게 거절해.",
@@ -580,15 +580,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "We should fill another hundred cups.",
-        "Let's pour the water back into the bottles.",
         "Let's move the table to the finish line.",
+        "Let's pour the water back into the bottles.",
         "We should ask the runners to come here.",
         "Let's close the water station early.",
       ],
-      answer: 3,
+      answer: 2,
       clue: "She wants to tell him to move the table to the finish line.",
       explanation:
-        "예린이는 탁자를 결승선으로 옮기자고 말하려 하므로 ③이 가장 적절하다.",
+        "예린이는 탁자를 결승선으로 옮기자고 말하려 하므로 ②가 가장 적절하다.",
       translation: [
         "W: 예린이와 성민이는 학교 체육대회 급수대를 맡고 있습니다. 성민이는 종이컵 삼백 개에 물을 채워 탁자에 늘어놓았는데, 첫 한 시간을 꼬박 썼고 보기에도 훌륭합니다. 예린이는 그 탁자가 결승선에서 20미터쯤 지나, 달리는 사람들이 볼 수 없는 모퉁이 뒤에 있다는 것을 알아챕니다. 작년에도 같은 일이 있었고 끝날 때까지 컵 절반이 그대로 남았습니다. 탁자는 가벼워서 두 사람이면 1분이면 옮길 수 있고, 모두가 지나가는 결승선 바로 옆에 빈자리가 있습니다. 예린이는 성민이의 수고가 헛되었다고 여기게 하고 싶지 않습니다. 탁자가 보이기만 하면 그 컵들이야말로 꼭 필요한 것이기 때문입니다. 예린이는 탁자를 결승선으로 옮기자고 말하고 싶습니다. 이런 상황에서 예린이가 성민이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -616,16 +616,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "why ice is less dense than liquid water",
         "how lakes are formed in cold regions",
         "why water boils at a fixed temperature",
         "how fish survive in warm water",
         "why metals expand when heated",
+        "why ice is less dense than liquid water",
       ],
-      answer: 1,
+      answer: 5,
       clue: "The same number of molecules now takes up more room, so ice is lighter than the water it came from.",
       explanation:
-        "남자는 4도 아래에서 물 분자가 빈 공간이 있는 구조로 묶여 얼음이 더 가벼워진다고 설명한다. 따라서 답은 ①이다.",
+        "남자는 4도 아래에서 물 분자가 빈 공간이 있는 구조로 묶여 얼음이 더 가벼워진다고 설명한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 얼음이 왜 뜨는지 이야기하려 합니다. 작은 사실처럼 들리지만, 이렇게 행동하는 것은 거의 없습니다. 거의 모든 물질은 고체가 액체보다 밀도가 높습니다. 식으면 알갱이들이 더 촘촘히 모이기 때문이지요. 물도 4도까지는 그렇게 합니다. 4도 아래에서는 특이한 일이 일어납니다. 물 분자 하나하나가 이웃과 정해진 각도로 맞물리기 시작해, 안에 빈 공간이 있는 열린 구조를 짓습니다. 같은 수의 분자가 이제 더 많은 자리를 차지하고, 그래서 얼음은 그것이 나온 물보다 가볍습니다. 그래서 호수는 위에서부터 업니다. 얼음이 가라앉는다면 모든 호수가 겨울마다 바닥부터 통째로 얼어붙고, 그 안에 사는 어떤 것도 살아남지 못할 것입니다.",
       ].join("\n"),
@@ -645,14 +645,14 @@ export const spec: SetSpec = {
       choices: [
         "most solids being denser than their liquids",
         "water behaving normally down to four degrees",
+        "salt lowering the freezing point of water",
         "molecules locking at fixed angles",
         "lakes freezing from the top down",
-        "salt lowering the freezing point of water",
       ],
-      answer: 5,
+      answer: 3,
       clue: "For nearly every substance, the solid form is denser than the liquid, because cooling packs the particles closer together.",
       explanation:
-        "대부분의 고체가 액체보다 밀도가 높다는 것, 물이 4도까지는 보통처럼 행동한다는 것, 분자가 정해진 각도로 맞물린다는 것, 호수가 위에서부터 언다는 것은 언급되지만 소금이 어는점을 낮춘다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "대부분의 고체가 액체보다 밀도가 높다는 것, 물이 4도까지는 보통처럼 행동한다는 것, 분자가 정해진 각도로 맞물린다는 것, 호수가 위에서부터 언다는 것은 언급되지만 소금이 어는점을 낮춘다는 것은 언급되지 않았다. 따라서 답은 ③이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

@@ -27,16 +27,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "예약하고 오지 않는 스터디룸 운영 규칙을 알리려고",
         "스터디룸 예약 방법을 안내하려고",
         "도서관 개방 시간 변경을 알리려고",
         "스터디룸 증설을 알리려고",
+        "예약하고 오지 않는 스터디룸 운영 규칙을 알리려고",
         "도서 반납을 독촉하려고",
       ],
-      answer: 1,
+      answer: 4,
       clue: "From Monday, a room that is still empty fifteen minutes after its start time will be given to whoever is waiting.",
       explanation:
-        "여자는 예약해 놓고 쓰지 않는 방 때문에 월요일부터 15분이 지나면 기다리는 사람에게 넘긴다고 알린다. 따라서 답은 ①이다.",
+        "여자는 예약해 놓고 쓰지 않는 방 때문에 월요일부터 15분이 지나면 기다리는 사람에게 넘긴다고 알린다. 따라서 답은 ④이다.",
       translation: [
         "W: 여러분, 안녕하세요. 학교 도서관 표입니다. 2층 모둠 스터디룸에 대해 말씀드리려 합니다. 방이 네 개 있는데 오후마다 예약이 꽉 찹니다. 그런데 지난주에는 그중 두 방이 한 시간 넘게 비어 있었고, 그동안 학생 여섯 명이 방을 기다리며 밖에 서 있었습니다. 예약은 되어 있었고 그저 쓰이지 않았습니다. 월요일부터는 시작 시각에서 15분이 지나도 비어 있는 방은 기다리는 사람에게 드립니다. 그 밖에 달라지는 것은 없고, 2주 전부터 예약하는 것도 그대로입니다. 계획이 틀어지면 앱에서 취소만 해 주세요. 감사합니다.",
       ].join("\n"),
@@ -61,15 +61,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "필기는 깔끔하게 해야 한다",
+        "노트를 옮겨 쓰기보다 기억해 써 봐야 한다",
         "복습은 그날 안에 해야 한다",
         "노트는 과목별로 나눠야 한다",
-        "노트를 옮겨 쓰기보다 기억해 써 봐야 한다",
         "필기는 수업 중에 끝내야 한다",
       ],
-      answer: 4,
+      answer: 2,
       clue: "Close the notes and write what you remember. Then check.",
       explanation:
-        "남자는 옮겨 쓰기가 복습이 아니라 베끼기였다며, 노트를 덮고 기억나는 것을 써 본 뒤 확인하라고 말한다. 따라서 답은 ④이다.",
+        "남자는 옮겨 쓰기가 복습이 아니라 베끼기였다며, 노트를 덮고 기억나는 것을 써 본 뒤 확인하라고 말한다. 따라서 답은 ②이다.",
       translation: [
         "W: 동진아, 나 저녁마다 노트를 깔끔하게 옮겨 쓰고 있어.",
         "M: 하루 치 전부? 얼마나 걸려?",
@@ -188,16 +188,16 @@ export const spec: SetSpec = {
         ["M", "Then I'll get the six cords from the shed."],
       ],
       choices: [
+        "전선 받아 오기",
         "간판 칠하기",
         "수레 꾸미기",
-        "전선 받아 오기",
         "먹거리 상인 만나기",
         "체육관 정리하기",
       ],
-      answer: 3,
+      answer: 1,
       clue: "Then I'll get the six cords from the shed.",
       explanation:
-        "간판과 수레는 끝났고 여자는 상인들을 만나야 하므로, 남자가 창고에서 연장선 여섯 개를 받아 오기로 한다. 따라서 답은 ③이다.",
+        "간판과 수레는 끝났고 여자는 상인들을 만나야 하므로, 남자가 창고에서 연장선 여섯 개를 받아 오기로 한다. 따라서 답은 ①이다.",
       translation: [
         "W: 동진아, 학교 축제가 내일 10시에 열려.",
         "M: 알아. 부스 간판은 다 됐어?",
@@ -231,11 +231,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take twenty percent off the sleeping bags, but not the lanterns."],
         ["W", "Thank you. I'll pay by card."],
       ],
-      choices: ["$128.00", "$136.00", "$144.00", "$160.00", "$192.00"],
-      answer: 2,
+      choices: ["$128.00", "$144.00", "$160.00", "$136.00", "$192.00"],
+      answer: 4,
       clue: "Then I can take twenty percent off the sleeping bags, but not the lanterns.",
       explanation:
-        "침낭 4개 120달러에서 20퍼센트를 빼면 96달러이고, 할인이 안 되는 랜턴 2개 40달러를 더하면 136달러이다. 따라서 답은 ②이다.",
+        "침낭 4개 120달러에서 20퍼센트를 빼면 96달러이고, 할인이 안 되는 랜턴 2개 40달러를 더하면 136달러이다. 따라서 답은 ④이다.",
       translation: [
         "M: 하버 아웃도어입니다. 무엇을 도와드릴까요?",
         "W: 침낭 네 개랑 캠핑 랜턴 두 개 주세요.",
@@ -269,15 +269,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "어깨를 다쳐서",
-        "거리가 멀어서",
         "동생 발표회에 가야 해서",
+        "거리가 멀어서",
         "시험 준비를 해야 해서",
         "아르바이트가 있어서",
       ],
-      answer: 3,
+      answer: 2,
       clue: "My sister's recital is that afternoon and I promised in August.",
       explanation:
-        "어깨도 나았고 거리도 문제가 아니며, 그날 오후에 동생 발표회가 있고 8월에 약속했기 때문이다. 따라서 답은 ③이다.",
+        "어깨도 나았고 거리도 문제가 아니며, 그날 오후에 동생 발표회가 있고 8월에 약속했기 때문이다. 따라서 답은 ②이다.",
       translation: [
         "W: 동진아, 일요일 봉사 명단에 네가 없네.",
         "M: 화요일에 빠지기로 했어.",
@@ -348,14 +348,14 @@ export const spec: SetSpec = {
       choices: [
         "2010년에 문을 열었다",
         "밭이 예순 개 있다",
-        "대기자 명단이 2년쯤 된다",
         "호스를 쓸 수 있다",
+        "대기자 명단이 2년쯤 된다",
         "빌린 사람에게 열쇠를 준다",
       ],
-      answer: 4,
+      answer: 3,
       clue: "Water is available from four taps, but hoses are not permitted.",
       explanation:
-        "수도는 네 곳에서 쓸 수 있지만 호스는 안 된다고 했으므로 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "수도는 네 곳에서 쓸 수 있지만 호스는 안 된다고 했으므로 ③은 내용과 다르다. 따라서 답은 ③이다.",
       translation: [
         "M: 라크필드 공동 텃밭을 소개해 드리겠습니다. 2010년에 시에서 더는 쓰지 않던 땅에 문을 열었습니다. 밭이 예순 개 있고, 각각 1년 단위로 빌립니다. 대기자 명단은 보통 2년쯤 됩니다. 도구는 공동 창고에 있고 밭을 빌린 사람은 누구나 쓸 수 있습니다. 물은 수도 네 곳에서 쓸 수 있지만 호스는 쓸 수 없습니다. 텃밭은 밤에 잠그고, 빌린 사람에게는 열쇠를 드립니다.",
       ].join("\n"),
@@ -379,16 +379,16 @@ export const spec: SetSpec = {
         ["M", "And I'll bring my student card this time."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 4,
+      answer: 1,
       clue: "Saturday. Sunday is family day at my house.",
       explanation:
-        "토요일이고, 마지막에 발표회가 있으며, 수강료가 5만 원 이하인 강좌를 고른다. 세 조건을 모두 채우는 것은 ④이다.",
+        "토요일이고, 마지막에 발표회가 있으며, 수강료가 5만 원 이하인 강좌를 고른다. 세 조건을 모두 채우는 것은 ①이다.",
       table: {
         rows: [
-          { no: 1, label: "①", value: "Day: Sunday / Showcase: Yes / Fee: 30,000 won" },
-          { no: 2, label: "②", value: "Day: Saturday / Showcase: No / Fee: 25,000 won" },
-          { no: 3, label: "③", value: "Day: Saturday / Showcase: Yes / Fee: 70,000 won" },
-          { no: 4, label: "④", value: "Day: Saturday / Showcase: Yes / Fee: 45,000 won" },
+          { no: 1, label: "①", value: "Day: Saturday / Showcase: Yes / Fee: 45,000 won" },
+          { no: 2, label: "②", value: "Day: Sunday / Showcase: Yes / Fee: 30,000 won" },
+          { no: 3, label: "③", value: "Day: Saturday / Showcase: No / Fee: 25,000 won" },
+          { no: 4, label: "④", value: "Day: Saturday / Showcase: Yes / Fee: 70,000 won" },
           { no: 5, label: "⑤", value: "Day: Sunday / Showcase: No / Fee: 20,000 won" },
         ],
       },
@@ -420,15 +420,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The cafeteria is closed all day.",
-        "I'll go straight there after my event.",
         "My event is in the morning.",
         "I don't eat lunch at school.",
+        "I'll go straight there after my event.",
         "An hour is far too long.",
       ],
-      answer: 2,
+      answer: 4,
       clue: "Then go straight there. You'll have half an hour.",
       explanation:
-        "여자가 끝나고 바로 가면 30분이 있다고 했으므로, 경기 끝나고 바로 가겠다는 ②가 가장 자연스럽다.",
+        "여자가 끝나고 바로 가면 30분이 있다고 했으므로, 경기 끝나고 바로 가겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 소라야, 체육대회 때 급식실 열어?",
         "W: 한 시간만. 12시부터 1시까지.",
@@ -486,16 +486,16 @@ export const spec: SetSpec = {
         ["M", "Ask one question tomorrow, and make it a small one."],
       ],
       choices: [
-        "I'll ask one small question tomorrow.",
         "I'll keep quiet for the rest of the year.",
         "Everyone laughed at me that day.",
         "I ask questions all the time.",
         "I'd rather change classes.",
+        "I'll ask one small question tomorrow.",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Ask one question tomorrow, and make it a small one.",
       explanation:
-        "남자가 내일 작은 질문 하나만 해 보라고 했으므로, 내일 작은 질문을 하나 하겠다는 ①이 가장 자연스럽다.",
+        "남자가 내일 작은 질문 하나만 해 보라고 했으므로, 내일 작은 질문을 하나 하겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 소라야, 너 수업에서 손을 안 들더라.",
         "W: 9월에 답을 틀렸는데 다들 돌아봤어.",
@@ -530,16 +530,16 @@ export const spec: SetSpec = {
         ["W", "Pick one, put the rest in a drawer, and write a page tonight."],
       ],
       choices: [
-        "I'll pick one and write tonight.",
         "I'll buy a better pen tomorrow.",
         "I write ten pages every day.",
+        "I'll pick one and write tonight.",
         "None of the pens work at all.",
         "I'll give all the pens away.",
       ],
-      answer: 1,
+      answer: 3,
       clue: "Pick one, put the rest in a drawer, and write a page tonight.",
       explanation:
-        "여자가 하나만 고르고 나머지는 넣어 둔 뒤 오늘 밤 한 쪽을 쓰라고 했으므로, 그렇게 하겠다는 ①이 가장 자연스럽다.",
+        "여자가 하나만 고르고 나머지는 넣어 둔 뒤 오늘 밤 한 쪽을 쓰라고 했으므로, 그렇게 하겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 동진아, 너 매주 새 펜을 사더라.",
         "M: 쓰는 느낌이 딱 맞는 걸 찾고 있어.",
@@ -577,16 +577,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "Turn the music down so the voices can be heard.",
         "We should film all the interviews again.",
         "Let's remove the interviews from the video.",
-        "Turn the music down so the voices can be heard.",
         "We should submit it on Tuesday instead.",
         "Let's make the video twice as long.",
       ],
-      answer: 3,
+      answer: 1,
       clue: "She wants to tell him to lower the music so the voices come through.",
       explanation:
-        "나윤이는 목소리가 들리도록 음악을 줄이자고 말하려 하므로 ③이 가장 적절하다.",
+        "나윤이는 목소리가 들리도록 음악을 줄이자고 말하려 하므로 ①이 가장 적절하다.",
       translation: [
         "M: 나윤이와 태민이는 학교 영상 대회에 낼 학급 작품을 준비하고 있습니다. 태민이는 10분짜리 영상을 찍고 편집했는데, 화면은 또렷하고 잘 잘려 있습니다. 목요일에 나윤이는 헤드폰이 아니라 교실 스피커로 그것을 봅니다. 그러자 인터뷰 목소리는 너무 작아 알아듣기 어렵고, 배경 음악만 편안한 크기로 들립니다. 대회 심사는 강당에서 큰 음향 장비로 합니다. 태민이는 전체를 헤드폰으로 편집했는데, 거기서는 균형이 괜찮게 들렸습니다. 음악 소리는 화면을 건드리지 않고 몇 분이면 줄일 수 있고, 제출은 월요일입니다. 나윤이는 목소리가 들리도록 음악을 줄이자고 말하고 싶습니다. 이런 상황에서 나윤이가 태민이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -613,16 +613,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "how water's resistance to heating shapes kettles and coastlines",
         "why kettles use more electricity than ovens",
         "how the sea produces waves in spring",
         "why sand is warmer than water at night",
+        "how water's resistance to heating shapes kettles and coastlines",
         "how to boil water faster with a lid",
       ],
-      answer: 1,
+      answer: 4,
       clue: "The same property that makes a kettle slow makes a coastal town milder than an inland one all year round.",
       explanation:
-        "남자는 물이 데우기 어려운 성질 때문에 주전자가 느리고 바닷가 마을이 온화하다고 설명한다. 따라서 답은 ①이다.",
+        "남자는 물이 데우기 어려운 성질 때문에 주전자가 느리고 바닷가 마을이 온화하다고 설명한다. 따라서 답은 ④이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 물을 가득 채운 주전자가 왜 절반만 채운 것보다 훨씬 느리게 끓는지, 그리고 그것이 열에 대해 무엇을 알려 주는지 이야기하려 합니다. 불은 어느 쪽이든 1초에 같은 양의 에너지를 줍니다. 달라지는 것은 그 에너지를 얼마나 많은 물이 나눠 갖느냐입니다. 물은 유난히 데우기 어렵습니다. 물 1킬로그램을 1도 올리는 데는 같은 무게의 공기를 올릴 때보다 네 배쯤 되는 에너지가 듭니다. 그래서 바다는 봄에 천천히 데워지고 가을에 천천히 식습니다. 그 옆의 모래는 둘 다 몇 시간 만에 해내는데도요. 주전자를 느리게 만드는 바로 그 성질이, 바닷가 마을을 내륙 마을보다 일 년 내내 온화하게 만듭니다.",
       ].join("\n"),
@@ -641,15 +641,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "the burner giving the same energy either way",
+        "a lid making water boil faster",
         "energy being shared among more water",
         "water needing four times the energy of air",
         "sand warming and cooling within hours",
-        "a lid making water boil faster",
       ],
-      answer: 5,
+      answer: 2,
       clue: "The burner delivers the same amount of energy every second either way.",
       explanation:
-        "불이 어느 쪽이든 같은 에너지를 준다는 것, 에너지를 더 많은 물이 나눠 갖는다는 것, 물이 공기보다 네 배의 에너지를 요구한다는 것, 모래가 몇 시간 만에 데워지고 식는다는 것은 언급되지만 뚜껑이 물을 빨리 끓게 한다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "불이 어느 쪽이든 같은 에너지를 준다는 것, 에너지를 더 많은 물이 나눠 갖는다는 것, 물이 공기보다 네 배의 에너지를 요구한다는 것, 모래가 몇 시간 만에 데워지고 식는다는 것은 언급되지만 뚜껑이 물을 빨리 끓게 한다는 것은 언급되지 않았다. 따라서 답은 ②이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

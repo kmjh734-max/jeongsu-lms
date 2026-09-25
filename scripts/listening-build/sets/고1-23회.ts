@@ -28,14 +28,14 @@ export const spec: SetSpec = {
       choices: [
         "경기 취소를 알리려고",
         "경기 시작 시각 변경을 알리려고",
-        "경기 장소 변경을 알리려고",
         "운동장 공사 일정을 안내하려고",
+        "경기 장소 변경을 알리려고",
         "응원단 모집을 알리려고",
       ],
-      answer: 3,
+      answer: 4,
       clue: "So the match will be held at Northside's field instead of ours.",
       explanation:
-        "남자는 새로 깐 잔디 때문에 경기를 우리 운동장이 아니라 상대 학교 운동장에서 한다고 알리고, 시작 시각은 그대로라고 덧붙인다. 따라서 답은 ③이다.",
+        "남자는 새로 깐 잔디 때문에 경기를 우리 운동장이 아니라 상대 학교 운동장에서 한다고 알리고, 시작 시각은 그대로라고 덧붙인다. 따라서 답은 ④이다.",
       translation: [
         "M: 그린필드 고등학교 학부모님 여러분, 안녕하세요. 체육부장 한 선생입니다. 이번 주 토요일 노스사이드와의 축구 경기 때문에 연락드립니다. 많은 분이 아시다시피 운동장을 여름에 새로 깔았는데 공사가 늦게 끝났습니다. 새 잔디는 안전하게 밟기까지 2주가 더 필요합니다. 그래서 경기는 우리 운동장이 아니라 노스사이드 운동장에서 열립니다. 시작 시각은 바뀌지 않았습니다. 여전히 2시입니다. 차편이 필요한 학생들을 위해 학교 버스 두 대가 12시 30분에 정문에서 출발합니다. 자리를 몇 개 잡아 둘지 알아야 하니 목요일까지 체육관 사무실에 신청하게 해 주세요. 노스사이드는 주차 공간이 적어서 버스를 권해 드립니다. 이해해 주셔서 감사합니다.",
       ].join("\n"),
@@ -59,16 +59,16 @@ export const spec: SetSpec = {
         ["W", "You'd cover less and keep more, which is the whole point."],
       ],
       choices: [
-        "공부는 짧게 끊어 쉬어 가며 해야 한다",
         "공부 시간은 길수록 좋다",
+        "공부는 짧게 끊어 쉬어 가며 해야 한다",
         "공부는 아침에 해야 효율이 높다",
         "과목을 바꿔 가며 공부해야 한다",
         "복습보다 예습이 중요하다",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Fifty minutes of work, ten minutes away from the desk, then again.",
       explanation:
-        "여자는 긴 시간 몰아서 하면 뇌가 저장을 멈춘다며, 50분 공부하고 10분 쉬기를 되풀이하면 적게 보고도 더 남는다고 말한다. 따라서 답은 ①이다.",
+        "여자는 긴 시간 몰아서 하면 뇌가 저장을 멈춘다며, 50분 공부하고 10분 쉬기를 되풀이하면 적게 보고도 더 남는다고 말한다. 따라서 답은 ②이다.",
       translation: [
         "M: 소라야, 나 매일 밤 여섯 시간씩 쉬지 않고 공부하기로 했어.",
         "W: 여섯 시간을 안 쉬고? 언제부터 시작했는데?",
@@ -107,15 +107,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "어휘를 많이 외워야 말이 트인다",
-        "언어 학습은 틀릴 각오로 말해 봐야 는다",
         "언어는 어릴 때 배워야 한다",
         "문법을 먼저 익혀야 한다",
         "원어민과 대화해야 실력이 는다",
+        "언어 학습은 틀릴 각오로 말해 봐야 는다",
       ],
-      answer: 2,
+      answer: 5,
       clue: "The ones who keep improving are the ones who speak the broken sentence anyway.",
       explanation:
-        "여자는 실력이 느는 사람은 단어를 더 아는 사람이 아니라 틀린 문장이라도 소리 내어 말하는 사람이라고 말한다. 따라서 답은 ②이다.",
+        "여자는 실력이 느는 사람은 단어를 더 아는 사람이 아니라 틀린 문장이라도 소리 내어 말하는 사람이라고 말한다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 사람들이 언어 학습을 이야기할 때는 보통 단어를 이야기합니다. 단어를 몇 개 아느냐, 이번 주에 몇 개를 외웠느냐. 그런데 제2 언어를 편하게 쓰게 된 사람을 보세요. 그 사람이 얻은 것은 더 긴 목록이 아니었습니다. 소리 내어 틀릴 각오였습니다. 모든 초보자는 조용히 있는 것이 안전한 지점에 이릅니다. 어색하게 나올지 모르는 문장을 만드느니 고개만 끄덕이는 편이 낫다고 느끼지요. 계속 느는 사람은 그래도 그 어색한 문장을 말하는 사람입니다. 그 말이 어떻게 받아들여지는지 듣고, 고쳐지고, 그 고침은 어떤 단어 목록도 못 하는 방식으로 남습니다. 그러니 언어를 배우는데 실력이 멈췄다면, 문제는 아마 단어를 몇 개 아느냐가 아닙니다. 이번 주에 몇 번이나 바보처럼 들릴 각오를 했느냐입니다.",
       ].join("\n"),
@@ -185,16 +185,16 @@ export const spec: SetSpec = {
         ["W", "Thanks. Leave them on the table when you're back."],
       ],
       choices: [
+        "안내문 복사하기",
         "전시판 붙이기",
         "표본 병 준비하기",
         "심사위원 만나기",
         "일정표 만들기",
-        "안내문 복사하기",
       ],
-      answer: 5,
+      answer: 1,
       clue: "Then I'll run over and get the fifty copies made.",
       explanation:
-        "전시판과 표본 병은 이미 끝났고 여자는 심사위원을 만나야 하므로, 남자가 안내문 50부를 복사하러 가기로 한다. 따라서 답은 ⑤이다.",
+        "전시판과 표본 병은 이미 끝났고 여자는 심사위원을 만나야 하므로, 남자가 안내문 50부를 복사하러 가기로 한다. 따라서 답은 ①이다.",
       translation: [
         "W: 준호야, 과학 전시회가 내일 9시에 열려. 우리 전시판은 다 됐어?",
         "M: 판은 끝났어. 오늘 아침에 마지막 도표를 붙였어.",
@@ -227,11 +227,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take ten percent off the ticket total."],
         ["W", "Wonderful. I'll pay by card."],
       ],
-      choices: ["$68.40", "$76.00", "$86.40", "$90.90", "$101.00"],
-      answer: 1,
+      choices: ["$76.00", "$86.40", "$90.90", "$68.40", "$101.00"],
+      answer: 4,
       clue: "Then I can take ten percent off the ticket total.",
       explanation:
-        "어른 2명 40달러와 학생 3명 36달러를 더하면 76달러이고, 공연은 보지 않으므로 76달러에서 10퍼센트를 빼면 68.40달러이다. 따라서 답은 ①이다.",
+        "어른 2명 40달러와 학생 3명 36달러를 더하면 76달러이고, 공연은 보지 않으므로 76달러에서 10퍼센트를 빼면 68.40달러이다. 따라서 답은 ④이다.",
       translation: [
         "M: 블루워터 수족관에 오신 걸 환영합니다. 표는 몇 장 드릴까요?",
         "W: 어른 두 장, 학생 세 장 주세요.",
@@ -356,14 +356,14 @@ export const spec: SetSpec = {
       choices: [
         "금요일과 토요일에 열린다",
         "강 남쪽 산책로에서 열린다",
-        "가게의 절반 이상이 음식을 판다",
         "현금으로만 계산할 수 있다",
+        "가게의 절반 이상이 음식을 판다",
         "입장료가 없다",
       ],
-      answer: 4,
+      answer: 3,
       clue: "The market does not accept cash, so bring a card or your phone.",
       explanation:
-        "현금을 받지 않으니 카드나 휴대폰을 가져오라고 했으므로 현금으로만 계산한다는 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "현금을 받지 않으니 카드나 휴대폰을 가져오라고 했으므로 현금으로만 계산한다는 ③은 내용과 다르다. 따라서 답은 ③이다.",
       translation: [
         "W: 리버뱅크 야시장을 소개해 드리겠습니다. 매주 금요일과 토요일 저녁 6시부터 11시까지 엽니다. 강 남쪽 기슭을 따라 난 산책로에서 찾으실 수 있습니다. 가게가 마흔 곳쯤 들어서는데 그중 절반이 넘는 곳이 음식을 팝니다. 이 시장은 현금을 받지 않으니 카드나 휴대폰을 가져오세요. 입구 근처 작은 무대에서는 이틀 다 8시에 라이브 음악을 합니다. 입장료는 없고, 줄을 맨 개는 데려오셔도 됩니다.",
       ].join("\n"),
@@ -435,14 +435,14 @@ export const spec: SetSpec = {
       choices: [
         "I already bought a calculator.",
         "The store closed last month.",
-        "Then I'll wait until Tuesday.",
         "I don't take math this year.",
+        "Then I'll wait until Tuesday.",
         "Lined paper is for drawing.",
       ],
-      answer: 3,
+      answer: 4,
       clue: "The clerk said the grid ones come next Tuesday.",
       explanation:
-        "모눈 공책이 다음 주 화요일에 들어온다고 했으므로, 화요일까지 기다리겠다는 ③이 가장 자연스럽다.",
+        "모눈 공책이 다음 주 화요일에 들어온다고 했으므로, 화요일까지 기다리겠다는 ④가 가장 자연스럽다.",
       translation: [
         "W: 준호야, 학교 매점에 새 공책 들어왔어?",
         "M: 오늘 아침에 왔는데 줄 공책만 왔어.",
@@ -503,13 +503,13 @@ export const spec: SetSpec = {
         "I've already given four speeches.",
         "Nobody attends our assemblies.",
         "I'd rather run the festival booth again.",
-        "Then maybe I should let my name stand.",
         "The meetings are the easy part.",
+        "Then maybe I should let my name stand.",
       ],
-      answer: 4,
+      answer: 5,
       clue: "And the speeches are the part you can practice for.",
       explanation:
-        "여자는 연설이야말로 연습할 수 있는 부분이라며 걱정을 덜어 주었으므로, 후보로 이름을 올려 보겠다는 ④가 가장 자연스럽다.",
+        "여자는 연설이야말로 연습할 수 있는 부분이라며 걱정을 덜어 주었으므로, 후보로 이름을 올려 보겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "W: 준호야, 너 반장 후보를 거절했다며.",
         "M: 응. 내가 잘할 것 같지 않아.",
@@ -587,16 +587,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "Learn the opening by heart and look up while you say it.",
         "You should write a longer argument tonight.",
         "Let's ask the teacher to change our topic.",
         "Read the paper a little faster tomorrow.",
         "I'll give the opening speech instead of you.",
-        "Learn the opening by heart and look up while you say it.",
       ],
-      answer: 5,
+      answer: 1,
       clue: "She wants to tell him to memorize the opening and speak it looking at the judges.",
       explanation:
-        "미나는 도윤이 첫 부분을 외워서 심사위원을 보며 말하기를 바라므로 ⑤가 가장 적절하다.",
+        "미나는 도윤이 첫 부분을 외워서 심사위원을 보며 말하기를 바라므로 ①이 가장 적절하다.",
       translation: [
         "W: 미나와 도윤이는 같은 토론 팀이고 내일이 첫 경기입니다. 도윤이는 탄탄한 주장을 썼지만 원고를 처음부터 끝까지 읽을 생각입니다. 연습 때 미나는 도윤이가 청중을 한 번도 올려다보지 않는 것을 봅니다. 미나는 심사위원이 내용만큼이나 눈 맞춤을 점수로 본다는 것을 알고, 도윤이의 주장은 잘 전달하기만 하면 이길 만큼 좋다는 것도 압니다. 미나는 도윤이가 첫 부분을 외워서 심사위원을 보며 말하기를 바랍니다. 이런 상황에서 미나가 도윤이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -623,15 +623,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "how to make everyday objects last longer",
-        "why we value things more once we own them",
         "how to keep yourself from buying on impulse",
         "the best order for clearing out a house",
+        "why we value things more once we own them",
         "why secondhand trading keeps growing",
       ],
-      answer: 2,
+      answer: 4,
       clue: "Once something is ours, we value it far above what we would pay to buy it today.",
       explanation:
-        "남자는 내 것이 되는 순간 그 물건을 살 때 낼 값보다 훨씬 높게 매기는 현상을 컵 실험을 들어 설명한다. 따라서 답은 ②이다.",
+        "남자는 내 것이 되는 순간 그 물건을 살 때 낼 값보다 훨씬 높게 매기는 현상을 컵 실험을 들어 설명한다. 따라서 답은 ④이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 우리가 왜 한 번도 쓰지 않는 물건을 계속 갖고 있는지 이야기하려 합니다. 집에 있는 아무 서랍이나 열어 보면 몇 년째 자리를 지킨 물건이 하나는 있습니다. 이제는 없는 기계에 쓰던 줄. 두 치수 작은 셔츠. 연구자들은 이것을 '소유 효과'라고 부릅니다. 어떤 것이 내 것이 되는 순간, 우리는 그것을 오늘 사려고 낼 값보다 훨씬 높게 값 매깁니다. 한 연구에서는 컵을 받은 학생들이 다른 학생들이 같은 컵에 내겠다고 한 값의 거의 두 배를 불렀습니다. 컵은 아무것도 달라지지 않았습니다. 누가 쥐고 있느냐만 달랐지요. 그래서 옷장을 비우는 일이 무언가를 잃는 것처럼 느껴집니다. 버리는 것이 전부 갖고 있는 줄도 몰랐던 물건인데도요. 이 버릇의 이름을 안다고 고쳐지지는 않지만, 서랍을 열기는 한결 쉬워집니다.",
       ].join("\n"),
@@ -651,15 +651,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "a cable for a device no longer owned",
+        "a watch that has stopped running",
         "a shirt two sizes too small",
         "a mug handed to students in a study",
         "a closet being cleared out",
-        "a watch that has stopped running",
       ],
-      answer: 5,
+      answer: 2,
       clue: "A cable for a device you no longer own. A shirt two sizes too small.",
       explanation:
-        "쓰지 않는 기계의 줄, 두 치수 작은 셔츠, 실험에서 학생들에게 준 컵, 비우는 옷장은 언급되지만 멈춘 손목시계는 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "쓰지 않는 기계의 줄, 두 치수 작은 셔츠, 실험에서 학생들에게 준 컵, 비우는 옷장은 언급되지만 멈춘 손목시계는 언급되지 않았다. 따라서 답은 ②이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

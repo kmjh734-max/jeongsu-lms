@@ -30,16 +30,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "추천서를 미리, 자료와 함께 부탁하라고 당부하려고",
         "추천서 양식이 바뀌었음을 알리려고",
         "진로 상담 신청을 받으려고",
         "지원 마감일을 안내하려고",
+        "추천서를 미리, 자료와 함께 부탁하라고 당부하려고",
         "교사 면담 시간을 공지하려고",
       ],
-      answer: 1,
+      answer: 4,
       clue: "Give your teacher at least three weeks, and bring two things when you ask.",
       explanation:
-        "여자는 추천서를 최소 3주 전에 부탁하고, 지원 목록과 수업에서 한 일을 적은 자료를 함께 가져오라고 당부한다. 따라서 답은 ①이다.",
+        "여자는 추천서를 최소 3주 전에 부탁하고, 지원 목록과 수업에서 한 일을 적은 자료를 함께 가져오라고 당부한다. 따라서 답은 ④이다.",
       translation: [
         "W: 3학년 학생 여러분, 안녕하세요. 진로실 백입니다. 이번 달에 부탁하게 될 추천서 이야기를 하려고 합니다. 해마다 몇몇 학생이 일요일 밤에 선생님께 메시지를 보내 월요일 아침까지 필요한 추천서를 부탁합니다. 한 시간 만에 쓴 편지는 한 시간 만에 쓴 편지처럼 읽히고, 받아 보는 쪽은 그걸 압니다. 그래서 이렇게 부탁드립니다. 선생님께 적어도 3주는 드리고, 부탁할 때 두 가지를 가져가세요. 어디에 지원하는지, 각각의 마감일을 옆에 적은 목록을 가져가고, 그 선생님 수업에서 실제로 무엇을 했는지 적은 한 쪽을 가져가세요. 성적 말고요. 무엇을 붙잡고 했고 무엇이 달라졌는지요. 그 두 쪽이 뻔한 편지를 구체적인 편지로 바꿔 줍니다. 신청 양식은 진로실 밖 선반에 있습니다. 감사합니다.",
       ].join("\n"),
@@ -64,15 +64,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "틀린 문제는 모두 다시 풀어야 한다",
-        "모의고사는 자주 볼수록 좋다",
         "오답은 막힌 단계를 찾아 그것만 연습해야 한다",
+        "모의고사는 자주 볼수록 좋다",
         "답지는 보지 말아야 한다",
         "오답 노트는 손으로 써야 한다",
       ],
-      answer: 3,
+      answer: 2,
       clue: "Mark the line where you stalled and work only on that move.",
       explanation:
-        "남자는 답을 아는 채로 다시 푸는 것은 같은 시험이 아니라며, 막힌 줄을 표시해 그 동작만 연습하라고 말한다. 따라서 답은 ③이다.",
+        "남자는 답을 아는 채로 다시 푸는 것은 같은 시험이 아니라며, 막힌 줄을 표시해 그 동작만 연습하라고 말한다. 따라서 답은 ②이다.",
       translation: [
         "W: 준서야, 나 모의고사에서 틀린 문제를 전부 다시 풀고 있어.",
         "M: 마흔 개 전부? 어디까지 했어?",
@@ -113,15 +113,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "모르는 것은 바로 물어야 한다",
-        "질문은 답하기 쉬운 형태로 바꿔 물어야 한다",
         "설명은 짧을수록 좋다",
         "가르칠 때는 반복이 중요하다",
         "질문하는 용기가 필요하다",
+        "질문은 답하기 쉬운 형태로 바꿔 물어야 한다",
       ],
-      answer: 2,
+      answer: 5,
       clue: "Ask instead, which part would you have trouble explaining to someone else.",
       explanation:
-        "남자는 '질문 있나요'는 답할 수 없는 물음이라며, 남에게 설명하기 어려운 부분을 묻는 식으로 바꾸면 약한 곳이 드러난다고 말한다. 따라서 답은 ②이다.",
+        "남자는 '질문 있나요'는 답할 수 없는 물음이라며, 남에게 설명하기 어려운 부분을 묻는 식으로 바꾸면 약한 곳이 드러난다고 말한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 우리가 거의 매번 잘못 묻는 질문이 하나 있고, 그 대가는 우리가 아는 것보다 큽니다. 그 질문은 '질문 있나요'입니다. 교사가 수업을 마치고, 의사가 설명을 마치고, 관리자가 보고를 마치면 그 문장이 나옵니다. 거기에 정직하게 답하는 사람은 거의 없습니다. 그 순간에 질문을 하려면 무엇을 놓쳤는지 이미 알고 있어야 하는데, 무언가를 이해하지 못한다는 것의 어려움은 바로 그 구멍의 모양이 보이지 않는다는 데 있습니다. 질문을 바꾸면 무슨 일이 일어나는지 보세요. 대신 이렇게 물어보세요. 어느 부분을 남에게 설명하기가 어려울 것 같나요. 이제 듣는 사람은 빈틈을 찾고 있지 않습니다. 작은 시험을 돌려 보는 것이고, 약한 부분이 스스로 드러납니다. 정보는 늘 거기 있었습니다. 달라진 것은 질문이 그것을 찾을 길을 열어 주었다는 점입니다.",
       ].join("\n"),
@@ -193,16 +193,16 @@ export const spec: SetSpec = {
         ["W", "I'll do a full run-through before I leave the hall."],
       ],
       choices: [
+        "강당 프로젝터로 시험해 보기",
         "영상 편집 마무리하기",
         "자막 넣기",
         "사진 모으기",
-        "강당 프로젝터로 시험해 보기",
         "백업 파일 만들기",
       ],
-      answer: 4,
+      answer: 1,
       clue: "Then I'll take the file down and test it on the projector.",
       explanation:
-        "편집과 자막은 끝났고 남자는 사진을 모아야 하므로, 여자가 강당 프로젝터로 시험해 보기로 한다. 따라서 답은 ④이다.",
+        "편집과 자막은 끝났고 남자는 사진을 모아야 하므로, 여자가 강당 프로젝터로 시험해 보기로 한다. 따라서 답은 ①이다.",
       translation: [
         "M: 유나야, 졸업 영상이 내일 2시에 상영돼.",
         "W: 알아. 최종본은 뽑았어?",
@@ -236,11 +236,11 @@ export const spec: SetSpec = {
         ["W", "Then I can give you twenty percent off the printing."],
         ["M", "Thank you. I'll pay now and pick them up Friday."],
       ],
-      choices: ["$384.00", "$400.00", "$448.00", "$480.00", "$560.00"],
-      answer: 1,
+      choices: ["$400.00", "$448.00", "$480.00", "$384.00", "$560.00"],
+      answer: 4,
       clue: "Then I can give you twenty percent off the printing.",
       explanation:
-        "40부의 인쇄비 480달러에서 제본은 빼고, 학생 할인 20퍼센트를 빼면 384달러이다. 따라서 답은 ①이다.",
+        "40부의 인쇄비 480달러에서 제본은 빼고, 학생 할인 20퍼센트를 빼면 384달러이다. 따라서 답은 ④이다.",
       translation: [
         "W: 카멜 인쇄소입니다. 오늘은 무엇이 필요하세요?",
         "M: 제 포트폴리오를 마흔 부, 한 부에 스무 쪽씩 뽑고 싶어요.",
@@ -274,15 +274,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "대학 면접이 있어서",
-        "아르바이트를 해야 해서",
         "할머니 병원에 있어야 해서",
+        "아르바이트를 해야 해서",
         "가족 여행을 가야 해서",
         "시험 준비를 해야 해서",
       ],
-      answer: 3,
+      answer: 2,
       clue: "My grandmother is having surgery Friday and I'm staying at the hospital.",
       explanation:
-        "면접은 다음 주로 옮겨졌고 아르바이트도 그만두었으며, 금요일 할머니 수술 때문에 병원에 있어야 하기 때문이다. 따라서 답은 ③이다.",
+        "면접은 다음 주로 옮겨졌고 아르바이트도 그만두었으며, 금요일 할머니 수술 때문에 병원에 있어야 하기 때문이다. 따라서 답은 ②이다.",
       translation: [
         "W: 준서야, 토요일 봉사 모임에 못 온다고?",
         "M: 응, 미안한 마음이야.",
@@ -354,14 +354,14 @@ export const spec: SetSpec = {
       choices: [
         "도시에서 북쪽으로 40킬로미터에 있다",
         "금요일과 토요일 밤에만 개방한다",
-        "주 망원경 거울이 1.5미터이다",
         "반드시 미리 예약해야 한다",
+        "주 망원경 거울이 1.5미터이다",
         "구름이 많으면 문을 닫는다",
       ],
-      answer: 4,
+      answer: 3,
       clue: "Visitors do not need to book ahead, but the viewing deck holds sixty people at a time.",
       explanation:
-        "미리 예약할 필요가 없다고 했으므로 반드시 예약해야 한다는 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "미리 예약할 필요가 없다고 했으므로 반드시 예약해야 한다는 ③은 내용과 다르다. 따라서 답은 ③이다.",
       translation: [
         "M: 코퍼크리크 천문대를 소개해 드리겠습니다. 도시에서 북쪽으로 40킬로미터 떨어진 능선 위에 있는데, 그곳의 밤하늘은 맨눈으로 은하수를 볼 수 있을 만큼 어둡습니다. 천문대는 금요일과 토요일 밤에만 일반에 개방합니다. 주 망원경의 거울은 지름이 1.5미터입니다. 방문객이 미리 예약할 필요는 없지만, 관측 데크에는 한 번에 예순 명이 들어갑니다. 구름이 80퍼센트를 넘으면 문을 닫고, 그 결정은 오후 4시까지 누리집에 올라옵니다.",
       ].join("\n"),
@@ -385,14 +385,14 @@ export const spec: SetSpec = {
         ["W", "I'll send you the link after dinner."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 2,
+      answer: 1,
       clue: "Forty minutes at most. Anything longer and I drift.",
       explanation:
-        "영상이 40분 이하이고, 주간 첨삭이 있으며, 수강료가 10만 원 이하인 강의를 고른다. 세 조건을 모두 채우는 것은 ②이다.",
+        "영상이 40분 이하이고, 주간 첨삭이 있으며, 수강료가 10만 원 이하인 강의를 고른다. 세 조건을 모두 채우는 것은 ①이다.",
       table: {
         rows: [
-          { no: 1, label: "①", value: "Video: 50 min / Feedback: Yes / Price: 90,000 won" },
-          { no: 2, label: "②", value: "Video: 35 min / Feedback: Yes / Price: 95,000 won" },
+          { no: 1, label: "①", value: "Video: 35 min / Feedback: Yes / Price: 95,000 won" },
+          { no: 2, label: "②", value: "Video: 50 min / Feedback: Yes / Price: 90,000 won" },
           { no: 3, label: "③", value: "Video: 30 min / Feedback: No / Price: 60,000 won" },
           { no: 4, label: "④", value: "Video: 40 min / Feedback: Yes / Price: 130,000 won" },
           { no: 5, label: "⑤", value: "Video: 25 min / Feedback: No / Price: 45,000 won" },
@@ -428,13 +428,13 @@ export const spec: SetSpec = {
         "The office closed last semester.",
         "I don't have any classes.",
         "Mornings are better for me.",
-        "I've already graduated.",
         "I'll go right after class, then.",
+        "I've already graduated.",
       ],
-      answer: 5,
+      answer: 4,
       clue: "They stay open until six, so go straight after your last class.",
       explanation:
-        "여자가 6시까지 열려 있으니 마지막 수업 후 바로 가라고 했으므로, 수업 끝나고 바로 가겠다는 ⑤가 가장 자연스럽다.",
+        "여자가 6시까지 열려 있으니 마지막 수업 후 바로 가라고 했으므로, 수업 끝나고 바로 가겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 유나야, 시험 기간에 상담실 열어?",
         "W: 열어. 그런데 오후에만.",
@@ -495,13 +495,13 @@ export const spec: SetSpec = {
         "I'll rewrite the opening once more.",
         "Nobody reads personal statements anyway.",
         "My draft is already finished.",
-        "I'll send two drafts to my teacher tonight.",
         "I'd rather not apply at all.",
+        "I'll send two drafts to my teacher tonight.",
       ],
-      answer: 4,
+      answer: 5,
       clue: "Give two versions to someone and ask which one they remember tomorrow.",
       explanation:
-        "남자는 두 판본을 누군가에게 주고 내일 무엇이 기억나는지 물으라고 했으므로, 오늘 밤 선생님께 두 편을 보내겠다는 ④가 가장 자연스럽다.",
+        "남자는 두 판본을 누군가에게 주고 내일 무엇이 기억나는지 물으라고 했으므로, 오늘 밤 선생님께 두 편을 보내겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 유나야, 자기소개서 도입부를 아홉 번이나 바꿨네.",
         "W: 어느 것도 내가 읽고 싶은 사람처럼 들리지 않아.",
@@ -584,16 +584,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "Call the facilities office and confirm that number.",
         "Let's drop the recycling article this week.",
         "You should make the article twice as long.",
         "Put the poster photo on the front page.",
         "Let's move the deadline to next month.",
-        "Call the facilities office and confirm that number.",
       ],
-      answer: 5,
+      answer: 1,
       clue: "She wants to tell him to call the facilities office and confirm the figure before Friday.",
       explanation:
-        "나라는 태양이가 시설과에 전화해 숫자를 확인하기를 바라므로 ⑤가 가장 적절하다.",
+        "나라는 태양이가 시설과에 전화해 숫자를 확인하기를 바라므로 ①이 가장 적절하다.",
       translation: [
         "W: 나라와 태양이는 학교 신문부이고, 마지막 호 마감이 금요일입니다. 태양이는 학교 재활용 사업에 관한 긴 기사를 2주 동안 썼고, 글은 꼼꼼하고 조사도 잘 되어 있습니다. 문제는 핵심 숫자, 곧 학교가 매주 내놓는 쓰레기 양이 지난봄 복도에서 본 포스터의 한 줄에서 나왔다는 점입니다. 태양이는 그 뒤로 그 포스터를 찾지 못했고, 물어본 어느 부서에도 그 숫자가 없습니다. 나라는 시설과가 월별 쓰레기 기록을 갖고 있다는 것과, 전화 한 통이면 몇 분 만에 숫자가 정리된다는 것을 압니다. 나라는 이 호에서 가장 좋은 이 기사를 태양이가 접기를 바라지 않지만, 출처를 댈 수 없는 숫자를 첫 문단에 그대로 둘 수도 없습니다. 나라는 금요일 전에 시설과에 전화해 숫자를 확인하라고 말하고 싶습니다. 이런 상황에서 나라가 태양이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -620,16 +620,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "how plants get their seeds carried to new places",
         "why fruit trees produce sweet flesh in autumn",
         "how ants build their underground chambers",
         "why some seeds cannot survive in dry soil",
+        "how plants get their seeds carried to new places",
         "how wind patterns change across a forest",
       ],
-      answer: 1,
+      answer: 4,
       clue: "A tree cannot walk, so it must persuade something else to carry its seeds.",
       explanation:
-        "여자는 열매, 개미가 좋아하는 기름진 부분, 갈고리, 날개 등 식물이 씨앗을 옮기게 하는 여러 방식을 설명한다. 따라서 답은 ①이다.",
+        "여자는 열매, 개미가 좋아하는 기름진 부분, 갈고리, 날개 등 식물이 씨앗을 옮기게 하는 여러 방식을 설명한다. 따라서 답은 ④이다.",
       translation: [
         "W: 안녕하세요, 여러분. 오늘은 어떤 식물이 왜 처음 자리에서 멀리 떨어진 곳까지 퍼지는지 이야기하려 합니다. 나무는 걸을 수 없으니 다른 무언가를 설득해 씨앗을 옮기게 해야 합니다. 가장 익숙한 방식은 열매입니다. 동물이 달콤한 과육을 먹고 하루쯤 걸어가 다른 곳에 씨앗을 떨어뜨립니다. 그런데 덜 뻔한 거래들을 보세요. 어떤 씨앗은 개미가 옮길 만하다고 여기는 작고 기름진 덩이를 답니다. 개미는 씨앗을 땅속으로 끌고 가 그 기름진 부분만 먹고, 마침 어둡고 축축하며 경쟁자가 없는 방에 씨앗을 남깁니다. 어떤 씨앗은 갈고리를 만들어 털에 그냥 붙습니다. 아무것도 내주지 않고 이동하는 것이지요. 또 몇몇은 날개를 만들어 바람에 일을 맡깁니다. 모양 말고는 아무것도 치르지 않고요. 식물은 어디에 내려앉을지는 정하지 못합니다. 정할 수 있는 것은 지나가는 무언가에게 내미는 제안뿐입니다.",
       ].join("\n"),
@@ -649,15 +649,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "being eaten inside sweet fruit",
+        "floating down a river to the sea",
         "being hauled underground by ants",
         "hooking onto an animal's fur",
-        "floating down a river to the sea",
         "being carried by the wind on wings",
       ],
-      answer: 4,
+      answer: 2,
       clue: "Other seeds grow hooks and simply attach to fur, travelling without offering anything at all.",
       explanation:
-        "열매 속에서 먹히기, 개미가 땅속으로 끌고 가기, 털에 갈고리로 붙기, 날개로 바람을 타기는 언급되지만 강을 따라 바다로 떠내려가는 것은 언급되지 않았다. 따라서 답은 ④이다.",
+        "열매 속에서 먹히기, 개미가 땅속으로 끌고 가기, 털에 갈고리로 붙기, 날개로 바람을 타기는 언급되지만 강을 따라 바다로 떠내려가는 것은 언급되지 않았다. 따라서 답은 ②이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

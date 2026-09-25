@@ -26,16 +26,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "분실물을 금요일에 찾아가라고 알리려고",
         "분실물 보관함 위치 변경을 알리려고",
         "물품 기증을 부탁하려고",
+        "분실물을 금요일에 찾아가라고 알리려고",
         "학생회 선거를 안내하려고",
         "점심시간 변경을 알리려고",
       ],
-      answer: 1,
+      answer: 3,
       clue: "So this Friday during lunch, we will lay everything out on tables in the front hall.",
       explanation:
-        "남자는 금요일 점심시간에 분실물을 중앙 현관에 늘어놓을 테니 와서 찾아가라고 알린다. 따라서 답은 ①이다.",
+        "남자는 금요일 점심시간에 분실물을 중앙 현관에 늘어놓을 테니 와서 찾아가라고 알린다. 따라서 답은 ③이다.",
       translation: [
         "M: 학생 여러분, 안녕하세요. 학생회 서입니다. 교무실 앞 분실물 상자에 대해 말씀드리려 합니다. 지금 그 안에는 아흔 개쯤 들어 있고 대부분 1학기 것입니다. 마흔 개는 물병, 스무 개는 겉옷, 나머지는 열쇠와 장갑, 우산입니다. 몇 주째 아무도 들여다보러 오지 않았고, 이제 상자는 너무 차서 닫히지도 않습니다. 그래서 이번 주 금요일 점심시간에 중앙 현관 탁자에 전부 늘어놓겠습니다. 와서 본인 것을 가져가세요. 2시까지 탁자에 남아 있는 것은 주민 센터에 기증합니다. 올해 무언가를 잃어버린 것 같다면 금요일입니다. 감사합니다.",
       ].join("\n"),
@@ -59,16 +59,16 @@ export const spec: SetSpec = {
         ["W", "Or keep the tablet but force yourself to write half as much."],
       ],
       choices: [
-        "필기는 손으로 해야 한다",
         "필기는 무엇을 적을지 고르는 과정이 중요하다",
+        "필기는 손으로 해야 한다",
         "수업은 녹음해 두어야 한다",
         "필기는 수업 후에 정리해야 한다",
         "태블릿은 수업에 쓰지 말아야 한다",
       ],
-      answer: 2,
+      answer: 1,
       clue: "That deciding is the part that makes it stick.",
       explanation:
-        "여자는 무엇을 적을지 정하는 그 과정이 기억에 남게 한다며, 적는 양을 절반으로 줄이라고 말한다. 따라서 답은 ②이다.",
+        "여자는 무엇을 적을지 정하는 그 과정이 기억에 남게 한다며, 적는 양을 절반으로 줄이라고 말한다. 따라서 답은 ①이다.",
       translation: [
         "M: 수민아, 나 모든 수업에서 태블릿으로 필기하기 시작했어.",
         "W: 손으로 쓰는 거랑 어때?",
@@ -189,14 +189,14 @@ export const spec: SetSpec = {
       choices: [
         "책상 배치하기",
         "시계 빌리기",
-        "심사표 인쇄하기",
         "심사위원 안내하기",
         "도서관 청소하기",
+        "심사표 인쇄하기",
       ],
-      answer: 3,
+      answer: 5,
       clue: "Then I'll print the judging sheets and bring them in.",
       explanation:
-        "책상과 시계는 끝났고 남자는 심사위원을 모시러 가야 하므로, 여자가 심사표를 인쇄해 오기로 한다. 따라서 답은 ③이다.",
+        "책상과 시계는 끝났고 남자는 심사위원을 모시러 가야 하므로, 여자가 심사표를 인쇄해 오기로 한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 수민아, 학급 토론이 3시에 도서관에서 시작해.",
         "W: 알아. 책상은 두 팀에 맞게 놨어?",
@@ -230,11 +230,11 @@ export const spec: SetSpec = {
         ["W", "Then I can take twenty percent off the total."],
         ["M", "Great. I'll pay by card."],
       ],
-      choices: ["$72.00", "$80.00", "$88.00", "$90.00", "$110.00"],
-      answer: 1,
+      choices: ["$80.00", "$88.00", "$72.00", "$90.00", "$110.00"],
+      answer: 3,
       clue: "Then I can take twenty percent off the total.",
       explanation:
-        "라켓 4개 72달러와 셔틀콕 2통 18달러를 더하면 90달러이고, 커버는 사지 않았으므로 20퍼센트를 빼면 72달러이다. 따라서 답은 ①이다.",
+        "라켓 4개 72달러와 셔틀콕 2통 18달러를 더하면 90달러이고, 커버는 사지 않았으므로 20퍼센트를 빼면 72달러이다. 따라서 답은 ③이다.",
       translation: [
         "W: 메이플 스포츠입니다. 오늘 무엇을 찾으세요?",
         "M: 배드민턴 라켓 네 개랑 셔틀콕 두 통 주세요.",
@@ -267,16 +267,16 @@ export const spec: SetSpec = {
         ["W", "Not even for the final piece. I told the teacher right away."],
       ],
       choices: [
+        "동생 졸업식과 겹쳐서",
         "목이 아파서",
         "연습 일정이 많아서",
-        "동생 졸업식과 겹쳐서",
         "다른 대회에 나가서",
         "이사를 가서",
       ],
-      answer: 3,
+      answer: 1,
       clue: "I could manage that. It's my brother's graduation.",
       explanation:
-        "목은 나았고 연습 일정도 감당할 수 있었지만, 대회 당일 아침에 다른 도시에서 동생의 졸업식이 있기 때문이다. 따라서 답은 ③이다.",
+        "목은 나았고 연습 일정도 감당할 수 있었지만, 대회 당일 아침에 다른 도시에서 동생의 졸업식이 있기 때문이다. 따라서 답은 ①이다.",
       translation: [
         "M: 수민아, 대회 합창단 명단에 네 이름이 없네.",
         "W: 지난 화요일에 빠지기로 했어.",
@@ -308,11 +308,11 @@ export const spec: SetSpec = {
         ["M", "They run extra buses from the station every fifteen minutes."],
         ["W", "Then let's go on Saturday evening."],
       ],
-      choices: ["열리는 기간", "열리는 장소", "볼거리", "입장료", "주최 기관"],
-      answer: 5,
+      choices: ["열리는 기간", "열리는 장소", "볼거리", "주최 기관", "입장료"],
+      answer: 4,
       clue: "주최 기관은 대화에서 언급되지 않았다.",
       explanation:
-        "기간(12월 첫째 주말 사흘), 장소(옛 부두), 볼거리(빛 조형물·야시장·배 행렬), 입장료(무료)는 언급되지만 주최 기관은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "기간(12월 첫째 주말 사흘), 장소(옛 부두), 볼거리(빛 조형물·야시장·배 행렬), 입장료(무료)는 언급되지만 주최 기관은 언급되지 않았다. 따라서 답은 ④이다.",
       translation: [
         "M: 수민아, 하버라이츠 축제 갈 거야?",
         "W: 가고 싶어. 언제 해?",
@@ -346,15 +346,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "1996년에 만들어졌다",
+        "악기를 빌려준다",
         "토요일 오후에 연습한다",
         "오디션은 일 년에 두 번 있다",
-        "악기를 빌려준다",
         "연주회는 무료이다",
       ],
-      answer: 4,
+      answer: 2,
       clue: "Instruments are not provided, so members must bring their own.",
       explanation:
-        "악기는 제공되지 않아 직접 가져와야 한다고 했으므로 악기를 빌려준다는 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "악기는 제공되지 않아 직접 가져와야 한다고 했으므로 악기를 빌려준다는 ②는 내용과 다르다. 따라서 답은 ②이다.",
       translation: [
         "W: 파인우드 청소년 오케스트라를 소개해 드리겠습니다. 1996년에 만들어졌고 지금은 열세 살부터 열아홉 살까지 일흔 명쯤이 활동합니다. 연습은 매주 토요일 오후에 주민 회관에서 합니다. 새 단원은 오디션으로 뽑는데, 3월과 9월 해마다 두 번 있습니다. 악기는 제공되지 않으니 단원이 직접 가져와야 합니다. 오케스트라는 해마다 네 번 연주회를 열고, 모두 무료로 볼 수 있습니다. 단원은 악보와 회관 대여료에 쓰이는 적은 월 회비를 냅니다.",
       ].join("\n"),
@@ -378,17 +378,17 @@ export const spec: SetSpec = {
         ["W", "Will do. It should arrive within a week."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 3,
+      answer: 5,
       clue: "Four, so anything smaller is out.",
       explanation:
-        "네 명 이상 들어가고, 방수가 되며, 20만 원 이하인 텐트를 고른다. 세 조건을 모두 채우는 것은 ③이다.",
+        "네 명 이상 들어가고, 방수가 되며, 20만 원 이하인 텐트를 고른다. 세 조건을 모두 채우는 것은 ⑤이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Capacity: 2 / Waterproof: Yes / Price: 90,000 won" },
           { no: 2, label: "②", value: "Capacity: 4 / Waterproof: No / Price: 120,000 won" },
-          { no: 3, label: "③", value: "Capacity: 5 / Waterproof: Yes / Price: 185,000 won" },
-          { no: 4, label: "④", value: "Capacity: 6 / Waterproof: Yes / Price: 260,000 won" },
-          { no: 5, label: "⑤", value: "Capacity: 3 / Waterproof: Yes / Price: 110,000 won" },
+          { no: 3, label: "③", value: "Capacity: 6 / Waterproof: Yes / Price: 260,000 won" },
+          { no: 4, label: "④", value: "Capacity: 3 / Waterproof: Yes / Price: 110,000 won" },
+          { no: 5, label: "⑤", value: "Capacity: 5 / Waterproof: Yes / Price: 185,000 won" },
         ],
       },
       translation: [
@@ -419,15 +419,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "I never take the school bus.",
-        "I'll catch the eleven thirty, then.",
         "My exam ends at four.",
+        "I'll catch the eleven thirty, then.",
         "The gym has no bus stop.",
         "I'll walk home instead.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "The last morning bus leaves at eleven thirty from the gym side.",
       explanation:
-        "남자가 마지막 오전 버스가 11시 30분에 떠난다고 알려 주었으므로, 그 버스를 타겠다는 ②가 가장 자연스럽다.",
+        "남자가 마지막 오전 버스가 11시 30분에 떠난다고 알려 주었으므로, 그 버스를 타겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 민호야, 시험 날에 학교 버스 다녀?",
         "M: 다녀. 그런데 단축 시간표로.",
@@ -448,16 +448,16 @@ export const spec: SetSpec = {
         ["W", "It's posted as a pinned comment, not as a file. Scroll to the top."],
       ],
       choices: [
+        "I'll scroll up and look.",
         "I already read every book.",
         "There is no reading list.",
         "I'll ask for a paper copy.",
-        "I'll scroll up and look.",
         "The page has no comments.",
       ],
-      answer: 4,
+      answer: 1,
       clue: "It's posted as a pinned comment, not as a file. Scroll to the top.",
       explanation:
-        "여자가 고정 댓글로 올라와 있으니 위로 올려 보라고 했으므로, 올려서 보겠다는 ④가 가장 자연스럽다.",
+        "여자가 고정 댓글로 올라와 있으니 위로 올려 보라고 했으므로, 올려서 보겠다는 ①이 가장 자연스럽다.",
       translation: [
         "M: 수민아, 다음 주 읽기 목록을 못 찾겠어.",
         "W: 종이로 나눠 줬어, 인터넷에 올렸어?",
@@ -488,13 +488,13 @@ export const spec: SetSpec = {
         "I'll skip Friday as well.",
         "My hands never shake at all.",
         "I'll quit the club this term.",
-        "Rehearsals are harder than concerts.",
         "I'll take the short piece on Friday.",
+        "Rehearsals are harder than concerts.",
       ],
-      answer: 5,
+      answer: 4,
       clue: "Play the shortest piece on Friday and let it pass.",
       explanation:
-        "남자가 금요일에 가장 짧은 곡을 연주하며 떨림이 지나가게 두라고 했으므로, 짧은 곡을 맡겠다는 ⑤가 가장 자연스럽다.",
+        "남자가 금요일에 가장 짧은 곡을 연주하며 떨림이 지나가게 두라고 했으므로, 짧은 곡을 맡겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 수민아, 동아리 공연을 세 번 연속 빠졌네.",
         "W: 연습에는 가. 무대에만 안 올라가는 거야.",
@@ -529,16 +529,16 @@ export const spec: SetSpec = {
         ["W", "Make two at once on Sunday and see if it holds."],
       ],
       choices: [
-        "I'll try making two this Sunday.",
         "I'll keep buying lunch anyway.",
+        "I'll try making two this Sunday.",
         "I already bring lunch every day.",
         "Sundays are my busiest day.",
         "Lunch only costs a few thousand.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Make two at once on Sunday and see if it holds.",
       explanation:
-        "여자가 일요일에 두 개를 한 번에 만들어 보라고 했으므로, 이번 일요일에 해 보겠다는 ①이 가장 자연스럽다.",
+        "여자가 일요일에 두 개를 한 번에 만들어 보라고 했으므로, 이번 일요일에 해 보겠다는 ②가 가장 자연스럽다.",
       translation: [
         "W: 민호야, 이번 달 내내 점심을 사 먹네.",
         "M: 아침에 싸면 너무 오래 걸려.",
@@ -576,15 +576,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "We should print twenty more posters tonight.",
-        "Let's put the rest lower, where people actually look.",
         "Let's use a different color of tape.",
         "We should move the blood drive to next month.",
         "Let's take all the posters down again.",
+        "Let's put the rest lower, where people actually look.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "She wants to tell him to put the rest lower, at the height people actually look.",
       explanation:
-        "다빈이는 남은 포스터를 사람들이 실제로 보는 높이에 붙이자고 말하려 하므로 ②가 가장 적절하다.",
+        "다빈이는 남은 포스터를 사람들이 실제로 보는 높이에 붙이자고 말하려 하므로 ⑤가 가장 적절하다.",
       translation: [
         "W: 다빈이와 우성이는 교내 헌혈 행사 포스터를 붙이고 있습니다. 둘이 포스터 마흔 장을 만들었고 오후 내내 붙이고 있습니다. 우성이는 빠르게 움직여 벌써 복도 세 곳을 끝냈습니다. 다빈이는 우성이가 포스터를 자기 눈높이에 붙이고 있다는 것을 알아챕니다. 그 높이는 1학년 학생 대부분의 눈높이보다 한참 위이고, 몇 장은 아무도 보지 않는 사물함 줄 위쪽에 붙어 있습니다. 이 행사는 학생들이 날짜와 신청 주소를 실제로 읽어야 굴러갑니다. 아직 포스터가 열다섯 장 남았고 테이프도 넉넉합니다. 다빈이는 남은 것은 사람들이 실제로 보는 높이에 더 낮게 붙이자고 말하고 싶습니다. 이런 상황에서 다빈이가 우성이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -610,16 +610,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "how surfaces decide whether a room feels loud",
         "why libraries have rules about talking",
         "how sound travels through open windows",
+        "how surfaces decide whether a room feels loud",
         "why carpets are cheaper than tile floors",
         "how the human ear measures loudness",
       ],
-      answer: 1,
+      answer: 3,
       clue: "Hard flat surfaces reflect sound; soft uneven ones absorb it.",
       explanation:
-        "남자는 단단한 면은 소리를 반사하고 부드러운 면은 흡수한다며, 그래서 같은 소음에도 방이 시끄럽게 느껴진다고 설명한다. 따라서 답은 ①이다.",
+        "남자는 단단한 면은 소리를 반사하고 부드러운 면은 흡수한다며, 그래서 같은 소음에도 방이 시끄럽게 느껴진다고 설명한다. 따라서 답은 ③이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 소음 크기가 달라지지 않았는데도 같은 방이 왜 시끄럽게도 조용하게도 느껴지는지 이야기하려 합니다. 빈 아파트에 들어가 손뼉을 한 번 쳐 보세요. 소리가 맨벽과 맨바닥에 부딪혀 여러 번 되돌아옵니다. 깔개와 소파, 커튼을 들여놓고 다시 쳐 보세요. 손뼉 소리가 거의 곧바로 죽습니다. 달라진 것은 소리가 얼마나 났느냐가 아니라 얼마나 오래 살아남았느냐입니다. 단단하고 평평한 면은 소리를 되쏘고, 부드럽고 울퉁불퉁한 면은 소리를 빨아들입니다. 그래서 양탄자가 깔린 도서관은 차분하게 느껴지고 타일이 깔린 급식실은 어수선하게 느껴집니다. 콘크리트 바닥의 식당에서는 모두가 목소리를 높이게 되고, 그러면 그 방은 더 시끄러워집니다.",
       ].join("\n"),
@@ -637,16 +637,16 @@ export const spec: SetSpec = {
         ["M", "and why restaurants with concrete floors force everyone to raise their voice."],
       ],
       choices: [
+        "thick doors keeping noise out of a room",
         "a clap echoing in an empty apartment",
         "a rug, a sofa and curtains absorbing sound",
         "a carpeted library feeling calm",
         "a tiled cafeteria feeling chaotic",
-        "thick doors keeping noise out of a room",
       ],
-      answer: 5,
+      answer: 1,
       clue: "Put in a rug, a sofa and curtains, and clap again. The clap dies almost immediately.",
       explanation:
-        "빈 아파트의 손뼉 울림, 깔개와 소파와 커튼이 소리를 빨아들이는 것, 양탄자 깔린 도서관, 타일 깔린 급식실은 언급되지만 두꺼운 문이 소음을 막는다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "빈 아파트의 손뼉 울림, 깔개와 소파와 커튼이 소리를 빨아들이는 것, 양탄자 깔린 도서관, 타일 깔린 급식실은 언급되지만 두꺼운 문이 소음을 막는다는 것은 언급되지 않았다. 따라서 답은 ①이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

@@ -27,16 +27,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "성적을 받은 뒤 바로 결정하지 말고 상담을 받으라고 하려고",
         "성적 발표일이 바뀌었음을 알리려고",
         "상담실 위치 변경을 알리려고",
         "재수 상담을 권하려고",
         "원서 접수 방법을 안내하려고",
+        "성적을 받은 뒤 바로 결정하지 말고 상담을 받으라고 하려고",
       ],
-      answer: 1,
+      answer: 5,
       clue: "When the result arrives, read it, put it away, and come and talk to us before you act.",
       explanation:
-        "여자는 성적을 받자마자 결정하지 말고 상담실에 먼저 와서 이야기하라고 당부한다. 따라서 답은 ①이다.",
+        "여자는 성적을 받자마자 결정하지 말고 상담실에 먼저 와서 이야기하라고 당부한다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 3학년 학생 여러분, 안녕하세요. 상담실 방입니다. 다음 주에 나오는 성적에 대해 말씀드리려 합니다. 해마다 몇몇 학생이 복도에서 봉투를 열고 이어지는 90초 안에 자기 앞날을 정해 버립니다. 그 결정 중 일부는 일주일 뒤에 뒤집히고, 일부는 뒤집히지 않습니다. 제가 걱정하는 것은 바로 그 부분입니다. 그래서 이렇게 부탁드립니다. 성적이 오면 읽고, 넣어 두고, 움직이기 전에 저희에게 와서 이야기해 주세요. 그 주에는 매일 7시까지 열어 두고, 예약도 필요 없습니다. 숫자는 정보입니다. 지시가 아닙니다. 감사합니다.",
       ].join("\n"),
@@ -62,14 +62,14 @@ export const spec: SetSpec = {
       choices: [
         "공부법 책을 많이 읽어야 한다",
         "자신에게 맞는 공부법이 따로 있다",
-        "계획은 두 주 단위로 세워야 한다",
         "공부법은 읽기보다 직접 시험해 봐야 한다",
+        "계획은 두 주 단위로 세워야 한다",
         "공부법은 자주 바꿔야 한다",
       ],
-      answer: 4,
+      answer: 3,
       clue: "Methods only tell you anything once they meet your own material.",
       explanation:
-        "남자는 공부법은 자기 자료를 만나야 무언가를 알려 준다며, 하나를 골라 2주 동안 돌려 보라고 말한다. 따라서 답은 ④이다.",
+        "남자는 공부법은 자기 자료를 만나야 무언가를 알려 준다며, 하나를 골라 2주 동안 돌려 보라고 말한다. 따라서 답은 ③이다.",
       translation: [
         "W: 승호야, 나 이번 달에 공부법 책을 세 권 읽고 있어.",
         "M: 세 권? 그중 몇 가지를 해 봤어?",
@@ -108,16 +108,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "성공 사례만 보면 실패한 경우를 놓친다",
         "위험을 감수해야 성공한다",
         "기록을 잘 남겨야 한다",
         "책은 많이 읽어야 한다",
-        "성공 사례만 보면 실패한 경우를 놓친다",
         "과거는 반복되지 않는다",
       ],
-      answer: 4,
+      answer: 1,
       clue: "The ninety-nine wrote nothing.",
       explanation:
-        "여자는 살아남은 것만 연구하게 되어 같은 일을 하고도 실패한 경우가 보이지 않는다고 말한다. 따라서 답은 ④이다.",
+        "여자는 살아남은 것만 연구하게 되어 같은 일을 하고도 실패한 경우가 보이지 않는다고 말한다. 따라서 답은 ①이다.",
       translation: [
         "W: 지난 일에 대한 좋은 기록을 앞날에 대한 나쁜 안내로 바꿔 놓는 실수가 하나 있는데, 저지르기 쉽습니다. 우리는 살아남은 것들을 연구합니다. 남은 회사, 통한 방법, 도착한 사람들. 우리가 연구할 수 없는 것은, 기록을 남기지 않았기 때문에, 같은 일을 하고도 실패한 모든 것입니다. 백 명이 같은 위험을 감수했는데 한 명이 성공했다면, 우리는 그 한 명이 쓴 책을 읽게 되고, 그 책은 그 위험을 이유로 설명할 것입니다. 나머지 아흔아홉은 아무것도 쓰지 않았습니다. 그러니 누군가에게 통했던 것을 따라 하기 전에, 그것이 정말 통하는지 알아내려면 몇 명을 만나 봐야 하는지 물어보세요.",
       ].join("\n"),
@@ -190,15 +190,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "의자 배치하기",
-        "졸업장 정리하기",
         "꽃 받아 오기",
+        "졸업장 정리하기",
         "초청 연사 맞이하기",
         "강당 청소하기",
       ],
-      answer: 3,
+      answer: 2,
       clue: "Then I'll collect the flowers from the shop.",
       explanation:
-        "의자와 졸업장은 끝났고 여자는 연사를 맞아야 하므로, 남자가 가게에서 꽃을 받아 오기로 한다. 따라서 답은 ③이다.",
+        "의자와 졸업장은 끝났고 여자는 연사를 맞아야 하므로, 남자가 가게에서 꽃을 받아 오기로 한다. 따라서 답은 ②이다.",
       translation: [
         "W: 승호야, 졸업식이 10시에 강당에서 시작해.",
         "M: 알아. 의자는 반별로 놨어?",
@@ -232,11 +232,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take twenty-five percent off the enlargements."],
         ["W", "Thank you. I'll pay now and collect on Friday."],
       ],
-      choices: ["$108.00", "$120.00", "$144.00", "$156.00", "$192.00"],
-      answer: 1,
+      choices: ["$120.00", "$144.00", "$156.00", "$192.00", "$108.00"],
+      answer: 5,
       clue: "Then I can take twenty-five percent off the enlargements.",
       explanation:
-        "확대 인화 8장 144달러에서 마운팅은 빼고, 25퍼센트를 빼면 108달러이다. 따라서 답은 ①이다.",
+        "확대 인화 8장 144달러에서 마운팅은 빼고, 25퍼센트를 빼면 108달러이다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 밀하우스 사진관입니다. 무엇을 도와드릴까요?",
         "W: 이 파일로 확대 인화 여덟 장 부탁드려요.",
@@ -310,11 +310,11 @@ export const spec: SetSpec = {
         ["W", "You can walk in, but registering gets you a seat at the talks."],
         ["M", "Then let's register tonight."],
       ],
-      choices: ["열리는 날", "열리는 장소", "참여 기관", "진행 방식", "참가비"],
-      answer: 5,
+      choices: ["참가비", "열리는 날", "열리는 장소", "참여 기관", "진행 방식"],
+      answer: 1,
       clue: "참가비는 대화에서 언급되지 않았다.",
       explanation:
-        "날짜(12월 16일 하루), 장소(시립 도서관 뒤 전시장), 참여 기관(봉사 단체·어학원·워킹홀리데이 업체), 진행 방식(부스와 오후 강연)은 언급되지만 참가비는 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "날짜(12월 16일 하루), 장소(시립 도서관 뒤 전시장), 참여 기관(봉사 단체·어학원·워킹홀리데이 업체), 진행 방식(부스와 오후 강연)은 언급되지만 참가비는 언급되지 않았다. 따라서 답은 ①이다.",
       translation: [
         "W: 승호야, 노스라인 갭이어 박람회 갈 거야?",
         "M: 포스터 봤어. 언제야?",
@@ -421,15 +421,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The office is closed that week.",
-        "I'll go over after my exam.",
         "I don't need any counseling.",
         "My exams are in the afternoon.",
         "I'll come back next month.",
+        "I'll go over after my exam.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "Then go straight over. They start seeing people at one thirty.",
       explanation:
-        "여자가 시험 끝나고 바로 가라고 했으므로, 시험 끝나고 가겠다는 ②가 가장 자연스럽다.",
+        "여자가 시험 끝나고 바로 가라고 했으므로, 시험 끝나고 가겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 수민아, 시험 주간에 상담실 열어?",
         "W: 열어. 그런데 오후에만.",
@@ -451,15 +451,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "My file is only two pages.",
-        "I'll save a compressed PDF.",
         "There is no size limit.",
+        "I'll save a compressed PDF.",
         "I'll send it by post instead.",
         "The application was accepted.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "Their limit is ten. Save it again as a compressed PDF.",
       explanation:
-        "남자가 압축한 PDF로 다시 저장하라고 했으므로, 그렇게 하겠다는 ②가 가장 자연스럽다.",
+        "남자가 압축한 PDF로 다시 저장하라고 했으므로, 그렇게 하겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 승호야, 원서가 자꾸 파일이 너무 크다고 해.",
         "M: 얼마나 큰데?",
@@ -531,16 +531,16 @@ export const spec: SetSpec = {
         ["M", "Check once, at six, and put the site away until then."],
       ],
       choices: [
-        "I'll check once at six from now on.",
         "I'll keep checking every hour.",
         "The result comes in the morning.",
         "I never check the site.",
+        "I'll check once at six from now on.",
         "I'll stop applying altogether.",
       ],
-      answer: 1,
+      answer: 4,
       clue: "Check once, at six, and put the site away until then.",
       explanation:
-        "남자가 6시에 한 번만 확인하고 그전에는 보지 말라고 했으므로, 그렇게 하겠다는 ①이 가장 자연스럽다.",
+        "남자가 6시에 한 번만 확인하고 그전에는 보지 말라고 했으므로, 그렇게 하겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 수민아, 너 한 시간마다 원서 사이트를 확인하더라.",
         "W: 결과가 언제 나올지 모르니까.",
@@ -581,15 +581,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "We should ask those forty for new photographs.",
+        "Let's brighten the dark photographs before Monday.",
         "Let's remove the dark photographs entirely.",
         "We should show it on a laptop instead.",
         "Let's move the ceremony to Tuesday.",
-        "Let's brighten the dark photographs before Monday.",
       ],
-      answer: 5,
+      answer: 2,
       clue: "She wants to tell him to brighten the dark ones before Monday.",
       explanation:
-        "나현이는 월요일 전에 어두운 사진을 밝게 고치자고 말하려 하므로 ⑤가 가장 적절하다.",
+        "나현이는 월요일 전에 어두운 사진을 밝게 고치자고 말하려 하므로 ②가 가장 적절하다.",
       translation: [
         "W: 나현이와 태호는 학년 전체의 졸업 영상을 만들고 있습니다. 태호는 학생 이백 명에게서 사진을 한 장씩 다 모았는데, 묻고 쫓아다니느라 3주가 걸렸습니다. 목요일에 나현이는 그 파일을 강당 프로젝터로 끝까지 봤다가, 그중 마흔 장쯤이 큰 화면에서는 너무 어두워 얼굴을 알아볼 수 없다는 것을 알게 됩니다. 태호의 노트북에서는 괜찮아 보였는데도요. 편집 프로그램으로 그 마흔 장을 밝게 하는 데는 한 시간쯤이면 되고, 졸업식은 월요일입니다. 나현이는 사진을 모으는 데만 3주가 걸렸기 때문에 누구에게도 새 사진을 다시 부탁하기를 바라지 않습니다. 나현이는 월요일 전에 어두운 사진을 밝게 고치자고 말하고 싶습니다. 이런 상황에서 나현이가 태호에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -617,15 +617,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "how camera lenses are ground and polished",
-        "why fast-moving objects look bent in some photographs",
         "why races are hard to photograph in low light",
         "how a sensor converts light into a signal",
         "why wheels are made round rather than square",
+        "why fast-moving objects look bent in some photographs",
       ],
-      answer: 2,
+      answer: 5,
       clue: "It is a picture of one object at several different moments, stacked into a single frame.",
       explanation:
-        "여자는 센서가 줄 단위로 읽는 사이에 대상이 움직여 한 장에 여러 순간이 쌓인다고 설명한다. 따라서 답은 ②이다.",
+        "여자는 센서가 줄 단위로 읽는 사이에 대상이 움직여 한 장에 여러 순간이 쌓인다고 설명한다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 안녕하세요, 여러분. 오늘은 달리기 경기 사진에 왜 가끔 바퀴가 있을 수 없는 모양으로 휘어 보이는지 이야기하려 합니다. 많은 카메라는 화면 전체를 한 번에 담지 않습니다. 센서를 위에서 아래로 한 줄씩 읽어 내려가는데, 그 훑기에 몇천 분의 1초가 걸립니다. 멈춰 있는 장면은 그 사이에 아무것도 달라지지 않으니 이상해 보일 것도 없습니다. 그런데 도는 바퀴는 첫 줄과 마지막 줄 사이에 움직입니다. 그래서 바퀴 위쪽은 한 자리에, 아래쪽은 다른 자리에 기록됩니다. 여러분이 보는 그 휘어짐은 렌즈의 결함이 아닙니다. 한 물체의 여러 순간이 한 장에 쌓인 그림입니다.",
       ].join("\n"),
@@ -645,14 +645,14 @@ export const spec: SetSpec = {
       choices: [
         "a camera not capturing the whole frame at once",
         "the sensor being read line by line",
+        "a flash freezing the wheel in place",
         "a still scene showing nothing wrong",
         "a wheel moving between the first and last line",
-        "a flash freezing the wheel in place",
       ],
-      answer: 5,
+      answer: 3,
       clue: "Many cameras do not capture the whole frame at once.",
       explanation:
-        "카메라가 한 번에 담지 않는다는 것, 센서를 줄 단위로 읽는다는 것, 멈춘 장면은 이상하지 않다는 것, 바퀴가 첫 줄과 마지막 줄 사이에 움직인다는 것은 언급되지만 플래시가 바퀴를 멈춰 세운다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "카메라가 한 번에 담지 않는다는 것, 센서를 줄 단위로 읽는다는 것, 멈춘 장면은 이상하지 않다는 것, 바퀴가 첫 줄과 마지막 줄 사이에 움직인다는 것은 언급되지만 플래시가 바퀴를 멈춰 세운다는 것은 언급되지 않았다. 따라서 답은 ③이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

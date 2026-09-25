@@ -27,16 +27,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "비 오는 날 반납함 사용을 자제해 달라고 하려고",
         "도서 대출 기간 변경을 알리려고",
         "반납함 위치 변경을 알리려고",
         "훼손 도서 변상 규정을 알리려고",
         "도서관 휴관을 안내하려고",
+        "비 오는 날 반납함 사용을 자제해 달라고 하려고",
       ],
-      answer: 1,
+      answer: 5,
       clue: "So from Monday, please do not use the drop box on rainy days.",
       explanation:
-        "여자는 비에 젖은 책이 반납함 안에서 망가진다며 비 오는 날에는 반납함 대신 데스크로 가져와 달라고 부탁한다. 따라서 답은 ①이다.",
+        "여자는 비에 젖은 책이 반납함 안에서 망가진다며 비 오는 날에는 반납함 대신 데스크로 가져와 달라고 부탁한다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 여러분, 안녕하세요. 학교 사서 배수진입니다. 책을 반납하는 방식에 대해 말씀드리려 합니다. 9월부터 도서관 문 밖에 반납함을 두었고, 덕분에 반납이 훨씬 쉬워졌습니다. 저희가 바라던 바로 그것입니다. 그런데 한 달에 서른 권쯤이 상한 채로 돌아옵니다. 비에 이미 젖은 책을 그대로 넣기 때문입니다. 닫힌 상자 안의 젖은 책은 주변 책들의 모양을 따라 굳어 다시는 돌아오지 않습니다. 그래서 월요일부터는 비 오는 날에 반납함을 쓰지 말아 주세요. 잠시 기다리시더라도 데스크로 가져와 주시기 바랍니다. 비가 오지 않는 날에는 반납함을 계속 열어 두겠습니다. 감사합니다.",
       ].join("\n"),
@@ -62,14 +62,14 @@ export const spec: SetSpec = {
       choices: [
         "문제는 매일 풀어야 한다",
         "오답 노트는 손으로 써야 한다",
+        "문제를 많이 푸는 것보다 오답을 되짚는 것이 낫다",
         "시험은 시간을 재고 풀어야 한다",
         "쉬운 문제부터 풀어야 한다",
-        "문제를 많이 푸는 것보다 오답을 되짚는 것이 낫다",
       ],
-      answer: 5,
+      answer: 3,
       clue: "One test plus a real review beats three tests and none.",
       explanation:
-        "남자는 다시 틀린 문제의 수가 저녁 공부의 성과를 말해 준다며, 한 세트에 제대로 된 복습을 더한 쪽이 낫다고 말한다. 따라서 답은 ⑤이다.",
+        "남자는 다시 틀린 문제의 수가 저녁 공부의 성과를 말해 준다며, 한 세트에 제대로 된 복습을 더한 쪽이 낫다고 말한다. 따라서 답은 ③이다.",
       translation: [
         "W: 도희야, 나 매일 저녁 모의 문제를 풀고 있어.",
         "M: 매일 저녁? 틀린 건 어떻게 다시 봐?",
@@ -108,16 +108,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "틀린 답은 고치기보다 어떻게 나왔는지 물어야 한다",
         "교사는 인내심이 있어야 한다",
         "정답은 바로 알려 주어야 한다",
         "학생은 질문을 많이 해야 한다",
-        "틀린 답은 고치기보다 어떻게 나왔는지 물어야 한다",
         "수업은 학생 중심이어야 한다",
       ],
-      answer: 4,
+      answer: 1,
       clue: "Asking how they got there brings the step into the open, where it can actually be changed.",
       explanation:
-        "여자는 틀린 답을 고치면 그 답만 고쳐질 뿐이라며, 어떻게 나왔는지를 물어야 잘못된 단계를 바꿀 수 있다고 말한다. 따라서 답은 ④이다.",
+        "여자는 틀린 답을 고치면 그 답만 고쳐질 뿐이라며, 어떻게 나왔는지를 물어야 잘못된 단계를 바꿀 수 있다고 말한다. 따라서 답은 ①이다.",
       translation: [
         "W: 좋은 교사들이 하는, 그런데 나머지 우리는 좀처럼 따라 하지 않는 동작이 하나 있습니다. 학생이 틀린 답을 말했을 때 바로 고쳐 주지 않는 것입니다. 어떻게 그 답에 이르렀는지 묻습니다. 이것은 인내심처럼 보이고, 어느 정도는 그렇지만, 진짜 이유는 더 실용적입니다. 틀린 답은 보이지 않는 사슬의 보이는 끝이고, 그 끝을 고치면 사슬은 그대로 남습니다. 학생은 그 한 문제의 정답을 들고 가고, 똑같이 잘못된 단계는 다음 문제를 기다립니다. 어떻게 거기에 이르렀는지 묻는 것은 그 단계를 드러내 놓고, 그제야 실제로 바꿀 수 있게 합니다. 1분이 들고, 그것이 답을 고치는 일과 방법을 고치는 일의 차이입니다.",
       ].join("\n"),
@@ -190,15 +190,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "지면 배치하기",
-        "사진 설명 고치기",
         "파일 변환해 보내기",
+        "사진 설명 고치기",
         "영어 시험 보기",
         "인쇄소에 전화하기",
       ],
-      answer: 3,
+      answer: 2,
       clue: "Then show me quickly and I'll convert it and send it.",
       explanation:
-        "지면과 사진 설명은 끝났고 여자는 시험을 봐야 하므로, 남자가 파일을 변환해 보내기로 한다. 따라서 답은 ③이다.",
+        "지면과 사진 설명은 끝났고 여자는 시험을 봐야 하므로, 남자가 파일을 변환해 보내기로 한다. 따라서 답은 ②이다.",
       translation: [
         "W: 상우야, 학교 신문이 6시에 인쇄에 들어가.",
         "M: 알아. 여섯 쪽 다 앉혔어?",
@@ -232,11 +232,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take ten percent off the whole amount."],
         ["W", "Perfect. I'll pay by card."],
       ],
-      choices: ["$81.00", "$91.80", "$102.00", "$110.00", "$113.00"],
-      answer: 2,
+      choices: ["$81.00", "$102.00", "$110.00", "$113.00", "$91.80"],
+      answer: 5,
       clue: "Then I can take ten percent off the whole amount.",
       explanation:
-        "카약 3대 90달러와 방수 가방 3개 12달러를 더하면 102달러이고, 10퍼센트를 빼면 91.80달러이다. 따라서 답은 ②이다.",
+        "카약 3대 90달러와 방수 가방 3개 12달러를 더하면 102달러이고, 10퍼센트를 빼면 91.80달러이다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 클리어워터 카약 대여점입니다. 무엇을 도와드릴까요?",
         "W: 오후 동안 카약 세 대 빌리고 싶어요.",
@@ -310,11 +310,11 @@ export const spec: SetSpec = {
         ["W", "Free to walk in. The wheel session costs five thousand won."],
         ["M", "Then let's go on the Saturday."],
       ],
-      choices: ["열리는 기간", "열리는 장소", "참여 작가", "체험 활동", "주차 안내"],
-      answer: 5,
+      choices: ["주차 안내", "열리는 기간", "열리는 장소", "참여 작가", "체험 활동"],
+      answer: 1,
       clue: "주차 안내는 대화에서 언급되지 않았다.",
       explanation:
-        "기간(4월 10일부터 12일까지), 장소(옛 학교 건물 안뜰), 참여 작가(지역 도예가 스무 명 남짓), 체험 활동(물레 체험과 가마 시연)은 언급되지만 주차 안내는 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "기간(4월 10일부터 12일까지), 장소(옛 학교 건물 안뜰), 참여 작가(지역 도예가 스무 명 남짓), 체험 활동(물레 체험과 가마 시연)은 언급되지만 주차 안내는 언급되지 않았다. 따라서 답은 ①이다.",
       translation: [
         "W: 상우야, 봄 도자기 장터 들어 봤어?",
         "M: 역에서 안내판 봤어. 언제 해?",
@@ -380,16 +380,16 @@ export const spec: SetSpec = {
         ["M", "Thanks. I'll clear a space on the side table."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 4,
+      answer: 2,
       clue: "Yes. The posters have to come out in color.",
       explanation:
-        "컬러 인쇄가 되고, 양면 인쇄가 자동이며, 20만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ④이다.",
+        "컬러 인쇄가 되고, 양면 인쇄가 자동이며, 20만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ②이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Color: No / Double-sided: Yes / Price: 110,000 won" },
-          { no: 2, label: "②", value: "Color: Yes / Double-sided: No / Price: 130,000 won" },
-          { no: 3, label: "③", value: "Color: Yes / Double-sided: Yes / Price: 260,000 won" },
-          { no: 4, label: "④", value: "Color: Yes / Double-sided: Yes / Price: 175,000 won" },
+          { no: 2, label: "②", value: "Color: Yes / Double-sided: Yes / Price: 175,000 won" },
+          { no: 3, label: "③", value: "Color: Yes / Double-sided: No / Price: 130,000 won" },
+          { no: 4, label: "④", value: "Color: Yes / Double-sided: Yes / Price: 260,000 won" },
           { no: 5, label: "⑤", value: "Color: No / Double-sided: No / Price: 80,000 won" },
         ],
       },
@@ -421,15 +421,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The art room closed last term.",
-        "I'll ask her before lunch tomorrow.",
         "I don't need the art room.",
         "Tomorrow is Thursday.",
         "I'll wait until next month.",
+        "I'll ask her before lunch tomorrow.",
       ],
-      answer: 2,
+      answer: 5,
       clue: "Ask Ms. Ko. She opens it on request if you go before lunch.",
       explanation:
-        "여자가 점심 전에 고 선생님께 부탁하라고 했으므로, 내일 점심 전에 여쭤보겠다는 ②가 가장 자연스럽다.",
+        "여자가 점심 전에 고 선생님께 부탁하라고 했으므로, 내일 점심 전에 여쭤보겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "M: 도희야, 이번 주에 미술실 방과 후에 열어?",
         "W: 시험 때문에 화요일이랑 목요일만.",
@@ -451,15 +451,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "My card has no balance left.",
-        "I'll swap it on the way home.",
         "I never use a bus card.",
+        "I'll swap it on the way home.",
         "The gate was working fine.",
         "I'll charge it again tonight.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "Then the chip is probably worn. Swap it at any convenience store.",
       explanation:
-        "남자가 편의점에서 카드를 바꾸라고 했으므로, 집에 가는 길에 바꾸겠다는 ②가 가장 자연스럽다.",
+        "남자가 편의점에서 카드를 바꾸라고 했으므로, 집에 가는 길에 바꾸겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 상우야, 오늘 아침에 개찰구에서 교통 카드가 안 됐어.",
         "M: 잔액은 확인했어?",
@@ -531,16 +531,16 @@ export const spec: SetSpec = {
         ["M", "Yes. Count to five before you say anything after she starts."],
       ],
       choices: [
-        "I'll wait five seconds next time.",
         "I'll answer for her again tomorrow.",
         "Yuna never speaks at all.",
         "I'll ask her to leave the group.",
+        "I'll wait five seconds next time.",
         "The pauses don't bother me.",
       ],
-      answer: 1,
+      answer: 4,
       clue: "Yes. Count to five before you say anything after she starts.",
       explanation:
-        "남자가 유나가 말을 시작하면 다섯을 세고 나서 말하라고 했으므로, 다음엔 5초 기다리겠다는 ①이 가장 자연스럽다.",
+        "남자가 유나가 말을 시작하면 다섯을 세고 나서 말하라고 했으므로, 다음엔 5초 기다리겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 도희야, 너 모둠 회의마다 유나 대신 답하더라.",
         "W: 문장을 꺼내는 데 너무 오래 걸려서.",
@@ -580,15 +580,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "We should cancel the exchange this year.",
-        "Let's collect more uniforms this weekend.",
         "Let's sort each year's rack by size too.",
+        "Let's collect more uniforms this weekend.",
         "We should run it for a whole day instead.",
         "Let's put every uniform in one big pile.",
       ],
-      answer: 3,
+      answer: 2,
       clue: "She wants to tell him to sort each year's rack by size as well.",
       explanation:
-        "나리는 학년별로 나눈 옷걸이를 크기별로도 나누자고 말하려 하므로 ③이 가장 적절하다.",
+        "나리는 학년별로 나눈 옷걸이를 크기별로도 나누자고 말하려 하므로 ②가 가장 적절하다.",
       translation: [
         "M: 나리와 정우는 월요일에 여는 교복 물려주기 행사를 준비하고 있습니다. 정우는 기증받은 교복을 학년별로 모두 나눠 두었고, 오후 이틀을 꼬박 써서 깔끔하게 해냈습니다. 나리는 학년 안에서는 크기별로 나뉘어 있지 않아서, 중간 크기 셔츠를 찾는 학생이 옷걸이 마흔 개를 다 뒤져야 한다는 것을 알아챕니다. 행사는 점심시간 한 번뿐이고, 작년에는 줄이 멈추자 학생들이 포기하고 돌아갔습니다. 이틀이 남았고 옷걸이는 한 시간이면 다시 묶을 수 있습니다. 나리는 정우의 정리가 헛되었다고 여기게 하고 싶지 않습니다. 학년에 더해 크기까지 나누어야 옷걸이가 쓸모 있어지기 때문입니다. 나리는 학년별 옷걸이를 크기별로도 나누자고 말하고 싶습니다. 이런 상황에서 나리가 정우에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -616,16 +616,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "how gas and gluten together make bread rise",
         "why yeast is used in fizzy drinks",
         "how flour is milled from wheat",
         "why cakes taste sweeter than bread",
         "how kneading changes the flavor of bread",
+        "how gas and gluten together make bread rise",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Rising is never one ingredient. It is a gas and something strong enough to hold it.",
       explanation:
-        "여자는 효모가 내는 기체와 그것을 붙잡는 글루텐이 함께 있어야 빵이 부푼다고 설명한다. 따라서 답은 ①이다.",
+        "여자는 효모가 내는 기체와 그것을 붙잡는 글루텐이 함께 있어야 빵이 부푼다고 설명한다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 안녕하세요, 여러분. 오늘은 빵이 왜 부푸는지 이야기하려 합니다. 대부분은 효모 때문이라고 말하는데, 맞지만 이야기의 전부는 아닙니다. 효모는 밀가루의 당을 먹고 이산화탄소를 내놓습니다. 탄산음료를 톡 쏘게 하는 바로 그 기체지요. 그런데 기체만 있으면 그냥 공기 중으로 달아납니다. 그것을 붙잡는 것이 글루텐입니다. 밀가루가 물을 만나고 반죽으로 늘어날 때 생기는 단백질 그물이지요. 수천 개의 작은 고무풍선이라고 생각해 보세요. 효모가 그것을 채우고 글루텐이 터지지 않게 붙잡습니다. 그래서 반죽하지 않고 만든 빵은 촘촘하고, 글루텐이 거의 없는 케이크는 대신 거품 낸 달걀로 공기를 가둡니다. 부푸는 일은 결코 한 가지 재료가 아닙니다. 기체와, 그것을 붙잡을 만큼 튼튼한 무언가입니다.",
       ].join("\n"),
@@ -645,14 +645,14 @@ export const spec: SetSpec = {
       choices: [
         "yeast giving off carbon dioxide",
         "gluten forming when flour meets water",
+        "salt slowing down the yeast",
         "bread without kneading being dense",
         "cake using beaten eggs to trap air",
-        "salt slowing down the yeast",
       ],
-      answer: 5,
+      answer: 3,
       clue: "Yeast eats the sugars in flour and gives off carbon dioxide, the same gas that makes fizzy drinks fizz.",
       explanation:
-        "효모가 이산화탄소를 내놓는 것, 글루텐이 물과 만나 생기는 것, 반죽하지 않은 빵이 촘촘한 것, 케이크가 거품 낸 달걀을 쓰는 것은 언급되지만 소금이 효모를 늦춘다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "효모가 이산화탄소를 내놓는 것, 글루텐이 물과 만나 생기는 것, 반죽하지 않은 빵이 촘촘한 것, 케이크가 거품 낸 달걀을 쓰는 것은 언급되지만 소금이 효모를 늦춘다는 것은 언급되지 않았다. 따라서 답은 ③이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

@@ -28,16 +28,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "자습실 좌석 재확인 제도를 알리려고",
         "자습실 이용 시간 연장을 알리려고",
         "자습실 공사를 안내하려고",
+        "자습실 좌석 재확인 제도를 알리려고",
         "분실물 관리 규정을 알리려고",
         "자습실 신청 방법을 안내하려고",
       ],
-      answer: 1,
+      answer: 3,
       clue: "Starting next Monday, the reservation system will ask you to tap your card again every two hours at the door.",
       explanation:
-        "여자는 자리만 맡고 비워 두는 일 때문에 다음 주 월요일부터 두 시간마다 카드를 다시 찍게 한다고 알린다. 따라서 답은 ①이다.",
+        "여자는 자리만 맡고 비워 두는 일 때문에 다음 주 월요일부터 두 시간마다 카드를 다시 찍게 한다고 알린다. 따라서 답은 ③이다.",
       translation: [
         "W: 3학년 학생 여러분, 안녕하세요. 학습지원실 한입니다. 4층 자습실에 대해 말씀드리려 합니다. 10월부터 학생들이 저녁 내내 자리를 맡아 두고는 두세 시간씩 자리를 비우고 있습니다. 가방이 책상에 있어서 자리가 찬 것처럼 보이고, 반쯤 빈 자습실에서 하룻밤에 스무 명이 돌아갑니다. 다음 주 월요일부터 예약 체계가 두 시간마다 문에서 카드를 다시 찍도록 안내합니다. 찍지 않으면 자리가 풀려 다른 학생이 쓸 수 있습니다. 저녁을 먹으러 나가셔도 됩니다. 돌아오면서 찍기만 하세요. 이것은 시간을 재려는 것이 아닙니다. 자리가 실제로 쓰이게 하려는 것입니다. 감사합니다.",
       ].join("\n"),
@@ -61,16 +61,16 @@ export const spec: SetSpec = {
         ["M", "It takes longer and it tells you what you don't know. Colors never do."],
       ],
       choices: [
+        "다시 볼 때는 덮고 써 본 뒤 확인해야 한다",
         "형광펜은 한 가지 색만 써야 한다",
         "교과서는 여러 번 읽어야 한다",
         "용어 정리를 따로 해야 한다",
-        "다시 볼 때는 덮고 써 본 뒤 확인해야 한다",
         "필기는 수업 중에 끝내야 한다",
       ],
-      answer: 4,
+      answer: 1,
       clue: "Close the book and write the page from memory. Then check.",
       explanation:
-        "남자는 색칠은 손에서 일어난 정리일 뿐이라며, 책을 덮고 기억으로 써 본 뒤 확인하라고 말한다. 따라서 답은 ④이다.",
+        "남자는 색칠은 손에서 일어난 정리일 뿐이라며, 책을 덮고 기억으로 써 본 뒤 확인하라고 말한다. 따라서 답은 ①이다.",
       translation: [
         "W: 민준아, 나 교과서마다 형광펜 세 가지 색으로 칠하고 있어.",
         "M: 세 가지? 색마다 무슨 뜻인데?",
@@ -109,15 +109,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "좋은 조언을 많이 들어야 한다",
-        "조언은 그것이 통했던 조건까지 따져야 한다",
         "성공한 사람의 말을 믿어야 한다",
         "조언보다 경험이 중요하다",
+        "조언은 그것이 통했던 조건까지 따져야 한다",
         "위험을 감수해야 성공한다",
       ],
-      answer: 2,
+      answer: 4,
       clue: "It is what conditions made it work for them, and whether those conditions are anywhere near your own.",
       explanation:
-        "여자는 조언에서 상황이 버려진다며, 그 조언이 통했던 조건과 내 조건이 비슷한지를 물어야 한다고 말한다. 따라서 답은 ②이다.",
+        "여자는 조언에서 상황이 버려진다며, 그 조언이 통했던 조건과 내 조건이 비슷한지를 물어야 한다고 말한다. 따라서 답은 ④이다.",
       translation: [
         "W: 우리는 마치 어려움이 좋은 조언을 찾는 데 있는 것처럼 조언을 이야기합니다. 그렇지 않습니다. 좋은 조언은 어디에나 있고, 그 대부분은 다른 좋은 조언과 어긋납니다. 매일 써라. 할 말이 생길 때까지 기다려라. 둘 다 성공한 사람들이 하는 말이고, 둘 다 진실한 보고입니다. 빠진 조각은 모든 조언이 어떤 상황에서 뽑혀 나왔고, 조언이 적히는 순간 그 상황은 버려졌다는 사실입니다. 일을 그만두고 위험을 감수하라고 말하는 사람은 대개 그 위험이 통했던 사람이고, 통하지 않았던 사람들이 없는 방에서 말하고 있습니다. 그러니 쓸모 있는 질문은 그 조언이 좋으냐가 아닙니다. 어떤 조건이 그들에게 그것을 통하게 했는지, 그리고 그 조건이 내 조건과 조금이라도 비슷한지입니다.",
       ].join("\n"),
@@ -191,14 +191,14 @@ export const spec: SetSpec = {
       choices: [
         "연사에게 연락하기",
         "질문 카드 인쇄하기",
-        "마이크 설치하고 시험하기",
         "연사 맞이하기",
         "프로젝터 빌리기",
+        "마이크 설치하고 시험하기",
       ],
-      answer: 3,
+      answer: 5,
       clue: "Then I'll set up both microphones and test them.",
       explanation:
-        "연사 확인과 질문 카드는 끝났고 여자는 연사를 맞으러 가야 하므로, 남자가 마이크 두 개를 설치하고 시험하기로 한다. 따라서 답은 ③이다.",
+        "연사 확인과 질문 카드는 끝났고 여자는 연사를 맞으러 가야 하므로, 남자가 마이크 두 개를 설치하고 시험하기로 한다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 민준아, 동문 강연이 4시에 강당에서 시작해.",
         "M: 알아. 연사분들 확답 왔어?",
@@ -232,11 +232,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take fifteen percent off the binding."],
         ["W", "Thank you. I'll pay now and collect them Thursday."],
       ],
-      choices: ["$170.00", "$180.00", "$200.00", "$210.80", "$248.00"],
-      answer: 1,
+      choices: ["$180.00", "$200.00", "$170.00", "$210.80", "$248.00"],
+      answer: 3,
       clue: "Then I can take fifteen percent off the binding.",
       explanation:
-        "여덟 부 제본비 200달러에서 금박은 빼고, 학생 할인 15퍼센트를 빼면 170달러이다. 따라서 답은 ①이다.",
+        "여덟 부 제본비 200달러에서 금박은 빼고, 학생 할인 15퍼센트를 빼면 170달러이다. 따라서 답은 ③이다.",
       translation: [
         "M: 레이크사이드 제본소입니다. 무엇을 도와드릴까요?",
         "W: 논문 여덟 부를 제본하고 싶어요.",
@@ -269,16 +269,16 @@ export const spec: SetSpec = {
         ["M", "Three weeks. I'd have to miss the exams entirely, and they can't be retaken."],
       ],
       choices: [
+        "학기가 기말시험과 겹쳐서",
         "어학 점수가 모자라서",
         "학비가 부담스러워서",
-        "학기가 기말시험과 겹쳐서",
         "가족이 반대해서",
         "건강이 좋지 않아서",
       ],
-      answer: 3,
+      answer: 1,
       clue: "The semester there overlaps with my final exams here.",
       explanation:
-        "어학 점수도 넘겼고 장학금으로 학비도 해결되지만, 그곳 학기가 이곳 기말시험과 3주 겹쳐 시험을 아예 못 보기 때문이다. 따라서 답은 ③이다.",
+        "어학 점수도 넘겼고 장학금으로 학비도 해결되지만, 그곳 학기가 이곳 기말시험과 3주 겹쳐 시험을 아예 못 보기 때문이다. 따라서 답은 ①이다.",
       translation: [
         "W: 민준아, 교환 학생 지원을 취소했다며?",
         "M: 응, 지난 금요일에.",
@@ -310,11 +310,11 @@ export const spec: SetSpec = {
         ["W", "Mine is too slow for this anyway."],
         ["M", "Then let's apply together this week."],
       ],
-      choices: ["운영 기간", "장소", "수업 내용", "참가비", "지원 자격"],
-      answer: 5,
+      choices: ["운영 기간", "장소", "수업 내용", "지원 자격", "참가비"],
+      answer: 4,
       clue: "지원 자격은 대화에서 언급되지 않았다.",
       explanation:
-        "기간(1월 22일부터 26일까지 닷새), 장소(과학고 컴퓨터실), 수업 내용(데이터베이스와 웹 서비스), 참가비(8만 원)는 언급되지만 지원 자격은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "기간(1월 22일부터 26일까지 닷새), 장소(과학고 컴퓨터실), 수업 내용(데이터베이스와 웹 서비스), 참가비(8만 원)는 언급되지만 지원 자격은 언급되지 않았다. 따라서 답은 ④이다.",
       translation: [
         "W: 민준아, 겨울 코딩 캠프 봤어?",
         "M: 페이지는 열었는데 안 읽었어. 언제야?",
@@ -348,15 +348,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "슬로프가 열한 개이다",
+        "헬멧도 현장에서 빌릴 수 있다",
         "12월 중순부터 2월 말까지 운영한다",
         "온라인 표가 더 싸다",
-        "헬멧도 현장에서 빌릴 수 있다",
         "역에서 무료 셔틀이 다닌다",
       ],
-      answer: 4,
+      answer: 2,
       clue: "Ski and boot rental is available on site, but helmets must be brought from home.",
       explanation:
-        "스키와 부츠는 빌릴 수 있지만 헬멧은 집에서 가져와야 한다고 했으므로 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "스키와 부츠는 빌릴 수 있지만 헬멧은 집에서 가져와야 한다고 했으므로 ②는 내용과 다르다. 따라서 답은 ②이다.",
       translation: [
         "M: 그래닛리지 스키장을 소개해 드리겠습니다. 슬로프가 열한 개 있고, 그중 세 개는 10시까지 야간 스키를 위해 엽니다. 시즌은 보통 12월 중순부터 2월 말까지입니다. 리프트 표는 매표소나 온라인에서 살 수 있고, 온라인이 2천 원 쌉니다. 스키와 부츠는 현장에서 빌릴 수 있지만 헬멧은 집에서 가져오셔야 합니다. 기차역에서 매시 30분에 무료 셔틀이 출발합니다. 초보자 강습은 하루 두 번 있고 하루 전에 예약해야 합니다.",
       ].join("\n"),
@@ -380,17 +380,17 @@ export const spec: SetSpec = {
         ["M", "Thanks. I'll prepare my answers before the first session."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 2,
+      answer: 5,
       clue: "In person. I need to practise walking into a room.",
       explanation:
-        "대면이고, 녹화 피드백이 있으며, 참가비가 4만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ②이다.",
+        "대면이고, 녹화 피드백이 있으며, 참가비가 4만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ⑤이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Format: Online / Recorded feedback: Yes / Fee: 25,000 won" },
-          { no: 2, label: "②", value: "Format: In person / Recorded feedback: Yes / Fee: 38,000 won" },
-          { no: 3, label: "③", value: "Format: In person / Recorded feedback: No / Fee: 20,000 won" },
-          { no: 4, label: "④", value: "Format: In person / Recorded feedback: Yes / Fee: 55,000 won" },
-          { no: 5, label: "⑤", value: "Format: Online / Recorded feedback: No / Fee: 15,000 won" },
+          { no: 2, label: "②", value: "Format: In person / Recorded feedback: No / Fee: 20,000 won" },
+          { no: 3, label: "③", value: "Format: In person / Recorded feedback: Yes / Fee: 55,000 won" },
+          { no: 4, label: "④", value: "Format: Online / Recorded feedback: No / Fee: 15,000 won" },
+          { no: 5, label: "⑤", value: "Format: In person / Recorded feedback: Yes / Fee: 38,000 won" },
         ],
       },
       translation: [
@@ -421,15 +421,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The office has closed for good.",
-        "I'll book a slot tonight.",
         "I don't need any advice.",
+        "I'll book a slot tonight.",
         "I'll walk in again tomorrow.",
         "There is no school app.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "Book a slot on the school app. It takes a minute.",
       explanation:
-        "여자가 학교 앱으로 예약하라고 했으므로, 오늘 밤 예약하겠다는 ②가 가장 자연스럽다.",
+        "여자가 학교 앱으로 예약하라고 했으므로, 오늘 밤 예약하겠다는 ③이 가장 자연스럽다.",
       translation: [
         "M: 서아야, 시험 기간에 진로실 열어?",
         "W: 열어. 그런데 예약만 받아. 그냥 가면 안 돼.",
@@ -450,16 +450,16 @@ export const spec: SetSpec = {
         ["M", "The portal shows the status. Log in and check whether it says submitted."],
       ],
       choices: [
+        "I'll log in and check now.",
         "I never asked for a letter.",
         "The portal has no status page.",
-        "I'll log in and check now.",
         "I'll ask for a second letter.",
         "It arrived last week.",
       ],
-      answer: 3,
+      answer: 1,
       clue: "The portal shows the status. Log in and check whether it says submitted.",
       explanation:
-        "남자가 포털에서 상태를 확인하라고 했으므로, 지금 들어가 확인해 보겠다는 ③이 가장 자연스럽다.",
+        "남자가 포털에서 상태를 확인하라고 했으므로, 지금 들어가 확인해 보겠다는 ①이 가장 자연스럽다.",
       translation: [
         "W: 민준아, 내 추천서가 대학에 도착하지 않았어.",
         "M: 선생님이 언제 보내셨다고 하셨는데?",
@@ -487,16 +487,16 @@ export const spec: SetSpec = {
         ["W", "Set a number of passes before you start, and send it when you hit it."],
       ],
       choices: [
-        "I'll set three passes and send it.",
         "I'll rewrite the paragraph again.",
         "I never revise anything.",
         "The paragraph is finished already.",
+        "I'll set three passes and send it.",
         "I'll ask someone else to read it.",
       ],
-      answer: 1,
+      answer: 4,
       clue: "Set a number of passes before you start, and send it when you hit it.",
       explanation:
-        "여자가 시작하기 전에 고쳐 볼 횟수를 정하고 그 횟수가 되면 보내라고 했으므로, 세 번으로 정하고 보내겠다는 ①이 가장 자연스럽다.",
+        "여자가 시작하기 전에 고쳐 볼 횟수를 정하고 그 횟수가 되면 보내라고 했으므로, 세 번으로 정하고 보내겠다는 ④가 가장 자연스럽다.",
       translation: [
         "W: 민준아, 같은 문단을 나한테 다섯 번이나 봐 달라고 했어.",
         "M: 자꾸 뭔가 잘못된 것 같아서.",
@@ -532,15 +532,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "I'll keep doing it after I graduate.",
+        "I'll write the steps out this month.",
         "The club doesn't keep accounts.",
         "Everything is already written down.",
         "I'll delete the spreadsheet instead.",
-        "I'll write the steps out this month.",
       ],
-      answer: 5,
+      answer: 2,
       clue: "Write down how one month's accounts get done, and have someone follow it.",
       explanation:
-        "남자가 한 달 치 회계 처리 절차를 적어 두고 누군가 따라 하게 하라고 했으므로, 이번 달에 적어 두겠다는 ⑤가 가장 자연스럽다.",
+        "남자가 한 달 치 회계 처리 절차를 적어 두고 누군가 따라 하게 하라고 했으므로, 이번 달에 적어 두겠다는 ②가 가장 자연스럽다.",
       translation: [
         "M: 서아야, 동아리 회계를 2년째 혼자 하고 있네.",
         "W: 표 계산을 누구한테 가르치는 것보다 빨라서.",
@@ -583,13 +583,13 @@ export const spec: SetSpec = {
         "We should make the report much longer.",
         "Let's remove the attendance lists entirely.",
         "We should send the report next month instead.",
-        "Let's move the tutoring programme to the first page.",
         "Let's ask the city office for more funding.",
+        "Let's move the tutoring programme to the first page.",
       ],
-      answer: 4,
+      answer: 5,
       clue: "He wants to tell her to move the tutoring programme to the first page.",
       explanation:
-        "태건이는 과외 활동을 첫 쪽으로 옮기자고 말하려 하므로 ④가 가장 적절하다.",
+        "태건이는 과외 활동을 첫 쪽으로 옮기자고 말하려 하므로 ⑤가 가장 적절하다.",
       translation: [
         "M: 태건이와 세희는 봉사 모임의 연말 보고서를 준비하고 있습니다. 세희는 올해 모임이 한 일을 꼼꼼히 정리했고, 그 안의 숫자는 모두 정확합니다. 이 보고서는 내년 지원금을 결정하는 시청에서 읽습니다. 태건이는 세희가 모임의 가장 큰 성과, 곧 아이 이백 명에게 닿은 학습 지원 활동을 마지막 쪽에, 회의 출석과 비품 목록 네 쪽 뒤에 두었다는 것을 알아챕니다. 태건이는 시청에 있는 친구에게서 이런 보고서가 대개 훑어 읽히고, 다섯 쪽짜리 문서의 마지막 쪽까지 가는 검토자는 드물다는 것을 들었습니다. 학습 지원 활동은 지원금을 정당화할 유일한 것인데, 세희는 그것을 가장 읽히지 않을 자리에 묻어 두었습니다. 태건이는 학습 지원 활동을 첫 쪽으로 옮기자고 말하고 싶습니다. 이런 상황에서 태건이가 세희에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -616,16 +616,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "how trees handle winter water loss in two different ways",
         "why leaves change color in autumn",
         "how pine trees survive in high mountains",
+        "how trees handle winter water loss in two different ways",
         "why broad leaves make more food than needles",
         "how roots absorb water from frozen ground",
       ],
-      answer: 1,
+      answer: 3,
       clue: "Two completely different shapes, both answering the same question: what do you do when water stops arriving.",
       explanation:
-        "여자는 활엽수는 잎을 떨구고 소나무는 바늘잎으로 물을 아끼는, 겨울 물 부족에 대한 두 가지 해법을 설명한다. 따라서 답은 ①이다.",
+        "여자는 활엽수는 잎을 떨구고 소나무는 바늘잎으로 물을 아끼는, 겨울 물 부족에 대한 두 가지 해법을 설명한다. 따라서 답은 ③이다.",
       translation: [
         "W: 안녕하세요, 여러분. 오늘은 어떤 나무는 잎을 떨구고 어떤 나무는 겨울 내내 잎을 달고 있는 이유를 이야기하려 합니다. 잎은 공장입니다. 양분을 만들지만 작은 구멍으로 물도 잃습니다. 여름에는 그 거래가 남습니다. 겨울에는 그렇지 않습니다. 땅이 얼어 뿌리가 잎이 내보낸 물을 채워 줄 수 없기 때문입니다. 넓은 잎을 가진 나무는 공장을 닫아 이 문제를 풉니다. 쓸모 있는 물질을 가지로 거둬들이고 잎을 떨어뜨립니다. 소나무는 반대 길을 갑니다. 바늘잎은 겉넓이가 거의 없고 밀랍으로 덮여 있어서 물을 아주 조금만 잃고, 겨울 내내 천천히 일할 수 있습니다. 완전히 다른 두 모양이 같은 질문에 답하고 있습니다. 물이 오지 않을 때 무엇을 할 것인가.",
       ].join("\n"),
@@ -643,16 +643,16 @@ export const spec: SetSpec = {
         ["W", "and can keep working slowly all winter."],
       ],
       choices: [
+        "leaves being eaten by winter insects",
         "a leaf losing water through tiny pores",
         "the ground freezing in winter",
         "chemicals being pulled back into the branches",
         "needles being coated in wax",
-        "leaves being eaten by winter insects",
       ],
-      answer: 5,
+      answer: 1,
       clue: "A leaf is a factory. It makes food, but it also loses water through tiny pores.",
       explanation:
-        "잎이 작은 구멍으로 물을 잃는 것, 겨울에 땅이 어는 것, 물질을 가지로 거둬들이는 것, 바늘잎이 밀랍으로 덮인 것은 언급되지만 겨울 곤충이 잎을 먹는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "잎이 작은 구멍으로 물을 잃는 것, 겨울에 땅이 어는 것, 물질을 가지로 거둬들이는 것, 바늘잎이 밀랍으로 덮인 것은 언급되지만 겨울 곤충이 잎을 먹는 것은 언급되지 않았다. 따라서 답은 ①이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

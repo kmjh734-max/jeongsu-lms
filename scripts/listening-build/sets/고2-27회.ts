@@ -27,16 +27,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "택배를 닷새 안에 찾아가라고 당부하려고",
         "택배함 위치 변경을 알리려고",
         "택배 분실 사고를 사과하려고",
         "경비실 근무 시간을 알리려고",
+        "택배를 닷새 안에 찾아가라고 당부하려고",
         "지하 창고 공사를 안내하려고",
       ],
-      answer: 1,
+      answer: 4,
       clue: "Please collect your parcels within five days.",
       explanation:
-        "여자는 택배실이 넘쳐 분실이 생긴다며 닷새 안에 택배를 찾아가 달라고 당부한다. 따라서 답은 ①이다.",
+        "여자는 택배실이 넘쳐 분실이 생긴다며 닷새 안에 택배를 찾아가 달라고 당부한다. 따라서 답은 ④이다.",
       translation: [
         "W: 시더코트 주민 여러분, 안녕하세요. 주민 위원회 노은지입니다. 1층 택배실에 대해 말씀드리려 합니다. 택배 서른 개쯤을 두려고 만든 곳인데, 지난주에는 이백 개가 넘게 쌓여 있었습니다. 대부분 열흘이 넘도록 놓여 있던 것들입니다. 택배실이 차면 기사님이 로비에 두고 가시고, 지난달에는 세 개가 없어졌습니다. 그래서 다음 달 1일부터 닷새가 넘게 놓여 있는 택배는 지하 창고로 옮기겠습니다. 버리지는 않지만, 경비원께 문을 열어 달라고 하셔야 합니다. 택배는 닷새 안에 찾아가 주시기 바랍니다. 감사합니다.",
       ].join("\n"),
@@ -61,15 +61,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "번역 연습을 많이 해야 한다",
+        "영어 글은 영어로 바로 써야 한다",
         "글은 단순하게 써야 한다",
         "어휘를 많이 외워야 한다",
         "첨삭을 자주 받아야 한다",
-        "영어 글은 영어로 바로 써야 한다",
       ],
-      answer: 5,
+      answer: 2,
       clue: "Write directly. Plain English beats translated Korean every time.",
       explanation:
-        "남자는 번역한 문장은 영어 옷을 입은 한국어 문장이라며, 더 단순해 보여도 영어로 바로 쓰라고 말한다. 따라서 답은 ⑤이다.",
+        "남자는 번역한 문장은 영어 옷을 입은 한국어 문장이라며, 더 단순해 보여도 영어로 바로 쓰라고 말한다. 따라서 답은 ②이다.",
       translation: [
         "W: 재현아, 나 영어 글을 한국어로 먼저 쓰고 있어.",
         "M: 전부? 그러고 나서 통째로 옮기는 거야?",
@@ -109,13 +109,13 @@ export const spec: SetSpec = {
         "자신의 학습 유형을 찾아야 한다",
         "그림을 활용하면 기억이 잘된다",
         "소리 내어 읽는 것이 좋다",
-        "학습 방법은 학습자 유형이 아니라 내용에 맞춰야 한다",
         "설문으로 학습 성향을 알 수 있다",
+        "학습 방법은 학습자 유형이 아니라 내용에 맞춰야 한다",
       ],
-      answer: 4,
+      answer: 5,
       clue: "It is what shape is this thing I am trying to learn.",
       explanation:
-        "여자는 학습 유형에 맞추는 것은 점수를 바꾸지 못한다며, 배우려는 내용의 성격에 맞추라고 말한다. 따라서 답은 ④이다.",
+        "여자는 학습 유형에 맞추는 것은 점수를 바꾸지 못한다며, 배우려는 내용의 성격에 맞추라고 말한다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 공부법을 다루는 거의 모든 안내는 자기 학습 유형을 찾으라고 말합니다. 시각형, 청각형, 운동형. 하나를 고르고 자료를 거기에 맞추라고요. 편안한 생각이고, 여러 번 검증되기도 했습니다. 연구자들이 같은 내용을 학생이 선호하는 방식과 다른 방식으로 가르쳐 보면 시험 점수는 똑같이 나옵니다. 점수를 실제로 바꾸는 것은 자료가 그 과목에 맞았느냐입니다. 해부학은 누구에게나 그림으로 배우는 편이 낫고, 시는 누구에게나 소리 내어 배우는 편이 낫습니다. 설문에서 어떤 유형을 골랐든 상관없이요. 그러니 쓸모 있는 질문은 나는 어떤 유형의 학습자인가가 아닙니다. 내가 배우려는 이것은 어떤 모양인가입니다.",
       ].join("\n"),
@@ -187,16 +187,16 @@ export const spec: SetSpec = {
         ["M", "Then I'll go and collect the programs."],
       ],
       choices: [
+        "안내지 받아 오기",
         "의상 정리하기",
         "소품 확인하기",
-        "안내지 받아 오기",
         "음향 점검하기",
         "무대 조명 맞추기",
       ],
-      answer: 3,
+      answer: 1,
       clue: "Then I'll go and collect the programs.",
       explanation:
-        "의상과 소품은 끝났고 여자는 음향 점검을 해야 하므로, 남자가 인쇄소에서 안내지를 받아 오기로 한다. 따라서 답은 ③이다.",
+        "의상과 소품은 끝났고 여자는 음향 점검을 해야 하므로, 남자가 인쇄소에서 안내지를 받아 오기로 한다. 따라서 답은 ①이다.",
       translation: [
         "W: 재현아, 학급 연극이 오늘 저녁 7시에 열려.",
         "M: 알아. 의상은 다 분장실에 있어?",
@@ -230,11 +230,11 @@ export const spec: SetSpec = {
         ["M", "Then I can take twenty-five percent off the notebooks, but not the pens."],
         ["W", "Thank you. I'll pay in cash."],
       ],
-      choices: ["$57.00", "$66.00", "$70.00", "$76.00", "$96.00"],
-      answer: 2,
+      choices: ["$57.00", "$70.00", "$76.00", "$66.00", "$96.00"],
+      answer: 4,
       clue: "Then I can take twenty-five percent off the notebooks, but not the pens.",
       explanation:
-        "공책 10권 40달러에서 25퍼센트를 빼면 30달러이고, 할인이 안 되는 펜 4상자 36달러를 더하면 66달러이다. 따라서 답은 ②이다.",
+        "공책 10권 40달러에서 25퍼센트를 빼면 30달러이고, 할인이 안 되는 펜 4상자 36달러를 더하면 66달러이다. 따라서 답은 ④이다.",
       translation: [
         "M: 윌로 문구점입니다. 오늘은 무엇을 드릴까요?",
         "W: 공책 열 권이랑 펜 네 상자 주세요.",
@@ -268,15 +268,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "책을 못 따라가서",
-        "회원들과 다퉈서",
         "모임 요일이 봉사와 겹쳐서",
+        "회원들과 다퉈서",
         "회비가 부담스러워서",
         "다른 동아리로 옮겨서",
       ],
-      answer: 3,
+      answer: 2,
       clue: "They moved it to Friday evening last month.",
       explanation:
-        "책도 앞서 읽었고 다툼도 정리되었지만, 모임이 금요일 저녁으로 옮겨져 봉사와 겹치기 때문이다. 따라서 답은 ③이다.",
+        "책도 앞서 읽었고 다툼도 정리되었지만, 모임이 금요일 저녁으로 옮겨져 봉사와 겹치기 때문이다. 따라서 답은 ②이다.",
       translation: [
         "W: 재현아, 독서 동아리 그만둬?",
         "M: 이달 말에, 응.",
@@ -347,14 +347,14 @@ export const spec: SetSpec = {
       choices: [
         "1999년부터 운영해 왔다",
         "매일 오후 2시부터 6시까지 연다",
-        "스케이트를 빌릴 수 있다",
         "헬멧은 돈을 내고 빌린다",
+        "스케이트를 빌릴 수 있다",
         "한 시간마다 빙판을 정비한다",
       ],
-      answer: 4,
+      answer: 3,
       clue: "Helmets are free to borrow, and everyone under thirteen must wear one.",
       explanation:
-        "헬멧은 무료로 빌려준다고 했으므로 돈을 내고 빌린다는 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "헬멧은 무료로 빌려준다고 했으므로 돈을 내고 빌린다는 ③은 내용과 다르다. 따라서 답은 ③이다.",
       translation: [
         "M: 크레스트뷰 빙상장을 소개해 드리겠습니다. 1999년부터 운영해 왔고 이 구에서 유일한 실내 빙상장입니다. 일반 이용은 일주일 내내 매일 오후 2시부터 6시까지입니다. 스케이트 대여는 4천 원이고 어른과 아이 크기가 모두 있습니다. 헬멧은 무료로 빌려주며, 열세 살 미만은 반드시 써야 합니다. 빙판은 매시 정각에 정비하는데 12분쯤 걸립니다. 빙판 위와 그 옆 관람석에서는 음식을 드실 수 없습니다.",
       ].join("\n"),
@@ -378,16 +378,16 @@ export const spec: SetSpec = {
         ["M", "Will do. I'll also ask about the loading door."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 4,
+      answer: 1,
       clue: "Five, with the drum kit. So we need space for five.",
       explanation:
-        "다섯 명이 쓸 수 있고, 드럼이 갖춰져 있으며, 시간당 2만 원 이하인 방을 고른다. 세 조건을 모두 채우는 것은 ④이다.",
+        "다섯 명이 쓸 수 있고, 드럼이 갖춰져 있으며, 시간당 2만 원 이하인 방을 고른다. 세 조건을 모두 채우는 것은 ①이다.",
       table: {
         rows: [
-          { no: 1, label: "①", value: "Capacity: 3 / Drum kit: Yes / Rate: 12,000 won per hour" },
-          { no: 2, label: "②", value: "Capacity: 6 / Drum kit: No / Rate: 15,000 won per hour" },
-          { no: 3, label: "③", value: "Capacity: 5 / Drum kit: Yes / Rate: 28,000 won per hour" },
-          { no: 4, label: "④", value: "Capacity: 6 / Drum kit: Yes / Rate: 18,000 won per hour" },
+          { no: 1, label: "①", value: "Capacity: 6 / Drum kit: Yes / Rate: 18,000 won per hour" },
+          { no: 2, label: "②", value: "Capacity: 3 / Drum kit: Yes / Rate: 12,000 won per hour" },
+          { no: 3, label: "③", value: "Capacity: 6 / Drum kit: No / Rate: 15,000 won per hour" },
+          { no: 4, label: "④", value: "Capacity: 5 / Drum kit: Yes / Rate: 28,000 won per hour" },
           { no: 5, label: "⑤", value: "Capacity: 4 / Drum kit: No / Rate: 10,000 won per hour" },
         ],
       },
@@ -419,15 +419,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "There is no bus to the museum.",
-        "I'll leave twenty minutes earlier.",
         "The museum is closed that day.",
         "It comes every five minutes.",
+        "I'll leave twenty minutes earlier.",
         "I'll take a taxi instead.",
       ],
-      answer: 2,
+      answer: 4,
       clue: "Right. Leave home twenty minutes earlier than usual.",
       explanation:
-        "여자가 평소보다 20분 일찍 나서라고 했으므로, 20분 일찍 나가겠다는 ②가 가장 자연스럽다.",
+        "여자가 평소보다 20분 일찍 나서라고 했으므로, 20분 일찍 나가겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 은지야, 공휴일에 박물관 가는 버스 다녀?",
         "W: 다녀. 그런데 주말 시간표로.",
@@ -485,16 +485,16 @@ export const spec: SetSpec = {
         ["W", "Play those two bars alone for twenty minutes, then the whole piece once."],
       ],
       choices: [
-        "I'll drill the two bars tonight.",
         "I'll play it through ten times.",
         "There are no mistakes left.",
         "I'll choose a different piece.",
         "The whole piece needs work.",
+        "I'll drill the two bars tonight.",
       ],
-      answer: 1,
+      answer: 5,
       clue: "Play those two bars alone for twenty minutes, then the whole piece once.",
       explanation:
-        "여자가 틀리는 두 마디만 20분 연습하고 전체는 한 번만 치라고 했으므로, 오늘 밤 그 두 마디를 연습하겠다는 ①이 가장 자연스럽다.",
+        "여자가 틀리는 두 마디만 20분 연습하고 전체는 한 번만 치라고 했으므로, 오늘 밤 그 두 마디를 연습하겠다는 ⑤가 가장 자연스럽다.",
       translation: [
         "W: 재현아, 9월부터 같은 곡만 연습하고 있네.",
         "M: 넘어가기 전에 완벽하게 하고 싶어서.",
@@ -529,16 +529,16 @@ export const spec: SetSpec = {
         ["M", "Let your name stand, and practise those four with me."],
       ],
       choices: [
-        "I'll let my name stand this time.",
         "I'll refuse the nomination again.",
         "I've never organised anything.",
+        "I'll let my name stand this time.",
         "The assemblies are every week.",
         "I'd rather stand at the front.",
       ],
-      answer: 1,
+      answer: 3,
       clue: "Let your name stand, and practise those four with me.",
       explanation:
-        "남자가 후보로 이름을 올리고 조회 네 번은 같이 연습하자고 했으므로, 이번에는 이름을 올리겠다는 ①이 가장 자연스럽다.",
+        "남자가 후보로 이름을 올리고 조회 네 번은 같이 연습하자고 했으므로, 이번에는 이름을 올리겠다는 ③이 가장 자연스럽다.",
       translation: [
         "M: 은지야, 너 반장 후보를 두 번이나 거절했더라.",
         "W: 내가 하면 엉망일 거야. 나는 이끄는 사람이 아니야.",
@@ -576,16 +576,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
+        "Let's regroup the drawings by size.",
         "We should take down the pencil drawings.",
         "Let's add more drawings to the wall.",
-        "Let's regroup the drawings by size.",
         "We should open the exhibition on Tuesday.",
         "Let's hang them in alphabetical order.",
       ],
-      answer: 3,
+      answer: 1,
       clue: "She wants to tell him to regroup the drawings by size instead.",
       explanation:
-        "민정이는 그림을 크기별로 다시 묶자고 말하려 하므로 ③이 가장 적절하다.",
+        "민정이는 그림을 크기별로 다시 묶자고 말하려 하므로 ①이 가장 적절하다.",
       translation: [
         "M: 민정이와 요한이는 월요일에 여는 학교 미술 전시를 준비하고 있습니다. 요한이는 학생 그림 마흔 점을 판에 붙였고, 작업은 꼼꼼하고 반듯합니다. 토요일에 민정이는 전시장을 한 바퀴 돌다가, 요한이가 학급 명렬표에 이름이 나오는 순서대로 그림을 걸었다는 것을 알아챕니다. 그래서 작은 연필 습작이 큰 그림 옆에 놓이고, 몇몇 연필 그림은 옆 그림에 묻혀 보이지 않습니다. 크기별로 다시 묶는 데는 한 시간이면 되고, 걸이가 이미 레일을 따라 간격대로 있어서 다시 붙일 필요도 없습니다. 민정이는 요한이가 모두에게 공평하려고 명렬표 순서로 걸었다는 것을 알고, 그 뜻이 좋았다는 것도 압니다. 민정이는 그림을 크기별로 다시 묶자고 말하고 싶습니다. 이런 상황에서 민정이가 요한이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
@@ -612,16 +612,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "why indoor photos look orange and how white balance fixes it",
         "how a camera measures how much light to let in",
         "why candles give less light than bulbs",
         "how the eye sees color in complete darkness",
+        "why indoor photos look orange and how white balance fixes it",
         "why outdoor photography is easier than indoor",
       ],
-      answer: 1,
+      answer: 4,
       clue: "It tells the camera what to treat as white, which is exactly the judgement your brain has been making for you",
       explanation:
-        "남자는 전구 빛의 색이 낮빛과 다른데 눈은 스스로 맞추고 카메라는 그러지 못한다며, 화이트 밸런스가 그 판단을 대신한다고 설명한다. 따라서 답은 ①이다.",
+        "남자는 전구 빛의 색이 낮빛과 다른데 눈은 스스로 맞추고 카메라는 그러지 못한다며, 화이트 밸런스가 그 판단을 대신한다고 설명한다. 따라서 답은 ④이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 실내에서 찍은 사진이 왜 가끔 주황빛으로 나오는지 이야기하려 합니다. 전구에서 나오는 빛은 낮빛과 색이 같지 않습니다. 훨씬 따뜻해서, 하늘빛보다 촛불 색에 가깝습니다. 여러분의 눈은 몇 초 만에 거기에 맞춰져서, 어디에 서 있든 흰 종이를 그냥 희게 봅니다. 카메라에는 그런 버릇이 없습니다. 실제로 도착한 빛을 그대로 기록하니, 전구 아래에서는 종이가 주황으로, 그늘에서는 파랗게 나옵니다. 화이트 밸런스 설정이 하는 일이 바로 이것입니다. 무엇을 흰색으로 칠지 카메라에 알려 주는 것이지요. 그것은 여러분이 길에서 방으로 들어설 때마다 뇌가 대신 내려 주던 바로 그 판단입니다.",
       ].join("\n"),
@@ -640,15 +640,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "bulb light being warmer than daylight",
+        "a flash freezing a moving subject",
         "the eye adjusting within seconds",
         "a camera recording the light that arrived",
         "paper coming out blue in open shade",
-        "a flash freezing a moving subject",
       ],
-      answer: 5,
+      answer: 2,
       clue: "Light from a bulb is not the same color as daylight. It is much warmer, closer to the color of a candle than of the sky.",
       explanation:
-        "전구 빛이 낮빛보다 따뜻하다는 것, 눈이 몇 초 만에 맞춰진다는 것, 카메라가 도착한 빛을 기록한다는 것, 그늘에서 종이가 파랗게 나온다는 것은 언급되지만 플래시가 움직임을 멈춰 준다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "전구 빛이 낮빛보다 따뜻하다는 것, 눈이 몇 초 만에 맞춰진다는 것, 카메라가 도착한 빛을 기록한다는 것, 그늘에서 종이가 파랗게 나온다는 것은 언급되지만 플래시가 움직임을 멈춰 준다는 것은 언급되지 않았다. 따라서 답은 ②이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

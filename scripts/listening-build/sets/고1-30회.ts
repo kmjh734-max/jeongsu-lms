@@ -26,16 +26,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "급식판을 돌려 달라고 부탁하려고",
         "급식 시간 변경을 알리려고",
         "급식비 인상을 알리려고",
+        "급식판을 돌려 달라고 부탁하려고",
         "식단표 변경을 안내하려고",
         "동아리방 점검을 알리려고",
       ],
-      answer: 1,
+      answer: 3,
       clue: "Bring any tray you have and put it in. Nobody will ask whose it was.",
       explanation:
-        "여자는 급식판이 줄어들었다며 월요일부터 반납함에 갖고 있는 급식판을 넣어 달라고 부탁한다. 따라서 답은 ①이다.",
+        "여자는 급식판이 줄어들었다며 월요일부터 반납함에 갖고 있는 급식판을 넣어 달라고 부탁한다. 따라서 답은 ③이다.",
       translation: [
         "W: 여러분, 안녕하세요. 급식실 엄입니다. 급식판 이야기를 하려고 합니다. 급식판이 육백 개 있었는데 지난 학기 말에는 사백 개였습니다. 깨진 것이 아닙니다. 동아리방에, 사물함에, 책상 밑에 있습니다. 물감이나 공구를 나르는 데 쓰이고 있지요. 그래서 월요일부터 급식실 문 밖에 반납함을 둡니다. 갖고 있는 급식판을 가져와 넣어 주세요. 누구 것이었는지는 아무도 묻지 않습니다. 없어진 만큼 돌아오면 그 밖에 달라지는 것은 없습니다. 돌아오지 않으면 점심을 두 번에 나눠 배식해야 합니다. 감사합니다.",
       ].join("\n"),
@@ -59,16 +59,16 @@ export const spec: SetSpec = {
         ["M", "Much slower, and it would be yours at the end."],
       ],
       choices: [
-        "모범 답안을 많이 읽어야 한다",
         "모범 답안은 베끼기보다 스스로 재구성해야 한다",
+        "모범 답안을 많이 읽어야 한다",
         "필기는 손으로 해야 한다",
         "오답 노트를 만들어야 한다",
         "공부는 매일 같은 시간에 해야 한다",
       ],
-      answer: 2,
+      answer: 1,
       clue: "Close the answer and rebuild it. The gaps show up immediately.",
       explanation:
-        "남자는 베끼면 걷지 않은 길이 종이에 남을 뿐이라며, 답을 덮고 다시 세워 보라고 말한다. 따라서 답은 ②이다.",
+        "남자는 베끼면 걷지 않은 길이 종이에 남을 뿐이라며, 답을 덮고 다시 세워 보라고 말한다. 따라서 답은 ①이다.",
       translation: [
         "W: 준석아, 나 모범 답안을 공책에 옮겨 적고 있어.",
         "M: 전부? 얼마나 걸려?",
@@ -188,14 +188,14 @@ export const spec: SetSpec = {
       choices: [
         "책상 배치하기",
         "심사표 인쇄하기",
-        "시계 가져오기",
         "심사위원에게 설명하기",
         "세미나실 청소하기",
+        "시계 가져오기",
       ],
-      answer: 3,
+      answer: 5,
       clue: "Then I'll fetch the timer from the science room.",
       explanation:
-        "책상과 심사표는 끝났고 남자는 심사위원에게 설명해야 하므로, 여자가 과학실에서 시계를 가져오기로 한다. 따라서 답은 ③이다.",
+        "책상과 심사표는 끝났고 남자는 심사위원에게 설명해야 하므로, 여자가 과학실에서 시계를 가져오기로 한다. 따라서 답은 ⑤이다.",
       translation: [
         "M: 다인아, 학급 토론이 2시에 세미나실에서 시작해.",
         "W: 알아. 책상은 두 팀에 맞게 놨어?",
@@ -266,16 +266,16 @@ export const spec: SetSpec = {
         ["M", "Three hours away, and we go down on the Friday."],
       ],
       choices: [
+        "형 결혼식과 겹쳐서",
         "목이 아파서",
         "연습이 너무 많아서",
-        "형 결혼식과 겹쳐서",
         "성적이 떨어져서",
         "아르바이트가 있어서",
       ],
-      answer: 3,
+      answer: 1,
       clue: "The contest is the same weekend as my brother's wedding.",
       explanation:
-        "목도 나았고 연습량도 감당할 수 있지만, 대회 주말이 형 결혼식과 겹치고 멀리 가야 하기 때문이다. 따라서 답은 ③이다.",
+        "목도 나았고 연습량도 감당할 수 있지만, 대회 주말이 형 결혼식과 겹치고 멀리 가야 하기 때문이다. 따라서 답은 ①이다.",
       translation: [
         "W: 준석아, 대회 합창단에 네가 없네.",
         "M: 이달 초에 빠졌어.",
@@ -307,11 +307,11 @@ export const spec: SetSpec = {
         ["W", "It's free, but you have to sign up because of the numbers."],
         ["M", "Then let's sign up tonight."],
       ],
-      choices: ["열리는 날", "열리는 장소", "행사 내용", "준비물", "주차 안내"],
-      answer: 5,
+      choices: ["열리는 날", "열리는 장소", "행사 내용", "주차 안내", "준비물"],
+      answer: 4,
       clue: "주차 안내는 대화에서 언급되지 않았다.",
       explanation:
-        "날짜(10월 마지막 토요일), 장소(과학관 뒤 운동장), 행사 내용(망원경과 짧은 강연), 준비물(담요와 따뜻한 옷)은 언급되지만 주차 안내는 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "날짜(10월 마지막 토요일), 장소(과학관 뒤 운동장), 행사 내용(망원경과 짧은 강연), 준비물(담요와 따뜻한 옷)은 언급되지만 주차 안내는 언급되지 않았다. 따라서 답은 ④이다.",
       translation: [
         "W: 준석아, 힐크레스트 별 보기의 밤 들어 봤어?",
         "M: 포스터 봤어. 언제야?",
@@ -345,15 +345,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "1976년부터 한 가족이 운영해 왔다",
+        "개를 건물 안에 데려갈 수 있다",
         "목요일부터 일요일까지 연다",
         "파는 것이 모두 근처에서 난 것이다",
-        "개를 건물 안에 데려갈 수 있다",
         "1월에는 한 달 내내 닫는다",
       ],
-      answer: 4,
+      answer: 2,
       clue: "Dogs are welcome in the yard but not inside the building.",
       explanation:
-        "개는 마당에는 되지만 건물 안에는 안 된다고 했으므로 ④는 내용과 다르다. 따라서 답은 ④이다.",
+        "개는 마당에는 되지만 건물 안에는 안 된다고 했으므로 ②는 내용과 다르다. 따라서 답은 ②이다.",
       translation: [
         "M: 브램블힐 농장 가게를 소개해 드리겠습니다. 저수지를 지나 난 길가에서 1976년부터 같은 가족이 운영해 왔습니다. 가게는 목요일부터 일요일까지, 아침 9시부터 5시까지 엽니다. 거기서 파는 것은 전부 20킬로미터 안에서 기르거나 만든 것입니다. 뒤쪽에 작은 찻집이 있고 가게와 같은 날에 엽니다. 개는 마당에는 데려올 수 있지만 건물 안에는 들어갈 수 없습니다. 가게는 해마다 1월 한 달 내내 닫습니다.",
       ].join("\n"),
@@ -377,17 +377,17 @@ export const spec: SetSpec = {
         ["M", "Good idea. It should arrive by Tuesday."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 4,
+      answer: 5,
       clue: "A U-lock. Chains get cut in about a minute.",
       explanation:
-        "U자형이고, 거치대가 딸려 있으며, 5만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ④이다.",
+        "U자형이고, 거치대가 딸려 있으며, 5만 원 이하인 것을 고른다. 세 조건을 모두 채우는 것은 ⑤이다.",
       table: {
         rows: [
           { no: 1, label: "①", value: "Type: Chain / Bracket: Yes / Price: 25,000 won" },
           { no: 2, label: "②", value: "Type: U-lock / Bracket: No / Price: 32,000 won" },
           { no: 3, label: "③", value: "Type: U-lock / Bracket: Yes / Price: 78,000 won" },
-          { no: 4, label: "④", value: "Type: U-lock / Bracket: Yes / Price: 46,000 won" },
-          { no: 5, label: "⑤", value: "Type: Chain / Bracket: No / Price: 18,000 won" },
+          { no: 4, label: "④", value: "Type: Chain / Bracket: No / Price: 18,000 won" },
+          { no: 5, label: "⑤", value: "Type: U-lock / Bracket: Yes / Price: 46,000 won" },
         ],
       },
       translation: [
@@ -418,15 +418,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "The gym is closed on Sundays.",
-        "I'll use the outdoor court.",
         "We don't practise on Sundays.",
+        "I'll use the outdoor court.",
         "The small court is big enough.",
         "I'll wait for the resurfacing.",
       ],
-      answer: 2,
+      answer: 3,
       clue: "Then use the outdoor court. It's the full size and it's free on Sunday.",
       explanation:
-        "남자가 야외 코트를 쓰라고 했으므로, 야외 코트를 쓰겠다는 ②가 가장 자연스럽다.",
+        "남자가 야외 코트를 쓰라고 했으므로, 야외 코트를 쓰겠다는 ③이 가장 자연스럽다.",
       translation: [
         "W: 준석아, 일요일에 연습하러 체육관 열어?",
         "M: 열어. 그런데 작은 코트만. 큰 코트는 바닥 공사 중이야.",
@@ -447,16 +447,16 @@ export const spec: SetSpec = {
         ["W", "Check the drop box list. Returns there take a day to register."],
       ],
       choices: [
-        "My account is working fine.",
         "I'll check the drop box list.",
+        "My account is working fine.",
         "I never borrow books.",
         "There is no drop box.",
         "I returned nothing in October.",
       ],
-      answer: 2,
+      answer: 1,
       clue: "Check the drop box list. Returns there take a day to register.",
       explanation:
-        "여자가 반납함 목록을 확인해 보라고 했으므로, 그 목록을 보겠다는 ②가 가장 자연스럽다.",
+        "여자가 반납함 목록을 확인해 보라고 했으므로, 그 목록을 보겠다는 ①이 가장 자연스럽다.",
       translation: [
         "M: 다인아, 내 도서관 계정이 대출이 안 된대.",
         "W: 연체된 책 있어?",
@@ -484,16 +484,16 @@ export const spec: SetSpec = {
         ["M", "Then take the title and keep doing what you already do."],
       ],
       choices: [
-        "I'll say yes at the next meeting.",
         "I'll leave the study group.",
         "I'm the best student in the group.",
         "I never bring a plan.",
+        "I'll say yes at the next meeting.",
         "The leader must know everything.",
       ],
-      answer: 1,
+      answer: 4,
       clue: "Then take the title and keep doing what you already do.",
       explanation:
-        "남자가 이미 하는 일을 그대로 하면서 자리를 맡으라고 했으므로, 다음 모임에서 맡겠다는 ①이 가장 자연스럽다.",
+        "남자가 이미 하는 일을 그대로 하면서 자리를 맡으라고 했으므로, 다음 모임에서 맡겠다는 ④가 가장 자연스럽다.",
       translation: [
         "M: 다인아, 스터디 모임을 이끌어 달라는 제안을 세 번이나 거절했더라.",
         "W: 내가 하면 못할 거야. 거기서 제일 잘하는 학생도 아니고.",
@@ -528,16 +528,16 @@ export const spec: SetSpec = {
         ["W", "Then read on the bus and write at your desk."],
       ],
       choices: [
-        "I'll read on the bus from tomorrow.",
         "I'll keep writing on the bus.",
+        "I'll read on the bus from tomorrow.",
         "My handwriting is always neat.",
         "I never do homework at all.",
         "I'll stop taking the bus.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "Then read on the bus and write at your desk.",
       explanation:
-        "여자가 버스에서는 읽고 쓰기는 책상에서 하라고 했으므로, 내일부터 버스에서 읽겠다는 ①이 가장 자연스럽다.",
+        "여자가 버스에서는 읽고 쓰기는 책상에서 하라고 했으므로, 내일부터 버스에서 읽겠다는 ②가 가장 자연스럽다.",
       translation: [
         "W: 준석아, 너 아침마다 버스에서 숙제하더라.",
         "M: 안 그러면 버리는 20분이니까.",
@@ -613,16 +613,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "why tall buildings are designed to sway in wind",
         "how skyscrapers are built from steel and glass",
         "why storms are stronger at higher altitudes",
+        "why tall buildings are designed to sway in wind",
         "how engineers measure the height of a tower",
         "why windows break on windy days",
       ],
-      answer: 1,
+      answer: 3,
       clue: "The tower that survives a storm is not the stiffest one.",
       explanation:
-        "남자는 건물이 흔들리도록 설계해 바람의 힘을 움직임으로 바꾼다고 설명한다. 따라서 답은 ①이다.",
+        "남자는 건물이 흔들리도록 설계해 바람의 힘을 움직임으로 바꾼다고 설명한다. 따라서 답은 ③이다.",
       translation: [
         "M: 안녕하세요, 여러분. 오늘은 높은 건물이 바람 부는 날에 왜 흔들리는지, 그리고 그것이 왜 고장이 아니라 설계인지 이야기하려 합니다. 뻣뻣한 탑은 바람의 힘을 땅과 만나는 지점에서 통째로 받아 내야 하고, 바람이 멎기 훨씬 전에 재료가 갈라질 것입니다. 조금 기우는 건물은 그 힘의 일부를 움직임으로 바꾸고, 돌아오면서 천천히 풀어냅니다. 기술자들은 그 흔들림을 일부러 설계합니다. 보통 200미터 탑의 꼭대기에서 반 미터쯤입니다. 어떤 건물은 지붕 가까이에 무거운 추를 달아 움직임과 반대로 흔들리게 해 더 줄입니다. 폭풍을 견디는 탑은 가장 뻣뻣한 탑이 아닙니다. 움직여도 된다고 허락받았다가 다시 돌아온 탑입니다.",
       ].join("\n"),
@@ -640,16 +640,16 @@ export const spec: SetSpec = {
         ["M", "The tower that survives a storm is not the stiffest one."],
       ],
       choices: [
+        "deep foundations keeping a tower dry",
         "a rigid tower absorbing the whole force at the ground",
         "a leaning building turning force into motion",
         "a sway of about half a meter at the top",
         "a heavy weight near the roof damping the motion",
-        "deep foundations keeping a tower dry",
       ],
-      answer: 5,
+      answer: 1,
       clue: "A rigid tower would have to absorb the whole force of the wind at the point where it meets the ground.",
       explanation:
-        "뻣뻣한 탑이 땅에서 힘을 다 받는다는 것, 기우는 건물이 힘을 움직임으로 바꾼다는 것, 꼭대기가 반 미터쯤 흔들린다는 것, 지붕 가까운 추가 움직임을 줄인다는 것은 언급되지만 깊은 기초가 탑을 마르게 한다는 것은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "뻣뻣한 탑이 땅에서 힘을 다 받는다는 것, 기우는 건물이 힘을 움직임으로 바꾼다는 것, 꼭대기가 반 미터쯤 흔들린다는 것, 지붕 가까운 추가 움직임을 줄인다는 것은 언급되지만 깊은 기초가 탑을 마르게 한다는 것은 언급되지 않았다. 따라서 답은 ①이다.",
       translation: "16번과 같은 담화입니다.",
     },
   ],

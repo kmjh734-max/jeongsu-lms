@@ -62,11 +62,11 @@ export const spec: SetSpec = {
         ["M", "Four people per shift, two shifts in all."],
         ["W", "Then I'll take the morning shift."],
       ],
-      choices: ["부스 종류", "부스 위치", "운영 시간", "한 번에 일하는 인원", "준비 예산"],
-      answer: 5,
+      choices: ["준비 예산", "부스 종류", "부스 위치", "운영 시간", "한 번에 일하는 인원"],
+      answer: 1,
       clue: "준비 예산은 대화에서 언급되지 않았다.",
       explanation:
-        "부스 종류(보드게임), 위치(2층 복도), 운영 시간(10시~3시), 한 번에 일하는 인원(4명)은 언급되지만 준비 예산은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "부스 종류(보드게임), 위치(2층 복도), 운영 시간(10시~3시), 한 번에 일하는 인원(4명)은 언급되지만 준비 예산은 언급되지 않았다. 따라서 답은 ①이다.",
       translation: [
         "W: 한별아, 우리 반도 축제에 부스 해?",
         "M: 응, 보드게임 코너를 해.",
@@ -95,15 +95,15 @@ export const spec: SetSpec = {
       ],
       choices: [
         "진료를 처음 예약하려고",
-        "예약 날짜를 바꾸려고",
         "예약을 취소하려고",
         "진료비를 물어보려고",
+        "예약 날짜를 바꾸려고",
         "병원 위치를 물어보려고",
       ],
-      answer: 2,
+      answer: 4,
       clue: "Yes, could you move it to Thursday at the same hour?",
       explanation:
-        "여자는 시험 때문에 화요일 예약을 목요일로 옮기려고 전화했다. 따라서 답은 ②이다.",
+        "여자는 시험 때문에 화요일 예약을 목요일로 옮기려고 전화했다. 따라서 답은 ④이다.",
       translation: [
         "W: 여보세요, 한빛 치과죠?",
         "M: 네, 맞습니다. 무엇을 도와드릴까요?",
@@ -130,11 +130,11 @@ export const spec: SetSpec = {
         ["W", "Good. I'll wait in front of the door."],
         ["M", "I'll bring the paint and brushes."],
       ],
-      choices: ["9:00 a.m.", "9:30 a.m.", "10:00 a.m.", "10:30 a.m.", "11:00 a.m."],
-      answer: 3,
+      choices: ["9:00 a.m.", "10:00 a.m.", "9:30 a.m.", "10:30 a.m.", "11:00 a.m."],
+      answer: 2,
       clue: "Then let's meet when the room actually opens.",
       explanation:
-        "관리인이 10시에 동아리방을 열어 주고 두 사람은 방이 열릴 때 만나기로 했으므로 만나는 시각은 10시이다. 따라서 답은 ③이다.",
+        "관리인이 10시에 동아리방을 열어 주고 두 사람은 방이 열릴 때 만나기로 했으므로 만나는 시각은 10시이다. 따라서 답은 ②이다.",
       translation: [
         "M: 수민아, 토요일에 동아리방 몇 시에 열어?",
         "W: 관리인 아저씨가 아침 10시에 열어 주셔.",
@@ -161,11 +161,11 @@ export const spec: SetSpec = {
         ["W", "Two places is so close."],
         ["M", "I gave up every weekend for that test."],
       ],
-      choices: ["delighted", "bored", "disappointed", "curious", "thankful"],
-      answer: 3,
+      choices: ["delighted", "bored", "curious", "thankful", "disappointed"],
+      answer: 5,
       clue: "I gave up every weekend for that test.",
       explanation:
-        "여름 내내 준비한 교환 학생 시험에서 두 자리 차로 떨어졌다고 했으므로 남자의 심정은 '실망한(disappointed)'이다. 따라서 답은 ③이다.",
+        "여름 내내 준비한 교환 학생 시험에서 두 자리 차로 떨어졌다고 했으므로 남자의 심정은 '실망한(disappointed)'이다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 한별아, 게시판 앞에 한참 서 있네.",
         "M: 10분 전에 교환 학생 명단이 올라왔어.",
@@ -233,11 +233,11 @@ export const spec: SetSpec = {
         ["W", "Right. Could you send it to my email tonight?"],
         ["M", "Sure. I'll do it as soon as I sit down."],
       ],
-      choices: ["설문 정리해 주기", "파일을 이메일로 보내 주기", "컴퓨터 끄기", "동아리 대신 가기", "버스 같이 타기"],
-      answer: 2,
+      choices: ["파일을 이메일로 보내 주기", "설문 정리해 주기", "컴퓨터 끄기", "동아리 대신 가기", "버스 같이 타기"],
+      answer: 1,
       clue: "Right. Could you send it to my email tonight?",
       explanation:
-        "여자는 학교 컴퓨터에 남아 있는 설문 파일을 자기 이메일로 보내 달라고 부탁했다. 따라서 답은 ②이다.",
+        "여자는 학교 컴퓨터에 남아 있는 설문 파일을 자기 이메일로 보내 달라고 부탁했다. 따라서 답은 ①이다.",
       translation: [
         "W: 한별아, 너 코딩 동아리 때문에 늦게까지 남지?",
         "M: 응, 컴퓨터실에서 6시까지.",
@@ -264,11 +264,11 @@ export const spec: SetSpec = {
             "Come and support your classmates.",
         ],
       ],
-      choices: ["열리는 날", "운영 시간", "탁자 배정 방법", "팔 수 있는 물건", "참가 신청 마감일"],
-      answer: 5,
+      choices: ["열리는 날", "운영 시간", "탁자 배정 방법", "참가 신청 마감일", "팔 수 있는 물건"],
+      answer: 4,
       clue: "참가 신청 마감일은 방송에서 언급되지 않았다.",
       explanation:
-        "열리는 날(다음 주 토요일), 운영 시간(10시~3시), 탁자 배정 방법(추첨), 팔 수 있는 물건(책·옷·작은 생활용품)은 언급되지만 신청 마감일은 언급되지 않았다. 따라서 답은 ⑤이다.",
+        "열리는 날(다음 주 토요일), 운영 시간(10시~3시), 탁자 배정 방법(추첨), 팔 수 있는 물건(책·옷·작은 생활용품)은 언급되지만 신청 마감일은 언급되지 않았다. 따라서 답은 ④이다.",
       translation: [
         "M: 안녕하세요, 학생 여러분. 가을 벼룩시장이 다음 주 토요일에 열립니다. 앞 운동장에서 10시부터 3시까지 진행됩니다. 반마다 탁자 하나씩 받고, 자리는 추첨으로 정합니다. 책, 옷, 작은 생활용품을 팔 수 있습니다. 수익금은 모두 지역 동물 보호소에 전달합니다. 오셔서 친구들을 응원해 주세요.",
       ].join("\n"),
@@ -344,11 +344,11 @@ export const spec: SetSpec = {
         ["M", "I have to set up the sign at the entrance."],
         ["W", "Then I'll run up and get the coin bag now."],
       ],
-      choices: ["물건 진열하기", "가격표 쓰기", "안내판 세우기", "동전 가방 가져오기", "손님 맞이하기"],
-      answer: 4,
+      choices: ["물건 진열하기", "가격표 쓰기", "동전 가방 가져오기", "안내판 세우기", "손님 맞이하기"],
+      answer: 3,
       clue: "Then I'll run up and get the coin bag now.",
       explanation:
-        "거스름돈이 든 동전 가방이 동아리방에 있고 남자는 안내판을 세워야 해서, 여자가 동전 가방을 가져오겠다고 했다. 따라서 답은 ④이다.",
+        "거스름돈이 든 동전 가방이 동아리방에 있고 남자는 안내판을 세워야 해서, 여자가 동전 가방을 가져오겠다고 했다. 따라서 답은 ③이다.",
       translation: [
         "M: 수민아, 동아리 바자회가 15분 뒤에 열려.",
         "W: 알아. 물건은 다 탁자에 진열했어.",
@@ -377,17 +377,17 @@ export const spec: SetSpec = {
         ["M", "Good. I'll book it right after school."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 5,
+      answer: 1,
       clue: "Six, so a room for four is too small.",
       explanation:
-        "6명 이상이 들어가고, 드럼이 있으며, 시간당 1만 5천 원 미만인 방을 고른다. 세 조건을 모두 채우는 것은 ⑤이다.",
+        "6명 이상이 들어가고, 드럼이 있으며, 시간당 1만 5천 원 미만인 방을 고른다. 세 조건을 모두 채우는 것은 ①이다.",
       table: {
         rows: [
-          { no: 1, label: "①", value: "Seats: 4 / Drums: Yes / Fee: 12,000 won" },
-          { no: 2, label: "②", value: "Seats: 8 / Drums: No / Fee: 10,000 won" },
-          { no: 3, label: "③", value: "Seats: 8 / Drums: Yes / Fee: 20,000 won" },
-          { no: 4, label: "④", value: "Seats: 4 / Drums: No / Fee: 8,000 won" },
-          { no: 5, label: "⑤", value: "Seats: 10 / Drums: Yes / Fee: 14,000 won" },
+          { no: 1, label: "①", value: "Seats: 10 / Drums: Yes / Fee: 14,000 won" },
+          { no: 2, label: "②", value: "Seats: 4 / Drums: Yes / Fee: 12,000 won" },
+          { no: 3, label: "③", value: "Seats: 8 / Drums: No / Fee: 10,000 won" },
+          { no: 4, label: "④", value: "Seats: 8 / Drums: Yes / Fee: 20,000 won" },
+          { no: 5, label: "⑤", value: "Seats: 4 / Drums: No / Fee: 8,000 won" },
         ],
       },
       translation: [
@@ -419,11 +419,11 @@ export const spec: SetSpec = {
         ["W", "December 13th works. It's a Saturday."],
         ["M", "Perfect. Let's take the nine o'clock bus."],
       ],
-      choices: ["12월 3일", "12월 6일", "12월 13일", "12월 15일", "12월 20일"],
-      answer: 3,
+      choices: ["12월 3일", "12월 6일", "12월 15일", "12월 13일", "12월 20일"],
+      answer: 4,
       clue: "Oh, right. Then let's go on December 13th.",
       explanation:
-        "3일은 주중이라 받지 않고, 6일에는 결혼식이 있으며, 20일은 프로그램이 끝난 뒤다. 두 사람은 12월 13일에 가기로 한다. 따라서 답은 ③이다.",
+        "3일은 주중이라 받지 않고, 6일에는 결혼식이 있으며, 20일은 프로그램이 끝난 뒤다. 두 사람은 12월 13일에 가기로 한다. 따라서 답은 ④이다.",
       translation: [
         "W: 한별아, 푸드뱅크 봉사 언제 갈까?",
         "M: 12월 3일 어때? 다음 주 수요일이야.",
@@ -487,16 +487,16 @@ export const spec: SetSpec = {
         ],
       ],
       choices: [
-        "정문 폐쇄를 알리려고",
         "등교 시간 변경을 알리려고",
         "체육관 공사를 알리려고",
         "교통 안전 교육을 알리려고",
         "지각 방지를 당부하려고",
+        "정문 폐쇄를 알리려고",
       ],
-      answer: 1,
+      answer: 5,
       clue: "The main gate will be closed tomorrow for repair work.",
       explanation:
-        "내일 정문이 수리로 닫히니 체육관 옆 쪽문으로 들어오라고 알리는 방송이다. 따라서 답은 ①이다.",
+        "내일 정문이 수리로 닫히니 체육관 옆 쪽문으로 들어오라고 알리는 방송이다. 따라서 답은 ⑤이다.",
       translation: [
         "W: 안내 말씀 드립니다. 행정실입니다. 내일 수리 공사로 정문이 닫힙니다. 모두 체육관 옆 쪽문으로 들어와 주세요. 공사는 아침부터 저녁까지 하루 종일 진행됩니다. 평소보다 몇 분 일찍 집에서 나와 주세요. 협조해 주셔서 감사합니다.",
       ].join("\n"),
@@ -515,11 +515,11 @@ export const spec: SetSpec = {
         ["M", "All right. Team orders get eight dollars off."],
         ["W", "That's good news. Here you are."],
       ],
-      choices: ["$26", "$28", "$30", "$32", "$40"],
-      answer: 4,
+      choices: ["$26", "$28", "$32", "$30", "$40"],
+      answer: 3,
       clue: "All right. Team orders get eight dollars off.",
       explanation:
-        "양말 4켤레 20달러와 물병 2개 20달러를 더하면 40달러이고, 팀 주문 할인 8달러를 빼면 32달러이다. 따라서 답은 ④이다.",
+        "양말 4켤레 20달러와 물병 2개 20달러를 더하면 40달러이고, 팀 주문 할인 8달러를 빼면 32달러이다. 따라서 답은 ③이다.",
       translation: [
         "M: 스포츠 용품점에 오신 걸 환영합니다. 무엇을 드릴까요?",
         "W: 양말 네 켤레랑 물병 두 개 주세요.",
@@ -629,16 +629,16 @@ export const spec: SetSpec = {
         ["M", "The board beside the vending machines at lunch."],
       ],
       choices: [
-        "I'll put a notice there tomorrow.",
         "Our club has no members.",
+        "I'll put a notice there tomorrow.",
         "Everyone reads the newsletter.",
         "There are no vending machines.",
         "Let's cancel the open class.",
       ],
-      answer: 1,
+      answer: 2,
       clue: "The board beside the vending machines at lunch.",
       explanation:
-        "남자가 점심시간에 자판기 옆 게시판에 알리라고 했으므로, 내일 거기에 안내문을 붙이겠다는 ①이 가장 자연스럽다.",
+        "남자가 점심시간에 자판기 옆 게시판에 알리라고 했으므로, 내일 거기에 안내문을 붙이겠다는 ②가 가장 자연스럽다.",
       translation: [
         "W: 한별아, 우리 동아리 공개 수업에 아무도 신청을 안 했어.",
         "M: 어디에 알렸는데?",
@@ -672,14 +672,14 @@ export const spec: SetSpec = {
       choices: [
         "Let's stay a little longer.",
         "The rain stopped an hour ago.",
-        "Your umbrella is on your chair.",
         "I'll carry your bag downstairs.",
         "You should buy a new umbrella.",
+        "Your umbrella is on your chair.",
       ],
-      answer: 3,
+      answer: 5,
       clue: "Jiho sees that her umbrella is still hooked on the back of her chair.",
       explanation:
-        "비가 많이 오는데 나윤이의 우산이 의자에 걸린 채 남아 있으므로, 그 사실을 알려 주는 ③이 가장 적절하다.",
+        "비가 많이 오는데 나윤이의 우산이 의자에 걸린 채 남아 있으므로, 그 사실을 알려 주는 ⑤가 가장 적절하다.",
       translation: [
         "M: 지호와 나윤이는 동아리 모임이 끝나고 짐을 챙기고 있습니다. 나윤이는 가방을 잠그고 계단 쪽으로 가고 있습니다. 지호는 나윤이의 우산이 아직 의자 등받이에 걸려 있는 것을 봅니다. 아침부터 비가 많이 오고 있습니다. 지호는 나윤이가 정문에 닿기 전에 알려 주고 싶습니다. 이런 상황에서 지호가 나윤이에게 할 말로 가장 적절한 것은 무엇일까요?",
       ].join("\n"),
