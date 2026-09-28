@@ -52,7 +52,12 @@ import {
   WRITING_GRAMMARS,
   type WritingGrammar,
 } from "@/lib/question-generator/writing-grammar";
-import { tokenizeAnswerPhrase } from "@/lib/question-generator/word-order-normalize";
+import {
+  buildWordBankFromAnswer,
+  joinWordBank,
+  normalizeAndShuffleWordBank,
+  tokenizeAnswerPhrase,
+} from "@/lib/question-generator/word-order-normalize";
 
 /** 함축의미 등 — 적합한 소재가 없으면 문항 생략 */
 export class SkipQuestionError extends Error {
@@ -1288,12 +1293,23 @@ export function assertBasicQuestionShape(
       ...(wordCount > 0 ? [`○ 모두 ${wordCount}단어로 쓸 것`] : []),
       "○ 첫 글자는 대문자로 쓰고, 문장 끝에 알맞은 문장 부호를 쓸 것",
     ];
+    /*
+     * 선생님 지적(2026-09-29): 보기 단어가 정답 순서 그대로 나왔다 — 베껴 쓰면 끝나는 문항이 된다.
+     * 다른 제시어 배열은 normalizeWordOrderQuestionText가 섞어 주는데, 이 유형만 그 손질을
+     * 거치지 않고 모델이 쓴 줄을 그대로 실었다. 여기서도 정답에서 보기를 다시 짜고 섞는다.
+     * 조건이 「필요하면 어형을 바꿔 쓸 것」이므로 원형으로 낸다.
+     */
+    const bank =
+      normalizeAndShuffleWordBank(
+        joinWordBank(buildWordBankFromAnswer(answer, "inflect", blocks.words))
+      ) || normalizeAndShuffleWordBank(blocks.words);
+
     q.questionText = [
       "<조건>",
       conditionLines.join("\n"),
       "",
       "<보기>",
-      blocks.words,
+      bank,
       "",
       "<해석>",
       blocks.translation,
