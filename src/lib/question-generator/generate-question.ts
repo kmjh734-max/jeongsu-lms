@@ -43,6 +43,7 @@ import {
 } from "@/lib/question-generator/word-order-catalog";
 import { normalizeWordOrderQuestionText } from "@/lib/question-generator/word-order-normalize";
 import { reconcileGrammarFixQuestion } from "@/lib/question-generator/grammar-fix-normalize";
+import { ONE_PAGE_GRAMMAR_RULES } from "@/lib/lesson-materials/one-page-grammar-rules";
 
 /** 함축의미 등 — 적합한 소재가 없으면 문항 생략 */
 export class SkipQuestionError extends Error {
@@ -70,6 +71,18 @@ function paraphraseChoiceRules(
 - Same passage → many items: DO NOT recycle the same 5–8 theme words across items. Rotate synonym sets (e.g. progress↔advance/improvement; consumer↔buyer/shopper only if needed — prefer harder alternates). Use antonyms mainly inside distractors (미세한 의미 반전).
 - ${langHint}`;
 }
+
+/**
+ * 조건 영작에 쓸 어법 범위.
+ *
+ * 선생님 요청(2026-09-28): 특정 문법을 조건으로 하는 영작. 그 문법은 무작위여도 되고
+ * 우리가 정해 둔 범위에서 골라도 된다. 그래서 이미 쓰고 있는 교재 기준 목록
+ * (1장 요약자료·워크북 어법 선택과 같은 목록)을 그대로 범위로 쓴다.
+ * 지문에 실제로 있는 어법만 고르게 하므로, 무작위여도 지문과 겉돌지 않는다.
+ */
+const GRAMMAR_FOR_WRITING = ONE_PAGE_GRAMMAR_RULES.slice(0, 30)
+  .map((r) => `  · ${r.labelKo}`)
+  .join("\n");
 
 function typeRules(option: QuestionTypeOption): string {
   const code = option.aingkaCode || "";
@@ -418,6 +431,35 @@ ${choiceExplanationRules()}
       }
       return `Underline a key expression with <u>...</u> in passageModified. 5 ENGLISH meaning choices.`;
     case "writing": {
+      if (code === "문법조건영작") {
+        /*
+         * 선생님 요청(2026-09-28): 특정 문법을 조건으로 하는 영작. 문법은 지문에 실제로
+         * 있는 것 가운데 고른다(지문에 없는 문법을 억지로 시키면 답이 지문과 겉돈다).
+         */
+        return `서술형 · 정해진 어법을 써서 영작하기:
+- passageModified 생략. 지문 영어만.
+- 먼저 지문에서 <b>어법 하나</b>를 고른다. 아래 목록에 있는 것만 쓴다.
+${GRAMMAR_FOR_WRITING}
+- 고른 어법이 실제로 쓰인 지문 문장 하나를 정답 문장으로 삼는다.
+  그 문장이 너무 짧거나(6낱말 미만) 어법이 분명히 드러나지 않으면 다른 문장을 고른다.
+- questionText 형식(필수):
+<우리말>
+(정답 문장의 우리말 뜻 한 줄. 자연스러운 한국어로)
+
+<조건>
+○ 반드시 [고른 어법 이름]을 사용할 것
+○ 보기의 단어를 모두 한 번씩 사용할 것
+○ 필요하면 어형을 바꿀 것
+○ 문장 부호와 대소문자를 바르게 쓸 것
+
+<보기>
+word1 / word2 / … (정답 문장의 낱말을 원형으로 흩어 놓는다. 8~14개)
+
+- correctAnswer: 정답 영어 문장 하나(지문 그대로).
+- 보기에는 정답 문장에 쓰이는 낱말만 넣는다. 관사·전치사처럼 어형이 바뀌지 않는 말은
+  그대로, 동사·명사는 원형으로 적는다.
+- choices 없음. explanation 한글: 어떤 어법을 묻는지와 왜 그 형태인지 한두 줄.`;
+      }
       if (code === "지칭대명사서술") {
         return `서술형 · 지칭 추론 · 대명사·지시사 (수특형):
 - passageModified = 영어 지문. 지시 대상이 분명한 대명사·지시사 1곳에 ⓐ<u>it</u> (또는 this/that/they/these/those/them).
@@ -540,6 +582,34 @@ word1 / word2 / … (10~14개, 정답 ⓐ+ⓑ를 섞은 단어·기능어. 원�
 - 정답 구는 반드시 원문 passage에 연속으로 그대로 존재 (대소문자만 달라도 됨).
 - correctAnswer: "ⓐ: social muscle / ⓑ: compassion" 형식
 - choices 없음. explanation 한글: 본문 어디 근거인지.`;
+      }
+      if (code === "요약표빈칸단어") {
+        /*
+         * 선생님 요청(2026-09-28): 지문 내용을 표로 정리하고 (A)(B)(C)를 본문 단어로
+         * 채우는 유형. 학교 시험지에서 실제로 쓰는 모양 그대로 만든다.
+         */
+        return `서술형 · 내용을 표로 정리 · 빈칸에 본문 단어 찾아 쓰기:
+- passageModified 생략. 지문 영어만.
+- 지문에 <b>맞서는 두 부류·두 입장</b>이 있어야 이 유형이 된다. 없으면 만들지 말고 SKIP.
+- questionText 형식(필수):
+<조건>
+○ 빈칸에 들어갈 말은 본문에서 찾아 쓸 것
+○ (A), (B), (C)는 각각 한 단어로 쓸 것
+○ 본문에 나온 형태를 그대로 쓸 것 (형태 변형 금지)
+
+<표>
+| | 첫째 부류 이름 | 둘째 부류 이름 |
+| 견줄 점 1 | 영어 서술 … (A) … | 영어 서술 … |
+| 견줄 점 2 | 영어 서술 … (B) … | 영어 서술 … |
+| 견줄 점 3 | 영어 서술 … (C) … | 영어 서술 … (C) … |
+
+- 표는 두 칸(부류) × 세 줄(견줄 점)로 만든다. 줄마다 | 로 칸을 나눈다.
+- 부류 이름은 본문에 나온 말을 그대로 쓴다(지어내지 않는다).
+- 표의 영어 서술은 지문 문장을 그대로 베끼지 말고 짧게 paraphrase 한다.
+- (A)(B)(C) 자리에 들어갈 낱말은 <b>반드시 지문에 그 형태 그대로</b> 있어야 한다.
+  같은 낱말이 두 칸에 들어가도 된다(그때는 같은 기호를 두 번 쓴다).
+- correctAnswer 형식: "(A): separate / (B): email / (C): boundaries"
+- choices 없음. explanation 한글: 각 낱말이 본문 어디에 근거하는지 한 줄씩.`;
       }
       if (code === "요약문빈칸3단어") {
         return `서술형 · 요약문 빈칸 · 본문에서 연속 3단어 찾기 (수특형):
@@ -1213,6 +1283,8 @@ export async function generateOneQuestion(opts: {
   diversitySlot?: { index: number; total: number; label: string };
   /** 원래 시험지의 수준을 적은 한 문단(동형모의고사). 선택지 길이·어휘를 여기에 맞춘다 */
   levelBrief?: string;
+  /** 조건 영작에서 쓸 어법 이름 목록. 비우면 교재 기준 30가지에서 고른다 */
+  grammarScope?: string[];
   /** 이 문항의 목표 난이도. 없으면 overallDifficulty(내신→중, 고난도→상)를 따른다 */
   targetLevel?: TargetLevel | null;
   /** 어법·어휘에서 지문을 바꿔 써도 되는지(기본은 원문 그대로) */
@@ -1430,6 +1502,12 @@ export async function generateOneQuestion(opts: {
     difficultyRule(option, opts.targetLevel ?? targetLevelFromOverall(opts.overallDifficulty)),
     opts.levelBrief ? `\n[원래 시험지의 수준]\n${opts.levelBrief}` : "",
     typeRules(option),
+    // 선생님이 어법 범위를 정해 두었으면 그 안에서만 고르게 한다
+    option.aingkaCode === "문법조건영작" && opts.grammarScope?.length
+      ? `\n[이번에 쓸 어법 범위] 아래에서만 고른다. 지문에 없는 것은 빼고, 있는 것 가운데 고른다.\n${opts.grammarScope
+          .map((g) => `  · ${g}`)
+          .join("\n")}`
+      : "",
   ]
     .filter((line) => line.trim())
     .join("\n");

@@ -122,6 +122,11 @@ export interface GenerationRequestConfig {
    * 선생님 요청(2026-09-28): 수준과 유형이 정말 반영이 잘 되도록.
    */
   levelBrief?: string;
+  /**
+   * 조건 영작에서 쓸 어법 범위(어법 이름 목록). 비우면 교재 기준 목록에서 알아서 고른다.
+   * 선생님 요청(2026-09-28): 그 문법을 무작위로 해도 되고 정해 둔 범위로 해도 좋다.
+   */
+  grammarScope?: string[];
   forceGenerateDespiteWarnings?: boolean;
   /** 자료함(수업자료)에서 지문을 골라 만든 경우 그 지문 id. 있으면 자료함 변형문제 탭에 보인다. */
   lessonProjectIds?: string[];

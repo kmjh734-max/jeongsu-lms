@@ -582,6 +582,28 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "다음 글의 내용을 바탕으로 요약문의 빈칸에 들어갈 말을 본문에서 찾아 쓰시오."
       ),
       opt(
+        "summary_short",
+        "subjective",
+        "요약표 빈칸 · 본문 단어",
+        "default",
+        null,
+        false,
+        "내용을 표로 정리 · 빈칸 (A)(B)(C)에 본문 단어 찾아 쓰기",
+        "요약표빈칸단어",
+        "다음 글의 내용을 표로 정리하고자 할 때, 빈칸 (A), (B), (C)에 들어갈 말을 본문에서 찾아 각각 한 단어로 쓰시오."
+      ),
+      opt(
+        "writing",
+        "subjective",
+        "조건 영작 · 지정 문법",
+        "default",
+        null,
+        false,
+        "정해진 어법을 반드시 써서 우리말을 영작",
+        "문법조건영작",
+        "다음 우리말과 같은 뜻이 되도록 <조건>에 맞게 영작하시오."
+      ),
+      opt(
         "writing",
         "subjective",
         "지칭 · 대명사·지시사",

@@ -47,6 +47,81 @@ const CATEGORY_ORDER = [
   "subjective",
 ] as const;
 
+/**
+ * 조건 영작에 쓸 어법 범위 고르기.
+ * 아무것도 고르지 않으면 지문에 실제로 있는 어법 가운데 알아서 고른다.
+ */
+function GrammarScopeBox({
+  choices,
+  picked,
+  onChange,
+  open,
+  onToggle,
+}: {
+  choices: string[] | null;
+  picked: string[];
+  onChange: (next: string[]) => void;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-2 text-left"
+      >
+        <span className="min-w-0 text-[11px] text-slate-700">
+          <b className="block text-slate-800">조건 영작 어법 범위</b>
+          {picked.length === 0
+            ? "지문에 있는 어법 가운데 알아서 고릅니다."
+            : `${picked.length}개로 좁힘`}
+        </span>
+        <span className="shrink-0 text-xs text-slate-400">{open ? "▲" : "▼"}</span>
+      </button>
+      {open ? (
+        choices === null ? (
+          <p className="mt-1.5 text-[11px] text-slate-500">어법 목록을 불러오는 중이에요…</p>
+        ) : (
+          <>
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {choices.map((g) => {
+                const on = picked.includes(g);
+                return (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() =>
+                      onChange(on ? picked.filter((x) => x !== g) : [...picked, g])
+                    }
+                    aria-pressed={on}
+                    className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
+                      on
+                        ? "border-brand-600 bg-brand-600 text-white"
+                        : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    {g}
+                  </button>
+                );
+              })}
+            </div>
+            {picked.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => onChange([])}
+                className="mt-1.5 text-[11px] font-semibold text-slate-500 hover:text-slate-800"
+              >
+                범위 풀기(알아서 고르기)
+              </button>
+            ) : null}
+          </>
+        )
+      ) : null}
+    </div>
+  );
+}
+
 export function QuestionGeneratorClient({
   role,
   basePath,
@@ -82,6 +157,13 @@ export function QuestionGeneratorClient({
   const [mockOpen, setMockOpen] = useState(false);
   /** 어법·어휘에서 지문을 바꿔 쓸지(기본은 원문 그대로) */
   const [paraphraseGV, setParaphraseGV] = useState(false);
+  /**
+   * 조건 영작에 쓸 어법 범위. 비워 두면 지문에 있는 것 가운데 알아서 고른다.
+   * 선생님 요청(2026-09-28): 무작위로 해도 되고 정해 둔 범위로 해도 되게.
+   */
+  const [grammarScope, setGrammarScope] = useState<string[]>([]);
+  const [grammarChoices, setGrammarChoices] = useState<string[] | null>(null);
+  const [grammarScopeOpen, setGrammarScopeOpen] = useState(false);
   /** 유형에 마우스를 올렸을 때 띄우는 예시 */
   const [sample, setSample] = useState<{ s: TypeSample; level: SampleLevel; x: number; y: number } | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -145,11 +227,13 @@ export function QuestionGeneratorClient({
       presetId: modeTab.startsWith("preset:") ? modeTab.slice(7) : null,
       counts,
       ...(paraphraseGV ? { paraphraseGrammarVocab: true } : {}),
+      ...(grammarScope.length ? { grammarScope } : {}),
       ...(lessonProjectIds.length ? { lessonProjectIds } : {}),
     }),
     [
       lessonProjectIds,
       paraphraseGV,
+      grammarScope,
       title,
       schoolName,
       grade,
@@ -162,6 +246,18 @@ export function QuestionGeneratorClient({
       counts,
     ]
   );
+
+  // 조건 영작 어법 목록 — 범위를 펼칠 때 한 번만 불러온다
+  const writingCount = counts["writing:na:default:문법조건영작"] ?? 0;
+  useEffect(() => {
+    if (writingCount === 0 || grammarChoices) return;
+    fetch("/api/question-generator/grammar-scope")
+      .then((r) => r.json())
+      .then((d: { ok?: boolean; grammars?: string[] }) => {
+        if (d.ok) setGrammarChoices(d.grammars ?? []);
+      })
+      .catch(() => undefined);
+  }, [writingCount, grammarChoices]);
 
   useEffect(() => {
     fetch("/api/question-generator/presets")
@@ -1153,6 +1249,15 @@ export function QuestionGeneratorClient({
                               </div>
                             );
                           })}
+                          {group.category === "subjective" && writingCount > 0 ? (
+                            <GrammarScopeBox
+                              choices={grammarChoices}
+                              picked={grammarScope}
+                              onChange={setGrammarScope}
+                              open={grammarScopeOpen}
+                              onToggle={() => setGrammarScopeOpen((v) => !v)}
+                            />
+                          ) : null}
                         </div>
                       )}
                     </div>
