@@ -116,6 +116,12 @@ export interface GenerationRequestConfig {
   blueprint?: BlueprintSlot[];
   /** 동형모의고사를 만든 시험 분석 id */
   examAnalysisId?: string;
+  /**
+   * 원래 시험지의 수준(평균 문장 길이·선택지 길이·추정 렉사일·어휘 등급)을 적은 한 문단.
+   * 동형모의고사를 만들 때 새 문항의 선택지와 표현을 이 수준에 맞추게 한다.
+   * 선생님 요청(2026-09-28): 수준과 유형이 정말 반영이 잘 되도록.
+   */
+  levelBrief?: string;
   forceGenerateDespiteWarnings?: boolean;
   /** 자료함(수업자료)에서 지문을 골라 만든 경우 그 지문 id. 있으면 자료함 변형문제 탭에 보인다. */
   lessonProjectIds?: string[];

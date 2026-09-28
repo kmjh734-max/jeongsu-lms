@@ -384,6 +384,35 @@ export function ExamReportView({
               </p>
             </div>
 
+            {analysis.sentence_words || analysis.lexile || analysis.vocab_level ? (
+              <div>
+                <h3 className={h3} style={{ color: NAVY }}>
+                  지문·보기 수준
+                </h3>
+                <div className="flex flex-wrap gap-x-4 gap-y-[3px]">
+                  {analysis.sentence_words ? (
+                    <span>평균 문장 길이 <b>{analysis.sentence_words}낱말</b></span>
+                  ) : null}
+                  {analysis.choice_words ? (
+                    <span>영어 보기 평균 <b>{analysis.choice_words}낱말</b></span>
+                  ) : null}
+                  {analysis.vocab_level ? (
+                    <span>어휘 수준 <b>{analysis.vocab_level}</b></span>
+                  ) : null}
+                  {analysis.lexile ? (
+                    <span>추정 렉사일 <b>약 {analysis.lexile}L</b></span>
+                  ) : null}
+                </div>
+                {analysis.level_summary ? (
+                  <p className="mt-[3px]">{analysis.level_summary}</p>
+                ) : null}
+                <p className="mt-[5px] text-[10.5px]" style={{ color: SOFT }}>
+                  문장 길이와 보기 길이는 시험지 글자를 세어 잰 값입니다. 렉사일은 정식 측정값이 아니라
+                  문장 길이와 낱말 난도로 어림한 값입니다. 동형모의고사를 만들 때 이 수준에 맞춥니다.
+                </p>
+              </div>
+            ) : null}
+
             <div>
               <h3 className={h3} style={{ color: NAVY }}>
                 출제 특징

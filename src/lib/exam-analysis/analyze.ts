@@ -3,6 +3,7 @@ import { ALL_QUESTION_OPTIONS } from "@/lib/question-generator/question-types";
 import { examChat } from "@/lib/exam-analysis/openai";
 import { matchLessonMaterials, matchMockPassages } from "@/lib/exam-analysis/match-materials";
 import { typeNameFromKey } from "@/lib/exam-analysis/types";
+import { measureExamPages, measureText } from "@/lib/exam-analysis/reading-level";
 
 type RawItem = {
   no?: string | number;
@@ -30,6 +31,8 @@ type RawResult = {
     total_points?: number;
     missing?: string;
     note?: string;
+    vocab_level?: string;
+    level_summary?: string;
   };
   items?: RawItem[];
   features?: string[];
@@ -52,8 +55,10 @@ export function systemPrompt(): string {
 - 지문 출처(교과서·모의고사 등)는 짐작하지 않는다.
 - 쪽 아래 "7-1", "2/8" 같은 쪽 번호와 문항 번호가 건너뛴 곳을 보고, 올라오지 않은 쪽·문항을 meta.missing 에 적는다(예: "7쪽 중 2·4·6쪽 없음 (6~9·15~20번)"). 빠짐이 없으면 "". 빠진 문항은 items에 넣지 않는다.
 - features: 출제 특징 3~5개, strategy: 다음 시험 대비 전략 3~5개. 선생님이 학부모 상담에 그대로 쓸 수 있게 구체적으로.
+- meta.vocab_level: 지문에 쓰인 어휘 수준을 한 마디로 (예: 중3 교과서, 고1 교과서, 고2 모의고사, 수능, 수능 이상). 세지 말고 읽은 느낌으로 정한다.
+- meta.level_summary: 이 시험지의 수준을 한 문장으로. 지문 어휘와 선택지 문장이 어느 정도인지 적는다.
 JSON 하나만 출력:
-{"meta":{"school":"","grade":"","subject":"","exam":"","total_points":0,"missing":"","note":""},
+{"meta":{"school":"","grade":"","subject":"","exam":"","total_points":0,"missing":"","note":"","vocab_level":"","level_summary":""},
  "items":[{"no":"1","points":2.9,"format":"objective|subjective","stem":"발문","passage_excerpt":"","passage_words":0,
    "type_key":"","difficulty":3,"level":"중","difficulty_reason":"","grammar_point":"","subjective_conditions":"","answer_guess":"","confidence":0.0}],
  "features":[],"strategy":[]}
@@ -131,6 +136,14 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
       matched_label: match?.label ?? null,
       matched_mock_id: mock?.mockId ?? null,
       matched_mock_label: mock?.label ?? null,
+      ...(() => {
+        // 지문 발췌로 이 문항의 수준을 잰다(발췌가 짧으면 렉사일은 내지 않는다)
+        const m = measureText(String(it.passage_excerpt ?? ""));
+        return {
+          passage_sentence_words: m.wordCount > 0 ? m.sentenceWords : null,
+          lexile: m.lexile,
+        };
+      })(),
     };
   });
 
@@ -145,6 +158,11 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
     .eq("id", analysisId)
     .maybeSingle();
   const total = rows.reduce((s, r) => s + (r.points ?? 0), 0);
+  /*
+   * 수준(선생님 요청 2026-09-28)은 이미 읽어 둔 쪽 글자로 잰다. 모델에게 더 묻지 않으므로
+   * 값이 들지 않고, 같은 시험지면 언제나 같은 값이 나온다. 어휘 등급만 모델이 준 것을 쓴다.
+   */
+  const level = measureExamPages((pages ?? []).map((pg) => String(pg.text ?? "")));
   await admin
     .from("school_exam_analyses")
     .update({
@@ -158,6 +176,11 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
       total_points: Math.round(total * 10) / 10,
       features: raw.features ?? [],
       strategy: raw.strategy ?? [],
+      sentence_words: level.passage.sentenceWords || null,
+      choice_words: level.choice.avgWords || null,
+      lexile: level.passage.lexile,
+      vocab_level: meta.vocab_level || null,
+      level_summary: meta.level_summary || null,
       status: "ready",
       error: null,
       updated_at: new Date().toISOString(),

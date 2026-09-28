@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { loadOwnAnalysis, requireExamStaff } from "@/lib/exam-analysis/access";
 import { buildMockSlots } from "@/lib/exam-analysis/blueprint";
+import { levelBriefFor } from "@/lib/exam-analysis/reading-level";
 import { loadExamAnalysis, loadExamMocks } from "@/lib/exam-analysis/load";
 import { loadAcademyMaterialPassages } from "@/lib/exam-analysis/material-passages";
 import { createJobFromConfig } from "@/lib/question-generator/create-job";
@@ -99,6 +100,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     counts: {},
     blueprint,
     examAnalysisId: id,
+    // 원래 시험지에서 잰 수준을 그대로 넘긴다(선생님 요청 2026-09-28: 수준이 정말 반영되도록)
+    levelBrief: levelBriefFor({
+      sentenceWords: a.sentence_words,
+      choiceWords: a.choice_words,
+      lexile: a.lexile,
+      vocabLevel: a.vocab_level,
+    }),
   };
 
   const supabase = await createClient();

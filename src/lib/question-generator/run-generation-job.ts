@@ -184,6 +184,7 @@ async function generateWithValidation(opts: {
   option: QuestionTypeOption;
   grade: string;
   overallDifficulty: string;
+  levelBrief?: string;
   sourceDetail?: string;
   diversitySlot?: { index: number; total: number; label: string };
   targetLevel?: TargetLevel | null;
@@ -760,6 +761,7 @@ export async function runGenerationJob(
         diversitySlot: item.diversitySlot,
         targetLevel: item.slot?.level ?? null,
         paraphraseGrammarVocab: config.paraphraseGrammarVocab === true,
+        levelBrief: config.levelBrief,
         retries: item.slot ? 2 : undefined,
       });
       // 다음 실행이 이 문항을 다시 만든다. 여기서 저장하면 같은 칸이 두 번 생긴다.

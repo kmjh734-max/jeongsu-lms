@@ -1211,6 +1211,8 @@ export async function generateOneQuestion(opts: {
   sourceDetail?: string;
   /** 같은 지문 내 슬롯 (어휘·paraphrase 다양화) */
   diversitySlot?: { index: number; total: number; label: string };
+  /** 원래 시험지의 수준을 적은 한 문단(동형모의고사). 선택지 길이·어휘를 여기에 맞춘다 */
+  levelBrief?: string;
   /** 이 문항의 목표 난이도. 없으면 overallDifficulty(내신→중, 고난도→상)를 따른다 */
   targetLevel?: TargetLevel | null;
   /** 어법·어휘에서 지문을 바꿔 써도 되는지(기본은 원문 그대로) */
@@ -1426,6 +1428,7 @@ export async function generateOneQuestion(opts: {
     paraphraseSystemHint,
     craftSystemHint,
     difficultyRule(option, opts.targetLevel ?? targetLevelFromOverall(opts.overallDifficulty)),
+    opts.levelBrief ? `\n[원래 시험지의 수준]\n${opts.levelBrief}` : "",
     typeRules(option),
   ]
     .filter((line) => line.trim())

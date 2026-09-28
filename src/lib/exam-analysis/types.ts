@@ -57,6 +57,16 @@ export type ExamAnalysisRow = {
   total_points: number | null;
   features: string[];
   strategy: string[];
+  /** 지문 전체의 평균 문장 길이(낱말). 쪽 글자로 코드가 잰 값 */
+  sentence_words: number | null;
+  /** 영어 선택지 평균 낱말 수 */
+  choice_words: number | null;
+  /** 추정 렉사일. 정식 측정값이 아니다 */
+  lexile: number | null;
+  /** 어휘 수준 한 마디 */
+  vocab_level: string | null;
+  /** 수준 요약 한 문장 */
+  level_summary: string | null;
   error: string | null;
   match_materials: boolean;
   created_at: string;
