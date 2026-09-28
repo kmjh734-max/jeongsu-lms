@@ -22,6 +22,7 @@ import {
 } from "@/lib/question-generator/question-types";
 import { QgJobProgressBar } from "@/components/question-generator/QgJobProgressBar";
 import { useQgJobProgress } from "@/components/question-generator/useQgJobProgress";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import type {
   GenerationRequestConfig,
   PassageInput,
@@ -49,9 +50,12 @@ const CATEGORY_ORDER = [
 export function QuestionGeneratorClient({
   role,
   basePath,
+  textbookOpen = false,
 }: {
   role: Role;
   basePath: string;
+  /** 교과서 본문을 열어 준 학원인지 — 아니면 교과서 갈래를 아예 안 보인다 */
+  textbookOpen?: boolean;
 }) {
   const [title, setTitle] = useState("");
   const [schoolName, setSchoolName] = useState("");
@@ -450,6 +454,16 @@ export function QuestionGeneratorClient({
         );
         return;
       }
+
+      // 만들면 문항 수만큼 크레딧이 나간다. 시작하기 전에 값을 보여 주고 한 번 더 묻는다.
+      const go = await askCreditConfirm({
+        title: "변형문제",
+        description: "고른 유형으로 지문마다 문항을 만듭니다. 문항 수만큼 크레딧이 나갑니다.",
+        subject: `지문 ${filledPassages.length}개 × 지문당 ${perPassageTotals.total}문항 = 모두 ${grandTotal}문항`,
+        items: [{ feature: "qg_generate_job", quantity: grandTotal }],
+        sample: "question",
+      });
+      if (!go) return;
 
       const res = await fetch("/api/question-generator/jobs", {
         method: "POST",
@@ -1364,6 +1378,7 @@ export function QuestionGeneratorClient({
           {mockOpen ? (
             <MockPassagePickerModal
               max={MAX_PASSAGES - filledPassages.length}
+              allowTextbook={textbookOpen}
               onPick={addMockPassages}
               onClose={() => setMockOpen(false)}
             />

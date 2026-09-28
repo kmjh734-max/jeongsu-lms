@@ -6,6 +6,8 @@ import { WorkbookCreateModal } from "@/components/lesson-materials/WorkbookCreat
 import { PickExamForMockModal } from "@/components/exam-analysis/PickExamForMockModal";
 import { openNewDocument } from "@/components/lesson-materials/open-new-document";
 import type { LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
+import { materialConfirm } from "@/lib/credits/material-confirm";
 
 
 /** Floating purple action bar when library items are selected. */
@@ -31,6 +33,8 @@ export function LessonMaterialsSelectionBar({
 
   async function make(kind: LessonMaterialDocumentKind) {
     setOpenError(null);
+    // 만들면 크레딧이 나간다. 잘못 눌러도 되돌릴 수 없으니 견본과 값을 보여 주고 한 번 더 묻는다.
+    if (!(await askCreditConfirm(materialConfirm(kind, selectedIds.length)))) return;
     setOpening(true);
     const err = await openNewDocument(role, kind, selectedIds);
     setOpening(false);

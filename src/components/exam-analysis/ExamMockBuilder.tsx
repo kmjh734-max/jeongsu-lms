@@ -7,6 +7,7 @@ import { Icon } from "@/components/layout/NavIcon";
 import type { MockSlot } from "@/lib/exam-analysis/blueprint";
 import type { MaterialPassage } from "@/lib/exam-analysis/load";
 import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 
 type Chosen =
   | { kind: "material"; id: string; label: string; words: number }
@@ -121,6 +122,14 @@ export function ExamMockBuilder({
   const labelOf = (c: Chosen) => (c.kind === "material" ? c.label : c.title);
 
   async function create() {
+    // 만들면 문항 수만큼 크레딧이 나간다. 고른 지문이 맞는지 보고 한 번 더 묻는다.
+    if (!(await askCreditConfirm({
+      title: "동형모의고사",
+      description: "분석해 둔 학교 시험과 같은 번호·유형·난이도·배점으로 새 시험지를 만듭니다.",
+      subject: `고른 지문 ${chosen.length}개`,
+      items: [{ feature: "qg_generate_job", quantity: Math.max(1, chosen.length) }],
+      sample: "exam_mock",
+    }))) return;
     setBusy(true);
     setMessage(null);
     try {
@@ -382,6 +391,7 @@ export function ExamMockBuilder({
       {mockOpen ? (
         <MockPassagePickerModal
           initialSource={pickerSource}
+          allowTextbook={textbookOpen}
           onPick={addMock}
           onClose={() => setMockOpen(false)}
         />

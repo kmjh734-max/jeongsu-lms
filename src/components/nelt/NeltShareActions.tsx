@@ -26,6 +26,7 @@ import {
   type NeltParentMessageTone,
 } from "@/lib/nelt/generate-parent-message";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 
 const SENDER_STORAGE_KEY = "nelt-parent-message-sender-v1";
 
@@ -146,6 +147,11 @@ export function NeltShareActions({
     setMsgLoading(true);
     const nextVersion = (messageVersion + 1) % NELT_MESSAGE_VERSION_COUNT;
     try {
+      if (!(await askCreditConfirm({
+        title: "학부모 안내문",
+        description: "성장 리포트를 바탕으로 학부모께 보낼 안내문을 만듭니다. 한 번 만들면 저장됩니다.",
+        items: [{ feature: "nelt_parent_message", quantity: 1 }],
+      }))) return;
       const res = await fetch("/api/nelt/parent-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

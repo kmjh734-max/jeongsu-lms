@@ -13,6 +13,7 @@ import {
   buildParentOverallSummary,
 } from "@/lib/nelt/compare/domain-sections";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import {
   applyAiNarratives,
   type NeltAiNarratives,
@@ -87,6 +88,11 @@ export function NeltGrowthReportView({
     setAiProgress(8);
     setAiElapsed(0);
     try {
+      if (!(await askCreditConfirm({
+        title: "성장 리포트 서술",
+        description: "회차별 성적을 견줘 학생에게 보여 줄 서술을 만듭니다. 한 번 만들면 저장되어 다시 열 때는 값이 들지 않습니다.",
+        items: [{ feature: "nelt_report_narratives", quantity: 1 }],
+      }))) return;
       const res = await fetch("/api/nelt/report-narratives", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -9,6 +9,7 @@ import { mergeParsedRows, type ParsedVocabRow } from "@/lib/vocab/parse-bulk-pas
 import { fetchGeneratedExamples, type ExampleLevel } from "@/lib/vocab/generate-examples-client";
 import { fetchGeneratedRelatedWords } from "@/lib/vocab/generate-related-words-client";
 import type { VocabItem } from "@/types/database";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 
 export interface VocabEditorRow {
   rowKey: string;
@@ -263,6 +264,12 @@ export function VocabTableEditor({
       setStatus({ text: "채울 빈칸이 없어요.", tone: "info" });
       return;
     }
+    if (exTargets.length > 0 && !(await askCreditConfirm({
+      title: "예문 만들기",
+      description: "낱말마다 그 뜻에 맞는 예문을 만들어 빈칸을 채웁니다.",
+      subject: `예문이 빈 낱말 ${exTargets.length}개`,
+      items: [{ feature: "vocab_generate_examples", quantity: exTargets.length }],
+    }))) return;
     setFilling(true);
     setStatus({ text: "빈칸을 채우는 중이에요…", tone: "info" });
     let exFilled = 0;

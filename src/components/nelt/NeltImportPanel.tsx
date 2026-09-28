@@ -6,6 +6,7 @@ import { Icon } from "@/components/layout/NavIcon";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import type { NeltExtractedDraft } from "@/lib/nelt/types-draft";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 
 interface NeltImportPanelProps {
   role: "admin" | "teacher";
@@ -200,6 +201,11 @@ export function NeltImportPanel({
     // 저장한 회차로 리포트 문장을 쓴 뒤 리포트를 연다
     setSaving("narrative");
     try {
+      if (!(await askCreditConfirm({
+        title: "성장 리포트 서술",
+        description: "회차별 성적을 견줘 학생에게 보여 줄 서술을 만듭니다. 한 번 만들면 저장되어 다시 열 때는 값이 들지 않습니다.",
+        items: [{ feature: "nelt_report_narratives", quantity: 1 }],
+      }))) return;
       const res = await fetch("/api/nelt/report-narratives", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

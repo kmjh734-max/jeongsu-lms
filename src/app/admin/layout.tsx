@@ -6,6 +6,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Suspense } from "react";
 import { LowCreditBanner } from "@/components/credits/LowCreditBanner";
 import { CreditWall } from "@/components/credits/CreditWall";
+import { CreditConfirmHost } from "@/components/credits/CreditConfirmHost";
 import { GuideBanner } from "@/components/home/GuideBanner";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -64,6 +65,7 @@ export default async function AdminLayout({
     >
       <LowCreditBanner academyId={profile.academy_id} canCharge />
       <CreditWall academyId={profile.academy_id} canCharge />
+      <CreditConfirmHost chargeHref="/admin/credits/charge" />
       <Suspense fallback={null}>
         <GuideBanner />
       </Suspense>

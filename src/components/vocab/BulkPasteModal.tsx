@@ -5,6 +5,7 @@ import { Icon } from "@/components/layout/NavIcon";
 import { Button } from "@/components/ui/Button";
 import { ModalShell, Segmented } from "@/components/vocab/VocabUi";
 import { fetchPassageVocabulary } from "@/lib/vocab/extract-passage-client";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import {
   parseBulkPaste,
   type ParsedVocabRow,
@@ -69,6 +70,11 @@ export function BulkPasteModal({ open, onClose, onApplyRows }: BulkPasteModalPro
       setHint({ text: "지문이 너무 짧아요. 영어 지문을 조금 더 넣어 주세요.", bad: true });
       return;
     }
+    if (!(await askCreditConfirm({
+      title: "지문에서 단어 뽑기",
+      description: "넣은 지문에서 학생이 모를 만한 낱말을 골라 뜻과 함께 단어장에 넣습니다.",
+      items: [{ feature: "vocab_extract_passage", quantity: 1 }],
+    }))) return;
     setLoading(true);
     setHint(null);
     let result: Awaited<ReturnType<typeof fetchPassageVocabulary>>;

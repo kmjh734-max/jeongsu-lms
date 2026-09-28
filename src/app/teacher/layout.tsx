@@ -5,6 +5,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { LowCreditBanner } from "@/components/credits/LowCreditBanner";
 import { CreditWall } from "@/components/credits/CreditWall";
+import { CreditConfirmHost } from "@/components/credits/CreditConfirmHost";
 
 const NAV_ITEMS = [
   { href: "/teacher", label: "강사 홈" },
@@ -44,6 +45,7 @@ export default async function TeacherLayout({
     <DashboardLayout profile={profile} navItems={filterNavItems(NAV_ITEMS)}>
       <LowCreditBanner academyId={profile.academy_id} canCharge={false} />
       <CreditWall academyId={profile.academy_id} canCharge={false} />
+      <CreditConfirmHost chargeHref="/admin/credits/charge" />
       {children}
     </DashboardLayout>
   );

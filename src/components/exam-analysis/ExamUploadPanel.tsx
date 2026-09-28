@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { pdfFileToJpegFiles } from "@/lib/student-records/client-pdf-render";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 
 type Step = "idle" | "preparing" | "reading" | "analyzing" | "failed";
 
@@ -87,6 +88,16 @@ export function ExamUploadPanel({ basePath }: { basePath: string }) {
       }
       if (pages.length === 0) throw new Error("PDF나 사진 파일을 올려 주세요.");
       if (pages.length > 20) throw new Error("시험지는 20쪽까지 올릴 수 있어요.");
+
+      // 분석하면 크레딧이 나간다. 올린 시험지가 맞는지 보고 한 번 더 묻는다.
+      const go = await askCreditConfirm({
+        title: "시험 분석",
+        description: "올린 시험지를 읽어 문항 차례와 배점, 출처를 정리합니다. 이 결과로 동형모의고사도 만들 수 있습니다.",
+        subject: `올린 시험지 ${pages.length}쪽`,
+        items: [{ feature: "school_exam_analysis", quantity: 1 }],
+        sample: "exam_mock",
+      });
+      if (!go) { setStep("idle"); return; }
 
       const { id } = await postJson("/api/exam-analysis", { pageCount: pages.length, ...meta, matchMaterials });
       setStep("reading");

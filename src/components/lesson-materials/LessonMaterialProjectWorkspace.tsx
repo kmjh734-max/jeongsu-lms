@@ -13,6 +13,7 @@ import { saveLessonMaterialProjectWorkspace } from "@/lib/lesson-materials/libra
 import { ensureLessonMaterialTitleEnAction } from "@/lib/lesson-materials/lesson-pack-actions";
 import { generateLessonMaterialsOrganizationDraftAction as generateAdminOrganizationDraft } from "@/app/admin/lesson-materials/actions";
 import { generateLessonMaterialsOrganizationDraftAction as generateTeacherOrganizationDraft } from "@/app/teacher/lesson-materials/actions";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 
 export type LessonMaterialItemDraft = {
   id: string;
@@ -241,6 +242,14 @@ export function LessonMaterialProjectWorkspace({
               "다시 생각해 보자",
               "이제 이해가 됐어!",
             ];
+      // 그림 한 장마다 크레딧이 나간다.
+      if (!(await askCreditConfirm({
+        title: "지문 삽화",
+        description: "지문 장면을 그림 한 장으로 그려 자료에 넣습니다. 장면 설명을 고쳐 다시 그릴 수 있습니다.",
+        subject: "그림 1장",
+        items: [{ feature: "lesson_illustration", quantity: 1 }],
+        sample: "illustration",
+      }))) return;
       const res = await fetch("/api/lesson-materials/illustration", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

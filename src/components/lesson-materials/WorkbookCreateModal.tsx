@@ -5,6 +5,7 @@ import { openNewDocument } from "@/components/lesson-materials/open-new-document
 import { useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import {
   DEFAULT_WORKBOOK_BLANK_OPTIONS,
   DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS,
@@ -17,6 +18,7 @@ import {
   type WorkbookGrammarFixOptions,
   defaultWorkbookTitle,
   estimateBlankCountPreview,
+  getWorkbookTypeMeta,
   sortWorkbookTypesByPrintOrder,
   type WorkbookBlankFillOptions,
   type WorkbookData,
@@ -198,6 +200,23 @@ export function WorkbookCreateModal({
       title: title.trim() || defaultWorkbookTitle(),
       regenerate,
     });
+    // 고른 갈래 가운데 값이 나가는 것만 묻는다(한줄해석·영작 등은 값이 들지 않는다).
+    const paid: Array<{ feature: string; quantity: number }> = [];
+    const n = projectIds.length || 1;
+    if (readySelected.includes("grammar_choice") || readySelected.includes("grammar_fix"))
+      paid.push({ feature: "lesson_workbook_grammar_choice", quantity: n });
+    if (readySelected.includes("vocab_choice") || readySelected.includes("vocab_fix"))
+      paid.push({ feature: "lesson_workbook_vocab_choice", quantity: n });
+    if (readySelected.includes("tf")) paid.push({ feature: "lesson_workbook_tf", quantity: n });
+    if (!(await askCreditConfirm({
+      title: "워크북",
+      description: "학생이 직접 써 보는 연습지를 만듭니다. 고른 갈래 가운데 값이 나가는 것만 아래에 적었습니다.",
+      subject: `고른 지문 ${projectIds.length}개 · 갈래 ${readySelected.length}가지`,
+      contents: readySelected.map((t) => getWorkbookTypeMeta(t)?.title ?? t),
+      items: paid,
+      sample: "workbook",
+    }))) return;
+
     // 워크북도 파일로 저장한다. 제목이 곧 파일 이름이고, 만든 조건(유형·옵션)을 함께 둔다.
     const err = await openNewDocument(role, "workbook", [...projectIds], {
       name: title.trim() || defaultWorkbookTitle(),
