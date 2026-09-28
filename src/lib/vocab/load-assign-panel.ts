@@ -116,10 +116,12 @@ export async function loadVocabAssignPanelData(
   userId: string,
   setIds: string[]
 ): Promise<VocabAssignPanelData> {
+  /*
+   * 단어장을 아직 안 고른 채로 열 수 있다(반 상세·학생 줄에서 여는 경우).
+   * 그때도 반·학생 목록은 필요하므로 여기서 끝내지 않는다.
+   * 선생님 요청(2026-09-28): 어디서 열든 같은 배정 창이 나오게.
+   */
   const ids = [...new Set(setIds)].filter(Boolean);
-  if (ids.length === 0) {
-    return { sets: [], classes: [], students: [], assignments: [] };
-  }
 
   let classesQuery = supabase
     .from("classes")

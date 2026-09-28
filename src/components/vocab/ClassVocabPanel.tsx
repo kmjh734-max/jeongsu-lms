@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { VocabAssignModal } from "@/components/vocab/VocabAssignModal";
+import type { VocabRole } from "@/lib/vocab/module-types";
 
 export interface VocabSetOption {
   id: string;
@@ -24,6 +26,8 @@ export interface ClassStudentVocabRow {
 
 interface ClassVocabPanelProps {
   classId: string;
+  /** 배정 창을 여기서도 연다 (선생님 요청 2026-09-28: 반 상세에서도 배정하게) */
+  role?: VocabRole;
   students: ClassStudentVocabRow[];
   setOptions: VocabSetOption[];
   onAssign: (
@@ -39,12 +43,15 @@ interface ClassVocabPanelProps {
 
 export function ClassVocabPanel({
   classId,
+  role = "admin",
   students,
   setOptions,
   onAssign,
   onRemove,
 }: ClassVocabPanelProps) {
   const router = useRouter();
+  /** 배정 창을 어디에 대고 여는지 — 반 전체인지, 학생 한 명인지 */
+  const [assignTo, setAssignTo] = useState<{ kind: "class" } | { kind: "student"; id: string } | null>(null);
   const [studentId, setStudentId] = useState("");
   const [setId, setSetId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -99,10 +106,15 @@ export function ClassVocabPanel({
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-slate-600">
-        학생마다 단어장을 개별 배정합니다. 배정된 단어장만 해당 학생의 단어
-        학습 메뉴에 표시됩니다.
-      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <p className="min-w-0 flex-1 text-sm text-slate-600">
+          배정된 단어장만 그 학생의 단어학습에 보여요. 아래 학생 이름 옆에서 그 학생만 골라
+          배정할 수도 있어요.
+        </p>
+        <Button type="button" onClick={() => setAssignTo({ kind: "class" })}>
+          이 반에 배정하기
+        </Button>
+      </div>
 
       <form
         onSubmit={handleAssign}
@@ -179,11 +191,20 @@ export function ClassVocabPanel({
             key={student.student_id}
             className="rounded-lg border border-slate-200 bg-white"
           >
-            <div className="border-b border-slate-100 px-4 py-2.5">
+            <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-2.5">
               <span className="font-medium text-slate-900">{student.name}</span>
-              <span className="ml-2 text-xs text-slate-500">
+              <span className="text-xs text-slate-500">
                 {student.assignments.length}개 단어장
               </span>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="ml-auto"
+                onClick={() => setAssignTo({ kind: "student", id: student.student_id })}
+              >
+                이 학생에게 배정
+              </Button>
             </div>
             {student.assignments.length === 0 ? (
               <p className="px-4 py-3 text-sm text-slate-500">
@@ -213,6 +234,16 @@ export function ClassVocabPanel({
           </div>
         ))}
       </div>
+
+      <VocabAssignModal
+        open={assignTo !== null}
+        onClose={() => setAssignTo(null)}
+        role={role}
+        setIds={[]}
+        presetClassId={assignTo?.kind === "class" ? classId : undefined}
+        presetStudentId={assignTo?.kind === "student" ? assignTo.id : undefined}
+        onChanged={() => router.refresh()}
+      />
     </div>
   );
 }

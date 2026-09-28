@@ -18,10 +18,6 @@ export async function GET(request: Request) {
     .map((s) => s.trim())
     .filter(Boolean);
 
-  if (setIds.length === 0) {
-    return NextResponse.json({ error: "setIds required" }, { status: 400 });
-  }
-
   const supabase = await createClient();
   try {
     const data = await loadVocabAssignPanelData(

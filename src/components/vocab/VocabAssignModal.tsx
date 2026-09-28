@@ -11,6 +11,7 @@ import { Checkbox, ModalShell, Pill, Segmented } from "@/components/vocab/VocabU
 import type { VocabAssignPanelData } from "@/lib/vocab/assign-panel-types";
 import { formatShortDate, type VocabRole } from "@/lib/vocab/module-types";
 import { matchesSearch } from "@/lib/ui/filter-by-search";
+import { FolderSetPicker, type PickerFolder, type PickerItem } from "@/components/assign/FolderSetPicker";
 
 interface CurrentGroup {
   key: string;
@@ -31,6 +32,8 @@ export function VocabAssignModal({
   role,
   setIds,
   fallbackTitle,
+  presetClassId,
+  presetStudentId,
   onChanged,
 }: {
   open: boolean;
@@ -39,6 +42,10 @@ export function VocabAssignModal({
   setIds: string[];
   /** 불러오기 전 부제에 쓸 첫 단어장 이름 */
   fallbackTitle?: string;
+  /** 반 상세에서 열 때 — 이 반을 미리 골라 둔다 */
+  presetClassId?: string;
+  /** 학생 줄에서 열 때 — 이 학생을 미리 골라 둔다 */
+  presetStudentId?: string;
   onChanged?: () => void;
 }) {
   const router = useRouter();
@@ -54,10 +61,18 @@ export function VocabAssignModal({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; bad: boolean } | null>(null);
 
-  const idsKey = setIds.join(",");
+  /**
+   * 넘겨받은 단어장으로 시작하되, 창 안에서 더하거나 뺄 수 있다.
+   * 선생님 요청(2026-09-28): 폴더별·세트별로 고르게, 전체 고르기도.
+   */
+  const [chosenSetIds, setChosenSetIds] = useState<string[]>(setIds);
+  const [picker, setPicker] = useState<{ sets: PickerItem[]; folders: PickerFolder[] } | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const idsKey = chosenSetIds.join(",");
 
   const load = useCallback(async () => {
-    if (!idsKey) return;
+    // 단어장을 아직 안 골랐어도 반·학생은 불러온다(반 상세·학생 줄에서 여는 경우)
     setLoadError(null);
     try {
       const res = await fetch(`/api/vocab/assign-panel?setIds=${encodeURIComponent(idsKey)}`);
@@ -70,15 +85,29 @@ export function VocabAssignModal({
 
   useEffect(() => {
     if (!open) return;
+    setChosenSetIds(setIds);
+    // 단어장이 정해지지 않은 채 열렸으면(반·학생 화면에서 연 경우) 고르기를 펼쳐 둔다
+    setPickerOpen(setIds.length === 0);
     setData(null);
-    setPickedClasses(new Set());
-    setPickedStudents(new Set());
+    setPickedClasses(presetClassId ? new Set([presetClassId]) : new Set());
+    setPickedStudents(presetStudentId ? new Set([presetStudentId]) : new Set());
+    setTab(presetStudentId ? "student" : "class");
     setSearch("");
     setMessage(null);
     void load();
   }, [open, load]);
 
-  const setCount = data?.sets.length ?? setIds.length;
+  useEffect(() => {
+    if (!open || picker) return;
+    void fetch("/api/vocab/assign-picker")
+      .then((r) => r.json())
+      .then((body: { ok?: boolean; sets?: PickerItem[]; folders?: PickerFolder[] }) => {
+        if (body?.ok) setPicker({ sets: body.sets ?? [], folders: body.folders ?? [] });
+      })
+      .catch(() => undefined);
+  }, [open, picker]);
+
+  const setCount = data?.sets.length ?? chosenSetIds.length;
   const firstTitle = data?.sets[0]?.title ?? fallbackTitle ?? "단어장";
   const subtitle = setCount > 1 ? `${firstTitle} 외 ${setCount - 1}개` : firstTitle;
 
@@ -179,7 +208,7 @@ export function VocabAssignModal({
     setMessage(null);
     try {
       for (const c of pickedClassList) {
-        const r = await actions.bulkAssignVocabSetsToClass(setIds, c.id);
+        const r = await actions.bulkAssignVocabSetsToClass(chosenSetIds, c.id);
         if (!r.ok) {
           setMessage({ text: `${c.name}: ${r.message}`, bad: true });
           setBusy(false);
@@ -187,7 +216,7 @@ export function VocabAssignModal({
         }
       }
       if (pickedStudents.size > 0) {
-        const r = await actions.bulkAssignVocabSetsToStudents(setIds, [...pickedStudents]);
+        const r = await actions.bulkAssignVocabSetsToStudents(chosenSetIds, [...pickedStudents]);
         if (!r.ok) {
           setMessage({ text: r.message, bad: true });
           setBusy(false);
@@ -266,7 +295,11 @@ export function VocabAssignModal({
               </span>
             ) : (
               (summary ?? (
-                <span className="text-slate-400">배정할 반이나 학생을 골라 주세요.</span>
+                <span className="text-slate-400">
+                  {chosenSetIds.length === 0
+                    ? "배정할 단어장을 골라 주세요."
+                    : "배정할 반이나 학생을 골라 주세요."}
+                </span>
               ))
             )}
           </p>
@@ -276,7 +309,7 @@ export function VocabAssignModal({
             </Button>
             <Button
               onClick={() => void handleAssign()}
-              disabled={busy || !data || (pickedClassList.length === 0 && pickedStudents.size === 0)}
+              disabled={busy || !data || chosenSetIds.length === 0 || (pickedClassList.length === 0 && pickedStudents.size === 0)}
               className="px-[22px]"
             >
               {busy ? "배정 중…" : "배정하기"}
@@ -301,6 +334,39 @@ export function VocabAssignModal({
       ) : (
         <div className="grid md:grid-cols-[minmax(0,1fr)_300px]">
           <div className="flex min-w-0 flex-col gap-3.5 px-5 py-[18px] sm:px-[22px]">
+            {/* 무엇을 배정할지도 여기서 바꾼다 — 폴더별·세트별, 전체 고르기 */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[13px] font-bold text-slate-900">
+                  배정할 단어장 {chosenSetIds.length}개
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[12px] text-slate-500">{subtitle}</span>
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen((v) => !v)}
+                  className="h-9 shrink-0 rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  {pickerOpen ? "접기" : "바꾸기"}
+                </button>
+              </div>
+              {pickerOpen ? (
+                picker ? (
+                  <div className="mt-3 flex h-[300px] flex-col">
+                    <FolderSetPicker
+                      items={picker.sets}
+                      folders={picker.folders}
+                      selectedIds={chosenSetIds}
+                      onChange={setChosenSetIds}
+                      placeholder="단어장·폴더 이름으로 찾기"
+                      emptyText="단어장이 없어요."
+                    />
+                  </div>
+                ) : (
+                  <p className="mt-3 text-[12.5px] text-slate-500">단어장을 불러오는 중이에요…</p>
+                )
+              ) : null}
+            </div>
+
             <Segmented
               value={tab}
               onChange={setTab}

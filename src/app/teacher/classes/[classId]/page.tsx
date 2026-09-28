@@ -46,6 +46,7 @@ export default async function TeacherClassDetailPage({ params, searchParams }: P
         vocabPanel ? (
           <ClassVocabPanel
             classId={classId}
+            role="teacher"
             students={vocabPanel.students}
             setOptions={vocabPanel.setOptions}
             onAssign={classActions.teacherAssignVocabSetToStudent}

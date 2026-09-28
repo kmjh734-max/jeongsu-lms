@@ -45,6 +45,7 @@ export default async function AdminClassDetailPage({ params, searchParams }: Pag
         vocabPanel ? (
           <ClassVocabPanel
             classId={classId}
+            role="admin"
             students={vocabPanel.students}
             setOptions={vocabPanel.setOptions}
             onAssign={classActions.adminAssignVocabSetToStudent}
