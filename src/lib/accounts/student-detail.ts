@@ -28,8 +28,6 @@ export interface StudentDetail {
   enrollments: StudentDetailEnrollment[];
   vocab: StudentDetailAssignment[];
   listening: StudentDetailAssignment[];
-  /** 아직 배정하지 않은 것 — 드롭다운에 쓴다 */
-  options: { vocab: { id: string; title: string }[]; listening: { id: string; title: string }[] };
   week: {
     /** 이번 주 듣기 과제가 있던 날 중 끝낸 날 */
     listening: { done: number; total: number } | null;
@@ -178,11 +176,10 @@ export async function loadStudentDetail(
     (p) => p.is_completed && p.completed_at && p.completed_at >= weekUtc
   ).length;
 
-  const { vocab, listening: listeningSets, options } = await loadAssignments(
+  const { vocab, listening: listeningSets } = await loadAssignments(
     supabase,
     studentId,
-    classIds,
-    profile.academy_id as string | null,
+    classIds
   );
 
   return {
@@ -192,24 +189,45 @@ export async function loadStudentDetail(
       enrollments,
       vocab,
       listening: listeningSets,
-      options,
       week: { listening, vocabStages, videoLessons },
     },
   };
 }
 
-/** 단어장·듣기 세트: 이 학생에게 붙은 것과, 아직 안 붙은 것 */
+/** 세트 이름을 id로만 읽어 온다. 한 번에 200개씩 끊어 묻는다. */
+async function titlesByIds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  table: "vocab_sets" | "listening_sets",
+  ids: string[]
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  for (let i = 0; i < ids.length; i += 200) {
+    const chunk = ids.slice(i, i + 200);
+    if (chunk.length === 0) continue;
+    const { data } = await supabase.from(table).select("id, title").in("id", chunk);
+    for (const r of (data ?? []) as { id: string; title: string | null }[]) {
+      if (r.title) map.set(String(r.id), String(r.title));
+    }
+  }
+  return map;
+}
+
+/**
+ * 이 학생에게 붙어 있는 단어장·듣기 세트.
+ *
+ * 2026-09-28: 세트 이름을 학원 전체에서 300개만 읽어 오다 보니, 그 밖의 세트는
+ * 이름을 못 찾아 전부 「단어장」으로 보였다(선생님 지적). 이제 붙어 있는 세트의
+ * id로만 이름을 읽는다.
+ */
 async function loadAssignments(
   supabase: Awaited<ReturnType<typeof createClient>>,
   studentId: string,
-  classIds: string[],
-  academyId: string | null,
+  classIds: string[]
 ): Promise<{
   vocab: StudentDetailAssignment[];
   listening: StudentDetailAssignment[];
-  options: { vocab: { id: string; title: string }[]; listening: { id: string; title: string }[] };
 }> {
-  const [vocabMine, vocabClass, listenMine, listenClass, vocabSets, listenSets] = await Promise.all([
+  const [vocabMine, vocabClass, listenMine, listenClass] = await Promise.all([
     supabase.from("vocab_assignments").select("id, set_id").eq("student_id", studentId).is("class_id", null),
     classIds.length
       ? supabase.from("vocab_assignments").select("set_id").in("class_id", classIds)
@@ -218,16 +236,22 @@ async function loadAssignments(
     classIds.length
       ? supabase.from("listening_assignments").select("set_id").in("class_id", classIds)
       : Promise.resolve({ data: [] as { set_id: string }[] }),
-    academyId
-      ? supabase.from("vocab_sets").select("id, title").eq("academy_id", academyId).order("created_at", { ascending: false }).limit(300)
-      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
-    academyId
-      ? supabase.from("listening_sets").select("id, title").eq("academy_id", academyId).order("created_at", { ascending: false }).limit(300)
-      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
   ]);
 
-  const vocabTitle = new Map((vocabSets.data ?? []).map((r) => [String(r.id), String(r.title ?? "단어장")]));
-  const listenTitle = new Map((listenSets.data ?? []).map((r) => [String(r.id), String(r.title ?? "듣기 세트")]));
+  const vocabIds = [
+    ...new Set(
+      [...(vocabMine.data ?? []), ...(vocabClass.data ?? [])].map((r) => String(r.set_id))
+    ),
+  ];
+  const listenIds = [
+    ...new Set(
+      [...(listenMine.data ?? []), ...(listenClass.data ?? [])].map((r) => String(r.set_id))
+    ),
+  ];
+  const [vocabTitle, listenTitle] = await Promise.all([
+    titlesByIds(supabase, "vocab_sets", vocabIds),
+    titlesByIds(supabase, "listening_sets", listenIds),
+  ]);
 
   const build = (
     mine: { id?: string; set_id: string }[],
@@ -252,21 +276,18 @@ async function loadAssignments(
     return out;
   };
 
-  const vocab = build((vocabMine.data ?? []) as { id: string; set_id: string }[], (vocabClass.data ?? []) as { set_id: string }[], vocabTitle, "단어장");
-  const listening = build((listenMine.data ?? []) as { id: string; set_id: string }[], (listenClass.data ?? []) as { set_id: string }[], listenTitle, "듣기 세트");
-
-  const usedVocab = new Set(vocab.map((v) => v.setId));
-  const usedListen = new Set(listening.map((v) => v.setId));
   return {
-    vocab,
-    listening,
-    options: {
-      vocab: (vocabSets.data ?? [])
-        .map((r) => ({ id: String(r.id), title: String(r.title ?? "단어장") }))
-        .filter((o) => !usedVocab.has(o.id)),
-      listening: (listenSets.data ?? [])
-        .map((r) => ({ id: String(r.id), title: String(r.title ?? "듣기 세트") }))
-        .filter((o) => !usedListen.has(o.id)),
-    },
+    vocab: build(
+      (vocabMine.data ?? []) as { id: string; set_id: string }[],
+      (vocabClass.data ?? []) as { set_id: string }[],
+      vocabTitle,
+      "이름 없는 단어장"
+    ),
+    listening: build(
+      (listenMine.data ?? []) as { id: string; set_id: string }[],
+      (listenClass.data ?? []) as { set_id: string }[],
+      listenTitle,
+      "이름 없는 듣기 세트"
+    ),
   };
 }

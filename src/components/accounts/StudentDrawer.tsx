@@ -341,8 +341,16 @@ export function StudentDrawer({
             배정은 단어학습·듣기학습 세트 목록과 반 상세 한 곳에서만 한다.
             여기서는 지금 무엇을 받고 있는지만 보여 준다.
           */}
-          <AssignedList title="단어" items={detail?.vocab ?? null} emptyText="배정된 단어장이 없어요." />
-          <AssignedList title="듣기" items={detail?.listening ?? null} emptyText="배정된 듣기 세트가 없어요." />
+          <AssignedList
+            title="단어"
+            items={detail ? detail.vocab : null}
+            emptyText="배정된 단어장이 없어요."
+          />
+          <AssignedList
+            title="듣기"
+            items={detail ? detail.listening : null}
+            emptyText="배정된 듣기 세트가 없어요."
+          />
 
           <section className="flex flex-col gap-2">
             <h3 className="text-[15px] font-bold text-slate-900">이번 주 학습</h3>
