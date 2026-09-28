@@ -32,7 +32,7 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
     hint: "when·if·before가 이끄는 부사절은 미래의 일이라도 현재시제로 쓴다.",
   },
   {
-    label: "당위 should",
+    label: "당위의 should",
     form: "suggest/insist + that + (should) 동사원형",
     hint: "요구·제안·주장 동사의 that절에는 동사원형을 쓴다(should는 생략 가능).",
   },
@@ -54,7 +54,7 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
     hint: "부정어가 문장 맨 앞에 오면 주어와 (조)동사의 자리가 바뀐다.",
   },
   {
-    label: "강조구문",
+    label: "It - that 강조구문",
     form: "It is ~ that …",
     hint: "강조할 말을 It is와 that 사이에 넣는다.",
   },
@@ -93,7 +93,7 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
     hint: "감정을 일으키는 쪽은 V-ing, 느끼는 쪽은 과거분사를 쓴다.",
   },
   {
-    label: "분사의 명사 수식",
+    label: "명사 수식 분사",
     form: "V-ing / p.p. + 명사",
     hint: "꾸밈받는 명사가 하는 쪽이면 V-ing, 당하는 쪽이면 과거분사.",
   },
@@ -113,12 +113,12 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
     hint: "보고 듣는 동사 뒤에는 동사원형이나 -ing가 온다.",
   },
   {
-    label: "동사 + 동명사",
+    label: "동명사 목적어",
     form: "enjoy/avoid/finish + V-ing",
     hint: "이 동사들은 목적어로 동명사만 받는다.",
   },
   {
-    label: "가주어 it",
+    label: "가주어 it, 진주어 to부정사",
     form: "It is ~ to V",
     hint: "to부정사 주어가 길 때 it을 앞에 세우고 뒤로 보낸다.",
   },
@@ -130,12 +130,12 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
 
   // ── 비교·구문 ──
   {
-    label: "원급 비교",
+    label: "as ~ as 원급 비교",
     form: "as + 원급 + as",
     hint: "두 대상이 같은 정도임을 나타낸다. 사이에는 원급을 쓴다.",
   },
   {
-    label: "비교급",
+    label: "비교급 than",
     form: "비교급 + than",
     hint: "두 대상을 견준다. -er 또는 more를 쓰고 than으로 잇는다.",
   },
@@ -173,15 +173,29 @@ export const WRITING_GRAMMAR_LIST = WRITING_GRAMMARS.map(
   (g) => `  · ${g.label}(${g.form}) — ${g.hint}`
 ).join("\n");
 
+/**
+ * 영어로 끝나는 이름은 읽는 소리로 받침을 따진다.
+ * should는 「슈드」라 받침이 없어 '를', what은 「왓」이라 '을'.
+ */
+const LATIN_TAIL_PARTICLE: Record<string, "을" | "를"> = {
+  should: "를",
+  v: "를",
+  what: "을",
+  that: "을",
+  than: "을",
+  it: "을",
+};
+
 /** 「강조구문을」·「도치를」 — 받침에 따라 조사를 고른다 */
 export function objectParticle(word: string): "을" | "를" {
-  const last = word.trim().slice(-1);
+  const trimmed = word.trim();
+  const last = trimmed.slice(-1);
   const code = last.charCodeAt(0);
   if (code >= 0xac00 && code <= 0xd7a3) {
     return (code - 0xac00) % 28 === 0 ? "를" : "을";
   }
-  // 영문·기호로 끝나면 「what을」처럼 '을'이 자연스럽다
-  return "을";
+  const tail = trimmed.match(/[A-Za-z]+$/)?.[0]?.toLowerCase() ?? "";
+  return LATIN_TAIL_PARTICLE[tail] ?? "을";
 }
 
 /**
