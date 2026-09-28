@@ -42,8 +42,27 @@ const TAG_MARK_CLASS: Record<string, string> = {
 };
 /** 같은 줄에 놓인 이름표 사이에 두는 최소 간격(px). */
 const NOTE_GAP = 11;
-/** 이름표를 쌓을 수 있는 층 수. 줄 사이 여백(line-height)이 두 층까지 받쳐 준다. */
+/** 이름표를 쌓을 수 있는 층 수. 층을 쓰면 줄 사이 여백을 그만큼 넓힌다. */
 const NOTE_LEVELS = 3;
+/**
+ * 이름표를 놓아 볼 차례.
+ *
+ * 선생님 지적(2026-09-28): 겹치면 오른쪽으로 밀다 보니 이름표가 자기 낱말에서 멀어져
+ * 어느 낱말에 붙은 것인지 알 수 없었다. 이제 <b>제자리에서 위로 쌓는 것을 먼저</b> 해 보고,
+ * 그래도 자리가 없을 때만 민다. 층이 올라간 이름표에는 가리키는 선을 내린다.
+ */
+const NOTE_TRIES: { level: number; allowShift: boolean }[] = [
+  { level: 0, allowShift: false },
+  { level: 1, allowShift: false },
+  { level: 0, allowShift: true },
+  { level: 1, allowShift: true },
+  { level: 2, allowShift: false },
+  { level: 2, allowShift: true },
+];
+/** 이름표 한 층에 드는 높이(px) — 줄 사이 여백을 잴 때 쓴다 */
+const NOTE_ROW = 10;
+/** 이름표 맨 윗줄과 위 글줄 사이에 두는 틈(px) */
+const NOTE_HEADROOM = 3;
 /** 형광펜으로 칠할 수 있는 최대 길이(단어). 절 전체가 노랗게 덮이면 오히려 읽히지 않는다. */
 const MAX_HIGHLIGHT_WORDS = 6;
 
@@ -270,57 +289,98 @@ function useMarkupLayout(
 
     const notes = Array.from(box.querySelectorAll<HTMLElement>(".ar-note"));
     for (const el of notes) el.style.transform = "";
+    // 지난번에 그린 가리키는 선은 지우고 다시 그린다
+    for (const line of Array.from(box.querySelectorAll(".ar-note-line"))) line.remove();
     /*
-     * 이름표 자리 잡기. 예전에는 이름표의 세로 위치를 4px 단위로 반올림해 "같은 줄"을 갈랐는데,
-     * 나란한 이름표끼리도 1~2px씩 달라 서로 다른 줄로 잡히는 바람에 그대로 겹쳐 찍혔다
-     * (선생님 지적 2026-09-17: "이렇게 겹치게 나오는 게 있어").
-     * 이제는 이미 놓은 이름표와 실제로 겹치는지 직접 재고, 겹치면 오른쪽으로 밀고,
-     * 그래도 안 되면 한 층 위로 올린다.
+     * 이름표 자리 잡기.
+     *
+     * 2026-09-17: 세로 위치를 4px 단위로 반올림해 "같은 줄"을 가르다 보니 나란한 이름표가
+     *   서로 다른 줄로 잡혀 그대로 겹쳐 찍혔다. 실제로 겹치는지 직접 재는 것으로 바꿨다.
+     * 2026-09-28: 겹치면 오른쪽으로 밀다 보니 이름표가 자기 낱말에서 멀어졌다.
+     *   이제 제자리에서 위로 쌓는 것을 먼저 하고(NOTE_TRIES), 민 것·올린 것에는 선을 내린다.
      */
     type Box = { left: number; right: number; top: number; bottom: number };
     const placed: Box[] = [];
     const hits = (a: Box, b: Box) =>
       a.left < b.right + NOTE_GAP && b.left < a.right + NOTE_GAP && a.top < b.bottom - 1 && b.top < a.bottom - 1;
 
+    let maxLevel = 0;
+
     for (const el of notes) {
       const rect = el.getBoundingClientRect();
       const height = rect.height || 11;
-      let best: { shift: number; lift: number; box: Box } | null = null;
+      let best: { shift: number; lift: number; level: number; box: Box } | null = null;
 
-      for (let level = 0; level < NOTE_LEVELS && !best; level++) {
-        const lift = -height * level;
+      for (const tryIt of NOTE_TRIES) {
+        if (best) break;
+        const lift = -height * tryIt.level;
         const top = rect.top + lift;
         const bottom = rect.bottom + lift;
-        // 이 층에서 이미 놓인 것들을 피해 오른쪽으로 민다
         let shift = 0;
         for (let guard = 0; guard < notes.length + 2; guard++) {
           const cand: Box = { left: rect.left + shift, right: rect.right + shift, top, bottom };
           const clash = placed.find((p) => hits(cand, p));
           if (!clash) {
-            if (cand.right <= bounds.right) best = { shift, lift, box: cand };
+            if (cand.right <= bounds.right) best = { shift, lift, level: tryIt.level, box: cand };
             break;
           }
+          if (!tryIt.allowShift) break; // 이 층은 제자리로는 안 된다 — 다음 차례로
           shift = clash.right + NOTE_GAP - rect.left;
           if (rect.right + shift > bounds.right) break;
         }
       }
 
       if (!best) {
-        // 어느 층에도 못 넣으면 맨 위층에서 오른쪽 끝에 맞춘다(그래도 아래층과는 떨어진다)
-        const lift = -height * (NOTE_LEVELS - 1);
+        // 어느 자리에도 못 넣으면 맨 위층에서 오른쪽 끝에 맞춘다(그래도 아래층과는 떨어진다)
+        const level = NOTE_LEVELS - 1;
+        const lift = -height * level;
         const shift = Math.min(0, bounds.right - rect.right);
         best = {
           shift,
           lift,
+          level,
           box: { left: rect.left + shift, right: rect.right + shift, top: rect.top + lift, bottom: rect.bottom + lift },
         };
       }
 
-      if (Math.abs(best.shift) >= 1 || best.lift !== 0) {
-        el.style.transform = `translate(${Math.round(unscale(best.shift))}px, ${Math.round(unscale(best.lift))}px)`;
+      const shiftPx = Math.round(unscale(best.shift));
+      const liftPx = Math.round(unscale(best.lift));
+      if (Math.abs(shiftPx) >= 1 || liftPx !== 0) {
+        el.style.transform = `translate(${shiftPx}px, ${liftPx}px)`;
       }
-      placed.push(best.box);
+      if (best.level > maxLevel) maxLevel = best.level;
+
+      /*
+       * 제자리를 벗어난 이름표에는 가리키는 선을 내린다.
+       * 올린 만큼 세로로 내려오고, 민 만큼 가로로 이어 ㄱ자가 된다. 끝에는 화살촉을 단다.
+       */
+      if (liftPx !== 0 || Math.abs(shiftPx) >= 2) {
+        const anchor = el.parentElement;
+        if (anchor) {
+          const line = document.createElement("span");
+          line.className = "ar-note-line";
+          line.style.height = `${Math.max(0, -liftPx)}px`;
+          line.style.width = `${Math.abs(shiftPx)}px`;
+          if (shiftPx < 0) {
+            line.style.left = `${shiftPx}px`;
+            line.classList.add("ar-note-line--left");
+          }
+          const head = document.createElement("span");
+          head.className = "ar-note-arrow";
+          line.appendChild(head);
+          anchor.appendChild(line);
+        }
+      }
     }
+
+    /*
+     * 층을 쓴 만큼 줄 사이를 넓힌다. 이름표가 세 층까지 쌓이면 지금 여백으로는 위 글줄을
+     * 파고들어 인쇄에서 겹쳐 보였다. 이름표가 한 층뿐인 문장은 지금 여백 그대로 둔다.
+     */
+    const fontSize = parseFloat(getComputedStyle(box).fontSize) || 13.2;
+    const need = (maxLevel + 1) * NOTE_ROW + NOTE_HEADROOM;
+    const wanted = (fontSize + 2 * need) / fontSize;
+    box.style.lineHeight = maxLevel > 0 ? `${wanted.toFixed(2)}` : "";
 
     /*
      * 직독직해 뜻: 문장성분 표시(S·V)와 밑줄은 성분이 겹칠수록 아래로 내려가므로, 줄마다 가장
