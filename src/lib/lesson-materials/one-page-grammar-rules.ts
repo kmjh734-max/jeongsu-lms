@@ -9,6 +9,7 @@
  * 모두 맞는 자리가 어법 포인트로 실렸다. 교재 카드의 avoid(둘 다 가능)에 해당하는 항목은
  * BOTH_FORMS_OK에 모아 아예 뽑지 못하게 한다.
  */
+import { findTextbookPoint } from "@/lib/grammar/textbook-points";
 import { generationPolicyFor } from "@/lib/lesson-materials/grammar-choice-v2/generation-policy";
 import { ontologyPoint } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
 import { TEXTBOOK_RULES } from "@/lib/lesson-materials/grammar-choice-v2/textbook-rules";
@@ -104,10 +105,62 @@ export function onePageGrammarRule(code: string): OnePageGrammarRule | undefined
 
 const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
 
+/**
+ * 고등 교과서가 이 어법을 몇 종에서 다루는지.
+ *
+ * 선생님 요청(2026-09-29): 교과서 문법 포인트가 1장 자료의 어법 포인트로 나오게.
+ * 목록 자체는 워크북 교재에서 뽑은 것을 그대로 두되(출제 가능 여부를 이미 걸러 뒀다),
+ * 교과서가 많이 다루는 자리를 <b>먼저 찾게</b> 차례를 바꾸고 프롬프트에 종수를 적어 준다.
+ */
+const TEXTBOOK_WEIGHT: Record<string, number> = (() => {
+  // 교재 코드 ↔ 교과서 포인트 이름을 이어 둔다
+  const pair: Array<[string, string]> = [
+    ["VOICE_ACTIVE_PASSIVE", "수동태"],
+    ["AGREEMENT_LONG_SUBJECT", "수일치"],
+    ["AGREEMENT_PREPOSITIONAL_MODIFIER", "수일치"],
+    ["AGREEMENT_RELATIVE_ANTECEDENT", "수일치"],
+    ["RELATIVE_WHAT", "관계대명사 what"],
+    ["RELATIVE_ADVERB_WHERE", "관계부사"],
+    ["PARTICIPIAL_CLAUSE_ACTIVE", "분사구문"],
+    ["PARTICIPLE_NOUN_MODIFIER", "명사 수식 분사"],
+    ["PARTICIPLE_EMOTION", "명사 수식 분사"],
+    ["OBJECT_COMPLEMENT_TO_V", "목적격보어 to부정사"],
+    ["MANDATIVE_SHOULD", "제안·요구 동사의 that절"],
+    ["CONDITIONAL_SECOND", "가정법 과거"],
+    ["CONDITIONAL_THIRD", "가정법 과거완료"],
+    ["INVERSION_NEGATIVE", "부정어 도치"],
+    ["INDIRECT_QUESTION_ORDER", "간접의문문"],
+    ["COMPARATIVE", "비교급"],
+    ["AS_AS", "as ~ as 원급 비교"],
+    ["PRONOUN_REFLEXIVE", "재귀대명사"],
+    ["TENSE_TIME_CONDITION_CLAUSE", "시간·조건 부사절의 현재시제"],
+    ["PARALLEL_AND_OR_BUT", "병렬구조"],
+    ["GERUND_VERB_OBJECT", "동명사"],
+  ];
+  const out: Record<string, number> = {};
+  for (const [code, label] of pair) {
+    const p = findTextbookPoint(label);
+    if (p) out[code] = Math.max(out[code] ?? 0, p.bookCount);
+  }
+  return out;
+})();
+
+/** 이 어법이 고등 교과서 몇 종에 나오는지 (0이면 교과서 목록에 없음) */
+export function textbookWeightOf(code: string): number {
+  return TEXTBOOK_WEIGHT[String(code ?? "").trim().toUpperCase()] ?? 0;
+}
+
+/** 교과서가 많이 다루는 것부터 — 프롬프트도 이 차례로 싣는다 */
+const RULES_BY_TEXTBOOK = [...ONE_PAGE_GRAMMAR_RULES].sort(
+  (a, b) => textbookWeightOf(b.code) - textbookWeightOf(a.code) || b.freq - a.freq
+);
+
 /** 프롬프트에 싣는 한 줄 카드(호출마다 같아 프롬프트 캐시가 붙는다). */
 export function onePageGrammarRulesText(): string {
-  return ONE_PAGE_GRAMMAR_RULES.map((r) => {
-    const parts = [`${r.code}(${r.labelKo}): ${clip(r.decide, 72)}`];
+  return RULES_BY_TEXTBOOK.map((r) => {
+    const books = textbookWeightOf(r.code);
+    const head = books > 0 ? `${r.code}(${r.labelKo} · 교과서 ${books}종)` : `${r.code}(${r.labelKo})`;
+    const parts = [`${head}: ${clip(r.decide, 72)}`];
     if (r.avoid) parts.push(`단, ${clip(r.avoid, 46)}인 자리는 출제 금지`);
     return parts.join(" | ");
   }).join("\n");

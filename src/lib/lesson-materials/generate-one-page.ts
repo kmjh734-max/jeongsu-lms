@@ -28,6 +28,7 @@ import { validateMinimalPair } from "@/lib/lesson-materials/grammar-choice-v2/mi
 import {
   onePageGrammarRule,
   onePageGrammarRulesText,
+  textbookWeightOf,
 } from "@/lib/lesson-materials/one-page-grammar-rules";
 import {
   examBlankFocusRules,
@@ -98,7 +99,8 @@ code는 아래 GRAMMAR_RULES에 있는 것만 쓴다. 각 자리는 다음을 �
    말이라 시험 문항이 되지 않는다. right 안에 조동사나 to가 들어가 있어도 마찬가지로 금지다.
 3) 답을 정하는 근거가 같은 문장 안에 드러나 있어야 한다.
 4) 주어가 동사 바로 앞에 있는 인칭·수 일치(I am, you need, they feel, Humans enjoy, There are)는 시험에 나오지 않는다. 수일치는 주어와 동사 사이에 수식어구·관계절이 끼어 있을 때만 낸다.
-5) 찾는 차례가 있다. 문장 구조를 읽어야 풀리는 자리를 먼저 다 찾고, 그런 자리가 더 없을 때만 나머지를 본다.
+5) 찾는 차례가 있다. 아래 GRAMMAR_RULES에 <b>교과서 N종</b>이라고 적힌 것이 고등 교과서가 실제로
+   가르치는 자리다. <b>종수가 큰 것부터</b> 지문에서 빠짐없이 찾고, 그런 자리가 더 없을 때만 나머지를 본다.
    먼저 — 능동·수동, 긴 주어나 관계절·전치사구가 끼어든 수일치, 관계대명사 what, 분사구문, 분사의 능동·수동,
    병렬, 시제·완료, 가정법, 비교 구문, 도치, 목적격보어 형태, 접속사·전치사 대비.
    나중에 — 재귀대명사, 대명사 선행사, 형용사·부사 구분, 수량사, one/ones.
@@ -1060,14 +1062,24 @@ async function rateGrammarPoints(input: {
      * 더 싣는 방법은 기준을 내리는 것이 아니라 4점짜리를 더 찾아 오는 것이다(GRAMMAR_CANDIDATES·
      * 프롬프트의 찾는 차례). 4점 이상은 MAX_GRAMMAR까지 모두 싣는다.
      */
-    const sure = scored.filter((g) => !g.drop && g.examScore >= 4);
-    const ok = scored.filter((g) => !g.drop && g.examScore >= 3);
-    const kept = sure.length >= 2 ? sure : ok.length >= 1 ? ok : scored.filter((g) => !g.drop);
-    const dropped = points.length - kept.length;
+    /*
+     * 2026-09-29 선생님 지적: "어법이 너무 적거나 그냥 그런 게 많다."
+     * 두 가지를 고친다.
+     *  · 같은 점수면 <b>고등 교과서가 많이 다루는 자리</b>를 먼저 싣는다.
+     *    찾는 차례를 프롬프트의 권유로만 두지 않고 여기서 실제로 줄을 세운다.
+     *  · 3점까지 내려받던 뒷문을 없앤다. 4점이 하나도 없으면 어법 칸을 비운다
+     *    — 개수를 채우기보다 적중(2026-09-20 기준)을 지킨다.
+     */
+    const sure = scored
+      .filter((g) => !g.drop && g.examScore >= 4)
+      .sort(
+        (a, b) =>
+          b.examScore - a.examScore ||
+          textbookWeightOf(b.code ?? "") - textbookWeightOf(a.code ?? "")
+      );
+    const dropped = points.length - sure.length;
     if (dropped > 0) input.notes.push(`어법 ${dropped}개 제외(시험에 낼 자리가 아님)`);
-    // 남은 것이 너무 적으면 버린 것 중 점수가 높은 것부터 되살린다.
-    if (kept.length === 0) return points.map((g, i) => ({ ...g, examScore: byNo.get(i + 1)?.score ?? 3 }));
-    return kept.map(({ drop: _drop, ...g }) => g);
+    return sure.map(({ drop: _drop, ...g }) => g);
   } catch {
     return points;
   }
