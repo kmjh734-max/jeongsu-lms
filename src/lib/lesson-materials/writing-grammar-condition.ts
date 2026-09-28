@@ -36,11 +36,34 @@ const BLOCKED_TO_WRITING: Array<[string, string]> = [
 ];
 
 /**
+ * 교과서가 다루는데 1장 자료의 어법 고르기로는 낼 수 없는 것.
+ *
+ * 막혀 있어서가 아니라 고를 짝이 안 만들어지는 자리들이다 —
+ * one of the 최상급 뒤 복수명사는 단수·복수 짝이라 고르기에서 버려지고,
+ * as if 가정법은 구어에서 was도 쓰여 답이 하나로 떨어지지 않는다.
+ * 이런 것도 「사용할 것」이라고 조건을 걸면 영작으로는 깨끗하게 낼 수 있다.
+ */
+const TEXTBOOK_TO_WRITING: string[] = [
+  "one of the + 최상급 + 복수명사",
+  "제안·요구 동사의 that절",
+  "가목적어 it",
+  "조건의 접속사",
+  "as if 가정법",
+  "목적의 so that",
+  "완료부정사",
+  "to one's + 감정명사",
+  "cannot ~ too / enough",
+  "독립부정사",
+];
+
+/**
  * 「이 문장에 이 어법이 정말 들어 있나」를 보는 식.
  *
  * 변형문제가 쓰는 check는 「모델이 시킨 문법을 넣었나」를 보는 것이라 느슨하다.
  * 그대로 쓰면 few of them feel like this one 같은 문장이 지각동사로 잡힌다.
- * 1장 자료는 확실한 자리만 싣는 곳이라, 여기서는 이 식과 check를 둘 다 통과해야 한다.
+ * 1장 자료는 확실한 자리만 싣는 곳이라, 판별은 이 식 하나로만 한다.
+ * 변형문제의 check는 같이 보지 않는다 — one of the 최상급처럼 정상 문장을 막는 것이 있어
+ * (2026-09-29 확인), 넣을 자리를 도리어 놓친다. 여기 식을 그만큼 좁게 써 둔다.
  * 여기에 이름이 없는 어법은 조건으로 걸지 않는다(지각동사는 확실히 가려낼 식이 없어서 뺐다).
  */
 const DETECT: Record<string, RegExp> = {
@@ -59,9 +82,21 @@ const DETECT: Record<string, RegExp> = {
   // 문장 첫머리의 Whether ~ or not은 부사절이라 뺀다
   "명사절 whether/if": /\w\s+whether\b/i,
   사역동사:
-    /\b(?:make|makes|made|have|has|had|let|lets)\s+(?:the|a|an|his|her|their|my|our|its|him|her|them|me|us|people|someone|students?|children)\s+\w+/i,
+    /\b(?:make|makes|made|have|has|had|let|lets)\s+(?:(?:the|a|an|his|her|their|my|our|its|your)\s+)?(?!(?:never|already|ever|just|not|always|often|recently|finally|only|still|even|really|nearly|almost|hardly|barely|been|\w+ly)\b)\w+\s+(?:be|do|go|come|stay|look|feel|work|think|know|see|hear|run|move|wait|speak|talk|play|write|read|sit|stand|leave|return|grow|happen|done|made|finished|fixed|repaired|checked|cleaned|painted|built|heard|seen|known)\b/i,
   "without/but for 가정법": /\b(?:without|but\s+for)\b[^.]{0,80}\b(?:would|could|might)\b/i,
   "as many[much] + 명사 + as": /\bas\s+(?:many|much)\s+\w+\s+as\b/i,
+
+  // --- 교과서에서 온 것 ---
+  "one of the + 최상급 + 복수명사": /\bone\s+of\s+the\s+(?:most\s+\w+|\w+est)\s+\w+s\b/i,
+  "제안·요구 동사의 that절": /\b(?:suggest|suggests|suggested|insist|insists|insisted|demand|demands|demanded|require|requires|required|recommend|recommends|recommended|propose|proposes|proposed|request|requests|requested)\s+that\b/i,
+  "가목적어 it": /\b(?:make|makes|made|find|finds|found|think|thinks|thought|consider|considers|considered|believe|believes|believed)\s+it\s+\w+\s+(?:to\s+\w+|that\b)/i,
+  "조건의 접속사": /\b(?:unless|as\s+long\s+as|in\s+case|provided\s+that|on\s+condition\s+that)\b/i,
+  "as if 가정법": /\bas\s+(?:if|though)\s+\w+/i,
+  "목적의 so that": /\bso\s+that\s+\w+\s+(?:can|could|will|would|may|might)\b/i,
+  "완료부정사": /\bto\s+have\s+(?:been\s+)?\w+(?:ed|en|n)\b/i,
+  "to one's + 감정명사": /\bto\s+(?:his|her|their|my|our|your|one's|\w+'s)\s+(?:surprise|delight|joy|dismay|horror|relief|disappointment|amazement|astonishment|regret|sorrow)\b/i,
+  "cannot ~ too / enough": /\b(?:cannot|can't|can\s+not)\b[^.]{0,40}?\b(?:too|enough)\b/i,
+  "독립부정사": /\b(?:to\s+be\s+sure|to\s+begin\s+with|to\s+tell\s+the\s+truth|so\s+to\s+speak|needless\s+to\s+say|strange\s+to\s+say|to\s+make\s+matters\s+worse|to\s+be\s+honest)\b/i,
 };
 
 /**
@@ -86,8 +121,13 @@ export interface WritingCondition {
 export const WRITING_ONLY_GRAMMARS: Array<WritingCondition & { check: RegExp; detect: RegExp }> =
   (() => {
     const out = new Map<string, WritingCondition & { check: RegExp; detect: RegExp }>();
-    for (const [code, label] of BLOCKED_TO_WRITING) {
-      if (!ONE_PAGE_BOTH_FORMS_OK.has(code)) continue;
+    const sources: Array<[string | null, string]> = [
+      ...BLOCKED_TO_WRITING,
+      ...TEXTBOOK_TO_WRITING.map((label) => [null, label] as [null, string]),
+    ];
+    for (const [code, label] of sources) {
+      // 교재 코드가 붙은 것은 정말 막혀 있는지 확인한다. 교과서에서 온 것에는 그럴 코드가 없다.
+      if (code && !ONE_PAGE_BOTH_FORMS_OK.has(code)) continue;
       const detect = DETECT[label];
       if (!detect) continue;
       const g = WRITING_GRAMMARS.find((x) => x.label === label);
@@ -111,9 +151,7 @@ export function writingConditionFor(english: string): WritingCondition | null {
   const s = (english ?? "").trim();
   if (!s) return null;
   for (const g of WRITING_ONLY_GRAMMARS) {
-    if (g.detect.test(s) && g.check.test(s)) {
-      return { label: g.label, form: g.form, books: g.books };
-    }
+    if (g.detect.test(s)) return { label: g.label, form: g.form, books: g.books };
   }
   return null;
 }

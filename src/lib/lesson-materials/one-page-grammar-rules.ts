@@ -95,7 +95,82 @@ function buildRules(): OnePageGrammarRule[] {
     .slice(0, MAX_RULES);
 }
 
-export const ONE_PAGE_GRAMMAR_RULES = buildRules();
+/**
+ * 교과서에만 있는 어법.
+ *
+ * 선생님 요청(2026-09-29): 참고파일의 교과서 문법 포인트가 1장 자료에 실제로 나오게.
+ * 위 60가지는 워크북 교재 다섯 권에서 뽑은 것이라, 교과서가 크게 다루는데도 교재에 없는
+ * 자리는 들어올 통로가 아예 없었다 — 동격의 that(13종), 계속적 용법(12종),
+ * 현재완료 수동태(8종)가 1장 자료에 한 번도 안 나오던 까닭이다.
+ *
+ * 여기 싣는 것은 「두 형태 가운데 하나만 맞는 자리」로 좁혔다. 단수·복수 짝이라 고르기가
+ * 안 되는 one of the 최상급이나, 구어에서 두 형태가 함께 쓰이는 as if 가정법처럼
+ * 고르기로 낼 수 없는 것은 영작 조건으로 돌린다(writing-grammar-condition.ts).
+ */
+const TEXTBOOK_ONLY_RULES: Array<Omit<OnePageGrammarRule, "freq"> & { books: number }> = [
+  {
+    code: "TB_APPOSITIVE_THAT",
+    labelKo: "동격의 that",
+    books: 13,
+    decide: "the fact/idea/news 뒤에 완전한 절이 오면 관계대명사 which가 아니라 동격 접속사 that이다",
+    avoid: "뒤 절에 빠진 자리가 있어 관계대명사가 맞는 곳",
+  },
+  {
+    code: "TB_RELATIVE_NONRESTRICTIVE",
+    labelKo: "관계대명사 계속적 용법",
+    books: 12,
+    decide: "콤마 뒤 관계사 자리에는 that을 쓰지 못한다. which/who를 쓴다",
+    avoid: "콤마가 없는 제한적 용법",
+  },
+  {
+    code: "TB_PRESENT_PERFECT_PASSIVE",
+    labelKo: "현재완료 수동태",
+    books: 8,
+    decide: "has/have been 뒤는 과거분사다. -ing나 동사원형이 올 수 없다",
+  },
+  {
+    code: "TB_CORRELATIVE_CONJUNCTION",
+    labelKo: "상관접속사",
+    books: 6,
+    decide: "짝이 정해져 있다 — both A and B, either A or B, neither A nor B, not only A but also B",
+  },
+  {
+    code: "TB_ELLIPSIS_ADVERB_CLAUSE",
+    labelKo: "부사절의 「주어+be동사」 생략",
+    books: 6,
+    decide: "when/while/if 뒤에 주어와 be동사를 지운 자리는 의미가 능동이면 -ing, 수동이면 과거분사다",
+  },
+  {
+    code: "TB_SO_SUCH_THAT",
+    labelKo: "so/such ~ that",
+    books: 6,
+    decide: "so 뒤에는 형용사·부사가, such 뒤에는 「a(n) + 형용사 + 명사」가 온다",
+  },
+  {
+    code: "TB_PRO_VERB_DO",
+    labelKo: "대동사 do",
+    books: 5,
+    decide: "앞의 일반동사를 받을 때는 do/does/did를 쓴다. be동사나 조동사를 받을 때만 그것을 되쓴다",
+  },
+  {
+    code: "TB_COMPOUND_RELATIVE",
+    labelKo: "복합관계사",
+    books: 5,
+    decide: "「~든지」로 새기는 자리에는 what이 아니라 whatever/whoever/whichever를 쓴다",
+    avoid: "단순히 「~하는 것」으로 새기는 관계대명사 what 자리",
+  },
+  {
+    code: "TB_WITH_NOUN_PARTICIPLE",
+    labelKo: "with + 명사 + 분사",
+    books: 4,
+    decide: "with 뒤 명사와의 관계가 능동이면 -ing, 수동이면 과거분사다",
+  },
+];
+
+export const ONE_PAGE_GRAMMAR_RULES: OnePageGrammarRule[] = [
+  ...buildRules(),
+  ...TEXTBOOK_ONLY_RULES.map(({ books, ...r }) => ({ ...r, freq: books })),
+];
 
 const BY_CODE = new Map(ONE_PAGE_GRAMMAR_RULES.map((r) => [r.code, r] as const));
 
@@ -142,6 +217,8 @@ const TEXTBOOK_WEIGHT: Record<string, number> = (() => {
     const p = findTextbookPoint(label);
     if (p) out[code] = Math.max(out[code] ?? 0, p.bookCount);
   }
+  // 교과서에서만 온 어법은 그 종수가 곧 가중치다
+  for (const r of TEXTBOOK_ONLY_RULES) out[r.code] = r.books;
   return out;
 })();
 
