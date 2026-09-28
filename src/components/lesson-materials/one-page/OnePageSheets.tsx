@@ -68,8 +68,12 @@ ruby.op-voc rt .op-vocw i{display:block;font-style:normal;white-space:nowrap}
 .op-g{text-decoration:underline;text-decoration-color:#dc2626;text-decoration-thickness:1.4px;text-underline-offset:.2em}
 .op-x{background:#e3ecff;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .op-r{text-decoration:underline;text-decoration-style:dotted;text-decoration-color:#b45309;text-decoration-thickness:1.2px;text-underline-offset:.2em}
-.op-gm,.op-xm,.op-rm{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.74em;font-weight:700;vertical-align:.55em;line-height:0;margin-right:.08em}
+/* ㉠·ⓐ 같은 동그라미 글자는 영문 글꼴에 없어 대체 글꼴로 떨어진다. 한글 글꼴을 먼저 준다
+   (선생님 지적 2026-09-29: 1장 테스트지에서 ㄱㄴㄷ이 작게 아래로 내려온다) */
+.op-gm,.op-xm,.op-rm{font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",ui-sans-serif,system-ui,sans-serif;font-size:.74em;font-weight:700;vertical-align:.55em;line-height:0;margin-right:.08em}
 .op-gm{color:#dc2626}.op-xm{color:#2563eb}.op-rm{color:#b45309}
+/* 목록·범례에서 줄 안에 그대로 놓는 기호 — 글줄에 맞춰 세운다 */
+.op-mk{font-size:1em;vertical-align:baseline;line-height:1;margin-right:.12em}
 .op-bk{background:#ffe680;box-shadow:0 1.3px 0 #a16207,0 -1.3px 0 #a16207;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .op-em{font-family:ui-sans-serif,system-ui,sans-serif;font-weight:900;color:#111827;font-size:1.05em;margin-right:.15em}
 .op-ins{font-family:ui-sans-serif,system-ui,sans-serif;font-weight:800;font-size:.62em;color:#b91c1c;border:1px solid #b91c1c;border-radius:3px;padding:0 .25em;margin-right:.3em;white-space:nowrap;vertical-align:.12em;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -404,15 +408,15 @@ export function OnePageSummarySheet({
         <h2 className="op-h">
           원문
           <span className="op-legend">
-            <span className="op-gm" style={{ verticalAlign: 0 }}>
+            <span className="op-gm op-mk">
               ⓐ
             </span>
             어법 포인트 ·{" "}
-            <span className="op-xm" style={{ verticalAlign: 0 }}>
+            <span className="op-xm op-mk">
               ㉠
             </span>
             바꿔 쓰기 표현 ·{" "}
-            <span className="op-rm" style={{ verticalAlign: 0 }}>
+            <span className="op-rm op-mk">
               1
             </span>
             지칭어 · 낱말 아래 <span className="op-lg-v">≒ 동의어 ↔ 반의어</span>
@@ -480,7 +484,7 @@ export function OnePageSummarySheet({
             <ol className="op-list">
               {c.grammar.map((g, i) => (
                 <li key={i}>
-                  <span className="op-gm" style={{ verticalAlign: 0, fontSize: "1em" }}>
+                  <span className="op-gm op-mk">
                     {circledLetter(i)}
                   </span>{" "}
                   {/* 워크북 어법 선택과 같은 표기: [정답 / 오답], 정답만 굵게 */}
@@ -499,7 +503,7 @@ export function OnePageSummarySheet({
             <ol className="op-list">
               {c.paraphrases.map((p, i) => (
                 <li key={i}>
-                  <span className="op-xm" style={{ verticalAlign: 0, fontSize: "1em" }}>
+                  <span className="op-xm op-mk">
                     {circledHangul(i)}
                   </span>{" "}
                   <b className="op-en">{p.expression}</b>
