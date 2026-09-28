@@ -247,8 +247,12 @@ const SAMPLES: Record<string, TypeSample> = {
   문법조건영작: {
     name: "조건 영작 · 지정 문법",
     stem: "다음 우리말과 같은 뜻이 되도록 <조건>에 맞게 영작하시오.",
-    shape: "서술형. 정해 준 어법을 반드시 써서, <보기> 낱말로 한 문장 만들기",
+    shape: "서술형. 지문에서 한 문장을 빼고, 그 문장을 정해 준 어법으로 써 넣기",
     lines: [
+      "… A story slows, and the reader still turns the page.",
+      "ⓐ__________________________________________",
+      "Even a dull chapter keeps its hold for that reason.",
+      "",
       "<조건> ○ It - that 강조구문을 사용할 것",
       "　　　 ○ <보기>에 있는 단어를 모두 한 번씩 사용할 것 (더하거나 빼지 말 것)",
       "　　　 ○ 필요하면 어형을 바꿔 쓸 것 (시제·수·태에 유의할 것)",
@@ -257,7 +261,8 @@ const SAMPLES: Record<string, TypeSample> = {
       "<해석> 독자가 책장을 계속 넘기게 하는 것은 바로 호기심이다.",
       "→ 답: It is curiosity that keeps a reader turning pages.",
     ],
-    levelNote: "지문에 실제로 쓰인 어법만 씁니다. 왼쪽에서 어법 범위를 좁힐 수 있어요.",
+    levelNote:
+      "지문에서 그 문장을 빼고 빈칸으로 둡니다. 지문에 실제로 쓰인 어법만 쓰고, 왼쪽에서 어법 범위를 좁힐 수 있어요.",
   },
   지칭대명사서술: {
     name: "지칭 · 대명사",

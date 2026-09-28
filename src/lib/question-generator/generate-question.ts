@@ -444,11 +444,14 @@ ${choiceExplanationRules()}
          * 같은 칸 이름을 쓰면 기존 인쇄 틀(상자 세 개 + 답란)이 그대로 그려 준다.
          */
         return `서술형 · 정해진 어법을 써서 영작하기:
-- passageModified 생략. 지문 영어만.
 - 먼저 지문에서 <b>어법 하나</b>를 고른다. 아래 목록에 있는 것만 쓴다.
 ${GRAMMAR_FOR_WRITING}
 - 고른 어법이 실제로 쓰인 지문 문장 하나를 정답 문장으로 삼는다.
   그 문장이 너무 짧거나(6낱말 미만) 어법이 분명히 드러나지 않으면 다른 문장을 고른다.
+- passageModified = 영어 지문. <b>정답 문장이 있던 자리를 ⓐ__________ 빈칸으로 바꾼다.</b>
+  · 정답 문장은 지문에서 <b>완전히 지운다</b>. 일부라도 남기면 안 된다(베껴 쓰게 된다).
+  · 나머지 지문은 원문 그대로 둔다.
+  · 지문의 핵심을 담은 문장을 고른다. 사소한 연결 문장은 고르지 않는다.
 - questionText 형식(필수). 태그는 각각 <b>그 줄에 혼자</b> 있어야 한다:
 <조건>
 ○ [어법 이름]을 사용할 것
@@ -1202,6 +1205,20 @@ export function assertBasicQuestionShape(
     }
     if (!passageHasConsecutiveWords(q.passageOriginal || "", answer)) {
       return "조건 영작 정답은 지문에 있는 문장이어야 합니다.";
+    }
+    /*
+     * 선생님 지적(2026-09-28): 지문에 정답 문장이 그대로 있으면 베껴 쓰면 된다.
+     * 기존 제시어 배열처럼 그 자리를 ⓐ__________ 빈칸으로 뚫어야 한다.
+     */
+    const modified = String(q.passageModified ?? "").trim();
+    if (!modified) {
+      return "조건 영작은 정답 문장을 빈칸으로 뚫은 지문(passageModified)이 필요합니다.";
+    }
+    if (!/ⓐ/.test(modified) || !/_{3,}/.test(modified)) {
+      return "지문에 ⓐ__________ 빈칸이 필요합니다.";
+    }
+    if (passageHasConsecutiveWords(modified, answer)) {
+      return "지문에 정답 문장이 그대로 남아 있습니다. 그 자리를 빈칸으로 바꿔야 합니다.";
     }
 
     /*
