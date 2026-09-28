@@ -1,0 +1,224 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 01 문장의 주요 형식의 Chapter Test를 변형한 것. 기본 1과 문장의 형식 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 1,
+  "chapter": "문장의 주요 형식",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 1, "chapter": "문장의 형식" },
+  "points": [
+    { "unit_no": 1, "unit": "SVC와 SVOO", "point_no": 1, "point": "SVC = 주어+동사+보어 (감각동사+형용사)", "frequent": true },
+    { "unit_no": 1, "unit": "SVC와 SVOO", "point_no": 2, "point": "SVOO = 주어+수여동사+A+B", "frequent": true },
+    { "unit_no": 2, "unit": "SVOC", "point_no": 3, "point": "목적격보어가 명사", "frequent": true },
+    { "unit_no": 2, "unit": "SVOC", "point_no": 4, "point": "목적격보어가 형용사", "frequent": true },
+    { "unit_no": 2, "unit": "SVOC", "point_no": 5, "point": "목적격보어가 to부정사", "frequent": true },
+    { "unit_no": 2, "unit": "SVOC", "point_no": 6, "point": "목적격보어가 동사원형(사역동사)", "frequent": true },
+    { "unit_no": 2, "unit": "SVOC", "point_no": 7, "point": "see/hear/feel…+목적어+동사원형[-ing형]", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1, 3, 4], "point_label": "보어 자리에는 부사를 쓰지 않는다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Jason’s story made his mom proud." },
+        { "no": 2, "text": "The soup on the stove smelled wonderful." },
+        { "no": 3, "text": "Emma’s voice sounded nervous when she spoke." },
+        { "no": 4, "text": "Don’t keep the milk warmly on the table." },
+        { "no": 5, "text": "The contest made her a famous pianist." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [5, 6, 7], "point_label": "사역동사 let의 목적격보어는 동사원형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Sora let me borrowing her umbrella." },
+        { "no": 2, "text": "I watched the birds building a nest in the tree." },
+        { "no": 3, "text": "Mr. Park advised me to join the debate club." },
+        { "no": 4, "text": "This blue scarf makes you look warmer." },
+        { "no": 5, "text": "The manager ordered his staff to lock the door." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [5, 6], "point_label": "help+목적어+동사원형[to부정사]",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 두 개 고르세요.",
+      "body": ["I’ll help my sister ________ her homework."],
+      "choices": [
+        { "no": 1, "text": "finish" },
+        { "no": 2, "text": "finishes" },
+        { "no": 3, "text": "finished" },
+        { "no": 4, "text": "finishing" },
+        { "no": 5, "text": "to finish" }
+      ],
+      "answer": "①, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [7], "point_label": "지각동사+목적어+동사원형[-ing형]",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 두 개 고르세요.",
+      "body": ["Emma saw someone ________ the piano in the hall."],
+      "choices": [
+        { "no": 1, "text": "play" },
+        { "no": 2, "text": "plays" },
+        { "no": 3, "text": "played" },
+        { "no": 4, "text": "playing" },
+        { "no": 5, "text": "to play" }
+      ],
+      "answer": "①, ④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [6], "point_label": "make는 목적격보어로 동사원형을 쓴다",
+      "question_kind": "배열 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 영작할 때 필요 없는 단어를 고르세요.",
+      "body": ["우리 선생님은 내가 그 시를 외우도록 하셨다."],
+      "choices": [
+        { "no": 1, "text": "made" },
+        { "no": 2, "text": "me" },
+        { "no": 3, "text": "to" },
+        { "no": 4, "text": "the poem" },
+        { "no": 5, "text": "memorize" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [2], "point_label": "send+B+to+A",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "그들은 크리스마스에 병원에 약간의 장난감을 보냈다.",
+        "(send, a hospital, some toys, to)",
+        "→ They ________________ on Christmas."
+      ],
+      "choices": [],
+      "answer": "sent some toys to a hospital"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [5], "point_label": "advise+목적어+to부정사",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "나는 그녀가 모두에게 그 계획을 설명하도록 조언했다.",
+        "(advise, explain, the plan)",
+        "→ I ________________ to everyone."
+      ],
+      "choices": [],
+      "answer": "advised her to explain the plan"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [5, 6], "point_label": "want는 목적격보어로 to부정사를 쓴다",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 빈칸에 want를 쓸 수 없는 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "They ________ me not to worry about it." },
+        { "no": 2, "text": "Why do you ________ me to join your team?" },
+        { "no": 3, "text": "I ________ Mina to go to the museum with me on Saturday." },
+        { "no": 4, "text": "We ________ everyone to be quiet during the movie." },
+        { "no": 5, "text": "My dad doesn’t ________ me watch TV until late at night." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [1, 2], "point_label": "look+형용사, buy+B+for+A",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• Somi looked ____(A)____ when she saw her torn book.",
+        "• My uncle bought a big toy car ____(B)____ my little sister."
+      ],
+      "choices": [
+        { "no": 1, "text": "angry — of" },
+        { "no": 2, "text": "angry — for" },
+        { "no": 3, "text": "angry — by" },
+        { "no": 4, "text": "angrily — to" },
+        { "no": 5, "text": "angrily — for" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [5, 6], "point_label": "tell은 to부정사, have는 동사원형",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• Jiho told me ____(A)____ the umbrella for him.",
+        "• Mina had her brother ____(B)____ the box."
+      ],
+      "choices": [
+        { "no": 1, "text": "return — carry" },
+        { "no": 2, "text": "return — to carry" },
+        { "no": 3, "text": "to return — carry" },
+        { "no": 4, "text": "to return — to carry" },
+        { "no": 5, "text": "returning — carrying" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [6], "point_label": "make의 목적격보어에는 to를 쓰지 않는다",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 밑줄 친 부분을 어법에 맞게 고쳐 쓰세요.",
+      "body": ["Please don’t make [[me to wait]] outside.", "→ ________"],
+      "choices": [],
+      "answer": "me wait outside"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [5], "point_label": "order+목적어+to부정사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 밑줄 친 부분을 어법에 맞게 고쳐 쓰세요.",
+      "body": ["The coach ordered [[us to running]] ten laps.", "→ ________"],
+      "choices": [],
+      "answer": "us to run ten laps"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [4], "point_label": "make+목적어+형용사로 바꿔 쓰기",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "<보기>와 같이 두 문장이 같은 의미가 되도록 빈칸을 완성하세요.",
+      "body": [
+        "<보기> She was happy to hear the news.  = The news made her happy.",
+        "I was very nervous to see the exam questions.",
+        "= The exam questions ________________."
+      ],
+      "choices": [],
+      "answer": "made me very nervous"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [3, 5, 7], "point_label": "목적격보어의 형태 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ Mina named one of her puppies Coco.",
+        "ⓑ They expect us finish the report without help.",
+        "ⓒ My cousin asked me to wait for a moment.",
+        "ⓓ The dust in the room looked terrible.",
+        "ⓔ When I entered the kitchen, I saw a cat drinking milk."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓑ, ⓓ" },
+        { "no": 2, "text": "ⓐ, ⓒ, ⓓ, ⓔ" },
+        { "no": 3, "text": "ⓑ, ⓓ, ⓔ" },
+        { "no": 4, "text": "ⓑ, ⓒ, ⓓ, ⓔ" },
+        { "no": 5, "text": "ⓒ, ⓓ, ⓔ" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [7], "point_label": "see+목적어+동사원형[-ing형]",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 대화의 내용과 같도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "Mina: Hey, Junho! Guess what?",
+        "Junho: What is it?",
+        "Mina: Yesterday, I saw something funny at the beach.",
+        "Junho: What did you see?",
+        "Mina: A dog was surfing on a board!",
+        "Junho: Wow, that’s amazing!",
+        "→ Mina saw a dog ________________."
+      ],
+      "choices": [],
+      "answer": "surfing[surf] on a board"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "_설명": "천일문 3권 Chapter 07 비교 표현 Chapter Test 뒷부분(13~18번)에서 가져와 변형한 문항. 심화 8과 비교구문 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 7,
+  "chapter": "비교 표현",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 8, "chapter": "비교구문" },
+  "points": [
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 1, "point": "as+원급+as", "frequent": true },
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 2, "point": "not as[so]+원급+as", "frequent": true },
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 3, "point": "비교급+than", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 6, "point": "The 비교급 ~, the 비교급 …", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 8, "point": "one of the+최상급+복수명사", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 9, "point": "배수사+as+원급+as", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [1, 2, 3], "point_label": "원급·비교급으로 견주기",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 내용을 보고 주어진 단어를 사용하여 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "준호 160cm, 수영 2km / 미나 160cm, 1.5km / 태호 168cm, 500m / 수지 163cm, 2.5km / 나라 170cm, 1.5km",
+        "(1) Mina can swim ________________ Nara. (far)",
+        "(2) Nara is ________________ Junho. (tall)",
+        "(3) Suji is ________________ Taeho. (as, tall)"
+      ],
+      "choices": [],
+      "answer": "(1) as far as  (2) taller than  (3) not as[so] tall as"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [6], "point_label": "The 비교급 ~, the 비교급 …",
+      "question_kind": "영작", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "Daniel은 그 소식을 더 오래 기다릴수록 더 초조해졌다.",
+        "(Daniel, long, the news, waited for, he, nervous, became)",
+        "→ ______________________________."
+      ],
+      "choices": [],
+      "answer": "The longer Daniel waited for the news, the more nervous he became"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [8], "point_label": "one of the+최상급+복수명사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["One of the tallest building in the city is that tower.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "building → buildings"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [1], "point_label": "as ~ as 사이에는 부사가 올 수도 있다",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Mina explained the rule as simple as a teacher.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "simple → simply"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [9], "point_label": "배수사+as+원급+as",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["그 가방의 가격은 내가 생각했던 것보다 세 배 더 비싸다."],
+      "choices": [
+        { "no": 1, "text": "The price of the bag is as expensive as I expected three times." },
+        { "no": 2, "text": "The price of the bag is three times expensiver than I expected." },
+        { "no": 3, "text": "The price of the bag is expensive as three times as I expected." },
+        { "no": 4, "text": "The price of the bag is three times more expensive as I expected." },
+        { "no": 5, "text": "The price of the bag is three times as expensive as I expected." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [6], "point_label": "The 비교급 ~, the 비교급 …의 어순",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["배가 더 빨리 갈수록, 나는 더 신이 났다."],
+      "choices": [
+        { "no": 1, "text": "Faster the boat went, excited I was." },
+        { "no": 2, "text": "The fast the boat went, the more excited I was." },
+        { "no": 3, "text": "The faster the boat went, the more excited I was." },
+        { "no": 4, "text": "The more fast the boat went, the more exciting I was." },
+        { "no": 5, "text": "The much faster the boat went, the much excited I was." }
+      ],
+      "answer": "③"
+    }
+  ]
+}

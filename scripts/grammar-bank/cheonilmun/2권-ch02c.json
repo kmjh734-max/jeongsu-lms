@@ -1,0 +1,231 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 02 시제의 Chapter Test를 변형한 것. 기본 2과 시제 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 2,
+  "chapter": "시제",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 2, "chapter": "시제" },
+  "points": [
+    { "unit_no": 1, "unit": "여러 가지 시제", "point_no": 1, "point": "불규칙 동사의 변화형", "frequent": true },
+    { "unit_no": 1, "unit": "여러 가지 시제", "point_no": 2, "point": "과거진행형: was[were]+-ing", "frequent": true },
+    { "unit_no": 1, "unit": "여러 가지 시제", "point_no": 3, "point": "미래를 나타내는 be going to+동사원형", "frequent": true },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 5, "point": "과거와 현재를 연결하는 현재완료: have+p.p.", "frequent": true },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 7, "point": "(지금까지) 쭉 ~해오다(계속): for와 since", "frequent": true },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 8, "point": "(지금까지) ~한 적이 있다(경험)", "frequent": true },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 9, "point": "막 ~했다(완료)", "frequent": true },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 11, "point": "현재완료와 과거를 나타내는 부사는 같이 쓸 수 없다", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1], "point_label": "불규칙 동사의 3단 변화",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 동사의 변화형이 바른 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "eat — ate — eaten" },
+        { "no": 2, "text": "go — went — went" },
+        { "no": 3, "text": "buy — bought — boughted" },
+        { "no": 4, "text": "cut — cutted — cutted" },
+        { "no": 5, "text": "sing — sung — sang" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [1], "point_label": "불규칙 동사의 3단 변화",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 동사의 변화형이 바른 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "set — setted — setted" },
+        { "no": 2, "text": "keep — keeped — keeped" },
+        { "no": 3, "text": "come — came — come" },
+        { "no": 4, "text": "drink — drunk — drank" },
+        { "no": 5, "text": "write — written — wrote" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [3], "point_label": "가까운 미래는 be going to",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "그들은 다음 주에 새 냉장고를 살 것이다.",
+        "They ________ a new refrigerator next week."
+      ],
+      "choices": [
+        { "no": 1, "text": "bought" },
+        { "no": 2, "text": "buy" },
+        { "no": 3, "text": "were buying" },
+        { "no": 4, "text": "are going to buy" },
+        { "no": 5, "text": "have bought" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [11], "point_label": "과거 시점 부사구에는 과거시제",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "나는 지난주에 도서관에서 수진이를 만났다.",
+        "I ________ Sujin in the library last week."
+      ],
+      "choices": [
+        { "no": 1, "text": "meet" },
+        { "no": 2, "text": "met" },
+        { "no": 3, "text": "have met" },
+        { "no": 4, "text": "am meeting" },
+        { "no": 5, "text": "was meeting" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [7], "point_label": "계속을 나타내는 현재완료",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 현재완료 문장을 완성하세요.",
+      "body": [
+        "우리 삼촌은 10년 동안 장미를 키우셨다. (grow, roses)",
+        "→ My uncle ________________ for ten years."
+      ],
+      "choices": [],
+      "answer": "has grown roses"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [2], "point_label": "과거진행형으로 대답하기",
+      "question_kind": "대화 완성", "difficulty": "중", "badges": [],
+      "prompt": "다음 질문에 대한 대답으로 가장 적절한 것을 고르세요.",
+      "body": [
+        "A: What were you doing on Sunday afternoon?",
+        "B: ________."
+      ],
+      "choices": [
+        { "no": 1, "text": "I bake cookies with my sister" },
+        { "no": 2, "text": "I was baking cookies with my sister" },
+        { "no": 3, "text": "I will bake cookies with my sister" },
+        { "no": 4, "text": "I am baking cookies with my sister" },
+        { "no": 5, "text": "I am going to bake cookies with my sister" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [7], "point_label": "for와 since의 구별",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 빈칸에 들어갈 말이 <보기>와 다른 것을 모두 고르세요.",
+      "body": ["<보기> I have taught here ________ last spring."],
+      "choices": [
+        { "no": 1, "text": "Have they stayed in Japan ________ many years?" },
+        { "no": 2, "text": "Sujin has learned Chinese ________ two years ago." },
+        { "no": 3, "text": "The office has been empty ________ last Friday." },
+        { "no": 4, "text": "He has enjoyed baseball ________ a long time." },
+        { "no": 5, "text": "She hasn’t slept ________ two days." }
+      ],
+      "answer": "①, ④, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [5, 7], "point_label": "현재완료의 부정문",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 대화의 밑줄 친 부분을 주어진 단어를 사용하여 현재완료 문장으로 영작하세요.",
+      "body": [
+        "A: What did Minsu drink at lunch?",
+        "B: [[그는 어제부터 아무것도 마시지 않았어.]] (drink, anything, yesterday)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "He has not[hasn’t] drunk anything since yesterday"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [9], "point_label": "현재완료의 의문문",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 대화의 밑줄 친 부분을 주어진 단어를 사용하여 현재완료 문장으로 영작하세요.",
+      "body": [
+        "A: [[너는 네 방을 이미 청소했니?]] (clean, your room)",
+        "B: Yes, I did it this morning.",
+        "→ ________________ already?"
+      ],
+      "choices": [],
+      "answer": "Have you cleaned your room"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [5], "point_label": "결과를 나타내는 현재완료",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 두 문장을 한 문장으로 바르게 바꿔 쓴 것을 고르세요.",
+      "body": [
+        "Daniel broke his glasses yesterday.",
+        "Now he can’t use them."
+      ],
+      "choices": [
+        { "no": 1, "text": "Daniel breaks his glasses." },
+        { "no": 2, "text": "Daniel has broken his glasses." },
+        { "no": 3, "text": "Daniel is breaking his glasses." },
+        { "no": 4, "text": "Daniel was breaking his glasses." },
+        { "no": 5, "text": "Daniel is going to break his glasses." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [2, 11], "point_label": "시제와 시간 표현의 일치",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "She [[checks]] her email a few hours ago." },
+        { "no": 2, "text": "She [[was wearing]] a red coat now." },
+        { "no": 3, "text": "Mina [[lent]] me a pen next time." },
+        { "no": 4, "text": "They [[were watching]] a movie then." },
+        { "no": 5, "text": "Spiders [[had]] eight legs." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [11], "point_label": "현재완료는 yesterday와 함께 쓸 수 없다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Plants need light and water." },
+        { "no": 2, "text": "He has broken his arm yesterday." },
+        { "no": 3, "text": "I’m going to bake bread tomorrow." },
+        { "no": 4, "text": "My sister is folding the laundry now." },
+        { "no": 5, "text": "Mia hasn’t replied to my message." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [8], "point_label": "경험을 나타내는 현재완료",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "주어진 문장과 현재완료의 쓰임이 같은 문장을 고르세요.",
+      "body": ["I have visited Busan three times."],
+      "choices": [
+        { "no": 1, "text": "I have never tried this dish before." },
+        { "no": 2, "text": "I have waited for him for two hours." },
+        { "no": 3, "text": "They have already finished the project." },
+        { "no": 4, "text": "He has lost his umbrella." },
+        { "no": 5, "text": "Sam has gone to Canada." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [9], "point_label": "완료를 나타내는 현재완료",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "주어진 문장과 현재완료의 쓰임이 같은 문장을 고르세요.",
+      "body": ["Minho hasn’t returned the book to the library yet."],
+      "choices": [
+        { "no": 1, "text": "Have you ever climbed a mountain?" },
+        { "no": 2, "text": "The cat has slept for three hours." },
+        { "no": 3, "text": "Sora has already sent the email." },
+        { "no": 4, "text": "I have worked here since 2018." },
+        { "no": 5, "text": "My family has never been to Europe." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [11], "point_label": "과거 시점 부사구와 현재완료",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "Somi loves painting pictures. She has painted many landscapes, but she has never drawn a portrait. She has started a new painting last week and worked on it every evening. She felt proud when she finished it. She was happy to show it to her family.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "has started → started"
+    }
+  ]
+}

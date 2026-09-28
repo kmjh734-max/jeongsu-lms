@@ -1,0 +1,64 @@
+{
+  "_설명": "천일문 2권 Chapter 05 to부정사 Chapter Test 뒷부분 가운데 too ~ to / enough to 문항(19·20·21·23번)을 변형한 것. 기본 4과 부정사[2] 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 5,
+  "chapter": "to부정사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 4, "chapter": "부정사[2]" },
+  "points": [
+    { "unit_no": 4, "unit": "to부정사를 포함한 주요 구문", "point_no": 10, "point": "too ~ to … = so ~ that … can’t", "frequent": true },
+    { "unit_no": 4, "unit": "to부정사를 포함한 주요 구문", "point_no": 11, "point": "~ enough to … = so ~ that … can", "frequent": true },
+    { "unit_no": 3, "unit": "부사적 용법", "point_no": 6, "point": "목적: ~하기 위해", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [10], "point_label": "too ~ to …: 너무 ~해서 …할 수 없다",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["나는 너무 피곤해서 공부할 수가 없다."],
+      "choices": [
+        { "no": 1, "text": "I am too tired to study." },
+        { "no": 2, "text": "I am so tired to study." },
+        { "no": 3, "text": "I am very tired to study." },
+        { "no": 4, "text": "I am tired enough to study." },
+        { "no": 5, "text": "I am tired in order to study." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 20, "point_nos": [11], "point_label": "~ enough to … = so ~ that … can",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "주어진 문장과 의미가 같도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "Mia is brave enough to speak in public.",
+        "→ Mia is ________ ________ ________ she ________ speak in public."
+      ],
+      "choices": [],
+      "answer": "so brave that, can"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 21, "point_nos": [10], "point_label": "too ~ to … = so ~ that … couldn’t",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "주어진 문장과 의미가 같도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "Daniel was too sleepy to finish his homework.",
+        "→ Daniel was ________ ________ ________ he ________ finish his homework."
+      ],
+      "choices": [],
+      "answer": "so sleepy that, couldn’t"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 23, "point_nos": [6, 11], "point_label": "목적의 to부정사와 enough to",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 <조건>에 맞게 문장을 완성하세요.",
+      "body": [
+        "<조건> • to부정사를 사용할 것  • 과거시제로 문장을 완성할 것",
+        "(1) 미나는 그녀의 이모를 만나기 위해 병원에 갔다. (to the hospital, her aunt, go, meet)",
+        "→ Mina ________________.",
+        "(2) 그 코트는 겨울에 입을 만큼 충분히 두꺼웠다. (thick, wear, enough, be, in the winter)",
+        "→ The coat ________________."
+      ],
+      "choices": [],
+      "answer": "(1) went to the hospital to meet her aunt  (2) was thick enough to wear in the winter"
+    }
+  ]
+}

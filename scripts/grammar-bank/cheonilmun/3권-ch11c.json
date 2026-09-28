@@ -1,0 +1,192 @@
+{
+  "_설명": "천일문 3권 워크북 Chapter 11 일치와 화법의 Chapter Test를 변형한 것. 심화 11과 일치와 화법 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 11,
+  "chapter": "일치와 화법",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 11, "chapter": "일치와 화법" },
+  "points": [
+    { "unit_no": 1, "unit": "수일치", "point_no": 1, "point": "each/every+단수명사+단수동사", "frequent": true },
+    { "unit_no": 1, "unit": "수일치", "point_no": 2, "point": "부분을 나타내는 말(half of, a third of…)의 수일치", "frequent": true },
+    { "unit_no": 1, "unit": "수일치", "point_no": 3, "point": "학문명·시간·거리·금액은 단수 취급", "frequent": true },
+    { "unit_no": 1, "unit": "수일치", "point_no": 4, "point": "the+형용사 = 복수 취급", "frequent": true },
+    { "unit_no": 1, "unit": "수일치", "point_no": 5, "point": "a number of(복수) vs. the number of(단수)", "frequent": true },
+    { "unit_no": 2, "unit": "시제 일치", "point_no": 6, "point": "주절이 과거면 종속절도 과거·과거완료", "frequent": true },
+    { "unit_no": 2, "unit": "시제 일치", "point_no": 7, "point": "시제 일치의 예외: 불변의 진리·현재의 습관", "frequent": true },
+    { "unit_no": 3, "unit": "화법", "point_no": 8, "point": "평서문의 화법 전환", "frequent": true },
+    { "unit_no": 3, "unit": "화법", "point_no": 9, "point": "의문문의 화법 전환", "frequent": true },
+    { "unit_no": 3, "unit": "화법", "point_no": 10, "point": "명령문의 화법 전환", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [3], "point_label": "무게·거리는 단수 취급",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• Ten kilometers ____(A)____ a long distance for me to run.",
+        "• Badminton and tennis ____(B)____ popular racket sports."
+      ],
+      "choices": [
+        { "no": 1, "text": "is — is" },
+        { "no": 2, "text": "is — are" },
+        { "no": 3, "text": "are — are" },
+        { "no": 4, "text": "are — is" },
+        { "no": 5, "text": "was — is" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [2], "point_label": "부분을 나타내는 말은 of 뒤 명사에 맞춘다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Some of us [[are]] afraid of heights." },
+        { "no": 2, "text": "All of the shoes [[look]] new on the shelf." },
+        { "no": 3, "text": "Most of the houses [[were]] recently painted." },
+        { "no": 4, "text": "One third of the cake [[were]] eaten by Mina." },
+        { "no": 5, "text": "About eighty percent of the earth’s surface [[is]] covered with water." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [7], "point_label": "속담·불변의 진리는 현재시제",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": [
+        "선생님은 연습이 완벽을 만든다고 말씀하셨다.",
+        "→ The teacher said that practice ________ perfect."
+      ],
+      "choices": [
+        { "no": 1, "text": "make" },
+        { "no": 2, "text": "makes" },
+        { "no": 3, "text": "made" },
+        { "no": 4, "text": "would made" },
+        { "no": 5, "text": "has made" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [6], "point_label": "주절이 과거면 종속절의 will은 would",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": [
+        "아무도 그녀가 유명한 작가가 될 거라고 생각하지 않았다.",
+        "→ Nobody thought that she ________ a famous writer."
+      ],
+      "choices": [
+        { "no": 1, "text": "becomes" },
+        { "no": 2, "text": "became" },
+        { "no": 3, "text": "will become" },
+        { "no": 4, "text": "would become" },
+        { "no": 5, "text": "had become" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [9], "point_label": "의문사 의문문의 화법 전환",
+      "question_kind": "화법 전환", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 문장을 간접 화법으로 바르게 전환한 것을 고르세요.",
+      "body": ["He said to me, “Where can I buy a subway ticket here?”"],
+      "choices": [
+        { "no": 1, "text": "He asked me where I can buy a subway ticket here." },
+        { "no": 2, "text": "He asked me where he can buy a subway ticket here." },
+        { "no": 3, "text": "He asked me where I could buy a subway ticket there." },
+        { "no": 4, "text": "He asked me where he could buy a subway ticket there." },
+        { "no": 5, "text": "He asked me where could he buy a subway ticket there." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [1], "point_label": "Everyone은 단수 취급",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Everyone have to return the book after reading it.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "have → has"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [2], "point_label": "half of+복수명사+복수동사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Half of my teammates practices basketball in the gym.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "practices → practice"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [8, 9, 10], "point_label": "화법 전환의 인칭·시제·부사",
+      "question_kind": "화법 전환", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 문장의 화법 전환이 바르게 된 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Mina said, “I have a lot of work now.” → Mina said she has a lot of work then." },
+        { "no": 2, "text": "Sora said to him, “What did you buy yesterday?” → Sora asked him what he had bought yesterday." },
+        { "no": 3, "text": "The tourist said to me, “Can you speak Korean?” → The tourist asked me if I can speak Korean." },
+        { "no": 4, "text": "Emma said to her brother, “Bring me some water.” → Emma asked her brother to bring you some water." },
+        { "no": 5, "text": "He said to me with confidence, “I can repair this bike.” → He told me with confidence that he could repair that bike." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [5], "point_label": "the number of ~는 단수 취급",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "야생 호랑이의 수가 해마다 줄고 있다. (number, wild tigers, be, decrease)",
+        "→ ________________ every year."
+      ],
+      "choices": [],
+      "answer": "The number of wild tigers is decreasing"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [1, 4], "point_label": "the+형용사는 복수 취급",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Each desk have a small lamp." },
+        { "no": 2, "text": "Taking care of plants require patience." },
+        { "no": 3, "text": "Every player are gathered on the field." },
+        { "no": 4, "text": "Some people believe that aliens actually exist." },
+        { "no": 5, "text": "The elderly enjoys walking in the park in the morning." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [8], "point_label": "평서문의 화법 전환",
+      "question_kind": "화법 전환", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장을 주어진 단어를 사용하여 간접화법으로 바꿔 쓰세요.",
+      "body": ["He said to me, “I will visit the museum tomorrow.” (that, next)", "→ ________________."],
+      "choices": [],
+      "answer": "He told me that he would visit the museum the next day"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [10], "point_label": "명령문의 화법 전환",
+      "question_kind": "화법 전환", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장을 주어진 단어를 사용하여 간접화법으로 바꿔 쓰세요.",
+      "body": ["She said to me, “Drink enough water every day.” (advise)", "→ ________________."],
+      "choices": [],
+      "answer": "She advised me to drink enough water every day"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [3, 5, 7], "point_label": "학문명의 수일치와 시제 일치의 예외",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞지 않은 것끼리 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ I think that he started the rumor.",
+        "ⓑ Forty minutes is enough to finish the test.",
+        "ⓒ Mathematics are a useful subject in daily life.",
+        "ⓓ They were taught that the sun rose in the east.",
+        "ⓔ A number of students are waiting for the bus.",
+        "ⓕ I knew that Canberra is the capital of Australia."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓒ" },
+        { "no": 2, "text": "ⓒ, ⓓ" },
+        { "no": 3, "text": "ⓑ, ⓔ" },
+        { "no": 4, "text": "ⓒ, ⓔ" },
+        { "no": 5, "text": "ⓐ, ⓕ" }
+      ],
+      "answer": "②"
+    }
+  ]
+}

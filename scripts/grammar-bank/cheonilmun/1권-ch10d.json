@@ -1,0 +1,78 @@
+{
+  "_설명": "천일문 1권 Chapter 10 to부정사와 동명사 Chapter Test 뒷장 가운데 동명사 문항(17~20번)을 변형한 것. 기초 11과 동명사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 10,
+  "chapter": "to부정사와 동명사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 11, "chapter": "동명사" },
+  "points": [
+    { "unit_no": 2, "unit": "동명사", "point_no": 6, "point": "동명사 = 주어 (~하는 것은)", "frequent": true },
+    { "unit_no": 2, "unit": "동명사", "point_no": 8, "point": "동명사 = 목적어 (~하는 것을)", "frequent": true },
+    { "unit_no": 2, "unit": "동명사", "point_no": 9, "point": "전치사+동명사", "frequent": true },
+    { "unit_no": 2, "unit": "동명사", "point_no": 10, "point": "자주 쓰이는 동명사 표현", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [9], "point_label": "Thank you for+동명사",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["나를 도와줘서 고마워."],
+      "choices": [
+        { "no": 1, "text": "Thank you of help me." },
+        { "no": 2, "text": "Thank you for help me." },
+        { "no": 3, "text": "Thank you helping me." },
+        { "no": 4, "text": "Thank you of helping me." },
+        { "no": 5, "text": "Thank you for helping me." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [6, 8, 9], "point_label": "동명사와 to부정사의 자리 판단",
+      "question_kind": "개수 고르기", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장의 개수를 고르세요.",
+      "body": [
+        "ⓐ Ride a bike at night is dangerous.",
+        "ⓑ Do you hope to visit Jeju Island?",
+        "ⓒ He finished washing the dishes.",
+        "ⓓ We decided going to the museum.",
+        "ⓔ Sora is good at draw cartoons.",
+        "ⓕ Drinking too much soda are bad for your health."
+      ],
+      "choices": [
+        { "no": 1, "text": "1개" },
+        { "no": 2, "text": "2개" },
+        { "no": 3, "text": "3개" },
+        { "no": 4, "text": "4개" },
+        { "no": 5, "text": "5개" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [8], "point_label": "enjoy+동명사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음은 학생들의 방과 후 취미 활동입니다. 이를 보고 주어진 단어를 사용하여 질문에 대한 답을 완성하세요.",
+      "body": [
+        "• Daniel — 배드민턴(badminton)",
+        "• Sumin — 사진 찍기(photos)",
+        "• Jake — 피아노(piano)",
+        "Q: What does Daniel do after school?",
+        "A: He enjoys ________ ________ after school. (play)"
+      ],
+      "choices": [],
+      "answer": "playing badminton"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 20, "point_nos": [8], "point_label": "love 뒤에는 동명사와 to부정사 모두 가능",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음은 학생들의 방과 후 취미 활동입니다. 이를 보고 주어진 단어를 사용하여 질문에 대한 답을 완성하세요.",
+      "body": [
+        "• Daniel — 배드민턴(badminton)",
+        "• Sumin — 사진 찍기(photos)",
+        "• Jake — 피아노(piano)",
+        "Q: What does Sumin like to do after school?",
+        "A: She loves ________ ________ after school. (take)"
+      ],
+      "choices": [],
+      "answer": "to take[taking] photos"
+    }
+  ]
+}

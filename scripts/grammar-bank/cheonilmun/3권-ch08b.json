@@ -1,0 +1,93 @@
+{
+  "_설명": "천일문 3권 Chapter 08 접속사 Chapter Test 뒷부분(15~20번)에서 가져와 변형한 문항. 심화 9과 접속사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 8,
+  "chapter": "접속사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 9, "chapter": "접속사" },
+  "points": [
+    { "unit_no": 1, "unit": "부사절 접속사", "point_no": 1, "point": "시간: when, while, as, since", "frequent": true },
+    { "unit_no": 1, "unit": "부사절 접속사", "point_no": 2, "point": "이유: because, since, as", "frequent": true },
+    { "unit_no": 1, "unit": "부사절 접속사", "point_no": 4, "point": "양보: although, though", "frequent": true },
+    { "unit_no": 2, "unit": "so that과 상관접속사", "point_no": 5, "point": "so+형용사[부사]+that: 너무 ~해서 …하다", "frequent": true },
+    { "unit_no": 2, "unit": "so that과 상관접속사", "point_no": 6, "point": "so that[in order that]: ~하도록", "frequent": true },
+    { "unit_no": 2, "unit": "so that과 상관접속사", "point_no": 7, "point": "both A and B / not only A but also B / either A or B / neither A nor B", "frequent": true },
+    { "unit_no": 3, "unit": "명사절", "point_no": 9, "point": "간접의문문: 의문사+주어+동사", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [1, 2, 4, 5, 7], "point_label": "접속사로 이은 말의 짝",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "My friends don’t like Alex since he is rude." },
+        { "no": 2, "text": "Ellie’s hobby is watching movies and read books." },
+        { "no": 3, "text": "My sister broke a plate while she was washing dishes." },
+        { "no": 4, "text": "Nick studied too hard that he could get a perfect score." },
+        { "no": 5, "text": "Although my mom was busy, she always made time for us every Sunday." }
+      ],
+      "answer": "②, ④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [5, 6], "point_label": "목적의 so that과 결과의 so ~ that",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작하지 않은 것을 두 개 고르세요.",
+      "body": ["미나는 시험에서 실수하지 않기 위해서 열심히 공부했다."],
+      "choices": [
+        { "no": 1, "text": "Mina studied hard not making mistakes on the test." },
+        { "no": 2, "text": "Mina studied in order not to make mistakes on the test." },
+        { "no": 3, "text": "Mina studied so hard that she wouldn’t make mistakes on the test." },
+        { "no": 4, "text": "Mina studied hard so that she wouldn’t make mistakes on the test." },
+        { "no": 5, "text": "Mina studied hard in order that she wouldn’t make mistakes on the test." }
+      ],
+      "answer": "①, ③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [7], "point_label": "상관접속사로 내용 견주기",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 내용과 일치하지 않는 것을 고르세요.",
+      "body": [
+        "별 카페 — 음료: 주스 / 디저트: 쿠키, 케이크",
+        "달 카페 — 음료: 주스, 우유 / 디저트: 케이크, 파이"
+      ],
+      "choices": [
+        { "no": 1, "text": "Star Cafe offers not milk but juice." },
+        { "no": 2, "text": "Moon Cafe offers both cakes and pies." },
+        { "no": 3, "text": "Star Cafe offers not only cakes but also cookies." },
+        { "no": 4, "text": "Neither Star Cafe nor Moon Cafe offers cakes." },
+        { "no": 5, "text": "Moon Cafe offers milk as well as juice." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [7], "point_label": "either A or B는 같은 꼴로",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Mia likes either reading books or watch movies at home on weekends.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "watch → watching"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [9], "point_label": "간접의문문의 어순",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Do you remember where did we park the car?", "→ ________ → ________"],
+      "choices": [],
+      "answer": "did we park → we parked"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 20, "point_nos": [1, 2, 5, 6], "point_label": "접속사 영작",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "우리말을 영어로 옮긴 것 중 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Leo는 차를 만들 수 있도록 물을 끓였다. → Leo boiled some water so that he could make tea." },
+        { "no": 2, "text": "Luna는 공연을 좋아하기 때문에 자주 공연장에 간다. → As Luna likes concerts, she often goes to the hall." },
+        { "no": 3, "text": "진호는 너무 긴장해서 사람들 앞에서 또박또박 말할 수 없었다. → Jinho was nervous so that he couldn’t speak clearly in front of people." },
+        { "no": 4, "text": "재민이는 고등학교에 입학한 이후로 많은 친구들을 사귀었다. → Jaemin has made a lot of friends since he entered high school." },
+        { "no": 5, "text": "아침에는 흐렸던 반면에 오후에는 눈이 내리기 시작했다. → While it was cloudy in the morning, it started snowing in the afternoon." }
+      ],
+      "answer": "③"
+    }
+  ]
+}

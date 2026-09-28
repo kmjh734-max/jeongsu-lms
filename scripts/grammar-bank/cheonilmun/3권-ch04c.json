@@ -1,0 +1,230 @@
+{
+  "_설명": "천일문 3권 워크북 Chapter 04 부정사의 Chapter Test를 변형한 것. 심화 1과 부정사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 4,
+  "chapter": "부정사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 1, "chapter": "부정사" },
+  "points": [
+    { "unit_no": 1, "unit": "명사적 용법", "point_no": 1, "point": "가주어 It ~ 진주어 to부정사", "frequent": true },
+    { "unit_no": 1, "unit": "명사적 용법", "point_no": 2, "point": "의미상 주어: for+목적격 / of+목적격", "frequent": true },
+    { "unit_no": 1, "unit": "명사적 용법", "point_no": 3, "point": "의문사+to부정사", "frequent": true },
+    { "unit_no": 2, "unit": "형용사적·부사적 용법", "point_no": 4, "point": "(대)명사를 꾸미는 to부정사와 남는 전치사", "frequent": true },
+    { "unit_no": 2, "unit": "형용사적·부사적 용법", "point_no": 7, "point": "부사적 용법: 목적·결과·감정의 원인", "frequent": true },
+    { "unit_no": 3, "unit": "목적격보어와 원형부정사", "point_no": 5, "point": "목적격보어로 쓰이는 to부정사와 원형부정사", "frequent": true },
+    { "unit_no": 3, "unit": "목적격보어와 원형부정사", "point_no": 6, "point": "지각동사+목적어+동사원형[-ing형]", "frequent": true },
+    { "unit_no": 4, "unit": "주요 구문", "point_no": 8, "point": "too ~ to … / ~ enough to …", "frequent": true },
+    { "unit_no": 4, "unit": "주요 구문", "point_no": 9, "point": "가목적어 it", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [2], "point_label": "of+목적격은 성격을 평가하는 형용사와 함께",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["It is very ________ of you to help me with my homework."],
+      "choices": [
+        { "no": 1, "text": "thoughtful" },
+        { "no": 2, "text": "kind" },
+        { "no": 3, "text": "generous" },
+        { "no": 4, "text": "difficult" },
+        { "no": 5, "text": "friendly" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [5], "point_label": "make는 목적격보어로 동사원형을 쓴다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["Dad didn’t ________ me to stay out late."],
+      "choices": [
+        { "no": 1, "text": "want" },
+        { "no": 2, "text": "allow" },
+        { "no": 3, "text": "make" },
+        { "no": 4, "text": "ask" },
+        { "no": 5, "text": "tell" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [1], "point_label": "가주어 It과 대명사 It",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 It[it]의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "[[It]] was the happiest day of my life." },
+        { "no": 2, "text": "Is [[it]] possible to finish this by noon?" },
+        { "no": 3, "text": "[[It]] is kind of you to share your lunch." },
+        { "no": 4, "text": "[[It]] can be risky to swim in the river alone." },
+        { "no": 5, "text": "[[It]] is not easy to choose a present for him." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [7], "point_label": "목적을 나타내는 부사적 용법",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> Sora skipped dessert [[to keep]] her weight."],
+      "choices": [
+        { "no": 1, "text": "It is helpful for you [[to think]] positively." },
+        { "no": 2, "text": "My assignment is [[to write]] a book review." },
+        { "no": 3, "text": "Mina went to the market [[to buy]] some fruit." },
+        { "no": 4, "text": "My brother promised [[to come]] home early to my mom." },
+        { "no": 5, "text": "Tim hopes [[to visit]] his grandfather during the winter break." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [1, 4, 7], "point_label": "명사적 용법과 다른 용법의 구별",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> He decided [[to apply]] for the contest."],
+      "choices": [
+        { "no": 1, "text": "[[To swim]] every day is good for your health." },
+        { "no": 2, "text": "My dad looked for a place [[to park]]." },
+        { "no": 3, "text": "The captain has the right [[to decide]]." },
+        { "no": 4, "text": "The boy looked excited [[to win]] the prize." },
+        { "no": 5, "text": "We had a plan [[to build]] a treehouse together." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [9], "point_label": "가목적어 it",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["He thinks that useful to keep a diary every day.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "that → it"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [5], "point_label": "사역동사 have의 목적격보어는 동사원형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["The guards had us to show our tickets at the gate.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "to show → show"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [5], "point_label": "order는 목적격보어로 to부정사를 쓴다",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["The coach ordered her stand in the back line.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "stand → to stand"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [7], "point_label": "in order to = so that ~ can",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "두 문장의 의미가 같도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "She practiced hard in order to win the contest. (so)",
+        "→ She practiced hard ________ ________ ________ ________ the contest."
+      ],
+      "choices": [],
+      "answer": "so that she could win"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [5, 6], "point_label": "allow는 to부정사, 지각동사는 동사원형",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• Her parents didn’t allow her ____(A)____ online games.",
+        "• Mina watched her sister ____(B)____ the guitar."
+      ],
+      "choices": [
+        { "no": 1, "text": "to play — practice" },
+        { "no": 2, "text": "play — to practice" },
+        { "no": 3, "text": "play — practice" },
+        { "no": 4, "text": "play — practicing" },
+        { "no": 5, "text": "to play — to practice" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [2], "point_label": "for+목적격과 of+목적격",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• It was hard ____(A)____ me to memorize that poem.",
+        "• It was careless ____(B)____ you to leave the door open."
+      ],
+      "choices": [
+        { "no": 1, "text": "of — of" },
+        { "no": 2, "text": "of — for" },
+        { "no": 3, "text": "for — of" },
+        { "no": 4, "text": "for — for" },
+        { "no": 5, "text": "for — about" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [3], "point_label": "how to+동사원형",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "지호는 나에게 그 프로그램을 설치하는 방법을 가르쳐 주었다.",
+        "(taught / install / Jiho / to / how / me / the program)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "Jiho taught me how to install the program"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [2, 8], "point_label": "too ~ for+목적격+to …",
+      "question_kind": "배열 영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "그 코트는 나에게는 너무 비싸서 살 수가 없었다.",
+        "(too / expensive / the coat / to / me / for / buy / was)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "The coat was too expensive for me to buy"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [8], "point_label": "~ enough to …",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "내 남동생은 그 상자를 옮길 만큼 충분히 힘이 세다.",
+        "(carry / enough / my brother / the box / is / strong / to)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "My brother is strong enough to carry the box"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [4, 8], "point_label": "to부정사 뒤에 남는 전치사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 것끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ I have some important news telling you.",
+        "ⓑ Sora and I found a nice café to stay.",
+        "ⓒ He was too shocked to say anything.",
+        "ⓓ Are there extra cushions for guests to sit on?",
+        "ⓔ The writer’s new novel seems being boring.",
+        "ⓕ Mina needs someone to help her with her project."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓑ, ⓕ" },
+        { "no": 2, "text": "ⓒ, ⓓ" },
+        { "no": 3, "text": "ⓒ, ⓔ" },
+        { "no": 4, "text": "ⓒ, ⓓ, ⓕ" },
+        { "no": 5, "text": "ⓑ, ⓓ, ⓔ" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 16, "point_nos": [8], "point_label": "too ~ to …와 so ~ that의 의미",
+      "question_kind": "의미 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "짝지어진 두 문장의 의미가 다른 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Mina seems to like the plan. = It seems that Mina likes the plan." },
+        { "no": 2, "text": "The soup is warm enough for us to eat. = The soup is so warm that we can eat it." },
+        { "no": 3, "text": "Jiho is so tall that he can reach the shelf. = Jiho is tall enough to reach the shelf." },
+        { "no": 4, "text": "This box is too heavy for the child to lift. = This box is so heavy that the child can lift it." },
+        { "no": 5, "text": "The words were too faint for my grandfather to read. = The words were so faint that my grandfather could not read them." }
+      ],
+      "answer": "④"
+    }
+  ]
+}

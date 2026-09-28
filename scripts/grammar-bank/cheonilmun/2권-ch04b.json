@@ -1,0 +1,212 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 04 수동태의 Chapter Test를 변형한 것. 기본 9과 수동태와 능동태 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 4,
+  "chapter": "수동태",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 9, "chapter": "수동태와 능동태" },
+  "points": [
+    { "unit_no": 1, "unit": "수동태의 형태", "point_no": 1, "point": "수동태 = be동사+p.p.(+by 행위자)", "frequent": true },
+    { "unit_no": 1, "unit": "수동태의 형태", "point_no": 2, "point": "수동태의 시제: 과거는 was/were+p.p., 미래는 will be+p.p.", "frequent": true },
+    { "unit_no": 1, "unit": "수동태의 형태", "point_no": 3, "point": "수동태의 부정문과 의문문", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 수동태", "point_no": 4, "point": "조동사가 있는 수동태: 조동사+be+p.p.", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 수동태", "point_no": 5, "point": "by 이외의 전치사를 쓰는 수동태", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1, 2], "point_label": "현재 수동태와 과거 수동태",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• The two islands ____(A)____ by a long bridge.",
+        "• Our class flag ____(B)____ by Mina at the school festival."
+      ],
+      "choices": [
+        { "no": 1, "text": "connect — raised" },
+        { "no": 2, "text": "connected — was raised" },
+        { "no": 3, "text": "connected — raised" },
+        { "no": 4, "text": "are connect — raised" },
+        { "no": 5, "text": "are connected — was raised" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [5], "point_label": "be pleased with, be known for",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• I was very pleased ____(A)____ her gift.",
+        "• Edison is known ____(B)____ the light bulb."
+      ],
+      "choices": [
+        { "no": 1, "text": "in — as" },
+        { "no": 2, "text": "in — with" },
+        { "no": 3, "text": "with — as" },
+        { "no": 4, "text": "with — for" },
+        { "no": 5, "text": "from — for" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [2, 3], "point_label": "미래 수동태 will be+p.p.",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Wheat isn’t grow in this area." },
+        { "no": 2, "text": "Will the soup made by the chef?" },
+        { "no": 3, "text": "Your shoes must be clean before class." },
+        { "no": 4, "text": "A few decades ago, computers not were used." },
+        { "no": 5, "text": "The new library will be opened next spring." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [5], "point_label": "by 이외의 전치사를 쓰는 수동태",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The chair was made by plastic." },
+        { "no": 2, "text": "The box was filled of old photos." },
+        { "no": 3, "text": "Students are usually interested in music." },
+        { "no": 4, "text": "Mr. Han won’t be satisfied for my essay." },
+        { "no": 5, "text": "The floor is covered dust." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [2], "point_label": "과거 수동태 were+p.p.",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 단어를 빈칸에 어법상 알맞은 형태로 쓰세요.",
+      "body": ["These fresh apples ________ ________ by Jinho a few days ago. (send)"],
+      "choices": [],
+      "answer": "were sent"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [4], "point_label": "조동사+be+p.p.",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 단어를 빈칸에 어법상 알맞은 형태로 쓰세요.",
+      "body": ["Penguins ________ ________ ________ on this island. (can, see)"],
+      "choices": [],
+      "answer": "can be seen"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [1], "point_label": "수동태의 어순",
+      "question_kind": "배열 판단", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열할 때, 세 번째로 오는 단어를 고르세요.",
+      "body": [
+        "나는 우리 형에 의해 이 자전거를 받았다.",
+        "(my brother / given / I / this / by / was / bicycle)"
+      ],
+      "choices": [
+        { "no": 1, "text": "was" },
+        { "no": 2, "text": "bicycle" },
+        { "no": 3, "text": "my brother" },
+        { "no": 4, "text": "given" },
+        { "no": 5, "text": "by" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [2], "point_label": "미래 시제의 수동태로 바꾸기",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "주어진 문장을 수동태로 바꿔 쓰세요.",
+      "body": ["Sora will bring Jiho to the concert.", "→ ________________."],
+      "choices": [],
+      "answer": "Jiho will be brought to the concert by Sora."
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [1, 2], "point_label": "과거 시제의 수동태로 바꾸기",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "주어진 문장을 수동태로 바꿔 쓰세요.",
+      "body": ["The teacher collected the papers.", "→ ________________."],
+      "choices": [],
+      "answer": "The papers were collected by the teacher."
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [1, 3], "point_label": "수동태 의문문에 대한 대답",
+      "question_kind": "대화 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어색한 대화를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "A: Is Spanish spoken in Mexico?  B: Yes, it is." },
+        { "no": 2, "text": "A: How was the vase broken?  B: It was broken by the cat." },
+        { "no": 3, "text": "A: Was the necklace made of silver?  B: No, it wasn’t. It was made of gold." },
+        { "no": 4, "text": "A: Were the tulips planted by Mina?  B: Yes, they were. Mina planted them last week." },
+        { "no": 5, "text": "A: When was the first World Cup held?  B: They held in 1930." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [1, 2], "point_label": "주어가 동작을 받으면 수동태",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Last night, the dishes did by my brother.", "→ ________"],
+      "choices": [],
+      "answer": "did → were done"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [4], "point_label": "조동사 수동태의 p.p.",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["The mountain cannot be see through the fog.", "→ ________"],
+      "choices": [],
+      "answer": "see → seen"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [3], "point_label": "수동태 의문문의 어순",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Was written the novel by a young author?", "→ ________"],
+      "choices": [],
+      "answer": "Was written the novel → Was the novel written"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [1, 2, 4], "point_label": "수동태 문장 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ The money will donate to the shelter.",
+        "ⓑ The fire was caused by a candle.",
+        "ⓒ The new laptop is made in Japan.",
+        "ⓓ Korean dramas are watched all over the world.",
+        "ⓔ The missing wallet was found under the sofa."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓑ" },
+        { "no": 2, "text": "ⓐ, ⓑ, ⓒ, ⓔ" },
+        { "no": 3, "text": "ⓑ, ⓒ, ⓓ" },
+        { "no": 4, "text": "ⓑ, ⓒ, ⓓ, ⓔ" },
+        { "no": 5, "text": "ⓒ, ⓓ, ⓔ" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [2, 5], "point_label": "will be+p.p.의 형태",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The letter [[was hidden]] for many years." },
+        { "no": 2, "text": "The hill [[is covered]] with white snow." },
+        { "no": 3, "text": "Many birds [[were caught]] by the net." },
+        { "no": 4, "text": "The wall [[will painted]] again by my uncle next week." },
+        { "no": 5, "text": "Korean food [[is enjoyed]] by people around the world." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 16, "point_nos": [4], "point_label": "조동사가 있는 문장의 능동태와 수동태",
+      "question_kind": "영작", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "우리말과 일치하도록 <조건>에 맞게 문장을 쓰세요.",
+      "body": [
+        "학생들은 선생님께 존경을 표해야 한다.",
+        "<조건> • should, show라는 단어가 들어가게 쓸 것  • 능동태와 수동태 두 가지 형태를 모두 쓸 것  • 필요한 경우 제시된 단어를 변형하여 쓸 것",
+        "(1) Students ________ ________ respect to teachers.",
+        "(2) Respect ________ ________ ________ to teachers ________."
+      ],
+      "choices": [],
+      "answer": "(1) should show  (2) should be shown, by students"
+    }
+  ]
+}

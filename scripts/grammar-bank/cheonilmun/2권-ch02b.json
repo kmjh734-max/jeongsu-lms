@@ -1,0 +1,113 @@
+{
+  "_설명": "천일문 2권 Chapter 02 시제 Chapter Test 뒷부분(17~23번)에서 가져와 변형한 문항. 기본 2과 시제 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 2,
+  "chapter": "시제",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 2, "chapter": "시제" },
+  "points": [
+    { "unit_no": 2, "unit": "현재완료", "point_no": 5, "point": "과거와 현재를 연결하는 현재완료: have+p.p.", "frequent": true },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 7, "point": "(지금까지) 쭉 ~해오다(계속)", "frequent": true },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 8, "point": "(지금까지) ~한 적이 있다(경험)", "frequent": true },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 9, "point": "막 ~했다(완료)", "frequent": true },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 11, "point": "현재완료와 과거를 나타내는 부사는 같이 쓸 수 없다", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [7, 11], "point_label": "for+기간과 현재완료",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["그녀는 3년 동안 부산에 살고 있다."],
+      "choices": [
+        { "no": 1, "text": "She lived in Busan for three years ago." },
+        { "no": 2, "text": "She lived in Busan since three years ago." },
+        { "no": 3, "text": "She has lived in Busan for three years ago." },
+        { "no": 4, "text": "She has lived in Busan for three years." },
+        { "no": 5, "text": "She has living in Busan since three years ago." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [8, 11], "point_label": "과거시제와 경험의 현재완료",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "주어진 단어를 사용하여 시제에 맞게 문장을 완성하세요.",
+      "body": [
+        "A: I (1) ________ (swim) in the sea with my brother last summer.",
+        "B: Oh, you had a great time. I (2) ________ (never, swim) in the sea.",
+        "A: Really? Then, I will teach you."
+      ],
+      "choices": [],
+      "answer": "(1) swam  (2) have never swum"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [11], "point_label": "현재완료는 과거 부사구와 함께 쓸 수 없다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "A spider has eight legs." },
+        { "no": 2, "text": "He has written a letter last night." },
+        { "no": 3, "text": "My friends are going to arrive here soon." },
+        { "no": 4, "text": "The teacher has ended the class already." },
+        { "no": 5, "text": "Ben is washing the dishes now." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 20, "point_nos": [9, 11], "point_label": "just와 ago는 함께 쓸 수 없다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "She is eating lunch now." },
+        { "no": 2, "text": "I lost my key yesterday." },
+        { "no": 3, "text": "I have been sick for two weeks." },
+        { "no": 4, "text": "He has just finished his homework an hour ago." },
+        { "no": 5, "text": "They have traveled the world for 5 years." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 21, "point_nos": [9], "point_label": "완료를 나타내는 현재완료",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 현재완료의 쓰임이 <보기>와 같은 문장을 고르세요.",
+      "body": ["<보기> The movie [[has just ended]]."],
+      "choices": [
+        { "no": 1, "text": "My friend has gone to Canada." },
+        { "no": 2, "text": "My dad has fixed his bike twice." },
+        { "no": 3, "text": "Jim has used the tablet since 2019." },
+        { "no": 4, "text": "She has already booked a ticket." },
+        { "no": 5, "text": "He has worked as a nurse for three years." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 22, "point_nos": [7], "point_label": "계속을 나타내는 현재완료",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 현재완료의 쓰임이 <보기>와 같은 문장을 고르세요.",
+      "body": ["<보기> I [[have studied]] Chinese for two years."],
+      "choices": [
+        { "no": 1, "text": "We have gone camping five times." },
+        { "no": 2, "text": "They have just heard the news." },
+        { "no": 3, "text": "He has never worn a suit." },
+        { "no": 4, "text": "Ted has forgotten the promise." },
+        { "no": 5, "text": "We have helped the elderly since last year." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 23, "point_nos": [5, 7, 11], "point_label": "주어의 수와 과거·현재완료",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 대화에서 어법상 알맞지 않은 두 개를 찾아 그 기호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": [
+        "A: ⓐ [[Have you been]] to that new bakery downtown?",
+        "B: Yes, it’s great! My friend, Mina ⓑ [[have worked]] at the bakery ⓒ [[since]] last month.",
+        "A: Oh, really? How was the bread?",
+        "B: I ⓓ [[eat]] a piece of bread there yesterday, and it was really delicious.",
+        "A: ⓔ [[I’m going to]] try it soon!",
+        "(1) ________ → ________   (2) ________ → ________"
+      ],
+      "choices": [],
+      "answer": "(1) ⓑ, has worked  (2) ⓓ, ate"
+    }
+  ]
+}

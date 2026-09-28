@@ -1,0 +1,100 @@
+{
+  "_설명": "천일문 3권 Chapter 04 부정사 Chapter Test 뒷부분(15~21번)에서 가져와 변형한 문항. 심화 1과 부정사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 4,
+  "chapter": "부정사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 1, "chapter": "부정사" },
+  "points": [
+    { "unit_no": 2, "unit": "형용사적·부사적 용법", "point_no": 7, "point": "목적을 나타내는 to부정사 = so as to = in order to = so that", "frequent": true },
+    { "unit_no": 4, "unit": "주요 구문", "point_no": 8, "point": "too ~ to … = so ~ that … can’t / ~ enough to … = so ~ that … can", "frequent": true },
+    { "unit_no": 4, "unit": "주요 구문", "point_no": 9, "point": "가목적어 it", "frequent": true },
+    { "unit_no": 4, "unit": "주요 구문", "point_no": 10, "point": "seem to = It seems that ~", "frequent": false },
+    { "unit_no": 1, "unit": "명사적 용법", "point_no": 2, "point": "의미상 주어: for+목적격 / of+목적격", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [7, 8], "point_label": "목적의 to부정사와 so ~ that",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 문장의 의미가 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "He studies hard to pass the exam." },
+        { "no": 2, "text": "He studies hard so as to pass the exam." },
+        { "no": 3, "text": "He studies hard in order to pass the exam." },
+        { "no": 4, "text": "He studies hard so that he can pass the exam." },
+        { "no": 5, "text": "He studies so hard that he can pass the exam." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [8], "point_label": "~ enough to … = so ~ that … can",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장과 의미가 같도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["The bag is light enough for me to carry. (so)", "→ The bag is ________________."],
+      "choices": [],
+      "answer": "so light that I can carry it"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [9], "point_label": "가목적어 it",
+      "question_kind": "배열 영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요. (필요시 단어의 형태를 바꿀 것)",
+      "body": [
+        "Tom은 그림을 그리는 것이 즐겁다고 생각한다. (Tom / find / pictures / fun / to / draw / it)",
+        "→ ______________________________."
+      ],
+      "choices": [],
+      "answer": "Tom finds it fun to draw pictures"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [8], "point_label": "too ~ to …",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요. (필요시 단어의 형태를 바꿀 것)",
+      "body": [
+        "그 수프는 먹기에 너무 짰다. (that soup / eat / to / salty / be / too)",
+        "→ ______________________________."
+      ],
+      "choices": [],
+      "answer": "That soup was too salty to eat"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [8], "point_label": "~ enough to …",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요. (필요시 단어의 형태를 바꿀 것)",
+      "body": [
+        "그는 그 무거운 상자를 옮기기에 충분히 힘이 세다.",
+        "(he / enough / heavy / carry / be / the / box / strong / to)",
+        "→ ______________________________."
+      ],
+      "choices": [],
+      "answer": "He is strong enough to carry the heavy box"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 20, "point_nos": [7, 8, 10], "point_label": "seem to와 It seems that",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "짝지어진 두 문장의 의미가 다른 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I took a bus to be there on time. = I took a bus so that I could be there on time." },
+        { "no": 2, "text": "Ian seemed to worry about everything. = It seemed that Ian worry about everything." },
+        { "no": 3, "text": "It seems that the little girl likes this song. = The little girl seems to like this song." },
+        { "no": 4, "text": "He jumped so high that he could touch the ceiling. = He jumped high enough to touch the ceiling." },
+        { "no": 5, "text": "My bag is so heavy that I cannot carry it alone. = My bag is too heavy for me to carry alone." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 21, "point_nos": [2, 7, 8, 10], "point_label": "부정사 구문 영작",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "이 국은 내가 먹기에는 너무 뜨겁다. → This soup is too hot for me to eat." },
+        { "no": 2, "text": "그가 그 기회를 놓친 건 어리석었다. → It was silly for him to miss the chance." },
+        { "no": 3, "text": "Cathy는 오늘 피곤한 것 같다. → Cathy seems being tired today." },
+        { "no": 4, "text": "그들은 좋은 사진을 찍는 방법을 설명했다. → They explained what to take a good photo." },
+        { "no": 5, "text": "그녀는 나에게 고맙다고 말하기 위해 뒤로 돌아섰다. → She turned back in order to say thank you to me." }
+      ],
+      "answer": "①, ⑤"
+    }
+  ]
+}

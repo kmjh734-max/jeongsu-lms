@@ -1,0 +1,256 @@
+{
+  "_설명": "천일문 1권 워크북 Chapter 11 전치사의 Chapter Test를 변형한 것. 기초 14과 전치사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 11,
+  "chapter": "전치사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 14, "chapter": "전치사" },
+  "points": [
+    { "unit_no": 1, "unit": "장소·위치·방향", "point_no": 1, "point": "장소를 나타내는 at, on, in", "frequent": true },
+    { "unit_no": 1, "unit": "장소·위치·방향", "point_no": 2, "point": "위치, 방향을 나타내는 기타 전치사", "frequent": true },
+    { "unit_no": 2, "unit": "시간", "point_no": 3, "point": "시간을 나타내는 at, on, in", "frequent": true },
+    { "unit_no": 2, "unit": "시간", "point_no": 4, "point": "시간을 나타내는 기타 전치사", "frequent": true },
+    { "unit_no": 3, "unit": "여러 가지 전치사", "point_no": 5, "point": "여러 전치사의 다양한 의미", "frequent": true },
+    { "unit_no": 3, "unit": "여러 가지 전치사", "point_no": 6, "point": "전치사를 포함한 다양한 표현", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1, 2], "point_label": "넓은 장소의 in과 in front of",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "• You can meet many rare birds ________ Australia.",
+        "• I stood ________ front of the museum."
+      ],
+      "choices": [
+        { "no": 1, "text": "to" },
+        { "no": 2, "text": "in" },
+        { "no": 3, "text": "at" },
+        { "no": 4, "text": "on" },
+        { "no": 5, "text": "over" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [1, 3], "point_label": "표면의 on과 날짜의 on",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "• They sat ________ the bench.",
+        "• The concert will start ________ May 5."
+      ],
+      "choices": [
+        { "no": 1, "text": "in" },
+        { "no": 2, "text": "at" },
+        { "no": 3, "text": "on" },
+        { "no": 4, "text": "for" },
+        { "no": 5, "text": "till" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [5, 6], "point_label": "도구의 with와 be satisfied with",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "• Mina opened the box ________ a knife.",
+        "• We were satisfied ________ the service."
+      ],
+      "choices": [
+        { "no": 1, "text": "to" },
+        { "no": 2, "text": "with" },
+        { "no": 3, "text": "by" },
+        { "no": 4, "text": "for" },
+        { "no": 5, "text": "from" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [2], "point_label": "under, on, between",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 <상황>을 보고 <보기>와 같이 빈칸에 알맞은 전치사를 쓰세요.",
+      "body": [
+        "<상황> 탁자 아래에 공이 하나 있다. 탁자 위에는 램프가 하나 있다. 소파는 탁자와 고양이 사이에 있고, 고양이는 소파 옆에 있다.",
+        "<보기> A cat is next to the sofa.",
+        "(1) A ball is ________ the table.",
+        "(2) A lamp is ________ the table.",
+        "(3) A sofa is ________ the table and the cat."
+      ],
+      "choices": [],
+      "answer": "(1) under  (2) on  (3) between"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [2], "point_label": "between은 둘 이상의 대상이 필요하다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["There is a small pond ________ my school."],
+      "choices": [
+        { "no": 1, "text": "behind" },
+        { "no": 2, "text": "between" },
+        { "no": 3, "text": "beside" },
+        { "no": 4, "text": "next to" },
+        { "no": 5, "text": "in front of" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [1, 3], "point_label": "공간 안의 in과 특정 시점의 at",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 문장의 각 빈칸에 들어갈 알맞은 전치사가 순서대로 짝지어진 것을 고르세요.",
+      "body": ["We gathered ________ the kitchen and talked ________ midnight."],
+      "choices": [
+        { "no": 1, "text": "at — in" },
+        { "no": 2, "text": "at — on" },
+        { "no": 3, "text": "in — at" },
+        { "no": 4, "text": "in — on" },
+        { "no": 5, "text": "on — at" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [1], "point_label": "at, on, in의 구별",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞은 것을 두 개 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Please wait [[at]] the gate." },
+        { "no": 2, "text": "Birds are resting [[in]] a branch." },
+        { "no": 3, "text": "I found my ring [[at]] the drawer." },
+        { "no": 4, "text": "There are many buses [[on]] the street." },
+        { "no": 5, "text": "I spent three years [[on]] the small village." }
+      ],
+      "answer": "①, ④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [3], "point_label": "요일 앞에는 on을 쓴다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 빈칸에 in을 쓸 수 없는 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "It’s very cold ________ January." },
+        { "no": 2, "text": "I couldn’t find anyone ________ the building." },
+        { "no": 3, "text": "We don’t open the café ________ Mondays." },
+        { "no": 4, "text": "People can see old temples ________ Gyeongju." },
+        { "no": 5, "text": "You can see fireflies ________ summer." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [2], "point_label": "between A and B",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어와 알맞은 전치사를 사용하여 문장을 완성하세요.",
+      "body": [
+        "의자를 창문과 책장 사이로 옮겨라.",
+        "(the window, the bookshelf, and, the chair)",
+        "→ Move ________________."
+      ],
+      "choices": [],
+      "answer": "the chair between the window and the bookshelf"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [1, 4], "point_label": "기간을 나타내는 for",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어와 알맞은 전치사를 사용하여 문장을 완성하세요.",
+      "body": [
+        "우리 가족은 서울에서 5년 동안 살았었다.",
+        "(lived, in Seoul, five years)",
+        "→ My family ________________."
+      ],
+      "choices": [],
+      "answer": "lived in Seoul for five years"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [4, 6], "point_label": "go on a trip to ~와 after",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어와 알맞은 전치사를 사용하여 문장을 완성하세요.",
+      "body": [
+        "그 부부는 그들의 졸업식 후에 유럽으로 여행을 갔다.",
+        "(went, a trip, Europe, their graduation)",
+        "→ The couple ________________."
+      ],
+      "choices": [],
+      "answer": "went on a trip to Europe after their graduation"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [3, 6], "point_label": "in the morning과 여러 전치사 표현",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 (A)~(E)에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": [
+        "A: What time do you leave home ____(A)____ the morning?",
+        "B: I usually leave ____(B)____ 8:00.",
+        "A: You are different ____(C)____ me. I always wake up late and leave at 9.",
+        "B: What do you do ____(D)____ school?",
+        "A: I practice the guitar. I’m interested ____(E)____ music these days."
+      ],
+      "choices": [
+        { "no": 1, "text": "(A) on" },
+        { "no": 2, "text": "(B) at" },
+        { "no": 3, "text": "(C) from" },
+        { "no": 4, "text": "(D) after" },
+        { "no": 5, "text": "(E) in" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [5, 6], "point_label": "through와 be famous for",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• I couldn’t hear the music ____(A)____ the door.",
+        "• Busan is famous ____(B)____ its beautiful beaches."
+      ],
+      "choices": [
+        { "no": 1, "text": "with — for" },
+        { "no": 2, "text": "through — for" },
+        { "no": 3, "text": "with — on" },
+        { "no": 4, "text": "through — on" },
+        { "no": 5, "text": "through — at" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [5, 6], "point_label": "동행의 with와 thanks to",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• Will you go to the concert ____(A)____ me?",
+        "• Thanks ____(B)____ your advice, I finished the work."
+      ],
+      "choices": [
+        { "no": 1, "text": "with — about" },
+        { "no": 2, "text": "to — for" },
+        { "no": 3, "text": "with — for" },
+        { "no": 4, "text": "to — to" },
+        { "no": 5, "text": "with — to" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [5], "point_label": "교통수단 앞에는 by를 쓴다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Don’t shout at me anymore." },
+        { "no": 2, "text": "I went to the station with bus." },
+        { "no": 3, "text": "This seat is for elderly people." },
+        { "no": 4, "text": "My sister is good at swimming." },
+        { "no": 5, "text": "The shop opens from nine to seven." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 16, "point_nos": [6], "point_label": "be different from",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "This movie is about wild animals." },
+        { "no": 2, "text": "My grandmother walks with a cane." },
+        { "no": 3, "text": "I’m not satisfied with my grade." },
+        { "no": 4, "text": "The machine can turn water into ice." },
+        { "no": 5, "text": "Her idea is different for mine." }
+      ],
+      "answer": "⑤"
+    }
+  ]
+}

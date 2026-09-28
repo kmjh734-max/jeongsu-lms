@@ -1,0 +1,112 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 11 접속사의 Chapter Test 가운데 부사절 문항을 변형한 것. 기본 14과 접속사[1] 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 11,
+  "chapter": "접속사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 14, "chapter": "접속사[1]" },
+  "points": [
+    { "unit_no": 1, "unit": "등위접속사와 명령문", "point_no": 2, "point": "명령문+and/or", "frequent": true },
+    { "unit_no": 2, "unit": "시간·이유의 접속사", "point_no": 3, "point": "when, while, before, after, until", "frequent": true },
+    { "unit_no": 2, "unit": "시간·이유의 접속사", "point_no": 4, "point": "because, since, as: ~ 때문에", "frequent": true },
+    { "unit_no": 3, "unit": "조건·양보의 접속사", "point_no": 5, "point": "if, unless: 만약 ~라면 / ~하지 않는다면", "frequent": true },
+    { "unit_no": 3, "unit": "조건·양보의 접속사", "point_no": 6, "point": "시간·조건의 부사절에서는 현재시제가 미래를 나타낸다", "frequent": true },
+    { "unit_no": 3, "unit": "조건·양보의 접속사", "point_no": 7, "point": "so+형용사/부사+that: 너무 ~해서 …하다", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [4], "point_label": "이유를 나타내는 since",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Mina ordered a pizza ________ she didn’t want to cook."],
+      "choices": [
+        { "no": 1, "text": "until" },
+        { "no": 2, "text": "before" },
+        { "no": 3, "text": "since" },
+        { "no": 4, "text": "though" },
+        { "no": 5, "text": "while" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [3, 4, 5, 7], "point_label": "접속사의 의미와 문맥",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 문맥상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Unless you aren’t free, please help me." },
+        { "no": 2, "text": "Jiho texted his friend after he got off the train." },
+        { "no": 3, "text": "Sora went home early until she had a lot of homework." },
+        { "no": 4, "text": "Mina studied so hard for the exam that she failed it." },
+        { "no": 5, "text": "Since the sun was shining brightly, it wasn’t warm at all." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [6], "point_label": "조건의 부사절은 현재시제로 미래를 나타낸다",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰세요.",
+      "body": ["[[If it will rain tomorrow]], we will cancel the picnic.", "→ ________"],
+      "choices": [],
+      "answer": "If it rains tomorrow"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [2], "point_label": "명령문+or / 명령문+and",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• Hurry up, ____(A)____ you’ll miss the bus.",
+        "• Turn left, ____(B)____ you’ll find the bakery."
+      ],
+      "choices": [
+        { "no": 1, "text": "and — or" },
+        { "no": 2, "text": "or — or" },
+        { "no": 3, "text": "or — and" },
+        { "no": 4, "text": "or — but" },
+        { "no": 5, "text": "but — and" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [4, 5], "point_label": "Unless와 since의 의미",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• ____(A)____ you make a mistake, you’ll pass the test.",
+        "• They have known each other ____(B)____ they were children."
+      ],
+      "choices": [
+        { "no": 1, "text": "If — as" },
+        { "no": 2, "text": "Unless — or" },
+        { "no": 3, "text": "If — or" },
+        { "no": 4, "text": "Unless — since" },
+        { "no": 5, "text": "As — since" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [7], "point_label": "so+형용사+that+주어+동사",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "지호는 너무 배가 고파서 한밤중에 잠에서 깼다. (wake up, hungry, he, that)",
+        "→ Jiho was ________________ in the middle of the night."
+      ],
+      "choices": [],
+      "answer": "so hungry that he woke up"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [3, 4], "point_label": "when과 because로 문장 잇기",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 <상황>을 보고 주어진 단어를 사용하여 <조건>에 맞게 문장을 완성하세요.",
+      "body": [
+        "<상황 1> 초인종이 울리던 순간, 나는 샤워 중이었다.",
+        "<상황 2> 그가 창문을 깼고, 선생님이 화가 나셨다.",
+        "<조건> • when과 because를 사용할 것 (단, 한 번씩만 쓸 것)  • 주어에 맞게 동사를 변형할 것",
+        "(1) The doorbell rang ________________. (take a shower, I, be)",
+        "(2) ________________, his teacher got angry. (break the window, he)"
+      ],
+      "choices": [],
+      "answer": "(1) when I was taking a shower  (2) Because he broke the window"
+    }
+  ]
+}

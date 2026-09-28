@@ -1,0 +1,221 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 03 조동사의 Chapter Test를 변형한 것. 기본 7과 조동사 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 3,
+  "chapter": "조동사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 7, "chapter": "조동사" },
+  "points": [
+    { "unit_no": 1, "unit": "can/may", "point_no": 1, "point": "can/could: 능력·허가·요청", "frequent": true },
+    { "unit_no": 1, "unit": "can/may", "point_no": 2, "point": "may: 허가 / ~일지도 모른다(추측)", "frequent": true },
+    { "unit_no": 2, "unit": "must/have to/should", "point_no": 3, "point": "must = have to: ~해야 한다(의무)", "frequent": true },
+    { "unit_no": 2, "unit": "must/have to/should", "point_no": 4, "point": "must: ~임에 틀림없다(강한 추측)", "frequent": true },
+    { "unit_no": 2, "unit": "must/have to/should", "point_no": 5, "point": "don’t have to: ~할 필요가 없다", "frequent": true },
+    { "unit_no": 2, "unit": "must/have to/should", "point_no": 6, "point": "must not: ~하면 안 된다(금지)", "frequent": true },
+    { "unit_no": 2, "unit": "must/have to/should", "point_no": 7, "point": "should: ~해야 한다, ~하는 것이 좋다", "frequent": true },
+    { "unit_no": 3, "unit": "had better/would like to/used to", "point_no": 8, "point": "had better: ~하는 게 좋겠다", "frequent": true },
+    { "unit_no": 3, "unit": "had better/would like to/used to", "point_no": 9, "point": "would like to: ~하고 싶다", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [2], "point_label": "추측의 may와 허가의 may",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 같은 의미로 쓰인 것을 고르세요.",
+      "body": ["<보기> You [[may]] get lost. Take a map with you."],
+      "choices": [
+        { "no": 1, "text": "[[May]] I borrow your pen for a second?" },
+        { "no": 2, "text": "The test [[may]] not be easy for you." },
+        { "no": 3, "text": "[[May]] I go home earlier than usual today?" },
+        { "no": 4, "text": "You [[may]] not take photos inside the museum." },
+        { "no": 5, "text": "You [[may]] have a short rest now." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [3], "point_label": "의무를 나타내는 must",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "우리는 건강을 위해 아침을 먹어야 한다.",
+        "→ We ________ eat breakfast for our health."
+      ],
+      "choices": [
+        { "no": 1, "text": "may" },
+        { "no": 2, "text": "must" },
+        { "no": 3, "text": "can’t" },
+        { "no": 4, "text": "will" },
+        { "no": 5, "text": "may not" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [1, 3], "point_label": "과거의 의무 had to와 과거의 능력 could",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• I stayed up late last night. I ____(A)____ finish my report.",
+        "• They ____(B)____ smell the flowers when they walked in the garden yesterday."
+      ],
+      "choices": [
+        { "no": 1, "text": "must — can" },
+        { "no": 2, "text": "must — could" },
+        { "no": 3, "text": "have to — could" },
+        { "no": 4, "text": "had to — could" },
+        { "no": 5, "text": "had to — can" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [1], "point_label": "was able to = could",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 밑줄 친 부분을 한 단어로 바꿔 쓰세요.",
+      "body": ["I was glad because I [[was able to]] meet my cousin last weekend.", "→ ________"],
+      "choices": [],
+      "answer": "could"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [3, 4], "point_label": "강한 추측의 must와 의무의 must",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 must의 의미가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "That bakery [[must]] be popular. There’s a long line." },
+        { "no": 2, "text": "You [[must]] follow the safety rules in the lab." },
+        { "no": 3, "text": "You [[must]] ask your parents first." },
+        { "no": 4, "text": "You [[must]] wear a helmet on the bike." },
+        { "no": 5, "text": "We [[must]] tidy the classroom before the teacher comes." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [5], "point_label": "don’t have to의 형태",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Mia don’t have to leave early today." },
+        { "no": 2, "text": "They doesn’t have to clean the windows." },
+        { "no": 3, "text": "I don’t had to bring an umbrella now." },
+        { "no": 4, "text": "He didn’t have to feed the cat yesterday." },
+        { "no": 5, "text": "You don’t have to eating all the bread if you’re full." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [5, 6], "point_label": "must not과 don’t have to의 구별",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 말을 <보기>에서 골라 순서대로 바르게 연결한 것을 고르세요.",
+      "body": [
+        "<보기> ⓐ must not   ⓑ don’t have to   ⓒ doesn’t have to",
+        "(A) They ________ come to work next Monday. It is a holiday.",
+        "(B) She ________ run in the hallway.",
+        "(C) Jinho ________ wash the dishes because his sister has already done them."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ–ⓑ–ⓒ" },
+        { "no": 2, "text": "ⓑ–ⓐ–ⓒ" },
+        { "no": 3, "text": "ⓑ–ⓒ–ⓐ" },
+        { "no": 4, "text": "ⓒ–ⓐ–ⓑ" },
+        { "no": 5, "text": "ⓒ–ⓑ–ⓐ" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [3, 7, 8], "point_label": "충고를 나타내는 조동사",
+      "question_kind": "대화 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 대화의 빈칸에 들어갈 말로 어색한 것을 고르세요.",
+      "body": [
+        "A: Is there anything wrong with you?",
+        "B: I have a bad headache and feel dizzy.",
+        "A: ________"
+      ],
+      "choices": [
+        { "no": 1, "text": "Get some rest right now." },
+        { "no": 2, "text": "You have to see a doctor right now." },
+        { "no": 3, "text": "You’d better see a doctor right now." },
+        { "no": 4, "text": "You should see a doctor right now." },
+        { "no": 5, "text": "You will see a doctor right now." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [6, 7], "point_label": "금지를 나타내는 표현",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 밑줄 친 부분과 바꿔 쓸 수 있는 문장 두 개를 고르세요.",
+      "body": [
+        "A: Can I open the window now?",
+        "B: [[No, don’t do that.]] It’s too noisy outside."
+      ],
+      "choices": [
+        { "no": 1, "text": "You have to open the window now." },
+        { "no": 2, "text": "You must not open the window now." },
+        { "no": 3, "text": "You had better open the window now." },
+        { "no": 4, "text": "You should not open the window now." },
+        { "no": 5, "text": "You don’t have to open the window now." }
+      ],
+      "answer": "②, ④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [8], "point_label": "had better의 부정은 had better not",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 바르게 고쳐 문장을 다시 쓰세요.",
+      "body": ["We had not better swim in the deep water.", "→ ________________."],
+      "choices": [],
+      "answer": "We had better not swim in the deep water."
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [9], "point_label": "would like to+동사원형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 바르게 고쳐 문장을 다시 쓰세요.",
+      "body": ["I would like to visiting the museum with you.", "→ ________________."],
+      "choices": [],
+      "answer": "I would like to visit the museum with you."
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [2, 3, 6], "point_label": "조동사의 의미에 맞는 영작",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "소라는 집에 일찍 돌아와야 한다. → Sora have to come back home early." },
+        { "no": 2, "text": "너는 잔디밭에 들어가면 안 된다. → You don’t have to walk on the grass." },
+        { "no": 3, "text": "그 박물관의 표는 비쌀지도 모른다. → The museum’s ticket may be expensive." },
+        { "no": 4, "text": "저기 있는 여자는 그의 어머니가 아닐지도 모른다. → The woman over there can be his mother." },
+        { "no": 5, "text": "나는 매일 운동할 것이다. → I can exercise every day." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [5], "point_label": "~할 필요가 없다: don’t have to",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 글의 빈칸에 들어갈 말로 문맥상 알맞은 것을 고르세요.",
+      "body": [
+        "Online classes are very convenient. We just turn on the computer or tablet, and join the class with a single click. We ________ travel to school."
+      ],
+      "choices": [
+        { "no": 1, "text": "should" },
+        { "no": 2, "text": "could not" },
+        { "no": 3, "text": "don’t have to" },
+        { "no": 4, "text": "must not" },
+        { "no": 5, "text": "should not" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [1, 3], "point_label": "조동사 뒤에는 동사원형",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음은 일기문입니다. 밑줄 친 부분을 바르게 고친 것으로 알맞지 않은 것을 고르세요.",
+      "body": [
+        "Sunday, August 5",
+        "The hiking trip was awful. We ⓐ [[can’t]] ⓑ [[reached]] the top because of the thick fog. So, we ⓒ [[have to]] ⓓ [[came]] down early. We will ⓔ [[planned]] a better trip next time."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ can’t → couldn’t" },
+        { "no": 2, "text": "ⓑ reached → reach" },
+        { "no": 3, "text": "ⓒ have to → had to" },
+        { "no": 4, "text": "ⓓ came → coming" },
+        { "no": 5, "text": "ⓔ planned → plan" }
+      ],
+      "answer": "④"
+    }
+  ]
+}

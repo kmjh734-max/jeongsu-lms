@@ -1,0 +1,98 @@
+{
+  "_설명": "천일문 1권 Chapter 12 접속사 Chapter Test 뒷장(14~19번)에서 가져와 변형한 문항. 기초 13과 접속사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 12,
+  "chapter": "접속사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 13, "chapter": "접속사" },
+  "points": [
+    { "unit_no": 1, "unit": "and, but, or", "point_no": 1, "point": "and, but, or: 같은 성격의 말을 잇는다", "frequent": true },
+    { "unit_no": 2, "unit": "시간·이유를 나타내는 접속사", "point_no": 2, "point": "before, after: 앞뒤 순서를 잇는다", "frequent": true },
+    { "unit_no": 2, "unit": "시간·이유를 나타내는 접속사", "point_no": 3, "point": "when: ~할 때 / because: ~ 때문에", "frequent": true },
+    { "unit_no": 3, "unit": "that절", "point_no": 4, "point": "that+주어+동사: 목적어 역할(~하다는 것)", "frequent": true },
+    { "unit_no": 2, "unit": "시간·이유를 나타내는 접속사", "point_no": 5, "point": "if: 만약 ~라면", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [4], "point_label": "접속사 that과 지시어 that의 구별",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> I heard [[that]] the store closed early."],
+      "choices": [
+        { "no": 1, "text": "Look at [[that]] tall tower." },
+        { "no": 2, "text": "I met [[that]] boy at the park." },
+        { "no": 3, "text": "She works in [[that]] office building." },
+        { "no": 4, "text": "We know [[that]] Jinho can speak Spanish." },
+        { "no": 5, "text": "He saw [[that]] was a mistake." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [3], "point_label": "접속사 when과 의문사 when의 구별",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 다른 하나를 고르세요.",
+      "body": ["<보기> [[When]] the class ends, text me."],
+      "choices": [
+        { "no": 1, "text": "[[When]] does the movie start?" },
+        { "no": 2, "text": "She smiled [[when]] she saw the puppy." },
+        { "no": 3, "text": "Wear a coat [[when]] it is cold outside." },
+        { "no": 4, "text": "[[When]] I opened the door, the cat ran out." },
+        { "no": 5, "text": "He always sings [[when]] he takes a shower." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [1], "point_label": "and, or로 이어지는 말의 형태를 맞춘다",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 두 개를 찾아 그 기호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": [
+        "Join the school baking club!",
+        "Do you like baking and ⓐ [[decorate]] cakes? Or do you ⓑ [[want to learn]] new recipes?",
+        "Come and ⓒ [[be]] a member of our club! If you have any questions, ⓓ [[visit]] us in the cooking room or ⓔ [[calls]] us after school!",
+        "(1) ________ → ________   (2) ________ → ________"
+      ],
+      "choices": [],
+      "answer": "(1) ⓐ, decorating  (2) ⓔ, call"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [4], "point_label": "목적어 역할을 하는 that은 생략할 수 있다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분을 생략할 수 없는 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "We believed [[that]] she was honest." },
+        { "no": 2, "text": "I think [[that]] woman is our new coach." },
+        { "no": 3, "text": "Sora knows [[that]] he is very kind." },
+        { "no": 4, "text": "He hopes [[that]] the rain will stop." },
+        { "no": 5, "text": "I heard [[that]] there is a new café nearby." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [1, 3, 5], "point_label": "접속사의 의미와 문맥",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 문맥상 어색한 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "When I’m tired, I take a short nap." },
+        { "no": 2, "text": "Brush your teeth after you eat dinner." },
+        { "no": 3, "text": "He studied hard, and he failed the exam." },
+        { "no": 4, "text": "Mia is busy, but she will join us." },
+        { "no": 5, "text": "I felt cold if I didn’t wear my coat." }
+      ],
+      "answer": "③, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [4], "point_label": "believe that+주어+동사",
+      "question_kind": "영작", "difficulty": "상", "badges": ["빈출", "고난도", "서술형"],
+      "prompt": "다음 글의 마지막 문장을 <조건>에 맞게 완성하세요.",
+      "body": [
+        "My cousin, Junho, wants to be a movie director. Every weekend, he films short videos. So I ________ in the future.",
+        "<조건> • believe와 알맞은 접속사를 사용할 것  • 주어진 단어를 사용할 것",
+        "(a great director, be, will, he)",
+        "→ So I ________________ in the future."
+      ],
+      "choices": [],
+      "answer": "believe that he will be a great director"
+    }
+  ]
+}

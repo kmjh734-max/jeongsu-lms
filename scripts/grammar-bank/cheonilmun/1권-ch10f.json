@@ -1,0 +1,121 @@
+{
+  "_설명": "천일문 1권 워크북 Chapter 10 to부정사와 동명사의 Chapter Test 가운데 동명사 문항을 변형한 것. 기초 11과 동명사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 10,
+  "chapter": "to부정사와 동명사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 11, "chapter": "동명사" },
+  "points": [
+    { "unit_no": 2, "unit": "동명사", "point_no": 6, "point": "동명사 = 주어 (~하는 것은)", "frequent": true },
+    { "unit_no": 2, "unit": "동명사", "point_no": 7, "point": "동명사 = 보어 (~하는 것이다)", "frequent": true },
+    { "unit_no": 2, "unit": "동명사", "point_no": 8, "point": "동명사 = 목적어 (~하는 것을)", "frequent": true },
+    { "unit_no": 2, "unit": "동명사", "point_no": 9, "point": "전치사+동명사", "frequent": true },
+    { "unit_no": 2, "unit": "동명사", "point_no": 10, "point": "자주 쓰이는 동명사 표현", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [6, 7, 8], "point_label": "동명사와 진행형의 -ing 구별",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "His job is [[teaching]] math." },
+        { "no": 2, "text": "She is [[cooking]] dinner now." },
+        { "no": 3, "text": "Do you mind [[closing]] the door?" },
+        { "no": 4, "text": "He gave up [[learning]] the guitar." },
+        { "no": 5, "text": "[[Eating]] late at night is bad for your health." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [8], "point_label": "finish는 동명사를 목적어로 쓴다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["He just finished ________ the dishes."],
+      "choices": [
+        { "no": 1, "text": "washes" },
+        { "no": 2, "text": "washed" },
+        { "no": 3, "text": "to wash" },
+        { "no": 4, "text": "washing" },
+        { "no": 5, "text": "to washing" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [8], "point_label": "quit은 동명사를 목적어로 쓴다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["Rachel ________ to swim in the pool."],
+      "choices": [
+        { "no": 1, "text": "liked" },
+        { "no": 2, "text": "began" },
+        { "no": 3, "text": "quit" },
+        { "no": 4, "text": "planned" },
+        { "no": 5, "text": "decided" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [9, 10], "point_label": "How about+동명사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [
+        "A: What do you plan ① [[to do]] this vacation?",
+        "B: I’m thinking of ② [[visiting]] my cousin in Busan.",
+        "A: Sounds fun. I love ③ [[traveling]] by train, too.",
+        "B: Then, how about ④ [[to come]] with me?",
+        "A: I want to join you, but I have many things ⑤ [[to finish]]."
+      ],
+      "choices": [],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [9], "point_label": "be good at+동명사",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["나는 중국어로 쓰는 것을 잘하지 못한다."],
+      "choices": [
+        { "no": 1, "text": "I’m good at write in Chinese." },
+        { "no": 2, "text": "I’m good at to write in Chinese." },
+        { "no": 3, "text": "I’m good at writing in Chinese." },
+        { "no": 4, "text": "I’m not good at to write in Chinese." },
+        { "no": 5, "text": "I’m not good at writing in Chinese." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [8, 9], "point_label": "전치사와 동사 뒤의 동명사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Thank you for invite us." },
+        { "no": 2, "text": "She wishes traveling in Italy." },
+        { "no": 3, "text": "Why do you keep asking me?" },
+        { "no": 4, "text": "Are you interested in raise plants?" },
+        { "no": 5, "text": "I’m not afraid to being alone at night." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [6, 8, 9], "point_label": "동명사와 to부정사 종합",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 것끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ She was happy finishing her project.",
+        "ⓑ Leaves start to fall in autumn.",
+        "ⓒ We saved money by walking to school.",
+        "ⓓ He expected getting a prize.",
+        "ⓔ She suggested going to the beach.",
+        "ⓕ Riding horses are my hobby."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓒ, ⓕ" },
+        { "no": 2, "text": "ⓑ, ⓓ" },
+        { "no": 3, "text": "ⓑ, ⓒ, ⓔ" },
+        { "no": 4, "text": "ⓑ, ⓒ, ⓕ" },
+        { "no": 5, "text": "ⓐ, ⓑ, ⓒ, ⓔ" }
+      ],
+      "answer": "③"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "_설명": "천일문 2권 Chapter 05 to부정사 Chapter Test 뒷부분 가운데 용법 문항(16·17·18·22번)을 변형한 것. 기본 3과 부정사[1] 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 5,
+  "chapter": "to부정사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 3, "chapter": "부정사[1]" },
+  "points": [
+    { "unit_no": 3, "unit": "부사적 용법", "point_no": 6, "point": "목적: ~하기 위해(= in order to)", "frequent": true },
+    { "unit_no": 3, "unit": "부사적 용법", "point_no": 7, "point": "감정의 원인: ~해서", "frequent": true },
+    { "unit_no": 2, "unit": "형용사적 용법", "point_no": 4, "point": "(대)명사를 뒤에서 꾸미는 to부정사", "frequent": true },
+    { "unit_no": 2, "unit": "형용사적 용법", "point_no": 5, "point": "to부정사 뒤에 전치사가 남는 경우", "frequent": true },
+    { "unit_no": 4, "unit": "주요 구문", "point_no": 12, "point": "seem to: ~인 것 같다", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [6, 7], "point_label": "목적의 to부정사 = in order to",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분을 in order to를 사용하여 바꿔 쓸 수 있는 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I was very surprised [[to see]] Mina here." },
+        { "no": 2, "text": "Your answer is easy [[to understand]]." },
+        { "no": 3, "text": "I visited the shop again [[to get]] a refund." },
+        { "no": 4, "text": "The water in the pond is too dirty [[to drink]]." },
+        { "no": 5, "text": "Katie was happy [[to find]] her ring at the café." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [12], "point_label": "seem+to부정사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 주어진 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Rachel seems have a bad cough.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "have → to have"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [4, 5], "point_label": "to부정사 뒤에 남는 전치사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 주어진 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["This is the perfect house to stay during our trip.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "to stay → to stay in"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 22, "point_nos": [4, 5, 6], "point_label": "to부정사 문장 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장의 개수를 고르세요.",
+      "body": [
+        "ⓐ The man has no house to live in.",
+        "ⓑ You don’t need to blame yourself.",
+        "ⓒ He promised never to repeat the mistake.",
+        "ⓓ It is simple to follow the recipe.",
+        "ⓔ Can you give me a piece of paper to write?",
+        "ⓕ I will bring you something to eat in a minute."
+      ],
+      "choices": [
+        { "no": 1, "text": "1개" },
+        { "no": 2, "text": "2개" },
+        { "no": 3, "text": "3개" },
+        { "no": 4, "text": "4개" },
+        { "no": 5, "text": "5개" }
+      ],
+      "answer": "⑤"
+    }
+  ]
+}

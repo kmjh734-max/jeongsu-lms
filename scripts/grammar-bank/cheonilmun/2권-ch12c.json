@@ -1,0 +1,215 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 12 관계대명사의 Chapter Test를 변형한 것. 기본 8과 관계사 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 12,
+  "chapter": "관계대명사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 8, "chapter": "관계사" },
+  "points": [
+    { "unit_no": 1, "unit": "관계대명사의 종류", "point_no": 1, "point": "선행사가 사람이면 who, 사물·동물이면 which", "frequent": true },
+    { "unit_no": 1, "unit": "관계대명사의 종류", "point_no": 2, "point": "that은 사람·사물 모두에 쓸 수 있다", "frequent": true },
+    { "unit_no": 2, "unit": "관계대명사의 역할", "point_no": 3, "point": "주격 관계대명사: 뒤에 동사가 온다", "frequent": true },
+    { "unit_no": 2, "unit": "관계대명사의 역할", "point_no": 4, "point": "목적격 관계대명사: 뒤에 주어+동사가 오고 생략할 수 있다", "frequent": true },
+    { "unit_no": 2, "unit": "관계대명사의 역할", "point_no": 5, "point": "소유격 관계대명사 whose", "frequent": true },
+    { "unit_no": 3, "unit": "주의할 점", "point_no": 6, "point": "관계대명사절 안에 대명사를 겹쳐 쓰지 않는다", "frequent": true },
+    { "unit_no": 3, "unit": "주의할 점", "point_no": 7, "point": "주격 관계대명사절의 동사는 선행사에 수를 맞춘다", "frequent": true },
+    { "unit_no": 3, "unit": "주의할 점", "point_no": 8, "point": "의문사 who/that과 관계대명사 구별", "frequent": true },
+    { "unit_no": 3, "unit": "주의할 점", "point_no": 9, "point": "선행사를 포함하는 관계대명사 what: ~하는 것", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1, 2, 4], "point_label": "사람이 선행사인 목적격 that = who[whom]",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 that과 바꿔 쓸 수 있는 것을 모두 고르세요.",
+      "body": ["The writer [[that]] many readers love most is Hemingway."],
+      "choices": [
+        { "no": 1, "text": "what" },
+        { "no": 2, "text": "which" },
+        { "no": 3, "text": "who" },
+        { "no": 4, "text": "whom" },
+        { "no": 5, "text": "whose" }
+      ],
+      "answer": "③, ④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [3, 7], "point_label": "주격 관계대명사절의 수일치",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I know a girl [[who can speak]] Arabic." },
+        { "no": 2, "text": "Can you see the bird [[which is]] on the roof?" },
+        { "no": 3, "text": "This is a photo [[that show]] my last trip." },
+        { "no": 4, "text": "We met some students [[that are]] interested in science." },
+        { "no": 5, "text": "There are many cafés [[which are]] near the station." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [6], "point_label": "관계대명사절 안에 목적어를 겹쳐 쓰지 않는다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Did you find the wallet [[which you lost]]?" },
+        { "no": 2, "text": "That is the last song [[that she wrote it]]." },
+        { "no": 3, "text": "The jacket [[you lent me]] is too small for me." },
+        { "no": 4, "text": "I’m reading a novel [[that I borrowed]] from the library." },
+        { "no": 5, "text": "She gave me the tool [[which I need]] for my project." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [9], "point_label": "선행사가 없으면 what을 쓴다",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것의 번호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": ["I ① [[can’t]] ② [[understand]] ③ [[that]] ④ [[you]] ⑤ [[are writing]]!", "→ ________ , ________"],
+      "choices": [],
+      "answer": "③, what"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [1, 2], "point_label": "사물이 선행사이면 which[that]",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것의 번호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": ["Mina ① [[works at]] ② [[a bakery]] ③ [[who]] ④ [[sells]] ⑤ [[bread]].", "→ ________ , ________"],
+      "choices": [],
+      "answer": "③, which[that]"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [3, 4], "point_label": "주격 관계대명사는 생략할 수 없다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 밑줄 친 부분 중 생략할 수 없는 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "This is the house [[which]] my uncle built." },
+        { "no": 2, "text": "The boy [[that]] is playing the violin is Tom." },
+        { "no": 3, "text": "I watched the drama [[that]] you recommended." },
+        { "no": 4, "text": "The man [[whom]] the police arrested escaped again." },
+        { "no": 5, "text": "Sometimes you have to do something [[that]] you don’t enjoy." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [2, 8], "point_label": "관계대명사 that과 접속사 that",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 that의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "There were many songs [[that]] Mina liked." },
+        { "no": 2, "text": "He is the smartest boy [[that]] I’ve ever met." },
+        { "no": 3, "text": "I believe [[that]] you can do anything you want." },
+        { "no": 4, "text": "Spain is the country [[that]] Leo wants to visit." },
+        { "no": 5, "text": "Is she the woman [[that]] came to see me yesterday?" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [5], "point_label": "소유격 관계대명사 whose",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "다음 두 문장을 관계대명사를 사용하여 한 문장으로 쓰세요.",
+      "body": [
+        "Mina bought a bag. Its color was very bright.",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "Mina bought a bag whose color was very bright."
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [1, 3], "point_label": "주격 관계대명사 who[that]",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "다음 두 문장을 관계대명사를 사용하여 한 문장으로 쓰세요.",
+      "body": [
+        "I decided to visit my aunt next week. She lives in Busan.",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "I decided to visit my aunt who[that] lives in Busan next week."
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [2, 8], "point_label": "관계대명사 that과 지시어·접속사 that",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 모두 고르세요.",
+      "body": ["<보기> Mina is the funniest friend [[that]] I know."],
+      "choices": [
+        { "no": 1, "text": "Sora insists [[that]] I should join them." },
+        { "no": 2, "text": "If you want, you can borrow [[that]] umbrella." },
+        { "no": 3, "text": "[[That]] box is the gift for your birthday." },
+        { "no": 4, "text": "There are many animals [[that]] live in the desert." },
+        { "no": 5, "text": "I signed up for a class [[that]] starts at six on Tuesdays." }
+      ],
+      "answer": "④, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [1, 8], "point_label": "관계대명사 who와 의문사 who",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 모두 고르세요.",
+      "body": ["<보기> She’s the girl [[who]] showed me the way."],
+      "choices": [
+        { "no": 1, "text": "I wonder [[who]] will get the prize." },
+        { "no": 2, "text": "[[Who]] are those children over there?" },
+        { "no": 3, "text": "The boy [[who]] sits behind me is funny." },
+        { "no": 4, "text": "Do you know [[who]] sent this parcel to me?" },
+        { "no": 5, "text": "A neighbor [[who]] has two dogs moved in upstairs." }
+      ],
+      "answer": "③, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [2], "point_label": "that은 사람·사물 모두에 쓸 수 있다",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 빈칸에 공통으로 들어갈 말을 쓰세요.",
+      "body": [
+        "• This is the movie ________ I like most.",
+        "• Who is that boy ________ is riding a bike?"
+      ],
+      "choices": [],
+      "answer": "that"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [3, 7], "point_label": "관계대명사절과 주절의 수일치",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["노래하고 있는 소녀들은 내 여동생들이다."],
+      "choices": [
+        { "no": 1, "text": "The girls who is singing is my sisters." },
+        { "no": 2, "text": "The girls who are singing is my sisters." },
+        { "no": 3, "text": "The girls who is singing are my sisters." },
+        { "no": 4, "text": "The girls who are singing are my sisters." },
+        { "no": 5, "text": "The girls whom are singing are my sisters." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [1, 3], "point_label": "사물 선행사의 주격 관계대명사 which",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 두 문장을 한 문장으로 바르게 연결한 것을 고르세요.",
+      "body": ["This is the app. It has three useful functions."],
+      "choices": [
+        { "no": 1, "text": "This is the app who has three useful functions." },
+        { "no": 2, "text": "This is the app what has three useful functions." },
+        { "no": 3, "text": "This is the app which has three useful functions." },
+        { "no": 4, "text": "This is the three apps whose function is useful." },
+        { "no": 5, "text": "This is the app whom has three useful functions." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [1, 4, 9], "point_label": "관계대명사의 종류와 what",
+      "question_kind": "개수 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장의 개수를 고르세요.",
+      "body": [
+        "ⓐ Mina liked the scarf I gave to her.",
+        "ⓑ He is the man who found my wallet.",
+        "ⓒ You can be judged by what you do.",
+        "ⓓ It can be different from that you really expect.",
+        "ⓔ She is the teacher which helped the students."
+      ],
+      "choices": [
+        { "no": 1, "text": "1개" },
+        { "no": 2, "text": "2개" },
+        { "no": 3, "text": "3개" },
+        { "no": 4, "text": "4개" },
+        { "no": 5, "text": "5개" }
+      ],
+      "answer": "③"
+    }
+  ]
+}

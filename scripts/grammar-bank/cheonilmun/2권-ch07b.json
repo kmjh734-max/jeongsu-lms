@@ -1,0 +1,210 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 07 분사의 Chapter Test를 변형한 것. 기본 6과 분사 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 7,
+  "chapter": "분사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 6, "chapter": "분사" },
+  "points": [
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 1, "point": "현재분사(-ing): ~하는(능동·진행)", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 2, "point": "과거분사(p.p.): ~된, ~당한(수동·완료)", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 3, "point": "분사가 뒤에서 명사를 꾸미는 경우", "frequent": true },
+    { "unit_no": 2, "unit": "주의해야 할 분사", "point_no": 4, "point": "감정을 나타내는 분사: -ing는 감정을 일으킴, p.p.는 감정을 느낌", "frequent": true },
+    { "unit_no": 2, "unit": "주의해야 할 분사", "point_no": 5, "point": "현재분사와 동명사 구별", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1], "point_label": "명사를 앞에서 꾸미는 현재분사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["The ________ cookies smell really sweet."],
+      "choices": [
+        { "no": 1, "text": "bake" },
+        { "no": 2, "text": "baking" },
+        { "no": 3, "text": "are baked" },
+        { "no": 4, "text": "bakes" },
+        { "no": 5, "text": "to bake" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [2, 3], "point_label": "명사를 뒤에서 꾸미는 과거분사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["He drank the juice ________ in the refrigerator."],
+      "choices": [
+        { "no": 1, "text": "leave" },
+        { "no": 2, "text": "leaves" },
+        { "no": 3, "text": "left" },
+        { "no": 4, "text": "leaving" },
+        { "no": 5, "text": "is left" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [3], "point_label": "분사구가 뒤에서 명사를 꾸민다",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["[[벤치에 앉아 있는 소년들]] are talking loudly."],
+      "choices": [
+        { "no": 1, "text": "The sat boys on the bench" },
+        { "no": 2, "text": "The boys sat on the bench" },
+        { "no": 3, "text": "The sitting boys on the bench" },
+        { "no": 4, "text": "The boys sitting on the bench" },
+        { "no": 5, "text": "The boys are sitting on the bench" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [1, 2], "point_label": "능동이면 -ing, 수동이면 p.p.",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The girl [[riding]] a horse is Sumi." },
+        { "no": 2, "text": "He knocked on the [[locking]] door." },
+        { "no": 3, "text": "I like to watch the [[falling]] leaves in autumn." },
+        { "no": 4, "text": "The bike [[parked]] behind the store is mine." },
+        { "no": 5, "text": "She returned the [[torn]] shirt to the shop." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [5], "point_label": "현재분사와 동명사의 구별",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> The [[exciting]] match finally started."],
+      "choices": [
+        { "no": 1, "text": "The cat [[chasing]] a butterfly is mine." },
+        { "no": 2, "text": "How about [[going]] swimming tomorrow?" },
+        { "no": 3, "text": "[[Wasting]] time can become a bad habit." },
+        { "no": 4, "text": "Her hobby is [[jogging]] along the river." },
+        { "no": 5, "text": "Mina enjoys [[watering]] the plants on the balcony." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [2, 3], "point_label": "수동·완료의 의미는 과거분사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "약 200년 전에 지어진 그 다리는 아직도 사용된다. (build)",
+        "→ The bridge ________ about 200 years ago is still used."
+      ],
+      "choices": [],
+      "answer": "built"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [1, 3], "point_label": "능동·진행의 의미는 현재분사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "무대 위에서 춤추고 있는 저 소년들은 우리 학교 학생들이다. (dance)",
+        "→ Those boys ________ on the stage are students at our school."
+      ],
+      "choices": [],
+      "answer": "dancing"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [5], "point_label": "꾸며 주면 분사, 목적어면 동명사",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Mina is holding a [[flying]] balloon." },
+        { "no": 2, "text": "He was a [[rising]] star in swimming." },
+        { "no": 3, "text": "Don’t stare at the [[shining]] light directly." },
+        { "no": 4, "text": "We watched a parade of [[marching]] bands." },
+        { "no": 5, "text": "I love [[reading]] comic books on weekends." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [4], "point_label": "감정을 느끼면 p.p., 일으키면 -ing",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• Somi was not ____(A)____ when she watched the ghost movie.",
+        "• I had 9 classes today. My long day at school was ____(B)____ for me."
+      ],
+      "choices": [
+        { "no": 1, "text": "scare — tire" },
+        { "no": 2, "text": "scared — tired" },
+        { "no": 3, "text": "scaring — tiring" },
+        { "no": 4, "text": "scared — tiring" },
+        { "no": 5, "text": "scaring — tired" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [2, 3], "point_label": "과거분사구로 명사 꾸미기",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 두 문장을 한 문장으로 만들 때 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "The song is now very popular with teenagers. I wrote the song.",
+        "→ The song ________ by me is now very popular among teenagers."
+      ],
+      "choices": [
+        { "no": 1, "text": "write" },
+        { "no": 2, "text": "written" },
+        { "no": 3, "text": "writing" },
+        { "no": 4, "text": "to write" },
+        { "no": 5, "text": "was writing" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [4], "point_label": "감정을 일으키면 -ing",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Mina’s lecture about history was bored and long.", "→ ________"],
+      "choices": [],
+      "answer": "bored → boring"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [4], "point_label": "감정을 느끼면 p.p.",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["My friends and I were exciting after we watched the final match.", "→ ________"],
+      "choices": [],
+      "answer": "exciting → excited"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [4, 5], "point_label": "동명사와 감정 분사의 구별",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 글의 밑줄 친 부분 중 쓰임이 다른 하나를 고르세요.",
+      "body": [
+        "① [[Joining]] the art club this year is Mina’s plan. She keeps ② [[practicing]] drawing every day and it is not ③ [[boring]] to her. She is interested in ④ [[designing]] posters for ⑤ [[helping]] animals in need."
+      ],
+      "choices": [],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [1, 4], "point_label": "분사의 알맞은 형태 쓰기",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 대화의 ⓐ~ⓓ를 어법상 알맞은 형태로 쓰세요.",
+      "body": [
+        "A: Did you watch Ocean Life yesterday? It was really ⓐ [[interest]].",
+        "B: No. What was it about?",
+        "A: It was about a diver saving ⓑ [[die]] coral reefs. I was ⓒ [[touch]] by his effort.",
+        "B: Oh, I love ⓓ [[touch]] documentaries. I should watch it.",
+        "ⓐ ________  ⓑ ________  ⓒ ________  ⓓ ________"
+      ],
+      "choices": [],
+      "answer": "ⓐ interesting  ⓑ dying  ⓒ touched  ⓓ touching"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [1, 2, 3], "point_label": "분사의 능동·수동 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 두 개 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The stolen bag was Mina’s." },
+        { "no": 2, "text": "He couldn’t bend his breaking arm." },
+        { "no": 3, "text": "The girls danced on the stage are my friends." },
+        { "no": 4, "text": "Spanish is a language spoken in many countries." },
+        { "no": 5, "text": "Don’t be disappointed with your score." }
+      ],
+      "answer": "②, ③"
+    }
+  ]
+}

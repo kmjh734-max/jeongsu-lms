@@ -1,0 +1,104 @@
+{
+  "_설명": "천일문 3권 Chapter 09 관계사 Chapter Test 뒷부분(17~22번)에서 가져와 변형한 문항. 심화 6과 관계사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 9,
+  "chapter": "관계사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 6, "chapter": "관계사" },
+  "points": [
+    { "unit_no": 1, "unit": "관계대명사", "point_no": 1, "point": "주격·목적격·소유격 관계대명사", "frequent": true },
+    { "unit_no": 1, "unit": "관계대명사", "point_no": 3, "point": "관계대명사 what: 선행사를 포함한다", "frequent": true },
+    { "unit_no": 1, "unit": "관계대명사", "point_no": 4, "point": "전치사+관계대명사 (that은 쓸 수 없다)", "frequent": true },
+    { "unit_no": 1, "unit": "관계대명사", "point_no": 5, "point": "관계대명사의 계속적 용법", "frequent": true },
+    { "unit_no": 2, "unit": "관계부사", "point_no": 6, "point": "관계부사 when/where/why/how", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [4], "point_label": "전치사 뒤에는 that을 쓰지 않는다",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "주어진 우리말을 바르게 영작하지 않은 것을 고르세요.",
+      "body": ["나는 돌봐야 할 강아지가 한 마리 있다."],
+      "choices": [
+        { "no": 1, "text": "I have a dog I have to care for." },
+        { "no": 2, "text": "I have a dog that I have to care for." },
+        { "no": 3, "text": "I have a dog for that I have to care." },
+        { "no": 4, "text": "I have a dog for which I have to care." },
+        { "no": 5, "text": "I have a dog which I have to care for." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [3], "point_label": "선행사가 없으면 what",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 대화에서 어법상 알맞지 않은 것을 고르세요.",
+      "body": [
+        "A: Mina is the kind of person ① [[who]] ② [[follows]] trends.",
+        "B: I know ③ [[that]] you mean. She always wears clothes ④ [[which]] ⑤ [[are]] new."
+      ],
+      "choices": [
+        { "no": 1, "text": "who" },
+        { "no": 2, "text": "follows" },
+        { "no": 3, "text": "that" },
+        { "no": 4, "text": "which" },
+        { "no": 5, "text": "are" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [1, 3, 5, 6], "point_label": "관계사에 대한 설명 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 밑줄 친 부분에 대해 바르게 설명한 학생을 모두 고르세요.",
+      "body": [
+        "ⓐ I like people [[who]] are kind to me.",
+        "ⓑ Cutting in line is [[what]] I hate the most.",
+        "ⓒ I bought a phone, [[which]] was made in Korea.",
+        "ⓓ Do you know [[how]] he keeps calm?",
+        "ⓔ Some people are good at things [[that]] others aren’t good at."
+      ],
+      "choices": [
+        { "no": 1, "text": "보람: ⓐ의 who는 생략할 수 있어." },
+        { "no": 2, "text": "유나: ⓑ의 what은 선행사를 포함하고 있어." },
+        { "no": 3, "text": "호진: ⓒ의 which는 that으로 바꿔 쓸 수 있어." },
+        { "no": 4, "text": "수진: ⓓ의 how 앞에 the way를 쓸 수 있어." },
+        { "no": 5, "text": "민수: ⓔ의 that은 목적격 관계대명사야." }
+      ],
+      "answer": "②, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 20, "point_nos": [5], "point_label": "사람을 받는 계속적 용법 who",
+      "question_kind": "영작", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어와 관계대명사의 계속적 용법을 사용하여 문장을 완성하세요.",
+      "body": ["모든 사람이 Mia를 무척 좋아하는데, 그녀는 나의 사촌이다. (cousin, my)", "→ Everybody loves ________________."],
+      "choices": [],
+      "answer": "Mia, who is my cousin"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 21, "point_nos": [5], "point_label": "사물을 받는 계속적 용법 which",
+      "question_kind": "영작", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어와 관계대명사의 계속적 용법을 사용하여 문장을 완성하세요.",
+      "body": ["Tom은 그의 시계를 잃어버렸는데, 그것은 매우 오래되었다. (his watch, very old)", "→ Tom lost ________________."],
+      "choices": [],
+      "answer": "his watch, which is very old"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 22, "point_nos": [1, 3, 4, 5], "point_label": "관계사 문장 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞지 않은 것끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ The tea I drink tastes sweet.",
+        "ⓑ Jim got what he wanted it for his birthday.",
+        "ⓒ Sophia is the girl about that I told you.",
+        "ⓓ I’ll never forget the moment I saw the sunrise.",
+        "ⓔ The blue cap, which I bought yesterday, has a hole.",
+        "ⓕ Wherever she goes, her cat always follows closely."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓑ, ⓓ" },
+        { "no": 2, "text": "ⓑ, ⓒ" },
+        { "no": 3, "text": "ⓐ, ⓒ" },
+        { "no": 4, "text": "ⓑ, ⓒ, ⓔ" },
+        { "no": 5, "text": "ⓐ, ⓑ, ⓕ" }
+      ],
+      "answer": "②"
+    }
+  ]
+}

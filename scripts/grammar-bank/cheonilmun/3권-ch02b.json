@@ -1,0 +1,82 @@
+{
+  "_설명": "천일문 3권 Chapter 02 조동사 Chapter Test 뒷부분(17~21번)에서 가져와 변형한 문항. 심화 4과 조동사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 2,
+  "chapter": "조동사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 4, "chapter": "조동사" },
+  "points": [
+    { "unit_no": 2, "unit": "must/should/had better/used to", "point_no": 7, "point": "used to+동사원형: ~하곤 했다 (be used to와 구별)", "frequent": true },
+    { "unit_no": 3, "unit": "조동사+have p.p.", "point_no": 8, "point": "must/may/cannot have p.p.: 과거 일에 대한 추측", "frequent": true },
+    { "unit_no": 3, "unit": "조동사+have p.p.", "point_no": 9, "point": "should have p.p.: ~했어야 했다(후회)", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [7], "point_label": "used to와 be used to -ing",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 used to와 쓰임이 같은 것 두 개를 고르세요.",
+      "body": ["<보기> My dad [[used to]] run a small shop."],
+      "choices": [
+        { "no": 1, "text": "This machine is used to dry the clothes." },
+        { "no": 2, "text": "There used to be a bakery on this street." },
+        { "no": 3, "text": "I’m used to waking up early every morning." },
+        { "no": 4, "text": "They used to play badminton in their free time." },
+        { "no": 5, "text": "Lemons were used to make drinks and desserts." }
+      ],
+      "answer": "②, ④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [8], "point_label": "must have p.p.",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글을 읽고 주어진 단어를 사용하여 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["Mia won the singing contest. She ________________. (must, practice, a lot)"],
+      "choices": [],
+      "answer": "must have practiced a lot"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [9], "point_label": "should have p.p.",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글을 읽고 주어진 단어를 사용하여 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "Tom broke his dad’s favorite mug, but he tried to hide it. It made his dad angry.",
+        "He ________________. (should, his dad, tell the truth, to)"
+      ],
+      "choices": [],
+      "answer": "should have told the truth to his dad"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 20, "point_nos": [7, 8, 9], "point_label": "조동사 표현의 뜻 견주기",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "짝지어진 두 문장의 의미가 다른 것을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Jason used to swim every weekend. = Every weekend, Jason would swim." },
+        { "no": 2, "text": "You must not be late for class. = You don’t have to be late for class." },
+        { "no": 3, "text": "The problem can be solved if we work together. = The problem may be solved if we work together." },
+        { "no": 4, "text": "It must have snowed last night. The roof is white. = The roof is white. It should have snowed last night." },
+        { "no": 5, "text": "We could finish the report before the deadline. = We were able to finish the report before the deadline." }
+      ],
+      "answer": "②, ④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 21, "point_nos": [7, 8, 9], "point_label": "조동사 문장 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장의 개수를 고르세요.",
+      "body": [
+        "ⓐ She cannot have done it alone.",
+        "ⓑ They are used to speaking in Chinese.",
+        "ⓒ John may seen have the film before.",
+        "ⓓ We should have not wasted our time.",
+        "ⓔ I would often visit my cousins when I was young.",
+        "ⓕ You had better reading more books."
+      ],
+      "choices": [
+        { "no": 1, "text": "1개" },
+        { "no": 2, "text": "2개" },
+        { "no": 3, "text": "3개" },
+        { "no": 4, "text": "4개" },
+        { "no": 5, "text": "5개" }
+      ],
+      "answer": "③"
+    }
+  ]
+}

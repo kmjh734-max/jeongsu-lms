@@ -1,0 +1,46 @@
+{
+  "_설명": "천일문 1권 Chapter 10 to부정사와 동명사 Chapter Test 뒷장 가운데 to부정사 문항(15·16번)을 변형한 것. 기초 10과 to부정사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 10,
+  "chapter": "to부정사와 동명사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 10, "chapter": "to부정사" },
+  "points": [
+    { "unit_no": 1, "unit": "to부정사", "point_no": 1, "point": "to부정사 = 주어 (~하는 것은)", "frequent": true },
+    { "unit_no": 1, "unit": "to부정사", "point_no": 2, "point": "to부정사 = 보어 (~하는 것이다)", "frequent": true },
+    { "unit_no": 1, "unit": "to부정사", "point_no": 3, "point": "to부정사 = 목적어 (~하는 것을)", "frequent": true },
+    { "unit_no": 1, "unit": "to부정사", "point_no": 4, "point": "목적과 감정의 원인을 나타내는 to부정사", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [1], "point_label": "주어 자리의 to부정사와 동명사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 우리말을 영작할 때 빈칸에 들어갈 말로 알맞은 것을 모두 고르세요.",
+      "body": [
+        "매일 운동하는 것은 쉽지 않다.",
+        "→ ________ every day is not easy."
+      ],
+      "choices": [
+        { "no": 1, "text": "Exercise" },
+        { "no": 2, "text": "To exercising" },
+        { "no": 3, "text": "Exercising" },
+        { "no": 4, "text": "To exercise" },
+        { "no": 5, "text": "Exercised" }
+      ],
+      "answer": "③, ④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [1, 3, 4], "point_label": "to부정사의 뜻 구별",
+      "question_kind": "해석 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분의 우리말 해석이 바르지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "[[To get up]] early is hard. (일어나는 것은)" },
+        { "no": 2, "text": "She likes [[to read]] comic books. (읽는 것을)" },
+        { "no": 3, "text": "I went to the library [[to borrow]] a book. (빌리기 위해)" },
+        { "no": 4, "text": "He wants [[to be]] a pilot someday. (되기 위해)" },
+        { "no": 5, "text": "They were glad [[to hear]] the good news. (들어서)" }
+      ],
+      "answer": "④"
+    }
+  ]
+}

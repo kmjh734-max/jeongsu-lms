@@ -1,0 +1,115 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 11 접속사의 Chapter Test 가운데 상관접속사·that절·간접의문문 문항을 변형한 것. 기본 15과 접속사[2] 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 11,
+  "chapter": "접속사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 15, "chapter": "접속사[2]" },
+  "points": [
+    { "unit_no": 4, "unit": "상관접속사와 that절", "point_no": 8, "point": "both A and B / not only A but also B / either A or B / neither A nor B", "frequent": true },
+    { "unit_no": 4, "unit": "상관접속사와 that절", "point_no": 9, "point": "상관접속사와 동사의 수일치", "frequent": true },
+    { "unit_no": 4, "unit": "상관접속사와 that절", "point_no": 10, "point": "접속사 that: 주어·보어·목적어 역할", "frequent": true },
+    { "unit_no": 4, "unit": "상관접속사와 that절", "point_no": 11, "point": "간접의문문: 의문사+주어+동사", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [8], "point_label": "not only A but also B",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["We were not only tired ________ hungry after the hike."],
+      "choices": [
+        { "no": 1, "text": "and" },
+        { "no": 2, "text": "but" },
+        { "no": 3, "text": "or" },
+        { "no": 4, "text": "nor" },
+        { "no": 5, "text": "while" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [11], "point_label": "간접의문문은 의문사+주어+동사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰세요.",
+      "body": ["My aunt can’t remember [[where put she the keys]].", "→ ________"],
+      "choices": [],
+      "answer": "where she put the keys"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [10], "point_label": "목적어절의 that은 생략할 수 있다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분을 생략할 수 없는 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I heard [[that]] you met Sora last night." },
+        { "no": 2, "text": "They thought [[that]] the dog was following them." },
+        { "no": 3, "text": "He believes [[that]] his daughter can be a great pianist." },
+        { "no": 4, "text": "I hope [[that]] we’ll have a great time today." },
+        { "no": 5, "text": "We know [[that]] boy at the bus stop." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [11], "point_label": "조건의 if와 명사절의 if(~인지)",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 밑줄 친 부분의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "[[If]] we exercise every day, we can stay healthy." },
+        { "no": 2, "text": "I will go camping with Mina [[if]] she is free this weekend." },
+        { "no": 3, "text": "You might catch a cold [[if]] you go out without a coat." },
+        { "no": 4, "text": "I couldn’t tell [[if]] he was joking or serious." },
+        { "no": 5, "text": "This recipe is easy to follow [[if]] you read it carefully." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [8, 9], "point_label": "not only A but also B의 수일치",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "너뿐만 아니라 미나도 장래에 의사가 되고 싶어 한다. (want, but also)",
+        "→ ________________ to be a doctor in the future."
+      ],
+      "choices": [],
+      "answer": "Not only you but also Mina wants"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [11], "point_label": "간접의문문의 어순",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "그 서점이 어디인지 알려주시겠어요? (be, the bookstore)",
+        "→ Could you tell me ________________?"
+      ],
+      "choices": [],
+      "answer": "where the bookstore is"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [10], "point_label": "that절이 주어일 때는 That으로 시작한다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "That he is only 12 is very surprising." },
+        { "no": 2, "text": "She promised she wouldn’t be late again." },
+        { "no": 3, "text": "I knew that he was upset about the result." },
+        { "no": 4, "text": "They forgot my name was embarrassing." },
+        { "no": 5, "text": "The good news is that the concert will be held next week." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [11], "point_label": "think가 있으면 의문사를 문장 맨 앞으로",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I wonder if Jiho likes classical music." },
+        { "no": 2, "text": "If you see Sora, please tell her to text me." },
+        { "no": 3, "text": "My mother doesn’t remember where she left her glasses." },
+        { "no": 4, "text": "Unless you arrive in 10 minutes, we’ll start without you." },
+        { "no": 5, "text": "Do you think how tall the building is?" }
+      ],
+      "answer": "⑤"
+    }
+  ]
+}

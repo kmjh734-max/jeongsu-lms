@@ -1,0 +1,73 @@
+{
+  "_설명": "천일문 3권 Chapter 12 특수 구문 Chapter Test 뒷부분(15~19번)에서 가져와 변형한 문항. 심화 12과 특수구문 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 12,
+  "chapter": "특수 구문",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 12, "chapter": "특수구문" },
+  "points": [
+    { "unit_no": 1, "unit": "강조", "point_no": 1, "point": "do[does/did]+동사원형: 동사 강조", "frequent": true },
+    { "unit_no": 1, "unit": "강조", "point_no": 2, "point": "It is[was] ~ that … 강조 구문", "frequent": true },
+    { "unit_no": 2, "unit": "도치와 생략", "point_no": 6, "point": "장소를 나타내는 말이 앞에 오면 주어와 동사가 도치된다", "frequent": false },
+    { "unit_no": 2, "unit": "도치와 생략", "point_no": 7, "point": "부정어가 앞에 오면 「조동사+주어+동사원형」", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [2], "point_label": "It ~ that 강조 구문의 that",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분을 강조한 것으로 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I met Kate for the first time [[in 2019]]. → It was in 2019 where I met Kate for the first time." },
+        { "no": 2, "text": "Richard bought [[a pen]] at the store. → It was a pen that Richard bought at the store." },
+        { "no": 3, "text": "Ian plays the piano every Sunday [[at church]]. → It was at church where Ian plays the piano every Sunday." },
+        { "no": 4, "text": "My teacher was looking for [[her phone]] in the classroom. → It was her phone whom my teacher was looking for in the classroom." },
+        { "no": 5, "text": "[[My family]] had dinner with Sarah this evening. → It is my family that had dinner with Sarah this evening." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [6], "point_label": "장소를 앞에 두면 주어와 동사가 도치된다",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "주어진 문장의 밑줄 친 부분을 강조하는 문장으로 바꿔 쓰세요.",
+      "body": ["A photo of my dog is [[on the desk]].", "→ On the desk ________________."],
+      "choices": [],
+      "answer": "is a photo of my dog"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [7], "point_label": "부정어 도치: Hardly+조동사+주어+동사원형",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "주어진 문장의 밑줄 친 부분을 강조하는 문장으로 바꿔 쓰세요.",
+      "body": ["My brother [[hardly]] listens to me.", "→ Hardly ________________."],
+      "choices": [],
+      "answer": "does my brother listen to me"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [2], "point_label": "It ~ that으로 답하기",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글을 읽고, 질문에 알맞은 답을 완성하세요.",
+      "body": [
+        "Agatha Christie is a famous writer. She wrote the Poirot series. At first, she faced difficulties in publishing her books. But she published her first book in 1920. The Poirot series became very popular and made her famous. Now, many people around the world love her stories.",
+        "(1) Who wrote the Poirot series? → It was ________________ wrote the Poirot series.",
+        "(2) When was the first book published? → It was ________________ the first book was published."
+      ],
+      "choices": [],
+      "answer": "(1) Agatha Christie that[who]  (2) in 1920 that[when]"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [1, 7], "point_label": "도치와 동사 강조 판단",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장 두 개를 골라 그 기호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": [
+        "ⓐ Hardly have I seen Mia so excited.",
+        "ⓑ None of the information is useful to me.",
+        "ⓒ My hobby of writing poems brings me joy.",
+        "ⓓ Not only is Daniel polite but also kind.",
+        "ⓔ Mike didn’t remember what to do first and neither was I.",
+        "ⓕ Jina does played an important role in the team yesterday.",
+        "(1) ________ → ________   (2) ________ → ________"
+      ],
+      "choices": [],
+      "answer": "(1) ⓔ, was → did  (2) ⓕ, does played → did play"
+    }
+  ]
+}
