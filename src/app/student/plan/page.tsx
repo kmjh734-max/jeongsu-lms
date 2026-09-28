@@ -3,11 +3,17 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { WEEKS, listStudyPlans, loadStudyPlan } from "@/lib/study-plan";
+import { listStudyPlans, loadStudyPlan } from "@/lib/study-plan";
+import { weeksInMonth } from "@/lib/study-plan/weekday-dates";
 import { isStudyPlanEnabled } from "@/lib/study-plan/access";
 
 interface PageProps {
   searchParams: Promise<{ year?: string; month?: string }>;
+}
+
+/** 그 달이 걸치는 주 + 일정표에 실제로 적힌 주. 둘을 합쳐 빠짐없이 보여 준다. */
+function weeksOf(year: number, month: number, rowWeeks: number[]): number[] {
+  return [...new Set([...weeksInMonth(year, month), ...rowWeeks])].sort((a, b) => a - b);
 }
 
 /** 학생이 보는 내 학습일정표 */
@@ -51,7 +57,12 @@ export default async function StudentPlanPage({ searchParams }: PageProps) {
         </p>
       ) : (
         <div className="space-y-3">
-          {WEEKS.map((week) => {
+          {/*
+            9월처럼 5주에 걸치는 달이 있다. 고정값 [1,2,3,4]를 쓰다가 5주차 줄이 통째로
+            안 보였다(선생님 지적 2026-09-28). 달력이 걸치는 주를 그대로 쓴다.
+            일정표에 적힌 주차가 그보다 넘어가도 빠뜨리지 않게 합쳐 준다.
+          */}
+          {weeksOf(year, month, plan.rows.map((r) => r.week)).map((week) => {
             const rows = plan.rows.filter((r) => r.week === week);
             if (rows.length === 0) return null;
             return (

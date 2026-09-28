@@ -6,8 +6,11 @@ import { weeksInMonth } from "./weekday-dates";
  * 엑셀 양식(정수학원 1:1 맞춤 PLAN)을 그대로 옮긴다: 주차 × 영역 × 수업 회차.
  */
 export const DEFAULT_AREAS = ["영단어", "문법", "독해", "듣기"];
-/** 기본 주차. 실제 표는 그 달이 걸치는 주 수를 쓴다 — weeksInMonth 참고 */
-export const WEEKS = [1, 2, 3, 4];
+/*
+ * 주차는 그 달이 걸치는 주를 쓴다 — weekday-dates.ts의 weeksInMonth.
+ * 예전에 있던 고정값 [1,2,3,4]는 뺐다. 9월처럼 5주에 걸치는 달에서 학생 화면이
+ * 5주차 줄을 통째로 빠뜨렸다(선생님 지적 2026-09-28).
+ */
 
 export type PlanEntry = { progress: string; homework: string; note: string };
 
