@@ -273,6 +273,9 @@ function bookNameOf(titles: string[]): string {
  */
 export async function loadAssignedPlan(input: {
   studentId: string;
+  /** 이 일정표가 다루는 달 — 이 달을 벗어난 과제는 끌어오지 않는다 */
+  year: number;
+  month: number;
   /** 주차별 회차 날짜: { "1": ["2026-09-01", …] } */
   sessionDates: Record<string, string[]>;
   /** 단어 한 회차에 며칠 치를 볼지 */
@@ -308,7 +311,7 @@ export async function loadAssignedPlan(input: {
   }
 
   const rows: PlanFillRow[] = [];
-  const listening = await listeningPlanRow(admin, input.studentId, slots);
+  const listening = await listeningPlanRow(admin, input.studentId, slots, monthEnd(input.year, input.month));
   if (listening) rows.push(listening);
   const vocab = await vocabPlanRow(admin, input.studentId, slots, input.vocabDaysPerSession);
   if (vocab) rows.push(vocab);
@@ -319,16 +322,29 @@ export async function loadAssignedPlan(input: {
   return { ok: true, rows };
 }
 
-/** 배정된 듣기를 회차마다 "중3 20회 1~5번"으로 */
+/** 그 달의 마지막 날 — "2026-09-30" */
+function monthEnd(year: number, month: number): string {
+  const d = new Date(Date.UTC(year, month, 0));
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * 배정된 듣기를 회차마다 "중3 20회 1~5번"으로.
+ *
+ * 선생님 지적(2026-09-28): 학생에게 배정된 듣기 일정과 학습일정표가 안 맞는다.
+ * 마지막 회차부터 20일 뒤까지를 끌어와 놓고, 그 사이 것을 전부 마지막 회차 한 칸에
+ * 몰아넣고 있었다. 9월 일정표인데 10월 20일 치까지 한 칸에 들어갔다.
+ * 이제 그 달 안에서만 끌어오고, 회차마다 다음 회차 전날까지만 담는다.
+ */
 async function listeningPlanRow(
   admin: ReturnType<typeof createAdminClient>,
   studentId: string,
   slots: { week: number; index: number; date: string }[],
+  monthLast: string,
 ): Promise<PlanFillRow | null> {
   const first = slots[0]!.date;
-  const lastDate = new Date(`${slots[slots.length - 1]!.date}T00:00:00Z`);
-  lastDate.setUTCDate(lastDate.getUTCDate() + 20);
-  const last = lastDate.toISOString().slice(0, 10);
+  const last = monthLast;
+  if (last < first) return null;
 
   const { data: tasks } = await admin
     .from("listening_daily_tasks")
@@ -352,7 +368,11 @@ async function listeningPlanRow(
   const titles: string[] = [];
   for (const t of tasks) {
     const date = String(t.task_date);
-    // 이 날짜가 속하는 회차 = 날짜가 이 날 이하인 마지막 회차
+    /*
+     * 이 날짜가 속하는 회차 = 이 날 이하인 마지막 회차.
+     * 회차 칸에는 「그 수업 날부터 다음 수업 전날까지」 할 것만 담는다. 마지막 회차는
+     * 그 달 말일까지만 담는다(위에서 이미 달 안으로 잘라 읽었다).
+     */
     let slot = -1;
     for (let i = 0; i < slots.length; i += 1) {
       if (slots[i]!.date <= date) slot = i;

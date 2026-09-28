@@ -371,6 +371,8 @@ export function StudyPlanEditor({
     try {
       const r = await loadAssignedPlan({
         studentId: student.id,
+        year,
+        month,
         sessionDates: dates,
         vocabDaysPerSession: vocabDays,
       });
