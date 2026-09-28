@@ -164,7 +164,13 @@ export async function saveStudyPlanRows(
   sessionDates?: Record<string, string[]>,
   attendance?: Record<string, Attendance[]>
 ): Promise<void> {
-  await admin
+  /*
+   * 2026-09-28: 여기서 오류를 하나도 보지 않고 있었다. 줄을 지운 뒤 넣다가 실패하면
+   * 적어 둔 것이 모두 사라지는데 화면에는 "저장했어요"가 떴다. 선생님이 "저장해도
+   * 제대로 저장이 안 되는 것 같다"고 한 것이 이것이다. 이제 한 단계마다 확인하고,
+   * 넣기가 실패하면 지우기 전 줄을 되돌려 놓는다.
+   */
+  const { error: planError } = await admin
     .from("study_plans")
     .update({
       sessions_per_week: sessionsPerWeek,
@@ -173,9 +179,23 @@ export async function saveStudyPlanRows(
       updated_at: new Date().toISOString(),
     })
     .eq("id", planId);
-  await admin.from("study_plan_rows").delete().eq("plan_id", planId);
+  if (planError) throw new Error(`일정표를 저장하지 못했어요: ${planError.message}`);
+
+  // 지우기 전에 지금 줄을 들고 있는다 — 넣기가 실패하면 이것으로 되돌린다
+  const { data: before } = await admin
+    .from("study_plan_rows")
+    .select("week, area, textbook, order_index, entries")
+    .eq("plan_id", planId);
+
+  const { error: deleteError } = await admin
+    .from("study_plan_rows")
+    .delete()
+    .eq("plan_id", planId);
+  if (deleteError) throw new Error(`이전 내용을 지우지 못했어요: ${deleteError.message}`);
+
   if (rows.length === 0) return;
-  await admin.from("study_plan_rows").insert(
+
+  const { error: insertError } = await admin.from("study_plan_rows").insert(
     rows.map((r) => ({
       plan_id: planId,
       week: r.week,
@@ -185,6 +205,23 @@ export async function saveStudyPlanRows(
       entries: fitEntries(r.entries, sessionsPerWeek),
     }))
   );
+  if (insertError) {
+    if (before?.length) {
+      await admin
+        .from("study_plan_rows")
+        .insert(before.map((r) => ({ ...r, plan_id: planId })));
+    }
+    throw new Error(`저장하지 못했어요: ${insertError.message}`);
+  }
+
+  // 정말 들어갔는지 되읽어 본다. 넣었다는 말만 믿지 않는다.
+  const { count } = await admin
+    .from("study_plan_rows")
+    .select("id", { count: "exact", head: true })
+    .eq("plan_id", planId);
+  if (count !== rows.length) {
+    throw new Error(`저장이 덜 됐어요. ${rows.length}줄을 보냈는데 ${count ?? 0}줄만 들어갔어요.`);
+  }
 }
 
 /** 학생이 가진 일정표 목록(최근 것부터) */

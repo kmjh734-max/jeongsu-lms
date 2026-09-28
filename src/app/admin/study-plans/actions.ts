@@ -88,15 +88,22 @@ export async function savePlanAction(input: {
     return { ok: false, message: "우리 학원 일정표가 아니에요." };
   }
 
-  await saveStudyPlanRows(
-    admin,
-    input.planId,
-    input.sessionsPerWeek,
-    input.rows,
-    input.sessionDates,
-    input.attendance,
-  );
+  try {
+    await saveStudyPlanRows(
+      admin,
+      input.planId,
+      input.sessionsPerWeek,
+      input.rows,
+      input.sessionDates,
+      input.attendance,
+    );
+  } catch (e) {
+    // 실패를 삼키지 않는다 — 삼키면 저장된 줄 알고 화면을 닫는다
+    return { ok: false, message: e instanceof Error ? e.message : "저장하지 못했어요." };
+  }
   revalidatePath("/admin/study-plans");
+  // 학생이 보는 화면도 다시 그리게 한다
+  revalidatePath("/student/plan");
   return { ok: true, message: "저장했어요." };
 }
 
