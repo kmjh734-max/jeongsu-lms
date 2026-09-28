@@ -45,7 +45,12 @@ import {
 } from "@/lib/question-generator/word-order-catalog";
 import { normalizeWordOrderQuestionText } from "@/lib/question-generator/word-order-normalize";
 import { reconcileGrammarFixQuestion } from "@/lib/question-generator/grammar-fix-normalize";
-import { WRITING_GRAMMAR_LIST } from "@/lib/question-generator/writing-grammar";
+import {
+  findWritingGrammar,
+  objectParticle,
+  WRITING_GRAMMAR_LIST,
+} from "@/lib/question-generator/writing-grammar";
+import { tokenizeAnswerPhrase } from "@/lib/question-generator/word-order-normalize";
 
 /** 함축의미 등 — 적합한 소재가 없으면 문항 생략 */
 export class SkipQuestionError extends Error {
@@ -447,9 +452,6 @@ ${GRAMMAR_FOR_WRITING}
 - questionText 형식(필수). 태그는 각각 <b>그 줄에 혼자</b> 있어야 한다:
 <조건>
 ○ 반드시 [어법 이름(형태)]을 사용할 것
-○ 보기의 단어를 모두 한 번씩 사용할 것
-○ 필요하면 어형을 바꿀 것
-○ 문장 부호와 대소문자를 바르게 쓸 것
 
 <보기>
 word1 / word2 / … (정답 문장의 낱말을 원형으로 흩어 놓는다. 8~14개)
@@ -457,11 +459,12 @@ word1 / word2 / … (정답 문장의 낱말을 원형으로 흩어 놓는다. 8
 <해석>
 (정답 문장의 우리말 뜻 한 줄. 자연스러운 한국어로)
 
-- 첫 조건의 [어법 이름(형태)]: 위 목록의 <b>이름과 괄호 속 형태를 그대로 옮겨</b> 적는다.
+- <조건>에는 <b>어법 줄 하나만</b> 쓴다. 낱말 수·대소문자 같은 나머지 조건은
+  시스템이 정답에 맞춰 붙이므로 적지 않는다.
+- [어법 이름(형태)]: 위 목록의 <b>이름과 괄호 속 형태를 그대로 옮겨</b> 적는다.
   보기: 「○ 반드시 강조구문(It is ~ that …)을 사용할 것」,
   「○ 반드시 가정법 과거(If + 과거동사, 주어 + would/could + 동사원형)를 사용할 것」.
   목록에 없는 이름을 지어내거나 「어법을 사용할 것」처럼 뭉뚱그리면 안 된다.
-  괄호 안 형태는 반드시 넣는다.
 - correctAnswer: 정답 영어 문장 하나(지문 그대로).
 - 보기에는 정답 문장에 쓰이는 낱말만 넣는다. 관사·전치사처럼 어형이 바뀌지 않는 말은
   그대로, 동사·명사는 원형으로 적는다.
@@ -1190,8 +1193,9 @@ export function assertBasicQuestionShape(
       return "조건 영작은 questionText에 <조건>·<보기>·<해석>이 각각 줄 단위로 필요합니다.";
     }
     const firstCondition = blocks.conditions.split(/\n+/)[0] ?? "";
-    if (!/반드시/.test(firstCondition) || !/[(（][^)）]{2,}[)）]/.test(firstCondition)) {
-      return "첫 조건에 어법 이름과 괄호 안 형태가 필요합니다(예: 가정법 과거(If+과거동사, would+동사원형)).";
+    const grammar = findWritingGrammar(firstCondition);
+    if (!grammar) {
+      return "첫 조건에 어법 목록에 있는 이름이 필요합니다(예: 가정법 과거).";
     }
     const answer = String(q.correctAnswer ?? "").trim();
     if (!answer) {
@@ -1200,6 +1204,31 @@ export function assertBasicQuestionShape(
     if (!passageHasConsecutiveWords(q.passageOriginal || "", answer)) {
       return "조건 영작 정답은 지문에 있는 문장이어야 합니다.";
     }
+
+    /*
+     * 조건은 코드가 다시 짠다 — 선생님 요청(2026-09-28): 조건을 좀 더 자세하게.
+     * 모델이 쓴 문구는 어법 이름을 알아내는 데만 쓰고, 시험지에 실리는 줄은
+     * 어법마다 정해 둔 것으로 채운다. 그래야 문항마다 조건이 들쭉날쭉하지 않다.
+     * 낱말 수는 정답에서 세므로 늘 맞는다.
+     */
+    const wordCount = tokenizeAnswerPhrase(answer).length;
+    const conditionLines = [
+      `○ 반드시 ${grammar.label}(${grammar.form})${objectParticle(grammar.label)} 사용할 것`,
+      "○ <보기>에 있는 단어를 모두 한 번씩 사용할 것 (단어를 더하거나 빼지 말 것)",
+      "○ 필요하면 어형을 바꿔 쓸 것 (시제·수·태에 유의할 것)",
+      ...(wordCount > 0 ? [`○ 모두 ${wordCount}단어로 쓸 것`] : []),
+      "○ 첫 글자는 대문자로 쓰고, 문장 끝에 알맞은 문장 부호를 쓸 것",
+    ];
+    q.questionText = [
+      "<조건>",
+      conditionLines.join("\n"),
+      "",
+      "<보기>",
+      blocks.words,
+      "",
+      "<해석>",
+      blocks.translation,
+    ].join("\n");
     q.choices = undefined;
   } else if (
     option.type === "summary_short" &&
