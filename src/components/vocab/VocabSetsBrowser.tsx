@@ -509,6 +509,11 @@ export function VocabSetsBrowser({
             )}
           </div>
         </div>
+        {visible.length > 0 && selected.size === 0 ? (
+          <p className="px-1 text-xs text-slate-400">
+            왼쪽 네모로 단어장을 고르면 아래 막대에서 반·학생에게 배정할 수 있어요.
+          </p>
+        ) : null}
         {canReorder && sort === "manual" && !query.trim() && visible.length > 1 ? (
           <p className="px-1 text-xs text-slate-400">
             왼쪽 점 모양을 끌어서 순서를 바꿀 수 있어요. 학생 화면에도 이 순서로 보여요.
@@ -524,7 +529,13 @@ export function VocabSetsBrowser({
             </span>
             <div className="flex gap-1">
               {[
-                { label: "배정", icon: "users", run: () => setAssignIds([...selected]) },
+                // 배정이 이제 이 자리에서만 하는 일이라 가장 눈에 띄게 둔다(2026-09-28)
+                {
+                  label: "배정",
+                  icon: "users",
+                  primary: true,
+                  run: () => setAssignIds([...selected]),
+                },
                 { label: "시험지 인쇄", icon: "print", run: () => openPrint([...selected], "exam") },
                 {
                   label: "폴더 이동",
@@ -550,7 +561,11 @@ export function VocabSetsBrowser({
                   type="button"
                   disabled={busy}
                   onClick={a.run}
-                  className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-white/10 px-3 text-[13px] font-semibold text-white transition hover:bg-white/20 disabled:opacity-50"
+                  className={`flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-[13px] font-semibold text-white transition disabled:opacity-50 ${
+                    "primary" in a && a.primary
+                      ? "bg-brand-600 hover:bg-brand-700"
+                      : "bg-white/10 hover:bg-white/20"
+                  }`}
                 >
                   <Icon name={a.icon} size={16} strokeWidth={2} />
                   {a.label}
