@@ -5,6 +5,11 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { academyLoginAbsoluteUrl } from "@/lib/tenant/resolve-login-academy";
+import {
+  ACADEMY_FEATURES,
+  type AcademyFeatureKey,
+  type AcademyFeatures,
+} from "@/lib/academies/features";
 
 export type AcademyListRow = {
   id: string;
@@ -27,6 +32,8 @@ export type AcademyListRow = {
   selfSignup: boolean;
   ownerName: string | null;
   contactEmail: string | null;
+  /** 이 학원에서 켜 둔 기능 (교과서 지문 불러오기 등) */
+  features: AcademyFeatures;
 };
 
 type AdminRow = {
@@ -43,7 +50,7 @@ const SITE_URL =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "")) ||
   "https://engcore.co.kr";
 
-type ManageTab = "profile" | "admins";
+type ManageTab = "profile" | "admins" | "features";
 
 export function SuperAdminAcademiesClient({
   initialRows,
@@ -85,6 +92,8 @@ export function SuperAdminAcademiesClient({
 
   const [manageId, setManageId] = useState<string | null>(null);
   const [manageTab, setManageTab] = useState<ManageTab>("profile");
+  /** 기능 탭에서 켜고 끈 것 (저장 누를 때까지는 화면에만 담아 둔다) */
+  const [editFeatures, setEditFeatures] = useState<AcademyFeatures | null>(null);
   const [admins, setAdmins] = useState<AdminRow[]>([]);
   const [adminsLoading, setAdminsLoading] = useState(false);
   const [linkEmail, setLinkEmail] = useState("");
@@ -156,6 +165,7 @@ export function SuperAdminAcademiesClient({
     } else {
       setManageId(id);
       setManageTab(tab);
+      setEditFeatures({ ...(rows.find((r) => r.id === id)?.features ?? ({} as AcademyFeatures)) });
     }
     setInviteHint(null);
     setError(null);
@@ -283,6 +293,36 @@ export function SuperAdminAcademiesClient({
       }
       applyAcademyRow(data.academy as AcademyListRow);
       setMessage("학원 정보를 저장했습니다. 인쇄·리포트에 반영됩니다.");
+      router.refresh();
+    } catch {
+      setError("요청에 실패했습니다.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** 기능 켜고 끈 것을 저장한다 */
+  async function saveAcademyFeatures() {
+    if (!manageId || !editFeatures) return;
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/super-admin/academies/${manageId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ features: editFeatures }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.message ?? "저장 실패");
+        return;
+      }
+      const saved = { ...editFeatures };
+      setRows((prev) =>
+        prev.map((r) => (r.id === manageId ? { ...r, features: saved } : r))
+      );
+      setMessage("기능을 저장했습니다. 학원 화면에 바로 반영됩니다.");
       router.refresh();
     } catch {
       setError("요청에 실패했습니다.");
@@ -774,8 +814,65 @@ export function SuperAdminAcademiesClient({
               >
                 2. 관리자
               </button>
+              <button
+                type="button"
+                className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                  manageTab === "features"
+                    ? "bg-white text-brand-900 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                onClick={() => setManageTab("features")}
+              >
+                3. 기능
+              </button>
             </div>
           </div>
+
+          {manageTab === "features" && (
+            <div className="mt-4 space-y-4">
+              <p className="text-xs text-slate-500">
+                켠 학원만 그 기능을 쓸 수 있습니다. 끄면 학원 화면에서 단추가 사라집니다.
+              </p>
+              <div className="space-y-2">
+                {ACADEMY_FEATURES.map((feature) => {
+                  const on = editFeatures?.[feature.key as AcademyFeatureKey] === true;
+                  return (
+                    <label
+                      key={feature.key}
+                      className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3"
+                    >
+                      <input
+                        type="checkbox"
+                        className="mt-0.5 h-4 w-4 accent-brand-600"
+                        checked={on}
+                        onChange={(e) =>
+                          setEditFeatures((prev) => ({
+                            ...((prev ?? {}) as AcademyFeatures),
+                            [feature.key]: e.target.checked,
+                          }))
+                        }
+                      />
+                      <span>
+                        <span className="block text-sm font-semibold text-slate-900">
+                          {feature.label}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-slate-500">
+                          {feature.hint}
+                        </span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              <Button
+                type="button"
+                disabled={busy || !editFeatures}
+                onClick={() => void saveAcademyFeatures()}
+              >
+                {busy ? "저장 중…" : "기능 저장"}
+              </Button>
+            </div>
+          )}
 
           {manageTab === "profile" && (
             <div className="mt-4 space-y-4">

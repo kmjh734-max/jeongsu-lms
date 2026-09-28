@@ -91,12 +91,15 @@ export function LessonMaterialsInputWizard({
   role,
   folderId = null,
   folderLabel = null,
+  textbookOpen = false,
 }: {
   role: "admin" | "teacher";
   /** 자료함에서 고른 폴더("unfiled"는 미분류). 없으면 미분류에 넣는다. */
   folderId?: string | null;
   /** 저장 위치로 보여 줄 폴더 이름 */
   folderLabel?: string | null;
+  /** 교과서 본문을 열어 준 학원인지 — 아니면 교과서 단추를 아예 안 보인다 */
+  textbookOpen?: boolean;
 }) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [passages, setPassages] = useState<PassageDraft[]>([
@@ -755,13 +758,15 @@ export function LessonMaterialsInputWizard({
             >
               모의고사 지문 불러오기
             </button>
-            <button
-              type="button"
-              onClick={() => setMockOpen("textbook")}
-              className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
-            >
-              교과서 지문 불러오기
-            </button>
+            {textbookOpen ? (
+              <button
+                type="button"
+                onClick={() => setMockOpen("textbook")}
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
+              >
+                교과서 지문 불러오기
+              </button>
+            ) : null}
 
             <div className="shrink-0">
               <Button
@@ -781,6 +786,7 @@ export function LessonMaterialsInputWizard({
       {mockOpen ? (
         <MockPassagePickerModal
           initialSource={mockOpen}
+          allowTextbook={textbookOpen}
           onPick={addMockPassages}
           onClose={() => setMockOpen(null)}
         />

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSuperAdminApi } from "@/lib/auth/require-super-admin-api";
 import { createClient } from "@/lib/supabase/server";
+import { ACADEMY_FEATURES, type AcademyFeatureKey } from "@/lib/academies/features";
 
 export const runtime = "nodejs";
 
@@ -22,6 +23,8 @@ export async function PATCH(
       logo_url?: string | null;
       phone?: string | null;
       address?: string | null;
+      /** 학원마다 켜고 끄는 기능 (settings.features 에 담는다) */
+      features?: Record<string, boolean>;
     };
     try {
       body = await request.json();
@@ -70,6 +73,24 @@ export async function PATCH(
     }
 
     const supabase = await createClient();
+
+    // 기능 켜고 끄기 — settings 안의 features만 손대고 나머지(가입 정보 등)는 그대로 둔다.
+    if (body.features && typeof body.features === "object") {
+      const { data: before } = await supabase
+        .from("academies")
+        .select("settings")
+        .eq("id", id)
+        .maybeSingle();
+      const settings = { ...((before?.settings as Record<string, unknown> | null) ?? {}) };
+      const features = { ...((settings.features as Record<string, boolean> | undefined) ?? {}) };
+      const allowed = new Set<string>(ACADEMY_FEATURES.map((f) => f.key as AcademyFeatureKey));
+      for (const [key, on] of Object.entries(body.features)) {
+        if (allowed.has(key)) features[key] = on === true;
+      }
+      settings.features = features;
+      patch.settings = settings;
+    }
+
     const { data, error } = await supabase
       .from("academies")
       .update(patch)

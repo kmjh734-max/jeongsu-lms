@@ -1,5 +1,8 @@
 import { LessonMaterialsInputWizard } from "@/components/lesson-materials/LessonMaterialsInputWizard";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { isTextbookPassageOpen } from "@/lib/textbooks/shared-passages";
 
 export const maxDuration = 120;
 
@@ -23,5 +26,15 @@ export default async function TeacherLessonMaterialsInputPage({
       .maybeSingle();
     folderLabel = (data?.name as string | undefined) ?? null;
   }
-  return <LessonMaterialsInputWizard role="teacher" folderId={folderId} folderLabel={folderLabel} />;
+  // 교과서 본문은 열어 준 학원에서만 불러올 수 있다.
+  const profile = await getCurrentProfile();
+  const textbookOpen = await isTextbookPassageOpen(createAdminClient(), profile?.academy_id);
+  return (
+    <LessonMaterialsInputWizard
+      role="teacher"
+      folderId={folderId}
+      folderLabel={folderLabel}
+      textbookOpen={textbookOpen}
+    />
+  );
 }

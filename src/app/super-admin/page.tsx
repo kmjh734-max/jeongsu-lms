@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { SuperAdminStats } from "@/components/super-admin/SuperAdminStats";
 import { SuperAdminAcademiesClient } from "@/components/super-admin/SuperAdminAcademiesClient";
+import { readAcademyFeatures } from "@/lib/academies/features";
 
 export default async function SuperAdminHomePage() {
   const profile = await getCurrentProfile();
@@ -61,6 +62,7 @@ export default async function SuperAdminHomePage() {
     selfSignup: Boolean(signup),
     ownerName: signup?.owner_name ?? null,
     contactEmail: signup?.contact_email ?? null,
+    features: readAcademyFeatures(settings),
     students: countsByAcademy[a.id]?.students ?? 0,
     teachers: countsByAcademy[a.id]?.teachers ?? 0,
     courses: countsByAcademy[a.id]?.courses ?? 0,

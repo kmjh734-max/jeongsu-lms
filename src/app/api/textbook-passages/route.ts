@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireExamStaff } from "@/lib/exam-analysis/access";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { resolveTextbookPassageAcademyId } from "@/lib/textbooks/shared-passages";
+import { isTextbookPassageOpen, resolveTextbookPassageAcademyId } from "@/lib/textbooks/shared-passages";
 
 export const runtime = "nodejs";
 
@@ -13,6 +13,12 @@ export async function GET(req: Request) {
   const auth = await requireExamStaff();
   if ("error" in auth) return auth.error;
   const admin = createAdminClient();
+  if (!(await isTextbookPassageOpen(admin, auth.profile.academy_id))) {
+    return NextResponse.json(
+      { ok: false, message: "이 학원에서는 쓸 수 없는 기능입니다." },
+      { status: 403 },
+    );
+  }
   const academyId = await resolveTextbookPassageAcademyId(admin, auth.profile.academy_id);
 
   const book = new URL(req.url).searchParams.get("book");
