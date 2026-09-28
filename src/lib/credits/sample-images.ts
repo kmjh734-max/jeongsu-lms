@@ -4,11 +4,13 @@ import type { CreditSampleKind } from "@/lib/credits/confirm-store";
  * 만들기 전 확인 창에 보여 주는 견본 사진.
  *
  * 선생님 요청(2026-09-28): 손으로 흉내 낸 그림 말고 <b>실제 화면을 찍은 사진</b>으로.
- * 첫 화면(LandingPage)에서 쓰는 것과 같은 방식이다 — public/landing 아래 실제 서비스
- * 화면을 잘라 찍어 둔 사진을 그대로 쓴다.
+ * 첫 화면(LandingPage)에서 쓰는 것과 같은 방식이다.
  *
- * 아직 사진이 없는 갈래는 여기에 적지 않는다. 그러면 예전처럼 모양만 그린 견본이 나온다.
- * 사진을 새로 찍으면 public/samples 아래에 넣고 한 줄 보태면 된다.
+ * public/samples 아래 사진은 실제로 만들어 둔 자료의 <b>첫 장</b>을 그대로 찍은 것이다
+ * (scripts/tmp-rv/_samplesshot.mjs). 비율은 A4 그대로(0.706)라 견본 칸에 잘림 없이 들어간다.
+ * 자료 모양이 바뀌면 그 스크립트를 다시 돌려 사진만 갈아 끼우면 된다.
+ *
+ * 사진이 없는 갈래는 여기에 적지 않는다. 그러면 예전처럼 모양만 그린 견본이 나온다.
  */
 export interface SampleImage {
   src: string;
@@ -19,16 +21,30 @@ export interface SampleImage {
 }
 
 export const SAMPLE_IMAGES: Partial<Record<CreditSampleKind, SampleImage>> = {
+  lesson_pack: {
+    src: "/samples/lesson-pack.jpg",
+    alt: "수업용 자료 — 지문과 단어정리, 해석을 묶은 실제 인쇄 첫 장",
+  },
   analysis_report: {
-    src: "/landing/analysis.jpg",
-    alt: "지문 분석서 — 문장마다 구조 표시와 해석이 붙은 실제 인쇄 화면",
+    src: "/samples/analysis-report.jpg",
+    alt: "지문 분석서 — 문장마다 구조 표시와 해석이 붙은 실제 인쇄 첫 장",
   },
   workbook: {
-    src: "/landing/workbook.jpg",
-    alt: "워크북 — 같은 지문으로 만든 문제지 실제 인쇄 화면",
+    src: "/samples/workbook.jpg",
+    alt: "워크북 — 같은 지문으로 만든 문제지 실제 인쇄 첫 장",
   },
-  // 동형모의고사(/landing/exam-mock.jpg)는 가로로 잘라 둔 사진이라 세로 칸에서 양옆이
-  // 잘린다. 세로로 다시 찍으면 여기에 넣는다.
+  one_page_summary: {
+    src: "/samples/one-page-summary.jpg",
+    alt: "1장 요약직보자료 — 요약문·어법 포인트·중요 표현을 한 장에 모은 실제 인쇄 화면",
+  },
+  one_page_test: {
+    src: "/samples/one-page-test.jpg",
+    alt: "1장 테스트 — 한 장짜리 확인 시험지 실제 인쇄 화면",
+  },
+  integrated: {
+    src: "/samples/integrated.jpg",
+    alt: "최종통합자료 — 표지와 차례를 붙여 한 권으로 묶은 실제 인쇄 첫 장",
+  },
 };
 
 export function sampleImageFor(kind: CreditSampleKind): SampleImage | null {
