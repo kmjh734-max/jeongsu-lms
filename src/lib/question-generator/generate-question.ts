@@ -45,7 +45,7 @@ import {
 } from "@/lib/question-generator/word-order-catalog";
 import { normalizeWordOrderQuestionText } from "@/lib/question-generator/word-order-normalize";
 import { reconcileGrammarFixQuestion } from "@/lib/question-generator/grammar-fix-normalize";
-import { ONE_PAGE_GRAMMAR_RULES } from "@/lib/lesson-materials/one-page-grammar-rules";
+import { WRITING_GRAMMAR_LIST } from "@/lib/question-generator/writing-grammar";
 
 /** 함축의미 등 — 적합한 소재가 없으면 문항 생략 */
 export class SkipQuestionError extends Error {
@@ -75,16 +75,11 @@ function paraphraseChoiceRules(
 }
 
 /**
- * 조건 영작에 쓸 어법 범위.
- *
- * 선생님 요청(2026-09-28): 특정 문법을 조건으로 하는 영작. 그 문법은 무작위여도 되고
- * 우리가 정해 둔 범위에서 골라도 된다. 그래서 이미 쓰고 있는 교재 기준 목록
- * (1장 요약자료·워크북 어법 선택과 같은 목록)을 그대로 범위로 쓴다.
+ * 조건 영작에 쓸 어법 범위. 목록은 writing-grammar.ts에 따로 둔다
+ * (고르기 문항용 목록을 그대로 쓰면 「등위 병렬을 사용할 것」 같은 조건이 나온다).
  * 지문에 실제로 있는 어법만 고르게 하므로, 무작위여도 지문과 겉돌지 않는다.
  */
-const GRAMMAR_FOR_WRITING = ONE_PAGE_GRAMMAR_RULES.slice(0, 30)
-  .map((r) => `  · ${r.labelKo} — ${r.decide}`)
-  .join("\n");
+const GRAMMAR_FOR_WRITING = WRITING_GRAMMAR_LIST;
 
 function typeRules(option: QuestionTypeOption): string {
   const code = option.aingkaCode || "";
@@ -462,11 +457,11 @@ word1 / word2 / … (정답 문장의 낱말을 원형으로 흩어 놓는다. 8
 <해석>
 (정답 문장의 우리말 뜻 한 줄. 자연스러운 한국어로)
 
-- 첫 조건의 [어법 이름(형태)]: 이름은 위 목록에 적힌 이름을 그대로 쓰고, 괄호 안에
-  학생이 바로 알아보는 형태를 짧게 덧붙인다. 보기: 「가정법 과거(If+과거동사,
-  would+동사원형)」, 「부정어 도치(Never+조동사+주어)」, 「감정분사(-ing/-ed)」,
-  「관계대명사 what(선행사 없이)」, 「강조구문(It is ~ that)」.
-  「어법을 사용할 것」처럼 뭉뚱그리면 안 된다. 괄호 안 형태는 반드시 넣는다.
+- 첫 조건의 [어법 이름(형태)]: 위 목록의 <b>이름과 괄호 속 형태를 그대로 옮겨</b> 적는다.
+  보기: 「○ 반드시 강조구문(It is ~ that …)을 사용할 것」,
+  「○ 반드시 가정법 과거(If + 과거동사, 주어 + would/could + 동사원형)를 사용할 것」.
+  목록에 없는 이름을 지어내거나 「어법을 사용할 것」처럼 뭉뚱그리면 안 된다.
+  괄호 안 형태는 반드시 넣는다.
 - correctAnswer: 정답 영어 문장 하나(지문 그대로).
 - 보기에는 정답 문장에 쓰이는 낱말만 넣는다. 관사·전치사처럼 어형이 바뀌지 않는 말은
   그대로, 동사·명사는 원형으로 적는다.

@@ -47,7 +47,7 @@ const CATEGORY_ORDER = [
   "subjective",
 ] as const;
 
-export type GrammarChoice = { label: string; hint: string };
+export type GrammarChoice = { label: string; form: string; hint: string };
 
 /**
  * 조건 영작에 쓸 어법 범위 고르기.
@@ -124,6 +124,7 @@ function GrammarScopeBox({
                       <span className="min-w-0">
                         <span className="block text-[11px] font-semibold text-slate-900">
                           {g.label}
+                          <span className="ml-1 font-normal text-slate-500">({g.form})</span>
                         </span>
                         <span className="block text-[10.5px] leading-snug text-slate-500">
                           {g.hint}
