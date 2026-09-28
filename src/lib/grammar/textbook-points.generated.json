@@ -1,0 +1,1477 @@
+[
+ {
+  "key": "participle_clause",
+  "label": "분사구문",
+  "form": "V-ing …, 주어 + 동사",
+  "aliases": [
+   "분사구문",
+   "「with+명사+분사」 분사구문",
+   "with 분사구문",
+   "형용사로 시작하는 분사구문",
+   "완료분사구문",
+   "분사구문 being 생략",
+   "접속사+분사구문",
+   "접속사가 남아 있는 분사구문",
+   "수동태 분사구문",
+   "「접속사+분사구문」",
+   "독립분사구문"
+  ],
+  "examples": [
+   "Korean words are being added to English, resulting in a richer English vocabulary.",
+   "Embracing the diversity of English, we can build a more inclusive community of English speakers.",
+   "(When) Paired with new partners, the chimpanzees usually failed to get the food."
+  ],
+  "count": 17,
+  "books": [
+   "공통영어1 YBM(박준언)",
+   "공통영어1 미래엔(김성연)",
+   "공통영어1 지학사(신상근)",
+   "공통영어2 NE능률(오선영)",
+   "공통영어2 YBM(김은형)",
+   "공통영어2 동아(이병민)",
+   "공통영어2 지학사(신상근)",
+   "공통영어2 천재(강상구)",
+   "공통영어2 천재(조수경)",
+   "영어I 동아(박용예)",
+   "영어I 미래엔(김성연)",
+   "영어I 지학사(신상근)",
+   "영어I 천재(강상구)",
+   "영어I 천재(조수경)",
+   "영어II 천재(강상구)",
+   "영어II 천재(조수경)"
+  ],
+  "bookCount": 16
+ },
+ {
+  "key": "participle_postmod",
+  "label": "명사 수식 분사",
+  "form": "V-ing / p.p. + 명사",
+  "aliases": [
+   "명사를 뒤에서 수식하는 현재분사",
+   "분사의 후치 수식",
+   "명사를 수식하는 과거분사구",
+   "명사를 수식하는 과거분사",
+   "조동사+have+과거분사",
+   "과거분사의 후치 수식",
+   "명사를 뒤에서 수식하는 과거분사구",
+   "with+명사+현재분사[과거분사]",
+   "명사 뒤에서 명사를 꾸미는 분사",
+   "「with+목적어+현재분사/과거분사」",
+   "may have+과거분사",
+   "분사의 후치수식",
+   "분사구 후치 수식",
+   "형용사의 명사 후치 수식"
+  ],
+  "examples": [
+   "The article featured a shocking photograph of flames and smoke rising from the river.",
+   "Come visit the shop selling the most delicious cakes in town!",
+   "The picture illustrates a spring garden filled with flowers and trees."
+  ],
+  "count": 16,
+  "books": [
+   "공통영어1 NE능률(오선영)",
+   "공통영어1 YBM(김은형)",
+   "공통영어1 YBM(박준언)",
+   "공통영어1 동아(이병민)",
+   "공통영어1 천재(강상구)",
+   "공통영어1 천재(조수경)",
+   "공통영어2 NE능률(민병천)",
+   "공통영어2 비상(홍민표)",
+   "공통영어2 천재(강상구)",
+   "공통영어2 천재(조수경)",
+   "영어I NE능률(오선영)",
+   "영어I 동아(박용예)",
+   "영어I 미래엔(김성연)",
+   "영어II 비상(홍민표)"
+  ],
+  "bookCount": 14
+ },
+ {
+  "key": "relative_nonrestrictive",
+  "label": "관계대명사 계속적 용법",
+  "form": "…, which / …, who",
+  "aliases": [
+   "관계대명사의 계속적 용법",
+   "계속적 용법의 관계대명사 which",
+   "관계부사 where의 계속적 용법",
+   "관계대명사 which의 계속적 용법",
+   "계속적 용법의 관계대명사",
+   "관계사의 계속적 용법",
+   "계속적 용법의 which",
+   "계속적 용법의 「전치사+관계대명사」"
+  ],
+  "examples": [
+   "But this was not a photograph of the 1969 fire, which was put out so quickly that nobody took a picture",
+   "Look at the mechanism of AI creativity, which is programmed to work in a similar way to human creativity.",
+   "The machine learns by itself, which is done through deep learning."
+  ],
+  "count": 13,
+  "books": [
+   "공통영어1 NE능률(오선영)",
+   "공통영어1 YBM(박준언)",
+   "공통영어1 지학사(신상근)",
+   "공통영어1 천재(강상구)",
+   "공통영어1 천재(조수경)",
+   "공통영어2 NE능률(민병천)",
+   "공통영어2 YBM(김은형)",
+   "공통영어2 동아(이병민)",
+   "공통영어2 미래엔(김성연)",
+   "영어I 동아(박용예)",
+   "영어I 미래엔(김성연)",
+   "영어I 천재(강상구)"
+  ],
+  "bookCount": 12
+ },
+ {
+  "key": "relative_adverb",
+  "label": "관계부사",
+  "form": "where / when / why / how",
+  "aliases": [
+   "관계부사 where",
+   "관계부사",
+   "선행사가 생략된 관계부사",
+   "관계부사 when, where",
+   "이유를 나타내는 관계부사 why"
+  ],
+  "examples": [
+   "Perhaps it is a beautiful place where a green forest surrounds a blue lake.",
+   "I remember the beach where I learned to swim as a child.",
+   "The trail led us to green fields and streams where (= in which) we saw some wildlife."
+  ],
+  "count": 13,
+  "books": [
+   "공통영어1 동아(이병민)",
+   "공통영어1 비상(홍민표)",
+   "공통영어1 천재(강상구)",
+   "공통영어1 천재(조수경)",
+   "공통영어2 NE능률(민병천)",
+   "공통영어2 NE능률(오선영)",
+   "공통영어2 YBM(김은형)",
+   "공통영어2 YBM(박준언)",
+   "영어I 동아(박용예)",
+   "영어I 비상(홍민표)",
+   "영어I 천재(강상구)",
+   "영어I 천재(조수경)",
+   "영어II 미래엔(김성연)"
+  ],
+  "bookCount": 13
+ },
+ {
+  "key": "appositive_that",
+  "label": "동격의 that",
+  "form": "명사 + that + 완전한 절",
+  "aliases": [
+   "동격의 접속사 that",
+   "동격의 that",
+   "동격의 of + -ing",
+   "동격을 나타내는 that절",
+   "동격의 of",
+   "동격을 나타내는 전치사 of"
+  ],
+  "examples": [
+   "There are concerns that AI may imitate the styles of human artists without their consent.",
+   "Emily was disappointed by the fact that the flight to New York was canceled.",
+   "He holds onto the belief that they are best avoided."
+  ],
+  "count": 13,
+  "books": [
+   "공통영어1 NE능률(민병천)",
+   "공통영어1 YBM(김은형)",
+   "공통영어1 동아(이병민)",
+   "공통영어1 비상(홍민표)",
+   "공통영어1 천재(조수경)",
+   "공통영어2 YBM(박준언)",
+   "공통영어2 미래엔(김성연)",
+   "공통영어2 천재(강상구)",
+   "영어I NE능률(오선영)",
+   "영어I 비상(홍민표)",
+   "영어I 지학사(신상근)",
+   "영어I 천재(조수경)",
+   "영어II 지학사(신상근)"
+  ],
+  "bookCount": 13
+ },
+ {
+  "key": "relative_what",
+  "label": "관계대명사 what",
+  "form": "what + 불완전한 절",
+  "aliases": [
+   "관계대명사 what",
+   "강조의 what",
+   "부사절을 이끄는 복합관계대명사 whatever",
+   "복합관계대명사 whatever",
+   "복합관계대명사 whatever, whoever"
+  ],
+  "examples": [
+   "We should demonstrate our concerns through what we buy.",
+   "People are less likely to give up what they already have.",
+   "She was grateful for what he had done for her."
+  ],
+  "count": 12,
+  "books": [
+   "공통영어1 YBM(김은형)",
+   "공통영어1 동아(이병민)",
+   "공통영어1 지학사(신상근)",
+   "공통영어2 NE능률(오선영)",
+   "공통영어2 YBM(박준언)",
+   "공통영어2 천재(강상구)",
+   "영어I 미래엔(김성연)",
+   "영어I 지학사(신상근)",
+   "영어I 천재(강상구)",
+   "영어II YBM(박준언)",
+   "영어II 동아(박용예)",
+   "영어II 비상(홍민표)"
+  ],
+  "bookCount": 12
+ },
+ {
+  "key": "inversion_negative",
+  "label": "부정어 도치",
+  "form": "Never/Not only + 조동사 + 주어",
+  "aliases": [
+   "도치 구문",
+   "부정어 도치",
+   "부정어(구)에 의한 도치",
+   "「부사구+동사+주어」의 도치 구문",
+   "부정어 강조 도치",
+   "도치",
+   "부사구 강조 도치",
+   "부정어(구) 도치"
+  ],
+  "examples": [
+   "Rarely do people want to put up with a lot of noise.",
+   "Never did she dream of becoming the world’s most popular movie star.",
+   "Little did he know that he had created a classic combination."
+  ],
+  "count": 11,
+  "books": [
+   "공통영어1 미래엔(김성연)",
+   "공통영어1 비상(홍민표)",
+   "공통영어2 NE능률(오선영)",
+   "공통영어2 동아(이병민)",
+   "공통영어2 천재(조수경)",
+   "영어I YBM(박준언)",
+   "영어I 미래엔(김성연)",
+   "영어I 천재(강상구)",
+   "영어II YBM(박준언)",
+   "영어II 동아(박용예)",
+   "영어II 천재(조수경)"
+  ],
+  "bookCount": 11
+ },
+ {
+  "key": "emphasis_it_that",
+  "label": "It - that 강조구문",
+  "form": "It is ~ that …",
+  "aliases": [
+   "「it is[was] … that」 강조 구문",
+   "「It is/was ... that」 강조",
+   "It ~ that 강조 구문",
+   "「It ~ that ...」 강조 구문",
+   "「It is[was] ~ that」 강조 구문",
+   "강조의 it ... that"
+  ],
+  "examples": [
+   "It was not until she was in her fifties that Lee was able to start a career in medicine.",
+   "It was my cell phone that disrupted the silence in the library.",
+   "It was during the 1960s that delivery services grew again."
+  ],
+  "count": 9,
+  "books": [
+   "공통영어2 NE능률(민병천)",
+   "공통영어2 YBM(김은형)",
+   "공통영어2 YBM(박준언)",
+   "공통영어2 동아(이병민)",
+   "공통영어2 천재(강상구)",
+   "영어I 천재(조수경)",
+   "영어II NE능률(오선영)",
+   "영어II 동아(박용예)",
+   "영어II 비상(홍민표)"
+  ],
+  "bookCount": 9
+ },
+ {
+  "key": "superlative_one_of",
+  "label": "one of the + 최상급 + 복수명사",
+  "form": "one of the 최상급 + 복수명사",
+  "aliases": [
+   "one of the 최상급+복수명사",
+   "one of the+최상급+복수명사",
+   "one of the+최상급 형용사+복수명사",
+   "「one of the 최상급+복수명사」",
+   "최상급 구문 「one of the+최상급+복수명사」",
+   "one of the+최상급+복수 명사"
+  ],
+  "examples": [
+   "One of the most interesting similarities is intelligence.",
+   "One of the most impressive findings is that the octopus seems to have feelings.",
+   "Choosing your career path is one of the most important decisions you can make."
+  ],
+  "count": 9,
+  "books": [
+   "공통영어1 YBM(박준언)",
+   "공통영어1 지학사(신상근)",
+   "공통영어1 천재(강상구)",
+   "공통영어1 천재(조수경)",
+   "공통영어2 NE능률(민병천)",
+   "공통영어2 NE능률(오선영)",
+   "공통영어2 동아(이병민)",
+   "영어I 비상(홍민표)",
+   "영어II 동아(박용예)"
+  ],
+  "bookCount": 9
+ },
+ {
+  "key": "object_complement_to",
+  "label": "목적격보어 to부정사",
+  "form": "allow/expect/ask + 목적어 + to V",
+  "aliases": [
+   "목적격 보어로 쓰인 to부정사",
+   "to부정사를 목적격 보어로 가지는 동사",
+   "목적격 보어로 쓰이는 to부정사",
+   "목적격보어로 쓰이는 to부정사",
+   "to부정사를 목적격 보어로 취하는 동사",
+   "to부정사 목적격 보어"
+  ],
+  "examples": [
+   "This video allows investors to learn about your product.",
+   "The doctor advised me to get some rest.",
+   "The experts asked them to offer some evidence."
+  ],
+  "count": 8,
+  "books": [
+   "공통영어1 NE능률(민병천)",
+   "공통영어1 YBM(박준언)",
+   "공통영어1 지학사(신상근)",
+   "공통영어1 천재(조수경)",
+   "공통영어2 NE능률(오선영)",
+   "공통영어2 YBM(김은형)",
+   "영어I NE능률(오선영)",
+   "영어I 동아(박용예)"
+  ],
+  "bookCount": 8
+ },
+ {
+  "key": "modal_have_pp",
+  "label": "조동사 + have p.p.",
+  "form": "must/should have p.p.",
+  "aliases": [
+   "「조동사＋have p.p.」 구문",
+   "조동사+have p.p.",
+   "조동사+have+p.p.",
+   "「조동사+have p.p.」",
+   "미래완료 시제 「will have p.p.」",
+   "could have p.p.",
+   "should have p.p."
+  ],
+  "examples": [
+   "You may have heard Korean folktales featuring tigers.",
+   "He should have read the directions more carefully.",
+   "They must have been amazed to see what was inside."
+  ],
+  "count": 8,
+  "books": [
+   "공통영어2 NE능률(민병천)",
+   "공통영어2 NE능률(오선영)",
+   "공통영어2 동아(이병민)",
+   "공통영어2 미래엔(김성연)",
+   "공통영어2 지학사(신상근)",
+   "영어I 지학사(신상근)",
+   "영어I 천재(조수경)"
+  ],
+  "bookCount": 7
+ },
+ {
+  "key": "passive_perfect",
+  "label": "현재완료 수동태",
+  "form": "have been + p.p.",
+  "aliases": [
+   "현재완료 수동태"
+  ],
+  "examples": [
+   "You can see a number of them have been recreated in street-side panels.",
+   "English vocabulary has been modified within the different varieties of English.",
+   "Words related to Korean culture have been added to English dictionaries."
+  ],
+  "count": 8,
+  "books": [
+   "공통영어1 YBM(김은형)",
+   "공통영어1 YBM(박준언)",
+   "공통영어1 천재(조수경)",
+   "공통영어2 동아(이병민)",
+   "공통영어2 천재(강상구)",
+   "영어I 미래엔(김성연)",
+   "영어I 비상(홍민표)",
+   "영어II 지학사(신상근)"
+  ],
+  "bookCount": 8
+ },
+ {
+  "key": "mandative_should",
+  "label": "제안·요구 동사의 that절",
+  "form": "suggest/insist + that + (should) 동사원형",
+  "aliases": [
+   "목적어 역할을 하는 that절의 「(should+)동사원형」",
+   "「주어+request that+주어+(should) 동사원형」",
+   "suggest that+주어+(should) 동사원형",
+   "당위성을 나타내는 동사의 활용",
+   "suggest (that)+주어+(should+)동사원형",
+   "should의 특별용법",
+   "주장·제안의 동사 (that)+주어+(should+)동사원형"
+  ],
+  "examples": [
+   "Doctors recommend that people eat food containing carbohydrates.",
+   "I suggested that he check if he packed everything.",
+   "Chrissie requested that Klara continue to care about Josie."
+  ],
+  "count": 7,
+  "books": [
+   "공통영어1 NE능률(민병천)",
+   "공통영어2 YBM(김은형)",
+   "공통영어2 미래엔(김성연)",
+   "영어I YBM(박준언)",
+   "영어I 동아(박용예)",
+   "영어I 지학사(신상근)",
+   "영어I 천재(조수경)"
+  ],
+  "bookCount": 7
+ },
+ {
+  "key": "conjunction_condition",
+  "label": "조건의 접속사",
+  "form": "unless / in case / provided that",
+  "aliases": [
+   "조건의 부사절 접속사",
+   "조건절을 이끄는 unless",
+   "조건을 나타내는 접속사",
+   "조건을 나타내는 접속사 in case",
+   "조건을 나타내는 접속사 provided that",
+   "단순 조건문 (if 조건문)",
+   "조건의 부사절을 이끄는 종속접속사 unless"
+  ],
+  "examples": [
+   "As long as his hands are locked on our cart, there is nothing to prove that it’s ours.",
+   "Provided that the factors contributing to water shortages worldwide are not addressed, this story can",
+   "I can’t connect completely with a song unless I understand the meaning of the lyrics."
+  ],
+  "count": 7,
+  "books": [
+   "공통영어2 YBM(박준언)",
+   "공통영어2 비상(홍민표)",
+   "영어I NE능률(오선영)",
+   "영어I 천재(조수경)",
+   "영어II 비상(홍민표)",
+   "영어II 천재(조수경)"
+  ],
+  "bookCount": 6
+ },
+ {
+  "key": "so_that",
+  "label": "so/such ~ that",
+  "form": "so + 형용사 + that / such + 명사 + that",
+  "aliases": [
+   "so ~ that ...",
+   "「so ~ that」 구문",
+   "「so+형용사/부사+that ...」",
+   "결과를 나타내는 so ~ that",
+   "so ~ that … 구문"
+  ],
+  "examples": [
+   "The knot was so complex that no one was able to untie it.",
+   "Tigers were so abundant in Korea that people often called the country the “Land of Tigers.”",
+   "The puzzle was so challenging that it took us hours to solve."
+  ],
+  "count": 6,
+  "books": [
+   "공통영어1 지학사(신상근)",
+   "공통영어2 NE능률(민병천)",
+   "공통영어2 YBM(김은형)",
+   "공통영어2 YBM(박준언)",
+   "영어I NE능률(오선영)",
+   "영어II 미래엔(김성연)"
+  ],
+  "bookCount": 6
+ },
+ {
+  "key": "fake_object_it",
+  "label": "가목적어 it",
+  "form": "make/find/think + it + 형용사 + to V",
+  "aliases": [
+   "가목적어 it",
+   "가목적어 - 진목적어 구문",
+   "가목적어 it ~ 진목적어"
+  ],
+  "examples": [
+   "I find it necessary to express a silver lining.",
+   "Thanks to technology, I find it easy to follow music trends.",
+   "This makes it difficult for them to read."
+  ],
+  "count": 6,
+  "books": [
+   "공통영어1 천재(강상구)",
+   "공통영어2 NE능률(오선영)",
+   "공통영어2 미래엔(김성연)",
+   "영어I YBM(박준언)",
+   "영어II 동아(박용예)",
+   "영어II 지학사(신상근)"
+  ],
+  "bookCount": 6
+ },
+ {
+  "key": "fake_subject_it",
+  "label": "가주어 it, 진주어 to부정사",
+  "form": "It is ~ to V",
+  "aliases": [
+   "it ~ to-v 구문",
+   "가주어 it",
+   "It ~ for … to부정사(구)",
+   "가주어 it과 to부정사의 의미상 주어",
+   "가주어-진주어 구문",
+   "it 가주어 that절 진주어 구문"
+  ],
+  "examples": [
+   "It is natural to feel angry from time to time.",
+   "It is dangerous to ride a bike without safety gear.",
+   "It is such a rewarding experience to help people make positive changes in their lives."
+  ],
+  "count": 6,
+  "books": [
+   "공통영어1 NE능률(민병천)",
+   "공통영어1 NE능률(오선영)",
+   "공통영어1 YBM(박준언)",
+   "공통영어1 동아(이병민)",
+   "공통영어1 미래엔(김성연)",
+   "영어I 미래엔(김성연)"
+  ],
+  "bookCount": 6
+ },
+ {
+  "key": "gerund",
+  "label": "동명사",
+  "form": "V-ing",
+  "aliases": [
+   "동명사의 역할",
+   "동명사",
+   "동명사를 이용한 관용적 표현",
+   "「of+동명사」",
+   "동명사의 의미상의 주어"
+  ],
+  "examples": [
+   "Going to the theater alone was something I had never done before.",
+   "Releasing my feelings onto paper helped relieve my emotional tension.",
+   "I normally start by writing about today’s tasks or worries."
+  ],
+  "count": 6,
+  "books": [
+   "공통영어1 NE능률(오선영)",
+   "공통영어1 YBM(박준언)",
+   "공통영어1 천재(강상구)",
+   "공통영어2 천재(조수경)",
+   "영어I 천재(조수경)",
+   "영어II 천재(강상구)"
+  ],
+  "bookCount": 6
+ },
+ {
+  "key": "ellipsis_be",
+  "label": "부사절의 「주어+be동사」 생략",
+  "form": "when/while + V-ing",
+  "aliases": [
+   "부사절의 「주어+be동사」 생략",
+   "반복되는 문장 성분의 생략",
+   "부사절에서 「주어+be동사」의 생략",
+   "반복되는 동사(구)의 생략"
+  ],
+  "examples": [
+   "While heading east in his car, we saw the scenery changing from city to mountain.",
+   "Though feeling extremely tired, he smiled and welcomed his friends.",
+   "While planning their program, NASA scientists realized that it was impossible to load a sufficient amount of"
+  ],
+  "count": 6,
+  "books": [
+   "공통영어1 비상(홍민표)",
+   "공통영어2 천재(조수경)",
+   "영어I NE능률(오선영)",
+   "영어I 비상(홍민표)",
+   "영어I 지학사(신상근)",
+   "영어I 천재(강상구)"
+  ],
+  "bookCount": 6
+ },
+ {
+  "key": "correlative",
+  "label": "상관접속사",
+  "form": "not only A but also B",
+  "aliases": [
+   "「not only A but also B」",
+   "상관접속사",
+   "상관 접속사 「not only A but also B」",
+   "상관접속사 not A but B",
+   "either A or B"
+  ],
+  "examples": [
+   "AI may lead to changes not only in the art world but also in the music industry.",
+   "Minsu not only sings well but also plays the guitar beautifully.",
+   "Both people succeeded not despite adversity but thanks to it."
+  ],
+  "count": 6,
+  "books": [
+   "공통영어1 NE능률(민병천)",
+   "공통영어2 YBM(박준언)",
+   "공통영어2 지학사(신상근)",
+   "영어I 비상(홍민표)",
+   "영어I 지학사(신상근)",
+   "영어II NE능률(오선영)"
+  ],
+  "bookCount": 6
+ },
+ {
+  "key": "reflexive",
+  "label": "재귀대명사",
+  "form": "-self / -selves",
+  "aliases": [
+   "재귀대명사의 강조 용법",
+   "재귀대명사의 강조용법",
+   "재귀대명사"
+  ],
+  "examples": [
+   "Street dance involves interactions with audience members and between the dancers themselves.",
+   "They had each survived whooping cough as children themselves and remembered the severe pain of the",
+   "In the studio, the beggar himself was standing on a raised platform."
+  ],
+  "count": 6,
+  "books": [
+   "공통영어2 지학사(신상근)",
+   "영어I YBM(박준언)",
+   "영어I 천재(강상구)",
+   "영어I 천재(조수경)",
+   "영어II NE능률(오선영)",
+   "영어II 미래엔(김성연)"
+  ],
+  "bookCount": 6
+ },
+ {
+  "key": "relative_pronoun",
+  "label": "관계대명사",
+  "form": "who / which / that",
+  "aliases": [
+   "주격 관계대명사 that[who]",
+   "관계대명사",
+   "앞 문장 전체를 받는 관계대명사 which",
+   "「주격 관계대명사+be동사」 생략"
+  ],
+  "examples": [
+   "In your brain, there is a part that is responsible for solving problems.",
+   "Who will be the person that[who] takes the first step on Mars?",
+   "They set up a device which required two individuals to pull both ends of a rope at the same time."
+  ],
+  "count": 5,
+  "books": [
+   "공통영어1 NE능률(민병천)",
+   "공통영어1 미래엔(김성연)",
+   "공통영어1 천재(강상구)",
+   "공통영어2 비상(홍민표)",
+   "공통영어2 지학사(신상근)"
+  ],
+  "bookCount": 5
+ },
+ {
+  "key": "pro_verb_do",
+  "label": "대동사 do",
+  "form": "do / does / did",
+  "aliases": [
+   "대동사 do+so",
+   "대동사 do",
+   "대동사 do를 이용한 표현"
+  ],
+  "examples": [
+   "By doing so, she made matters worse because she has to sit through and focus on her difficult science class.",
+   "The doctor recommended going for a jog, and I decided to do so to enhance my well-being.",
+   "Traditional livestock farming emits significantly more greenhouse gases than the cultured meat industry does."
+  ],
+  "count": 5,
+  "books": [
+   "영어I NE능률(오선영)",
+   "영어I YBM(박준언)",
+   "영어I 동아(박용예)",
+   "영어II 비상(홍민표)",
+   "영어II 지학사(신상근)"
+  ],
+  "bookCount": 5
+ },
+ {
+  "key": "noun_clause_whether",
+  "label": "명사절 whether/if",
+  "form": "whether/if + 절",
+  "aliases": [
+   "명사절 접속사 whether (or not)",
+   "if/whether 간접의문문",
+   "명사절을 이끄는 접속사 if",
+   "간접화법에 쓰이는 whether[if]"
+  ],
+  "examples": [
+   "They tell you about the material of the item and whether it can be recycled or not.",
+   "I'm not sure whether changing my major is the right decision or not.",
+   "Sensing his discomfort, Arias asked if Picasso would prefer to get haircuts and shaves at home."
+  ],
+  "count": 5,
+  "books": [
+   "공통영어1 동아(이병민)",
+   "영어I 미래엔(김성연)",
+   "영어I 비상(홍민표)",
+   "영어I 지학사(신상근)",
+   "영어II 천재(조수경)"
+  ],
+  "bookCount": 5
+ },
+ {
+  "key": "relative_compound",
+  "label": "복합관계사",
+  "form": "whatever / whoever / whenever",
+  "aliases": [
+   "복합관계부사 however",
+   "복합관계대명사",
+   "복합관계부사"
+  ],
+  "examples": [
+   "However well you make the replica, I don’t think I will be able to accept it.",
+   "Whatever you may expect, this is beyond your imagination.",
+   "Whatever you do, we will be here to support you."
+  ],
+  "count": 5,
+  "books": [
+   "공통영어2 YBM(김은형)",
+   "공통영어2 천재(조수경)",
+   "영어I 동아(박용예)",
+   "영어II NE능률(오선영)",
+   "영어II YBM(박준언)"
+  ],
+  "bookCount": 5
+ },
+ {
+  "key": "subjunctive_asif",
+  "label": "as if 가정법",
+  "form": "as if + 과거/과거완료",
+  "aliases": [
+   "as if+가정법 과거",
+   "as if 가정법 과거",
+   "as if 가정법",
+   "「as if」 가정법"
+  ],
+  "examples": [
+   "I felt as if people from the past were looking over the shoulders of the old men.",
+   "Eric looks as if he owned the whole world these days.",
+   "Then, they carefully roll the seed away as if it were antelope dung."
+  ],
+  "count": 4,
+  "books": [
+   "공통영어1 미래엔(김성연)",
+   "영어I YBM(박준언)",
+   "영어I 천재(강상구)",
+   "영어II 천재(조수경)"
+  ],
+  "bookCount": 4
+ },
+ {
+  "key": "with_participle",
+  "label": "with + 명사 + 분사",
+  "form": "with + 명사 + V-ing/p.p.",
+  "aliases": [
+   "with+(대)명사+분사",
+   "「with+명사+분사」",
+   "「with+명사+분사」 구문",
+   "「with+명사+분사」구문"
+  ],
+  "examples": [
+   "The sentiment is shared by many, with coffee shops springing up on every street corner.",
+   "On Sports Day, I ran as fast as I could, with all my classmates encouraging me.",
+   "With the planet becoming warmer, sea levels are rising."
+  ],
+  "count": 4,
+  "books": [
+   "공통영어1 미래엔(김성연)",
+   "공통영어2 NE능률(민병천)",
+   "영어I YBM(박준언)",
+   "영어I 동아(박용예)"
+  ],
+  "bookCount": 4
+ },
+ {
+  "key": "subjunctive_without",
+  "label": "without/but for 가정법",
+  "form": "Without ~, 주어 + would …",
+  "aliases": [
+   "Without 가정법",
+   "without ~, 주어+would ...",
+   "without 가정법 과거"
+  ],
+  "examples": [
+   "Without you and all your friends, we humans wouldn’t be able to get enough oxygen.",
+   "Without the effects of gravity, products that require a uniform quality like cosmetics would be easier to mix.",
+   "Without new resources and technology, the Industrial Revolution of the 19th century would not have led to"
+  ],
+  "count": 4,
+  "books": [
+   "공통영어1 NE능률(오선영)",
+   "공통영어2 비상(홍민표)",
+   "영어II 미래엔(김성연)",
+   "영어II 지학사(신상근)"
+  ],
+  "bookCount": 4
+ },
+ {
+  "key": "subjunctive_past_perfect",
+  "label": "가정법 과거완료",
+  "form": "If + had p.p., would have p.p.",
+  "aliases": [
+   "가정법 과거완료",
+   "가정법 과거/ 가정법 과거완료"
+  ],
+  "examples": [
+   "If they had done these things, they would likely have suspected that it was not right.",
+   "If microscopes had not been invented, we might not have discovered bacteria.",
+   "If they had given up on their idea, these achievements could not have occurred."
+  ],
+  "count": 4,
+  "books": [
+   "공통영어1 YBM(김은형)",
+   "공통영어2 YBM(박준언)",
+   "공통영어2 천재(강상구)",
+   "영어I 동아(박용예)"
+  ],
+  "bookCount": 4
+ },
+ {
+  "key": "indirect_question",
+  "label": "간접의문문",
+  "form": "의문사 + 주어 + 동사",
+  "aliases": [
+   "간접 의문문",
+   "간접의문문"
+  ],
+  "examples": [
+   "Can you explain how long we should wait after eating?",
+   "Let’s talk about what caused the accident.",
+   "It is important that we know what false information is."
+  ],
+  "count": 4,
+  "books": [
+   "공통영어1 NE능률(민병천)",
+   "공통영어1 YBM(김은형)",
+   "영어I 동아(박용예)",
+   "영어II 미래엔(김성연)"
+  ],
+  "bookCount": 4
+ },
+ {
+  "key": "causative_verb",
+  "label": "사역동사 목적격보어",
+  "form": "make/have/let + 목적어 + 동사원형",
+  "aliases": [
+   "사역동사의 목적격보어",
+   "사역동사+목적어+목적격 보어(동사원형)",
+   "사역동사와 목적격 보어",
+   "사역동사의 수동태"
+  ],
+  "examples": [
+   "This experience made me realize that I sometimes enjoy doing things alone.",
+   "They are “feel-good” chemicals because they can make you feel better.",
+   "Community mapping helps people share valuable experiences."
+  ],
+  "count": 4,
+  "books": [
+   "공통영어1 NE능률(오선영)",
+   "공통영어1 지학사(신상근)",
+   "공통영어1 천재(강상구)",
+   "영어I 천재(조수경)"
+  ],
+  "bookCount": 4
+ },
+ {
+  "key": "wh_noun_clause",
+  "label": "wh- 명사절",
+  "form": "what/how + 절",
+  "aliases": [
+   "how+형용사/부사+주어+동사",
+   "주어/목적어/보어로 쓰이는 wh-명사절",
+   "의문사+to부정사"
+  ],
+  "examples": [
+   "I was shocked to see how thin Nani Tama was.",
+   "The travelers didn’t know how far the mountain shelter was, but they kept walking.",
+   "Only you know where you started and how much effort you’ve put in."
+  ],
+  "count": 3,
+  "books": [
+   "공통영어1 미래엔(김성연)",
+   "공통영어1 비상(홍민표)",
+   "영어I NE능률(오선영)"
+  ],
+  "bookCount": 3
+ },
+ {
+  "key": "tense_past_perfect",
+  "label": "과거완료",
+  "form": "had + p.p.",
+  "aliases": [
+   "과거완료 시제",
+   "과거완료"
+  ],
+  "examples": [
+   "I returned to the Cape of Good Hope, South Africa, where I had spent my childhood.",
+   "A short while later, I saw that the wound had healed.",
+   "Some dehydrated birds had fallen out of the sky and were brought to the center."
+  ],
+  "count": 3,
+  "books": [
+   "공통영어1 비상(홍민표)",
+   "공통영어2 미래엔(김성연)",
+   "영어I YBM(박준언)"
+  ],
+  "bookCount": 3
+ },
+ {
+  "key": "relative_prep",
+  "label": "전치사 + 관계대명사",
+  "form": "전치사 + which/whom",
+  "aliases": [
+   "전치사+관계대명사"
+  ],
+  "examples": [
+   "He pursued a world in which all products and environments were designed to be artistic and usable by",
+   "Handles of various lengths are provided, another method by which universal design is implemented to",
+   "The Sainte-Chapelle and Nasir al-Mulk mosque amaze their visitors with brilliant glass window panels through"
+  ],
+  "count": 3,
+  "books": [
+   "영어I YBM(박준언)",
+   "영어I 비상(홍민표)",
+   "영어I 천재(조수경)"
+  ],
+  "bookCount": 3
+ },
+ {
+  "key": "fifth_form_to",
+  "label": "5형식 목적격보어 to부정사",
+  "form": "동사 + 목적어 + to V",
+  "aliases": [
+   "5형식 동사+목적어+to부정사",
+   "동사+목적어+to부정사"
+  ],
+  "examples": [
+   "Molly seems to be adapting well, and I expect her to get better soon.",
+   "His friends encouraged him to attend the music festival.",
+   "Van Gogh’s medical condition forced him to see mainly yellow."
+  ],
+  "count": 2,
+  "books": [
+   "공통영어2 미래엔(김성연)",
+   "공통영어2 비상(홍민표)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "as_many_as",
+  "label": "as many[much] + 명사 + as",
+  "form": "as many + 복수명사 + as",
+  "aliases": [
+   "as+many[much] 명사+as",
+   "「as many+복수 명사+as」"
+  ],
+  "examples": [
+   "These dots will be a representation of who you are, so make as many dots as you can.",
+   "Imagine yourself in as many futures as you can.",
+   "Instead, they let people pick as many grapes as they wanted as long as they put five francs in the box."
+  ],
+  "count": 2,
+  "books": [
+   "공통영어2 비상(홍민표)",
+   "영어I 천재(조수경)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "cannot_too",
+  "label": "cannot ~ too / enough",
+  "form": "cannot + 동사 + too",
+  "aliases": [
+   "cannot … enough",
+   "cannot ~ too much"
+  ],
+  "examples": [
+   "We cannot emphasize enough how beautiful the temples and monuments surrounded by bright lights are!",
+   "I cannot emphasize enough the importance of reading.",
+   "Hip-hoppers cannot have too much respect for these heroes."
+  ],
+  "count": 2,
+  "books": [
+   "공통영어2 천재(조수경)",
+   "영어II YBM(박준언)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "emotion_to_one",
+  "label": "to one's + 감정명사",
+  "form": "to one's surprise",
+  "aliases": [
+   "to one’s+감정명사",
+   "「to one’s+감정 명사」"
+  ],
+  "examples": [
+   "To my surprise, the octopus rode on my hand all the way to the top.",
+   "To my amazement, a little arm started to grow back.",
+   "Naturally, she fished the offending object out, and to her amazement, she found that the tea had dissolved"
+  ],
+  "count": 2,
+  "books": [
+   "공통영어1 비상(홍민표)",
+   "영어II 천재(강상구)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "subjunctive_past",
+  "label": "가정법 과거",
+  "form": "If + 과거동사, would + 동사원형",
+  "aliases": [
+   "가정법 과거",
+   "가정법을 포함하는 구문"
+  ],
+  "examples": [
+   "If algorithms did not exist, we would have a harder time searching for what we want.",
+   "If I had more time, I could spend a few more days in Rome.",
+   "If it had not been for those participants, Schawinski couldn’t have classified that many images."
+  ],
+  "count": 2,
+  "books": [
+   "공통영어2 동아(이병민)",
+   "영어II NE능률(오선영)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "infinitive_independent",
+  "label": "독립부정사",
+  "form": "to be sure, so to speak",
+  "aliases": [
+   "독립부정사"
+  ],
+  "examples": [
+   "To be sure, the subscription economy is a popular economic model nowadays.",
+   "To come to the point, consumers receive a personalized experience that prioritizes their individual skin",
+   "The processes we rely on to produce, transport, and store meals and raw ingredients, not to mention the"
+  ],
+  "count": 2,
+  "books": [
+   "영어I 천재(강상구)",
+   "영어II YBM(박준언)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "purpose_so_that",
+  "label": "목적의 so that",
+  "form": "so that + 주어 + can",
+  "aliases": [
+   "so that ~ can ...",
+   "목적의 접속사 so (that)"
+  ],
+  "examples": [
+   "Citizen scientists collect, classify, or analyze data so that scientists can use it for research.",
+   "Students donated money to the charity so that they could help those in need.",
+   "Soccer teams have introduced virtual reality platforms so that players can practice headers."
+  ],
+  "count": 2,
+  "books": [
+   "영어I 동아(박용예)",
+   "영어I 지학사(신상근)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "parallel",
+  "label": "병렬구조",
+  "form": "and/or/but로 이은 같은 꼴",
+  "aliases": [
+   "병렬 구조"
+  ],
+  "examples": [
+   "Reusable cups not only have an appealing appearance but (also) preserve the taste of the coffee.",
+   "They could find their cat neither in the living room nor in the kitchen.",
+   "Alan Turing was famous for developing the idea of computer memory and making the first design of an"
+  ],
+  "count": 2,
+  "books": [
+   "공통영어1 미래엔(김성연)",
+   "영어I 미래엔(김성연)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "passive",
+  "label": "수동태",
+  "form": "be + p.p.",
+  "aliases": [
+   "과거완료 수동태",
+   "5형식 문장의 수동태"
+  ],
+  "examples": [
+   "The cause of the disease had been identified in 1906, but the vaccines that had been developed were",
+   "We are made to wear clothes throughout our lives.",
+   "Gradually, the restrictions on who could wear and use silk were eased, and more and more people could be"
+  ],
+  "count": 2,
+  "books": [
+   "영어II NE능률(오선영)",
+   "영어II 천재(강상구)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "infinitive_perfect",
+  "label": "완료부정사",
+  "form": "to have + p.p.",
+  "aliases": [
+   "seem to＋완료부정사",
+   "완료부정사"
+  ],
+  "examples": [
+   "Water seems to have been overlooked because it doesn’t seem as exciting as gold.",
+   "The woman seemed to have understood the rules of the game.",
+   "The 1918 influenza pandemic is estimated to have killed 50 to 100 million people."
+  ],
+  "count": 2,
+  "books": [
+   "공통영어2 비상(홍민표)",
+   "영어II YBM(박준언)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "gerund_prep",
+  "label": "전치사 + 동명사",
+  "form": "전치사 + V-ing",
+  "aliases": [
+   "전치사+동명사 구문",
+   "전치사 + -ing"
+  ],
+  "examples": [
+   "We could reward the investors by sending them jars of organic jam!",
+   "My dog is afraid of swimming in the pool.",
+   "The boy does not feel like taking up the challenge."
+  ],
+  "count": 2,
+  "books": [
+   "공통영어1 NE능률(민병천)",
+   "공통영어1 YBM(김은형)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "conjunction_as",
+  "label": "접속사 as / as long as",
+  "form": "as + 절",
+  "aliases": [
+   "접속사 as long as",
+   "접속사 as의 쓰임"
+  ],
+  "examples": [
+   "As long as Big Brother is in power, the people of Oceania will never be free.",
+   "As long as you are happy and healthy, nothing else matters.",
+   "As millennials aged and got used to their roles, they began to be increasingly recognized as diligent workers."
+  ],
+  "count": 2,
+  "books": [
+   "공통영어1 동아(이병민)",
+   "영어I 미래엔(김성연)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "perception_verb",
+  "label": "지각동사 목적격보어",
+  "form": "see/hear + 목적어 + 동사원형 / V-ing",
+  "aliases": [
+   "지각동사의 목적격 보어",
+   "지각동사"
+  ],
+  "examples": [
+   "I heard a voice growing louder in my head, saying “Go for it!”",
+   "The audience watched the dancer moving gracefully across the stage.",
+   "We even saw some baby penguins come to greet their parents."
+  ],
+  "count": 2,
+  "books": [
+   "공통영어1 동아(이병민)",
+   "영어II 동아(박용예)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "tense_perfect",
+  "label": "현재완료",
+  "form": "have + p.p.",
+  "aliases": [
+   "현재완료진행 시제"
+  ],
+  "examples": [
+   "Over the years, street dance has been growing in popularity worldwide.",
+   "We’ve been exploring the basics of economics.",
+   "There are also a few who have already been venturing into stock trading."
+  ],
+  "count": 2,
+  "books": [
+   "공통영어2 지학사(신상근)",
+   "영어I YBM(박준언)"
+  ],
+  "bookCount": 2
+ },
+ {
+  "key": "be_being_adj",
+  "label": "be being + 형용사",
+  "form": "be being + 형용사/명사",
+  "aliases": [
+   "「be being+형용사/명사」"
+  ],
+  "examples": [
+   "As a result, drivers were being more careful at intersections, which reduced accidents and elevated the safety",
+   "Furthermore, because a default also gives the impression that someone is recommending this choice, if"
+  ],
+  "count": 1,
+  "books": [
+   "영어II 천재(강상구)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "pro_verb_do_so",
+  "label": "do so",
+  "form": "do so / do it",
+  "aliases": [
+   "동사구를 대신하는 do so"
+  ],
+  "examples": [
+   "He signed up for the soccer club just because others did so.",
+   "If I can help you, I will be more than happy to do so."
+  ],
+  "count": 1,
+  "books": [
+   "공통영어1 천재(조수경)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "help_bare",
+  "label": "help + 목적어 + 동사원형",
+  "form": "help + 목적어 + (to) V",
+  "aliases": [
+   "help+목적어+동사원형"
+  ],
+  "examples": [
+   "She started looking for a coach in Berlin who could help her reach her full potential."
+  ],
+  "count": 1,
+  "books": [
+   "영어I NE능률(오선영)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "not_a_but_b",
+  "label": "not A but B",
+  "form": "not A but B",
+  "aliases": [
+   "not A but B"
+  ],
+  "examples": [
+   "The Korean homi is a traditional farming tool that has gotten a lot of attention, not in Korea but in countries",
+   "Love looks not with the eyes but with the mind."
+  ],
+  "count": 1,
+  "books": [
+   "공통영어2 천재(조수경)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "comparative_the_the",
+  "label": "the + 비교급, the + 비교급",
+  "form": "The 비교급 …, the 비교급 …",
+  "aliases": [
+   "「the+비교급~, the+비교급 ...」구문"
+  ],
+  "examples": [
+   "The more people do something, the more likely we are to follow the act."
+  ],
+  "count": 1,
+  "books": [
+   "영어I 지학사(신상근)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "infinitive_agent",
+  "label": "to부정사 의미상 주어",
+  "form": "for + 목적격 + to V",
+  "aliases": [
+   "동명사의 의미상 주어"
+  ],
+  "examples": [
+   "Filling window seats first gets rid of the trouble of aisle seat passengers having to stand up and move into"
+  ],
+  "count": 1,
+  "books": [
+   "영어II 지학사(신상근)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "infinitive_adj",
+  "label": "to부정사의 형용사적 용법",
+  "form": "명사 + to V",
+  "aliases": [
+   "to부정사의 형용사적 용법"
+  ],
+  "examples": [
+   "I needed to find a way to bring psychiatry into the community."
+  ],
+  "count": 1,
+  "books": [
+   "공통영어1 NE능률(오선영)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "all_subject_is",
+  "label": "「all + 주어 + 동사 + is ~」",
+  "form": "All you need is ~",
+  "aliases": [
+   "「all+주어+동사+is+~」"
+  ],
+  "examples": [
+   "To start the process, all he needs to do is prepare a plain object, a piece of paper, and a light.",
+   "To make such connections, all you need is your imaginative power."
+  ],
+  "count": 1,
+  "books": [
+   "영어I 천재(강상구)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "noun_clause_that",
+  "label": "명사절 접속사 that",
+  "form": "that + 완전한 절",
+  "aliases": [
+   "명사절을 이끄는 접속사 that"
+  ],
+  "examples": [
+   "I noticed that a family of birds has made a nest in your branches."
+  ],
+  "count": 1,
+  "books": [
+   "공통영어1 NE능률(오선영)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "comparative",
+  "label": "비교급",
+  "form": "비교급 + than",
+  "aliases": [
+   "비교급 강조 표현"
+  ],
+  "examples": [
+   "Global warming has been progressing much faster than scientists originally predicted."
+  ],
+  "count": 1,
+  "books": [
+   "공통영어2 지학사(신상근)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "agreement",
+  "label": "수일치",
+  "form": "주어에 맞춘 동사",
+  "aliases": [
+   "수의 일치"
+  ],
+  "examples": [
+   "One of the most promising ways to reduce carbon in the atmosphere is to use the “good” carbon on Earth.",
+   "About 10 percent of the world’s energy comes from renewable sources."
+  ],
+  "count": 1,
+  "books": [
+   "영어II 미래엔(김성연)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "tense_condition",
+  "label": "시간·조건 부사절의 현재시제",
+  "form": "when/if + 현재동사",
+  "aliases": [
+   "조건 부사절에서의 시제"
+  ],
+  "examples": [
+   "Alarming numbers will keep increasing if producers maintain the old system."
+  ],
+  "count": 1,
+  "books": [
+   "공통영어1 YBM(김은형)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "conjunction_contrast",
+  "label": "접속사 while / whereas",
+  "form": "while / whereas + 절",
+  "aliases": [
+   "접속사 while, whereas"
+  ],
+  "examples": [
+   "Some people love this combination, while others can’t seem to stand it.",
+   "Many people enjoy salty and sweet flavor combinations, whereas some others don’t."
+  ],
+  "count": 1,
+  "books": [
+   "공통영어1 비상(홍민표)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "conjunction_vs_prep",
+  "label": "접속사와 전치사 구별",
+  "form": "절이면 접속사, 명사면 전치사",
+  "aliases": [
+   "접속사 vs. 전치사"
+  ],
+  "examples": [
+   "Although he became a free man, he still faced racial discrimination.",
+   "Despite challenges in their lives, the artists never gave up on their art."
+  ],
+  "count": 1,
+  "books": [
+   "공통영어2 미래엔(김성연)"
+  ],
+  "bookCount": 1
+ },
+ {
+  "key": "reported_speech",
+  "label": "화법 전환",
+  "form": "ask if / tell + 목적어 + to V",
+  "aliases": [
+   "의문문의 화법 전환 (ask if)"
+  ],
+  "examples": [
+   "She eventually met Sven Spannekrebs and asked if he could be her coach."
+  ],
+  "count": 1,
+  "books": [
+   "영어I NE능률(오선영)"
+  ],
+  "bookCount": 1
+ }
+]
