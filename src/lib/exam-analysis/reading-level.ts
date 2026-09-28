@@ -15,12 +15,14 @@
 
 /** 영어 문장으로 끊는다. 약어(Mr. Dr. etc.)에서 잘못 끊기지 않게 한다. */
 export function splitSentences(text: string): string[] {
+  // 약어의 마침표를 잠깐 다른 글자로 바꿔 둔다. 제어 문자는 쓰지 않는다(린트가 막는다).
+  const DOT = "․"; // ONE DOT LEADER — 보통 글에는 나오지 않는다
   const guarded = text
-    .replace(/\b(Mr|Mrs|Ms|Dr|Prof|St|vs|etc|e\.g|i\.e)\./gi, (m) => m.replace(".", "\u0001"))
-    .replace(/\b([A-Z])\./g, "$1\u0001");
+    .replace(/\b(Mr|Mrs|Ms|Dr|Prof|St|vs|etc|e\.g|i\.e)\./gi, (m) => m.replace(".", DOT))
+    .replace(/\b([A-Z])\./g, `$1${DOT}`);
   return guarded
     .split(/(?<=[.!?])\s+/)
-    .map((s) => s.replace(/\u0001/g, ".").trim())
+    .map((s) => s.split(DOT).join(".").trim())
     .filter((s) => /[A-Za-z]/.test(s));
 }
 
@@ -130,7 +132,8 @@ export function levelBriefFor(level: {
   if (level.passageWords) lines.push(`지문 길이: 약 ${Math.round(level.passageWords)}낱말`);
   if (level.sentenceWords) lines.push(`평균 문장 길이: ${level.sentenceWords}낱말`);
   if (level.choiceWords) lines.push(`영어 선택지 평균 길이: ${level.choiceWords}낱말`);
-  if (level.lexile) lines.push(`추정 렉사일: 약 ${level.lexile}L`);
+  const band = readingBand(level.lexile);
+  if (band) lines.push(`읽기 수준: ${band} 정도`);
   if (level.vocabLevel) lines.push(`어휘 수준: ${level.vocabLevel}`);
   if (lines.length === 0) return "";
   return [
@@ -179,4 +182,20 @@ export function measureExamPages(pageTexts: string[]): {
     passage: measureText(passageLines.join(" ")),
     choice: measureChoices(choiceLines),
   };
+}
+
+/**
+ * 어림한 값을 선생님이 쓰는 말로 바꾼다.
+ *
+ * 선생님 말(2026-09-28): "렉사일이 별로면 빼도 돼."
+ * 숫자를 그대로 내보이면 정식 렉사일로 오해하기 쉽다. 재는 것은 그대로 두되,
+ * 화면과 프롬프트에는 학년 수준으로만 적는다.
+ */
+export function readingBand(lexile: number | null | undefined): string | null {
+  if (!lexile) return null;
+  if (lexile < 800) return "중3 이하";
+  if (lexile < 950) return "고1";
+  if (lexile < 1100) return "고2";
+  if (lexile < 1250) return "수능";
+  return "수능 이상";
 }

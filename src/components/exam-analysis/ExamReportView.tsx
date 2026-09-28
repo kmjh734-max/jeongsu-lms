@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 import { ExamDeleteButton } from "@/components/exam-analysis/ExamDeleteButton";
+import { readingBand } from "@/lib/exam-analysis/reading-level";
 import {
   EXAM_CATEGORIES,
   EXAM_LEVELS,
@@ -399,16 +400,16 @@ export function ExamReportView({
                   {analysis.vocab_level ? (
                     <span>어휘 수준 <b>{analysis.vocab_level}</b></span>
                   ) : null}
-                  {analysis.lexile ? (
-                    <span>추정 렉사일 <b>약 {analysis.lexile}L</b></span>
+                  {readingBand(analysis.lexile) ? (
+                    <span>읽기 수준 <b>{readingBand(analysis.lexile)} 정도</b></span>
                   ) : null}
                 </div>
                 {analysis.level_summary ? (
                   <p className="mt-[3px]">{analysis.level_summary}</p>
                 ) : null}
                 <p className="mt-[5px] text-[10.5px]" style={{ color: SOFT }}>
-                  문장 길이와 보기 길이는 시험지 글자를 세어 잰 값입니다. 렉사일은 정식 측정값이 아니라
-                  문장 길이와 낱말 난도로 어림한 값입니다. 동형모의고사를 만들 때 이 수준에 맞춥니다.
+                  문장 길이와 보기 길이는 시험지 글자를 세어 잰 값입니다. 읽기 수준은 문장 길이와
+                  낱말 난도로 어림한 것이라 참고용입니다. 동형모의고사를 만들 때 이 수준에 맞춥니다.
                 </p>
               </div>
             ) : null}

@@ -24,6 +24,7 @@ export function MockPassagePickerModal({
   onPick,
   onClose,
   initialSource = "mock",
+  allowTextbook = false,
 }: {
   /** 더 넣을 수 있는 지문 수 (없으면 제한 없음) */
   max?: number;
@@ -31,8 +32,12 @@ export function MockPassagePickerModal({
   onClose: () => void;
   /** 열자마자 보여 줄 갈래 */
   initialSource?: Source;
+  /** 교과서 본문을 열어 준 학원인지 — 아니면 교과서 갈래를 아예 안 보인다 */
+  allowTextbook?: boolean;
 }) {
-  const [source, setSource] = useState<Source>(initialSource);
+  const [source, setSource] = useState<Source>(
+    initialSource === "textbook" && !allowTextbook ? "mock" : initialSource,
+  );
   const [books, setBooks] = useState<BookSummary[] | null>(null);
   const [bookKey, setBookKey] = useState<string | null>(null);
   /** 과목 접기·펼치기 (공통영어1·공통영어2·영어1…) */
@@ -140,7 +145,9 @@ export function MockPassagePickerModal({
                 ? "학력평가·모의평가 영어 지문 원문을 번호로 골라 넣어요. 여러 시험에서 섞어 골라도 됩니다."
                 : "우리 학원 교과서 본문을 과·본문 단위로 골라 넣어요. 교재에 실린 해석도 함께 들어갑니다."}
             </p>
-            <div className="mt-2 inline-flex rounded-lg bg-slate-100 p-1 text-sm font-semibold">
+            <div
+              className={`mt-2 inline-flex rounded-lg bg-slate-100 p-1 text-sm font-semibold ${allowTextbook ? "" : "hidden"}`}
+            >
               {([["mock", "모의고사"], ["textbook", "교과서"]] as const).map(([k, label]) => (
                 <button
                   key={k}
