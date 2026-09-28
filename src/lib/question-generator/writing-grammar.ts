@@ -27,12 +27,7 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
     hint: "주어가 동작을 당하는 쪽이면 be동사 뒤에 과거분사를 쓴다.",
   },
   {
-    label: "시간·조건 부사절의 현재시제",
-    form: "when/if + 현재동사",
-    hint: "when·if·before가 이끄는 부사절은 미래의 일이라도 현재시제로 쓴다.",
-  },
-  {
-    label: "당위의 should",
+    label: "제안·요구 동사의 that절",
     form: "suggest/insist + that + (should) 동사원형",
     hint: "요구·제안·주장 동사의 that절에는 동사원형을 쓴다(should는 생략 가능).",
   },
@@ -88,11 +83,6 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
     hint: "접속사와 주어를 없애고 분사로 줄인 부사구.",
   },
   {
-    label: "감정분사",
-    form: "-ing / -ed",
-    hint: "감정을 일으키는 쪽은 V-ing, 느끼는 쪽은 과거분사를 쓴다.",
-  },
-  {
     label: "명사 수식 분사",
     form: "V-ing / p.p. + 명사",
     hint: "꾸밈받는 명사가 하는 쪽이면 V-ing, 당하는 쪽이면 과거분사.",
@@ -111,11 +101,6 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
     label: "지각동사",
     form: "see/hear/watch + 목적어 + 동사원형 / V-ing",
     hint: "보고 듣는 동사 뒤에는 동사원형이나 -ing가 온다.",
-  },
-  {
-    label: "동명사 목적어",
-    form: "enjoy/avoid/finish + V-ing",
-    hint: "이 동사들은 목적어로 동명사만 받는다.",
   },
   {
     label: "가주어 it, 진주어 to부정사",
