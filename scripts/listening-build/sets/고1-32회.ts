@@ -129,7 +129,7 @@ export const spec: SetSpec = {
       lines: [
         ["M", "Chaerin, is this the art room you moved into?"],
         ["W", "Yes, we finished carrying everything over last week."],
-        ["M", "And I count two stools in front of the easel."],
+        ["M", "I count two stools in front of the easel."],
         ["W", "There are three. One is standing behind the easel."],
         ["M", "There's a tall wooden easel at the left end."],
         ["W", "That one belonged to the teacher before me."],
