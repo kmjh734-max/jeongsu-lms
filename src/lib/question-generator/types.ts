@@ -127,6 +127,12 @@ export interface GenerationRequestConfig {
    * 선생님 요청(2026-09-28): 그 문법을 무작위로 해도 되고 정해 둔 범위로 해도 좋다.
    */
   grammarScope?: string[];
+  /**
+   * 지정 문법으로 어떻게 만들지 (선생님 요청 2026-09-29).
+   * - "passage": 그 어법이 이미 쓰인 지문 문장으로 만든다. 없으면 그 문항은 건너뛴다.
+   * - "paraphrase": 중요한 문장을 그 어법으로 고쳐 써서 만든다(기본).
+   */
+  grammarWritingMode?: "passage" | "paraphrase";
   forceGenerateDespiteWarnings?: boolean;
   /** 자료함(수업자료)에서 지문을 골라 만든 경우 그 지문 id. 있으면 자료함 변형문제 탭에 보인다. */
   lessonProjectIds?: string[];

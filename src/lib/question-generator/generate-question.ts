@@ -49,6 +49,8 @@ import {
   findWritingGrammar,
   objectParticle,
   WRITING_GRAMMAR_LIST,
+  WRITING_GRAMMARS,
+  type WritingGrammar,
 } from "@/lib/question-generator/writing-grammar";
 import { tokenizeAnswerPhrase } from "@/lib/question-generator/word-order-normalize";
 
@@ -86,7 +88,11 @@ function paraphraseChoiceRules(
  */
 const GRAMMAR_FOR_WRITING = WRITING_GRAMMAR_LIST;
 
-function typeRules(option: QuestionTypeOption): string {
+function typeRules(
+  option: QuestionTypeOption,
+  /** 지정 문법을 지문에서 찾을지, 고쳐 써서 만들지 (선생님 요청 2026-09-29) */
+  writingMode: "passage" | "paraphrase" = "paraphrase"
+): string {
   const code = option.aingkaCode || "";
   const en = option.choiceLanguage === "english";
   const paraphrase = paraphraseChoiceRules(option.choiceLanguage);
@@ -443,15 +449,32 @@ ${choiceExplanationRules()}
          * 선생님 지적(2026-09-28): 새 유형만 모양이 달라 한 줄 글로 붙어 나왔다.
          * 같은 칸 이름을 쓰면 기존 인쇄 틀(상자 세 개 + 답란)이 그대로 그려 준다.
          */
-        return `서술형 · 정해진 어법을 써서 영작하기:
-- 먼저 지문에서 <b>어법 하나</b>를 고른다. 아래 목록에 있는 것만 쓴다.
+        /*
+         * 선생님 요청(2026-09-29): 두 가지를 버튼으로 나눈다.
+         * - 지문 그대로: 그 어법이 이미 쓰인 문장을 찾아 낸다. 없으면 건너뛴다.
+         * - 고쳐 쓰기: 중요한 문장을 그 어법으로 바꿔 써서 낸다.
+         */
+        const byPassage = writingMode === "passage";
+        return `서술형 · ${byPassage ? "정해진 어법이 쓰인 문장으로" : "정해진 어법으로 고쳐 써서"} 영작하기:
+- 쓸 어법은 아래 목록에 있는 것만 쓴다. [이번 문항에 쓸 어법]이 따로 주어졌으면 그것을 쓴다.
 ${GRAMMAR_FOR_WRITING}
-- 고른 어법이 실제로 쓰인 지문 문장 하나를 정답 문장으로 삼는다.
-  그 문장이 너무 짧거나(6낱말 미만) 어법이 분명히 드러나지 않으면 다른 문장을 고른다.
-- passageModified = 영어 지문. <b>정답 문장이 있던 자리를 ⓐ__________ 빈칸으로 바꾼다.</b>
-  · 정답 문장은 지문에서 <b>완전히 지운다</b>. 일부라도 남기면 안 된다(베껴 쓰게 된다).
+${
+  byPassage
+    ? `- 지문에서 <b>그 어법이 실제로 쓰인 문장</b>을 찾는다. 그 문장이 정답이다.
+  · 지문을 고쳐 쓰지 않는다. 원문 문장 그대로 쓴다.
+  · 그 어법이 쓰인 문장이 없거나 6낱말 미만이면 {"skip":true,"reason":"지문에 그 어법이 없음"}.`
+    : `- 지문에서 <b>핵심을 담은 문장 하나</b>를 고른다(주장·결과·정의·대비). 사소한 연결 문장은 고르지 않는다.
+  6낱말 미만이면 다른 문장을 고른다.
+- 그 문장을 <b>고른 어법으로 고쳐 쓴다.</b> 뜻은 그대로 두고 구조만 바꾼다.
+  · 지문에 이미 그 어법이 쓰여 있으면 그 문장을 그대로 써도 된다.
+  · 없으면 <b>고쳐 쓴 문장</b>이 정답이다. 지문에 없는 문장이어도 된다.
+  · 보기: 원문 "Curiosity keeps a reader turning pages."
+    → It - that 강조구문 → "It is curiosity that keeps a reader turning pages."
+  · 뜻이 달라지거나 어색한 영어가 되면 <b>다른 문장</b>을 골라 다시 한다.`
+}
+- passageModified = 영어 지문. <b>고른 문장이 있던 자리를 ⓐ__________ 빈칸으로 바꾼다.</b>
+  · 그 문장은 지문에서 <b>완전히 지운다</b>. 일부라도 남기면 안 된다(베껴 쓰게 된다).
   · 나머지 지문은 원문 그대로 둔다.
-  · 지문의 핵심을 담은 문장을 고른다. 사소한 연결 문장은 고르지 않는다.
 - questionText 형식(필수). 태그는 각각 <b>그 줄에 혼자</b> 있어야 한다:
 <조건>
 ○ [어법 이름]을 사용할 것
@@ -467,7 +490,7 @@ word1 / word2 / … (정답 문장의 낱말을 원형으로 흩어 놓는다. 8
 - [어법 이름]: 위 목록의 <b>이름을 그대로</b> 옮겨 적는다. 괄호 속 형태는 적지 않는다.
   보기: 「○ It - that 강조구문을 사용할 것」, 「○ 가정법 과거를 사용할 것」.
   목록에 없는 이름을 지어내거나 「어법을 사용할 것」처럼 뭉뚱그리면 안 된다.
-- correctAnswer: 정답 영어 문장 하나(지문 그대로).
+- correctAnswer: 고쳐 쓴 영어 문장 하나. 그 어법이 <b>눈에 보이게</b> 들어 있어야 한다.
 - 보기에는 정답 문장에 쓰이는 낱말만 넣는다. 관사·전치사처럼 어형이 바뀌지 않는 말은
   그대로, 동사·명사는 원형으로 적는다.
 - choices 없음. explanation 한글: 어떤 어법을 묻는지와 왜 그 형태인지 한두 줄.`;
@@ -954,7 +977,9 @@ function normalizePayload(
 
 export function assertBasicQuestionShape(
   q: GeneratedQuestionPayload,
-  option: QuestionTypeOption
+  option: QuestionTypeOption,
+  /** 지정 문법을 지문에서 찾았는지, 고쳐 썼는지 (선생님 요청 2026-09-29) */
+  writingMode: "passage" | "paraphrase" = "paraphrase"
 ): string | null {
   if (!q.instruction.trim()) return "발문이 비어 있습니다.";
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
@@ -1219,8 +1244,19 @@ export function assertBasicQuestionShape(
     if (!answer) {
       return "조건 영작 정답 문장이 필요합니다.";
     }
-    if (!passageHasConsecutiveWords(q.passageOriginal || "", answer)) {
-      return "조건 영작 정답은 지문에 있는 문장이어야 합니다.";
+    /*
+     * 선생님 요청(2026-09-29): 두 가지 방식이 있다.
+     * - 지문 그대로: 정답이 지문에 있는 문장이어야 한다.
+     * - 고쳐 쓰기: 지문에 없어도 된다. 대신 그 어법이 정답 문장에 정말 보여야 한다.
+     * 어느 쪽이든 고른 어법이 안 보이면 버린다(어법을 골라 놓고 딴 게 나오던 것을 막는다).
+     */
+    if (writingMode === "passage") {
+      if (!passageHasConsecutiveWords(q.passageOriginal || "", answer)) {
+        return "「지문 그대로」로 만들 때는 정답이 지문에 있는 문장이어야 합니다.";
+      }
+    }
+    if (grammar.check && !grammar.check.test(answer)) {
+      return `정답 문장에 ${grammar.label}이 보이지 않습니다: ${answer}`;
     }
     /*
      * 선생님 지적(2026-09-28): 지문에 정답 문장이 그대로 있으면 베껴 쓰면 된다.
@@ -1424,6 +1460,7 @@ export async function generateOneQuestion(opts: {
   levelBrief?: string;
   /** 조건 영작에서 쓸 어법 이름 목록. 비우면 교재 기준 30가지에서 고른다 */
   grammarScope?: string[];
+  grammarWritingMode?: "passage" | "paraphrase";
   /** 이 문항의 목표 난이도. 없으면 overallDifficulty(내신→중, 고난도→상)를 따른다 */
   targetLevel?: TargetLevel | null;
   /** 어법·어휘에서 지문을 바꿔 써도 되는지(기본은 원문 그대로) */
@@ -1540,6 +1577,24 @@ export async function generateOneQuestion(opts: {
     "content_false",
     "content_count",
   ]);
+  /*
+   * 선생님이 고른 어법 범위에서 <b>이번 문항에 쓸 어법 하나</b>를 여기서 정한다.
+   *
+   * 선생님 지적(2026-09-29): 어법을 골라도 그게 안 나온다. 예전에는 「범위 안에서
+   * 지문에 있는 것을 고르라」고만 해서, 지문에 없으면 딴 어법으로 새거나 건너뛰었다.
+   * 이제 한 문항에 하나를 딱 정해 주고, 지문에 없으면 문장을 그 어법으로 고쳐 쓰게 한다.
+   * 여러 개를 고르면 문항마다 돌아가며 쓴다.
+   */
+  const pickedWritingGrammar = (() => {
+    if (option.aingkaCode !== "문법조건영작") return null;
+    const scope = (opts.grammarScope ?? [])
+      .map((label) => WRITING_GRAMMARS.find((g) => g.label === label))
+      .filter((g): g is WritingGrammar => Boolean(g));
+    if (scope.length === 0) return null;
+    const turn = opts.diversitySlot?.index ?? 0;
+    return scope[turn % scope.length]!;
+  })();
+
   const paraphraseSystemHint = paraphraseTypes.has(option.type)
     ? "- Choices/<보기> MUST paraphrase with ROTATING synonyms/near-synonyms (동의어·유의어). Do NOT copy passage phrases. Across same-passage items, avoid reusing the same theme-word set every time; vary wording and use antonyms mainly in distractors."
     : "";
@@ -1640,12 +1695,13 @@ export async function generateOneQuestion(opts: {
     craftSystemHint,
     difficultyRule(option, opts.targetLevel ?? targetLevelFromOverall(opts.overallDifficulty)),
     opts.levelBrief ? `\n[원래 시험지의 수준]\n${opts.levelBrief}` : "",
-    typeRules(option),
-    // 선생님이 어법 범위를 정해 두었으면 그 안에서만 고르게 한다
-    option.aingkaCode === "문법조건영작" && opts.grammarScope?.length
-      ? `\n[이번에 쓸 어법 범위] 아래에서만 고른다. 지문에 없는 것은 빼고, 있는 것 가운데 고른다.\n${opts.grammarScope
-          .map((g) => `  · ${g}`)
-          .join("\n")}`
+    typeRules(option, opts.grammarWritingMode ?? "paraphrase"),
+    // 선생님이 범위를 정해 두었으면 이번 문항에 쓸 어법 하나를 여기서 정해 준다
+    option.aingkaCode === "문법조건영작" && pickedWritingGrammar
+      ? `\n[이번 문항에 쓸 어법] ${pickedWritingGrammar.label}(${pickedWritingGrammar.form})\n` +
+        `  — ${pickedWritingGrammar.hint}\n` +
+        `  이 어법으로 <b>반드시</b> 만든다. 다른 어법으로 바꾸지 않는다.\n` +
+        `  지문에 이 어법이 없으면 중요한 문장 하나를 이 어법으로 <b>고쳐 써서</b> 만든다.`
       : "",
   ]
     .filter((line) => line.trim())
@@ -1757,7 +1813,11 @@ export async function generateOneQuestion(opts: {
     passage,
     forcedInstruction
   );
-  const shapeError = assertBasicQuestionShape(payload, option);
+  const shapeError = assertBasicQuestionShape(
+    payload,
+    option,
+    opts.grammarWritingMode ?? "paraphrase"
+  );
   if (shapeError) throw new Error(shapeError);
   // 어법 추론은 수능처럼 지문 속 ①~⑤로 (정답 번호와 같은 기호)
   if (option.type === "grammar" && (option.aingkaCode === "어법추론" || option.aingkaCode === "어법모두고르기")) {

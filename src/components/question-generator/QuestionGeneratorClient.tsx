@@ -119,15 +119,48 @@ function GrammarScopeBox({
   onChange,
   open,
   onToggle,
+  mode,
+  onMode,
 }: {
   choices: GrammarChoice[] | null;
   picked: string[];
   onChange: (next: string[]) => void;
   open: boolean;
   onToggle: () => void;
+  mode: "passage" | "paraphrase";
+  onMode: (m: "passage" | "paraphrase") => void;
 }) {
   return (
     <div className="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+      {/* 지정 문법을 어떻게 쓸지 — 선생님 요청(2026-09-29) */}
+      <div className="mb-1.5 flex gap-1">
+        {(
+          [
+            { key: "paraphrase" as const, label: "고쳐 써서", hint: "중요한 문장을 그 문법으로 바꿔 써서 냅니다" },
+            { key: "passage" as const, label: "지문 그대로", hint: "그 문법이 이미 쓰인 문장을 찾아 냅니다" },
+          ]
+        ).map((m) => (
+          <button
+            key={m.key}
+            type="button"
+            title={m.hint}
+            onClick={() => onMode(m.key)}
+            aria-pressed={mode === m.key}
+            className={`flex-1 rounded-md border px-2 py-1 text-[11px] font-semibold transition ${
+              mode === m.key
+                ? "border-brand-600 bg-brand-600 text-white"
+                : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+      <p className="mb-1.5 text-[10.5px] leading-snug text-slate-500">
+        {mode === "paraphrase"
+          ? "지문에 그 문법이 없어도 됩니다. 중요한 문장을 그 문법으로 바꿔 써서 빈칸에 넣습니다."
+          : "그 문법이 이미 쓰인 문장만 씁니다. 지문에 없으면 그 문항은 건너뜁니다."}
+      </p>
       <button
         type="button"
         onClick={onToggle}
@@ -243,6 +276,8 @@ export function QuestionGeneratorClient({
   const [grammarScope, setGrammarScope] = useState<string[]>([]);
   const [grammarChoices, setGrammarChoices] = useState<GrammarChoice[] | null>(null);
   const [grammarScopeOpen, setGrammarScopeOpen] = useState(false);
+  /** 지정 문법을 지문에서 찾을지, 고쳐 써서 만들지 (선생님 요청 2026-09-29) */
+  const [grammarWritingMode, setGrammarWritingMode] = useState<"passage" | "paraphrase">("paraphrase");
   /** 유형에 마우스를 올렸을 때 띄우는 예시 */
   const [sample, setSample] = useState<{ s: TypeSample; level: SampleLevel; x: number; y: number } | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -307,12 +342,14 @@ export function QuestionGeneratorClient({
       counts,
       ...(paraphraseGV ? { paraphraseGrammarVocab: true } : {}),
       ...(grammarScope.length ? { grammarScope } : {}),
+      ...((counts["writing:na:default:문법조건영작"] ?? 0) > 0 ? { grammarWritingMode } : {}),
       ...(lessonProjectIds.length ? { lessonProjectIds } : {}),
     }),
     [
       lessonProjectIds,
       paraphraseGV,
       grammarScope,
+      grammarWritingMode,
       title,
       schoolName,
       grade,
@@ -1336,6 +1373,8 @@ export function QuestionGeneratorClient({
                               onChange={setGrammarScope}
                               open={grammarScopeOpen}
                               onToggle={() => setGrammarScopeOpen((v) => !v)}
+                              mode={grammarWritingMode}
+                              onMode={setGrammarWritingMode}
                             />
                           ) : null}
                         </div>
