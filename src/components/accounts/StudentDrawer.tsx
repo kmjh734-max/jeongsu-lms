@@ -11,13 +11,7 @@ import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/layout/NavIcon";
 import { Avatar, StatusPill, type Flash } from "@/components/accounts/account-kit";
-import { AssignSection } from "@/components/accounts/AssignSection";
-import {
-  assignListeningToStudent,
-  assignVocabToStudent,
-  removeListeningFromStudent,
-  removeVocabFromStudent,
-} from "@/app/admin/students/assign-actions";
+import { AssignedList } from "@/components/accounts/AssignedList";
 
 function KeyIcon() {
   return (
@@ -167,25 +161,6 @@ export function StudentDrawer({
 
   const classLabel = student.classNames.length ? student.classNames.join(", ") : "반 없음";
   const week = detail?.week;
-
-  /** 단어·듣기 배정 한 번 — 끝나면 목록을 다시 읽는다 */
-  async function runAssign(fn: () => Promise<{ ok: boolean; message: string }>, okText: string) {
-    setWorking(true);
-    setFlash(null);
-    try {
-      const r = await fn();
-      setFlash({ type: r.ok ? "success" : "error", text: r.ok ? okText : r.message });
-      if (r.ok) {
-        await reload();
-        router.refresh();
-      }
-    } catch (err) {
-      console.error("assign:", err);
-      setFlash({ type: "error", text: "연결이 잠시 끊겼어요. 다시 시도해 주세요." });
-    } finally {
-      setWorking(false);
-    }
-  }
 
   return (
     <>
@@ -361,45 +336,13 @@ export function StudentDrawer({
             ))}
           </section>
 
-          <AssignSection
-            title="단어"
-            items={detail?.vocab ?? null}
-            options={detail?.options.vocab ?? []}
-            emptyText="아직 배정된 단어장이 없어요."
-            pickLabel="단어장 고르기"
-            loading={!detail && !loadError}
-            busy={working}
-            onAssign={(setId) =>
-              runAssign(() => assignVocabToStudent(student.id, setId), "단어장을 배정했어요.")
-            }
-            onRemove={(id, title) => {
-              if (!window.confirm(`「${title}」 단어장 배정을 뺄까요?
-학생 화면에서 이 단어장이 사라져요. (학습 기록은 남아요.)`)) {
-                return Promise.resolve();
-              }
-              return runAssign(() => removeVocabFromStudent(id), "단어장 배정을 뺐어요.");
-            }}
-          />
-
-          <AssignSection
-            title="듣기"
-            items={detail?.listening ?? null}
-            options={detail?.options.listening ?? []}
-            emptyText="아직 배정된 듣기 세트가 없어요."
-            pickLabel="듣기 세트 고르기"
-            loading={!detail && !loadError}
-            busy={working}
-            onAssign={(setId) =>
-              runAssign(() => assignListeningToStudent(student.id, setId), "듣기 세트를 배정했어요.")
-            }
-            onRemove={(id, title) => {
-              if (!window.confirm(`「${title}」 듣기 세트 배정을 뺄까요?
-학생 화면에서 이 세트가 사라져요. (학습 기록은 남아요.)`)) {
-                return Promise.resolve();
-              }
-              return runAssign(() => removeListeningFromStudent(id), "듣기 세트 배정을 뺐어요.");
-            }}
-          />
+          {/*
+            선생님 요청(2026-09-28): 이 화면에서는 단어·듣기를 배정하지 않는다.
+            배정은 단어학습·듣기학습 세트 목록과 반 상세 한 곳에서만 한다.
+            여기서는 지금 무엇을 받고 있는지만 보여 준다.
+          */}
+          <AssignedList title="단어" items={detail?.vocab ?? null} emptyText="배정된 단어장이 없어요." />
+          <AssignedList title="듣기" items={detail?.listening ?? null} emptyText="배정된 듣기 세트가 없어요." />
 
           <section className="flex flex-col gap-2">
             <h3 className="text-[15px] font-bold text-slate-900">이번 주 학습</h3>
