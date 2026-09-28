@@ -321,7 +321,20 @@ function useMarkupLayout(
           const cand: Box = { left: rect.left + shift, right: rect.right + shift, top, bottom };
           const clash = placed.find((p) => hits(cand, p));
           if (!clash) {
-            if (cand.right <= bounds.right) best = { shift, lift, level: tryIt.level, box: cand };
+            if (cand.right <= bounds.right) {
+              best = { shift, lift, level: tryIt.level, box: cand };
+              break;
+            }
+            /*
+             * 부딪히지는 않는데 오른쪽 끝을 넘는 경우(이름표가 길고 낱말이 오른쪽에 있을 때).
+             * 예전에는 이럴 때 맨 위층까지 올라가 버려 줄 사이가 크게 벌어졌다.
+             * 이 층에 그대로 두고 왼쪽으로만 당긴다 — 가리키는 선이 ㄱ자로 이어 준다.
+             */
+            const pull = bounds.right - rect.right;
+            const pulled: Box = { left: rect.left + pull, right: rect.right + pull, top, bottom };
+            if (pulled.left >= bounds.left && !placed.find((p) => hits(pulled, p))) {
+              best = { shift: pull, lift, level: tryIt.level, box: pulled };
+            }
             break;
           }
           if (!tryIt.allowShift) break; // 이 층은 제자리로는 안 된다 — 다음 차례로
