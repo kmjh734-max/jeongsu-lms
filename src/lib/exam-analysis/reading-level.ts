@@ -12,6 +12,7 @@
  * 렉사일은 정식 측정값을 만들 수 없다(Lexile은 MetaMetrics의 측정이다). 대신 렉사일이
  * 쓰는 두 축 — 문장 길이와 낱말 난도 — 로 어림한 값을 내고, 화면에도 "추정"이라고 적는다.
  */
+import { measureVocabLevel, type VocabLevelResult } from "@/lib/vocab/engcore-level";
 
 /** 영어 문장으로 끊는다. 약어(Mr. Dr. etc.)에서 잘못 끊기지 않게 한다. */
 export function splitSentences(text: string): string[] {
@@ -134,7 +135,7 @@ export function levelBriefFor(level: {
   if (level.choiceWords) lines.push(`영어 선택지 평균 길이: ${level.choiceWords}낱말`);
   const band = readingBand(level.lexile);
   if (band) lines.push(`읽기 수준: ${band} 정도`);
-  if (level.vocabLevel) lines.push(`어휘 수준: ${level.vocabLevel}`);
+  if (level.vocabLevel) lines.push(`어휘 수준: 우리 단어장 ${level.vocabLevel} 정도`);
   if (lines.length === 0) return "";
   return [
     "원래 시험지의 수준이다. 새로 쓰는 지문과 선택지를 이 수준에 맞춘다.",
@@ -158,6 +159,8 @@ export function levelBriefFor(level: {
 export function measureExamPages(pageTexts: string[]): {
   passage: TextMeasure;
   choice: ChoiceMeasure;
+  /** 우리 EngCore 단어장으로 잰 어휘 수준 */
+  vocab: VocabLevelResult;
 } {
   const choiceLines: string[] = [];
   const passageLines: string[] = [];
@@ -178,9 +181,12 @@ export function measureExamPages(pageTexts: string[]): {
     }
   }
 
+  const passageText = passageLines.join(" ");
   return {
-    passage: measureText(passageLines.join(" ")),
+    passage: measureText(passageText),
     choice: measureChoices(choiceLines),
+    // 어휘 수준은 우리 단어장을 자로 쓴다(선생님 말 2026-09-28: "EngCore 우리 단어 그 수준으로")
+    vocab: measureVocabLevel(passageText),
   };
 }
 

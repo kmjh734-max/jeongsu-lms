@@ -40,6 +40,7 @@ export default async function ExamMockPage({
       generationsHref="/teacher/question-generator/generations"
       pricePerQuestion={price?.cost ?? 80}
       round={mocks.length + 1}
+      examVocabLevel={a.vocab_level}
       initialPassageIds={(passages ?? "").split(",").filter(Boolean)}
       textbookOpen={textbookOpen}
     />

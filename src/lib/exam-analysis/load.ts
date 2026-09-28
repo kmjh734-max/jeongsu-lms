@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadAcademyMaterialPassages } from "@/lib/exam-analysis/material-passages";
 import type { ExamAnalysisRow, ExamItemRow } from "@/lib/exam-analysis/types";
+import { measureVocabLevel } from "@/lib/vocab/engcore-level";
 
 const ANALYSIS_COLUMNS =
   "id, academy_id, school_name, grade, subject, exam_label, status, page_count, missing, note, total_points, features, strategy, error, match_materials, created_at, sentence_words, choice_words, lexile, vocab_level, level_summary";
@@ -46,7 +47,15 @@ export async function loadExamAnalysis(id: string, academyId: string) {
   return { analysis: data as ExamAnalysisRow, items: (items ?? []) as ExamItemRow[] };
 }
 
-export type MaterialPassage = { id: string; project: string; title: string; words: number; preview: string };
+export type MaterialPassage = {
+  id: string;
+  project: string;
+  title: string;
+  words: number;
+  preview: string;
+  /** 우리 단어장으로 잰 어휘 수준(예: 중학필수). 못 재면 null */
+  level: string | null;
+};
 
 /** 동형모의고사 지문 고르기용: 학원 수업자료(자료 하나 = 지문 하나) 목록. 글은 보내지 않고 앞부분만 */
 export async function loadMaterialPassages(academyId: string): Promise<MaterialPassage[]> {
@@ -54,11 +63,11 @@ export async function loadMaterialPassages(academyId: string): Promise<MaterialP
   return list
     .map((p) => {
       const words = p.text.split(/\s+/).filter(Boolean);
-      return { id: p.projectId, project: p.folder, title: p.title, words: words.length, preview: words.slice(0, 14).join(" "), updated: p.updatedAt };
+      return { id: p.projectId, project: p.folder, title: p.title, words: words.length, preview: words.slice(0, 14).join(" "), level: measureVocabLevel(p.text).label, updated: p.updatedAt };
     })
     .filter((m) => m.words >= 40)
     .sort((a, b) => b.updated.localeCompare(a.updated))
-    .map(({ id, project, title, words, preview }) => ({ id, project, title, words, preview }));
+    .map(({ id, project, title, words, preview, level }) => ({ id, project, title, words, preview, level }));
 }
 
 /** 이 시험 분석으로 만든 동형모의고사(변형문제 작업) — 최근 것부터 */

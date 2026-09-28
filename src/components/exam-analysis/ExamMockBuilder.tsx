@@ -26,6 +26,7 @@ export function ExamMockBuilder({
   generationsHref,
   pricePerQuestion,
   round,
+  examVocabLevel = null,
   initialPassageIds = [],
   textbookOpen = false,
 }: {
@@ -41,6 +42,8 @@ export function ExamMockBuilder({
   textbookOpen?: boolean;
   /** 이번에 만들 회차(이 시험으로 만든 동형모의고사 수 + 1) */
   round: number;
+  /** 원래 시험지의 어휘 수준(우리 단어장 기준). 지문을 고를 때 견줘 볼 수 있게 보여 준다 */
+  examVocabLevel?: string | null;
   /** 수업자료에서 골라 들어온 지문(수업자료 id) — 고른 순서대로 미리 넣어 둔다 */
   initialPassageIds?: string[];
 }) {
@@ -256,6 +259,18 @@ export function ExamMockBuilder({
                                   <span className="min-w-0">
                                     <b className="font-semibold text-slate-900">{m.title}</b>
                                     <span className="ml-1.5 text-xs text-slate-400">{m.words}단어</span>
+                                    {m.level ? (
+                                      <span
+                                        className={`ml-1.5 rounded px-1.5 py-0.5 text-[11px] font-semibold ${
+                                          examVocabLevel && m.level === examVocabLevel
+                                            ? "bg-emerald-100 text-emerald-800"
+                                            : "bg-slate-100 text-slate-600"
+                                        }`}
+                                        title={examVocabLevel ? `시험지 수준: ${examVocabLevel}` : undefined}
+                                      >
+                                        {m.level}
+                                      </span>
+                                    ) : null}
                                     <span className="block truncate text-xs text-slate-500">{m.preview}…</span>
                                   </span>
                                 </label>

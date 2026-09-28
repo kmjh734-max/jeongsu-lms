@@ -179,7 +179,8 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
       sentence_words: level.passage.sentenceWords || null,
       choice_words: level.choice.avgWords || null,
       lexile: level.passage.lexile,
-      vocab_level: meta.vocab_level || null,
+      // 어휘 수준은 우리 단어장으로 잰 값을 쓴다. 모델이 본 것은 못 잴 때만 쓴다.
+      vocab_level: level.vocab.label || meta.vocab_level || null,
       level_summary: meta.level_summary || null,
       status: "ready",
       error: null,

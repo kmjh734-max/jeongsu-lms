@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start -H 0.0.0.0 -p 3000",
     "lint": "next lint",
-    "prebuild": "node scripts/check-sources.mjs"
+    "prebuild": "node scripts/check-sources.mjs && node scripts/lint-before-build.mjs"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
