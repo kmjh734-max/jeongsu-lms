@@ -122,10 +122,10 @@ export function ListeningScheduleManageClient({
   /** 「수정」으로 연 배정 — 있으면 오른쪽 창이 「배정 수정」 */
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  /*
-   * 새 배정은 세트 탭에서 세트를 고른 뒤 시작한다(단어학습과 같은 방식).
-   * 그래서 이 화면에서는 세트를 들고 넘어왔을 때만 배정 창을 연다.
-   */
+  // 넓은 화면에서는 배정 창을 처음부터 옆에 열어 둔다
+  useEffect(() => {
+    if (window.matchMedia("(min-width: 1024px)").matches) setPanelOpen(true);
+  }, []);
 
   const activeCount = assignments.filter((a) => a.isActive).length;
 
@@ -208,6 +208,13 @@ export function ListeningScheduleManageClient({
     router.refresh();
   }
 
+  function openPanel() {
+    setEditingId(null);
+    setPanelKey((k) => k + 1);
+    setPanelOpen(true);
+    setNotice(null);
+  }
+
   function subLabelOf(a: ScheduleAssignmentListItem): string {
     return a.targetType === "class"
       ? a.targetClassId && classStudentCounts[a.targetClassId]
@@ -261,9 +268,9 @@ export function ListeningScheduleManageClient({
         assignCount={activeCount}
         action={
           !panelOpen ? (
-            <Button onClick={() => router.push(`${basePath}/sets`)}>
+            <Button onClick={openPanel}>
               <Icon name="plus" size={16} strokeWidth={2} />
-              세트 골라 배정하기
+              새로 배정하기
             </Button>
           ) : undefined
         }
@@ -325,12 +332,12 @@ export function ListeningScheduleManageClient({
               <Icon name="calendar" size={28} className="mx-auto text-slate-300" />
               <p className="mt-3 font-semibold text-slate-800">아직 배정한 과제가 없어요</p>
               <p className="mt-1 text-sm text-slate-500">
-                세트 탭에서 세트를 고른 뒤 「배정」을 누르면 여기에 과제가 생겨요.
+                반이나 학생에게 세트를 날마다 나눠 배정해 보세요.
               </p>
               {!panelOpen ? (
-                <Button className="mt-4" onClick={() => router.push(`${basePath}/sets`)}>
+                <Button className="mt-4" onClick={openPanel}>
                   <Icon name="plus" size={16} strokeWidth={2} />
-                  세트 골라 배정하기
+                  새로 배정하기
                 </Button>
               ) : null}
             </div>
