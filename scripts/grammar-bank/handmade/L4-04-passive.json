@@ -1,0 +1,163 @@
+{
+  "_설명": "완성 4과 수동태 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 4.수동태_종합문제(1회).pdf", "number": 26,
+      "포인트": "사역동사 make의 수동태 — 목적격 보어가 동사원형에서 to부정사로 바뀐다",
+      "prompt": "다음 문장을 수동태로 만들 때 빈칸에 알맞은 세 단어를 쓰시오.",
+      "body": ["The coach made the players run around the track.",
+               "= They were ________________________ around the track",
+               "by the coach."],
+      "answer": "made to run",
+      "explanation": "사역동사의 목적격 보어는 능동태에서는 동사원형이지만 수동태에서는 to부정사로 형태가 바뀐다. [해석] 그 감독은 선수들이 트랙을 돌게 했다. = 선수들은 감독에 의해 트랙을 돌게 되었다."
+    },
+    {
+      "file": "[완성] 4.수동태_종합문제(1회).pdf", "number": 27,
+      "포인트": "4형식의 간접목적어를 주어로 한 현재완료 수동태 부정형",
+      "prompt": "두 문장의 의미가 통하도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["The librarian has not shown us any new books.",
+               "= We ________________________________ any new books",
+               "by the librarian."],
+      "answer": "have not been shown",
+      "explanation": "4형식 문장은 간접목적어와 직접목적어를 각각 주어로 하는 수동태가 가능하다. 간접목적어가 주어가 될 때는 직접목적어를 동사 뒤에 그대로 써 준다. 완료 시제이므로 「have not been + p.p.」로 쓴다."
+    },
+    {
+      "file": "[완성] 4.수동태_종합문제(1회).pdf", "number": 28,
+      "포인트": "같은 문장 안에서 능동과 수동을 가려 쓰기",
+      "prompt": "다음 문장에서 (A), (B)에 들어갈 알맞은 동사 형태를 쓰시오.",
+      "body": ["Last winter, she (A)(present) a plan to the members",
+               "at the city council and (B)(ask) lots of questions",
+               "by the members.",
+               "(A) ______________________________",
+               "(B) ______________________________"],
+      "answer": "(A) presented (B) was asked",
+      "explanation": "(A) present는 ‘발표하다’라는 뜻이며 발표하는 주체가 she이므로 과거시제 능동형 presented가 와야 한다. (B) ask는 ‘질문하다’라는 뜻으로 주어인 she는 질문을 받는 대상이므로 과거시제 수동형 was asked가 알맞다."
+    },
+    {
+      "file": "[완성] 4.수동태_종합문제(1회).pdf", "number": 30,
+      "포인트": "주절보다 앞선 때를 나타내는 과거완료 수동태",
+      "prompt": "다음 문장에서 (A), (B)에 들어갈 알맞은 동사 형태를 쓰시오.",
+      "body": ["The museum guide explained that the stone bridge",
+               "(A)(build) for nearly 300 years and (B)(cross) by",
+               "countless travelers since its completion.",
+               "(A) ______________________________",
+               "(B) ______________________________"],
+      "answer": "(A) had been built (B) had been crossed",
+      "explanation": "가이드가 설명했던 과거 시점을 기준으로 판단한다. (A) 주어인 돌다리는 ‘지어지는’ 대상이므로 수동 관계이며, 주절의 동사(explained)보다 앞선 때이므로 과거완료 수동태로 쓴다. (B) 역시 ‘건너지는’ 대상이므로 과거완료 수동태가 알맞다."
+    },
+    {
+      "file": "[완성] 4.수동태_종합문제(2회).pdf", "number": 5,
+      "포인트": "명령문의 수동태 「Let + 목적어 + be + p.p.」",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 배열하시오",
+      "body": ["낡은 서류는 폐기 전에 새 자료와 분리되도록 해라.",
+               "(disposal, new materials, be, let, from, the old papers,",
+               "before, separated)",
+               "Answer: ________________________________________",
+               "_______________________________________________."],
+      "answer": "Let the old papers be separated from new materials before disposal.",
+      "explanation": "명령문의 수동태는 「Let + 목적어 + be + p.p.」의 형태로 나타내며 ‘목적어가 ~되도록 해라.’라는 의미이다."
+    },
+    {
+      "file": "[완성] 4.수동태_종합문제(2회).pdf", "number": 10,
+      "포인트": "현재완료 수동태 부정형과 과거완료 수동태를 가려 쓰기",
+      "prompt": "괄호 안의 단어를 시제에 맞게 변형하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["⑴ It looks as though your bike ________________",
+               "for several weeks. (not clean)",
+               "⑵ I returned to the shop and found that the",
+               "painting ________________. (sell)"],
+      "answer": "1) hasn’t been cleaned 2) had been sold",
+      "explanation": "1) your bike가 과거부터 현재까지 몇 주간 닦이지 않은 것처럼 보이는 대상이므로 현재완료 수동태 「have/has been p.p.」의 부정형으로 쓴다. 2) 그림이 팔린 것은 내가 가게에 돌아온 시점보다 앞서므로 과거완료 수동태로 쓴다."
+    },
+    {
+      "file": "[완성] 4.수동태_종합문제(2회).pdf", "number": 15,
+      "포인트": "that절을 목적어로 받는 동사의 수동태 — is known to have p.p.",
+      "prompt": "다음 문장을 수동태로 바꿔 작성하시오.",
+      "body": ["We know that Edison often tested thousands of",
+               "materials to make a lasting lamp.",
+               "→ Edison ___________________________________",
+               "____________________________________________."],
+      "answer": "is known to have often tested thousands of materials to make a lasting lamp.",
+      "explanation": "know의 목적어가 that절이므로 가주어 it이나 that절의 주어(Edison)를 수동태의 주어로 할 수 있다. that절의 주어를 수동태의 주어로 할 경우, that절의 동사가 주절보다 앞선 때이면 「to have p.p.」로 쓴다."
+    },
+    {
+      "file": "[완성] 4.수동태_종합문제(2회).pdf", "number": 25,
+      "포인트": "구동사의 현재완료 수동태 — 전치사를 빠뜨리지 않기",
+      "prompt": "다음 우리말과 의미가 같도록 <보기>의 단어를 활용하여 한 문장으로 영작하시오.",
+      "body": ["<보기> look up to, decade, around the world",
+               "Nelson Mandela는 수십 년 동안 전 세계 사람들에게",
+               "존경받아왔다.",
+               "→ __________________________________________",
+               "____________________________________________."],
+      "answer": "Nelson Mandela has been looked up to (by people) around the world for decades.",
+      "explanation": "‘Nelson Mandela’가 과거 시점부터 수십 년 동안 존경받아온 대상이므로 현재완료형 수동태로 쓴다. 동사가 전치사·부사와 함께 두 개 이상의 단어로 이루어진 구동사는 수동태로 바꿀 때도 하나의 덩어리로 보아 전치사를 그대로 살려 둔다."
+    },
+    {
+      "file": "[완성] 4.수동태_확인문제(1회).pdf", "number": 4,
+      "포인트": "5형식의 목적격 보어가 명사일 때의 수동태",
+      "prompt": "두 문장의 의미가 같도록 <보기>의 문장을 활용하여 빈칸에 올바르게 영작하시오. (단, 수동태를 사용할 것)",
+      "body": ["Emma’s friends called Emma “Emmy” when she was",
+               "little.",
+               "→ Emma ________________________________________",
+               "when she was little."],
+      "answer": "was called (as) “Emmy” by her friends",
+      "explanation": "5형식 문장은 목적어만 수동태의 주어로 쓰일 수 있다. 목적격 보어가 명사일 경우, 목적어를 수동태의 주어로 만들고 동사를 「be + p.p.」로 바꾼 다음, 목적격 보어를 그대로 뒤에 써 준다."
+    },
+    {
+      "file": "[완성] 4.수동태_확인문제(1회).pdf", "number": 10,
+      "포인트": "현재완료 수동태 부정형에서 not의 자리",
+      "prompt": "다음 중 [[틀린]]부분을 찾아 바르게 고치시오.",
+      "body": ["The new report has been not submitted yet.",
+               "__________ → __________"],
+      "answer": "been not → not been",
+      "explanation": "현재완료형 수동태의 부정형은 have 동사와 been 사이에 not을 써서 「has[have] + not + been + p.p.」로 나타낸다. [해석] 새 보고서는 아직 제출되지 않았다."
+    },
+    {
+      "file": "[완성] 4.수동태_확인문제(1회).pdf", "number": 14,
+      "포인트": "현재완료 문장을 수동태로 바꾸기",
+      "prompt": "다음 문장을 수동태로 올바르게 영작하시오.",
+      "body": ["Sailors have used the lighthouse as a landmark.",
+               "→ ___________________________________________"],
+      "answer": "The lighthouse has been used as a landmark by sailors.",
+      "explanation": "현재완료 시제가 쓰인 문장을 수동태로 바꿀 때는 목적어를 수동태의 주어로 보내고 동사를 현재완료형 수동태 「has/have been + p.p.」로 바꾼 뒤, 행위자를 「by + 목적격」으로 쓴다."
+    },
+    {
+      "file": "[완성] 4.수동태_확인문제(2회).pdf", "number": 5,
+      "포인트": "tell + 목적어 + to부정사의 수동태",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 단어를 활용하여 문장을 완성하시오.",
+      "body": ["나는 어제 Sujin에게 창문을 닦게 했다. (tell)",
+               "→ Sujin _________ __________ ________ clean the",
+               "windows yesterday."],
+      "answer": "was told to",
+      "explanation": "우리말을 영어로 바꾸면 ‘I told Sujin to clean the windows.’이므로 주어진 문장은 Sujin을 주어로 하는 수동태 구문이다. 목적격 보어인 to부정사는 그대로 남는다."
+    },
+    {
+      "file": "[완성] 4.수동태_확인문제(2회).pdf", "number": 11,
+      "포인트": "현재완료 수동태 부정형",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 단어를 활용하여 문장을 완성하시오.",
+      "body": ["폭우로 경기가 아직 시작되지 않았다.",
+               "→ Because of heavy rain, the game _________",
+               "__________ ________ yet."],
+      "answer": "hasn’t been started",
+      "explanation": "빈칸에 영작해야 하는 부분은 ‘시작되지 않았다’라는 의미이며, 경기는 스스로 시작하는 것이 아니라 시작되는 대상이므로 수동태로 써야 한다. 또한 과거부터 아직까지 이어지는 일이므로 현재완료 수동태의 부정형으로 쓴다."
+    },
+    {
+      "file": "[완성] 4.수동태_확인문제(2회).pdf", "number": 15,
+      "포인트": "과거완료 수동태",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 단어를 활용하여 문장을 완성하시오.",
+      "body": ["그의 사무실은 새 컴퓨터들로 채워져 있었다.",
+               "→ His office ________ _________ ___________ with",
+               "new computers. (fill)"],
+      "answer": "had been filled",
+      "explanation": "주어인 ‘His office’는 스스로 채우는 것이 아니라 채워지는 것이므로 수동태를 써야 한다. ‘채워져 있었다’는 그 전에 채우는 일이 끝나 그 상태가 이어졌음을 나타내므로 과거완료 수동태로 쓴다."
+    },
+    {
+      "file": "[완성] 4.수동태_확인문제(2회).pdf", "number": 16,
+      "포인트": "5형식 목적어를 주어로 한 과거완료 수동태",
+      "prompt": "다음 문장의 밑줄 친 부분을 주어로 하여 같은 의미의 문장으로 바꾸시오.",
+      "body": ["He had left [[the windows]] open.",
+               "→ The windows ________________________________."],
+      "answer": "had been left open (by him)",
+      "explanation": "밑줄 친 부분(the windows)이 문장에서 목적어로 쓰였으나 이를 주어로 바꾸면 수동태를 써야 한다. 과거완료 시제이므로 「had been + p.p.」로 쓰고, 목적격 보어 open은 그대로 뒤에 남긴다."
+    }
+  ]
+}

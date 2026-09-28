@@ -1,0 +1,224 @@
+{
+  "_설명": "천일문 3권 Chapter 02 조동사에서 가져와 변형한 문항. 은행에서는 심화 4과 조동사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 2,
+  "chapter": "조동사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 4, "chapter": "조동사" },
+  "points": [
+    { "unit_no": 1, "unit": "can/may/will", "point_no": 1, "point": "can = be able to: 조동사는 겹쳐 쓸 수 없다", "frequent": true },
+    { "unit_no": 1, "unit": "can/may/will", "point_no": 2, "point": "may: 허가 · 추측", "frequent": false },
+    { "unit_no": 1, "unit": "can/may/will", "point_no": 3, "point": "would like to: ~하고 싶다", "frequent": false },
+    { "unit_no": 2, "unit": "must/should/had better/used to", "point_no": 4, "point": "must = have to / don’t have to: ~할 필요가 없다", "frequent": true },
+    { "unit_no": 2, "unit": "must/should/had better/used to", "point_no": 5, "point": "should: ~해야 한다, ~하는 것이 좋다", "frequent": false },
+    { "unit_no": 2, "unit": "must/should/had better/used to", "point_no": 6, "point": "had better+동사원형: ~하는 게 낫다", "frequent": false },
+    { "unit_no": 2, "unit": "must/should/had better/used to", "point_no": 7, "point": "used to+동사원형: ~하곤 했다 (be used to와 구별)", "frequent": true },
+    { "unit_no": 3, "unit": "조동사+have p.p.", "point_no": 8, "point": "must/may/cannot have p.p.: 과거 일에 대한 추측", "frequent": true },
+    { "unit_no": 3, "unit": "조동사+have p.p.", "point_no": 9, "point": "should have p.p.: ~했어야 했다(후회)", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1], "point_label": "조동사는 겹쳐 쓸 수 없다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Will you ______ join our club next semester?"],
+      "choices": [
+        { "no": 1, "text": "can" },
+        { "no": 2, "text": "be able to" },
+        { "no": 3, "text": "may" },
+        { "no": 4, "text": "must" },
+        { "no": 5, "text": "should" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [7], "point_label": "used to+동사원형",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Nara used to ______ hiking with her mom."],
+      "choices": [
+        { "no": 1, "text": "go" },
+        { "no": 2, "text": "be gone" },
+        { "no": 3, "text": "going" },
+        { "no": 4, "text": "went" },
+        { "no": 5, "text": "have gone" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [4], "point_label": "don’t have to: ~할 필요가 없다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["You ______ attend the meeting if you’re busy."],
+      "choices": [
+        { "no": 1, "text": "might" },
+        { "no": 2, "text": "used to" },
+        { "no": 3, "text": "have to" },
+        { "no": 4, "text": "don’t have to" },
+        { "no": 5, "text": "cannot" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [5, 9], "point_label": "should와 should have p.p.",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["• You ______ eat more vegetables.", "• Yesterday was very hot. I ______ have brought some water."],
+      "choices": [
+        { "no": 1, "text": "may" },
+        { "no": 2, "text": "should" },
+        { "no": 3, "text": "can" },
+        { "no": 4, "text": "could" },
+        { "no": 5, "text": "used to" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [4, 8], "point_label": "must와 must have p.p.",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "• Suji has finished her homework already. She ______ have worked really hard.",
+        "• You ______ wear a helmet to ride a bike."
+      ],
+      "choices": [
+        { "no": 1, "text": "may" },
+        { "no": 2, "text": "should" },
+        { "no": 3, "text": "can" },
+        { "no": 4, "text": "must" },
+        { "no": 5, "text": "used to" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [1, 8], "point_label": "will have to, must have p.p.",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "How was Nick able to fix the old clock?" },
+        { "no": 2, "text": "Students will must take a test next Monday." },
+        { "no": 3, "text": "Passengers must not open the door while the bus is moving." },
+        { "no": 4, "text": "Mia didn’t answer my message. She must have leave her phone at home." },
+        { "no": 5, "text": "I should have written my name on the notebook. I can’t find mine." }
+      ],
+      "answer": "②, ④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [1, 5, 7], "point_label": "조동사 뒤에는 동사원형",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Jessy might not be at school right now." },
+        { "no": 2, "text": "We had better not ignore the warning signs." },
+        { "no": 3, "text": "You must to bring your ticket when you enter." },
+        { "no": 4, "text": "You should had a map. Otherwise, you can’t find it." },
+        { "no": 5, "text": "I used to playing the violin, but now I don’t." }
+      ],
+      "answer": "③, ④, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [8, 9], "point_label": "must have p.p.와 should have p.p.",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 영작한 것으로 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Penny는 그 대회에서 우승했음이 틀림없다. → Penny must have won the contest." },
+        { "no": 2, "text": "우리 형과 나는 전에는 같은 방을 썼었다. → My brother and I used to share the same room." },
+        { "no": 3, "text": "너는 이전 역에서 내렸어야 했다. → You must have gotten off at the previous station." },
+        { "no": 4, "text": "Jerry가 그 많은 일을 혼자 다 했을 리가 없다. → Jerry cannot have done that much work alone." },
+        { "no": 5, "text": "Brian은 실수로 네 우산을 가져갔을지도 모른다. → Brian may have taken your umbrella by mistake." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [9], "point_label": "should have p.p.의 어순",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "우리는 떠나기 전에 표를 예매했어야 했다. (have / we / should / the tickets / booked)",
+        "→ ________________ before leaving."
+      ],
+      "choices": [],
+      "answer": "We should have booked the tickets"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [1, 2], "point_label": "might not be able to",
+      "question_kind": "배열 영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "Daniel은 저 무거운 가방을 혼자 옮길 수 없을지도 모른다.",
+        "(able / that / be / might / to / bag / not / heavy / carry)",
+        "→ Daniel ________________ alone."
+      ],
+      "choices": [],
+      "answer": "might not be able to carry that heavy bag"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [9], "point_label": "후회는 should have p.p.",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 문맥상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Paul looks sleepy. He had better take a nap now." },
+        { "no": 2, "text": "I missed my train. I should leave home earlier." },
+        { "no": 3, "text": "Dora may have called me while I was out." },
+        { "no": 4, "text": "Ian knows a lot. He must have read many books." },
+        { "no": 5, "text": "My grandparents used to walk in the park every evening." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [6], "point_label": "had better+동사원형",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["너는 소금을 덜 먹는 것이 좋다. (had, less, salt, eat)", "→ ______________________________."],
+      "choices": [],
+      "answer": "You had[You’d] better eat less salt"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [8], "point_label": "cannot have p.p.: ~했을 리가 없다",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "엄마는 창문을 닦으셨을 리가 없는데 여전히 먼지투성이기 때문이다. (cannot, clean, the windows, Mom)",
+        "→ ________________ because they are still dusty."
+      ],
+      "choices": [],
+      "answer": "Mom cannot have cleaned the windows"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [1], "point_label": "과거의 능력은 was able to",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "I will be able to solve the problem last night because my sister explained it clearly.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "will be → was"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [7], "point_label": "used to와 be used to",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "My family was used to live near the beach, but we moved to the city, so we can’t see the sea now.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "was used to → used to"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [9], "point_label": "should have p.p.",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "Last night, Colin played outside with his brother. They stayed out too long and caught a cold. They should come home earlier.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "should come → should have come"
+    }
+  ]
+}

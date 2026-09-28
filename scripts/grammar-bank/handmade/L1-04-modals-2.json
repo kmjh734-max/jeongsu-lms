@@ -1,0 +1,142 @@
+{
+  "_설명": "기초 4과 조동사 — 나머지. have to, must not, may(허가·추측). 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 20,
+      "포인트": "doesn’t have to — ~할 필요가 없다",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 조동사를 쓰시오.",
+      "body": ["Nora는 우산을 가져올 필요가 없어.",
+               "→ Nora ____________________ bring an umbrella."],
+      "answer": "doesn’t have to",
+      "explanation": "‘~할 필요가 없다’라는 의미의 조동사는 don’t have to이다. 주어가 3인칭 단수이므로 doesn’t have to로 쓴다."
+    },
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 21,
+      "포인트": "3인칭 단수 주어에는 has to",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["Kevin [[have to finish]] his report by Friday."],
+      "answer": "has to finish",
+      "explanation": "주어가 3인칭 단수이므로 has to로 써야 한다."
+    },
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 23,
+      "포인트": "의무를 나타내는 must[has to]",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 조동사를 쓰시오.",
+      "body": ["그녀는 세 과목을 들어야 해.",
+               "→ She __________ take three subjects."],
+      "answer": "must[has to]",
+      "explanation": "‘~해야 한다’라는 의무를 나타내는 must 또는 have to를 쓸 수 있으며, have to의 경우 주어가 3인칭 단수이므로 has to로 써야 한다."
+    },
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 24,
+      "포인트": "금지는 must not",
+      "prompt": "다음 우리말과 의미가 같도록 밑줄 친 부분을 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["우리는 복도에서 뛰면 안 돼.",
+               "We [[don’t have to run]] in the hallway."],
+      "answer": "must not run",
+      "explanation": "‘~해서는 안 된다’라는 금지는 must not으로 쓴다. don’t have to는 ‘~할 필요가 없다’는 뜻이므로 구별한다."
+    },
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 27,
+      "포인트": "be going to + 동사원형",
+      "prompt": "우리말에 맞도록 단어들을 배열하세요.",
+      "body": ["나는 병원에 가려고 해.",
+               "(I / am / to / go / going) to the hospital."],
+      "answer": "I am going to go",
+      "explanation": "‘~할 예정이다, ~할 거다’라는 표현은 be going to 다음에 동사원형을 써 주어야 한다."
+    },
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 29,
+      "포인트": "will not = be not going to",
+      "prompt": "주어진 두 문장의 뜻이 같도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["I will not watch this drama.",
+               "= I am _____ this drama."],
+      "answer": "not going to watch",
+      "explanation": "will은 미래를 나타내는 조동사로 비슷한 의미로 be going to가 있다. be going to의 부정은 be동사 뒤에 not을 붙인다."
+    },
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 30,
+      "포인트": "do one’s best — 최선을 다하다",
+      "prompt": "우리말에 맞게 문장을 완성하세요.",
+      "body": ["그는 경기를 이기기 위해 최선을 다할 것이다.",
+               "→ He will ________ ________ ________ to win the",
+               "game."],
+      "answer": "do his best",
+      "explanation": "do one’s best : 최선을 다하다. 주어가 He이므로 소유격은 his를 쓴다."
+    },
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 34,
+      "포인트": "허락을 묻는 Can I ~? = May I ~?",
+      "prompt": "두 문장이 같은 뜻이 되도록 빈칸을 채우세요.",
+      "body": ["Can I use your eraser?",
+               "= _____ I use your eraser?"],
+      "answer": "May",
+      "explanation": "Can I ~?는 ‘~해도 돼요?’라는 뜻으로 상대방의 허락을 묻는 표현이다. 같은 표현으로 May I ~?가 있는데, 좀 더 정중한 표현이다."
+    },
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 35,
+      "포인트": "추측의 may",
+      "prompt": "다음 우리말을 영어로 옮겼을 때 빈칸에 알맞은 조동사를 넣으세요.",
+      "body": ["I feel dizzy. I _____ need some rest.",
+               "(나는 어지러워. 휴식이 필요한 것 같아.)"],
+      "answer": "may",
+      "explanation": "추측의 조동사 may는 ‘~일지도 모른다’는 뜻을 가지고 있다."
+    },
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 36,
+      "포인트": "추측의 may",
+      "prompt": "우리말에 맞게 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["바람이 아주 세다. 오늘밤 비가 올지도 모르겠다.",
+               "→ The wind is very strong. It rain tonight."],
+      "answer": "may",
+      "explanation": "빈칸에는 ‘~일지도 모른다’는 추측의 의미를 가지는 조동사 may가 알맞다."
+    },
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 37,
+      "포인트": "may not — ~해서는 안 된다",
+      "prompt": "우리말에 맞게 주어진 단어를 이용하여 문장을 완성하세요.",
+      "body": ["너는 도서관에서 큰 소리로 말해서는 안 된다.",
+               "(may / loudly / in / not / the / library / talk /",
+               "you)",
+               "→"],
+      "answer": "You may not talk loudly in the library.",
+      "explanation": "허가의 may에 부정의 not을 붙이면 ‘~해서는 안 된다’는 의미가 된다."
+    },
+    {
+      "file": "[기초] 4.조동사_확인문제(1회).pdf", "number": 6,
+      "포인트": "능력을 나타내는 can",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 <보기>에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "must can don’t have to",
+               "My brother _____ play the guitar very well."],
+      "answer": "can",
+      "explanation": "기타를 매우 잘 칠 수 있다는 의미가 되어야 자연스러우므로 can이 알맞다."
+    },
+    {
+      "file": "[기초] 4.조동사_확인문제(1회).pdf", "number": 7,
+      "포인트": "doesn’t have to — ~할 필요가 없다",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 조동사를 쓰시오.",
+      "body": ["Sora는 도시락을 가져올 필요가 없어.",
+               "→ Sora __________________ bring lunch."],
+      "answer": "doesn’t have to",
+      "explanation": "‘~할 필요가 없다’라는 의미의 조동사는 don’t have to이다. 주어가 3인칭 단수이므로 doesn’t have to로 쓴다."
+    },
+    {
+      "file": "[기초] 4.조동사_확인문제(2회).pdf", "number": 11,
+      "포인트": "must + 동사원형",
+      "prompt": "다음 우리말에 맞게 빈칸에 들어갈 두 단어를 쓰세요.",
+      "body": ["우리는 물을 아껴 써야 한다.",
+               "→ We _______ _______ water."],
+      "answer": "must save",
+      "explanation": "should/must save : 아껴 써야 한다"
+    },
+    {
+      "file": "[기초] 4.조동사_확인문제(2회).pdf", "number": 13,
+      "포인트": "can의 부정문",
+      "prompt": "주어진 문장을 부정문 또는 긍정문으로 바꿔 쓰시오.",
+      "body": ["Emma can ride a bike."],
+      "answer": "Emma can’t ride a bike.",
+      "explanation": "조동사 can의 부정문은 can 뒤에 not을 붙여 cannot[can’t]으로 쓴다."
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "_설명": "심화 9과 접속사 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 9.접속사_종합문제(1회).pdf", "number": 10,
+      "포인트": "before · after · until을 뜻에 맞게 가려 쓰기",
+      "prompt": "다음 빈칸에 before, after, until 중 알맞은 접속사를 넣어 문장을 완성하시오.",
+      "body": ["The hen keeps the eggs warm _______ they hatch.",
+               "I felt much calmer _______ I drank some tea.",
+               "Hold the rail _______ you slip."],
+      "answer": "until, after, before",
+      "explanation": "‘암탉은 알이 부화할 때까지 알을 따뜻하게 품는다.’ ‘나는 차를 좀 마신 후에 훨씬 차분해졌다.’ ‘네가 미끄러지기 전에 난간을 잡아라.’ 문맥에 맞게 until, after, before를 고른다."
+    },
+    {
+      "file": "[심화] 9.접속사_종합문제(1회).pdf", "number": 17,
+      "포인트": "전치사구 in spite of를 접속사 Although로 바꾸기",
+      "prompt": "아래 문장을 다음과 같이 고쳐 쓸 때, 빈칸에 들어갈 말을 쓰시오.",
+      "body": ["In spite of her skill in cooking, nobody praised",
+               "her at the contest.",
+               "→ [[A]] she is skilled in cooking, nobody",
+               "praised her at the contest."],
+      "answer": "Although",
+      "explanation": "양보의 의미를 나타내는 ‘in spite of’는 뒤에 명사(구)가 온다. 따라서 빈칸에는 뒤에 「주어 + 동사」를 이끄는, 양보의 의미를 나타내는 접속사 Although(Though)가 들어간다."
+    },
+    {
+      "file": "[심화] 9.접속사_종합문제(1회).pdf", "number": 25,
+      "포인트": "If ~ not = unless",
+      "prompt": "다음 문장과 같은 뜻이 되도록 unless를 사용하여 바꿔 쓰시오.",
+      "body": ["If it doesn’t snow tomorrow, we will go hiking.",
+               "→ ___________________________________________."],
+      "answer": "Unless it snows tomorrow, we will go hiking.",
+      "explanation": "「If ~ not」은 ‘unless’(만약 ~하지 않는다면)로 바꿔 쓸 수 있다. ‘unless’가 포함된 절에는 다시 부정어를 쓰지 않으며, 조건절이므로 미래의 일도 현재시제로 쓴다."
+    },
+    {
+      "file": "[심화] 9.접속사_종합문제(1회).pdf", "number": 30,
+      "포인트": "both A and B로 두 문장 잇기",
+      "prompt": "두 문장을 both를 사용하여 하나의 문장으로 쓰시오.",
+      "body": ["We cleaned the classroom.",
+               "We watered the plants, too.",
+               "→ ___________________________________________."],
+      "answer": "We both cleaned the classroom and watered the plants.",
+      "explanation": "「both A and B」를 사용하여 A 자리에는 ‘cleaned the classroom’, B 자리에는 ‘watered the plants’를 넣는다. A와 B에는 문법적으로 같은 성격의 말이 온다."
+    }
+  ]
+}

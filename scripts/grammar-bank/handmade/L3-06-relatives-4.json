@@ -1,0 +1,189 @@
+{
+  "_설명": "심화 6과 관계사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[심화] 6.관계사_종합문제(1회).pdf", "number": 11,
+      "포인트": "전치사 뒤에는 that을 쓰지 않는다",
+      "prompt": "다음 두 문장을 한 문장으로 연결할 때 어법상 [[틀린]]것은?",
+      "body": ["I can’t forget the place.",
+               "I first saw the sea at that place."],
+      "choices": ["I can’t forget the place where I first saw the sea.",
+                  "I can’t forget the place at which I first saw the sea.",
+                  "I can’t forget the place which I first saw the sea at.",
+                  "I can’t forget the place at that I first saw the sea.",
+                  "I can’t forget the place that I first saw the sea at."],
+      "answer": "④",
+      "explanation": "전치사 바로 뒤에는 that을 쓸 수 없고 which를 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(1회).pdf", "number": 22,
+      "포인트": "선행사가 있는 that과 선행사를 품은 what",
+      "prompt": "빈칸에 알맞은 말이 순서대로 바르게 짝지어진 것은?",
+      "body": ["A: Is this the song ________ you wrote?",
+               "B: Yes, this is ________ I wrote."],
+      "choices": ["that - which", "that - what", "which - that",
+                  "what - what", "what - that"],
+      "answer": "②",
+      "explanation": "앞은 선행사 the song이 있으므로 that, 뒤는 선행사가 없으므로 what을 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(2회).pdf", "number": 2,
+      "포인트": "사람·사물에 모두 쓰는 that",
+      "prompt": "다음 빈칸에 공통으로 들어갈 단어는?",
+      "body": ["▪ Did you find the gloves _____________ you lost?",
+               "▪ Do you know the man _____________ Hana is",
+               "waving to?",
+               "▪ The chair _____________ I sat on yesterday",
+               "wasn’t comfortable."],
+      "choices": ["who", "that", "which", "whom", "whose"],
+      "answer": "②",
+      "explanation": "that은 선행사가 사람이든 사물이든 목적격으로 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(2회).pdf", "number": 7,
+      "포인트": "everything 뒤의 that과 복합관계대명사 whatever",
+      "prompt": "다음 빈칸에 들어갈 말이 바르게 짝지어진 것은?",
+      "body": ["I will read everything _____ he writes.",
+               "Say _____ comes to your mind."],
+      "choices": ["that – which", "which – where", "what – whatever",
+                  "whoever – what", "that – whatever"],
+      "answer": "⑤",
+      "explanation": "everything이 선행사이면 that을 쓰고, 선행사 없이 ‘~하는 무엇이든’은 whatever로 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(2회).pdf", "number": 9,
+      "포인트": "-thing이 선행사일 때의 that",
+      "prompt": "다음 빈칸에 들어갈 알맞은 관계대명사를 고르세요.",
+      "body": ["I always look for something _____ is useful to",
+               "me."],
+      "choices": ["what", "that", "who", "whose", "whom"],
+      "answer": "②",
+      "explanation": "선행사가 something이므로 관계대명사 that을 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(2회).pdf", "number": 18,
+      "포인트": "관계부사와 「전치사 + 관계대명사」",
+      "prompt": "다음 문장 중 문법적으로 [[틀린]]것은?",
+      "body": [],
+      "choices": ["I remember the day when we first met.",
+                  "I remember the day on which we first met.",
+                  "I remember the day that we first met on.",
+                  "I remember the day we first met on.",
+                  "I remember the day on we first met."],
+      "answer": "⑤",
+      "explanation": "전치사 뒤에는 관계대명사가 있어야 하므로 on which로 써야 한다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(2회).pdf", "number": 19,
+      "포인트": "whoever의 두 가지 뜻",
+      "prompt": "다음 밑줄 친 부분과 바꿔 쓸 수 있는 것이 바르게 짝지어진 것은?",
+      "body": ["[[Whoever]] may call, tell them I'm out.",
+               "[[Whoever]] finishes first will get a prize."],
+      "choices": ["No matter who –Anyone who", "Anyone who –Anyone who",
+                  "No matter who –No matter who", "Anyone who –No matter who",
+                  "The thing which –No matter who"],
+      "answer": "①",
+      "explanation": "앞은 ‘누가 ~하더라도’라는 양보, 뒤는 ‘~하는 사람은 누구나’라는 명사절이다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(2회).pdf", "number": 22,
+      "포인트": "선행사를 품은 what",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 것을 고르시오.",
+      "body": ["조용히 쉬는 것이 지금 내가 바라는 것이다.",
+               "→ Resting quietly is _____ I want right now."],
+      "choices": ["how", "why", "that", "what", "whose"],
+      "answer": "④",
+      "explanation": "선행사 없이 ‘~하는 것’이라는 뜻이므로 what을 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(2회).pdf", "number": 23,
+      "포인트": "선행사를 품은 what",
+      "prompt": "밑줄 친 빈칸에 공통으로 들어갈 알맞은 말은?",
+      "body": ["▪ These are _____ you need to bring.",
+               "▪ ________ my dad says is always right.",
+               "▪ I don't know _______ I should say next."],
+      "choices": ["who", "that", "when", "what", "which"],
+      "answer": "④",
+      "explanation": "세 문장 모두 선행사가 없으므로 선행사를 품은 what을 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(2회).pdf", "number": 26,
+      "포인트": "「전치사 + which」의 전치사 고르기",
+      "prompt": "다음 문장의 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["May 5 is the day ______ which the festival begins."],
+      "choices": ["at", "on", "for", "by", "to"],
+      "answer": "②",
+      "explanation": "날짜 앞에는 on을 쓰므로 on which가 된다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(2회).pdf", "number": 30,
+      "포인트": "계속적 용법의 관계대명사",
+      "prompt": "다음 글의 밑줄 친 관계대명사와 빈칸에 들어갈말의 의미가 바르게 짝지어진 것은?",
+      "body": ["I know Mr. Han, [[who]] is very strict.",
+               "☞ I know Mr. Han, _________ is very strict.",
+               "This is hanbok, [[which]] is a traditional Korean",
+               "dress.",
+               "☞ This is hanbok, _________ is a traditional",
+               "Korean dress."],
+      "choices": ["and he - since it", "for he - and it", "but he - since it",
+                  "and he - but it", "and he - and it"],
+      "answer": "⑤",
+      "explanation": "계속적 용법의 관계대명사는 「접속사 + 대명사」로 풀어 쓰며, 여기서는 둘 다 and로 이어진다."
+    },
+    {
+      "file": "[심화] 6.관계사_확인문제(1회).pdf", "number": 1,
+      "포인트": "주격 that과 목적격 that",
+      "prompt": "다음 밑줄 친 부분의 쓰임이 나머지와 [[다른]]것은?",
+      "body": [],
+      "choices": ["Choose a book [[that]] is easy for you.",
+                  "Choose a book [[that]] you will finish soon.",
+                  "Comics are another book [[that]] you can enjoy.",
+                  "Borrow the book [[that]] you always wanted to read.",
+                  "Poetry is the short book [[that]] you can carry."],
+      "answer": "①",
+      "explanation": "①만 뒤에 동사가 바로 오는 주격이고, 나머지는 목적어가 빠진 목적격이다."
+    },
+    {
+      "file": "[심화] 6.관계사_확인문제(1회).pdf", "number": 4,
+      "포인트": "선행사를 품은 what",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Show me ________ is in your bag."],
+      "choices": ["how", "why", "that", "what", "whose"],
+      "answer": "④",
+      "explanation": "선행사가 없으므로 ‘~하는 것’을 뜻하는 what을 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_확인문제(1회).pdf", "number": 14,
+      "포인트": "관계대명사 what과 의문사 what의 구별",
+      "prompt": "다음 밑줄 친 what의 쓰임이 <보기>와 같은 것은?",
+      "body": ["<보기>", "I tried to say [[what]] I felt."],
+      "choices": ["[[What]] a lovely garden!",
+                  "He asked me [[what]] she said.",
+                  "[[What]] makes you so happy?",
+                  "[[What]] I expected came true.",
+                  "[[What]] subject do you like most?"],
+      "answer": "④",
+      "explanation": "<보기>와 ④의 what은 ‘~하는 것’을 뜻하는 관계대명사이다."
+    },
+    {
+      "file": "[심화] 6.관계사_확인문제(2회).pdf", "number": 6,
+      "포인트": "복합관계대명사 Whatever",
+      "prompt": "다음 밑줄 친 곳에 가장 알맞은 것을 고르시오.",
+      "body": ["__________ the answer is, I want to hear it."],
+      "choices": ["Whatever", "However", "Wherever", "Whenever", "What"],
+      "answer": "①",
+      "explanation": "‘무엇이든 간에’라는 양보의 뜻이므로 Whatever를 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_확인문제(2회).pdf", "number": 12,
+      "포인트": "복합관계부사 Whenever",
+      "prompt": "다음 두 문장의 빈칸에 공통으로 들어갈 알맞은말은?",
+      "body": ["__________ I feel tired, I take a short walk.",
+               "__________ he opened the door, the dog ran",
+               "out."],
+      "choices": ["Whoever", "However", "Whatever", "Whenever", "Wherever"],
+      "answer": "④",
+      "explanation": "‘~할 때마다’라는 뜻이므로 Whenever가 알맞다."
+    }
+  ]
+}

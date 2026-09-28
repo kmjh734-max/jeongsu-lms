@@ -1,0 +1,61 @@
+{
+  "_설명": "기본 8과 관계사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 8.관계사_종합문제(1회).pdf", "number": 9,
+      "포인트": "때를 나타내는 관계부사 when",
+      "prompt": "우리말을 영어로 바르게 표현한 것을 고르시오.",
+      "body": ["1999년은 내 동생이 태어난 해이다."],
+      "choices": ["1999 is the year when my brother was born.",
+                  "1999 is the year where my brother was born.",
+                  "1999 is the year which my brother was born.",
+                  "1999 is the year why my brother was born.",
+                  "1999 is the year in my brother was born."],
+      "answer": "①",
+      "explanation": "선행사가 the year처럼 때를 나타내므로 관계부사 when을 쓴다."
+    },
+    {
+      "file": "[기본] 8.관계사_종합문제(1회).pdf", "number": 19,
+      "포인트": "선행사에 따른 관계대명사",
+      "prompt": "빈칸에 들어갈 말이 바르게 짝지어진 것은?",
+      "body": ["(a) Look at the flower _______ has a sweet smell.",
+               "(b) He is the man _______ is as kind as an angel."],
+      "choices": ["that, which", "that, whom", "which, which",
+                  "who, which", "which, that"],
+      "answer": "⑤",
+      "explanation": "선행사가 사물이면 which, 사람이면 who나 that을 쓴다."
+    },
+    {
+      "file": "[기본] 8.관계사_종합문제(1회).pdf", "number": 20,
+      "포인트": "때를 나타내는 관계부사 when",
+      "prompt": "다음 빈칸에 들어갈 관계사로 적절한 것은?",
+      "body": ["1988 is the year _________ the Olympic Games",
+               "were held in Seoul."],
+      "choices": ["why", "when", "that", "what", "where"],
+      "answer": "②",
+      "explanation": "선행사가 the year이므로 때를 나타내는 관계부사 when을 쓴다."
+    },
+    {
+      "file": "[기본] 8.관계사_확인문제(1회).pdf", "number": 15,
+      "포인트": "소유를 나타내는 관계대명사 whose",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["I like the cat ________ tail is long and fluffy."],
+      "choices": ["who", "which", "that", "whose", "what"],
+      "answer": "④",
+      "explanation": "뒤에 명사 tail이 바로 오므로 소유를 나타내는 whose를 쓴다."
+    },
+    {
+      "file": "[기본] 8.관계사_확인문제(1회).pdf", "number": 17,
+      "포인트": "the way와 how는 함께 쓰지 않는다",
+      "prompt": "다음 주어진 문장을 바르게 영작한 것은?",
+      "body": ["네가 어떻게 그 문제를 풀었는지 나에게 이야기해 줘."],
+      "choices": ["Tell me the way you solved the problem.",
+                  "Tell me of which you solved the problem.",
+                  "Tell me what you solved the problem.",
+                  "Tell me the way how you solved the problem.",
+                  "Tell me the way which you solved the problem."],
+      "answer": "①",
+      "explanation": "the way와 how는 둘 중 하나만 쓴다."
+    }
+  ]
+}

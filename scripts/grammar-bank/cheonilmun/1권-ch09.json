@@ -1,0 +1,218 @@
+{
+  "_설명": "천일문 1권 Chapter 09 문장의 여러 형식에서 가져와 변형한 문항. 은행에서는 기초 7과 문장의 형식 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 9,
+  "chapter": "문장의 여러 형식",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 7, "chapter": "문장의 형식" },
+  "points": [
+    { "unit_no": 1, "unit": "주어+동사+보어", "point_no": 1, "point": "be동사+명사/형용사", "frequent": false },
+    { "unit_no": 1, "unit": "주어+동사+보어", "point_no": 2, "point": "look/sound/smell…+형용사", "frequent": false },
+    { "unit_no": 2, "unit": "주어+동사+간접목적어+직접목적어", "point_no": 3, "point": "동사+A+B: A에게 B를 ~(해) 주다", "frequent": false },
+    { "unit_no": 2, "unit": "주어+동사+간접목적어+직접목적어", "point_no": 4, "point": "동사+B+to/for+A", "frequent": true },
+    { "unit_no": 3, "unit": "주어+동사+목적어+목적격보어", "point_no": 5, "point": "명사 목적격보어: 목적어 = 목적격보어", "frequent": false },
+    { "unit_no": 3, "unit": "주어+동사+목적어+목적격보어", "point_no": 6, "point": "형용사 목적격보어: 목적어의 상태·성질", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [2], "point_label": "감각동사+형용사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["The bread ______ fresh."],
+      "choices": [{ "no": 1, "text": "is" }, { "no": 2, "text": "looks" }, { "no": 3, "text": "tastes" }, { "no": 4, "text": "smells" }, { "no": 5, "text": "makes" }],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [1, 2, 5, 6], "point_label": "보어 자리에는 형용사",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "My uncle is a doctor." },
+        { "no": 2, "text": "Jane became a designer." },
+        { "no": 3, "text": "The birds look very happily." },
+        { "no": 4, "text": "You should keep the floor dry." },
+        { "no": 5, "text": "My friends call me Sunny." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [3, 4], "point_label": "간접목적어+직접목적어의 차례",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I sent Mia a birthday card." },
+        { "no": 2, "text": "Dad made me a wooden chair." },
+        { "no": 3, "text": "Don’t give to the birds bread." },
+        { "no": 4, "text": "I will tell my brother a scary story." },
+        { "no": 5, "text": "Did you buy a gift for your dad?" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [4], "point_label": "to를 쓰는 동사와 for를 쓰는 동사",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 빈칸에 들어갈 말이 <보기>와 다른 것을 고르세요.",
+      "body": ["<보기> She sent a letter ______ him."],
+      "choices": [
+        { "no": 1, "text": "He lent a pen ______ me." },
+        { "no": 2, "text": "Don’t tell a lie ______ others." },
+        { "no": 3, "text": "Let’s give some water ______ them." },
+        { "no": 4, "text": "Tom baked some bread ______ us." },
+        { "no": 5, "text": "Amy showed some photos ______ me." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [2], "point_label": "sound+형용사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["그의 목소리는 부드럽게 들린다. (sound)", "→ His voice ________________."],
+      "choices": [],
+      "answer": "sounds soft"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [6], "point_label": "make+목적어+형용사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["그녀의 편지는 나를 늘 기쁘게 만든다. (make)", "→ Her letter always ________________."],
+      "choices": [],
+      "answer": "makes me glad"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [2], "point_label": "감각동사 뒤에는 부사를 쓰지 않는다",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "너의 새 담요는 부드럽게 느껴진다. → Your new blanket feels softly." },
+        { "no": 2, "text": "그 국은 정말 맛있는 냄새가 난다. → The soup smells really deliciously." },
+        { "no": 3, "text": "그 방석들은 꽃 같은 냄새가 났다. → The cushions smelled flowers." },
+        { "no": 4, "text": "그 아이는 졸려 보인다. → The child looks sleepy." },
+        { "no": 5, "text": "그의 대답은 차분하게 들렸다. → His answer sounded calmly." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [4], "point_label": "send+B+to+A",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 문장의 전환이 어색한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "He wrote her a long letter. → He wrote a long letter to her." },
+        { "no": 2, "text": "I’m going to buy him a cap. → I’m going to buy a cap for him." },
+        { "no": 3, "text": "Anna sent Junho some cookies. → Anna sent some cookies of Junho." },
+        { "no": 4, "text": "She passed me some papers. → She passed some papers to me." },
+        { "no": 5, "text": "Julie cooked her parents some soup. → Julie cooked some soup for her parents." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [6], "point_label": "keep+목적어+형용사",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The bell sounded [[loud]]." },
+        { "no": 2, "text": "Your puppy looks very [[lovely]]." },
+        { "no": 3, "text": "I found the book very [[exciting]]." },
+        { "no": 4, "text": "Keep your desk [[cleanly]], please." },
+        { "no": 5, "text": "The cat became [[curious]] about the box." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [5, 6], "point_label": "목적격보어 자리에 오는 말",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 두 개 고르세요.",
+      "body": ["The coach made her ______."],
+      "choices": [
+        { "no": 1, "text": "tired" },
+        { "no": 2, "text": "happily" },
+        { "no": 3, "text": "the captain" },
+        { "no": 4, "text": "nervously" },
+        { "no": 5, "text": "proudly" }
+      ],
+      "answer": "①, ③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [2], "point_label": "주어+동사+보어",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 <보기>와 문장의 형식이 같은 것을 고르세요.",
+      "body": ["<보기> The blue scarf looks warm."],
+      "choices": [
+        { "no": 1, "text": "Mark asked me some questions." },
+        { "no": 2, "text": "Everybody calls her a genius." },
+        { "no": 3, "text": "We named our cat Nabi." },
+        { "no": 4, "text": "She gave us some juice." },
+        { "no": 5, "text": "The soup tastes salty." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [3], "point_label": "주어+동사+간접목적어+직접목적어",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 <보기>와 문장의 형식이 같은 것을 고르세요.",
+      "body": ["<보기> Sora showed him her new bike."],
+      "choices": [
+        { "no": 1, "text": "They kept the room warm." },
+        { "no": 2, "text": "He became a famous writer." },
+        { "no": 3, "text": "Did Brian tell her the news?" },
+        { "no": 4, "text": "She got excited about the trip." },
+        { "no": 5, "text": "I found this soup really spicy." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [2, 4], "point_label": "cook+B+for+A, feel+형용사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형", "고난도"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 모두 골라 바르게 고쳐 문장을 다시 쓰세요.",
+      "body": [
+        "① I went hiking with my friend, Sam. ② He cooked ramen to me. ③ It tasted really good. ④ We had a great time and felt happily. ⑤ It was the best hike ever!",
+        "→ ______________________________________"
+      ],
+      "choices": [],
+      "answer": "② He cooked ramen for me.[He cooked me ramen.]  ④ We had a great time and felt happy."
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [4], "point_label": "ask+of, send+to",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• Can I ask a question ______(A) you?", "• She sent some flowers ______(B) her aunt."],
+      "choices": [
+        { "no": 1, "text": "to — for" },
+        { "no": 2, "text": "for — to" },
+        { "no": 3, "text": "of — of" },
+        { "no": 4, "text": "of — to" },
+        { "no": 5, "text": "for — of" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [4], "point_label": "pass+to, buy+for",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• Would you pass the salt ______(A) me?", "• He bought a hat ______(B) his sister."],
+      "choices": [
+        { "no": 1, "text": "to — for" },
+        { "no": 2, "text": "for — to" },
+        { "no": 3, "text": "of — for" },
+        { "no": 4, "text": "of — to" },
+        { "no": 5, "text": "for — of" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [4], "point_label": "teach+B+to+A",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 <보기>와 같이 문장을 바꿔 쓰세요.",
+      "body": [
+        "<보기> Tomas showed me his drawings. → Tomas showed his drawings to me.",
+        "Sujin taught the boy the song.",
+        "→ ______________________________________"
+      ],
+      "choices": [],
+      "answer": "Sujin taught the song to the boy."
+    }
+  ]
+}

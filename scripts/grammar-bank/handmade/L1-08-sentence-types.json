@@ -1,0 +1,169 @@
+{
+  "_설명": "기초 8과 다양한 문장의 형태 — There is/are, 명령문, 감탄문. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 8.다양한 문장의 형태_종합문제(2회).pdf", "number": 10,
+      "포인트": "「Be동사 + there ~?」 의문문",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["어제 공원에서 콘서트가 있었니? (a concert)",
+               "→ ____________ at the park yesterday?"],
+      "answer": "Was there a concert",
+      "explanation": "‘~이 있었니’는 「Be동사 + there ~?」 구문으로 표현하는데 a concert는 단수이므로 Was가 알맞다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_종합문제(2회).pdf", "number": 23,
+      "포인트": "What 감탄문과 How 감탄문 바꿔 쓰기",
+      "prompt": "두 문장이 같은 뜻이 되도록 빈칸에 알맞은 동사를 쓰세요.",
+      "body": ["What a good singer she _____!",
+               "= How well she _____!"],
+      "answer": "is, sings",
+      "explanation": "What a good singer she is! = How well she [[sings]]! 「형용사 + 명사」의 표현은 「동사 + 부사」의 표현으로 바꿔 쓸 수 있다. How는 부사와 함께 쓰고, 「형용사 + 명사」 표현은 What과 함께 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 1,
+      "포인트": "주어가 복수면 Are there",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["[[Is there]] many sheep on the farm?"],
+      "answer": "Are there",
+      "explanation": "sheep 앞에 many가 있는 것으로 보아 sheep은 복수임을 알 수 있다. 따라서 동사를 Are로 고쳐야 한다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 3,
+      "포인트": "There 뒤의 명사가 주어",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["There [[is]] many books on the desk."],
+      "answer": "are",
+      "explanation": "There is/are ~ 구문은 be동사 뒤에 오는 명사가 주어인데, 이 문장에서는 주어가 복수인 many books이므로 be동사를 are로 써야 한다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 4,
+      "포인트": "복수 주어에는 are",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["There [[is]] twelve months in a year."],
+      "answer": "are",
+      "explanation": "There is/are ~ 구문에서는 be동사 뒤의 명사가 주어인데 twelve months가 복수이므로 is를 are로 고쳐야 옳다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 5,
+      "포인트": "There was + 단수 주어 배열",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["상자 안에 사탕이 조금 있었다.",
+               "(in, was, some candy, the box, there)",
+               "→ __________________________________________."],
+      "answer": "There was some candy in the box.",
+      "explanation": "There is/are ~ 구문에서 be동사가 과거형인 문장이므로 「There was + 명사(주어) ~.」의 순서로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 6,
+      "포인트": "부정 명령문 Don’t + 동사원형",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 쓰시오.",
+      "body": ["교실에서 뛰지 마라.",
+               "(run, in the classroom)",
+               "___________________________________________."],
+      "answer": "Don’t run in the classroom.",
+      "explanation": "‘~하지 마.’라는 부정 명령문이므로 「Don’t + 동사원형 ~.」으로 표현한다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 7,
+      "포인트": "청유문 Let’s + 동사원형",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 쓰시오.",
+      "body": ["공원에서 만나자. (meet, at the park)",
+               "___________________________________________."],
+      "answer": "Let’s meet at the park.",
+      "explanation": "‘~하자.’라는 청유문이므로 「Let’s + 동사원형 ~.」으로 표현한다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 8,
+      "포인트": "명령문은 주어를 생략하고 동사원형으로",
+      "prompt": "다음 주어진 문장을 명령문으로 바꿔 쓰시오.",
+      "body": ["You should turn off your phone in the theater.",
+               "→ __________________________________________."],
+      "answer": "Turn off your phone in the theater.",
+      "explanation": "명령문은 주어를 생략하고 동사의 원형으로 시작한다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 12,
+      "포인트": "부정 명령문은 Don’t가 앞에 온다",
+      "prompt": "다음 우리말과 의미가 같도록 어법상 [[어색한]]부분을 찾아 알맞은 형태로 고쳐 문장을 다시 쓰시오.",
+      "body": ["과자를 너무 많이 먹지 마.",
+               "→ Eat not too many cookies."],
+      "answer": "Don’t eat too many cookies.",
+      "explanation": "‘~하지 마.’라는 의미의 부정 명령문은 「Don’t + 동사원형 ~.」으로 표현한다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 13,
+      "포인트": "부정 명령문 배열",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["밤에 게임을 너무 오래 하지 마라.",
+               "(don’t, games, play)",
+               "→ __________________________ too long at night."],
+      "answer": "Don’t play games",
+      "explanation": "‘~하지 마.’라는 부정 명령문이므로 「Don’t + 동사원형 ~.」으로 표현한다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 15,
+      "포인트": "What a[an] + 형용사 + 명사 + 주어 + 동사!",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그는 정말 친절한 의사구나!",
+               "(is, he, kind, what, doctor, a)",
+               "___________________________________________."],
+      "answer": "What a kind doctor he is!",
+      "explanation": "명사 doctor를 강조하는 감탄문이므로 「What a[an] + 형용사 + 명사 + 주어 + 동사!」의 형태로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 16,
+      "포인트": "How + 부사 + 주어 + 동사!",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그녀는 정말 아름답게 춤추는구나!",
+               "(beautifully, how, dances, she)",
+               "___________________________________________."],
+      "answer": "How beautifully she dances!",
+      "explanation": "부사 beautifully를 강조하는 감탄문이므로 「How + 부사 + 주어 + 동사!」의 형태로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 17,
+      "포인트": "명사를 강조하면 What 감탄문",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["그녀는 정말 훌륭한 화가구나!",
+               "→ ______ a great painter she is!"],
+      "answer": "What",
+      "explanation": "명사를 강조하는 감탄문은 「What a[an] + 형용사 + 명사 + 주어 + 동사!」의 형태로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 18,
+      "포인트": "형용사를 강조하면 How 감탄문",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["정말 높은 건물이구나!",
+               "→ ______ tall the building is!"],
+      "answer": "How",
+      "explanation": "형용사를 강조하는 감탄문은 「How + 형용사 + 주어 + 동사!」의 형태로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 19,
+      "포인트": "명사가 있으면 What 감탄문",
+      "prompt": "다음 우리말과 의미가 같도록 어법상 [[어색한]]부분을 찾아 알맞은 형태로 고쳐 문장을 다시 쓰시오.",
+      "body": ["이것은 굉장히 귀여운 고양이구나!",
+               "→ How a cute cat this is!"],
+      "answer": "What a cute cat this is!",
+      "explanation": "‘고양이’라는 명사를 강조하는 감탄문이므로 what으로 시작해야 한다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 20,
+      "포인트": "복수명사 앞에는 a[an]를 쓰지 않는다",
+      "prompt": "다음 주어진 문장을 감탄문으로 바꿔 쓰시오.",
+      "body": ["He has very long legs.",
+               "→ What ______________________________!"],
+      "answer": "long legs he has",
+      "explanation": "legs가 복수명사이므로 「What + 형용사 + 복수명사 + 주어 + 동사!」로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 21,
+      "포인트": "How + 형용사 + 주어 + 동사!",
+      "prompt": "다음 주어진 문장을 감탄문으로 바꿔 쓰시오.",
+      "body": ["Marie Curie was very brilliant.",
+               "→ How ______________________________!"],
+      "answer": "brilliant Marie Curie was",
+      "explanation": "How로 시작하는 감탄문은 「How + 형용사 + 주어 + 동사!」로 쓴다."
+    }
+  ]
+}

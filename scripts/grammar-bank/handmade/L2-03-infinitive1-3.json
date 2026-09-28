@@ -1,0 +1,205 @@
+{
+  "_설명": "기본 3과 부정사[1] — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(1회).pdf", "number": 3,
+      "포인트": "to부정사를 목적어로 쓰지 않는 동사",
+      "prompt": "문장의 빈칸에 알맞지 [[않은]]말은?",
+      "body": ["I _________ to finish the report before noon."],
+      "choices": ["decided", "avoided", "planned", "promised", "hoped"],
+      "answer": "②",
+      "explanation": "avoid는 동명사를 목적어로 쓰므로 to부정사와 함께 쓸 수 없다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(1회).pdf", "number": 9,
+      "포인트": "to부정사를 목적어로 쓰지 않는 동사",
+      "prompt": "어법상 빈칸에 들어가기에 적절하지 [[않은]]것은?",
+      "body": ["They __________ to leave a little earlier."],
+      "choices": ["hoped", "needed", "wanted", "planned", "enjoyed"],
+      "answer": "⑤",
+      "explanation": "enjoy는 동명사만 목적어로 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(1회).pdf", "number": 15,
+      "포인트": "「의문사 + to부정사」 = 「의문사 + 주어 + should」",
+      "prompt": "<보기>의 문장과 그 의미가 같은 것은?",
+      "body": ["<보기>", "I want to know where to put this box."],
+      "choices": ["I want to know where I should put this box.",
+                  "I want to know where I should to put this box.",
+                  "I want to know where to put to this box.",
+                  "I want to know where to putting this box.",
+                  "I want to know to put this box where."],
+      "answer": "①",
+      "explanation": "「의문사 + to부정사」는 「의문사 + 주어 + should + 동사원형」으로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(1회).pdf", "number": 21,
+      "포인트": "so as not to + 동사원형",
+      "prompt": "다음 밑줄 친 우리말과 일치하게 영작한 것은?",
+      "body": ["I left a note [[잊어버리지 않기 위해서]]."],
+      "choices": ["as not to forget", "so as to not forget",
+                  "as so not to forget", "as not so to forget",
+                  "so as not to forget"],
+      "answer": "⑤",
+      "explanation": "‘~하지 않기 위해서’는 so as not to에 동사원형을 붙여 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(1회).pdf", "number": 22,
+      "포인트": "to부정사를 목적어로 쓰지 않는 동사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것은?",
+      "body": ["I _______________ to learn the guitar."],
+      "choices": ["love", "plan", "enjoy", "hope", "try"],
+      "answer": "③",
+      "explanation": "enjoy는 동명사만 목적어로 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(1회).pdf", "number": 28,
+      "포인트": "목적을 나타내는 부사적 용법",
+      "prompt": "다음 중 밑줄 친 부분의 쓰임이 <보기>와 같은것은?",
+      "body": ["<보기>", "I stopped by [[to return your book.]]"],
+      "choices": ["She went to the library [[to borrow a novel.]]",
+                  "I am glad [[to hear that.]]",
+                  "This box was really easy [[to open.]]",
+                  "You must be kind [[to help us.]]",
+                  "He grew up [[to become a pilot.]]"],
+      "answer": "①",
+      "explanation": "<보기>는 ‘~하기 위해서’라는 목적을 나타낸다. ①도 빌리기 위해 갔다는 목적이다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(2회).pdf", "number": 3,
+      "포인트": "grow up to be·want to be",
+      "prompt": "다음 빈칸에 공통으로 들어갈 알맞은 것을 고르시오.",
+      "body": ["• Owen grew up ______ a pilot.",
+               "• I want ______ a vet."],
+      "choices": ["be", "being", "to be", "become", "becoming"],
+      "answer": "③",
+      "explanation": "자라서 ~가 되다, ~가 되고 싶다 모두 to be로 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(2회).pdf", "number": 6,
+      "포인트": "「의문사 + to부정사」",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["I can't decide __________."],
+      "choices": ["did", "done", "to do", "what do", "what to do"],
+      "answer": "⑤",
+      "explanation": "‘무엇을 ~할지’는 「what + to부정사」로 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(2회).pdf", "number": 7,
+      "포인트": "how to + 동사원형",
+      "prompt": "우리말에 맞는 문장이 되도록 영작하세요.",
+      "body": ["너는 김치 담그는 방법을 아니?"],
+      "choices": ["Do you know what make kimchi?",
+                  "Do you know what to make kimchi?",
+                  "Do you know how make kimchi?",
+                  "Do you know how to make kimchi?",
+                  "Do you know to make kimchi?"],
+      "answer": "④",
+      "explanation": "‘~하는 방법’은 「how + to부정사」로 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(2회).pdf", "number": 19,
+      "포인트": "「의문사 + to부정사」에 쓰지 않는 의문사",
+      "prompt": "다음 빈칸의 어느 곳에도 들어갈 수 [[없는]]것은?",
+      "body": ["▪ Do you know __________ to sit?",
+               "▪ Tell me __________ to say now.",
+               "▪ I don't know __________ to begin.",
+               "▪ Show me __________ to use it."],
+      "choices": ["how", "why", "what", "when", "where"],
+      "answer": "②",
+      "explanation": "why는 「의문사 + to부정사」의 형태로 쓰지 않는다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_확인문제(1회).pdf", "number": 8,
+      "포인트": "명사적 용법과 부사적 용법 구별",
+      "prompt": "다음 밑줄 친 부분이 쓰임이 [[다른]]것은?",
+      "body": [],
+      "choices": ["[[To finish]] it in a day is impossible.",
+                  "All I want to do is [[to rest]].",
+                  "I don't like [[to wait]] alone.",
+                  "Mom asked me [[to hurry]].",
+                  "I stayed up late [[to study]]."],
+      "answer": "⑤",
+      "explanation": "⑤만 ‘~하기 위해서’라는 부사적 용법이고, 나머지는 주어·보어·목적어로 쓰인 명사적 용법이다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_확인문제(1회).pdf", "number": 18,
+      "포인트": "-thing + 형용사 + to부정사",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것을 고르시오.",
+      "body": ["나는 마실 시원한 것이 필요하다."],
+      "choices": ["I need something cool drinking.",
+                  "I need cool something to drink.",
+                  "I need something to drink cool.",
+                  "I need cool something drinking.",
+                  "I need something cool to drink."],
+      "answer": "⑤",
+      "explanation": "-thing으로 끝나는 말은 「-thing + 형용사 + to부정사」의 순서로 꾸민다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_확인문제(1회).pdf", "number": 19,
+      "포인트": "목적을 나타내는 부사적 용법",
+      "prompt": "다음 <보기>의 밑줄 친 부분과 쓰임이 같은 것을고르시오.",
+      "body": ["<보기>", "She visited me [[to return]] my umbrella."],
+      "choices": ["It is not easy [[to change]] oneself.",
+                  "I have a few tasks [[to finish]] today.",
+                  "She loves [[to bake]] bread.",
+                  "My goal is [[to enter]] that college.",
+                  "He hurried [[to catch]] the last bus."],
+      "answer": "⑤",
+      "explanation": "<보기>와 ⑤ 모두 ‘~하기 위해서’라는 목적을 나타내는 부사적 용법이다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_확인문제(2회).pdf", "number": 6,
+      "포인트": "주어 자리에는 동명사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["_______ the rules is not hard for us."],
+      "choices": ["Keep", "Keeps", "Keeping", "To kept", "To Keeping"],
+      "answer": "③",
+      "explanation": "주어 자리이므로 동명사 Keeping으로 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_확인문제(2회).pdf", "number": 7,
+      "포인트": "grow up to·want to",
+      "prompt": "다음 빈칸에 공통으로 들어갈 말로 알맞은 것을고르시오.",
+      "body": ["She grew up _______ many friends around her.",
+               "I want _______ a pet like yours."],
+      "choices": ["have", "having", "to have", "had", "to having"],
+      "answer": "③",
+      "explanation": "grow up과 want는 모두 뒤에 to부정사를 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_확인문제(2회).pdf", "number": 9,
+      "포인트": "동명사를 쓰는 동사와 to부정사를 쓰는 동사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞게 짝지어진 것을고르시오.",
+      "body": ["• We finished ______ the dishes.",
+               "• I decided ______ patient with him."],
+      "choices": ["wash – to be", "washing – to be", "washing – being",
+                  "to wash – to be", "to wash – being"],
+      "answer": "②",
+      "explanation": "finish는 동명사를, decide는 to부정사를 목적어로 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_확인문제(2회).pdf", "number": 15,
+      "포인트": "감정의 원인을 나타내는 to부정사",
+      "prompt": "다음 대화의 빈칸에 공통으로 들어갈 알맞은 것은?",
+      "body": ["A : Hi, Junho. Glad __________ you.",
+               "B : Nice _________ you, too."],
+      "choices": ["saw", "see", "sees", "to see", "have seen"],
+      "answer": "④",
+      "explanation": "감정을 나타내는 형용사 뒤에서 그 원인을 나타내므로 to부정사를 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_확인문제(2회).pdf", "number": 17,
+      "포인트": "-thing + 형용사 + to부정사",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것을 고르시오.",
+      "body": ["그에게 물어볼 특별한 것이 없다."],
+      "choices": ["I don’t have anything special to ask him.",
+                  "I don’t have special anything to ask to him.",
+                  "I don’t have anything to ask to him special.",
+                  "I don’t have special anything asking to him.",
+                  "I don’t have anything special asking to him."],
+      "answer": "①",
+      "explanation": "「-thing + 형용사 + to부정사」의 순서로 쓰며, ask는 목적어를 바로 취한다."
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "_설명": "기본 15과 접속사[2] — 시간·조건 부사절의 시제, because/because of, 양보의 접속사. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 15.접속사[2]_종합문제(2회).pdf", "number": 9,
+      "포인트": "조건의 부사절에서는 현재시제가 미래를 대신한다",
+      "prompt": "다음 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["If it [[will snow]] tomorrow, I will take the",
+               "subway."],
+      "answer": "snows",
+      "explanation": "조건의 부사절에는 미래를 현재시제로 표현한다. 주어가 3인칭 단수 it이므로 will snow를 snows로 고쳐야 옳다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 1,
+      "포인트": "문맥에 맞는 절 고르기",
+      "prompt": "문맥상 뜻이 자연스럽게 연결되도록 보기에서 알맞은 말을 골라 쓰세요.",
+      "body": ["<보기>",
+               "ⓐ we should turn off our phones",
+               "ⓑ in order to keep the desk tidy",
+               "ⓒ unless nothing changes suddenly",
+               "ⓓ though his father didn’t allow him to",
+               "While we’re in the theater, _______________."],
+      "answer": "ⓐ",
+      "explanation": "두 문장을 연결해서 의미가 자연스럽게 이어지는가를 보면 된다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 5,
+      "포인트": "before와 after로 순서 나타내기",
+      "prompt": "다음 두 문장을 before와 after를 이용하여 문장을 다시 쓰시오.",
+      "body": ["Tom brushes his teeth, and then he goes to bed.",
+               "1) Before _____________________________________.",
+               "2) After ______________________________________."],
+      "answer": "(1) Tom goes to bed, he brushes his teeth, (2) Tom brushes his teeth, he goes to bed",
+      "explanation": "Tom은 이를 닦고, 그 다음에 잠자리에 든다. 이를 before와 after를 사용하여 순서대로 표현한다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 6,
+      "포인트": "시간의 부사절에서는 현재시제가 미래를 대신한다",
+      "prompt": "다음 문장에서 어법상 [[잘못된]]부분을 바르게 고치세요.",
+      "body": ["We’d better leave the beach before the sun will",
+               "set."],
+      "answer": "will set → sets",
+      "explanation": "‘해가 지기 전에’ 부분이 시간을 나타내는 부사절이므로, 의미상으로는 미래지만 시제는 현재를 써야 한다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 10,
+      "포인트": "주절에는 미래시제를 그대로 쓴다",
+      "prompt": "괄호에 주어진 것 중 적절한 것을 고르시오.",
+      "body": ["Before the concert begins, fans (gather, will",
+               "gather) at the gate."],
+      "answer": "will gather",
+      "explanation": "시간의 부사절에서는 현재시제로 미래를 나타내지만, 주절에는 미래시제를 그대로 쓴다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 11,
+      "포인트": "문맥에 맞는 시간 접속사 고르기",
+      "prompt": "괄호에 주어진 것 중 적절한 것을 고르시오.",
+      "body": ["(When, Before) the doctor checks the X-ray,",
+               "she will find the problem."],
+      "answer": "When",
+      "explanation": "‘의사가 X선 사진을 확인할 때 문제를 찾을 것이다’라는 뜻이 되어야 자연스러우므로 When이 알맞다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 14,
+      "포인트": "이유를 나타내는 since",
+      "prompt": "다음 although나 since를 사용하여 문장을 완성하세요.",
+      "body": ["it was snowing, we stayed inside."],
+      "answer": "Since",
+      "explanation": "눈이 왔기 [[때문에]] 우리는 안에 있었다는 뜻이므로 이유를 나타내는 since가 알맞다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 17,
+      "포인트": "because of + 명사(구)",
+      "prompt": "두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["I couldn’t go hiking because it snowed.",
+               "= I couldn’t go hiking _______ _______ snow."],
+      "answer": "because of",
+      "explanation": "‘because + 절’, ‘because of + 명사구’로 쓰인다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 18,
+      "포인트": "because와 because of 가려 쓰기",
+      "prompt": "다음 빈칸에 들어갈 말의 기호를 차례대로 쓰시오.",
+      "body": ["ⓐ because ⓑ because of",
+               "▪ She quit the job _______ her poor health.",
+               "▪ We canceled the picnic _______ it snowed.",
+               "▪ They moved to Busan _______ she found work",
+               "there.",
+               "정답 : _______, _______, _______"],
+      "answer": "ⓑ,ⓐ,ⓐ",
+      "explanation": "‘because + 절’, ‘because of + 명사구’로 써야 한다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 19,
+      "포인트": "because + 절 / because of + 명사구",
+      "prompt": "다음 주어진 문장과 같은 뜻이 되도록 빈칸에 알맞은 표현을 넣으시오.",
+      "body": ["She was very tired, so she couldn’t finish the",
+               "report.",
+               "(1) She couldn’t finish the report ___________ she",
+               "was very tired.",
+               "(2) She couldn’t finish the report ___________ her",
+               "tiredness."],
+      "answer": "(1) because (2) because of",
+      "explanation": "‘because + 절’ / ‘because of + 구’로 써야 한다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 25,
+      "포인트": "‘~ 때문에’의 뜻으로 쓰이는 since",
+      "prompt": "아래 두 문장을 한 문장으로 고칠 때 빈칸에 들어갈 가장 적절한 [[한 단어]]를 쓰시오",
+      "body": ["We don’t have any homework today.",
+               "We will visit the museum",
+               "→ _____________ we don’t have any homework",
+               "today, we will visit the museum."],
+      "answer": "since",
+      "explanation": "because의 뜻으로 사용된 since의 쓰임이다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 26,
+      "포인트": "양보의 접속사 although",
+      "prompt": "주어진 문장들이 같은 의미가 되도록 빈칸을 채우시오.",
+      "body": ["She was very busy, but she helped us all",
+               "afternoon.",
+               "= _____________________ she was very busy, she",
+               "helped us all afternoon."],
+      "answer": "Although",
+      "explanation": "‘비록 ~일지라도’의 양보의 의미를 갖는 접속사로는 although, though, even though, even if가 있다."
+    }
+  ]
+}

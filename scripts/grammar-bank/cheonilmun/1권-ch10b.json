@@ -1,0 +1,96 @@
+{
+  "_설명": "천일문 1권 Chapter 10 to부정사와 동명사 가운데 동명사 문항을 변형한 것. 은행에서는 기초 11과 동명사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 10,
+  "chapter": "to부정사와 동명사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 11, "chapter": "동명사" },
+  "points": [
+    { "unit_no": 2, "unit": "동명사", "point_no": 6, "point": "동명사 = 주어 (~하는 것은)", "frequent": false },
+    { "unit_no": 2, "unit": "동명사", "point_no": 7, "point": "동명사 = 보어 (~하는 것이다)", "frequent": false },
+    { "unit_no": 2, "unit": "동명사", "point_no": 8, "point": "동명사 = 목적어 (~하는 것을)", "frequent": false },
+    { "unit_no": 2, "unit": "동명사", "point_no": 9, "point": "전치사+동명사", "frequent": false },
+    { "unit_no": 2, "unit": "동명사", "point_no": 10, "point": "자주 쓰이는 동명사 표현", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 21, "point_nos": [6, 7, 8], "point_label": "동명사의 주어·보어·목적어",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 밑줄 친 동명사의 쓰임을 잘못 설명한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "[[Reading]] books is fun. (주어)" },
+        { "no": 2, "text": "She enjoys [[riding]] a bike. (목적어)" },
+        { "no": 3, "text": "Sam avoided [[eating]] sweets. (보어)" },
+        { "no": 4, "text": "[[Drinking]] tea makes me calm. (주어)" },
+        { "no": 5, "text": "My hobby is [[playing]] badminton. (보어)" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 22, "point_nos": [8], "point_label": "give up+동명사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 곳을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Nara gave up to eat late at night.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "to eat → eating"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 23, "point_nos": [7], "point_label": "보어로 쓰인 동명사",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> My dream is [[becoming]] a pilot."],
+      "choices": [
+        { "no": 1, "text": "We are cleaning the kitchen." },
+        { "no": 2, "text": "She is borrowing some books." },
+        { "no": 3, "text": "His job is teaching math." },
+        { "no": 4, "text": "The baby is sleeping on the sofa." },
+        { "no": 5, "text": "They are talking about the trip." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 24, "point_nos": [8, 10], "point_label": "mind+동명사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["창문 좀 열어 주시겠어요? (mind, open)", "→ Do you ________________ the window?"],
+      "choices": [],
+      "answer": "mind opening"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 25, "point_nos": [8, 9], "point_label": "keep+동명사, 전치사+동명사",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• He kept ______(A) sorry to me.", "• The book is about ______(B) friends."],
+      "choices": [
+        { "no": 1, "text": "say — make" },
+        { "no": 2, "text": "saying — make" },
+        { "no": 3, "text": "to say — making" },
+        { "no": 4, "text": "to say — to make" },
+        { "no": 5, "text": "saying — making" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 26, "point_nos": [9, 10], "point_label": "be good at+동명사",
+      "question_kind": "대화 완성", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 질문에 알맞은 대답을 완성하세요.",
+      "body": ["A: What are you good at, Mina?", "B: I ________________ the violin."],
+      "choices": [],
+      "answer": "am good at playing"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 27, "point_nos": [3, 8], "point_label": "to부정사만 쓰는 동사, 동명사만 쓰는 동사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "They decided to meet there." },
+        { "no": 2, "text": "He was glad to hear the news." },
+        { "no": 3, "text": "I wish having a long holiday." },
+        { "no": 4, "text": "She avoids to walk in the rain." },
+        { "no": 5, "text": "I will practice writing English diaries." }
+      ],
+      "answer": "③, ④"
+    }
+  ]
+}

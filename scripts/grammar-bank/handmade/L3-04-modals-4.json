@@ -1,0 +1,200 @@
+{
+  "_설명": "심화 4과 조동사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[심화] 4.조동사_종합문제(1회).pdf", "number": 8,
+      "포인트": "should have + 과거분사 — 했어야 했는데",
+      "prompt": "다음 주어진 문장을 가장 알맞은 영어문장으로바꾼 것은?",
+      "body": ["너는 그 회의에 참석했어야만 했어."],
+      "choices": ["You need to attend the meeting.",
+                  "You have to attend the meeting.",
+                  "You are going to attend the meeting.",
+                  "You should have attended the meeting.",
+                  "You must not have attended the meeting."],
+      "answer": "④",
+      "explanation": "하지 않은 일에 대한 후회는 「should have + 과거분사」로 나타낸다."
+    },
+    {
+      "file": "[심화] 4.조동사_종합문제(1회).pdf", "number": 23,
+      "포인트": "의무를 나타내는 조동사",
+      "prompt": "빈칸 (A)에 들어갈 말로 알맞지 [[않은]]것은?",
+      "body": ["I was late for school again. I think I",
+               "_____(A)_____ leave home earlier."],
+      "choices": ["ought to", "would like to", "have to", "should", "must"],
+      "answer": "②",
+      "explanation": "would like to는 바람을 나타내므로 반성하며 해야 한다고 말하는 자리에는 어울리지 않는다."
+    },
+    {
+      "file": "[심화] 4.조동사_종합문제(1회).pdf", "number": 27,
+      "포인트": "의무를 나타내는 조동사",
+      "prompt": "다음 대화의 빈칸에 알맞지 [[않은]]말은?",
+      "body": ["A: We made a mistake.",
+               "B: You didn’t want to say ‘we’ just now. You",
+               "____________ say ‘I made a mistake.’"],
+      "choices": ["must", "have to", "ought to", "should", "are able to"],
+      "answer": "⑤",
+      "explanation": "be able to는 능력을 나타내므로 ‘~해야 한다’는 뜻의 자리에 쓸 수 없다."
+    },
+    {
+      "file": "[심화] 4.조동사_종합문제(1회).pdf", "number": 28,
+      "포인트": "would — 과거의 습관",
+      "prompt": "빈칸에 들어갈 알맞은 말은?",
+      "body": ["When I was a child, I ________ play by the river",
+               "every summer."],
+      "choices": ["can", "may", "would", "had better", "would like to"],
+      "answer": "③",
+      "explanation": "would는 ‘~하곤 했다’는 과거의 습관을 나타낸다."
+    },
+    {
+      "file": "[심화] 4.조동사_종합문제(1회).pdf", "number": 29,
+      "포인트": "should have + 과거분사",
+      "prompt": "다음 우리말과 일치하도록 빈칸에 알맞은 것은?",
+      "body": ["→ I ________________________ him the truth then.",
+               "그때 내가 그에게 사실을 말했어야 했는데."],
+      "choices": ["must have told", "might have told", "could have told",
+                  "should have told", "would have told"],
+      "answer": "④",
+      "explanation": "‘~했어야 했는데’라는 후회는 should have + 과거분사로 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_종합문제(2회).pdf", "number": 1,
+      "포인트": "조동사 뒤에는 동사원형",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["I _____ drink some tea."],
+      "choices": ["can", "must not", "would like",
+                  "am going to", "ought not to"],
+      "answer": "③",
+      "explanation": "would like 뒤에는 to가 있어야 하므로 would like to drink로 써야 한다."
+    },
+    {
+      "file": "[심화] 4.조동사_종합문제(2회).pdf", "number": 9,
+      "포인트": "부탁할 때 쓰는 조동사",
+      "prompt": "다음 대화의 빈칸에 들어갈 수 [[없는]]것은?",
+      "body": ["A : ________ you pass me the salt, please?",
+               "B : No problem."],
+      "choices": ["Can", "Will", "May", "Could", "Would"],
+      "answer": "③",
+      "explanation": "May는 I를 주어로 허락을 구할 때 쓰며, 상대에게 부탁할 때는 쓰지 않는다."
+    },
+    {
+      "file": "[심화] 4.조동사_종합문제(2회).pdf", "number": 18,
+      "포인트": "be able to와 used to",
+      "prompt": "다음 두 문장의 빈칸에 공통으로 들어갈 알맞은말을 고르세요.",
+      "body": ["I was able _____ finish the work thanks to my friend.",
+               "We used _____ walk to school, but not now."],
+      "choices": ["on", "toward", "of", "to", "in"],
+      "answer": "④",
+      "explanation": "be able to와 used to 모두 뒤에 to와 동사원형이 온다."
+    },
+    {
+      "file": "[심화] 4.조동사_종합문제(2회).pdf", "number": 21,
+      "포인트": "need not = don’t have to",
+      "prompt": "다음 문장의 밑줄 친 부분과 바꿔 쓸 수 있는 것은?",
+      "body": ["Relax. You [[need not]] answer it now."],
+      "choices": ["can", "have", "have to", "don't have to", "should"],
+      "answer": "④",
+      "explanation": "need not은 ‘~할 필요가 없다’는 뜻이므로 don’t have to로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 4.조동사_종합문제(2회).pdf", "number": 25,
+      "포인트": "cannot have + 과거분사 — 였을 리가 없다",
+      "prompt": "다음 대화의 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["A : I don’t want to work with Owen again.",
+               "B : You _____ him because he was so rude to",
+               "you."],
+      "choices": ["may like", "should like", "must have liked",
+                  "cannot have liked", "should have liked"],
+      "answer": "④",
+      "explanation": "‘~했을 리가 없다’는 강한 부정의 추측이므로 cannot have + 과거분사로 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_종합문제(2회).pdf", "number": 26,
+      "포인트": "used to — 예전에는 ~했다",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["I _____ to be afraid of dogs when I was little."],
+      "choices": ["can", "can't", "used", "able to", "will"],
+      "answer": "③",
+      "explanation": "지금은 그렇지 않은 과거의 상태이므로 used to를 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_종합문제(2회).pdf", "number": 30,
+      "포인트": "제안할 때 쓰는 Would",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["_____ you take a walk or listen to music",
+               "to clear your head?"],
+      "choices": ["May", "Should", "Must", "Would", "Ought"],
+      "answer": "④",
+      "explanation": "둘 중 무엇을 하겠느냐고 부드럽게 물을 때는 Would you ~?를 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_확인문제(1회).pdf", "number": 5,
+      "포인트": "used to be — 예전에는 ~였다",
+      "prompt": "다음 우리말을 영어로 옮길 때, 빈칸에 알맞은 것을 고르시오.",
+      "body": ["그는 어렸을 때 축구 선수였다.",
+               "→ He _____ a soccer player when young."],
+      "choices": ["may be", "had to be", "used to be",
+                  "must be", "had better be"],
+      "answer": "③",
+      "explanation": "지금은 아닌 과거의 상태이므로 used to be로 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_확인문제(1회).pdf", "number": 6,
+      "포인트": "insist that + 주어 + should, would rather",
+      "prompt": "다음 빈칸에 들어갈 말이 바르게 짝지어진 것을고르시오.",
+      "body": ["I insist that she _______ tell the truth.",
+               "He looks tired. He ________ rather rest than go",
+               "out."],
+      "choices": ["should - must", "must - would", "should - would",
+                  "would - should", "would - would"],
+      "answer": "③",
+      "explanation": "주장을 나타내는 insist 뒤의 that절에는 should를 쓰고, ‘차라리 ~하겠다’는 would rather로 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_확인문제(1회).pdf", "number": 20,
+      "포인트": "shouldn’t — ~하지 않는 것이 좋다",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["You always skip breakfast. You _____",
+               "skip it every day."],
+      "choices": ["won’t", "shouldn’t", "need not",
+                  "don’t have to", "don’t used to"],
+      "answer": "②",
+      "explanation": "‘~하지 않는 것이 좋다’는 충고이므로 shouldn’t가 알맞다."
+    },
+    {
+      "file": "[심화] 4.조동사_확인문제(2회).pdf", "number": 5,
+      "포인트": "used to be — 예전에는 ~였다",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때 빈칸에 알맞은 것은?",
+      "body": ["This place was a playground before.",
+               "But now this place became a parking lot.",
+               "→ This place _________ a playground."],
+      "choices": ["may be", "used to be", "would be",
+                  "might be", "should be"],
+      "answer": "②",
+      "explanation": "지금은 아닌 과거의 상태를 나타내므로 used to be로 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_확인문제(2회).pdf", "number": 14,
+      "포인트": "과거의 일에 대한 추측",
+      "prompt": "흐름상 밑줄 친 곳에 올 수 있는 표현을 [[모두]]고르면?",
+      "body": ["“Look at the road! It's all white!",
+               "_____________\""],
+      "choices": ["It must have snowed last night.",
+                  "It might have snowed last night.",
+                  "It shall have snowed last night.",
+                  "It should have snowed last night.",
+                  "It can have snowed last night."],
+      "answer": "①,②",
+      "explanation": "과거의 일을 추측할 때는 must have와 might have를 쓴다. should have는 후회, can have는 쓰지 않는다."
+    },
+    {
+      "file": "[심화] 4.조동사_확인문제(2회).pdf", "number": 19,
+      "포인트": "should have + 과거분사",
+      "prompt": "다음 빈칸에 들어갈 가장 적절한 것은?",
+      "body": ["당신은 그 약속을 지켰어야 합니다.",
+               "→ You _________ have kept the promise."],
+      "choices": ["may", "must", "might", "should", "cannot"],
+      "answer": "④",
+      "explanation": "‘~했어야 한다’는 후회나 유감을 나타내므로 should have + 과거분사로 쓴다."
+    }
+  ]
+}

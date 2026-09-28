@@ -1,0 +1,128 @@
+{
+  "_설명": "기초 6과 대명사 — 인칭대명사의 격, 소유대명사, 지시대명사, 비인칭 주어 it. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 6.대명사_종합문제(2회).pdf", "number": 4,
+      "포인트": "단수명사 앞에는 That",
+      "prompt": "주어진 그림에 맞게 적절한 지시형용사를 고르시오.",
+      "body": ["〈그림〉",
+               "Look! (Those, That) bird is singing on the",
+               "branch."],
+      "answer": "That",
+      "explanation": "뒤에 단수명사 bird가 오고 동사도 is이므로 단수를 가리키는 That이 알맞다."
+    },
+    {
+      "file": "[기초] 6.대명사_종합문제(2회).pdf", "number": 13,
+      "포인트": "소유대명사 — ~의 것",
+      "prompt": "다음 빈칸에 들어갈 말을 괄호 안의 단어를 변형하여 한 단어로 쓰세요.",
+      "body": ["This isn’t my umbrella. It’s _________.(he)"],
+      "answer": "his",
+      "explanation": "그것은 나의 우산이 아니다. 그것은 그의 것이다. he의 소유대명사는 his이다."
+    },
+    {
+      "file": "[기초] 6.대명사_종합문제(2회).pdf", "number": 16,
+      "포인트": "날씨를 나타내는 비인칭 주어 it",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["어제는 춥지 않았어. (cold)",
+               "→ ____________________ yesterday."],
+      "answer": "It wasn’t[was not] cold",
+      "explanation": "날씨를 표현할 때는 비인칭 주어 it을 쓴다. ‘어제’의 상태이므로 과거형으로 쓰고, 부정문이므로 동사는 wasn’t[was not]가 알맞다."
+    },
+    {
+      "file": "[기초] 6.대명사_체크체크.pdf", "number": 1,
+      "포인트": "여성 단수는 She로 받는다",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 <보기>에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "she they it",
+               "____________ is a waitress."],
+      "answer": "She",
+      "explanation": "waitress는 단수이고 여자이므로 She로 대신할 수 있다."
+    },
+    {
+      "file": "[기초] 6.대명사_체크체크.pdf", "number": 2,
+      "포인트": "동사의 목적어 자리에는 목적격",
+      "prompt": "다음 빈칸에 괄호 안의 단어를 알맞은 형태로 쓰시오.",
+      "body": ["They call ____________ every evening. (we)"],
+      "answer": "us",
+      "explanation": "동사 call의 목적어 역할을 해야 하므로 we의 목적격 us가 알맞다."
+    },
+    {
+      "file": "[기초] 6.대명사_체크체크.pdf", "number": 3,
+      "포인트": "명사 앞에는 소유격",
+      "prompt": "다음 빈칸에 괄호 안의 단어를 알맞은 형태로 쓰시오.",
+      "body": ["That is ____________ jacket. (she)"],
+      "answer": "her",
+      "explanation": "빈칸 뒤에 명사가 나오므로 she의 소유격 her가 알맞다."
+    },
+    {
+      "file": "[기초] 6.대명사_체크체크.pdf", "number": 4,
+      "포인트": "명사 앞에는 소유격",
+      "prompt": "다음 빈칸에 괄호 안의 단어를 알맞은 형태로 쓰시오.",
+      "body": ["____________ brother is good at math. (I)"],
+      "answer": "My",
+      "explanation": "빈칸 뒤에 명사가 나오므로 I의 소유격 My가 알맞다."
+    },
+    {
+      "file": "[기초] 6.대명사_체크체크.pdf", "number": 5,
+      "포인트": "주격과 소유격 구별",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["그녀는 그의 전화번호를 안다.",
+               "→ ________ knows ________ phone number."],
+      "answer": "She, his",
+      "explanation": "‘그녀는’은 주격 인칭대명사 she로, ‘그의’는 소유격 인칭대명사 his로 쓴다."
+    },
+    {
+      "file": "[기초] 6.대명사_체크체크.pdf", "number": 6,
+      "포인트": "동사의 목적어 자리에는 목적격",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["나는 그를 매우 좋아해.",
+               "→ I like ___________ very much."],
+      "answer": "him",
+      "explanation": "동사의 목적어 자리이므로 he의 목적격 him이 알맞다."
+    },
+    {
+      "file": "[기초] 6.대명사_체크체크.pdf", "number": 7,
+      "포인트": "지시대명사 Those와 소유격 our",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["저것들은 우리의 가방들이야.",
+               "→ ______ are ______ bags."],
+      "answer": "Those, our",
+      "explanation": "‘저것들’은 those로, ‘우리의’는 our로 표현한다."
+    },
+    {
+      "file": "[기초] 6.대명사_체크체크.pdf", "number": 10,
+      "포인트": "be동사 부정문의 어순",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["이 장갑은 민수의 것이 아니다.",
+               "(Minsu’s, not, these gloves, are)",
+               "______________________________________________."],
+      "answer": "These gloves are not Minsu’s.",
+      "explanation": "주어는 these gloves이고 be동사의 부정문은 be동사 뒤에 not을 써서 「주어 + be동사 + not ~」의 어순으로 나타낸다."
+    },
+    {
+      "file": "[기초] 6.대명사_체크체크.pdf", "number": 12,
+      "포인트": "사람을 소개할 때는 This",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["이분은 나의 이모입니다.",
+               "→ ________ is my aunt."],
+      "answer": "This",
+      "explanation": "상대방에게 사람을 소개하면서 ‘이분’, ‘이 사람’이라고 할 때는 대명사 this를 쓴다."
+    },
+    {
+      "file": "[기초] 6.대명사_체크체크.pdf", "number": 14,
+      "포인트": "거리를 나타내는 비인칭 주어 It",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["[[That]] is 500 meters to the bus stop."],
+      "answer": "It",
+      "explanation": "거리를 나타내는 문장이므로 비인칭 주어 It이 알맞다."
+    },
+    {
+      "file": "[기초] 6.대명사_체크체크.pdf", "number": 16,
+      "포인트": "「소유격 + 명사」를 소유대명사로",
+      "prompt": "다음 밑줄 친 부분에 해당하는 말을 한 단어(소유대명사)로 쓰세요. (1) I have her book. This is [[her book]]. (2) Are these [[our tickets]]? (3) Tom has a camera. This is [[his camera]].",
+      "body": [],
+      "answer": "(1)hers (2)ours (3)his",
+      "explanation": "(1) hers: 그녀의 것, (2) ours: 우리의 것, (3) his: 그의 것"
+    }
+  ]
+}

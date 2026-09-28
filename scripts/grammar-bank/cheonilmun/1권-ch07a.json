@@ -1,0 +1,143 @@
+{
+  "_설명": "천일문 1권 Chapter 07 형용사, 부사, 비교 가운데 형용사·부사 문항을 변형한 것. 은행에서는 기초 9과 형용사와 부사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 7,
+  "chapter": "형용사, 부사, 비교",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 9, "chapter": "형용사와 부사" },
+  "points": [
+    { "unit_no": 1, "unit": "형용사", "point_no": 1, "point": "명사를 꾸미는 형용사 / 주어를 설명하는 형용사", "frequent": false },
+    { "unit_no": 1, "unit": "형용사", "point_no": 2, "point": "-thing+형용사", "frequent": false },
+    { "unit_no": 1, "unit": "형용사", "point_no": 3, "point": "many students vs. much sugar", "frequent": false },
+    { "unit_no": 1, "unit": "형용사", "point_no": 4, "point": "(a) few students vs. (a) little sugar", "frequent": false },
+    { "unit_no": 2, "unit": "부사", "point_no": 5, "point": "동사, 형용사, 부사, 문장 전체를 꾸미는 부사", "frequent": false },
+    { "unit_no": 2, "unit": "부사", "point_no": 6, "point": "부사 = 형용사+-ly", "frequent": false },
+    { "unit_no": 2, "unit": "부사", "point_no": 7, "point": "‘얼마나 자주’를 나타내는 빈도부사", "frequent": false },
+    { "unit_no": 2, "unit": "부사", "point_no": 8, "point": "빈도부사+일반동사 / be동사·조동사+빈도부사", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1], "point_label": "명사를 꾸미는 자리에는 형용사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["Sora is a ______ student."],
+      "choices": [{ "no": 1, "text": "kind" }, { "no": 2, "text": "smart" }, { "no": 3, "text": "really" }, { "no": 4, "text": "diligent" }, { "no": 5, "text": "quiet" }],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [3], "point_label": "many+셀 수 있는 명사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["They planted ______ trees in the park."],
+      "choices": [{ "no": 1, "text": "many" }, { "no": 2, "text": "a few" }, { "no": 3, "text": "lots of" }, { "no": 4, "text": "much" }, { "no": 5, "text": "few" }],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [3, 4], "point_label": "a little vs. a few",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "There isn’t [[much]] juice in the glass." },
+        { "no": 2, "text": "She didn’t give [[much]] advice to me." },
+        { "no": 3, "text": "I have [[a little]] friends in my class." },
+        { "no": 4, "text": "The writer got [[many]] letters from readers." },
+        { "no": 5, "text": "We will stay in Busan for [[a few]] days." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [3], "point_label": "셀 수 없는 명사 앞의 수량 표현",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["He eats ______ bread every morning."],
+      "choices": [{ "no": 1, "text": "many" }, { "no": 2, "text": "an" }, { "no": 3, "text": "few" }, { "no": 4, "text": "a few" }, { "no": 5, "text": "lots of" }],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [2], "point_label": "-thing+형용사",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": ["나는 친구를 위해 무언가 달콤한 것을 만들 것이다. (sweet / something / make)", "→ I will ________________ for my friend."],
+      "choices": [],
+      "answer": "make something sweet"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [1, 6], "point_label": "형용사와 부사 가려 쓰기",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The boy has a love face." },
+        { "no": 2, "text": "Lucky, he found his key." },
+        { "no": 3, "text": "She left the room quiet." },
+        { "no": 4, "text": "The cat was surprising fast." },
+        { "no": 5, "text": "Did you read the monthly magazine?" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [5, 6], "point_label": "동사를 꾸미는 자리에는 부사",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Ian spoke very fastly." },
+        { "no": 2, "text": "She walked the road quick." },
+        { "no": 3, "text": "You should listen carefully." },
+        { "no": 4, "text": "I couldn’t solve it easy." },
+        { "no": 5, "text": "The snail moved slow on the leaf." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [6], "point_label": "형용사와 형태가 같은 부사",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The tower is very [[high]]." },
+        { "no": 2, "text": "He can reach the [[high]] shelf." },
+        { "no": 3, "text": "I got a [[high]] grade on the test." },
+        { "no": 4, "text": "The prices are too [[high]] at that shop." },
+        { "no": 5, "text": "She jumped [[high]] and caught the ball." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [6], "point_label": "-ly가 붙어도 부사가 아닌 말",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 짝지어진 두 단어의 관계가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "kind — kindly" },
+        { "no": 2, "text": "sad — sadly" },
+        { "no": 3, "text": "quick — quickly" },
+        { "no": 4, "text": "love — lovely" },
+        { "no": 5, "text": "bright — brightly" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [7, 8], "point_label": "빈도부사의 위치",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 단어를 알맞은 곳에 넣어 문장을 다시 쓰세요.",
+      "body": ["She will eat fast food again. (never)", "→ ______________________________________"],
+      "choices": [],
+      "answer": "She will never eat fast food again."
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [8], "point_label": "be동사 뒤, 일반동사 앞",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분의 위치가 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I will [[often]] visit their house." },
+        { "no": 2, "text": "My class [[usually]] starts at 9." },
+        { "no": 3, "text": "They [[always]] are tired on Mondays." },
+        { "no": 4, "text": "Jinho [[always]] walks to school." },
+        { "no": 5, "text": "You can [[sometimes]] borrow my books." }
+      ],
+      "answer": "③"
+    }
+  ]
+}

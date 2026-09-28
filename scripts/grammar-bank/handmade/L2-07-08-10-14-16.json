@@ -1,0 +1,218 @@
+{
+  "_설명": "기본 7과 조동사 · 8과 관계사 · 10과 가정법 · 14과 접속사[1] · 16과 부가의문문과 간접의문문 — 남은 서술형 문항들.",
+  "문항": [
+    {
+      "file": "[기본] 7.조동사_종합문제(1회).pdf", "number": 2,
+      "포인트": "의무를 나타내는 should + 동사원형 배열",
+      "prompt": "다음 우리말과 뜻이 같도록 주어진 영어단어를 배열하시오.",
+      "body": ["너는 매일 걸어야 해.",
+               "(walk / day / should / you / every)",
+               "→ ___________________________________________."],
+      "answer": "You should walk every day.",
+      "explanation": "should는 의무를 나타내는 조동사로 ‘~해야 한다’의 뜻을 나타낸다. should 뒤에는 동사원형을 쓴다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(1회).pdf", "number": 7,
+      "포인트": "don’t(doesn’t) have to — ~할 필요가 없다",
+      "prompt": "다음 주어진 우리말에 맞게 빈칸에 들어갈 말을 적으시오.",
+      "body": ["너무 추워서 그녀는 창문을 열 필요가 없다.",
+               "It is cold, so she _______ _______ _______ open",
+               "the window."],
+      "answer": "doesn’t have to",
+      "explanation": "「don’t(doesn’t) have to + 동사원형」은 ‘~할 필요가 없다’의 의미이다. 주어가 3인칭 단수이므로 doesn’t를 쓴다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(1회).pdf", "number": 10,
+      "포인트": "능력의 can = be able to",
+      "prompt": "의미가 같도록 빈칸을 채우시오.",
+      "body": ["You can solve this puzzle.",
+               "= You ______ ______ ______ solve this puzzle."],
+      "answer": "are able to",
+      "explanation": "‘능력’을 나타내는 조동사 can은 「be able to + 동사원형」으로 바꿔 쓸 수 있다. 주어가 You이므로 be동사는 are를 쓴다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(1회).pdf", "number": 19,
+      "포인트": "don’t have to — ~할 필요가 없다",
+      "prompt": "다음 문장의 의미가 되도록 빈칸에 들어갈 말을 쓰시오.",
+      "body": ["You _______ _______ _______ hurry now.",
+               "너는 지금 서두를 필요가 없다."],
+      "answer": "don’t have to",
+      "explanation": "하지 않아도 되는 일에 대해 말할 때는 「don’t(doesn’t) have to」를 사용한다. 「must not」은 ‘~하면 안 된다’는 금지의 뜻이므로 구별해야 한다."
+    },
+    {
+      "file": "[기본] 8.관계사_종합문제(1회).pdf", "number": 7,
+      "포인트": "소유격 관계대명사 whose",
+      "prompt": "<보기>의 단어 중 필요한 것을 사용하여 다음 두 문장을 한 문장으로 연결하여 쓰시오.",
+      "body": ["<보기>",
+               "who, whom, whose, which, what",
+               "The singer was very nervous.",
+               "Her voice was beautiful.",
+               "→ ___________________________________________."],
+      "answer": "The singer whose voice was beautiful was very nervous.",
+      "explanation": "her가 소유격이므로 관계대명사는 소유격 whose를 사용한다. 선행사 ‘The singer’ 다음에 관계사절을 넣고 주절의 동사를 이어 쓴다."
+    },
+    {
+      "file": "[기본] 8.관계사_종합문제(1회).pdf", "number": 10,
+      "포인트": "전치사의 목적어가 되는 목적격 관계대명사",
+      "prompt": "다음 두 문장을 관계대명사를 사용하여 한 문장으로 만드시오.",
+      "body": ["That’s the movie.",
+               "I was talking about the movie.",
+               "→ ___________________________________________."],
+      "answer": "That’s the movie which(that) I was talking about.",
+      "explanation": "두 문장의 공통된 부분은 ‘the movie’이다. 두 번째 문장에서 the movie가 전치사 about의 목적어이므로 목적격 관계대명사 which(that)를 쓰고 전치사는 문장 끝에 남긴다."
+    },
+    {
+      "file": "[기본] 8.관계사_종합문제(1회).pdf", "number": 11,
+      "포인트": "사람을 선행사로 하는 주격 관계대명사 who",
+      "prompt": "다음 두 문장을 관계대명사를 이용하여 한 문장으로 고치시오.",
+      "body": ["I met a kind boy.",
+               "He lives upstairs.",
+               "→ ___________________________________________."],
+      "answer": "I met a kind boy who lives upstairs.",
+      "explanation": "선행사(a kind boy)가 사람이므로 주격 관계대명사 who를 사용하여 문장을 연결한다."
+    },
+    {
+      "file": "[기본] 8.관계사_종합문제(1회).pdf", "number": 12,
+      "포인트": "사람을 선행사로 하는 목적격 관계대명사",
+      "prompt": "다음 두 문장을 관계대명사를 이용하여 한 문장으로 고쳐 쓰시오.",
+      "body": ["These are my classmates.",
+               "I see them every day.",
+               "→ ___________________________________________."],
+      "answer": "These are my classmates (who(m)/that) I see every day.",
+      "explanation": "두 문장의 공통부분은 ‘my classmates’와 ‘them’이다. 선행사가 사람이고 관계사절에서 목적어 역할을 하므로 목적격 관계대명사 who(m) 또는 that을 쓰며, 목적격 관계대명사는 생략할 수 있다."
+    },
+    {
+      "file": "[기본] 8.관계사_종합문제(1회).pdf", "number": 30,
+      "포인트": "장소를 나타내는 관계부사 where",
+      "prompt": "다음 주어진 두 문장을 관계부사 where을 사용하여 한 문장으로 바꾸시오.",
+      "body": ["The school is not far from here.",
+               "I’m going to transfer to the school.",
+               "→ The school __________________________ is not",
+               "far from here."],
+      "answer": "where I’m going to transfer",
+      "explanation": "선행사(The school)와 관계부사 where를 이용해 ‘내가 전학 갈 학교는 여기서 멀지 않다’는 뜻의 한 문장으로 만든다. 관계부사가 전치사구를 대신하므로 to the school을 다시 쓰지 않는다."
+    },
+    {
+      "file": "[기본] 10.가정법_종합문제(1회).pdf", "number": 1,
+      "포인트": "가정법 과거 — be동사는 주어에 관계없이 were",
+      "prompt": "다음 문장을 같은 의미가 되도록 주어진 표현으로 시작하여 쓰시오.",
+      "body": ["Tom is busy, so he can’t join us.",
+               "→ If Tom _______________, he ________________.",
+               "(not을 포함할 것.)"],
+      "answer": "were not busy, could join us",
+      "explanation": "가정법 과거의 문장으로 be동사를 쓰는 경우 주어의 인칭에 상관없이 were를 쓰는 것에 유의하여 문장을 완성한다. 주절에는 「조동사의 과거형 + 동사원형」을 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_종합문제(1회).pdf", "number": 9,
+      "포인트": "직설법을 가정법 과거로 바꾸기",
+      "prompt": "두 문장의 뜻이 같아지도록 빈칸에 알맞은 단어를 쓰시오.",
+      "body": ["I don’t have his address, so I can’t send him a",
+               "letter.",
+               "= If I ______ his address, I ______ ______",
+               "him a letter."],
+      "answer": "had, could send",
+      "explanation": "주어진 문장은 가정법 과거로 나타낼 수 있다. 가정법 과거의 형태는 「If + 주어 + 과거동사 ~, 주어 + 조동사의 과거형 + 동사원형」이며, 직설법의 부정은 가정법에서 긍정이 된다."
+    },
+    {
+      "file": "[기본] 10.가정법_종합문제(1회).pdf", "number": 14,
+      "포인트": "가정법 과거의 주절",
+      "prompt": "다음 우리말과 같은 의미가 되도록 빈칸을 완성하시오.",
+      "body": ["내가 키가 크다면, 농구 선수가 될 텐데.",
+               "→ If I were tall, I ____________________________."],
+      "answer": "would become a basketball player.",
+      "explanation": "If절에서 be동사 were를 사용한 것으로 보아 가정법 과거임을 알 수 있다. 따라서 주절에는 「주어 + 조동사의 과거형 + 동사원형」을 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_종합문제(1회).pdf", "number": 27,
+      "포인트": "과거 사실의 반대를 가정하는 가정법 과거완료",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["As you reminded me, I could submit it on time.",
+               "→ If you ____________ me, I ________________ it",
+               "on time."],
+      "answer": "hadn’t reminded, couldn’t have submitted",
+      "explanation": "‘네가 나에게 알려 주었기 때문에 나는 제시간에 제출할 수 있었다.’ → ‘네가 나에게 알려 주지 않았다면, 나는 제시간에 제출할 수 없었을 것이다.’ 과거 사실의 반대이므로 가정법 과거완료로 쓴다."
+    },
+    {
+      "file": "[기본] 14.접속사[1]_종합문제(1회).pdf", "number": 1,
+      "포인트": "not only A but also B = B as well as A",
+      "prompt": "다음 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Mina plays not only the piano but also the violin.",
+               "→ Mina plays the violin ________________ the",
+               "piano."],
+      "answer": "as well as",
+      "explanation": "「not only A but (also) B」는 「B as well as A」로 바꿔 쓸 수 있으며, 이때 A와 B의 자리가 서로 바뀐다."
+    },
+    {
+      "file": "[기본] 14.접속사[1]_종합문제(1회).pdf", "number": 17,
+      "포인트": "so + 형용사 + that + 주어 + 동사",
+      "prompt": "다음 우리말에 맞게 빈칸을 완성하시오.",
+      "body": ["그 책은 너무 재미있어서 나는 그것을 세 번이나 읽었다.",
+               "→ The book was _______ interesting _______ I",
+               "read it three times."],
+      "answer": "so, that",
+      "explanation": "「so + 형용사(부사) + that + 주어 + 동사」의 형태로 ‘매우 ~해서 …하다’라는 의미를 나타낸다."
+    },
+    {
+      "file": "[기본] 14.접속사[1]_종합문제(1회).pdf", "number": 20,
+      "포인트": "so ~ that으로 두 문장 잇기",
+      "prompt": "주어진 두 문장을 so~ that~을 이용하여 한 문장으로 바꿔 쓰시오.",
+      "body": ["The show was very exciting. I clapped a lot.",
+               "→ ___________________________________________."],
+      "answer": "The show was so exciting that I clapped a lot.",
+      "explanation": "「so + 형용사(부사) + that + 주어 + 동사」는 ‘너무 ~해서 …하다’라는 뜻으로 결과를 나타낸다. very를 so로 바꾸고 두 문장을 that으로 잇는다."
+    },
+    {
+      "file": "[기본] 14.접속사[1]_종합문제(1회).pdf", "number": 24,
+      "포인트": "so ~ that + 부정 — 너무 ~해서 …할 수 없다",
+      "prompt": "다음 두 문장의 뜻이 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["The soup is very salty.",
+               "I can’t eat it.",
+               "→ The soup is ______ ______ ______ I can’t",
+               "eat it."],
+      "answer": "so salty that",
+      "explanation": "‘너무 ~해서 …할 수 없다’는 「so ~ that + 주어 + can’t」 구문을 사용해 나타낼 수 있다."
+    },
+    {
+      "file": "[기본] 16.부가의문문과 간접의문문_종합문제(1회).pdf", "number": 7,
+      "포인트": "부가의문문은 앞 문장과 반대로 만든다",
+      "prompt": "빈칸에 알맞은 부가의문문을 쓰시오.",
+      "body": ["It’s not an easy question, _______________?",
+               "They are kind neighbors, _______________?"],
+      "answer": "1) is it, 2) aren’t they",
+      "explanation": "부가의문문은 앞의 문장이 긍정이면 부정으로, 부정이면 긍정으로 나타낸다. 주어는 대명사로 바꾸고 be동사 문장은 be동사를 그대로 쓴다."
+    },
+    {
+      "file": "[기본] 16.부가의문문과 간접의문문_종합문제(1회).pdf", "number": 14,
+      "포인트": "be동사·청유문·일반동사의 부가의문문",
+      "prompt": "빈칸에 부가의문문을 사용하여 각각 완성하시오.",
+      "body": ["ⓐ That’s your new bike, __________?",
+               "ⓑ Let’s take a walk together, __________?",
+               "ⓒ Sora and Junho practiced very hard, __________?"],
+      "answer": "ⓐ isn’t it? ⓑ shall we? ⓒ didn’t they?",
+      "explanation": "ⓐ be동사 is의 부정형으로 쓰며 that은 it으로 받는다. ⓑ 청유문(Let’s ~)의 부가의문문은 ‘shall we?’이다. ⓒ 일반동사의 과거형이므로 ‘didn’t’를 쓰고 주어는 they로 받는다."
+    },
+    {
+      "file": "[기본] 16.부가의문문과 간접의문문_종합문제(1회).pdf", "number": 21,
+      "포인트": "간접의문문의 어순 「의문사 + 주어 + 동사」",
+      "prompt": "다음 두 문장을 한 문장으로 연결하여 쓰시오.",
+      "body": ["I don’t remember.",
+               "What was Daniel doing at the festival?",
+               "→ ___________________________________________."],
+      "answer": "I don’t remember what Daniel was doing at the festival.",
+      "explanation": "간접의문문은 「의문사 + 주어 + 동사」의 어순으로 쓴다. 의문사 ‘what’, 주어 ‘Daniel’, 동사 ‘was doing’의 순서로 배열한다."
+    },
+    {
+      "file": "[기본] 16.부가의문문과 간접의문문_종합문제(1회).pdf", "number": 26,
+      "포인트": "여러 의문문을 간접의문문으로 바꾸기",
+      "prompt": "각 문장을 간접의문문 형태로 변형하시오.",
+      "body": ["(1) What time does the class start?",
+               "Do you know _________________________________?",
+               "(2) Who is your favorite writer?",
+               "Could you tell me ____________________________?",
+               "(3) Why did she leave early?",
+               "I don’t know _________________________________?"],
+      "answer": "(1) what time the class starts (2) who your favorite writer is (3) why she left early",
+      "explanation": "간접의문문의 어순 「의문사 + 주어 + 동사」를 묻는 문제이다. (1) 현재시제이므로 주어가 3인칭 단수일 때 동사에 -s를 붙인다. (2) be동사는 주어 뒤로 보낸다. (3) 조동사 did가 사라지고 동사가 과거형이 된다."
+    }
+  ]
+}

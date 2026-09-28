@@ -1,0 +1,240 @@
+{
+  "_설명": "천일문 1권 Chapter 07 형용사, 부사, 비교 가운데 비교급·최상급 문항을 변형한 것. 은행에서는 기초 12과 비교구문 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 7,
+  "chapter": "형용사, 부사, 비교",
+  "target": {
+    "level": 1,
+    "level_name": "기초",
+    "chapter_no": 12,
+    "chapter": "비교구문"
+  },
+  "points": [
+    {
+      "unit_no": 3,
+      "unit": "비교급과 최상급",
+      "point_no": 9,
+      "point": "비교급 = 형용사/부사+-er",
+      "frequent": false
+    },
+    {
+      "unit_no": 3,
+      "unit": "비교급과 최상급",
+      "point_no": 10,
+      "point": "불규칙하게 변하는 비교급과 최상급",
+      "frequent": false
+    },
+    {
+      "unit_no": 3,
+      "unit": "비교급과 최상급",
+      "point_no": 11,
+      "point": "비교급+than ~: ~보다 더 …한[하게]",
+      "frequent": false
+    },
+    {
+      "unit_no": 3,
+      "unit": "비교급과 최상급",
+      "point_no": 12,
+      "point": "the+최상급+in[of] ~: ~ 중에서 가장 …한[하게]",
+      "frequent": false
+    }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제",
+      "round": 1,
+      "number": 21,
+      "point_nos": [
+        9,
+        11
+      ],
+      "point_label": "more가 붙는 형용사",
+      "question_kind": "빈칸 고르기",
+      "difficulty": "중",
+      "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": [
+        "This bag is more ______ than that one."
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "famous"
+        },
+        {
+          "no": 2,
+          "text": "cheap"
+        },
+        {
+          "no": 3,
+          "text": "popular"
+        },
+        {
+          "no": 4,
+          "text": "expensive"
+        },
+        {
+          "no": 5,
+          "text": "beautiful"
+        }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제",
+      "round": 1,
+      "number": 22,
+      "point_nos": [
+        9,
+        10
+      ],
+      "point_label": "비교급·최상급 만드는 법",
+      "question_kind": "다른 하나 고르기",
+      "difficulty": "중",
+      "badges": [
+        "빈출"
+      ],
+      "prompt": "다음 중 비교급과 최상급 형태가 잘못 연결된 것을 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "hot — hoter — hotest"
+        },
+        {
+          "no": 2,
+          "text": "nice — nicer — nicest"
+        },
+        {
+          "no": 3,
+          "text": "many — more — most"
+        },
+        {
+          "no": 4,
+          "text": "easy — easier — easiest"
+        },
+        {
+          "no": 5,
+          "text": "difficult — more difficult — most difficult"
+        }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제",
+      "round": 1,
+      "number": 23,
+      "point_nos": [
+        11,
+        12
+      ],
+      "point_label": "비교급+than, the+최상급",
+      "question_kind": "어법 판단",
+      "difficulty": "상",
+      "badges": [
+        "빈출"
+      ],
+      "prompt": "다음 내용과 일치하지 않는 것을 고르세요.",
+      "body": [
+        "나이 — 수지 12살 / 준호 14살 / 미나 13살",
+        "키 — 수지 150cm / 준호 165cm / 미나 158cm",
+        "몸무게 — 수지 42kg / 준호 60kg / 미나 48kg"
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "Junho is older than Suji."
+        },
+        {
+          "no": 2,
+          "text": "Mina is shorter than Junho."
+        },
+        {
+          "no": 3,
+          "text": "Suji is heavier than Mina."
+        },
+        {
+          "no": 4,
+          "text": "Junho is the tallest of the three."
+        },
+        {
+          "no": 5,
+          "text": "Suji is the youngest of the three."
+        }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제",
+      "round": 1,
+      "number": 24,
+      "point_nos": [
+        9,
+        11
+      ],
+      "point_label": "-er를 붙이는 비교급",
+      "question_kind": "어법 고쳐 쓰기",
+      "difficulty": "상",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 대화에서 어법상 알맞지 않은 두 개를 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "A: Did you buy a new phone? It looks nice!",
+        "B: Thanks. I got it a little days ago.",
+        "A: It is a big phone. Isn’t it heavy?",
+        "B: It is more light than my old one.",
+        "(1) ________ → ________   (2) ________ → ________"
+      ],
+      "choices": [],
+      "answer": "(1) a little → a few  (2) more light → lighter"
+    },
+    {
+      "kind": "실전문제",
+      "round": 1,
+      "number": 25,
+      "point_nos": [
+        10,
+        11,
+        12
+      ],
+      "point_label": "비교급·최상급과 수량 표현",
+      "question_kind": "어법 판단",
+      "difficulty": "상",
+      "badges": [
+        "고난도"
+      ],
+      "prompt": "다음 중 어법상 알맞지 않은 것끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ Don’t put too many salt in it.",
+        "ⓑ Tom knows a little Japanese words.",
+        "ⓒ My cold is worst than yesterday.",
+        "ⓓ January is the coldest month in Korea.",
+        "ⓔ My father gives always good advice to me."
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "ⓐ, ⓑ"
+        },
+        {
+          "no": 2,
+          "text": "ⓒ, ⓓ"
+        },
+        {
+          "no": 3,
+          "text": "ⓑ, ⓒ, ⓔ"
+        },
+        {
+          "no": 4,
+          "text": "ⓐ, ⓓ, ⓔ"
+        },
+        {
+          "no": 5,
+          "text": "ⓐ, ⓑ, ⓒ, ⓔ"
+        }
+      ],
+      "answer": "⑤"
+    }
+  ]
+}

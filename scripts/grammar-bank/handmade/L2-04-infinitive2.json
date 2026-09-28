@@ -1,0 +1,211 @@
+{
+  "_설명": "기본 4과 부정사[2] — 가주어 It, 의미상 주어, too ~ to, enough to. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(2회).pdf", "number": 3,
+      "포인트": "too ~ to와 so ~ that의 전환, 의미상 주어가 다를 때 for + 목적격",
+      "prompt": "다음을 주어진 조건에 맞게 영작하시오.",
+      "body": ["그 가방은 너무 무거워서 그는 들 수 없었다.",
+               "(1) too... to... 구문을 이용하시오.",
+               "→ ___________________________________________.",
+               "(2) so... that... 구문을 이용하시오.",
+               "→ ___________________________________________."],
+      "answer": "(1) The bag was too heavy for him to carry. (2) The bag was so heavy that he couldn’t carry it.",
+      "explanation": "‘너무 A해서 B할 수 없다’는 「too A to B」로 쓴다. 주절의 주어(가방)와 의미상 주어(그)가 다르므로 「too A + for + 의미상 주어(목적격) + to B」로 써야 한다. 이 표현은 「so A that + 주어 + can’t[couldn’t] + B」로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(2회).pdf", "number": 7,
+      "포인트": "사람의 성질을 나타내는 형용사 뒤의 의미상 주어는 of + 목적격",
+      "prompt": "다음 우리말을 It~로 시작하는 문장으로 완성하시오.",
+      "body": ["저에게 길을 알려 주시다니 당신은 친절하군요.",
+               "→ It _________________________________________."],
+      "answer": "is kind of you to show me the way",
+      "explanation": "「It is + 형용사 + 의미상 주어 + to부정사」 구문에서 kind, wise처럼 사람의 성질을 나타내는 형용사가 오면 의미상 주어를 「of + 목적격」으로 나타낸다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(2회).pdf", "number": 12,
+      "포인트": "too ~ to를 so ~ that … can’t로 바꾸기",
+      "prompt": "다음 문장을 so ~ that을 이용하여 같은 의미의 한 문장으로 바꾸세요.",
+      "body": ["Mina was too busy to answer the phone.",
+               "="],
+      "answer": "Mina was so busy that she couldn’t answer the phone.",
+      "explanation": "「too + 형용사/부사 + to부정사」는 ‘너무 ~해서 …할 수 없다’는 뜻으로 「so + 형용사/부사 + that + 주어 + couldn’t + 동사원형」으로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(2회).pdf", "number": 15,
+      "포인트": "가주어 It과 의미상 주어 for us",
+      "prompt": "우리말과 같은 뜻이 되도록 주어진 단어를 활용하여 문장을 완성하시오. (총 9단어)",
+      "body": ["우리가 물을 아껴 쓰는 것은 필요하다.",
+               "(our water)",
+               "______________________________________________"],
+      "answer": "It is necessary for us to save our water.",
+      "explanation": "가주어 It을 앞에 두고 진주어인 to부정사는 뒤로 보낸다. to부정사의 의미상 주어는 「for + 목적격」으로 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(2회).pdf", "number": 25,
+      "포인트": "It ~ to부정사 영작",
+      "prompt": "다음 우리말을 ‘It~to부정사’를 사용하여 영작하시오.",
+      "body": ["밤에 그 산을 오르는 것은 위험하다.",
+               "→ ___________________________________________."],
+      "answer": "It is dangerous to climb the mountain at night.",
+      "explanation": "to부정사가 주어로 쓰일 때는 주어 자리에 가주어 it을 쓰고 진주어인 to부정사는 문장 뒤로 보낸다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 3,
+      "포인트": "가주어 It + 형용사 + for 목적격 + to부정사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["우리가 매일 아침 운동하는 것은 힘들다.",
+               "(hard / exercise)",
+               "→ It is ______ ______ ______ ______ ______ every",
+               "morning."],
+      "answer": "hard for us to exercise",
+      "explanation": "가주어 It이 주어졌으므로 진주어인 ‘to exercise every morning’을 문장 뒤로 보낸다. 형용사가 hard이므로 의미상 주어는 「for + 목적격」으로 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 4,
+      "포인트": "so ~ that … can’t를 too ~ to로 바꾸기",
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰시오.",
+      "body": ["The box is so heavy that he can’t lift it.",
+               "(too ~ to구문을 이용)",
+               "→ The box is _________________________________."],
+      "answer": "too heavy to lift",
+      "explanation": "「so + 형용사/부사 + that + 주어 + can’t + 동사원형」은 「too + 형용사/부사 + to부정사」로 바꿔 쓸 수 있다. 이때 뒤의 목적어 it은 쓰지 않는다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 5,
+      "포인트": "두 문장을 too ~ to로 합치기",
+      "prompt": "다음 두 문장을 to부정사를 이용하여 한 문장으로 바꿀 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["The soup is very hot.",
+               "You can’t drink it.",
+               "→ The soup is _________________________________."],
+      "answer": "too hot to drink",
+      "explanation": "‘너무 뜨거워서 마실 수 없다’는 뜻이 되어야 하므로 「too + 형용사 + to부정사」 형태로 나타낸다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 6,
+      "포인트": "so ~ that … can’t를 too ~ to로 바꾸기",
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰시오.",
+      "body": ["My brother is so young that he can’t ride a",
+               "bike. (「too ~ to …」 구문을 이용하여)",
+               "→ My brother _________________________________."],
+      "answer": "is too young to ride a bike",
+      "explanation": "「so + 형용사/부사 + that + 주어 + can’t + 동사원형」은 「too + 형용사/부사 + to부정사」로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 8,
+      "포인트": "so ~ that couldn’t = too ~ to",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Nora was so nervous that she couldn’t start",
+               "her speech.",
+               "→ Nora was _____ _____ _____ _____ her speech."],
+      "answer": "too, nervous, to, start",
+      "explanation": "「so + 형용사 + that + 주어 + couldn’t + 동사원형」은 ‘너무 ~해서 …할 수 없는’의 뜻으로 「too + 형용사 + to부정사」로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 9,
+      "포인트": "so ~ that can = 형용사 + enough + to부정사",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Jake is so tall that he can touch the ceiling.",
+               "→ Jake is _____ _____ _____ _____ the ceiling."],
+      "answer": "tall, enough, to, touch",
+      "explanation": "「so + 형용사 + that + 주어 + can + 동사원형」은 ‘~할 만큼 충분히 …한’의 뜻으로 「형용사 + enough + to부정사」로 바꿔 쓸 수 있다. enough가 형용사 뒤에 오는 점에 주의한다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 10,
+      "포인트": "형용사 + enough + to부정사 배열",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그녀는 그 상자를 옮길 만큼 충분히 힘이 세다.",
+               "(strong, move, the box, to, enough)",
+               "→ She is _____________________________________."],
+      "answer": "strong enough to move the box",
+      "explanation": "‘~할 만큼 충분히 …한’은 「형용사 + enough + to부정사」로 나타낸다. enough는 형용사 뒤에 오는 점에 주의한다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 11,
+      "포인트": "so ~ that can = 형용사 + enough + to부정사",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Nick is so quick that he can finish the race.",
+               "→ Nick is ______ ______ _____ _____ the race."],
+      "answer": "quick enough to finish",
+      "explanation": "「so + 형용사/부사 + that + 주어 + can …」은 ‘…할 만큼 충분히 ~한’의 뜻으로 「형용사/부사 + enough + to부정사」로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 14,
+      "포인트": "가주어 It + 진주어 to부정사",
+      "prompt": "다음 단어들을 사용해서 우리말에 맞게 문장을 쓰시오.(7 단어로 쓸 것)",
+      "body": ["혼자 여행하는 것은 안전하지 않다.",
+               "→ __________________________________________.",
+               "(it / travel / safe / alone / not / is / to)"],
+      "answer": "It is not safe to travel alone.",
+      "explanation": "to부정사가 주어로 쓰일 때는 주어 자리에 가주어 it을 쓰고 진주어인 to부정사는 문장 뒤로 보낸다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 15,
+      "포인트": "to부정사 주어를 It으로 시작하는 문장으로 바꾸기",
+      "prompt": "문장을 It으로 시작하는 한 문장으로 쓰시오.",
+      "body": ["To waste food is not right.",
+               "→ ___________________________________________."],
+      "answer": "It is not right to waste food.",
+      "explanation": "to부정사가 주어로 쓰인 문장은 가주어 it을 앞에 두고 진주어인 to부정사를 문장 뒤로 보낸다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 16,
+      "포인트": "It ~ for + 목적격 ~ to부정사",
+      "prompt": "같은 의미가 되도록 빈칸을 채우시오.",
+      "body": ["To finish the report is necessary for her.",
+               "→ _________ is necessary _________ _________",
+               "_________ _________ the report."],
+      "answer": "It, for, her, to, finish",
+      "explanation": "to부정사구를 주어로 하는 문장이므로 「It ~ for + 목적격 + to부정사」 구문으로 바꿔 같은 뜻을 나타낸다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 20,
+      "포인트": "가주어 It과 의미상 주어 for + 목적격",
+      "prompt": "다음 문장을 우리말과 같은 의미가 되도록 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "body": ["__________ is difficult __________ him",
+               "__________ wake up early.",
+               "(그가 일찍 일어나는 것은 어렵다)"],
+      "answer": "It, for, to",
+      "explanation": "「It is + 형용사 + for + 목적격 + to부정사」 구문으로, to부정사의 의미상 주어는 「for + 목적격」으로 나타낸다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 21,
+      "포인트": "to부정사 주어를 It ~ to로 바꾸기",
+      "prompt": "다음 문장을 It~로 시작하는 문장으로 바꾸시오.",
+      "body": ["To break such an old promise was rude.",
+               "→ It _________________________________________."],
+      "answer": "was rude to break such an old promise",
+      "explanation": "to부정사가 주어로 쓰이고 rude라는 형용사가 있는 문장이므로 주어 자리에 it을 쓰고 진주어인 to부정사를 문장 뒤로 보낸다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 23,
+      "포인트": "to부정사 주어를 가주어 It으로 바꾸기",
+      "prompt": "주어진 단어로 시작하는 문장으로 바꿔 쓰세요.",
+      "body": ["To learn their history and customs was not",
+               "simple.",
+               "→ It",
+               "."],
+      "answer": "was not simple to learn their history and customs",
+      "explanation": "to부정사가 주어로 쓰인 문장은 가주어 it을 문장 맨 앞에 두고 진주어인 to부정사를 문장 뒤로 보낼 수 있다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 24,
+      "포인트": "가주어 it, 진주어 to부정사",
+      "prompt": "두 문장이 의미가 같도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["To read a newspaper in English is hard.",
+               "= It ."],
+      "answer": "is hard to read a newspaper in English",
+      "explanation": "가주어 it과 진주어 to부정사 구문이다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 26,
+      "포인트": "It ~ to 구문 영작",
+      "prompt": "우리말에 맞게 주어진 단어들을 이용하여 It ~ to 구문으로 영작하세요.",
+      "body": ["안전에 관한 정확한 지식을 갖는 것이 필요하다.",
+               "(necessary / accurate knowledge / safety)",
+               "→"],
+      "answer": "It is necessary to have accurate knowledge about safety.",
+      "explanation": "‘to have accurate knowledge about safety’가 진주어이고 it은 가주어이다."
+    }
+  ]
+}

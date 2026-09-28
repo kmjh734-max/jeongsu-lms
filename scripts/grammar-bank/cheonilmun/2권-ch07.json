@@ -1,0 +1,207 @@
+{
+  "_설명": "천일문 2권 Chapter 07 분사에서 가져와 변형한 문항. 은행에서는 기본 6과 분사 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 7,
+  "chapter": "분사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 6, "chapter": "분사" },
+  "points": [
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 1, "point": "현재분사(-ing): ~하는(능동·진행)", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 2, "point": "과거분사(p.p.): ~된, ~당한(수동·완료)", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 3, "point": "분사가 뒤에서 명사를 꾸미는 경우", "frequent": false },
+    { "unit_no": 2, "unit": "주의해야 할 분사", "point_no": 4, "point": "감정을 나타내는 분사: -ing는 감정을 일으킴, p.p.는 감정을 느낌", "frequent": true },
+    { "unit_no": 2, "unit": "주의해야 할 분사", "point_no": 5, "point": "현재분사와 동명사 구별", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1], "point_label": "현재분사가 꾸미는 명사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["The man ran to the ______ boy."],
+      "choices": [
+        { "no": 1, "text": "cry" },
+        { "no": 2, "text": "crying" },
+        { "no": 3, "text": "cried" },
+        { "no": 4, "text": "to cry" },
+        { "no": 5, "text": "to crying" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [2], "point_label": "과거분사가 꾸미는 명사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Mina was trying to fix the ______ windows."],
+      "choices": [
+        { "no": 1, "text": "break" },
+        { "no": 2, "text": "breaks" },
+        { "no": 3, "text": "broke" },
+        { "no": 4, "text": "broken" },
+        { "no": 5, "text": "to break" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [1, 2], "point_label": "능동이면 -ing, 수동이면 p.p.",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "This is a photo [[taken]] in Nepal." },
+        { "no": 2, "text": "Who is the woman [[carrying]] a box?" },
+        { "no": 3, "text": "I eat a [[boiling]] egg every morning." },
+        { "no": 4, "text": "He lives in a house [[built]] in the 1980s." },
+        { "no": 5, "text": "You can’t go through because of the [[fallen]] rocks." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [5], "point_label": "현재분사와 동명사",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I had a [[boring]] class today." },
+        { "no": 2, "text": "There was a girl [[singing]] on the stage." },
+        { "no": 3, "text": "I can’t sleep because of the [[crying]] baby." },
+        { "no": 4, "text": "Her hobby is [[watching]] cooking shows." },
+        { "no": 5, "text": "She pointed at the kites [[flying]] over the park." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [1, 3], "point_label": "명사를 뒤에서 꾸미는 현재분사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["너는 지호와 이야기하고 있는 저 소년을 아니? (talk with)", "→ Do you know that boy ________________ Jiho?"],
+      "choices": [],
+      "answer": "talking with"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [4], "point_label": "감정을 느낄 때는 과거분사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["그는 결코 네 편지에 실망하지 않을 거야. (disappoint)", "→ He will never be ________________ with your letter."],
+      "choices": [],
+      "answer": "disappointed"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [1, 3], "point_label": "분사가 꾸미는 말 찾기",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["그 공원을 둘러싼 나무들은 크지 않다."],
+      "choices": [
+        { "no": 1, "text": "The trees surround the park are not tall." },
+        { "no": 2, "text": "The trees surrounded by the park are tall." },
+        { "no": 3, "text": "The trees surrounding the park are not tall." },
+        { "no": 4, "text": "The park surrounded by the trees is not tall." },
+        { "no": 5, "text": "The park surrounding the trees is not tall." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [1, 2], "point_label": "p.p.와 -ing 가려 쓰기",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• The box ______(A) with old books was very heavy.", "• We should not get on the ______(B) train."],
+      "choices": [
+        { "no": 1, "text": "fill — moving" },
+        { "no": 2, "text": "filled — moved" },
+        { "no": 3, "text": "filling — move" },
+        { "no": 4, "text": "filled — moving" },
+        { "no": 5, "text": "filling — move" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [4], "point_label": "감정 분사: 느끼면 p.p., 일으키면 -ing",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• We were ______(A) by the news.", "• Her dancing talent was ______(B)."],
+      "choices": [
+        { "no": 1, "text": "shock — surprised" },
+        { "no": 2, "text": "shocked — surprised" },
+        { "no": 3, "text": "shocking — surprising" },
+        { "no": 4, "text": "shocked — surprising" },
+        { "no": 5, "text": "shocking — surprised" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [4], "point_label": "감정을 일으키는 말은 -ing",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요. (필요시 단어의 형태를 바꿀 것)",
+      "body": ["그 지루한 강의는 나의 관심을 끌 수 없었다. (bore / lecture / the)", "→ ________________ couldn’t hold my attention."],
+      "choices": [],
+      "answer": "The boring lecture"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [1, 3], "point_label": "명사를 뒤에서 꾸미는 분사",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요. (필요시 단어의 형태를 바꿀 것)",
+      "body": [
+        "교실에서 노래를 부르고 있는 학생들은 Mia와 Leo이다. (a song / the students / sing)",
+        "→ ________________ in the classroom are Mia and Leo."
+      ],
+      "choices": [],
+      "answer": "The students singing a song"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [4], "point_label": "사람이 느끼는 감정은 p.p.",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 글의 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [
+        "Those ① [[standing]] women are Ann and Sue. They are scientists ② [[studying]] bees. Now they are doing an ③ [[amazing]] project. They are really ④ [[exciting]] about it. They want to find ⑤ [[hidden]] nests."
+      ],
+      "choices": [
+        { "no": 1, "text": "standing" },
+        { "no": 2, "text": "studying" },
+        { "no": 3, "text": "amazing" },
+        { "no": 4, "text": "exciting" },
+        { "no": 5, "text": "hidden" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [1, 2, 4], "point_label": "분사 문장 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 것끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ This was a very amazing scene.",
+        "ⓑ The two girls smiling greeted their teacher.",
+        "ⓒ Dad bought a used bike at a low price.",
+        "ⓓ Judy was surprising by our party.",
+        "ⓔ This is a letter written with kind words."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓑ" },
+        { "no": 2, "text": "ⓐ, ⓓ" },
+        { "no": 3, "text": "ⓐ, ⓒ, ⓔ" },
+        { "no": 4, "text": "ⓑ, ⓔ" },
+        { "no": 5, "text": "ⓑ, ⓓ, ⓔ" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [4], "point_label": "사람이 느끼는 감정은 p.p.",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형", "고난도"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "Mina and Sora were pleasing to watch their favorite drama together. The beautiful scenes were amazing and all the songs were touching.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "pleasing → pleased"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [1, 3], "point_label": "명사를 꾸미는 현재분사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형", "고난도"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "I was walking in the park yesterday. There were some children sit on the bench. And the fallen leaves on the path looked lovely.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "sit → sitting"
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "_설명": "기초 6과 대명사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기초] 6.대명사_종합문제(1회).pdf", "number": 10,
+      "포인트": "사물을 받는 대명사 it",
+      "prompt": "다음 대화에서 괄호 안에 들어갈 단어로 적절한것은?",
+      "body": ["A: This is my cap.",
+               "B: ( ) is very pretty."],
+      "choices": ["He", "It", "They", "She", "These"],
+      "answer": "②",
+      "explanation": "앞에 나온 단수 사물 my cap을 받으므로 It이 알맞다."
+    },
+    {
+      "file": "[기초] 6.대명사_종합문제(1회).pdf", "number": 29,
+      "포인트": "지시대명사·지시형용사 that",
+      "prompt": "다음에서 괄호 안에 공통으로 들어갈 단어는?",
+      "body": ["( ) drama is boring.",
+               "A: Who is the boy over there?",
+               "B: ( ) is Junho.",
+               "그 때에 : at ( ) moment"],
+      "choices": ["this", "those", "that", "they", "these"],
+      "answer": "③",
+      "explanation": "모두 단수를 가리키며 멀리 있는 것을 나타내므로 that이 공통으로 들어간다."
+    },
+    {
+      "file": "[기초] 6.대명사_종합문제(2회).pdf", "number": 1,
+      "포인트": "시간을 나타내는 비인칭 주어 it",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["______ is 7 a.m. in London now."],
+      "choices": ["One", "It", "This", "That", "They"],
+      "answer": "②",
+      "explanation": "시간을 나타낼 때는 비인칭 주어 It을 쓴다."
+    },
+    {
+      "file": "[기초] 6.대명사_종합문제(2회).pdf", "number": 2,
+      "포인트": "가까운 것은 this, 먼 것은 that",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 들어갈 말이 알맞게 짝지어진 것을 고르시오.",
+      "body": ["이 잔은 거의 비었고 저 잔은 아직 반이 남았다.",
+               "→ ______ glass is nearly empty but",
+               "______ glass is still half full."],
+      "choices": ["That – this", "This – that", "These – those",
+                  "Those – these", "This – those"],
+      "answer": "②",
+      "explanation": "‘이 ~’는 This, ‘저 ~’는 That으로 쓰며 뒤의 명사가 단수이므로 복수형은 쓸 수 없다."
+    },
+    {
+      "file": "[기초] 6.대명사_종합문제(2회).pdf", "number": 5,
+      "포인트": "동사의 목적어 자리에는 목적격",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["I thanked __________ a lot."],
+      "choices": ["you", "they", "her", "them", "him"],
+      "answer": "②",
+      "explanation": "동사 뒤 목적어 자리이므로 목적격을 써야 한다. they는 주격이므로 them으로 써야 한다."
+    },
+    {
+      "file": "[기초] 6.대명사_종합문제(2회).pdf", "number": 9,
+      "포인트": "복수 명사를 받는 대명사 they",
+      "prompt": "다음 빈칸에 들어갈 알맞은 대명사를 고르세요.",
+      "body": ["A : Are these your gloves?",
+               "B : Yes, _____ are."],
+      "choices": ["this", "that", "these", "it", "they"],
+      "answer": "⑤",
+      "explanation": "these로 물었으므로 대답에서는 복수 대명사 they로 받는다."
+    },
+    {
+      "file": "[기초] 6.대명사_종합문제(2회).pdf", "number": 12,
+      "포인트": "멀리 있는 단수를 가리키는 that",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Look at ______ tall tower over there."],
+      "choices": ["it", "this", "these", "that", "those"],
+      "answer": "④",
+      "explanation": "over there로 멀리 있는 단수 명사를 가리키므로 that이 알맞다."
+    },
+    {
+      "file": "[기초] 6.대명사_종합문제(2회).pdf", "number": 15,
+      "포인트": "지시대명사의 줄임말",
+      "prompt": "다음 중 줄임말이 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": ["it is → its", "this is → this's", "that is → that's",
+                  "those are → those're", "these are → these're"],
+      "answer": "③",
+      "explanation": "that is만 that’s로 줄여 쓸 수 있다. it is는 it’s이며 its는 소유격이다."
+    },
+    {
+      "file": "[기초] 6.대명사_종합문제(2회).pdf", "number": 25,
+      "포인트": "소유격과 소유대명사",
+      "prompt": "다음 중 짝지어진 단어의 관계가 [[다른]]하나는?",
+      "body": [],
+      "choices": ["my – mine", "your – yours", "his – his",
+                  "our – ours", "them – their"],
+      "answer": "⑤",
+      "explanation": "나머지는 모두 「소유격 – 소유대명사」의 관계인데 ⑤는 「목적격 – 소유격」이다."
+    },
+    {
+      "file": "[기초] 6.대명사_확인문제(1회).pdf", "number": 3,
+      "포인트": "복수를 가리키는 those와 소유격",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 들어갈 말이 알맞게 짝지어진 것을 고르시오.",
+      "body": ["저것들은 나의 장갑이야.",
+               "→ ______ are ______ gloves."],
+      "choices": ["This – my", "Those – my", "These – me",
+                  "Those – our", "That – your"],
+      "answer": "②",
+      "explanation": "‘저것들’은 Those이고, ‘나의’는 소유격 my이다."
+    },
+    {
+      "file": "[기초] 6.대명사_확인문제(1회).pdf", "number": 6,
+      "포인트": "사물의 소유격 its",
+      "prompt": "다음 문장의 밑줄 친 부분을 대명사로 바꿔 쓸때 알맞은 것을 고르시오.",
+      "body": ["What is [[the puppy’s]] name?"],
+      "choices": ["it", "it‘s", "that‘s", "its", "your"],
+      "answer": "④",
+      "explanation": "‘~의’라는 소유의 뜻이므로 소유격 its로 바꾼다. it’s는 it is의 줄임말이다."
+    },
+    {
+      "file": "[기초] 6.대명사_확인문제(1회).pdf", "number": 13,
+      "포인트": "목적어 자리에는 목적격",
+      "prompt": "다음 문장의 밑줄 친 부분을 대명사로 바꿔 쓸때 알맞은 것을 고르시오.",
+      "body": ["Laura called [[Victor]]."],
+      "choices": ["he", "his", "him", "her", "you"],
+      "answer": "③",
+      "explanation": "동사 called의 목적어 자리이므로 목적격 him으로 바꾼다."
+    },
+    {
+      "file": "[기초] 6.대명사_확인문제(2회).pdf", "number": 3,
+      "포인트": "소유격과 소유대명사",
+      "prompt": "단어들의 관계가 [[다른]]것을 고르세요.",
+      "body": [],
+      "choices": ["her - hers", "their - theirs", "your - yours",
+                  "he - he's", "our - ours"],
+      "answer": "④",
+      "explanation": "나머지는 「소유격 – 소유대명사」인데 ④는 주격과 he is의 줄임말이다."
+    },
+    {
+      "file": "[기초] 6.대명사_확인문제(2회).pdf", "number": 13,
+      "포인트": "복수 명사를 꾸미는 지시형용사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["____________ cookies are delicious."],
+      "choices": ["This", "It", "Those", "That", "You"],
+      "answer": "③",
+      "explanation": "뒤에 복수 명사 cookies가 오므로 복수를 가리키는 Those가 알맞다."
+    }
+  ]
+}

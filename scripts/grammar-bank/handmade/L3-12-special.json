@@ -1,0 +1,56 @@
+{
+  "_설명": "심화 12과 특수구문 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 12.특수구문_종합문제(1회).pdf", "number": 14,
+      "포인트": "장소·방향 부사구의 도치 — 주어가 명사일 때만 도치된다",
+      "prompt": "우리말에 맞게 주어진 단어로 시작하는 문장을 완성하시오.",
+      "body": ["(1) 그 숲 속에 한 늙은 마법사가 살았다.",
+               "→ In the forest _______________________________.",
+               "(2) 그는 언덕 아래로 굴러 내려갔다.",
+               "→ Down ______________________________________."],
+      "answer": "(1) lived an old wizard, (2) the hill he rolled.",
+      "explanation": "(1) 방향이나 장소를 나타내는 부사구를 강조하기 위해 문장 맨 앞에 쓰는 경우, 주어와 동사가 도치된다. (2) 주어가 대명사일 때는 도치하지 않고 「부사구 + 주어 + 동사」의 어순을 그대로 쓴다."
+    },
+    {
+      "file": "[심화] 12.특수구문_종합문제(1회).pdf", "number": 17,
+      "포인트": "강조의 do — 시제와 인칭에 맞춰 do/does/did를 고른다",
+      "prompt": "아래 빈칸에 강조의 ‘do’를 사용해 강조하는 문장으로 대화를 완성하시오.(단, 완전한 문장으로 쓸 것!)",
+      "body": ["A: Did he really return the book?",
+               "B: Believe me. (1)_____________________. (return)",
+               "A: But he doesn’t even have a library card.",
+               "B: Yes! (2)_____________________. (have)"],
+      "answer": "(1) He did return the book. (2) He does have it(a library card).",
+      "explanation": "일반동사를 강조할 때, 일반동사 앞에 do, does, did를 붙여 ‘정말로 ~하다’의 의미를 나타낸다. 이때 뒤에는 반드시 동사원형을 쓰며, 시제와 인칭에 맞춰 (1)은 did, (2)는 does를 쓴다."
+    },
+    {
+      "file": "[심화] 12.특수구문_종합문제(1회).pdf", "number": 18,
+      "포인트": "It ~ that 강조구문",
+      "prompt": "밑줄 친 부분을 강조한 It~that 구문을 쓰시오.",
+      "body": ["I found [[a silver coin]] this afternoon.",
+               "→ _______________________________________."],
+      "answer": "It was a silver coin that I found this afternoon.",
+      "explanation": "강조구문은 강조하고자 하는 어구를 It is(was)와 that 사이에 넣어서 만든다. 원래 문장이 과거시제이므로 It was로 쓴다."
+    },
+    {
+      "file": "[심화] 12.특수구문_종합문제(1회).pdf", "number": 21,
+      "포인트": "사람을 강조할 때는 that 대신 who도 쓸 수 있다",
+      "prompt": "다음 문장의 밑줄 친 부분을 강조하는 문장을 완성하시오.",
+      "body": ["[[Sujin]] enjoys painting so much.",
+               "→ ____________________________________________"],
+      "answer": "It is Sujin that(who) enjoys painting so much.",
+      "explanation": "It is(was)와 that 사이에 강조하고자 하는 말(Sujin)을 넣고, 강조하고자 하는 말을 뺀 나머지 부분을 that 뒤에 그대로 쓴다. 강조하는 대상이 사람이면 that 대신 who를 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 12.특수구문_종합문제(1회).pdf", "number": 30,
+      "포인트": "부정어가 문두에 올 때의 도치",
+      "prompt": "주어진 문장과 같은 의미가 되도록 문장을 바꿔 쓰시오.",
+      "body": ["1) He has never traveled alone.",
+               "→ Never _____________________________________.",
+               "2) Mina hardly checks her phone.",
+               "→ Hardly ____________________________________."],
+      "answer": "1) has he traveled alone, 2) does Mina check her phone.",
+      "explanation": "1) 부정어 ‘Never’가 문장의 맨 앞으로 오면 「부정어 + 조동사 + 주어 + 동사」의 형태가 된다. 현재완료이므로 has가 주어 앞으로 간다. 2) 일반동사가 쓰인 문장은 조동사 do를 빌려 와 「Hardly + does + 주어 + 동사원형」으로 쓴다."
+    }
+  ]
+}

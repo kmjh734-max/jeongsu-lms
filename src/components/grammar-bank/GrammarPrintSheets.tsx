@@ -1,0 +1,284 @@
+"use client";
+
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import type { GrammarQuestion, GrammarSheetStyle } from "@/lib/grammar-bank/types";
+
+const MM = 96 / 25.4; // 1mm = 3.78px
+const SHEET_INNER_H = (296 - 11 - 8) * MM; // 쪽 안쪽 높이
+const COLS_PAD_TOP = 3.6 * MM;
+const COL_W = 85 * MM; // 오른쪽 단(좁은 쪽)에 맞춰 잰다
+const SLACK = 2 * MM;
+
+const CIRCLED = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
+
+export type GrammarPrintOptions = {
+  style: GrammarSheetStyle;
+  title: string;
+  subtitle: string;
+  academyName: string;
+  showName: boolean;
+  timeLimit: string;
+  withAnswers: boolean;
+};
+
+type Block = { key: string; kind: "q" | "a"; index: number };
+type Page = { left: Block[]; right: Block[]; answers: boolean };
+
+/** 본문 속 [[ ]] 는 밑줄 친 부분 */
+function withUnderlines(line: string) {
+  const parts = line.split(/(\[\[.*?\]\])/g);
+  return parts.map((part, i) =>
+    part.startsWith("[[") && part.endsWith("]]") ? (
+      <u key={i}>{part.slice(2, -2)}</u>
+    ) : (
+      <Fragment key={i}>{part}</Fragment>
+    ),
+  );
+}
+
+function isWritten(q: GrammarQuestion) {
+  return !q.choices || q.choices.length === 0;
+}
+
+function QuestionCard({
+  q,
+  no,
+  measuring,
+}: {
+  q: GrammarQuestion;
+  no: number;
+  measuring?: boolean;
+}) {
+  return (
+    <section className="gb-q" data-gb-card={measuring ? "" : undefined}>
+      <p className="gb-q-head">
+        <span className="gb-no">{no}</span>
+        <span className="gb-ask">
+          {withUnderlines(q.prompt)}
+          {isWritten(q) ? <span className="gb-tag">서술형</span> : null}
+        </span>
+      </p>
+      {q.body.length > 0 ? (
+        <div className="gb-body">
+          {q.body.map((line, i) => (
+            <p key={i}>{withUnderlines(line)}</p>
+          ))}
+        </div>
+      ) : null}
+      {q.choices.length > 0 ? (
+        <p className="gb-ch">
+          {q.choices.map((c) => (
+            <span key={c.no}>
+              {CIRCLED[c.no - 1] ?? `${c.no}.`} {withUnderlines(c.text)}
+            </span>
+          ))}
+        </p>
+      ) : (
+        <div className="gb-write" />
+      )}
+    </section>
+  );
+}
+
+function AnswerRow({
+  q,
+  no,
+  measuring,
+}: {
+  q: GrammarQuestion;
+  no: number;
+  measuring?: boolean;
+}) {
+  const written = isWritten(q);
+  return (
+    <div className="gb-ans-row" data-gb-card={measuring ? "" : undefined}>
+      <span className="gb-ans-no">{no}</span>
+      {written ? (
+        <span className="gb-ans-text">{q.answer ?? ""}</span>
+      ) : (
+        <span className="gb-ans-mark">{q.answer ?? ""}</span>
+      )}
+    </div>
+  );
+}
+
+export function GrammarPrintSheets({
+  questions,
+  options,
+}: {
+  questions: GrammarQuestion[];
+  options: GrammarPrintOptions;
+}) {
+  const measureRef = useRef<HTMLDivElement>(null);
+  const [pages, setPages] = useState<Page[] | null>(null);
+
+  const answerQuestions = useMemo(
+    () => (options.withAnswers ? questions : []),
+    [questions, options.withAnswers],
+  );
+
+  useEffect(() => {
+    const root = measureRef.current;
+    if (!root || questions.length === 0) {
+      setPages(null);
+      return;
+    }
+    const headH = root.querySelector<HTMLElement>("[data-gb-head]")?.offsetHeight ?? 0;
+    const nameH = options.showName
+      ? (root.querySelector<HTMLElement>("[data-gb-name]")?.offsetHeight ?? 0)
+      : 0;
+    const footH = root.querySelector<HTMLElement>("[data-gb-foot]")?.offsetHeight ?? 0;
+    const cards = [...root.querySelectorAll<HTMLElement>("[data-gb-card]")];
+
+    const qHeights = cards.slice(0, questions.length).map((el) => el.offsetHeight);
+    const aHeights = cards.slice(questions.length).map((el) => el.offsetHeight);
+
+    const base = SHEET_INNER_H - headH - footH - COLS_PAD_TOP - SLACK;
+    const firstPage = base - nameH;
+
+    function fill(
+      heights: number[],
+      kind: "q" | "a",
+      answers: boolean,
+      startsFirst: boolean,
+    ): Page[] {
+      const out: Page[] = [];
+      let page: Page = { left: [], right: [], answers };
+      let column: "left" | "right" = "left";
+      let used = 0;
+      let limit = startsFirst ? firstPage : base;
+
+      const pushPage = () => {
+        out.push(page);
+        page = { left: [], right: [], answers };
+        column = "left";
+        used = 0;
+        limit = base;
+      };
+
+      heights.forEach((h, i) => {
+        if (used > 0 && used + h > limit) {
+          if (column === "left") {
+            column = "right";
+            used = 0;
+          } else {
+            pushPage();
+          }
+        }
+        page[column].push({ key: `${kind}-${i}`, kind, index: i });
+        used += h;
+      });
+      if (page.left.length > 0 || page.right.length > 0) out.push(page);
+      return out;
+    }
+
+    const sheetPages = fill(qHeights, "q", false, true);
+    const answerPages =
+      answerQuestions.length > 0 ? fill(aHeights, "a", true, false) : [];
+    setPages([...sheetPages, ...answerPages]);
+  }, [questions, answerQuestions, options.showName, options.style, options.title]);
+
+  if (questions.length === 0) return null;
+
+  const header = (page: number, total: number, answers: boolean) => (
+    <header className="gb-head" data-gb-head="">
+      <div className="gb-head-main">
+        <p className="gb-kicker">
+          {options.academyName} · 중학 문법{answers ? " · 정답" : ""}
+        </p>
+        <h1 className="gb-title">{options.title || "중학 문법"}</h1>
+        {options.subtitle ? <p className="gb-sub">{options.subtitle}</p> : null}
+      </div>
+      <div className="gb-head-aside">
+        <div>
+          <b>{questions.length}</b>문항
+        </div>
+        <div>
+          {options.timeLimit && !answers ? `${options.timeLimit} · ` : ""}
+          {page} / {total}
+        </div>
+      </div>
+    </header>
+  );
+
+  const nameRow = (
+    <div className="gb-name" data-gb-name="">
+      <span>
+        반 <i style={{ width: "16mm" }} />
+      </span>
+      <span>
+        이름 <i style={{ width: "26mm" }} />
+      </span>
+      <span>
+        점수 <i style={{ width: "16mm" }} />
+      </span>
+    </div>
+  );
+
+  const footer = (page: number, answers: boolean) => (
+    <footer className="gb-foot" data-gb-foot="">
+      <span>{options.academyName}</span>
+      <span className="gb-foot-page">- {page} -</span>
+      <span className="gb-foot-right">
+        {options.title}
+        {answers ? " 정답" : ""}
+      </span>
+    </footer>
+  );
+
+  const renderBlock = (block: Block) =>
+    block.kind === "q" ? (
+      <QuestionCard
+        key={block.key}
+        q={questions[block.index]}
+        no={block.index + 1}
+      />
+    ) : (
+      <AnswerRow
+        key={block.key}
+        q={answerQuestions[block.index]}
+        no={block.index + 1}
+      />
+    );
+
+  const total = pages?.length ?? 1;
+
+  return (
+    <>
+      {/* 쪽 나누기를 재는 숨은 틀 */}
+      <div
+        ref={measureRef}
+        className={`gb-measure gb-sheet gb-sheet--${options.style}`}
+        aria-hidden
+      >
+        {header(1, 1, false)}
+        {nameRow}
+        <div style={{ width: COL_W }}>
+          {questions.map((q, i) => (
+            <QuestionCard key={`m-${q.id}`} q={q} no={i + 1} measuring />
+          ))}
+          {answerQuestions.map((q, i) => (
+            <AnswerRow key={`ma-${q.id}`} q={q} no={i + 1} measuring />
+          ))}
+        </div>
+        {footer(1, false)}
+      </div>
+
+      <div id="grammar-print-root">
+        {(pages ?? []).map((page, i) => (
+          <div key={i} className={`gb-sheet gb-sheet--${options.style}`}>
+            {header(i + 1, total, page.answers)}
+            {options.showName && i === 0 && !page.answers ? nameRow : null}
+            <div className="gb-cols">
+              <div className="gb-col">{page.left.map(renderBlock)}</div>
+              <div className="gb-col gb-col--right">
+                {page.right.map(renderBlock)}
+              </div>
+            </div>
+            {footer(i + 1, page.answers)}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}

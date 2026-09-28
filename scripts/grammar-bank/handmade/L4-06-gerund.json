@@ -1,0 +1,222 @@
+{
+  "_설명": "완성 6과 동명사 — 종합문제·확인문제 쪽. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 6.동명사_종합문제(1회).pdf",
+      "number": 7,
+      "포인트": "동명사의 의미상 주어 / There is no V-ing",
+      "prompt": "괄호 안의 단어를 사용하여 각 빈칸에 알맞은 말을 쓰시오.",
+      "body": [
+        "⑴ I couldn’t understand __________ (they) staying",
+        "silent during the meeting.",
+        "⑵ There is no __________ (deny) that the plan is",
+        "costly."
+      ],
+      "answer": "⑴ their/them, ⑵ denying",
+      "explanation": "⑴ 동명사 staying의 의미상 주어 자리이므로 소유격 형태인 their 또는 목적격 형태인 them이 적합하다. ⑵ ‘~하는 것은 불가능하다, ~할 수 없다’는 「There is no + V-ing」로 나타낸다."
+    },
+    {
+      "file": "[완성] 6.동명사_종합문제(1회).pdf",
+      "number": 12,
+      "포인트": "의미상 주어가 문장의 목적어와 같으면 밝히지 않는다",
+      "prompt": "다음 중 어법상 [[틀린]]문장을 찾아 그 번호를 쓰고 바르게 고쳐 쓰시오.",
+      "body": [
+        "⑴ The teacher thanked the students for their",
+        "helping with the event.",
+        "⑵ Some chapters in the book weren’t worth",
+        "rereading.",
+        "⑶ Daniel couldn’t stand their shouting at him.",
+        "틀린 문장의 번호 : ____",
+        "고친 문장 : ____________________________________",
+        "___________________________________________."
+      ],
+      "answer": "⑴, The teacher thanked the students for helping with the event.",
+      "explanation": "⑴ 동명사의 의미상 주어가 문장의 주어나 목적어와 일치하는 경우에는 따로 밝히지 않으므로, 목적어 the students와 같은 사람을 가리키는 their를 빼야 한다."
+    },
+    {
+      "file": "[완성] 6.동명사_종합문제(1회).pdf",
+      "number": 29,
+      "포인트": "It is no use V-ing / be proud of + 의미상 주어 + V-ing / look forward to V-ing",
+      "prompt": "우리말과 같은 뜻이 되도록 괄호 안의 표현을 이용하여 문장을 완성하시오.",
+      "body": [
+        "⑴ 아무 일도 없었던 척해도 소용없다. (pretend)",
+        "→ It is _________________________ that nothing",
+        "happened.",
+        "⑵ Park 씨는 그의 아들이 학교를 운영하는 것을 자랑스",
+        "러워한다. (proud, run)",
+        "→ Mr. Park is ______________________ a school.",
+        "⑶ Sora는 설날에 그녀의 사촌들을 만나는 것을 고대하",
+        "고 있다. (meet, cousins)",
+        "→ Sora is looking ___________________________",
+        "on Seollal."
+      ],
+      "answer": "⑴ no use pretending ⑵ proud of his son(’s) running ⑶ forward to meeting her cousins",
+      "explanation": "⑴ ‘~해 봐야 소용없다’라는 의미의 동명사 관용표현은 「It is no use V-ing」의 형태이므로 no use pretending이 알맞다. ⑵ 동명사의 의미상 주어는 소유격이나 목적격으로 나타낸다. ⑶ 「look forward to + V-ing」는 ‘~하기를 고대하다’라는 뜻이며, 이때 to는 전치사이므로 뒤에 동명사가 온다."
+    },
+    {
+      "file": "[완성] 6.동명사_종합문제(1회).pdf",
+      "number": 30,
+      "포인트": "boast of + 의미상 주어 + being / It goes without saying / feel like V-ing",
+      "prompt": "우리말과 같은 뜻이 되도록 괄호 안의 표현을 이용하여 문장을 완성하시오.",
+      "body": [
+        "(A) 그의 아내는 그가 오랜 전통의 학교 출신이라고 자랑",
+        "했다. (boast, of, be)",
+        "→ His wife ______________________________ from",
+        "a school with a long tradition.",
+        "(B) 연습에는 시간이 든다는 것은 말할 필요도 없다. (go",
+        "without, say)",
+        "→ ___________________________ practice takes",
+        "time.",
+        "(C) 나는 피곤하기 때문에 오늘 아무 데도 가고 싶지 않다.",
+        "(feel, go, anywhere)",
+        "→ Today I don’t _____________________________",
+        "because I’m tired."
+      ],
+      "answer": "⑴ boasted of his[him] being ⑵ It goes without saying that ⑶ feel like going anywhere",
+      "explanation": "⑴ 동명사의 의미상 주어는 목적격 또는 소유격 형태로 나타나므로 boasted of his[him] being이 알맞다. ⑵ ‘~은 말할 필요도 없다’는 「It goes without saying that …」으로 나타낸다. ⑶ ‘~하고 싶다’는 「feel like + V-ing」이다."
+    },
+    {
+      "file": "[완성] 6.동명사_종합문제(2회).pdf",
+      "number": 5,
+      "포인트": "cannot help V-ing와 so ~ that 구문",
+      "prompt": "우리말과 같은 뜻이 되도록 괄호 안의 표현을 활용하여 문장을 완성하시오.",
+      "body": [
+        "그녀는 너무 놀라서 소리 지르지 않을 수가 없었다.",
+        "(help, surprised, shouting, so)",
+        "Answer: ________________________________________",
+        "_______________________________________________."
+      ],
+      "answer": "She is so surprised that she cannot help shouting.",
+      "explanation": "「cannot + help + V-ing」는 ‘~하지 않을 수 없다’란 의미이고 같은 표현으로는 「cannot + (help) + but + 동사원형」이 있다. 「so + 형용사 + that …」은 ‘너무 ~해서 …하다’라는 뜻이다."
+    },
+    {
+      "file": "[완성] 6.동명사_종합문제(2회).pdf",
+      "number": 20,
+      "포인트": "It goes without saying that …",
+      "prompt": "우리말과 같은 뜻이 되도록 <보기>의 표현을 이용하여 문장을 완성하시오.",
+      "body": [
+        "<보기> regular exercise, saying, without",
+        "규칙적인 운동이 중요함은 두말하면 잔소리다.",
+        "→ ____________________________________________",
+        "______________________________________________."
+      ],
+      "answer": "It goes without saying that regular exercise is important.",
+      "explanation": "「It goes without saying that …」는 ‘…은 말할 것[나위]도 없다’란 의미의 동명사 관용표현이다. 의미가 같은 표현으로 「It is needless to say that …」이 있다."
+    },
+    {
+      "file": "[완성] 6.동명사_종합문제(2회).pdf",
+      "number": 25,
+      "포인트": "stop + to부정사와 stop + 동명사의 뜻 차이",
+      "prompt": "다음 문장을 우리말로 해석하시오.",
+      "body": [
+        "⑴ I stopped to talk with my neighbor on my way",
+        "to school.",
+        "⑵ I stopped talking with my neighbor to answer",
+        "the phone.",
+        "⑴ Answer: _________________________________",
+        "___________________________________________.",
+        "⑵ Answer: _________________________________",
+        "___________________________________________."
+      ],
+      "answer": "⑴ 나는 학교에 가는 길에 이웃과 이야기하기 위해 (가던 길을) 멈췄다. ⑵ 전화를 받기 위해 나는 이웃과 이야기하는 것을 멈췄다.",
+      "explanation": "동사 stop은 동명사와 to부정사 둘 다 목적어로 취하지만 의미상의 차이가 있다. 「stop + to-v」는 ‘~하기 위해 멈추다’라는 의미이고, 「stop + v-ing」는 ‘~하는 것을 멈추다’라는 의미이다."
+    },
+    {
+      "file": "[완성] 6.동명사_확인문제(1회).pdf",
+      "number": 5,
+      "포인트": "forgive는 동명사를 목적어로 취한다 / 의미상 주어",
+      "prompt": "우리말에 맞게 주어진 단어를 활용하여 영작하시오.(필요시, 형태 변형 가능)",
+      "body": [
+        "나는 그가 약속을 어긴 것을 용서했다.",
+        "(forgive, break the promise)",
+        "_______________________________________________"
+      ],
+      "answer": "I forgave him[his] breaking the promise.",
+      "explanation": "forgive는 목적어로 동명사만을 취하는 동사이다. 동명사의 의미상의 주어는 소유격이나 목적격을 쓴다."
+    },
+    {
+      "file": "[완성] 6.동명사_확인문제(1회).pdf",
+      "number": 6,
+      "포인트": "동명사구가 주어일 때 의미상 주어는 소유격",
+      "prompt": "우리말에 맞게 주어진 단어를 활용하여 영작하시오.(단, 반드시 동명사를 포함해야 하며, 단어의 형태 변형 가능)",
+      "body": [
+        "그가 늦은 것은 그의 선생님을 화나게 한다.",
+        "(late, make)",
+        "_______________________________________________"
+      ],
+      "answer": "His being late makes his teacher angry.",
+      "explanation": "‘늦은 것’을 동명사구로 나타내면 being late이고 이는 문장의 주어이다. 동명사구가 문장의 주어인 경우, 동명사의 의미상의 주어는 소유격으로 쓴다."
+    },
+    {
+      "file": "[완성] 6.동명사_확인문제(1회).pdf",
+      "number": 15,
+      "포인트": "be about to V = be on the point of V-ing",
+      "prompt": "다음 문장과 의미가 같도록 주어진 단어를 활용하여 영작하시오.",
+      "body": [
+        "The guest was about to leave when the host",
+        "called him back.",
+        "= The guest ____________________________ when",
+        "the host called him back. (point)"
+      ],
+      "answer": "was on the point of leaving",
+      "explanation": "「be about to + 동사원형」은 ‘막 ~하려던 참이다’라는 의미이고 이는 「be on the point of + ~ing」로 바꿔 쓸 수 있다. 이때 of는 전치사이므로 뒤에 동명사가 온다."
+    },
+    {
+      "file": "[완성] 6.동명사_확인문제(1회).pdf",
+      "number": 19,
+      "포인트": "have trouble V-ing / never A without B-ing",
+      "prompt": "주어진 단어를 활용하여 우리말에 맞게 영작하시오. (필요시, 형태 변형 가능)",
+      "body": [
+        "⒜ 그는 그 사고 후에 잠자는 데 어려움을 겪었다.",
+        "(have, trouble, accident)",
+        "⒝ 그녀는 이 노래를 들으면 반드시 운다.",
+        "(never, without)",
+        "⒜ ____________________________________________",
+        "⒝ ____________________________________________"
+      ],
+      "answer": "⒜ He had trouble sleeping after the accident. ⒝ She never hears this song without crying.",
+      "explanation": "⒜ ‘~하는 데 어려움을 겪다’라는 뜻의 표현은 「have trouble[difficulty] + ~ing」이다. ⒝ 「never A without B-ing」는 ‘A하면 반드시 B한다’는 뜻이며, 주어가 3인칭 단수이므로 동사는 hears로 쓴다."
+    },
+    {
+      "file": "[완성] 6.동명사_확인문제(2회).pdf",
+      "number": 4,
+      "포인트": "be sure of + 의미상 주어 + 동명사",
+      "prompt": "주어진 단어를 활용하여 다음 문장을 영어로 쓰시오.",
+      "body": [
+        "나는 그가 이 시험에 합격할 것이라고 확신한다.",
+        "(pass, the exam)",
+        "→ I’m sure of ________________________________."
+      ],
+      "answer": "his passing the exam",
+      "explanation": "문장의 주어와 동명사의 주어가 서로 다른 경우, 동명사의 의미상의 주어를 동명사 앞에 소유격이나 목적격의 형태로 쓴다. 전치사 ‘of’ 다음에는 동명사가 온다."
+    },
+    {
+      "file": "[완성] 6.동명사_확인문제(2회).pdf",
+      "number": 13,
+      "포인트": "It is no use V-ing",
+      "prompt": "다음 우리말에 맞게 괄호 안에 주어진 표현을 동명사를 활용하여 영작하시오.",
+      "body": [
+        "그 일은 이미 끝났어. 그러니까 그것을 후회해봐야 소용",
+        "없어. (use, regret)",
+        "→ The work is already done, so ______________",
+        "______________________________________________."
+      ],
+      "answer": "it is no use regretting it.",
+      "explanation": "‘~해 봐야 소용없다’는 의미로 「It is no use V-ing」를 쓴다. 「It is useless to + 동사원형」, 「It is of no use to + 동사원형」으로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[완성] 6.동명사_확인문제(2회).pdf",
+      "number": 20,
+      "포인트": "It goes without saying that …",
+      "prompt": "다음 빈 칸에 알맞은 말을 쓰시오.",
+      "body": [
+        "누구도 모든 답을 알 수는 없다는 것은 말할 필요도",
+        "없다.",
+        "→ ___________________________ that no one can",
+        "know every answer."
+      ],
+      "answer": "It goes without saying",
+      "explanation": "「It goes without saying that …」는 ‘…은 말할 것[나위]도 없다’란 의미의 동명사 관용표현이다. 의미가 같은 표현으로 「It is needless to say that …」이 있다."
+    }
+  ]
+}

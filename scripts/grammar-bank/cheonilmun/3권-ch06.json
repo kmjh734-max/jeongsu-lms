@@ -1,0 +1,202 @@
+{
+  "_설명": "천일문 3권 Chapter 06 분사에서 가져와 변형한 문항. 은행에서는 심화 10과 분사구문 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 6,
+  "chapter": "분사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 10, "chapter": "분사구문" },
+  "points": [
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 1, "point": "현재분사(-ing): 능동·진행", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 2, "point": "과거분사(p.p.): 수동·완료", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 3, "point": "분사가 명사를 앞·뒤에서 꾸밈", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 4, "point": "감정을 나타내는 분사", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 5, "point": "목적격보어로 쓰이는 분사(have/get+목적어+p.p.)", "frequent": true },
+    { "unit_no": 2, "unit": "분사구문", "point_no": 6, "point": "분사구문 만드는 법", "frequent": true },
+    { "unit_no": 2, "unit": "분사구문", "point_no": 7, "point": "분사구문의 부정: Not+분사", "frequent": true },
+    { "unit_no": 2, "unit": "분사구문", "point_no": 8, "point": "with+명사+분사: ~한 채로", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [2, 3], "point_label": "명사를 뒤에서 꾸미는 과거분사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Both Mina and I couldn’t read the sign ______ in Japanese."],
+      "choices": [
+        { "no": 1, "text": "write" },
+        { "no": 2, "text": "writes" },
+        { "no": 3, "text": "wrote" },
+        { "no": 4, "text": "writing" },
+        { "no": 5, "text": "written" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [5], "point_label": "have+목적어+p.p.",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["I had the windows ______ before the guests arrived."],
+      "choices": [
+        { "no": 1, "text": "clean" },
+        { "no": 2, "text": "cleaned" },
+        { "no": 3, "text": "cleans" },
+        { "no": 4, "text": "cleaning" },
+        { "no": 5, "text": "to clean" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [1, 2, 3], "point_label": "능동이면 -ing, 수동이면 p.p.",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I should wipe up the [[spilled]] juice." },
+        { "no": 2, "text": "I don’t know the girl [[sat]] next to Mina." },
+        { "no": 3, "text": "There are many [[fallen]] petals on the path." },
+        { "no": 4, "text": "The crowd cheered for the runner [[crossing]] the line." },
+        { "no": 5, "text": "My family enjoyed all the food [[served]] at the hotel." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [6], "point_label": "분사구문의 형태",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["그 방에 들어가면서, 수지는 모자를 벗었다.", "→ ______________, Suji took off her hat."],
+      "choices": [
+        { "no": 1, "text": "Enter the room" },
+        { "no": 2, "text": "Entered the room" },
+        { "no": 3, "text": "Entering the room" },
+        { "no": 4, "text": "She entered the room" },
+        { "no": 5, "text": "As entered the room" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [5], "point_label": "get+목적어+p.p.",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["엄마는 잠깐 차를 우체국 앞에 세워 두셨다.", "→ Mom got ______________ in front of the post office for a while."],
+      "choices": [
+        { "no": 1, "text": "her car park" },
+        { "no": 2, "text": "her car parks" },
+        { "no": 3, "text": "her car parked" },
+        { "no": 4, "text": "her car parking" },
+        { "no": 5, "text": "her car to park" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [4], "point_label": "감정 분사: 느끼면 p.p., 일으키면 -ing",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• We were ______(A) at the result of the contest.", "• The writer’s new novel was ______(B)."],
+      "choices": [
+        { "no": 1, "text": "disappointing — touching" },
+        { "no": 2, "text": "disappointed — touched" },
+        { "no": 3, "text": "disappointing — touched" },
+        { "no": 4, "text": "disappointed — touching" },
+        { "no": 5, "text": "disappointing — touch" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [1, 2, 3], "point_label": "꾸밈을 받는 명사와의 관계",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• The woman ______(A) for the bus looked tired.", "• There is a ______(B) cup on the table."],
+      "choices": [
+        { "no": 1, "text": "waiting — breaking" },
+        { "no": 2, "text": "waited — broken" },
+        { "no": 3, "text": "waiting — broken" },
+        { "no": 4, "text": "waited — breaking" },
+        { "no": 5, "text": "waiting — broke" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [6], "point_label": "때를 나타내는 분사구문",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "공원에 도착한 후에 나는 내 사촌 Mia를 찾았다. (arrive, at the park)",
+        "→ ________________, I looked for my cousin, Mia."
+      ],
+      "choices": [],
+      "answer": "Arriving at the park"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [8], "point_label": "with+명사+분사",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "코치가 지켜보는 채로 선수들은 조용히 몸을 풀었다. (with, the coach, watch)",
+        "→ ________________, the players warmed up quietly."
+      ],
+      "choices": [],
+      "answer": "With the coach watching"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [2, 3], "point_label": "명사를 뒤에서 꾸미는 과거분사",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "Jane은 자신의 밭에서 딴 채소를 바구니에 담았다. (vegetables, pick, from her field)",
+        "→ Jane placed ________________ in a basket."
+      ],
+      "choices": [],
+      "answer": "vegetables picked from her field"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [2, 6], "point_label": "수동의 분사구문",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "주어진 문장을 분사구문을 사용하여 바꿔 쓸 때, 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["When she was chosen by her classmates, she felt happy.", "→ ______________, she felt happy."],
+      "choices": [
+        { "no": 1, "text": "Chooses by her classmates" },
+        { "no": 2, "text": "Chosen by her classmates" },
+        { "no": 3, "text": "Choosing by her classmates" },
+        { "no": 4, "text": "Was chosen by her classmates" },
+        { "no": 5, "text": "To be chosen by her classmates" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [7], "point_label": "분사구문의 부정은 Not+분사",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "주어진 문장을 분사구문을 사용하여 바꿔 쓸 때, 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["As Tom didn’t set his alarm, he woke up late.", "→ ______________, Tom woke up late."],
+      "choices": [
+        { "no": 1, "text": "Not set his alarm" },
+        { "no": 2, "text": "As setting his alarm" },
+        { "no": 3, "text": "Setting not his alarm" },
+        { "no": 4, "text": "Not setting his alarm" },
+        { "no": 5, "text": "Didn’t setting his alarm" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [2, 3], "point_label": "수동의 뜻이면 과거분사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 밑줄 친 부분 중 어법상 알맞지 않은 것을 찾아 그 기호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": [
+        "A: Have you been to the newly ⓐ [[opened]] café near the park?",
+        "B: Of course. I ate the ⓑ [[baking]] bread. It was really ⓒ [[satisfying]].",
+        "A: I visited last week, but there were many people ⓓ [[waiting]] in line.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "ⓑ, baked"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [4, 6], "point_label": "사람이 느끼는 감정은 과거분사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 밑줄 친 부분 중 어법상 알맞지 않은 것을 찾아 그 기호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": [
+        "Mina saw a boy ⓐ [[drawing]] a picture in the park. He was her old friend, Tom. ⓑ [[Calling]] his name, she waved to him. He looked a bit ⓒ [[surprising]]. ⓓ [[Coming]] to her, he smiled and warmly said “Hi.”",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "ⓒ, surprised"
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "_설명": "기본 4과 부정사[2] — 의미상 주어 of/for, too ~ to 전환 나머지. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 27,
+      "포인트": "일반 형용사 뒤의 의미상 주어는 for + 목적격",
+      "prompt": "of와 for 중 적절한 것을 선택하여 빈칸에 쓰시오.",
+      "body": ["It’s easy _____ her to read this book."],
+      "answer": "for",
+      "explanation": "easy는 일의 쉽고 어려움을 나타내는 형용사이므로 의미상 주어를 「for + 목적격」으로 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 28,
+      "포인트": "일반 형용사 뒤의 의미상 주어는 for + 목적격",
+      "prompt": "of와 for 중 적절한 것을 선택하여 빈칸에 쓰시오.",
+      "body": ["It’s hard _____ us to keep a promise."],
+      "answer": "for",
+      "explanation": "hard는 사람의 성질이 아니라 일의 난이도를 나타내는 형용사이므로 의미상 주어를 「for + 목적격」으로 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 29,
+      "포인트": "사람의 성질을 나타내는 형용사 뒤의 의미상 주어는 of + 목적격",
+      "prompt": "of와 for 중 적절한 것을 선택하여 빈칸에 쓰시오.",
+      "body": ["It’s very rude _____ him to answer like that."],
+      "answer": "of",
+      "explanation": "rude는 사람의 성질을 나타내는 형용사이므로 의미상 주어를 「of + 목적격」으로 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 31,
+      "포인트": "사람의 성질을 나타내는 형용사 뒤의 의미상 주어는 of + 목적격",
+      "prompt": "of와 for 중 적절한 것을 선택하여 빈칸에 쓰시오.",
+      "body": ["It was so wise _____ her to leave early."],
+      "answer": "of",
+      "explanation": "wise는 사람의 성질을 나타내는 형용사이므로 의미상 주어를 「of + 목적격」으로 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 32,
+      "포인트": "일반 형용사 뒤의 의미상 주어는 for + 목적격",
+      "prompt": "of와 for 중 적절한 것을 선택하여 빈칸에 쓰시오.",
+      "body": ["It’s important _____ them to arrive on time."],
+      "answer": "for",
+      "explanation": "important는 사람의 성질을 나타내는 형용사가 아니므로 의미상 주어를 「for + 목적격」으로 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 33,
+      "포인트": "동명사 주어를 가주어 It + 진주어 to부정사로 바꾸기",
+      "prompt": "주어진 문장과 같은 의미가 되도록 빈칸을 채우시오.",
+      "body": ["Riding a bike is very exciting.",
+               "= _____ is very exciting _____ ride a bike."],
+      "answer": "It, to",
+      "explanation": "주어로 쓰인 동명사구는 가주어 It을 앞에 두고 진주어인 to부정사를 뒤로 보내 같은 뜻으로 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 34,
+      "포인트": "to부정사 주어 배열",
+      "prompt": "우리말에 맞게 적절한 단어를 추가하여 배열하시오.",
+      "body": ["(is/your eyes/for/read in the dark/harmful)"],
+      "answer": "To read in the dark is harmful for your eyes.",
+      "explanation": "‘~하는 것은’이라는 주어를 만들어야 하므로 read 앞에 to를 더해 to부정사 주어로 배열한다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 35,
+      "포인트": "가주어 It + 진주어 to부정사",
+      "prompt": "주어진 예문과 같이 빈칸을 채우시오.",
+      "body": ["To understand each other is difficult.",
+               "= [[It]] is difficult [[to understand]] each other.",
+               "To swim in this river is dangerous.",
+               "= ______ is dangerous ______ in this river."],
+      "answer": "it, to swim",
+      "explanation": "to부정사 주어를 뒤로 보내고 그 자리에 가주어 it을 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 36,
+      "포인트": "성품 형용사 뒤에는 of + 목적격",
+      "prompt": "어법상 [[어색한]]부분을 찾아 고치세요.",
+      "body": ["It is very careless for her to lose the key.",
+               "→"],
+      "answer": "for, of",
+      "explanation": "careless처럼 사람의 성질·성격을 나타내는 형용사가 오면 의미상 주어를 「of + 목적격」으로 표현한다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 37,
+      "포인트": "가주어 It + 진주어 to부정사",
+      "prompt": "주어진 예문과 같이 빈칸을 채우시오.",
+      "body": ["To understand each other is difficult.",
+               "= [[It]] is difficult [[to understand]] each other.",
+               "To skip breakfast is bad for health.",
+               "= ______ is bad for health ____________."],
+      "answer": "it, to skip breakfast",
+      "explanation": "to부정사 주어를 문장 뒤로 보내고 그 자리에 가주어 it을 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 38,
+      "포인트": "가주어 It + 진주어 to부정사",
+      "prompt": "주어진 예문과 같이 빈칸을 채우시오.",
+      "body": ["To understand each other is difficult.",
+               "= [[It]] is difficult [[to understand]] each other.",
+               "To ride a horse is a lot of fun.",
+               "= ______ is a lot of fun ______ a horse."],
+      "answer": "it, to ride",
+      "explanation": "to부정사 주어를 문장 뒤로 보내고 그 자리에 가주어 it을 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 39,
+      "포인트": "가주어 It + 진주어 to부정사",
+      "prompt": "주어진 예문과 같이 빈칸을 채우시오.",
+      "body": ["To understand each other is difficult.",
+               "= [[It]] is difficult [[to understand]] each other.",
+               "To blame her is useless.",
+               "= ______ is useless ______ her."],
+      "answer": "it, to blame",
+      "explanation": "to부정사 주어를 문장 뒤로 보내고 그 자리에 가주어 it을 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 40,
+      "포인트": "가주어 It + 진주어 to부정사",
+      "prompt": "주어진 예문과 같이 빈칸을 채우시오.",
+      "body": ["To understand each other is difficult.",
+               "= [[It]] is difficult [[to understand]] each other.",
+               "To collect stamps is much fun.",
+               "= ______ is much fun ______ stamps."],
+      "answer": "it, to collect",
+      "explanation": "to부정사 주어를 문장 뒤로 보내고 그 자리에 가주어 it을 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 42,
+      "포인트": "of + 목적격과 for + 목적격 가려 쓰기",
+      "prompt": "Write appropriate words using the given words.",
+      "body": ["ⓐ It is wise _____ _____ to save money. (she)",
+               "ⓑ It is difficult _____ _____ to get up early.",
+               "(we)"],
+      "answer": "(1) of, her, (2) for, us",
+      "explanation": "to부정사의 의미상 주어는 보통 「for + 목적격」을 쓰지만, wise처럼 사람의 성질을 나타내는 형용사 뒤에서는 「of + 목적격」을 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 43,
+      "포인트": "성품 형용사 + of 목적격 + not to부정사",
+      "prompt": "우리말에 맞게 to 부정사를 사용하여 다음 문장을 완성하세요.",
+      "body": ["그녀가 그 약속을 지키지 않은 것은 무례한 일이다.",
+               "→ It is rude",
+               "."],
+      "answer": "of her not to keep the promise",
+      "explanation": "「It is + 성품형용사[kind, wise, foolish, rude …] + of 목적격 + to부정사」의 표현이며, to부정사의 부정은 to 앞에 not을 붙인다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 47,
+      "포인트": "so ~ that … can’t를 too ~ for + 목적격 + to로 바꾸기",
+      "prompt": "다음 문장을 too ∼ to 구문을 이용하여 전환하시오.",
+      "body": ["This box is so heavy that I can’t move it.",
+               "= This box is _____________________________."],
+      "answer": "too heavy for me to move",
+      "explanation": "‘너무 ~해서 …할 수 없다’는 「too + 형용사 + for + 의미상 주어(목적격) + to부정사」의 형태로 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_체크체크.pdf", "number": 51,
+      "포인트": "so ~ that … can’t를 too ~ for + 목적격 + to로 바꾸기",
+      "prompt": "다음 문장을 too ∼ to 구문을 이용하여 전환하시오.",
+      "body": ["This story is so long that I can’t finish it.",
+               "= This story is _______ _______ _______",
+               "_______ _______ _______."],
+      "answer": "too long for me to finish",
+      "explanation": "‘너무 ~해서 …할 수 없다’는 「too + 형용사 + for + 목적격 + to부정사」의 형태로 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_확인문제(2회).pdf", "number": 2,
+      "포인트": "too ~ to를 so ~ that … could not으로 바꾸기",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["The movie was too boring for me to watch.",
+               "→ The movie was so ______________________."],
+      "answer": "boring that I could not watch it",
+      "explanation": "「too ~ to」 구문은 「so ~ that + 주어 + can’t …」로 바꿔 쓸 수 있다. 시제가 과거이므로 can’t가 아니라 couldn’t가 되어야 하며, 목적어 it을 빠뜨리지 않는다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_확인문제(2회).pdf", "number": 8,
+      "포인트": "성품 형용사 + of + 목적격",
+      "prompt": "주어진 상황을 참고하여 문장을 완성하시오.",
+      "body": ["Minho always tells the truth.",
+               "→ It is very honest ___________________________."],
+      "answer": "It is very honest of Minho to tell the truth always.",
+      "explanation": "진주어인 to부정사의 의미상 주어는 보통 for를 쓰지만, honest, kind, foolish, careful처럼 사람의 성격이나 성질을 나타내는 형용사 뒤에서는 for 대신 of를 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_확인문제(2회).pdf", "number": 16,
+      "포인트": "too ~ for + 목적격 + to를 so ~ that으로 바꾸기",
+      "prompt": "두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.(so - that 구문 사용)",
+      "body": ["This chair is too small for me to sit on.",
+               "= ____________________________________________."],
+      "answer": "This chair is so small that I cannot sit on it.",
+      "explanation": "「too ~ to …」는 「so ~ that + 주어 + can’t」로 고쳐 쓸 수 있다. 이때 「too ~ to …」의 의미상 주어가 that절의 주어가 되고, sit on의 목적어인 this chair를 대명사 it으로 받아야 한다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_확인문제(2회).pdf", "number": 17,
+      "포인트": "so ~ that … couldn’t와 too ~ to 두 가지로 쓰기",
+      "prompt": "주어진 두 문장을 한 문장으로 완성할 때, 각각의 빈칸을 완성하시오.",
+      "body": ["She was very busy. She was not able to join us.",
+               "(1) She was so busy _________ _________ _________",
+               "_________ us.",
+               "(2) She was _________ busy _________ _________",
+               "us."],
+      "answer": "(1) that she couldn’t join, (2) too, to join",
+      "explanation": "「so ~ that + 주어 + can’t」 구문과 「too ~ to + 동사원형」 구문 모두 ‘너무 ~해서 …할 수 없다’의 뜻을 나타낸다. 시제가 과거이므로 couldn’t를 쓴다."
+    }
+  ]
+}

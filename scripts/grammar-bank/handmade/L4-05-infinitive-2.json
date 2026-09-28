@@ -1,0 +1,172 @@
+{
+  "_설명": "완성 5과 부정사 — 목적격 보어, 의미상 주어, 완료·수동부정사. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 1,
+      "포인트": "ask + 목적어 + to부정사",
+      "prompt": "다음 문장에서 어법상 어색한 부분을 찾아 바르게 고치시오.",
+      "body": ["The coach asked us stop the practice.",
+               "___________________ → ___________________"],
+      "answer": "stop → to stop",
+      "explanation": "ask는 5형식으로 쓰일 때 목적격 보어로 to부정사를 취하여 「ask + 목적어 + to부정사」의 형태로 쓰인다. 따라서 stop을 to stop으로 고쳐야 한다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 4,
+      "포인트": "help + 목적어 + (to)동사원형",
+      "prompt": "다음 문장에서 어법상 어색한 부분을 찾아 바르게 고치시오.",
+      "body": ["Music helps us relaxing after a long day.",
+               "___________________ → ___________________"],
+      "answer": "relaxing → (to) relax",
+      "explanation": "help는 5형식으로 쓰일 때 목적격 보어로 to부정사 또는 원형부정사를 취한다. 따라서 relaxing을 (to) relax로 고쳐야 한다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 5,
+      "포인트": "사역동사 have + 목적어 + 원형부정사",
+      "prompt": "다음 문장이 어법상 올바른 문장으로 고쳐 쓰시오.",
+      "body": ["The nurse had him to take the medicine on",
+               "time.",
+               "→ The nurse _________________________________",
+               "on time."],
+      "answer": "had him take the medicine",
+      "explanation": "사역동사 have는 원형부정사를 목적격 보어로 취한다. 따라서 to take를 take로 바꾸어 had him take the medicine을 답으로 써야 한다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 6,
+      "포인트": "수동의 뜻이면 to be p.p.",
+      "prompt": "다음 대화에서 어법상 어색한 부분을 찾아 바르게 고치시오.",
+      "body": ["A: Much remains to decide. I’m getting worried.",
+               "B: Calm down. We still have a week.",
+               "___________________ → ___________________"],
+      "answer": "to decide → to be decided",
+      "explanation": "문장의 주어이자 to부정사의 의미상 주어인 Much가 ‘결정되는’ 대상이므로 수동의 의미를 갖는다. 따라서 to부정사의 수동형인 to be decided로 고쳐야 한다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 7,
+      "포인트": "앞선 일은 완료부정사 to have p.p.",
+      "prompt": "다음 대화에서 어법상 어색한 부분을 찾아 바르게 고치시오.",
+      "body": ["A: My order is not in the system. There seems to",
+               "be an error.",
+               "B: Sorry, we’ll check what happened.",
+               "___________________ → ___________________"],
+      "answer": "to be → to have been",
+      "explanation": "맥락상 ‘오류가 발생한’ 사건이 먼저 있었기에 ‘주문이 시스템에 없는’ 상황이 된 것이므로, seems 뒤의 to부정사구를 「to have + p.p.」 형태의 완료부정사로 써야 한다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 8,
+      "포인트": "encourage + 목적어 + to부정사, 의미상 주어 for",
+      "prompt": "다음 글에서 어법상 틀린 곳을 찾아 바르게 고치시오.",
+      "body": ["She encourages me forgive everything said and",
+               "done between me and Jin. But it is not easy of",
+               "me to do so.",
+               "(1) _______________ → _______________",
+               "(2) _______________ → _______________"],
+      "answer": "⑴ forgive → to forgive ⑵ of → for",
+      "explanation": "⑴ encourage는 5형식으로 쓰일 때 목적격 보어로 to부정사를 취하여 「encourage + 목적어 + to부정사」 형태로 쓰인다. ⑵ easy는 사람의 성격을 나타내는 형용사가 아니므로 to부정사의 의미상 주어는 「for + 목적격」으로 쓴다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 9,
+      "포인트": "too ~ for + 목적격 + to부정사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["박 선생님의 설명은 너무 빨라서 우리가 이해하기 힘들",
+               "다. (too, for, fast, understand, to, us)",
+               "→ Mr. Park’s explanation is going way _________",
+               "____________________________________________."],
+      "answer": "too fast for us to understand",
+      "explanation": "‘너무 ~해서 …할 수 없다’는 「too + 형/부 + to부정사」로 쓴다. 이때 to부정사의 의미상 주어와 문장의 주어가 일치하지 않으므로 to부정사 앞에 「for + 목적격」을 추가해 주어야 한다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 11,
+      "포인트": "seem + to be + p.p.",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그 문서는 삭제된 것 같아요.",
+               "(be, seems, to, deleted)",
+               "→ The document ___________________________."],
+      "answer": "seems to be deleted",
+      "explanation": "‘~한 것 같다’는 「seem + to부정사」로 쓴다. ‘삭제된’ 상태는 주어를 대상으로 일어난 행위이므로 단순부정사이자 수동부정사인 「to be + p.p.」를 사용한다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 12,
+      "포인트": "in order for + 목적격 + to부정사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오. (단, 필요시 어법에 맞게 단어를 추가할 것)",
+      "body": ["네가 그 시험에 합격하기 위해서는 매일 복습해야 해.",
+               "(in, pass, order, to, you)",
+               "→ _______________________________ the exam,",
+               "you should review every day."],
+      "answer": "In order for you to pass",
+      "explanation": "‘~하기 위해서’는 「in order + to부정사」를 활용해서 쓴다. 이때 to부정사의 의미상 주어 ‘너’를 나타내기 위해 in order와 to부정사 사이에 「for + 목적격」을 추가해야 한다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 13,
+      "포인트": "let + 목적어 + 원형부정사",
+      "prompt": "괄호 안에 주어진 단어를 바르게 배열하여 대화의 흐름에 알맞은 문장을 완성하시오.",
+      "body": ["A: Honey, I can’t take the box off the shelf.",
+               "B: ____________________________________ for you.",
+               "(take, down, let, it, me)"],
+      "answer": "Let me take it down",
+      "explanation": "사역동사 let이 주어졌으므로 「let + 목적어 + 원형부정사」 형태의 5형식 문장을 작성한다. take down은 ‘~을 내리다’라는 구동사인데 목적어가 대명사이므로 take와 down 사이에 놓는다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 14,
+      "포인트": "be believed + to have p.p.",
+      "prompt": "다음 우리말과 의미가 같도록 주어진 단어를 바르게 배열하시오. (단, 필요시 어형을 바꾸거나 단어를 추가할 것)",
+      "body": ["에디슨은 최초의 전구를 발명했다고 여겨진다.",
+               "(invent, to, believed, is)",
+               "= Edison _____________________________________",
+               "the first light bulb."],
+      "answer": "is believed to have invented",
+      "explanation": "‘~하다고 여겨지다’는 「be believed + to부정사」이다. 주절의 동사는 현재시제이지만 to부정사구는 과거의 일이므로 「is believed + to have + p.p.」 형태로 써야 한다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 15,
+      "포인트": "cause + 목적어 + to부정사",
+      "prompt": "<보기>의 단어를 바르게 배열하여 글의 흐름상 알맞은 문장을 완성하시오. (단, 필요시 단어를 추가할 것)",
+      "body": ["<보기> promise / break / me / caused / our",
+               "His careless words ______________________________",
+               "_________________. When he walked away, I felt",
+               "empty.",
+               "→______________________________________________"],
+      "answer": "caused me to break our promise",
+      "explanation": "cause는 5형식으로 쓰일 때 목적격 보어로 to부정사를 취하여 「cause + 목적어 + to부정사」 형태로 쓰인다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 16,
+      "포인트": "have + 목적어 + 원형부정사",
+      "prompt": "<보기>의 단어를 바르게 배열하여 대화의 흐름에 알맞은 문장을 완성하시오.",
+      "body": ["<보기> all / wash / had / dishes / me / the",
+               "A: Mr. Kim ____________________________________",
+               "in the kitchen.",
+               "B: What a punishment!"],
+      "answer": "had me wash all the dishes",
+      "explanation": "사역동사 had가 주어진 것으로 보아 「have + 목적어 + 원형부정사」 문형을 활용해야 한다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 17,
+      "포인트": "의미상 주어 for + 목적격",
+      "prompt": "괄호 속의 단어를 부정사의 의미상 주어로 넣어 문장을 바꿔 쓰시오.",
+      "body": ["It is necessary to save energy. (we all)",
+               "→ It is necessary ______________________________",
+               "energy."],
+      "answer": "for us all to save",
+      "explanation": "necessary가 사람의 성격을 나타내는 형용사가 아니므로 to부정사 앞에 「for + 목적격」 형태로 의미상 주어를 추가한다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 18,
+      "포인트": "want + 목적어 + to부정사",
+      "prompt": "괄호 속의 단어를 부정사의 의미상 주어로 넣어 문장을 바꿔 쓰시오.",
+      "body": ["I want to sit here by the window. (you)",
+               "→ I want _____________________________________."],
+      "answer": "you to sit here by the window",
+      "explanation": "3형식의 「want + to부정사」 구문에 의미상 주어를 추가하면 5형식 문형인 「want + 목적어 + to부정사」가 된다."
+    },
+    {
+      "file": "[완성] 5.부정사_체크체크.pdf", "number": 19,
+      "포인트": "완료부정사 to have p.p.",
+      "prompt": "주어진 문장을 다음과 같이 바꿀 때, 빈칸에 알맞은 표현을 쓰시오.",
+      "body": ["There appears to be a shortage of water.",
+               "→ There appears ____________________________",
+               "_____________________________ several years ago."],
+      "answer": "to have been a shortage of water",
+      "explanation": "빈칸 뒤로 several years ago라는 과거시제 표지가 추가되었으므로 부정사를 「to have + p.p.」 형태로 바꾸어야 한다."
+    }
+  ]
+}

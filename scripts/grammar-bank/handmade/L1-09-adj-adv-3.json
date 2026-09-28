@@ -1,0 +1,162 @@
+{
+  "_설명": "기초 9과 형용사와 부사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(1회).pdf", "number": 1,
+      "포인트": "빈도부사의 뜻",
+      "prompt": "다음 빈 칸에 들어갈 말이 순서대로 짝지어진 것은?",
+      "body": ["I ______ check the weather, so I am ______",
+               "surprised by the rain."],
+      "choices": ["often - never", "never - never", "usually - sometimes",
+                  "always - never", "always - always"],
+      "answer": "④",
+      "explanation": "늘 날씨를 확인하니 비에 놀라는 일이 결코 없다는 뜻이므로 always - never가 알맞다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(1회).pdf", "number": 3,
+      "포인트": "형용사와 부사로 모두 쓰이는 말",
+      "prompt": "단어의 성격이 [[다른]]하나를 고르시오.",
+      "body": [],
+      "choices": ["cloudy", "early", "tasty", "funny", "windy"],
+      "answer": "②",
+      "explanation": "early는 형용사로도 부사로도 쓰이고, 나머지는 형용사로만 쓰인다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(1회).pdf", "number": 5,
+      "포인트": "명사를 꾸미는 자리에는 형용사",
+      "prompt": "다음 보기의 빈칸에 들어갈 수 있는 표현을 모두고르시오.",
+      "body": ["<보기>", "My sister is a ____________ singer."],
+      "choices": ["lively", "shyly", "wisely", "wonderful", "easily"],
+      "answer": "①, ④",
+      "explanation": "명사 singer를 꾸미는 자리이므로 형용사가 와야 한다. lively는 -ly로 끝나지만 형용사이다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(1회).pdf", "number": 6,
+      "포인트": "형용사에서 부사 만들기",
+      "prompt": "다음 중 낱말의 관계가 나머지 넷과 [[다른]]하나는?",
+      "body": [],
+      "choices": ["quick - quickly", "friend - friendly", "hard - hard",
+                  "happy - happily", "amazing - amazingly"],
+      "answer": "②",
+      "explanation": "나머지는 「형용사 – 부사」인데 ②는 「명사 – 형용사」이다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(1회).pdf", "number": 14,
+      "포인트": "much·many와 명사의 짝",
+      "prompt": "밑줄 친 부분이 어법상 [[어색한]]것은? (정답 2개)",
+      "body": [],
+      "choices": ["I ate [[too much cookies]].", "I have [[so much time]].",
+                  "I saw [[a lot of stars]].", "I don't have [[much sugar]].",
+                  "I had [[too many advice]]."],
+      "answer": "①, ⑤",
+      "explanation": "cookies는 셀 수 있으므로 too many, advice는 셀 수 없으므로 too much로 써야 한다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(1회).pdf", "number": 20,
+      "포인트": "-thing은 형용사가 뒤에서 꾸민다",
+      "prompt": "빈 칸에 들어갈 말로 알맞은 것은?",
+      "body": ["The coach has ____________________ important to tell",
+               "the team."],
+      "choices": ["very", "plan", "field", "notice", "something"],
+      "answer": "⑤",
+      "explanation": "형용사 important가 뒤에서 꾸미고 있으므로 -thing으로 끝나는 something이 알맞다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(2회).pdf", "number": 3,
+      "포인트": "be동사 뒤 보어에는 형용사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["Her story was _____."],
+      "choices": ["boring", "well", "short", "perfect", "great"],
+      "answer": "②",
+      "explanation": "well은 ‘잘’이라는 뜻의 부사여서 보어 자리에 올 수 없다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(2회).pdf", "number": 5,
+      "포인트": "형용사와 부사의 형태가 같은 hard",
+      "prompt": "다음 빈칸에 공통으로 들어갈 말로 알맞은 것을고르시오.",
+      "body": ["This box is very ______.",
+               "She studied ______ for the exam."],
+      "choices": ["soft", "hard", "heavy", "hardly", "well"],
+      "answer": "②",
+      "explanation": "hard는 ‘단단한’이라는 형용사와 ‘열심히’라는 부사로 모두 쓰인다. hardly는 ‘거의 ~않다’로 뜻이 다르다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(2회).pdf", "number": 10,
+      "포인트": "-thing + 형용사의 어순",
+      "prompt": "다음 문장에서 괄호 안의 단어를 바르게 배열한것은?",
+      "body": ["He (me / new / something / bought / for)."],
+      "choices": ["bought something new for me", "bought new something for me",
+                  "me new something bought for", "for me bought something new",
+                  "bought for me something new"],
+      "answer": "①",
+      "explanation": "-thing으로 끝나는 말은 형용사가 뒤에서 꾸미므로 something new의 순서로 쓴다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(2회).pdf", "number": 21,
+      "포인트": "횟수를 묻는 How often",
+      "prompt": "다음 대화의 빈칸에 알맞은 말을 고르세요.",
+      "body": ["A : _______ do you water the plants?",
+               "B : Twice a week."],
+      "choices": ["When", "What time", "How often", "Why", "How many"],
+      "answer": "③",
+      "explanation": "‘일주일에 두 번’이라고 답했으므로 횟수를 묻는 How often이 알맞다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(2회).pdf", "number": 22,
+      "포인트": "부사 만들 때의 철자",
+      "prompt": "다음 중 부사의 형태가 바르지 [[않은]]것은?",
+      "body": [],
+      "choices": ["quietly", "really", "happyly", "beautifully", "differently"],
+      "answer": "③",
+      "explanation": "「자음 + y」로 끝나는 happy는 y를 i로 바꾸고 -ly를 붙여 happily로 쓴다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_확인문제(1회).pdf", "number": 7,
+      "포인트": "명사를 꾸미는 자리에는 형용사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Look at the _______ rainbow.", "대표문항"],
+      "choices": ["well", "nicely", "greatly", "beautiful", "amazingly"],
+      "answer": "④",
+      "explanation": "명사 rainbow를 꾸미는 자리이므로 형용사 beautiful이 알맞다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_확인문제(1회).pdf", "number": 10,
+      "포인트": "lots of = many",
+      "prompt": "다음 밑줄 친 부분과 바꿔 쓸 수 있는 것은?",
+      "body": ["He wrote [[lots of]] famous poems during his",
+               "life."],
+      "choices": ["little", "some", "a few", "many", "much"],
+      "answer": "④",
+      "explanation": "poems가 셀 수 있는 명사의 복수형이므로 lots of는 many로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_확인문제(2회).pdf", "number": 8,
+      "포인트": "형용사와 부사의 형태가 같은 late",
+      "prompt": "다음 빈칸에 공통으로 들어갈 말로 알맞은 것을고르시오.",
+      "body": ["Don’t work so ______.",
+               "The train came ______."],
+      "choices": ["later", "slow", "late", "lately", "suddenly"],
+      "answer": "③",
+      "explanation": "late는 ‘늦은’이라는 형용사와 ‘늦게’라는 부사로 모두 쓰인다. lately는 ‘최근에’로 뜻이 다르다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_확인문제(2회).pdf", "number": 9,
+      "포인트": "much는 셀 수 없는 명사 앞에",
+      "prompt": "다음 중에서 much 다음에 올 수 [[없는]]단어를 고르세요.",
+      "body": [],
+      "choices": ["cash", "housework", "salt", "water", "books"],
+      "answer": "⑤",
+      "explanation": "books는 셀 수 있는 명사의 복수형이므로 many를 써야 한다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_확인문제(2회).pdf", "number": 13,
+      "포인트": "부사 만들 때의 철자",
+      "prompt": "다음 형용사와 부사가 [[잘못]]짝지어진 것은?",
+      "body": [],
+      "choices": ["happy – happily", "easy – easily", "quiet – quietly",
+                  "good – well", "true – truely"],
+      "answer": "⑤",
+      "explanation": "-e로 끝나는 true는 e를 빼고 -ly를 붙여 truly로 쓴다."
+    }
+  ]
+}

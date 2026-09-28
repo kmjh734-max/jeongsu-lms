@@ -1,0 +1,175 @@
+{
+  "_설명": "기초 14과 전치사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다. 그림을 보고 푸는 두 문항(확인1 13·15번)은 그림을 바꿀 수 없어 위치 관계와 정답을 그대로 두고 문장의 낱말만 바꿨으니, 원본과 같은 시험지에 함께 내지는 않는다.",
+  "문항": [
+    {
+      "file": "[기초] 14.전치사_종합문제(1회).pdf", "number": 2,
+      "포인트": "without — ~없이",
+      "prompt": "빈칸에 들어갈 단어로 알맞은 것은?",
+      "body": ["I can't finish it ___________ your help.",
+               "나는 네 도움 없이 그것을 끝낼 수 없다."],
+      "choices": ["Without", "For", "With", "Like", "In"],
+      "answer": "①",
+      "explanation": "‘~없이’라는 뜻의 전치사는 without이다."
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(1회).pdf", "number": 12,
+      "포인트": "재료와 감정을 함께 나타내는 with",
+      "prompt": "다음 밑줄 친 빈 칸에 공통으로 알맞은 것은?",
+      "body": ["We built a birdhouse __________ old wood.",
+               "Owen was very happy __________ his birdhouse."],
+      "choices": ["by", "of", "for", "with", "through"],
+      "answer": "④",
+      "explanation": "‘~으로(도구·재료)’와 ‘~에 대해 (만족하여)’ 모두 with로 나타낸다."
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(1회).pdf", "number": 30,
+      "포인트": "도구·재료를 나타내는 with",
+      "prompt": "빈칸에 공통으로 들어갈 단어로 가장 알맞은 것은?",
+      "body": ["She made a doll _____ cloth.",
+               "Wrap it _____ a ribbon."],
+      "choices": ["to", "with", "from", "of", "at"],
+      "answer": "②",
+      "explanation": "무엇을 가지고 만들거나 감쌀 때는 with를 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(2회).pdf", "number": 5,
+      "포인트": "넓은 장소와 하루의 일부를 나타내는 in",
+      "prompt": "다음 빈칸에 공통으로 들어갈 말로 알맞은 것을고르시오.",
+      "body": ["Penguins usually live ______ the Antarctic.",
+               "Did you study ______ the evening?"],
+      "choices": ["at", "on", "in", "for", "next to"],
+      "answer": "③",
+      "explanation": "넓은 장소 앞에도, in the evening처럼 하루의 일부 앞에도 in을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(2회).pdf", "number": 12,
+      "포인트": "달·도시 이름 앞의 in",
+      "prompt": "다음 빈칸에 공통으로 들어갈 말로 알맞은 것을고르시오.",
+      "body": ["Children's Day is _____ May.",
+               "The Louvre is _____ Paris, France."],
+      "choices": ["in", "on", "at", "for", "under"],
+      "answer": "①",
+      "explanation": "달 이름과 도시 이름 앞에는 in을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(2회).pdf", "number": 15,
+      "포인트": "방법의 by와 소유의 with",
+      "prompt": "다음 문장의 빈칸에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["I will be better _____ taking good notes in",
+               "biology class.",
+               "The boy _____ curly hair is my cousin."],
+      "choices": ["in - off", "at - for", "by - in", "by - with", "of - off"],
+      "answer": "④",
+      "explanation": "‘~함으로써’는 by, ‘~을 가진’은 with로 나타낸다."
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(2회).pdf", "number": 17,
+      "포인트": "출처·원인을 나타내는 from",
+      "prompt": "다음 문장의 빈칸에 공통으로 들어갈 알맞은 말을 고르세요.",
+      "body": ["We can get vitamins _____ fruit.",
+               "We can get warmth _____ the fire.",
+               "Illness often results _____ stress."],
+      "choices": ["with", "for", "from", "in", "off"],
+      "answer": "③",
+      "explanation": "무엇에서 얻거나 무엇에서 비롯될 때는 from을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_확인문제(1회).pdf", "number": 1,
+      "포인트": "표면에 닿아 있음을 나타내는 on",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["There is a ladybug _____ your sleeve."],
+      "choices": ["in", "on", "for", "after", "at"],
+      "answer": "②",
+      "explanation": "무엇의 표면에 붙어 있을 때는 on을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_확인문제(1회).pdf", "number": 8,
+      "포인트": "표면을 나타내는 on",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["He slipped and fell _______ the wet floor."],
+      "choices": ["at", "on", "in", "over", "under"],
+      "answer": "②",
+      "explanation": "바닥 표면에 넘어진 것이므로 on을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_확인문제(1회).pdf", "number": 9,
+      "포인트": "표면과 특정한 날을 나타내는 on",
+      "prompt": "다음 빈칸에 공통으로 들어갈 말로 알맞은 것을고르시오.",
+      "body": ["A kitten is sleeping _____ the sofa.",
+               "Everyone is busy _____ Chuseok."],
+      "choices": ["in", "on", "at", "for", "behind"],
+      "answer": "②",
+      "explanation": "표면 위에 있을 때도, 특정한 날 앞에도 on을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_확인문제(1회).pdf", "number": 13,
+      "포인트": "아래를 나타내는 under",
+      "prompt": "다음 그림을 보고, 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["〈그림〉",
+               "There is a tablet ______ the bed."],
+      "choices": ["in", "on", "under", "next to", "in front of"],
+      "answer": "③",
+      "explanation": "침대 아래에 있으므로 under를 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_확인문제(1회).pdf", "number": 15,
+      "포인트": "앞을 나타내는 in front of",
+      "prompt": "다음 그림을 보고, 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["〈그림〉",
+               "Laura is _____ the post office."],
+      "choices": ["in", "on", "behind", "next to", "in front of"],
+      "answer": "⑤",
+      "explanation": "건물 앞에 서 있으므로 in front of를 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_확인문제(2회).pdf", "number": 1,
+      "포인트": "날짜 앞의 on",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["She is going to open her new cafe _____ March",
+               "3."],
+      "choices": ["at", "on", "in", "until", "from"],
+      "answer": "②",
+      "explanation": "날짜 앞에는 on을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_확인문제(2회).pdf", "number": 2,
+      "포인트": "from A to B",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Owen walks _____ 6:00 to 7:00 in the evening."],
+      "choices": ["at", "for", "until", "from", "between"],
+      "answer": "④",
+      "explanation": "뒤에 to가 있으므로 ‘~부터 ~까지’를 나타내는 from을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_확인문제(2회).pdf", "number": 3,
+      "포인트": "도시 이름 앞의 in",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["My uncle lives _____ Toronto, Canada."],
+      "choices": ["in", "on", "at", "over", "among"],
+      "answer": "①",
+      "explanation": "도시처럼 넓은 장소 앞에는 in을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_확인문제(2회).pdf", "number": 8,
+      "포인트": "between A and B",
+      "prompt": "주어진 우리말을 영어로 바르게 옮긴 것은?",
+      "body": ["서울과 부산 사이의 거리는 325킬로미터이다."],
+      "choices": ["The distance from Seoul by Busan is 325 km.",
+                  "The distance among Seoul to Busan is 325 km.",
+                  "The distance among Seoul and Busan is 325 km.",
+                  "The distance between Seoul to Busan is 325 km.",
+                  "The distance between Seoul and Busan is 325 km."],
+      "answer": "⑤",
+      "explanation": "둘 사이를 나타낼 때는 「between A and B」로 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_확인문제(2회).pdf", "number": 19,
+      "포인트": "연도 앞의 in",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["She won the piano contest _______ 2019."],
+      "choices": ["at", "on", "in", "for", "during"],
+      "answer": "③",
+      "explanation": "연도 앞에는 in을 쓴다."
+    }
+  ]
+}

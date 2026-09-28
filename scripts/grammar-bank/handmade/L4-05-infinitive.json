@@ -1,0 +1,159 @@
+{
+  "_설명": "완성 5과 부정사 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 5.부정사_종합문제(1회).pdf", "number": 27,
+      "포인트": "독립부정사 Needless to say",
+      "prompt": "우리말과 일치하도록 다음 빈칸을 채우시오.",
+      "body": ["말할 필요도 없이, 지나친 소음은 이웃과의 갈등을",
+               "키운다.",
+               "= ___________ ___________ ___________, excessive",
+               "noise increases conflicts with neighbors."],
+      "answer": "Needless to say",
+      "explanation": "‘말할 필요도 없이’는 독립부정사 ‘Needless to say’로 표현할 수 있다."
+    },
+    {
+      "file": "[완성] 5.부정사_종합문제(1회).pdf", "number": 28,
+      "포인트": "too + 형용사 + for + 의미상 주어 + to부정사",
+      "prompt": "우리말과 같은 뜻이 되도록 <보기>의 단어를 바르게 배열하시오. (필요시, 어형 변형 가능)",
+      "body": ["<보기> too, to, be, wear, beginners, for, heavy",
+               "이 장비는 초보자들이 착용하기에 너무 무겁다.",
+               "= This gear __________________________________",
+               "___________________________________________."],
+      "answer": "is too heavy for beginners to wear",
+      "explanation": "「too + ~ + to + v(동사원형)」은 ‘v하기에 너무 ~한’ 혹은 ‘너무 ~해서 v할 수가 없다.’라고 해석할 수 있다. to부정사의 행위 주체가 문장의 주어와 다르므로 「for + 목적격」으로 의미상 주어를 나타낸다."
+    },
+    {
+      "file": "[완성] 5.부정사_종합문제(1회).pdf", "number": 29,
+      "포인트": "가주어 It과 진주어 to부정사구",
+      "prompt": "다음 문장에서 틀린 부분을 찾아 올바르게 고치시오.",
+      "body": ["That is important for students to plan carefully",
+               "what their goals are.",
+               "_______________ → _______________"],
+      "answer": "That → It",
+      "explanation": "to부정사는 명사적 용법으로 문장의 주어 역할을 할 수 있다. 이때 주어가 너무 길 경우 가주어 it을 주어 자리에 놓고 진주어는 문장 뒤로 보낸다. 가주어 자리에는 That이 아니라 It을 쓴다."
+    },
+    {
+      "file": "[완성] 5.부정사_종합문제(1회).pdf", "number": 30,
+      "포인트": "to부정사의 의미상 주어 「for + 목적격」",
+      "prompt": "우리말과 일치하도록 다음 빈칸을 채우시오.",
+      "body": ["발표자들 모두 같은 느낌이다. 당신이 처음에 실수하는",
+               "것은 당연하다.",
+               "→ All the speakers feel the same. It is",
+               "natural ______ ______ ______ make mistakes at",
+               "first."],
+      "answer": "for you to",
+      "explanation": "to부정사의 행위를 하는 주체가 주절의 주어와 다를 경우 의미상 주어로 표현한다. 이때 대부분의 경우 「for + 목적격」을 to부정사 앞에 쓴다."
+    },
+    {
+      "file": "[완성] 5.부정사_종합문제(2회).pdf", "number": 5,
+      "포인트": "형용사 + enough + for + 의미상 주어 + to부정사",
+      "prompt": "우리말과 같은 뜻이 되도록 <보기>의 단어들을 배열하여 영작하시오. (필요시, 어형 변형 가능)",
+      "body": ["<보기>",
+               "park/ farmers / wide / to / this road / for /",
+               "enough / on / be / their trucks",
+               "이 도로는 농부들이 그들의 트럭을 세워 두기에 충분히",
+               "넓다.",
+               "→ __________________________________________",
+               "____________________________________________."],
+      "answer": "This road is wide enough for farmers to park their trucks on.",
+      "explanation": "「형용사 + enough + to부정사」는 ‘~하기에 충분히 ~한’의 의미이며, to부정사의 주체는 문장의 주어와 다르므로 「for + 목적격」으로 의미상 주어를 나타낸다. 장소를 뜻하는 전치사 on은 문장 끝에 남는다."
+    },
+    {
+      "file": "[완성] 5.부정사_종합문제(2회).pdf", "number": 10,
+      "포인트": "문장 전체를 꾸미는 독립부정사",
+      "prompt": "다음 우리말의 의미에 맞게 to부정사를 활용하여 빈칸을 완성하시오.",
+      "body": ["⑴ ______________________, she is not ready.",
+               ": 솔직히 말하면, 그녀는 준비가 되어 있지 않다.",
+               "⑵ ______________________, the bus broke down.",
+               ": 설상가상으로 버스가 고장 났다."],
+      "answer": "1) To be frank with you, 2) To make matters worse",
+      "explanation": "to부정사가 일종의 관용어구처럼 독립적으로 쓰이면서 문장 전체를 수식할 때, 이를 독립부정사라 한다. [해석] ⑴ 솔직히 말하면, 그녀는 준비가 되어 있지 않다. ⑵ 설상가상으로 버스가 고장 났다."
+    },
+    {
+      "file": "[완성] 5.부정사_종합문제(2회).pdf", "number": 20,
+      "포인트": "too + 형용사 + for + 의미상 주어 + to부정사",
+      "prompt": "우리말과 같은 뜻이 되도록 <보기>의 표현을 이용하여 문장을 완성하시오.",
+      "body": ["<보기> too, understand, for, the science lecture",
+               "그 과학 강의는 너무 어려워서 Emily는 이해할 수 없었",
+               "다.",
+               "→ __________________________________________",
+               "____________________________________________."],
+      "answer": "The science lecture was too difficult for Emily to understand.",
+      "explanation": "「too + 형용사/부사 + to부정사」 구문은 ‘너무 ~해서 …할 수 없는’ 의미로 「so + 형용사/부사 + that + 주어 + can’t …」로 바꿔 쓸 수 있다. to부정사의 의미상 주어는 「for + 목적격」으로 나타낸다."
+    },
+    {
+      "file": "[완성] 5.부정사_확인문제(1회).pdf", "number": 3,
+      "포인트": "독립부정사 So to speak",
+      "prompt": "우리말 뜻과 일치하도록 빈칸에 들어갈 말을 3단어로 쓰시오.",
+      "body": ["<보기> 말하자면, 우리 할머니는 살아 있는 역사책이다.",
+               "= _____ _____ _____, my grandmother is a living",
+               "history book."],
+      "answer": "So to speak",
+      "explanation": "‘말하자면’이라는 뜻을 가진 독립부정사는 ‘So to speak’이다."
+    },
+    {
+      "file": "[완성] 5.부정사_확인문제(1회).pdf", "number": 8,
+      "포인트": "too + 형용사 + for + 의미상 주어 + to부정사 배열",
+      "prompt": "우리말과 같은 뜻이 되도록 주어진 단어들을 올바르게 배열하시오.",
+      "body": ["그 상자는 그가 혼자서 옮기기에는 너무 무거웠다.",
+               "The box ______________________________________.",
+               "( to, too, by, for, heavy, ,himself, him, was, carry )"],
+      "answer": "was too heavy for him to carry by himself",
+      "explanation": "「too + ~(형용사/부사) + to + V」는 ‘V하기에 너무 ~하다.’라는 뜻이다. to부정사의 의미상의 주어는 ‘그’이므로 「for + 목적격」의 형태로 to부정사 앞에 쓴다."
+    },
+    {
+      "file": "[완성] 5.부정사_확인문제(1회).pdf", "number": 15,
+      "포인트": "advise + 목적어 + to부정사",
+      "prompt": "우리말과 같은 뜻이 되도록 주어진 단어를 활용하여 문장을 완성하시오. (단, to부정사를 사용할 것)",
+      "body": ["우리 삼촌은 나에게 매일 아침 일찍 일어나라고 조언했",
+               "었다. (uncle, advise, get up, early)",
+               "_______________________________________________."],
+      "answer": "My uncle advised me to get up early every morning.",
+      "explanation": "advise는 5형식 동사로 「advise + 목적어 + 목적격보어」의 형태로 쓰며, 목적격보어 자리에는 to부정사를 쓴다."
+    },
+    {
+      "file": "[완성] 5.부정사_확인문제(2회).pdf", "number": 3,
+      "포인트": "독립부정사 To make matters worse",
+      "prompt": "우리말과 일치하도록 다음 빈 칸을 완성하시오.",
+      "body": ["설상가상으로 다음 주에 시험이 하나 더 있다는 공지가",
+               "있다.",
+               "→ ________ ________ ________ ________, there is",
+               "a notice that another exam will be held next week."],
+      "answer": "To make matters(things) worse",
+      "explanation": "독립부정사는 관용어구처럼 쓰이며, 문장 전체를 수식한다. 비슷한 표현으로는 ‘what is worse, on top of everything’ 등이 있다."
+    },
+    {
+      "file": "[완성] 5.부정사_확인문제(2회).pdf", "number": 9,
+      "포인트": "to부정사의 부정형은 to 앞에 not을 쓴다",
+      "prompt": "밑줄 친 문장을 문맥에 맞게 고쳐 쓰시오.",
+      "body": ["[[Sujin tries to waste too much time]]. She always",
+               "writes a plan before she starts studying and",
+               "follows it. This saves energy as well as time.",
+               "→ _____________________________________________"],
+      "answer": "Sujin tries not to waste too much time.",
+      "explanation": "계획을 세워 시간과 힘을 아낀다는 글의 내용으로 보아 Sujin이 시간을 많이 낭비하지 않으려고 노력한다는 것을 알 수 있다. to부정사의 부정형은 to 앞에 not을 붙여 「not to + 동사원형」으로 쓴다."
+    },
+    {
+      "file": "[완성] 5.부정사_확인문제(2회).pdf", "number": 16,
+      "포인트": "remind + 목적어 + to부정사",
+      "prompt": "주어진 문장에서 어법상 틀린 부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["We would like to remind all our members return",
+               "their books to the library before the holiday.",
+               "______________________ → ______________________"],
+      "answer": "return → to return",
+      "explanation": "「remind + 목적어 + to부정사」 구조로 ‘목적어에게 ~하도록 생각나게 하다’라는 뜻이며, to부정사는 목적격보어 역할을 한다. 따라서 return을 to return으로 고쳐야 한다."
+    },
+    {
+      "file": "[완성] 5.부정사_확인문제(2회).pdf", "number": 20,
+      "포인트": "사역동사 let + 목적어 + 원형부정사",
+      "prompt": "<보기>의 단어를 배열하여 다음 문장을 완성하시오.",
+      "body": ["<보기>",
+               "have, let, off, of, me, the rest, the week",
+               "나의 부장님은 내가 남은 주를 쉬도록 해주었다.",
+               "→ My boss _______________________________."],
+      "answer": "let me have the rest of the week off.",
+      "explanation": "「let + 목적어 + 목적격보어(원형부정사)」 구조로 let은 ‘~하게 하다, ~하는 것을 허락하다’는 의미의 사역동사이기에 목적격보어 자리에 to 없는 원형부정사를 쓴다."
+    }
+  ]
+}

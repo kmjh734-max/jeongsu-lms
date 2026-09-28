@@ -1,0 +1,263 @@
+{
+  "_설명": "기본 2과 시제 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 1,
+      "포인트": "have been to — 다녀온 경험",
+      "prompt": "다음 빈칸에 알맞은 것은?",
+      "body": ["나는 제주도에 세 번 다녀왔다.",
+               "→ I have ________ to Jejudo three times."],
+      "choices": ["was", "had", "been", "gone", "went"],
+      "answer": "③",
+      "explanation": "‘~에 다녀온 적이 있다’는 경험이므로 have been to로 쓴다. have gone to는 가고 없다는 뜻이다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 6,
+      "포인트": "현재완료의 결과 용법",
+      "prompt": "<보기>와 같은 용법으로 사용된 것은?",
+      "body": ["<보기>", "Ms. Parker [[has gone]] to Canada."],
+      "choices": ["We [[have]] just [[arrived]] from Canada.",
+                  "I [[have left]] my umbrella in Canada.",
+                  "Allen and his wife [[have been]] to Canada.",
+                  "[[Have]] you [[seen]] the maple trees in Canada?",
+                  "My family [[has stayed]] in Canada since 2015."],
+      "answer": "②",
+      "explanation": "<보기>는 가서 지금 없다는 결과 용법이다. ②도 두고 와서 지금 없다는 결과를 나타낸다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 7,
+      "포인트": "현재진행형의 의문문",
+      "prompt": "다음 문장을 의문문으로 바르게 바꾼 것은?",
+      "body": ["She is reading a book in the library."],
+      "choices": ["Reading she is a book in the library?",
+                  "She is reading a book in the library?",
+                  "Is she reading a book in the library?",
+                  "Does she reading a book in the library?",
+                  "Does she is reading a book in the library?"],
+      "answer": "③",
+      "explanation": "진행형의 의문문은 be동사를 주어 앞으로 보내 만든다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 15,
+      "포인트": "현재진행형",
+      "prompt": "우리말을 영어로 옮길 때 빈칸에 알맞은 것은?",
+      "body": ["Junho는 지금 도서관에 가고 있는 중이다.",
+               "= Junho _______________ to the library now."],
+      "choices": ["go", "goed", "went", "going", "is going"],
+      "answer": "⑤",
+      "explanation": "지금 하고 있는 일이므로 「be동사 + 동사원형-ing」로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 20,
+      "포인트": "현재완료의 주어와 have/has",
+      "prompt": "다음 중 어법에 맞지 [[않는]]것을 고르시오.",
+      "body": [],
+      "choices": ["I have never seen a rainbow.", "I haven't read the novel.",
+                  "I has been to Rome.", "I have had many pets.",
+                  "I have known her since we were young."],
+      "answer": "③",
+      "explanation": "주어가 I이므로 has가 아니라 have를 써야 한다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 28,
+      "포인트": "과거진행형의 부정",
+      "prompt": "다음 빈칸에 알맞은 것은?",
+      "body": ["My brother _________ to me. I was very angry."],
+      "choices": ["listens", "isn't listened", "is listening",
+                  "was listened", "wasn't listening"],
+      "answer": "⑤",
+      "explanation": "뒤 문장이 과거이므로 그때 듣고 있지 않았다는 뜻의 과거진행형 부정으로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 29,
+      "포인트": "기간을 묻는 How long",
+      "prompt": "다음 빈칸에 들어갈 가장 알맞은 것은?",
+      "body": ["A: __________ have you studied Chinese?",
+               "B: I have studied it since middle school."],
+      "choices": ["Who", "What", "Where", "How far", "How long"],
+      "answer": "⑤",
+      "explanation": "얼마 동안인지 묻고 있으므로 How long이 알맞다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(2회).pdf", "number": 10,
+      "포인트": "have gone to — 가고 없다",
+      "prompt": "주어진 우리말을 영어로 바르게 옮긴 것은?",
+      "body": ["지호는 미국에 가고 (지금 여기) 없다."],
+      "choices": ["Jiho is going to America.", "Jiho has gone to America.",
+                  "Jiho has been to America.",
+                  "Jiho has never been to America.",
+                  "Jiho has never gone to America."],
+      "answer": "②",
+      "explanation": "가서 지금 여기 없다는 결과를 나타내므로 has gone to로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(2회).pdf", "number": 13,
+      "포인트": "과거에 시작해 지금까지 이어지는 일",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때, 빈칸에 알맞은 것을 고르시오.",
+      "body": ["My brother moved to Busan last year.",
+               "He still lives there.",
+               "→ My brother ___________________ to Busan."],
+      "choices": ["moves", "is moving", "has moved",
+                  "was moving", "is going to move"],
+      "answer": "③",
+      "explanation": "지난해에 옮겨 지금도 그곳에 있으므로 현재완료 has moved로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(2회).pdf", "number": 14,
+      "포인트": "Have you ever ~? 로 묻는 경험",
+      "prompt": "다음 대화의 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["A : _____________________________.",
+               "B : No, I haven’t. How about you?",
+               "A : Yes, I have."],
+      "choices": ["Do you try durian?", "Can you try durian?",
+                  "Did you try durian?", "Have you ever tried durian?",
+                  "Are you going to try durian?"],
+      "answer": "④",
+      "explanation": "대답이 haven’t·have이므로 현재완료로 경험을 묻는 말이 와야 한다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(2회).pdf", "number": 16,
+      "포인트": "현재완료의 과거분사",
+      "prompt": "다음 중 밑줄 친 부분이 어법상 [[어색한]]것을 고르시오.",
+      "body": [],
+      "choices": ["Owen has [[took]] my umbrella.",
+                  "I have [[found]] my keys.",
+                  "I have never [[ridden]] a horse.",
+                  "Have you [[heard]] from Emily?",
+                  "Have you ever [[been]] to Rome before?"],
+      "answer": "①",
+      "explanation": "take의 과거분사는 taken이다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(2회).pdf", "number": 20,
+      "포인트": "현재완료의 경험 부정",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것은?",
+      "body": ["나는 살면서 눈을 결코 본 적이 없다."],
+      "choices": ["I never see snow in my life.",
+                  "I never saw snow in my life.",
+                  "I was never seeing snow in my life.",
+                  "I've never seen snow in my life.",
+                  "I had never seen snow in my life."],
+      "answer": "④",
+      "explanation": "지금까지의 경험이 없다는 뜻이므로 「have never + 과거분사」로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(2회).pdf", "number": 21,
+      "포인트": "have gone to — 가고 없다",
+      "prompt": "다음 문장과 내용이 일치하는 것은?",
+      "body": ["She went to Canada and she is not here."],
+      "choices": ["She is going to Canada.", "She has gone to Canada.",
+                  "She has been to Canada.", "She has not gone to Canada.",
+                  "She had gone to Canada."],
+      "answer": "②",
+      "explanation": "가서 지금 여기 없다는 뜻이므로 has gone to로 나타낸다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(2회).pdf", "number": 23,
+      "포인트": "How long + 현재완료",
+      "prompt": "대화의 밑줄 친 우리말을 영어로 바르게 옮긴 것은?",
+      "body": ["A : [[이 회사에서 일하신 지 얼마나 되셨어요?]]",
+               "B : Since 2010."],
+      "choices": ["How long did you work at this company?",
+                  "How long do you work at this company?",
+                  "How long have you worked at this company?",
+                  "How much have you worked at this company?",
+                  "How long are you work at this company?"],
+      "answer": "③",
+      "explanation": "지금까지 이어지는 기간을 묻고 있으므로 「How long + 현재완료」로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(2회).pdf", "number": 29,
+      "포인트": "현재완료 의문문의 대답",
+      "prompt": "빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["A : Have you ever ridden a horse?",
+               "B : Yes, I __________."],
+      "choices": ["haven't", "has", "having", "have", "had"],
+      "answer": "④",
+      "explanation": "Have you ~?로 물었으므로 Yes, I have.로 답한다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(1회).pdf", "number": 2,
+      "포인트": "현재진행형",
+      "prompt": "다음 대화의 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["A: What are you doing now?",
+               "B: I __________ lunch."],
+      "choices": ["cooked", "am cooking", "will cook",
+                  "was cooking", "have cooked"],
+      "answer": "②",
+      "explanation": "지금 하고 있는 일을 묻고 있으므로 현재진행형으로 답한다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(1회).pdf", "number": 13,
+      "포인트": "현재완료 의문문의 부정 대답",
+      "prompt": "다음 대화의 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["A : Have you spoken in front of a crowd?",
+               "B : ________ I think I'm too shy."],
+      "choices": ["Yes, I did.", "No, I don't.", "No, I didn't.",
+                  "Yes, I have.", "No, I haven't."],
+      "answer": "⑤",
+      "explanation": "Have you ~?로 물었으므로 No, I haven’t.로 답한다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(1회).pdf", "number": 15,
+      "포인트": "경험을 묻는 현재완료",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["_____ you ever visited a museum at night?"],
+      "choices": ["Do", "Did", "Were", "Will", "Have"],
+      "answer": "⑤",
+      "explanation": "ever와 과거분사가 함께 쓰였으므로 현재완료 Have로 묻는다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(1회).pdf", "number": 19,
+      "포인트": "for와 since의 구별",
+      "prompt": "다음 빈칸에 들어갈 말이 바르게 짝지어진 것을고르시오.",
+      "body": ["I have taught here _____ five years.",
+               "I have helped at the shelter _____ 2018."],
+      "choices": ["at – for", "for – for", "for – since",
+                  "since – for", "since – since"],
+      "answer": "③",
+      "explanation": "기간 앞에는 for를, 시작한 시점 앞에는 since를 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(2회).pdf", "number": 1,
+      "포인트": "현재진행형의 형태",
+      "prompt": "다음 대화의 밑줄 친 동사가 알맞은 형태로 바르게 짝지어진 것은?",
+      "body": ["A : What are you [[do]] now?",
+               "B : I [[write]] about my summer trip."],
+      "choices": ["do – write", "do - writing", "doing – writing",
+                  "doing – am writing", "doing – was writing"],
+      "answer": "④",
+      "explanation": "앞은 are 뒤이므로 doing, 뒤는 be동사가 없으므로 am writing으로 써야 한다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(2회).pdf", "number": 9,
+      "포인트": "현재완료 의문문의 부정 대답",
+      "prompt": "다음 대화의 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["A : Have you ever seen a shooting star?",
+               "B : _____ I think I’m always asleep by then."],
+      "choices": ["Yes, I did.", "No, I don’t.", "No, I didn‘t.",
+                  "Yes, I have.", "No, I haven’t."],
+      "answer": "⑤",
+      "explanation": "Have you ~?로 물었으므로 No, I haven’t.로 답한다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(2회).pdf", "number": 11,
+      "포인트": "과거를 나타내는 말과 과거시제",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["My family _____ fishing last Sunday."],
+      "choices": ["goes", "went", "is going", "will go", "has gone"],
+      "answer": "②",
+      "explanation": "last Sunday라는 과거를 나타내는 말이 있으므로 과거형 went를 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(2회).pdf", "number": 17,
+      "포인트": "현재완료에는 과거분사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["I have __________ before."],
+      "choices": ["met him", "read the poem", "ate the dish",
+                  "heard the story", "visited the temple"],
+      "answer": "③",
+      "explanation": "have 뒤에는 과거분사가 와야 하므로 ate가 아니라 eaten으로 써야 한다."
+    }
+  ]
+}

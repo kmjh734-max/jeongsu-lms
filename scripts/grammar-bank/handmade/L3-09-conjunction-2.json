@@ -1,0 +1,67 @@
+{
+  "_설명": "심화 9과 접속사 — 상관접속사, 시간·양보의 접속사, 조건절. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 9.접속사_체크체크.pdf", "number": 2,
+      "포인트": "neither A nor B",
+      "prompt": "다음 두 문장을 한 문장으로 바꿔 쓰시오.",
+      "body": ["I’m not interested in sports.",
+               "You are not interested in sports, either.",
+               "→ _______ I _______ you _______ _______",
+               "_______ sports."],
+      "answer": "Neither, nor, are interested in",
+      "explanation": "「neither A nor B」는 ‘A도 B도 아닌’이라는 뜻이며, 동사는 B(you)에 맞춰 are로 쓴다."
+    },
+    {
+      "file": "[심화] 9.접속사_체크체크.pdf", "number": 5,
+      "포인트": "시간의 접속사 until",
+      "prompt": "다음 두 문장을 접속사를 사용하여 한 문장으로 바꿔 쓰시오.",
+      "body": ["He waited at the gate. Finally, she arrived.",
+               "→ _________________________________________"],
+      "answer": "He waited at the gate until she arrived.",
+      "explanation": "‘~할 때까지’라는 뜻의 접속사 until로 두 문장을 연결한다."
+    },
+    {
+      "file": "[심화] 9.접속사_체크체크.pdf", "number": 6,
+      "포인트": "though = in spite of",
+      "prompt": "다음 두 문장이 같은 뜻이 되도록 빈칸을 채우시오.",
+      "body": ["Though it was very cold and windy, I had a",
+               "great time in Sapporo.",
+               "= _______ _______ _______ the cold and windy",
+               "weather, I had a great time in Sapporo."],
+      "answer": "In spite of",
+      "explanation": "양보의 접속사 though는 전치사구 in spite of로 바꿔 쓸 수 있으며 뒤에는 명사(구)가 온다."
+    },
+    {
+      "file": "[심화] 9.접속사_체크체크.pdf", "number": 10,
+      "포인트": "조건의 접속사 If",
+      "prompt": "다음 두 문장을 If를 사용하여 한 문장으로 바꿔 쓰시오.",
+      "body": ["Sora may not finish the report today.",
+               "Her boss will be upset.",
+               "⇒ If _______________________________________"],
+      "answer": "If Sora doesn’t finish the report today, her boss will be upset.",
+      "explanation": "조건을 나타내는 if절에서는 미래의 일이라도 현재시제로 쓴다."
+    },
+    {
+      "file": "[심화] 9.접속사_확인문제(1회).pdf", "number": 18,
+      "포인트": "B as well as A = not only A but also B",
+      "prompt": "괄호 안의 단어를 활용하여 우리말에 맞게 두 가지로 영작하시오.",
+      "body": ["미나는 그림뿐만 아니라 노래에도 능숙하다.",
+               "Mina is good at [[draw, sing]].",
+               "⑴ _______________________________________",
+               "⑵ _______________________________________"],
+      "answer": "(1) singing as well as drawing (2) not only drawing but also singing",
+      "explanation": "‘A뿐만 아니라 B도’는 「B as well as A」 또는 「not only A but also B」로 쓰며, 전치사 at 뒤이므로 모두 동명사로 쓴다."
+    },
+    {
+      "file": "[심화] 9.접속사_확인문제(2회).pdf", "number": 16,
+      "포인트": "Once + 주어 + 동사",
+      "prompt": "<보기>의 말을 활용하여 주어진 문장과 같은 구조의 문장을 완성하시오.",
+      "body": ["Once you see her, you’ll fall in love with her.",
+               "<보기> feel, clean, better, your room",
+               "→ Once you ________________, ________________."],
+      "answer": "clean your room, you’ll feel better",
+      "explanation": "접속사 once가 이끄는 절에서는 미래의 일이라도 현재시제로 쓰고, 주절에는 will을 쓴다."
+    }
+  ]
+}

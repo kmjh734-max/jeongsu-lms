@@ -1,0 +1,164 @@
+{
+  "_설명": "기본 6과 분사 — 현재분사와 과거분사, 감정을 나타내는 분사. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 6.분사_종합문제(2회).pdf", "number": 6,
+      "포인트": "목적격 보어가 수동이면 과거분사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["나는 그녀가 벌에 쏘인 것을 보았다.",
+               "→ I saw her _____ by a bee. (sting)"],
+      "answer": "stung",
+      "explanation": "목적어와 목적격 보어의 관계가 수동이므로 과거분사 stung이 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_종합문제(2회).pdf", "number": 19,
+      "포인트": "감정을 느끼는 사람이 주어이면 과거분사",
+      "prompt": "주어진 단어를 분사 형태로 바꿔 빈칸을 채우시오.",
+      "body": ["Students were _____ by the difficult question.",
+               "(confuse)"],
+      "answer": "confused",
+      "explanation": "학생들이 혼란을 느낀 것이므로 과거분사 confused가 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_종합문제(2회).pdf", "number": 22,
+      "포인트": "감정을 일으키면 -ing, 느끼면 -ed",
+      "prompt": "밑줄 친 부분을 바르게 고치세요.",
+      "body": ["(1) The Northern Lights were [[amaze]].",
+               "(2) I was really [[excite]] by the trip."],
+      "answer": "(1)amazing (2)excited",
+      "explanation": "감정을 나타내는 분사형 형용사는 주어가 사물일 때는 -ing, 주어가 사람일 때는 -ed 형태이다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 1,
+      "포인트": "단독으로 쓰인 현재분사는 명사 앞에서 꾸민다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그녀의 별명은 걸어 다니는 백과사전이다.",
+               "(encyclopedia, walking, is, a)",
+               "→ Her nickname _____________________."],
+      "answer": "is a walking encyclopedia",
+      "explanation": "walking은 명사 encyclopedia를 꾸며 주는 현재분사로 명사 앞에 위치한다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 3,
+      "포인트": "수동의 뜻이면 과거분사가 명사를 꾸민다",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["• Did you find the window?",
+               "• The window was cracked.",
+               "→ Did you find the __________ window?"],
+      "answer": "cracked",
+      "explanation": "‘금이 간 창문’의 의미로 ‘수동’을 나타내는 과거분사 cracked를 이용하여 명사 window를 꾸며 주는 한 문장으로 만들 수 있다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 4,
+      "포인트": "능동 관계이면 현재분사",
+      "prompt": "다음 대화의 빈칸에 괄호 안의 말을 알맞은 형태로 쓰시오.",
+      "body": ["A : Who is Emma?",
+               "B : She is the girl _____(wave) her hand."],
+      "answer": "waving",
+      "explanation": "‘손을 흔드는 소녀’라는 뜻으로, the girl과 wave가 능동 관계이므로 waving이 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 5,
+      "포인트": "감정을 일으키면 -ing, 느끼면 -ed",
+      "prompt": "다음 빈칸에 tire의 알맞은 형태를 각각 쓰시오.",
+      "body": ["(1) The hike was _________.",
+               "(2) I was _________ after the hike."],
+      "answer": "(1) tiring (2) tired",
+      "explanation": "(1) 등산이 피로감을 불러일으킨 것이므로 현재분사 tiring이 알맞다. (2) 내가 피로를 느낀 것이므로 과거분사 tired가 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 6,
+      "포인트": "분사구는 명사를 뒤에서 꾸민다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["나는 모차르트가 작곡한 그 곡을 좋아한다.",
+               "(by, composed, the song, Mozart)",
+               "→ I like _____________________________________."],
+      "answer": "the song composed by Mozart",
+      "explanation": "과거분사구 composed by Mozart가 명사(the song)를 뒤에서 수식하는 구조이다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 7,
+      "포인트": "단독으로 쓰인 현재분사는 명사 앞에서 꾸민다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["나는 어제 그의 자고 있는 얼굴을 보았다.",
+               "(yesterday, his, face, sleeping)",
+               "→ I saw _____________________________________."],
+      "answer": "his sleeping face yesterday",
+      "explanation": "단독으로 쓰인 현재분사는 명사 앞에서 수식한다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 8,
+      "포인트": "수동의 뜻이면 과거분사",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["Don’t sit on the breaking chair."],
+      "answer": "breaking → broken",
+      "explanation": "‘부서진 의자’의 의미가 되어야 하므로 ‘수동’을 나타내는 과거분사 broken이 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 9,
+      "포인트": "과거분사 + 명사 주어 배열",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["구운 빵은 황금빛처럼 보였다.",
+               "(like, baked, the, looked, bread)",
+               "→ _____________________________ gold."],
+      "answer": "The baked bread looked like",
+      "explanation": "baked는 bread를 꾸며 주는 과거분사로 명사 앞에 위치하며, 문장의 동사인 looked like를 주어인 The baked bread 뒤에 쓴다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 10,
+      "포인트": "수동의 뜻이면 과거분사가 명사를 꾸민다",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Did you drink the juice?",
+               "The juice was frozen.",
+               "→ Did you drink the _____________ juice?"],
+      "answer": "frozen",
+      "explanation": "‘언 주스’의 의미로 ‘수동’을 나타내는 과거분사 frozen을 이용하여 명사 juice를 꾸며 주는 한 문장으로 만들 수 있다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 13,
+      "포인트": "감정을 느끼는 대상에는 과거분사",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["Cloudy days always make me feel bore."],
+      "answer": "bore → bored",
+      "explanation": "‘내가 지루한 감정을 느끼는’ 것이므로 과거분사 bored가 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 14,
+      "포인트": "감정을 일으키면 -ing, 느끼면 -ed",
+      "prompt": "다음 빈칸에 excite의 알맞은 형태를 각각 쓰시오.",
+      "body": ["Tom watched the final match. It was very",
+               "(1)________. He was very (2)________."],
+      "answer": "(1) exciting, (2) excited",
+      "explanation": "(1) 경기가 신나게 만든 것이므로 exciting이 알맞다. (2) Tom이 신남을 느낀 것이므로 과거분사 excited가 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 18,
+      "포인트": "감정을 일으키는 주체는 현재분사, 느끼는 사람은 과거분사",
+      "prompt": "주어진 단어의 형태를 알맞게 바꾸시오.",
+      "body": ["ⓐ The book is ( bore ) to me.",
+               "ⓑ She was very ( disappoint ) by the score."],
+      "answer": "ⓐboring ⓑdisappointed",
+      "explanation": "감정을 일으키는 주체는 현재분사, 감정을 느끼는 대상(사람)은 과거분사를 사용하는 것이 적절하다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 19,
+      "포인트": "과거분사구가 명사를 뒤에서 꾸민다",
+      "prompt": "두 문장이 같은 의미가 되도록 빈칸에 알맞은 말을 쓰시오. (한 칸에 한 단어씩 쓰시오.)",
+      "body": ["1) I’m watching the movie. The movie was directed by Bong Joon-ho. ➝ I’m watching the movie _______ _______ Bong Joon-ho.",
+               "2) I love the song. The song was sung by Queen in the 1970s. ➝ I love the song _______ ________ Queen in the 1970s."],
+      "answer": "① directed by ② sung by",
+      "explanation": "구를 이루어 길어져 명사 뒤에 오는 ‘~하여진, ~을 당한’이라는 수동 또는 완료의 의미를 나타낼 때는 과거분사를 쓴다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 22,
+      "포인트": "명사와 분사가 수동 관계이면 과거분사",
+      "prompt": "주어진 의미에 맞도록 영어로 옮겼을 때 빈칸을 채워 완전한 문장으로 다시 쓰시오.",
+      "body": ["경찰은 은행에서 도난당한 돈을 찾지 못했다.",
+               "The police didn’t find the money",
+               "___________________________. (steal, the bank,",
+               "from)"],
+      "answer": "stolen from the bank",
+      "explanation": "명사와 명사를 수식하는 분사의 관계에 따라 수동이면 과거분사(p.p.) 형태를 사용한다."
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "_설명": "완성 8과 접속사 — 나머지. 배열 영작과 공통으로 들어갈 한 단어. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 23,
+      "포인트": "대조의 접속사 whereas",
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 한 단어를 쓰시오.",
+      "body": ["그 학생들 중 일부는 시험에 합격한 반면, 다른 학생들",
+               "은 그렇지 않다.",
+               "→ Some of the students passed the exam,",
+               "__________ others did not."],
+      "answer": "whereas",
+      "explanation": "‘~인 반면’이라는 대조의 의미를 가진 종속 접속사는 whereas이다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 24,
+      "포인트": "by the time — ~할 때쯤에",
+      "prompt": "우리말에 맞게 빈칸에 들어갈 말을 [[세 단어]]로 쓰시오.",
+      "body": ["내가 역에 도착했을 때쯤에는, 기차가 이미 떠나 있었다.",
+               "→ ____________________ I got to the station,",
+               "the train had already left."],
+      "answer": "By the time",
+      "explanation": "「by the time + 주어 + 동사」는 ‘~할 때쯤에’라는 의미로 by the time이 시간을 나타내는 종속접속사로 사용된다. 보통 행위가 완료되는 시점을 나타낼 때 쓴다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 26,
+      "포인트": "once — 일단 ~하면",
+      "prompt": "우리말과 일치하도록 <보기>의 단어들을 올바르게 배열하시오.",
+      "body": ["<보기>",
+               "you, leave, sit down, permission, can’t, my,",
+               "without, you, once",
+               "일단 자리에 앉으면, 당신은 내 허락 없이 떠날 수 없다.",
+               "→ __________________________________________",
+               "______________________________________________."],
+      "answer": "Once you sit down, you can’t leave without my permission.",
+      "explanation": "접속사 once는 조건을 나타내는 부사절을 이끄는 종속 접속사로 ‘일단 ~하면’이라는 뜻이다. without은 ‘~없이’라는 뜻으로 ‘내 허락 없이’는 without my permission으로 영작할 수 있다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 27,
+      "포인트": "as soon as + 주어 + 동사",
+      "prompt": "괄호 안에 주어진 단어들을 올바르게 배열하시오.",
+      "body": ["(habit, as, bed, as, I, radio, go, I, on, have,",
+               "the, the, of, soon, turning, to)",
+               "→ _________________________________________",
+               "______________________________________________."],
+      "answer": "I have the habit of turning on the radio as soon as I go to bed.",
+      "explanation": "「as soon as + 주어 + 동사」는 ‘~하자마자’라는 의미이다. 내가 가지고 있는 습관을 설명하기 위해 명사를 수식하는 전치사구 「of + 동명사(구)」 형태로 나타낸다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 28,
+      "포인트": "목적어 역할을 하는 명사절 접속사 that",
+      "prompt": "괄호 안에 주어진 단어들을 올바르게 배열하시오.",
+      "body": ["(the, agree, we, plan, made, best, that)",
+               "→ I ________________________________________."],
+      "answer": "agree that we made the best plan",
+      "explanation": "명사절을 이끄는 종속접속사 that이 agree의 목적어 역할을 하고 ‘~하는 것’이라는 의미를 나타낸다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 29,
+      "포인트": "B as well as A — A뿐만 아니라 B도",
+      "prompt": "괄호 안에 주어진 단어들을 올바르게 배열하시오. (단, 필요시 형태 변형 가능)",
+      "body": ["(well, destroy, many, as, homes, as)",
+               "→ A typhoon causes flooding __________",
+               "______________________________________________."],
+      "answer": "as well as destroys many homes",
+      "explanation": "「B as well as A」는 ‘A뿐만 아니라 B도’라는 의미이다. B와 A는 대등한 단어나 구, 절을 연결하므로 causes에 맞게 동사 destroy 또한 destroys로 변형해야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 30,
+      "포인트": "had better ~, or …",
+      "prompt": "우리말과 일치하도록 <보기>의 단어들을 올바르게 배열하시오.",
+      "body": ["<보기>",
+               "you, your, will, had, or, regret, your, best, in,",
+               "preparation, better, do, you",
+               "네 준비에 최선을 다하는 것이 좋겠어, 그렇지 않으면",
+               "너는 후회할 거야.",
+               "→ __________________________________________",
+               "___________________________________________."],
+      "answer": "You had better do your best in your preparation, or you will regret.",
+      "explanation": "「had better + 동사원형」은 ‘~하는 것이 좋겠다’라는 의미이다. 「명령문 ~, or + 주어 + 동사」는 ‘~해라, 그렇지 않으면 ~’라는 뜻인데, 명령문 대신 had better가 쓰인 문장도 가능하다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 31,
+      "포인트": "if ~ not = unless",
+      "prompt": "두 문장이 같은 의미가 되도록 6단어로 올바르게 영작하시오.",
+      "body": ["Your teacher will be upset if you don’t finish",
+               "your homework on time.",
+               "→ Your teacher will be upset",
+               "____________________________________."],
+      "answer": "unless you finish your homework on time",
+      "explanation": "「if ~ not」은 ‘만약 ~하지 않는다면’이라는 뜻의 조건의 종속 접속사로 「unless + 주어 + 동사」로 바꿔 쓸 수 있다. 조건의 부사절에서는 미래를 나타낼 때 현재시제를 사용한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 32,
+      "포인트": "「명령문, or ~」를 if ~ not으로",
+      "prompt": "주어진 문장과 같은 의미가 되도록 영작하시오.",
+      "body": ["Study hard, or you will regret it later.",
+               "→ If ________________________________________",
+               "______________________________________________."],
+      "answer": "If you don’t study hard, you will regret it later.",
+      "explanation": "내용상 ‘열심히 공부하지 않으면 나중에 후회할 것이다’라는 의미이므로 if를 사용한 조건의 부사절로 바꿀 수 있다. 조건의 부사절에서는 미래를 나타낼 때 현재시제를 사용한다는 점에 주의한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 33,
+      "포인트": "neither A nor B는 B에 동사를 맞춘다",
+      "prompt": "주어진 두 문장과 같은 의미가 되도록 괄호 속의 단어를 사용하여 한 문장으로 영작하시오.",
+      "body": ["I haven’t seen the movie. She hasn’t seen it,",
+               "either. (neither)",
+               "→ __________________________________________."],
+      "answer": "Neither I nor she has seen the movie. (또는 Neither she nor I have seen the movie.)",
+      "explanation": "「neither A nor B」는 ‘A도 아니고 B도 아니다’라는 뜻으로 쓰인다. 이 표현이 주어로 쓰일 경우 B에 동사의 수를 일치시킨다. B가 she이면 동사는 has가 되고, B가 I이면 동사는 have가 되어야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 34,
+      "포인트": "not only A but also B = B as well as A",
+      "prompt": "주어진 문장과 같은 의미가 되도록 괄호 속의 표현을 사용하여 영작하시오.",
+      "body": ["Not only my shoes but also my backpack is old.",
+               "→ __________________________________________",
+               "___________________________________. (as well as)"],
+      "answer": "My backpack as well as my shoes is old.",
+      "explanation": "「not only A but (also) B」는 ‘A뿐만 아니라 B도’라는 의미이고 이는 「B as well as A」로 바꿔 쓸 수 있다. 이 표현들이 주어가 되는 경우 B에 동사의 수일치를 시키므로 단수인 my backpack에 맞춰 is를 쓴다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 35,
+      "포인트": "both A and B는 복수 취급",
+      "prompt": "주어진 두 문장과 같은 의미가 되도록 괄호 속의 단어를 사용하여 한 문장으로 영작하시오.",
+      "body": ["You are known to be a very kind neighbor.",
+               "Emma is known to be a very kind neighbor, too.",
+               "→ __________________________________________",
+               "________________________________________. (both)"],
+      "answer": "Both you and Emma are known to be very kind neighbors.",
+      "explanation": "「both A and B」는 ‘A와 B 둘 다, 모두’라는 의미이다. 이 표현이 주어로 쓰이면 복수로 취급하므로 be동사는 are가 와야 하고, a very kind neighbor도 복수형 very kind neighbors로 바꾸는 것에 주의한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 36,
+      "포인트": "not A but B — A가 아니라 B",
+      "prompt": "주어진 우리말을 괄호 속의 표현을 사용하여 영작하시오.",
+      "body": ["나는 도서관이 아니라 체육관에 있었다.",
+               "→ __________________________________________",
+               "_________________________________. (not, but)"],
+      "answer": "I was not in the library but in the gym.",
+      "explanation": "「not A but B」는 ‘A가 아니라 B’라는 의미이다. 이때 A와 B는 대등한 단어나 구, 절이어야 하므로 A를 ‘in the library’로, B를 ‘in the gym’으로 써야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 37,
+      "포인트": "접속사 once와 부사 once",
+      "prompt": "빈칸에 공통으로 들어갈 한 단어를 쓰시오.",
+      "body": ["⒜ _____ you learn to ride a bike, you never",
+               "forget it.",
+               "⒝ He _____ worked as a sailor.",
+               "→ ___________________"],
+      "answer": "O(o)nce",
+      "explanation": "⒜ once가 접속사로 쓰이면 「once + 주어 + 동사 ~」의 구조로 쓰이고 ‘일단 ~하면’이라는 뜻을 가진다. ⒝ once가 부사로 쓰이면 ‘한 번, (과거) 언젠가 한때’라는 의미가 된다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 38,
+      "포인트": "시간의 since와 이유의 since",
+      "prompt": "빈칸에 공통으로 들어갈 한 단어를 쓰시오.",
+      "body": ["⒜ Her health has improved a lot _____ she",
+               "started swimming.",
+               "⒝ _____ we have enough time, let’s take a walk.",
+               "→ ___________________"],
+      "answer": "S(s)ince",
+      "explanation": "⒜ 접속사 since가 시간을 나타내는 접속사로 쓰일 경우 ‘~이후로 (쭉)’이라는 의미를 가진다. ⒝ 접속사 since가 이유를 나타내는 접속사로 쓰이면 ‘~ 때문에’라는 뜻이 된다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 39,
+      "포인트": "시간의 while과 대조의 while",
+      "prompt": "빈칸에 공통으로 들어갈 한 단어를 쓰시오.",
+      "body": ["⒜ Someone called you _____ you were out.",
+               "⒝ Some people prefer tea, _____ others prefer",
+               "coffee.",
+               "→ ___________________"],
+      "answer": "while",
+      "explanation": "⒜ 접속사 while이 시간을 나타내는 접속사로 쓰이면 ‘~하는 동안, ~하는 사이’라는 의미를 가진다. ⒝ 접속사 while이 대조를 나타내는 접속사로 쓰이면 ‘반면에’라는 뜻이 된다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 40,
+      "포인트": "「명령문, or ~」와 either A or B",
+      "prompt": "빈칸에 공통으로 들어갈 한 단어를 쓰시오.",
+      "body": ["⒜ Wear a helmet, _____ you will get hurt.",
+               "⒝ You can pay either by card _____ in cash.",
+               "→ ___________________"],
+      "answer": "or",
+      "explanation": "⒜ 「명령문, or + 주어 + 동사」는 ‘~해라, 그렇지 않으면…’이라는 의미이다. ⒝ 「either A or B」는 ‘A 또는 B 둘 중 하나’라는 뜻이다. 따라서 공통으로 들어갈 한 단어는 or이다."
+    }
+  ]
+}

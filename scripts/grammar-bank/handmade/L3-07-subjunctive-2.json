@@ -1,0 +1,170 @@
+{
+  "_설명": "심화 7과 가정법 — 가정법 과거·과거완료, I wish, as if. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 2,
+      "포인트": "직설법을 가정법 과거로 바꾸기",
+      "prompt": "다음 주어진 문장의 의미를 참고하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["I don’t have more money, so I can’t buy a new",
+               "bike.",
+               "→ If I ________ more money, I ________",
+               "________ a new bike."],
+      "answer": "had, could buy",
+      "explanation": "직설법을 가정법으로 바꾸는 문제이다. 현재 사실의 반대이므로 가정법 과거 문장을 쓴다. 가정법 과거는 「If + 주어 + 동사의 과거형/were ~, 주어 + would[could] + 동사원형 …」의 형태로 쓴다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 3,
+      "포인트": "As 직설법을 가정법 과거로",
+      "prompt": "다음 문장을 가정법으로 바꿔 쓰시오.",
+      "body": ["As I don’t have a car, I can’t drive to work.",
+               "→ If ________________________________________."],
+      "answer": "I had a car, I could drive to work",
+      "explanation": "현재 사실에 반대되는 일을 가정하는 가정법 과거로 쓴다. 「If + 주어 + 동사의 과거형/were ~, 주어 + would[could] + 동사원형 …」의 형태이다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 4,
+      "포인트": "I wish + 가정법 과거",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["I’m sorry I can’t play the piano well.",
+               "→ I wish I _________ the piano well."],
+      "answer": "could play",
+      "explanation": "‘현재와 반대되는 일에 대한 소망’을 나타내므로 I wish 가정법 과거로 표현한다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 5,
+      "포인트": "I wish + 주어 + had p.p.",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["수영하는 법을 알았더라면 좋았을 텐데.",
+               "(known, I, wish, had, I)",
+               "→ ____________________ how to swim."],
+      "answer": "I wish I had known",
+      "explanation": "I wish 가정법 과거완료는 「I wish + 주어 + had p.p.」의 형태로 나타낸다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 6,
+      "포인트": "I wish + 가정법 과거의 부정",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["I’m sorry it is snowing outside.",
+               "→ I wish it _____________________ outside."],
+      "answer": "weren’t snowing",
+      "explanation": "‘현재와 반대되는 일에 대한 소망’을 나타내므로 I wish 가정법 과거로 표현한다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 7,
+      "포인트": "I wish + 가정법 과거완료",
+      "prompt": "다음 주어진 문장의 의미를 참고하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["I’m sorry that I didn’t join the club.",
+               "→ I wish I ________ ________ the club."],
+      "answer": "had joined",
+      "explanation": "과거에 동아리에 들지 않은 것에 대한 유감을 나타내므로 「I wish + 가정법 과거완료」 구문으로 쓴다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 9,
+      "포인트": "I wish + 가정법 과거완료",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["지난 주말에 그 영화를 봤더라면 좋았을 텐데.",
+               "→ I wish I ________ the movie last weekend.",
+               "(see)"],
+      "answer": "had seen",
+      "explanation": "‘과거와 반대되는 일에 대한 소망’을 나타내므로 I wish 가정법 과거완료 구문인 had seen이 알맞다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 10,
+      "포인트": "as if + 가정법 과거",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["그는 항상 나의 선생님인 것처럼 말한다.",
+               "→ He always talks as if he ________ my teacher.",
+               "(be)"],
+      "answer": "were",
+      "explanation": "‘현재와 반대되는 가정’을 나타내므로 as if 가정법 과거 구문인 동사의 과거형 were가 알맞다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 12,
+      "포인트": "as if + 가정법 과거로 현재 사실의 반대",
+      "prompt": "다음 주어진 문장의 의미를 참고하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["In fact, he remembers my name.",
+               "→ He acts as if he ________ ________ my name."],
+      "answer": "didn’t remember",
+      "explanation": "‘내 이름을 기억하지만 마치 모르는 것처럼 행동한다’는 현재 사실의 반대 내용이 되어야 하므로 「as if + 가정법 과거」 형태의 문장을 쓴다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 14,
+      "포인트": "as if + 가정법 과거완료",
+      "prompt": "다음 주어진 문장의 의미를 참고하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["In fact, all of them were rich.",
+               "→ All of them act as if they _______ ______ _____",
+               "rich."],
+      "answer": "had not been",
+      "explanation": "‘부자였지만 마치 아니었던 것처럼 행동한다’는 과거 사실의 반대 내용이 되어야 하므로 「as if + 가정법 과거완료」 형태의 문장을 쓴다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 15,
+      "포인트": "as if + 주어 + 동사의 과거형",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그녀는 마치 전문가처럼 말한다.",
+               "(were, if, an expert, as, she)",
+               "→ She talks _________________________."],
+      "answer": "as if she were an expert",
+      "explanation": "‘(현재) 마치 ~인 것처럼’의 의미를 나타낼 때는 as if 가정법 과거인 「as if + 주어 + 동사의 과거형」으로 나타낸다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 17,
+      "포인트": "가정법 과거완료, I wish, Had it not been for",
+      "prompt": "주어진 뜻이 되도록 영작 할 때 밑줄 친 부분에 알맞은 말을 영어로 쓰시오.",
+      "body": ["(1) 만약 우리가 시간이 더 있었더라면, 우리는 그 일을",
+               "끝낼 수 있었을 것이다.",
+               "_________________________________________ more",
+               "time, we could have finished the work.",
+               "(2) 내가 그녀만큼 똑똑하다면 좋을 텐데.",
+               "_________________________ I were as smart as she.",
+               "(3) 만약 너의 조언이 없었다면, 나는 그 결정을 내릴",
+               "수 없었을 것이다.",
+               "Had it not been for your advice,",
+               "_________________________ it."],
+      "answer": "(1) If we had had (2) I wish (3) I couldn’t have made it.",
+      "explanation": "(1) 과거의 사실과 반대되는 상상·가정을 할 때 쓰인다. (2) ‘I wish + 주어 + 동사 과거형’ 구문으로 현재의 실현 불가능한 소망을 나타낼 때 쓴다. (3) 과거의 사실과 반대되는 가정으로, if를 생략하여 had를 문두에 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 19,
+      "포인트": "혼합가정법 — if절은 과거완료, 주절은 현재",
+      "prompt": "우리말에 맞게 주어진 단어를 배열하시오.",
+      "body": ["네가 그때 나에게 말해주지 않았다면, 나는 지금 그 사",
+               "실을 모르고 있을 텐데.",
+               "→ (If/not/had/you/me/told/then), I would not",
+               "know the fact now."],
+      "answer": "If you had not told me then",
+      "explanation": "과거의 일이 현재에 영향을 미치는 혼합가정법으로, if절은 가정법 과거완료(had p.p.), 주절은 가정법 과거로 쓴다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 21,
+      "포인트": "혼합가정법",
+      "prompt": "우리말에 맞게 주어진 단어를 배열하시오.",
+      "body": ["내가 우산을 가져왔다면, 지금 젖지 않았을 텐데.",
+               "→ (I/if/brought/had/an umbrella), I would not be",
+               "wet now."],
+      "answer": "If I had brought an umbrella",
+      "explanation": "과거의 일이 현재에 영향을 미치는 혼합가정법으로, if절은 가정법 과거완료 「had p.p.」로 쓴다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 23,
+      "포인트": "wish + 가정법 과거완료",
+      "prompt": "주어진 단어를 활용하여 빈칸을 채우시오.",
+      "body": ["소년은 그 경기를 직접 보았다면 좋았을 텐데.",
+               "→ The boy wishes he ______ the game",
+               "directly. (watch)"],
+      "answer": "had watched",
+      "explanation": "과거와 반대되는 일에 대한 소망이므로 「wish + 주어 + had p.p.」로 쓴다."
+    },
+    {
+      "file": "[심화] 7.가정법_체크체크.pdf", "number": 24,
+      "포인트": "가정법 과거완료의 부정",
+      "prompt": "주어진 단어를 활용하여 빈칸을 채우시오.",
+      "body": ["늦게까지 게임을 하지 않았다면 일찍 일어날 수 있었을",
+               "텐데.",
+               "→ If I ______ games late, I could have gotten up",
+               "early. (play)"],
+      "answer": "hadn’t played",
+      "explanation": "주절이 「could have p.p.」이므로 가정법 과거완료이며, ‘~하지 않았다면’이라는 부정이므로 hadn’t played로 쓴다."
+    }
+  ]
+}

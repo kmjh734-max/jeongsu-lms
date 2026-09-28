@@ -1,0 +1,164 @@
+{
+  "_설명": "심화 2과 동명사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[심화] 2.동명사_종합문제(1회).pdf", "number": 3,
+      "포인트": "remember + 동명사 — 이미 한 일",
+      "prompt": "다음 대화의 빈칸에 들어갈 가장 적절한 표현을고르시오.",
+      "body": ["A : Do you think he moved to another city?",
+               "B : I think he did. I remember ____________ a",
+               "moving truck at his house last month."],
+      "choices": ["seeing", "to see", "see", "saw", "seen"],
+      "answer": "①",
+      "explanation": "지난달에 본 일을 기억하는 것이므로 remember + 동명사로 쓴다."
+    },
+    {
+      "file": "[심화] 2.동명사_종합문제(1회).pdf", "number": 16,
+      "포인트": "주어 자리에는 동명사",
+      "prompt": "빈칸에 알맞은 것은?",
+      "body": ["___________ a diary is a good habit."],
+      "choices": ["Keep", "Kept", "Keeping", "Being kept", "To keeping"],
+      "answer": "③",
+      "explanation": "주어 자리이므로 동명사 Keeping으로 쓴다."
+    },
+    {
+      "file": "[심화] 2.동명사_종합문제(1회).pdf", "number": 22,
+      "포인트": "remember to부정사와 remember 동명사의 뜻 차이",
+      "prompt": "다음 중 짝지어진 문장의 의미가 서로 같지 [[않은]] 것은?",
+      "body": [],
+      "choices": ["She started singing softly. = She started to sing softly.",
+                  "My family loves going fishing. = My family loves to go fishing.",
+                  "People hate to wake up early. = People hate waking up early.",
+                  "Remember to lock the door tonight. = Remember locking the door tonight.",
+                  "The number of users continues to rise. = The number of users continues rising."],
+      "answer": "④",
+      "explanation": "remember to부정사는 앞으로 할 일을, remember 동명사는 이미 한 일을 뜻하므로 서로 다르다."
+    },
+    {
+      "file": "[심화] 2.동명사_종합문제(1회).pdf", "number": 23,
+      "포인트": "동명사를 목적어로 쓰는 동사",
+      "prompt": "<보기>의 빈칸에 'writing'이 들어갈 때 자연스러운 문장을 고른 것은?",
+      "body": ["<보기>",
+               "a. Sooyeon decided _________ the report today.",
+               "b. Hyeonwoo enjoys _________ long letters.",
+               "c. Hyein hopes _________ a novel someday.",
+               "d. Yoonho usually avoids _________ in a hurry.",
+               "e. Put off _________ the email until tomorrow."],
+      "choices": ["a, c, d", "a, d, e", "b, c, d", "b, d, e", "c, d, e"],
+      "answer": "④",
+      "explanation": "enjoy, avoid, put off는 동명사를 목적어로 쓰고 decide, hope는 to부정사를 쓴다."
+    },
+    {
+      "file": "[심화] 2.동명사_종합문제(1회).pdf", "number": 29,
+      "포인트": "forget·remember·stop 뒤의 형태",
+      "prompt": "ⓐ~ⓒ에 주어진 단어들의 올바른 형태는?",
+      "body": ["Don't forget ⓐ [[send]] the file tomorrow.",
+               "Jisu remembered ⓑ [[meet]] him last year.",
+               "I'll stop ⓒ [[eat]] late at night.",
+               "ⓐ ⓑ ⓒ"],
+      "choices": ["sending meeting eat", "sending to meet to eat",
+                  "to send meeting eating", "to send to meet eating",
+                  "to send meeting to eat"],
+      "answer": "③",
+      "explanation": "앞으로 할 일은 to부정사, 이미 한 일은 동명사, ‘~하는 것을 그만두다’도 동명사로 쓴다."
+    },
+    {
+      "file": "[심화] 2.동명사_종합문제(2회).pdf", "number": 10,
+      "포인트": "명사를 꾸미는 동명사와 feel like + 동명사",
+      "prompt": "다음 문장의 빈칸에 들어갈 말이 바르게 짝지어진 것은?",
+      "body": ["I bought a new ______ machine.",
+               "The weather is nice, so I feel like ______ camping."],
+      "choices": ["sew - go", "sew - going", "sewing - going",
+                  "sewing - go", "sewing - gone"],
+      "answer": "③",
+      "explanation": "앞은 ‘바느질하는 기계’라는 뜻의 동명사, 뒤는 feel like 뒤의 동명사이다."
+    },
+    {
+      "file": "[심화] 2.동명사_확인문제(1회).pdf", "number": 6,
+      "포인트": "cannot help + 동명사, be busy + 동명사",
+      "prompt": "다음 빈칸에 들어갈 말이 바르게 짝지어진 것을고르시오.",
+      "body": ["I could not help _____ at the joke.",
+               "She is busy _____ the dishes."],
+      "choices": ["laugh – wash", "to laugh – washing", "to laugh – to wash",
+                  "laughing – washing", "laughing – to wash"],
+      "answer": "④",
+      "explanation": "cannot help와 be busy는 모두 뒤에 동명사를 쓴다."
+    },
+    {
+      "file": "[심화] 2.동명사_확인문제(1회).pdf", "number": 11,
+      "포인트": "동명사 주어는 단수 취급",
+      "prompt": "다음 중 밑줄 친 부분이 어법상 [[어색한]]것은?",
+      "body": ["ⓐ[[Raising]] a puppy ⓑ[[are]] hard. I enjoy ⓒ",
+               "[[walking]] with him. My dream is ⓓ[[being]] a vet.",
+               "I’m trying ⓔ[[to learn]] more."],
+      "choices": ["ⓐ", "ⓑ", "ⓒ", "ⓓ", "ⓔ"],
+      "answer": "②",
+      "explanation": "동명사구가 주어이므로 단수 취급하여 is로 써야 한다."
+    },
+    {
+      "file": "[심화] 2.동명사_확인문제(1회).pdf", "number": 14,
+      "포인트": "keep + 목적어 + from + 동명사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["The heavy rain kept us from ________ outside."],
+      "choices": ["play", "to play", "playing", "to playing", "for playing"],
+      "answer": "③",
+      "explanation": "「keep + 목적어 + from + 동명사」는 ‘~하지 못하게 하다’는 뜻이다."
+    },
+    {
+      "file": "[심화] 2.동명사_확인문제(1회).pdf", "number": 16,
+      "포인트": "be used to + 동명사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Divers should be used _______ under water."],
+      "choices": ["breathe", "breathed", "to breathe",
+                  "breathing", "to breathing"],
+      "answer": "⑤",
+      "explanation": "be used to는 ‘~에 익숙하다’는 뜻이며 to가 전치사이므로 동명사가 온다."
+    },
+    {
+      "file": "[심화] 2.동명사_확인문제(1회).pdf", "number": 18,
+      "포인트": "spend + 시간 + 동명사, be worth + 동명사",
+      "prompt": "다음 빈칸에 공통으로 들어갈 말로 알맞은 것은?",
+      "body": ["He doesn't spend much time ______ his room.",
+               "The old sofa isn't worth _______."],
+      "choices": ["clean", "to clean", "cleaning", "for cleaning", "cleaned"],
+      "answer": "③",
+      "explanation": "「spend + 시간 + 동명사」와 「be worth + 동명사」 모두 동명사를 쓴다."
+    },
+    {
+      "file": "[심화] 2.동명사_확인문제(1회).pdf", "number": 19,
+      "포인트": "동명사의 의미상 주어",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 것을 고르시오.",
+      "body": ["I was surprised that she called me.",
+               "= I was surprised at _____ me."],
+      "choices": ["she called", "to call", "her called",
+                  "her calling", "her called"],
+      "answer": "④",
+      "explanation": "전치사 at 뒤에 동명사를 쓰고 의미상 주어는 소유격이나 목적격으로 나타낸다."
+    },
+    {
+      "file": "[심화] 2.동명사_확인문제(2회).pdf", "number": 5,
+      "포인트": "stop + 동명사와 stop + to부정사",
+      "prompt": "다음 빈칸에 들어갈 말을 순서대로 바르게 연결한 것을 고르세요.",
+      "body": ["A : Stop _____ so loudly!",
+               "B : Oh, I'm sorry. I think I need to stop _____",
+               "a break."],
+      "choices": ["talk - to take", "talking - to take", "talking - taking",
+                  "to talk - to take", "to talk - take"],
+      "answer": "②",
+      "explanation": "‘~하는 것을 멈추다’는 동명사, ‘~하려고 멈추다’는 to부정사를 쓴다."
+    },
+    {
+      "file": "[심화] 2.동명사_확인문제(2회).pdf", "number": 9,
+      "포인트": "be worth + 동명사",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것은?",
+      "body": ["이 영화는 볼 가치가 있다."],
+      "choices": ["This movie is worth watch.",
+                  "This movie is worth to watching.",
+                  "This movie is worth watching.",
+                  "It is worth watch this movie.",
+                  "It is worth to watching."],
+      "answer": "③",
+      "explanation": "「be worth + 동명사」는 ‘~할 가치가 있다’는 뜻이다."
+    }
+  ]
+}

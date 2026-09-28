@@ -1,0 +1,145 @@
+{
+  "_설명": "기본 13과 형용사와 명사의 수량표현 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(1회).pdf", "number": 4,
+      "포인트": "a lot of = many",
+      "prompt": "밑줄 친 부분과 바꿔 쓸 수 있는 것은?",
+      "body": ["There are [[a lot of]] books on the shelf."],
+      "choices": ["so", "too", "much", "many", "a few"],
+      "answer": "④",
+      "explanation": "books가 셀 수 있는 명사의 복수형이므로 a lot of는 many로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(1회).pdf", "number": 7,
+      "포인트": "little·few와 명사의 짝",
+      "prompt": "다음 중 어법상 올바른 것 [[2개]]를 고르면?",
+      "body": [],
+      "choices": ["Add [[a little]] salt at a time.",
+                  "[[Little]] students understand the rule.",
+                  "I want to buy you [[a little]] gifts.",
+                  "He made [[few]] errors in the report.",
+                  "She has [[a few]] money to spend today."],
+      "answer": "①, ④",
+      "explanation": "little·a little은 셀 수 없는 명사에, few·a few는 셀 수 있는 명사에 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(1회).pdf", "number": 21,
+      "포인트": "분수 읽는 법",
+      "prompt": "분수를 영어로 올바르게 읽은 것은?",
+      "body": [],
+      "choices": ["= first three", "= three-fourths", "= five and a second",
+                  "= four and two-sixth", "= two and one-fifths"],
+      "answer": "②",
+      "explanation": "분자는 기수, 분모는 서수로 읽고 분자가 둘 이상이면 분모에 -s를 붙인다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(2회).pdf", "number": 2,
+      "포인트": "단위 명사와 셀 수 없는 명사",
+      "prompt": "다음 중 밑줄 친 부분이 어법상 올바른 문장을고르세요.",
+      "body": [],
+      "choices": ["I bought [[two pairs of gloves]].",
+                  "Do you have [[some sheet of papers]]?",
+                  "I want [[three pieces of cake and a bottle of]] [[juices]].",
+                  "I'd like [[two slices of breads and a cup of tea]].",
+                  "There are [[four glass of milks on the table]]."],
+      "answer": "①",
+      "explanation": "수를 늘릴 때는 단위 명사에 -s를 붙이고 뒤의 셀 수 없는 명사는 그대로 둔다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(2회).pdf", "number": 4,
+      "포인트": "little — 거의 없는(셀 수 없는 것)",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 문장을 고르세요.",
+      "body": ["나는 마실 것이 거의 없었다."],
+      "choices": ["I had few to drink.", "I had little to drink.",
+                  "I had a little to drink.", "I had to drink a little.",
+                  "I had to drink little."],
+      "answer": "②",
+      "explanation": "‘거의 없는’은 little이며, a little은 ‘조금 있는’이라는 뜻이다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(2회).pdf", "number": 18,
+      "포인트": "fewer — 셀 수 있는 것의 비교급",
+      "prompt": "다음 우리말에 맞게 빈칸에 알맞은 말을 고르세요.",
+      "body": ["플라스틱 병을 더 적게 쓰세요.",
+               "→ Use _______ plastic bottles."],
+      "choices": ["few", "less", "a few", "fewer", "a little"],
+      "answer": "④",
+      "explanation": "bottles가 셀 수 있는 명사이므로 few의 비교급 fewer를 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(2회).pdf", "number": 20,
+      "포인트": "단위 명사의 복수형과 셀 수 없는 명사",
+      "prompt": "다음 문장의 빈칸에 들어갈 말이 바르게 짝지어진 것은?",
+      "body": ["They brought twelve _______ of juice.",
+               "Please give me a couple of _______ of cheese.",
+               "My teacher gave me a piece of _______."],
+      "choices": ["bottle - slice - advice", "bottle - slices - advice",
+                  "bottles - slices - advice", "bottle - slices - advices",
+                  "bottles - slice - advices"],
+      "answer": "③",
+      "explanation": "단위 명사는 수에 맞춰 복수형으로 쓰고, advice는 셀 수 없으므로 -s를 붙이지 않는다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(2회).pdf", "number": 23,
+      "포인트": "little + 셀 수 없는 명사",
+      "prompt": "우리말에 맞도록 빈칸을 채우세요.",
+      "body": ["병에 물이 거의 없습니다.",
+               "There is _____ water in the bottle."],
+      "choices": ["a few", "few", "a little", "little", "any"],
+      "answer": "④",
+      "explanation": "water는 셀 수 없는 명사이고 ‘거의 없다’는 뜻이므로 little을 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(2회).pdf", "number": 26,
+      "포인트": "a pair of와 어울리는 명사",
+      "prompt": "다음 문장의 빈칸에 들어갈 말로 알맞지 [[않은]]것은?",
+      "body": ["I need a pair of ___________."],
+      "choices": ["glasses", "jeans", "boots", "socks", "books"],
+      "answer": "⑤",
+      "explanation": "a pair of는 둘이 짝을 이루는 것에 쓰므로 books에는 쓸 수 없다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(2회).pdf", "number": 29,
+      "포인트": "a piece of + 셀 수 없는 명사",
+      "prompt": "다음 우리말에 맞게 빈칸에 알맞은 것은?",
+      "body": ["내가 너에게 정보 하나 줄게.",
+               "→ I'll give you _______________."],
+      "choices": ["an information", "a little of information",
+                  "a few of information", "a piece of information",
+                  "one of information"],
+      "answer": "④",
+      "explanation": "information은 셀 수 없는 명사이므로 a piece of로 센다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_확인문제(1회).pdf", "number": 1,
+      "포인트": "much + 셀 수 없는 명사",
+      "prompt": "다음 밑줄 친 부분 중 어법상 [[어색한]]것을 고르시오.",
+      "body": ["ⓐ [[They]] ⓑ [[drink]] ⓒ [[too]] ⓓ [[many]] ⓔ [[water]] every day."],
+      "choices": ["ⓐ", "ⓑ", "ⓒ", "ⓓ", "ⓔ"],
+      "answer": "④",
+      "explanation": "water는 셀 수 없는 명사이므로 many가 아니라 much를 써야 한다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_확인문제(2회).pdf", "number": 18,
+      "포인트": "날짜 쓰는 순서",
+      "prompt": "다음의 날짜를 영어로 바르게 옮긴 것을 고르세요.",
+      "body": ["2018년 9월 15일"],
+      "choices": ["2018, September 15", "September, 2018, 15",
+                  "15, 2018, September", "2018, 15 September",
+                  "September 15, 2018"],
+      "answer": "⑤",
+      "explanation": "미국식으로는 「월 일, 연도」의 순서로 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_확인문제(2회).pdf", "number": 19,
+      "포인트": "a few + 셀 수 있는 명사",
+      "prompt": "다음 문장의 빈칸에 알맞은 것은?",
+      "body": ["그녀는 [[몇 개의]]쿠키를 먹었다.",
+               "→ She ate _______ cookies."],
+      "choices": ["much", "few", "a little", "little", "a few"],
+      "answer": "⑤",
+      "explanation": "cookies는 셀 수 있는 명사이고 ‘몇 개의’라는 뜻이므로 a few를 쓴다."
+    }
+  ]
+}

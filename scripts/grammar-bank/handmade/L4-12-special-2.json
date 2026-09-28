@@ -1,0 +1,145 @@
+{
+  "_설명": "완성 12과 특수구문 — 부정어 도치, 동격, It ~ that 강조, 동사 강조 do. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 1,
+      "포인트": "hardly는 부정의 뜻을 가진 부사",
+      "prompt": "주어진 문장을 우리말로 해석하시오.",
+      "body": ["I was so tired that I could hardly keep my eyes",
+               "open.",
+               "→ _____________________________________________",
+               "____________________________________________."],
+      "answer": "나는 너무 피곤해서 눈을 거의 뜨고 있을 수가 없었다.",
+      "explanation": "hardly는 ‘거의 ~않다’라는 부정의 의미를 가지고 있다. 따라서 부정어 not이 없더라도 could hardly는 ‘거의 ~할 수 없었다’라고 해석해야 한다. 「so + 형용사/부사 + that + 주어 + 동사」는 ‘너무 ~해서 …하다’의 뜻이다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 3,
+      "포인트": "No longer가 앞에 오면 도치",
+      "prompt": "주어진 문장을 우리말로 해석하시오.",
+      "body": ["No longer could she remember his face.",
+               "→ _____________________________________________."],
+      "answer": "그녀는 더 이상 그의 얼굴을 기억할 수가 없었다.",
+      "explanation": "‘no longer’는 ‘더 이상 ~않다’라는 의미로 ‘not ~ anymore’로 바꿔 쓸 수 있다. 부정어가 앞으로 나오면 「부정어(구) + 동사 + 주어」의 도치가 일어난다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 4,
+      "포인트": "Not until B, A — B하고 나서야 비로소 A하다",
+      "prompt": "주어진 문장을 우리말로 해석하시오.",
+      "body": ["Not until the rain stopped, did they leave the",
+               "shelter.",
+               "→ _____________________________________________."],
+      "answer": "비가 그치고 나서야 비로소 그들이 대피소를 떠났다.",
+      "explanation": "「not A until B」 구문에서 부정어를 강조하여 「Not until B, A」로 나타낸 문장으로 ‘B하고 나서야 비로소 A하다’라는 의미이다. A에 해당하는 절을 「동사 + 주어」 형태로 나타내는 점에 주의한다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 5,
+      "포인트": "가정법에서 if가 생략되면 도치된다",
+      "prompt": "주어진 문장을 우리말로 해석하시오.",
+      "body": ["Had she left home earlier, she could have",
+               "caught the train.",
+               "→ _____________________________________________",
+               "____________________________________________."],
+      "answer": "그녀가 집에서 더 일찍 나섰더라면, 그녀는 그 기차를 탈 수 있었을 텐데.",
+      "explanation": "가정법 문장에서 if가 생략되면 주어와 동사가 도치된다. 원래 문장은 ‘If she had left home earlier ~’였으나, if가 생략되면서 ‘Had she ~’가 되었다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 6,
+      "포인트": "not + always는 부분 부정",
+      "prompt": "주어진 문장을 우리말로 해석하시오.",
+      "body": ["The translation of a poem into another",
+               "language is not always possible.",
+               "→ _____________________________________________",
+               "____________________________________________."],
+      "answer": "시를 다른 언어로 번역하는 것이 항상 가능한 것은 아니다",
+      "explanation": "all, every, always 등과 같이 전부를 나타내는 단어가 not과 함께 쓰이면 ‘모두/항상 ~인 것은 아니다’라는 부분 부정의 의미로 쓰인다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 8,
+      "포인트": "명사 + that절의 동격",
+      "prompt": "괄호 친 부분과 동격인 부분을 찾아 밑줄 치시오.",
+      "body": ["[The rumor] that he had quit the team upset",
+               "his fans."],
+      "answer": "he had quit the team",
+      "explanation": "명사의 의미를 보충하기 위해 명사(구)나 명사절을 덧붙이는 경우가 있고, 여기서는 that절이 명사인 the rumor에 대한 내용을 덧붙여 주는 동격의 역할을 하고 있다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 9,
+      "포인트": "콤마 사이의 명사구 동격",
+      "prompt": "괄호 친 부분과 동격인 부분을 찾아 밑줄 치시오.",
+      "body": ["[Sejong], the fourth king of Joseon, created",
+               "Hangeul."],
+      "answer": "the fourth king of Joseon",
+      "explanation": "명사 뒤에 명사(구)를 붙일 때 콤마(,)와 콤마(,) 사이에 보충 내용을 넣어 동격을 만든다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 10,
+      "포인트": "명사구 + that절의 동격",
+      "prompt": "괄호 친 부분과 동격인 부분을 찾아 밑줄 치시오.",
+      "body": ["There is [clear evidence] that regular exercise",
+               "improves memory."],
+      "answer": "regular exercise improves memory.",
+      "explanation": "여기서는 that절이 명사구인 clear evidence에 대한 내용을 덧붙여 주는 동격의 역할을 하고 있다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 15,
+      "포인트": "보어가 앞으로 나오면 「보어 + 동사 + 주어」",
+      "prompt": "다음 문장과 의미가 같도록 주어진 단어로 시작하는 문장을 영작하시오.",
+      "body": ["The photos that you asked for are enclosed.",
+               "→ Enclosed ____________________________________."],
+      "answer": "are the photos that you asked for",
+      "explanation": "주격 보어가 문두로 와서 강조되는 경우 도치가 일어난다. 따라서 「보어 + 동사 + 주어」의 구조가 되고, 여기서 주어는 ‘the photos that you asked for’이고 동사는 ‘are’이다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 16,
+      "포인트": "Little이 앞에 오면 도치",
+      "prompt": "주어진 문장과 의미가 같도록 주어진 단어로 시작하는 문장을 영작하시오.",
+      "body": ["She little expected that she would meet him",
+               "again.",
+               "→ Little _______________________________________."],
+      "answer": "did she expect that she would meet him again.",
+      "explanation": "부정의 뜻을 가진 말이 강조되어 문장의 맨 앞에 오는 경우 주어와 동사를 도치시켜 「부정어(구) + 동사 + 주어」의 어순으로 쓴다. 일반동사는 조동사 do가 대신 도치되며 본동사는 원형으로 쓴다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 17,
+      "포인트": "It ~ that 강조구문",
+      "prompt": "주어진 문장을 밑줄 친 부분을 강조하는 ‘It ~ that 강조구문’으로 바꿔 쓰시오.",
+      "body": ["My brother gave [[the ticket]] to Sora last Friday.",
+               "→ ____________________________________________",
+               "___________________________________________."],
+      "answer": "It was the ticket that my brother gave to Sora last Friday.",
+      "explanation": "‘It is[was] ~ that 강조구문’에서는 강조하고자 하는 말을 사이에 넣는다. 주어진 문장의 시제가 과거이므로 be동사는 과거시제 was로 쓴다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 18,
+      "포인트": "Only + 부사절이 앞에 오면 도치",
+      "prompt": "주어진 문장에서 밑줄 친 부분을 문두에 써서 문장을 만드시오.",
+      "body": ["He began to trust her [[only]]",
+               "[[after he read her letter]].",
+               "→ ____________________________________________",
+               "___________________________________________."],
+      "answer": "Only after he read her letter did he begin to trust her.",
+      "explanation": "한정성이 강한 부사 only가 강조되어 문두에 오면 주어와 동사를 도치시킨다. 본동사가 일반동사인 경우 조동사 do가 대신 도치되며 본동사는 원형으로 쓴다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 20,
+      "포인트": "seldom이 앞에 오면 도치",
+      "prompt": "주어진 문장을 괄호 안의 지시대로 고쳐 쓰시오.",
+      "body": ["This bird is seldom seen in this area. (seldom을",
+               "문두로)",
+               "→ ___________________________________________."],
+      "answer": "Seldom is this bird seen in this area.",
+      "explanation": "부정의 뜻을 가진 말이 강조되어 문장의 맨 앞에 오는 경우 주어와 동사를 도치시켜 「부정어(구) + 동사 + 주어」의 어순으로 쓴다. seldom은 ‘좀처럼 ~하지 않는’이라는 부정의 의미를 가진다."
+    },
+    {
+      "file": "[완성] 12.특수구문_체크체크.pdf", "number": 22,
+      "포인트": "동사의 강조는 do + 동사원형",
+      "prompt": "밑줄 친 단어를 강조하는 문장으로 바꿔 쓰시오.",
+      "body": ["Mina doesn’t think that the plan will work, but",
+               "I [[think]] that.",
+               "→ ____________________________________________",
+               "___________________________________________."],
+      "answer": "Mina doesn’t think that the plan will work, but I do think that.",
+      "explanation": "동사를 강조하고자 할 때에는 그 동사의 앞에 조동사 do를 써서 「do/does/did + 동사원형」의 형태로 쓰며 ‘정말로 ~하다’라고 해석한다."
+    }
+  ]
+}

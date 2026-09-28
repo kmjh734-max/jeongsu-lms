@@ -1,0 +1,44 @@
+{
+  "_설명": "딱지·난이도 표시가 붙었는데 규칙으로는 못 바꾼 마지막 문항들.",
+  "문항": [
+    {
+      "file": "[기본] 8.관계사_종합문제(1회).pdf", "number": 21,
+      "포인트": "선행사와 관계사절 안의 역할에 따라 who·which·whose 고르기",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 보기에서 골라 보시오. (중복 사용 가능)",
+      "body": ["<보기>",
+               "which, whose, whom, who",
+               "1) She is the teacher ________ wrote the book.",
+               "2) I have a cat _________ is small and quiet.",
+               "3) I know a boy ________ sister is a pianist.",
+               "4) I have an old bag _________ color is brown."],
+      "answer": "(1) who (2) which (3) whose (4) whose",
+      "explanation": "(1) 주격 관계대명사 자리이고 선행사가 사람이므로 who를 쓴다. (2) 주격 관계대명사 자리이고 선행사가 동물이므로 which를 쓴다. (3)과 (4)는 뒤에 명사가 오고 ‘~의’라는 소유의 뜻이므로 소유격 관계대명사 whose를 쓰며, whose는 사람과 사물 모두를 선행사로 받는다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(1회).pdf", "number": 20,
+      "포인트": "소유격 관계대명사 whose = of which",
+      "prompt": "주어진 문장의 뜻이 통하도록 각 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Look at the house. Its windows are very wide.",
+               "→ Look at the house __________ windows are very",
+               "wide.",
+               "→ Look at the house _______ _______ the windows",
+               "are very wide."],
+      "answer": "whose, of which",
+      "explanation": "소유격 관계대명사 whose는 관계대명사절에서 대명사의 소유격 역할을 하며 사람·사물·동물을 모두 선행사로 받는다. 선행사가 사물일 때는 whose 대신 「of which」로 바꿔 쓸 수 있으며, 이때 명사 앞에 the를 붙인다."
+    },
+    {
+      "file": "[완성] 3.조동사_종합문제(1회).pdf", "number": 11,
+      "포인트": "so/neither 도치 · demand that + 동사원형 · may as well + 동사원형",
+      "prompt": "다음 중 어법상 옳은 것을 모두 고른 것은?",
+      "body": ["<보기>",
+               "ⓐHe likes to play the piano, and so do I.",
+               "ⓑShe insisted that the rule be changed.",
+               "ⓒYou may as well to start now as wait.",
+               "ⓓShe won’t join the trip, and neither do I.",
+               "ⓔThere used to be a bakery here, but it’s closed."],
+      "choices": ["ⓐ, ⓑ, ⓒ", "ⓐ, ⓑ, ⓔ", "ⓐ, ⓓ, ⓔ", "ⓑ, ⓓ, ⓔ", "ⓒ, ⓓ, ⓔ"],
+      "answer": "②",
+      "explanation": "ⓐ 「So + 동사 + 주어」는 ‘~도 그렇다’라는 뜻으로 긍정문에 대한 동의를 나타내며, 앞 절의 동사가 일반동사이므로 do를 쓴다. ⓑ demand, insist처럼 주장·요구를 나타내는 동사 뒤 that절에는 「(should) + 동사원형」을 쓰므로 be changed가 맞다. ⓒ 「may as well + 동사원형」이므로 to를 빼야 한다. ⓓ 앞 절의 조동사가 won’t이므로 「neither will I」로 써야 한다. ⓔ 「used to + 동사원형」이 바르게 쓰였다."
+    }
+  ]
+}

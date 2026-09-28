@@ -1,0 +1,140 @@
+{
+  "_설명": "완성 8과 접속사 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 8.접속사_종합문제(1회).pdf", "number": 1,
+      "포인트": "명령문 + or / not only A but also B / both A and B",
+      "prompt": "<보기>에서 알맞은 접속사를 골라 빈칸에 쓰시오.",
+      "body": ["<보기> but, and, or, so",
+               "⑴ Hurry up, ____ you’ll miss the train.",
+               "⑵ He is not only kind ____ also patient.",
+               "⑶ The class is open to both children ____ adults."],
+      "answer": "⑴ or ⑵ but ⑶ and",
+      "explanation": "⑴ 「명령문, or …」의 형태로 ‘~해라, 그렇지 않으면 …’을 의미한다. ⑵ 상관접속사 「not only A but also B」는 ‘A뿐만 아니라 B도’라는 뜻이다. ⑶ 「both A and B」는 ‘A와 B 둘 다’라는 뜻이다."
+    },
+    {
+      "file": "[완성] 8.접속사_종합문제(1회).pdf", "number": 29,
+      "포인트": "조건의 접속사 unless / not only A but also B",
+      "prompt": "우리말과 같은 뜻이 되도록 <보기>의 표현을 이용하여 문장을 완성하시오.",
+      "body": ["<보기>",
+               "unless, not only, plastic waste, reduce, tired,",
+               "physically, mentally",
+               "⑴ 플라스틱 쓰레기가 줄어들지 않는다면 바다 오염은 계",
+               "속해서 심해질 것이다.",
+               "→ Ocean pollution will continue to get worse",
+               "___________________________________________.",
+               "⑵ 그녀는 육체적으로뿐만 아니라 정신적으로도 지쳐 있",
+               "었다.",
+               "→ She was _____________________________________",
+               "___________________________________________."],
+      "answer": "⑴ unless plastic waste is reduced ⑵ tired not only physically but (also) mentally",
+      "explanation": "⑴ ‘~하지 않으면’이라는 조건을 나타내는 접속사 unless를 사용한다. 시간과 조건을 나타내는 부사절에서는 미래의 일도 현재시제로 쓰며, 쓰레기는 줄여지는 대상이므로 수동태로 쓴다. ⑵ 「not only A but (also) B」는 ‘A뿐만 아니라 B도’라는 뜻으로 A와 B에는 같은 성격의 말이 온다."
+    },
+    {
+      "file": "[완성] 8.접속사_종합문제(1회).pdf", "number": 30,
+      "포인트": "both A and B / 조건의 if",
+      "prompt": "우리말과 같은 뜻이 되도록 <보기>의 표현을 이용하여 문장을 완성하시오.",
+      "body": ["<보기> both, teach, order, entertain, change,",
+               "possible, now",
+               "⑴ 그 방송의 목표는 가르치는 것과 즐겁게 하는 것 둘",
+               "다이다.",
+               "→ The aim of the program ____________________",
+               "___________________________________________.",
+               "⑵ 그 예약이 지금 변경이 가능하다면 변경해라.",
+               "→ Change it __________________________________."],
+      "answer": "⑴ is both to teach and (to) entertain ⑵ if the reservation is possible to change now",
+      "explanation": "⑴ ‘A와 B 둘 다’라는 의미의 「both A and B」 구문을 사용하여 같은 품사나 같은 문법적 성격의 말을 이어 준다. ⑵ 조건을 나타내는 접속사 if를 쓰며, 조건절에서는 미래의 일도 현재시제로 쓴다."
+    },
+    {
+      "file": "[완성] 8.접속사_종합문제(2회).pdf", "number": 13,
+      "포인트": "It seems that ~ = 주어 + seems to have p.p.",
+      "prompt": "다음 두 문장의 뜻이 같도록 빈칸을 완성하여 쓰시오.",
+      "body": ["It seems that she was very tired.",
+               "= She _______ _______ _______ _______ very tired."],
+      "answer": "seems to have been",
+      "explanation": "「It seems that + 주어 + 동사」의 형태에서 It 대신 명사절의 주어를 문장의 주어로 옮겨 「주어 + seem to + 동사원형」으로 바꿔 쓸 수 있다. 명사절의 시제가 주절보다 앞서면 「to have p.p.」로 쓴다."
+    },
+    {
+      "file": "[완성] 8.접속사_종합문제(2회).pdf", "number": 30,
+      "포인트": "B as well as A / in order that",
+      "prompt": "다음 두 문장의 뜻이 같도록 빈칸을 완성하시오.",
+      "body": ["⑴ The leather bag is not only heavy but also",
+               "expensive for me.",
+               "= The leather bag is _______ _______ _______",
+               "_______ _______ for me.",
+               "⑵ Sora bought a bike so that she can go",
+               "wherever she wants to go.",
+               "= Sora bought a bike _______ _______ _______ she",
+               "can go wherever she wants to go."],
+      "answer": "⑴ expensive as well as heavy ⑵ in order that",
+      "explanation": "⑴ 상관접속사 「not only A but also B」는 ‘A뿐만 아니라 B도’라는 의미로 「B as well as A」로 바꿔 쓸 수 있으며, 이때 A와 B의 자리가 바뀐다. ⑵ 목적을 나타내는 「so that」은 「in order that」으로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[완성] 8.접속사_확인문제(1회).pdf", "number": 6,
+      "포인트": "not only A but also B = B as well as A",
+      "prompt": "다음 문장과 의미가 같도록 주어진 단어를 활용하여 영작하시오.",
+      "body": ["The lecture is not only useful but also",
+               "enjoyable.",
+               "→ __________________________________________",
+               "___________________________________. (as well as)"],
+      "answer": "The lecture is enjoyable as well as useful.",
+      "explanation": "‘not only A but (also) B’는 ‘A뿐만 아니라 B 또한’이라는 의미이고 ‘B as well as A’도 같은 뜻이다. 바꿔 쓸 때 A와 B의 자리가 서로 바뀌는 점에 주의한다."
+    },
+    {
+      "file": "[완성] 8.접속사_확인문제(1회).pdf", "number": 13,
+      "포인트": "조건의 접속사 in case",
+      "prompt": "우리말에 맞게 괄호 안에 주어진 단어들을 활용하여 영작하시오.",
+      "body": ["눈이 올 경우를 대비해서 너는 너의 장갑을 가져가는",
+               "것이 낫다. (case, better, take)",
+               "→ __________________________________________",
+               "______________________________________________."],
+      "answer": "In case it snows, you had better take your gloves.",
+      "explanation": "‘~할 경우를 대비하여’라는 뜻은 조건을 나타내는 접속사인 ‘in case ~’로 나타낼 수 있다. 종속접속사 뒤에는 「주어 + 동사」가 오며, 조건절에서는 미래의 일도 현재시제로 쓴다."
+    },
+    {
+      "file": "[완성] 8.접속사_확인문제(1회).pdf", "number": 15,
+      "포인트": "조건의 접속사 as[so] long as",
+      "prompt": "우리말에 맞게 영작할 때, 빈칸에 들어갈 세 단어를 쓰시오.",
+      "body": ["당신이 규칙을 지키는 한, 그들은 당신을 믿을 거예요.",
+               "→ _______ _______ _______ you follow the rules,",
+               "they will respect you."],
+      "answer": "As[So] long as",
+      "explanation": "‘~하는 한’이라는 의미를 가진 조건을 나타내는 접속사는 ‘As long as’ 또는 ‘So long as’이다."
+    },
+    {
+      "file": "[완성] 8.접속사_확인문제(2회).pdf", "number": 6,
+      "포인트": "상관접속사 neither A nor B와 수 일치",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 단어를 활용하여 문장을 완성하시오.",
+      "body": ["문제는 그가 중국어를 읽지도 쓰지도 못한다는 것이다.",
+               "(read, write)",
+               "→ The problem is that he __________ __________",
+               "__________ __________ Chinese."],
+      "answer": "neither reads nor writes",
+      "explanation": "「neither A nor B」는 ‘A도 B도 아닌’이라는 의미로, 읽는 것과 쓰는 것 둘 다 하지 못함을 나타낸다. 주어가 3인칭 단수 he이므로 동사에 -s를 붙인다."
+    },
+    {
+      "file": "[완성] 8.접속사_확인문제(2회).pdf", "number": 15,
+      "포인트": "by the time + 현재시제, 주절은 미래완료",
+      "prompt": "다음 우리말과 의미가 같도록 <보기>의 단어들을 알맞게 배열하시오.",
+      "body": ["<보기＞ a nurse / by the time / retire / I / have",
+               "/ worked / will / for 25 years / I / as",
+               "내가 은퇴할 때까지 나는 간호사로서 25년을 일할 것",
+               "이다.",
+               "→ __________________________________________",
+               "______________________________________________."],
+      "answer": "By the time I retire, I will have worked as a nurse for 25 years.",
+      "explanation": "‘by the time’이 ‘~할 때까지’라는 의미로 뒤에 주어, 동사가 오는 시간을 나타내는 종속접속사구이다. 시간을 나타내는 부사절에서는 미래의 일도 현재시제로 쓰고, 주절에는 미래완료를 쓴다."
+    },
+    {
+      "file": "[완성] 8.접속사_확인문제(2회).pdf", "number": 17,
+      "포인트": "전치사 Despite를 접속사 Though로 바꾸기",
+      "prompt": "다음 문장과 의미가 같도록 괄호 안의 단어를 활용하여 문장을 완성하시오.",
+      "body": ["Despite the length of the movie, she enjoyed it.",
+               "(long, though)",
+               "→ ___________________________________________,",
+               "she enjoyed it."],
+      "answer": "Though the movie was long",
+      "explanation": "Despite는 ‘~에도 불구하고’라는 의미의 전치사로 뒤에 명사(구)가 온다. 같은 의미로 양보를 나타내는 접속사(Though, Although)를 쓰면 뒤에 「주어 + 동사」가 온다."
+    }
+  ]
+}

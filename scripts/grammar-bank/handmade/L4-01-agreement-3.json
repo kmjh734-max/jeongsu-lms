@@ -1,0 +1,148 @@
+{
+  "_설명": "완성 1과 일치·화법 — 나머지. 도치, 간접화법·직접화법 전환. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 24,
+      "포인트": "부정어 Little이 앞에 오면 도치",
+      "prompt": "다음 우리말을 영어로 옮길 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["그녀는 자신이 그 상을 받을 거라고 전혀 생각하지 않",
+               "는다.",
+               "→ Little ________ she ________ that she will win",
+               "the prize."],
+      "answer": "does, think",
+      "explanation": "강조를 위해 부정어 little(거의 …이 없다)이 문장 앞에 놓이면 주어와 동사의 위치가 바뀌는 도치가 일어나 「Little + 조동사 + 주어 + 동사원형 …」의 형태가 된다. 일반동사의 경우 조동사 do를 대신 사용한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 25,
+      "포인트": "간접화법의 시제·부사 바꾸기",
+      "prompt": "다음 우리말을 간접화법의 형태로 영작할 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["그 소년은 “나는 어제 매우 바빴어.”라고 말했다.",
+               "→ The boy ________ that ________ ________",
+               "________ very busy ________ ________",
+               "________."],
+      "answer": "said, he had been, the day before[the previous day]",
+      "explanation": "직접화법으로 쓰면 The boy said, “I was very busy yesterday.”가 된다. 전달동사는 said를 그대로 쓰고, I는 he로, 과거시제는 과거완료로, yesterday는 the day before[the previous day]로 바꾼다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 26,
+      "포인트": "간접의문문은 「의문사 + 주어 + 동사」",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["선생님은 학생에게 그의 가방이 어디에 있는지 물었다.",
+               "= The teacher ________ the student ________",
+               "________ ________ ________."],
+      "answer": "asked, where his bag was",
+      "explanation": "문장의 시제가 과거이므로 시제 일치에 따라 주절과 종속절 모두 과거시제가 되어야 한다. 간접의문문으로 쓰일 때는 「의문사 + 주어 + 동사」의 어순이 된다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 27,
+      "포인트": "역사적 사실은 과거시제 그대로",
+      "prompt": "다음 우리말과 일치하도록 <조건>에 맞게 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["선생님은 우리에게 한국전쟁이 1950년에 발발했다고",
+               "말씀하셨다.",
+               "→ The teacher told us that __________________",
+               "____________________________________________.",
+               "<조건>",
+               "∙ the Korean War, break out을 사용할 것",
+               "∙ 필요시 어형 변형 가능함"],
+      "answer": "the Korean War broke out in 1950",
+      "explanation": "시제 일치에 따르면 과거완료를 써야 하지만, ‘한국전쟁이 1950년에 발발했다’와 같은 역사적 사실은 항상 과거시제로 나타내는 시제 일치의 예외에 속하므로 과거시제로 쓴다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 29,
+      "포인트": "명사절 주어와 관계사절의 수일치",
+      "prompt": "다음 문장의 빈칸에 be동사를 문장에 알맞은 형태로 쓰시오. (현재시제로 나타낼 것)",
+      "body": ["⑴ When you rent a room, checking whether",
+               "there ________ any noise at night ________",
+               "important.",
+               "⑵ That man playing the piano on the stage",
+               "________ one of the artists who ________",
+               "performing tonight."],
+      "answer": "⑴ is, is ⑵ is, are",
+      "explanation": "⑴ 「There + be동사 + 주어」에서 주어 any noise가 단수 취급이므로 is를, 동명사구 주어 checking ~은 단수 취급이므로 is를 쓴다. ⑵ 주어 That man은 단수이므로 is를, 관계사절의 선행사는 복수 the artists이므로 are를 쓴다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 30,
+      "포인트": "간접의문문에서 의문사가 주어일 때",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안에 주어진 단어를 어법에 맞게 빈칸에 쓰시오.",
+      "body": ["나는 그녀에게 그녀가 왜 그렇게 말했는지 물었다.",
+               "= I asked her what ________ her say so. (make)"],
+      "answer": "made",
+      "explanation": "시제 일치에 따라 주절과 종속절의 시제가 같아야 한다. 주절의 동사가 과거형이므로 빈칸에는 made가 알맞다. 간접의문문에서 의문사 what이 주어 역할을 동시에 하므로 어순은 바뀌지 않는다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 31,
+      "포인트": "의문사 있는 의문문의 간접화법",
+      "prompt": "다음 문장을 간접화법으로 바꿀 때, [[7번째]]와 [[12번]] [[째]]오는 단어를 [[순서대로]]쓰시오.",
+      "body": ["The teacher said to me, “Why were you absent",
+               "from class today?”"],
+      "answer": "had, that",
+      "explanation": "간접화법으로 바꾸면 The teacher asked me why I had been absent from class that day.가 된다. 전달동사 said to는 asked로, you는 I로, 과거시제는 과거완료로, today는 that day로 바꾼다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 32,
+      "포인트": "간접화법을 직접화법으로",
+      "prompt": "다음 문장을 직접화법으로 바꿀 때, [[6번째]]와 [[10번]] [[째]]오는 단어를 [[순서대로]]쓰시오.",
+      "body": ["Sora told me that it was not easy for her to",
+               "speak in front of many people."],
+      "answer": "is, me",
+      "explanation": "직접화법으로 바꾸면 Sora said to me, “It is not easy for me to speak in front of many people.”이 된다. told는 said to로 바꾸고 that을 삭제하며, 과거형 was는 현재형 is로, her는 me로 바뀐다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 33,
+      "포인트": "평서문의 간접화법",
+      "prompt": "다음 직접화법을 간접화법으로 바꿔 쓰시오.",
+      "body": ["He said to us, “I can’t join the trip with you.”",
+               "→ ___________________________________________",
+               "______________________________________________."],
+      "answer": "He told us (that) he couldn’t join the trip with us.",
+      "explanation": "평서문을 간접화법으로 전환할 때 접속사 that을 삽입하며 that은 생략 가능하다. said to는 told로 바꾸고, I는 he로, you는 us로 바꾸며, 주절이 과거시제이므로 can’t는 couldn’t가 된다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 34,
+      "포인트": "명령문의 간접화법은 to부정사",
+      "prompt": "다음의 지시사항을 괄호 안에 주어진 단어를 사용하여 <보기>와 같이 간접화법의 문장으로 나타내시오. (단, <보기>와 동일하게 그녀가 나에게 말한 상황이며 전달하는 시점은 과거로 할 것)",
+      "body": ["<보기>",
+               "“Do your best all the time.” (tell)",
+               "→ She told me to do my best all the time.",
+               "⑴ “Look both ways before you cross.” (advise)",
+               "→ She __________ me _________________________",
+               "___________________________________________.",
+               "⑵ “Don’t touch my books again.” (warn)",
+               "→ She __________ me _________________________",
+               "___________________________________________."],
+      "answer": "⑴ advised, to look both ways before I cross. ⑵ warned, not to touch her books again.",
+      "explanation": "명령문을 간접화법으로 전환할 때 명령문의 동사를 목적어 뒤에 to부정사의 형태로 쓰고, 부정 명령문은 「not + to부정사」의 형태로 쓴다. 명령의 내용에 따라 전달동사로 tell, advise, warn 등을 쓸 수 있다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 35,
+      "포인트": "if가 쓰인 간접화법을 직접화법으로",
+      "prompt": "다음 간접화법을 직접화법으로 바꿔 쓰시오.",
+      "body": ["Tom asked me if I had any questions.",
+               "→ ___________________________________________"],
+      "answer": "Tom said to me, “Do you have any questions?”",
+      "explanation": "접속사 if가 쓰였으므로 직접화법으로 전환하면 의문사가 없는 의문문이 되어야 한다. asked를 said to로 바꾸고 if를 삭제하며, I는 you로 바꾼다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 36,
+      "포인트": "간접의문문을 직접의문문으로",
+      "prompt": "다음 문장을 직접화법으로 전환할 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Mina asked Jake why he hadn’t called her back.",
+               "→ Mina said to Jake, “__________________________",
+               "______________________________________________”"],
+      "answer": "Why didn’t you call me back?",
+      "explanation": "전달자 입장에서 ‘그’는 ‘Jake’가 되므로 he는 you로, her는 me로 바꾼다. 종속절의 과거완료는 직접화법에서 과거시제가 되며, 간접의문문은 직접의문문의 어순으로 바뀐다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 37,
+      "포인트": "would → will, she → I",
+      "prompt": "다음 대화의 밑줄 친 (A)를 직접화법으로 바꿔 쓸 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Amy : Hello, Mr. Park. This is Amy. Can I",
+               "speak to Sora?",
+               "Mr. Park : Oh, she is out right now.",
+               "(A)[[She said she would be back in an hour.]]",
+               "→ Sora said, “_________________________________.”"],
+      "answer": "I will be back in an hour.",
+      "explanation": "전달자 입장에서 ‘그녀’는 ‘소라’가 되므로 she는 I로 바꾼다. 시제 일치에 따라 종속절이 과거시제가 된 것이므로 직접화법에서는 would를 will로 바꾼다."
+    }
+  ]
+}

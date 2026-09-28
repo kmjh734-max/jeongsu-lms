@@ -1,0 +1,163 @@
+{
+  "_설명": "완성 1과 일치·화법 — 수일치, 도치, 간접화법·간접의문문. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 1,
+      "포인트": "수식어구에 이끌리지 말고 주어에 동사를 맞춘다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 단어를 바르게 배열하시오. (필요시 형태를 바꿀 것)",
+      "body": ["유기농 밀로 만들어진 빵이 이 가게에서 팔린다.",
+               "(organic / made from / be sold / loaves /",
+               "wheat)",
+               "→ ____________________________________________",
+               "_____________________________ in this shop."],
+      "answer": "Loaves made from organic wheat are sold",
+      "explanation": "과거분사구 ‘made from organic wheat’의 수식을 받는 복수 명사 Loaves가 문장의 주어이므로 be동사는 복수형 are로 나타내야 한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 2,
+      "포인트": "명사절 주어는 단수 취급",
+      "prompt": "다음 우리말에 맞게 단어를 배열하여 문장을 완성하시오. (필요시 형태를 바꿀 것)",
+      "body": ["그가 참가할지는 그의 건강에 달려있다.",
+               "(join / his health / whether / depend on / he /",
+               "will)",
+               "→ ___________________________________________",
+               "______________________________________________."],
+      "answer": "Whether he will join depends on his health.",
+      "explanation": "접속사 whether가 이끄는 명사절 ‘Whether he will join’이 문장의 주어이고 명사절 주어는 단수 취급하므로, 동사 depend를 depends로 나타내야 한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 4,
+      "포인트": "도치된 문장에서도 주어에 동사를 맞춘다",
+      "prompt": "다음 문장에서 어법상 [[틀린]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["Behind the curtains was the broken windows",
+               "found.",
+               "___________________ → ___________________"],
+      "answer": "was → were",
+      "explanation": "원래 문장은 ‘The broken windows were found behind the curtains.’로, 부사구 ‘behind the curtains’가 문장 앞으로 나와 주어와 동사의 위치가 바뀐 도치 문장이다. 주어 the broken windows가 복수이므로 were로 고쳐야 한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 6,
+      "포인트": "관계사절의 동사는 선행사에, 동명사구 주어는 단수에 맞춘다",
+      "prompt": "다음 글에서 어법상 [[어색한]]부분을 [[2개]]찾아 바르게 고쳐 쓰시오.",
+      "body": ["This foundation started by teachers from several",
+               "regions runs a reading program in many of the",
+               "country’s small towns which help children develop",
+               "a habit of reading every year. They say that",
+               "sharing books with neighbors are very helpful for",
+               "our community.",
+               "⑴ ___________________ → ___________________",
+               "⑵ ___________________ → ___________________"],
+      "answer": "⑴ help → helps, ⑵ are → is",
+      "explanation": "⑴ 관계사절 ‘which … reading’의 수식을 받는 선행사는 단수 명사 ‘a reading program’이므로 관계사절의 동사 help를 helps로 고쳐야 한다. ⑵ 동명사구 ‘sharing books with neighbors’가 주어이므로 단수 취급하여 is로 고쳐야 한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 7,
+      "포인트": "불변의 진리는 항상 현재시제",
+      "prompt": "다음 문장에서 어법상 [[틀린]]부분을 바르게 고쳐 문장 전체를 다시 쓰시오.",
+      "body": ["The teacher told us that the sun rose in the",
+               "east.",
+               "___________________ → ___________________"],
+      "answer": "rose → rises",
+      "explanation": "간접화법에서 주절과 종속절이 시제 일치를 이루어야 하나, ‘태양은 동쪽에서 뜬다’와 같은 불변의 진리는 항상 현재시제로 나타내어 시제 일치의 예외에 속한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 8,
+      "포인트": "believe/think가 주절이면 의문사를 맨 앞으로",
+      "prompt": "다음 문장에서 어법상 [[틀린]]부분을 바르게 고쳐 문장 전체를 다시 쓰시오.",
+      "body": ["Do you believe what he will say at the meeting?",
+               "→ ___________________________________________",
+               "______________________________________________."],
+      "answer": "What do you believe he will say at the meeting?",
+      "explanation": "의문사가 있는 의문문이 다른 문장의 일부가 되는 간접의문문으로 쓰일 때 「의문사 + 주어 + 동사」의 어순으로 쓴다. 단, 주절의 동사로 think, believe 등이 쓰이면 상대의 의견을 묻는 것이므로 의문사를 문장의 맨 앞에 쓴다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 10,
+      "포인트": "의문사 없는 의문문의 간접화법은 if[whether]",
+      "prompt": "다음 문장의 화법 전환에서 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["The boy said to me, “May I use your phone?”",
+               "→ The boy asked me that he might use my",
+               "phone.",
+               "___________________ → ___________________"],
+      "answer": "that → if[whether]",
+      "explanation": "의문사가 없는 의문문을 간접화법으로 전환할 때, 접속사 if[whether]를 삽입하여 「if[whether] + 주어 + 동사」의 형태로 나타낸다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 11,
+      "포인트": "관계대명사절의 동사는 선행사에 맞춘다",
+      "prompt": "다음 문장에서 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["The heavy rain causes floods that damages the",
+               "crops.",
+               "___________________ → ___________________"],
+      "answer": "damages → damage",
+      "explanation": "‘that ~ crops’는 선행사 ‘floods’를 수식하는 주격 관계대명사절이다. 선행사가 복수이므로 단수동사가 아닌 복수동사 damage를 사용해야 한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 12,
+      "포인트": "say to → tell, that절 주어는 단수 취급",
+      "prompt": "다음 문장에서 어법상 [[틀린]]부분을 [[모두]]찾아 바르게 고쳐 쓰시오.",
+      "body": ["Many people tell to me that Jake looks quiet",
+               "and shy, but that he is cold and unkind to others",
+               "are not true."],
+      "answer": "tell to → tell, are → is",
+      "explanation": "주어진 문장은 간접화법의 문장이므로 tell to를 tell로 고쳐야 한다. 또한 접속사 that이 이끄는 명사절이 주어로 쓰이면 단수 취급하므로 are를 is로 고쳐야 한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 13,
+      "포인트": "의문사가 이끄는 명사절 주어는 단수 취급",
+      "prompt": "다음 문장에서 어법상 [[틀린]]부분을 찾아 고치고 틀린 이유를 서술하시오.",
+      "body": ["Why people choose that brand do not interest",
+               "me.",
+               "⑴ 틀린 부분 : ______________",
+               "⑵ 고친 부분 : ______________",
+               "⑶ 이유 : _____________________________________"],
+      "answer": "⑴ do ⑵ does ⑶ 명사절이 문장의 주어로 쓰이면 단수 취급하므로 단수 동사를 써야 한다.",
+      "explanation": "why와 같은 의문사가 이끄는 명사절이 문장의 주어로 쓰이면 단수로 취급하여 단수 동사를 써야 한다. 따라서 do를 does로 바꾸어야 한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 16,
+      "포인트": "부정어구가 앞에 오면 도치",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["We don’t realize the value of time until we",
+               "waste it.",
+               "= Not until we waste it ________ we ________ the",
+               "value of time."],
+      "answer": "do, realize",
+      "explanation": "강조를 위해 부정어구 not until이 문장 앞에 놓이면 주절의 주어와 동사의 위치가 바뀌는 도치가 일어나 「Not until + 조동사 + 주어 + 동사원형 …」의 형태가 된다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 17,
+      "포인트": "간접화법의 시제·인칭·부사 바꾸기",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["My sister said, “I met him last month.”",
+               "= My sister ________ that ________ ________",
+               "________ him ________ ________ month."],
+      "answer": "said, she had met, the previous",
+      "explanation": "직접화법의 전달동사가 said만 쓰인 경우 간접화법에서도 said를 그대로 쓴다. 전달자의 입장에서 ‘나’는 ‘언니’가 되므로 I는 she로 바꾼다. 직접화법의 과거시제는 간접화법에서 과거 이전의 일이 되므로 과거완료형으로 쓰고, last month는 the previous month로 바꾼다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 20,
+      "포인트": "동명사구 주어는 단수 취급",
+      "prompt": "다음 우리말을 <조건>에 맞게 영작하시오.",
+      "body": ["노인들을 돌보는 것은 시간을 필요로 한다.",
+               "→ ___________________________________________",
+               "______________________________________________.",
+               "<조건>",
+               "∙ look after, need를 사용할 것",
+               "∙ 6단어로 완성할 것",
+               "∙ 필요시 어형 변형 가능함"],
+      "answer": "Looking after the elderly needs time.",
+      "explanation": "동명사구와 to부정사구는 모두 문장의 주어가 될 수 있으며, 주어로 쓰일 때 단수 취급하므로 단수 동사를 써야 한다. 6단어로 완성하려면 동명사구로 문장을 작성해야 한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_체크체크.pdf", "number": 22,
+      "포인트": "전치사구의 수식을 받는 주어의 수일치",
+      "prompt": "다음 우리말을 괄호 안에 주어진 표현을 사용하여 진행시제로 영작하시오.",
+      "body": ["모자를 쓴 소녀들이 벤치에 앉아 있다.",
+               "(in hats, sit on the bench)",
+               "→ ___________________________________________",
+               "_____________________________________________."],
+      "answer": "Girls in hats are sitting on the bench.",
+      "explanation": "「전치사 + 명사」가 결합한 전치사구 in hats의 수식을 받는 복수 명사 Girls가 문장의 주어가 되므로 복수 동사를 써야 하고, 우리말 뜻에 맞게 진행시제로 나타내면 are sitting이 된다."
+    }
+  ]
+}

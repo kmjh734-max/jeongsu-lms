@@ -1,0 +1,227 @@
+{
+  "_설명": "천일문 1권 Chapter 11 전치사에서 가져와 변형한 문항. 은행에서는 기초 14과 전치사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 11,
+  "chapter": "전치사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 14, "chapter": "전치사" },
+  "points": [
+    { "unit_no": 1, "unit": "장소·위치·방향", "point_no": 1, "point": "장소를 나타내는 at, on, in", "frequent": false },
+    { "unit_no": 1, "unit": "장소·위치·방향", "point_no": 2, "point": "위치, 방향을 나타내는 기타 전치사", "frequent": false },
+    { "unit_no": 2, "unit": "시간", "point_no": 3, "point": "시간을 나타내는 at, on, in", "frequent": false },
+    { "unit_no": 2, "unit": "시간", "point_no": 4, "point": "시간을 나타내는 기타 전치사", "frequent": false },
+    { "unit_no": 3, "unit": "여러 가지 전치사", "point_no": 5, "point": "여러 전치사의 다양한 의미", "frequent": false },
+    { "unit_no": 3, "unit": "여러 가지 전치사", "point_no": 6, "point": "전치사를 포함한 다양한 표현", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [2], "point_label": "under, around",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• What can you see ______(A) the bridge?", "• We are standing ______(B) the tree."],
+      "choices": [
+        { "no": 1, "text": "into — out of" },
+        { "no": 2, "text": "into — around" },
+        { "no": 3, "text": "behind — out of" },
+        { "no": 4, "text": "under — under" },
+        { "no": 5, "text": "under — around" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [1, 2], "point_label": "넓은 장소의 in, 방향의 into",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• There are many islands ______(A) Korea.", "• He went ______(B) the classroom."],
+      "choices": [
+        { "no": 1, "text": "at — by" },
+        { "no": 2, "text": "on — into" },
+        { "no": 3, "text": "at — between" },
+        { "no": 4, "text": "in — into" },
+        { "no": 5, "text": "in — between" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [4, 5], "point_label": "until과 수단의 by",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• My dad usually studies ______(A) midnight.", "• It takes only 15 minutes ______(B) subway."],
+      "choices": [
+        { "no": 1, "text": "by — by" },
+        { "no": 2, "text": "by — until" },
+        { "no": 3, "text": "until — by" },
+        { "no": 4, "text": "until — through" },
+        { "no": 5, "text": "to — through" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [1], "point_label": "in과 on 가려 쓰기",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 단어가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "My uncle is living ______ Canada." },
+        { "no": 2, "text": "Fish are swimming ______ the river." },
+        { "no": 3, "text": "Let’s meet ______ front of the library." },
+        { "no": 4, "text": "There is a lamp ______ the ceiling." },
+        { "no": 5, "text": "I found my key ______ my pocket." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [1, 3], "point_label": "좁은 장소의 at, 하루의 부분 in",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 (A), (B)에 들어갈 알맞은 전치사를 쓰세요.",
+      "body": ["수아와 나는 저녁에 공원에서 만날 것이다.", "→ Sua and I will meet ______(A) the park ______(B) the evening."],
+      "choices": [],
+      "answer": "(A) at  (B) in"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [3], "point_label": "요일 앞의 on",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 대화의 밑줄 친 우리말을 영작하세요.",
+      "body": ["A: What day do you take swimming lessons?", "B: [[나는 목요일에 수영 레슨을 받아.]]", "→ ______________________________________"],
+      "choices": [],
+      "answer": "I take swimming lessons on Thursday."
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [4], "point_label": "for+숫자 기간, before",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["점심 식사 전에 나는 두 시간 동안 책을 읽었다."],
+      "choices": [
+        { "no": 1, "text": "I read books for two hours after lunch." },
+        { "no": 2, "text": "I read books during two hours before lunch." },
+        { "no": 3, "text": "I read books for two hours before lunch." },
+        { "no": 4, "text": "I read books during two hours until lunch." },
+        { "no": 5, "text": "I read books during two hours after lunch." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [1, 3, 4], "point_label": "장소·시간 전치사 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장의 개수를 고르세요.",
+      "body": [
+        "ⓐ He stayed up until 10:00 p.m.",
+        "ⓑ I lived on Daegu three years ago.",
+        "ⓒ I walk for forty minutes a day.",
+        "ⓓ Our sports day is at May 10.",
+        "ⓔ Mia doesn’t get up early on Saturdays."
+      ],
+      "choices": [
+        { "no": 1, "text": "1개" },
+        { "no": 2, "text": "2개" },
+        { "no": 3, "text": "3개" },
+        { "no": 4, "text": "4개" },
+        { "no": 5, "text": "5개" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [2, 4, 5], "point_label": "글 속의 전치사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A)~(E)에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": [
+        "Suji and I went ______(A) a trip. I was very tired on the first day, so I slept ______(B) nine hours. ______(C) breakfast, we went ______(D) the museum ______(E) subway. We had a great time there."
+      ],
+      "choices": [
+        { "no": 1, "text": "(A) on" },
+        { "no": 2, "text": "(B) for" },
+        { "no": 3, "text": "(C) After" },
+        { "no": 4, "text": "(D) with" },
+        { "no": 5, "text": "(E) by" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [6], "point_label": "turn A into B, thanks to, be famous for",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I went to the bakery with my sister." },
+        { "no": 2, "text": "She turned the frog in a prince." },
+        { "no": 3, "text": "I finished the project thanks in Mina." },
+        { "no": 4, "text": "Seoul is famous on the palaces." },
+        { "no": 5, "text": "My mother goes to work by bus." }
+      ],
+      "answer": "①, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [6], "point_label": "be full of",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["내가 방에 들어갔을 때, 상자는 장난감으로 가득 차 있었다. (full)", "→ When I entered the room, the box ________________ toys."],
+      "choices": [],
+      "answer": "was full of"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [5, 6], "point_label": "be different from, be famous for",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 빈칸에 들어갈 전치사에 해당되지 않는 것을 고르세요.",
+      "body": [
+        "ⓐ Can I go ______ you?",
+        "ⓑ She sang ______ a singer.",
+        "ⓒ This bag is different ______ mine.",
+        "ⓓ This town is famous ______ apples."
+      ],
+      "choices": [
+        { "no": 1, "text": "with" },
+        { "no": 2, "text": "for" },
+        { "no": 3, "text": "from" },
+        { "no": 4, "text": "around" },
+        { "no": 5, "text": "like" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [5], "point_label": "‘~처럼’의 like와 동사 like",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 다른 하나를 고르세요.",
+      "body": ["<보기> The boy sang [[like]] a star."],
+      "choices": [
+        { "no": 1, "text": "He cooks well like a chef." },
+        { "no": 2, "text": "She swims fast like a fish." },
+        { "no": 3, "text": "I like my new bike." },
+        { "no": 4, "text": "My sister talks like an adult." },
+        { "no": 5, "text": "I want to be a nurse like my aunt." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [2], "point_label": "between, in, along",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 내용과 일치하도록 빈칸에 알맞은 전치사를 <보기>에서 골라 쓰세요.",
+      "body": [
+        "<보기> along      in      above      between",
+        "(1) A lamp is ______ two beds.",
+        "(2) There is a red bike ______ the garage.",
+        "(3) There is a path ______ the river."
+      ],
+      "choices": [],
+      "answer": "(1) between  (2) in  (3) along"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [5, 6], "point_label": "with가 들어가는 표현",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 <보기>에서 빈칸 ⓐ~ⓓ에 들어갈 전치사가 같은 것끼리 짝지어진 것을 고르세요.",
+      "body": [
+        "<보기> with      between      to      around",
+        "ⓐ There was thick smoke ______ the building.",
+        "ⓑ Our winter vacation is from December ______ February.",
+        "ⓒ Look at the house ______ the red roof. It’s very nice.",
+        "ⓓ You don’t have to go out ______ a coat. It isn’t cold."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓒ" },
+        { "no": 2, "text": "ⓑ, ⓒ" },
+        { "no": 3, "text": "ⓒ, ⓓ" },
+        { "no": 4, "text": "ⓐ, ⓓ" },
+        { "no": 5, "text": "ⓑ, ⓓ" }
+      ],
+      "answer": "③"
+    }
+  ]
+}

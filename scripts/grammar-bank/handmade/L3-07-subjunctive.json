@@ -1,0 +1,75 @@
+{
+  "_설명": "심화 7과 가정법 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 7.가정법_종합문제(1회).pdf", "number": 3,
+      "포인트": "I wish + 가정법 과거",
+      "prompt": "우리말과 같은 의미가 되도록 빈칸을 채우시오.",
+      "body": ["내가 그 대회에 나갈 수 있으면 좋을 텐데.",
+               "= I wish ________________ in the contest."],
+      "answer": "I could take part",
+      "explanation": "이룰 수 없는 현재의 소망을 나타낼 경우 「I wish + 가정법 과거」를 사용한다. 조동사는 과거형 could를 쓰고 뒤에 동사원형을 쓴다."
+    },
+    {
+      "file": "[심화] 7.가정법_종합문제(1회).pdf", "number": 11,
+      "포인트": "as if 가정법 과거",
+      "prompt": "주어진 단어를 사용하여 우리말에 맞게 빈칸을 완성하시오",
+      "body": ["(1) 그녀는 마치 순간이동이 실제 존재하는 것처럼 말한다.",
+               "→ She talks ___________________________________.",
+               "(as if, reality, teleportation)",
+               "(2) 나는 너무 놀라서 마치 꿈을 꾸고 있는 것처럼 느낀",
+               "다.",
+               "→ I am so surprised that I feel ______________.",
+               "(as if, dreaming)"],
+      "answer": "(1) as if teleportation existed in reality, (2) as if I were dreaming",
+      "explanation": "as if 가정법 과거는 동사의 과거 시제를 사용하여 현재 사실의 반대를 표현할 때 쓴다. (2)의 be동사는 주어에 관계없이 were를 쓴다."
+    },
+    {
+      "file": "[심화] 7.가정법_종합문제(1회).pdf", "number": 12,
+      "포인트": "But for + 명사 = ~가 없다면",
+      "prompt": "다음 우리말 뜻에 맞도록 주어진 단어를 알맞게 배열하여 문장을 완성하시오.",
+      "body": ["너의 조언이 없다면 우리는 해낼 수 없을 거야.",
+               "→ ___________________________________________.",
+               "(but, your, we, manage, could, for, advice, not)"],
+      "answer": "But for your advice, we could not manage.",
+      "explanation": "‘~가 없다면’이라는 뜻이므로 Without 가정법 과거를 쓰는 문제이다. 주어진 단어인 「But for + 명사」는 Without과 같은 뜻이며, 주절에는 「조동사의 과거형 + 동사원형」을 쓴다."
+    },
+    {
+      "file": "[심화] 7.가정법_종합문제(1회).pdf", "number": 17,
+      "포인트": "As로 시작하는 직설법을 If 가정법 과거로 바꾸기",
+      "prompt": "<보기>와 같이 주어진 문장을 변형하여 쓰시오.",
+      "body": ["<보기>",
+               "As I don’t know his name, I can’t let you know.",
+               "→ If I knew his name, I could let you know.",
+               "1) As it is too cold outside, we can’t eat lunch in",
+               "the yard.",
+               "→ ___________________________________________.",
+               "2) As you don’t ask for help, you may not finish it.",
+               "→ ___________________________________________."],
+      "answer": "(1) If it were not too cold outside, we could eat lunch in the yard. (2) If you asked for help, you might finish it.",
+      "explanation": "현재 상황과 반대되는 상황을 가정할 때는 가정법 과거를 써야 하며, 그 형태는 「If + 주어 + 과거동사, 주어 + 조동사의 과거형 + 동사원형」이다. 직설법의 긍정과 부정은 서로 뒤바뀐다."
+    },
+    {
+      "file": "[심화] 7.가정법_종합문제(1회).pdf", "number": 20,
+      "포인트": "I'm sorry that ~ 을 I wish 가정법으로 바꾸기",
+      "prompt": "다음 문장을 주어진 표현으로 시작하여 다시 쓰시오.",
+      "body": ["(1) I’m sorry that I can’t join you.",
+               "→ I wish _____________________________________.",
+               "(2) I’m sorry that we don’t know how to play the",
+               "guitar.",
+               "→ I wish _____________________________________."],
+      "answer": "(1) I could join you. (2) we knew how to play the guitar.",
+      "explanation": "현재 사실과 반대되는 일에 대한 소망이나 유감을 나타낼 때 「I wish + 주어 + 조동사의 과거형 + 동사원형~」 혹은 「I wish + 주어 + 과거동사~」를 쓴다."
+    },
+    {
+      "file": "[심화] 7.가정법_종합문제(1회).pdf", "number": 27,
+      "포인트": "as if 가정법 과거",
+      "prompt": "두 문장의 의미가 같도록 할 때, (A), (B)에 알맞은 말을 차례대로 쓰시오.",
+      "body": ["In fact, Brian doesn’t remember the password.",
+               "= Brian is talking (A)_____ _____ he (B)_________",
+               "the password."],
+      "answer": "(A) as if (B) remembered",
+      "explanation": "주어진 문장은 ‘Brian은 그가 비밀번호를 기억하는 것처럼 말하는 중이다’라는 뜻이다. 현재 사실과 반대되는 내용이므로 (A)에는 as if, (B)에는 동사의 과거형 remembered가 들어간다."
+    }
+  ]
+}

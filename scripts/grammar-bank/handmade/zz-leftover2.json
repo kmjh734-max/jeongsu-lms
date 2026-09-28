@@ -1,0 +1,17 @@
+{
+  "_설명": "규칙으로 바꾸다 보니 정답 문장이 그대로 남은 문항. 틀린 자리를 옮겨 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 7.문장의 형식_체크체크.pdf", "number": 1,
+      "포인트": "감각동사 뒤에는 형용사",
+      "prompt": "다음 지문을 읽고 어법상 [[어색한]]문장 [[2개]]를 골라이를 알맞게 고쳐 [[완전한 문장]]으로 쓰시오. (단, 순서는 상관없음)",
+      "body": ["(A) The juice [[smells sweetly]].",
+               "(B) The shirt [[feels soft.]]",
+               "(C) The song [[sounds terrible]].",
+               "(D) I [[feel very sad]].",
+               "(E) The clouds [[look beauty.]]"],
+      "answer": "(A) The juice smells sweet. (E) The clouds look beautiful.",
+      "explanation": "감각동사(look, smell, sound, taste, feel) 뒤에는 부사나 명사가 아니라 형용사가 와야 한다."
+    }
+  ]
+}

@@ -1,0 +1,411 @@
+{
+  "_설명": "천일문 중등 GRAMMAR 1권 Chapter 04 조동사에서 가져와 변형한 문항. 은행에서는 기초 4과 조동사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 4,
+  "chapter": "조동사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 4, "chapter": "조동사" },
+  "points": [
+    { "unit_no": 1, "unit": "조동사의 기본 형태와 can/may", "point_no": 1, "point": "조동사+동사원형", "frequent": true },
+    { "unit_no": 1, "unit": "조동사의 기본 형태와 can/may", "point_no": 2, "point": "조동사+not+동사원형 / 조동사+주어+동사원형 ~?", "frequent": false },
+    { "unit_no": 1, "unit": "조동사의 기본 형태와 can/may", "point_no": 3, "point": "can(= be able to): ~할 수 있다(능력·가능)", "frequent": true },
+    { "unit_no": 1, "unit": "조동사의 기본 형태와 can/may", "point_no": 4, "point": "can: ~해도 된다(허가) / ~해 줄래요?(요청)", "frequent": false },
+    { "unit_no": 1, "unit": "조동사의 기본 형태와 can/may", "point_no": 5, "point": "may: ~해도 된다(허가)", "frequent": false },
+    { "unit_no": 1, "unit": "조동사의 기본 형태와 can/may", "point_no": 6, "point": "may: ~일[할]지도 모른다(추측)", "frequent": false },
+    { "unit_no": 2, "unit": "must/have to/should", "point_no": 7, "point": "must(= have to): ~해야 한다(의무)", "frequent": true },
+    { "unit_no": 2, "unit": "must/have to/should", "point_no": 8, "point": "should: ~해야 한다, ~하는 것이 좋다(의무·충고)", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1, 3], "point_label": "can: ~할 수 있다",
+      "question_kind": "빈칸 고르기", "difficulty": "하", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["Mina는 중국어를 잘 말할 수 있다.", "→ Mina ______ speak Chinese well."],
+      "choices": [{ "no": 1, "text": "can" }, { "no": 2, "text": "cans" }, { "no": 3, "text": "may" }, { "no": 4, "text": "mays" }, { "no": 5, "text": "must" }],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [7], "point_label": "must: ~해야 한다",
+      "question_kind": "빈칸 고르기", "difficulty": "하", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["진우는 물을 좀 마셔야 한다.", "→ Jinwoo ______ drink some water."],
+      "choices": [{ "no": 1, "text": "can" }, { "no": 2, "text": "may" }, { "no": 3, "text": "must" }, { "no": 4, "text": "can’t" }, { "no": 5, "text": "may not" }],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [5, 6], "point_label": "may의 허가와 추측",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분의 의미가 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "[[May]] I borrow your eraser?" },
+        { "no": 2, "text": "You [[may]] use my umbrella." },
+        { "no": 3, "text": "You [[may]] go home now." },
+        { "no": 4, "text": "She [[may]] be at the library." },
+        { "no": 5, "text": "You [[may]] take these cookies." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [3, 4], "point_label": "can의 능력과 허가",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분의 의미가 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I [[can]] ride a bike." },
+        { "no": 2, "text": "Bill [[can]] play the drums." },
+        { "no": 3, "text": "[[Can]] I open the window now?" },
+        { "no": 4, "text": "[[Can]] you fix this chair?" },
+        { "no": 5, "text": "She [[cannot]] run fast like you." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [7], "point_label": "have to: ~해야 한다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 대화의 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["A: Can you help me after school?", "B: I’m sorry. I really ______ leave now."],
+      "choices": [{ "no": 1, "text": "must to" }, { "no": 2, "text": "can" }, { "no": 3, "text": "cannot" }, { "no": 4, "text": "may" }, { "no": 5, "text": "have to" }],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [4, 5], "point_label": "허가의 may = can",
+      "question_kind": "응답 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 대화의 밑줄 친 부분과 의미가 같은 것을 고르세요.",
+      "body": ["A: [[May]] I sit next to you?", "B: Sure. Go ahead."],
+      "choices": [{ "no": 1, "text": "Must" }, { "no": 2, "text": "Should" }, { "no": 3, "text": "Can" }, { "no": 4, "text": "Do" }, { "no": 5, "text": "Does" }],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [5, 8], "point_label": "허가의 may와 금지의 should not",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• ______(A) I open the window? It’s hot.", "• Be careful. You ______(B) run in the hallway."],
+      "choices": [
+        { "no": 1, "text": "Do — cannot" },
+        { "no": 2, "text": "Can — don’t have to" },
+        { "no": 3, "text": "May — should not" },
+        { "no": 4, "text": "Should — may not" },
+        { "no": 5, "text": "Must — do not" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [1, 2], "point_label": "조동사 뒤에는 동사원형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "She can bakes a pie." },
+        { "no": 2, "text": "You must park not here." },
+        { "no": 3, "text": "Ben can’t sing well." },
+        { "no": 4, "text": "You must to stop at the sign." },
+        { "no": 5, "text": "I cannot finding my key." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [1, 2, 7], "point_label": "조동사의 부정문",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The train may arrive early." },
+        { "no": 2, "text": "Mina don’t have to worry." },
+        { "no": 3, "text": "I can made paper flowers." },
+        { "no": 4, "text": "You should be kind to your friends." },
+        { "no": 5, "text": "You must wear a helmet on a bike." }
+      ],
+      "answer": "②, ③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [8], "point_label": "should not: ~하면 안 된다",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "should를 사용하여 다음 문장과 같은 뜻이 되도록 빈칸을 완성하세요.",
+      "body": ["Don’t open the window now.", "→ You ________________________________."],
+      "choices": [],
+      "answer": "should not[shouldn’t] open the window now"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [7], "point_label": "must not: ~하면 안 된다",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 금지 표시가 나타내는 내용을 must와 주어진 단어를 사용하여 쓰세요.",
+      "body": [
+        "(1) 사진 촬영 금지   (2) 음식물 반입 금지",
+        "(1) You ________________ here. (pictures, take)",
+        "(2) You ________________ in this room. (food, eat)"
+      ],
+      "choices": [],
+      "answer": "(1) must not take pictures  (2) must not eat food"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [1, 2, 3], "point_label": "can 의문문과 대답",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형", "고난도"],
+      "prompt": "다음 중 어법상 알맞지 않은 두 개를 찾아 그 기호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": [
+        "A: ⓐ Can you play the violin well?",
+        "B: Yes, I can. ⓑ I can play the violin well.",
+        "A: ⓒ Can Nara rides a horse?",
+        "B: No, ⓓ she can. But ⓔ she likes horses.",
+        "(1) ________ → ________   (2) ________ → ________"
+      ],
+      "choices": [],
+      "answer": "(1) ⓒ, Can Nara ride  (2) ⓓ, she can’t"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [4, 5], "point_label": "허가를 묻는 말의 응답",
+      "question_kind": "대화 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 대화가 어색한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "A: Can I help you? B: No, thanks." },
+        { "no": 2, "text": "A: May I open the door? B: Yes, you may." },
+        { "no": 3, "text": "A: Can I borrow your pen? B: Of course." },
+        { "no": 4, "text": "A: Can I sit here? B: Yes, you can’t." },
+        { "no": 5, "text": "A: Could you pass me the salt? B: Sure." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [7], "point_label": "has to와 don’t have to",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 상황에 이어질 문장을 have to와 주어진 단어를 사용하여 완성하세요.",
+      "body": [
+        "(1) Sumi’s bag is too heavy. She can’t carry it alone.",
+        "→ She ________________ her brother for help. (ask)",
+        "(2) I water the plants on weekdays. But it rains all weekend.",
+        "→ I ________________ the plants on weekends. (water)"
+      ],
+      "choices": [],
+      "answer": "(1) has to ask  (2) don’t have to water"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [1, 2, 8], "point_label": "조동사의 부정문·의문문",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ May I get a refund?",
+        "ⓑ He doesn’t can swim fast.",
+        "ⓒ Can you speak Japanese well?",
+        "ⓓ Mia should buy her ticket now.",
+        "ⓔ I should go to bed early tonight.",
+        "ⓕ You should be not late for class.",
+        "ⓖ Does your sister can bake bread?"
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓑ, ⓕ" },
+        { "no": 2, "text": "ⓐ, ⓒ, ⓓ, ⓔ" },
+        { "no": 3, "text": "ⓑ, ⓒ, ⓔ" },
+        { "no": 4, "text": "ⓒ, ⓓ, ⓕ, ⓖ" },
+        { "no": 5, "text": "ⓒ, ⓔ, ⓖ" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [3], "point_label": "can과 cannot으로 쓰기",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 내용을 보고 (1), (2) Susan이 할 수 있는 것과 (3) Andy가 할 수 없는 것을 can을 사용하여 쓰세요.",
+      "body": [
+        "Andy — 기타 치기 ○ / 수영하기 ○ / 일본어 말하기 ×",
+        "Susan — 기타 치기 ○ / 수영하기 × / 일본어 말하기 ○",
+        "(1) Susan ________________.",
+        "(2) Susan ________________.",
+        "(3) Andy ________________."
+      ],
+      "choices": [],
+      "answer": "(1) can play the guitar  (2) can speak Japanese  (3) cannot[can’t] speak Japanese"
+    },
+
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1, 3], "point_label": "can’t 뒤에는 동사원형",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["Tom can’t ______."],
+      "choices": [
+        { "no": 1, "text": "speak Spanish" },
+        { "no": 2, "text": "rides a horse" },
+        { "no": 3, "text": "ski" },
+        { "no": 4, "text": "swim well" },
+        { "no": 5, "text": "bake bread" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [1, 8], "point_label": "should 뒤에는 동사원형",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["You should ______."],
+      "choices": [
+        { "no": 1, "text": "went to bed early" },
+        { "no": 2, "text": "do your homework" },
+        { "no": 3, "text": "wear a helmet" },
+        { "no": 4, "text": "help your father" },
+        { "no": 5, "text": "find a new hobby" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [7], "point_label": "have to = must",
+      "question_kind": "응답 고르기", "difficulty": "하", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 바꿔 쓸 수 있는 것을 고르세요.",
+      "body": ["<보기> You [[have to]] finish your report today."],
+      "choices": [{ "no": 1, "text": "can" }, { "no": 2, "text": "may" }, { "no": 3, "text": "can’t" }, { "no": 4, "text": "must" }, { "no": 5, "text": "may not" }],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [4, 5], "point_label": "허가의 may = can",
+      "question_kind": "응답 고르기", "difficulty": "하", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 바꿔 쓸 수 있는 것을 고르세요.",
+      "body": ["<보기> You [[may]] borrow my umbrella."],
+      "choices": [{ "no": 1, "text": "can" }, { "no": 2, "text": "must" }, { "no": 3, "text": "could" }, { "no": 4, "text": "should" }, { "no": 5, "text": "can’t" }],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [7], "point_label": "must not: 강한 금지",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["우리는 수업 중에 떠들면 안 된다.", "→ We ______ talk in class."],
+      "choices": [
+        { "no": 1, "text": "should" },
+        { "no": 2, "text": "must" },
+        { "no": 3, "text": "must not" },
+        { "no": 4, "text": "have to" },
+        { "no": 5, "text": "don’t have to" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [5, 6], "point_label": "추측의 may",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 의미가 같은 것을 고르세요.",
+      "body": ["<보기> It [[may]] rain this evening."],
+      "choices": [
+        { "no": 1, "text": "May I help you?" },
+        { "no": 2, "text": "May I sit here?" },
+        { "no": 3, "text": "You may use my phone here." },
+        { "no": 4, "text": "You may not touch my bag." },
+        { "no": 5, "text": "She may be at home now." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [7], "point_label": "have to의 부정",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["• We ______ to leave early tomorrow.", "• His answer doesn’t ______ to be long."],
+      "choices": [{ "no": 1, "text": "can" }, { "no": 2, "text": "may" }, { "no": 3, "text": "must" }, { "no": 4, "text": "have" }, { "no": 5, "text": "has" }],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [1, 2], "point_label": "조동사의 부정문 어순",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The baby cans walk." },
+        { "no": 2, "text": "May I saw your ticket?" },
+        { "no": 3, "text": "You must run not in the hall." },
+        { "no": 4, "text": "We should not throw trash here." },
+        { "no": 5, "text": "Mina must takes medicine every day." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [1, 2, 7], "point_label": "조동사 뒤에는 동사원형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Can he plays the cello?" },
+        { "no": 2, "text": "You should to eat breakfast." },
+        { "no": 3, "text": "She must return the book." },
+        { "no": 4, "text": "She not can ride a bike." },
+        { "no": 5, "text": "Sam and Jim has to wait here." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [7], "point_label": "don’t have to: ~할 필요가 없다",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["너는 지금 서두를 필요가 없다.", "→ You ________________ hurry now."],
+      "choices": [],
+      "answer": "don’t have to"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [1, 2, 7, 8], "point_label": "조동사의 부정문",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "My cat can climb trees." },
+        { "no": 2, "text": "He may be tired now." },
+        { "no": 3, "text": "Jinsu doesn’t have to be shy." },
+        { "no": 4, "text": "You should came home by 9 o’clock." },
+        { "no": 5, "text": "You don’t must tell the secret to anyone." }
+      ],
+      "answer": "④, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [3], "point_label": "문맥에 맞는 조동사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 밑줄 친 부분을 문맥상 알맞게 고쳐 쓰세요. (단, 한 단어로 쓸 것)",
+      "body": [
+        "Mike has to go to the museum. The museum is 50 kilometers from here. It’s too far. He [[can]] walk to the museum.",
+        "→ ________"
+      ],
+      "choices": [],
+      "answer": "cannot[can’t]"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [8], "point_label": "should와 shouldn’t",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 <보기>에서 알맞은 말을 골라 should 또는 shouldn’t를 사용하여 상황에 맞게 글을 완성하세요.",
+      "body": [
+        "<보기> turn off      waste",
+        "(1) We leave the lights on all night.  We ________________ the lights at night.",
+        "(2) We waste too much water.  We ________________."
+      ],
+      "choices": [],
+      "answer": "(1) should turn off  (2) shouldn’t waste water"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [7], "point_label": "must가 나타내는 뜻",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "주어진 문장과 연결하기에 알맞은 문장을 <보기>에서 고르세요.",
+      "body": [
+        "<보기> ⓐ I must run.   ⓑ You must not open it.   ⓒ I must wash the dishes.",
+        "(1) The bus is coming. ________",
+        "(2) The sink is full of plates. ________",
+        "(3) The box is full of glass. ________"
+      ],
+      "choices": [],
+      "answer": "(1) ⓐ  (2) ⓒ  (3) ⓑ"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [8], "point_label": "shouldn’t로 충고하기",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음은 도서관 예절입니다. 내용을 shouldn’t와 주어진 단어를 사용하여 쓰세요.",
+      "body": [
+        "(1) 시끄럽게 하지 않기   (2) 음식을 가져오지 않기",
+        "(1) You ________________. (noise, make)",
+        "(2) You ________________. (food, bring)"
+      ],
+      "choices": [],
+      "answer": "(1) shouldn’t make noise  (2) shouldn’t bring food"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 16, "point_nos": [1, 2, 3, 7], "point_label": "조동사 영작",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "너는 규칙을 어기면 안 된다. → You must not breaks the rules." },
+        { "no": 2, "text": "우리는 지금 계획을 바꿀 수 없다. → We can change not our plans now." },
+        { "no": 3, "text": "그 가게는 내일 문을 닫을지도 모른다. → The store may is closed tomorrow." },
+        { "no": 4, "text": "민수는 택시를 탈 필요가 없다. → Minsu don’t have to take a taxi." },
+        { "no": 5, "text": "나는 그의 글씨를 읽을 수 없다. → I can’t read his handwriting." }
+      ],
+      "answer": "⑤"
+    }
+  ]
+}

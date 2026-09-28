@@ -1,0 +1,157 @@
+{
+  "_설명": "기본 6과 분사 — 나머지. 명사를 꾸미는 분사 고르기, 분사구문. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 24,
+      "포인트": "명사와의 관계가 수동이면 과거분사",
+      "prompt": "다음 글의 밑줄 친 단어를 알맞은 형태로 고치시오.",
+      "body": ["The old map (A)[[hide]] for decades has been",
+               "found. It is kept by a sailor (B)[[call]] Jonas."],
+      "answer": "(A) hidden, (B) called",
+      "explanation": "(A) ‘숨겨져 있던’ 지도이므로 hidden이 적절하며, (B) Jonas라는 이름으로 불리는 선원이므로 called가 적절하다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 26,
+      "포인트": "감정을 일으키는 사물에는 -ing",
+      "prompt": "다음 괄호 안에 있는 단어를 어순에 맞게 배열하여 쓰세요.",
+      "body": ["I practiced very hard and (really / surprising /",
+               "not / score / the / was / so)."],
+      "answer": "so the score was not really surprising",
+      "explanation": "부정문에서 형용사 앞에 really를 쓰면 ‘별로, 그다지 ~하지 않다’라는 뜻이다. 어떤 것 자체가 놀라움을 주면 surprising, 내가 놀라움을 느끼면 surprised를 쓴다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 27,
+      "포인트": "능동·진행이면 현재분사",
+      "prompt": "주어진 표현 중 옳은 것을 고르시오.",
+      "body": ["Look at the (dance, dancing, danced) children."],
+      "answer": "dancing",
+      "explanation": "아이들이 스스로 춤추고 있는 것이므로 능동·진행을 나타내는 현재분사 dancing이 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 31,
+      "포인트": "분사구가 명사를 뒤에서 꾸민다",
+      "prompt": "우리말을 참고하여 주어진 단어를 바르게 배열하세요.",
+      "body": ["공을 차고 있는 저 소년은 누구인가?",
+               "(is / kicking / who / that boy / a ball / ?)",
+               "→"],
+      "answer": "Who is that boy kicking a ball?",
+      "explanation": "[[공을 차고 있는]] 저 소년은 누구인가? → Who is that boy [[kicking a ball]]?"
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 33,
+      "포인트": "능동은 현재분사, 수동은 과거분사",
+      "prompt": "다음 주어진 단어를 알맞게 고쳐 적으세요.",
+      "body": ["The nurse gave some water to the (sleep)",
+               "patient.",
+               "This is a watch (repair) in",
+               "Switzerland."],
+      "answer": "sleeping, repaired",
+      "explanation": "환자가 ‘자고 있는’ 진행의 의미이므로 현재분사형 sleeping이 적절하고, 시계는 ‘수리된’ 수동의 의미이므로 과거분사형 repaired로 써야 한다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 34,
+      "포인트": "과거분사구로 두 문장 합치기",
+      "prompt": "두 문장을 한 문장으로 만드세요.",
+      "body": ["Some documents were lost in the fire.",
+               "They haven’t been recovered yet.",
+               "→"],
+      "answer": "Some documents lost in the fire haven’t been recovered yet.",
+      "explanation": "(화재로 잃어버린) 몇몇 서류들은 아직까지 되찾지 못했다는 뜻으로, 과거분사구가 명사를 뒤에서 꾸민다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 37,
+      "포인트": "능동·진행이면 현재분사",
+      "prompt": "주어진 표현 중 옳은 것을 고르시오.",
+      "body": ["Don’t you know that (sleep, slept, sleeping)",
+               "baby?"],
+      "answer": "sleeping",
+      "explanation": "아기가 스스로 자고 있는 것이므로 현재분사 sleeping이 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 40,
+      "포인트": "수동·완료이면 과거분사",
+      "prompt": "주어진 표현 중 옳은 것을 고르시오.",
+      "body": ["He found his (lose, losing, lost) key."],
+      "answer": "lost",
+      "explanation": "열쇠가 ‘잃어버려진’ 것이므로 과거분사 lost가 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 43,
+      "포인트": "수동의 뜻이면 과거분사",
+      "prompt": "주어진 표현 중 옳은 것을 고르시오.",
+      "body": ["I read a letter (write, writing, written) in French."],
+      "answer": "written",
+      "explanation": "편지가 ‘쓰인’ 것이므로 수동을 나타내는 과거분사 written이 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 45,
+      "포인트": "수동태의 과거분사",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["The rules should be (following, followed) by",
+               "everyone."],
+      "answer": "followed",
+      "explanation": "규칙이 ‘지켜지는’ 대상이므로 수동태 「조동사 + be + 과거분사」의 형태로 followed를 쓴다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 46,
+      "포인트": "수동태의 과거분사",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["The chairs are (arranging, arranged) in a circle."],
+      "answer": "arranged",
+      "explanation": "의자가 ‘정렬된’ 대상이므로 수동을 나타내는 과거분사 arranged가 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 47,
+      "포인트": "목적격 보어가 능동이면 현재분사",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["I heard birds (singing, sung) outside."],
+      "answer": "singing",
+      "explanation": "새들이 스스로 노래하는 것이므로 능동을 나타내는 현재분사 singing이 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_체크체크.pdf", "number": 49,
+      "포인트": "수동의 뜻이면 과거분사",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["My (freezing, frozen) hands are much better,",
+               "but they still hurt."],
+      "answer": "frozen",
+      "explanation": "손이 ‘언’ 상태이므로 수동·완료를 나타내는 과거분사 frozen이 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_확인문제(1회).pdf", "number": 11,
+      "포인트": "수동의 뜻이면 과거분사가 명사를 뒤에서 꾸민다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["그는 프랑스에서 구운 빵을 샀다.",
+               "→ He bought bread _____ in France.(bake)"],
+      "answer": "baked",
+      "explanation": "‘프랑스에서 구워진 빵’의 의미로 ‘수동’을 나타내는 과거분사 baked가 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_확인문제(1회).pdf", "number": 12,
+      "포인트": "능동·진행이면 현재분사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["수지는 노래를 부르면서 방에 들어왔다.",
+               "→ Suji came into the room _____ a song. (sing)"],
+      "answer": "singing",
+      "explanation": "수지가 노래를 부르면서 방에 들어온 것이므로 ‘능동’과 ‘진행’을 나타내는 현재분사 singing이 알맞다."
+    },
+    {
+      "file": "[기본] 6.분사_확인문제(2회).pdf", "number": 13,
+      "포인트": "수동의 뜻이면 과거분사",
+      "prompt": "괄호에 주어진 것 중 적절한 것을 고르시오.",
+      "body": ["My (cutting, cut) hand is much better, but it",
+               "still hurts."],
+      "answer": "cut",
+      "explanation": "손이 ‘베인’ 상태이므로 수동·완료를 나타내는 과거분사 cut이 알맞다. cut은 과거분사도 형태가 같다."
+    },
+    {
+      "file": "[기본] 6.분사_확인문제(2회).pdf", "number": 18,
+      "포인트": "stop + 동명사 — ~하는 것을 그만두다",
+      "prompt": "괄호에 주어진 것 중 적절한 것을 고르시오.",
+      "body": ["She stopped (to eat, eating) sweets for her",
+               "health."],
+      "answer": "eating",
+      "explanation": "건강을 위해 단것을 ‘먹는 것을 그만두었다’는 뜻이므로 「stop + 동명사」를 쓴다. 「stop + to부정사」는 ‘~하기 위해 멈추다’라는 뜻이다."
+    }
+  ]
+}

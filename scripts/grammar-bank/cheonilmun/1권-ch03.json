@@ -1,0 +1,368 @@
+{
+  "_설명": "천일문 중등 GRAMMAR 1권 Chapter 03 현재진행형과 미래 표현에서 가져와 변형한 문항. 은행에서는 기초 3과 동사의 시제 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 3,
+  "chapter": "현재진행형과 미래 표현",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 3, "chapter": "동사의 시제" },
+  "points": [
+    { "unit_no": 1, "unit": "현재진행형", "point_no": 1, "point": "am/are/is+동사의 -ing형: ~하고 있다", "frequent": true },
+    { "unit_no": 1, "unit": "현재진행형", "point_no": 2, "point": "am/are/is not+동사의 -ing형: ~하고 있지 않다", "frequent": false },
+    { "unit_no": 1, "unit": "현재진행형", "point_no": 3, "point": "Am/Are/Is+주어+동사의 -ing형 ~?: ~하고 있니?", "frequent": false },
+    { "unit_no": 2, "unit": "미래 표현", "point_no": 4, "point": "will+동사원형: ~할[일] 것이다", "frequent": true },
+    { "unit_no": 2, "unit": "미래 표현", "point_no": 5, "point": "am/are/is going to+동사원형: ~할[일] 것이다", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1], "point_label": "-ing형 만드는 법",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "He is [[runing]] on the track." },
+        { "no": 2, "text": "I’m [[makeing]] a sandwich." },
+        { "no": 3, "text": "It is [[snowwing]] outside now." },
+        { "no": 4, "text": "The baby is [[smiling]] at me." },
+        { "no": 5, "text": "The flower is [[dieing]]." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [1, 4], "point_label": "진행형과 will 뒤의 동사 꼴",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• Emma is ______(A) a letter.", "• We will ______(B) at five o’clock."],
+      "choices": [{ "no": 1, "text": "write — leave" }, { "no": 2, "text": "write — leaving" }, { "no": 3, "text": "writes — leave" }, { "no": 4, "text": "writing — leave" }, { "no": 5, "text": "writing — leaving" }],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [4, 5], "point_label": "won’t+동사원형, be going to",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• It won’t ______(A) this evening.", "• What are you ______(B) to do this weekend?"],
+      "choices": [{ "no": 1, "text": "rain — go" }, { "no": 2, "text": "rain — going" }, { "no": 3, "text": "rains — go" }, { "no": 4, "text": "rains — going" }, { "no": 5, "text": "raining — going" }],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [1, 2, 3], "point_label": "현재진행형의 부정문",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I’m feeding a small bird." },
+        { "no": 2, "text": "Are you going to the library now?" },
+        { "no": 3, "text": "They’re not talking to me." },
+        { "no": 4, "text": "Jane isn’t study right now." },
+        { "no": 5, "text": "He is writing a letter to Sam." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [4, 5], "point_label": "will 뒤에는 동사원형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I won’t go out for dinner today." },
+        { "no": 2, "text": "Is she going to go to the museum?" },
+        { "no": 3, "text": "Will you be at school this afternoon?" },
+        { "no": 4, "text": "They’ll comes to the party next week." },
+        { "no": 5, "text": "He’s not going to wear the cap at the game." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [5], "point_label": "be going to 의문문의 응답",
+      "question_kind": "응답 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 질문에 대한 대답으로 가장 적절한 것을 고르세요.",
+      "body": ["A: Are you going to leave this Friday?", "B: ______. I will stay one more week."],
+      "choices": [{ "no": 1, "text": "Yes, I do" }, { "no": 2, "text": "No, I don’t" }, { "no": 3, "text": "Yes, I am" }, { "no": 4, "text": "No, I’m not" }, { "no": 5, "text": "Yes, I will" }],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [1], "point_label": "-ie로 끝나는 동사의 -ing형",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰세요.",
+      "body": ["Sora ties her shoes at the door. (진행형으로)", "→ ______________________________________"],
+      "choices": [],
+      "answer": "Sora is tying her shoes at the door."
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [5], "point_label": "be going to 의문문",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰세요.",
+      "body": ["Lucy is going to join the drama club this fall. (be going to 의문문으로)", "→ ______________________________________"],
+      "choices": [],
+      "answer": "Is Lucy going to join the drama club this fall?"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [1, 2, 3, 5], "point_label": "진행형과 미래 표현",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "She is sitting on the bench." },
+        { "no": 2, "text": "He’s enjoying not the game." },
+        { "no": 3, "text": "Is the girls singing now?" },
+        { "no": 4, "text": "Are you going to call Ms. Kim?" },
+        { "no": 5, "text": "I’ll having lunch with my cousin." }
+      ],
+      "answer": "①, ④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [1, 2, 3], "point_label": "현재진행형 영작",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "그 여자는 신문을 읽고 있다. → The woman is read a newspaper." },
+        { "no": 2, "text": "그는 문을 열고 있다. → He’ll opening the door." },
+        { "no": 3, "text": "Mina는 방을 치우고 있니? → Is Mina cleaning the room?" },
+        { "no": 4, "text": "그녀는 지금 나를 보고 있지 않다. → She is looking not at me right now." },
+        { "no": 5, "text": "내 형과 나는 설거지를 하고 있다. → My brother and I am washing the dishes." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [5], "point_label": "be going to로 답하기",
+      "question_kind": "대화 완성", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 일정을 보고 <보기>와 같이 be going to를 사용하여 문장을 완성하세요.",
+      "body": [
+        "월요일 — 수지와 배드민턴 치기 / 수요일 — 할머니 댁 방문하기 / 금요일 — 음악회에 가기",
+        "<보기> A: What are you going to do on Monday?   B: I am going to play badminton with Suji.",
+        "A: What are you going to do on Friday?",
+        "B: ______________________________________"
+      ],
+      "choices": [],
+      "answer": "I am[I’m] going to go to the concert."
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [4], "point_label": "will 의문문 배열",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": ["너는 부산에 다시 갈 거니? (Busan / you / will / to / again / go)", "→ ______________________________________?"],
+      "choices": [],
+      "answer": "Will you go to Busan again"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [5], "point_label": "be going to 부정문 배열",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": ["그들은 내일 늦게 일어나지 않을 것이다.", "(not / tomorrow / get up late / to / are / going / they)", "→ ______________________________________."],
+      "choices": [],
+      "answer": "They are not going to get up late tomorrow"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [1], "point_label": "-e로 끝나는 동사의 -ing형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["The girl is makeing a card.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "makeing → making"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [4], "point_label": "will 뒤에는 동사원형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["A: What will robots do in the future?", "B: Robots will cleaned our houses in the future.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "cleaned → clean"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [1], "point_label": "현재진행형으로 답하기",
+      "question_kind": "대화 완성", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 내용을 보고 진행형과 주어진 단어를 사용하여 질문에 알맞은 대답을 완성하세요.",
+      "body": ["[지금 하는 일] 부엌에서 쿠키를 굽는 중", "A: Is your sister in the kitchen?", "B: Yes, she is. ________________ in the kitchen. (bake cookies)"],
+      "choices": [],
+      "answer": "She is baking cookies"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [1, 5], "point_label": "진행형과 be going to 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ Jisu is drawing at her desk.",
+        "ⓑ Tom is runing around the park.",
+        "ⓒ I’m going to buy a new coat last winter.",
+        "ⓓ He is going to make a cake for her birthday.",
+        "ⓔ Sam and I am going to visit Japan next month."
+      ],
+      "choices": [{ "no": 1, "text": "ⓐ, ⓒ" }, { "no": 2, "text": "ⓐ, ⓓ" }, { "no": 3, "text": "ⓑ, ⓓ" }, { "no": 4, "text": "ⓑ, ⓒ, ⓔ" }, { "no": 5, "text": "ⓒ, ⓓ, ⓔ" }],
+      "answer": "②"
+    },
+
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [3], "point_label": "진행형 의문문의 be동사",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I’m brushing my teeth." },
+        { "no": 2, "text": "He’s holding his bag." },
+        { "no": 3, "text": "Sam isn’t writing a letter." },
+        { "no": 4, "text": "Are your kitten sleeping now?" },
+        { "no": 5, "text": "Many students are joining the club." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [4], "point_label": "will의 부정문 어순",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I will buy those red shoes." },
+        { "no": 2, "text": "He will come not to school today." },
+        { "no": 3, "text": "Are you going to open your store?" },
+        { "no": 4, "text": "I’m going to watch a drama with Mina." },
+        { "no": 5, "text": "Will you come to my party this Friday?" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [2], "point_label": "진행형 부정문의 동사 꼴",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "She is hugging her baby." },
+        { "no": 2, "text": "I’m painting blue flowers." },
+        { "no": 3, "text": "The choir is not sing now." },
+        { "no": 4, "text": "Is it raining outside right now?" },
+        { "no": 5, "text": "Are they waiting there?" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [1, 5], "point_label": "진행형과 be going to의 동사 꼴",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 (A), (B)를 바르게 고쳐 쓴 것끼리 짝지어진 것을 고르세요.",
+      "body": ["• She is (A) [[wash]] the dishes.", "• I’m going to (B) [[baking]] a pie."],
+      "choices": [{ "no": 1, "text": "washes — bake" }, { "no": 2, "text": "washing — bake" }, { "no": 3, "text": "washes — bakes" }, { "no": 4, "text": "washing — bakes" }, { "no": 5, "text": "washeing — bake" }],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [4, 5], "point_label": "will not과 be going to",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 (A), (B)를 바르게 고쳐 쓴 것끼리 짝지어진 것을 고르세요.",
+      "body": ["• It will (A) [[not snowing]] tonight.", "• He is not (B) [[go]] to join the team."],
+      "choices": [{ "no": 1, "text": "not snow — goes" }, { "no": 2, "text": "not snows — going" }, { "no": 3, "text": "not snow — going" }, { "no": 4, "text": "snow not — goes" }, { "no": 5, "text": "snow not — going" }],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [1], "point_label": "자음을 겹쳐 쓰는 -ing형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Amy is puting the books on the shelf.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "puting → putting"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [3], "point_label": "주어에 맞는 be동사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Is they cleaning the classroom?", "→ ________ → ________"],
+      "choices": [],
+      "answer": "Is → Are"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [5], "point_label": "be going to 부정문",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰세요.",
+      "body": ["We plant trees in the garden. (be going to 부정문으로)", "→ ______________________________________"],
+      "choices": [],
+      "answer": "We are not[aren’t] going to plant trees in the garden."
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [1], "point_label": "현재진행형으로 바꾸기",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰세요.",
+      "body": ["They swim in the pool. (현재진행형으로)", "→ ______________________________________"],
+      "choices": [],
+      "answer": "They are[They’re] swimming in the pool."
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [3, 5], "point_label": "진행형·be going to 의문문의 응답",
+      "question_kind": "대화 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 대화가 어법상 자연스러운 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "A: Is he playing with blocks? B: Yes, he will." },
+        { "no": 2, "text": "A: Are you watching TV now? B: No, I don’t." },
+        { "no": 3, "text": "A: Is she going to bring her umbrella? B: Yes, she isn’t." },
+        { "no": 4, "text": "A: Will you take the subway? B: Yes, you will." },
+        { "no": 5, "text": "A: Are you going to the library? B: Yes, I am." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [1, 2, 4, 5], "point_label": "진행형과 미래 표현 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ Nara isn’t listen to music.",
+        "ⓑ Tomorrow will be sunny all day.",
+        "ⓒ Jiho is playing the drums.",
+        "ⓓ Are you going to meet Kate?",
+        "ⓔ I am going to joining the art club."
+      ],
+      "choices": [{ "no": 1, "text": "ⓐ, ⓑ" }, { "no": 2, "text": "ⓐ, ⓒ, ⓔ" }, { "no": 3, "text": "ⓑ, ⓒ, ⓓ" }, { "no": 4, "text": "ⓑ, ⓔ" }, { "no": 5, "text": "ⓒ, ⓓ, ⓔ" }],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [1, 2, 4, 5], "point_label": "진행형과 미래 표현 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ She is setting the table.",
+        "ⓑ I’m not looking at the map.",
+        "ⓒ I will remembering your face.",
+        "ⓓ Are you thinking about the trip?",
+        "ⓔ I’m going get up early tomorrow."
+      ],
+      "choices": [{ "no": 1, "text": "ⓐ, ⓑ, ⓒ" }, { "no": 2, "text": "ⓐ, ⓑ, ⓓ" }, { "no": 3, "text": "ⓐ, ⓒ, ⓓ" }, { "no": 4, "text": "ⓑ, ⓒ, ⓔ" }, { "no": 5, "text": "ⓒ, ⓓ, ⓔ" }],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [1], "point_label": "현재진행형으로 답하기",
+      "question_kind": "대화 완성", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "주어진 단어를 사용하여 질문에 알맞은 대답을 완성하세요.",
+      "body": ["A: What is Julia doing now?", "B: She ________________ her dog in the park. (walk)"],
+      "choices": [],
+      "answer": "is walking"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [4, 5], "point_label": "be going to = will",
+      "question_kind": "응답 고르기", "difficulty": "하", "badges": [],
+      "prompt": "다음 중 <보기>의 문장과 의미가 가장 비슷한 것을 고르세요.",
+      "body": ["<보기> I’m going to move to Jeju."],
+      "choices": [
+        { "no": 1, "text": "I move to Jeju." },
+        { "no": 2, "text": "I won’t move to Jeju." },
+        { "no": 3, "text": "I will move to Jeju." },
+        { "no": 4, "text": "I like to move to Jeju." },
+        { "no": 5, "text": "I don’t move to Jeju." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [1], "point_label": "현재진행형 영작",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["그들은 칠판을 보고 있다. (look at)", "→ They ________________ the board."],
+      "choices": [],
+      "answer": "are looking at"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 16, "point_nos": [5], "point_label": "be going to 영작",
+      "question_kind": "영작", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 <조건>에 맞게 영작하세요.",
+      "body": [
+        "나는 도서관에서 새 책을 읽을 것이다. (go, read)",
+        "<조건> • 미래 표현으로 쓸 것  • 다섯 단어로 쓸 것  • 필요하면 단어를 바꿔 쓸 것",
+        "→ ________________ a new book at the library."
+      ],
+      "choices": [],
+      "answer": "I am going to read"
+    }
+  ]
+}

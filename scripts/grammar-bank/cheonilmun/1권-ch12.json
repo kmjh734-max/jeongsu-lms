@@ -1,0 +1,164 @@
+{
+  "_설명": "천일문 1권 Chapter 12 접속사에서 가져와 변형한 문항. 은행에서는 기초 13과 접속사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 12,
+  "chapter": "접속사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 13, "chapter": "접속사" },
+  "points": [
+    { "unit_no": 1, "unit": "and, but, or", "point_no": 1, "point": "and, but, or: 같은 성격의 말을 잇는다", "frequent": false },
+    { "unit_no": 2, "unit": "시간·이유를 나타내는 접속사", "point_no": 2, "point": "before, after: 앞뒤 순서를 잇는다", "frequent": false },
+    { "unit_no": 2, "unit": "시간·이유를 나타내는 접속사", "point_no": 3, "point": "when: ~할 때 / because: ~ 때문에", "frequent": false },
+    { "unit_no": 2, "unit": "시간·이유를 나타내는 접속사", "point_no": 5, "point": "if: 만약 ~라면", "frequent": false },
+    { "unit_no": 3, "unit": "that절", "point_no": 4, "point": "that+주어+동사: 목적어 역할(~하다는 것)", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1], "point_label": "앞뒤가 대조될 때 but",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Mina enjoys reading books, ______ she didn’t read yesterday."],
+      "choices": [{ "no": 1, "text": "and" }, { "no": 2, "text": "but" }, { "no": 3, "text": "or" }, { "no": 4, "text": "so" }, { "no": 5, "text": "before" }],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [3], "point_label": "이유를 나타내는 because",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["I like the actor ______ he has a warm smile."],
+      "choices": [{ "no": 1, "text": "after" }, { "no": 2, "text": "but" }, { "no": 3, "text": "or" }, { "no": 4, "text": "that" }, { "no": 5, "text": "because" }],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [2], "point_label": "before+주어+동사",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "우리는 비가 오기 전에 저녁을 먹었다.",
+        "(some dinner / the rain / before / ate / started)",
+        "→ We ______________________________."
+      ],
+      "choices": [],
+      "answer": "ate some dinner before the rain started"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [4], "point_label": "말하다+that절",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "선생님은 우리가 서로 도와야 한다고 말했다.",
+        "(that / said / should / we / each other / help)",
+        "→ The teacher ______________________________."
+      ],
+      "choices": [],
+      "answer": "said that we should help each other"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [1], "point_label": "and는 같은 성격의 말을 잇는다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Is it Monday or Tuesday?" },
+        { "no": 2, "text": "Sam and I are close friends." },
+        { "no": 3, "text": "Our library is small but clean." },
+        { "no": 4, "text": "My brother is tall and kind person." },
+        { "no": 5, "text": "Mia has brothers, but she doesn’t have sisters." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [3], "point_label": "이유를 나타내는 because",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["• Her mother was upset ______ Suji didn’t call her.", "• My little sister cried ______ she broke her doll."],
+      "choices": [{ "no": 1, "text": "if" }, { "no": 2, "text": "so" }, { "no": 3, "text": "that" }, { "no": 4, "text": "because" }, { "no": 5, "text": "before" }],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [3], "point_label": "when+주어+동사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 내용을 보고, 주어진 단어와 when을 사용하여 <보기>와 같이 문장을 완성하세요.",
+      "body": [
+        "<보기> (read books, bored) → Jack reads books when he is bored.",
+        "(1) (listen to music, sad)  Ann ________________.",
+        "(2) (ride a bike, free)  Sam ________________."
+      ],
+      "choices": [],
+      "answer": "(1) listens to music when she is sad  (2) rides a bike when he is free"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [2], "point_label": "after+주어+동사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["나는 숙제를 한 후에 저녁 식사를 했다. (finish my homework)", "→ I had dinner ________________."],
+      "choices": [],
+      "answer": "after I finished my homework"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [4], "point_label": "hope+that절",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["미나는 그녀의 편지가 그를 웃게 만들길 바란다. (her letter, make, smile, will)", "→ Mina hopes ________________."],
+      "choices": [],
+      "answer": "(that) her letter will make him smile"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [3], "point_label": "because로 이유 쓰기",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형", "고난도"],
+      "prompt": "다음 내용을 보고 <조건>에 맞게 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "<조건> • because를 포함한 완전한 문장으로 쓸 것  • 과거 시제로 쓸 것",
+        "(1) Nara was late ________________. (the train, miss)",
+        "(2) ________________, he didn’t go to school. (too tired, be)"
+      ],
+      "choices": [],
+      "answer": "(1) because she missed the train  (2) Because Tom was too tired"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [1, 3], "point_label": "but과 Because",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "Our normal body temperature and a cat’s are similar, ______(A) the temperature of a cat is higher than ours. ______(B) it’s usually between 38 °C and 39 °C, your cat’s body is always warmer than your body."
+      ],
+      "choices": [
+        { "no": 1, "text": "and — But" },
+        { "no": 2, "text": "if — Because" },
+        { "no": 3, "text": "if — And" },
+        { "no": 4, "text": "but — Because" },
+        { "no": 5, "text": "but — But" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [3], "point_label": "because와 when",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "People in Nepal have many festivals ______(A) they follow several calendars. People light candles and share food ______(B) they celebrate them."
+      ],
+      "choices": [
+        { "no": 1, "text": "but — when" },
+        { "no": 2, "text": "because — when" },
+        { "no": 3, "text": "or — but" },
+        { "no": 4, "text": "because — but" },
+        { "no": 5, "text": "but — or" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [3, 5], "point_label": "when, if, because 가려 쓰기",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형", "고난도"],
+      "prompt": "<A>에서 문장을 고른 후 <B>의 접속사를 사용하여 다음 빈칸을 완성하세요. (단, 한 번씩만 사용할 것)",
+      "body": [
+        "<A> • I was in middle school.  • You go to the bakery.  • I was hungry.",
+        "<B> when, if, because",
+        "(1) I ate a sandwich ________________.",
+        "(2) Buy me some bread ________________.",
+        "(3) I met many kind teachers ________________."
+      ],
+      "choices": [],
+      "answer": "(1) because I was hungry  (2) if you go to the bakery  (3) when I was in middle school"
+    }
+  ]
+}

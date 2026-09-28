@@ -1,0 +1,166 @@
+{
+  "_설명": "기본 2과 시제 — 나머지. 현재완료 경험·계속, 과거진행. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 38,
+      "포인트": "현재완료 has + p.p.",
+      "prompt": "현재완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["The dog _____ (break) the fence."],
+      "answer": "has broken",
+      "explanation": "주어가 3인칭 단수이므로 has를 쓰고 break의 과거분사 broken을 붙인다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 40,
+      "포인트": "have[has] been to — ~에 가 본 적이 있다",
+      "prompt": "우리말을 영어로 옮기세요.",
+      "body": ["당신은 Paris에 다녀와 본 적이 있나요?",
+               "→"],
+      "answer": "Have you been to Paris?",
+      "explanation": "has/have been to : ~에 가 본 적이 있다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 41,
+      "포인트": "현재완료 has + p.p.",
+      "prompt": "현재완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["The storm _____ (destroy) the whole harvest."],
+      "answer": "has destroyed",
+      "explanation": "주어가 3인칭 단수이므로 has를 쓰고 destroy의 과거분사 destroyed를 붙인다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 43,
+      "포인트": "현재완료 has + p.p.",
+      "prompt": "현재완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["Sora _____ (order) three new chairs for the",
+               "office."],
+      "answer": "has ordered",
+      "explanation": "주어가 3인칭 단수이므로 has를 쓰고 order의 과거분사 ordered를 붙인다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 44,
+      "포인트": "불규칙 동사의 과거분사",
+      "prompt": "현재완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["Lucas _____ (lose) his wallet again."],
+      "answer": "has lost",
+      "explanation": "lose의 과거분사는 lost이므로 has lost로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 45,
+      "포인트": "현재완료 계속 용법",
+      "prompt": "완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["Mia는 5년째 바이올린을 배우고 있다.",
+               "→ Mia ______ ______ the violin for five years."],
+      "answer": "has learned",
+      "explanation": "‘5년째 ~하고 있다’는 과거부터 지금까지 이어지는 일이므로 현재완료의 계속 용법으로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 46,
+      "포인트": "already는 have와 p.p. 사이에 놓인다",
+      "prompt": "완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["나는 이미 그 책을 읽었다.",
+               "→ I ______ already ______ the book."],
+      "answer": "have, read",
+      "explanation": "already는 「have[has] + p.p.」 사이에 놓이며, read의 과거분사는 형태가 같은 read이다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 47,
+      "포인트": "복수 주어의 현재완료는 have + p.p.",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["The players (have left, has left) the stadium just",
+               "now."],
+      "answer": "have left",
+      "explanation": "주어 The players가 복수이므로 have left가 알맞다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 49,
+      "포인트": "복수 주어의 현재완료는 have + p.p.",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["The guests (have returned, has returned) from",
+               "Osaka."],
+      "answer": "have returned",
+      "explanation": "주어 The guests가 복수이므로 have returned가 알맞다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(1회).pdf", "number": 5,
+      "포인트": "과거진행시제 was + v-ing",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["Mark는 그때 설거지를 하던 중이었다.",
+               "→ Mark __________ the dishes then.(wash)"],
+      "answer": "was washing",
+      "explanation": "‘~하던 중이었다’의 의미는 「was / were + v-ing」 형태의 과거진행시제로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(1회).pdf", "number": 7,
+      "포인트": "현재완료 경험 의문문",
+      "prompt": "주어진 문장과 같은 뜻이 되도록 빈칸을 채우시오.",
+      "body": ["당신은 지금까지 외국에서 살아본 적 있나요?",
+               "___________ you ever ____________ abroad?"],
+      "answer": "Have, lived",
+      "explanation": "‘지금까지 ~한 적이 있나요?’는 「have + 과거분사」의 현재완료로 표현한다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(1회).pdf", "number": 8,
+      "포인트": "현재완료 경험 용법",
+      "prompt": "주어진 문장을 영어로 쓰시오.",
+      "body": ["그는 초밥을 먹어본 적이 있다.",
+               "→ ___________________________________________."],
+      "answer": "He has eaten sushi.",
+      "explanation": "‘~해 본 적이 있다’라는 경험을 나타내는 문장은 현재완료를 사용한다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(1회).pdf", "number": 17,
+      "포인트": "현재완료 계속 용법",
+      "prompt": "다음 문장의 의미를 모두 포함하는 문장을 쓰시오.",
+      "body": ["▪ He started working at the bank 5 years ago.",
+               "▪ He works at the bank now.",
+               "답 : He _____ _____ _____ _____ for 5 years."],
+      "answer": "has worked at the bank",
+      "explanation": "과거의 일이 현재까지 이어지는 것을 나타내므로 「have/has + 과거분사」의 현재완료가 들어가야 한다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(2회).pdf", "number": 3,
+      "포인트": "복수 주어의 과거진행시제",
+      "prompt": "과거진행시제를 사용하여 빈칸을 채우시오.",
+      "body": ["They _____ (wait) at the station an hour ago."],
+      "answer": "were waiting",
+      "explanation": "주어가 복수이고 과거의 한 시점에 하고 있던 일이므로 「were + v-ing」로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(2회).pdf", "number": 10,
+      "포인트": "과거시제·현재시제·현재완료 구별",
+      "prompt": "다음 빈칸에 괄호 안의 말을 알맞은 형태로 써 넣어 문장을 완성하시오.",
+      "body": ["(1) Sora ______ to Busan four years ago. (move)",
+               "(2) Sora ______ in Busan now. (live)",
+               "(3) Sora ______ in Busan for four years. (live)"],
+      "answer": "(1) moved (2) lives (3) has lived",
+      "explanation": "(1) 4년 전에 이사 간 것이므로 move의 과거시제인 moved로 쓴다. (2) 현재의 사실이므로 현재시제인 lives로 쓴다. (3) 4년 동안 부산에 계속 살고 있는 것이므로 현재완료시제인 has lived로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(2회).pdf", "number": 15,
+      "포인트": "have[has] been to — ~에 가 본 적이 있다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["민호는 제주도에 다녀온 적이 있다.",
+               "→ Minho __________ to Jeju Island. (be)"],
+      "answer": "has been",
+      "explanation": "‘~에 가 본 적이 있다’의 의미는 have / has been to ~로 나타낸다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(2회).pdf", "number": 19,
+      "포인트": "Have you ~? 에 대한 대답",
+      "prompt": "다음 대화의 빈칸에 알맞은 말을 고르세요.",
+      "body": ["A : Have you ever been to London?",
+               "B :"],
+      "choices": ["Yes, I do.", "Yes, I have.", "No, I didn’t.", "No, I wasn’t.", "Yes, you have."],
+      "answer": "②",
+      "explanation": "Have you ~?로 묻는 질문에는 Yes, I have. 또는 No, I haven’t.로 답해야 한다."
+    },
+    {
+      "file": "[기본] 2.시제_확인문제(2회).pdf", "number": 20,
+      "포인트": "기간을 묻는 How long + 현재완료",
+      "prompt": "다음 대화의 주어진 대답이 나올 수 있도록 질문을 완성하세요.",
+      "body": ["A : the guitar?",
+               "B : I have played the guitar for 7 years."],
+      "answer": "How long have you played",
+      "explanation": "B는 ‘나는 7년 동안 기타를 쳐 왔다.’라고 답했으므로 ‘얼마나 오래 기타를 쳤니?’라는 질문이 어울린다."
+    }
+  ]
+}

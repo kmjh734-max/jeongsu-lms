@@ -1,0 +1,106 @@
+{
+  "_설명": "천일문 1권 Chapter 10 to부정사와 동명사 가운데 to부정사 문항을 변형한 것. 은행에서는 기초 10과 to부정사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 10,
+  "chapter": "to부정사와 동명사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 10, "chapter": "to부정사" },
+  "points": [
+    { "unit_no": 1, "unit": "to부정사", "point_no": 1, "point": "to부정사 = 주어 (~하는 것은)", "frequent": false },
+    { "unit_no": 1, "unit": "to부정사", "point_no": 2, "point": "to부정사 = 보어 (~하는 것이다)", "frequent": false },
+    { "unit_no": 1, "unit": "to부정사", "point_no": 3, "point": "to부정사 = 목적어 (~하는 것을)", "frequent": false },
+    { "unit_no": 1, "unit": "to부정사", "point_no": 4, "point": "목적과 감정의 원인을 나타내는 to부정사", "frequent": true },
+    { "unit_no": 1, "unit": "to부정사", "point_no": 5, "point": "(대)명사를 뒤에서 꾸미는 to부정사", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [3], "point_label": "목적어로 쓰인 to부정사",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> You need [[to lock]] the door first."],
+      "choices": [
+        { "no": 1, "text": "My goal is to learn Spanish." },
+        { "no": 2, "text": "He likes to play the guitar." },
+        { "no": 3, "text": "To speak in public is hard." },
+        { "no": 4, "text": "His dream is to fly a plane." },
+        { "no": 5, "text": "To drink water is good for you." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [4, 5], "point_label": "꾸미는 to부정사와 목적의 to부정사",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I have something [[to eat]] now." },
+        { "no": 2, "text": "She visited me [[to say]] thanks." },
+        { "no": 3, "text": "I don’t have time [[to read]] books." },
+        { "no": 4, "text": "Tom gave her some water [[to drink]]." },
+        { "no": 5, "text": "There’s no one [[to help]] us tonight." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [4], "point_label": "목적을 나타내는 to부정사",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "<보기>와 같이 주어진 두 문장을 to부정사를 이용하여 한 문장으로 다시 쓰세요.",
+      "body": [
+        "<보기> I exercise every day. I wanted to stay healthy. → I exercise every day to stay healthy.",
+        "He saved money. He wanted to buy a new bike.",
+        "→ ______________________________________"
+      ],
+      "choices": [],
+      "answer": "He saved money to buy a new bike."
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [3], "point_label": "to부정사와 동명사를 모두 쓰는 동사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분과 바꿔 쓸 수 있는 말을 고르세요.",
+      "body": ["He started [[to run]] along the river."],
+      "choices": [
+        { "no": 1, "text": "run" },
+        { "no": 2, "text": "running" },
+        { "no": 3, "text": "runs" },
+        { "no": 4, "text": "to running" },
+        { "no": 5, "text": "ran" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [4], "point_label": "목적을 나타내는 to부정사의 자리",
+      "question_kind": "배열 영작", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 영작할 때 세 번째 빈칸에 오는 것을 고르세요.",
+      "body": ["대부분의 새는 날기 위해 날개가 필요하다.", "Most ______ ______ ______ ______ ______."],
+      "choices": [
+        { "no": 1, "text": "birds" },
+        { "no": 2, "text": "wings" },
+        { "no": 3, "text": "to" },
+        { "no": 4, "text": "need" },
+        { "no": 5, "text": "fly" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [3], "point_label": "to부정사를 목적어로 쓰는 동사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["Did you ______ to read the book about animals?"],
+      "choices": [
+        { "no": 1, "text": "start" },
+        { "no": 2, "text": "hate" },
+        { "no": 3, "text": "finish" },
+        { "no": 4, "text": "want" },
+        { "no": 5, "text": "love" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [3], "point_label": "expect+to부정사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["나는 시험에 합격할 것을 기대하지 않았다. (expect, pass)", "→ I didn’t ________________ the exam."],
+      "choices": [],
+      "answer": "expect to pass"
+    }
+  ]
+}

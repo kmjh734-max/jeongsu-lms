@@ -1,0 +1,216 @@
+{
+  "_설명": "천일문 3권 Chapter 03 수동태에서 가져와 변형한 문항. 은행에서는 심화 5과 수동태 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 3,
+  "chapter": "수동태",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 5, "chapter": "수동태" },
+  "points": [
+    { "unit_no": 1, "unit": "수동태의 형태와 시제", "point_no": 1, "point": "수동태 = be동사+p.p.(+by 행위자)", "frequent": true },
+    { "unit_no": 1, "unit": "수동태의 형태와 시제", "point_no": 2, "point": "미래·진행·완료의 수동태", "frequent": true },
+    { "unit_no": 1, "unit": "수동태의 형태와 시제", "point_no": 3, "point": "조동사가 있는 수동태: 조동사+be+p.p.", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 수동태", "point_no": 4, "point": "수동태로 쓸 수 없는 동사(자동사)", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 수동태", "point_no": 5, "point": "by 이외의 전치사를 쓰는 수동태", "frequent": false },
+    { "unit_no": 2, "unit": "주의할 수동태", "point_no": 6, "point": "4형식·5형식 문장의 수동태", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1], "point_label": "현재 수동태",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["The park ______ by volunteers every weekend."],
+      "choices": [
+        { "no": 1, "text": "clean" },
+        { "no": 2, "text": "is cleaned" },
+        { "no": 3, "text": "is cleaning" },
+        { "no": 4, "text": "to clean" },
+        { "no": 5, "text": "cleaned" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [2], "point_label": "will be+p.p.",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["A new library ______ in our town next spring."],
+      "choices": [
+        { "no": 1, "text": "will build" },
+        { "no": 2, "text": "will be building" },
+        { "no": 3, "text": "will built" },
+        { "no": 4, "text": "will be built" },
+        { "no": 5, "text": "is build" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [4], "point_label": "목적어가 있어야 수동태로 쓴다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 수동태로 바꿔 쓸 수 있는 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Nora belongs to a book club." },
+        { "no": 2, "text": "Many children love cats as pets." },
+        { "no": 3, "text": "My key often disappears in the house." },
+        { "no": 4, "text": "My aunt became a manager of a hotel." },
+        { "no": 5, "text": "After heavy snow, accidents can occur easily." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [1, 3], "point_label": "과거 수동태와 조동사 수동태",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 (A), (B)를 바르게 고쳐 쓴 것끼리 짝지어진 것을 고르세요.",
+      "body": [
+        "• Hangeul (A) [[taught]] to many students by Ms. Kim.",
+        "• The sign (B) [[can see]] well even in the fog."
+      ],
+      "choices": [
+        { "no": 1, "text": "was taught — can seen" },
+        { "no": 2, "text": "was taught — can is seen" },
+        { "no": 3, "text": "was taught — can be seen" },
+        { "no": 4, "text": "has taught — can is seen" },
+        { "no": 5, "text": "has taught — can be seen" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [1, 4], "point_label": "자동사는 수동태로 쓰지 않는다",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 (A), (B)를 바르게 고쳐 쓴 것끼리 짝지어진 것을 고르세요.",
+      "body": [
+        "• Bees (A) [[consider]] busy by many people.",
+        "• The storm (B) [[happen]] suddenly last night."
+      ],
+      "choices": [
+        { "no": 1, "text": "considered — happened" },
+        { "no": 2, "text": "are considered — happened" },
+        { "no": 3, "text": "are considering — happened" },
+        { "no": 4, "text": "are considered — was happened" },
+        { "no": 5, "text": "are considering — was happened" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [1], "point_label": "능동태를 수동태로",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 문장을 수동태 문장으로 바꿔 쓰세요.",
+      "body": ["The teacher locked the doors after the class.", "→ ________________ after the class."],
+      "choices": [],
+      "answer": "The doors were locked by the teacher"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [3], "point_label": "조동사+be+p.p.",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "다음 문장을 수동태 문장으로 바꿔 쓰세요.",
+      "body": ["Students should return the books by Friday.", "→ ________________ by Friday."],
+      "choices": [],
+      "answer": "The books should be returned by students"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [1, 5], "point_label": "be동사를 빠뜨린 수동태",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I’m worried about my math grade." },
+        { "no": 2, "text": "The papers and cans can be recycled." },
+        { "no": 3, "text": "When Mia was six, her little brother was born." },
+        { "no": 4, "text": "The player is expected to win the match by his fans." },
+        { "no": 5, "text": "The girl called a genius when she solved the puzzle in a minute." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [2, 3], "point_label": "조동사 뒤에는 be+p.p.",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The show was watched by many people." },
+        { "no": 2, "text": "Soup was made for me by Dad." },
+        { "no": 3, "text": "These statues in the museum must be move carefully." },
+        { "no": 4, "text": "A new album will be released by the singer next month." },
+        { "no": 5, "text": "A warm lunch is being made by my sister in the kitchen." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [5], "point_label": "be filled with, be known for",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• The café is always filled ______(A) the smell of fresh coffee.",
+        "• The writer is known ______(B) writing short poems."
+      ],
+      "choices": [
+        { "no": 1, "text": "in — to" },
+        { "no": 2, "text": "with — for" },
+        { "no": 3, "text": "about — as" },
+        { "no": 4, "text": "about — for" },
+        { "no": 5, "text": "with — to" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [1, 6], "point_label": "구동사와 4형식의 수동태",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 문장의 전환이 올바르지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "You can bake bread with this recipe. → Bread can be baked with this recipe by you." },
+        { "no": 2, "text": "He gave the letter to my brother. → The letter was given to my brother by him." },
+        { "no": 3, "text": "I often put off my chores until later. → My chores are often put off by me until later." },
+        { "no": 4, "text": "The students carried out a project for their class. → A project was carried out the students for their class." },
+        { "no": 5, "text": "The children gave the teacher some cards on Teacher’s Day. → Some cards were given to the teacher by the children on Teacher’s Day." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [2], "point_label": "진행형 수동태 be being+p.p.",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["그 연극의 입장권이 지금 온라인에서 판매되는 중이다. (sell)", "→ Tickets for the play ________________ online now."],
+      "choices": [],
+      "answer": "are being sold"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [3], "point_label": "should be+p.p.",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["이 셔츠는 손으로 세탁되어야 한다. (should, wash)", "→ This shirt ________________ by hand."],
+      "choices": [],
+      "answer": "should be washed"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [1, 2, 3], "point_label": "수동태 문장 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장의 개수를 고르세요.",
+      "body": [
+        "ⓐ Am I allowed to leave now?",
+        "ⓑ These plants should watered daily.",
+        "ⓒ She has never been inviting to such a big party.",
+        "ⓓ The thief was caught by the police.",
+        "ⓔ The street was blocked because of the parade.",
+        "ⓕ The windows were broken by the storm."
+      ],
+      "choices": [
+        { "no": 1, "text": "2개" },
+        { "no": 2, "text": "3개" },
+        { "no": 3, "text": "4개" },
+        { "no": 4, "text": "5개" },
+        { "no": 5, "text": "6개" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [3], "point_label": "조동사+be+p.p.",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "If you are interested in fantasy novels, try reading The Hobbit. It’s known for its rich world and lovely characters. The book can being enjoyed by you and all the readers.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "being enjoyed → be enjoyed"
+    }
+  ]
+}

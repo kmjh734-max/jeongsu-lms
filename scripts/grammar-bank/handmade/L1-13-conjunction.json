@@ -1,0 +1,170 @@
+{
+  "_설명": "기초 13과 접속사 — and/or/but/so/because/if, when. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 13.접속사_종합문제(2회).pdf", "number": 1,
+      "포인트": "결과를 나타내는 so",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 접속사를 쓰시오.",
+      "body": ["나는 물을 너무 많이 마셔서 배가 부르다.",
+               "→ I drank too much water ______ I’m full."],
+      "answer": "so",
+      "explanation": "‘그래서’라는 결과의 의미를 나타내는 접속사는 so이다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(2회).pdf", "number": 19,
+      "포인트": "때를 나타내는 When",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 접속사를 쓰시오.",
+      "body": ["개구리는 태어날 때 꼬리가 있다.",
+               "→ ______ a frog is born, it has a tail."],
+      "answer": "When",
+      "explanation": "‘~할 때’라는 때를 나타내는 접속사는 when이다."
+    },
+    {
+      "file": "[기초] 13.접속사_체크체크.pdf", "number": 2,
+      "포인트": "역접을 나타내는 but",
+      "prompt": "우리말에 맞게 빈칸에 알맞은 접속사를 넣으세요.",
+      "body": ["저는 지도를 가져왔지만, 길을 잃었어요.",
+               "I brought a map, _____ I got lost."],
+      "answer": "but",
+      "explanation": "앞뒤 내용이 서로 반대되므로 역접의 접속사 but을 쓴다."
+    },
+    {
+      "file": "[기초] 13.접속사_체크체크.pdf", "number": 4,
+      "포인트": "같은 주어의 두 동사를 and로 연결",
+      "prompt": "다음 두 문장의 뜻이 같게 할 때 빈칸에 알맞은 말을 써 넣으세요.",
+      "body": ["My mother planned this trip. My mother",
+               "booked this trip.",
+               "→ My mother _____ _____ _____ this trip."],
+      "answer": "planned and booked",
+      "explanation": "주어가 같고 동사만 다르므로 두 동사를 and로 연결한다."
+    },
+    {
+      "file": "[기초] 13.접속사_체크체크.pdf", "number": 9,
+      "포인트": "결과를 나타내는 so",
+      "prompt": "and, or, but, so, because, if 중 적절한 접속사를 선택하여 쓰시오.",
+      "body": ["Mr. Kim woke up late ______ he missed the",
+               "train."],
+      "answer": "so",
+      "explanation": "늦게 일어난 결과 기차를 놓친 것이므로 so가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_체크체크.pdf", "number": 10,
+      "포인트": "역접을 나타내는 but",
+      "prompt": "and, or, but, so, because, if 중 적절한 접속사를 선택하여 쓰시오.",
+      "body": ["I knocked on the door twice ______ nobody",
+               "answered."],
+      "answer": "but",
+      "explanation": "앞뒤 내용이 서로 반대되므로 but이 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_체크체크.pdf", "number": 11,
+      "포인트": "나열을 나타내는 and",
+      "prompt": "and, or, but, so, because, if 중 적절한 접속사를 선택하여 쓰시오.",
+      "body": ["The guard found the lost child ______ took him",
+               "to his parents."],
+      "answer": "and",
+      "explanation": "두 동작이 나란히 이어지므로 and가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_체크체크.pdf", "number": 12,
+      "포인트": "선택을 나타내는 or",
+      "prompt": "and, or, but, so, because, if 중 적절한 접속사를 선택하여 쓰시오.",
+      "body": ["You can pay now ______ next week."],
+      "answer": "or",
+      "explanation": "둘 중 하나를 고르는 선택의 의미이므로 or가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_체크체크.pdf", "number": 13,
+      "포인트": "and로 두 동사를 연결하기",
+      "prompt": "and 또는 or을 사용하여 한 문장으로 쓰시오.",
+      "body": ["The firefighter climbed the ladder. The",
+               "firefighter saved the cat."],
+      "answer": "The firefighter climbed the ladder and saved the cat.",
+      "explanation": "주어가 같으므로 뒤 문장의 주어를 생략하고 두 동사를 and로 연결한다."
+    },
+    {
+      "file": "[기초] 13.접속사_체크체크.pdf", "number": 17,
+      "포인트": "이유를 나타내는 because",
+      "prompt": "and, or, but, so, because, if 중 적절한 접속사를 선택하여 쓰시오.",
+      "body": ["Sora is strong ______ she swims every morning."],
+      "answer": "because",
+      "explanation": "뒤 내용이 앞 내용의 이유가 되므로 because가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_체크체크.pdf", "number": 19,
+      "포인트": "이유를 나타내는 because",
+      "prompt": "and, or, but, so, because, if 중 적절한 접속사를 선택하여 쓰시오.",
+      "body": ["Daniel wants a blanket ______ he is feeling",
+               "chilly."],
+      "answer": "because",
+      "explanation": "뒤 내용이 앞 내용의 이유가 되므로 because가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_체크체크.pdf", "number": 20,
+      "포인트": "because로 이유 연결하기",
+      "prompt": "because를 사용하여 다음 두 문장을 [[한 문장]]으로 쓰세요.",
+      "body": ["I opened the window. The room was so hot.",
+               "→ _________________________________________"],
+      "answer": "I opened the window because the room was so hot.",
+      "explanation": "뒤 문장이 앞 문장의 이유이므로 because로 연결한다."
+    },
+    {
+      "file": "[기초] 13.접속사_체크체크.pdf", "number": 21,
+      "포인트": "because로 이유 연결하기",
+      "prompt": "because를 사용하여 다음 두 문장을 [[한 문장]]으로 쓰세요.",
+      "body": ["I admire Admiral Yi Sun-sin. He protected our",
+               "country.",
+               "→ _________________________________________"],
+      "answer": "I admire Admiral Yi Sun-sin because he protected our country.",
+      "explanation": "뒤 문장이 앞 문장의 이유이므로 because로 연결한다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(2회).pdf", "number": 2,
+      "포인트": "선택을 나타내는 or",
+      "prompt": "다음 빈칸에 알맞은 접속사를 <보기>에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "so but or",
+               "We can buy tickets at the counter ______ online."],
+      "answer": "or",
+      "explanation": "둘 중 하나를 고르는 선택의 의미이므로 or가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(2회).pdf", "number": 4,
+      "포인트": "나열을 나타내는 and",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 접속사를 쓰시오.",
+      "body": ["그 고양이는 조용하고 영리하다.",
+               "→ The cat is quiet _____ clever."],
+      "answer": "and",
+      "explanation": "두 형용사를 나란히 이어 주므로 and가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(2회).pdf", "number": 5,
+      "포인트": "결과를 나타내는 so",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["나는 두 시간 동안 뛰어서 너무 목이 말랐다.",
+               "(very thirsty)",
+               "→ I ran for two hours __________________."],
+      "answer": "so I was very thirsty",
+      "explanation": "‘그래서’라는 결과의 의미이므로 so로 연결한다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(2회).pdf", "number": 6,
+      "포인트": "때를 나타내는 when",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["가위를 사용할 때는 조심해야 한다. (use, scissors)",
+               "→ You must be careful __________________."],
+      "answer": "when you use scissors",
+      "explanation": "‘~할 때’라는 뜻의 때를 나타내는 접속사 when으로 연결한다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(2회).pdf", "number": 19,
+      "포인트": "이유를 나타내는 because",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["그 영화가 지루했기 때문에 나는 하품을 했다.",
+               "(the movie, boring)",
+               "→ I yawned ________________________."],
+      "answer": "because the movie was boring",
+      "explanation": "‘~ 때문에’라는 이유를 나타내는 접속사 because로 연결한다."
+    }
+  ]
+}

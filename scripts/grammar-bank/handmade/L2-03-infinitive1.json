@@ -1,0 +1,199 @@
+{
+  "_설명": "기본 3과 부정사[1] — 명사적·형용사적 용법, 의문사 + to부정사. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(2회).pdf", "number": 4,
+      "포인트": "to부정사[동명사] 주어",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오. (단, 필요하면 형태를 바꿀 것)",
+      "body": ["일찍 일어나는 것은 건강에 좋다.",
+               "(early, good, is, get up)",
+               "→ ______________________ for your health."],
+      "answer": "To get up[Getting up] early is good",
+      "explanation": "get up을 주어 역할을 하는 to부정사 또는 동명사로 바꾼다. 「to부정사구[동명사구] + 동사 ~」의 어순으로 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(2회).pdf", "number": 25,
+      "포인트": "명사를 꾸미는 to부정사의 형용사적 용법",
+      "prompt": "다음 빈칸에 알맞은 말을 <보기>에서 골라 빈칸을 완성하시오.",
+      "body": ["<보기>",
+               "read drink wear",
+               "She bought a warm coat ________ ________."],
+      "answer": "to wear",
+      "explanation": "명사를 수식하는 to부정사의 형용사적 용법이다. ‘입을 따뜻한 외투’라는 뜻이 되도록 wear를 고른다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(2회).pdf", "number": 28,
+      "포인트": "명사 + to부정사로 두 문장 합치기",
+      "prompt": "주어진 문장을 <보기>와 같이 고치시오.",
+      "body": ["<보기>",
+               "I have a lot of homework, I have to do it.",
+               "⟹I have a lot of homework to do.",
+               "We have a book report.",
+               "We have to hand it in by Friday.",
+               "= We have a book report ______ ______ in by",
+               "Friday."],
+      "answer": "to hand",
+      "explanation": "「명사 + to부정사」는 명사를 수식하는 to부정사의 형용사적 용법이다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 1,
+      "포인트": "의문사 + to부정사",
+      "prompt": "빈칸에 들어갈 알맞은 단어를 쓰시오.",
+      "body": ["(1) 나는 이 기계를 어떻게 고칠지 모르겠어요.",
+               "→ I don’t know _______ _______ _______ this",
+               "machine.",
+               "(2) 나는 언제 출발해야 할지 모르겠어요.",
+               "→ I don’t know _______ _______ _______."],
+      "answer": "(1) how to fix, (2) when to leave",
+      "explanation": "「의문사 + to + 동사원형」의 형태가 들어간다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 7,
+      "포인트": "보어로 쓰인 to부정사",
+      "prompt": "우리말에 맞게 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["그녀의 목표는 의사가 되는 것이다.",
+               "→ Her goal is _______ _______ a doctor."],
+      "answer": "to be",
+      "explanation": "to부정사의 명사적 용법 : (보어)"
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 8,
+      "포인트": "where + to부정사 배열",
+      "prompt": "우리말을 참고하여 주어진 단어를 바르게 배열하세요.",
+      "body": ["나는 이 상자를 어디에 두어야 할지 모르겠다.",
+               "(to / where / this / box / put)",
+               "→ I don’t know ."],
+      "answer": "where to put this box",
+      "explanation": "where to put this box: 이 상자를 어디에 두어야 할지. 「의문사 + to부정사」는 ‘~할지’의 의미로 명사처럼 쓰인다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 11,
+      "포인트": "의문사 + to부정사에는 주어를 쓰지 않는다",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["I don’t know (when, when I) to leave."],
+      "answer": "when",
+      "explanation": "「의문사 + to부정사」의 형태이므로 의문사 뒤에 주어를 쓰지 않는다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 13,
+      "포인트": "to부정사의 부정은 not + to부정사",
+      "prompt": "대화 내용과 일치하도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["Mina : Don’t touch anything in my room!",
+               "Tom : OK.",
+               "→ Mina wants Tom",
+               "in her room.(4단어)"],
+      "answer": "not to touch anything",
+      "explanation": "to부정사의 부정은 to부정사 앞에 not을 둔다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 14,
+      "포인트": "what + to부정사",
+      "prompt": "우리말에 맞게 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["나는 무엇을 말해야 할지 모르겠어.",
+               "→ I don’t know ."],
+      "answer": "what to say",
+      "explanation": "what to say: 무엇을 말해야 할지"
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 18,
+      "포인트": "가주어 It",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["(It’s, That’s) not easy to learn Chinese."],
+      "answer": "It’s",
+      "explanation": "뒤에 오는 to부정사가 진주어이므로 가주어로는 It을 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 19,
+      "포인트": "It is + 형용사 + to부정사 배열",
+      "prompt": "to부정사를 사용하여 주어진 단어를 우리말에 맞게 배열하시오.",
+      "body": ["(is/on New Year’s Day/eat tteokguk/It/common)",
+               "설날에 떡국을 먹는 것은 흔한 일이다."],
+      "answer": "It is common to eat tteokguk on New Year’s Day.",
+      "explanation": "가주어 It을 앞에 두고 진주어인 to부정사구를 뒤로 보낸다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 20,
+      "포인트": "가주어 It",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["(It, This) is necessary to keep promises."],
+      "answer": "It",
+      "explanation": "뒤에 오는 to부정사가 진주어이므로 가주어로는 It을 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 22,
+      "포인트": "It is + 형용사 + to부정사 배열",
+      "prompt": "to부정사를 사용하여 주어진 단어를 우리말에 맞게 배열하시오.",
+      "body": ["(It/useful/a foreign language/is/these days/learn)",
+               "요즘은 외국어를 배우는 것이 유용하다."],
+      "answer": "It is useful to learn a foreign language these days.",
+      "explanation": "가주어 It을 앞에 두고 진주어인 to부정사구를 뒤로 보낸다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 23,
+      "포인트": "It is + 형용사 + to부정사 배열",
+      "prompt": "to부정사를 사용하여 주어진 단어를 우리말에 맞게 배열하시오.",
+      "body": ["(fans/meet/It/as/hard/a lot of/is/an/actor)",
+               "배우로서 많은 팬을 만나는 것은 힘든 일이다."],
+      "answer": "It is hard to meet a lot of fans as an actor.",
+      "explanation": "가주어 It을 앞에 두고 진주어인 to부정사구를 뒤로 보낸다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 24,
+      "포인트": "It is not + 형용사 + to부정사 배열",
+      "prompt": "to부정사를 사용하여 주어진 단어를 우리말에 맞게 배열하시오.",
+      "body": ["(eat vegetables/every day/is/not easy/It)",
+               "매일 채소를 먹는 것은 쉽지 않다."],
+      "answer": "It is not easy to eat vegetables every day.",
+      "explanation": "가주어 It을 앞에 두고 진주어인 to부정사구를 뒤로 보낸다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 26,
+      "포인트": "보어로 쓰인 to부정사 배열",
+      "prompt": "to부정사를 사용하여 주어진 단어를 우리말에 맞게 배열하시오.",
+      "body": ["(summer/is/this/us/Tom’s/plan/join)",
+               "Tom의 계획은 올여름 우리와 함께하는 것이다."],
+      "answer": "Tom’s plan is to join us this summer.",
+      "explanation": "to부정사가 be동사 뒤에서 보어로 쓰여 ‘~하는 것이다’의 뜻을 나타낸다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 28,
+      "포인트": "주어로 쓰인 to부정사 배열",
+      "prompt": "to부정사를 사용하여 주어진 단어를 우리말에 맞게 배열하시오.",
+      "body": ["(helpful/with/discuss/is/very/problems/classm",
+               "ates)",
+               "반 친구들과 문제를 의논하는 것은 정말 도움이 된다."],
+      "answer": "To discuss problems with classmates is very helpful.",
+      "explanation": "to부정사구가 문장의 주어로 쓰였으며, 주어로 쓰인 to부정사는 단수 취급하여 동사 is를 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 35,
+      "포인트": "명사를 꾸미는 to부정사와 보어로 쓰인 to부정사",
+      "prompt": "to부정사를 사용하여 주어진 단어를 우리말에 맞게 배열하시오.",
+      "body": ["The best way _________________________.",
+               "(it/to/is/enjoy/the journey/share)",
+               "여행을 즐기는 최고의 방법은 그것을 나누는 것이다."],
+      "answer": "to enjoy the journey is to share it",
+      "explanation": "앞의 to부정사는 The best way를 꾸미는 형용사적 용법이고, 뒤의 to부정사는 be동사 뒤에서 보어로 쓰인 명사적 용법이다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 36,
+      "포인트": "명사를 꾸미는 to부정사",
+      "prompt": "to부정사를 사용하여 주어진 단어를 우리말에 맞게 배열하시오.",
+      "body": ["I have ______________________________.",
+               "(you/exciting story/an/tell)",
+               "나는 너에게 들려줄 신나는 이야기가 있다."],
+      "answer": "an exciting story to tell you",
+      "explanation": "to부정사가 앞의 명사 story를 꾸미는 형용사적 용법이다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_체크체크.pdf", "number": 37,
+      "포인트": "서수 뒤에서 명사를 꾸미는 to부정사",
+      "prompt": "to부정사를 사용하여 주어진 단어를 우리말에 맞게 배열하시오.",
+      "body": ["She is _________________________.",
+               "(the first/in this town/woman/open a bookstore)",
+               "그녀는 이 마을에서 서점을 연 최초의 여성이다."],
+      "answer": "the first woman to open a bookstore in this town",
+      "explanation": "「the first + 명사 + to부정사」는 ‘~한 최초의 …’라는 뜻으로, to부정사가 앞의 명사를 꾸민다."
+    }
+  ]
+}

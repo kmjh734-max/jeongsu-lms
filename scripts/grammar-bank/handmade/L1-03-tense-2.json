@@ -1,0 +1,111 @@
+{
+  "_설명": "기초 3과 동사의 시제 — 나머지. 현재시제 수일치, 과거시제, 과거진행형. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 28,
+      "포인트": "복수 주어에는 동사원형",
+      "prompt": "주어진 동사를 적절한 현재시제 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["Trained horses _____ (follow) the rider’s signal",
+               "at once."],
+      "answer": "follow",
+      "explanation": "주어가 복수이므로 복수 동사의 형태인 동사원형이 오는 것이 알맞다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 29,
+      "포인트": "3인칭 단수 주어에는 -s",
+      "prompt": "주어진 동사를 적절한 현재시제 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["Daniel _____ (draw) cartoons very well."],
+      "answer": "draws",
+      "explanation": "Daniel은 3인칭 단수 주어이므로 3인칭 단수 동사인 draws가 오는 것이 알맞다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 30,
+      "포인트": "복수 주어에는 동사원형",
+      "prompt": "주어진 동사를 적절한 현재시제 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["All the children _____ (laugh) together in class."],
+      "answer": "laugh",
+      "explanation": "children은 child의 복수 형태이므로 복수 동사 laugh가 오는 것이 알맞다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(1회).pdf", "number": 5,
+      "포인트": "과거형 의문문 Did + 주어 + 동사원형",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 단어를 이용하여 문장을 완성하시오.",
+      "body": ["그 경기는 6시에 시작했니? (start)",
+               "→ ____________ the match ___________ at six?"],
+      "answer": "Did, start",
+      "explanation": "일반동사 과거형의 의문문은 주어에 상관없이 「Did + 주어 + 동사원형 ~?」의 형태로 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(1회).pdf", "number": 9,
+      "포인트": "과거진행형 were + v-ing",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 동사를 이용하여 문장을 완성하시오.",
+      "body": ["그들은 담장을 고치고 있었다.(fix)",
+               "→ They ____________________ the fence."],
+      "answer": "were fixing",
+      "explanation": "‘~하고 있었다’라는 의미는 과거진행형으로 나타내며, 과거진행형은 「be동사의 과거형 + 동사원형-ing」로 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(1회).pdf", "number": 15,
+      "포인트": "tell의 과거형 told",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["그녀는 어제 우리에게 재미있는 농담을 해 주었어.",
+               "(tell)",
+               "→ _______________ a funny joke to us yesterday."],
+      "answer": "She told",
+      "explanation": "‘그녀’에 해당하는 대명사 she와 tell의 과거형 told를 이용하여 문장을 완성한다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(2회).pdf", "number": 1,
+      "포인트": "복수 주어에는 동사원형",
+      "prompt": "동사의 적절한 형태를 고르시오.",
+      "body": ["My friends often (borrow, borrows) my books."],
+      "answer": "borrow",
+      "explanation": "주어 My friends가 복수이므로 동사원형 borrow를 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(2회).pdf", "number": 5,
+      "포인트": "현재진행형 어순",
+      "prompt": "주어진 단어를 배열하시오.",
+      "body": ["is / barking / The / dog"],
+      "answer": "The dog is barking.",
+      "explanation": "「주어 + be동사 + 동사원형-ing」의 어순으로 현재진행형을 만든다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(2회).pdf", "number": 10,
+      "포인트": "단순 과거시제로 바꾸기",
+      "prompt": "주어진 조건에 맞게 문장을 바꿔 쓰시오.",
+      "body": ["We meet each other at the library. (Use the",
+               "simple past tense.)"],
+      "answer": "We met each other at the library.",
+      "explanation": "meet의 과거형은 met이다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(2회).pdf", "number": 13,
+      "포인트": "복수 주어에는 동사원형",
+      "prompt": "주어진 동사를 적절한 현재시제 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["The kittens usually _____ (sleep) in the basket."],
+      "answer": "sleep",
+      "explanation": "주어 The kittens가 복수이므로 동사원형 sleep을 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(2회).pdf", "number": 16,
+      "포인트": "didn’t 뒤에는 동사원형",
+      "prompt": "괄호에 주어진 것 중 적절한 것을 고르시오.",
+      "body": ["They (didn’t notice, didn’t notices) anything",
+               "strange there."],
+      "answer": "didn’t notice",
+      "explanation": "didn’t 뒤에는 동사원형을 써야 하므로 didn’t notice가 알맞다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(2회).pdf", "number": 18,
+      "포인트": "과거진행형으로 답하기",
+      "prompt": "다음 그림을 보고 문장의 빈칸에 들어갈 알맞은 말을 쓰세요.",
+      "body": ["〈그림〉",
+               "A : What were you doing when I visited you",
+               "yesterday?",
+               "B : ."],
+      "answer": "I was watching TV",
+      "explanation": "‘~하고 있었다’는 과거진행형 「was/were + 동사원형-ing」로 답한다."
+    }
+  ]
+}

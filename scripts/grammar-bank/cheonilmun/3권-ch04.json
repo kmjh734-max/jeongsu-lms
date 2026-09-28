@@ -1,0 +1,205 @@
+{
+  "_설명": "천일문 3권 Chapter 04 부정사에서 가져와 변형한 문항. 은행에서는 심화 1과 부정사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 4,
+  "chapter": "부정사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 1, "chapter": "부정사" },
+  "points": [
+    { "unit_no": 1, "unit": "명사적 용법", "point_no": 1, "point": "가주어 It ~ 진주어 to부정사", "frequent": true },
+    { "unit_no": 1, "unit": "명사적 용법", "point_no": 2, "point": "의미상 주어: for+목적격 / of+목적격", "frequent": true },
+    { "unit_no": 1, "unit": "명사적 용법", "point_no": 3, "point": "의문사+to부정사", "frequent": false },
+    { "unit_no": 2, "unit": "형용사적·부사적 용법", "point_no": 4, "point": "(대)명사를 꾸미는 to부정사와 남는 전치사", "frequent": true },
+    { "unit_no": 2, "unit": "형용사적·부사적 용법", "point_no": 7, "point": "부사적 용법: 목적·결과·감정의 원인", "frequent": true },
+    { "unit_no": 3, "unit": "목적격보어와 원형부정사", "point_no": 5, "point": "목적격보어로 쓰이는 to부정사와 원형부정사", "frequent": true },
+    { "unit_no": 3, "unit": "목적격보어와 원형부정사", "point_no": 6, "point": "지각동사+목적어+동사원형[-ing형]", "frequent": true },
+    { "unit_no": 4, "unit": "주요 구문", "point_no": 8, "point": "too ~ to … / ~ enough to …", "frequent": false },
+    { "unit_no": 4, "unit": "주요 구문", "point_no": 9, "point": "가목적어 it", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1], "point_label": "가주어 It ~ 진주어 to부정사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["It is easy ______ a simple recipe."],
+      "choices": [
+        { "no": 1, "text": "follows" },
+        { "no": 2, "text": "follow" },
+        { "no": 3, "text": "to follow" },
+        { "no": 4, "text": "to following" },
+        { "no": 5, "text": "for following" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [2], "point_label": "성격을 나타내는 형용사 뒤에는 of",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 단어가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "It is possible ______ you to reach your goal." },
+        { "no": 2, "text": "It is necessary ______ students to review daily." },
+        { "no": 3, "text": "It is kind ______ him to help the old man." },
+        { "no": 4, "text": "It can be helpful ______ children to read this book." },
+        { "no": 5, "text": "It is interesting ______ me to learn about space." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [2], "point_label": "for와 of 가려 쓰기",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 단어가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "It is generous ______ Susan to share her lunch." },
+        { "no": 2, "text": "It is rude ______ them to cut in line." },
+        { "no": 3, "text": "It was careless ______ him to lose his key." },
+        { "no": 4, "text": "It is wise ______ you to plan ahead." },
+        { "no": 5, "text": "It is important ______ people to save water." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [3], "point_label": "where+to부정사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["나는 점원에게 이 상자들을 어디에 둘지 물어보았다. (put, these boxes)", "→ I asked the clerk ________________."],
+      "choices": [],
+      "answer": "where to put these boxes"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [4], "point_label": "to부정사 뒤에 남는 전치사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "She doesn’t have much time to rest." },
+        { "no": 2, "text": "Can you lend me a chair to sit on?" },
+        { "no": 3, "text": "Mary has many balls for children to play." },
+        { "no": 4, "text": "He needs someone to look after his dog." },
+        { "no": 5, "text": "They are looking for a room to live in." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [5], "point_label": "사역동사와 tell의 목적격보어",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["Ms. Han ______ us clean the classroom."],
+      "choices": [
+        { "no": 1, "text": "had" },
+        { "no": 2, "text": "helped" },
+        { "no": 3, "text": "let" },
+        { "no": 4, "text": "told" },
+        { "no": 5, "text": "made" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [3], "point_label": "want+to부정사, what+to부정사",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "A: Do you want ______(A) to the new market?",
+        "B: Yes, but I don’t know ______(B) there."
+      ],
+      "choices": [
+        { "no": 1, "text": "go — when to buy" },
+        { "no": 2, "text": "going — what to buy" },
+        { "no": 3, "text": "to go — what to buy" },
+        { "no": 4, "text": "to go — when to buy" },
+        { "no": 5, "text": "going — how to buy" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [5, 6], "point_label": "지각동사와 help의 목적격보어",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• When I was little, I always watched my mom ______(A).",
+        "• Reading books together helps children ______(B) each other."
+      ],
+      "choices": [
+        { "no": 1, "text": "cook — to understand" },
+        { "no": 2, "text": "cook — understanding" },
+        { "no": 3, "text": "to cook — to understand" },
+        { "no": 4, "text": "cooking — understanding" },
+        { "no": 5, "text": "for cooking — understand" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [1, 7], "point_label": "목적어로 쓰인 to부정사",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> She started [[to learn]] how to ride a horse."],
+      "choices": [
+        { "no": 1, "text": "I was shocked to hear the story." },
+        { "no": 2, "text": "He has many friends to help him." },
+        { "no": 3, "text": "He finally decided to change his job." },
+        { "no": 4, "text": "I need something to drink with my sister." },
+        { "no": 5, "text": "She studied hard to get a better grade." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [7], "point_label": "결과를 나타내는 to부정사",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> The boy grew up [[to be]] a famous chef."],
+      "choices": [
+        { "no": 1, "text": "I had no time to watch the show." },
+        { "no": 2, "text": "James made a list of things to bring." },
+        { "no": 3, "text": "I bought many books to read at home." },
+        { "no": 4, "text": "We went to the animal shelter to volunteer." },
+        { "no": 5, "text": "Sara has a plan to move to a new town." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [6], "point_label": "지각동사+목적어+동사원형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Sumi heard her sister to sing in the bathroom.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "to sing → sing[singing]"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [5], "point_label": "사역동사+목적어+동사원형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["My dad made me cleaning my room every Sunday.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "cleaning → clean"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [9], "point_label": "가목적어 it",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["The app makes that easy to book a ticket.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "that → it"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [5, 8, 9], "point_label": "부정사 문장 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장의 개수를 고르세요.",
+      "body": [
+        "ⓐ This song is difficult to sing.",
+        "ⓑ We planted trees to make shade.",
+        "ⓒ The tourists asked us taking photos of them.",
+        "ⓓ I closed the window to not waste heat.",
+        "ⓔ A child under 10 is so young to watch this film.",
+        "ⓕ That is hard for him to get a good score on the math test."
+      ],
+      "choices": [
+        { "no": 1, "text": "1개" },
+        { "no": 2, "text": "2개" },
+        { "no": 3, "text": "3개" },
+        { "no": 4, "text": "4개" },
+        { "no": 5, "text": "5개" }
+      ],
+      "answer": "②"
+    }
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "_설명": "완성 3과 조동사 — 조동사 + have p.p., ought to. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 1,
+      "포인트": "may[might] have p.p. — ~했을지도 모른다",
+      "prompt": "우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["우리가 어제 들은 것은 천둥이었을 지도 몰라.",
+               "= What we heard yesterday ________ ________",
+               "________ thunder."],
+      "answer": "may[might] have been",
+      "explanation": "「may[might] + have + 과거분사」는 ‘~했을지도 모른다’라는 의미로 과거의 일에 대한 불확실한 추측을 나타낸다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 2,
+      "포인트": "should have p.p.와 could have p.p.",
+      "prompt": "우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["너는 나에게 미리 말했어야 해. 그러면 내가 널 기다릴",
+               "수 있었을 거야.",
+               "= You ________ ________ ________ me in advance.",
+               "Then I ________ ________ ________ for you."],
+      "answer": "should have told, could have waited",
+      "explanation": "「should + have + 과거분사」는 ‘~했어야 했는데 (하지 않았다)’라는 후회를, 「could have + 과거분사」는 ‘~할 수 있었는데 (못했다)’라는 과거의 가능성을 나타낸다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 3,
+      "포인트": "can’t have p.p. — ~했을 리가 없다",
+      "prompt": "우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["그녀가 그 열쇠를 잃어버렸을 리가 없어. 그녀는 항상",
+               "조심한다고.",
+               "= She __________________________ the key. She is",
+               "always careful."],
+      "answer": "can’t[cannot] have lost",
+      "explanation": "「can’t[cannot] have + 과거분사」는 ‘~했을[였을] 리가 없다’라는 의미로 과거의 일에 대한 강한 부정적 추측 또는 의심을 나타낸다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 4,
+      "포인트": "should have p.p.",
+      "prompt": "우리말과 일치하도록 빈칸에 알맞은 말을 [[4단어]]로 쓰시오.",
+      "body": ["나는 그 표지판을 봤어야 했어.",
+               "= I _______________________________ the sign."],
+      "answer": "should have looked at",
+      "explanation": "「should have + 과거분사」는 ‘~했어야 했는데 (하지 않았다)’라는 의미로 과거의 일에 대한 후회를 나타낸다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 5,
+      "포인트": "must have p.p. — ~했음에 틀림없다",
+      "prompt": "우리말과 일치하도록 괄호 안에 주어진 단어를 사용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["그는 그 결과를 보았을 때, 실망했음에 틀림없어.",
+               "= He __________________________________ when",
+               "he saw the result. (disappointed)"],
+      "answer": "must have been disappointed",
+      "explanation": "「must have + 과거분사」는 ‘~했음[였음]에 틀림없다’라는 의미로 과거의 일에 대한 강한 추측을 나타낸다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 6,
+      "포인트": "ought not to + 동사원형",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 단어를 활용하여 [[4단어]]로 영작하시오.",
+      "body": ["너는 다른 사람의 편지를 읽어서는 안 돼.",
+               "→ You _________________________________ other",
+               "people’s letters. (read)"],
+      "answer": "ought not to read",
+      "explanation": "충고나 제안을 할 때 조동사 should와 ought to를 쓰며, ought to의 부정은 「ought not to + 동사원형」으로 나타낸다. 4단어라는 조건을 충족하려면 ought not to를 써야 한다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 8,
+      "포인트": "과거 추측은 may have p.p.",
+      "prompt": "다음 문장에서 어법상 [[틀린]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["I’ve been knocking but no one opens. Everyone",
+               "may leave already.",
+               "___________________ → ___________________"],
+      "answer": "may leave → may have left",
+      "explanation": "‘아무도 문을 열지 않으므로 모두 이미 떠났을지도 모른다’라는 과거 사실에 대한 추측이므로, 과거 사실에 대한 약한 추측을 나타내는 「may have + 과거분사」로 고쳐야 한다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 11,
+      "포인트": "might have p.p.",
+      "prompt": "다음 대화의 괄호 안에서 문맥상 알맞은 것을 고르고 그 이유를 서술하시오.",
+      "body": ["A : Do you know why she didn’t answer my",
+               "message?",
+               "B : No, I don’t. She ⑴ [might lose / might have",
+               "lost] her phone.",
+               "⑵ 이유 : _______________________________________",
+               "_______________________________________________."],
+      "answer": "⑴ might have lost ⑵ 과거의 일에 대해 추측하는 상황이므로 might have lost가 알맞다.",
+      "explanation": "그녀가 답을 하지 않은 이유를 모르는 상황이므로 과거의 일에 대한 불확실한 추측을 나타내는 「might have + 과거분사」의 형태가 되어야 한다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 12,
+      "포인트": "could have p.p. — ~할 수 있었는데",
+      "prompt": "다음 문장의 괄호 안에서 문맥상 알맞은 것을 고르고 그 이유를 서술하시오.",
+      "body": ["The race was not so long and I ⑴ [could finish",
+               "/ could have finished] it, but I didn’t.",
+               "⑵ 이유 : _______________________________________",
+               "_______________________________________________."],
+      "answer": "⑴ could have finished ⑵ 과거의 일에 대한 가능성을 가정하고 있으므로 could have finished가 알맞다.",
+      "explanation": "‘경주가 그렇게 길지 않아서 완주할 수 있었는데 그러지 못했다’라는 의미이므로, 과거의 일에 대한 가능성을 나타내는 「could have + 과거분사」의 형태가 되어야 한다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 13,
+      "포인트": "앞으로의 일에 대한 충고는 should",
+      "prompt": "다음 글의 괄호 안에서 문맥상 알맞은 것을 고르고 그 이유를 서술하시오.",
+      "body": ["I checked the schedule just now and the library",
+               "closes early today. You ⑴ [should hurry / should",
+               "have hurried].",
+               "⑵ 이유 : _______________________________________",
+               "_______________________________________________."],
+      "answer": "⑴ should hurry ⑵ 도서관이 오늘 일찍 닫는다고 했으므로 should를 사용하여 서두르라고 충고하는 문장이 되어야 한다.",
+      "explanation": "방금 일정을 확인했고 오늘 도서관이 일찍 닫는다고 했으므로, 조동사 should를 사용하여 서두르라고 충고하는 의미가 되어야 알맞다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 15,
+      "포인트": "shouldn’t have p.p. — ~하지 말았어야 했다",
+      "prompt": "다음 문장의 괄호 안에서 문맥상 알맞은 것을 고르고 그 이유를 서술하시오.",
+      "body": ["My rude reply upset my friend. I ⑴ [couldn’t",
+               "have written / shouldn’t have written] such a",
+               "message to him.",
+               "⑵ 이유 : _______________________________________",
+               "_______________________________________________."],
+      "answer": "⑴ shouldn’t have written ⑵ 친구를 속상하게 한 것을 후회하는 의미가 되어야 자연스럽다.",
+      "explanation": "과거에 무례한 답장을 보낸 것을 후회하는 문장이 되도록 ‘~하지 말았어야 했는데 해버렸다’라는 의미의 「should not have + 과거분사」 표현이 적절하다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 16,
+      "포인트": "should = ought to",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오. (need는 사용하지 말 것)",
+      "body": ["If you want to stay healthy, you should drink",
+               "enough water.",
+               "= If you want to stay healthy, you _______",
+               "________ ________ enough water."],
+      "answer": "ought to drink",
+      "explanation": "상대방에게 제안 또는 충고를 할 때, 조동사 should, ought to를 사용하여 「should + 동사원형」, 「ought to + 동사원형」으로 나타낸다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 18,
+      "포인트": "could not have p.p.",
+      "prompt": "다음 두 문장의 의미가 같도록 괄호 안에 주어진 단어를 사용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Thanks to his teacher’s help, he was able to",
+               "finish the project on time.",
+               "= Without his teacher’s help, he ________",
+               "________ ________ ________ the project on time.",
+               "(could)"],
+      "answer": "could not have finished",
+      "explanation": "문맥상 과거에 선생님의 도움이 없었더라면 끝내지 못했을 것이라는 과거 사실에 대한 추측이다. 따라서 ‘~하지 못했을 텐데’라는 의미의 「could not have + 과거분사」 표현이 적절하다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 19,
+      "포인트": "should not + 동사원형",
+      "prompt": "다음 두 문장의 의미가 같도록 should를 사용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["He advised me not to skip meals.",
+               "= He said to me, “You ________________________",
+               "_____________________________________________.”"],
+      "answer": "should not skip meals",
+      "explanation": "그는 나에게 끼니를 거르지 말라고 충고했으므로, ‘~해서는 안 된다’라는 의미가 되도록 「should not + 동사원형」의 형태로 나타낸다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 20,
+      "포인트": "cannot have p.p. — ~했을 리가 없다",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 [[3단어]]로 쓰시오.",
+      "body": ["It is impossible that Tom forgot her birthday.",
+               "= Tom ______________________________________",
+               "her birthday."],
+      "answer": "cannot have forgotten",
+      "explanation": "Tom이 그녀의 생일을 잊은 것은 불가능한 일이라고 했으므로, ‘~했을 리가 없다’라는 의미로 과거의 일에 대한 강한 부정적 추측을 나타내는 「cannot have + 과거분사」 표현을 사용한다."
+    },
+    {
+      "file": "[완성] 3.조동사_체크체크.pdf", "number": 22,
+      "포인트": "may[might] have p.p.",
+      "prompt": "다음 두 문장의 의미가 같도록 적절한 조동사를 사용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["I’m not so sure, but it’s possible that Mina left",
+               "the office early.",
+               "= Mina ____________________________ the office",
+               "early."],
+      "answer": "may[might] have left",
+      "explanation": "과거의 일에 대해 확신은 없지만 가능성은 있다고 말할 때, ‘~했을지도 모른다’라는 의미의 「may[might] have + 과거분사」 표현을 사용하여 약한 추측을 나타낸다."
+    }
+  ]
+}

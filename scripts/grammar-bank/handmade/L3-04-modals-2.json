@@ -1,0 +1,157 @@
+{
+  "_설명": "심화 4과 조동사 — used to, may well, ought to, 제안의 that절. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 4.조동사_종합문제(2회).pdf", "number": 20,
+      "포인트": "used to + 동사원형 — 과거의 상태·습관",
+      "prompt": "다음 주어진 단어를 사용하여 우리말에 맞는 문장을 완성하시오.(모든 단어를 한 번씩 사용함)",
+      "body": ["Mark는 안경을 썼었으나 지금은 렌즈를 낀다.",
+               "(glasses, wear, contact lenses, used to, wears)",
+               "→ Mark _____________________, but now he",
+               "_____________________."],
+      "answer": "used to wear glasses, wears contact lenses",
+      "explanation": "‘used to’ 구문으로 과거의 규칙적인 습관이나 상태를 나타내며, 현재는 그렇지 않다는 의미를 포함하고 있다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 1,
+      "포인트": "정해진 일정은 현재진행형으로 미래를 나타낸다",
+      "prompt": "다음 우리말 뜻에 맞게 빈칸을 채우세요.",
+      "body": ["너 언제 부산으로 이사 가니?",
+               "When _____ you _____ to Busan?"],
+      "answer": "are, moving",
+      "explanation": "이미 하기로 정해진 일을 나타내는 미래시제는 현재진행형을 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 2,
+      "포인트": "can’t help + 동명사 — ~하지 않을 수 없다",
+      "prompt": "우리말에 맞게 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["그녀는 그를 도와주지 않을 수가 없다.",
+               "→ She helping him."],
+      "answer": "can’t help",
+      "explanation": "cannot help -ing: ~하지 않을 수가 없다"
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 3,
+      "포인트": "약한 추측을 나타내는 might",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["The recent report showed that it (may, might)",
+               "not be safe."],
+      "answer": "might",
+      "explanation": "주절의 시제가 과거(showed)이므로 종속절의 조동사도 과거형 might로 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 4,
+      "포인트": "may well — ~하는 것도 당연하다",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["She (may, can) well be proud of her daughter",
+               "who is a doctor."],
+      "answer": "may",
+      "explanation": "「may well + 동사원형」은 ‘~하는 것도 당연하다’라는 뜻이다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 5,
+      "포인트": "may as well — ~하는 편이 낫다",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["He (can, may) as well start exercising for his",
+               "health."],
+      "answer": "may",
+      "explanation": "「may as well + 동사원형」은 ‘~하는 편이 낫다’라는 뜻이다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 8,
+      "포인트": "ought to의 부정은 ought not to",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["You (ought not to, ought to not) drink too",
+               "much coffee."],
+      "answer": "ought not to",
+      "explanation": "ought to의 부정은 not을 ought 뒤, to 앞에 써서 ought not to로 나타낸다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 10,
+      "포인트": "강한 권유의 must",
+      "prompt": "우리말에 맞게 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["훌륭한 책이야. 꼭 읽어야 해.",
+               "→ It’s a great book. You read it.",
+               "(1단어)"],
+      "answer": "must",
+      "explanation": "must: (반드시) ~해야 한다(말하는 사람의 주관적 감정이 담겨 있음)"
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 12,
+      "포인트": "suggest that + 주어 + (should) + 동사원형",
+      "prompt": "문장의 빈칸에 apologize를 적절한 형태로 쓰세요.",
+      "body": ["나는 그녀가 즉시 사과해야 할 것을 제안한다.",
+               "→ I suggest that she right",
+               "away."],
+      "answer": "apologize",
+      "explanation": "I suggest that 주어 + (should) + 동사원형 : 나는 ~해야 한다고 제안한다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 13,
+      "포인트": "과거의 습관을 나타내는 would",
+      "prompt": "적절한 조동사의 형태를 고르시오.",
+      "body": ["The old man (would, would like to) walk along",
+               "the river every morning."],
+      "answer": "would",
+      "explanation": "‘~하곤 했다’라는 과거의 습관을 나타내므로 would가 알맞다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 14,
+      "포인트": "would like + 명사 — ~을 원하다",
+      "prompt": "적절한 조동사의 형태를 고르시오.",
+      "body": ["She (would, would like) some water to cool",
+               "down."],
+      "answer": "would like",
+      "explanation": "뒤에 명사가 오므로 ‘~을 원하다’라는 뜻의 would like가 알맞다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 15,
+      "포인트": "used to — (과거에) ~하곤 했다",
+      "prompt": "다음 글의 빈칸에 들어갈 말을 두 단어의 영어로 쓰시오.",
+      "body": ["When I was young, my family _______ _______",
+               "visit my grandparents every holiday. It was",
+               "always warm there. I miss those days."],
+      "answer": "used to",
+      "explanation": "‘(과거에) ~하곤 했다’의 의미를 갖는 조동사인 used to가 적절하다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 16,
+      "포인트": "used to + 동사원형",
+      "prompt": "다음 두 문장을 같은 뜻의 한 문장으로 바꿀 때 빈 칸에 알맞은 말을 쓰시오.",
+      "body": ["My dad played the guitar on weekends, but he",
+               "doesn’t play it now.",
+               "→ My dad _______ _______ _______ the guitar",
+               "on weekends."],
+      "answer": "used to play",
+      "explanation": "‘(과거에) ~하곤 했다’의 의미로 과거의 습관을 나타내는 표현은 「used to + 동사원형」이다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 17,
+      "포인트": "used to + 동사원형",
+      "prompt": "다음 문장을 use를 이용해서 바꾸시오. (필요하면 동사를 변형하시오.)",
+      "body": ["I hated carrots, but now I don’t hate them",
+               "anymore.",
+               "→ I __________________________________________."],
+      "answer": "used to hate carrots",
+      "explanation": "used to + 동사원형: ~하곤 했다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 20,
+      "포인트": "used to + 동사원형",
+      "prompt": "다음 우리말 문장에 맞게 빈칸을 채우세요.",
+      "body": ["나의 어머니는 어렸을 때 그림 그리기를 아주 좋아하셨다.",
+               "→ My mother _____________ like drawing when",
+               "she was young."],
+      "answer": "used to",
+      "explanation": "‘그림 그리기를 좋아했다’는 과거의 상태를 나타내려면 used to가 빈칸에 들어가야 한다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 21,
+      "포인트": "ought to 뒤에는 동사원형",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["We ought to keeping our promises."],
+      "answer": "keeping → keep",
+      "explanation": "「ought to + 동사원형」의 형태로 ‘충고’나 ‘의무’를 나타내므로 동사원형인 keep으로 고쳐야 한다."
+    }
+  ]
+}

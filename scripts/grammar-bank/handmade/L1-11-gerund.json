@@ -1,0 +1,156 @@
+{
+  "_설명": "기초 11과 동명사 — 주어·보어·목적어, 전치사 뒤의 동명사, to부정사와 바꿔 쓰기. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 11.동명사_종합문제(2회).pdf", "number": 1,
+      "포인트": "주어로 쓰인 동명사",
+      "prompt": "<보기>에서 알맞은 단어를 골라 동명사 형태로 빈칸을 채우시오.",
+      "body": ["<보기>",
+               "dance  run  be  drink  talk  see  cook  ride",
+               "_____________ is a good exercise for your body.",
+               "(춤추는 것은 몸에 좋은 운동이다.)"],
+      "answer": "Dancing",
+      "explanation": "문장의 주어 자리이므로 dance를 동명사 Dancing으로 바꿔 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(2회).pdf", "number": 4,
+      "포인트": "주어로 쓰인 to부정사를 동명사로 바꾸기",
+      "prompt": "다음 두 문장이 같은 뜻이 되도록 빈칸을 채우시오.",
+      "body": ["To swim is the thing I can’t do well.",
+               "= __________ is the thing I can’t do well."],
+      "answer": "Swimming",
+      "explanation": "주어로 쓰인 to부정사는 동명사로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(2회).pdf", "number": 11,
+      "포인트": "보어로 쓰인 동명사",
+      "prompt": "그림을 보고 주어진 단어를 알맞은 형태로 바꿔 빈칸을 채우시오.",
+      "body": ["My job is _____________ Italian food. (cook)"],
+      "answer": "cooking",
+      "explanation": "be동사 뒤 보어 자리이므로 cook을 동명사 cooking으로 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(2회).pdf", "number": 28,
+      "포인트": "주어로 쓰인 to부정사를 동명사로 바꾸기",
+      "prompt": "다음 두 문장이 같은 뜻이 되도록 빈칸을 채우시오.",
+      "body": ["To prepare healthy snacks for your children is",
+               "not easy.",
+               "= __________ healthy snacks for your children is",
+               "not easy."],
+      "answer": "Preparing",
+      "explanation": "주어로 쓰인 to부정사는 동명사로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기초] 11.동명사_체크체크.pdf", "number": 1,
+      "포인트": "전치사 뒤에는 동명사",
+      "prompt": "다음 문장에서 밑줄 친 부분을 알맞게 고쳐 쓰시오.",
+      "body": ["He is interested in [[to collect]] old stamps."],
+      "answer": "collecting",
+      "explanation": "전치사 in 뒤에는 동명사가 와야 하므로 to collect를 collecting으로 고친다."
+    },
+    {
+      "file": "[기초] 11.동명사_체크체크.pdf", "number": 2,
+      "포인트": "보어로 쓰인 동명사",
+      "prompt": "주어진 문장의 내용에 맞게 빈칸을 채우시오.",
+      "body": ["I like riding a bike. It’s my favorite hobby.",
+               "→ My favorite hobby ________ ________ ________",
+               "________."],
+      "answer": "is riding a bike",
+      "explanation": "be동사 뒤 보어 자리에 동명사구 riding a bike를 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_체크체크.pdf", "number": 9,
+      "포인트": "목적어로 쓰인 동명사",
+      "prompt": "우리말에 맞게 주어진 단어를 배열하시오.",
+      "body": ["내 남동생은 블록을 갖고 노는 것을 좋아해요.",
+               "(younger brother / My / playing / likes / with blocks)",
+               "→ _________________________________________"],
+      "answer": "My younger brother likes playing with blocks.",
+      "explanation": "like의 목적어 자리에 동명사 playing을 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_체크체크.pdf", "number": 10,
+      "포인트": "보어로 쓰인 동명사를 to부정사로 바꾸기",
+      "prompt": "다음 두 문장이 같은 뜻이 되도록 빈칸을 채우시오.",
+      "body": ["My wish is visiting Europe.",
+               "= My wish is ________ ________ Europe."],
+      "answer": "to visit",
+      "explanation": "보어로 쓰인 동명사는 to부정사로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기초] 11.동명사_체크체크.pdf", "number": 11,
+      "포인트": "주어로 쓰인 동명사를 to부정사로 바꾸기",
+      "prompt": "다음 두 문장이 같은 뜻이 되도록 빈칸을 채우시오.",
+      "body": ["Riding a horse is exciting.",
+               "= ________ ________ ________ is exciting."],
+      "answer": "To ride a horse",
+      "explanation": "주어로 쓰인 동명사는 to부정사로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기초] 11.동명사_체크체크.pdf", "number": 12,
+      "포인트": "전치사 about 뒤의 동명사",
+      "prompt": "<보기>의 단어를 모두 배열하여 우리말에 맞는 문장을 쓰시오.",
+      "body": ["넌 학교에서의 휴대폰 사용에 대해 어떻게 생각하니?",
+               "<보기>",
+               "do / think / you / what / about / at / school /",
+               "using / phones / ?",
+               "→ _________________________________________"],
+      "answer": "What do you think about using phones at school?",
+      "explanation": "전치사 about 뒤에 동명사 using이 오는 어순으로 배열한다."
+    },
+    {
+      "file": "[기초] 11.동명사_체크체크.pdf", "number": 13,
+      "포인트": "동명사 주어는 단수 취급",
+      "prompt": "다음 문장에서 어법상 [[틀린]]부분을 찾아 바르게 고치시오.",
+      "body": ["Building model ships were my hobby."],
+      "answer": "were → was",
+      "explanation": "동명사구 주어는 단수 취급하므로 동사도 단수형 was로 써야 한다."
+    },
+    {
+      "file": "[기초] 11.동명사_체크체크.pdf", "number": 16,
+      "포인트": "have a habit of + 동명사",
+      "prompt": "괄호 안의 표현을 이용하여 우리말에 맞게 영작하시오.",
+      "body": ["그녀는 손톱을 물어뜯는 습관이 있다.",
+               "(have a habit of / bite her nails)",
+               "→ _________________________________________"],
+      "answer": "She has a habit of biting her nails.",
+      "explanation": "전치사 of 뒤에는 동명사가 오므로 bite를 biting으로 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_체크체크.pdf", "number": 19,
+      "포인트": "전치사 without 뒤의 동명사",
+      "prompt": "다음 문장에서 어법상 [[틀린]]부분을 찾아 문장을 바르게 고쳐 쓰시오.",
+      "body": ["They finished the work without take a break.",
+               "→ _________________________________________"],
+      "answer": "They finished the work without taking a break.",
+      "explanation": "전치사 without 뒤에는 동명사가 와야 하므로 take를 taking으로 고친다."
+    },
+    {
+      "file": "[기초] 11.동명사_체크체크.pdf", "number": 20,
+      "포인트": "be good at + 동명사, as well as + 동명사",
+      "prompt": "괄호 안의 단어를 알맞은 형태로 바꿔 쓰시오.",
+      "body": ["Daniel is good at __________(paint) as well as",
+               "__________(sing)."],
+      "answer": "painting, singing",
+      "explanation": "전치사 at과 as well as 뒤에는 모두 동명사가 온다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(2회).pdf", "number": 2,
+      "포인트": "주어로 쓰인 to부정사를 동명사로 바꾸기",
+      "prompt": "다음 두 문장이 같은 뜻이 되도록 빈칸을 채우시오.",
+      "body": ["To ride a bicycle is sometimes dangerous.",
+               "= __________ a bicycle is sometimes dangerous."],
+      "answer": "Riding",
+      "explanation": "주어로 쓰인 to부정사는 동명사로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(2회).pdf", "number": 7,
+      "포인트": "Thank you for + 동명사",
+      "prompt": "괄호 안의 말을 이용하여 우리말에 맞게 빈칸을 채우시오.",
+      "body": ["내 가방을 들어줘서 고마워. (carry, my bag)",
+               "→ Thank you for _______________________."],
+      "answer": "carrying my bag",
+      "explanation": "전치사 for 뒤에는 동명사가 오므로 carry를 carrying으로 쓴다."
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "_설명": "기초 14과 전치사 — 시간·장소 전치사. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 14.전치사_종합문제(2회).pdf", "number": 2,
+      "포인트": "between A and B — A와 B 사이에",
+      "prompt": "다음 그림을 보고, 빈칸에 알맞은 표현을 써서 문장을 완성하시오.",
+      "body": ["〈그림〉",
+               "The bakery is _____ the flower shop _____ the",
+               "bank."],
+      "answer": "between, and",
+      "explanation": "제과점은 꽃 가게와 은행 사이에 있으므로 between A and B(A와 B 사이에)가 알맞다. A와 B의 차례는 바뀌어도 뜻이 같다."
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(2회).pdf", "number": 11,
+      "포인트": "숫자로 된 기간 앞에는 for",
+      "prompt": "다음 우리말과 의미가 같도록 <보기>에서 알맞은 단어를 골라 문장을 완성하시오.",
+      "body": ["<보기>",
+               "during for before after",
+               "나는 저녁에 두 시간 동안 책을 읽는다.",
+               "→ I read _____ two hours in the evening."],
+      "answer": "for",
+      "explanation": "‘~ 동안’의 의미로 숫자와 함께 구체적인 시간이 나올 때는 for를 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(2회).pdf", "number": 13,
+      "포인트": "수단의 by와 기한의 by",
+      "prompt": "다음 문장의 빈칸에 공통으로 들어갈 알맞은 말을 쓰세요.",
+      "body": ["I’ll send the file fax.",
+               "Please come back five o’clock."],
+      "answer": "by",
+      "explanation": "by fax: 팩스로 / by five o’clock: 5시까지"
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(2회).pdf", "number": 16,
+      "포인트": "전치사 like — ~와 같은",
+      "prompt": "다음 우리말을 참고하여 빈칸에 공통으로 들어갈 알맞은 말을 쓰세요.",
+      "body": ["그것은 작은 별처럼 보인다.",
+               "→ It looks a small star.",
+               "태양과 같은 별들이 많이 있다.",
+               "→ There are many stars the Sun."],
+      "answer": "like",
+      "explanation": "like는 전치사로 ‘~와 같은’의 의미로 쓰였다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 1,
+      "포인트": "특정한 날 앞에는 on",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞게 고쳐 쓰시오.",
+      "body": ["Koreans have rice cake soup [[at]] New Year’s",
+               "Day."],
+      "answer": "on",
+      "explanation": "특정한 날 앞에는 on을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 2,
+      "포인트": "특정한 때를 나타내는 명사 앞에는 during",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞게 고쳐 쓰시오.",
+      "body": ["We stayed indoors [[for]] the storm."],
+      "answer": "during",
+      "explanation": "the storm은 특정한 때를 나타내므로 during을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 3,
+      "포인트": "특정 기간을 나타내는 명사 앞에는 during",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 전치사를 쓰시오.",
+      "body": ["방학 동안 나는 매일 수영했다.",
+               "→ I swam every day _____ the vacation."],
+      "answer": "during",
+      "explanation": "‘~ 동안’이라는 의미로 뒤에 특정 기간을 나타내는 명사가 올 경우 during을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 4,
+      "포인트": "~ 전에 before",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 전치사를 쓰시오.",
+      "body": ["해가 지기 전에 우리는 집에 돌아와야 한다.",
+               "→ We have to come home ______ sunset."],
+      "answer": "before",
+      "explanation": "‘~ 전에’라는 뜻으로 시간을 나타내는 전치사는 before이다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 5,
+      "포인트": "숫자로 된 기간 앞에는 for",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 전치사를 쓰시오.",
+      "body": ["My dad started painting at 2 o’clock and",
+               "stopped it at 6 o’clock.",
+               "→ My dad painted _____ 4 hours."],
+      "answer": "for",
+      "explanation": "2시에 시작해서 6시에 끝냈다고 했으므로 4시간 동안 칠을 한 것이다. ‘~ 동안’이라는 뜻으로 숫자로 된 구체적인 기간 앞에 오는 전치사 for가 알맞다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 7,
+      "포인트": "at + 시각, for + 숫자로 된 기간",
+      "prompt": "다음 공연 시간표를 보고 빈칸에 들어갈 알맞은 말을 <보기>에서 골라 쓰시오.",
+      "body": ["Concert Schedule",
+               "Jazz Night 1 p.m. ~ 3 p.m.",
+               "Rock Show 4 p.m. ~ 6 p.m.",
+               "Piano Recital 7 p.m. ~ 9 p.m.",
+               "<보기>",
+               "for during after before from at",
+               "Jazz Night starts _______ one o‘clock and lasts",
+               "_______ two hours."],
+      "answer": "at, for",
+      "explanation": "at + 시각: ~시에 / for + 숫자로 된 구체적인 기간: ~ 동안"
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 8,
+      "포인트": "after와 from A to B",
+      "prompt": "다음 공연 시간표를 보고 빈칸에 들어갈 알맞은 말을 <보기>에서 골라 쓰시오.",
+      "body": ["Concert Schedule",
+               "Jazz Night 1 p.m. ~ 3 p.m.",
+               "Rock Show 4 p.m. ~ 6 p.m.",
+               "Piano Recital 7 p.m. ~ 9 p.m.",
+               "<보기>",
+               "for during after before from at",
+               "Rock Show starts _____ Jazz Night and plays",
+               "_____ 4 to 6 p.m."],
+      "answer": "after, from",
+      "explanation": "after : ~ 후에 / from A to B : A부터 B까지"
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 9,
+      "포인트": "~ 후에 after",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 전치사를 쓰시오.",
+      "body": ["Ms. Green reads a book in the library, and then",
+               "she drinks tea.",
+               "→ Ms. Green drinks tea _________ reading."],
+      "answer": "after",
+      "explanation": "책을 읽은 후에 차를 마신다고 했으므로 after(~ 후에)가 알맞다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 10,
+      "포인트": "behind — ~ 뒤에",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["갑자기 그녀의 뒤에 검은 옷을 입은 남자가 나타났다.",
+               "(appeared, her, behind, a man in black)",
+               "→ Suddenly __________________________________."],
+      "answer": "a man in black appeared behind her",
+      "explanation": "behind : ~ 뒤에"
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 12,
+      "포인트": "in front of의 반대말 behind",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 전치사를 쓰시오.",
+      "body": ["The dog is running in front of the children.",
+               "→ The children are running _____ the dog."],
+      "answer": "behind",
+      "explanation": "개가 아이들 [[앞에서(in front of)]] 달리고 있다. → 아이들은 개 [[뒤에서(behind)]] 달리고 있다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 13,
+      "포인트": "닿지 않은 채 ~ 아래에 under",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 전치사를 쓰시오.",
+      "body": ["고양이가 침대 아래에 숨어 있다.",
+               "→ The cat is hiding _____ the bed."],
+      "answer": "under",
+      "explanation": "접촉하지 않은 상태로 ‘~ 아래에’ 있는 것을 나타내는 전치사는 under이다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 14,
+      "포인트": "표면에 닿아 있는 ‘위’는 on",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞게 고쳐 쓰시오.",
+      "body": ["I dropped my keys [[over]] the floor."],
+      "answer": "on",
+      "explanation": "over는 표면과 떨어져서 ‘위’를 의미하고, 표면과 접촉하여 ‘위’일 때는 on을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 15,
+      "포인트": "in front of의 반대말 behind",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["The library is in front of the post office.",
+               "→ The post office is _________ the library."],
+      "answer": "behind",
+      "explanation": "도서관이 우체국 앞에 있으므로 우체국은 도서관 뒤에 있다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 16,
+      "포인트": "after의 반대말 before",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Dessert always comes after the main dish.",
+               "→ The main dish always comes _________",
+               "dessert."],
+      "answer": "before",
+      "explanation": "주요리가 후식보다 먼저 나오는 것이므로 before가 알맞다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 17,
+      "포인트": "표면 위에서 하는 일은 on",
+      "prompt": "어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["The children are ice skating in the lake."],
+      "answer": "in → on",
+      "explanation": "스케이트는 얼어붙은 호수의 표면 위에서 타는 것이므로 ‘~ 안에’라는 의미의 in을 ‘~ 위에’라는 의미의 on으로 고친다."
+    },
+    {
+      "file": "[기초] 14.전치사_체크체크.pdf", "number": 18,
+      "포인트": "from A to B — A부터 B까지",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그 다리는 2001년부터 2005년까지 지어졌다.",
+               "(2001, 2005, to, from, was built)",
+               "→ The bridge ____________________________."],
+      "answer": "was built from 2001 to 2005",
+      "explanation": "from A to B : A부터 B까지"
+    }
+  ]
+}

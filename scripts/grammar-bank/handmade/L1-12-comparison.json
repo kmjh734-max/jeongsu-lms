@@ -1,0 +1,164 @@
+{
+  "_설명": "기초 12과 비교구문 — 원급·비교급·최상급. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 12.비교구문_종합문제(2회).pdf", "number": 19,
+      "포인트": "the + 최상급",
+      "prompt": "주어진 형용사를 적절한 형태로 바꿔 쓰시오.",
+      "body": ["My sister is the ______ (young) member in my",
+               "family."],
+      "answer": "youngest",
+      "explanation": "‘가족 중에서 가장 어린’이라는 뜻이므로 최상급 youngest를 쓴다."
+    },
+    {
+      "file": "[기초] 12.비교구문_종합문제(2회).pdf", "number": 25,
+      "포인트": "the + 최상급 + of the three",
+      "prompt": "다음 그림을 보고 내용에 맞게 빈칸을 채우세요.",
+      "body": ["〈그림〉",
+               "Among the three, Tom is the _____.(tall)"],
+      "answer": "tallest",
+      "explanation": "Tom은 세 명 중 가장 키가 크므로 최상급 [[tallest]]를 쓴다."
+    },
+    {
+      "file": "[기초] 12.비교구문_종합문제(2회).pdf", "number": 29,
+      "포인트": "A is the + 최상급 + 명사 + in ~",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["고래는 세계에서 가장 큰 동물이다.",
+               "(the world, in, the whale, animal, the, is, largest)",
+               "_____________________________________________."],
+      "answer": "The whale is the largest animal in the world.",
+      "explanation": "A is the + 최상급 + 명사 + in ~: A는 ~에서 가장 …한 -이다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 2,
+      "포인트": "배수 비교의 as ~ as 사이에는 원급",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["This box is three times as heavier as that one."],
+      "answer": "heavier → heavy",
+      "explanation": "「배수사 + as + 원급 + as」의 형태이므로 원급 heavy가 알맞다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 3,
+      "포인트": "as + 원급 + as",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["지호는 그의 형만큼 키가 크다. (tall)",
+               "→ Jiho is _______ _______ _______ his brother."],
+      "answer": "as, tall, as",
+      "explanation": "「as + 원급 + as」의 형태로 ‘~만큼 …한’의 의미를 나타낸다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 4,
+      "포인트": "감각동사 + as + 원급 + as",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["이 수프는 저 수프만큼 맛있는 냄새가 난다.",
+               "(smells, as, that soup, as, this soup, delicious)",
+               "→ __________________________________________."],
+      "answer": "This soup smells as delicious as that soup.",
+      "explanation": "A + 동사 + as + 원급 + as B : A는 B만큼 ~하다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 5,
+      "포인트": "비교급 + 명사 + than",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그녀는 언니보다 더 많은 책을 읽는다.",
+               "(than, more, she, her sister, reads, books)",
+               "→ __________________________________________."],
+      "answer": "She reads more books than her sister.",
+      "explanation": "「주어 + 동사 + 비교급 + 명사 + than ~.」의 어순으로 쓴다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 6,
+      "포인트": "A is + 비교급 + than B",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["시간은 돈보다 더 소중하다.",
+               "(money, precious, is, time, than, more)",
+               "_____________________________________________."],
+      "answer": "Time is more precious than money.",
+      "explanation": "A is + 비교급 + than B : A는 B보다 더 …하다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 7,
+      "포인트": "A is the + 최상급 + 명사 + in ~",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["치타는 세계에서 가장 빠른 동물이다.",
+               "(the world, in, the cheetah, animal, the, is,",
+               "fastest)",
+               "_____________________________________________."],
+      "answer": "The cheetah is the fastest animal in the world.",
+      "explanation": "A is the + 최상급 + 명사 + in ~: A는 ~에서 가장 …한 -이다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 9,
+      "포인트": "‘마지막의’라는 뜻의 last",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["little each every",
+               "last latest few",
+               "Emma was the ______ student to leave the",
+               "classroom."],
+      "answer": "last",
+      "explanation": "late의 최상급 중 ‘마지막의’라는 뜻일 때는 last를 쓴다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 10,
+      "포인트": "‘가장 최근의’라는 뜻의 latest",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["little each every",
+               "last latest few",
+               "Have you heard the ______ song by that band?"],
+      "answer": "latest",
+      "explanation": "late의 최상급 중 ‘가장 최근의’라는 뜻일 때는 latest를 쓴다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 11,
+      "포인트": "later와 latest의 구별",
+      "prompt": "주어진 문장의 오류를 찾아 고쳐 쓰시오.",
+      "body": ["Her later book is popular."],
+      "answer": "later → latest",
+      "explanation": "‘가장 최근의 책’이라는 뜻이 되어야 하므로 비교급 later가 아니라 최상급 latest를 써야 한다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 12,
+      "포인트": "as ~ as 사이에는 원급",
+      "prompt": "주어진 단어 중 적절한 것을 고르시오.",
+      "body": ["She is singing as (beautifully, more beautifully)",
+               "as a professional."],
+      "answer": "beautifully",
+      "explanation": "as와 as 사이에는 비교급이 아니라 원급을 써야 한다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 13,
+      "포인트": "as + 원급 + as와 not as + 원급 + as",
+      "prompt": "다음 표를 설명하는 두 개의 문장을 as ~ as 원급을 사용하여 완성하세요.",
+      "body": ["[[Name]] [[Age]] [[Weight]]",
+               "[[Mark]] [[15]] [[50kg]]",
+               "[[Jinu]] [[15]] [[60kg]]",
+               "(1) Mark is Jinu.",
+               "(2) Mark doesn’t weigh",
+               "Jinu."],
+      "answer": "(1)as old as (2)as much as",
+      "explanation": "(1) Mark는 진우와 나이가 같다. (2) Mark는 진우만큼 몸무게가 나가지 않는다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 14,
+      "포인트": "문맥에 맞는 형용사로 동등비교 만들기",
+      "prompt": "주어진 단어 중 빈칸에 적절한 것을 고르시오.",
+      "body": ["The baker has many customers. The butcher",
+               "has many customers, too.",
+               "The butcher is as ______ (busy, free) as the",
+               "baker."],
+      "answer": "busy",
+      "explanation": "두 사람 모두 손님이 많다고 했으므로 ‘바쁜’ 정도가 같다는 뜻이 되어야 한다."
+    },
+    {
+      "file": "[기초] 12.비교구문_체크체크.pdf", "number": 18,
+      "포인트": "문맥에 맞는 형용사로 동등비교 만들기",
+      "prompt": "주어진 단어 중 빈칸에 적절한 것을 고르시오.",
+      "body": ["The leather bag is $300. The silk scarf is also",
+               "$300.",
+               "The scarf is as ______ (cheap, expensive) as the",
+               "bag."],
+      "answer": "expensive",
+      "explanation": "두 물건의 값이 같고 300달러는 비싼 값이므로 ‘비싼’ 정도가 같다는 뜻이 되어야 한다."
+    }
+  ]
+}

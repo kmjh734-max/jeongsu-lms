@@ -1,0 +1,219 @@
+{
+  "_설명": "천일문 2권 Chapter 02 시제에서 가져와 변형한 문항. 은행에서는 기본 2과 시제 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 2,
+  "chapter": "시제",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 2, "chapter": "시제" },
+  "points": [
+    { "unit_no": 1, "unit": "시제와 진행형", "point_no": 1, "point": "현재·과거·미래 시제", "frequent": false },
+    { "unit_no": 1, "unit": "시제와 진행형", "point_no": 2, "point": "불규칙 동사의 변화형", "frequent": false },
+    { "unit_no": 1, "unit": "시제와 진행형", "point_no": 3, "point": "am/are/is+동사의 -ing형: ~하고 있다", "frequent": false },
+    { "unit_no": 1, "unit": "시제와 진행형", "point_no": 4, "point": "was/were+동사의 -ing형: ~하고 있었다", "frequent": false },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 5, "point": "과거와 현재를 연결하는 현재완료: have+p.p.", "frequent": false },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 6, "point": "현재완료 부정문: have+not+p.p.", "frequent": false },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 7, "point": "(지금까지) 쭉 ~해오다(계속)", "frequent": false },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 8, "point": "(지금까지) ~한 적이 있다(경험)", "frequent": false },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 9, "point": "막 ~했다(완료)", "frequent": false },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 10, "point": "~해 버렸다(결과)", "frequent": false },
+    { "unit_no": 2, "unit": "현재완료", "point_no": 11, "point": "현재완료와 과거를 나타내는 부사는 같이 쓸 수 없다", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [2], "point_label": "불규칙 동사의 변화형",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 동사의 변화형이 바르게 연결된 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "cut — cutted — cutted" },
+        { "no": 2, "text": "bring — bought — bought" },
+        { "no": 3, "text": "come — came — come" },
+        { "no": 4, "text": "drive — drove — droven" },
+        { "no": 5, "text": "see — sew — seen" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [2], "point_label": "불규칙 동사의 변화형",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 동사의 변화형이 바르게 연결된 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "fly — flew — flow" },
+        { "no": 2, "text": "grow — grew — grewn" },
+        { "no": 3, "text": "find — found — founded" },
+        { "no": 4, "text": "make — made — maden" },
+        { "no": 5, "text": "send — sent — sent" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [4], "point_label": "과거진행형",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["나는 20분 전에 친구와 이야기하고 있었다.", "→ I ______ to my friend 20 minutes ago."],
+      "choices": [
+        { "no": 1, "text": "talk" },
+        { "no": 2, "text": "talked" },
+        { "no": 3, "text": "am talking" },
+        { "no": 4, "text": "was talking" },
+        { "no": 5, "text": "have talked" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [7], "point_label": "since와 현재완료(계속)",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["오늘 아침부터 쭉 비가 내렸다.", "→ It ______ since this morning."],
+      "choices": [
+        { "no": 1, "text": "rained" },
+        { "no": 2, "text": "is raining" },
+        { "no": 3, "text": "has rained" },
+        { "no": 4, "text": "has raining" },
+        { "no": 5, "text": "is going to rain" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [4], "point_label": "과거진행형으로 답하기",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 대화의 밑줄 친 부분을 주어진 단어를 사용하여 영작하세요.",
+      "body": ["A: What was Mina doing there yesterday?", "B: [[그녀는 시험을 준비하고 있었어.]] (prepare, the test)", "→ ______________________________."],
+      "choices": [],
+      "answer": "She was preparing the test"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [8], "point_label": "경험을 묻는 Have you ever+p.p.",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 대화의 밑줄 친 부분을 주어진 단어를 사용하여 영작하세요.",
+      "body": ["A: [[너는 골프 쳐본 적 있니?]] (ever, play, golf)", "B: No, I don’t like any sports with balls.", "→ ______________________________?"],
+      "choices": [],
+      "answer": "Have you ever played golf"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [1, 3, 4], "point_label": "때를 나타내는 말과 시제",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Three plus three was six." },
+        { "no": 2, "text": "She was taking care of her dog now." },
+        { "no": 3, "text": "Tom will go home two hours later." },
+        { "no": 4, "text": "Paul is finding a key in the drawer last night." },
+        { "no": 5, "text": "I borrowed a book from the library next Monday." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [10], "point_label": "have gone to: ~에 가 버렸다",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 두 문장을 현재완료를 사용하여 한 문장으로 바꿔 쓰세요.",
+      "body": ["Sumin went to Canada. She is not here now.", "→ Sumin ________ ________ to Canada."],
+      "choices": [],
+      "answer": "has gone"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [7], "point_label": "현재완료(계속)와 since",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 두 문장을 현재완료를 사용하여 한 문장으로 바꿔 쓰세요.",
+      "body": [
+        "The woman started to work for the bank in 2021. She still works for the bank.",
+        "→ The woman ________ ________ for the bank since 2021."
+      ],
+      "choices": [],
+      "answer": "has worked"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [8], "point_label": "현재완료 의문문의 대답",
+      "question_kind": "응답 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 질문에 대한 대답으로 가장 적절한 것을 고르세요.",
+      "body": ["A: Have you studied Spanish before?", "B: ______ I’m interested in its music."],
+      "choices": [
+        { "no": 1, "text": "Yes, I do." },
+        { "no": 2, "text": "Yes, I have." },
+        { "no": 3, "text": "Yes, I had." },
+        { "no": 4, "text": "No, I haven’t." },
+        { "no": 5, "text": "No, I didn’t." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [6, 8], "point_label": "have never+p.p.",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["그녀는 낙지를 한 번도 먹어본 적이 없다. (never, eat, octopus)", "→ She ________________."],
+      "choices": [],
+      "answer": "has never eaten octopus"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [7], "point_label": "have been+기간",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["Jane은 그 카페에서 3년째 바리스타를 해왔다. (be, a barista, three years)", "→ Jane ________________ at the cafe."],
+      "choices": [],
+      "answer": "has been a barista for three years"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [7], "point_label": "현재완료(계속)로 잇기",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 두 문장을 한 문장으로 바르게 바꾼 것을 고르세요.",
+      "body": ["She began to be busy with her project last week. And she is still busy."],
+      "choices": [
+        { "no": 1, "text": "She is busy with her project since last week." },
+        { "no": 2, "text": "She was busy with her project since last week." },
+        { "no": 3, "text": "She will be busy with her project since last week." },
+        { "no": 4, "text": "She has been busy with her project since last week." },
+        { "no": 5, "text": "She is going to be busy with her project since last week." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [10, 11], "point_label": "과거 시점의 말과 현재완료",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• Jenny ______(A) my glasses last Friday by mistake.",
+        "• Someone ______(B) my bike. I can’t ride it now."
+      ],
+      "choices": [
+        { "no": 1, "text": "breaks — stole" },
+        { "no": 2, "text": "broke — has stolen" },
+        { "no": 3, "text": "broke — stealing" },
+        { "no": 4, "text": "has broken — has stolen" },
+        { "no": 5, "text": "has broken — is stealing" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [7], "point_label": "현재완료(계속)",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• She ______(A) the promise with me since last month.",
+        "• I ______(B) sick for 3 days. I should see a doctor."
+      ],
+      "choices": [
+        { "no": 1, "text": "keeps — am" },
+        { "no": 2, "text": "kept — have been" },
+        { "no": 3, "text": "has kept — have been" },
+        { "no": 4, "text": "has kept — has been" },
+        { "no": 5, "text": "is keeping — was" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [9, 10], "point_label": "현재완료가 나타내는 뜻",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "짝지어진 두 문장의 의미가 서로 올바르게 연결되는 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "My brother has gone to Canada. → Now I’m with my brother in Canada." },
+        { "no": 2, "text": "His sister has worked at a shop since last year. → Now his sister doesn’t work at the shop." },
+        { "no": 3, "text": "I have just finished my homework. → Now I’m doing my homework." },
+        { "no": 4, "text": "Her friend has lost her phone. → Now she doesn’t have her phone." },
+        { "no": 5, "text": "I have already washed my hair. → Now my hair is wet." }
+      ],
+      "answer": "④"
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "_설명": "완성 1과 일치·화법 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 1.일치, 화법_종합문제(1회).pdf", "number": 29,
+      "포인트": "부정어구 도치문에서 do 뒤에는 동사원형이 온다",
+      "prompt": "다음 문장에서 [[틀린]]부분을 찾아 바르게 고치시오.",
+      "body": ["Seldom do tourists visits the old temple twice,",
+               "even if the ticket does not expire.",
+               "____________________ → _____________________"],
+      "answer": "visits → visit",
+      "explanation": "rarely, hardly, seldom과 같은 부정어구가 문두로 나올 때는 문장의 동사가 일반동사일 경우 어순이 「부정어구 + do동사 + 주어 + 동사원형」이 된다. 따라서 do 뒤에는 동사원형 visit을 쓴다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_종합문제(2회).pdf", "number": 10,
+      "포인트": "도치문의 수 일치 / the number of + 복수명사는 단수 취급",
+      "prompt": "다음 괄호 안에서 알맞은 것을 고르시오.",
+      "body": ["<보기>",
+               "⑴ Behind the school ( stand / stands ) old trees",
+               "of which the bark ( has / have ) been peeled",
+               "off.",
+               "⑵ The number of drivers who ( do / does ) not",
+               "ignore speed limits ( has / have ) increased."],
+      "answer": "⑴ stand, has ⑵ do, has",
+      "explanation": "⑴ 부사구 Behind the school이 문두에 나와 주어와 동사가 도치된 문장이다. 동사 뒤에 있는 주어 old trees가 복수이므로 stand를 쓰고, the bark는 단수이므로 has를 쓴다. ⑵ 관계사절의 동사는 선행사 drivers에 맞춰 do를 쓰고, 주어인 「the number of + 복수명사」는 단수 취급하므로 has를 쓴다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_종합문제(2회).pdf", "number": 15,
+      "포인트": "간접화법에서 조동사와 시간 부사의 변화",
+      "prompt": "다음 문장을 간접화법으로 바꿔 쓰시오.",
+      "body": ["She said to me, “You must start now to catch the",
+               "last bus.”",
+               "→ She ________________________________________",
+               "______________________________________________."],
+      "answer": "She told me that I had to start then[at that time] to catch the last bus.",
+      "explanation": "조동사 must를 전달동사의 시제(과거)와 일치시키기 위해 과거형 had to로 바꾼다. 부사 now는 then 또는 at that time으로 바꾸고, said to는 told로 바꾼다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_종합문제(2회).pdf", "number": 25,
+      "포인트": "부정어 never가 문두에 올 때의 도치",
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰시오.",
+      "body": ["Money never feels so scarce as in a small shop",
+               "with its heavy monthly rent. (never를 문두로)",
+               "→ ____________________________________________",
+               "______________________________________________."],
+      "answer": "Never does money feel so scarce as in a small shop with its heavy monthly rent.",
+      "explanation": "부정어 Never가 문두에 오면 주어와 동사가 도치된다. feels가 일반동사이므로 조동사 does가 주어와 도치되고, 주어 money 뒤에는 동사원형 feel을 쓴다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_확인문제(1회).pdf", "number": 6,
+      "포인트": "주격 관계대명사절의 동사는 선행사에 수를 맞춘다",
+      "prompt": "ⓐ~ⓔ 중 어법상 [[틀린]]기호를 쓰고, 올바르게 고치시오.",
+      "body": ["ⓐ[[Look]] at the tiny bottle ⓑ[[that]] ⓒ[[were]] ⓓ[[filled]]",
+               "ⓔ[[with]] blue sand and a paper star.",
+               "- 틀린 기호 : _______",
+               "- 올바르게 고친 것 : ______________"],
+      "answer": "ⓒ, was",
+      "explanation": "that은 관계대명사로 ‘that … a paper star.’는 선행사인 ‘the tiny bottle’을 수식하는 주격 관계대명사절이다. 선행사가 단수이므로 관계사절의 동사도 단수형 was로 써야 한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_확인문제(1회).pdf", "number": 9,
+      "포인트": "장소 부사구가 문두에 올 때의 도치",
+      "prompt": "우리말과 같은 뜻이 되도록 주어진 단어를 배열하시오.(필요시, 형태 변형 가능)",
+      "body": ["호수 옆에 3미터 높이의 나무가 하나 서 있다.",
+               "→ By ________________________ which is three",
+               "meters tall. ( a tree, the lake, stand )"],
+      "answer": "the lake stands a tree",
+      "explanation": "부사구 ‘By the lake’가 문두에 위치하여 주어와 동사가 도치된 구문이다. 이때 be동사, stand, lie 등의 동사는 조동사를 쓰지 않고 그대로 주어 앞에 오며, 주어가 단수이므로 stands가 된다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_확인문제(1회).pdf", "number": 12,
+      "포인트": "whether로 시작하는 명사절 주어는 단수 취급",
+      "prompt": "다음 문장에서 어법상 틀린 부분을 찾아 바르게 고치시오.",
+      "body": ["Whether she has experience or not are the most",
+               "important.",
+               "_________ → ___________"],
+      "answer": "are → is",
+      "explanation": "whether로 시작하는 명사절이 주어일 경우, 이는 항상 단수 취급한다. 따라서 ‘Whether she has experience or not’ 뒤에는 단수 동사 is를 써야 한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_확인문제(1회).pdf", "number": 15,
+      "포인트": "간접화법에서 will → would, today → that day",
+      "prompt": "다음 문장을 간접화법으로 바꿔 쓰시오.",
+      "body": ["He said to his mother, “I will clean my room",
+               "today.”",
+               "→ ___________________________________________",
+               "______________________________________________"],
+      "answer": "He told his mother that he would clean his room that day.",
+      "explanation": "직접화법의 said to는 간접화법의 told로 바꿔야 하며, 시제가 과거이므로 인용문의 will을 과거형인 would로 바꾼다. 부사 today는 that day로 바꾼다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_확인문제(2회).pdf", "number": 8,
+      "포인트": "부정어 nor가 문두에 올 때의 도치",
+      "prompt": "<보기>의 단어를 모두 배열하여 우리말과 같도록 한 문장으로 영작하시오.",
+      "body": ["<보기> enjoy / does / action movies / doesn’t",
+               "my father / nor / my brother",
+               "우리 아빠는 액션 영화를 좋아하지 않는다. 내 동생도",
+               "마찬가지이다.",
+               "→ __________________________________________",
+               "______________________________________________."],
+      "answer": "My father doesn’t enjoy action movies, nor does my brother.",
+      "explanation": "앞 문장이 부정문이므로 ‘내 동생도 마찬가지이다’라는 부분을 부정어 ‘nor’로 시작할 경우 주어와 동사를 도치시켜야 한다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_확인문제(2회).pdf", "number": 15,
+      "포인트": "간접화법에서 과거 → 과거완료, yesterday → the day before",
+      "prompt": "다음 문장을 간접화법으로 바꾸시오.",
+      "body": ["Daniel said to me, “I found this key yesterday.”",
+               "→ ____________________________________________",
+               "___________________________________________."],
+      "answer": "Daniel told me that he had found that key the day before(the previous day).",
+      "explanation": "직접화법을 간접화법으로 바꿀 때는 (1) say to를 tell로 바꾸고 (2) 쉼표와 인용부호를 that으로 바꾸며 (3) 인용문의 시제를 한 단계 앞으로 옮긴다. this는 that으로, yesterday는 the day before로 바꾼다."
+    },
+    {
+      "file": "[완성] 1.일치, 화법_확인문제(2회).pdf", "number": 18,
+      "포인트": "의문문의 간접화법 — ask + whether[if]",
+      "prompt": "다음 문장을 간접화법으로 바꾸시오.",
+      "body": ["Sora said to me, “Were you at the library",
+               "yesterday?”",
+               "→ ___________________________________________",
+               "___________________________________________."],
+      "answer": "Sora asked me whether[if] I had been at the library the day before[the previous day].",
+      "explanation": "의문문의 직접화법을 간접화법으로 바꿀 때는 (1) say to를 ask로 바꾸고 (2) 쉼표와 인용부호를 whether[if]로 바꾸며 (3) 의문문의 어순을 「주어 + 동사」로 되돌린다. 시제는 한 단계 앞으로 옮기고 yesterday는 the day before로 바꾼다."
+    }
+  ]
+}

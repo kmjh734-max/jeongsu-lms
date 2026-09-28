@@ -1,0 +1,207 @@
+{
+  "_설명": "기본 10과 가정법 — 가정법 과거완료 쪽 남은 문항들. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 10.가정법_체크체크.pdf", "number": 22,
+      "포인트": "가정법 과거완료 「If + 주어 + had p.p. ~, 주어 + 조동사의 과거형 + have p.p.」",
+      "prompt": "다음 주어진 사건의 반대 상황을 가정하여 상상하는 말로 각각 표현하시오",
+      "body": ["We didn’t have enough money. So, we couldn’t",
+               "buy the tickets.",
+               "→ ___________________________________________."],
+      "answer": "If we had had enough money, we could have bought the tickets.",
+      "explanation": "과거 사실의 반대를 가정하므로 가정법 과거완료로 쓴다. have의 과거완료형은 had had이다."
+    },
+    {
+      "file": "[기본] 10.가정법_체크체크.pdf", "number": 24,
+      "포인트": "직설법 과거를 가정법 과거완료로 바꾸기",
+      "prompt": "다음 문장을 가정법 시제로 바꿔 쓰시오.",
+      "body": ["They didn’t prepare well, so they couldn’t win",
+               "the contest.",
+               "→ If they _____________ well, they ___________",
+               "the contest."],
+      "answer": "had prepared / could have won",
+      "explanation": "과거 사실의 반대이므로 if절은 had p.p., 주절은 「조동사의 과거형 + have p.p.」로 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_체크체크.pdf", "number": 27,
+      "포인트": "As로 시작하는 직설법을 가정법 과거완료로 바꾸기",
+      "prompt": "다음 문장을 읽고 의미에 맞는 가정법 문장을 영어로 쓰시오.",
+      "body": ["As I didn’t take a different road, I didn’t",
+               "arrive late.",
+               "If ___________________________________________."],
+      "answer": "I had taken a different road, I would have arrived late.",
+      "explanation": "직설법의 부정은 가정법에서 긍정이 된다. 과거 사실의 반대를 가정하므로 가정법 과거완료로 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_체크체크.pdf", "number": 30,
+      "포인트": "가정법 과거완료의 주절 could have p.p.",
+      "prompt": "주어진 것 중 적절한 것을 고르시오.",
+      "body": ["If I had been able to speak French, I could",
+               "(have worked, work) in Paris."],
+      "answer": "have worked",
+      "explanation": "if절이 had p.p.이므로 가정법 과거완료이며, 주절에는 「조동사의 과거형 + have p.p.」를 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_체크체크.pdf", "number": 31,
+      "포인트": "가정법 과거완료의 주절 could have p.p.",
+      "prompt": "주어진 것 중 적절한 것을 고르시오.",
+      "body": ["If I had had enough space, I could (have kept,",
+               "keep) a piano."],
+      "answer": "have kept",
+      "explanation": "if절이 had p.p.이므로 가정법 과거완료이며, 주절에는 「could + have + p.p.」를 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_체크체크.pdf", "number": 32,
+      "포인트": "가정법 과거완료의 주절 would have p.p.",
+      "prompt": "주어진 것 중 적절한 것을 고르시오.",
+      "body": ["If I had not woken up that late, I’d (have caught,",
+               "catch) the first bus."],
+      "answer": "have caught",
+      "explanation": "if절이 had p.p.이므로 가정법 과거완료이며, I’d는 I would의 줄임말이므로 뒤에 have p.p.를 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_체크체크.pdf", "number": 34,
+      "포인트": "가정법 과거완료의 주절 could have p.p.",
+      "prompt": "주어진 것 중 적절한 것을 고르시오.",
+      "body": ["If Jin had been good at Japanese, he could",
+               "(have read, read) the sign well."],
+      "answer": "have read",
+      "explanation": "if절이 had p.p.이므로 가정법 과거완료이며, 주절에는 「could + have + p.p.」를 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(1회).pdf", "number": 4,
+      "포인트": "직설법을 가정법 과거로 바꾸기",
+      "prompt": "다음 문장을 가정법으로 바꿔 쓰시오.",
+      "body": ["As I don’t have enough time, I can’t join the",
+               "club.",
+               "→ If I ________________________________________."],
+      "answer": "had enough time, I could join the club",
+      "explanation": "현재 사실의 반대를 가정하므로 가정법 과거로 쓴다. 직설법의 부정은 가정법에서 긍정이 되며, 주절에는 「조동사의 과거형 + 동사원형」을 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(1회).pdf", "number": 6,
+      "포인트": "If I were you, I would + 동사원형",
+      "prompt": "다음 괄호 안의 말을 이용하여 대화를 완성하시오.",
+      "body": ["A : I want to get an A in math.",
+               "B : If I were you, I _______________ every day.",
+               "(practice)"],
+      "answer": "would practice",
+      "explanation": "‘내가 너라면 ~할 텐데’라는 충고의 표현으로 가정법 과거를 쓴다. 주절에는 「would + 동사원형」을 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(1회).pdf", "number": 9,
+      "포인트": "가정법 과거완료 영작",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 어구를 이용하여 영작하시오.",
+      "body": ["내가 더 일찍 잠자리에 들었더라면, 그렇게 피곤하지",
+               "않았을 텐데. (go to bed earlier / be so tired)",
+               "→ _________________________________________."],
+      "answer": "If I had gone to bed earlier, I wouldn’t have been so tired.",
+      "explanation": "과거 사실의 반대를 가정하므로 가정법 과거완료로 쓴다. 「If + 주어 + had p.p. ~, 주어 + would not have p.p.」의 형태이다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(1회).pdf", "number": 13,
+      "포인트": "직설법을 가정법 과거로 바꾸기",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["She wants to call him, but she doesn’t know his",
+               "number.",
+               "→ If she _______ his number, she _______ him."],
+      "answer": "knew, would call",
+      "explanation": "현재 사실의 반대를 가정하므로 가정법 과거로 쓴다. if절은 과거동사 knew, 주절은 「would + 동사원형」인 would call이 된다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(1회).pdf", "number": 18,
+      "포인트": "가정법 과거완료의 if절 had p.p.",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["만약 그가 그 시험에 합격했다면, 그는 의사가 됐을지도",
+               "모를 텐데.",
+               "→ If he ___________ the exam, he might",
+               "have become a doctor. (pass)"],
+      "answer": "had passed",
+      "explanation": "주절이 「might have p.p.」이므로 가정법 과거완료이다. 따라서 if절에는 had p.p.를 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(1회).pdf", "number": 19,
+      "포인트": "직설법 과거를 가정법 과거완료로 바꾸기",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["As it snowed a lot, they couldn’t go hiking.",
+               "→ If it ________ a lot, they ________ hiking."],
+      "answer": "had not snowed, could have gone",
+      "explanation": "과거 사실의 반대를 가정하므로 가정법 과거완료로 쓰며, 직설법의 긍정은 가정법에서 부정이 된다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(2회).pdf", "number": 2,
+      "포인트": "직설법 조건문의 if절은 현재시제",
+      "prompt": "괄호에 주어진 것 중 적절한 것을 고르시오.",
+      "body": ["If you (want, wanted) help, I can lend you a",
+               "hand."],
+      "answer": "want",
+      "explanation": "주절이 can으로 현재시제이므로 일어날 수 있는 일을 말하는 직설법 조건문이다. 따라서 if절도 현재시제를 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(2회).pdf", "number": 5,
+      "포인트": "직설법 조건문의 주절은 will",
+      "prompt": "괄호에 주어진 것 중 적절한 것을 고르시오.",
+      "body": ["If you don’t finish it in an hour, you",
+               "(should be, will be) late."],
+      "answer": "will be",
+      "explanation": "if절이 현재시제인 직설법 조건문이므로 주절에는 「will + 동사원형」을 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(2회).pdf", "number": 6,
+      "포인트": "If there were no ~ — ~이 없다면",
+      "prompt": "해석에 맞게 다음 빈칸을 채우시오.",
+      "body": ["▪ 물이 없다면 우리는 하루도 살지 못할 것이다.",
+               "= If there _________ no water, we _________ live a",
+               "single day."],
+      "answer": "were, couldn’t",
+      "explanation": "현재 사실의 반대를 가정하는 가정법 과거이므로 be동사는 were를 쓰고, 주절에는 「조동사의 과거형 + 동사원형」을 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(2회).pdf", "number": 8,
+      "포인트": "직설법을 If로 시작하는 가정법 과거로 바꾸기",
+      "prompt": "두 문장의 의미가 같도록 주어진 문장을 완성해 보시오.",
+      "body": ["As my uncle is not in town, I won’t see him.",
+               "= ________________________, I would see him."],
+      "answer": "If my uncle were in town",
+      "explanation": "현재 사실의 반대를 가정하므로 가정법 과거로 쓰며, be동사는 주어에 관계없이 were를 쓴다. 직설법의 부정은 가정법에서 긍정이 된다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(2회).pdf", "number": 12,
+      "포인트": "가정법 과거의 if절은 과거동사",
+      "prompt": "다음 괄호 안에서 알맞은 것을 고르시오.",
+      "body": ["If I (know / knew) her phone number, I would",
+               "send her a text."],
+      "answer": "knew",
+      "explanation": "주절에 would가 쓰였으므로 가정법 과거이다. 따라서 if절에는 과거동사 knew를 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(2회).pdf", "number": 13,
+      "포인트": "가정법 과거의 if절은 과거동사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["만약 그가 도와준다면, 나는 고마울 텐데.",
+               "→ If he ________, I would be thankful. (help)"],
+      "answer": "helped",
+      "explanation": "주절이 「would + 동사원형」이므로 가정법 과거이다. 따라서 if절에는 동사의 과거형 helped를 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(2회).pdf", "number": 18,
+      "포인트": "직설법 과거를 가정법 과거완료로 바꾸기",
+      "prompt": "다음 문장을 가정법으로 바꿔 쓰시오.",
+      "body": ["My sister didn’t follow the recipe, so she burned",
+               "the soup.",
+               "→ If my sister _____________________________."],
+      "answer": "had followed the recipe, she would not have burned the soup",
+      "explanation": "과거 사실의 반대를 가정하므로 가정법 과거완료로 쓴다. 직설법의 부정은 긍정으로, 긍정은 부정으로 뒤바뀐다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(2회).pdf", "number": 20,
+      "포인트": "직설법 과거를 가정법 과거완료로 바꾸기",
+      "prompt": "다음 문장을 가정법으로 바꿔 쓰시오.",
+      "body": ["She didn’t practice enough, so she could not",
+               "break the record.",
+               "→ If _________________________________________."],
+      "answer": "she had practiced enough, she could have broken the record",
+      "explanation": "과거 사실의 반대를 가정하므로 「If + 주어 + had p.p. ~, 주어 + 조동사의 과거형 + have p.p.」로 쓴다."
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "_설명": "심화 1과 부정사 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 1.부정사_종합문제(1회).pdf", "number": 7,
+      "포인트": "사역동사 let·make의 목적격보어는 동사원형",
+      "prompt": "다음 우리말 의미에 맞게 각각 한 단어로 문장을 완성하시오.",
+      "body": ["Let me _________ when the class begins.",
+               "수업이 시작하면 알려주세요.",
+               "My dad made me _________ the floor.",
+               "아빠는 내가 바닥을 쓸게 하셨다."],
+      "answer": "know, sweep",
+      "explanation": "사역동사 let, make, have는 목적격보어 자리에 동사원형을 쓴다. 우리말에 맞게 첫 번째 문장에는 know를, 두 번째 문장에는 sweep을 쓴다."
+    },
+    {
+      "file": "[심화] 1.부정사_종합문제(1회).pdf", "number": 10,
+      "포인트": "「의문사 + to부정사」 = 「의문사 + 주어 + should + 동사원형」",
+      "prompt": "다음 두 문장이 같은 의미가 되도록 빈칸에 알맞은 말을 넣으시오.",
+      "body": ["I decided what to cook for dinner.",
+               "→ I decided what I ________________ for dinner."],
+      "answer": "should cook",
+      "explanation": "‘~할지’의 의미를 갖는 「의문사 + to부정사」의 형태는 「의문사 + 주어 + should + 동사원형」의 형태로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 1.부정사_종합문제(1회).pdf", "number": 22,
+      "포인트": "It seems that ~ = 주어 + seem to have p.p.",
+      "prompt": "두 문장의 의미가 같도록 할 때 빈칸에 알맞은 세 단어를 쓰시오.",
+      "body": ["It seems that they enjoyed hiking.",
+               "= They seem _______ _______ _______ hiking."],
+      "answer": "to have enjoyed",
+      "explanation": "문맥상 등산을 즐긴 것은 과거이고 그렇다고 추측하는 것은 현재이다. ‘seem to’ 구문에서 to부정사의 때가 주절보다 앞서면 완료부정사 「to have p.p.」를 쓴다."
+    },
+    {
+      "file": "[심화] 1.부정사_종합문제(1회).pdf", "number": 25,
+      "포인트": "「의문사 + 주어 + should + 동사원형」 = 「의문사 + to부정사」",
+      "prompt": "다음 문장과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Please tell me where I should wait.",
+               "= Please tell me __________________."],
+      "answer": "where to wait",
+      "explanation": "「의문사 + 주어 + should + 동사원형」의 형태는 「의문사 + to부정사」의 형태로 바꿔 쓸 수 있다."
+    }
+  ]
+}
