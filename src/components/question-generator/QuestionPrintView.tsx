@@ -103,6 +103,12 @@ type PrintBranding = {
   footerLeft: string;
   footerRight: string;
   showLogo: boolean;
+  /**
+   * 문항 위에 다는 지문 제목·출처를 감춘다.
+   * 선생님 요청(2026-09-28): 자료 제목이 그대로 나오는데, 그 제목이 곧 답인 문항이 많다
+   * (요지·주제·제목 문항). 시험지로 낼 때는 가릴 수 있어야 한다.
+   */
+  hideSource: boolean;
 };
 
 function formatAnswer(a: unknown): string {
@@ -638,6 +644,7 @@ export function QuestionPrintView({
     footerLeft: academyName,
     footerRight: "영어 변형문제",
     showLogo: true,
+    hideSource: false,
   });
   const [brandingReady, setBrandingReady] = useState(false);
   const measureRef = useRef<HTMLDivElement>(null);
@@ -742,6 +749,7 @@ export function QuestionPrintView({
         footerLeft: shared?.footerLeft ?? academyName,
         footerRight: own?.footerRight ?? defaultFooterRight(nextTitle, mode),
         showLogo: shared?.showLogo ?? true,
+        hideSource: own?.hideSource ?? false,
       };
     });
     setBrandingReady(true);
@@ -757,14 +765,14 @@ export function QuestionPrintView({
       // 학원 이름·로고는 이 학원의 모든 자료에 같게, 제목·출처·꼬리말은 이 자료에만 저장한다.
       // 예전에는 전부 브라우저에 한 벌이라, 고친 제목이 다음 자료에, 한 학원 이름이 다른
       // 학원 계정의 머리말에 그대로 붙었다.
-      const { headerKicker, footerLeft, showLogo, headerTitle, headerSub, footerRight } = branding;
+      const { headerKicker, footerLeft, showLogo, headerTitle, headerSub, footerRight, hideSource } = branding;
       localStorage.setItem(
         brandingKey({ academy: academyName }),
         JSON.stringify({ headerKicker, footerLeft, showLogo })
       );
       localStorage.setItem(
         brandingKey({ jobId }),
-        JSON.stringify({ headerTitle, headerSub, footerRight })
+        JSON.stringify({ headerTitle, headerSub, footerRight, hideSource })
       );
     } catch {
       /* ignore */
@@ -1032,6 +1040,7 @@ export function QuestionPrintView({
       footerLeft: academyName,
       footerRight: defaultFooterRight(title, mode),
       showLogo: true,
+      hideSource: false,
     });
   }
 
@@ -1150,7 +1159,12 @@ export function QuestionPrintView({
   function renderDisplayItem(item: DisplayItem | undefined, part?: PrintPiecePart) {
     if (!item) return null;
     return mode === "exam" ? (
-      <QuestionBlock q={item.q} index={item.num} part={part} passageName={passageNames[item.q.passage_id ?? ""]} />
+      <QuestionBlock
+        q={item.q}
+        index={item.num}
+        part={part}
+        passageName={branding.hideSource ? undefined : passageNames[item.q.passage_id ?? ""]}
+      />
     ) : (
       <AnswerBlock q={item.q} index={item.num} part={part} />
     );
@@ -1402,6 +1416,20 @@ export function QuestionPrintView({
                 onChange={(e) => patchBranding({ showLogo: e.target.checked })}
               />
               학원 로고 표시
+            </label>
+            <label className="mt-2 flex items-start gap-2 text-xs text-slate-700">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={branding.hideSource}
+                onChange={(e) => patchBranding({ hideSource: e.target.checked })}
+              />
+              <span>
+                지문 제목·출처 감추기
+                <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">
+                  제목이 곧 답이 되는 문항(요지·주제·제목)에서 답이 드러나지 않게 합니다.
+                </span>
+              </span>
             </label>
           </div>
         </aside>
