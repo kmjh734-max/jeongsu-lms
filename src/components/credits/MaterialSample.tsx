@@ -1,13 +1,16 @@
 "use client";
 
 import type { CreditSampleKind } from "@/lib/credits/confirm-store";
+import { sampleImageFor } from "@/lib/credits/sample-images";
 
 /**
  * 만들기 전 확인 창에 보여 주는 견본 한 장.
  *
  * 선생님 요청(2026-09-28): 진짜로 만들어 보여 주면 그게 곧 생성이라 크레딧이 나간다.
- * 그래서 모양만 보여 주는 고정 견본을 둔다 — 값이 들지 않고 곧바로 뜬다.
- * 헷갈리지 않게 "예시" 딱지를 붙인다.
+ * 그래서 값이 들지 않고 곧바로 뜨는 고정 견본을 둔다. 헷갈리지 않게 "예시" 딱지를 붙인다.
+ *
+ * 같은 날 이어서: 손으로 흉내 낸 그림 말고 <b>실제 화면을 찍은 사진</b>을 쓴다(첫 화면과 같은 방식).
+ * 사진이 있는 갈래는 사진을, 아직 없는 갈래는 예전 그림을 보여 준다.
  */
 
 const line = "text-[7.5px] leading-[1.75] text-slate-700";
@@ -29,7 +32,26 @@ function Sheet({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
+/** 실제 화면을 찍은 사진 — 만든 자료가 어떻게 생겼는지 그대로 보여 준다 */
+function Shot({ src, alt, position }: { src: string; alt: string; position?: string }) {
+  return (
+    <div className="h-[404px] w-[286px] overflow-hidden rounded-sm border border-slate-300 bg-white shadow-sm">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className="h-full w-full object-cover"
+        style={{ objectPosition: position ?? "top center" }}
+      />
+    </div>
+  );
+}
+
 export function MaterialSample({ kind }: { kind: CreditSampleKind }) {
+  const shot = sampleImageFor(kind);
+  if (shot) return <Shot src={shot.src} alt={shot.alt} position={shot.position} />;
+
   if (kind === "one_page_summary") {
     return (
       <Sheet title="1장 요약직보자료">
