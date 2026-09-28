@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/layout/NavIcon";
+import { TargetPicker } from "@/components/assign/TargetPicker";
 import { ListeningScheduleAddSetsModal } from "@/components/listening/ListeningScheduleAddSetsModal";
 import {
   DAY_LABELS,
@@ -26,6 +27,8 @@ export interface AssignPanelClass {
 export interface AssignPanelStudent {
   id: string;
   name: string;
+  /** 소속 반 — 목록에서 누구인지 가릴 때 쓴다 */
+  classLabel?: string;
 }
 
 export interface AssignPanelSet {
@@ -183,9 +186,12 @@ export function ListeningScheduleAssignPanel({
   onSaved,
 }: ListeningScheduleAssignPanelProps) {
   const isEdit = Boolean(editing);
-  const [target, setTarget] = useState(() =>
-    classes[0] ? `class:${classes[0].id}` : students[0] ? `student:${students[0].id}` : ""
-  );
+  /**
+   * 누구에게 — 단어학습과 같은 방식으로 반·학생을 여러 곳 고른다.
+   * 선생님 요청(2026-09-28): 모듈마다 방식이 달라 헷갈리니 하나로 맞춘다.
+   */
+  const [pickedClassIds, setPickedClassIds] = useState<string[]>([]);
+  const [pickedStudentIds, setPickedStudentIds] = useState<string[]>([]);
   const [title, setTitle] = useState(editing?.title ?? "");
   const [selectedSetIds, setSelectedSetIds] = useState<string[]>(
     editing ? editing.setIds : initialSetIds
@@ -287,13 +293,26 @@ export function ListeningScheduleAssignPanel({
     [orderedSetIds, countBySet, questionsPerDay, daysOfWeek, startDate, endDate]
   );
 
-  const [targetKind, targetId] = target.split(":") as ["class" | "student" | "", string];
-  const targetClass = targetKind === "class" ? classes.find((c) => c.id === targetId) : undefined;
-  const targetStudent =
-    targetKind === "student" ? students.find((s) => s.id === targetId) : undefined;
-  const targetLabel = targetClass
-    ? `${targetClass.name}${targetClass.studentCount > 0 ? ` ${targetClass.studentCount}명` : ""}`
-    : (targetStudent?.name ?? "");
+  /** 고른 곳을 배정 하나씩으로 편다(반 하나 = 배정 하나, 학생 하나 = 배정 하나) */
+  const pickedTargets = useMemo(() => {
+    const out: Array<{ kind: "class" | "student"; id: string; name: string }> = [];
+    for (const id of pickedClassIds) {
+      const c = classes.find((x) => x.id === id);
+      if (c) out.push({ kind: "class", id: c.id, name: c.name });
+    }
+    for (const id of pickedStudentIds) {
+      const s = students.find((x) => x.id === id);
+      if (s) out.push({ kind: "student", id: s.id, name: s.name });
+    }
+    return out;
+  }, [pickedClassIds, pickedStudentIds, classes, students]);
+
+  const targetLabel =
+    pickedTargets.length === 0
+      ? ""
+      : pickedTargets.length === 1
+        ? pickedTargets[0]!.name
+        : `${pickedTargets[0]!.name} 외 ${pickedTargets.length - 1}곳`;
 
   function toggleDay(day: number) {
     setDaysOfWeek((prev) =>
@@ -441,7 +460,7 @@ export function ListeningScheduleAssignPanel({
       await submitEdit();
       return;
     }
-    if (!targetKind || !targetId) {
+    if (pickedTargets.length === 0) {
       setError("누구에게 배정할지 골라 주세요.");
       return;
     }
@@ -458,31 +477,42 @@ export function ListeningScheduleAssignPanel({
     const firstTitle = titleById.get(orderedSetIds[0]!) ?? "듣기";
     const title =
       orderedSetIds.length > 1 ? `${firstTitle} 외 ${orderedSetIds.length - 1}` : firstTitle;
-    const res = await fetch("/api/listening/schedule-assignments/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        targetType: targetKind,
-        targetClassId: targetKind === "class" ? targetId : null,
-        targetStudentId: targetKind === "student" ? targetId : null,
-        setIds: orderedSetIds,
-        startDate,
-        endDate: endDate || null,
-        daysOfWeek: [...daysOfWeek].sort((a, b) => a - b),
-        questionsPerDay,
-        requireDictationPass,
-        dictationPassScore,
-        lockNextUntilTodayComplete: true,
-      }),
-    });
-    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string };
-    setBusy(false);
-    if (!data.ok) {
-      setError(data.message ?? "배정하지 못했어요.");
-      return;
+
+    // 고른 곳마다 배정을 하나씩 만든다. 하나라도 실패하면 어디까지 됐는지 알려 준다.
+    let done = 0;
+    for (const t of pickedTargets) {
+      const res = await fetch("/api/listening/schedule-assignments/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          targetType: t.kind,
+          targetClassId: t.kind === "class" ? t.id : null,
+          targetStudentId: t.kind === "student" ? t.id : null,
+          setIds: orderedSetIds,
+          startDate,
+          endDate: endDate || null,
+          daysOfWeek: [...daysOfWeek].sort((a, b) => a - b),
+          questionsPerDay,
+          requireDictationPass,
+          dictationPassScore,
+          lockNextUntilTodayComplete: true,
+        }),
+      }).catch(() => null);
+      const data = (await res?.json().catch(() => ({}))) as { ok?: boolean; message?: string };
+      if (!data?.ok) {
+        setBusy(false);
+        setError(
+          done > 0
+            ? `${done}곳까지 배정했어요. 「${t.name}」에서 멈췄어요: ${data?.message ?? "배정하지 못했어요."}`
+            : (data?.message ?? "배정하지 못했어요.")
+        );
+        return;
+      }
+      done += 1;
     }
-    onSuccess(targetClass?.name ?? targetStudent?.name ?? "");
+    setBusy(false);
+    onSuccess(targetLabel);
   }
 
   const lastDay = preview.days[preview.days.length - 1];
@@ -550,36 +580,41 @@ export function ListeningScheduleAssignPanel({
           </label>
         </>
       ) : (
-      <label className="block">
-        <span className="mb-1.5 block text-xs font-semibold text-slate-500">누구에게</span>
-        <select
-          value={target}
-          onChange={(e) => setTarget(e.target.value)}
-          className="ui-select"
-        >
-          {classes.length === 0 && students.length === 0 ? (
-            <option value="">배정할 반·학생이 없어요</option>
-          ) : null}
-          {classes.length > 0 ? (
-            <optgroup label="반">
-              {classes.map((c) => (
-                <option key={c.id} value={`class:${c.id}`}>
-                  {`반: ${c.name}${c.studentCount > 0 ? ` (${c.studentCount}명)` : ""}`}
-                </option>
-              ))}
-            </optgroup>
-          ) : null}
-          {students.length > 0 ? (
-            <optgroup label="학생">
-              {students.map((s) => (
-                <option key={s.id} value={`student:${s.id}`}>
-                  {`학생: ${s.name}`}
-                </option>
-              ))}
-            </optgroup>
-          ) : null}
-        </select>
-      </label>
+      <div>
+        <div className="mb-1.5 flex items-baseline justify-between gap-2">
+          <span className="text-xs font-semibold text-slate-500">누구에게</span>
+          <span className="truncate text-[11px] text-slate-400">
+            {pickedTargets.length === 0 ? "반이나 학생을 골라 주세요" : `${pickedTargets.length}곳 고름`}
+          </span>
+        </div>
+        {classes.length === 0 && students.length === 0 ? (
+          <p className="rounded-md border border-dashed border-slate-300 px-3 py-4 text-center text-[13px] text-slate-500">
+            배정할 반·학생이 없어요.
+          </p>
+        ) : (
+          <div className="flex h-[236px] flex-col">
+            <TargetPicker
+              classes={classes.map((c) => ({
+                id: c.id,
+                name: c.name,
+                studentCount: c.studentCount,
+              }))}
+              students={students.map((s) => ({
+                id: s.id,
+                name: s.name,
+                classLabel: s.classLabel,
+              }))}
+              pickedClasses={pickedClassIds}
+              pickedStudents={pickedStudentIds}
+              onChangeClasses={setPickedClassIds}
+              onChangeStudents={setPickedStudentIds}
+            />
+          </div>
+        )}
+        <p className="mt-1 text-[11px] text-slate-400">
+          고른 곳마다 과제가 하나씩 만들어져요. 날짜·요일·하루 문항은 아래에서 함께 정해요.
+        </p>
+      </div>
       )}
 
       <div>
@@ -881,9 +916,11 @@ export function ListeningScheduleAssignPanel({
               : "저장"
             : busy
               ? "배정하는 중…"
-              : targetLabel
-                ? `${targetLabel}에게 배정`
-                : "배정"}
+              : pickedTargets.length > 1
+                ? `${pickedTargets.length}곳에 배정`
+                : targetLabel
+                  ? `${targetLabel}에게 배정`
+                  : "배정"}
         </button>
       </div>
 

@@ -30,7 +30,7 @@ const READY_LABEL: Record<ReadyFilter, string> = {
 };
 
 const ROW_GRID =
-  "grid grid-cols-[minmax(0,1fr)_32px] items-center gap-3 md:grid-cols-[16px_minmax(0,1fr)_64px_150px_110px_120px_32px] md:gap-3.5";
+  "grid grid-cols-[16px_minmax(0,1fr)_32px] items-center gap-3 md:grid-cols-[16px_16px_minmax(0,1fr)_64px_150px_110px_120px_32px] md:gap-3.5";
 
 interface ListeningSetsListClientProps {
   sets: ListeningSetListItem[];
@@ -112,9 +112,30 @@ export function ListeningSetsListClient({
   const [newFolderName, setNewFolderName] = useState("");
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  /**
+   * 고른 세트 — 단어학습과 같은 방식으로, 고른 다음 아래 막대에서 배정한다.
+   * 선생님 요청(2026-09-28): 모듈마다 배정하는 방식이 달라 헷갈리니 하나로 맞춘다.
+   */
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => setFolderList(folders), [folders]);
-  useEffect(() => setLocalSets(sets), [sets]);
+  useEffect(() => {
+    setLocalSets(sets);
+    setSelected((prev) => {
+      const alive = new Set(sets.map((s) => s.id));
+      const next = new Set([...prev].filter((id) => alive.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [sets]);
+
+  function toggleSelected(id: string, on: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
 
   const statsOf = (id: string): ListeningSetQuestionStats =>
     questionStats[id] ?? { questionCount: 0, audioReadyCount: 0 };
@@ -606,6 +627,23 @@ export function ListeningSetsListClient({
               <div
                 className={`${ROW_GRID} hidden rounded-t-lg border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-500 md:grid`}
               >
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-brand-600"
+                  aria-label="보이는 세트 모두 고르기"
+                  checked={visibleSets.length > 0 && visibleSets.every((s) => selected.has(s.id))}
+                  onChange={(e) => {
+                    const on = e.target.checked;
+                    setSelected((prev) => {
+                      const next = new Set(prev);
+                      for (const s of visibleSets) {
+                        if (on) next.add(s.id);
+                        else next.delete(s.id);
+                      }
+                      return next;
+                    });
+                  }}
+                />
                 <span />
                 <span>세트</span>
                 <span>문항</span>
@@ -651,8 +689,17 @@ export function ListeningSetsListClient({
                           i > 0 ? "border-t border-slate-100" : ""
                         } ${dragId === set.id ? "opacity-50" : ""} ${
                           dragOverId === set.id ? "bg-brand-50/60 shadow-[inset_0_2px_0_0_theme(colors.brand.500)]" : ""
-                        } ${busyId === set.id ? "opacity-60" : ""}`}
+                        } ${busyId === set.id ? "opacity-60" : ""} ${
+                          selected.has(set.id) ? "bg-brand-50" : ""
+                        }`}
                       >
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-brand-600"
+                          aria-label={`${set.title} 고르기`}
+                          checked={selected.has(set.id)}
+                          onChange={(e) => toggleSelected(set.id, e.target.checked)}
+                        />
                         <span
                           draggable={!readOnly}
                           onDragStart={() => setDragId(set.id)}
@@ -757,6 +804,11 @@ export function ListeningSetsListClient({
               )}
             </div>
           )}
+          {visibleSets.length > 0 && selected.size === 0 ? (
+            <p className="px-1 text-xs text-slate-400">
+              왼쪽 네모로 세트를 고르면 아래 막대에서 반·학생에게 배정할 수 있어요.
+            </p>
+          ) : null}
           {localSets.length > 0 ? (
             <p className="px-1 text-xs text-slate-400">
               손잡이를 끌어 순서를 바꾸거나, 왼쪽 폴더 위에 놓아 옮길 수 있어요.
@@ -765,6 +817,36 @@ export function ListeningSetsListClient({
         </section>
       </div>
 
+      {selected.size > 0 ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 flex justify-center px-4 lg:left-[244px]">
+          <div className="pointer-events-auto flex max-w-full items-center gap-3.5 overflow-x-auto rounded-[10px] bg-side py-2.5 pl-[18px] pr-2.5 shadow-[0_12px_32px_rgba(15,23,42,0.25)]">
+            <span className="shrink-0 whitespace-nowrap text-[13px] font-semibold text-white">
+              {selected.size}개 선택
+            </span>
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(`${basePath}/assign?set=${[...selected].join(",")}`)
+                }
+                className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-brand-600 px-3 text-[13px] font-semibold text-white transition hover:bg-brand-700"
+              >
+                <Icon name="calendar" size={16} strokeWidth={2} />
+                배정
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelected(new Set())}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-white/70 hover:bg-white/10 hover:text-white"
+                aria-label="선택 풀기"
+                title="선택 풀기"
+              >
+                <Icon name="x" size={16} strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

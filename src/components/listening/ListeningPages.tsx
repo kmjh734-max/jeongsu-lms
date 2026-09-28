@@ -72,10 +72,10 @@ export async function ListeningSetsTabPage({ role }: { role: Role }) {
 /** 배정 탭 */
 export async function ListeningAssignTabPage({
   role,
-  presetSetId,
+  presetSetIds,
 }: {
   role: Role;
-  presetSetId?: string;
+  presetSetIds?: string[];
 }) {
   const profile = await getCurrentProfile();
   const academyId = profile!.academy_id;
@@ -99,7 +99,7 @@ export async function ListeningAssignTabPage({
       progressByAssignment={data.progressByAssignment}
       todayIso={data.todayIso}
       setCount={counts.setCount}
-      presetSetId={presetSetId}
+      presetSetIds={presetSetIds}
     />
   );
 }

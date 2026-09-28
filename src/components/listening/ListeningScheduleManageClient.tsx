@@ -39,8 +39,8 @@ interface ListeningScheduleManageClientProps {
   progressByAssignment: Record<string, ScheduleAssignmentProgress>;
   todayIso: string;
   setCount: number;
-  /** 세트 화면의 「배정」에서 넘어온 세트 */
-  presetSetId?: string;
+  /** 세트 화면에서 고르고 「배정」으로 넘어온 세트들 */
+  presetSetIds?: string[];
 }
 
 function formatMD(iso: string): string {
@@ -108,7 +108,7 @@ export function ListeningScheduleManageClient({
   progressByAssignment,
   todayIso,
   setCount,
-  presetSetId,
+  presetSetIds,
 }: ListeningScheduleManageClientProps) {
   const router = useRouter();
   const [viewFilter, setViewFilter] = useState<ViewFilter>("all");
@@ -116,18 +116,24 @@ export function ListeningScheduleManageClient({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [panelOpen, setPanelOpen] = useState(Boolean(presetSetId));
+  const [panelOpen, setPanelOpen] = useState(Boolean(presetSetIds?.length));
   const [panelKey, setPanelKey] = useState(0);
   const [addSetsTarget, setAddSetsTarget] = useState<ScheduleAssignmentListItem | null>(null);
   /** 「수정」으로 연 배정 — 있으면 오른쪽 창이 「배정 수정」 */
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // 넓은 화면에서는 배정 창을 처음부터 옆에 열어 둔다
-  useEffect(() => {
-    if (window.matchMedia("(min-width: 1024px)").matches) setPanelOpen(true);
-  }, []);
+  /*
+   * 새 배정은 세트 탭에서 세트를 고른 뒤 시작한다(단어학습과 같은 방식).
+   * 그래서 이 화면에서는 세트를 들고 넘어왔을 때만 배정 창을 연다.
+   */
 
   const activeCount = assignments.filter((a) => a.isActive).length;
+
+  // 배정 창의 학생 목록에 소속 반을 붙여 준다(동명이인을 가리기 쉽게)
+  const studentsWithClass = useMemo(
+    () => students.map((s) => ({ ...s, classLabel: studentClassNames[s.id] })),
+    [students, studentClassNames]
+  );
   const classCount = assignments.filter((a) => a.targetType === "class").length;
   const studentCount = assignments.length - classCount;
 
@@ -202,13 +208,6 @@ export function ListeningScheduleManageClient({
     router.refresh();
   }
 
-  function openPanel() {
-    setEditingId(null);
-    setPanelKey((k) => k + 1);
-    setPanelOpen(true);
-    setNotice(null);
-  }
-
   function subLabelOf(a: ScheduleAssignmentListItem): string {
     return a.targetType === "class"
       ? a.targetClassId && classStudentCounts[a.targetClassId]
@@ -262,9 +261,9 @@ export function ListeningScheduleManageClient({
         assignCount={activeCount}
         action={
           !panelOpen ? (
-            <Button onClick={openPanel}>
+            <Button onClick={() => router.push(`${basePath}/sets`)}>
               <Icon name="plus" size={16} strokeWidth={2} />
-              새로 배정하기
+              세트 골라 배정하기
             </Button>
           ) : undefined
         }
@@ -326,12 +325,12 @@ export function ListeningScheduleManageClient({
               <Icon name="calendar" size={28} className="mx-auto text-slate-300" />
               <p className="mt-3 font-semibold text-slate-800">아직 배정한 과제가 없어요</p>
               <p className="mt-1 text-sm text-slate-500">
-                반이나 학생에게 세트를 날마다 나눠 배정해 보세요.
+                세트 탭에서 세트를 고른 뒤 「배정」을 누르면 여기에 과제가 생겨요.
               </p>
               {!panelOpen ? (
-                <Button className="mt-4" onClick={openPanel}>
+                <Button className="mt-4" onClick={() => router.push(`${basePath}/sets`)}>
                   <Icon name="plus" size={16} strokeWidth={2} />
-                  새로 배정하기
+                  세트 골라 배정하기
                 </Button>
               ) : null}
             </div>
@@ -375,10 +374,10 @@ export function ListeningScheduleManageClient({
           <ListeningScheduleAssignPanel
             key={editTarget ? `edit-${editTarget.id}-${panelKey}` : `new-${panelKey}`}
             classes={classes}
-            students={students}
+            students={studentsWithClass}
             sets={sets}
             folders={folders}
-            initialSetIds={presetSetId && sets.some((s) => s.id === presetSetId) ? [presetSetId] : []}
+            initialSetIds={(presetSetIds ?? []).filter((id) => sets.some((s) => s.id === id))}
             editing={editTarget}
             onSaved={(message) => {
               setNotice(message);
