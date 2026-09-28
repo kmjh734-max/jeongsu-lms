@@ -37,14 +37,19 @@
   color: #0f172a;
 }
 
-/* 첫 칸은 견줄 점 이름 — 한글이라 본문 글꼴로 되돌린다 */
-.qg-print-summary-table tbody th {
-  width: 22%;
-  font-family: inherit;
-  font-size: 7.8pt;
-  font-weight: 600;
+/* 첫 칸은 그 줄의 이름(Land · Building · Distance) — 좁게 잡고 가운데 맞춘다 */
+.qg-print-summary-table .qg-print-summary-key {
+  width: 18mm;
   background: #f8fafc;
+  font-weight: 700;
+  text-align: center;
+  vertical-align: middle;
   color: #0f172a;
+}
+
+/* 빈칸은 밑줄로 — ____(A)____ 가 한 덩어리로 보이게 */
+.qg-print-summary-table td {
+  word-break: keep-all;
 }
 
 /* 문항 번호를 발문 앞에 걸어 두고 발문 둘째 줄부터는 번호 뒤로 내어쓴다. */

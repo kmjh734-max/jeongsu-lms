@@ -602,7 +602,8 @@ word1 / word2 / … (10~14개, 정답 ⓐ+ⓑ를 섞은 단어·기능어. 원�
          */
         return `서술형 · 내용을 표로 정리 · 빈칸에 본문 단어 찾아 쓰기:
 - passageModified 생략. 지문 영어만.
-- 지문에 <b>맞서는 두 부류·두 입장</b>이 있어야 이 유형이 된다. 없으면 만들지 말고 SKIP.
+- 지문을 <b>두 갈래로 갈라 볼 수 있어야</b> 이 유형이 된다. 없으면 만들지 말고 SKIP.
+  갈래 보기: 맞서는 두 입장 / 일어난 일과 그에 대한 반응 / 예전과 지금 / 원인과 결과.
 - questionText 형식(필수). <조건>과 <표>는 각각 <b>그 줄에 혼자</b> 있어야 하고,
   표는 <b>한 줄이 한 행</b>이다(줄바꿈으로 행을 나눈다. 한 줄로 이어 붙이면 안 된다):
 <조건>
@@ -611,17 +612,28 @@ word1 / word2 / … (10~14개, 정답 ⓐ+ⓑ를 섞은 단어·기능어. 원�
 ○ 본문에 나온 형태를 그대로 쓸 것 (형태 변형 금지)
 
 <표>
-| | 첫째 부류 이름 | 둘째 부류 이름 |
-| 초점 | 영어 서술 … (A) … | 영어 서술 … |
-| 해결책 | 영어 서술 … (B) … | 영어 서술 … |
-| 공공 공간 | 영어 서술 … (C) … | 영어 서술 … (C) … |
+| | 첫째 갈래 이름 | 둘째 갈래 이름 |
+| 줄이름1 | 영어 서술 … (A) … | 영어 서술 … |
+| 줄이름2 | 영어 서술 … (B) … | 영어 서술 … |
+| 줄이름3 | 영어 서술 … (C) … | 영어 서술 … |
 
-- 표는 두 칸(부류) × 세 줄(견줄 점)로 만든다. 줄마다 | 로 칸을 나눈다.
-- 첫 줄은 머리글이다. 첫 칸은 비우고, 뒤 두 칸에 부류 이름을 쓴다.
-- 둘째 줄부터 첫 칸은 <b>견줄 점의 이름</b>이다. 그 줄이 무엇을 견주는지 한글 2~5자로
-  적는다(보기: 초점, 근거, 해결책, 공공 공간, 태도). 「견줄 점 1」처럼 자리표시를
-  그대로 두면 안 된다.
-- 부류 이름은 본문에 나온 말을 그대로 쓴다(지어내지 않는다).
+실제 보기(2025년 9월 고2 19번 모양):
+| | Event | Amina's response |
+| Land | Men began (A) and marking the ground. | She walked closer, wanting to know what was happening. |
+| Building | Her uncle said a (B) would be built for village children. | Her eyes sparkled with joy. |
+| Distance | The nearest school was (C) away on foot. | She imagined learning to read and write. |
+
+- 표는 <b>정확히 세 칸</b>이다. 첫 줄이 머리글이고, 그 아래 세 줄이 내용이다.
+  줄마다 | 로 칸을 나눈다.
+- 머리글 첫 칸은 <b>비워 둔다</b>. 뒤 두 칸에 갈래 이름을 쓴다
+  (보기: Event / Amina's response, Most experts / Darby Saxbe, Before / After).
+- 둘째 줄부터 첫 칸은 <b>그 줄이 무엇에 관한 줄인지</b> 한두 낱말로 적는다.
+  영어 명사로 짧게 쓴다(보기: Land, Building, Distance, Cost, Timing).
+  「견줄 점 1」처럼 자리표시를 그대로 두면 안 된다.
+- 갈래 이름과 줄 이름은 본문에서 끌어온다(지어내지 않는다).
+- 같은 줄의 두 칸은 <b>같은 것을 다룬다</b>. 왼쪽이 무엇을 말하면 오른쪽은 그것에
+  대한 다른 쪽 이야기를 쓴다.
+- 칸 속 영어는 완결된 문장 한두 개로 쓴다(한 칸에 6~18낱말).
 - 표의 영어 서술은 지문 문장을 그대로 베끼지 말고 짧게 paraphrase 한다.
 - (A)(B)(C) 자리에 들어갈 낱말은 <b>반드시 지문에 그 형태 그대로</b> 있어야 한다.
   같은 낱말이 두 칸에 들어가도 된다(그때는 같은 기호를 두 번 쓴다).
@@ -1150,12 +1162,16 @@ export function assertBasicQuestionShape(
     if (!blocks) {
       return "요약표 유형은 questionText에 <조건>과 <표>가 각각 줄 단위로 필요합니다.";
     }
-    if (blocks.rows.length < 3 || (blocks.rows[0]?.length ?? 0) < 3) {
-      return "요약표는 머리글 한 줄과 견줄 점 두 줄 이상, 부류 두 칸이 필요합니다.";
+    if (blocks.rows.length < 3 || (blocks.rows[0]?.length ?? 0) !== 3) {
+      return "요약표는 머리글 한 줄과 내용 두 줄 이상, 줄 이름 칸을 포함해 세 칸이어야 합니다.";
     }
-    const headers = blocks.rows.slice(1).map((r) => r[0] ?? "");
-    if (headers.some((h) => !h.trim() || /견줄\s*점\s*\d/.test(h))) {
-      return "표의 첫 칸에는 견줄 점 이름을 적어야 합니다(‘견줄 점 1’ 같은 자리표시 금지).";
+    const bodyRows = blocks.rows.slice(1);
+    if (bodyRows.some((r) => r.slice(1).some((cell) => !cell.trim()))) {
+      return "요약표에 빈 칸이 있습니다.";
+    }
+    const keys = bodyRows.map((r) => r[0] ?? "");
+    if (keys.some((k) => !k.trim() || /견줄\s*점|비교\s*점/.test(k) || k.trim().length > 20)) {
+      return "표 첫 칸에는 그 줄을 가리키는 짧은 이름이 필요합니다(예: Land, Building, Distance).";
     }
     if (blocks.blankLabels.length < 2) {
       return "표 안에 (A)·(B) 같은 빈칸이 두 개 이상 필요합니다.";

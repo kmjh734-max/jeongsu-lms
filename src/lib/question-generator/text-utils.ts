@@ -13,6 +13,34 @@ export function sanitizeInlineSectionMentions(text: string): string {
     .replace(/<표>(의|를|에|와|과|로|은|는|이|가)/g, "표$1");
 }
 
+/**
+ * 섹션 태그를 제 줄에 세운다.
+ *
+ * 선생님 지적(2026-09-28): 「<우리말> … <조건> ○ … <보기> …」처럼 한 줄로 뭉쳐 나온다.
+ * 이미 만들어 둔 문항도 상자로 풀리도록, 태그 앞뒤에 줄을 넣어 준다.
+ * <우리말>은 예전 이름이라 <해석>으로 바꿔 기존 인쇄 틀이 그대로 그리게 한다.
+ */
+function standAloneSectionTags(text: string): string {
+  return (text || "")
+    .replace(/<\s*우리말\s*>/g, "<해석>")
+    .replace(/\s*<(조건|보기|해석|요약문|표|지칭답란|답안행)>\s*/g, "\n<$1>\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/**
+ * 조건이 「○ … ○ … ○ …」처럼 한 줄에 붙어 오면 한 줄에 하나씩 세운다.
+ * 선생님 지적(2026-09-28): 조건이 뭉쳐 나와 읽을 수 없었다.
+ */
+function splitConditionBullets(conditions: string): string {
+  return (conditions || "")
+    .replace(/\s*○\s*/g, "\n○ ")
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter((line) => line && line !== "○")
+    .join("\n");
+}
+
 /** 줄 단독 섹션 태그만 구분자로 인정 */
 function sectionOpen(tag: string): RegExp {
   return new RegExp(`(?:^|\\n)\\s*<${tag}>\\s*(?=\\n|$)`);
@@ -77,9 +105,9 @@ export function parseWordOrderBlocks(text: string): {
   translation: string;
   allowExtraWords: boolean;
 } | null {
-  const cleaned = sanitizeInlineSectionMentions(
-    cleanQuestionText(text)
-  ).trim();
+  const cleaned = standAloneSectionTags(
+    sanitizeInlineSectionMentions(cleanQuestionText(text))
+  );
   if (
     !/<조건>/.test(cleaned) ||
     !sectionOpen("보기").test(cleaned) ||
@@ -109,9 +137,11 @@ export function parseWordOrderBlocks(text: string): {
   if (!conditions && !words && !translation) return null;
 
   // 조건에 남은 깨진 문구 복구
-  conditions = conditions
-    .replace(/^의\s+단어를/m, "보기의 단어를")
-    .replace(/○\s*의\s+단어를/g, "○ 보기의 단어를");
+  conditions = splitConditionBullets(
+    conditions
+      .replace(/^의\s+단어를/m, "보기의 단어를")
+      .replace(/○\s*의\s+단어를/g, "○ 보기의 단어를")
+  );
 
   words = words
     .replace(/<\/?보기>/gi, "")
@@ -140,9 +170,9 @@ export function parseSummaryWritingBlocks(text: string): {
   summary: string;
   blankLabels: string[];
 } | null {
-  const cleaned = sanitizeInlineSectionMentions(
-    cleanQuestionText(text)
-  ).trim();
+  const cleaned = standAloneSectionTags(
+    sanitizeInlineSectionMentions(cleanQuestionText(text))
+  );
   if (!/<조건>/.test(cleaned) || !/<요약문>/.test(cleaned)) {
     return null;
   }
@@ -170,10 +200,12 @@ export function parseSummaryWritingBlocks(text: string): {
   ]);
   if (!summary) return null;
 
-  conditions = conditions
-    .replace(/^의\s+단어를/m, "보기의 단어를")
-    .replace(/○\s*의\s+단어를/g, "○ 보기의 단어를")
-    .replace(/N\+M\s*=\s*<보기>\s*단어/gi, "N+M = 보기 단어");
+  conditions = splitConditionBullets(
+    conditions
+      .replace(/^의\s+단어를/m, "보기의 단어를")
+      .replace(/○\s*의\s+단어를/g, "○ 보기의 단어를")
+      .replace(/N\+M\s*=\s*<보기>\s*단어/gi, "N+M = 보기 단어")
+  );
 
   if (words != null) {
     words = words
@@ -202,14 +234,18 @@ export function parseSummaryTableBlocks(text: string): {
   rows: string[][];
   blankLabels: string[];
 } | null {
-  const cleaned = sanitizeInlineSectionMentions(cleanQuestionText(text)).trim();
+  const cleaned = standAloneSectionTags(
+    sanitizeInlineSectionMentions(cleanQuestionText(text))
+  );
   if (!/<조건>/.test(cleaned) || !/<표>/.test(cleaned)) return null;
 
   const afterCond = sliceAfterTag(cleaned, "조건");
   const afterTable = sliceAfterTag(cleaned, "표");
   if (afterCond == null || afterTable == null) return null;
 
-  const conditions = sliceUntilNextSection(afterCond, ["표", "보기", "해석", "요약문"]);
+  const conditions = splitConditionBullets(
+    sliceUntilNextSection(afterCond, ["표", "보기", "해석", "요약문"])
+  );
   const body = sliceUntilNextSection(afterTable, ["조건", "보기", "해석", "요약문"]);
 
   const rows = body
@@ -228,7 +264,16 @@ export function parseSummaryTableBlocks(text: string): {
   // 칸 수가 들쭉날쭉하면 가장 넓은 줄에 맞춰 빈칸으로 채운다
   const width = Math.max(...rows.map((r) => r.length));
   if (width < 2) return null;
-  const padded = rows.map((r) => [...r, ...Array(Math.max(0, width - r.length)).fill("")]);
+  let padded = rows.map((r) => [...r, ...Array(Math.max(0, width - r.length)).fill("")]);
+
+  /*
+   * 첫 칸은 그 줄이 무엇에 관한 줄인지 적는 이름 칸이다(학력평가 모양: Land / Building
+   * / Distance). 선생님 요청(2026-09-28): 「견줄 점」 같은 말은 쓰지 않는다.
+   * 이름 칸 없이 두 칸만 오면 번호를 붙여 준다.
+   */
+  if (width === 2) {
+    padded = padded.map((r, i) => [i === 0 ? "" : String(i), ...r]);
+  }
 
   const blankLabels = Array.from(new Set(body.match(/\([A-E]\)/g) ?? [])).sort();
   return { conditions, rows: padded, blankLabels };
@@ -239,7 +284,7 @@ export function parseSummaryTableBlocks(text: string): {
  * 선생님 요청(2026-09-28): 「______(A)______」 이렇게 학생이 쓸 자리가 보이게.
  */
 export function withBlankRules(cell: string): string {
-  return cell.replace(/\(([A-E])\)/g, "______($1)______");
+  return cell.replace(/\(([A-E])\)/g, "____($1)____");
 }
 
 /** 본문에 연속 N단어로 존재하는지 (대소문자·구두점 무시) */

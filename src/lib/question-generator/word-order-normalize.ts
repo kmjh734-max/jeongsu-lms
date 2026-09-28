@@ -304,6 +304,23 @@ const S_KEEP = new Set(
   ].map((w) => w.toLowerCase())
 );
 
+/**
+ * 원래 낱말이 겹자음으로 끝나는 것들. 여기 걸리면 겹자음을 떼지 않는다.
+ *
+ * 선생님 지적(2026-09-28): 보기에 blessing이 bles로 잘려 나왔다.
+ * running→run을 위한 규칙이 bless·call·add까지 잘라 버린 탓이다.
+ * ff·ll·ss·zz로 끝나는 낱말은 원래 그 꼴이고(call, pass, off, buzz),
+ * 그 밖에 겹자음으로 끝나는 낱말은 몇 개뿐이라 따로 적어 둔다.
+ */
+const DOUBLE_END_KEEP = new Set(["add", "ebb", "egg", "err", "inn", "odd", "purr"]);
+
+function stripDoubledConsonant(stem: string): string | null {
+  if (!/(.)\1$/.test(stem) || stem.length < 2) return null;
+  if ("flsz".includes(stem.slice(-1))) return null;
+  if (DOUBLE_END_KEEP.has(stem)) return null;
+  return stem.slice(0, -1);
+}
+
 export function lemmaEnglishToken(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return trimmed;
@@ -340,8 +357,9 @@ export function lemmaEnglishToken(raw: string): string {
   // -ed: 고신뢰만 — 불규칙 맵 또는 자음 중복 (stopped → stop). e 임의 부착 금지.
   if (/^[a-z]+ed$/i.test(lower) && lower.length > 4) {
     const stem = lower.slice(0, -2);
-    if (/(.)\1$/.test(stem) && stem.length >= 3) {
-      return stem.slice(0, -1);
+    if (stem.length >= 3) {
+      const stripped = stripDoubledConsonant(stem);
+      if (stripped) return stripped;
     }
     return lower;
   }
@@ -349,9 +367,8 @@ export function lemmaEnglishToken(raw: string): string {
   if (/^[a-z]+ing$/i.test(lower) && lower.length > 5) {
     if (ING_KEEP.has(lower)) return lower;
     const stem = lower.slice(0, -3);
-    if (/(.)\1$/.test(stem) && stem.length >= 2) {
-      return stem.slice(0, -1);
-    }
+    const stripped = stripDoubledConsonant(stem);
+    if (stripped) return stripped;
     return lower;
   }
   // 3인칭·복수 -s (allows → allow, consumers → consumer, changes → change)

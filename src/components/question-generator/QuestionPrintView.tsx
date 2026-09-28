@@ -341,11 +341,14 @@ function SummaryTableBoxes({
           ))}
         </div>
       </div>
+      {/* 첫 칸은 그 줄의 이름, 나머지는 내용 (학력평가 모양) */}
       <table className="qg-print-summary-table">
         <thead>
           <tr>
             {(headRow ?? []).map((cell, i) => (
-              <th key={i}>{withBlankRules(cell)}</th>
+              <th key={i} className={i === 0 ? "qg-print-summary-key" : undefined}>
+                {withBlankRules(cell)}
+              </th>
             ))}
           </tr>
         </thead>
@@ -354,8 +357,8 @@ function SummaryTableBoxes({
             <tr key={ri}>
               {row.map((cell, ci) =>
                 ci === 0 ? (
-                  <th key={ci} scope="row">
-                    {withBlankRules(cell)}
+                  <th key={ci} scope="row" className="qg-print-summary-key">
+                    {cell}
                   </th>
                 ) : (
                   <td key={ci}>{withBlankRules(cell)}</td>

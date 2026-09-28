@@ -519,7 +519,9 @@ export function GenerationDetailClient({
                                 {(summaryTable.rows[0] ?? []).map((cell, i) => (
                                   <th
                                     key={i}
-                                    className="border border-slate-400 bg-slate-50 px-2 py-1.5 text-left align-top font-semibold text-slate-900"
+                                    className={`border border-slate-400 bg-slate-50 px-2 py-1.5 align-top font-semibold text-slate-900 ${
+                                      i === 0 ? "w-[16%] text-center" : "text-left"
+                                    }`}
                                   >
                                     {withBlankRules(cell)}
                                   </th>
@@ -529,18 +531,23 @@ export function GenerationDetailClient({
                             <tbody>
                               {summaryTable.rows.slice(1).map((row, ri) => (
                                 <tr key={ri}>
-                                  {row.map((cell, ci) => (
-                                    <td
-                                      key={ci}
-                                      className={`border border-slate-400 px-2 py-1.5 align-top ${
-                                        ci === 0
-                                          ? "w-[22%] bg-slate-50/70 font-sans text-[12px] font-semibold text-slate-900"
-                                          : "text-slate-800"
-                                      }`}
-                                    >
-                                      {withBlankRules(cell)}
-                                    </td>
-                                  ))}
+                                  {row.map((cell, ci) =>
+                                    ci === 0 ? (
+                                      <th
+                                        key={ci}
+                                        className="w-[16%] border border-slate-400 bg-slate-50/70 px-2 py-1.5 text-center align-middle font-semibold text-slate-900"
+                                      >
+                                        {cell}
+                                      </th>
+                                    ) : (
+                                      <td
+                                        key={ci}
+                                        className="border border-slate-400 px-2 py-1.5 align-top text-slate-800"
+                                      >
+                                        {withBlankRules(cell)}
+                                      </td>
+                                    )
+                                  )}
                                 </tr>
                               ))}
                             </tbody>
