@@ -47,6 +47,65 @@ const CATEGORY_ORDER = [
   "subjective",
 ] as const;
 
+/**
+ * 미리보기 본문. | 로 칸을 나눈 줄이 이어지면 진짜 표로 묶어 그린다(요약표 유형).
+ * 선생님 요청(2026-09-28): 미리보기를 크게, 나오는 모양 그대로 보이게.
+ */
+function SampleLines({ lines }: { lines: string[] }) {
+  type Block = { kind: "text"; text: string } | { kind: "table"; rows: string[][] };
+  const blocks: Block[] = [];
+  for (const raw of lines) {
+    const line = raw.replace(/<\/?u>/g, "");
+    if (line.includes("|")) {
+      const cells = line
+        .replace(/^\|/, "")
+        .replace(/\|$/, "")
+        .split("|")
+        .map((c) => c.trim());
+      const last = blocks[blocks.length - 1];
+      if (last && last.kind === "table") last.rows.push(cells);
+      else blocks.push({ kind: "table", rows: [cells] });
+    } else {
+      blocks.push({ kind: "text", text: line });
+    }
+  }
+
+  return (
+    <div className="mt-2 space-y-1.5">
+      {blocks.map((b, i) =>
+        b.kind === "text" ? (
+          <p key={i} className="font-serif text-[13px] leading-relaxed text-slate-700">
+            {b.text}
+          </p>
+        ) : (
+          <table key={i} className="w-full border-collapse font-serif text-[11.5px]">
+            <tbody>
+              {b.rows.map((row, ri) => (
+                <tr key={ri}>
+                  {row.map((cell, ci) => (
+                    <td
+                      key={ci}
+                      className={`border border-slate-300 px-1.5 py-1 align-top leading-snug ${
+                        ri === 0
+                          ? "bg-slate-50 font-semibold text-slate-800"
+                          : ci === 0
+                            ? "w-[58px] bg-slate-50/70 text-center font-semibold text-slate-700"
+                            : "text-slate-700"
+                      }`}
+                    >
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      )}
+    </div>
+  );
+}
+
 export type GrammarChoice = { label: string; form: string; hint: string };
 
 /**
@@ -1462,15 +1521,18 @@ export function QuestionGeneratorClient({
 
           {sample ? (
             <div
-              className="pointer-events-none fixed z-50 w-[340px] rounded-xl border border-slate-200 bg-white p-3 shadow-xl"
+              className="pointer-events-none fixed z-50 w-[min(500px,calc(100vw-32px))] rounded-xl border border-slate-300 bg-white p-4 shadow-2xl"
               style={{
-                left: Math.min(sample.x, (typeof window === "undefined" ? 1200 : window.innerWidth) - 356),
-                top: Math.max(12, Math.min(sample.y, (typeof window === "undefined" ? 800 : window.innerHeight) - 280)),
+                left: Math.min(
+                  sample.x,
+                  Math.max(16, (typeof window === "undefined" ? 1200 : window.innerWidth) - 516)
+                ),
+                top: Math.max(12, Math.min(sample.y, (typeof window === "undefined" ? 800 : window.innerHeight) - 380)),
               }}
             >
-              <p className="text-[13px] font-bold text-slate-900">{sample.s.name}</p>
-              <p className="mt-0.5 text-[11.5px] text-slate-500">{sample.s.shape}</p>
-              <p className="mt-2 rounded-lg bg-slate-50 px-2.5 py-1.5 text-[11.5px] font-semibold text-slate-800">
+              <p className="text-[15px] font-bold text-slate-900">{sample.s.name}</p>
+              <p className="mt-0.5 text-[12.5px] text-slate-500">{sample.s.shape}</p>
+              <p className="mt-2.5 rounded-lg bg-slate-50 px-3 py-2 text-[13px] font-semibold leading-snug text-slate-900">
                 {sample.s.stem}
               </p>
               {sample.s.levels ? (
@@ -1478,7 +1540,7 @@ export function QuestionGeneratorClient({
                   {(["low", "high"] as const).map((lv) => (
                     <p
                       key={lv}
-                      className={`rounded-lg px-2 py-1 text-[11.5px] ${
+                      className={`rounded-lg px-2.5 py-1.5 text-[12.5px] ${
                         sample.level === lv ? "bg-brand-50 font-semibold text-brand-800" : "text-slate-500"
                       }`}
                     >
@@ -1488,16 +1550,12 @@ export function QuestionGeneratorClient({
                   ))}
                 </div>
               ) : null}
+              <SampleLines lines={sample.s.lines} />
               {sample.s.levelNote ? (
-                <p className="mt-2 text-[11px] text-slate-500">{sample.s.levelNote}</p>
+                <p className="mt-2.5 border-t border-slate-100 pt-2 text-[11.5px] leading-snug text-slate-500">
+                  {sample.s.levelNote}
+                </p>
               ) : null}
-              <div className="mt-1.5 space-y-0.5">
-                {sample.s.lines.map((line, i) => (
-                  <p key={i} className="font-serif text-[11.5px] leading-relaxed text-slate-600">
-                    {line.replace(/<\/?u>/g, "")}
-                  </p>
-                ))}
-              </div>
             </div>
           ) : null}
 
