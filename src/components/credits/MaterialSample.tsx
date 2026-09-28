@@ -212,29 +212,35 @@ export function MaterialSample({ kind }: { kind: CreditSampleKind }) {
     );
   }
 
-  if (kind === "question") {
+    if (kind === "question") {
     return (
       <Sheet title="변형문제">
         <div>
           <div className={head}>1. 다음 글의 요지로 가장 적절한 것은?</div>
           <p className={line}>
-            Most students take notes by copying, and copying is the one method that teaches you nothing…
-          </p>
-          <p className={line}>
-            ① 필기는 많이 할수록 좋다
-            <br />② 필기는 자기 말로 바꿔 써야 한다
-            <br />③ 색깔 펜을 나눠 써야 한다
+            Most students take notes by copying, and copying is the one method that teaches you
+            nothing. A hand that is busy matching the board word for word leaves the understanding
+            for later, and later never comes with the lesson still in the room. Listen to the whole
+            point, then write it down in your own words, even clumsy ones.
           </p>
         </div>
         <div>
-          <div className={head}>2. 밑줄 친 부분 중 어법상 틀린 것은?</div>
-          <p className={line}>① is ② taught ③ writing ④ that ⑤ which</p>
+          <p className={line}>
+            ① 필기는 많이 할수록 좋다
+            <br />② 수업이 끝나면 바로 복습해야 한다
+            <br />③ 필기는 베껴 쓰기보다 자기 말로 바꿔 써야 한다
+            <br />④ 색깔 펜을 나눠 써야 한다
+            <br />⑤ 친구와 필기를 바꿔 봐야 한다
+          </p>
         </div>
+        <p className="text-[7px] leading-[1.7] text-slate-500">
+          고른 유형으로 지문마다 이런 문항을 만듭니다.
+        </p>
       </Sheet>
     );
   }
 
-  if (kind === "exam_mock") {
+if (kind === "exam_mock") {
     return (
       <Sheet title="동형모의고사">
         <p className="text-[7px] leading-[1.7] text-slate-500">
