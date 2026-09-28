@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     }
 
     const shortfall = await lessonCreditShortfall(academyId, LESSON_CREDIT_FEATURES.illustration);
-    if (shortfall) return jsonError(shortfall);
+    if (shortfall) return jsonError(shortfall, 402);
 
     // 그림이 실제로 나오면(저장 전) 바로 차감한다. 그림을 못 만들면 차감하지 않는다.
     const out = await generateLessonMaterialComicIllustration({

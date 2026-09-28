@@ -5,6 +5,7 @@ import { isStudyPlanEnabled, isStudyPlanNavItem } from "@/lib/study-plan/access"
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Suspense } from "react";
 import { LowCreditBanner } from "@/components/credits/LowCreditBanner";
+import { CreditWall } from "@/components/credits/CreditWall";
 import { GuideBanner } from "@/components/home/GuideBanner";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -62,6 +63,7 @@ export default async function AdminLayout({
       navItems={filterNavItems(navItems)}
     >
       <LowCreditBanner academyId={profile.academy_id} canCharge />
+      <CreditWall academyId={profile.academy_id} canCharge />
       <Suspense fallback={null}>
         <GuideBanner />
       </Suspense>
