@@ -238,7 +238,7 @@ const SAMPLES: Record<string, TypeSample> = {
       "<조건> ○ 본문에서 찾아 쓸 것 ○ 각각 한 단어 ○ 본문 형태 그대로",
       "　　　　 | Event | Amina's response |",
       "Land　　 | Men began ____(A)____ and marking the ground. | She walked closer.",
-      "Building | A ____(B)____ would be built for village children. | Her eyes sparkled.",
+      "Building | A school would be built for village children. | Her eyes ____(B)____ with joy.",
       "Distance | The nearest school was ____(C)____ away on foot. | She imagined learning.",
       "→ 답: (A) clearing / (B) school / (C) hours",
     ],

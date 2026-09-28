@@ -614,13 +614,13 @@ word1 / word2 / … (10~14개, 정답 ⓐ+ⓑ를 섞은 단어·기능어. 원�
 <표>
 | | 첫째 갈래 이름 | 둘째 갈래 이름 |
 | 줄이름1 | 영어 서술 … (A) … | 영어 서술 … |
-| 줄이름2 | 영어 서술 … (B) … | 영어 서술 … |
+| 줄이름2 | 영어 서술 … | 영어 서술 … (B) … |
 | 줄이름3 | 영어 서술 … (C) … | 영어 서술 … |
 
-실제 보기(2025년 9월 고2 19번 모양):
+실제 보기(2025년 9월 고2 19번 모양). 빈칸이 두 칸에 나뉘어 있는 것을 눈여겨본다:
 | | Event | Amina's response |
 | Land | Men began (A) and marking the ground. | She walked closer, wanting to know what was happening. |
-| Building | Her uncle said a (B) would be built for village children. | Her eyes sparkled with joy. |
+| Building | Her uncle said a school would be built for village children. | Her eyes (B) with joy. |
 | Distance | The nearest school was (C) away on foot. | She imagined learning to read and write. |
 
 - 표는 <b>정확히 세 칸</b>이다. 첫 줄이 머리글이고, 그 아래 세 줄이 내용이다.
@@ -637,6 +637,9 @@ word1 / word2 / … (10~14개, 정답 ⓐ+ⓑ를 섞은 단어·기능어. 원�
 - 표의 영어 서술은 지문 문장을 그대로 베끼지 말고 짧게 paraphrase 한다.
 - (A)(B)(C) 자리에 들어갈 낱말은 <b>반드시 지문에 그 형태 그대로</b> 있어야 한다.
   같은 낱말이 두 칸에 들어가도 된다(그때는 같은 기호를 두 번 쓴다).
+- 빈칸을 <b>한쪽 칸에만 몰지 않는다</b>. 왼쪽 칸과 오른쪽 칸에 <b>나눠</b> 둔다
+  (선생님 지적 2026-09-29: 보기가 한쪽 열에만 들어가는 경우가 있다).
+  빈칸이 셋이면 한쪽에 둘·다른 쪽에 하나처럼 갈라 놓는다. 줄도 서로 다른 줄에 둔다.
 - correctAnswer 형식: "(A): separate / (B): email / (C): boundaries"
 - choices 없음. explanation 한글: 각 낱말이 본문 어디에 근거하는지 한 줄씩.`;
       }
@@ -1172,6 +1175,19 @@ export function assertBasicQuestionShape(
     const keys = bodyRows.map((r) => r[0] ?? "");
     if (keys.some((k) => !k.trim() || /견줄\s*점|비교\s*점/.test(k) || k.trim().length > 20)) {
       return "표 첫 칸에는 그 줄을 가리키는 짧은 이름이 필요합니다(예: Land, Building, Distance).";
+    }
+    /*
+     * 빈칸이 한쪽 칸에만 몰리면 표를 가로로 읽을 일이 없어진다
+     * (선생님 지적 2026-09-29: 보기가 한쪽 열에만 들어간다).
+     */
+    const blankCols = new Set<number>();
+    for (const row of bodyRows) {
+      row.forEach((cell, i) => {
+        if (i > 0 && /\([A-E]\)/.test(cell)) blankCols.add(i);
+      });
+    }
+    if (blocks.blankLabels.length >= 2 && blankCols.size < 2) {
+      return "빈칸이 한쪽 칸에만 몰려 있습니다. 왼쪽·오른쪽 칸에 나눠 두세요.";
     }
     if (blocks.blankLabels.length < 2) {
       return "표 안에 (A)·(B) 같은 빈칸이 두 개 이상 필요합니다.";
