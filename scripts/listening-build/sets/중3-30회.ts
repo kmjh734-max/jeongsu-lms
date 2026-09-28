@@ -453,11 +453,11 @@ export const spec: SetSpec = {
         ["W", "Are you going back there next weekend?"],
         ["M", "Yes, I signed up for the first Saturday of every month."],
       ],
-      choices: ["요리 배우기", "음식 나눠 주기", "주방 청소하기", "장보기", "설거지하기"],
-      answer: 5,
+      choices: ["요리 배우기", "음식 나눠 주기", "주방 청소하기", "설거지하기", "장보기"],
+      answer: 4,
       clue: "No, we washed dishes for the free lunch program.",
       explanation:
-        "남자는 토요일에 마을 주방에서 무료 급식 설거지를 했다고 했다. 따라서 답은 ⑤이다.",
+        "남자는 토요일에 마을 주방에서 무료 급식 설거지를 했다고 했다. 따라서 답은 ④이다.",
       translation: [
         "W: 서율아, 오늘 손이 왜 이렇게 텄어?",
         "M: 토요일 하루 종일 마을 주방에 있었어.",
