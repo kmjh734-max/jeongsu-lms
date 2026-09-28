@@ -1,0 +1,190 @@
+{
+  "_설명": "기초 2과 일반동사 — 3인칭 단수 현재형과 부정문. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 2.일반동사_종합문제(2회).pdf", "number": 1,
+      "포인트": "일반동사 부정문 don’t + 동사원형",
+      "prompt": "다음 <보기>와 같이 [[부정문]]으로 바꾸어 쓰세요.",
+      "body": ["<보기>",
+               "Tony is tall. → Tony isn’t tall.",
+               "I enjoy music and movies."],
+      "answer": "I don’t enjoy music and movies.",
+      "explanation": "I는 1인칭 단수이므로 do를 사용하여 부정문을 만든다."
+    },
+    {
+      "file": "[기초] 2.일반동사_종합문제(2회).pdf", "number": 10,
+      "포인트": "3인칭 단수 부정문 doesn’t + 동사원형",
+      "prompt": "<보기>를 참고하여 문장을 바꿔 쓰세요.",
+      "body": ["<보기>",
+               "I like apples.",
+               "→ I don’t like apples.",
+               "He has many friends.",
+               "→ ______ ______ ______ ______ ______."],
+      "answer": "He doesn’t have many friends",
+      "explanation": "3인칭 단수 일반동사의 부정문은 「주어 + doesn’t + 동사원형」으로 쓴다. has가 동사원형 have로 바뀌는 점에 주의한다."
+    },
+    {
+      "file": "[기초] 2.일반동사_종합문제(2회).pdf", "number": 12,
+      "포인트": "3인칭 단수 부정문 does not + 동사원형",
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰세요.",
+      "body": ["She works on Sundays. (부정문으로)"],
+      "answer": "She does not work on Sundays.",
+      "explanation": "3인칭 단수 일반동사의 부정문은 「주어 + does + not + 동사원형 ~」으로 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 2,
+      "포인트": "문맥에 맞는 동사 고르고 3인칭 단수 현재형으로 쓰기",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 <보기>에서 골라 쓰시오.(단, 현재형으로 쓸 것)",
+      "body": ["<보기>",
+               "wash borrow fix",
+               "She _____ the dishes after dinner."],
+      "answer": "washes",
+      "explanation": "의미상 wash(설거지하다)가 알맞으며, 주어 She가 3인칭 단수이므로 -sh로 끝나는 동사에 -es를 붙여 washes로 써야 한다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 4,
+      "포인트": "문맥에 맞는 동사 고르고 3인칭 단수 현재형으로 쓰기",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 <보기>에서 골라 쓰시오. (단, 현재형으로 쓸 것.)",
+      "body": ["He ________ his teeth twice a day.",
+               "<보기>",
+               "carry visit brush"],
+      "answer": "brushes",
+      "explanation": "의미상 brush(닦다)가 알맞으며, 주어 He가 3인칭 단수이므로 -sh로 끝나는 동사에 -es를 붙여 brushes로 써야 한다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 5,
+      "포인트": "주어가 복수로 바뀌면 동사도 원형으로",
+      "prompt": "밑줄 친 부분을 Mr. Park and Ms. Lee로 바꾸어서 다시 쓰세요.",
+      "body": ["[[She]] teaches math at school.",
+               "(그녀는 학교에서 수학을 가르칩니다.)"],
+      "answer": "Mr. Park and Ms. Lee teach math at school.",
+      "explanation": "주어가 3인칭 단수인 she에서 Mr. Park and Ms. Lee라는 복수로 바뀌므로, 동사도 3인칭 단수 현재형인 teaches에서 teach로 바꾸어야 한다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 6,
+      "포인트": "people은 복수 취급",
+      "prompt": "우리말에 맞게 단어를 바르게 배열하여 문장을 완성하세요.",
+      "body": ["캐나다에서 사람들은 프랑스어를 쓴다.",
+               "→ People ________________________.",
+               "(Canada / French / speak / in)"],
+      "answer": "speak French in Canada",
+      "explanation": "people(사람들)의 복수 취급에 주의한다. in Canada는 부사구이다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 8,
+      "포인트": "주어 + 일반동사 + 부사구 어순",
+      "prompt": "주어진 단어를 배열하시오.",
+      "body": ["play / they / on / weekends"],
+      "answer": "They play on weekends.",
+      "explanation": "주어 they가 복수이므로 동사는 원형 play를 쓰고, 뒤에 부사구 on weekends를 놓는다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 9,
+      "포인트": "All the + 복수명사는 복수 취급",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["All the students (wear, wears) uniforms every",
+               "day."],
+      "answer": "wear",
+      "explanation": "All the students는 복수 주어이므로 동사는 원형 wear를 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 11,
+      "포인트": "3인칭 단수 현재형 -s",
+      "prompt": "주어진 동사를 적절한 현재시제 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["Grandmother _____ (bake) cookies for us."],
+      "answer": "bakes",
+      "explanation": "주어 Grandmother가 3인칭 단수이므로 동사에 -s를 붙여 bakes로 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 12,
+      "포인트": "2인칭 주어 뒤에는 동사원형",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["You always (lose, loses) your umbrella."],
+      "answer": "lose",
+      "explanation": "주어가 You이므로 3인칭 단수 현재형이 아니라 동사원형 lose를 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 15,
+      "포인트": "-o로 끝나는 동사의 3인칭 단수형 -es",
+      "prompt": "주어진 동사를 적절한 현재시제 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["Sarah _____ (do) her homework after dinner."],
+      "answer": "does",
+      "explanation": "주어 Sarah가 3인칭 단수이고 do는 -o로 끝나므로 -es를 붙여 does로 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 16,
+      "포인트": "3인칭 단수 현재형 -s",
+      "prompt": "주어진 동사를 적절한 현재시제 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["My uncle _____ (send) me a postcard every",
+               "month."],
+      "answer": "sends",
+      "explanation": "주어 My uncle이 3인칭 단수이므로 동사에 -s를 붙여 sends로 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 17,
+      "포인트": "have의 3인칭 단수형 has",
+      "prompt": "주어진 동사를 적절한 현재시제 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["Emma _____ (have) a small garden. She _____",
+               "(grow) roses in it."],
+      "answer": "has, grows",
+      "explanation": "주어가 3인칭 단수이므로 have는 불규칙하게 has가 되고, grow는 -s를 붙여 grows가 된다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 18,
+      "포인트": "관계사절 안 동사는 앞의 선행사에 맞춘다",
+      "prompt": "동사의 적절한 형태를 고르시오.",
+      "body": ["The student who (finish, finishes) first gets a",
+               "sticker."],
+      "answer": "finishes",
+      "explanation": "who가 가리키는 말이 단수인 The student이므로 -sh로 끝나는 동사에 -es를 붙여 finishes로 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 19,
+      "포인트": "복수 주어 뒤에는 동사원형",
+      "prompt": "동사의 적절한 형태를 고르시오.",
+      "body": ["Babies usually (sleep, sleeps) for many hours."],
+      "answer": "sleep",
+      "explanation": "주어 Babies가 복수이므로 동사는 원형 sleep을 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 20,
+      "포인트": "셀 수 없는 명사 주어는 단수 취급",
+      "prompt": "동사의 적절한 형태를 고르시오.",
+      "body": ["Coffee always (keep, keeps) me awake."],
+      "answer": "keeps",
+      "explanation": "Coffee는 셀 수 없는 명사로 단수 취급하므로 동사에 -s를 붙여 keeps로 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 21,
+      "포인트": "단수 주어 뒤에는 3인칭 단수 현재형",
+      "prompt": "동사의 적절한 형태를 고르시오.",
+      "body": ["The new jacket (suit, suits) him well."],
+      "answer": "suits",
+      "explanation": "주어 The new jacket이 3인칭 단수이므로 동사에 -s를 붙여 suits로 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 22,
+      "포인트": "1인칭 복수 주어 뒤에는 동사원형",
+      "prompt": "동사의 적절한 형태를 고르시오.",
+      "body": ["We (walk, walks) to school when it is sunny."],
+      "answer": "walk",
+      "explanation": "주어가 We이므로 3인칭 단수 현재형이 아니라 동사원형 walk를 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 23,
+      "포인트": "단수 주어 뒤에는 3인칭 단수 현재형",
+      "prompt": "동사의 적절한 형태를 고르시오.",
+      "body": ["The little girl (love, loves) to draw pictures."],
+      "answer": "loves",
+      "explanation": "주어 The little girl이 3인칭 단수이므로 동사에 -s를 붙여 loves로 쓴다."
+    },
+    {
+      "file": "[기초] 2.일반동사_체크체크.pdf", "number": 24,
+      "포인트": "단수 주어 뒤에는 3인칭 단수 현재형",
+      "prompt": "동사의 적절한 형태를 고르시오.",
+      "body": ["This notebook (belong, belongs) to Jenny."],
+      "answer": "belongs",
+      "explanation": "주어 This notebook이 3인칭 단수이므로 동사에 -s를 붙여 belongs로 쓴다."
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "_설명": "기본 15과 접속사[2] — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 15.접속사[2]_종합문제(1회).pdf", "number": 19,
+      "포인트": "Unless — ~하지 않는다면",
+      "prompt": "다음 우리말을 영작할 때 빈칸에 알맞은 것은?",
+      "body": ["내일 눈이 오지 않는다면 우리는 등산을 갈 것이다.",
+               "_________ it snows tomorrow, we'll go hiking."],
+      "choices": ["Unless", "So", "And", "But", "If"],
+      "answer": "①",
+      "explanation": "Unless는 ‘~하지 않는다면’이라는 뜻으로 그 자체에 부정의 뜻이 들어 있다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_종합문제(1회).pdf", "number": 20,
+      "포인트": "while + 주어 + 동사",
+      "prompt": "다음 빈칸에 들어갈 말로 가장 적절한 것은?",
+      "body": ["You should not use your phone __________",
+               "you are crossing the street."],
+      "choices": ["for", "during", "while", "before", "as soon as"],
+      "answer": "③",
+      "explanation": "뒤에 「주어 + 동사」가 오므로 접속사 while을 쓴다. during은 전치사이다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_종합문제(1회).pdf", "number": 21,
+      "포인트": "이유·때의 접속사와 양보의 접속사",
+      "prompt": "빈칸에 들어갈 말이 [[다른]]것은?",
+      "body": [],
+      "choices": ["________ it got colder, the lake froze.",
+                  "________ we practice more, we play better.",
+                  "________ the rain was heavy, we reached the top.",
+                  "________ it was dark and quiet, I felt scared.",
+                  "________ I opened the door, I smelled something sweet."],
+      "answer": "③",
+      "explanation": "③만 ‘~이지만’이라는 양보의 뜻이고 나머지는 ‘~하면서, ~때문에’라는 뜻의 As가 들어간다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_종합문제(1회).pdf", "number": 24,
+      "포인트": "때를 나타내는 절에서는 현재시제로 미래를 나타낸다",
+      "prompt": "빈칸에 알맞은 것은?",
+      "body": ["Please text me when the train _________."],
+      "choices": ["arrived", "arrive", "arrives", "will arrive", "was arriving"],
+      "answer": "③",
+      "explanation": "때를 나타내는 절에서는 미래의 일이라도 현재시제로 쓰며, 주어가 단수이므로 arrives이다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_종합문제(2회).pdf", "number": 12,
+      "포인트": "조건절에서는 현재시제로 미래를 나타낸다",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것을 고르시오.",
+      "body": ["오른쪽으로 돌면 너는 우체국을 찾을 것이다."],
+      "choices": ["If you turn right, you'll find the post office.",
+                  "You‘ll turn right after you'll find the post office.",
+                  "You will find the post office if you will turn right.",
+                  "Before you turn right, you will find the post office.",
+                  "You will find the post office, so you will turn right."],
+      "answer": "①",
+      "explanation": "if절에서는 미래의 일이라도 현재시제로 쓴다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_종합문제(2회).pdf", "number": 16,
+      "포인트": "양보를 나타내는 Though",
+      "prompt": "빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["_____ the road was icy, we arrived safely."],
+      "choices": ["And", "But", "If", "Though", "As soon as"],
+      "answer": "④",
+      "explanation": "앞뒤 내용이 반대되므로 ‘~이지만’이라는 뜻의 Though가 알맞다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_종합문제(2회).pdf", "number": 27,
+      "포인트": "After가 이끄는 절의 순서",
+      "prompt": "우리말에 맞게 쓰인 문장은?",
+      "body": ["그녀는 설거지를 하고 나서야 쉬었다."],
+      "choices": ["After she washed the dishes, she rested.",
+                  "Before she washed the dishes, she rested.",
+                  "She washed the dishes while she rested.",
+                  "When she washed the dishes, she rested.",
+                  "After she rested, she washed the dishes."],
+      "answer": "①",
+      "explanation": "설거지가 먼저이므로 After가 이끄는 절에 설거지를 넣는다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_확인문제(1회).pdf", "number": 4,
+      "포인트": "조건을 나타내는 If",
+      "prompt": "빈칸에 공통으로 들어갈 말로 알맞은 것은?",
+      "body": ["_________ they visit Japan, they'll go to Mt. Fuji.",
+               "_________ you don't like milk, drink some juice."],
+      "choices": ["So", "And", "But", "Because", "If"],
+      "answer": "⑤",
+      "explanation": "두 문장 모두 ‘~한다면’이라는 조건을 나타낸다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_확인문제(1회).pdf", "number": 9,
+      "포인트": "양보의 접속사와 이유의 접속사",
+      "prompt": "다음 중 내용상 빈칸에 들어갈 단어가 나머지와 [[다른]]것은?",
+      "body": [],
+      "choices": ["________ the puppy barks a lot, the boy loves it.",
+                  "________ it's cold outside, I want to eat ice cream.",
+                  "Do your best ________ your part is small.",
+                  "________ the wind was strong, the kite flew high.",
+                  "We cheered for our team ________ it lost the game."],
+      "answer": "④",
+      "explanation": "④만 ‘~때문에’라는 이유를 나타내고 나머지는 ‘~이지만’이라는 양보를 나타낸다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_확인문제(1회).pdf", "number": 13,
+      "포인트": "since — ~이래로, ~하므로",
+      "prompt": "다음 문장의 빈칸에 공통으로 들어갈 말은?",
+      "body": ["▪ I have been busy _______ last Monday.",
+               "▪ How long has it been _______ you moved here?",
+               "▪ _______ I can rest enough, I work better."],
+      "choices": ["since", "as", "for", "over", "when"],
+      "answer": "①",
+      "explanation": "since는 ‘~이래로’와 ‘~하므로’의 두 뜻으로 모두 쓰인다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_확인문제(1회).pdf", "number": 14,
+      "포인트": "Unless = If ~ not",
+      "prompt": "다음 문장의 밑줄 친 부분과 바꿔 쓸 수 있는 것을 고르시오.",
+      "body": ["[[Unless you bring your ID]], you won't be able to",
+               "enter."],
+      "choices": ["When you bring your ID", "Until you bring your ID",
+                  "If you don't bring your ID", "Because you bring your ID",
+                  "Although you don't bring your ID"],
+      "answer": "③",
+      "explanation": "Unless는 If ~ not과 같은 뜻이다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_확인문제(1회).pdf", "number": 17,
+      "포인트": "Although = Even though",
+      "prompt": "다음 밑줄 친 부분과 바꿔 쓸 수 있는 것을 고르시오.",
+      "body": ["[[Although]] we practiced a lot, we lost the first match."],
+      "choices": ["Whereas", "As", "Whether", "Since", "Even though"],
+      "answer": "⑤",
+      "explanation": "Although는 ‘~이지만’이라는 양보의 접속사로 Even though와 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_확인문제(2회).pdf", "number": 7,
+      "포인트": "조건절에서는 현재시제로 미래를 나타낸다",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["If he ________ late again, we will start without him."],
+      "choices": ["come", "comes", "came", "will come", "won't come"],
+      "answer": "②",
+      "explanation": "if절에서는 현재시제로 미래를 나타내며, 주어가 3인칭 단수이므로 comes이다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_확인문제(2회).pdf", "number": 9,
+      "포인트": "이유를 나타내는 since와 결과를 나타내는 so",
+      "prompt": "주어진 우리말을 영어로 바르게 옮긴 것을 모두고르시오.",
+      "body": ["눈이 너무 많이 와서 우리는 소풍을 가지 않았다."],
+      "choices": ["We went on a picnic though it snowed a lot.",
+                  "When it snowed a lot, we went on a picnic.",
+                  "We didn’t go on a picnic since it snowed a lot.",
+                  "It snowed a lot, so we didn't go on a picnic.",
+                  "Unless it snowed a lot, we didn't go on a picnic."],
+      "answer": "③, ④",
+      "explanation": "이유는 since로, 결과는 so로 이을 수 있다."
+    }
+  ]
+}

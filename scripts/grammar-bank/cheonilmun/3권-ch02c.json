@@ -1,0 +1,196 @@
+{
+  "_설명": "천일문 3권 워크북 Chapter 02 조동사의 Chapter Test를 변형한 것. 심화 4과 조동사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 2,
+  "chapter": "조동사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 4, "chapter": "조동사" },
+  "points": [
+    { "unit_no": 2, "unit": "must/should/had better/used to", "point_no": 4, "point": "must = have to / don’t have to: ~할 필요가 없다", "frequent": true },
+    { "unit_no": 2, "unit": "must/should/had better/used to", "point_no": 5, "point": "should: ~해야 한다, ~하는 것이 좋다", "frequent": true },
+    { "unit_no": 2, "unit": "must/should/had better/used to", "point_no": 6, "point": "had better+동사원형: ~하는 게 낫다", "frequent": true },
+    { "unit_no": 2, "unit": "must/should/had better/used to", "point_no": 7, "point": "used to+동사원형: ~하곤 했다 (be used to와 구별)", "frequent": true },
+    { "unit_no": 3, "unit": "조동사+have p.p.", "point_no": 8, "point": "must/may/cannot have p.p.: 과거 일에 대한 추측", "frequent": true },
+    { "unit_no": 3, "unit": "조동사+have p.p.", "point_no": 9, "point": "should have p.p.: ~했어야 했다(후회)", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [4], "point_label": "don’t have to: ~할 필요가 없다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["You ________ book the tickets. I’ve already done it."],
+      "choices": [
+        { "no": 1, "text": "must not" },
+        { "no": 2, "text": "shouldn’t" },
+        { "no": 3, "text": "don’t have to" },
+        { "no": 4, "text": "used to" },
+        { "no": 5, "text": "had better" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [7], "point_label": "used to: 전에는 ~였다(지금은 아니다)",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Daniel ________ be my classmate, but I don’t know which school he goes to now."],
+      "choices": [
+        { "no": 1, "text": "can" },
+        { "no": 2, "text": "will" },
+        { "no": 3, "text": "had better" },
+        { "no": 4, "text": "used to" },
+        { "no": 5, "text": "should" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [9], "point_label": "should have p.p.: ~했어야 했다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["I read a wonderful novel last night. I ________ it earlier!"],
+      "choices": [
+        { "no": 1, "text": "should read" },
+        { "no": 2, "text": "must read" },
+        { "no": 3, "text": "have to read" },
+        { "no": 4, "text": "should have read" },
+        { "no": 5, "text": "must have read" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [7, 8, 9], "point_label": "조동사+have p.p.의 영작",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 영작한 것으로 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "지호는 서점에서 점원으로 일했었다. → Jiho used to work as a clerk at a bookstore." },
+        { "no": 2, "text": "소라는 나에게서 독감을 옮았음이 틀림없다. → Sora must have caught the flu from me." },
+        { "no": 3, "text": "민호는 연설 중에 실수를 했을지도 모른다. → Minho may have made a mistake during the speech." },
+        { "no": 4, "text": "그 공연에 내 남동생을 데리고 갔어야 했다. → I should bring my brother to the concert." },
+        { "no": 5, "text": "유나가 도서관에서 나를 봤을 리가 없는데 내가 종일 집에 있었기 때문이다. → Yuna cannot have seen me at the library because I was at home all day." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [7], "point_label": "used to와 be used to -ing의 구별",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• This website ____(A)____ data for my report.",
+        "• Sumin ____(B)____ soda a lot, but now she only drinks water."
+      ],
+      "choices": [
+        { "no": 1, "text": "used to collect — was used to drink" },
+        { "no": 2, "text": "was used to collect — used to drink" },
+        { "no": 3, "text": "used to collect — was used to drinking" },
+        { "no": 4, "text": "was used to collecting — used to drink" },
+        { "no": 5, "text": "was used to collect — was used to drink" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [8], "point_label": "must have p.p.: ~했음이 틀림없다",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "밑줄 친 우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "A: Why do Mina and Sora not talk to each other?",
+        "B: [[그들은 다툼을 했음이 틀림없어.]] (have)",
+        "→ They ________________ a fight."
+      ],
+      "choices": [],
+      "answer": "must have had"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [6, 7, 8, 9], "point_label": "조동사 표현의 형태",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Bears will come out of their caves again next spring." },
+        { "no": 2, "text": "My grandfather was used to drink herbal tea every morning." },
+        { "no": 3, "text": "Sora burned her hand on the pot. She should have been careful." },
+        { "no": 4, "text": "You’d better not call him by that nickname. He doesn’t like it." },
+        { "no": 5, "text": "Jiho didn’t come to my graduation. He must have forgotten about it." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [8, 9], "point_label": "추측을 나타내는 조동사와 문맥",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 문맥상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I should have reviewed my notes before I took the quiz." },
+        { "no": 2, "text": "Mina traveled around Europe last summer. She may have gone to Spain." },
+        { "no": 3, "text": "Tom cannot have known my address. I’ve never told it to him." },
+        { "no": 4, "text": "My aunt must have been very busy. She didn’t call us for a month." },
+        { "no": 5, "text": "Sora felt so hungry. She must have eaten lunch." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [6], "point_label": "had better의 부정은 had better not",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "너는 어떤 뜨거운 것도 네 남동생에게 주지 않는 것이 낫다.",
+        "(give / better / anything hot / not / had / you)",
+        "→ ________________ to your brother."
+      ],
+      "choices": [],
+      "answer": "You had better not give anything hot"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [8], "point_label": "might have p.p.: ~했을지도 모른다",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "나는 어쩌면 그 파일을 실수로 지웠을지도 모른다. 그것을 찾을 수 없다.",
+        "(the file / erased / might / I / have)",
+        "→ ________________ by mistake. I can’t find it."
+      ],
+      "choices": [],
+      "answer": "I might have erased the file"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [4], "point_label": "과거의 일에는 had to",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["We have to cancel our field trip yesterday because it snowed a lot.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "have to → had to"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [7], "point_label": "used to의 형태",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["This hall used be a famous concert hall. It is a library now.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "used → used to"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [5, 6, 8], "point_label": "조동사 표현과 대화의 흐름",
+      "question_kind": "대화 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 짝지어진 대화가 어법상 어색한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "A: What should I do to sleep better?  B: You had better avoid coffee at night." },
+        { "no": 2, "text": "A: The science test was too hard. Did you pass it?  B: No, we should study harder to pass it." },
+        { "no": 3, "text": "A: Mom, did you see my apple pie on the shelf?  B: Your sister may have eaten it." },
+        { "no": 4, "text": "A: I used to feel very shy in front of a crowd.  B: Oh, that must have been hard." },
+        { "no": 5, "text": "A: Jiho cannot have texted me because he has broken his phone.  B: Really? Maybe he borrowed one." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [9], "point_label": "후회를 나타내는 should have p.p.",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 대화를 읽고 주어진 단어를 사용하여 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "Mina: Dad, did you wash my jacket?",
+        "Dad: Yes, I washed and hung it on the balcony.",
+        "Mina: Oh, no! I ________________ my earphones out of the pocket! (take)"
+      ],
+      "choices": [],
+      "answer": "should have taken"
+    }
+  ]
+}

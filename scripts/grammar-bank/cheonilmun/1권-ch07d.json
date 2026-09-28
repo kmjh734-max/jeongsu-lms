@@ -1,0 +1,84 @@
+{
+  "_설명": "천일문 1권 워크북 Chapter 07 형용사, 부사, 비교의 Chapter Test 가운데 비교 문항을 변형한 것. 기초 12과 비교구문 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 7,
+  "chapter": "형용사, 부사, 비교",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 12, "chapter": "비교구문" },
+  "points": [
+    { "unit_no": 3, "unit": "비교급과 최상급", "point_no": 9, "point": "비교급 = 형용사/부사+-er", "frequent": true },
+    { "unit_no": 3, "unit": "비교급과 최상급", "point_no": 10, "point": "불규칙하게 변하는 비교급과 최상급", "frequent": true },
+    { "unit_no": 3, "unit": "비교급과 최상급", "point_no": 11, "point": "비교급+than ~: ~보다 더 …한[하게]", "frequent": true },
+    { "unit_no": 3, "unit": "비교급과 최상급", "point_no": 12, "point": "the+최상급+in[of] ~: ~ 중에서 가장 …한[하게]", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [9, 10], "point_label": "비교급·최상급 만드는 법",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 비교급과 최상급 형태가 바르게 연결된 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "big — biger — bigest" },
+        { "no": 2, "text": "good — gooder — goodest" },
+        { "no": 3, "text": "heavy — heavier — heaviest" },
+        { "no": 4, "text": "little — littler — littlest" },
+        { "no": 5, "text": "famous — famouser — famousest" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [12], "point_label": "the+최상급+in ~",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "나는 우리 가족에서 가장 긴 머리카락을 가지고 있다.",
+        "(long, hair, in my family, have)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "I have the longest hair in my family"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [9, 11], "point_label": "긴 형용사의 비교급은 more+원급",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["The movie was ________ than the book."],
+      "choices": [
+        { "no": 1, "text": "interesting" },
+        { "no": 2, "text": "more interesting" },
+        { "no": 3, "text": "boring" },
+        { "no": 4, "text": "more interestinger" },
+        { "no": 5, "text": "the most interesting" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [12], "point_label": "the+최상급",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Where is the ________ bus stop around here?"],
+      "choices": [
+        { "no": 1, "text": "close" },
+        { "no": 2, "text": "closer" },
+        { "no": 3, "text": "closest" },
+        { "no": 4, "text": "more close" },
+        { "no": 5, "text": "most close" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [9, 11, 12], "point_label": "비교급과 최상급으로 비교하기",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "다음 세 가방의 정보를 보고 주어진 단어를 사용하여 빈칸을 완성하세요.",
+      "body": [
+        "가격 — Bag A $40 / Bag B $70 / Bag C $55",
+        "크기 — Bag A Large / Bag B Small / Bag C Medium",
+        "인기 — Bag A ★★★ / Bag B ★ / Bag C ★★",
+        "(1) Bag B is ________ ________ Bag A. (expensive)",
+        "(2) Bag A is ________ ________ Bag C. (large)",
+        "(3) Bag A is ________ ________ of the three. (popular)"
+      ],
+      "choices": [],
+      "answer": "(1) more expensive than  (2) larger than  (3) the most popular"
+    }
+  ]
+}

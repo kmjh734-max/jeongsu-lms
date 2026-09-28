@@ -1,0 +1,78 @@
+{
+  "_설명": "천일문 3권 Chapter 06 분사 Chapter Test 뒷부분(15~18번)에서 가져와 변형한 문항. 심화 10과 분사구문 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 6,
+  "chapter": "분사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 10, "chapter": "분사구문" },
+  "points": [
+    { "unit_no": 2, "unit": "분사구문", "point_no": 6, "point": "분사구문 만드는 법", "frequent": true },
+    { "unit_no": 2, "unit": "분사구문", "point_no": 7, "point": "분사구문의 부정: Not+분사", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 2, "point": "과거분사(p.p.): 수동·완료", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 4, "point": "감정을 나타내는 분사", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 5, "point": "목적격보어로 쓰이는 분사(have/hear+목적어+p.p.)", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [6, 7], "point_label": "분사구문과 Not+분사",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 내용을 보고 주어진 단어를 사용하여 <보기>와 같이 문장을 완성하세요.",
+      "body": [
+        "<보기> Eating popcorn, Nari is watching a movie. (popcorn, eat)",
+        "(1) ________________ for hours, my dad got tired. (the car, wash)",
+        "(2) ________________, I can’t buy the ticket. (enough money, have)"
+      ],
+      "choices": [],
+      "answer": "(1) Washing the car  (2) Not having enough money"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [2, 4, 5], "point_label": "분사 영작",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "나는 너무 심하게 다쳐서 더 이상 뛸 수 없었다. → Injured so badly, I couldn’t run anymore." },
+        { "no": 2, "text": "얇은 옷을 입어서, 그 소녀는 조금 추웠다. → Wearing thin clothing, the girl felt a little cold." },
+        { "no": 3, "text": "우리 이모가 지난 주말에 내 시계를 고쳐 주셨다. → My aunt had my watch repairing last weekend." },
+        { "no": 4, "text": "내 친구들은 그 공연을 좋아했지만, 그것은 나에게 지루했다. → My friends liked the show, but it was bored to me." },
+        { "no": 5, "text": "내 여동생은 빵 조각을 함께 나르고 있는 개미들을 보고 있었다. → My little sister was watching ants carrying a piece of bread together." }
+      ],
+      "answer": "①, ②, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [6], "point_label": "분사구문을 접속사가 있는 문장으로",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 두 문장의 의미가 같지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Saying goodbye, Mina got on the bus. = Mina said goodbye and got on the bus." },
+        { "no": 2, "text": "Watching the touching drama, Lily cried a lot. = When Lily watched the touching drama, she cried a lot." },
+        { "no": 3, "text": "Feeling very tired, he skipped dinner. = Though he was very tired, he skipped dinner." },
+        { "no": 4, "text": "Not bringing my raincoat, I couldn’t avoid getting wet. = I couldn’t avoid getting wet as I didn’t bring my raincoat." },
+        { "no": 5, "text": "Because Joanna had heavy bags, she took a taxi to the airport. = Being had heavy bags, Joanna took a taxi to the airport." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [2, 4, 5, 6, 7], "point_label": "분사·분사구문 문장 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ Not have breakfast, Sally was hungry.",
+        "ⓑ My brother studies with the window closing.",
+        "ⓒ Bitten by a bee, my hand was so swollen.",
+        "ⓓ The writer’s new poem is very interesting.",
+        "ⓔ The children playing the card games are my cousins.",
+        "ⓕ Opened the door, I found my cat coming out to greet me.",
+        "ⓖ Mina heard her name called from behind, so she looked back."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓒ, ⓕ" },
+        { "no": 2, "text": "ⓐ, ⓓ, ⓔ, ⓕ" },
+        { "no": 3, "text": "ⓑ, ⓓ, ⓔ, ⓖ" },
+        { "no": 4, "text": "ⓒ, ⓓ, ⓔ, ⓖ" },
+        { "no": 5, "text": "ⓓ, ⓕ, ⓖ" }
+      ],
+      "answer": "④"
+    }
+  ]
+}

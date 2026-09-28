@@ -1,0 +1,122 @@
+{
+  "_설명": "천일문 1권 Chapter 09 문장의 여러 형식 Chapter Test 뒷장(17~25번)에서 가져와 변형한 문항. 기초 7과 문장의 형식 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 9,
+  "chapter": "문장의 여러 형식",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 7, "chapter": "문장의 형식" },
+  "points": [
+    { "unit_no": 1, "unit": "주어+동사+보어", "point_no": 1, "point": "be동사+명사/형용사", "frequent": true },
+    { "unit_no": 1, "unit": "주어+동사+보어", "point_no": 2, "point": "look/sound/smell…+형용사", "frequent": true },
+    { "unit_no": 2, "unit": "주어+동사+간접목적어+직접목적어", "point_no": 3, "point": "동사+A+B: A에게 B를 ~(해) 주다", "frequent": true },
+    { "unit_no": 2, "unit": "주어+동사+간접목적어+직접목적어", "point_no": 4, "point": "동사+B+to/for+A", "frequent": true },
+    { "unit_no": 3, "unit": "주어+동사+목적어+목적격보어", "point_no": 5, "point": "명사 목적격보어: 목적어 = 목적격보어", "frequent": true },
+    { "unit_no": 3, "unit": "주어+동사+목적어+목적격보어", "point_no": 6, "point": "형용사 목적격보어: 목적어의 상태·성질", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [3, 4], "point_label": "4형식과 3형식 바꿔 쓰기",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "<보기>와 같이 주어진 문장을 바꿔 쓰세요.",
+      "body": [
+        "<보기> Emma made a cake for her friend.  → Emma made her friend a cake.",
+        "Peter sent a letter to his uncle.",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "Peter sent his uncle a letter"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [2], "point_label": "taste+형용사",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "그 오렌지 주스는 너무 신맛이 난다.",
+        "(sour / tastes / the orange juice / too)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "The orange juice tastes too sour"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [4], "point_label": "send+B+to+A",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "네가 그에게 엽서를 보냈니?",
+        "(send / a postcard / did / him / to / you)",
+        "→ ________________?"
+      ],
+      "choices": [],
+      "answer": "Did you send a postcard to him"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 20, "point_nos": [5], "point_label": "call+목적어+명사 목적격보어",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "우리 팀원들은 그를 최고의 골키퍼라고 부른다.",
+        "(goalkeeper / call / my / teammates / him / the best)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "My teammates call him the best goalkeeper"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 21, "point_nos": [1, 2], "point_label": "감각동사 뒤의 형용사와 like+명사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "This soup tastes garlic." },
+        { "no": 2, "text": "That sounds like a great plan." },
+        { "no": 3, "text": "The puppy looks a toy." },
+        { "no": 4, "text": "I feel sadly about the news." },
+        { "no": 5, "text": "He became a famous chef." }
+      ],
+      "answer": "②, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 22, "point_nos": [1, 2], "point_label": "보어 자리에는 부사를 쓰지 않는다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The girl got sadly at the news." },
+        { "no": 2, "text": "He felt like sleepy after lunch." },
+        { "no": 3, "text": "Noah is a kind neighbor." },
+        { "no": 4, "text": "The bread smelled very fresh." },
+        { "no": 5, "text": "These jeans don’t look like tight on me." }
+      ],
+      "answer": "③, ④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 23, "point_nos": [6], "point_label": "make+목적어+형용사 목적격보어",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Loud music makes me nervously.", "→ ________"],
+      "choices": [],
+      "answer": "nervously → nervous"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 24, "point_nos": [6], "point_label": "find+목적어+형용사 목적격보어",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["We found the movie very boringly.", "→ ________"],
+      "choices": [],
+      "answer": "boringly → boring"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 25, "point_nos": [3, 4], "point_label": "4형식과 3형식으로 모두 쓰기",
+      "question_kind": "영작", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 <조건>에 맞게 문장을 쓰세요.",
+      "body": [
+        "나는 내 여동생에게 목도리를 하나 짜 주었다.",
+        "<조건> • make, a scarf, sister라는 단어가 들어가게 쓸 것  • 두 가지 문장으로 쓸 것  • 필요한 경우 제시된 단어를 변형하여 쓸 것",
+        "→ ________________.",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "I made my sister a scarf.  I made a scarf for my sister."
+    }
+  ]
+}

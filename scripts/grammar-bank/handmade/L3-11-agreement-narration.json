@@ -1,0 +1,163 @@
+{
+  "_설명": "심화 11과 일치와 화법 — 수일치, 시제 일치의 예외, 간접화법. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 11.일치와 화법_종합문제(2회).pdf", "number": 10,
+      "포인트": "주절이 과거가 되면 종속절은 과거완료로",
+      "prompt": "다음 밑줄 친 동사를 과저 시제로 바꿀 때 문장의 빈칸을 완성하시오.",
+      "body": ["I [[want]] to know if Sora had a driver’s license.",
+               "→ I wanted to know if Sora __________________."],
+      "answer": "had had a driver’s license",
+      "explanation": "주절의 시제가 현재 → 과거로 바뀔 때, 종속절의 시제는 과거 → 과거완료로 바뀐다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_종합문제(2회).pdf", "number": 16,
+      "포인트": "부정 명령문의 간접화법은 not to부정사",
+      "prompt": "주어진 문장과 같은 뜻의 문장을 만들려고 할 때 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["Dad said to me, “Don’t touch the hot pan.”",
+               "= Dad told me ______ ______ touch the hot pan.”"],
+      "answer": "not to",
+      "explanation": "명령문의 간접화법은 to부정사 형태로 바꾸며, 부정 명령문은 「not + to부정사」로 쓴다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 1,
+      "포인트": "삽입절에 이끌리지 말고 주어에 동사를 맞춘다",
+      "prompt": "다음 문장 중 어법상 [[잘못된]]곳을 골라 바르게 고쳐 쓰세요.",
+      "body": ["The bridge, which is located in Busan, Korea,",
+               "are said to be one of the longest bridges in",
+               "Asia."],
+      "answer": "are → is",
+      "explanation": "주어가 The bridge, 즉 단수이므로 are를 is로 바꿔야 맞다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 2,
+      "포인트": "some of + 복수명사는 복수 취급",
+      "prompt": "빈칸에 알맞은 be동사를 넣어 문장을 완성하세요.",
+      "body": ["Some of the children in the playground",
+               "now."],
+      "answer": "are",
+      "explanation": "some of the children은 ‘몇몇의 아이들’의 의미로 복수 취급한다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 3,
+      "포인트": "one of + 복수명사는 단수 취급",
+      "prompt": "다음 문장에서 [[잘못된]]곳을 찾아 고치세요.",
+      "body": ["One of the benefits of walking are keeping your",
+               "heart healthy.",
+               "→"],
+      "answer": "are, is",
+      "explanation": "주어는 걷기의 장점들 중 ‘하나’이므로 단수 be동사가 필요하다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 6,
+      "포인트": "과학적 사실은 시제를 일치시키지 않는다",
+      "prompt": "우리말을 영어로 바르게 옮기세요.",
+      "body": ["수진이가 물이 0도에서 언다고 말했다. (at 0℃)",
+               "→"],
+      "answer": "Sujin said that water freezes at 0℃.",
+      "explanation": "과학적 사실은 시제를 일치시키지 않고 현재시제 그대로 쓴다. / water freezes at 0℃: 물은 0도에서 언다"
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 7,
+      "포인트": "역사적 사실은 과거시제 그대로",
+      "prompt": "우리말을 영어로 바르게 옮기세요.",
+      "body": ["나는 한국전쟁이 1950년에 일어났다는 것을 몰랐다.",
+               "(break out)",
+               "→"],
+      "answer": "I didn’t know that the Korean War broke out in 1950.",
+      "explanation": "역사적 사실은 시제를 일치시키지 않고 과거시제 그대로 쓴다. break out: (전쟁·화재 등이) 일어나다"
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 9,
+      "포인트": "일반적 사실은 현재시제",
+      "prompt": "다음 괄호 안에서 알맞은 말을 고르세요.",
+      "body": ["My teacher taught us that Paris (is / was) the",
+               "capital of France."],
+      "answer": "is",
+      "explanation": "일반적인 사실은 현재시제를 쓰며 시제를 일치시키지 않는다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 10,
+      "포인트": "역사적 사실은 과거시제 그대로",
+      "prompt": "다음 괄호 안에서 알맞은 말을 고르세요.",
+      "body": ["I learned that the Wright brothers (flew / had",
+               "flown) the first airplane in 1903."],
+      "answer": "flew",
+      "explanation": "역사적인 사실은 그대로 과거시제를 쓰며 시제를 일치시키지 않는다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 11,
+      "포인트": "간접화법 — 전달동사, 시제, 부사 바꾸기",
+      "prompt": "다음 문장을 간접화법으로 바꾸어 쓰세요.",
+      "body": ["She said to him, “I will call you tomorrow.”",
+               "→"],
+      "answer": "She told him that she would call him the following day.",
+      "explanation": "간접화법으로 바꾸는 방법: ① said to → told ② will → would ③ tomorrow → the following day"
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 18,
+      "포인트": "간접화법에서 인칭과 시제 바꾸기",
+      "prompt": "다음을 [[간접화법]]으로 바꾸어 쓰시오",
+      "body": ["Sora said to me. “I can trust you”",
+               "⟹ Sora _______ me that ________ ________",
+               "______ _______."],
+      "answer": "Sora told me that she could trust me",
+      "explanation": "간접화법으로 바꿀 때에는 인용부호 안의 내용을 that절로 바꾸고, 전달동사가 과거인 경우 피전달문의 현재시제를 과거로 바꾼다. 인칭대명사는 전달자의 입장에 맞게 한다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 21,
+      "포인트": "의문문·명령문의 간접화법과 직접화법 되돌리기",
+      "prompt": "다음 두 문장의 뜻이 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["1) He asked her, \"Will you join the club next week?\"",
+               "→ He asked her ____________________________",
+               "2) She said to him, \"Send me a message tonight.\"",
+               "→ She told him _________________________",
+               "3) She asked him why he was so tired then.",
+               "→ She asked him, \"______________________\""],
+      "answer": "(1) if she would join the club the following week., (2) to send her a message that night., (3) Why are you so tired now?",
+      "explanation": "(1) 의문사 없는 의문문은 간접화법으로 바꿀 때 if를 붙인다. you는 she가 되고 will은 would가 되며, next week는 the following week로 바꾼다. (2) 명령문의 간접화법은 인용문의 동사를 to부정사로 바꿔 준다. (3) 간접화법을 직접화법으로 되돌릴 때는 then을 now로 바꾼다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 23,
+      "포인트": "간접화법에서 tomorrow는 the next day로",
+      "prompt": "주어진 문장을 간접화법으로 바꿔 쓰시오.",
+      "body": ["Daniel said to me, “I will leave tomorrow.”"],
+      "answer": "Daniel told me that he would leave the next day.",
+      "explanation": "said to → told, will → would, tomorrow → the next day로 바꾼다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 26,
+      "포인트": "일반적 사실은 시제를 바꾸지 않는다",
+      "prompt": "주어진 문장을 간접화법으로 바꿔 쓰시오.",
+      "body": ["Newton said, “Objects fall to the ground.”"],
+      "answer": "Newton said that objects fall to the ground.",
+      "explanation": "변하지 않는 일반적 사실이므로 시제를 일치시키지 않고 현재시제 그대로 쓴다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 27,
+      "포인트": "과학적 사실은 시제를 바꾸지 않는다",
+      "prompt": "주어진 문장을 간접화법으로 바꿔 쓰시오.",
+      "body": ["My mother said to me, “Ice melts at 0℃.”"],
+      "answer": "My mother told me that ice melts at 0℃.",
+      "explanation": "과학적 사실이므로 시제를 일치시키지 않고 현재시제 그대로 쓴다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 28,
+      "포인트": "현재완료는 그대로 전달한다",
+      "prompt": "주어진 문장을 간접화법으로 바꿔 쓰시오.",
+      "body": ["My teacher said to us, “The museum has been",
+               "open since 1995.”"],
+      "answer": "My teacher told us that the museum has been open since 1995.",
+      "explanation": "said to를 told로 바꾸고 인용부호 안의 내용을 that절로 옮긴다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_체크체크.pdf", "number": 29,
+      "포인트": "일반적 사실은 시제를 바꾸지 않는다",
+      "prompt": "주어진 문장을 간접화법으로 바꿔 쓰시오.",
+      "body": ["My father said to me, “Snow is cold when we",
+               "touch it.”"],
+      "answer": "My father told me that snow is cold when we touch it.",
+      "explanation": "변하지 않는 일반적 사실이므로 현재시제 그대로 쓴다."
+    }
+  ]
+}

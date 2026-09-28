@@ -1,0 +1,310 @@
+{
+  "_설명": "기본 11과 비교구문 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf", "number": 10,
+      "포인트": "비교급을 강조하는 말",
+      "prompt": "ⓐ와 바꿔 쓸 수 [[없는]]것은?",
+      "body": ["It's ⓐ[[far]] easier to learn a song than to write",
+               "one."],
+      "choices": ["very", "still", "much", "even", "a lot"],
+      "answer": "①",
+      "explanation": "비교급은 much, far, still, even, a lot이 강조하고 very는 원급만 강조한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf", "number": 15,
+      "포인트": "the + 비교급, the + 비교급",
+      "prompt": "(A), (B)에 들어갈 말로 알맞게 짝지어진 것은?",
+      "body": ["The more you read, the [[(A)]] you can be.",
+               "The [[(B)]] you watch TV, the sharper your eyes",
+               "will be.",
+               "(A) (B) (A) (B)"],
+      "choices": ["wise - more", "wise - less", "wiser - more",
+                  "wiser - less", "wisest - least"],
+      "answer": "④",
+      "explanation": "「the + 비교급, the + 비교급」 구문이며, 덜 볼수록 눈이 좋아지므로 less를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf", "number": 17,
+      "포인트": "the + 비교급, the + 비교급",
+      "prompt": "빈칸에 알맞은 말을 순서대로 짝지은 것은?",
+      "body": ["The ________ students join the club, the ________",
+               "it will be."],
+      "choices": ["more, better", "many, worse", "much, better",
+                  "many, better", "more, worse"],
+      "answer": "①",
+      "explanation": "두 자리 모두 비교급이 와야 하며, 많이 모일수록 좋아진다는 뜻이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf", "number": 18,
+      "포인트": "긴 부사의 비교급은 more를 쓴다",
+      "prompt": "다음 우리말과 의미가 같도록 할 때, 빈칸에 알맞은 말이 바르게 짝지어진 것은?",
+      "body": ["바람이 더 세게 불면 불수록, 파도는 더 높아진다.",
+               "→ The _______ the wind blows, the _______ the",
+               "waves get."],
+      "choices": ["strongly, high", "strongerly, higher",
+                  "strongerly, more high", "more strongly, higher",
+                  "more strongly, more high"],
+      "answer": "④",
+      "explanation": "-ly로 끝나는 부사는 more를 붙이고, 짧은 형용사 high는 -er를 붙인다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf", "number": 21,
+      "포인트": "as ~ as 사이에는 원급",
+      "prompt": "다음 문장의 빈칸에 들어갈 말로 알맞지 [[않은]]것은?",
+      "body": ["She is as ___________ as Emily."],
+      "choices": ["tall", "honest", "quickly", "gentle", "popular"],
+      "answer": "③",
+      "explanation": "be동사 뒤 보어 자리이므로 형용사가 와야 한다. quickly는 부사이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf", "number": 27,
+      "포인트": "as ~ as 뒤의 시제 일치",
+      "prompt": "우리말을 영어로 영작한 것 중 어법에 [[틀린]]문장은?",
+      "body": [],
+      "choices": ["그의 손은 눈처럼 하얗다. → His hands are as white as snow.",
+                  "나의 방은 새것처럼 깨끗하다. → My room is as clean as new.",
+                  "그는 내가 하는 만큼 빨리 달린다. → He runs as fast as I do.",
+                  "그녀는 우리 형이 잤던 만큼 오래 잤다. → She slept as long as my brother does.",
+                  "그의 목소리는 천둥처럼 컸다. → His voice was as loud as thunder."],
+      "answer": "④",
+      "explanation": "앞이 과거 slept이므로 뒤도 did로 맞춰야 한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf", "number": 28,
+      "포인트": "비교급을 강조하는 말",
+      "prompt": "다음 빈칸에 들어갈 말이 [[어색한]]것은?",
+      "body": ["I think time is _______ more precious than",
+               "money."],
+      "choices": ["even", "very", "still", "far", "much"],
+      "answer": "②",
+      "explanation": "very는 비교급을 강조하지 못한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 2,
+      "포인트": "최상급 앞의 the와 비교급 뒤의 than",
+      "prompt": "다음 중 어법상 옳은 문장을 고르세요.",
+      "body": [],
+      "choices": ["She is an youngest.", "She is young than me.",
+                  "She is smart than him.",
+                  "She is the smartest student in her class.",
+                  "She is most kind person in the town."],
+      "answer": "④",
+      "explanation": "최상급 앞에는 the를 쓰고, 비교급 뒤에는 than을 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 3,
+      "포인트": "불규칙 비교 변화",
+      "prompt": "다음 중 비교급과 최상급 형태가 바르지 [[않은]]것을 고르세요.",
+      "body": [],
+      "choices": ["good – better - best", "bad – worse - worst",
+                  "few – fewer - fewest", "much – mucher - muchest",
+                  "little – less - least"],
+      "answer": "④",
+      "explanation": "much는 more - most로 불규칙하게 변한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 4,
+      "포인트": "비교급·최상급의 철자",
+      "prompt": "다음 중 비교급과 최상급의 변화가 옳은 것은?",
+      "body": [],
+      "choices": ["thin – thiner - thinest", "useful – usefuler - usefullest",
+                  "nice – niceer - niceest", "good – best - better",
+                  "lucky – luckier - luckiest"],
+      "answer": "⑤",
+      "explanation": "「자음 + y」로 끝나면 y를 i로 바꾸고 -er, -est를 붙인다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 6,
+      "포인트": "끝 자음을 한 번 더 쓰는 비교급",
+      "prompt": "원급, 비교급, 최상급의 형태가 [[잘못]]짝지어진 것은?",
+      "body": [],
+      "choices": ["bad - worse - worst", "early - earlier - earliest",
+                  "little - less - least", "big - biger - bigest",
+                  "wise - wiser - wisest"],
+      "answer": "④",
+      "explanation": "big은 끝 자음을 한 번 더 써 bigger - biggest로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 9,
+      "포인트": "배수사 + as + 원급 + as",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것은?",
+      "body": ["나는 내 남동생 나이의 두 배이다."],
+      "choices": ["My brother is twice as old as me.",
+                  "My brother is as old as me.",
+                  "I'm twice older than my brother.",
+                  "I'm as twice as old my brother.",
+                  "I'm twice as old as my brother."],
+      "answer": "⑤",
+      "explanation": "‘~의 몇 배’는 「배수사 + as + 원급 + as」의 순서로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 12,
+      "포인트": "비교 표현 바꿔 쓰기",
+      "prompt": "다음 문장 중 의미가 나머지와 [[다른]]것은?",
+      "body": [],
+      "choices": ["She is faster than I am.", "I am slower than she is.",
+                  "She isn't as slow as I am.", "I am as fast as she is.",
+                  "I'm less fast than she is."],
+      "answer": "④",
+      "explanation": "④만 둘이 같다는 뜻이고 나머지는 모두 그녀가 더 빠르다는 뜻이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 14,
+      "포인트": "the + 비교급, the + 비교급",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["The deeper we went, the _____ it became."],
+      "choices": ["dark", "darker", "darkest", "dark and dark", "most dark"],
+      "answer": "②",
+      "explanation": "「the + 비교급, the + 비교급」 구문이므로 darker를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 16,
+      "포인트": "the + 비교급, the + more + 형용사",
+      "prompt": "주어진 우리말을 영어로 바르게 옮긴 것은?",
+      "body": ["더 많이 연습할수록 너는 더 자신감이 생긴다."],
+      "choices": ["The more you practice, you get confident more.",
+                  "The practice you more, the confident you get.",
+                  "The more you practice, the confident you get.",
+                  "The practicer you more, the more you get confident.",
+                  "The more you practice, the more confident you get."],
+      "answer": "⑤",
+      "explanation": "긴 형용사 confident는 more를 붙여 the more confident로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 17,
+      "포인트": "비교급을 강조하는 말",
+      "prompt": "다음 문장의 빈칸에 들어갈 수 [[없는]]것을 고르세요.",
+      "body": ["I have _______ more friends than you."],
+      "choices": ["even", "still", "a lot", "many", "far"],
+      "answer": "④",
+      "explanation": "many는 비교급을 강조하지 못한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 18,
+      "포인트": "비교급을 강조하는 말",
+      "prompt": "다음 문장의 빈칸에 들어갈 수 [[없는]]것을 고르세요.",
+      "body": ["Puppies are _______ cuter than grown dogs."],
+      "choices": ["much", "far", "very", "even", "a lot"],
+      "answer": "③",
+      "explanation": "very는 원급만 강조하고 비교급은 강조하지 못한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 19,
+      "포인트": "than 앞에는 비교급",
+      "prompt": "다음 문장의 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["Actions are _______ than words."],
+      "choices": ["loud", "louder", "louden", "loudest", "more loud"],
+      "answer": "②",
+      "explanation": "than이 있으므로 비교급 louder를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 20,
+      "포인트": "the most + 긴 형용사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["My puppy is ________ of all the pets.", "대표문항"],
+      "choices": ["friendly", "more friendly", "most friendly",
+                  "the more friendly", "the most friendly"],
+      "answer": "⑤",
+      "explanation": "of all이 범위를 나타내므로 최상급을 쓰고, 긴 형용사이므로 the most를 붙인다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf", "number": 28,
+      "포인트": "비교급으로 나타내는 최상급의 뜻",
+      "prompt": "다음 우리말에 맞게 빈칸에 알맞은 말을 고르세요.",
+      "body": ["어떤 산도 에베레스트산보다 더 높지 않다.",
+               "→ No mountain is _______ than Everest."],
+      "choices": ["high", "as high", "higher", "as high as", "the highest"],
+      "answer": "③",
+      "explanation": "than이 있으므로 비교급 higher를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(1회).pdf", "number": 6,
+      "포인트": "not as ~ as를 비교급으로 바꾸기",
+      "prompt": "다음 주어진 문장과 의미가 같은 것을 고르시오.",
+      "body": ["The rabbit is not as fast as the horse."],
+      "choices": ["The rabbit is very fast.", "The horse is not fast.",
+                  "The horse is as fast as the rabbit.",
+                  "The rabbit is faster than the horse.",
+                  "The horse is faster than the rabbit."],
+      "answer": "⑤",
+      "explanation": "‘A는 B만큼 ~하지 않다’는 ‘B가 A보다 더 ~하다’와 같은 뜻이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(1회).pdf", "number": 12,
+      "포인트": "원급을 강조하는 very, 비교급을 강조하는 much",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞게 짝지어진 것을고르시오.",
+      "body": ["Walking every day is ______ good for your knees.",
+               "This winter is ______ colder than last winter."],
+      "choices": ["very - very", "very - much", "even - very",
+                  "even - much", "still - very"],
+      "answer": "②",
+      "explanation": "원급 good은 very가, 비교급 colder는 much가 강조한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(1회).pdf", "number": 13,
+      "포인트": "불규칙 비교 변화",
+      "prompt": "원급 - 비교급 - 최상급이 알맞지 [[않은]]것은?",
+      "body": [],
+      "choices": ["late – latter – last", "little – less – least",
+                  "good – more – most", "bad – worse – worst",
+                  "far – further – furthest"],
+      "answer": "③",
+      "explanation": "good은 better - best로 변한다. more - most는 many·much의 변화이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(1회).pdf", "number": 14,
+      "포인트": "the + 비교급, the + 비교급",
+      "prompt": "다음 대화의 빈곳에 가장 알맞은 말을 고르면?",
+      "body": ["A : I don't know how to throw far.",
+               "B : Try to swing as hard as possible.",
+               "_______ you swing, ________ the ball can go."],
+      "choices": ["The harder, the farther", "The harder, the harder",
+                  "The longer, the farther", "The longer, the further",
+                  "Harder, further"],
+      "answer": "①",
+      "explanation": "세게 휘두를수록 공이 멀리 간다는 뜻이므로 「The harder, the farther」로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(1회).pdf", "number": 16,
+      "포인트": "the most + 긴 형용사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Marie Curie was _______________ scientist in her",
+               "time."],
+      "choices": ["famous", "more famous", "most famous",
+                  "the more famous", "the most famous"],
+      "answer": "⑤",
+      "explanation": "in her time이 범위를 나타내므로 the most famous를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(2회).pdf", "number": 10,
+      "포인트": "비교 표현 바꿔 쓰기",
+      "prompt": "다음 문장 중 의미가 나머지 넷과 [[다른]]것은?",
+      "body": [],
+      "choices": ["I am shorter than she is.", "I am as tall as she is.",
+                  "She isn’t as short as I am.", "She is taller than I am.",
+                  "I’m less tall than she is."],
+      "answer": "②",
+      "explanation": "②만 둘의 키가 같다는 뜻이고 나머지는 그녀가 더 크다는 뜻이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(2회).pdf", "number": 17,
+      "포인트": "비교급을 강조하는 말",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["These days, I’m __________ happier than before."],
+      "choices": ["much", "even", "very", "still", "a lot"],
+      "answer": "③",
+      "explanation": "very는 비교급을 강조하지 못한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(2회).pdf", "number": 19,
+      "포인트": "the + 비교급, the + 비교급",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞게 짝지어진 것을고르시오.",
+      "body": ["The _____ you save, the _____ you’ll be."],
+      "choices": ["much – rich", "much – richer", "more – rich",
+                  "more – richer", "most – richest"],
+      "answer": "④",
+      "explanation": "두 자리 모두 비교급이 와야 하므로 more와 richer를 쓴다."
+    }
+  ]
+}

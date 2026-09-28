@@ -1,0 +1,118 @@
+{
+  "_설명": "기본 10과 가정법 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 10.가정법_종합문제(1회).pdf", "number": 5,
+      "포인트": "조건절에서는 현재시제로 미래를 나타낸다",
+      "prompt": "다음 빈칸에 가장 알맞은 단어는?",
+      "body": ["If you _______ hard, you will pass the exam."],
+      "choices": ["studying", "study", "had studied",
+                  "are studied", "will study"],
+      "answer": "②",
+      "explanation": "if가 이끄는 조건절에서는 미래의 일이라도 현재시제로 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_종합문제(1회).pdf", "number": 18,
+      "포인트": "가정법 과거완료의 주절",
+      "prompt": "다음 빈칸에 알맞은 것은?",
+      "body": ["If I had known it was your birthday, I _______ have",
+               "forgotten it."],
+      "choices": ["would", "wouldn't", "had", "hadn't", "will"],
+      "answer": "②",
+      "explanation": "알았더라면 잊지 않았을 것이라는 뜻이므로 wouldn’t have + 과거분사로 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_종합문제(2회).pdf", "number": 4,
+      "포인트": "조건을 나타내는 If",
+      "prompt": "다음 문장의 빈칸에 가장 알맞은 것은?",
+      "body": ["______ you skip breakfast, you may feel",
+               "tired."],
+      "choices": ["If", "As if", "As though", "Unless", "Though"],
+      "answer": "①",
+      "explanation": "‘~한다면’이라는 조건을 나타내므로 If가 알맞다. Unless는 ‘~하지 않는다면’이다."
+    },
+    {
+      "file": "[기본] 10.가정법_종합문제(2회).pdf", "number": 10,
+      "포인트": "가정법 과거의 주절",
+      "prompt": "다음 문장의 빈칸에 들어갈 동사의 알맞은 형태를 고르세요.",
+      "body": ["If I lived in Paris, I ___________ the Eiffel Tower",
+               "every week."],
+      "choices": ["visited", "can visit", "will visit",
+                  "would visit", "would visited"],
+      "answer": "④",
+      "explanation": "가정법 과거의 주절은 「조동사 과거형 + 동사원형」으로 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_종합문제(2회).pdf", "number": 15,
+      "포인트": "가정법 과거의 be동사는 were",
+      "prompt": "다음 문장의 빈칸에 들어갈 동사의 알맞은 형태를 고르세요.",
+      "body": ["If it ______ warmer now, I could go",
+               "swimming."],
+      "choices": ["are", "been", "is", "be", "were"],
+      "answer": "⑤",
+      "explanation": "가정법 과거에서는 주어에 상관없이 be동사를 were로 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_종합문제(2회).pdf", "number": 17,
+      "포인트": "가정법 과거의 형태",
+      "prompt": "다음 우리말에 맞게 빈칸에 들어갈 말이 바르게짝지어진 것은?",
+      "body": ["당신이 흥부라면 어떻게 할까요?",
+               "→ What ______ you do if you",
+               "______ Heungbu?"],
+      "choices": ["do, are", "would, are", "would, were",
+                  "do, be", "will, are"],
+      "answer": "③",
+      "explanation": "사실이 아닌 일을 가정하므로 주절은 would, if절의 be동사는 were로 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_종합문제(2회).pdf", "number": 27,
+      "포인트": "가정법 과거완료의 if절",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["If I _____ her address, I could have sent the",
+               "card."],
+      "choices": ["knew", "have known", "had known",
+                  "had been known", "will know"],
+      "answer": "③",
+      "explanation": "주절이 「could have + 과거분사」이므로 if절은 「had + 과거분사」로 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(1회).pdf", "number": 3,
+      "포인트": "가정법 과거의 주절",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["What _______ you say if you met your favorite",
+               "singer?"],
+      "choices": ["do", "will", "did", "would", "would have said"],
+      "answer": "④",
+      "explanation": "if절이 과거형 met이므로 주절은 「would + 동사원형」으로 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(1회).pdf", "number": 8,
+      "포인트": "가정법 과거의 be동사는 were",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["If it _____ warm, I would go to the beach."],
+      "choices": ["is", "are", "did", "were", "had been"],
+      "answer": "④",
+      "explanation": "주절이 would go이므로 if절은 가정법 과거의 were를 쓴다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(2회).pdf", "number": 1,
+      "포인트": "조건을 나타내는 If",
+      "prompt": "다음 문장의 빈칸에 알맞은 것은?",
+      "body": ["______ you eat vegetables, you will also",
+               "stay strong."],
+      "choices": ["If", "For", "That", "Though", "Where"],
+      "answer": "①",
+      "explanation": "‘~한다면’이라는 조건을 이끄는 접속사 If가 알맞다."
+    },
+    {
+      "file": "[기본] 10.가정법_확인문제(2회).pdf", "number": 14,
+      "포인트": "사실을 가정법 과거로 바꾸기",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 것을 고르시오.",
+      "body": ["As I don’t have her email, I can’t write to her.",
+               "→ If I _____ her email, I could write to her."],
+      "choices": ["have", "had", "don't have", "didn't have", "had not had"],
+      "answer": "②",
+      "explanation": "현재 사실의 반대를 가정하므로 if절의 동사를 과거형 had로 쓴다."
+    }
+  ]
+}

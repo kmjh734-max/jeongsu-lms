@@ -1,0 +1,220 @@
+{
+  "_설명": "천일문 1권 워크북 Chapter 12 접속사의 Chapter Test를 변형한 것. 기초 13과 접속사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 12,
+  "chapter": "접속사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 13, "chapter": "접속사" },
+  "points": [
+    { "unit_no": 1, "unit": "and, but, or", "point_no": 1, "point": "and, but, or: 같은 성격의 말을 잇는다", "frequent": true },
+    { "unit_no": 2, "unit": "시간·이유를 나타내는 접속사", "point_no": 2, "point": "before, after: 앞뒤 순서를 잇는다", "frequent": true },
+    { "unit_no": 2, "unit": "시간·이유를 나타내는 접속사", "point_no": 3, "point": "when: ~할 때 / because: ~ 때문에", "frequent": true },
+    { "unit_no": 3, "unit": "that절", "point_no": 4, "point": "that+주어+동사: 목적어 역할(~하다는 것)", "frequent": true },
+    { "unit_no": 2, "unit": "시간·이유를 나타내는 접속사", "point_no": 5, "point": "if: 만약 ~라면", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1], "point_label": "나열할 때는 and",
+      "question_kind": "빈칸 고르기", "difficulty": "하", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["They planted many vegetables like carrots, onions, ________ potatoes."],
+      "choices": [
+        { "no": 1, "text": "and" },
+        { "no": 2, "text": "but" },
+        { "no": 3, "text": "before" },
+        { "no": 4, "text": "if" },
+        { "no": 5, "text": "because" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [1], "point_label": "or로 이어지는 말의 형태를 맞춘다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Will you wait here or ________ inside now?"],
+      "choices": [
+        { "no": 1, "text": "coming" },
+        { "no": 2, "text": "came" },
+        { "no": 3, "text": "to come" },
+        { "no": 4, "text": "come" },
+        { "no": 5, "text": "comes" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [1], "point_label": "반대되는 내용은 but으로 잇는다",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 두 문장을 한 문장으로 바꿔 쓸 때, 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "I sent several messages to Somi. She didn’t reply to them.",
+        "→ I sent several messages to Somi, ________ she didn’t reply to them."
+      ],
+      "choices": [],
+      "answer": "but"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [1], "point_label": "and의 여러 쓰임",
+      "question_kind": "빈칸 고르기", "difficulty": "하", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "• Leo is smart ________ humble.",
+        "• Sora ________ I are classmates."
+      ],
+      "choices": [
+        { "no": 1, "text": "but" },
+        { "no": 2, "text": "and" },
+        { "no": 3, "text": "or" },
+        { "no": 4, "text": "when" },
+        { "no": 5, "text": "because" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [3], "point_label": "의문사 when과 접속사 when",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "• ________ is your first class?",
+        "• ________ I was young, I had freckles."
+      ],
+      "choices": [
+        { "no": 1, "text": "If" },
+        { "no": 2, "text": "After" },
+        { "no": 3, "text": "When" },
+        { "no": 4, "text": "That" },
+        { "no": 5, "text": "Because" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [2], "point_label": "앞뒤 순서를 나타내는 after",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "두 문장의 의미가 일치하도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "The movie started and then we entered the theater.",
+        "= We entered the theater ________ the movie started."
+      ],
+      "choices": [],
+      "answer": "after"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [1], "point_label": "and, but, or가 잇는 말의 형태",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Jiho likes swimming and run." },
+        { "no": 2, "text": "The park was wide and quiet." },
+        { "no": 3, "text": "He was tall or couldn’t reach the shelf." },
+        { "no": 4, "text": "She painted the fence blue and white." },
+        { "no": 5, "text": "Do you want to watch a movie or read a book?" }
+      ],
+      "answer": "②, ④, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [1], "point_label": "and와 But의 구별",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "On Sunday, Jinho waters the plants. He sweeps the yard ____(A)____ walks the dog, too. ____(B)____ he doesn’t wash the car."
+      ],
+      "choices": [
+        { "no": 1, "text": "but — Or" },
+        { "no": 2, "text": "and — But" },
+        { "no": 3, "text": "or — But" },
+        { "no": 4, "text": "and — Or" },
+        { "no": 5, "text": "or — And" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [2, 3], "point_label": "접속사의 의미와 문맥",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 문맥상 어색한 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "It was hot so she turned on the fan." },
+        { "no": 2, "text": "I brush my teeth when I finish a meal." },
+        { "no": 3, "text": "He was tired when the class ended." },
+        { "no": 4, "text": "I put on my pajamas before I came home." },
+        { "no": 5, "text": "We left the theater because the movie was boring." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [3], "point_label": "because 뒤에는 주어+동사, because of 뒤에는 명사",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Please text me when you arrive." },
+        { "no": 2, "text": "If you don’t take that seat, I’ll take it." },
+        { "no": 3, "text": "I lived in Jeonju when I was young." },
+        { "no": 4, "text": "Mina ate fruit after she came home." },
+        { "no": 5, "text": "Sam missed the train because of he left late." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [3], "point_label": "because로 두 문장 잇기",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 두 문장을 because를 사용하여 한 문장으로 다시 쓰세요.",
+      "body": [
+        "My dad is always tired. He works late every night.",
+        "→ My dad ________________."
+      ],
+      "choices": [],
+      "answer": "is always tired because he works late every night"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [4], "point_label": "think that+주어+동사",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "우리는 그것이 무지개라고 생각했다.",
+        "(it / thought / we / that / a rainbow / was)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "We thought that it was a rainbow"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [3], "point_label": "이유를 덧붙이는 because",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "그녀는 우산을 샀는데 비가 왔기 때문이다.",
+        "(the umbrella / was / because / it / bought / rainy)",
+        "→ She ________________."
+      ],
+      "choices": [],
+      "answer": "bought the umbrella because it was rainy"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [2], "point_label": "before와 after로 순서 나타내기",
+      "question_kind": "영작", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음은 수지가 아침에 하는 일을 순서대로 나타낸 것입니다. 이와 일치하도록 <조건>에 맞게 문장을 완성하세요.",
+      "body": [
+        "조깅하기 → 아침 먹기 → 이 닦기 → 등교하기",
+        "<조건> • before나 after를 포함할 것  • 주어진 단어를 사용할 것",
+        "(1) Suji jogs ________________. (breakfast, have)",
+        "(2) Suji goes to school ________________. (her, brush, teeth)"
+      ],
+      "choices": [],
+      "answer": "(1) before she has breakfast  (2) after she brushes her teeth"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [4], "point_label": "접속사 that과 지시어 that",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> I didn’t know [[that]] she was a pianist."],
+      "choices": [
+        { "no": 1, "text": "Do you believe [[that]] rumor?" },
+        { "no": 2, "text": "What is [[that]] bag on the chair?" },
+        { "no": 3, "text": "Mina already read [[that]] novel." },
+        { "no": 4, "text": "Which is cheaper, this or [[that]]?" },
+        { "no": 5, "text": "I hope [[that]] you will feel better soon." }
+      ],
+      "answer": "⑤"
+    }
+  ]
+}

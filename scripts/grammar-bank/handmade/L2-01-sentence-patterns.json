@@ -1,0 +1,161 @@
+{
+  "_설명": "기본 1과 문장의 형식 — 감각동사, 수여동사와 전치사, 5형식 목적격 보어. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 1,
+      "포인트": "감각동사 뒤에 명사가 오면 like가 필요하다",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["This soup smells [[a lemon]]."],
+      "answer": "like a lemon",
+      "explanation": "감각동사 뒤에 명사가 올 때는 명사 앞에 전치사 like를 써야 한다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 3,
+      "포인트": "look like + 명사",
+      "prompt": "다음 빈칸에 알맞은 말을 [보기]에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "makes expects bought looks",
+               "The girl _____ like a movie star."],
+      "answer": "looks",
+      "explanation": "「look like + 명사」의 형태로 쓰여 ‘~처럼 보이다’의 의미를 나타낸다. (그 소녀는 영화배우처럼 보인다.)"
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 4,
+      "포인트": "감각동사 뒤에 형용사가 오면 like를 쓰지 않는다",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["Your new haircut [[looks like]] nice."],
+      "answer": "looks",
+      "explanation": "뒤에 형용사가 있으므로 전치사 like를 삭제해야 한다. look like 뒤에는 전치사 like의 목적어인 명사가 온다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 9,
+      "포인트": "수여동사는 목적어를 두 개 취한다",
+      "prompt": "다음 빈칸에 알맞은 말을 [보기]에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "makes expects bought looks",
+               "I _____ Sujin a scarf for her birthday."],
+      "answer": "bought",
+      "explanation": "빈칸 뒤에 간접목적어(Sujin)와 직접목적어(a scarf)가 나오므로 수여동사인 bought가 알맞다. (나는 수진이에게 생일 선물로 목도리를 사 주었다.)"
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 10,
+      "포인트": "make는 3형식에서 for를 쓴다",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["We’ll make Dad a birthday card.",
+               "→ We’ll make a birthday card _____."],
+      "answer": "for Dad",
+      "explanation": "「make + 간접목적어 + 직접목적어」의 4형식 문장은 「make + 직접목적어 + for + 간접목적어」의 3형식 문장으로 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 12,
+      "포인트": "ask는 3형식에서 of를 쓴다",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Can I ask you a question?",
+               "→ Can I ask a question _____?"],
+      "answer": "of you",
+      "explanation": "「ask + 간접목적어 + 직접목적어」의 4형식 문장은 「ask + 직접목적어 + of + 간접목적어」의 3형식 문장으로 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 13,
+      "포인트": "teach는 to를 쓴다",
+      "prompt": "다음 빈칸에 to, for, of 중 알맞은 것을 쓰시오.",
+      "body": ["Ms. Park teaches history ______ us."],
+      "answer": "to",
+      "explanation": "teach + 직접목적어 + to + 간접목적어: ~에게 …을 가르치다[가르쳐 주다]"
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 14,
+      "포인트": "ask는 of를 쓴다",
+      "prompt": "다음 빈칸에 to, for, of 중 알맞은 것을 쓰시오.",
+      "body": ["Jiho asked the way to the station ______ her."],
+      "answer": "of",
+      "explanation": "ask + 직접목적어 + of + 간접목적어: ~에게 …을 묻다"
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 15,
+      "포인트": "make는 for를 쓴다",
+      "prompt": "다음 빈칸에 to, for, of 중 알맞은 것을 쓰시오.",
+      "body": ["I made a warm blanket ______ my cat."],
+      "answer": "for",
+      "explanation": "make + 직접목적어 + for + 간접목적어: ~에게 …을 만들어 주다"
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 17,
+      "포인트": "send는 to를 쓴다",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["Sumin sent a letter [[for me]] from Canada."],
+      "answer": "to me",
+      "explanation": "send + 직접목적어 + to + 간접목적어: ~에게 …을 보내다"
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 18,
+      "포인트": "4형식을 3형식으로 바꾸기 — make는 for",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.(단, 전치사를 포함할 것)",
+      "body": ["Dad made my brother sandwiches this morning.",
+               "→ Dad made ______ ______ ______ ______ this",
+               "morning."],
+      "answer": "sandwiches, for, my, brother",
+      "explanation": "「make + 간접목적어 + 직접목적어」는 「make + 직접목적어 + for + 간접목적어」로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 21,
+      "포인트": "주어 + 수여동사 + 직접목적어 + for + 간접목적어",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그는 그의 아들에게 나무 의자를 만들어 주었다.",
+               "(for, made, his son, a wooden chair)",
+               "→ He ______________________________________."],
+      "answer": "made a wooden chair for his son",
+      "explanation": "전치사 for가 있으므로 「주어 + 수여동사 + 직접목적어 + for + 간접목적어」의 순서로 배열한다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 24,
+      "포인트": "tell + 목적어 + to부정사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["선생님은 나에게 창문을 닫으라고 말했다.",
+               "(me, to, the window, told, close)",
+               "→ My teacher ______________________________."],
+      "answer": "told me to close the window",
+      "explanation": "「tell + 목적어 + 목적격 보어(to부정사)」의 형태로 쓰여 ‘목적어에게 ~라고 말하다’의 의미를 나타낸다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 25,
+      "포인트": "지각동사 hear + 목적어 + 동사원형",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["• I heard the boys.",
+               "• They shouted my name.",
+               "→ I heard the boys __________________________."],
+      "answer": "shout my name",
+      "explanation": "hear는 지각동사이므로 「hear + 목적어 + 목적격 보어(동사원형[현재분사])」의 형태로 연결할 수 있다. 두 번째 문장이 단순 과거이므로 목적격 보어로 동사원형을 쓴다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 26,
+      "포인트": "지각동사 watch + 목적어 + 현재분사",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["• Sora watched Tom.",
+               "• Tom was baking cookies.",
+               "→ Sora watched Tom ________________________."],
+      "answer": "baking cookies",
+      "explanation": "watch는 지각동사이므로 「watch + 목적어 + 목적격 보어(동사원형[현재분사])」의 형태로 연결할 수 있다. 두 번째 문장이 과거진행형이므로 목적격 보어로 현재분사를 쓴다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 27,
+      "포인트": "expect + 목적어 + to부정사",
+      "prompt": "다음 빈칸에 알맞은 말을 [보기]에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "makes expects bought looks",
+               "The teacher _____ us to arrive on time."],
+      "answer": "expects",
+      "explanation": "「expect + 목적어 + 목적격 보어(to부정사)」의 형태로 ‘목적어가 ~하기를 기대하다’의 의미를 나타낸다. (선생님은 우리가 제시간에 도착하기를 기대한다.)"
+    },
+    {
+      "file": "[기본] 1.문장의 형식_체크체크.pdf", "number": 28,
+      "포인트": "make + 목적어 + 형용사",
+      "prompt": "다음 빈칸에 알맞은 말을 [보기]에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "makes expects bought looks",
+               "This movie always _____ me sad."],
+      "answer": "makes",
+      "explanation": "「make + 목적어 + 목적격 보어(형용사)」의 형태로 ‘목적어가 ~하게 만들다’의 의미를 나타낸다. (이 영화는 항상 나를 슬프게 만든다.)"
+    }
+  ]
+}

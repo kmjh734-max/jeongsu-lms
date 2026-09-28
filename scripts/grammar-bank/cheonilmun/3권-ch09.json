@@ -1,0 +1,207 @@
+{
+  "_설명": "천일문 3권 Chapter 09 관계사에서 가져와 변형한 문항. 은행에서는 심화 6과 관계사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 9,
+  "chapter": "관계사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 6, "chapter": "관계사" },
+  "points": [
+    { "unit_no": 1, "unit": "관계대명사", "point_no": 1, "point": "주격·목적격·소유격 관계대명사", "frequent": true },
+    { "unit_no": 1, "unit": "관계대명사", "point_no": 2, "point": "관계대명사 that", "frequent": false },
+    { "unit_no": 1, "unit": "관계대명사", "point_no": 3, "point": "관계대명사 what: ~하는 것", "frequent": true },
+    { "unit_no": 1, "unit": "관계대명사", "point_no": 4, "point": "전치사+관계대명사", "frequent": true },
+    { "unit_no": 1, "unit": "관계대명사", "point_no": 5, "point": "관계대명사의 계속적 용법", "frequent": true },
+    { "unit_no": 2, "unit": "관계부사", "point_no": 6, "point": "관계부사 when/where/why/how", "frequent": true },
+    { "unit_no": 2, "unit": "관계부사", "point_no": 7, "point": "관계사절 동사는 선행사에 수를 맞춘다", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1], "point_label": "주격 관계대명사와 whose",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• I read the book ______(A) is now popular in Korea.", "• I read the book ______(B) author is very famous."],
+      "choices": [
+        { "no": 1, "text": "that — that" },
+        { "no": 2, "text": "which — who" },
+        { "no": 3, "text": "which — that" },
+        { "no": 4, "text": "that — whose" },
+        { "no": 5, "text": "what — whose" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [1, 6], "point_label": "관계부사 when과 목적격 관계대명사",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• I miss the days ______(A) we were in middle school.", "• I miss the days ______(B) we spent in the countryside."],
+      "choices": [
+        { "no": 1, "text": "which — which" },
+        { "no": 2, "text": "when — when" },
+        { "no": 3, "text": "which — when" },
+        { "no": 4, "text": "when — what" },
+        { "no": 5, "text": "when — which" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [5], "point_label": "계속적 용법에는 that을 쓰지 않는다",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• We adopted a stray dog, ______(A) recovered quickly.", "• I want to meet the singer, ______(B) wrote my favorite song."],
+      "choices": [
+        { "no": 1, "text": "that — that" },
+        { "no": 2, "text": "who — which" },
+        { "no": 3, "text": "which — who" },
+        { "no": 4, "text": "which — that" },
+        { "no": 5, "text": "which — whom" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [6], "point_label": "장소를 나타내는 관계부사 where",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 두 문장을 관계부사를 사용하여 한 문장으로 쓰세요.",
+      "body": ["Have you ever been to the village? An old bell still rings in the village.", "→ ______________________________"],
+      "choices": [],
+      "answer": "Have you ever been to the village where an old bell still rings?"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [6], "point_label": "방법을 나타내는 관계부사 how",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 두 문장을 관계부사를 사용하여 한 문장으로 쓰세요.",
+      "body": ["Tell me the way. You solve math problems so fast in the way.", "→ ______________________________"],
+      "choices": [],
+      "answer": "Tell me how you solve math problems so fast."
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [3], "point_label": "선행사가 없으면 what",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 관계대명사가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "______ we need now is a cup of tea." },
+        { "no": 2, "text": "He doesn’t seem to understand ______ I’m saying." },
+        { "no": 3, "text": "Some people aren’t thankful for ______ they have." },
+        { "no": 4, "text": "The book ______ you lent me yesterday isn’t interesting." },
+        { "no": 5, "text": "Show me ______ you bought at the market." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [1], "point_label": "소유격 관계대명사 whose",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 관계대명사가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "He’s a chef ______ restaurant is next to my school." },
+        { "no": 2, "text": "Emma has a cute rabbit ______ ears are very long." },
+        { "no": 3, "text": "A student ______ grades improved the most got a prize." },
+        { "no": 4, "text": "I couldn’t sleep well because of the sound ______ the rain made." },
+        { "no": 5, "text": "Mr. Kim is a teacher ______ class is popular among the students." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [7], "point_label": "관계사절이 긴 문장의 동사 수일치",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["The girl who helps the old woman with her heavy bags are kind.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "are → is"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [3], "point_label": "주어 자리의 what절",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["That the little prince wanted was a friend.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "That → What"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [4], "point_label": "전치사+관계대명사",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": [],
+      "prompt": "주어진 두 문장을 한 문장으로 바꿔 쓸 때, 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Where is my old diary? Dad is looking for it.", "→ Where is my old diary ______ Dad is looking?"],
+      "choices": [
+        { "no": 1, "text": "that" },
+        { "no": 2, "text": "for that" },
+        { "no": 3, "text": "which" },
+        { "no": 4, "text": "for which" },
+        { "no": 5, "text": "for whom" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [5], "point_label": "앞 문장 전체를 받는 which",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": [],
+      "prompt": "주어진 두 문장을 한 문장으로 바꿔 쓸 때, 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Mia drinks tea with some honey. It makes her tea sweet.", "→ Mia drinks tea with some honey, ______ makes her tea sweet."],
+      "choices": [
+        { "no": 1, "text": "what" },
+        { "no": 2, "text": "which" },
+        { "no": 3, "text": "that" },
+        { "no": 4, "text": "why" },
+        { "no": 5, "text": "whose" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [1, 4], "point_label": "관계사절에 필요한 전치사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Don’t eat food [[which has]] a lot of sugar." },
+        { "no": 2, "text": "This isn’t the phone [[that I’d like]] to buy." },
+        { "no": 3, "text": "I like people [[who are]] not afraid of change." },
+        { "no": 4, "text": "We stayed at the hotel [[whose garden]] was very big." },
+        { "no": 5, "text": "Jason is my neighbor [[who I have lived]] for five years." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [3], "point_label": "관계대명사 what과 의문사 what",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 쓰임이 다른 것을 고르세요.",
+      "body": ["<보기> That’s exactly [[what]] I wanted to hear."],
+      "choices": [
+        { "no": 1, "text": "I don’t buy what looks useless." },
+        { "no": 2, "text": "Do you know what his job is?" },
+        { "no": 3, "text": "He made a lot of money in what he did." },
+        { "no": 4, "text": "I love what you gave me on my birthday." },
+        { "no": 5, "text": "What you told me was very helpful." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [6], "point_label": "이유를 나타내는 관계부사 why",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 바르게 배열하세요.",
+      "body": ["나는 그가 웃고 있는 이유를 알고 싶다. (laughing / he / why / the reason / is)", "→ I want to know ________________."],
+      "choices": [],
+      "answer": "the reason why he is laughing"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [1], "point_label": "목적격 관계대명사 which",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 바르게 배열하세요.",
+      "body": [
+        "지난주에 내가 너에게 빌려준 우산을 돌려주겠니?",
+        "(last week / the umbrella / lent / which / I / you)",
+        "→ Can you return ________________?"
+      ],
+      "choices": [],
+      "answer": "the umbrella which I lent you last week"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [6], "point_label": "장소를 나타내는 관계부사 where",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 바르게 배열하세요.",
+      "body": [
+        "Brian이 일하고 있는 건물은 아름다운 강 전망을 가지고 있다. (where / Brian / works / the building)",
+        "→ ________________ has a beautiful view of the river."
+      ],
+      "choices": [],
+      "answer": "The building where Brian works"
+    }
+  ]
+}

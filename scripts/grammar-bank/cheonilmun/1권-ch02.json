@@ -1,0 +1,345 @@
+{
+  "_설명": "천일문 중등 GRAMMAR 1권 Chapter 02 일반동사에서 가져와 변형한 문항. 은행에서는 기초 2과 일반동사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 2,
+  "chapter": "일반동사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 2, "chapter": "일반동사" },
+  "points": [
+    { "unit_no": 1, "unit": "일반동사의 현재형", "point_no": 1, "point": "I, You, We, They…+동사원형", "frequent": false },
+    { "unit_no": 1, "unit": "일반동사의 현재형", "point_no": 2, "point": "He, She, It…+동사원형+-(e)s", "frequent": true },
+    { "unit_no": 2, "unit": "일반동사의 과거형", "point_no": 3, "point": "일반동사 과거형: 동사원형+-(e)d", "frequent": true },
+    { "unit_no": 2, "unit": "일반동사의 과거형", "point_no": 4, "point": "불규칙하게 바뀌는 일반동사의 과거형", "frequent": true },
+    { "unit_no": 3, "unit": "일반동사의 부정문과 의문문", "point_no": 5, "point": "don’t[doesn’t]+동사원형: ~하지 않다", "frequent": true },
+    { "unit_no": 3, "unit": "일반동사의 부정문과 의문문", "point_no": 6, "point": "Do[Does]+주어+동사원형 ~?: ~하니?", "frequent": true },
+    { "unit_no": 3, "unit": "일반동사의 부정문과 의문문", "point_no": 7, "point": "didn’t+동사원형: ~하지 않았다", "frequent": false },
+    { "unit_no": 3, "unit": "일반동사의 부정문과 의문문", "point_no": 8, "point": "Did+주어+동사원형 ~?: ~했니?", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [2], "point_label": "3인칭 단수 현재형",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["______ walks to school every morning."],
+      "choices": [{ "no": 1, "text": "Daniel" }, { "no": 2, "text": "My aunt" }, { "no": 3, "text": "She" }, { "no": 4, "text": "Minsu" }, { "no": 5, "text": "The twins" }],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [6], "point_label": "Do[Does]+주어+동사원형 ~?",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["Do ______ enjoy comic books?"],
+      "choices": [{ "no": 1, "text": "they" }, { "no": 2, "text": "your cousins" }, { "no": 3, "text": "you" }, { "no": 4, "text": "Hana" }, { "no": 5, "text": "Mark and Leo" }],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [6], "point_label": "Do와 Does 가려 쓰기",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• ______(A) the library open on Mondays?", "• ______(B) you swim in the evening?"],
+      "choices": [{ "no": 1, "text": "Does — Does" }, { "no": 2, "text": "Do — Do" }, { "no": 3, "text": "Does — Do" }, { "no": 4, "text": "Do — Does" }, { "no": 5, "text": "Did — Does" }],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [8], "point_label": "Did+주어+동사원형 ~?",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 대화의 빈칸에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["A: ______(A) you drink the juice?", "B: No, I didn’t. My brother ______(B) it."],
+      "choices": [{ "no": 1, "text": "Did — drank" }, { "no": 2, "text": "Did — drink" }, { "no": 3, "text": "Do — drank" }, { "no": 4, "text": "Do — drink" }, { "no": 5, "text": "Does — drank" }],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [2], "point_label": "3인칭 단수 현재형",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["그녀는 매일 부엌에서 설거지를 한다. (the dishes, wash, in the kitchen)", "→ ______________________________ every day."],
+      "choices": [],
+      "answer": "She washes the dishes in the kitchen"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [4], "point_label": "불규칙 과거형",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": ["Brian은 어제 자전거를 하나 팔았다. (sell, a bike)", "→ ______________________________ yesterday."],
+      "choices": [],
+      "answer": "Brian sold a bike"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [2], "point_label": "3인칭 단수 현재형 만드는 법",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Do you [[has]] a brother?" },
+        { "no": 2, "text": "He [[goes]] hiking on Sundays." },
+        { "no": 3, "text": "Mina [[plaies]] the violin." },
+        { "no": 4, "text": "Tony [[fixs]] his old bike." },
+        { "no": 5, "text": "She and her father [[makes]] a kite." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [5, 6], "point_label": "부정문·의문문에서는 동사원형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Does she has many pens?" },
+        { "no": 2, "text": "My dad doesn’t drive on Sundays." },
+        { "no": 3, "text": "I likes pizza very much." },
+        { "no": 4, "text": "He watch TV every night." },
+        { "no": 5, "text": "My sister doesn’t likes carrots." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [3, 4, 7], "point_label": "과거형과 didn’t+동사원형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Ann studyed math with her sister." },
+        { "no": 2, "text": "They hadn’t lunch at noon." },
+        { "no": 3, "text": "Lucy didn’t clean her room last night." },
+        { "no": 4, "text": "Did they played baseball yesterday?" },
+        { "no": 5, "text": "I eated two slices of pizza." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [4], "point_label": "불규칙 과거형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Nora goed to the library after school.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "goed → went"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [5], "point_label": "doesn’t+동사원형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Chris doesn’t washes the dishes on Sunday. His turn is on Saturday.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "washes → wash"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [5, 6, 7, 8], "point_label": "부정문·의문문 만들기",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 문장을 괄호 안의 지시대로 알맞게 바꿔 쓴 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Ted drew a cat on the paper. (의문문으로) → Did Ted drew a cat on the paper?" },
+        { "no": 2, "text": "I sent a card to my uncle. (부정문으로) → I didn’t sent a card to my uncle." },
+        { "no": 3, "text": "You need some pencils. (의문문으로) → Do you need some pencils?" },
+        { "no": 4, "text": "They play games twice a week. (부정문으로) → They doesn’t play games twice a week." },
+        { "no": 5, "text": "His brother goes to high school. (의문문으로) → Does his brother goes to high school?" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [3, 7], "point_label": "과거형과 didn’t+동사원형",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 내용을 보고, 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "[어젯밤에 한 일] 샌드위치를 먹었다   [하지 않은 일] 컴퓨터 게임을 했다",
+        "(1) He ________ a sandwich last night. (eat)",
+        "(2) He ________ computer games last night. (play)"
+      ],
+      "choices": [],
+      "answer": "(1) ate  (2) didn’t[did not] play"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [2], "point_label": "3인칭 단수 현재형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형", "고난도"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "Sam gets up at six and takes a shower. He walk to school at eight. He meets his friends there. He plays soccer after class.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "walk → walks"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [6], "point_label": "Does 의문문과 응답",
+      "question_kind": "대화 완성", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 내용을 보고, 대화의 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "Jake — 자전거 타기 ○, 기타 치기 ×   /   Mia — 자전거 타기 ×, 기타 치기 ○",
+        "A: Does Jake ride a bike?",
+        "B: Yes, ______ ______. He ______ a bike every Sunday.",
+        "A: Does Mia ride a bike?",
+        "B: No, ______ ______. She ______ the guitar."
+      ],
+      "choices": [],
+      "answer": "he does, rides, she doesn’t, plays"
+    },
+
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [2], "point_label": "3인칭 단수 현재형",
+      "question_kind": "짝짓기", "difficulty": "하", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• She ______(A) a new umbrella.", "• He ______(B) some milk."],
+      "choices": [{ "no": 1, "text": "have — drink" }, { "no": 2, "text": "has — drink" }, { "no": 3, "text": "have — drinks" }, { "no": 4, "text": "has — drinks" }, { "no": 5, "text": "has — drinkes" }],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [2, 3], "point_label": "현재형과 과거형 가려 쓰기",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• My uncle ______(A) his truck at home last Saturday.", "• Nina ______(B) TV every evening."],
+      "choices": [{ "no": 1, "text": "wash — watch" }, { "no": 2, "text": "washed — watch" }, { "no": 3, "text": "washes — watches" }, { "no": 4, "text": "washed — watches" }, { "no": 5, "text": "washes — watch" }],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [4, 7], "point_label": "불규칙 과거형과 didn’t",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• They ______(A) a wonderful time last Friday.", "• We ______(B) do anything last weekend."],
+      "choices": [{ "no": 1, "text": "have — don’t" }, { "no": 2, "text": "has — didn’t" }, { "no": 3, "text": "had — don’t" }, { "no": 4, "text": "have — didn’t" }, { "no": 5, "text": "had — didn’t" }],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [3, 5], "point_label": "과거를 나타내는 말과 동사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["They ______ last night."],
+      "choices": [{ "no": 1, "text": "read books" }, { "no": 2, "text": "didn’t bake bread" }, { "no": 3, "text": "played badminton" }, { "no": 4, "text": "don’t stay home" }, { "no": 5, "text": "watched a movie" }],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [3, 4], "point_label": "-(e)d를 붙이는 법",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["My friends and I ______ together last week."],
+      "choices": [{ "no": 1, "text": "studyed history" }, { "no": 2, "text": "had a nice lunch" }, { "no": 3, "text": "went to the museum" }, { "no": 4, "text": "spent a great time" }, { "no": 5, "text": "talked about our trip" }],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [1, 2], "point_label": "주어에 맞는 현재형",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 내용을 보고 문장을 완성하세요.",
+      "body": [
+        "소라 — 방과 후: 학원에 가다(go to an academy) / 여가: 그림을 그리다(draw pictures)",
+        "민호 — 방과 후: 축구를 하다(play soccer) / 여가: 만화를 보다(watch cartoons)",
+        "Dan — 방과 후: 체육관에 가다(go to the gym) / 여가: 만화를 보다(watch cartoons)",
+        "(1) Sora ________________ in her free time.",
+        "(2) Minho ________________ after school.",
+        "(3) Minho and Dan ________________ in their free time."
+      ],
+      "choices": [],
+      "answer": "(1) draws pictures  (2) plays soccer  (3) watch cartoons"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [5, 6], "point_label": "Does 의문문의 응답",
+      "question_kind": "대화 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 대화가 어색한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "A: Do you live in Daegu? B: No, I don’t. I live in Ulsan." },
+        { "no": 2, "text": "A: Does he like pizza? B: No, he doesn’t. He likes pasta." },
+        { "no": 3, "text": "A: Does Sue ride a horse? B: Yes, she does. She rides very well." },
+        { "no": 4, "text": "A: Does your aunt teach science? B: No, she don’t. She teaches art." },
+        { "no": 5, "text": "A: Do you and your sister walk every day? B: Yes, we do. We walk every morning." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [5], "point_label": "doesn’t+동사원형",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["Jenny는 아침을 먹지 않는다."],
+      "choices": [
+        { "no": 1, "text": "Jenny don’t eat breakfast." },
+        { "no": 2, "text": "Jenny didn’t eats breakfast." },
+        { "no": 3, "text": "Jenny don’t eats breakfast." },
+        { "no": 4, "text": "Jenny doesn’t eat breakfast." },
+        { "no": 5, "text": "Jenny doesn’t eats breakfast." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [7], "point_label": "didn’t+동사원형",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["그들은 어제 Mia를 보지 않았다."],
+      "choices": [
+        { "no": 1, "text": "They saw not Mia yesterday." },
+        { "no": 2, "text": "They didn’t saw Mia yesterday." },
+        { "no": 3, "text": "They don’t see Mia yesterday." },
+        { "no": 4, "text": "They didn’t see Mia yesterday." },
+        { "no": 5, "text": "They doesn’t saw Mia yesterday." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [6], "point_label": "Do와 Does 가려 쓰기",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 Does를 쓸 수 없는 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "______ he study Chinese?" },
+        { "no": 2, "text": "______ your mother work in a bank?" },
+        { "no": 3, "text": "______ she walk to school?" },
+        { "no": 4, "text": "______ they have a dog?" },
+        { "no": 5, "text": "______ Mr. Lee teach music?" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [5, 6], "point_label": "의문문에서는 동사원형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "She doesn’t run in the park." },
+        { "no": 2, "text": "Does Suho studies Chinese?" },
+        { "no": 3, "text": "We don’t like scary movies." },
+        { "no": 4, "text": "Ms. Park teaches world history." },
+        { "no": 5, "text": "Do you really sleep at nine?" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [7, 8], "point_label": "didn’t 뒤에는 동사원형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Does he have a cold now?" },
+        { "no": 2, "text": "Do they push the cart together?" },
+        { "no": 3, "text": "Did she wake up early this morning?" },
+        { "no": 4, "text": "Jinho cleaned his desk this morning." },
+        { "no": 5, "text": "Mia didn’t gave me a birthday card last year." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [1, 2, 5], "point_label": "표를 보고 현재형 판단하기",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 내용과 일치하지 않는 것을 모두 고르세요.",
+      "body": [
+        "나라 — 아침을 먹는다 ○ / 걸어서 등교한다 ○ / 버스로 등교한다 × / 방을 청소한다 ○ / 매일 달리기한다 ×",
+        "태호 — 아침을 먹는다 × / 걸어서 등교한다 × / 버스로 등교한다 ○ / 방을 청소한다 × / 매일 달리기한다 ○",
+        "보라 — 아침을 먹는다 ○ / 걸어서 등교한다 ○ / 버스로 등교한다 × / 방을 청소한다 ○ / 매일 달리기한다 ×"
+      ],
+      "choices": [
+        { "no": 1, "text": "Taeho runs every day." },
+        { "no": 2, "text": "Nara eats breakfast." },
+        { "no": 3, "text": "Nara and Bora go to school by bus." },
+        { "no": 4, "text": "Taeho doesn’t clean his room." },
+        { "no": 5, "text": "Bora doesn’t walk to school." }
+      ],
+      "answer": "③, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [4], "point_label": "불규칙 과거형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 찾아 그 기호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": [
+        "Jinwoo ⓐ [[went]] to the bookstore with his brother last Sunday. He ⓑ [[found]] a nice comic book. But he didn’t ⓒ [[bring]] his wallet from home. So his brother ⓓ [[payed]] the money for him. He ⓔ [[read]] the book at home.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "ⓓ, paid"
+    }
+  ]
+}

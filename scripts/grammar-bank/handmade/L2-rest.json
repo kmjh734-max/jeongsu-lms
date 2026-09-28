@@ -1,0 +1,146 @@
+{
+  "_설명": "기본 1과 문장의 형식 · 3과 부정사[1] · 6과 분사 · 11과 비교구문 · 13과 수량표현 · 15과 접속사[2] — 남은 서술형 문항들.",
+  "문항": [
+    {
+      "file": "[기본] 1.문장의 형식_종합문제(1회).pdf", "number": 8,
+      "포인트": "look like + 명사(구)",
+      "prompt": "<보기>의 단어를 이용하여 영작하시오.",
+      "body": ["<보기>",
+               "kind, person, very, brave",
+               "(1) 그는 용감한 사람처럼 보인다.",
+               "→ He looks like _________________________.",
+               "(2) 그녀는 매우 친절한 사람처럼 보인다.",
+               "→ She looks like _________________________."],
+      "answer": "(1) He looks like a brave person. (2) She looks like a very kind person.",
+      "explanation": "「look like + 명사」의 형태에 주의하여 문장을 완성해야 한다. like 뒤에는 명사(구)가 오며, 형용사만 올 때는 like 없이 「look + 형용사」로 쓴다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(1회).pdf", "number": 13,
+      "포인트": "목적을 나타내는 to부정사 = in order to / so as to",
+      "prompt": "주어진 문장과 의미가 같도록 빈 칸에 들어갈 말을 써 넣으시오.",
+      "body": ["She studies hard to pass the exam.",
+               "→ She studies hard _____ _______ _____",
+               "pass the exam. (3단어)"],
+      "answer": "‘in order to’ 또는 ‘so as to’",
+      "explanation": "‘~하기 위하여’는 「in order to + 동사원형」, 「so as to + 동사원형」으로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 3.부정사[1]_종합문제(1회).pdf", "number": 30,
+      "포인트": "의문사 + to부정사",
+      "prompt": "우리말과 일치하도록 빈칸을 완성하시오.",
+      "body": ["나는 어디로 가야 할지 모르겠다.",
+               "→ I don’t know _____________________________."],
+      "answer": "where to go 또는 where I should go",
+      "explanation": "「의문사 + to부정사」는 ‘~할지’의 뜻이며 「의문사 + 주어 + should + 동사원형」으로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 6.분사_종합문제(1회).pdf", "number": 8,
+      "포인트": "감정을 나타내는 동사의 현재분사와 과거분사",
+      "prompt": "다음 괄호 안의 단어를 이용하여 우리말에 맞게 영작하시오. 필요하면 형태를 바꾸시오.",
+      "body": ["(1) 나는 그 소식에 실망했다. (the news, disappoint,",
+               "with)",
+               "→ __________________________________________.",
+               "(2) 그 영화는 감동적이어서 나는 많이 울었다. (the movie,",
+               "move)",
+               "→ I cried a lot because ______________________.",
+               "(3) 너는 그 결과에 놀랄 것이다. (surprise, at the",
+               "result)",
+               "→ __________________________________________."],
+      "answer": "(1) I was disappointed with the news. (2) the movie was moving. (3) You will be surprised at the result.",
+      "explanation": "(1) 동사 disappoint는 ‘실망시키다’는 뜻이므로 주어가 실망을 당한 경우에는 과거분사 형태로 쓴다. (2) 영화가 감동을 주는 것이므로 현재분사를 쓴다. (3) 주어가 놀람을 당하는 것이므로 과거분사를 쓴다."
+    },
+    {
+      "file": "[기본] 6.분사_종합문제(1회).pdf", "number": 22,
+      "포인트": "과거분사가 명사를 뒤에서 꾸미기",
+      "prompt": "주어진 단어를 활용하여 우리말에 맞도록 밑줄 친 부분에 들어갈 단어를 쓰시오.",
+      "body": ["나는 [[한국어로 쓰인]]책을 읽고 싶다. (write)",
+               "I want to read a book _______ _______ _______."],
+      "answer": "written in Korean",
+      "explanation": "‘~로 쓰인’이라는 수동의 뜻이므로 과거분사가 들어가야 한다. 따라서 ‘write’의 과거분사형인 ‘written’을 쓰며, 분사구가 길어 명사 뒤에서 꾸민다."
+    },
+    {
+      "file": "[기본] 6.분사_종합문제(1회).pdf", "number": 23,
+      "포인트": "명사를 앞에서 꾸미는 현재분사와 과거분사",
+      "prompt": "(가)~(다)에 들어갈 알맞은 단어를 <보기>에서 찾아 쓰시오. (단, <보기>의 단어를 한 번씩만 사용하되 필요시 변형 가능)",
+      "body": ["(가) He saw a ________ door in the hallway.",
+               "그는 복도에서 부서진 문을 보았다.",
+               "(나) I watched an ________ movie.",
+               "나는 흥미로운 영화를 보았다.",
+               "(다) I bought a ________ bike last week.",
+               "나는 지난주에 중고 자전거를 샀다.",
+               "<보기>",
+               "interest, break, use"],
+      "answer": "(가) broken (나) interesting (다) used",
+      "explanation": "(가) 부서진 문이므로 수동의 의미를 가진 과거분사 ‘broken’을 써야 한다. (나) 흥미를 주는 영화이므로 현재분사 ‘interesting’을 쓴다. (다) 이미 쓰인 자전거이므로 과거분사 ‘used’를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf", "number": 3,
+      "포인트": "원급 비교 as + 형용사 + as",
+      "prompt": "다음 주어진 문장을 as ~ as를 이용하여 한 문장으로 만드시오.",
+      "body": ["Sora is 165 cm. Mina is 165 cm.",
+               "→ Sora ______ ______ ______ ______ Mina."],
+      "answer": "is as tall as",
+      "explanation": "대상이 비슷하거나 같은 경우에 동등비교 구문을 사용하는데, 「as + 형용사/부사 + as」의 형태로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf", "number": 7,
+      "포인트": "the + 최상급을 쓴 의문문",
+      "prompt": "주어진 단어와 최상급 표현을 이용해 빈칸에 알맞은 말을 써서 대화를 완성하시오.",
+      "body": ["A : ___________________ in the world? (long)",
+               "B : It is the Nile."],
+      "answer": "What is the longest river",
+      "explanation": "‘the + 최상급’으로 써야 하므로 ‘the longest’를 사용해 의문문의 형태를 완성한다. 대답이 강을 가리키므로 river를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf", "number": 30,
+      "포인트": "비교급 + than",
+      "prompt": "다음 우리말을 완전한 영어문장으로 쓰시오.",
+      "body": ["영어가 수학보다 더 쉽다. (easy)",
+               "→ __________________________________________."],
+      "answer": "English is easier than math.",
+      "explanation": "‘비교급 + than’을 활용하여 문장을 완성한다. easy는 -y로 끝나므로 y를 i로 바꾸고 -er을 붙여 easier로 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(1회).pdf", "number": 8,
+      "포인트": "물질명사의 수량을 나타내는 단위",
+      "prompt": "우리말과 일치하도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["(1) 그는 나에게 피자 두 조각을 주었다.",
+               "He gave me ____________________ of pizza.",
+               "(2) 우리는 종이 세 장을 샀다.",
+               "We bought ____________________ of paper.",
+               "(3) 우유 한 잔 주세요.",
+               "Give me ____________________ of milk, please."],
+      "answer": "(1) two slices (2) three sheets (3) a glass",
+      "explanation": "물질명사의 수량을 표시하는 문제이다. (1) ‘pizza’를 세는 단위는 ‘slice’이다. (2) ‘paper’는 ‘sheet’로 센다. (3) ‘milk’는 ‘glass’로 센다. 둘 이상이면 단위 명사에 -s를 붙인다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(1회).pdf", "number": 24,
+      "포인트": "큰 수를 세 자리씩 끊어 읽기",
+      "prompt": "다음 주어진 숫자를 영어로 적으시오.",
+      "body": ["3,400,270,000",
+               "→ ___________________________________________."],
+      "answer": "three billion four hundred million two hundred seventy thousand.",
+      "explanation": "수를 표현할 때 세 자리씩 끊어 읽으며 각 쉼표마다 billion, million, thousand로 읽는다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_종합문제(1회).pdf", "number": 15,
+      "포인트": "since — ‘~이후로’와 ‘~때문에’ 두 가지 뜻",
+      "prompt": "다음 문장의 빈칸에 공통으로 들어갈 알맞은 말은?",
+      "body": ["She has lived in Canada ______ she was 15.",
+               "He stayed home ______ he was tired."],
+      "answer": "since",
+      "explanation": "접속사 since는 ‘~이후로’라는 의미로 현재완료와 함께 쓴다. 또한 ‘~때문에’라는 이유를 나타내기도 한다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_종합문제(1회).pdf", "number": 22,
+      "포인트": "if ~ not = unless",
+      "prompt": "다음 두 문장의 뜻이 같도록 빈칸에 알맞은 단어를 쓰시오.",
+      "body": ["If you don’t leave now, you will be late for the",
+               "concert.",
+               "→ _________ you leave now, you will be late for",
+               "the concert."],
+      "answer": "Unless",
+      "explanation": "unless는 ‘~하지 않는다면’의 의미로 ‘if ~ not’으로 바꿔 쓸 수 있다. unless 절에는 부정어를 다시 쓰지 않는다."
+    }
+  ]
+}

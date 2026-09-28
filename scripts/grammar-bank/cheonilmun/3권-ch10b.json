@@ -1,0 +1,161 @@
+{
+  "_설명": "천일문 3권 Chapter 10 가정법의 단원 연습에서 가져와 변형한 문항. 은행에서는 기본 10과 가정법 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 10,
+  "chapter": "가정법",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 10, "chapter": "가정법" },
+  "points": [
+    { "unit_no": 1, "unit": "가정법 과거·과거완료", "point_no": 1, "point": "가정법 과거: If+주어+동사의 과거형", "frequent": true },
+    { "unit_no": 1, "unit": "가정법 과거·과거완료", "point_no": 2, "point": "가정법 과거완료: If+주어+had p.p.", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 가정법", "point_no": 3, "point": "I wish 가정법", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 가정법", "point_no": 4, "point": "as if+가정법: 마치 ~인 것처럼", "frequent": false },
+    { "unit_no": 2, "unit": "주의할 가정법", "point_no": 5, "point": "if의 생략과 도치", "frequent": false },
+    { "unit_no": 2, "unit": "주의할 가정법", "point_no": 6, "point": "Without[But for] ~ / It’s time+가정법", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "연습문제", "round": 1, "number": 1, "point_nos": [5, 6], "point_label": "if 생략 도치와 Without",
+      "question_kind": "고르기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 중 어법상 알맞은 것을 고르세요.",
+      "body": [
+        "1  [It were / Were it] windy, I would fly a kite.",
+        "2  [If / Had] I enough money, I would buy that bag.",
+        "3  [But / Without] his advice, she could not have finished the work.",
+        "4  [Were / Had] it not been for the map, we couldn’t have found the way.",
+        "5  Were I not busy, I [would join / would have joined] the club.",
+        "6  It’s time you [start / started] your homework."
+      ],
+      "choices": [],
+      "answer": "1 Were it  2 If  3 Without  4 Had  5 would join  6 started"
+    },
+    {
+      "kind": "연습문제", "round": 1, "number": 2, "point_nos": [6], "point_label": "But for = if it were not for / if it had not been for",
+      "question_kind": "고르기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "밑줄 친 부분과 의미가 같은 것을 고르세요.",
+      "body": [
+        "1  [[But for the bus]], we would not get to school on time.  ① If it were not for the bus  ② If it had not been for the bus",
+        "2  [[But for her help]], I would have failed the test.  ① If it were not for her help  ② If it had not been for her help",
+        "3  [[Without water]], we could not live even a day.  ① If it were not for water  ② If it had not been for water",
+        "4  [[But for the map]], I could not have found the museum.  ① Were it not for the map  ② Had it not been for the map"
+      ],
+      "choices": [],
+      "answer": "1 ①  2 ②  3 ①  4 ②"
+    },
+    {
+      "kind": "연습문제", "round": 1, "number": 3, "point_nos": [5], "point_label": "if를 생략한 가정법 과거",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 빈칸을 완성하세요.",
+      "body": ["날씨가 시원하다면, 야외에서 점심을 먹을 텐데. (be, cool, it)", "→ ________________, I would have lunch outside."],
+      "choices": [],
+      "answer": "Were it cool"
+    },
+    {
+      "kind": "연습문제", "round": 1, "number": 4, "point_nos": [6], "point_label": "Without+명사(구)",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 빈칸을 완성하세요.",
+      "body": [
+        "난로가 없다면, 겨울에 우리 교실은 무척 추울 텐데. (will, be, without)",
+        "→ ________ the heater, our classroom ________ very cold in winter."
+      ],
+      "choices": [],
+      "answer": "Without, would be"
+    },
+    {
+      "kind": "연습문제", "round": 1, "number": 5, "point_nos": [6], "point_label": "Were it not for ~",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 빈칸을 완성하세요.",
+      "body": ["물이 없다면, 나는 하루도 살 수 없을 텐데. (be, for, not, it)", "→ ________________ water, I couldn’t live even a day."],
+      "choices": [],
+      "answer": "Were it not for"
+    },
+    {
+      "kind": "연습문제", "round": 1, "number": 6, "point_nos": [6], "point_label": "It’s time+가정법",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 빈칸을 완성하세요.",
+      "body": ["우리가 짐을 쌀 시간이야. 내일 떠나잖아. (time, it’s, pack, we)", "→ ________________ our bags. We leave tomorrow."],
+      "choices": [],
+      "answer": "It’s time we packed"
+    },
+    {
+      "kind": "연습문제", "round": 1, "number": 7, "point_nos": [6], "point_label": "Had it not been for ~",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 빈칸을 완성하세요.",
+      "body": [
+        "그 사진이 없었다면, 경찰은 그를 찾지 못했을 텐데. (not, be, for, it)",
+        "→ ________________ the photo, the police might not have found him."
+      ],
+      "choices": [],
+      "answer": "Had it not been for"
+    },
+    {
+      "kind": "연습문제", "round": 1, "number": 8, "point_nos": [4], "point_label": "as if+가정법 과거",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "괄호 안의 말을 참고하여 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["My dad treats me as if I ______ a baby. (In fact, I’m not a baby.)"],
+      "choices": [
+        { "no": 1, "text": "am" },
+        { "no": 2, "text": "will be" },
+        { "no": 3, "text": "were" },
+        { "no": 4, "text": "had been" },
+        { "no": 5, "text": "would be" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "연습문제", "round": 1, "number": 9, "point_nos": [4], "point_label": "as if+가정법 과거",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "괄호 안의 말을 참고하여 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["She talked as if she ______ the movie. (In fact, she wasn’t watching the movie.)"],
+      "choices": [
+        { "no": 1, "text": "were watching" },
+        { "no": 2, "text": "is watching" },
+        { "no": 3, "text": "watches" },
+        { "no": 4, "text": "has watched" },
+        { "no": 5, "text": "will watch" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "연습문제", "round": 1, "number": 10, "point_nos": [1], "point_label": "가정법 과거의 if절",
+      "question_kind": "빈칸 고르기", "difficulty": "하", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["If I ______ a bird, I would fly to you."],
+      "choices": [
+        { "no": 1, "text": "am" },
+        { "no": 2, "text": "were" },
+        { "no": 3, "text": "had been" },
+        { "no": 4, "text": "will be" },
+        { "no": 5, "text": "would be" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "연습문제", "round": 1, "number": 11, "point_nos": [2], "point_label": "가정법 과거완료의 if절",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["If she ______ the bus, she wouldn’t have been late."],
+      "choices": [
+        { "no": 1, "text": "catches" },
+        { "no": 2, "text": "caught" },
+        { "no": 3, "text": "had caught" },
+        { "no": 4, "text": "has caught" },
+        { "no": 5, "text": "would catch" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "연습문제", "round": 1, "number": 12, "point_nos": [3], "point_label": "I wish+가정법 과거",
+      "question_kind": "빈칸 고르기", "difficulty": "하", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["I wish I ______ taller. Then I could reach the top shelf."],
+      "choices": [
+        { "no": 1, "text": "am" },
+        { "no": 2, "text": "were" },
+        { "no": 3, "text": "had been" },
+        { "no": 4, "text": "will be" },
+        { "no": 5, "text": "would be" }
+      ],
+      "answer": "②"
+    }
+  ]
+}

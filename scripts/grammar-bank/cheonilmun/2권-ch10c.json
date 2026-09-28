@@ -1,0 +1,243 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 10 비교 표현의 Chapter Test를 변형한 것. 기본 11과 비교구문 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 10,
+  "chapter": "비교 표현",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 11, "chapter": "비교구문" },
+  "points": [
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 1, "point": "비교급·최상급 만드는 법", "frequent": true },
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 2, "point": "as+원급+as: ~만큼 …한", "frequent": true },
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 3, "point": "not as[so]+원급+as = 비교급+than", "frequent": true },
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 4, "point": "비교급+than: ~보다 더 …한", "frequent": true },
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 5, "point": "비교급 강조: much, even, still, far, a lot", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 6, "point": "the+최상급+in[of] ~", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 7, "point": "as+원급+as possible: 가능한 한 ~하게", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 8, "point": "The 비교급 ~, the 비교급 …: ~할수록 더 …하다", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 9, "point": "배수사+as+원급+as: ~보다 몇 배 더 …한", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 10, "point": "비교급+and+비교급: 점점 더 ~한", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [2], "point_label": "as와 as 사이에는 원급",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["The baby elephant is as ________ as your car."],
+      "choices": [
+        { "no": 1, "text": "more heavy" },
+        { "no": 2, "text": "most heavy" },
+        { "no": 3, "text": "heavy" },
+        { "no": 4, "text": "heavier" },
+        { "no": 5, "text": "heaviest" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [1, 4], "point_label": "far의 비교급 farther",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Jinsu throws the ball ________ than Minho."],
+      "choices": [
+        { "no": 1, "text": "far" },
+        { "no": 2, "text": "farer" },
+        { "no": 3, "text": "farest" },
+        { "no": 4, "text": "farther" },
+        { "no": 5, "text": "more far" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [2, 3], "point_label": "as+원급+as의 형태",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Tom is as taller as his brother." },
+        { "no": 2, "text": "She is not more famous as you." },
+        { "no": 3, "text": "This chair isn’t as soft that chair." },
+        { "no": 4, "text": "Sumi can play the piano as well as I do." },
+        { "no": 5, "text": "You don’t know about science as more as I do." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [1, 5, 6], "point_label": "비교급 강조와 최상급의 형태",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Nothing is precious than health." },
+        { "no": 2, "text": "This concert is more exciting event of the year." },
+        { "no": 3, "text": "Sujin is the diligentest student in our class." },
+        { "no": 4, "text": "They arrived more earlier than other guests." },
+        { "no": 5, "text": "The market was much more crowded than our town." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [2, 4], "point_label": "비교급 강조 much와 as good as",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• Soccer is much ____(A)____ than tennis.",
+        "• My bike is as ____(B)____ as Jiho’s."
+      ],
+      "choices": [
+        { "no": 1, "text": "more exciting — good" },
+        { "no": 2, "text": "more exciting — better" },
+        { "no": 3, "text": "the more exciting — best" },
+        { "no": 4, "text": "most exciting — better" },
+        { "no": 5, "text": "most exciting — good" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [3], "point_label": "not as ~ as = 비교급+than",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 두 문장의 의미가 일치하도록 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "I am not as tall as Mina.",
+        "= Mina is ________ I."
+      ],
+      "choices": [
+        { "no": 1, "text": "as tall as" },
+        { "no": 2, "text": "taller than" },
+        { "no": 3, "text": "not as tall as" },
+        { "no": 4, "text": "more tall than" },
+        { "no": 5, "text": "not taller than" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [5], "point_label": "far+비교급: 훨씬 더 ~한",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "개미는 사자보다 훨씬 더 작다.",
+        "(smaller / far / a lion / an ant / than / is)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "An ant is far smaller than a lion"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [9], "point_label": "twice as+원급+as",
+      "question_kind": "배열 영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "수영이 조깅보다 두 배는 힘들다.",
+        "(is / swimming / as / jogging / hard / twice / as)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "Swimming is twice as hard as jogging"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [5], "point_label": "비교급을 강조하는 말",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 단어와 바꿔 쓸 수 없는 것을 고르세요.",
+      "body": ["Cheetahs are [[much]] faster than horses."],
+      "choices": [
+        { "no": 1, "text": "far" },
+        { "no": 2, "text": "more" },
+        { "no": 3, "text": "even" },
+        { "no": 4, "text": "still" },
+        { "no": 5, "text": "a lot" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [7, 8, 9, 10], "point_label": "The 비교급 ~, the 비교급 …",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The kite flew [[higher and higher]]." },
+        { "no": 2, "text": "I decided to study [[as long as]] I could." },
+        { "no": 3, "text": "They spoke [[as softly as possible]]." },
+        { "no": 4, "text": "[[The more loud]] the music got, the worse I felt." },
+        { "no": 5, "text": "The watch is [[ten times as expensive as]] mine." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [6], "point_label": "the+최상급",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "He is [[the richest]] man in the town." },
+        { "no": 2, "text": "Mina is [[the strongest]] in our class." },
+        { "no": 3, "text": "You have [[the more]] pens in our group." },
+        { "no": 4, "text": "Jiho is [[one of the most creative]] students." },
+        { "no": 5, "text": "She is [[one of the most famous]] singers in the world." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [6], "point_label": "the+최상급+of ~",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["나는 네 개의 모자 중에서 가장 예쁜 것을 골랐다."],
+      "choices": [
+        { "no": 1, "text": "I chose prettiest of the four caps." },
+        { "no": 2, "text": "I chose the prettiest of the four caps." },
+        { "no": 3, "text": "I chose the most pretty of the four caps." },
+        { "no": 4, "text": "I chose more pretty of the four caps." },
+        { "no": 5, "text": "I chose the more pretty of the four caps." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [6], "point_label": "one of the+최상급+복수명사",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["그곳은 세계 최고의 박물관 중 하나이다."],
+      "choices": [
+        { "no": 1, "text": "It’s one of the best museum in the world." },
+        { "no": 2, "text": "It’s one of the best museums in the world." },
+        { "no": 3, "text": "It’s one of best museums in the world." },
+        { "no": 4, "text": "It’s one of better museums in the world." },
+        { "no": 5, "text": "It’s the best museums in the world." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [8], "point_label": "~할수록 더 …하다",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "더 많이 읽을수록 너는 더 현명해진다. (much, wise)",
+        "→ ________ you read, ________ you become."
+      ],
+      "choices": [],
+      "answer": "The more, the wiser"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [10], "point_label": "점점 더 ~한: 비교급+and+비교급",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "그 상황은 점점 더 복잡해졌다. (complicated)",
+        "→ The situation became ________________."
+      ],
+      "choices": [],
+      "answer": "more and more complicated"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 16, "point_nos": [4, 6, 9], "point_label": "표를 읽고 비교 표현 판단하기",
+      "question_kind": "내용 판단", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음은 동아리 회원 모집 결과입니다. 표의 내용과 일치하지 않는 것을 고르세요.",
+      "body": [
+        "Film club 8명 / Cooking club 14명 / Science club 7명"
+      ],
+      "choices": [
+        { "no": 1, "text": "The cooking club has the largest number of members." },
+        { "no": 2, "text": "The science club has the smallest number of members." },
+        { "no": 3, "text": "The science club has less members than the film club." },
+        { "no": 4, "text": "The film club has more members than the cooking club." },
+        { "no": 5, "text": "The cooking club has twice as many members as the science club." }
+      ],
+      "answer": "④"
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "_설명": "천일문 3권 워크북 Chapter 05 동명사의 Chapter Test를 변형한 것. 심화 2과 동명사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 5,
+  "chapter": "동명사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 2, "chapter": "동명사" },
+  "points": [
+    { "unit_no": 1, "unit": "동명사의 쓰임", "point_no": 1, "point": "동명사 = 주어·보어·목적어", "frequent": true },
+    { "unit_no": 1, "unit": "동명사의 쓰임", "point_no": 2, "point": "전치사+동명사", "frequent": true },
+    { "unit_no": 2, "unit": "동명사와 to부정사", "point_no": 3, "point": "동명사를 목적어로 쓰는 동사", "frequent": true },
+    { "unit_no": 2, "unit": "동명사와 to부정사", "point_no": 4, "point": "to부정사를 목적어로 쓰는 동사", "frequent": true },
+    { "unit_no": 2, "unit": "동명사와 to부정사", "point_no": 5, "point": "목적어에 따라 뜻이 달라지는 동사(remember/forget/try/stop)", "frequent": true },
+    { "unit_no": 3, "unit": "동명사의 관용 표현", "point_no": 6, "point": "be busy -ing, have difficulty -ing 등", "frequent": true },
+    { "unit_no": 3, "unit": "동명사의 관용 표현", "point_no": 7, "point": "동명사와 현재분사 구별", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1], "point_label": "보어로 쓰인 동명사와 주어의 수일치",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• Today’s topic is ____(A)____ plastic waste.",
+        "• Recycling bottles ____(B)____ helpful for the earth."
+      ],
+      "choices": [
+        { "no": 1, "text": "reduce — are" },
+        { "no": 2, "text": "reduce — is" },
+        { "no": 3, "text": "reducing — is" },
+        { "no": 4, "text": "reducing — are" },
+        { "no": 5, "text": "to reduce — are" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [3, 4], "point_label": "plan은 to부정사를 목적어로 쓴다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["I ________ jogging along the river."],
+      "choices": [
+        { "no": 1, "text": "kept" },
+        { "no": 2, "text": "liked" },
+        { "no": 3, "text": "enjoyed" },
+        { "no": 4, "text": "imagined" },
+        { "no": 5, "text": "planned" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [3], "point_label": "recommend+동명사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 단어를 빈칸에 어법상 알맞은 형태로 쓰세요.",
+      "body": ["She recommended ________ the apple pie at that café. (try)"],
+      "choices": [],
+      "answer": "trying"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [2], "point_label": "전치사 for 뒤에는 동명사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 단어를 빈칸에 어법상 알맞은 형태로 쓰세요.",
+      "body": ["I’m really sorry for ________ your favorite plate. (break)"],
+      "choices": [],
+      "answer": "breaking"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [5], "point_label": "stop -ing: ~하던 것을 멈추다",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "그는 만화책 읽는 것을 멈추었다. (stop, the comic book, read)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "He stopped reading the comic book"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [5], "point_label": "forget to-v: (앞으로) ~할 것을 잊다",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "나는 그 문을 잠그는 것을 잊었다. (lock, the door, forget)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "I forgot to lock the door"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [1], "point_label": "목적어로 쓰인 동명사와 보어로 쓰인 동명사",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 역할이 다른 것을 고르세요.",
+      "body": ["<보기> Do you enjoy [[riding]] a bike?"],
+      "choices": [
+        { "no": 1, "text": "I don’t mind [[waiting]] for you here at all." },
+        { "no": 2, "text": "She finished [[packing]] her bag before noon." },
+        { "no": 3, "text": "When Jiho came home, he suddenly began [[laughing]]." },
+        { "no": 4, "text": "Sora suggested [[leaving]] one hour earlier." },
+        { "no": 5, "text": "Mina’s job is [[designing]] posters." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [3], "point_label": "keep+동명사: 계속 ~하다",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["그 아이는 계속해서 창문을 두드렸다."],
+      "choices": [
+        { "no": 1, "text": "The child is keeping to tap on the window." },
+        { "no": 2, "text": "The child is keeping tap on the window." },
+        { "no": 3, "text": "The child kept tap on the window." },
+        { "no": 4, "text": "The child kept to tap on the window." },
+        { "no": 5, "text": "The child kept tapping on the window." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [1, 2], "point_label": "전치사 in 뒤에는 동명사",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "How about going hiking this weekend?" },
+        { "no": 2, "text": "Wasting too much water is bad." },
+        { "no": 3, "text": "Sora’s role is organizing the class party." },
+        { "no": 4, "text": "I am interested in protect endangered plant." },
+        { "no": 5, "text": "The woman became famous by winning the contest." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [3, 5], "point_label": "practice는 동명사를 목적어로 쓴다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I gave up looking for my lost gloves." },
+        { "no": 2, "text": "I practiced to swim at the pool." },
+        { "no": 3, "text": "She avoids making noise at night." },
+        { "no": 4, "text": "You should remember to lock the door when you leave." },
+        { "no": 5, "text": "Mina tried wearing her sister’s coat. But it was too small for her." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [6], "point_label": "can’t help -ing: ~하지 않을 수 없다",
+      "question_kind": "해석 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 주어진 문장의 해석이 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I am good at memorizing new words. → 나는 새 단어 외우는 것을 잘한다." },
+        { "no": 2, "text": "The boy couldn’t help laughing at the joke. → 그 소년은 그 농담에 웃을 수 없었다." },
+        { "no": 3, "text": "She had trouble finding the way to the station. → 그녀는 역으로 가는 길을 찾는 데 어려움을 겪었다." },
+        { "no": 4, "text": "We were busy decorating the hall on Saturday. → 우리는 토요일에 강당을 꾸미느라 바빴다." },
+        { "no": 5, "text": "Jiho spent a lot of time practicing the piano. → 지호는 피아노를 연습하는 데 많은 시간을 보냈다." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [3, 4, 5, 6], "point_label": "동사에 따른 목적어의 형태",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The movie was worth to watch." },
+        { "no": 2, "text": "Dad suggested sending my old books to the library." },
+        { "no": 3, "text": "I quit play with Mina. She never keeps her promise." },
+        { "no": 4, "text": "Remember not touching the pan. It will be hot." },
+        { "no": 5, "text": "They decided donating some blankets for the shelter." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [7], "point_label": "동명사와 현재분사의 구별",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분의 쓰임이 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The [[sleeping]] cat is my sister’s pet." },
+        { "no": 2, "text": "She likes [[taking]] a nap after lunch." },
+        { "no": 3, "text": "Mina’s favorite activity is [[skating]] in the winter." },
+        { "no": 4, "text": "My main hobby is [[collecting]] old stamps." },
+        { "no": 5, "text": "[[Making]] a plan helps you save your time." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [2, 5], "point_label": "전치사+동명사와 stop to-v",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ Mina took my charger without ask me.",
+        "ⓑ My sister stopped me from touching her camera.",
+        "ⓒ He drank a glass of milk instead of to eat breakfast.",
+        "ⓓ Jiho practices pronouncing clearly to become an announcer.",
+        "ⓔ Mom told me to buy eggs, so I stopped to enter the market."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓑ, ⓒ" },
+        { "no": 2, "text": "ⓐ, ⓒ, ⓔ" },
+        { "no": 3, "text": "ⓐ, ⓒ, ⓓ" },
+        { "no": 4, "text": "ⓑ, ⓓ, ⓔ" },
+        { "no": 5, "text": "ⓐ, ⓑ, ⓓ, ⓔ" }
+      ],
+      "answer": "④"
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "_설명": "완성 12과 특수구문 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 12.특수구문_종합문제(1회).pdf", "number": 2,
+      "포인트": "do를 이용한 동사 강조 / 부정어 hardly의 도치",
+      "prompt": "다음 문장들을 괄호 안의 지시대로 바꿔 쓰시오.",
+      "body": ["⑴ I remember what she said last night. (remember",
+               "강조)",
+               "→ ___________________________________________.",
+               "⑵ It hardly rained at all last summer. (hardly를 문",
+               "두로)",
+               "→ ___________________________________________."],
+      "answer": "⑴ I do remember what she said last night ⑵ Hardly did it rain at all last summer",
+      "explanation": "⑴ 동사를 강조할 때는 그 앞에 조동사 do를 써서 「do/does/did + 동사원형」으로 나타낸다. ⑵ 부정어 hardly가 문두에 오면 「부정어 + 조동사 + 주어 + 동사원형」의 어순으로 도치된다."
+    },
+    {
+      "file": "[완성] 12.특수구문_종합문제(2회).pdf", "number": 4,
+      "포인트": "did + 동사원형으로 동사 강조하기",
+      "prompt": "다음 문장을 동사를 강조하는 문장으로 쓰시오.",
+      "body": ["Daniel looked nervous in the interview.",
+               "= Daniel _______ _______ _____ in the interview."],
+      "answer": "did look nervous",
+      "explanation": "동사를 강조하기 위해 본동사 앞에 do동사를 써서 ‘(정말) ~하긴 하다’라는 의미를 나타낸다. 원래 문장이 과거시제이므로 did를 쓰고 뒤에는 동사원형 look을 쓴다."
+    },
+    {
+      "file": "[완성] 12.특수구문_종합문제(2회).pdf", "number": 14,
+      "포인트": "none of + 복수명사를 이용한 전체 부정",
+      "prompt": "다음 우리말과 같도록 빈칸을 완성하시오.",
+      "body": ["그들 중 아무도 그 공연에 지각하지 않았다.",
+               "= _______ _______ _______ _______ late for the",
+               "concert."],
+      "answer": "None of them were",
+      "explanation": "‘모두 ~가 아니다’, ‘아무도 ~하지 않다’는 의미의 전체 부정은 「none of + 복수명사 + 복수동사」로 나타낸다."
+    },
+    {
+      "file": "[완성] 12.특수구문_종합문제(2회).pdf", "number": 28,
+      "포인트": "장소를 나타내는 부사구를 문두로 보내는 도치",
+      "prompt": "다음 우리말과 같도록 괄호 안의 조건을 참고하여 빈칸을 완성하시오.",
+      "body": ["책장이 창문 옆에 있다. (next로 시작하여 ‘창문 옆’을",
+               "강조할 것)",
+               "= _______ _______ _______ _______ _______ a",
+               "bookshelf."],
+      "answer": "Next to the window is",
+      "explanation": "next를 사용하면서 ‘창문 옆’을 강조하려면 장소를 나타내는 부사구를 문두에 둔다. 부사(구)를 강조하여 문두로 보내면 주어와 동사가 도치되며, 주어가 단수이므로 동사는 is가 된다."
+    },
+    {
+      "file": "[완성] 12.특수구문_종합문제(2회).pdf", "number": 29,
+      "포인트": "방향을 나타내는 부사의 강조 도치",
+      "prompt": "다음 주어진 문장을 밑줄 친 부사를 강조하는 문장으로 고쳐 쓰시오.",
+      "body": ["As I was waiting outside, the rain came [[down]].",
+               "= As I was waiting outside, _____________________."],
+      "answer": "down came the rain",
+      "explanation": "방향을 나타내는 부사 ‘down’을 강조하기 위한 도치를 사용하는 문제이다. 부사를 문두로 보내면 「부사 + 동사 + 주어」의 어순이 된다."
+    },
+    {
+      "file": "[완성] 12.특수구문_확인문제(1회).pdf", "number": 6,
+      "포인트": "되풀이되는 동사를 대신하는 대동사 do",
+      "prompt": "우리말에 맞게 괄호 안의 조건으로 영작하시오.",
+      "body": ["나는 우리 형만큼 빨리 달린다.",
+               "⑴ I run as fast as my ______. (1단어)",
+               "⑵ I run as fast as my ______ ______. (2단어)"],
+      "answer": "⑴ brother ⑵ brother, does",
+      "explanation": "원래는 ‘I run as fast as my brother runs.’라고 할 수 있으나, 되풀이되는 일반동사 runs는 생략하거나 대동사 does로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[완성] 12.특수구문_확인문제(1회).pdf", "number": 19,
+      "포인트": "It ~ that 강조구문",
+      "prompt": "주어진 문장에서 밑줄 친 부분을 강조하여 새롭게 문장을 완성하시오.",
+      "body": ["[[The small habits]] make the difference in life.",
+               "________________________________________________",
+               "______________________________________________."],
+      "answer": "It is the small habits that[which] make the difference in life.",
+      "explanation": "강조하고 싶은 부분을 it과 that 사이에 넣어서 「It ~ that 강조구문」으로 나타낼 수 있다. 강조하는 대상이 사물이면 that 대신 which를 쓸 수 있다."
+    },
+    {
+      "file": "[완성] 12.특수구문_확인문제(2회).pdf", "number": 4,
+      "포인트": "few가 나타내는 부정의 의미",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 단어를 활용하여 문장을 완성하시오.",
+      "body": ["그는 잘 알려진 피아니스트이지만, 그의 어린 시절에 대",
+               "해 잘 아는 사람은 거의 없다. (few)",
+               "→ He is a well-known pianist, but",
+               "________________ much about his childhood."],
+      "answer": "few people know",
+      "explanation": "‘few, little, seldom, rarely, scarcely, hardly, barely’ 등은 그 자체로 부정의 뜻을 지닌 말이므로 not을 따로 쓰지 않는다. few 뒤에는 셀 수 있는 복수명사가 오고 동사도 복수형으로 쓴다."
+    },
+    {
+      "file": "[완성] 12.특수구문_확인문제(2회).pdf", "number": 14,
+      "포인트": "부정어 Never를 문두로 보내는 도치",
+      "prompt": "다음 문장을 부정어를 강조하여 바꿀 때 빈칸에 알맞은 말을 넣으시오.",
+      "body": ["I never eat breakfast on the last day of exams.",
+               "→ Never ______________________________________",
+               "___________________________________________."],
+      "answer": "do I eat breakfast on the last day of exams",
+      "explanation": "부정어구인 Never를 문장 앞으로 도치시킬 경우 「부정어(구) + 조동사 + 주어 + 본동사」의 어순으로 쓴다. 본동사가 일반동사이므로 조동사 do를 쓰고 뒤에는 동사원형을 쓴다."
+    },
+    {
+      "file": "[완성] 12.특수구문_확인문제(2회).pdf", "number": 19,
+      "포인트": "It is ~ that 강조구문으로 주어 강조하기",
+      "prompt": "<보기>문장에서 밑줄 친 부분을 강조하는 문장으로 바꿔쓰시오.",
+      "body": ["[[What we read]] shapes how we think.",
+               "→ It ________________________________________",
+               "____________________________________________."],
+      "answer": "is what we read that shapes how we think.",
+      "explanation": "밑줄 친 주어 부분(우리가 읽는 것)을 강조하기 위해서는 「It is(was) ~ that(which)」 강조구문을 쓴다. 강조하는 부분을 It is와 that 사이에 넣는다."
+    }
+  ]
+}

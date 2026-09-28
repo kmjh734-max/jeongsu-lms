@@ -1,0 +1,182 @@
+{
+  "_설명": "기초 10과 to부정사 — 명사적·형용사적·부사적 용법. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 7,
+      "포인트": "want 뒤에는 to부정사",
+      "prompt": "다음 대화에서 [[틀린]]부분을 고치세요.",
+      "body": ["A : What do you want be?",
+               "B : I want be a designer. I like drawing."],
+      "answer": "be → to be",
+      "explanation": "want는 to부정사를 목적어로 취하므로 be를 to be로 고쳐야 한다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 8,
+      "포인트": "to 뒤에는 동사원형",
+      "prompt": "주어진 동사를 적절한 현재시제 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["All young children love to _____ (open) their",
+               "presents."],
+      "answer": "open",
+      "explanation": "to부정사의 to 뒤에는 동사원형을 쓴다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 9,
+      "포인트": "감정의 원인을 나타내는 to부정사",
+      "prompt": "다음 대화문의 밑줄 친 부분 중 어법에 맞지 [[않]] [[은]]부분을 찾아 고치세요.",
+      "body": ["A : Did you hear the news?",
+               "B : Yes, Minho passed the audition.",
+               "[[I am so glad hear that]]."],
+      "answer": "hear → to hear",
+      "explanation": "감정을 나타내는 형용사 뒤에서 그 원인을 나타낼 때는 to부정사를 쓴다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 10,
+      "포인트": "-thing + to부정사",
+      "prompt": "우리말에 맞도록 단어들을 배열하세요.",
+      "body": ["너는 내게 보여 줄 것이 있니?",
+               "Do you (anything / show / have / me / to)?"],
+      "answer": "have anything to show me",
+      "explanation": "to부정사가 앞의 대명사 anything을 꾸미는 형용사적 용법이다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 11,
+      "포인트": "명사를 꾸미는 to부정사로 두 문장 합치기",
+      "prompt": "to부정사를 이용해서 다음 두 문장을 한 문장으로 바꿔 쓰세요.",
+      "body": ["We need more paper.",
+               "We have to draw this picture.",
+               "→"],
+      "answer": "We need more paper to draw this picture.",
+      "explanation": "to부정사가 앞의 명사 paper를 꾸미는 형용사적 용법으로 두 문장을 하나로 합칠 수 있다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 13,
+      "포인트": "명사 + to부정사",
+      "prompt": "주어진 단어를 올바르게 배열하여 빈칸을 채우시오.",
+      "body": ["I found a [[chair to sit on]]. (sit / chair / on / to)",
+               "I have a lot of ____________. (to / letters / write)"],
+      "answer": "letters to write",
+      "explanation": "to부정사가 앞의 명사 letters를 꾸미는 형용사적 용법이다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 16,
+      "포인트": "something + to부정사",
+      "prompt": "주어진 단어를 올바르게 배열하여 빈칸을 채우시오.",
+      "body": ["I found a [[chair to sit on]]. (sit / chair / on / to)",
+               "Give me ____________. (eat / something / to)"],
+      "answer": "something to eat",
+      "explanation": "to부정사가 앞의 대명사 something을 뒤에서 꾸민다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 17,
+      "포인트": "명사를 꾸밀 때는 to부정사",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["I have nothing [[saying]] to you."],
+      "answer": "to say",
+      "explanation": "‘너에게 할 말’이라는 뜻이 되어야 하므로 nothing을 꾸미는 to부정사 to say로 고쳐야 한다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 18,
+      "포인트": "전치사가 필요한 to부정사",
+      "prompt": "주어진 단어를 올바르게 배열하여 빈칸을 채우시오.",
+      "body": ["I found a [[chair to sit on]]. (sit / chair / on / to)",
+               "Sora has many ____________. (about / topics /",
+               "talk / to)"],
+      "answer": "topics to talk about",
+      "explanation": "‘~에 대해 이야기하다’는 talk about이므로 전치사 about을 빠뜨리지 않는다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 19,
+      "포인트": "명사 + to부정사",
+      "prompt": "주어진 단어를 올바르게 배열하여 빈칸을 채우시오.",
+      "body": ["I found a [[chair to sit on]]. (sit / chair / on / to)",
+               "I have a ____________. (finish / to / report)"],
+      "answer": "report to finish",
+      "explanation": "to부정사가 앞의 명사 report를 꾸미는 형용사적 용법이다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 20,
+      "포인트": "주어로 쓰인 to부정사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["혼자 공부하는 것은 어렵다.",
+               "(alone, to, study, is)",
+               "→ _____________________________________ hard."],
+      "answer": "To study alone is",
+      "explanation": "to부정사구가 문장의 주어로 쓰였으며 단수 취급하여 동사 is를 쓴다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 21,
+      "포인트": "명사를 꾸미는 to부정사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["나는 소풍에서 먹을 간식을 샀다.",
+               "(to, bought, I, eat, a snack)",
+               "→ ________________________________ at the picnic."],
+      "answer": "I bought a snack to eat",
+      "explanation": "to부정사가 앞의 명사 snack을 꾸미는 형용사적 용법이다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 22,
+      "포인트": "-thing을 꾸밀 때는 to부정사",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["Sora wants something reading."],
+      "answer": "reading → to read",
+      "explanation": "‘읽을 것’이라는 뜻이 되어야 하므로 something을 꾸미는 to부정사 to read로 고쳐야 한다."
+    },
+    {
+      "file": "[기초] 10.to부정사_체크체크.pdf", "number": 24,
+      "포인트": "감정의 원인을 나타내는 to부정사",
+      "prompt": "다음 두 문장을 to부정사를 이용하여 한 문장으로 바꿔 쓰시오.",
+      "body": ["Jiho was excited. He got the concert ticket.",
+               "→ Jiho was excited _______________________."],
+      "answer": "to get the concert ticket",
+      "explanation": "감정을 나타내는 형용사 뒤에 to부정사가 와서 감정의 원인을 나타낸다."
+    },
+    {
+      "file": "[기초] 10.to부정사_확인문제(1회).pdf", "number": 11,
+      "포인트": "명사를 꾸미는 to부정사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["그는 입을 옷을 몇 벌 샀다.",
+               "→ He bought ______________.(some clothes,",
+               "wear)"],
+      "answer": "some clothes to wear",
+      "explanation": "to부정사가 앞의 명사 clothes를 꾸미는 형용사적 용법이다."
+    },
+    {
+      "file": "[기초] 10.to부정사_확인문제(1회).pdf", "number": 12,
+      "포인트": "주어로 쓰인 to부정사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["매일 운동하는 것은 힘들다.",
+               "(every day, to, exercise, is)",
+               "→ ___________________________________ hard."],
+      "answer": "To exercise every day is",
+      "explanation": "to부정사구가 문장의 주어로 쓰였으며 단수 취급하여 동사 is를 쓴다."
+    },
+    {
+      "file": "[기초] 10.to부정사_확인문제(1회).pdf", "number": 13,
+      "포인트": "명사를 꾸미는 to부정사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["나는 여행에서 읽을 책을 샀다.",
+               "(to, bought, I, read, a book)",
+               "→ _____________________________ on the trip."],
+      "answer": "I bought a book to read",
+      "explanation": "to부정사가 앞의 명사 book을 꾸미는 형용사적 용법이다."
+    },
+    {
+      "file": "[기초] 10.to부정사_확인문제(1회).pdf", "number": 17,
+      "포인트": "anything + to부정사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["저에게 물어볼 것이 있나요? (ask, me)",
+               "→ Do you have anything _________________?"],
+      "answer": "to ask me",
+      "explanation": "to부정사가 앞의 대명사 anything을 뒤에서 꾸민다."
+    },
+    {
+      "file": "[기초] 10.to부정사_확인문제(2회).pdf", "number": 18,
+      "포인트": "no one + to부정사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["나를 도와줄 사람이 없다. (help, me)",
+               "→ There is no one __________________________."],
+      "answer": "to help me",
+      "explanation": "to부정사가 앞의 대명사 no one을 뒤에서 꾸민다."
+    }
+  ]
+}

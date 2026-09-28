@@ -1,0 +1,136 @@
+{
+  "_설명": "기본 8과 관계사 — 나머지. whose, 목적격 관계대명사, 전치사가 필요한 관계사절. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf",
+      "number": 25,
+      "포인트": "소유격 관계대명사 whose",
+      "prompt": "다음 두 문장을 관계대명사를 사용하여 한 문장으로 쓰시오.",
+      "body": [
+        "a. I met a boy.",
+        "b. The boy’s backpack was torn.",
+        "→ ___________________________________________."
+      ],
+      "answer": "I met a boy whose backpack was torn",
+      "explanation": "앞 문장의 a boy와 뒤 문장의 the boy가 동일 인물이므로 소유격 관계대명사 whose를 사용하여 두 문장을 하나로 연결할 수 있다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf",
+      "number": 29,
+      "포인트": "whose + 명사",
+      "prompt": "다음 두 문장을 한 문장으로 만들 때 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "body": [
+        "I know a man.",
+        "His garden is really large.",
+        "⇒ I know a man (_________) (_________) is",
+        "really large."
+      ],
+      "answer": "whose garden",
+      "explanation": "관계대명사절의 소유격을 대신하는 소유격 관계대명사로는 whose를 써야 한다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf",
+      "number": 32,
+      "포인트": "동물 선행사의 소유격도 whose",
+      "prompt": "다음 두 문장을 관계대명사를 사용하여 한 문장으로 만드시오.",
+      "body": [
+        "▪ Dad found a cat.",
+        "▪ Its fur was very soft.",
+        "→ ___________________________________________."
+      ],
+      "answer": "Dad found a cat whose fur was very soft.",
+      "explanation": "a cat이 그다음 문장의 its이므로 소유격 관계대명사 whose를 사용하여 두 문장을 연결할 수 있다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf",
+      "number": 33,
+      "포인트": "사물 선행사의 목적격 관계대명사 which",
+      "prompt": "목적격 관계대명사를 이용하여, <보기>의 두 문장을 [[한 문장]]으로 고쳐 쓰시오.(관계대명사가 생략되지 않은 완전한 문장을 쓸 것)",
+      "body": [
+        "<보기>",
+        "The song was really touching.",
+        "We heard a song on the radio.",
+        "→ ___________________________________________."
+      ],
+      "answer": "The song which we heard on the radio was really touching.",
+      "explanation": "사물을 선행사로 하는 목적격 관계대명사로는 which가 적절하다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf",
+      "number": 35,
+      "포인트": "목적격 관계대명사 which",
+      "prompt": "다음을 관계대명사를 이용하여 한 문장으로 쓰시오. (관계대명사를 생략하지 않고 반드시 적을 것)",
+      "body": [
+        "The plant is still growing.",
+        "I planted it last spring.",
+        "____________________________________________."
+      ],
+      "answer": "The plant which I planted last spring is still growing.",
+      "explanation": "사물을 선행사로 하는 목적격 관계대명사로는 which가 적절하다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf",
+      "number": 47,
+      "포인트": "관계사절에 필요한 전치사를 빠뜨리지 않는다",
+      "prompt": "다음 문장에서 [[잘못된]]곳을 골라 바르게 고치세요.",
+      "body": [
+        "I don’t have a pen that I can write."
+      ],
+      "answer": "write → write with",
+      "explanation": "펜을 쓰는 것이 아니라 펜으로 쓰는 것이므로 write with가 되도록 전치사 with를 문장 끝에 넣어야 한다."
+    },
+    {
+      "file": "[기본] 8.관계사_확인문제(2회).pdf",
+      "number": 2,
+      "포인트": "주격 which와 목적격 who(m)",
+      "prompt": "다음 두 개의 문장을 관계대명사를 이용하여 한 문장으로 만드시오.",
+      "body": [
+        "(1) I borrowed some magazines. They were",
+        "useful.",
+        "⇒ I _________________________________________.",
+        "(2) The boy was tall. I saw him yesterday.",
+        "⇒ The boy ___________________________________."
+      ],
+      "answer": "borrowed some magazines which were useful / whom I saw yesterday was tall",
+      "explanation": "(1) 사물을 선행사로 갖는 주격 관계대명사 which, (2) 사람을 선행사로 갖는 목적격 관계대명사 who(m)을 사용하여 문장을 연결한다."
+    },
+    {
+      "file": "[기본] 8.관계사_확인문제(2회).pdf",
+      "number": 3,
+      "포인트": "사물 선행사의 주격 관계대명사",
+      "prompt": "다음 두 문장을 관계대명사를 이용하여 연결하시오.",
+      "body": [
+        "I received a gift. The gift was a watch.",
+        "내가 받은 선물은 시계였다.",
+        "→ ____________________________________________"
+      ],
+      "answer": "I received a gift which was a watch.",
+      "explanation": "사물을 선행사로 하는 주격 관계대명사로는 which 혹은 that이 적절하다."
+    },
+    {
+      "file": "[기본] 8.관계사_확인문제(2회).pdf",
+      "number": 12,
+      "포인트": "사물 선행사의 주격 관계대명사 which",
+      "prompt": "다음 두 문장을 관계대명사를 사용하며 한 문장의 영어로 쓰시오.",
+      "body": [
+        "We rested beside a river. + It had clear water.",
+        "→ __________________________________________."
+      ],
+      "answer": "We rested beside a river which had clear water.",
+      "explanation": "‘a river’가 선행사이므로 관계대명사 which를 사용하여 두 문장을 연결할 수 있다."
+    },
+    {
+      "file": "[기본] 8.관계사_확인문제(2회).pdf",
+      "number": 17,
+      "포인트": "관계부사 how가 이끄는 명사절",
+      "prompt": "주어진 단어를 배열하여 문장을 완성하시오.",
+      "body": [
+        "This is ______________________________.",
+        "(the/I/how/science/finished/project)",
+        "이것이 그 과학 과제를 끝낸 방법이다."
+      ],
+      "answer": "how I finished the science project",
+      "explanation": "‘~하는 방법’은 관계부사 how가 이끄는 명사절로 나타내며, 「how + 주어 + 동사」의 어순으로 쓴다."
+    }
+  ]
+}

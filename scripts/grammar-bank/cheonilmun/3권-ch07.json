@@ -1,0 +1,183 @@
+{
+  "_설명": "천일문 3권 Chapter 07 비교 표현에서 가져와 변형한 문항. 은행에서는 심화 8과 비교구문 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 7,
+  "chapter": "비교 표현",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 8, "chapter": "비교구문" },
+  "points": [
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 1, "point": "as+원급+as", "frequent": true },
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 2, "point": "not as[so]+원급+as = 비교급+than", "frequent": true },
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 3, "point": "비교급+than", "frequent": true },
+    { "unit_no": 1, "unit": "원급과 비교급", "point_no": 4, "point": "비교급 강조: much, even, still, far, a lot (very 불가)", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 5, "point": "the+최상급+in[of] ~", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 6, "point": "The 비교급 ~, the 비교급 …", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 7, "point": "비교급 and 비교급: 점점 더 ~한", "frequent": false },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 8, "point": "one of the+최상급+복수명사", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 9, "point": "최상급의 뜻을 나타내는 여러 표현", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1], "point_label": "as ~ as 사이에는 원급",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["My older brother plays the guitar as ______ as the piano."],
+      "choices": [
+        { "no": 1, "text": "good" },
+        { "no": 2, "text": "well" },
+        { "no": 3, "text": "better" },
+        { "no": 4, "text": "more well" },
+        { "no": 5, "text": "best" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [6], "point_label": "The 비교급 ~, the 비교급 …",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["The more you read, ______ it becomes."],
+      "choices": [
+        { "no": 1, "text": "easier" },
+        { "no": 2, "text": "easy" },
+        { "no": 3, "text": "easiest" },
+        { "no": 4, "text": "the easier" },
+        { "no": 5, "text": "the easy" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [4], "point_label": "very는 비교급을 강조할 수 없다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["Mina looks ______ happier in the yellow hat than the white one."],
+      "choices": [
+        { "no": 1, "text": "very" },
+        { "no": 2, "text": "much" },
+        { "no": 3, "text": "even" },
+        { "no": 4, "text": "still" },
+        { "no": 5, "text": "far" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [1, 3], "point_label": "as ~ as에는 비교급을 쓰지 않는다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 문맥상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Autumn is not so hot as summer." },
+        { "no": 2, "text": "My score is as better as the last test." },
+        { "no": 3, "text": "The blue cap is cheaper than the red one." },
+        { "no": 4, "text": "The museum is the oldest building in this town." },
+        { "no": 5, "text": "The singer was much more amazing than I had seen on TV." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [2], "point_label": "not as ~ as를 비교급으로 바꾸기",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 주어진 문장과 같은 의미의 문장을 고르세요.",
+      "body": ["Mina’s bike is not as new as mine."],
+      "choices": [
+        { "no": 1, "text": "My bike is as new as Mina’s." },
+        { "no": 2, "text": "My bike is newer than Mina’s." },
+        { "no": 3, "text": "Mina’s bike is newer than mine." },
+        { "no": 4, "text": "My bike is not so new as Mina’s." },
+        { "no": 5, "text": "Mina’s bike is not older than mine." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [3], "point_label": "bad의 비교급 worse",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 밑줄 친 부분을 바르게 고쳐 쓰세요.",
+      "body": ["The traffic is a lot [[bad as]] I expected.", "→ ________"],
+      "choices": [],
+      "answer": "worse than"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [3, 9], "point_label": "than이 있으면 비교급",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 밑줄 친 부분을 바르게 고쳐 쓰세요.",
+      "body": ["I arrived [[the earliest]] today than any other day.", "→ ________"],
+      "choices": [],
+      "answer": "earlier"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [4, 6, 7, 8], "point_label": "비교 표현 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "One of the greatest inventions is the wheel." },
+        { "no": 2, "text": "The line was even longer than usual this morning." },
+        { "no": 3, "text": "Jason is one of the more talented actor in the world." },
+        { "no": 4, "text": "The more you walk, the healthier your body becomes." },
+        { "no": 5, "text": "The car went more and more fast until it reached the hill." }
+      ],
+      "answer": "①, ②, ④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [1, 3, 5, 8], "point_label": "비교 표현 영작",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작하지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "오늘 날씨는 어제만큼 춥지 않다. → The weather today is not as cold as yesterday." },
+        { "no": 2, "text": "음악을 지금보다 조금 더 작게 틀어줄 수 있니? → Can you play the music a little more quietly than now?" },
+        { "no": 3, "text": "그 가게의 사과 파이는 내가 만든 것보다 달다. → The bakery’s apple pie is as sweet as mine." },
+        { "no": 4, "text": "우리 아빠는 나에게 세상에서 가장 소중한 사람이다. → My dad is the most precious person in the world to me." },
+        { "no": 5, "text": "이 영화는 올해 가장 인기 있는 영화들 중 하나이다. → This movie is one of the most popular films of the year." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [2, 6], "point_label": "원급·비교급 바꿔 쓰기",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "짝지어진 두 문장의 의미가 같지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Jay doesn’t draw as well as Mike. = Mike draws better than Jay." },
+        { "no": 2, "text": "My cat cannot jump as high as yours. = Your cat can jump higher than mine." },
+        { "no": 3, "text": "My sister learns more quickly than the other students. = The other students learn as quickly as my sister." },
+        { "no": 4, "text": "As we got to know Mia more, we started to like her more. = The more we knew about Mia, the more we started to like her." },
+        { "no": 5, "text": "As winter gets closer, more people go to the mountains. = The closer winter gets, the more people go to the mountains." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [9], "point_label": "최상급을 다른 말로 바꿔 쓰기",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "짝지어진 두 문장의 의미가 같지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I’m the youngest person in my family. = No other person in my family is younger than I am." },
+        { "no": 2, "text": "Tea is the most delicious drink to me. = No other drink is as delicious as tea to me." },
+        { "no": 3, "text": "Henry is the fastest runner in the team. = No other runner is faster than Henry in the team." },
+        { "no": 4, "text": "The panda is the most popular animal in the zoo. = Other animals are as popular as the panda in the zoo." },
+        { "no": 5, "text": "Erica sings better than any other person among my friends. = Erica sings the best among my friends." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [1, 4, 5, 6], "point_label": "비교 표현 문장 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 것끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ Doing homework is more important than play games.",
+        "ⓑ The park is about three times as far as the market.",
+        "ⓒ Air pollution in big cities is getting even more serious.",
+        "ⓓ The more the team scored goals, the louder the cheers got.",
+        "ⓔ These bags are most expensive bags in this store.",
+        "ⓕ We need to save time as more as possible for the trip."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓑ" },
+        { "no": 2, "text": "ⓑ, ⓒ" },
+        { "no": 3, "text": "ⓓ, ⓔ" },
+        { "no": 4, "text": "ⓔ, ⓕ" },
+        { "no": 5, "text": "ⓓ, ⓕ" }
+      ],
+      "answer": "②"
+    }
+  ]
+}

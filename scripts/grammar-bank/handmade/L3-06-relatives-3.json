@@ -1,0 +1,199 @@
+{
+  "_설명": "심화 6과 관계사 — 나머지. 관계대명사 what·that, 계속적 용법, 생략. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 22,
+      "포인트": "No matter how = However",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["그 방은 아무리 좁아도, 아늑한 구석이 많이 있다.",
+               "→ _______ _______ _______ narrow the room is, it",
+               "has a lot of cozy corners."],
+      "answer": "No matter how",
+      "explanation": "‘아무리 ~할지라도’의 의미를 가진 복합관계사는 however이고 no matter how로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 24,
+      "포인트": "no matter how = however",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 복합관계사를 쓰시오.",
+      "body": ["No matter how long the line is, I want to try",
+               "the new dessert.",
+               "= ________ long the line is, I want to try the",
+               "new dessert."],
+      "answer": "However",
+      "explanation": "no matter how는 however로 바꿔 쓸 수 있다. however 뒤에는 형용사나 부사가 온다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 26,
+      "포인트": "전치사 뒤에는 목적격 관계대명사 whom",
+      "prompt": "문장의 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["The team found the player for they",
+               "were waiting."],
+      "answer": "whom",
+      "explanation": "선행사가 the player이고 전치사 for 다음에 목적격 관계대명사가 와야 하므로 whom이 알맞다.(= The team found the player who(m) they were waiting for.)"
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 27,
+      "포인트": "선행사가 있으면 what을 쓸 수 없다",
+      "prompt": "적절한 관계대명사를 고르시오.",
+      "body": ["Do you know the address (which, what) I’m",
+               "supposed to write down?"],
+      "answer": "which",
+      "explanation": "선행사 the address가 있으므로 선행사를 포함하는 what은 쓸 수 없고 which가 알맞다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 29,
+      "포인트": "the same 뒤에는 관계대명사 that",
+      "prompt": "우리말에 맞게 주어진 단어를 배열하시오. (적절한 관계대명사를 추가하시오.)",
+      "body": ["They live in ______________________________.",
+               "(you’ve/the/same/visited/town)",
+               "그들은 네가 방문한 것과 같은 마을에 산다."],
+      "answer": "the same town that you’ve visited",
+      "explanation": "선행사에 the same이 붙으면 관계대명사 that을 주로 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 31,
+      "포인트": "the only 뒤에는 관계대명사 that",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["This is the only rule (which, that) you have to",
+               "keep."],
+      "answer": "that",
+      "explanation": "선행사에 the only가 붙으면 관계대명사 that을 주로 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 32,
+      "포인트": "「주격 관계대명사 + be동사」는 함께 생략",
+      "prompt": "다음 문장에서 생략할 수 있는 부분을 고르세요.",
+      "body": ["I’ll be happy to share all the photos that are",
+               "taken by Ms. Park with you."],
+      "answer": "that are",
+      "explanation": "주격 관계대명사 that과 be동사는 함께 생략할 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 34,
+      "포인트": "생략된 「관계대명사 + be동사」 되살리기",
+      "prompt": "다음 빈칸에 생략된 두 단어를 써 넣으시오.",
+      "body": ["He saw a boy ___________ ____________ waiting",
+               "at the bus stop."],
+      "answer": "who was",
+      "explanation": "관계대명사 + be동사는 함께 생략할 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 35,
+      "포인트": "선행사를 포함한 관계대명사 what",
+      "prompt": "관계대명사 what을 이용하여 다음 두 문장을 한 문장으로 바꾸시오.",
+      "body": ["I don’t accept the things.",
+               "You wrote them to explain the delay.",
+               "→ ___________________________________________"],
+      "answer": "I don’t accept what you wrote to explain the delay.",
+      "explanation": "선행사를 포함하는 관계대명사인 what을 사용하여 한 문장으로 만든다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 38,
+      "포인트": "선행사가 있으면 that, 없으면 what",
+      "prompt": "괄호 안에서 어법상 알맞은 단어를 고르세요.",
+      "body": ["Isn’t it the song (that / what) Mr. Brown",
+               "composed?"],
+      "answer": "that",
+      "explanation": "the song이라는 선행사가 있으므로 관계대명사 that이 알맞다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 39,
+      "포인트": "선행사를 포함한 관계대명사 what",
+      "prompt": "괄호 안에서 어법상 알맞은 단어를 고르세요.",
+      "body": ["(Which / What) you need to do is to read the",
+               "manual."],
+      "answer": "What",
+      "explanation": "선행사를 포함한 관계대명사 what이 쓰여 ‘네가 해야 하는 것’이라는 뜻이 된다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 40,
+      "포인트": "계속적 용법에는 that을 쓸 수 없다",
+      "prompt": "주어진 문장의 오류를 찾아 수정하여 문장을 쓰시오.",
+      "body": ["I will introduce you to Erica, that works as a",
+               "flight attendant."],
+      "answer": "I will introduce you to Erica, who works as a flight attendant.",
+      "explanation": "콤마 뒤의 계속적 용법에서는 관계대명사 that을 쓸 수 없으며, 선행사가 사람이므로 who를 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 43,
+      "포인트": "앞 절 전체를 받는 계속적 용법의 which",
+      "prompt": "두 문장의 의미가 같도록 빈칸에 알맞은 관계사를 쓰세요.",
+      "body": ["I skipped breakfast, and it made me feel dizzy.",
+               "= I skipped breakfast, made me feel",
+               "dizzy."],
+      "answer": "which",
+      "explanation": "계속적 용법의 관계대명사 which는 콤마 뒤에 쓰여서 앞의 단어나 구 혹은 절을 선행사로 취한다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 44,
+      "포인트": "앞 문장 전체를 선행사로 받는 which",
+      "prompt": "다음을 관계대명사를 사용하여 영어로 쓰시오.",
+      "body": ["Tony는 시험에 합격했는데, 그것은 우리를 기쁘게 했다.",
+               "→ ___________________________________________."],
+      "answer": "Tony passed the exam, which pleased us.",
+      "explanation": "계속적 용법에서는 앞 문장 전체를 선행사로 받을 수 있으며, 주어진 문장에서 관계대명사로는 which를 사용해 문장을 완성한다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 46,
+      "포인트": "계속적 용법의 관계대명사 which",
+      "prompt": "Complete the dialog using relative pronoun. (관계대명사)",
+      "body": ["A : Where did you visit during winter vacation?",
+               "B : I visited Venice, _____________________________",
+               "in the world. (그곳은 가장 낭만적인 도시이다.)"],
+      "answer": "which is the most romantic city",
+      "explanation": "계속적 용법의 관계대명사절은 선행사에 대한 추가적인 정보를 제공하거나 보충 설명을 할 때 쓰이며, 선행사 다음에 콤마를 쓴다. 선행사가 사람일 경우는 who, 사물일 경우에는 which를 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 48,
+      "포인트": "계속적 용법 = , and it",
+      "prompt": "문장의 밑줄 친 부분과 같은 의미가 되도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["I went to the library, which was crowded.",
+               "= I went to the library ( )( ) was crowded, so",
+               "I couldn’t find a seat."],
+      "answer": "and, it",
+      "explanation": "관계대명사의 계속적 용법은 , and it으로 바꿀 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_확인문제(1회).pdf", "number": 12,
+      "포인트": "전치사가 문장 끝에 남으면 관계대명사, 없으면 관계부사",
+      "prompt": "다음 우리말과 같은 의미가 되도록 [[관계대명사]]또는 [[관계부사]]를 빈칸 (A), (B)에 [[각각 한 단어]]로 쓰시오.",
+      "body": ["나는 그녀가 런던으로 떠났던 그 날을 잊을 수가 없다.",
+               "→ I can’t forget the day ___(A)___ she left for",
+               "London on.",
+               "→ I can’t forget the day ___(B)___ she left for",
+               "London.",
+               "(A)__________ (B)____________"],
+      "answer": "(A)which (B)when",
+      "explanation": "(A) 전치사 on이 문장 끝에 있으므로 관계부사가 아닌 관계대명사 which가 적절하다. (B) 전치사가 없으므로 the day를 선행사로 갖는 관계부사 when이 적절하다."
+    },
+    {
+      "file": "[심화] 6.관계사_확인문제(2회).pdf", "number": 11,
+      "포인트": "선행사를 포함한 관계대명사 what",
+      "prompt": "다음에 주어진 우리말과 같은 뜻이 되도록 5개의 단어를 사용하여 문장을 영어로 완성하시오.",
+      "body": ["이것이 내가 필요한 것이야.",
+               "→ ________ ________ ________ ________ ________."],
+      "answer": "This is what I need",
+      "explanation": "선행사를 포함하는 관계대명사로는 what을 써야 한다."
+    },
+    {
+      "file": "[심화] 6.관계사_확인문제(2회).pdf", "number": 16,
+      "포인트": "‘~하는 것’을 뜻하는 관계대명사 what",
+      "prompt": "다음 빈칸에 공통으로 들어갈 한 단어는?",
+      "body": ["1) I don’t know __________ Daniel wants.",
+               "2) __________ impressed me was her honesty.",
+               "3) I’m sorry for __________ I did to you last week."],
+      "answer": "what",
+      "explanation": "‘~하는 것’의 의미로 선행사를 포함하는 관계대명사는 what이다."
+    },
+    {
+      "file": "[심화] 6.관계사_확인문제(2회).pdf", "number": 19,
+      "포인트": "전치사 + 관계대명사 which",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때 빈칸에 알맞은 단어를 쓰시오.",
+      "body": ["This is the park.",
+               "I played in the park.",
+               "→ This is the park in _____________ I played."],
+      "answer": "which",
+      "explanation": "앞 문장의 명사 the park를 대신하고 전치사 in의 목적어 역할을 하는 관계대명사가 들어가야 하므로 which가 적절하다."
+    }
+  ]
+}

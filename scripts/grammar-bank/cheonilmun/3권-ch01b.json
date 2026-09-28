@@ -1,0 +1,230 @@
+{
+  "_설명": "천일문 3권 워크북 Chapter 01 완료 시제의 Chapter Test를 변형한 것. 심화 3과 완료시제 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 1,
+  "chapter": "완료 시제",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 3, "chapter": "완료시제" },
+  "points": [
+    { "unit_no": 1, "unit": "현재완료", "point_no": 1, "point": "have[has]+p.p.: 계속·경험·완료·결과", "frequent": true },
+    { "unit_no": 1, "unit": "현재완료", "point_no": 2, "point": "현재완료는 과거를 나타내는 말과 함께 쓸 수 없다", "frequent": true },
+    { "unit_no": 1, "unit": "현재완료", "point_no": 4, "point": "현재완료의 부정문·의문문", "frequent": true },
+    { "unit_no": 2, "unit": "현재완료진행", "point_no": 5, "point": "have[has] been+-ing: 계속 ~해오는 중이다", "frequent": true },
+    { "unit_no": 3, "unit": "과거완료", "point_no": 6, "point": "had+p.p.: 과거보다 더 앞선 때", "frequent": true },
+    { "unit_no": 3, "unit": "과거완료", "point_no": 7, "point": "과거완료와 과거시제 가려 쓰기", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1, 4], "point_label": "have[has]+p.p.의 형태",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 (A), (B)를 바르게 고쳐 쓴 것끼리 짝지어진 것을 고르세요.",
+      "body": [
+        "• They haven’t (A) [[have]] any trouble so far.",
+        "• She’s (B) [[find]] her missing wallet, so she’s using it."
+      ],
+      "choices": [
+        { "no": 1, "text": "have — find" },
+        { "no": 2, "text": "have — found" },
+        { "no": 3, "text": "had — found" },
+        { "no": 4, "text": "had — being found" },
+        { "no": 5, "text": "been had — being found" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [5, 6], "point_label": "현재완료진행과 과거완료",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 (A), (B)를 바르게 고쳐 쓴 것끼리 짝지어진 것을 고르세요.",
+      "body": [
+        "• Daniel (A) [[live]] in Busan since March.",
+        "• Before I left home, I (B) [[lock]] all the doors."
+      ],
+      "choices": [
+        { "no": 1, "text": "was living — has locked" },
+        { "no": 2, "text": "was living — had locked" },
+        { "no": 3, "text": "has lived — has locked" },
+        { "no": 4, "text": "has been living — had locked" },
+        { "no": 5, "text": "has been living — has locked" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [2, 4, 5], "point_label": "현재완료의 형태와 함께 쓰는 말",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Has Sora calling you recently?" },
+        { "no": 2, "text": "I have never broken a promise." },
+        { "no": 3, "text": "He has lost his passport at the station." },
+        { "no": 4, "text": "Mia has learned to swim last summer." },
+        { "no": 5, "text": "The nurse has been caring for the patient since four hours." }
+      ],
+      "answer": "②, ③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [1, 2, 6], "point_label": "의문사 when과 현재완료",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "When have you come back from your trip?" },
+        { "no": 2, "text": "She has lost interest in that game." },
+        { "no": 3, "text": "My uncle has just make vegetable soup." },
+        { "no": 4, "text": "Sora didn’t enjoy the book because she had read it before." },
+        { "no": 5, "text": "Jake has living in the same town since he was a child." }
+      ],
+      "answer": "②, ④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [1], "point_label": "have+just+p.p.",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요. (단, 완료 시제를 사용할 것)",
+      "body": [
+        "나는 방금 병원에서 돌아왔다. (come back, the hospital, just, from)",
+        "→ I ________________."
+      ],
+      "choices": [],
+      "answer": "have just come back from the hospital"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [6], "point_label": "더 앞선 때는 had+p.p.",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요. (단, 완료 시제를 사용할 것)",
+      "body": [
+        "우리 어머니는 은퇴하시기 전에는 간호사로 일하셨다. (as, a nurse, work)",
+        "→ My mother ________________ before she retired."
+      ],
+      "choices": [],
+      "answer": "had worked as a nurse"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [6, 7], "point_label": "과거보다 더 앞선 일은 과거완료",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["내가 역에 도착했을 때, 기차는 막 떠났었다."],
+      "choices": [
+        { "no": 1, "text": "The train just left when I arrived at the station." },
+        { "no": 2, "text": "The train has just left when I arrived at the station." },
+        { "no": 3, "text": "The train just left when I have arrived at the station." },
+        { "no": 4, "text": "The train had just left when I arrived at the station." },
+        { "no": 5, "text": "The train had just left when I have arrived at the station." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [2, 4], "point_label": "when은 현재완료와 함께 쓸 수 없다",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 빈칸 (A)~(E)에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": [
+        "• ____(A)____ have you been staying in Rome?",
+        "• We haven’t decided the date ____(B)____.",
+        "• Sora has watched videos ____(C)____ this afternoon.",
+        "• Have you ____(D)____ tried Indian food?",
+        "• ____(E)____ have you bought this bag?"
+      ],
+      "choices": [
+        { "no": 1, "text": "(A) How long" },
+        { "no": 2, "text": "(B) yet" },
+        { "no": 3, "text": "(C) since" },
+        { "no": 4, "text": "(D) ever" },
+        { "no": 5, "text": "(E) When" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [5], "point_label": "상태동사는 진행형으로 쓰지 않는다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분을 현재완료진행 시제로 바꿀 수 없는 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I [[have waited]] for the bus for an hour." },
+        { "no": 2, "text": "Mina [[has practiced]] the violin for two hours." },
+        { "no": 3, "text": "I [[have volunteered]] at the shelter since last spring." },
+        { "no": 4, "text": "Jake [[has chatted]] with his cousin for an hour." },
+        { "no": 5, "text": "We [[have known]] the answer since this morning." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [7], "point_label": "나중에 일어난 일은 과거시제",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 밑줄 친 부분 중 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I lost the umbrella you [[had lent]] me." },
+        { "no": 2, "text": "Did you hear what [[had happened]] to Mina?" },
+        { "no": 3, "text": "He [[had gone]] to bed before the storm began." },
+        { "no": 4, "text": "Sora had already left when I [[had arrived]] at the café." },
+        { "no": 5, "text": "My brother had a headache after he [[had studied]] too long." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [6, 7], "point_label": "일의 순서와 과거완료",
+      "question_kind": "내용 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 지호의 여행 일정표를 보고 알맞지 않은 것을 고르세요.",
+      "body": [
+        "월요일 — visited the old palace",
+        "화요일 — watched a musical",
+        "수요일 — bought presents",
+        "목요일 — tried street food"
+      ],
+      "choices": [
+        { "no": 1, "text": "Jiho tried street food after he had watched a musical." },
+        { "no": 2, "text": "Jiho had bought presents before he tried street food." },
+        { "no": 3, "text": "Jiho had visited the old palace before he bought presents." },
+        { "no": 4, "text": "Jiho had watched a musical after he visited the old palace." },
+        { "no": 5, "text": "Jiho bought presents after he had watched a musical." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [1, 5], "point_label": "계속을 나타내는 현재완료",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 두 문장을 완료 시제를 사용하여 한 문장으로 쓰세요.",
+      "body": [
+        "Sumin started learning Spanish in 2021. She still learns it.",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "Sumin has learned[has been learning] Spanish since 2021"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [6], "point_label": "Before+과거, 과거완료",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 두 문장을 완료 시제를 사용하여 한 문장으로 쓰세요.",
+      "body": [
+        "My grandmother moved to Jeju. She ran a bakery for 15 years.",
+        "→ Before ________________."
+      ],
+      "choices": [],
+      "answer": "my grandmother moved to Jeju, she had run a bakery for 15 years"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [1, 6], "point_label": "since+시점에는 현재완료",
+      "question_kind": "대화 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 짝지어진 대화가 어법상 어색한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "A: Have you finished all of the homework?  B: No, I’ve done only half of it." },
+        { "no": 2, "text": "A: How long have you worked here?  B: I had worked here since 2019." },
+        { "no": 3, "text": "A: Have you ever been to a baseball game?  B: No, I’ve never been there." },
+        { "no": 4, "text": "A: Mina, I haven’t seen you for ages.  B: Oh, Jiho! How have you been?" },
+        { "no": 5, "text": "A: Have you fed the dog already?  B: Sorry, Mom. I completely forgot." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [5], "point_label": "현재완료진행으로 영작하기",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 우리말을 <조건>에 맞도록 영작하세요.",
+      "body": [
+        "물가가 지난달부터 오르고 있다.",
+        "<조건> • 현재완료진행 시제를 사용할 것  • the prices, rise, last month를 사용하여 쓸 것  • 여덟 단어의 완전한 문장으로 쓸 것",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "The prices have been rising since last month"
+    }
+  ]
+}

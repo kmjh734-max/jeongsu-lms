@@ -1,0 +1,64 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 05 to부정사의 Chapter Test 가운데 too ~ to / enough to / in order to 문항을 변형한 것. 기본 4과 부정사[2] 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 5,
+  "chapter": "to부정사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 4, "chapter": "부정사[2]" },
+  "points": [
+    { "unit_no": 4, "unit": "to부정사를 포함한 주요 구문", "point_no": 9, "point": "in order to: ~하기 위해", "frequent": true },
+    { "unit_no": 4, "unit": "to부정사를 포함한 주요 구문", "point_no": 10, "point": "too ~ to … = so ~ that … can’t", "frequent": true },
+    { "unit_no": 4, "unit": "to부정사를 포함한 주요 구문", "point_no": 11, "point": "~ enough to … = so ~ that … can", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [10], "point_label": "so ~ that … can’t = too ~ to …",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "Jinho was so tired that he couldn’t finish his homework.",
+        "→ Jinho was ________ ________ ________ ________ his homework."
+      ],
+      "choices": [],
+      "answer": "too tired to finish"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [11], "point_label": "so ~ that … can = ~ enough to …",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "She was so brave that she could speak in front of everyone.",
+        "→ She was ________ ________ ________ ________ in front of everyone."
+      ],
+      "choices": [],
+      "answer": "brave enough to speak"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [9, 10, 11], "point_label": "주요 구문의 의미 비교",
+      "question_kind": "의미 판단", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "짝지어진 두 문장의 의미가 다른 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "My mom told me where to go first. = My mom told me where I should go first." },
+        { "no": 2, "text": "She was too tired to walk anymore. = She was so tired that she couldn’t walk anymore." },
+        { "no": 3, "text": "I am too nervous to eat right now. = I am so nervous that I can’t eat right now." },
+        { "no": 4, "text": "He visited Gyeongju to see the old temples. = He visited Gyeongju in order to see the old temples." },
+        { "no": 5, "text": "Mia is tall enough to touch the ceiling. = Mia is so tall that she can’t touch the ceiling." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [9], "point_label": "in order to로 목적 나타내기",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음은 학생들의 새해 목표입니다. 이를 보고 <조건>에 맞게 문장을 완성하세요.",
+      "body": [
+        "진수 — do not stay up late / keep his health",
+        "미나 — read many books / widen her knowledge",
+        "<조건> 「in order to부정사」를 사용할 것",
+        "(1) Jinsu won’t ________________.",
+        "(2) Mina will ________________."
+      ],
+      "choices": [],
+      "answer": "(1) stay up late in order to keep his health  (2) read many books in order to widen her knowledge"
+    }
+  ]
+}

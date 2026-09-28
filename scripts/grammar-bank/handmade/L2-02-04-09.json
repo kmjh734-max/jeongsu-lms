@@ -1,0 +1,181 @@
+{
+  "_설명": "기본 2과 시제 · 4과 부정사[2] · 9과 수동태와 능동태 — 남은 서술형 문항들. 원본 9과 6번은 문제에 Ms. Kim, 정답에 Mr. Kim으로 어긋나 있어 변형본에서는 맞춰 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 10,
+      "포인트": "현재완료 의문문 How long have + 주어 + p.p.",
+      "prompt": "아래 대화문을 완성하는 적절한 문장을 적으시오.",
+      "body": ["How long _________________________________?",
+               "얼마나 오래 너는 그녀를 기다렸니?"],
+      "answer": "have you waited for her",
+      "explanation": "현재완료의 계속적 용법에 대한 문제이다. 현재완료의 의문문은 「Have + 주어 + 과거분사 ~?」 형태이며, 주어가 you이므로 have를 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 22,
+      "포인트": "has gone to / 현재완료 부정 + yet / Have you ever been to",
+      "prompt": "주어진 우리말 의미에 맞게 빈칸을 채우시오.",
+      "body": ["(1) He _____ _____ _____ Canada.",
+               "그는 캐나다에 가고 없습니다.",
+               "(2) She _____ _____ the report _____.",
+               "그녀는 아직 보고서를 끝내지 못했습니다.",
+               "(3) _____ _____ _____ _____ _____ Africa?",
+               "너 아프리카에 가본 적이 있니?"],
+      "answer": "(1) has gone to (2) hasn’t finished, yet (3) Have you ever been to",
+      "explanation": "(1) ‘~로 가고 없다’는 「have(has) gone to + 장소」이다. (2) 현재완료의 부정은 「have(has) not + p.p.」이며 ‘아직’은 yet을 문장 끝에 쓴다. (3) ‘~에 가본 적이 있다’는 「have been to」이며 경험을 물을 때 ever를 넣는다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 24,
+      "포인트": "현재완료의 계속 용법으로 두 문장을 잇기",
+      "prompt": "다음 두 문장을 현재완료를 사용하여 의미가 같은 한 문장으로 쓰세요.",
+      "body": ["I started to learn the piano 10 years ago.",
+               "I still learn the piano.",
+               "→ ___________________________________________."],
+      "answer": "I have learned the piano for 10 years.",
+      "explanation": "10년 전에 피아노를 배우기 시작하여 지금도 배우고 있다고 했으므로 ‘나는 10년간 피아노를 배워 왔다’는 현재완료의 계속 용법으로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 26,
+      "포인트": "과거진행형 was/were + ~ing",
+      "prompt": "다음 대화의 빈칸에 알맞은 말을 괄호 안의 동사를 변형하여 쓰시오.",
+      "body": ["A : What were you doing at 8 last night?",
+               "B : I ______________ in my room. (study)"],
+      "answer": "was studying",
+      "explanation": "과거진행형은 「was/were + ~ing」의 형태로 ‘~하고 있었다, ~하는 중이었다’는 의미이다. 과거의 특정한 때에 진행 중이던 일을 나타낸다."
+    },
+    {
+      "file": "[기본] 2.시제_종합문제(1회).pdf", "number": 30,
+      "포인트": "현재완료의 경험 용법 have never been to",
+      "prompt": "다음 우리말을 영작하시오.",
+      "body": ["그는 결코 파리(Paris)에 가 본 적이 없다.",
+               "→ _________________________________________."],
+      "answer": "He has never been to Paris.",
+      "explanation": "현재완료의 경험적 용법이다. 「have been to + 장소」 구문을 사용하여 ‘~에 가 본 적이 있다’를 나타내고, never를 넣어 경험이 없음을 나타낸다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(1회).pdf", "number": 2,
+      "포인트": "so ~ that + 주어 + can = 형용사 + enough + to부정사",
+      "prompt": "다음 두 문장이 같은 뜻이 되도록 빈칸에 알맞은 말을 넣어 문장을 완성하시오.",
+      "body": ["Minho is so tall that he can reach the top shelf.",
+               "Minho is ______ ______ ______ ______ the top",
+               "shelf."],
+      "answer": "tall enough to reach",
+      "explanation": "‘Minho는 충분히 키가 커서 맨 위 선반에 닿을 수 있다.’라는 의미의 문장이므로 「형용사 + enough + to부정사」로 바꿔 쓴다. enough는 형용사 뒤에 온다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(1회).pdf", "number": 6,
+      "포인트": "형용사 + enough + to부정사",
+      "prompt": "주어진 우리말에 맞도록 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "body": ["그는 무거운 상자를 옮길 수 있을 만큼 힘이 세다.",
+               "He is ______ ______ ______ ______ the heavy box."],
+      "answer": "strong enough to move",
+      "explanation": "‘~할 만큼 충분히 힘이 세다’라는 뜻이 되기 위해 「strong + enough + to부정사」를 써야 한다. enough는 형용사나 부사를 꾸밀 때 그 뒤에 온다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(1회).pdf", "number": 7,
+      "포인트": "so ~ that + can을 enough to로 바꾸기",
+      "prompt": "두 문장이 같은 의미가 되도록 보기의 문장을 완성하시오.",
+      "body": ["Sora is so smart that she can explain it.",
+               "→ Sora is ________________________________ it."],
+      "answer": "smart enough to explain",
+      "explanation": "「so ~ that + 주어 + can」 형식의 문장은 「형용사/부사 + enough + to부정사」로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(1회).pdf", "number": 10,
+      "포인트": "가주어 It과 진주어 to부정사",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["To ride a horse is exciting.",
+               "→ ________ is exciting ________ ________ a horse."],
+      "answer": "It, to ride",
+      "explanation": "to부정사가 주어인 경우 가주어 it을 주어 자리에 쓰고, 진주어인 to부정사는 문장의 뒤로 보낸다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(1회).pdf", "number": 14,
+      "포인트": "가주어 It + 진주어 to부정사구 배열",
+      "prompt": "우리말과 의미가 같도록 괄호 안의 단어들을 바르게 배열하여 쓰시오.",
+      "body": ["(1) 얼어붙은 길에서 달리는 것은 위험하다.",
+               "(dangerous, the, road, it, on, to, is, frozen, run)",
+               "→ __________________________________________.",
+               "(2) 그 모든 낱말을 외우는 것은 쉽지 않다.",
+               "(words, not, the, is, all, it, memorize, easy, to)",
+               "→ __________________________________________."],
+      "answer": "(1) It is dangerous to run on the frozen road. (2) It is not easy to memorize all the words.",
+      "explanation": "가주어 it과 진주어인 to부정사구에 유의하여 단어를 배열해야 한다. 「It is + 형용사 + to부정사」의 순서로 쓴다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(1회).pdf", "number": 17,
+      "포인트": "enough to와 so ~ that을 서로 바꾸기",
+      "prompt": "다음 두 문장이 같은 의미가 되도록 빈칸에 알맞은 말을 넣으시오.",
+      "body": ["그녀는 그 상자를 들 만큼 충분히 힘이 세다.",
+               "→ She is 1)__________________ to lift the box.",
+               "→ She is 2)__________________ that she can lift",
+               "the box."],
+      "answer": "(1) strong enough, (2) so strong",
+      "explanation": "「형용사/부사 + enough + to부정사」는 ‘~할 만큼 충분히 ~한/하게’라는 뜻으로 「so ~ that + 주어 + can」과 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(1회).pdf", "number": 24,
+      "포인트": "so ~ that + can을 enough to로 바꾸기",
+      "prompt": "두 문장이 같은 뜻이 되도록 빈칸에 알맞은 말을 넣어 문장을 완성하시오.",
+      "body": ["Kevin is so kind that he can help the new",
+               "student.",
+               "→ Kevin is __________________________________."],
+      "answer": "kind enough to help the new student",
+      "explanation": "‘Kevin은 충분히 친절해서 새로 온 학생을 도울 수 있다.’라는 문장을 「형용사 + enough + to부정사」 구문으로 바꿔 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 4,
+      "포인트": "능동태를 수동태로 바꾸기",
+      "prompt": "다음 문장을 수동태로 바꾸어 쓰시오.",
+      "body": ["She helped me.",
+               "→ ___________________________________________."],
+      "answer": "I was helped by her.",
+      "explanation": "수동태는 주어가 어떤 동작의 대상이 되어 그 동작을 당하는 것으로, 「be동사 + 과거분사 + by + 행위자(목적격)」의 형태로 쓴다. 능동태의 목적어 me가 주어 자리로 가면 I가 된다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 6,
+      "포인트": "과거시제 능동태를 수동태로 바꾸기",
+      "prompt": "다음 문장을 수동태로 바꾸어 쓰시오.",
+      "body": ["Mr. Park painted this wall in 2005.",
+               "→ ___________________________________________."],
+      "answer": "This wall was painted by Mr. Park in 2005.",
+      "explanation": "능동태 문장의 주어인 ‘Mr. Park’을 「by + 목적격」으로, 능동태 문장의 목적어인 ‘this wall’을 수동태의 주어로 옮긴다. 과거시제이므로 was painted로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 8,
+      "포인트": "수동태를 능동태로 바꾸기",
+      "prompt": "아래 문장을 능동태 문장으로 바꾸시오.",
+      "body": ["The song was written by Mina.",
+               "→ ___________________________________________."],
+      "answer": "Mina wrote the song.",
+      "explanation": "수동태를 능동태로 바꿀 때는 1) 수동태 문장에서 by 뒤의 행위자를 주어로 쓴다. 2) 수동태의 시제에 따라 동사의 형태를 바꾼다. 3) 수동태의 주어를 목적어 자리로 옮긴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 14,
+      "포인트": "수동태를 능동태로 바꾸기",
+      "prompt": "다음 두 문장의 의미가 같도록 문장을 완성하시오.",
+      "body": ["This statue was carved by Rodin.",
+               "→ Rodin __________________________________."],
+      "answer": "carved this statue.",
+      "explanation": "수동태 문장 ‘This statue was carved by Rodin’의 주어 ‘this statue’를 목적어 자리로 옮기고, by 뒤의 Rodin을 주어로 삼아 능동태로 바꾼다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 18,
+      "포인트": "현재시제 수동태를 능동태로 바꾸기",
+      "prompt": "다음 주어진 문장을 능동태로 바꾸시오.",
+      "body": ["The flowers are watered by my aunt every",
+               "morning.",
+               "→ ___________________________________________."],
+      "answer": "My aunt waters the flowers every morning.",
+      "explanation": "「by + 행위자」가 능동태의 주어이므로 주어 자리에 My aunt를 쓰고, be동사를 지운 뒤 시제와 인칭에 맞게 waters로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 22,
+      "포인트": "과거형과 과거분사가 같은 불규칙 동사의 수동태",
+      "prompt": "아래 문장을 수동태 문장으로 쓰시오.",
+      "body": ["The girl cut the paper.",
+               "→ ___________________________________________."],
+      "answer": "The paper was cut by the girl.",
+      "explanation": "능동태의 목적어가 수동태의 주어 자리로 온다. 또한 동사 cut은 cut-cut-cut으로 과거형과 과거분사가 원형과 같으므로 be동사 was로 시제를 나타낸다."
+    }
+  ]
+}

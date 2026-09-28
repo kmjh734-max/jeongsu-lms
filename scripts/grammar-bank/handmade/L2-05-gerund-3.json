@@ -1,0 +1,233 @@
+{
+  "_설명": "기본 5과 동명사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 5.동명사_종합문제(1회).pdf", "number": 4,
+      "포인트": "동명사를 쓰는 자리와 to부정사를 쓰는 자리",
+      "prompt": "다음 중 빈칸에 들어갈 swim의 형태가 나머지와 [[다]] [[른]]것은?",
+      "body": [],
+      "choices": ["She enjoys ________ in the lake.",
+                  "I'm looking forward to ________ with you.",
+                  "________ in cold water is not easy for me.",
+                  "The children are tired of ________ every morning.",
+                  "Nora wants ________ in the new pool."],
+      "answer": "⑤",
+      "explanation": "want는 to부정사를 목적어로 쓰므로 to swim이고, 나머지는 모두 동명사 swimming이다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(1회).pdf", "number": 6,
+      "포인트": "전치사 뒤와 주어 자리의 동명사",
+      "prompt": "다음 빈칸에 공통으로 들어갈 알맞은 표현을 고르면?",
+      "body": ["A: Are you interested in _________ pictures?",
+               "B: No, I'm not. _________ pictures is not easy for",
+               "me."],
+      "choices": ["have drawn", "drawing", "to draw", "draw", "drew"],
+      "answer": "②",
+      "explanation": "전치사 in 뒤에도, 주어 자리에도 동명사가 온다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(1회).pdf", "number": 9,
+      "포인트": "forget + 동명사와 forget + to부정사",
+      "prompt": "어법상 옳지 [[않은]]것은?",
+      "body": [],
+      "choices": ["He kept avoiding meeting my eyes.",
+                  "They don't want to give up drinking soda.",
+                  "She promised to write to me often, but she didn't.",
+                  "The man agreed to join the club.",
+                  "Alice forgot calling her sister tomorrow."],
+      "answer": "⑤",
+      "explanation": "tomorrow는 앞으로 할 일이므로 forget to call로 써야 한다. forget + 동명사는 이미 한 일을 잊는 것이다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(1회).pdf", "number": 15,
+      "포인트": "전치사 from 뒤에는 동명사",
+      "prompt": "다음 빈칸에 들어갈 동사의 형태로 알맞은 것은?",
+      "body": ["우리 엄마는 서 있어서 매우 지쳐 보였다.",
+               "→My mom looked very tired from ________."],
+      "choices": ["stand", "stood", "stands", "standing", "to stand"],
+      "answer": "④",
+      "explanation": "전치사 from 뒤에는 동명사가 온다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(1회).pdf", "number": 17,
+      "포인트": "조동사 뒤의 동사원형과 try + 동명사",
+      "prompt": "다음 ⓐ, ⓑ에 들어갈 단어가 각각 바르게 짝지어진 것은?",
+      "body": ["Hana : My old radio doesn't [[ⓐ]] very well.",
+               "Owen : Don't worry, Hana.",
+               "Let's try [[ⓑ]] it again.",
+               "ⓐ ⓑ"],
+      "choices": ["working fixing", "work fix", "work fixing",
+                  "works fix", "works fixing"],
+      "answer": "③",
+      "explanation": "doesn’t 뒤에는 동사원형 work를, ‘시험 삼아 ~해 보다’는 try + 동명사로 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(1회).pdf", "number": 18,
+      "포인트": "동명사를 목적어로 쓰는 동사",
+      "prompt": "다음 빈칸에 알맞지 [[않은]]말은?",
+      "body": ["I ___________ writing letters."],
+      "choices": ["enjoy", "finish", "give up", "mind", "hope"],
+      "answer": "⑤",
+      "explanation": "hope는 to부정사만 목적어로 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(1회).pdf", "number": 19,
+      "포인트": "전치사 뒤와 주어 자리의 동명사",
+      "prompt": "다음 빈칸에 공통으로 들어갈 알맞은 말은?",
+      "body": ["Thanks for ____________ me the way.",
+               "_______________ a stranger the way is kind."],
+      "choices": ["show", "showing", "be shown", "showed", "to show"],
+      "answer": "②",
+      "explanation": "전치사 for 뒤에도, 주어 자리에도 동명사가 온다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(1회).pdf", "number": 22,
+      "포인트": "to부정사와 동명사를 모두 쓰는 동사",
+      "prompt": "다음 빈칸에 공통으로 쓰일 수 [[없는]]것은?",
+      "body": ["I _________ to write poems.",
+               "I _________ cleaning my room."],
+      "choices": ["try", "like", "start", "mind", "forget"],
+      "answer": "④",
+      "explanation": "mind는 동명사만 목적어로 쓰므로 to부정사와는 함께 쓸 수 없다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(2회).pdf", "number": 5,
+      "포인트": "look forward to + 동명사",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 것은?",
+      "body": ["I can’t wait to meet her again.",
+               "= I look forward to _____ her again."],
+      "choices": ["meet", "meeting", "met", "being met", "have met"],
+      "answer": "②",
+      "explanation": "look forward to의 to는 전치사이므로 뒤에 동명사가 온다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(2회).pdf", "number": 9,
+      "포인트": "feel like + 동명사",
+      "prompt": "다음 대화의 빈칸에 들어갈 것을 고르세요.",
+      "body": ["A : What would you like to do?",
+               "B : I feel like _____ a movie."],
+      "choices": ["watches", "watch", "to watch", "watching", "to watching"],
+      "answer": "④",
+      "explanation": "「feel like + 동명사」는 ‘~하고 싶다’는 뜻이다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(2회).pdf", "number": 12,
+      "포인트": "like + 동명사 = like + to부정사",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 것을 고르세요.",
+      "body": ["I like to bake my own bread.",
+               "= I like _____ my own bread."],
+      "choices": ["bake", "baked", "baking", "to baking", "is baking"],
+      "answer": "③",
+      "explanation": "like는 to부정사와 동명사를 모두 목적어로 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(2회).pdf", "number": 26,
+      "포인트": "mind + 동명사",
+      "prompt": "다음 문장의 밑줄 친 단어의 형태로 올바른 것을고르세요.",
+      "body": ["Would you mind [[wait]] here for a moment?"],
+      "choices": ["to waiting", "waited", "to wait", "wait", "waiting"],
+      "answer": "⑤",
+      "explanation": "mind는 동명사를 목적어로 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(2회).pdf", "number": 28,
+      "포인트": "forget + to부정사 — 앞으로 할 일",
+      "prompt": "다음 우리말에 맞는 문장이 되도록 영작하세요.",
+      "body": ["문 잠그는 거 잊지 마."],
+      "choices": ["Don't forget locking the door.",
+                  "Don't forget to lock the door.",
+                  "Don't forget to locking the door.",
+                  "Don't forget lock the door.",
+                  "Dont lock forgot the door."],
+      "answer": "②",
+      "explanation": "앞으로 할 일을 잊지 말라는 뜻이므로 forget to부정사로 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(2회).pdf", "number": 30,
+      "포인트": "remember + 동명사 — 이미 한 일",
+      "prompt": "다음 중 밑줄 친 부분이 어법상 [[어색한]]것을 고르시오.",
+      "body": [],
+      "choices": ["She continued [[to write]] to me.",
+                  "He hates [[not being]] ready.",
+                  "I failed [[to catch]] the train.",
+                  "I remember [[to meet]] him last year.",
+                  "Her dream is [[becoming]] a pilot."],
+      "answer": "④",
+      "explanation": "last year는 이미 한 일이므로 remember meeting으로 써야 한다."
+    },
+    {
+      "file": "[기본] 5.동명사_확인문제(1회).pdf", "number": 2,
+      "포인트": "avoid + 동명사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Please avoid _________ loudly in the library."],
+      "choices": ["talk", "talking", "talked", "to talk", "to talking"],
+      "answer": "②",
+      "explanation": "avoid는 동명사를 목적어로 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_확인문제(1회).pdf", "number": 3,
+      "포인트": "주어 자리에는 동명사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["________ the same song for many hours can be",
+               "tiring."],
+      "choices": ["Sing", "Sang", "Singing", "To singing", "Not sing"],
+      "answer": "③",
+      "explanation": "주어 자리이므로 동명사 Singing으로 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_확인문제(1회).pdf", "number": 6,
+      "포인트": "to부정사의 부정과 finish + 동명사",
+      "prompt": "다음 빈칸에 들어갈 말이 바르게 짝지어진 것을고르시오.",
+      "body": ["He decided not _____ the rule.",
+               "When will you finish _____ the report?"],
+      "choices": ["break – write", "breaking – writing", "to break – writing",
+                  "breaking – to write", "to break – to write"],
+      "answer": "③",
+      "explanation": "decide는 to부정사를, finish는 동명사를 목적어로 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_확인문제(1회).pdf", "number": 10,
+      "포인트": "remember + to부정사와 전치사 before",
+      "prompt": "다음 문장의 빈칸에 들어갈 말로 알맞게 짝지어진 것을 고르시오.",
+      "body": ["You should remember _______ the light before",
+               "_______ out."],
+      "choices": ["turning off - go", "turning off - going",
+                  "to turn off - going", "turning off - to go",
+                  "to turn off - to go"],
+      "answer": "③",
+      "explanation": "앞으로 할 일이므로 remember to turn off, before는 전치사이므로 going을 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_확인문제(2회).pdf", "number": 7,
+      "포인트": "remember + 동명사 — 이미 한 일",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것은?",
+      "body": ["나는 그에게 문자를 보낸 것이 기억났다."],
+      "choices": ["I remembered sent him a text.",
+                  "I remember sending him a text.",
+                  "I remember to send him a text.",
+                  "I remembered sending him a text.",
+                  "I remembered to send him a text."],
+      "answer": "④",
+      "explanation": "이미 한 일을 기억한 것이므로 remembered + 동명사로 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_확인문제(2회).pdf", "number": 9,
+      "포인트": "동명사를 목적어로 쓰지 않는 동사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["My mom ________ growing herbs on the balcony."],
+      "choices": ["likes", "enjoys", "loves", "plans", "is interested in"],
+      "answer": "④",
+      "explanation": "plan은 to부정사만 목적어로 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_확인문제(2회).pdf", "number": 13,
+      "포인트": "remember + 동명사 — 이미 한 일",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 것을 고르시오.",
+      "body": ["I remember that I locked the door.",
+               "= I remember _____ the door."],
+      "choices": ["lock", "locked", "locks", "locking", "to lock"],
+      "answer": "④",
+      "explanation": "이미 한 일을 기억하는 것이므로 remember + 동명사로 쓴다."
+    }
+  ]
+}

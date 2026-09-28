@@ -16,6 +16,7 @@
      쪽 나누기를 재는 숨은 틀(.font-print)도 같은 글꼴이어야 쪽이 어긋나지 않는다. */
   .font-print,
   #qg-print-root,
+  #grammar-print-root,
   #listening-print-root,
   #a4-print-root,
   #shared-report-print-root,
@@ -3451,6 +3452,384 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   z-index: 60;
 }
 
+/* ───── 중학 문법 문제 은행 인쇄물 (A4 2단) ─────
+   서식 다섯 가지(F 정갈 · G 초록 라벨 · H 음영 머리글 · I 파랑 워크북 · J 저널)를
+   같은 뼈대에 얹고 색과 머리글 모양만 갈아 끼운다. */
+.gb-sheet {
+  --gb-accent: #111;
+  --gb-soft: #f3f4f6;
+  --gb-line: #e5e7eb;
+  box-sizing: border-box;
+  width: 210mm;
+  min-height: 296mm;
+  margin: 0 auto 8mm;
+  padding: 11mm 12mm 8mm;
+  background: #fff;
+  color: #111;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+  overflow: hidden;
+}
+
+.gb-measure {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* 머리글 */
+.gb-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4mm;
+}
+.gb-head-main { min-width: 0 }
+.gb-kicker {
+  margin: 0;
+  font-size: 7.5pt;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #6b7280;
+}
+.gb-title {
+  margin: 1.4mm 0 0;
+  font-size: 15pt;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  color: #111;
+}
+.gb-sub {
+  margin: 1mm 0 0;
+  font-size: 8pt;
+  font-weight: 600;
+  color: #9ca3af;
+}
+.gb-head-aside {
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 8pt;
+  font-weight: 700;
+  color: #6b7280;
+  line-height: 1.6;
+}
+.gb-head-aside b { color: #111; font-weight: 800 }
+
+/* 이름줄 */
+.gb-name {
+  display: flex;
+  gap: 6mm;
+  justify-content: flex-end;
+  padding: 2.4mm 0 2.6mm;
+  border-bottom: 0.2mm solid var(--gb-line);
+  font-size: 8pt;
+  font-weight: 600;
+  color: #6b7280;
+}
+.gb-name i {
+  display: inline-block;
+  border-bottom: 0.2mm solid #9ca3af;
+  height: 3mm;
+  margin-left: 1.6mm;
+}
+
+/* 2단 */
+.gb-cols {
+  flex: 1;
+  min-height: 0;
+  padding-top: 3.6mm;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 6mm;
+  align-items: start;
+}
+.gb-col { min-width: 0 }
+.gb-col--right {
+  border-left: 0.2mm solid var(--gb-line);
+  padding-left: 5mm;
+}
+
+/* 문항 */
+.gb-q {
+  margin: 0 0 3.4mm;
+  font-size: 9pt;
+  line-height: 1.45;
+  color: #1f2937;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.gb-q-head {
+  margin: 0 0 1.4mm;
+  display: flex;
+  gap: 1.8mm;
+  align-items: flex-start;
+}
+.gb-no {
+  flex-shrink: 0;
+  font-size: 9.5pt;
+  font-weight: 900;
+  color: var(--gb-accent);
+  font-variant-numeric: tabular-nums;
+}
+.gb-ask {
+  margin: 0;
+  font-size: 9pt;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.45;
+}
+.gb-tag {
+  margin-left: 1.5mm;
+  font-size: 6.5pt;
+  font-weight: 800;
+  color: #6b7280;
+  white-space: nowrap;
+}
+.gb-body {
+  margin: 0 0 1.6mm;
+  padding: 1.8mm 2.2mm;
+  border: 0.2mm solid #cbd5e1;
+  background: #f8fafc;
+  font-family: Georgia, "Times New Roman", "Noto Serif KR", serif;
+  font-size: 8.6pt;
+  line-height: 1.5;
+  color: #111;
+}
+.gb-body p { margin: 0 }
+.gb-body u { text-decoration: underline; text-underline-offset: 1.6px }
+.gb-ch {
+  margin: 0;
+  font-size: 8.6pt;
+  line-height: 1.7;
+  color: #1f2937;
+}
+.gb-ch span { display: block }
+.gb-write {
+  margin-top: 1.6mm;
+  border-bottom: 0.2mm solid #9ca3af;
+  height: 5mm;
+}
+.gb-sec {
+  margin: 0 0 2.6mm;
+  padding-bottom: 1mm;
+  border-bottom: 0.4mm solid var(--gb-accent);
+  font-size: 8pt;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: var(--gb-accent);
+}
+
+/* 꼬리말 */
+.gb-foot {
+  margin-top: auto;
+  padding-top: 2.4mm;
+  border-top: 0.2mm solid var(--gb-line);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 3mm;
+  font-size: 7pt;
+  font-weight: 600;
+  color: #9ca3af;
+}
+.gb-foot-page {
+  font-size: 8.5pt;
+  font-weight: 700;
+  color: var(--gb-accent);
+}
+.gb-foot-right {
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 정답지 */
+.gb-ans-row {
+  display: flex;
+  align-items: baseline;
+  gap: 3.4mm;
+  padding: 1.8mm 0.4mm;
+  border-bottom: 0.2mm solid #eef0f3;
+}
+.gb-ans-no {
+  width: 6mm;
+  flex-shrink: 0;
+  font-size: 9pt;
+  font-weight: 900;
+  color: var(--gb-accent);
+  font-variant-numeric: tabular-nums;
+}
+.gb-ans-mark {
+  font-size: 12pt;
+  font-weight: 900;
+  color: var(--gb-accent);
+}
+.gb-ans-text {
+  font-family: Georgia, "Times New Roman", "Noto Serif KR", serif;
+  font-size: 9pt;
+  font-weight: 600;
+  color: #111;
+  line-height: 1.45;
+}
+
+/* ── F 정갈형: 색 없이 굵은 가로줄, 번호는 여백 바깥 ── */
+.gb-sheet--f .gb-head { padding-bottom: 2.4mm; border-bottom: 0.6mm solid #111 }
+.gb-sheet--f .gb-head::after { content: "" }
+.gb-sheet--f .gb-rule { border-top: 0.2mm solid #111; margin-top: 0.6mm }
+.gb-sheet--f .gb-q { padding-left: 5.4mm; position: relative }
+.gb-sheet--f .gb-q-head { display: block }
+.gb-sheet--f .gb-no {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: Georgia, "Noto Serif KR", serif;
+  font-weight: 700;
+}
+.gb-sheet--f .gb-body {
+  border: none;
+  border-left: 0.5mm solid #111;
+  background: none;
+  padding: 0 0 0 2.4mm;
+}
+.gb-sheet--f .gb-ch { font-family: Georgia, "Times New Roman", "Noto Serif KR", serif }
+
+/* ── G 초록 라벨형 ── */
+.gb-sheet--g { --gb-accent: #15803d; --gb-soft: #e7f3ea; --gb-line: #e5ebe7 }
+.gb-sheet--g .gb-kicker {
+  display: inline-block;
+  background: var(--gb-accent);
+  color: #fff;
+  border-radius: 1mm;
+  padding: 0.7mm 2.2mm;
+  letter-spacing: 0.06em;
+}
+.gb-sheet--g .gb-title { color: #14311f }
+.gb-sheet--g .gb-name { border-bottom-width: 0.5mm; border-bottom-color: var(--gb-accent) }
+.gb-sheet--g .gb-no {
+  width: 4.6mm;
+  height: 4.6mm;
+  border-radius: 1mm;
+  background: var(--gb-accent);
+  color: #fff;
+  font-size: 8pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gb-sheet--g .gb-body {
+  border: none;
+  border-radius: 1.4mm;
+  background: var(--gb-soft);
+  color: #14311f;
+}
+.gb-sheet--g .gb-foot { border-top: 0.5mm solid var(--gb-accent) }
+
+/* ── H 음영 머리글형 ── */
+.gb-sheet--h .gb-head {
+  background: var(--gb-soft);
+  border-left: 1.4mm solid #111;
+  border-radius: 0 2mm 2mm 0;
+  padding: 3.4mm 4mm 3.6mm;
+  align-items: center;
+}
+.gb-sheet--h .gb-name {
+  border-bottom: 0.2mm solid var(--gb-line);
+  justify-content: flex-start;
+  gap: 8mm;
+}
+.gb-sheet--h .gb-no {
+  width: 4.8mm;
+  height: 4.8mm;
+  border-radius: 50%;
+  background: #111;
+  color: #fff;
+  font-size: 8pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gb-sheet--h .gb-body {
+  border: 0.2mm dashed #9ca3af;
+  border-radius: 1.2mm;
+  background: none;
+}
+.gb-sheet--h .gb-foot { border-top: 0.8mm solid #111 }
+
+/* ── I 파랑 워크북형 ── */
+.gb-sheet--i { --gb-accent: #2563c9; --gb-soft: #eef4fc; --gb-line: #e3ebf6 }
+.gb-sheet--i .gb-kicker { color: var(--gb-accent) }
+.gb-sheet--i .gb-title { color: #1a4283 }
+.gb-sheet--i .gb-head { padding-bottom: 2.6mm; border-bottom: 0.8mm solid var(--gb-soft) }
+.gb-sheet--i .gb-q {
+  border-radius: 2.2mm;
+  background: #f8fafd;
+  padding: 2.4mm 2.8mm 2.6mm;
+}
+.gb-sheet--i .gb-no {
+  width: 4.6mm;
+  height: 4.6mm;
+  border-radius: 1.4mm;
+  background: var(--gb-accent);
+  color: #fff;
+  font-size: 8pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gb-sheet--i .gb-ask { color: #16375f }
+.gb-sheet--i .gb-body {
+  border: 0.2mm solid var(--gb-line);
+  border-radius: 1.4mm;
+  background: #fff;
+}
+.gb-sheet--i .gb-col--right { border-left-color: var(--gb-line) }
+
+/* ── J 저널형 ── */
+.gb-sheet--j .gb-head {
+  display: block;
+  text-align: center;
+  border-top: 1mm solid #111;
+  padding-top: 3.2mm;
+}
+.gb-sheet--j .gb-kicker { letter-spacing: 0.3em }
+.gb-sheet--j .gb-title {
+  font-family: Georgia, "Noto Serif KR", serif;
+  font-size: 17pt;
+  font-weight: 700;
+  margin-top: 2.4mm;
+}
+.gb-sheet--j .gb-head-aside {
+  text-align: center;
+  margin-top: 1.6mm;
+  font-size: 7.5pt;
+  line-height: 1.4;
+}
+.gb-sheet--j .gb-name {
+  border-top: 0.2mm solid #111;
+  border-bottom: 0.2mm solid #111;
+  margin-top: 2.6mm;
+  justify-content: space-between;
+}
+.gb-sheet--j .gb-col--right { border-left: 0.2mm solid #111; padding-left: 6mm }
+.gb-sheet--j .gb-no { font-family: Georgia, "Noto Serif KR", serif; font-weight: 700 }
+.gb-sheet--j .gb-body {
+  border-left: none;
+  border-right: none;
+  border-top: 0.2mm solid #ddd;
+  border-bottom: 0.2mm solid #ddd;
+  background: none;
+  text-align: center;
+  padding: 1.4mm 0;
+}
+.gb-sheet--j .gb-ch { font-family: Georgia, "Times New Roman", "Noto Serif KR", serif }
+.gb-sheet--j .gb-foot { border-top: 1mm solid #111 }
+.gb-sheet--j .gb-sec { border-top: 0.5mm solid #111; padding-top: 1mm; text-align: center }
+
 @media print {
   [data-page-no]::after {
     color: #64748b;
@@ -3485,6 +3864,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   }
 
   #qg-print-root,
+  #grammar-print-root,
   #listening-print-root,
   #a4-print-root,
   #shared-report-print-root,
@@ -3530,6 +3910,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #vocab-print-root,
   #nelt-print-root,
   #qg-print-root,
+  #grammar-print-root,
   #lesson-pack-print-root,
   #analysis-report-print-root,
   #workbook-print-root,
@@ -3551,6 +3932,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #nelt-print-root *,
   #qg-print-root,
   #qg-print-root *,
+  #grammar-print-root,
+  #grammar-print-root *,
   #lesson-pack-print-root,
   #lesson-pack-print-root *,
   #analysis-report-print-root,
@@ -3562,7 +3945,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     visibility: visible;
   }
 
-  #qg-print-root {
+  #qg-print-root,
+  #grammar-print-root {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
@@ -4351,6 +4735,23 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     page-break-after: always;
   }
   #exam-report-print-root .exam-a4:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}
+
+@media print {
+  #grammar-print-root .gb-sheet {
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 210mm !important;
+    min-height: 296mm !important;
+    break-after: page;
+    page-break-after: always;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  #grammar-print-root .gb-sheet:last-child {
     break-after: auto;
     page-break-after: auto;
   }

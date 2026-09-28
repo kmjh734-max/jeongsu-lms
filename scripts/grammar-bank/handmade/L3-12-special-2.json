@@ -1,0 +1,135 @@
+{
+  "_설명": "심화 12과 특수구문 — It ~ that 강조구문, 도치, so/neither + 동사 + 주어. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 12.특수구문_종합문제(2회).pdf", "number": 20,
+      "포인트": "부사구·부정어가 앞에 오면 도치",
+      "prompt": "밑줄 친 말을 강조하는 문장을 완성하시오.",
+      "body": ["(1) A statue was [[behind the old gate]].",
+               "→ Behind the old gate _________________________.",
+               "(2) I have [[never]] seen such a view in my life.",
+               "→ Never in my life ____________________________."],
+      "answer": "(1) was a statue (2) have I seen such a view",
+      "explanation": "부사구를 강조하기 위해 문두로 나올 경우 주어와 동사의 위치를 도치시킨다. 부정어 never가 앞에 올 때도 마찬가지로 조동사가 주어 앞으로 나간다."
+    },
+    {
+      "file": "[심화] 12.특수구문_종합문제(2회).pdf", "number": 27,
+      "포인트": "So + 동사 + 주어 — 나도 그래",
+      "prompt": "다음 대화의 빈칸에 공통으로 들어갈 말로, 주어진 우리말과 일치하는 문장을 완성하시오.",
+      "body": ["Jay : I watched the drama Goblin last night.",
+               "Angie : _________ _________ _________. (나도야.)",
+               "Jay : Oh, did you? Who did you watch it with?",
+               "Angie : I watched it with my brother. How about",
+               "you?",
+               "Jay : _________ _________ _________. (나도야.)"],
+      "answer": "So did I.",
+      "explanation": "앞에서 한 말에 대해 ‘~도 또한 그렇다’라는 의미를 나타낼 때 쓰는 구문으로 「So do/does/did + 주어」 구문이다."
+    },
+    {
+      "file": "[심화] 12.특수구문_체크체크.pdf", "number": 1,
+      "포인트": "It ~ that 강조구문 — 목적어 강조",
+      "prompt": "「It ~ that」 강조 구문을 사용하여 주어진 문장을 괄호 안의 지시대로 바꿔 쓰시오.",
+      "body": ["Daniel is reading a comic book now. (목적어 강조)",
+               "→ ___________________________________________."],
+      "answer": "It is a comic book that Daniel is reading now.",
+      "explanation": "It과 that 사이에 목적어를 쓰고, 문장의 나머지 부분을 that 이하에 쓴다."
+    },
+    {
+      "file": "[심화] 12.특수구문_체크체크.pdf", "number": 2,
+      "포인트": "때를 묻는 질문에는 부사구를 강조",
+      "prompt": "다음 주어진 문장을 이용하여 「It ~ that」 강조구문으로 질문에 답하시오.",
+      "body": ["I met my old friend at the station last Friday.",
+               "Q : When did you meet your old friend at the",
+               "station?",
+               "A : _________________________________________."],
+      "answer": "It was last Friday that I met my old friend at the station.",
+      "explanation": "언제 만났는지 묻고 있으므로 It과 that 사이에 last Friday를 넣어 강조 구문으로 쓴다."
+    },
+    {
+      "file": "[심화] 12.특수구문_체크체크.pdf", "number": 3,
+      "포인트": "사람을 강조할 때는 that 대신 who(m)도 가능",
+      "prompt": "다음 주어진 문장을 이용하여 「It ~ that」 강조구문으로 질문에 답하시오.",
+      "body": ["I met my old friend at the station last Friday.",
+               "Q : Who did you meet at the station last Friday?",
+               "A : __________________________________________."],
+      "answer": "It was my old friend that[who(m)] I met at the station last Friday.",
+      "explanation": "누구를 만났는지 묻고 있으므로 It과 that 사이에 목적어 my old friend를 넣어 강조 구문으로 쓴다. 강조하는 말이 사람이므로 that 대신 who(m)을 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 12.특수구문_체크체크.pdf", "number": 4,
+      "포인트": "It ~ that 강조구문 — 부사구 강조",
+      "prompt": "「It ~ that」 강조 구문을 사용하여 주어진 문장을 괄호 안의 지시대로 바꿔 쓰시오.",
+      "body": ["They took a walk this morning. (부사구 강조)",
+               "→ ___________________________________________."],
+      "answer": "It was this morning that they took a walk.",
+      "explanation": "It과 that 사이에 부사구 this morning을 쓰고, 문장의 나머지 부분을 that 이하에 쓴다."
+    },
+    {
+      "file": "[심화] 12.특수구문_체크체크.pdf", "number": 6,
+      "포인트": "사람 목적어 강조는 who(m)",
+      "prompt": "It ~ that을 이용하여 밑줄 친 부분을 강조하는 문장을 완성하세요.",
+      "body": ["I called [[Tom]] last night.",
+               "→ It last night."],
+      "answer": "was Tom who(m) I called",
+      "explanation": "「It is(was) ~ that」 강조 구문은 주어, 목적어, 부사(구)를 강조하는 표현으로 강조하는 말을 It is(was)와 that 사이에 넣는다. 강조하는 말이 사람인 경우 that 대신 who(m)을 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 12.특수구문_체크체크.pdf", "number": 7,
+      "포인트": "사물 목적어 강조는 which도 가능",
+      "prompt": "「It ~ that」강조 구문을 사용하여 주어진 문장을 괄호 안의 지시대로 바꿔 쓰시오.",
+      "body": ["Mina found the keys behind the sofa yesterday.",
+               "(목적어 강조)",
+               "→ _________________________________________."],
+      "answer": "It was the keys that Mina found behind the sofa yesterday.",
+      "explanation": "It과 that 사이에 목적어 the keys를 쓰고, 문장의 나머지 부분을 that 이하에 쓴다. 강조하는 말이 사물이므로 that 대신에 which를 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 12.특수구문_체크체크.pdf", "number": 9,
+      "포인트": "때를 강조할 때는 that 대신 when도 가능",
+      "prompt": "다음 주어진 문장을 이용하여 「It ~ that」 강조구문으로 질문에 답하시오.",
+      "body": ["The boy buried his treasure in the garden three",
+               "days ago.",
+               "Q : When did he bury his treasure in the garden?",
+               "A : __________________________________________."],
+      "answer": "It was three days ago that[when] he buried his treasure in the garden.",
+      "explanation": "언제 묻었는지 묻고 있으므로 It was와 that 사이에 three days ago를 넣어 강조 구문으로 쓴다."
+    },
+    {
+      "file": "[심화] 12.특수구문_체크체크.pdf", "number": 10,
+      "포인트": "so + 동사 + 주어",
+      "prompt": "다음 <보기>를 참고하여 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "body": ["<보기>",
+               "I’m very tall and my sister is tall, too.",
+               "→ I’m very tall and so is my sister.",
+               "Sujin studies Chinese and Mark studies Chinese,",
+               "too.",
+               "→ Sujin studies Chinese and ______ ______",
+               "______."],
+      "answer": "so does Mark",
+      "explanation": "긍정에 대한 동의는 「so + 동사 + 주어」의 형태로 쓴다. 이때 동사는 앞 문장의 동사에 따라 be동사, 조동사를 쓰거나 일반동사인 경우 do/does/did를 사용한다."
+    },
+    {
+      "file": "[심화] 12.특수구문_체크체크.pdf", "number": 12,
+      "포인트": "so + 동사 + 주어",
+      "prompt": "다음 <보기>와 같은 문장을 바꿔 쓸 때, 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "body": ["<보기>",
+               "I’m very tall and my sister is tall, too",
+               "→ I’m very tall and so is my sister.",
+               "I want to try some Thai food and my brother",
+               "wants to try Thai food, too.",
+               "→ I want to try some Thai food and _______",
+               "_______ _______ _______."],
+      "answer": "so does my brother",
+      "explanation": "긍정에 대한 동의는 「so + 동사 + 주어」의 형태로 쓴다. 앞 문장의 동사가 일반동사이고 주어가 3인칭 단수이므로 does를 쓴다."
+    },
+    {
+      "file": "[심화] 12.특수구문_체크체크.pdf", "number": 13,
+      "포인트": "neither + 동사 + 주어",
+      "prompt": "다음 대화의 밑줄 친 부분과 의미가 같도록 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "body": ["A: I have never eaten such a spicy dish.",
+               "B: [[I haven’t eaten such a spicy dish, either]]."],
+      "answer": "Neither have I",
+      "explanation": "부정에 대한 동의(not ~ either)를 나타낼 때 「neither + 동사 + 주어」의 형태를 사용한다."
+    }
+  ]
+}

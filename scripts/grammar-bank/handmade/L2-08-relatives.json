@@ -1,0 +1,109 @@
+{
+  "_설명": "기본 8과 관계사 — 주격·목적격·소유격 관계대명사, 관계부사. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 8.관계사_종합문제(2회).pdf", "number": 8,
+      "포인트": "소유 관계는 whose",
+      "prompt": "다음 두 문장을 관계사를 이용하여 한 문장으로 완성하시오.",
+      "body": ["Do you like the bag?",
+               "Its straps are long and colorful.",
+               "→ Do you like the bag ____________________?"],
+      "answer": "whose straps are long and colorful",
+      "explanation": "두 번째 문장의 Its는 첫 번째 문장의 the bag을 가리키는 소유격이므로 소유격 관계대명사 whose를 이용하여 한 문장으로 연결할 수 있다."
+    },
+    {
+      "file": "[기본] 8.관계사_종합문제(2회).pdf", "number": 30,
+      "포인트": "시간을 나타내는 관계부사 when",
+      "prompt": "빈칸에 적절한 관계부사를 쓰시오.",
+      "body": ["I cannot forget the morning _____ I first saw",
+               "the sea."],
+      "answer": "when",
+      "explanation": "선행사 the morning이 시간을 나타내고 뒤에 완전한 절이 오므로 관계부사 when이 알맞다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf", "number": 1,
+      "포인트": "주격 관계대명사 뒤의 동사는 선행사에 맞춘다",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["I saw three girls who was waiting at the bus",
+               "stop."],
+      "answer": "was → were",
+      "explanation": "주격 관계대명사 뒤의 동사는 선행사의 수에 일치시켜야 한다. 선행사(three girls)가 복수이므로 동사도 복수형인 were로 고쳐야 한다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf", "number": 3,
+      "포인트": "목적격 관계대명사",
+      "prompt": "다음 두 문장을 관계사를 이용하여 한 문장으로 쓰시오.",
+      "body": ["The movie was boring.",
+               "We watched it last weekend.",
+               "→ ___________________________________________."],
+      "answer": "The movie which[that] we watched last weekend was boring.",
+      "explanation": "선행사 the movie 뒤에 관계대명사절이 위치하도록 쓴다. 목적어인 it이 관계대명사가 되었으므로 관계대명사절에서는 it을 생략한다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf", "number": 4,
+      "포인트": "소유격 관계대명사 whose",
+      "prompt": "다음 빈칸에 들어갈 알맞은 관계사를 쓰시오.",
+      "body": ["Ms. Park teaches children _________ first",
+               "language is not English."],
+      "answer": "whose",
+      "explanation": "선행사 children과 first language가 소유 관계이므로 소유격 관계대명사 whose가 알맞다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf", "number": 6,
+      "포인트": "선행사 + 목적격 관계대명사 + 주어 + 동사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["이것이 내가 모은 정보 전부야.",
+               "(I, that, the information, collected)",
+               "→ This is all ____________________________."],
+      "answer": "the information that I collected",
+      "explanation": "「선행사 + 목적격 관계대명사 + 주어 + 동사」의 순서가 알맞다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf", "number": 7,
+      "포인트": "주격 관계대명사 who",
+      "prompt": "다음 두 문장을 관계대명사를 사용하여 한 문장으로 만드시오.",
+      "body": ["▪ The writer visited our school.",
+               "▪ He wrote many books for children.",
+               "→ ___________________________________________."],
+      "answer": "The writer who wrote many books for children visited our school.",
+      "explanation": "the writer와 he가 같은 인물이므로 주격 관계대명사 who를 사용해서 두 문장을 연결할 수 있다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf", "number": 8,
+      "포인트": "주격 관계대명사 who",
+      "prompt": "다음 두 문장을 관계대명사를 사용하여 한 문장으로 고쳐 쓰시오.",
+      "body": ["Mina is a kind friend.",
+               "She always helps others.",
+               "→ ___________________________________________."],
+      "answer": "Mina is a kind friend who always helps others.",
+      "explanation": "friend와 she가 동일 인물이므로 주격 관계대명사 who를 사용하여 두 문장을 하나로 이을 수 있다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf", "number": 16,
+      "포인트": "복수 선행사와 주격 관계대명사",
+      "prompt": "다음 두 문장을 관계대명사를 이용하여 하나의 문장으로 만드시오.",
+      "body": ["She has three cousins. They are cheerful.",
+               "→ ___________________________________________."],
+      "answer": "She has three cousins who are cheerful.",
+      "explanation": "선행사 three cousins를 받는 주격 관계대명사 who를 사용하여 연결하며, 선행사가 복수이므로 동사는 are를 쓴다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf", "number": 17,
+      "포인트": "관계사절 뒤에 주어를 다시 쓰지 않는다",
+      "prompt": "주어진 문장의 오류를 찾아 수정하여 문장을 쓰시오.",
+      "body": ["Students who have studied abroad they",
+               "understand other cultures well."],
+      "answer": "Students who have studied abroad understand other cultures well.",
+      "explanation": "관계사절이 끝난 뒤에 주어를 대신하는 대명사 they를 다시 쓰면 안 된다."
+    },
+    {
+      "file": "[기본] 8.관계사_체크체크.pdf", "number": 19,
+      "포인트": "소유 관계에는 whose",
+      "prompt": "주어진 문장의 오류를 찾아 수정하여 문장을 쓰시오.",
+      "body": ["The only teacher which name I remember is",
+               "Ms. Lee."],
+      "answer": "The only teacher whose name I remember is Ms. Lee.",
+      "explanation": "선행사 teacher와 name이 소유 관계이므로 which가 아니라 소유격 관계대명사 whose를 써야 한다."
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { filterNavItems } from "@/lib/academy-features";
+import { isGrammarBankOpen } from "@/lib/grammar-bank/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
   { href: "/teacher/listening", label: "듣기학습", group: "학습" },
   { href: "/teacher/question-generator", label: "변형문제", group: "학습" },
   { href: "/teacher/lesson-materials", label: "수업자료", group: "학습" },
+  { href: "/teacher/grammar", label: "문법 문제 은행", group: "학습" },
   { href: "/teacher/classes", label: "반 관리", group: "수업 운영" },
   { href: "/teacher/students", label: "학생 관리", group: "수업 운영" },
   { href: "/teacher/progress", label: "수강 현황", group: "수업 운영" },
@@ -41,8 +43,14 @@ export default async function TeacherLayout({
     redirect("/login?inactive=1");
   }
 
+  // 문법 문제 은행은 열어 준 학원에서만 메뉴에 둔다.
+  const grammarOpen = await isGrammarBankOpen(profile.academy_id);
+  const navItems = grammarOpen
+    ? NAV_ITEMS
+    : NAV_ITEMS.filter((item) => item.href !== "/teacher/grammar");
+
   return (
-    <DashboardLayout profile={profile} navItems={filterNavItems(NAV_ITEMS)}>
+    <DashboardLayout profile={profile} navItems={filterNavItems(navItems)}>
       <LowCreditBanner academyId={profile.academy_id} canCharge={false} />
       <CreditWall academyId={profile.academy_id} canCharge={false} />
       <CreditConfirmHost chargeHref="/admin/credits/charge" />

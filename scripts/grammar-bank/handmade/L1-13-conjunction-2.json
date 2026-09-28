@@ -1,0 +1,224 @@
+{
+  "_설명": "기초 13과 접속사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기초] 13.접속사_종합문제(1회).pdf", "number": 2,
+      "포인트": "때를 나타내는 when",
+      "prompt": "다음 빈칸에 들어갈 말로 가장 적절한 것은?",
+      "body": ["I was tired ___________ I got home."],
+      "choices": ["how", "what", "that", "when", "where"],
+      "answer": "④",
+      "explanation": "‘~할 때’라는 때를 나타내는 접속사 when이 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(1회).pdf", "number": 16,
+      "포인트": "이유를 나타내는 Because",
+      "prompt": "다음 빈칸에 들어갈 것은?",
+      "body": ["A: Why can’t we swim here?",
+               "B: ______________ the water is too deep."],
+      "choices": ["Because", "So", "But", "And", "That‘s why"],
+      "answer": "①",
+      "explanation": "Why로 물었으므로 이유를 나타내는 Because로 답한다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(1회).pdf", "number": 20,
+      "포인트": "Before가 이끄는 절과 주절의 시제",
+      "prompt": "다음 문장을 올바르게 영작한 것은?",
+      "body": ["“나는 잠자리에 들기 전에 이를 닦았다.”"],
+      "choices": ["I go to bed and brush my teeth.",
+                  "Teeth are brushed when I go to bed.",
+                  "After I go to bed, I brushed my teeth.",
+                  "When I go to bed, I brush my teeth.",
+                  "Before I go to bed, I brushed my teeth."],
+      "answer": "⑤",
+      "explanation": "‘~하기 전에’는 Before로 나타낸다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(1회).pdf", "number": 24,
+      "포인트": "after로 앞뒤 순서 바꾸기",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때 빈 칸에 가장 알맞은 것은?",
+      "body": ["She skipped lunch. And then she felt very hungry.",
+               "→ She felt very hungry ________ she skipped",
+               "lunch."],
+      "choices": ["after", "while", "when", "until", "before"],
+      "answer": "①",
+      "explanation": "점심을 건너뛴 다음에 배가 고팠으므로 ‘~한 뒤에’라는 뜻의 after가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(1회).pdf", "number": 25,
+      "포인트": "때를 나타내는 when",
+      "prompt": "다음 문장의 빈칸에 알맞은 접속사를 고르시오.",
+      "body": ["Wear a helmet ________ you ride a bike.",
+               "→ 자전거를 탈 때는 헬멧을 쓰세요."],
+      "choices": ["when", "because", "so", "and", "but"],
+      "answer": "①",
+      "explanation": "‘~할 때’라는 뜻이므로 when이 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(1회).pdf", "number": 30,
+      "포인트": "Before절과 어울리는 내용",
+      "prompt": "빈 칸에 어울리지 않는 것은?",
+      "body": ["Before I leave home, ____________________________."],
+      "choices": ["I lock the door", "I check the weather", "I pack my bag",
+                  "I turn off the lights", "I come back late at night"],
+      "answer": "⑤",
+      "explanation": "집을 나서기 전에 하는 일이어야 하므로 밤늦게 돌아온다는 말은 어울리지 않는다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(2회).pdf", "number": 7,
+      "포인트": "역접을 나타내는 but",
+      "prompt": "다음 문장의 빈칸에 공통으로 들어갈 알맞은 말을 고르세요.",
+      "body": ["∙Hana likes summer, _______ Duna likes winter.",
+               "∙Hana likes cats, _______ Duna loves dogs.",
+               "∙Hana likes green tea, ________ Duna likes",
+               "milk tea."],
+      "choices": ["and", "too", "or", "but", "so"],
+      "answer": "④",
+      "explanation": "두 사람의 취향이 서로 반대이므로 역접의 but이 공통으로 들어간다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(2회).pdf", "number": 9,
+      "포인트": "because와 so로 원인·결과 뒤집기",
+      "prompt": "다음 두 문장의 내용이 같도록 빈칸에 들어갈 말이 바르게 짝지어진 것은?",
+      "body": ["He wants to be a pilot ________ he wants to fly",
+               "around the world.",
+               "= He wants to fly around the world, ________ he",
+               "wants to be a pilot."],
+      "choices": ["because - so", "and - because", "because - but",
+                  "but - so", "and - but"],
+      "answer": "①",
+      "explanation": "앞 문장은 뒤에 이유가 오므로 because, 뒤 문장은 앞이 이유이므로 so를 쓴다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(2회).pdf", "number": 12,
+      "포인트": "역접을 나타내는 but",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것을 고르시오.",
+      "body": ["나는 그 노래를 알지만 제목은 알지 못한다."],
+      "choices": ["I know the song and I don’t know its title.",
+                  "I know the song so I don’t know its title.",
+                  "I know the song or I don’t know its title.",
+                  "I know the song but I don’t know its title.",
+                  "I know the song because I don’t know its title."],
+      "answer": "④",
+      "explanation": "앞뒤 내용이 서로 반대되므로 but으로 연결한다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(2회).pdf", "number": 15,
+      "포인트": "and로 같은 갈래의 말을 잇기",
+      "prompt": "다음 대화의 빈칸에 들어갈 수 있는 것을 고르세요.",
+      "body": ["I have a headache and _____."],
+      "choices": ["healthy", "very sick", "a high fever",
+                  "happy", "go to the clinic"],
+      "answer": "③",
+      "explanation": "and는 같은 갈래의 말을 이으므로 앞의 a headache와 짝이 되는 명사구가 와야 한다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(1회).pdf", "number": 3,
+      "포인트": "나열을 나타내는 and",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["We should bring water, snacks _______ towels."],
+      "choices": ["so", "and", "but", "that", "after"],
+      "answer": "②",
+      "explanation": "여러 개를 나란히 들 때 마지막 앞에 and를 쓴다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(1회).pdf", "number": 4,
+      "포인트": "역접을 나타내는 but",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["I thought the test was easy _______ it was not."],
+      "choices": ["or", "so", "but", "that", "because"],
+      "answer": "③",
+      "explanation": "앞뒤 내용이 서로 반대되므로 but이 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(1회).pdf", "number": 5,
+      "포인트": "선택을 나타내는 or",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Did you forget your key ______ lose it?"],
+      "choices": ["or", "and", "but", "when", "because"],
+      "answer": "①",
+      "explanation": "둘 중 어느 쪽인지 묻고 있으므로 or가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(1회).pdf", "number": 9,
+      "포인트": "결과를 나타내는 so",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["He skips breakfast, ______ he feels tired in",
+               "class."],
+      "choices": ["if", "so", "that", "before", "because"],
+      "answer": "②",
+      "explanation": "아침을 건너뛴 결과 수업 시간에 피곤한 것이므로 so가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(1회).pdf", "number": 18,
+      "포인트": "결과를 나타내는 so",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["She reads every night _____ she knows many words."],
+      "choices": ["and", "so", "or", "when", "but"],
+      "answer": "②",
+      "explanation": "매일 읽은 결과 아는 낱말이 많은 것이므로 so가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(2회).pdf", "number": 1,
+      "포인트": "때를 나타내는 When",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["_____ he heard the good news, he smiled."],
+      "choices": ["And", "So", "Or", "When", "But"],
+      "answer": "④",
+      "explanation": "‘~할 때’라는 뜻이므로 When이 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(2회).pdf", "number": 3,
+      "포인트": "because ↔ so 바꿔 쓰기",
+      "prompt": "두 문장의 의미가 같도록 할 때 빈칸에 알맞은것은?",
+      "body": ["I took a taxi because the bus was late.",
+               "= The bus was late ______ I took a taxi."],
+      "choices": ["and", "but", "so", "when", "because"],
+      "answer": "③",
+      "explanation": "이유를 앞으로 보냈으므로 뒤에는 결과를 이끄는 so를 쓴다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(2회).pdf", "number": 8,
+      "포인트": "예를 들 때 쓰는 For example",
+      "prompt": "다음 문장의 빈칸에 알맞은 접속사는?",
+      "body": ["We play many kinds of sports. _______, we play",
+               "soccer, tennis, and badminton.",
+               "우리는 많은 종류의 운동을 한다. 예를 들어, 축구, 테니스,",
+               "배드민턴을 한다."],
+      "choices": ["Above all", "At last", "For example", "However", "Though"],
+      "answer": "③",
+      "explanation": "‘예를 들어’라는 뜻은 For example이다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(2회).pdf", "number": 10,
+      "포인트": "선택을 나타내는 or",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["You should drink water _____ have some juice."],
+      "choices": ["but", "so", "or", "because", "when"],
+      "answer": "③",
+      "explanation": "둘 중 하나를 고르라는 뜻이므로 or가 알맞다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(2회).pdf", "number": 13,
+      "포인트": "이유를 나타내는 because",
+      "prompt": "다음 주어진 두 문장을 하나로 만들 때 빈칸에들어가기에 알맞은 것은?",
+      "body": ["I missed the bus. I woke up late.",
+               "→ I missed the bus ________ I woke up late."],
+      "choices": ["So", "or", "but", "because", "that"],
+      "answer": "④",
+      "explanation": "늦게 일어난 것이 버스를 놓친 이유이므로 because로 연결한다."
+    },
+    {
+      "file": "[기초] 13.접속사_확인문제(2회).pdf", "number": 20,
+      "포인트": "역접을 나타내는 but",
+      "prompt": "다음 대화의 빈칸에 가장 알맞은 것은?",
+      "body": ["A : What sport do you like most?",
+               "B : I like tennis.",
+               "A : Oh, I like tennis, too, _______ my favorite sport",
+               "is swimming."],
+      "choices": ["or", "so", "and", "but", "because"],
+      "answer": "④",
+      "explanation": "테니스도 좋아하지만 가장 좋아하는 것은 다르다는 뜻이므로 but이 알맞다."
+    }
+  ]
+}

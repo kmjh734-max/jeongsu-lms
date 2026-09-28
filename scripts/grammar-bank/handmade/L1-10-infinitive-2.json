@@ -1,0 +1,57 @@
+{
+  "_설명": "기초 10과 to부정사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기초] 10.to부정사_종합문제(1회).pdf", "number": 12,
+      "포인트": "목적격보어로 쓰이는 to부정사",
+      "prompt": "빈칸에 주어진 explain의 알맞은 형태는?",
+      "body": ["We asked the guide [[(explain)]] the rule."],
+      "choices": ["to explaining", "explain", "explaining",
+                  "to explain", "explained"],
+      "answer": "④",
+      "explanation": "ask는 목적격보어 자리에 to부정사를 쓰므로 to explain이 알맞다."
+    },
+    {
+      "file": "[기초] 10.to부정사_종합문제(1회).pdf", "number": 29,
+      "포인트": "to부정사를 목적어로 쓰는 동사",
+      "prompt": "괄호 안에 공통으로 들어갈 표현은?",
+      "body": ["I hope ( ) alone.",
+               "She decided ( ) alone."],
+      "choices": ["travel", "travels", "traveled", "traveling", "to travel"],
+      "answer": "⑤",
+      "explanation": "hope와 decide는 모두 to부정사를 목적어로 취한다."
+    },
+    {
+      "file": "[기초] 10.to부정사_확인문제(1회).pdf", "number": 6,
+      "포인트": "형용사적 용법과 부사적 용법 구별",
+      "prompt": "다음의 밑줄 친 부분의 쓰임이 나머지와 [[다른]]하나는?",
+      "body": [],
+      "choices": ["I need a friend [[to trust]].",
+                  "They want some water [[to drink]].",
+                  "She saved money [[to buy]] a laptop.",
+                  "Can I have something [[to wear]]?",
+                  "Do you have a book [[to lend]]?"],
+      "answer": "③",
+      "explanation": "③만 ‘~하기 위해서’라는 부사적 용법이고, 나머지는 앞의 명사를 꾸미는 형용사적 용법이다."
+    },
+    {
+      "file": "[기초] 10.to부정사_확인문제(1회).pdf", "number": 9,
+      "포인트": "목적을 나타내는 to부정사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Owen left early ________ the train."],
+      "choices": ["catches", "catching", "to catch", "to caught", "to catching"],
+      "answer": "③",
+      "explanation": "‘~하기 위해서’라는 목적을 나타내므로 「to + 동사원형」으로 쓴다."
+    },
+    {
+      "file": "[기초] 10.to부정사_확인문제(2회).pdf", "number": 1,
+      "포인트": "명사를 꾸미는 to부정사의 자리",
+      "prompt": "다음 중 to가 들어가기에 가장 적절한 곳은?",
+      "body": ["I have (ⓐ) many (ⓑ) letters (ⓒ) write (ⓓ) this (ⓔ)",
+               "evening."],
+      "choices": ["ⓐ", "ⓑ", "ⓒ", "ⓓ", "ⓔ"],
+      "answer": "③",
+      "explanation": "‘쓸 편지’라는 뜻이 되도록 명사 letters 뒤에 to write가 와야 한다."
+    }
+  ]
+}

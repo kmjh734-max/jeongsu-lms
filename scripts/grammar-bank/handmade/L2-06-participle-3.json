@@ -1,0 +1,120 @@
+{
+  "_설명": "기본 6과 분사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 6.분사_종합문제(1회).pdf", "number": 12,
+      "포인트": "감정을 느끼는 쪽은 과거분사",
+      "prompt": "다음 문장의 빈칸에 알맞은 것은?",
+      "body": ["Everybody was ______________ at the sound."],
+      "choices": ["to shocking", "to shocked", "shocked", "shock", "in shock"],
+      "answer": "③",
+      "explanation": "사람이 충격을 받은 것이므로 과거분사 shocked를 쓴다."
+    },
+    {
+      "file": "[기본] 6.분사_종합문제(1회).pdf", "number": 13,
+      "포인트": "현재분사와 과거분사의 구별",
+      "prompt": "어법상 옳은 문장을 [[모두]]고르시오. (정답 [[2개]])",
+      "body": [],
+      "choices": ["The news was surprised, wasn't it?",
+                  "We were shocking at the result.",
+                  "I was tiring because I ran too fast.",
+                  "Some students are interested in classical music.",
+                  "The lecture was boring, and everybody yawned."],
+      "answer": "④, ⑤",
+      "explanation": "사람이 느끼면 과거분사, 사물이 느끼게 하면 현재분사를 쓴다. ①②③은 surprising, shocked, tired로 고쳐야 한다."
+    },
+    {
+      "file": "[기본] 6.분사_종합문제(1회).pdf", "number": 20,
+      "포인트": "감정을 느끼는 쪽은 과거분사",
+      "prompt": "밑줄 친 곳에 들어갈 알맞은 것은?",
+      "body": ["I'm ____________________.", "나는 신이 나."],
+      "choices": ["exciting", "excited", "tiring", "shocked", "interesting"],
+      "answer": "②",
+      "explanation": "내가 신이 난 것이므로 과거분사 excited를 쓴다."
+    },
+    {
+      "file": "[기본] 6.분사_종합문제(1회).pdf", "number": 21,
+      "포인트": "현재분사와 동명사의 구별",
+      "prompt": "밑줄 친 낱말의 쓰임이 나머지와 같지 [[않은]]것은?",
+      "body": [],
+      "choices": ["The boy [[running]] in the park is my cousin.",
+                  "Look at the [[rising]] sun.",
+                  "Some children [[waiting]] at the gate waved at us.",
+                  "Solve the problems [[remaining]] below.",
+                  "I'm good at [[drawing]] animals."],
+      "answer": "⑤",
+      "explanation": "⑤는 전치사 뒤에 온 동명사이고, 나머지는 명사를 꾸미는 현재분사이다."
+    },
+    {
+      "file": "[기본] 6.분사_종합문제(2회).pdf", "number": 4,
+      "포인트": "명사를 꾸미는 현재분사와 과거분사",
+      "prompt": "밑줄 친 부분의 쓰임이 어법상 올바른 것은?",
+      "body": [],
+      "choices": ["We were [[boring]] by the speech.",
+                  "There lived a queen [[naming]] Sunduk.",
+                  "Who is the man [[stood]] by the gate?",
+                  "I like the boy [[singing]] in the choir.",
+                  "The girl [[played]] the flute is my sister."],
+      "answer": "④",
+      "explanation": "소년이 노래를 부르고 있으므로 현재분사 singing이 알맞다. 나머지는 bored, named, standing, playing으로 고쳐야 한다."
+    },
+    {
+      "file": "[기본] 6.분사_종합문제(2회).pdf", "number": 18,
+      "포인트": "사물을 설명할 때는 현재분사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["The new movie was really ________."],
+      "choices": ["funny", "boring", "a hit", "excited", "interesting"],
+      "answer": "④",
+      "explanation": "영화가 사람을 신나게 하는 것이므로 exciting으로 써야 한다."
+    },
+    {
+      "file": "[기본] 6.분사_확인문제(1회).pdf", "number": 14,
+      "포인트": "명사를 꾸미는 현재분사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["History is a very _________ subject."],
+      "choices": ["bore", "bores", "bored", "boring", "to bore"],
+      "answer": "④",
+      "explanation": "과목이 사람을 지루하게 하는 것이므로 현재분사 boring을 쓴다."
+    },
+    {
+      "file": "[기본] 6.분사_확인문제(2회).pdf", "number": 1,
+      "포인트": "현재분사와 과거분사의 구별",
+      "prompt": "자연스러운 문장이 되도록 (A), (B)의 단어를 적절하게 활용한 것은?",
+      "body": ["It was a really (A)[[amaze]] performance. Everyone was",
+               "(B)[[excite]] by what they saw.",
+               "(A) (B) (A) (B)"],
+      "choices": ["amaze - excite", "amazed - excited", "amazing - excited",
+                  "amazed - exciting", "amazing - exciting"],
+      "answer": "③",
+      "explanation": "공연이 놀라게 하는 것이므로 amazing, 사람이 신이 난 것이므로 excited로 쓴다."
+    },
+    {
+      "file": "[기본] 6.분사_확인문제(2회).pdf", "number": 5,
+      "포인트": "명사를 뒤에서 꾸미는 과거분사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것은?",
+      "body": ["They're listening to the song __________ in",
+               "Italian."],
+      "choices": ["sing", "singed", "sang", "sung", "to sing"],
+      "answer": "④",
+      "explanation": "노래가 불리는 것이므로 과거분사 sung으로 쓴다."
+    },
+    {
+      "file": "[기본] 6.분사_확인문제(2회).pdf", "number": 9,
+      "포인트": "명사를 뒤에서 꾸미는 과거분사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["The poem _______ by Emily won the prize."],
+      "choices": ["writes", "wrote", "to write", "writing", "written"],
+      "answer": "⑤",
+      "explanation": "시가 쓰인 것이므로 과거분사 written으로 꾸민다."
+    },
+    {
+      "file": "[기본] 6.분사_확인문제(2회).pdf", "number": 11,
+      "포인트": "사물을 설명할 때는 현재분사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["Owen thinks horror films are _______."],
+      "choices": ["scary", "exciting", "amazing", "strange", "frightened"],
+      "answer": "⑤",
+      "explanation": "영화가 사람을 무섭게 하는 것이므로 frightening으로 써야 한다."
+    }
+  ]
+}

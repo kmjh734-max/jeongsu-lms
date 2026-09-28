@@ -1,0 +1,225 @@
+{
+  "_설명": "천일문 3권 워크북 Chapter 06 분사의 Chapter Test를 변형한 것. 심화 10과 분사구문 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 6,
+  "chapter": "분사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 10, "chapter": "분사구문" },
+  "points": [
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 1, "point": "현재분사(-ing): 능동·진행", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 2, "point": "과거분사(p.p.): 수동·완료", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 3, "point": "분사가 명사를 앞·뒤에서 꾸밈", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 4, "point": "감정을 나타내는 분사", "frequent": true },
+    { "unit_no": 1, "unit": "분사의 쓰임", "point_no": 5, "point": "목적격보어로 쓰이는 분사(have/get+목적어+p.p.)", "frequent": true },
+    { "unit_no": 2, "unit": "분사구문", "point_no": 6, "point": "분사구문 만드는 법", "frequent": true },
+    { "unit_no": 2, "unit": "분사구문", "point_no": 7, "point": "분사구문의 부정: Not+분사", "frequent": true },
+    { "unit_no": 2, "unit": "분사구문", "point_no": 8, "point": "with+명사+분사: ~한 채로", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1, 5], "point_label": "지각동사의 목적격보어로 쓰이는 현재분사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Mina felt the ground ________ during the earthquake."],
+      "choices": [
+        { "no": 1, "text": "shakes" },
+        { "no": 2, "text": "shook" },
+        { "no": 3, "text": "shaking" },
+        { "no": 4, "text": "to shake" },
+        { "no": 5, "text": "shaken" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [2, 3], "point_label": "명사를 앞에서 꾸미는 과거분사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["He found his ________ keys behind the sofa."],
+      "choices": [
+        { "no": 1, "text": "lose" },
+        { "no": 2, "text": "losing" },
+        { "no": 3, "text": "being lost" },
+        { "no": 4, "text": "lost" },
+        { "no": 5, "text": "to lose" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [3, 4, 8], "point_label": "with+명사+분사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "This manual is [[confusing]]." },
+        { "no": 2, "text": "The fish [[caught]] this morning was fresh." },
+        { "no": 3, "text": "Tom sat with his arms [[folding]]." },
+        { "no": 4, "text": "She saw her dad [[washing]] the car." },
+        { "no": 5, "text": "A girl [[holding]] a puppy waved at us." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [6], "point_label": "능동의 분사구문",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "주어진 문장을 분사구문을 사용하여 바꿔 쓸 때, 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "When we left the village at dawn, we felt so sad.",
+        "→ ________, we felt so sad."
+      ],
+      "choices": [
+        { "no": 1, "text": "Left the village at dawn" },
+        { "no": 2, "text": "Leaving the village at dawn" },
+        { "no": 3, "text": "We left the village at dawn" },
+        { "no": 4, "text": "We leaving the village at dawn" },
+        { "no": 5, "text": "Being leaving the village at dawn" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [6], "point_label": "수동의 분사구문: Being+p.p.",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "주어진 문장을 분사구문을 사용하여 바꿔 쓸 때, 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "Because the tablet was sold at a low price, it ran out quickly.",
+        "→ ________, the tablet ran out quickly."
+      ],
+      "choices": [
+        { "no": 1, "text": "Sell at a low price" },
+        { "no": 2, "text": "Selling at a low price" },
+        { "no": 3, "text": "Being sell at a low price" },
+        { "no": 4, "text": "Being sold at a low price" },
+        { "no": 5, "text": "Being selling at a low price" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [4], "point_label": "감정을 느끼면 p.p.",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 단어를 빈칸에 어법상 알맞은 형태로 쓰세요.",
+      "body": ["The concert was canceled because of the typhoon. Sora was ________ by the news. (disappoint)"],
+      "choices": [],
+      "answer": "disappointed"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [4], "point_label": "감정을 일으키면 -ing",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 단어를 빈칸에 어법상 알맞은 형태로 쓰세요.",
+      "body": ["We stayed at a cabin in the mountains. The view from the window was really ________. (satisfy)"],
+      "choices": [],
+      "answer": "satisfying"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [1, 4], "point_label": "지각동사의 목적격보어와 감정 분사",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "A: Mina, did you hear someone ____(A)____ upstairs?",
+        "B: Yes, I did. I was so ____(B)____! Who was that?"
+      ],
+      "choices": [
+        { "no": 1, "text": "shouted — surprised" },
+        { "no": 2, "text": "shouted — surprising" },
+        { "no": 3, "text": "shouting — surprising" },
+        { "no": 4, "text": "shouting — surprised" },
+        { "no": 5, "text": "shouted — surprise" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [2, 3], "point_label": "명사를 뒤에서 꾸미는 과거분사구",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": [
+        "유명한 사진작가들에 의해 찍힌 사진들이 여기에 전시되어 있다.",
+        "→ ________ are displayed here."
+      ],
+      "choices": [
+        { "no": 1, "text": "Taken by famous photographers the photos" },
+        { "no": 2, "text": "Taken the photos by famous photographers" },
+        { "no": 3, "text": "Taking the photos by famous photographers" },
+        { "no": 4, "text": "The photos taken by famous photographers" },
+        { "no": 5, "text": "The photos taking by famous photographers" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [7], "point_label": "분사구문의 부정은 Not+분사",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": [
+        "내 문자에 답하지 않아서, 지호는 나를 걱정하게 했다.",
+        "→ ________, Jiho made me worried."
+      ],
+      "choices": [
+        { "no": 1, "text": "Not reply to my text" },
+        { "no": 2, "text": "Not replied to my text" },
+        { "no": 3, "text": "Not replying to my text" },
+        { "no": 4, "text": "Replied not to my text" },
+        { "no": 5, "text": "Replying not to my text" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [2, 3], "point_label": "명사를 앞에서 꾸미는 과거분사",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "훈련받은 말들이 관광객들과 함께 해변을 걷고 있다. (train, the, horses)",
+        "→ ________________ are walking along the beach with tourists."
+      ],
+      "choices": [],
+      "answer": "The trained horses"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [1, 3], "point_label": "명사를 뒤에서 꾸미는 현재분사구",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "터널을 지나가는 그 기차는 매우 길고 빠르게 움직인다. (pass, through, the tunnel, the train)",
+        "→ ________________ is very long and moves fast."
+      ],
+      "choices": [],
+      "answer": "The train passing through the tunnel"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [6], "point_label": "접속사를 생략한 능동 분사구문",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장을 분사구문으로 바꿔 쓰세요. (단, 접속사는 생략할 것)",
+      "body": ["When they finished the race, they shook hands with each other.", "→ ________________."],
+      "choices": [],
+      "answer": "Finishing the race, they shook hands with each other"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [6], "point_label": "수동 분사구문의 Being은 생략할 수 있다",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장을 분사구문으로 바꿔 쓰세요. (단, 접속사는 생략할 것)",
+      "body": ["Because the room is aired every morning, the room stays fresh all day.", "→ ________________."],
+      "choices": [],
+      "answer": "(Being) Aired every morning, the room stays fresh all day"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [2, 3, 6, 8], "point_label": "분사와 분사구문의 형태 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Sora bought some using notebooks to write in." },
+        { "no": 2, "text": "When traveling, I used to keep a diary." },
+        { "no": 3, "text": "Jiho fell asleep with the TV turned on." },
+        { "no": 4, "text": "Heard the thunder, the dog hid under the table." },
+        { "no": 5, "text": "Not knowing what to say, I asked Mina to answer." }
+      ],
+      "answer": "①, ④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 16, "point_nos": [2, 6], "point_label": "After+분사구문은 능동이면 -ing",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 밑줄 친 부분 중 어법상 알맞지 않은 것을 찾아 그 기호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": [
+        "Yesterday, Minji visited the bookstore ⓐ [[located]] next to the post office. She wanted to buy books ⓑ [[written]] about European art. After ⓒ [[chosen]] two books, she went to the counter. However, there were many people ⓓ [[waiting]] in line. The long wait tired her, so she became very ⓔ [[annoyed]].",
+        "→ ________ , ________"
+      ],
+      "choices": [],
+      "answer": "ⓒ, choosing"
+    }
+  ]
+}

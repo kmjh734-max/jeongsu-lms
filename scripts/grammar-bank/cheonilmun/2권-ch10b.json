@@ -1,0 +1,96 @@
+{
+  "_설명": "천일문 2권 Chapter 10 비교 표현 Chapter Test 뒷장(15~20번)에서 가져와 변형한 문항. 기본 11과 비교구문 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 10,
+  "chapter": "비교 표현",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 11, "chapter": "비교구문" },
+  "points": [
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 6, "point": "the+최상급+in[of] ~", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 7, "point": "as+원급+as possible: 가능한 한 ~하게", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 8, "point": "The 비교급 ~, the 비교급 …: ~할수록 더 …하다", "frequent": true },
+    { "unit_no": 2, "unit": "최상급과 주요 구문", "point_no": 9, "point": "배수사+as+원급+as: ~보다 몇 배 더 …한", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [7, 8, 9], "point_label": "비교 주요 구문의 형태",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Call me as soon you can." },
+        { "no": 2, "text": "The sooner we start, the good the result will be." },
+        { "no": 3, "text": "The weather is getting colder and colder." },
+        { "no": 4, "text": "That bakery sells as twice many cakes as this one." },
+        { "no": 5, "text": "The harder you practice, the fastest you will run." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 16, "point_nos": [6], "point_label": "the+최상급+of ~",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["겨울은 사계절 중에서 밤이 가장 길다."],
+      "choices": [
+        { "no": 1, "text": "Winter has longest night of the four seasons." },
+        { "no": 2, "text": "Winter has the longer night of the four seasons." },
+        { "no": 3, "text": "Winter has the longest night of the four seasons." },
+        { "no": 4, "text": "Winter has longer night of the four seasons." },
+        { "no": 5, "text": "Winter has the shortest night of the four seasons." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 17, "point_nos": [9], "point_label": "배수사+as+원급+as",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["새 운동장은 예전 운동장보다 세 배 정도 더 넓다."],
+      "choices": [
+        { "no": 1, "text": "The new playground is about as three times wide as the old one." },
+        { "no": 2, "text": "The new playground is about three times wider as the old one." },
+        { "no": 3, "text": "The new playground is about three times as wider as the old one." },
+        { "no": 4, "text": "The new playground is about three times as wide as the old one." },
+        { "no": 5, "text": "The new playground is about as wide three times as the old one." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [6], "point_label": "one of the+최상급+복수명사",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["그는 세상에서 가장 유명한 화가 중 한 명이다."],
+      "choices": [
+        { "no": 1, "text": "He is one of famous painters in the world." },
+        { "no": 2, "text": "He is one of the most famous painters in the world." },
+        { "no": 3, "text": "He is one of most famous painter in the world." },
+        { "no": 4, "text": "He is one of the most famous painter in the world." },
+        { "no": 5, "text": "He is one of most famous painters in the world." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [6], "point_label": "one of the+최상급 뒤에는 복수명사",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "She is [[the tallest player]] on the team." },
+        { "no": 2, "text": "Time is [[the most valuable thing]] in life." },
+        { "no": 3, "text": "It is [[one of the oldest building]] in the city." },
+        { "no": 4, "text": "January is [[the coldest month]] of the year." },
+        { "no": 5, "text": "Leo is [[one of the kindest boys]] in my class." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 20, "point_nos": [6], "point_label": "최상급 앞의 the와 복수명사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 중 어법상 알맞지 않은 부분 두 군데를 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "The Sahara Marathon is one of the hardest race in the world. The runners cross 250 kilometers in hottest desert on the Earth. They carry their own food and water.",
+        "(1) ________ → ________   (2) ________ → ________"
+      ],
+      "choices": [],
+      "answer": "(1) race → races  (2) hottest → the hottest"
+    }
+  ]
+}

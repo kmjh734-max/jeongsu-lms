@@ -1,0 +1,1419 @@
+{
+  "_설명": "천일문 중등 GRAMMAR 1권 Chapter 01 be동사에서 가져와 변형한 문항. 은행에서는 기초 1과 be동사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "level": 1,
+  "level_name": "천일문 1권",
+  "chapter_no": 1,
+  "chapter": "be동사",
+  "points": [
+    {
+      "unit_no": 1,
+      "unit": "be동사의 긍정문",
+      "point_no": 1,
+      "point": "주어에 따라 변하는 be동사",
+      "frequent": false
+    },
+    {
+      "unit_no": 1,
+      "unit": "be동사의 긍정문",
+      "point_no": 2,
+      "point": "단수 주어+is, 복수 주어+are",
+      "frequent": true
+    },
+    {
+      "unit_no": 1,
+      "unit": "be동사의 긍정문",
+      "point_no": 3,
+      "point": "주어+be동사: 주어는 ~이다/~하다/(~에) 있다",
+      "frequent": false
+    },
+    {
+      "unit_no": 1,
+      "unit": "be동사의 긍정문",
+      "point_no": 4,
+      "point": "am/is → was(과거), are → were(과거)",
+      "frequent": false
+    },
+    {
+      "unit_no": 2,
+      "unit": "be동사의 부정문과 의문문",
+      "point_no": 5,
+      "point": "be동사 부정문 = be동사+not",
+      "frequent": false
+    },
+    {
+      "unit_no": 2,
+      "unit": "be동사의 부정문과 의문문",
+      "point_no": 6,
+      "point": "be동사 의문문 = be동사+주어 ~?",
+      "frequent": false
+    }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제",
+      "number": 1,
+      "unit_no": null,
+      "point_nos": [
+        1,
+        2
+      ],
+      "point_label": "주어에 따라 변하는 be동사",
+      "question_kind": "빈칸 고르기",
+      "difficulty": "하",
+      "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "Mina ______ in the kitchen now."
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "is"
+        },
+        {
+          "no": 2,
+          "text": "am"
+        },
+        {
+          "no": 3,
+          "text": "are"
+        },
+        {
+          "no": 4,
+          "text": "was"
+        },
+        {
+          "no": 5,
+          "text": "were"
+        }
+      ],
+      "answer": "①",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 2,
+      "unit_no": null,
+      "point_nos": [
+        4,
+        6
+      ],
+      "point_label": "be동사 과거형 · 의문문",
+      "question_kind": "빈칸 고르기",
+      "difficulty": "중",
+      "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "______ you and Brian at the library last Friday?"
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "Is"
+        },
+        {
+          "no": 2,
+          "text": "Am"
+        },
+        {
+          "no": 3,
+          "text": "Are"
+        },
+        {
+          "no": 4,
+          "text": "Was"
+        },
+        {
+          "no": 5,
+          "text": "Were"
+        }
+      ],
+      "answer": "⑤",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 3,
+      "unit_no": null,
+      "point_nos": [
+        4,
+        5
+      ],
+      "point_label": "be동사 과거 부정문",
+      "question_kind": "빈칸 고르기",
+      "difficulty": "중",
+      "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "Last night, I ______ at the gym all evening."
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "am not"
+        },
+        {
+          "no": 2,
+          "text": "amn’t"
+        },
+        {
+          "no": 3,
+          "text": "isn’t"
+        },
+        {
+          "no": 4,
+          "text": "wasn’t"
+        },
+        {
+          "no": 5,
+          "text": "weren’t"
+        }
+      ],
+      "answer": "④",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 4,
+      "unit_no": null,
+      "point_nos": [
+        1,
+        2,
+        5
+      ],
+      "point_label": "단수 주어+is, 복수 주어+are",
+      "question_kind": "어법 판단",
+      "difficulty": "중",
+      "badges": [
+        "빈출"
+      ],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "We’re in the library."
+        },
+        {
+          "no": 2,
+          "text": "Kevin and I am classmates."
+        },
+        {
+          "no": 3,
+          "text": "My favorite subject is science."
+        },
+        {
+          "no": 4,
+          "text": "He’s not in the garden."
+        },
+        {
+          "no": 5,
+          "text": "I am not a middle school student."
+        }
+      ],
+      "answer": "②",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 5,
+      "unit_no": null,
+      "point_nos": [
+        4,
+        6
+      ],
+      "point_label": "과거를 나타내는 말과 be동사",
+      "question_kind": "어법 판단",
+      "difficulty": "중",
+      "badges": [
+        "빈출"
+      ],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "Is your father a pilot?"
+        },
+        {
+          "no": 2,
+          "text": "I was really tired last night."
+        },
+        {
+          "no": 3,
+          "text": "My phone isn’t on the desk."
+        },
+        {
+          "no": 4,
+          "text": "They weren’t at the theater last Friday."
+        },
+        {
+          "no": 5,
+          "text": "Are Suji and Daniel in Canada last winter?"
+        }
+      ],
+      "answer": "⑤",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 6,
+      "unit_no": null,
+      "point_nos": [
+        2,
+        6
+      ],
+      "point_label": "be동사 의문문 = be동사+주어 ~?",
+      "question_kind": "다른 하나 고르기",
+      "difficulty": "중",
+      "badges": [
+        "빈출"
+      ],
+      "prompt": "다음 중 빈칸에 들어갈 단어가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "______ he late for the class?"
+        },
+        {
+          "no": 2,
+          "text": "______ Ms. Park a designer?"
+        },
+        {
+          "no": 3,
+          "text": "______ your umbrella in the car?"
+        },
+        {
+          "no": 4,
+          "text": "______ an eraser in the pencil case?"
+        },
+        {
+          "no": 5,
+          "text": "______ the cookies sweet?"
+        }
+      ],
+      "answer": "⑤",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 7,
+      "unit_no": null,
+      "point_nos": [
+        4
+      ],
+      "point_label": "am/is → was, are → were",
+      "question_kind": "다른 하나 고르기",
+      "difficulty": "중",
+      "badges": [
+        "빈출"
+      ],
+      "prompt": "다음 중 빈칸에 들어갈 단어가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "My brother ______ busy last weekend."
+        },
+        {
+          "no": 2,
+          "text": "The players ______ in Jeju last summer."
+        },
+        {
+          "no": 3,
+          "text": "She ______ a shy girl 5 years ago."
+        },
+        {
+          "no": 4,
+          "text": "The concert ______ wonderful last night."
+        },
+        {
+          "no": 5,
+          "text": "I ______ a new student last March."
+        }
+      ],
+      "answer": "②",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 8,
+      "unit_no": null,
+      "point_nos": [
+        3
+      ],
+      "point_label": "주어는 ~이다/~하다/(~에) 있다",
+      "question_kind": "다른 하나 고르기",
+      "difficulty": "중",
+      "badges": [],
+      "prompt": "다음 중 밑줄 친 be동사의 의미가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "We [[are]] not firefighters."
+        },
+        {
+          "no": 2,
+          "text": "Mr. Kim [[is]] my math teacher."
+        },
+        {
+          "no": 3,
+          "text": "Pizza [[is]] my favorite food."
+        },
+        {
+          "no": 4,
+          "text": "The cats [[are]] under the sofa."
+        },
+        {
+          "no": 5,
+          "text": "Emma [[is]] my new neighbor."
+        }
+      ],
+      "answer": "④",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 9,
+      "unit_no": null,
+      "point_nos": [
+        5
+      ],
+      "point_label": "be동사 부정문 = be동사+not",
+      "question_kind": "문장 바꿔 쓰기",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰세요.",
+      "body": [
+        "Nora and Jake are very honest. (부정문으로)",
+        "→ ______________________________________"
+      ],
+      "choices": [],
+      "answer": "Nora and Jake are not[aren’t] very honest.",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 10,
+      "unit_no": null,
+      "point_nos": [
+        6
+      ],
+      "point_label": "be동사 의문문 = be동사+주어 ~?",
+      "question_kind": "문장 바꿔 쓰기",
+      "difficulty": "중",
+      "badges": [
+        "서술형",
+        "빈출"
+      ],
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰세요.",
+      "body": [
+        "Sujin was late for practice yesterday. (의문문으로)",
+        "→ ______________________________________"
+      ],
+      "choices": [],
+      "answer": "Was Sujin late for practice yesterday?",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 11,
+      "unit_no": null,
+      "point_nos": [
+        5
+      ],
+      "point_label": "am not은 줄여 쓸 수 없다",
+      "question_kind": "어법 판단",
+      "difficulty": "중",
+      "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "[[We’re]] good teammates."
+        },
+        {
+          "no": 2,
+          "text": "[[She’s]] short but strong."
+        },
+        {
+          "no": 3,
+          "text": "He [[wasn’t]] here this morning."
+        },
+        {
+          "no": 4,
+          "text": "I [[amn’t]] hungry now."
+        },
+        {
+          "no": 5,
+          "text": "They [[weren’t]] angry at me."
+        }
+      ],
+      "answer": "④",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 12,
+      "unit_no": null,
+      "point_nos": [
+        6
+      ],
+      "point_label": "be동사 의문문의 응답",
+      "question_kind": "대화 완성",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 대화의 빈칸에 들어갈 알맞은 응답을 쓰세요.",
+      "body": [
+        "A: Is your bike new?",
+        "B: No, ________ ________."
+      ],
+      "choices": [],
+      "answer": "it isn’t[it’s not]",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 13,
+      "unit_no": null,
+      "point_nos": [
+        4,
+        6
+      ],
+      "point_label": "be동사 의문문의 응답",
+      "question_kind": "대화 완성",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 대화의 빈칸에 들어갈 알맞은 응답을 쓰세요.",
+      "body": [
+        "A: Was your cousin in Canada last winter?",
+        "B: Yes, ________ ________."
+      ],
+      "choices": [],
+      "answer": "he was",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 14,
+      "unit_no": null,
+      "point_nos": [
+        2,
+        6
+      ],
+      "point_label": "be동사 의문문과 응답",
+      "question_kind": "대화 완성",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 빈칸에 알맞은 말을 넣어 대화를 완성하세요.",
+      "body": [
+        "A: ________ Mia and Leo in the music room now?",
+        "B: No, ________ ________."
+      ],
+      "choices": [],
+      "answer": "Are, they aren’t[they’re not]",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 15,
+      "unit_no": null,
+      "point_nos": [
+        6
+      ],
+      "point_label": "be동사 의문문의 응답",
+      "question_kind": "대화 판단",
+      "difficulty": "중",
+      "badges": [
+        "빈출"
+      ],
+      "prompt": "다음 중 대화가 어색한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "A: Is he kind? B: Yes, he is."
+        },
+        {
+          "no": 2,
+          "text": "A: Is the shop open? B: Yes, it is."
+        },
+        {
+          "no": 3,
+          "text": "A: Are you sleepy now? B: Yes, you are."
+        },
+        {
+          "no": 4,
+          "text": "A: Are you and Mina twins? B: No, we aren’t."
+        },
+        {
+          "no": 5,
+          "text": "A: Is math your favorite subject? B: No, it isn’t."
+        }
+      ],
+      "answer": "③",
+      "round": 1
+    },
+    {
+      "kind": "실전문제",
+      "number": 16,
+      "unit_no": null,
+      "point_nos": [
+        1,
+        2,
+        4,
+        6
+      ],
+      "point_label": "주어에 따른 be동사",
+      "question_kind": "어법 판단",
+      "difficulty": "상",
+      "badges": [
+        "고난도"
+      ],
+      "prompt": "다음 중 어법상 알맞은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "Is your gloves warm?"
+        },
+        {
+          "no": 2,
+          "text": "I were sleepy in class."
+        },
+        {
+          "no": 3,
+          "text": "Her socks were wet and cold."
+        },
+        {
+          "no": 4,
+          "text": "This bag isn’t heavy."
+        },
+        {
+          "no": 5,
+          "text": "Was your brothers at home?"
+        }
+      ],
+      "answer": "③, ④",
+      "round": 1
+    },
+    {
+      "kind": "연습문제",
+      "number": 1,
+      "unit_no": 1,
+      "point_nos": [
+        1
+      ],
+      "point_label": "주어와 be동사의 줄임말",
+      "question_kind": "줄임말 쓰기",
+      "difficulty": "하",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 밑줄 친 부분을 줄임말로 바꿔 쓰세요.",
+      "body": [
+        "1  [[We are]] from Canada.  → ________",
+        "2  [[I am]] a fast runner.  → ________",
+        "3  [[It is]] windy today.  → ________",
+        "4  [[He is]] my uncle.  → ________",
+        "5  [[You are]] so funny.  → ________",
+        "6  [[They are]] in the gym.  → ________"
+      ],
+      "choices": [],
+      "answer": "1 We’re  2 I’m  3 It’s  4 He’s  5 You’re  6 They’re",
+      "round": 1
+    },
+    {
+      "kind": "연습문제",
+      "number": 2,
+      "unit_no": 1,
+      "point_nos": [
+        1,
+        2,
+        4
+      ],
+      "point_label": "주어·시제에 맞는 be동사",
+      "question_kind": "어법 고쳐 쓰기",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 밑줄 친 부분을 어법상 알맞은 형태로 고치세요.",
+      "body": [
+        "1  She [[is]] a famous singer 10 years ago.  → ________",
+        "2  Mike and Paul [[was]] tired last night.  → ________",
+        "3  Sam [[were]] a high school student now.  → ________",
+        "4  Jenny and I [[am]] busy last year.  → ________",
+        "5  It [[is]] very hot yesterday.  → ________",
+        "6  Amy and Chris [[is]] my new neighbors now.  → ________"
+      ],
+      "choices": [],
+      "answer": "1 was  2 were  3 is  4 were  5 was  6 are",
+      "round": 1
+    },
+    {
+      "kind": "연습문제",
+      "number": 3,
+      "unit_no": 1,
+      "point_nos": [
+        1,
+        2,
+        4
+      ],
+      "point_label": "빈칸에 알맞은 be동사",
+      "question_kind": "빈칸 쓰기",
+      "difficulty": "하",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 빈칸에 들어갈 be동사를 어법상 알맞은 형태로 쓰세요.",
+      "body": [
+        "1  A dog ________ in my room now.",
+        "2  It ________ rainy yesterday.",
+        "3  I ________ at the library now.",
+        "4  We ________ in the same club now.",
+        "5  The boys ________ tired now.",
+        "6  I ________ in Canada two years ago."
+      ],
+      "choices": [],
+      "answer": "1 is  2 was  3 am  4 are  5 are  6 was",
+      "round": 1
+    },
+    {
+      "kind": "연습문제",
+      "number": 4,
+      "unit_no": 1,
+      "point_nos": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "point_label": "주어·시제에 맞는 be동사 고르기",
+      "question_kind": "고르기",
+      "difficulty": "하",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 중 알맞은 be동사를 고르세요.",
+      "body": [
+        "1  The soup [was / were] so salty.",
+        "2  I [was / were] in the restroom.",
+        "3  The stars [is / are] so bright tonight.",
+        "4  We [was / were] the champions.",
+        "5  Your cap [is / are] on the sofa.",
+        "6  Nina [is / are] a science teacher."
+      ],
+      "choices": [],
+      "answer": "1 was  2 was  3 are  4 were  5 is  6 is",
+      "round": 1
+    },
+    {
+      "kind": "연습문제",
+      "number": 5,
+      "unit_no": 2,
+      "point_nos": [
+        5,
+        6
+      ],
+      "point_label": "부정문·의문문의 be동사",
+      "question_kind": "고르기",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 중 어법상 알맞은 것을 고르세요.",
+      "body": [
+        "1  It [isn’t / aren’t] very cheap.",
+        "2  [Is / Are] he with you?",
+        "3  I [am not / wasn’t] there last week.",
+        "4  [Is / Are] your brothers proud of you?",
+        "5  [Were / Are] they hungry yesterday?",
+        "6  Sophia [isn’t / aren’t] interested in music."
+      ],
+      "choices": [],
+      "answer": "1 isn’t  2 Is  3 wasn’t  4 Are  5 Were  6 isn’t",
+      "round": 2
+    },
+    {
+      "kind": "연습문제",
+      "number": 6,
+      "unit_no": 2,
+      "point_nos": [
+        5
+      ],
+      "point_label": "be동사 부정문 = be동사+not",
+      "question_kind": "빈칸 쓰기",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "우리말과 일치하도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "1  Emma는 어제 미술실에 있지 않았다.  → Emma ________ in the art room yesterday.",
+        "2  그 사과들은 신선하지 않다.  → The apples ________ fresh.",
+        "3  우리는 지금 도서관에 있지 않다.  → We ________ in the library now.",
+        "4  민호는 대학생이 아니다.  → Minho ________ a university student.",
+        "5  Tom과 나는 오늘 아침에 체육관에 있지 않았다.  → Tom and I ________ in the gym this morning.",
+        "6  어제는 내 생일이 아니었다.  → It ________ my birthday yesterday."
+      ],
+      "choices": [],
+      "answer": "1 was not[wasn’t]  2 are not[aren’t]  3 are not[aren’t]  4 is not[isn’t]  5 were not[weren’t]  6 was not[wasn’t]",
+      "round": 2
+    },
+    {
+      "kind": "연습문제",
+      "number": 7,
+      "unit_no": 2,
+      "point_nos": [
+        6
+      ],
+      "point_label": "be동사 의문문의 응답",
+      "question_kind": "대화 완성",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 질문에 알맞은 대답을 쓰세요.",
+      "body": [
+        "1  A: Is she kind?  B: ______, ______ ______. She is kind.",
+        "2  A: Is Daniel free today?  B: ______, ______ ______. He is busy today.",
+        "3  A: Was it sweet?  B: ______, ______ ______. It was too sour.",
+        "4  A: Are they your brothers?  B: ______, ______ ______. They are my cousins.",
+        "5  A: Is the cat on the sofa now?  B: ______, ______ ______. It is on the sofa.",
+        "6  A: Were your parents proud?  B: ______, ______ ______. They were proud."
+      ],
+      "choices": [],
+      "answer": "1 Yes, she is  2 No, he isn’t[he’s not]  3 No, it wasn’t  4 No, they aren’t[they’re not]  5 Yes, it is  6 Yes, they were",
+      "round": 2
+    },
+    {
+      "kind": "연습문제",
+      "number": 8,
+      "unit_no": 2,
+      "point_nos": [
+        6
+      ],
+      "point_label": "be동사 의문문 만들기",
+      "question_kind": "대화 완성",
+      "difficulty": "상",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "주어진 단어를 사용하여 질문을 완성하세요.",
+      "body": [
+        "1  A: ______ ______ ______ yesterday? (it)  B: Yes, it was. It was rainy yesterday.",
+        "2  A: ______ ______ ______ ______ ______? (Alice)  B: Yes, she is. She is at the library.",
+        "3  A: ______ ______ ______ ______? (the quiz)  B: No, it wasn’t. It was not easy.",
+        "4  A: ______ ______ ______ now? (you)  B: Yes, I am. I am nervous.",
+        "5  A: ______ ______ ______ ______? (the book)  B: No, it isn’t. It is not boring.",
+        "6  A: ______ ______ ______ ______? (Emma and Chris)  B: No, they aren’t. They are not cousins."
+      ],
+      "choices": [],
+      "answer": "1 Was it rainy  2 Is Alice at the library  3 Was the quiz easy  4 Are you nervous  5 Is the book boring  6 Are Emma and Chris cousins",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 1,
+      "unit_no": null,
+      "point_nos": [
+        3
+      ],
+      "point_label": "주어는 ~이다/~하다/(~에) 있다",
+      "question_kind": "다른 하나 고르기",
+      "difficulty": "중",
+      "badges": [],
+      "prompt": "다음 중 밑줄 친 be동사의 의미가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "We [[are]] in the museum."
+        },
+        {
+          "no": 2,
+          "text": "My cap [[is]] on the chair."
+        },
+        {
+          "no": 3,
+          "text": "Daniel [[is]] a famous singer."
+        },
+        {
+          "no": 4,
+          "text": "The kids [[are]] at the beach."
+        },
+        {
+          "no": 5,
+          "text": "Your keys [[are]] in the drawer."
+        }
+      ],
+      "answer": "③",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 2,
+      "unit_no": null,
+      "point_nos": [
+        4
+      ],
+      "point_label": "am/is → was(과거)",
+      "question_kind": "빈칸 고르기",
+      "difficulty": "하",
+      "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "Chris ______ in Sydney three years ago."
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "is"
+        },
+        {
+          "no": 2,
+          "text": "am"
+        },
+        {
+          "no": 3,
+          "text": "are"
+        },
+        {
+          "no": 4,
+          "text": "was"
+        },
+        {
+          "no": 5,
+          "text": "were"
+        }
+      ],
+      "answer": "④",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 3,
+      "unit_no": null,
+      "point_nos": [
+        2
+      ],
+      "point_label": "복수 주어+are",
+      "question_kind": "빈칸 고르기",
+      "difficulty": "하",
+      "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "The windows ______ open now."
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "is"
+        },
+        {
+          "no": 2,
+          "text": "am"
+        },
+        {
+          "no": 3,
+          "text": "are"
+        },
+        {
+          "no": 4,
+          "text": "was"
+        },
+        {
+          "no": 5,
+          "text": "were"
+        }
+      ],
+      "answer": "③",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 4,
+      "unit_no": null,
+      "point_nos": [
+        1,
+        2,
+        4
+      ],
+      "point_label": "주어·시제에 맞는 be동사",
+      "question_kind": "빈칸 쓰기",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 각 문장의 빈칸에 들어갈 be동사를 알맞게 쓰세요.",
+      "body": [
+        "(1) She ________ twelve years old last year.",
+        "(2) Jake and I ________ hungry now.",
+        "(3) Mike and Paul ________ tall at that time."
+      ],
+      "choices": [],
+      "answer": "(1) was  (2) are  (3) were",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 5,
+      "unit_no": null,
+      "point_nos": [
+        1,
+        2
+      ],
+      "point_label": "단수 주어+is, 복수 주어+are",
+      "question_kind": "다른 하나 고르기",
+      "difficulty": "중",
+      "badges": [
+        "빈출"
+      ],
+      "prompt": "다음 중 빈칸에 들어갈 말이 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "His hands ______ warm."
+        },
+        {
+          "no": 2,
+          "text": "We ______ good friends."
+        },
+        {
+          "no": 3,
+          "text": "My favorite season ______ winter."
+        },
+        {
+          "no": 4,
+          "text": "You ______ funny."
+        },
+        {
+          "no": 5,
+          "text": "The cup and plate ______ on the tray."
+        }
+      ],
+      "answer": "③",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 6,
+      "unit_no": null,
+      "point_nos": [
+        1,
+        4
+      ],
+      "point_label": "시제에 맞는 be동사",
+      "question_kind": "짝짓기",
+      "difficulty": "중",
+      "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• The puppy ______(A) very hungry last night.",
+        "• It ______(B) in the garden now."
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "is — was"
+        },
+        {
+          "no": 2,
+          "text": "was — is"
+        },
+        {
+          "no": 3,
+          "text": "was — was"
+        },
+        {
+          "no": 4,
+          "text": "were — is"
+        },
+        {
+          "no": 5,
+          "text": "were — was"
+        }
+      ],
+      "answer": "②",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 7,
+      "unit_no": null,
+      "point_nos": [
+        2,
+        5
+      ],
+      "point_label": "복수 주어+are, 부정문",
+      "question_kind": "짝짓기",
+      "difficulty": "중",
+      "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• The beds ______(A) comfortable.",
+        "• Tom ______(B) noisy anymore."
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "are — weren’t"
+        },
+        {
+          "no": 2,
+          "text": "is — aren’t"
+        },
+        {
+          "no": 3,
+          "text": "are — isn’t"
+        },
+        {
+          "no": 4,
+          "text": "am — aren’t"
+        },
+        {
+          "no": 5,
+          "text": "is — isn’t"
+        }
+      ],
+      "answer": "③",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 8,
+      "unit_no": null,
+      "point_nos": [
+        5
+      ],
+      "point_label": "be동사 부정문 = be동사+not",
+      "question_kind": "영작",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "저 방은 따뜻하지 않아. (warm)",
+        "→ That room ________ ________."
+      ],
+      "choices": [],
+      "answer": "isn’t warm",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 9,
+      "unit_no": null,
+      "point_nos": [
+        5
+      ],
+      "point_label": "be동사 부정문 만들기",
+      "question_kind": "문장 바꿔 쓰기",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰세요.",
+      "body": [
+        "The river is so deep. (부정문으로)",
+        "→ ______________________________________"
+      ],
+      "choices": [],
+      "answer": "The river is not[isn’t] so deep.",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 10,
+      "unit_no": null,
+      "point_nos": [
+        6
+      ],
+      "point_label": "be동사 의문문 만들기",
+      "question_kind": "문장 바꿔 쓰기",
+      "difficulty": "중",
+      "badges": [
+        "서술형"
+      ],
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰세요.",
+      "body": [
+        "I am too slow. (의문문으로)",
+        "→ ______________________________________"
+      ],
+      "choices": [],
+      "answer": "Am I too slow?",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 11,
+      "unit_no": null,
+      "point_nos": [
+        2,
+        6
+      ],
+      "point_label": "복수 주어의 의문문",
+      "question_kind": "빈칸 고르기",
+      "difficulty": "중",
+      "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": [
+        "Are ______ in the classroom?"
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "the desks"
+        },
+        {
+          "no": 2,
+          "text": "they"
+        },
+        {
+          "no": 3,
+          "text": "your sister"
+        },
+        {
+          "no": 4,
+          "text": "the students"
+        },
+        {
+          "no": 5,
+          "text": "Mia and Sam"
+        }
+      ],
+      "answer": "③",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 12,
+      "unit_no": null,
+      "point_nos": [
+        4,
+        5
+      ],
+      "point_label": "부정문과 과거형",
+      "question_kind": "어법 판단",
+      "difficulty": "상",
+      "badges": [
+        "고난도"
+      ],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "Nina isn’t shy."
+        },
+        {
+          "no": 2,
+          "text": "He is at the park yesterday."
+        },
+        {
+          "no": 3,
+          "text": "I amn’t on the bus now."
+        },
+        {
+          "no": 4,
+          "text": "Sam isn’t good at math."
+        },
+        {
+          "no": 5,
+          "text": "They’re soccer players."
+        }
+      ],
+      "answer": "②, ③",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 13,
+      "unit_no": null,
+      "point_nos": [
+        1,
+        4,
+        6
+      ],
+      "point_label": "주어·시제에 맞는 be동사",
+      "question_kind": "어법 판단",
+      "difficulty": "상",
+      "badges": [
+        "고난도"
+      ],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "Are you and Jane hungry?"
+        },
+        {
+          "no": 2,
+          "text": "I wasn’t home an hour ago."
+        },
+        {
+          "no": 3,
+          "text": "The movie was fun last night."
+        },
+        {
+          "no": 4,
+          "text": "Ben and I am in the library now."
+        },
+        {
+          "no": 5,
+          "text": "Are you at the concert last Saturday?"
+        }
+      ],
+      "answer": "④, ⑤",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 14,
+      "unit_no": null,
+      "point_nos": [
+        6
+      ],
+      "point_label": "be동사 의문문의 응답",
+      "question_kind": "대화 판단",
+      "difficulty": "상",
+      "badges": [
+        "빈출",
+        "고난도"
+      ],
+      "prompt": "다음 중 대화가 어색한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        {
+          "no": 1,
+          "text": "A: Are you from Japan? B: No, I’m not."
+        },
+        {
+          "no": 2,
+          "text": "A: Is this bag yours? B: No, it isn’t."
+        },
+        {
+          "no": 3,
+          "text": "A: Was Mina sick yesterday? B: Yes, she was."
+        },
+        {
+          "no": 4,
+          "text": "A: Is your room clean? B: Yes, they are."
+        },
+        {
+          "no": 5,
+          "text": "A: Were you in Seoul last week? B: Yes, I was."
+        }
+      ],
+      "answer": "④",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 15,
+      "unit_no": null,
+      "point_nos": [
+        6
+      ],
+      "point_label": "be동사 의문문의 응답",
+      "question_kind": "응답 고르기",
+      "difficulty": "중",
+      "badges": [
+        "빈출"
+      ],
+      "prompt": "다음 질문에 대한 응답으로 알맞은 것을 고르세요.",
+      "body": [
+        "Are you a photographer?"
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "Yes, you are."
+        },
+        {
+          "no": 2,
+          "text": "No, I am."
+        },
+        {
+          "no": 3,
+          "text": "Yes, I am."
+        },
+        {
+          "no": 4,
+          "text": "No, I amn’t."
+        },
+        {
+          "no": 5,
+          "text": "No, you aren’t."
+        }
+      ],
+      "answer": "③",
+      "round": 2
+    },
+    {
+      "kind": "실전문제",
+      "number": 16,
+      "unit_no": null,
+      "point_nos": [
+        4,
+        6
+      ],
+      "point_label": "과거 의문문의 응답",
+      "question_kind": "응답 고르기",
+      "difficulty": "중",
+      "badges": [
+        "빈출"
+      ],
+      "prompt": "다음 질문에 대한 응답으로 알맞은 것을 고르세요.",
+      "body": [
+        "Were Mina and Junho at the pool yesterday?"
+      ],
+      "choices": [
+        {
+          "no": 1,
+          "text": "Yes, she is."
+        },
+        {
+          "no": 2,
+          "text": "No, he isn’t."
+        },
+        {
+          "no": 3,
+          "text": "Yes, they are."
+        },
+        {
+          "no": 4,
+          "text": "Yes, they was."
+        },
+        {
+          "no": 5,
+          "text": "No, they weren’t."
+        }
+      ],
+      "answer": "⑤",
+      "round": 2
+    }
+  ],
+  "target": {
+    "level": 1,
+    "level_name": "기초",
+    "chapter_no": 1,
+    "chapter": "be동사"
+  }
+}

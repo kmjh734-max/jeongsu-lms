@@ -1,0 +1,235 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 09 형용사와 부사의 Chapter Test를 변형한 것. 기본 13과 형용사와 명사의 수량표현 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 9,
+  "chapter": "형용사와 부사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 13, "chapter": "형용사와 명사의 수량표현" },
+  "points": [
+    { "unit_no": 1, "unit": "형용사", "point_no": 1, "point": "명사를 꾸미는 형용사 / 보어로 쓰이는 형용사", "frequent": true },
+    { "unit_no": 1, "unit": "형용사", "point_no": 2, "point": "many/much/a lot of", "frequent": true },
+    { "unit_no": 1, "unit": "형용사", "point_no": 3, "point": "(a) few+셀 수 있는 명사, (a) little+셀 수 없는 명사", "frequent": true },
+    { "unit_no": 2, "unit": "부사", "point_no": 4, "point": "부사의 형태와 자리", "frequent": true },
+    { "unit_no": 2, "unit": "부사", "point_no": 5, "point": "빈도부사의 위치", "frequent": true },
+    { "unit_no": 2, "unit": "부사", "point_no": 6, "point": "형태가 비슷해 뜻이 달라지는 부사(hard/hardly, late/lately)", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1], "point_label": "look 뒤에는 형용사를 쓴다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["My sister looks ________ now."],
+      "choices": [
+        { "no": 1, "text": "sleepy" },
+        { "no": 2, "text": "nervous" },
+        { "no": 3, "text": "happy" },
+        { "no": 4, "text": "quickly" },
+        { "no": 5, "text": "upset" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [4], "point_label": "동사를 꾸미는 자리에는 부사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["The children sang a song ________."],
+      "choices": [
+        { "no": 1, "text": "cheerfully" },
+        { "no": 2, "text": "softly" },
+        { "no": 3, "text": "beautifully" },
+        { "no": 4, "text": "lovely" },
+        { "no": 5, "text": "loudly" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [3], "point_label": "a little+셀 수 없는 명사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": [
+        "그들은 약간의 물을 마셨다.",
+        "→ They drank ________ water."
+      ],
+      "choices": [
+        { "no": 1, "text": "much" },
+        { "no": 2, "text": "a little" },
+        { "no": 3, "text": "a few" },
+        { "no": 4, "text": "little" },
+        { "no": 5, "text": "few" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [3], "point_label": "few: 거의 없는(셀 수 있는 명사)",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": [
+        "갑작스러운 폭우 때문에, 제시간에 도착한 학생이 거의 없었다.",
+        "→ Because of the sudden rain, ________ students arrived on time."
+      ],
+      "choices": [
+        { "no": 1, "text": "a few" },
+        { "no": 2, "text": "a little" },
+        { "no": 3, "text": "a lot of" },
+        { "no": 4, "text": "little" },
+        { "no": 5, "text": "few" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [2, 3], "point_label": "수량표현과 명사의 짝",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Mix milk with [[a few]] sugar." },
+        { "no": 2, "text": "Do you have [[plenty of]] time?" },
+        { "no": 3, "text": "Dad didn’t make [[much]] pancakes." },
+        { "no": 4, "text": "The team lost [[much]] matches this month." },
+        { "no": 5, "text": "She lost [[a little]] weight, but she still looks strong." }
+      ],
+      "answer": "②, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [1, 4], "point_label": "형용사를 꾸미는 부사 quite",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• The sunset was ____(A)____ beautiful at the beach.",
+        "• My cousin seemed very ____(B)____ at the party."
+      ],
+      "choices": [
+        { "no": 1, "text": "very — happily" },
+        { "no": 2, "text": "good — happy" },
+        { "no": 3, "text": "quite — happy" },
+        { "no": 4, "text": "good — happily" },
+        { "no": 5, "text": "quite — happily" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [3], "point_label": "a little과 few의 구별",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• My dad likes sweet tea. He added ____(A)____ honey to his tea.",
+        "• There are ____(B)____ empty seats in the theater. I have to stand."
+      ],
+      "choices": [
+        { "no": 1, "text": "a few — few" },
+        { "no": 2, "text": "a few — little" },
+        { "no": 3, "text": "a little — few" },
+        { "no": 4, "text": "a little — little" },
+        { "no": 5, "text": "little — few" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [5], "point_label": "빈도부사는 일반동사 앞",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "미아는 저녁 식사 후에 자주 산책을 한다.",
+        "(often / takes / Mia / a walk)",
+        "→ ________________ after dinner."
+      ],
+      "choices": [],
+      "answer": "Mia often takes a walk"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [5], "point_label": "빈도를 나타내는 부사 고르기",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 수민이의 일과를 보고 <보기>에서 알맞은 단어를 골라 대화를 완성하세요.",
+      "body": [
+        "<보기> hardly   always   never",
+        "일기 쓰기 — 매일",
+        "수영하러 가기 — 한 달에 한 번",
+        "(1) A: How often does Sumin write a diary?  B: She ________ writes a diary.",
+        "(2) A: How often does Sumin go swimming?  B: She ________ goes swimming."
+      ],
+      "choices": [],
+      "answer": "(1) always  (2) hardly"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [1, 5], "point_label": "수 표현 형용사와 빈도부사의 자리",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 모두 고르세요.",
+      "body": [
+        "The museum in my city is a ① [[two-hundred-years-old]] building. ② [[I always visit]] the quiet hall, because there ③ [[is little]] noise. But the nearby park ④ [[is usually]] crowded. I ⑤ [[go seldom there]]."
+      ],
+      "choices": [],
+      "answer": "①, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [1, 4], "point_label": "형용사와 부사로 모두 쓰이는 pretty",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "• They are looking at ________ paintings.",
+        "• The concert was ________ amazing."
+      ],
+      "choices": [
+        { "no": 1, "text": "long" },
+        { "no": 2, "text": "near" },
+        { "no": 3, "text": "highly" },
+        { "no": 4, "text": "pretty" },
+        { "no": 5, "text": "late" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [6], "point_label": "late와 lately의 뜻 차이",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The jacket wasn’t thick [[enough]] for the winter." },
+        { "no": 2, "text": "The soil was dry and [[hard]] from the heat." },
+        { "no": 3, "text": "Mina and I always take the subway [[early]]." },
+        { "no": 4, "text": "Tom studied here for [[nearly]] 4 years." },
+        { "no": 5, "text": "I visited Spain in [[lately]] spring." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [1, 4], "point_label": "형용사 자리와 부사 자리",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Ann always stay so quietly in her room." },
+        { "no": 2, "text": "Do you feel comfortably on the new chair?" },
+        { "no": 3, "text": "The small puppy doesn’t look dangerously." },
+        { "no": 4, "text": "You should use your time wise." },
+        { "no": 5, "text": "The long meeting is finally over." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [1, 4], "point_label": "fast는 형태가 같은 부사",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B), (C)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "Sora and I became friends ____(A)____. She has a ____(B)____ voice. She always speaks to me ____(C)____."
+      ],
+      "choices": [
+        { "no": 1, "text": "fast — kind — gentle" },
+        { "no": 2, "text": "fast — kindly — gently" },
+        { "no": 3, "text": "fastly — kindly — gentle" },
+        { "no": 4, "text": "fastly — kind — gentle" },
+        { "no": 5, "text": "fast — kind — gently" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [2, 6], "point_label": "a number of와 highly",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 두 개를 찾아 그 기호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": [
+        "There are ⓐ [[the number of]] cafés ⓑ [[near]] my school. One of them is ⓒ [[high]] popular and busy. ⓓ [[Many people]] always wait ⓔ [[long]] for a table.",
+        "(1) ________ → ________   (2) ________ → ________"
+      ],
+      "choices": [],
+      "answer": "(1) ⓐ, a number of  (2) ⓒ, highly"
+    }
+  ]
+}

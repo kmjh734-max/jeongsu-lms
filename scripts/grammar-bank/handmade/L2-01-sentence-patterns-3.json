@@ -1,0 +1,159 @@
+{
+  "_설명": "기본 1과 문장의 형식 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 1.문장의 형식_종합문제(1회).pdf", "number": 1,
+      "포인트": "목적격보어로 to부정사를 쓰지 않는 동사",
+      "prompt": "다음 빈칸에 알맞지 [[않은]]것은?",
+      "body": ["He ________ us to leave the room quietly."],
+      "choices": ["asked", "allowed", "made", "advised", "told"],
+      "answer": "③",
+      "explanation": "make는 사역동사여서 목적격보어로 동사원형을 쓴다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_종합문제(1회).pdf", "number": 16,
+      "포인트": "지각동사와 사역동사의 목적격보어",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것은?",
+      "body": ["I _______ someone singing in the next room."],
+      "choices": ["saw", "watched", "heard", "let", "listened to"],
+      "answer": "④",
+      "explanation": "let은 사역동사여서 목적격보어로 동사원형만 쓰고 -ing는 쓰지 않는다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_종합문제(1회).pdf", "number": 20,
+      "포인트": "to를 쓰는 4형식 동사",
+      "prompt": "다음 <보기>의 빈칸에 들어갈 알맞은 단어는?",
+      "body": ["<보기>", "Owen ________ a letter to me yesterday."],
+      "choices": ["ate", "made", "asked", "cooked", "sent"],
+      "answer": "⑤",
+      "explanation": "3형식으로 바꿀 때 전치사 to를 쓰는 동사는 send이다. make·cook은 for, ask는 of를 쓴다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_종합문제(1회).pdf", "number": 24,
+      "포인트": "사역동사 뒤에는 동사원형",
+      "prompt": "다음 중 어법상 올바른 문장은?",
+      "body": [],
+      "choices": ["I had him to wash my bike.",
+                  "She let me watched a movie.",
+                  "My uncle made I clean the yard.",
+                  "The coach made the players run.",
+                  "I want to make him to carry the box."],
+      "answer": "④",
+      "explanation": "사역동사 make·have·let은 목적격보어로 동사원형을 쓰고, 목적어는 목적격으로 쓴다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_종합문제(1회).pdf", "number": 25,
+      "포인트": "감각동사 뒤에는 형용사",
+      "prompt": "어법상 올바른 문장은?",
+      "body": [],
+      "choices": ["His father seems boring.",
+                  "That show looks a lot of fun.",
+                  "Your voice sounds cheerful today.",
+                  "She looks like very kind in her coat.",
+                  "You look fall asleep already."],
+      "answer": "③",
+      "explanation": "감각동사 뒤에는 형용사가 온다. like 뒤에는 명사가 와야 하고, 동사원형은 올 수 없다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_종합문제(2회).pdf", "number": 6,
+      "포인트": "사역동사 make + 목적어 + 동사원형",
+      "prompt": "우리말과 같은 뜻이 되도록 빈칸에 들어갈 말을고르세요.",
+      "body": ["우리 아빠는 일주일에 한 번 나에게 세차를 시키셔.",
+               "My father made me _____ the car once a week."],
+      "choices": ["to wash", "washed", "wash", "washing", "to have washed"],
+      "answer": "③",
+      "explanation": "사역동사 make의 목적격보어 자리에는 동사원형을 쓴다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_종합문제(2회).pdf", "number": 23,
+      "포인트": "5형식과 4형식에 모두 쓰이는 동사",
+      "prompt": "빈칸에 공통으로 들어갈 말로 알맞은 것은?",
+      "body": ["I ______ the movie boring.",
+               "The girl ______ him her phone."],
+      "choices": ["told", "gave", "asked", "found", "brought"],
+      "answer": "④",
+      "explanation": "find는 「목적어 + 형용사」의 5형식으로도, 「간접목적어 + 직접목적어」의 4형식으로도 쓰인다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_종합문제(2회).pdf", "number": 26,
+      "포인트": "지각동사의 목적격보어",
+      "prompt": "다음 빈칸에 올 수 [[없는]]말은?",
+      "body": ["We heard someone __________."],
+      "choices": ["shout in the hallway", "knocking on the door",
+                  "being scolded by a teacher", "to walk in the garden",
+                  "calling our names"],
+      "answer": "④",
+      "explanation": "지각동사의 목적격보어로는 동사원형이나 분사가 오고 to부정사는 쓰지 않는다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_확인문제(1회).pdf", "number": 1,
+      "포인트": "become 뒤에는 보어",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["They became _______ thanks to trade."],
+      "choices": ["rich", "famous", "quickly", "powerful", "strong nations"],
+      "answer": "③",
+      "explanation": "become 뒤에는 형용사나 명사가 오므로 부사 quickly는 쓸 수 없다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_확인문제(1회).pdf", "number": 6,
+      "포인트": "4형식과 3형식의 어순",
+      "prompt": "주어진 우리말을 영어로 바르게 옮긴 것을 [[모두]] 고르면?",
+      "body": ["그 학생은 선생님에게 편지를 드렸다."],
+      "choices": ["The student gave the teacher a letter.",
+                  "The student gave a letter the teacher.",
+                  "The student gave to the teacher a letter.",
+                  "The student gave a letter to the teacher.",
+                  "The student gave the teacher to a letter."],
+      "answer": "①,④",
+      "explanation": "4형식은 「간접목적어 + 직접목적어」, 3형식은 「직접목적어 + to + 간접목적어」의 순서로 쓴다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_확인문제(1회).pdf", "number": 11,
+      "포인트": "feel 뒤에는 형용사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["He felt _____ this morning."],
+      "choices": ["sadly", "sleepy", "a loser", "badly", "happily"],
+      "answer": "②",
+      "explanation": "감각동사 feel 뒤에는 형용사가 오므로 sleepy가 알맞다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_확인문제(1회).pdf", "number": 17,
+      "포인트": "want + 목적어 + to부정사",
+      "prompt": "다음 <보기>의 뜻에 맞게 번역된 문장은?",
+      "body": ["<보기>", "나는 네가 건강하길 원해."],
+      "choices": ["I want you to be healthy.", "I want you are healthy.",
+                  "I want you being healthy.", "I want you to healthy.",
+                  "I want you are to healthy."],
+      "answer": "①",
+      "explanation": "want는 목적격보어로 to부정사를 쓰며, 형용사 앞에는 to be를 쓴다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_확인문제(2회).pdf", "number": 17,
+      "포인트": "지각동사의 목적격보어",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 모두 고르시오.",
+      "body": ["I saw a boy _____ in the park."],
+      "choices": ["run", "ran", "to run", "running", "to running"],
+      "answer": "①, ④",
+      "explanation": "지각동사 see의 목적격보어로는 동사원형이나 현재분사를 쓴다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_확인문제(2회).pdf", "number": 18,
+      "포인트": "4형식을 3형식으로 바꿀 때 쓰는 to",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 것을 고르시오.",
+      "body": ["Did you show her the photo?",
+               "→ Did you show the photo _____ her?"],
+      "choices": ["to", "by", "for", "of", "with"],
+      "answer": "①",
+      "explanation": "show는 3형식으로 바꿀 때 전치사 to를 쓴다."
+    },
+    {
+      "file": "[기본] 1.문장의 형식_확인문제(2회).pdf", "number": 19,
+      "포인트": "feel 뒤에는 형용사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["Owen feels ________ on cold mornings."],
+      "choices": ["bad", "sick", "blue", "lazily", "lonely"],
+      "answer": "④",
+      "explanation": "feel 뒤에는 형용사가 오므로 부사 lazily는 쓸 수 없다. lonely는 -ly로 끝나지만 형용사이다."
+    }
+  ]
+}

@@ -1,0 +1,269 @@
+{
+  "_설명": "기초 3과 동사의 시제 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(1회).pdf", "number": 3,
+      "포인트": "일반동사 과거형의 부정문",
+      "prompt": "다음 문장을 부정문으로 바르게 고친 것은?",
+      "body": ["They watched a lot of fireworks."],
+      "choices": ["They weren’t watch a lot of fireworks.",
+                  "They not watched a lot of fireworks.",
+                  "They didn’t watch a lot of fireworks.",
+                  "They didn’t watched a lot of fireworks.",
+                  "They watched not a lot of fireworks."],
+      "answer": "③",
+      "explanation": "일반동사 과거형의 부정문은 「didn’t + 동사원형」으로 만든다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(1회).pdf", "number": 4,
+      "포인트": "원형-과거-과거분사가 모두 같은 동사",
+      "prompt": "동사의 현재-과거-과거분사의 변화로 적절하지 [[않]] [[은]]것은?",
+      "body": [],
+      "choices": ["hit - hit - hit", "let - let - let", "cost - cost - cost",
+                  "kept - kept - kept", "hurt - hurt - hurt"],
+      "answer": "④",
+      "explanation": "원형은 keep이므로 keep - kept - kept가 되어야 한다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(1회).pdf", "number": 16,
+      "포인트": "현재진행형",
+      "prompt": "다음 밑줄 친 단어를 올바른 형태로 바꾼 것은?",
+      "body": ["A: What is he doing?",
+               "B: He [[wash]] his hands."],
+      "choices": ["washes", "is washing", "is washed", "washing", "wash"],
+      "answer": "②",
+      "explanation": "지금 하고 있는 일을 묻고 답하므로 「be동사 + 동사원형-ing」의 현재진행형으로 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(1회).pdf", "number": 18,
+      "포인트": "동사의 과거형",
+      "prompt": "다음 중 짝지어진 두 단어의 관계가 <보기>와 [[다]] [[른]]것은?",
+      "body": ["<보기>", "learn - learned"],
+      "choices": ["clean - cleaned", "teach - taught", "catch - caught",
+                  "bring - bought", "feel - felt"],
+      "answer": "④",
+      "explanation": "bring의 과거형은 brought이다. bought는 buy의 과거형이므로 짝이 잘못되었다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(1회).pdf", "number": 21,
+      "포인트": "불규칙동사의 과거형",
+      "prompt": "다음 중 동사의 과거형이 [[잘못]]짝지어진 것은?",
+      "body": [],
+      "choices": ["shut - shut", "find - found", "teach - taught",
+                  "feel - feeled", "grow - grew"],
+      "answer": "④",
+      "explanation": "feel은 불규칙동사로 과거형이 felt이다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(1회).pdf", "number": 23,
+      "포인트": "규칙동사 과거형의 철자",
+      "prompt": "연결된 단어의 관계가 올바르지 [[않은]]것은?",
+      "body": [],
+      "choices": ["make – made", "come – came", "cut - cut",
+                  "sing – sang", "plan - planed"],
+      "answer": "⑤",
+      "explanation": "「단모음 + 단자음」으로 끝나는 plan은 끝 자음을 한 번 더 쓰고 -ed를 붙여 planned로 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(1회).pdf", "number": 29,
+      "포인트": "불규칙동사의 과거형",
+      "prompt": "단어와 과거형이 바르게 짝지어지지 [[않은]]것은?",
+      "body": [],
+      "choices": ["walk - walked", "is - was", "do - did",
+                  "take - took", "put - putted"],
+      "answer": "⑤",
+      "explanation": "put은 원형과 과거형이 같아 put - put이다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(2회).pdf", "number": 1,
+      "포인트": "변하지 않는 사실은 현재시제",
+      "prompt": "다음 문장의 밑줄 친 [[rise]]의 형태로 알맞은 것은?",
+      "body": ["The sun [[rise]] in the east."],
+      "choices": ["rise", "rises", "to rise", "rose", "rising"],
+      "answer": "②",
+      "explanation": "변하지 않는 사실은 현재시제로 쓰며, 주어가 3인칭 단수이므로 rises가 알맞다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(2회).pdf", "number": 6,
+      "포인트": "변하지 않는 사실은 현재시제",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["The earth ________ around the sun."],
+      "choices": ["turn", "is turning", "turns", "will turn", "has turned"],
+      "answer": "③",
+      "explanation": "변하지 않는 사실은 현재시제로 나타내며 주어가 3인칭 단수이므로 turns를 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(2회).pdf", "number": 12,
+      "포인트": "과거를 나타내는 말과 미래를 나타내는 말",
+      "prompt": "다음 중 성격이 [[다른]]하나를 고르세요.",
+      "body": [],
+      "choices": ["last night", "a week ago", "next Monday",
+                  "yesterday", "then"],
+      "answer": "③",
+      "explanation": "next Monday만 미래를 나타내고 나머지는 모두 과거를 나타낸다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(2회).pdf", "number": 14,
+      "포인트": "be동사 과거형의 부정문",
+      "prompt": "다음 중 우리말에 맞게 영작한 것을 고르세요.",
+      "body": ["저는 어제 학교에 없었어요."],
+      "choices": ["I am not at school today.",
+                  "I am not at school yesterday.",
+                  "I was not at school yesterday.",
+                  "I were not at school yesterday.",
+                  "I am not at school last day."],
+      "answer": "③",
+      "explanation": "yesterday라는 과거를 나타내는 말이 있으므로 be동사도 과거형 was를 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(2회).pdf", "number": 15,
+      "포인트": "과거시제와 함께 쓸 수 없는 말",
+      "prompt": "다음 문장의 빈칸에 들어갈 수 [[없는]]것을 고르세요.",
+      "body": ["I visited my grandmother ______."],
+      "choices": ["this morning", "tomorrow", "last week",
+                  "two days ago", "yesterday"],
+      "answer": "②",
+      "explanation": "동사가 과거형 visited이므로 미래를 나타내는 tomorrow는 함께 쓸 수 없다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(2회).pdf", "number": 19,
+      "포인트": "과거시제와 함께 쓸 수 없는 말",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["I broke my tablet _____."],
+      "choices": ["last month", "yesterday", "next week",
+                  "a week ago", "last year"],
+      "answer": "③",
+      "explanation": "동사가 과거형 broke이므로 미래를 나타내는 next week는 쓸 수 없다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(2회).pdf", "number": 21,
+      "포인트": "과거형의 철자와 불규칙동사",
+      "prompt": "동사의 과거형이 [[잘못]]짝지어진 것을 [[모두]]고르면?",
+      "body": [],
+      "choices": ["bake - baked", "stop - stoped", "study - studied",
+                  "catch - caught", "swim - swimed"],
+      "answer": "②,⑤",
+      "explanation": "stop은 끝 자음을 한 번 더 써 stopped가 되고, swim은 불규칙동사로 과거형이 swam이다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(2회).pdf", "number": 22,
+      "포인트": "원형과 과거형이 같은 동사",
+      "prompt": "동사의 과거형이 [[잘못]]짝지어진 것은?",
+      "body": [],
+      "choices": ["cut – cutted", "plan - planned", "drive – drove",
+                  "move - moved", "wash - washed"],
+      "answer": "①",
+      "explanation": "cut은 원형과 과거형이 같아 cut - cut이다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(2회).pdf", "number": 26,
+      "포인트": "현재진행형의 부정문",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것을 고르시오.",
+      "body": ["지금 아기가 울고 있지 않아."],
+      "choices": ["The baby not is crying now.",
+                  "The baby is not crying now.",
+                  "The baby cries now.",
+                  "The baby does not crying now.",
+                  "The baby will not crying now."],
+      "answer": "②",
+      "explanation": "현재진행형의 부정문은 be동사 뒤에 not을 붙여 「be동사 + not + 동사원형-ing」로 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(2회).pdf", "number": 27,
+      "포인트": "동사의 -ing형 만들기",
+      "prompt": "다음 중 동사의 -ing형이 [[잘못]]짝지어진 것을 고르시오.",
+      "body": [],
+      "choices": ["go – going", "study – studying", "make – makeing",
+                  "read – reading", "run – running"],
+      "answer": "③",
+      "explanation": "-e로 끝나는 동사는 e를 빼고 -ing를 붙여 making으로 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(1회).pdf", "number": 4,
+      "포인트": "be동사 과거형의 의문문",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["_____ they busy last Friday?"],
+      "choices": ["Am", "Is", "Was", "Were", "Are"],
+      "answer": "④",
+      "explanation": "주어가 복수이고 last Friday라는 과거를 나타내는 말이 있으므로 Were가 알맞다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(1회).pdf", "number": 11,
+      "포인트": "불규칙동사의 과거형",
+      "prompt": "다음 중 동사의 과거형이 [[잘못]]짝지어진 것을 고르시오.",
+      "body": [],
+      "choices": ["hurry – hurried", "go – goed", "walk – walked",
+                  "smile – smiled", "stop – stopped"],
+      "answer": "②",
+      "explanation": "go는 불규칙동사로 과거형이 went이다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(1회).pdf", "number": 17,
+      "포인트": "변하지 않는 사실은 현재, 역사적 사실은 과거",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞게 짝지어진 것을고르시오.",
+      "body": ["The earth _______ on its axis.",
+               "The Korean War _______ in 1953."],
+      "choices": ["turns - ends", "turns - ended", "turned - ends",
+                  "turned - ending", "will turn - ended"],
+      "answer": "②",
+      "explanation": "변하지 않는 사실은 현재시제로, 역사적 사실은 과거시제로 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(1회).pdf", "number": 18,
+      "포인트": "시제에 따른 부정문 만들기",
+      "prompt": "주어진 문장을 부정문으로 [[잘못]]바꾼 것은?",
+      "body": [],
+      "choices": ["Emily is cleaning her office. → Emily isn’t cleaning her office.",
+                  "They will visit Jeju. → They won’t visit Jeju.",
+                  "He was walking to the harbor. → He didn’t be walking to the harbor.",
+                  "Simon needs new boots. → Simon doesn’t need new boots.",
+                  "I’m going to order tea for dessert. → I’m not going to order tea for dessert."],
+      "answer": "③",
+      "explanation": "과거진행형의 부정문은 be동사 뒤에 not을 붙여 wasn’t walking으로 써야 한다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(1회).pdf", "number": 19,
+      "포인트": "be동사 과거 의문문에 대한 대답",
+      "prompt": "다음 질문에 대한 대답으로 알맞은 것을 고르시오.",
+      "body": ["Was she at the library last night?"],
+      "choices": ["Yes, she were.", "No, she wasn‘t.", "Yes, I am.",
+                  "No, you weren‘t.", "No, she weren‘t."],
+      "answer": "②",
+      "explanation": "Was로 물었으므로 대답에도 was를 쓰고, 주어 she를 그대로 받는다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(2회).pdf", "number": 2,
+      "포인트": "불규칙동사의 과거·과거분사",
+      "prompt": "다음 중 동사의 과거, 과거분사 변화가 바르게 된것은?",
+      "body": [],
+      "choices": ["break - breaked - broken", "feel - felt - felt",
+                  "buy - buyed - bought", "teach - teached - taught",
+                  "send - sended - sended"],
+      "answer": "②",
+      "explanation": "feel은 felt - felt로 변한다. 나머지는 broke, bought, taught, sent가 되어야 한다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(2회).pdf", "number": 7,
+      "포인트": "불규칙동사의 과거분사",
+      "prompt": "다음 중 동사의 변화형이 [[잘못된 것은?]]",
+      "body": [],
+      "choices": ["make – made - made", "cut – cut - cut",
+                  "buy – bought - bought", "eat – ate - eaten",
+                  "speak – spoke - spoked"],
+      "answer": "⑤",
+      "explanation": "speak의 과거분사는 spoken이다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_확인문제(2회).pdf", "number": 20,
+      "포인트": "현재진행형",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것을 고르시오.",
+      "body": ["그녀는 정원에서 쉬고 있어."],
+      "choices": ["She rests in the garden.", "She is rest in the garden.",
+                  "She is resting in the garden.",
+                  "She be resting in the garden.",
+                  "She resting in the garden."],
+      "answer": "③",
+      "explanation": "지금 하고 있는 일이므로 「be동사 + 동사원형-ing」의 현재진행형으로 쓴다."
+    }
+  ]
+}

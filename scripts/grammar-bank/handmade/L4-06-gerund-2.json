@@ -1,0 +1,190 @@
+{
+  "_설명": "완성 6과 동명사 — 의미상 주어, 동명사 관용표현. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 1,
+      "포인트": "동명사의 의미상 주어는 소유격 또는 목적격",
+      "prompt": "다음 문장에서 어법상 어색한 부분을 바르게 고쳐 쓰시오.",
+      "body": ["If you don’t mind I calling later, I’ll phone you",
+               "tonight."],
+      "answer": "I → my[me]",
+      "explanation": "동명사의 의미상 주어는 소유격 또는 목적격으로 쓴다. 따라서 calling 앞의 의미상 주어 I를 my 또는 me로 바꾸어야 한다. [해석] 제가 나중에 전화하는 걸 꺼리지 않으신다면, 오늘 밤에 전화드릴게요."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 2,
+      "포인트": "be busy + 동명사",
+      "prompt": "다음 문장에서 어법상 어색한 부분을 바르게 고쳐 쓰시오.",
+      "body": ["She’s so busy to write her report."],
+      "answer": "to write → writing",
+      "explanation": "‘~하느라 바쁘다’는 「be busy + 동명사」로 나타낸다. 따라서 to write를 writing으로 고쳐야 한다. [해석] 그녀는 보고서를 쓰느라 몹시 바쁘다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 3,
+      "포인트": "be used to + 동명사 — ~하는 데 익숙하다",
+      "prompt": "다음 문장에서 어법상 어색한 부분을 찾아 바르게 고치시오.",
+      "body": ["My parents are used to walk after dinner."],
+      "answer": "walk → walking",
+      "explanation": "맥락상 ‘~하는 데 익숙하다’라는 뜻의 「be used to + 동명사」 구문을 써야 한다. 따라서 walk를 walking으로 고쳐야 한다. 같은 의미의 표현인 「be accustomed to + ~ing」로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 4,
+      "포인트": "전치사의 목적어는 동명사, 의미상 주어는 소유격·목적격",
+      "prompt": "다음 문장에서 어법상 어색한 [[모두]]부분을 찾아 바르게 고치시오.",
+      "body": ["There is no record of they have visited the site.",
+               "⑴ ___________________ → ___________________",
+               "⑵ ___________________ → ___________________"],
+      "answer": "⑴ they → their[them] ⑵ have → having",
+      "explanation": "전치사 of의 목적어로는 (대)명사 혹은 동명사가 올 수 있다. 따라서 have를 동명사 having으로 바꾸어야 한다. 또한 동명사의 의미상 주어는 소유격 또는 목적격으로 쓰여야 하므로 they를 their 또는 them으로 고쳐야 한다. [해석] 그들이 그 현장을 방문했다는 기록은 없다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 5,
+      "포인트": "It is no use + 동명사",
+      "prompt": "다음 문장이 어법에 맞도록 올바른 문장으로 고쳐 쓰시오.",
+      "body": ["It is no use to complain about what you cannot",
+               "change.",
+               "→ __________________________________ about",
+               "what you cannot change."],
+      "answer": "It is no use complaining",
+      "explanation": "‘~해봤자 소용없다’는 「It is no use + 동명사」로 나타낸다. 따라서 to complain을 complaining으로 고쳐야 한다. 참고로 같은 의미의 표현인 「It is of no use to + 동사원형」으로도 나타낼 수 있다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 6,
+      "포인트": "when it comes to + 동명사",
+      "prompt": "다음 대화에서 어법상 어색한 부분을 찾아 바르게 고치시오.",
+      "body": ["A: I’m a beginner when it comes to cook Italian",
+               "food.",
+               "B: Don’t worry. Everyone starts somewhere."],
+      "answer": "cook → cooking",
+      "explanation": "‘~에 관해서’라는 의미는 「when it comes to + 동명사」로 나타낸다. 따라서 cook을 cooking으로 고쳐야 한다. [해석] A: 난 이탈리아 음식을 요리하는 것에 관해서는 초보야. B: 걱정 마. 누구나 처음은 있어."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 7,
+      "포인트": "feel like + 동명사, How about + 동명사",
+      "prompt": "다음 대화에서 어법상 틀린 곳을 2군데 찾아 쓰고, 각각을 바르게 고치시오.",
+      "body": ["A: I don’t feel like to study tonight.",
+               "B: How about watch a movie, then?",
+               "⑴ ___________________ → ___________________",
+               "⑵ ___________________ → ___________________"],
+      "answer": "⑴ to study → studying ⑵ watch → watching",
+      "explanation": "⑴ ‘~하고 싶다’는 「feel like + V-ing」 동명사 관용표현을 사용하며, ‘~하고 싶지 않다’는 부정의 의미는 don’t를 feel 앞에 붙인다. ⑵ ‘~하는 게 어때?’는 「How about + 동명사」로 나타낸다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 8,
+      "포인트": "be used to부정사와 동명사의 의미상 주어",
+      "prompt": "다음 문장에서 어법상 틀린 곳을 찾아 바르게 고치시오.",
+      "body": ["(1) This app is used to editing photos.",
+               "(2) My roommate doesn’t like I playing music at",
+               "night.",
+               "⑴ ___________________ → ___________________",
+               "⑵ ___________________ → ___________________"],
+      "answer": "⑴ editing → edit ⑵ I → my[me]",
+      "explanation": "⑴ ‘~하기 위해 이용되다’는 「be used + to부정사」로 나타낸다. 「be used to + 동명사」(~하는 데 익숙하다)와 구별하여 기억해 둔다. ⑵ doesn’t like의 목적어인 동명사 playing의 의미상 주어는 소유격 또는 목적격이어야 한다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 9,
+      "포인트": "of + 의미상 주어 + 동명사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["비행기가 취소될 가능성은 거의 없다.",
+               "(the, being, flight, of, canceled)",
+               "→ There is little chance _______________________",
+               "______________________________________________."],
+      "answer": "of the flight being canceled",
+      "explanation": "chance를 보충 설명하는 「of + 동명사」 구를 완성하는 문제이다. 동명사구 being canceled의 의미상 주어가 the flight이므로 이를 동명사구 앞에 나타낸다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 11,
+      "포인트": "전치사 about + 의미상 주어 + 동명사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["너희 코치는 네가 지난주 훈련을 빠진 것에 대해 내게",
+               "이야기하셨어.",
+               "(your, last week, skipping, about, practice)",
+               "→ Your coach talked to me ________________",
+               "___________________________________ last week."],
+      "answer": "about your skipping practice",
+      "explanation": "‘~에 대해 이야기했다’라는 해석으로 보아 ‘talk about’ 표현을 사용해야 하며, 전치사 about의 목적어로 (동)명사가 와야 한다. 또한 your가 의미상 주어로 들어가야 한다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 12,
+      "포인트": "be sure of + 의미상 주어 + 동명사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오. (단, 필요시 어형을 변화시킬 것)",
+      "body": ["우리는 그녀가 약속을 지킬 거라 확신하지 않는다.",
+               "(keep, her, the, promise)",
+               "→ We’re not sure of __________________________."],
+      "answer": "her keeping the promise",
+      "explanation": "‘be sure of’의 목적어에 해당하는 동명사구를 영작하는 문제이다. ‘지키는’ 행위의 의미상 주어가 ‘그녀’이므로 소유격 대명사 her를 먼저 쓴 뒤, keep을 keeping으로 변형한다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 13,
+      "포인트": "need + 동명사 — ~되어야 한다",
+      "prompt": "대화의 흐름상 빈칸에 알맞은 말을 괄호 안의 단어들을 바르게 배열하여 한 문장으로 쓰시오. (단, 필요시 어형을 변화시킬 것)",
+      "body": ["A: ______ (windows, clean, need, the). They look",
+               "dusty.",
+               "B: I cleaned them last week. Maybe it’s because",
+               "of the construction outside.",
+               "답안: ___________________________________________"],
+      "answer": "The windows need cleaning",
+      "explanation": "맥락상 창문이 먼지가 많아 보이니 닦을 필요가 있다는 의미의 문장이 필요하다. 따라서 The windows를 주어로 삼고, 「need + 동명사」(~되는 것을 필요로 하다) 관용표현을 활용한다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 14,
+      "포인트": "remember + 의미상 주어 + 동명사",
+      "prompt": "괄호 안에 주어진 단어를 바르게 배열하여 글의 흐름상 알맞은 문장을 완성하시오. (단, 필요시 어형을 변화시킬 것)",
+      "body": ["We ______ (his, remember, an, take, extra shift)",
+               "once. The store was very busy at the time.",
+               "답안: ___________________________________________"],
+      "answer": "remember his taking an extra shift",
+      "explanation": "「remember + 동명사」(~했던 것을 기억하다) 표현을 활용하는 문제로, 동명사의 의미상 주어가 주어 We와 다르므로 소유격이나 목적격 형태로 동명사 앞에 나타내야 한다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 15,
+      "포인트": "There is no + 동명사 — ~하는 것은 불가능하다",
+      "prompt": "괄호 안에 주어진 단어를 바르게 배열하여 대화의 흐름상 알맞은 문장을 완성하시오. (단, 필요시 어형을 변화시킬 것)",
+      "body": ["A: ______ (the, there, deny, is, no, fact) that Amy",
+               "has improved a lot this year.",
+               "B: Even so, she still needs more practice.",
+               "답안: ___________________________________________"],
+      "answer": "There is no denying the fact",
+      "explanation": "「There is no + 동명사」(~하는 것은 불가능하다) 구문이므로 deny를 denying으로 바꾸어 연결하고, denying의 목적어에 해당하는 the fact를 이어 써 준다. 참고로 같은 의미의 표현으로 「It is impossible to + 동사원형」 구문이 있다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 17,
+      "포인트": "be certain of + 의미상 주어 + 동명사",
+      "prompt": "괄호 속의 단어를 동명사의 의미상 주어로 넣어 문장을 바꿔 쓰시오",
+      "body": ["Lisa is certain of passing next month’s audition.",
+               "(you)",
+               "→ Lisa is certain of __________________________",
+               "____________________________________________."],
+      "answer": "your[you] passing next month’s audition",
+      "explanation": "‘be certain of(~을 확신하다)’ 표현을 활용하여 전치사 of의 목적어 역할을 하는 동명사구가 와야 한다. 동명사의 의미상 주어는 소유격 또는 목적격으로 표시한다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 18,
+      "포인트": "동명사의 의미상 주어를 명사로 나타내기",
+      "prompt": "괄호 속의 단어를 동명사의 의미상 주어로 넣어 문장을 바꿔 쓰시오.",
+      "body": ["He doesn’t like washing dishes after dinner.",
+               "(his brother)",
+               "→ He doesn’t like ___________________________",
+               "____________________________________________."],
+      "answer": "his brother(’s) washing dishes after dinner",
+      "explanation": "doesn’t like의 목적어인 동명사구 ‘washing ~’ 앞에 의미상 주어를 추가해야 한다. 동명사의 의미상 주어는 소유격 또는 목적격으로 표시한다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 19,
+      "포인트": "mind + 의미상 주어 + 동명사",
+      "prompt": "괄호 속의 단어를 동명사의 의미상 주어로 넣어 문장을 바꿔 쓰시오.",
+      "body": ["Paul doesn’t mind sharing the room. (I)",
+               "→ Paul doesn’t _______________________________."],
+      "answer": "mind my[me] sharing the room",
+      "explanation": "조동사 doesn’t에 연결되는 동사 mind를 먼저 쓴 뒤, mind는 동명사를 목적어로 취하므로 동명사구 ‘sharing the room’을 쓴다. 그 앞에 의미상 주어를 소유격 또는 목적격으로 표시한다."
+    },
+    {
+      "file": "[완성] 6.동명사_체크체크.pdf", "number": 20,
+      "포인트": "동명사의 부정은 not + 동명사",
+      "prompt": "괄호 속의 단어를 동명사의 의미상 주어로 넣어 문장을 바꿔 쓰시오.",
+      "body": ["Sarah insisted on not changing the plan. (he)",
+               "→ Sarah ____________________________________."],
+      "answer": "insisted on his not changing the plan",
+      "explanation": "동사 insisted on을 먼저 쓴 뒤, 목적어에 해당하는 ‘not changing ~’ 앞에 의미상 주어를 추가한다. 동명사의 의미상 주어는 소유격 또는 목적격으로 표시하며, 부정어 not은 의미상 주어 뒤, 동명사 앞에 놓인다."
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "_설명": "기본 7과 조동사 — will/be going to, can/may, should, must/have to. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 7.조동사_종합문제(2회).pdf", "number": 18,
+      "포인트": "be able to + 동사원형",
+      "prompt": "우리말을 참고하여 단어를 바르게 배열하세요.",
+      "body": ["그는 그 상자를 들 수 있다.",
+               "(able / he / lift / is / the / to / box)",
+               "→ ________________________________________"],
+      "answer": "He is able to lift the box.",
+      "explanation": "be able to + 동사원형 : ~할 수 있다"
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 1,
+      "포인트": "will = be going to",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["It will snow tomorrow.",
+               "→ It _____ _____ _____ _____ tomorrow."],
+      "answer": "is, going, to, snow",
+      "explanation": "미래에 대한 예측의 의미를 나타내는 will을 「be going to + 동사원형」으로 나타낼 수 있다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 2,
+      "포인트": "will be = be going to be",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["We’ll be fifteen years old next month.",
+               "→ We _____ _____ _____ _____ fifteen years old",
+               "next month."],
+      "answer": "are, going, to, be",
+      "explanation": "미래에 대한 예측의 의미를 나타내는 will을 「be going to + 동사원형」으로 나타낼 수 있다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 3,
+      "포인트": "be going to + 동사원형 어순",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["Nora는 오늘 저녁에 도서관에 갈 것이다.",
+               "(visit, is, the library, going, to)",
+               "→ Nora _________________________ this evening."],
+      "answer": "is going to visit the library",
+      "explanation": "「be going to + 동사원형」으로 ‘미래’의 의미를 나타낸다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 4,
+      "포인트": "will = be going to",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["They will be club members next semester.",
+               "→ They ______ ______ ______ ______ club",
+               "members next semester."],
+      "answer": "are going to be",
+      "explanation": "‘미래에 대한 예측’의 의미로 「will + 동사원형」을 「be going to + 동사원형」으로 나타낼 수 있다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 6,
+      "포인트": "허가는 can[may], 능력은 be able to",
+      "prompt": "다음 우리말과 의미가 같도록 밑줄 친 부분을 바르게 고쳐 쓰시오.",
+      "body": ["You [[are able to]] use my computer.",
+               "(너는 내 컴퓨터를 써도 된다.)"],
+      "answer": "can 또는 may",
+      "explanation": "‘~해도 된다’라는 뜻의 허가를 나타낼 때 조동사 can 또는 may를 쓴다. be able to는 능력(~할 수 있다)을 나타낼 때 사용한다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 7,
+      "포인트": "능력·가능을 나타내는 can",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 조동사를 <보기>에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "should can must",
+               "너는 그 상자를 혼자 옮길 수 있다.",
+               "→ You _____ move the box alone."],
+      "answer": "can",
+      "explanation": "조동사 can은 ‘~할 수 있다’의 의미를 나타낸다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 10,
+      "포인트": "추측을 나타내는 may",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["우산을 챙겨. 오후에 비가 올지도 몰라.",
+               "(it, rain, may, afternoon, this)",
+               "→ Take an umbrella. ______________________."],
+      "answer": "It may rain this afternoon",
+      "explanation": "‘~일지도 모른다’는 뜻의 조동사 may를 쓴다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 11,
+      "포인트": "had to와 had better의 공통 had",
+      "prompt": "다음 빈칸에 공통으로 들어갈 말을 쓰시오.",
+      "body": ["• They _____ to cancel the trip because of the",
+               "storm.",
+               "• You _____ better not stay up late."],
+      "answer": "had",
+      "explanation": "첫 번째 문장은 ‘폭풍 때문에 여행을 취소해야만 했다’의 의미로 have to의 과거 had to에서 had가 알맞고, 두 번째 문장은 ‘충고’의 의미를 나타내는 had better에서 had가 알맞다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 13,
+      "포인트": "should not + 동사원형",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["나는 네가 그 소식을 그녀에게 말하면 안 된다고 생각",
+               "한다.",
+               "(tell, the news, not, you, her, should)",
+               "→ I think ___________________________________."],
+      "answer": "you should not tell her the news.",
+      "explanation": "should의 부정문은 「should not + 동사원형」으로 쓴다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 14,
+      "포인트": "충고를 나타내는 should",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 조동사를 <보기>에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "should can must",
+               "비가 많이 온다. 너는 우산을 가져가야 한다.",
+               "→ It’s raining hard. You _________ take an",
+               "umbrella."],
+      "answer": "should",
+      "explanation": "조동사 should는 ‘~해야 한다’의 의미를 나타낸다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 15,
+      "포인트": "should not + 동사원형",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["너는 밤에 커피를 마셔서는 안 된다.",
+               "(should, drink, you, not)",
+               "→ ________________________ coffee at night."],
+      "answer": "You should not drink",
+      "explanation": "should의 부정문은 「should not + 동사원형」으로 쓴다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 17,
+      "포인트": "강한 추측의 must",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 조동사를 <보기>에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "should can must",
+               "그는 틀림없이 피곤할 것이다.",
+               "→ He _________ be tired."],
+      "answer": "must",
+      "explanation": "조동사 must는 ‘~임에 틀림없다’의 의미를 나타낸다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 18,
+      "포인트": "need not = don’t have to",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["You need not bring your own cup.",
+               "→ You _____ _____ _____ bring your own cup."],
+      "answer": "don’t, have, to",
+      "explanation": "need not은 ‘~할 필요가 없다’의 의미로 don’t have to로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 7.조동사_체크체크.pdf", "number": 19,
+      "포인트": "must = have to(3인칭 단수는 has to)",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Sora must submit the form today.",
+               "→ Sora _____ _____ submit the form today."],
+      "answer": "has, to",
+      "explanation": "must는 have to로 바꿔 쓸 수 있다. 주어가 3인칭 단수이므로 has to로 쓰는 것이 알맞다."
+    }
+  ]
+}

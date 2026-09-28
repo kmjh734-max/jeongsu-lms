@@ -1,0 +1,127 @@
+{
+  "_설명": "기초 3과 동사의 시제 — 과거시제, 과거진행형, 불변의 진리. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(2회).pdf", "number": 11,
+      "포인트": "과거를 나타내는 부사구에는 과거시제",
+      "prompt": "주어진 단어를 선택하여 빈칸을 채우시오.",
+      "body": ["Tom ______ the dishes last night. (washes,",
+               "washed)"],
+      "answer": "washed",
+      "explanation": "last night은 과거를 나타내는 부사구이므로 동사를 과거형으로 써야 한다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 2,
+      "포인트": "3인칭 단수 주어에는 has",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["Emma [[have]] a new bicycle in the garage now."],
+      "answer": "has",
+      "explanation": "주어 Emma가 3인칭 단수이므로 have를 3인칭 단수 주어에 알맞도록 has로 고쳐야 한다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 4,
+      "포인트": "과거를 나타내는 부사구에는 과거형",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["My uncle [[puts]] the letter in the box two days",
+               "ago."],
+      "answer": "put",
+      "explanation": "two days ago(이틀 전)는 과거를 나타내는 부사구이므로 동사를 과거형으로 써야 한다. put의 과거형은 put이다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 8,
+      "포인트": "불규칙 동사의 과거형",
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓸 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["The rabbit hides in the bush.",
+               "→ The rabbit __________ in the bush. (과거시제)"],
+      "answer": "hid",
+      "explanation": "hide의 과거형은 hid이다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 9,
+      "포인트": "불규칙 동사의 과거형",
+      "prompt": "다음 문장을 과거형으로 바꿔 쓸 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["The bird builds a nest.",
+               "→ The bird __________ a nest."],
+      "answer": "built",
+      "explanation": "build의 과거형은 built이다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 10,
+      "포인트": "과거형 부정문은 didn’t + 동사원형",
+      "prompt": "다음 문장을 과거형으로 바꿔 쓸 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Sora doesn’t watch TV.",
+               "→ Sora __________ TV."],
+      "answer": "didn’t watch",
+      "explanation": "일반동사 과거형의 부정문은 주어의 인칭과 수에 상관없이 「didn’t + 동사원형」으로 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 11,
+      "포인트": "과거형 의문문은 Did + 주어 + 동사원형",
+      "prompt": "다음 문장을 과거형으로 바꿔 쓸 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Do you remember his face?",
+               "→ __________ his face?"],
+      "answer": "Did you remember",
+      "explanation": "일반동사 과거형의 의문문은 「Did + 주어 + 동사원형 ~?」으로 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 12,
+      "포인트": "주어 + 동사 + 목적어 어순",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["민수는 어제 공원에서 많은 새들을 보았어.",
+               "(many, saw, birds)",
+               "→ Minsu __________ in the park yesterday."],
+      "answer": "saw many birds",
+      "explanation": "「주어 + 동사 + 목적어」의 순서가 되도록 배열한다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 13,
+      "포인트": "Did + 주어 + 동사원형 ~?",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그들은 지난주 그 박물관을 방문했니?",
+               "(visit, they, did, the museum)",
+               "→ __________ last week?"],
+      "answer": "Did they visit the museum",
+      "explanation": "일반동사 과거형의 의문문이므로 「Did + 주어 + 동사원형 ~?」의 순서가 되도록 배열한다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 14,
+      "포인트": "주어 + didn’t + 동사원형",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["나는 어제 수영하러 가지 않았어.",
+               "(didn’t, I, go swimming)",
+               "→ __________ yesterday."],
+      "answer": "I didn’t go swimming",
+      "explanation": "과거형의 부정문이므로 「주어 + didn’t + 동사원형 ~.」의 순서가 되도록 배열한다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 16,
+      "포인트": "과거진행형의 부정문과 의문문",
+      "prompt": "다음 문장을 괄호 안의 지시대로 바꿔 쓰시오.",
+      "body": ["The baby was sleeping very well.",
+               "(부정문)",
+               "→ __________________________________________.",
+               "(의문문)",
+               "→ __________________________________________."],
+      "answer": "(부정문) The baby was not[wasn’t] sleeping very well. (의문문) Was the baby sleeping very well?",
+      "explanation": "과거진행형의 부정문은 be동사 뒤에 not을 붙여 만들고, 의문문은 be동사를 주어 앞으로 보내어 만든다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 18,
+      "포인트": "didn’t 뒤에는 동사원형",
+      "prompt": "다음 문장의 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["The team [[didn’t scored]] a goal in the last",
+               "match."],
+      "answer": "didn’t score",
+      "explanation": "didn’t 뒤에는 동사원형을 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_체크체크.pdf", "number": 26,
+      "포인트": "불변의 진리는 현재시제",
+      "prompt": "다음 괄호 안의 단어를 이용하여 문장을 완성하세요.",
+      "body": ["I learned today that the earth around",
+               "the sun. (move)"],
+      "answer": "moves",
+      "explanation": "과학적 사실이나 불변의 진리는 항상 현재시제로 쓴다."
+    }
+  ]
+}

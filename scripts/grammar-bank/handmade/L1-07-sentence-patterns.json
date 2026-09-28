@@ -1,0 +1,48 @@
+{
+  "_설명": "기초 7과 문장의 형식 — 감각동사, 수여동사, 목적격보어. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 7.문장의 형식_체크체크.pdf", "number": 3,
+      "포인트": "감각동사 + 형용사",
+      "prompt": "우리말에 맞게 괄호 안의 말을 이용하여 영작하시오.",
+      "body": ["우리 아빠의 손은 거칠게 느껴진다. (feel, rough)",
+               "→ _________________________________________"],
+      "answer": "My father’s hand feels rough.",
+      "explanation": "감각동사 feel 뒤에는 부사가 아니라 형용사가 보어로 온다."
+    },
+    {
+      "file": "[기초] 7.문장의 형식_체크체크.pdf", "number": 5,
+      "포인트": "감각동사 뒤에는 형용사",
+      "prompt": "다음 문장에서 어법상 [[틀린]]부분을 찾아 쓰시오.",
+      "body": ["This soup tastes very deliciously."],
+      "answer": "deliciously",
+      "explanation": "감각동사 taste 뒤에는 형용사가 와야 하므로 deliciously를 delicious로 고쳐야 한다."
+    },
+    {
+      "file": "[기초] 7.문장의 형식_체크체크.pdf", "number": 8,
+      "포인트": "목적격보어를 취하는 동사",
+      "prompt": "괄호 안에서 알맞은 것을 고르시오.",
+      "body": ["Please (go, call) me Tom."],
+      "answer": "call",
+      "explanation": "「call + 목적어 + 목적격보어」로 ‘~를 …라고 부르다’를 나타내므로 call이 알맞다."
+    },
+    {
+      "file": "[기초] 7.문장의 형식_확인문제(1회).pdf", "number": 4,
+      "포인트": "call + 목적어 + 목적격보어",
+      "prompt": "우리말에 맞게 괄호 안의 말을 이용하여 빈칸을 채우시오.",
+      "body": ["모두가 그를 영웅이라고 부른다. (a hero, call)",
+               "→ Everybody ________ ________ ________."],
+      "answer": "calls him a hero",
+      "explanation": "Everybody는 단수 취급하므로 calls로 쓰고, 뒤에 목적어와 목적격보어를 차례로 쓴다."
+    },
+    {
+      "file": "[기초] 7.문장의 형식_확인문제(1회).pdf", "number": 8,
+      "포인트": "make + 목적어 + 형용사",
+      "prompt": "우리말에 맞게 괄호 안의 말을 이용하여 6단어로 영작하시오.",
+      "body": ["나의 수학 선생님은 우리들을 행복하게 만든다. (make)",
+               "→ _________________________________________"],
+      "answer": "My math teacher makes us happy.",
+      "explanation": "「make + 목적어 + 형용사」로 ‘~를 …하게 만들다’를 나타낸다."
+    }
+  ]
+}

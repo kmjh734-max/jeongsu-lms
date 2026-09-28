@@ -1,0 +1,161 @@
+{
+  "_설명": "심화 4과 조동사 — 나머지. 조동사 + have p.p., ought not to, need not. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 25,
+      "포인트": "후회를 나타내는 shouldn’t have p.p.",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["Tom caught a cold yesterday. He (shouldn’t,",
+               "wouldn’t) have swum in the cold sea."],
+      "answer": "shouldn’t",
+      "explanation": "‘~하지 말았어야 했는데 (했다)’라는 과거의 일에 대한 후회는 「shouldn’t have + p.p.」로 나타낸다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 26,
+      "포인트": "should have p.p. — ~했어야 했는데",
+      "prompt": "다음 대화의 빈칸에 들어갈 알맞은 것을 괄호 안에 우리말에 맞게 쓰시오.",
+      "body": ["A : I can’t believe it.",
+               "B : What happened?",
+               "A : I left my wallet on the bus.",
+               "B : That’ too bad.",
+               "A : I _________ ___________ ________ more",
+               "careful. (나는 좀 더 주의를 기울였어야 했는데.)"],
+      "answer": "should have been",
+      "explanation": "‘~했어야만 했다’의 의미로 과거의 일에 대한 후회는 ‘should + have + 과거분사’로 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 27,
+      "포인트": "may[might] have p.p. — ~했을지도 모른다",
+      "prompt": "다음 우리말 뜻에 맞게 빈칸을 채우세요.",
+      "body": ["지수가 아마 기차를 놓쳤나 보다.",
+               "Jisu _____ _____ missed the train."],
+      "answer": "may(might) have",
+      "explanation": "‘아마 ~한가 보다’라고 과거의 일을 추측할 때는 「may(might) have + 과거분사」 형태로 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 28,
+      "포인트": "should have p.p.",
+      "prompt": "우리말과 같은 뜻이 되도록 주어진 단어를 이용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["영어점수 70점 받았어! 난 단어를 좀 더 많이 외웠었",
+               "어야 했어.",
+               "= I got a 70 on the English test. I _______",
+               "_______ _______ more words. (memorize)"],
+      "answer": "should have memorized",
+      "explanation": "‘~했어야만 했다’의 의미로 과거의 일에 대한 후회는 ‘should + have + 과거분사’로 쓴다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 30,
+      "포인트": "can의 미래형은 will be able to",
+      "prompt": "다음 문장을 괄호 안의 말을 넣어 다시 쓸 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["He can play the violin. (next year)",
+               "→ He ______________ play the violin next year."],
+      "answer": "will be able to",
+      "explanation": "can의 미래는 will be able to로 나타낸다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 31,
+      "포인트": "should not = ought not to",
+      "prompt": "다음 두 문장의 의미가 같도록 할 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["You should not waste water.",
+               "→ You ______ ______ ______ waste water."],
+      "answer": "ought not to",
+      "explanation": "should not은 ought not to로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 32,
+      "포인트": "need not = don’t have to",
+      "prompt": "다음 두 문장의 의미가 같도록 할 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["You need not attend the meeting.",
+               "→ You ______ ______ ______ attend the meeting."],
+      "answer": "don’t have to",
+      "explanation": "need not은 ‘~할 필요가 없다’의 의미로 don’t have to와 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 36,
+      "포인트": "과거의 습관 would와 would like to의 would",
+      "prompt": "다음 빈칸에 공통으로 들어갈 말을 쓰시오.",
+      "body": ["• My grandfather _____ tell us stories every night.",
+               "• I _____ like to travel to Rome."],
+      "answer": "would",
+      "explanation": "첫 번째 문장은 ‘과거의 습관’을 나타내는 would가 알맞고, 두 번째 문장은 ‘~하고 싶다’의 의미를 나타내는 would like to에서 would가 알맞다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 37,
+      "포인트": "should have p.p.",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["I had to call her back, but I didn’t.",
+               "= I _____ _____ _____ her back."],
+      "answer": "should, have, called",
+      "explanation": "‘다시 전화했어야 했는데 하지 않았다’고 과거의 일에 대한 후회를 하고 있으므로 「should have + v-ed」로 표현한다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 39,
+      "포인트": "should not = ought not to",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["You should not skip breakfast.",
+               "→ You _____ _____ _____ skip breakfast."],
+      "answer": "ought, not, to",
+      "explanation": "should not은 ought not to로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 42,
+      "포인트": "should not have p.p. 어순",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["너는 그 소문을 퍼뜨리지 말았어야 했어.",
+               "(have, should, spread, not)",
+               "→ You ____________________________ the rumor."],
+      "answer": "should not have spread",
+      "explanation": "‘~하지 말았어야 했다’는 과거 사실에 대한 후회를 나타낼 때 「should not have v-ed」로 나타낸다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 43,
+      "포인트": "must have p.p. — ~했음에 틀림없다",
+      "prompt": "다음 대화의 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["A : Sora finished the whole book in one day.",
+               "B : She ________ have read very quickly."],
+      "answer": "must",
+      "explanation": "‘~했음에 틀림없다’라는 뜻으로 과거의 사실에 대한 강한 추측은 「must have + v-ed」로 나타낸다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 44,
+      "포인트": "should have p.p.",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["나는 너무 졸리다. 나는 어젯밤에 일찍 잤어야 했다.",
+               "(sleep)",
+               "→ I am very sleepy. I ________ ________",
+               "________ early last night."],
+      "answer": "should, have, slept",
+      "explanation": "과거에 했어야 했는데 하지 않은 일에 대한 후회를 나타낼 때 「should have + v-ed」로 나타낸다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 46,
+      "포인트": "may have p.p. — ~했을지도 모른다",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["You don’t have your umbrella.",
+               "Perhaps you left it in the café.",
+               "→ You _____ _____ _____ your umbrella in the",
+               "café."],
+      "answer": "may, have, left",
+      "explanation": "과거 사실에 대한 약한 추측을 나타낼 때는 「may have + v-ed」로 나타낸다."
+    },
+    {
+      "file": "[심화] 4.조동사_체크체크.pdf", "number": 47,
+      "포인트": "should have p.p.",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Sora told me her phone number, but I didn’t",
+               "save it. I can’t call her.",
+               "→ I ______ ______ ______ Sora’s phone number."],
+      "answer": "should, have, saved",
+      "explanation": "‘전화번호를 저장했어야 했는데 그러지 않았다’고 과거 사실에 대해 후회하므로 「should have + v-ed」로 나타낸다."
+    },
+    {
+      "file": "[심화] 4.조동사_확인문제(2회).pdf", "number": 2,
+      "포인트": "요구·제안 동사 뒤 that절에는 (should) + 동사원형",
+      "prompt": "다음 주어진 단어를 순서대로 이용하여 문장을 완성하시오.",
+      "body": ["She insisted that ____________________________.",
+               "(the room, clean, the students)"],
+      "answer": "the room should be cleaned by the students",
+      "explanation": "주절에 요구, 제안 동사가 오면 that절에 ‘should + 동사원형’ 구조가 알맞다. 방은 청소되는 대상이므로 수동태 should be cleaned로 쓴다."
+    }
+  ]
+}

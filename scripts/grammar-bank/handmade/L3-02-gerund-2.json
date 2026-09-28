@@ -1,0 +1,108 @@
+{
+  "_설명": "심화 2과 동명사 — 나머지. 동명사의 의미상 주어, 관용 표현. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 2.동명사_체크체크.pdf", "number": 22,
+      "포인트": "spend + 시간 + v-ing",
+      "prompt": "우리말에 맞게 적절한 단어를 추가하여 배열하시오.",
+      "body": ["그는 방학마다 할머니와 함께 많은 시간을 보낸다.",
+               "(much time / his grandmother / being / vacation",
+               "/ with / every)"],
+      "answer": "He spends much time being with his grandmother every vacation.",
+      "explanation": "「spend + 시간 + v-ing」는 ‘~하는 데 시간을 쓰다’라는 뜻이다."
+    },
+    {
+      "file": "[심화] 2.동명사_체크체크.pdf", "number": 23,
+      "포인트": "It goes without saying that ~",
+      "prompt": "우리말에 맞게 적절한 단어를 추가하여 배열하시오.",
+      "body": ["노력이 성공을 가져온다는 사실은 두말할 필요가 없다.",
+               "(brings/effort/success)"],
+      "answer": "It goes without saying that effort brings success.",
+      "explanation": "‘~은 말할 필요도 없다’는 「It goes without saying that …」으로 나타낸다."
+    },
+    {
+      "file": "[심화] 2.동명사_체크체크.pdf", "number": 24,
+      "포인트": "that절을 「의미상 주어 + 동명사」로",
+      "prompt": "동명사를 사용하여 주어진 문장을 다시 쓰시오.",
+      "body": ["I understand that students want to try new",
+               "activities."],
+      "answer": "I understand students wanting to try new activities.",
+      "explanation": "that절의 주어를 동명사의 의미상 주어로 두고 동사를 동명사로 바꾼다."
+    },
+    {
+      "file": "[심화] 2.동명사_체크체크.pdf", "number": 25,
+      "포인트": "동명사의 의미상 주어는 소유격",
+      "prompt": "두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["Yesterday I laughed at him. He couldn’t know",
+               "it.",
+               "= He couldn’t know at",
+               "him yesterday."],
+      "answer": "my laughing",
+      "explanation": "동명사의 의미상 주어를 소유격 my로 표현한다."
+    },
+    {
+      "file": "[심화] 2.동명사_체크체크.pdf", "number": 27,
+      "포인트": "of + 소유격 + 동명사",
+      "prompt": "다음 두 문장의 뜻이 같도록 빈칸을 채우세요.",
+      "body": ["I’m sure that our class will win the contest.",
+               "= I’m sure of _____ _____ _____ the contest."],
+      "answer": "our class’s winning",
+      "explanation": "of는 전치사이므로 뒤에 동명사를 써야 하고, ‘우리 반의’라는 의미상 주어는 소유격으로 나타낸다."
+    },
+    {
+      "file": "[심화] 2.동명사_체크체크.pdf", "number": 28,
+      "포인트": "목적어 + to부정사를 「소유격 + 동명사」로",
+      "prompt": "동명사를 사용하여 주어진 문장을 다시 쓰시오.",
+      "body": ["She wanted him to arrive early because she",
+               "prepared a surprise."],
+      "answer": "She wanted his arriving early because she prepared a surprise.",
+      "explanation": "목적어와 to부정사를 「소유격 + 동명사」로 바꾸어 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 2.동명사_체크체크.pdf", "number": 30,
+      "포인트": "be proud of + 소유격 + 동명사",
+      "prompt": "동명사를 사용하여 주어진 문장을 다시 쓰시오.",
+      "body": ["The girl was proud that her brother was brave."],
+      "answer": "The girl was proud of her brother’s being brave.",
+      "explanation": "that절을 「of + 소유격 + 동명사」로 바꾼다. be동사는 동명사 being으로 쓴다."
+    },
+    {
+      "file": "[심화] 2.동명사_체크체크.pdf", "number": 31,
+      "포인트": "동명사의 부정은 not + 동명사",
+      "prompt": "동명사를 사용하여 주어진 문장을 다시 쓰시오.",
+      "body": ["I cannot imagine that you didn’t hear about the",
+               "news."],
+      "answer": "I cannot imagine your not hearing about the news.",
+      "explanation": "that절의 주어는 소유격 의미상 주어로, 부정은 동명사 앞에 not을 붙여 나타낸다."
+    },
+    {
+      "file": "[심화] 2.동명사_체크체크.pdf", "number": 32,
+      "포인트": "be used to + 동명사 — ~하는 데 익숙하다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["Sora는 일찍 일어나는 게 익숙하다.",
+               "(to, is, early, used, getting up)",
+               "→ Sora _____________________________________."],
+      "answer": "is used to getting up early",
+      "explanation": "be used to v-ing: ~하는 것에 익숙하다"
+    },
+    {
+      "file": "[심화] 2.동명사_체크체크.pdf", "number": 33,
+      "포인트": "prevent + 목적어 + from v-ing",
+      "prompt": "다음 문장을 우리말로 해석하시오.",
+      "body": ["Prevent the birds from eating the seeds.",
+               "→ __________________________________________."],
+      "answer": "새들이 그 씨앗을 먹지 못하게 하시오.",
+      "explanation": "prevent + 목적어 + from v-ing: 목적어가 ~하는 것을 막다"
+    },
+    {
+      "file": "[심화] 2.동명사_체크체크.pdf", "number": 36,
+      "포인트": "feel like + 동명사 — ~하고 싶다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["나는 오늘 저녁에 외식하러 가고 싶지 않다.",
+               "(feel, eat, like, don’t, going, out, to, tonight)",
+               "→ I ________________________________________."],
+      "answer": "don’t feel like going to eat out tonight",
+      "explanation": "feel like v-ing: ~하고 싶다"
+    }
+  ]
+}

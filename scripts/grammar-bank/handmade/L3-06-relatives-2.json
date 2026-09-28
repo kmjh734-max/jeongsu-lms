@@ -1,0 +1,209 @@
+{
+  "_설명": "심화 6과 관계사 — 관계부사, 전치사 + 관계대명사, 복합관계사. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 6.관계사_종합문제(2회).pdf", "number": 3,
+      "포인트": "관계부사 how는 in which로 바꿔 쓴다",
+      "prompt": "다음 문장의 밑줄 친 부분을 「전치사 + 관계대명사」로 알맞게 바꿔 쓰시오.",
+      "body": ["That’s [[how]] she has changed her mind.",
+               "→ That’s the way _____ _____ she has changed",
+               "her mind."],
+      "answer": "in, which",
+      "explanation": "관계부사 how는 in which로 바꿔 쓸 수 있다. 따라서 빈칸에 in which가 적절하다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(2회).pdf", "number": 6,
+      "포인트": "장소를 나타내는 관계부사 where",
+      "prompt": "다음 두 문장을 관계사를 이용하여 한 문장으로 완성하시오.",
+      "body": ["• I like the park.",
+               "• I often walk my dog in the park.",
+               "→ I like _____________________________________."],
+      "answer": "the park where I often walk my dog",
+      "explanation": "두 문장에서 공통되는 말이 the park이고 장소를 나타내는 말이므로 관계부사 where를 이용하여 한 문장으로 만든다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 1,
+      "포인트": "전치사 + 관계대명사 which",
+      "prompt": "다음 빈칸에 들어갈 알맞은 관계사를 쓰시오.",
+      "body": ["She visited the village in ________ her",
+               "grandmother once lived."],
+      "answer": "which",
+      "explanation": "She visited the village which her grandmother once lived in.에서 관계대명사 which가 전치사 in의 목적어인 경우, 전치사 in을 관계대명사 앞으로 옮길 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 2,
+      "포인트": "관계부사 when은 at which로 바꿔 쓴다",
+      "prompt": "다음 문장의 밑줄 친 부분을 「전치사 + 관계대명사」로 알맞게 바꿔 쓰시오.",
+      "body": ["Do you remember the time [[when]] he left the",
+               "office?",
+               "→ Do you remember the time _____ _____ he left",
+               "the office?"],
+      "answer": "at, which",
+      "explanation": "관계부사 when은 「at / on / in + which」로 바꿔 쓸 수 있는데, ‘특정 시간’을 나타내는 선행사 the time이 있으므로 at which로 바꿔 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 3,
+      "포인트": "「주격 관계대명사 + be동사」의 생략",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["나는 빨간 모자를 쓰고 있는 소녀를 안다.",
+               "→ I know the girl ____________ a red cap."],
+      "answer": "wearing",
+      "explanation": "I know the girl who is wearing a red cap.에서 「주격 관계대명사 + be동사」가 생략되어 wearing만 남은 형태의 문장이다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 4,
+      "포인트": "「주격 관계대명사 + be동사」의 생략",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["내 여동생은 아름다운 정원과 오래된 도서관으로 알려진",
+               "대학에 갔다.",
+               "→ My sister went to a college _______ for its",
+               "beautiful garden and old library."],
+      "answer": "known",
+      "explanation": "「주격 관계대명사 + be동사」인 which is가 생략되어 known만 남은 형태의 문장이다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 5,
+      "포인트": "선행사를 포함한 관계대명사 what",
+      "prompt": "다음 빈칸에 들어갈 알맞은 관계사를 쓰시오.",
+      "body": ["________ I need most is a long vacation."],
+      "answer": "What",
+      "explanation": "‘내가 가장 필요로 하는 것’이라는 뜻이므로, 선행사가 포함된 관계대명사 what이 알맞다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 6,
+      "포인트": "계속적 용법 = 접속사 + 대명사",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["He gave Amy a gold watch, which was expensive.",
+               "= He gave Amy a gold watch, _______ _______",
+               "was expensive."],
+      "answer": "and it",
+      "explanation": "계속적 용법의 관계대명사는 「접속사 + 대명사」로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 7,
+      "포인트": "계속적 용법 = 접속사 but + 대명사",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Last year Emma bought a bicycle, which she",
+               "doesn’t ride now.",
+               "= Last year Emma bought a bicycle, _______ she",
+               "doesn’t ride _______ now."],
+      "answer": "but, it",
+      "explanation": "계속적 용법의 관계대명사는 「접속사 + 대명사」로 바꿔 쓸 수 있는데, 서로 반대되는 내용을 연결하므로 접속사 but이 알맞다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 8,
+      "포인트": "the way와 how는 함께 쓰지 않는다",
+      "prompt": "다음 두 문장을 관계사를 이용하여 [[한 문장]]으로 쓰시오.",
+      "body": ["Many students in our school are learning the",
+               "way.",
+               "Jenny has improved her English in this way.",
+               "→ __________________________________________."],
+      "answer": "Many students in our school are learning how Jenny has improved her English.",
+      "explanation": "방법을 나타내는 관계부사 how는 선행사 the way와 함께 쓸 수 없으므로 둘 중 하나만 써야 한다. 관계사를 이용하라고 했으므로 how를 이용하여 쓴다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 9,
+      "포인트": "시간을 나타내는 선행사에는 관계부사 when",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오",
+      "body": ["Can you tell me the month which the festival",
+               "began?"],
+      "answer": "which → when[in which]",
+      "explanation": "‘시간’을 나타내는 선행사 the month가 있고 문장 뒤에 전치사 in이 없으므로 관계부사 when으로 쓰거나 in which로 써야 한다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 10,
+      "포인트": "장소를 나타내는 관계부사 where",
+      "prompt": "<보기>에서 알맞은 말을 골라 다음 두 문장을 한 문장으로 바꿔 쓰시오.",
+      "body": ["<보기>",
+               "why when where",
+               "This is the best museum.",
+               "You can see ancient pottery in the museum.",
+               "→ This is the best museum _________________."],
+      "answer": "where you can see ancient pottery",
+      "explanation": "공통되는 말이 장소를 나타내는 museum이므로 관계부사 where를 써서 한 문장으로 연결할 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 12,
+      "포인트": "시간을 나타내는 관계부사 when",
+      "prompt": "<보기>에서 알맞은 말을 골라 다음 두 문장을 한 문장으로 바꿔 쓰시오.",
+      "body": ["<보기>",
+               "why when where",
+               "October 9 was the day.",
+               "The new library opened on the day.",
+               "→ October 9 was the day ____________________."],
+      "answer": "when the new library opened",
+      "explanation": "공통되는 말이 시간을 나타내는 the day이므로 관계부사 when을 이용하여 한 문장으로 연결할 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 14,
+      "포인트": "이유를 나타내는 the reason why",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["코치는 내게 내가 쉬어야 하는 이유를 말했다.",
+               "→ The coach told me _______ _______ _______ I",
+               "should rest."],
+      "answer": "the reason why",
+      "explanation": "이유를 나타내는 선행사와 관계부사인 the reason why가 알맞다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 15,
+      "포인트": "시간을 나타내는 선행사에는 관계부사 when",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["Autumn is the time what leaves turn red."],
+      "answer": "what → when",
+      "explanation": "‘시간’을 나타내는 선행사 the time이 있으므로 관계부사 when이 알맞다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 17,
+      "포인트": "방법을 나타내는 관계부사 how",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때, 빈칸에 알맞은 말을 [보기]에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "when why how",
+               "• This is the way.",
+               "• Amy passed the exam in the way.",
+               "→ This is _______ Amy passed the exam."],
+      "answer": "how",
+      "explanation": "공통되는 말이 ‘방법’을 나타내는 the way이므로 관계부사 how를 이용하여 한 문장으로 바꾼다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 18,
+      "포인트": "No matter how = However",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["너는 아무리 피곤하더라도 숙제를 끝내야 한다.",
+               "→ _______ _______ _______ you are tired, you",
+               "should finish your homework."],
+      "answer": "No matter how",
+      "explanation": "‘아무리 ~할지라도’의 의미를 가진 복합관계사는 However이고 No matter how로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 19,
+      "포인트": "no matter how = however",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 관계 부사를 쓰시오.",
+      "body": ["No matter how fast he runs, he cannot catch",
+               "the train.",
+               "= _________ fast he runs, he cannot catch the",
+               "train."],
+      "answer": "However",
+      "explanation": "no matter how는 however로 바꿔 쓸 수 있다. however 뒤에는 형용사나 부사가 나온다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 20,
+      "포인트": "no matter what = whatever",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 관계 부사를 쓰시오.",
+      "body": ["No matter what she says, I won’t change my",
+               "mind.",
+               "= ____________ she says, I won’t change my mind."],
+      "answer": "Whatever",
+      "explanation": "no matter what은 whatever로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_체크체크.pdf", "number": 21,
+      "포인트": "at any place where = wherever",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 관계 부사를 쓰시오.",
+      "body": ["He can find good food at any place where he",
+               "travels.",
+               "= He can find good food _________ he travels."],
+      "answer": "wherever",
+      "explanation": "at any place where는 wherever로 바꿔 쓸 수 있다."
+    }
+  ]
+}

@@ -1,0 +1,291 @@
+{
+  "_설명": "기초 11과 동명사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기초] 11.동명사_종합문제(1회).pdf", "number": 11,
+      "포인트": "동명사를 목적어로 쓰지 않는 동사",
+      "prompt": "<보기>의 빈칸에 알맞지 않은 단어는?",
+      "body": ["<보기>", "I ___________ baking bread."],
+      "choices": ["keep", "finish", "love", "hope", "give up"],
+      "answer": "④",
+      "explanation": "hope는 동명사를 목적어로 쓰지 못하고 to부정사를 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(1회).pdf", "number": 22,
+      "포인트": "주어·목적어·보어로 쓰이는 동명사와 to부정사",
+      "prompt": "빈칸에 공통으로 알맞은 것을 [[두 가지모두]]고르면?",
+      "body": ["_________ new songs is exciting.",
+               "She likes _______ new songs.",
+               "Her hobby is _________ new songs."],
+      "choices": ["learn", "learned", "to learn", "will learn", "learning"],
+      "answer": "③, ⑤",
+      "explanation": "like는 to부정사와 동명사를 모두 목적어로 쓰고, 주어와 보어 자리에도 둘 다 올 수 있다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(1회).pdf", "number": 28,
+      "포인트": "feel like + 동명사",
+      "prompt": "빈칸에 들어갈 단어 형태로 알맞은 것은?",
+      "body": ["I feel like _______ a warm shower."],
+      "choices": ["took", "takes", "to take", "taking", "take"],
+      "answer": "④",
+      "explanation": "「feel like + 동명사」는 ‘~하고 싶다’는 뜻이다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(1회).pdf", "number": 29,
+      "포인트": "동명사가 쓰이는 표현의 뜻",
+      "prompt": "다음 중 우리말 뜻이 [[잘못된]]것은?",
+      "body": [],
+      "choices": ["be proud of ~ing : ~을 자랑스러워하다",
+                  "be afraid of ~ing : ~를 두려워하다",
+                  "be good at ~ing : ~를 잘하다",
+                  "be tired of ~ing : ~에 싫증이 나다",
+                  "stop ~ing : ~하려고 멈추다"],
+      "answer": "⑤",
+      "explanation": "stop ~ing는 ‘~하는 것을 멈추다’라는 뜻이다. ‘~하려고 멈추다’는 stop to부정사이다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(2회).pdf", "number": 7,
+      "포인트": "전치사 for 뒤에는 동명사",
+      "prompt": "다음 문장의 빈칸에 들어갈 알맞은 단어의 형태를 고르세요.",
+      "body": ["Thank you for _______ me."],
+      "choices": ["wait", "waits", "waiting", "to wait", "waited"],
+      "answer": "③",
+      "explanation": "전치사 for 뒤에는 동명사가 온다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(2회).pdf", "number": 9,
+      "포인트": "동명사의 철자",
+      "prompt": "다음 중 동사와 동명사의 형태가 바르게 짝지어지지 [[않은]]것은?",
+      "body": [],
+      "choices": ["read – reading", "swim - swiming", "sing – singing",
+                  "wash - washing", "join - joining"],
+      "answer": "②",
+      "explanation": "「단모음 + 단자음」으로 끝나는 swim은 끝 자음을 한 번 더 써 swimming으로 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(2회).pdf", "number": 10,
+      "포인트": "동명사의 철자",
+      "prompt": "다음 중 동사와 동명사의 형태가 바르게 짝지어진 것은?",
+      "body": [],
+      "choices": ["die – diing", "sit - siting", "stop – stopping",
+                  "say - saing", "begin - begining"],
+      "answer": "③",
+      "explanation": "stop은 끝 자음을 한 번 더 써 stopping이 된다. 나머지는 dying, sitting, saying, beginning이다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(2회).pdf", "number": 17,
+      "포인트": "be afraid of + 동명사",
+      "prompt": "다음 문장의 빈칸에 들어갈 알맞은 것을 고르시오.",
+      "body": ["You shouldn’t be afraid of _______ questions."],
+      "choices": ["ask", "asked", "asking", "asks", "be asked"],
+      "answer": "③",
+      "explanation": "전치사 of 뒤에는 동명사가 온다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(2회).pdf", "number": 18,
+      "포인트": "be interested in + 동명사",
+      "prompt": "다음 문장의 빈칸에 알맞은 것을 고르세요.",
+      "body": ["Are you interested in _______ a new language?"],
+      "choices": ["learn", "learning", "learned", "to learn", "have learned"],
+      "answer": "②",
+      "explanation": "전치사 in 뒤에는 동명사가 온다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(2회).pdf", "number": 21,
+      "포인트": "주어 자리에는 동명사",
+      "prompt": "다음 중 어법에 맞는 문장을 고르세요.",
+      "body": [],
+      "choices": ["Be a pilot is my dream.", "To reading is useful.",
+                  "They are very difficult to work hard.",
+                  "Riding a bike is very exciting.",
+                  "Goes to bed late is bad."],
+      "answer": "④",
+      "explanation": "주어 자리에는 동명사나 to부정사가 와야 한다. ④만 동명사 주어를 바르게 썼다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(2회).pdf", "number": 22,
+      "포인트": "동명사의 철자",
+      "prompt": "다음 중 밑줄 친 부분의 형태가 올바른 것을 고르세요.",
+      "body": [],
+      "choices": ["He is [[swiming.]]", "I like [[reading.]]",
+                  "She loves [[runing.]]", "She doesn't like [[bakeing.]]",
+                  "Do you like [[writeing]] letters?"],
+      "answer": "②",
+      "explanation": "swimming, running처럼 끝 자음을 한 번 더 쓰거나 baking, writing처럼 e를 빼야 한다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(1회).pdf", "number": 5,
+      "포인트": "주어 자리에는 동명사",
+      "prompt": "다음 문장의 빈칸에 알맞은 것은?",
+      "body": ["__________ is not good for your eyes."],
+      "choices": ["Read in the dark", "Watch TV too long",
+                  "Rubbing your eyes", "Not sleep at night",
+                  "Eaten too much candy"],
+      "answer": "③",
+      "explanation": "주어 자리이므로 동명사로 시작하는 ③이 알맞다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(1회).pdf", "number": 6,
+      "포인트": "동명사를 목적어로 쓰지 않는 동사",
+      "prompt": "다음 중 빈칸에 들어갈 수 [[없는]]말은?",
+      "body": ["I _______________ washing the dishes."],
+      "choices": ["hope", "like", "enjoy", "stopped", "began"],
+      "answer": "①",
+      "explanation": "hope는 to부정사만 목적어로 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(1회).pdf", "number": 7,
+      "포인트": "주어 자리에는 동명사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["________ babies is very hard work."],
+      "choices": ["Feed", "Feeds", "Fed", "Feeding", "To feeding"],
+      "answer": "④",
+      "explanation": "주어 자리이므로 동명사 Feeding으로 쓰고 단수 취급하여 is를 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(1회).pdf", "number": 8,
+      "포인트": "be afraid of + 동명사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["I’m afraid of ________ in deep water."],
+      "choices": ["swim", "swimming", "swam", "to swim", "being swum"],
+      "answer": "②",
+      "explanation": "전치사 of 뒤에는 동명사가 온다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(1회).pdf", "number": 9,
+      "포인트": "동명사를 목적어로 쓰는 동사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Hana ________ baking cookies."],
+      "choices": ["wants", "decides", "hopes", "enjoys", "expects"],
+      "answer": "④",
+      "explanation": "enjoy만 동명사를 목적어로 쓰고, 나머지는 모두 to부정사를 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(1회).pdf", "number": 10,
+      "포인트": "be good at + 동명사",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 것을 고르시오.",
+      "body": ["Sungho plays the guitar very well.",
+               "→ Sungho is good at __________."],
+      "choices": ["play the guitar", "the guitar to play",
+                  "playing the guitar", "the guitar playing",
+                  "to play the guitar"],
+      "answer": "③",
+      "explanation": "be good at의 at은 전치사이므로 뒤에 동명사가 온다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(1회).pdf", "number": 11,
+      "포인트": "mind + 동명사",
+      "prompt": "다음 대화의 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["A: Would you ________ closing the window?",
+               "B: Of course not."],
+      "choices": ["hope", "want", "plan", "mind", "decide"],
+      "answer": "④",
+      "explanation": "「Would you mind + 동명사?」는 ‘~해 주시겠어요?’라는 뜻이다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(1회).pdf", "number": 15,
+      "포인트": "What about + 동명사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["What about ________ a walk together?"],
+      "choices": ["take", "takes", "taking", "took", "to take"],
+      "answer": "③",
+      "explanation": "「What about + 동명사?」로 권유를 나타낸다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(1회).pdf", "number": 16,
+      "포인트": "mind + 동명사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Do you mind ________ down the music?"],
+      "choices": ["turn", "turns", "to turn", "turning", "turned"],
+      "answer": "④",
+      "explanation": "mind는 동명사를 목적어로 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(1회).pdf", "number": 17,
+      "포인트": "How about·feel like 뒤에는 동명사",
+      "prompt": "다음 대화의 빈칸에 들어갈 말로 알맞게 짝지어진 것은?",
+      "body": ["A: How about _____ swimming?",
+               "B: Well, I’m tired. I don’t feel like _____ out."],
+      "choices": ["going – to go", "going – going", "to go – going",
+                  "to go – gone", "to go – to go"],
+      "answer": "②",
+      "explanation": "How about과 feel like의 뒤에는 모두 동명사가 온다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(1회).pdf", "number": 20,
+      "포인트": "동명사를 목적어로 쓰는 동사",
+      "prompt": "다음 빈칸에 알맞은 말은?",
+      "body": ["He didn't _________ reading the novel."],
+      "choices": ["order", "finish", "lead", "believe", "promise"],
+      "answer": "②",
+      "explanation": "finish는 동명사를 목적어로 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(2회).pdf", "number": 1,
+      "포인트": "전치사 about 뒤에는 동명사",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말은?",
+      "body": ["A : What is it about?",
+               "B : It's about _____ the piano."],
+      "choices": ["learn", "learns", "learning", "learned", "to learn"],
+      "answer": "③",
+      "explanation": "전치사 about 뒤에는 동명사가 온다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(2회).pdf", "number": 3,
+      "포인트": "주어 자리에는 동명사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["________ a promise to others is important."],
+      "choices": ["Keep", "Keeps", "Keeping", "To kept", "To keeping"],
+      "answer": "③",
+      "explanation": "주어 자리이므로 동명사 Keeping으로 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(2회).pdf", "number": 4,
+      "포인트": "진행형의 -ing와 전치사 뒤의 동명사",
+      "prompt": "다음 빈칸에 공통으로 들어갈 알맞은 것을 고르시오.",
+      "body": ["• The kids are ______ a snowman.",
+               "• He is tired of ______ the same picture."],
+      "choices": ["make", "made", "making", "to make", "to makes"],
+      "answer": "③",
+      "explanation": "앞은 진행형의 -ing, 뒤는 전치사 of 뒤의 동명사이므로 둘 다 making이다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(2회).pdf", "number": 10,
+      "포인트": "전치사 in 뒤에는 동명사",
+      "prompt": "다음 문장의 밑줄 친 단어의 형태로 올바른 것을고르세요.",
+      "body": ["It can be useful in [[save]] energy."],
+      "choices": ["saved", "to save", "saving", "being saved", "to saving"],
+      "answer": "③",
+      "explanation": "전치사 in 뒤에는 동명사가 온다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(2회).pdf", "number": 15,
+      "포인트": "전치사 for 뒤에는 동명사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["I’m sorry for ________ your bike without asking."],
+      "choices": ["borrowing", "borrowed", "to borrow",
+                  "to borrowed", "to borrowing"],
+      "answer": "①",
+      "explanation": "전치사 for 뒤에는 동명사가 온다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(2회).pdf", "number": 19,
+      "포인트": "Thanks for + 동명사",
+      "prompt": "다음 빈칸에 들어갈 수 있는 것을 고르세요.",
+      "body": ["Thanks for __________."],
+      "choices": ["to inviting", "invites", "invite",
+                  "inviting me", "to invite me"],
+      "answer": "④",
+      "explanation": "전치사 for 뒤에는 동명사가 오며 목적어도 함께 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_확인문제(2회).pdf", "number": 20,
+      "포인트": "동명사·to부정사의 부정은 앞에 not",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 모두 고르세요.",
+      "body": ["_____ exercise for a long time is bad for us."],
+      "choices": ["Not doing", "No doing", "Not to do", "No done", "To not do"],
+      "answer": "①,③",
+      "explanation": "동명사와 to부정사를 부정할 때는 바로 앞에 not을 쓴다."
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "_설명": "기본 7과 조동사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 7.조동사_종합문제(1회).pdf", "number": 16,
+      "포인트": "추측을 나타내는 may",
+      "prompt": "<보기>의 may와 같은 의미로 쓰인 것은?",
+      "body": ["<보기>", "The rain may stop soon."],
+      "choices": ["May I come in?", "Junho may know the answer.",
+                  "You may go now.", "My exam is in May.",
+                  "May is the busiest month for us."],
+      "answer": "②",
+      "explanation": "<보기>의 may는 ‘~일지도 모른다’는 추측이다. ②도 같은 뜻이며, ①③은 허락, ④⑤는 달 이름이다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(1회).pdf", "number": 18,
+      "포인트": "조동사 뒤에는 동사원형",
+      "prompt": "어법상 가장 옳은 것은?",
+      "body": [],
+      "choices": ["You shouldn't say that.", "Should we are leave now?",
+                  "He should kept his word.", "You should be wait here.",
+                  "He should drink not cold water."],
+      "answer": "①",
+      "explanation": "조동사 뒤에는 동사원형이 오고, 부정은 조동사 뒤에 not을 붙인다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(1회).pdf", "number": 20,
+      "포인트": "be going to = will",
+      "prompt": "<보기>의 밑줄 친 부분과 바꾸어 쓸 수 있는 것은?",
+      "body": ["<보기>", "Hana [[is going to study]] abroad next year."],
+      "choices": ["will study", "can study", "wills study",
+                  "cans study", "wills to study"],
+      "answer": "①",
+      "explanation": "be going to는 will로 바꿔 쓸 수 있으며, 조동사에는 -s를 붙이지 않는다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(1회).pdf", "number": 21,
+      "포인트": "had better not + 동사원형",
+      "prompt": "다음의 우리말을 영어로 가장 잘 나타낸 것은?",
+      "body": ["나는 네가 지금 그것을 먹지 않는 것이 더 낫다고 생각해."],
+      "choices": ["I think you had better not eat it now.",
+                  "You had not better eating it now, I think.",
+                  "You had better not eating it now, I think.",
+                  "I thought you would like not to eat it now.",
+                  "I'm afraid you would not like to eat it now."],
+      "answer": "①",
+      "explanation": "had better의 부정은 「had better not + 동사원형」이다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(1회).pdf", "number": 26,
+      "포인트": "must not ↔ should not",
+      "prompt": "밑줄과 바꾸어 쓸 수 있는 것은?",
+      "body": ["You [[must]] not touch the paintings."],
+      "choices": ["may", "have to", "should", "will", "would"],
+      "answer": "③",
+      "explanation": "must not은 ‘~해서는 안 된다’는 금지이므로 should not으로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(1회).pdf", "number": 30,
+      "포인트": "will과 함께 쓸 수 없는 때 표현",
+      "prompt": "<보기>의 빈칸에 알맞지 [[않은]]표현을 [[모두]]고르면?",
+      "body": ["<보기>", "I will call you ___________________."],
+      "choices": ["this evening", "tomorrow", "last week",
+                  "next Monday", "two days ago"],
+      "answer": "③, ⑤",
+      "explanation": "will은 앞으로 할 일을 나타내므로 과거를 나타내는 말과는 함께 쓸 수 없다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(2회).pdf", "number": 3,
+      "포인트": "금지와 불필요의 구별",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["You _____ touch that hot pot."],
+      "choices": ["shouldn't", "must not", "ought not to",
+                  "don’t have to", "had better not"],
+      "answer": "④",
+      "explanation": "don’t have to는 ‘~할 필요가 없다’는 뜻이라 금지의 자리에 쓸 수 없다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(2회).pdf", "number": 4,
+      "포인트": "didn’t have to — ~할 필요가 없었다",
+      "prompt": "다음 우리말을 영어로 옮길 때, 빈칸에 알맞은 것을 고르시오.",
+      "body": ["나는 어제 일찍 일어날 필요가 없었다.",
+               "→ I _____ early yesterday."],
+      "choices": ["must not get up", "couldn't get up",
+                  "had better not get up", "didn't have to get up",
+                  "wouldn't like to get up"],
+      "answer": "④",
+      "explanation": "‘~할 필요가 없었다’는 didn’t have to로 나타낸다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(2회).pdf", "number": 16,
+      "포인트": "부탁할 때 쓰는 조동사",
+      "prompt": "다음 빈칸에 들어갈 수 [[없는]]말은?",
+      "body": ["_____ you pass me the salt?"],
+      "choices": ["Can", "Could", "Will", "Would", "Must"],
+      "answer": "⑤",
+      "explanation": "must는 부탁하는 말로 쓰지 않는다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(2회).pdf", "number": 17,
+      "포인트": "have to + 동사원형",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["We _____ to leave early to catch the train."],
+      "choices": ["have", "must", "have to", "can", "will"],
+      "answer": "①",
+      "explanation": "뒤에 to가 이미 있으므로 have를 써서 have to로 만든다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(2회).pdf", "number": 20,
+      "포인트": "부탁할 때 쓰는 Will you ~?",
+      "prompt": "빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["_____ you tell me how I can get to the station?"],
+      "choices": ["May", "Have", "Might", "Will", "Can't"],
+      "answer": "④",
+      "explanation": "상대에게 부탁할 때는 Will you ~?로 묻는다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(2회).pdf", "number": 22,
+      "포인트": "may not + 동사원형",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것은?",
+      "body": ["그가 집에 없을 수도 있다."],
+      "choices": ["He may not be at home.", "He may be not at home.",
+                  "He may not is at home.", "He may not at home.",
+                  "He may be at home."],
+      "answer": "①",
+      "explanation": "조동사의 부정은 조동사 뒤에 not을 붙이고 그 뒤에 동사원형 be를 쓴다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(2회).pdf", "number": 24,
+      "포인트": "had better not의 어순",
+      "prompt": "다음 주어진 단어를 이용하여 문장을 완성할 때밑줄 친 ⓒ에 올 단어는?",
+      "body": ["우리는 그것을 사지 않는 것이 좋겠어.",
+               "(we / buy / had / not / it / better)",
+               "→ We [[ⓐ]] [[ⓑ]] [[ⓒ]] [[ⓓ]] [[ⓔ]] ."],
+      "choices": ["buy", "had", "not", "it", "better"],
+      "answer": "③",
+      "explanation": "We had better not buy it의 순서이므로 ⓒ에는 not이 온다."
+    },
+    {
+      "file": "[기본] 7.조동사_종합문제(2회).pdf", "number": 29,
+      "포인트": "추측의 may와 허락의 may",
+      "prompt": "밑줄 친 부분의 쓰임이 [[다른]]하나는?",
+      "body": [],
+      "choices": ["The sky is dark. It [[may]] rain soon.",
+                  "You [[may]] take one cookie.",
+                  "It [[may]] be hard for beginners.",
+                  "She [[may]] have left already.",
+                  "He didn't answer. He [[may]] be busy."],
+      "answer": "②",
+      "explanation": "②만 허락을 나타내고 나머지는 모두 추측을 나타낸다."
+    },
+    {
+      "file": "[기본] 7.조동사_확인문제(1회).pdf", "number": 7,
+      "포인트": "허락을 나타내는 can = may",
+      "prompt": "다음 두 문장의 의미가 같도록 할 때, 빈칸에 알맞은 것을 고르시오.",
+      "body": ["You can borrow my bike for a week.",
+               "= You ________ borrow my bike for a week."],
+      "choices": ["will", "may", "should", "might", "have to"],
+      "answer": "②",
+      "explanation": "허락을 나타내는 can은 may로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 7.조동사_확인문제(1회).pdf", "number": 10,
+      "포인트": "능력과 허락을 모두 나타내는 can",
+      "prompt": "다음 빈칸에 공통으로 들어갈 말로 알맞은 것을고르시오.",
+      "body": ["______ you swim well?",
+               "I’m tired. ______ I sit here?"],
+      "choices": ["Can", "May", "Must", "Should", "Have to"],
+      "answer": "①",
+      "explanation": "can은 ‘~할 수 있다’는 능력과 ‘~해도 될까요?’라는 허락을 모두 나타낸다."
+    },
+    {
+      "file": "[기본] 7.조동사_확인문제(2회).pdf", "number": 11,
+      "포인트": "강한 추측을 나타내는 must",
+      "prompt": "다음은 우리말을 영어로 바르게 옮긴 것을 고르시오.",
+      "body": ["그는 피곤함에 틀림없다."],
+      "choices": ["He may be tired.", "He must be tired.",
+                  "He should be tired.", "He has to be tired.",
+                  "He is able to be tired."],
+      "answer": "②",
+      "explanation": "‘~임에 틀림없다’는 강한 추측이므로 must be로 나타낸다."
+    }
+  ]
+}

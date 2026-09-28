@@ -1,0 +1,197 @@
+{
+  "_설명": "천일문 3권 워크북 Chapter 10 가정법의 Chapter Test를 변형한 것. 심화 7과 가정법 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 10,
+  "chapter": "가정법",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 7, "chapter": "가정법" },
+  "points": [
+    { "unit_no": 1, "unit": "가정법 과거·과거완료", "point_no": 1, "point": "가정법 과거: If+주어+동사의 과거형 ~, 주어+조동사 과거형+동사원형", "frequent": true },
+    { "unit_no": 1, "unit": "가정법 과거·과거완료", "point_no": 2, "point": "가정법 과거완료: If+주어+had p.p. ~, 주어+조동사 과거형+have p.p.", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 가정법", "point_no": 3, "point": "I wish 가정법", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 가정법", "point_no": 4, "point": "as if 가정법", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 가정법", "point_no": 5, "point": "without[but for] = if it were not for / if it had not been for", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 가정법", "point_no": 6, "point": "if의 생략과 도치", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1], "point_label": "가정법 과거의 주절",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["If I ran into my favorite actor at the airport, I ________ for an autograph."],
+      "choices": [
+        { "no": 1, "text": "ask" },
+        { "no": 2, "text": "asked" },
+        { "no": 3, "text": "will ask" },
+        { "no": 4, "text": "would ask" },
+        { "no": 5, "text": "had asked" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [2], "point_label": "가정법 과거완료의 if절",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["If Mina ________ to Canada, we might have kept in touch."],
+      "choices": [
+        { "no": 1, "text": "doesn’t move" },
+        { "no": 2, "text": "didn’t move" },
+        { "no": 3, "text": "hadn’t moved" },
+        { "no": 4, "text": "won’t move" },
+        { "no": 5, "text": "wasn’t moving" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [1, 2, 3, 5], "point_label": "I wish 뒤에는 과거형",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I wish I [[live]] near the mountains someday." },
+        { "no": 2, "text": "But for the guide, Jiho [[would get]] lost." },
+        { "no": 3, "text": "I wish my parents [[gave]] me a puppy for my birthday." },
+        { "no": 4, "text": "If Sora [[knew]] about cars well, she could fix it by herself." },
+        { "no": 5, "text": "If Mina [[hadn’t changed]] her email address, I could have contacted her." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [2], "point_label": "주절이 과거완료면 if절도 had p.p.",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장에서 밑줄 친 부분을 바르게 고쳐 쓰세요.",
+      "body": ["If Jiho [[weren’t]] sick last Friday, we could have gone to the concert together.", "→ ________"],
+      "choices": [],
+      "answer": "hadn’t[had not] been"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [1], "point_label": "if절이 과거형이면 주절은 조동사 과거형+동사원형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장에서 밑줄 친 부분을 바르게 고쳐 쓰세요.",
+      "body": ["If Mina won the contest, she [[would have received]] a scholarship.", "→ ________"],
+      "choices": [],
+      "answer": "would receive"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [2], "point_label": "과거 사실의 반대는 가정법 과거완료",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "두 문장의 의미가 같도록 빈칸에 들어갈 알맞은 말을 쓰세요.",
+      "body": [
+        "Because it was too windy yesterday, I didn’t go out for a walk.",
+        "→ If it ________ too windy yesterday, I would have gone out for a walk."
+      ],
+      "choices": [],
+      "answer": "hadn’t[had not] been"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [1], "point_label": "현재 사실의 반대는 가정법 과거",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "두 문장의 의미가 같도록 빈칸에 들어갈 알맞은 말을 쓰세요.",
+      "body": [
+        "I don’t have a brother. I can’t play catch with him.",
+        "→ If I ________ a brother, I could play catch with him."
+      ],
+      "choices": [],
+      "answer": "had"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [1, 2, 3, 4], "point_label": "가정법으로 바꿔 쓴 문장의 의미",
+      "question_kind": "의미 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 두 문장의 의미가 통하지 않는 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I’m sorry I can’t join you now. → I wish I could join you now." },
+        { "no": 2, "text": "In fact, Jiho doesn’t like the movie. → Jiho acts as if he liked the movie." },
+        { "no": 3, "text": "I’m sorry I can’t stay at this fancy hotel. → I wish I could stay at this fancy hotel." },
+        { "no": 4, "text": "As I skipped lunch yesterday, I was tired. → If I hadn’t skipped lunch yesterday, I wouldn’t have been tired." },
+        { "no": 5, "text": "Since the coat wasn’t on sale, Mina didn’t buy it. → If the coat were on sale, Mina would buy it." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [1, 2, 3], "point_label": "가정법 과거완료의 if절",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작하지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "네가 길에서 지갑을 발견하면 무엇을 할 거니? → What would you do if you found a wallet on the street?" },
+        { "no": 2, "text": "사람들이 공원에 쓰레기를 버리지 않으면 좋을 텐데. → I wish people didn’t throw trash in the park." },
+        { "no": 3, "text": "지호의 실수가 알려졌다면, 그는 무척 당황했을 텐데. → If Jiho’s mistake is known, he would have been embarrassed." },
+        { "no": 4, "text": "그 소포가 제때 도착하지 않는다면, 내용물이 상할 텐데. → If the parcel didn’t arrive on time, the contents would go bad." },
+        { "no": 5, "text": "우리 형이 노크한 후에 내 방에 들어왔다면 나는 화가 나지 않았을 텐데. → I might not have been upset if my brother had come into my room after knocking." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [4], "point_label": "as if+주어+동사의 과거형",
+      "question_kind": "영작", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 가정법 문장을 완성하세요.",
+      "body": [
+        "지호는 마치 그가 답을 아는 것처럼 미소 지었다. (the answer, as if, know)",
+        "→ Jiho smiled ________________."
+      ],
+      "choices": [],
+      "answer": "as if he knew the answer"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [1], "point_label": "가정법 과거의 if절과 주절",
+      "question_kind": "영작", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 가정법 문장을 완성하세요.",
+      "body": [
+        "내가 그 코드를 안다면, 그 금고를 열 수 있을 텐데. (the code, open, can, know)",
+        "→ If I ________________, I ________________ the safe."
+      ],
+      "choices": [],
+      "answer": "knew the code, could open"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [5], "point_label": "과거 사실의 반대는 if it had not been for",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 우리말을 영어로 옮긴 것 중 알맞지 않은 것을 고르세요.",
+      "body": ["[[네 도움이 없었다면,]] I couldn’t have finished the project on time."],
+      "choices": [
+        { "no": 1, "text": "Without your help" },
+        { "no": 2, "text": "But for your help" },
+        { "no": 3, "text": "If it were not for your help" },
+        { "no": 4, "text": "Had it not been for your help" },
+        { "no": 5, "text": "If it had not been for your help" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [1, 2, 6], "point_label": "가정법의 시제 짝 맞추기",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Were Mina here, we would have a great time." },
+        { "no": 2, "text": "If Jiho were my roommate, we could be good friends." },
+        { "no": 3, "text": "Had I practiced harder, I would have won the match." },
+        { "no": 4, "text": "If you didn’t check your answers, you won’t get a perfect score." },
+        { "no": 5, "text": "If Sora had worn a raincoat, she would not have gotten wet." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [2], "point_label": "주절이 would have p.p.면 if절은 had p.p.",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "The sun was very strong yesterday. I walked outside for hours, and my face got burned. If I wore a hat, it would not have gotten burned.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "wore → had worn"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [3], "point_label": "I wish 뒤에는 조동사도 과거형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "I have read about a very special lake. The name of the lake is “Baikal.” Its water is incredibly clear. I wish I can visit it.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "can visit → could visit"
+    }
+  ]
+}

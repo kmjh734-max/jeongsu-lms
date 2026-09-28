@@ -1,0 +1,144 @@
+{
+  "_설명": "기본 12과 대명사와 수일치 — 나머지. some/others, one/ones, every/each. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 20,
+      "포인트": "‘어떤 것’을 뜻하는 something",
+      "prompt": "다음 문장의 빈칸에 들어갈 말로 알맞은 것을 <보기>에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "another something the other all",
+               "We need __________ to drink."],
+      "answer": "something",
+      "explanation": "‘마실 어떤 것’의 의미로 something이 알맞다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 22,
+      "포인트": "All + 복수명사 + 복수동사",
+      "prompt": "다음 문장의 빈칸에 들어갈 말로 알맞은 것을 <보기>에서 골라 쓰시오.",
+      "body": ["<보기>",
+               "another something the other all",
+               "__________ the players on the field are running."],
+      "answer": "All",
+      "explanation": "빈칸 뒤에 복수명사와 복수동사가 쓰였으므로 all이 알맞다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 23,
+      "포인트": "some ~ others …",
+      "prompt": "다음 대화의 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "body": ["A: How many pens do you have?",
+               "B: I have many pens. Some are black and",
+               "__________ are blue."],
+      "answer": "others",
+      "explanation": "‘(불특정한 수의 물건 중에서) 몇몇은 ~ 다른 일부는 …’의 의미를 나타낼 때 「some ~ others …」로 표현한다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 26,
+      "포인트": "날씨를 나타내는 비인칭 주어 It",
+      "prompt": "주어진 단어를 우리말에 맞게 배열하시오.",
+      "body": ["비가 오는 날이 될 것이다.",
+               "(going/a/rainy/is/It/day/to/be/.)"],
+      "answer": "It is going to be a rainy day.",
+      "explanation": "날씨를 나타낼 때는 비인칭 주어 It을 쓰며, 「be going to + 동사원형」으로 미래를 나타낸다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 27,
+      "포인트": "talk to oneself — 혼잣말하다",
+      "prompt": "괄호 안에서 알맞은 것을 고르세요.",
+      "body": ["A : ‘Practice makes perfect.’",
+               "B : What are you doing? Are you talking to (you /",
+               "yourself)?",
+               "A : It’s a line from a speech I’m giving at the",
+               "school contest tomorrow."],
+      "answer": "yourself",
+      "explanation": "talk to oneself: 혼잣말하다. 주어와 전치사의 목적어가 같으므로 재귀대명사를 쓴다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 28,
+      "포인트": "3인칭 복수의 재귀대명사",
+      "prompt": "적절한 대명사를 골라 빈칸을 채우시오.",
+      "body": ["myself yourself himself herself",
+               "itself yourselves ourselves themselves",
+               "Some children always draw pictures of _____."],
+      "answer": "themselves",
+      "explanation": "주어가 3인칭 복수이고 전치사의 목적어가 주어와 같으므로 themselves가 알맞다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 29,
+      "포인트": "주어와 목적어가 같으면 재귀대명사",
+      "prompt": "우리말에 맞게 빈칸을 채우세요.",
+      "body": ["저는 제 소개를 했습니다.",
+               "_____ introduced __________."],
+      "answer": "I, myself",
+      "explanation": "주어 자리에는 I, 목적어 자리에는 I의 재귀대명사형인 myself가 적절하다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 30,
+      "포인트": "주어와 목적어가 같으면 재귀대명사",
+      "prompt": "우리말에 맞게 빈칸을 채우세요.",
+      "body": ["그는 거울에 비친 스스로의 모습을 보고 있습니다.",
+               "_____ is looking at _____ in the mirror."],
+      "answer": "He, himself",
+      "explanation": "자기 자신을 바라보는 것이므로 주어와 목적어가 같다. 따라서 목적어 자리에는 재귀대명사 himself가 와야 한다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 35,
+      "포인트": "복수명사를 대신할 때는 ones",
+      "prompt": "one 또는 ones 중 적절한 것을 빈칸에 쓰시오.",
+      "body": ["She bought some notebooks. I want to buy the",
+               "same ______."],
+      "answer": "ones",
+      "explanation": "앞에 나온 복수명사 notebooks와 같은 종류의 것을 가리키므로 ones를 쓴다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 40,
+      "포인트": "의문문에서 ‘몇몇의’는 any",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["elder either many oldest",
+               "some any much",
+               "Do you have ______ magazines to read on the",
+               "train?"],
+      "answer": "any",
+      "explanation": "의문문에서 ‘몇몇의, 어떤’이라는 뜻으로 복수명사를 꾸밀 때는 any를 쓴다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 43,
+      "포인트": "every + 단수명사",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["little each every",
+               "last latest few",
+               "Almost ______ window in the building is open."],
+      "answer": "every",
+      "explanation": "뒤에 단수명사 window와 단수동사 is가 쓰였고 ‘거의 모든’이라는 뜻이므로 every가 알맞다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_체크체크.pdf", "number": 44,
+      "포인트": "each + 단수명사 — 각각의",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["little each every",
+               "last latest few",
+               "He held a flag in ______ hand."],
+      "answer": "each",
+      "explanation": "‘양손 각각에’라는 뜻이므로 each가 알맞으며, each 뒤에는 단수명사가 온다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_확인문제(2회).pdf", "number": 9,
+      "포인트": "3인칭 복수의 재귀대명사 themselves",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["어린아이들은 자기 자신을 지킬 수 없다.",
+               "→ Young children can’t protect ___________."],
+      "answer": "themselves",
+      "explanation": "young children은 3인칭 복수이므로 재귀대명사로 나타내면 themselves가 된다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_확인문제(2회).pdf", "number": 20,
+      "포인트": "부정문에서 ‘조금도 (~없다)’는 any",
+      "prompt": "다음 우리말과 의미가 같도록 <보기>에서 알맞은 단어를 골라 문장을 완성하시오.",
+      "body": ["<보기>",
+               "many much some any",
+               "그 병에는 우유가 조금도 없다.",
+               "→ There isn’t _____ milk in the bottle."],
+      "answer": "any",
+      "explanation": "부정문에서 ‘조금의 (~도 없다)’라는 의미로 쓰이는 것은 any이다."
+    }
+  ]
+}

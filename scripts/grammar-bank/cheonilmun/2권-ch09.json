@@ -1,0 +1,227 @@
+{
+  "_설명": "천일문 2권 Chapter 09 형용사와 부사에서 가져와 변형한 문항. 은행에서는 기본 13과 형용사와 명사의 수량표현 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 9,
+  "chapter": "형용사와 부사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 13, "chapter": "형용사와 명사의 수량표현" },
+  "points": [
+    { "unit_no": 1, "unit": "형용사", "point_no": 1, "point": "명사를 꾸미는 형용사 / 보어로 쓰이는 형용사", "frequent": false },
+    { "unit_no": 1, "unit": "형용사", "point_no": 2, "point": "many/much/a lot of", "frequent": true },
+    { "unit_no": 1, "unit": "형용사", "point_no": 3, "point": "(a) few+셀 수 있는 명사, (a) little+셀 수 없는 명사", "frequent": true },
+    { "unit_no": 2, "unit": "부사", "point_no": 4, "point": "부사의 형태와 자리", "frequent": false },
+    { "unit_no": 2, "unit": "부사", "point_no": 5, "point": "빈도부사의 위치", "frequent": false },
+    { "unit_no": 2, "unit": "부사", "point_no": 6, "point": "형태가 비슷해 뜻이 달라지는 부사(hard/hardly, late/lately)", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1], "point_label": "명사 앞 자리에는 형용사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["Nara likes ______ things."],
+      "choices": [
+        { "no": 1, "text": "cute" },
+        { "no": 2, "text": "special" },
+        { "no": 3, "text": "colorful" },
+        { "no": 4, "text": "especially" },
+        { "no": 5, "text": "useful" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [4], "point_label": "-ly로 끝나도 형용사인 말",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["Jinsu is running ______."],
+      "choices": [
+        { "no": 1, "text": "fast" },
+        { "no": 2, "text": "slowly" },
+        { "no": 3, "text": "carefully" },
+        { "no": 4, "text": "quickly" },
+        { "no": 5, "text": "lovely" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [3], "point_label": "little: 거의 없는(셀 수 없는 명사)",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["그 마을에는 눈이 거의 없다.", "→ There is ______ snow in the village."],
+      "choices": [
+        { "no": 1, "text": "few" },
+        { "no": 2, "text": "little" },
+        { "no": 3, "text": "a few" },
+        { "no": 4, "text": "a little" },
+        { "no": 5, "text": "lots of" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [2, 3], "point_label": "a little과 a few",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "[[Many]] animals live in the forest." },
+        { "no": 2, "text": "There are [[few]] trees in the desert." },
+        { "no": 3, "text": "My brother made me [[a lot of]] sandwiches." },
+        { "no": 4, "text": "She went outside [[a little]] hours ago." },
+        { "no": 5, "text": "People use [[too many]] paper cups these days." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [1, 4], "point_label": "감각동사 뒤에는 형용사",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "This soup smells [[delicious]]." },
+        { "no": 2, "text": "His shirt is very [[unique]]." },
+        { "no": 3, "text": "Please wait [[quietly]] in the hall." },
+        { "no": 4, "text": "[[Surprisingly]], penguins have short wings." },
+        { "no": 5, "text": "The pianist’s music sounds [[beautifully]]." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [3], "point_label": "few: 거의 없는(셀 수 있는 명사)",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["I go to the café every day because there are ______ chairs in my room."],
+      "choices": [
+        { "no": 1, "text": "many" },
+        { "no": 2, "text": "few" },
+        { "no": 3, "text": "a lot of" },
+        { "no": 4, "text": "a little" },
+        { "no": 5, "text": "little" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [3], "point_label": "a few: 조금 있는",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["A: Will there be many guests at the dinner?", "B: No, there won’t. I invited only ______ neighbors."],
+      "choices": [
+        { "no": 1, "text": "much" },
+        { "no": 2, "text": "a little" },
+        { "no": 3, "text": "many" },
+        { "no": 4, "text": "a few" },
+        { "no": 5, "text": "few" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [4], "point_label": "동사를 꾸밀 때는 부사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Mom shut the window quiet behind her.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "quiet → quietly"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [5], "point_label": "빈도부사는 일반동사 앞에",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Sora eats never breakfast in the morning.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "eats never → never eats"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [2, 3], "point_label": "a little과 Many",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• There is ______(A) milk in the glass. Do you want some more?",
+        "• ______(B) tourists visited the old palace."
+      ],
+      "choices": [
+        { "no": 1, "text": "a few — Many" },
+        { "no": 2, "text": "a little — Many" },
+        { "no": 3, "text": "a little — Much" },
+        { "no": 4, "text": "little — Much" },
+        { "no": 5, "text": "little — A little" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [6], "point_label": "hard와 hardly",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• Mina ______(A) drinks coffee at night.", "• My aunt studies ______(B) every day. She is always busy."],
+      "choices": [
+        { "no": 1, "text": "hard — hard" },
+        { "no": 2, "text": "hardly — hardly" },
+        { "no": 3, "text": "hard — hardly" },
+        { "no": 4, "text": "hardly — hard" },
+        { "no": 5, "text": "hardly — hards" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [4, 6], "point_label": "-ly가 붙어 뜻이 달라지는 부사",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "주어진 단어를 어법상 알맞은 형태로 빈칸에 쓰세요.",
+      "body": [
+        "(1) ________, all the classes for this week are over. (final)",
+        "(2) Salt is ________ useful in cooking. (high)"
+      ],
+      "choices": [],
+      "answer": "(1) Finally  (2) highly"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [1, 4], "point_label": "enough의 자리와 형용사·부사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 대화의 밑줄 친 부분이 어법상 알맞지 않은 것을 모두 고르세요.",
+      "body": [
+        "A: Many students don’t get ① [[sleep enough]]. It’s becoming a big problem. What happens when they don’t sleep ② [[well]]?",
+        "B: They can’t focus in class.",
+        "A: Do you have any ③ [[useful]] advice for them?",
+        "B: They should go to bed ④ [[early]] and get a ⑤ [[deeply]] sleep."
+      ],
+      "choices": [
+        { "no": 1, "text": "sleep enough" },
+        { "no": 2, "text": "well" },
+        { "no": 3, "text": "useful" },
+        { "no": 4, "text": "early" },
+        { "no": 5, "text": "deeply" }
+      ],
+      "answer": "①, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [1, 2, 3], "point_label": "수량 표현과 -thing+형용사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장의 개수를 고르세요.",
+      "body": [
+        "ⓐ Few kids play outside on a rainy day.",
+        "ⓑ He found strange something in the box.",
+        "ⓒ Much students didn’t attend the class.",
+        "ⓓ A number of students has bad eyesight.",
+        "ⓔ The young usually has interest in music.",
+        "ⓕ Sumin is carrying a five-kilogram bag."
+      ],
+      "choices": [
+        { "no": 1, "text": "1개" },
+        { "no": 2, "text": "2개" },
+        { "no": 3, "text": "3개" },
+        { "no": 4, "text": "4개" },
+        { "no": 5, "text": "없음" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [4, 6], "point_label": "near/nearly, high/highly, late/lately",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Jane spent [[near]] all day in the museum." },
+        { "no": 2, "text": "The Japanese class was very [[hard]]." },
+        { "no": 3, "text": "The hall has [[seats enough]] for us." },
+        { "no": 4, "text": "There are many [[highly]] towers in the city." },
+        { "no": 5, "text": "We had better not eat something [[lately]] at night." }
+      ],
+      "answer": "②"
+    }
+  ]
+}

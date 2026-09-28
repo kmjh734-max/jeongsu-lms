@@ -1,0 +1,40 @@
+{
+  "_설명": "천일문 1권 워크북 Chapter 08 여러 가지 문장 종류의 Chapter Test 가운데 부가의문문 문항을 변형한 것. 기본 16과 부가의문문과 간접의문문 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 8,
+  "chapter": "여러 가지 문장 종류",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 16, "chapter": "부가의문문과 간접의문문" },
+  "points": [
+    { "unit_no": 3, "unit": "부가의문문, 부정의문문", "point_no": 10, "point": "~, 그렇지 (않니)?: 부가의문문 만드는 법", "frequent": true },
+    { "unit_no": 3, "unit": "부가의문문, 부정의문문", "point_no": 11, "point": "부가의문문에 대한 대답: 긍정이면 Yes, 부정이면 No", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [10], "point_label": "앞 문장이 긍정이면 부가의문문은 부정",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "He is not tired, [[isn’t he]]?" },
+        { "no": 2, "text": "She left early, [[doesn’t she]]?" },
+        { "no": 3, "text": "You play the violin, [[aren’t you]]?" },
+        { "no": 4, "text": "Your brother likes soccer, [[doesn’t it]]?" },
+        { "no": 5, "text": "The students can’t swim well, [[can they]]?" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 16, "point_nos": [10], "point_label": "부가의문문의 동사와 대명사 맞추기",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "<보기>와 같이 빈칸에 알맞은 말을 써서 부가의문문을 완성하세요.",
+      "body": [
+        "<보기> Tom and Amy often travel, don’t they?",
+        "(1) You can’t drive, ________?",
+        "(2) He watched the game, ________?",
+        "(3) They were at the beach last week, ________?"
+      ],
+      "choices": [],
+      "answer": "(1) can you  (2) didn’t he  (3) weren’t they"
+    }
+  ]
+}

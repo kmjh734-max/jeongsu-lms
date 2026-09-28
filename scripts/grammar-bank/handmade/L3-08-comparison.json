@@ -1,0 +1,86 @@
+{
+  "_설명": "심화 8과 비교구문 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 8.비교구문_종합문제(1회).pdf", "number": 4,
+      "포인트": "원급 비교에서 형용사와 부사를 가려 쓰기",
+      "prompt": "주어진 단어 중 하나를 선택하여 의미에 맞게 문장을 완성하시오.",
+      "body": ["(1) 우리 정원은 공원만큼 넓다.",
+               "(wide / widely)",
+               "Our garden is __________________ the park.",
+               "(2) Mina는 Sora만큼 빠르게 달린다.",
+               "(quick / quickly)",
+               "Mina runs ______________________ Sora."],
+      "answer": "(1) as wide as, (2) as quickly as",
+      "explanation": "두 문장 모두 ‘~만큼 ~한/하게’의 의미이므로 원급 비교를 사용한다. (1)의 빈칸은 주격보어 자리이므로 형용사 wide를, (2)의 빈칸은 동사 runs를 꾸미는 자리이므로 부사 quickly를 쓴다."
+    },
+    {
+      "file": "[심화] 8.비교구문_종합문제(1회).pdf", "number": 11,
+      "포인트": "배수 비교 「배수사 + 비교급 + than」 배열",
+      "prompt": "괄호 안의 단어를 주어진 우리말에 맞게 바르게 배열하시오.",
+      "body": ["그것은 지구까지의 거리보다 15배나 멀다.",
+               "(the, farther, to, 15, is, earth, distance, it, than,",
+               "times, the)",
+               "→ ___________________________________________."],
+      "answer": "It is 15 times farther than the distance to the earth",
+      "explanation": "배수 비교는 「배수사 + as + 원급 + as」 또는 「배수사 + 비교급 + than」으로 쓴다. 주어와 동사인 ‘It is’ 뒤에 배수사 15 times를 놓고 비교급 farther than을 이어 쓴다."
+    },
+    {
+      "file": "[심화] 8.비교구문_종합문제(1회).pdf", "number": 17,
+      "포인트": "최상급을 원급·비교급으로 바꾸는 네 가지 방법",
+      "prompt": "빈칸을 채워 주어진 문장과 의미가 같은 4개의 문장을 쓰시오.",
+      "body": ["Jiho is the tallest student in our school.",
+               "(1) No other student is ___________ than Jiho in",
+               "our school.",
+               "(2) No other student is ___________ as Jiho in",
+               "our school.",
+               "(3) Jiho is taller than any ___________ in our",
+               "school.",
+               "(4) Jiho is taller than all ___________ in our school."],
+      "answer": "(1) taller (2) as tall (3) other student (4) the other students",
+      "explanation": "원급과 비교급을 사용하여 최상급을 나타낼 수 있다. (1) 「No other 단수명사 + 비교급 + than」, (2) 「No other 단수명사 + as + 원급 + as」, (3) 「비교급 + than any other + 단수명사」, (4) 「비교급 + than all the other + 복수명사」의 형태이다."
+    },
+    {
+      "file": "[심화] 8.비교구문_종합문제(1회).pdf", "number": 19,
+      "포인트": "최상급을 「No other ~ 비교급 than」으로 바꾸기",
+      "prompt": "두 문장이 같은 의미를 갖도록 빈칸에 알맞은 말을 쓰시오. (비교급 구문을 사용하시오.)",
+      "body": ["Baseball is the most popular sport in Japan.",
+               "→ No other sport is _________ _________",
+               "_________ _________ in Japan."],
+      "answer": "more popular than baseball",
+      "explanation": "주어 자리에 ‘No other sport’가 쓰였으므로 빈칸에는 비교급 형태에 맞게 ‘more popular than baseball’을 쓴다."
+    },
+    {
+      "file": "[심화] 8.비교구문_종합문제(1회).pdf", "number": 21,
+      "포인트": "「The 비교급 ~, the 비교급 …」",
+      "prompt": "괄호안의 단어들을 활용하여 주어진 우리말과 일치하는 영어 문장을 완성하시오.",
+      "body": ["물이 더 깊을수록 더 차갑게 느껴진다.",
+               "(deep / cold)",
+               "→ _________ _________ the water is, _________",
+               "_________ it feels."],
+      "answer": "The deeper, the colder",
+      "explanation": "「The + 비교급 + 주어 + 동사, the + 비교급 + 주어 + 동사」 구문은 ‘~하면 할수록 더 ~하다’의 의미를 나타낸다. deep과 cold는 짧은 형용사이므로 -er을 붙여 비교급을 만든다."
+    },
+    {
+      "file": "[심화] 8.비교구문_종합문제(1회).pdf", "number": 27,
+      "포인트": "비교급 문장을 원급 비교의 부정으로 바꾸기",
+      "prompt": "주어진 문장과 내용이 일치하도록 [[원급비교]]를 사용하여 문장을 완성하시오.",
+      "body": ["Her classmates study harder than Nari.",
+               "→ Nari __________________________________ do."],
+      "answer": "doesn’t study as hard as her classmates",
+      "explanation": "‘그녀의 반 친구들은 Nari보다 더 열심히 공부한다’라는 문장은 원급 비교를 사용하여 ‘Nari는 그녀의 반 친구들만큼 열심히 공부하지 않는다’로 바꿔 쓸 수 있다. 「not + as[so] + 원급 + as」의 형태이다."
+    },
+    {
+      "file": "[심화] 8.비교구문_종합문제(1회).pdf", "number": 28,
+      "포인트": "「The 비교급 + 명사 ~, the 비교급 + 명사 …」 영작",
+      "prompt": "다음의 두 문장을 비교급을 사용하여 주어진 의미에 맞게 한 문장으로 영작하시오.",
+      "body": ["You read many books.",
+               "You learn many words.",
+               "→ ___________________________________________.",
+               "네가 더 많은 책을 읽을수록, 너는 더 많은 낱말을",
+               "배운다."],
+      "answer": "The more books you read, the more words you learn.",
+      "explanation": "「The + 비교급 + 주어 + 동사, the + 비교급 + 주어 + 동사」의 형태를 활용한다. many의 비교급 more가 명사 books, words를 꾸미므로 「the more + 명사」의 덩어리를 앞으로 보낸다."
+    }
+  ]
+}

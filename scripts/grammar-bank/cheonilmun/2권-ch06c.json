@@ -1,0 +1,233 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 06 동명사의 Chapter Test를 변형한 것. 기본 5과 동명사 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 6,
+  "chapter": "동명사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 5, "chapter": "동명사" },
+  "points": [
+    { "unit_no": 1, "unit": "동명사의 쓰임", "point_no": 1, "point": "동명사 = 주어 (단수 취급)", "frequent": true },
+    { "unit_no": 1, "unit": "동명사의 쓰임", "point_no": 2, "point": "동명사 = 보어", "frequent": true },
+    { "unit_no": 1, "unit": "동명사의 쓰임", "point_no": 3, "point": "동명사 = 목적어", "frequent": true },
+    { "unit_no": 1, "unit": "동명사의 쓰임", "point_no": 4, "point": "전치사+동명사", "frequent": true },
+    { "unit_no": 2, "unit": "동명사와 to부정사", "point_no": 5, "point": "동명사를 목적어로 쓰는 동사", "frequent": true },
+    { "unit_no": 2, "unit": "동명사와 to부정사", "point_no": 6, "point": "to부정사를 목적어로 쓰는 동사", "frequent": true },
+    { "unit_no": 2, "unit": "동명사와 to부정사", "point_no": 7, "point": "둘 다 목적어로 쓰는 동사", "frequent": true },
+    { "unit_no": 2, "unit": "동명사와 to부정사", "point_no": 8, "point": "목적어에 따라 뜻이 달라지는 동사(remember/forget/try)", "frequent": true },
+    { "unit_no": 3, "unit": "동명사의 관용 표현", "point_no": 9, "point": "자주 쓰이는 동명사 표현", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1], "point_label": "동명사 주어는 단수 취급",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Collecting old coins ________ his favorite hobby."],
+      "choices": [
+        { "no": 1, "text": "be" },
+        { "no": 2, "text": "was" },
+        { "no": 3, "text": "were" },
+        { "no": 4, "text": "being" },
+        { "no": 5, "text": "are" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [1, 2, 3], "point_label": "주어·보어·목적어로 쓰인 동명사",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 다른 것을 모두 고르세요.",
+      "body": ["<보기> [[Waiting]] for the bus can be boring."],
+      "choices": [
+        { "no": 1, "text": "My hobby is [[baking]] cookies." },
+        { "no": 2, "text": "The baby kept [[crying]] all night." },
+        { "no": 3, "text": "[[Writing]] a diary is a good habit." },
+        { "no": 4, "text": "[[Taking]] a nap is helpful for students." },
+        { "no": 5, "text": "[[Solving]] the puzzle was difficult." }
+      ],
+      "answer": "①, ②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [4], "point_label": "be interested in+동명사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "나는 옛날 동전을 모으는 것에 관심이 있다.",
+        "→ I’m interested in collect old coins.",
+        "→ ________"
+      ],
+      "choices": [],
+      "answer": "collect → collecting"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [9], "point_label": "be good at+동명사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 문장과 의미가 일치하도록 빈칸에 알맞은 동명사 표현을 쓰세요.",
+      "body": [
+        "She draws cartoons very well.",
+        "= She is good ________ ________ cartoons."
+      ],
+      "choices": [],
+      "answer": "at drawing"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [9], "point_label": "feel like+동명사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 문장과 의미가 일치하도록 빈칸에 알맞은 동명사 표현을 쓰세요.",
+      "body": [
+        "I want to drink something cold.",
+        "= I feel ________ ________ something cold."
+      ],
+      "choices": [],
+      "answer": "like drinking"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [5, 7], "point_label": "enjoy는 동명사만 목적어로 쓴다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분을 to부정사로 바꿔 쓸 수 없는 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "She doesn’t like [[wearing]] scarves." },
+        { "no": 2, "text": "The man started [[building]] tables." },
+        { "no": 3, "text": "They love [[playing]] with my cat." },
+        { "no": 4, "text": "I enjoy [[watching]] the sunset at the beach." },
+        { "no": 5, "text": "Peter began [[training]] for the race." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [5, 6], "point_label": "agree는 to부정사, practice는 동명사",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "Mina and I agreed ____(A)____ part in a debate contest. So we will practice ____(B)____ English every day from now."
+      ],
+      "choices": [
+        { "no": 1, "text": "take — speak" },
+        { "no": 2, "text": "taking — to speak" },
+        { "no": 3, "text": "taking — speaking" },
+        { "no": 4, "text": "to take — to speak" },
+        { "no": 5, "text": "to take — speaking" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [5, 6], "point_label": "give up은 동명사를 목적어로 쓴다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": ["Jason ________ to climb the mountain with me."],
+      "choices": [
+        { "no": 1, "text": "gave up" },
+        { "no": 2, "text": "wanted" },
+        { "no": 3, "text": "liked" },
+        { "no": 4, "text": "promised" },
+        { "no": 5, "text": "chose" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [8], "point_label": "try to-v: ~하려고 애쓰다",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "민호는 그 상자를 옮기려고 애썼지만 옮길 수 없었다. (try, move)",
+        "→ Minho ________________ the box, but he couldn’t."
+      ],
+      "choices": [],
+      "answer": "tried to move"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [8], "point_label": "remember -ing: (과거에) ~한 것을 기억하다",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "소라는 우산을 버스에 둔 것을 기억하지 못했다. (remember, leave)",
+        "→ Sora didn’t ________________ her umbrella on the bus."
+      ],
+      "choices": [],
+      "answer": "remember leaving"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [5], "point_label": "mind+동명사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 대화의 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "A: Do you mind ________ the window for me?",
+        "B: Not at all."
+      ],
+      "choices": [
+        { "no": 1, "text": "open" },
+        { "no": 2, "text": "opened" },
+        { "no": 3, "text": "to open" },
+        { "no": 4, "text": "opening" },
+        { "no": 5, "text": "to opening" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [8], "point_label": "forget to-v: (앞으로) ~할 것을 잊다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 대화의 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "A: Did you lock the front door?",
+        "B: Oh, I’m sorry. I forgot ________ it."
+      ],
+      "choices": [
+        { "no": 1, "text": "lock" },
+        { "no": 2, "text": "locking" },
+        { "no": 3, "text": "to lock" },
+        { "no": 4, "text": "locked" },
+        { "no": 5, "text": "to locking" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [5], "point_label": "finish는 동명사를 목적어로 쓴다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "She is used to waking up early." },
+        { "no": 2, "text": "Thank you for helping me with my work." },
+        { "no": 3, "text": "We will finish to paint the wall." },
+        { "no": 4, "text": "Let’s go camping together next month." },
+        { "no": 5, "text": "I am thinking about joining the book club." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [2, 5, 6], "point_label": "보어·목적어 자리의 동명사와 to부정사",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 메모를 보고 주어진 단어를 사용하여 Daniel을 묘사하는 문장을 완성하세요.",
+      "body": [
+        "Daniel Brooks",
+        "Job: cooking teacher",
+        "Favorite thing: to try new recipes",
+        "Future plan: to write a cookbook",
+        "(1) Daniel’s job is ________ young students. (teach)",
+        "(2) He enjoys ________ new recipes. (try)",
+        "(3) He plans ________ his own cookbook in the future. (write)"
+      ],
+      "choices": [],
+      "answer": "(1) teaching[to teach]  (2) trying  (3) to write"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [5, 8, 9], "point_label": "동명사와 to부정사 종합",
+      "question_kind": "개수 고르기", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 것의 개수를 고르세요.",
+      "body": [
+        "ⓐ Please stop to complain about everything.",
+        "ⓑ Sujin is busy preparing for the concert.",
+        "ⓒ My brother and I hate to wash the dishes.",
+        "ⓓ I am looking forward to meet the writer.",
+        "ⓔ She spent hours to look for her lost ring.",
+        "ⓕ Not getting enough sleep can cause problems."
+      ],
+      "choices": [
+        { "no": 1, "text": "2개" },
+        { "no": 2, "text": "3개" },
+        { "no": 3, "text": "4개" },
+        { "no": 4, "text": "5개" },
+        { "no": 5, "text": "6개" }
+      ],
+      "answer": "②"
+    }
+  ]
+}

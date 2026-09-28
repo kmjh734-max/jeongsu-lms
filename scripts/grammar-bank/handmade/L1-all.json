@@ -1,0 +1,344 @@
+{
+  "_설명": "기초 전 챕터 — 남은 서술형 문항들. 원본 7과 29번은 우리말이 '보이지 않았다'(과거)인데 정답이 현재형 doesn't look이어서, 변형본에서는 시제를 맞춰 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 1.Be동사_종합문제(1회).pdf", "number": 17,
+      "포인트": "주어의 인칭과 수에 따른 be동사 현재형",
+      "prompt": "밑줄 친 ⓐ와 ⓑ에 들어갈 적절한 be동사 현재형을 쓰시오.",
+      "body": ["Sujin ⓐ ________ not tired.", "You and I ⓑ ________ busy."],
+      "answer": "(1) is (2) are",
+      "explanation": "ⓐ 단수 주어 Sujin에는 is를 쓴다. ⓑ You and I는 복수 주어이므로 are를 쓴다."
+    },
+    {
+      "file": "[기초] 1.Be동사_종합문제(1회).pdf", "number": 18,
+      "포인트": "나이를 말하는 「주어 + be동사 + 숫자 + years old」",
+      "prompt": "다음 우리말과 같도록 주어진 표현을 이용하여 문장을 완성하시오.",
+      "body": ["나는 15살이다. (15 years old)", "→ ______________________________________"],
+      "answer": "I am 15 years old.",
+      "explanation": "나이를 말할 때는 「주어 + be동사 + 숫자 + years old」로 쓴다. 주어가 I이므로 be동사는 am이다."
+    },
+    {
+      "file": "[기초] 1.Be동사_종합문제(1회).pdf", "number": 23,
+      "포인트": "복수 주어의 be동사 부정 축약형",
+      "prompt": "다음 문장을 영작하시오. (7단어 사용, 숫자 ‘13’은 영어로 쓸 것)",
+      "body": ["Mina와 Junho는 13살이 아니다"],
+      "answer": "Mina and Junho aren’t thirteen years old.",
+      "explanation": "주어가 복수(Mina and Junho)이므로 be동사는 are를 쓰고, 부정은 aren’t로 줄여 쓴다. 숫자는 영어 thirteen으로 쓴다."
+    },
+    {
+      "file": "[기초] 1.Be동사_종합문제(1회).pdf", "number": 24,
+      "포인트": "be동사 의문문은 be동사를 주어 앞으로",
+      "prompt": "주어진 문장을 의문문으로 바꾸어 쓰시오.",
+      "body": ["Sora and Ben are kind neighbors.",
+               "→ __________________________________________."],
+      "answer": "Are Sora and Ben kind neighbors?",
+      "explanation": "be동사의 의문문은 be동사를 문장 맨 앞으로 보내 「be동사 + 주어 ~?」의 어순으로 쓴다."
+    },
+    {
+      "file": "[기초] 1.Be동사_종합문제(1회).pdf", "number": 27,
+      "포인트": "be동사 부정문의 어순 「주어 + be동사 + not」",
+      "prompt": "주어진 의미가 되도록 다음 단어를 재배열하여 완성하시오.",
+      "body": ["그들은 캐나다 출신이 아니다.", "(not, are, from, Canada, They)"],
+      "answer": "They are not from Canada.",
+      "explanation": "be동사의 부정문은 「주어 + be동사 + not ~」의 형태이므로 are 뒤에 not이 온다."
+    },
+    {
+      "file": "[기초] 2.일반동사_종합문제(1회).pdf", "number": 12,
+      "포인트": "3인칭 단수 현재의 부정문 doesn’t + 동사원형",
+      "prompt": "다음 문장을 부정문으로 바꾸어 쓰시오.",
+      "body": ["My mom cooks dinner.",
+               "→ ___________________________________________"],
+      "answer": "My mom doesn’t cook dinner.",
+      "explanation": "주어가 3인칭 단수인 일반동사 현재형의 부정문은 「doesn’t + 동사원형」으로 쓴다. 이때 동사에 붙은 -s는 사라진다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(1회).pdf", "number": 1,
+      "포인트": "과거시제의 부정문과 의문문",
+      "prompt": "다음 문장을 부정문, 의문문으로 고쳐 쓰시오.",
+      "body": ["He cleaned his room.",
+               "부정문 : ______________________________________.",
+               "의문문 : ______________________________________."],
+      "answer": "He didn’t(did not) clean his room. Did he clean his room?",
+      "explanation": "과거시제의 부정문은 「didn’t + 동사원형」, 의문문은 「Did + 주어 + 동사원형 ~?」으로 쓴다. 두 경우 모두 동사는 원형으로 돌아간다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(1회).pdf", "number": 11,
+      "포인트": "과거시제 부정 didn’t + 동사원형",
+      "prompt": "빈칸에 들어갈 말로 가장 적절한 말을 쓰시오.",
+      "body": ["I _______ _______ soccer yesterday.",
+               "(나는 어제 축구를 하지 않았다.)"],
+      "answer": "didn’t play",
+      "explanation": "yesterday가 있으므로 과거시제이고, 부정문이므로 「didn’t + 동사원형」으로 쓴다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(1회).pdf", "number": 12,
+      "포인트": "3인칭 단수 현재형 -es",
+      "prompt": "빈칸에 공통으로 들어갈 말을 쓰시오.",
+      "body": ["Sujin _______ her hair every morning.",
+               "Every Saturday, my mom _______ the windows."],
+      "answer": "washes",
+      "explanation": "두 문장 모두 주어가 3인칭 단수이고 반복되는 일을 나타내므로 현재형을 쓴다. wash는 -sh로 끝나므로 -es를 붙여 washes가 된다."
+    },
+    {
+      "file": "[기초] 3.동사의 시제_종합문제(1회).pdf", "number": 20,
+      "포인트": "과거시제 의문문 Did + 주어 + 동사원형",
+      "prompt": "다음 문장을 의문문으로 바꾸어 쓰시오.",
+      "body": ["She went to Paris last month.",
+               "→ _______________________________________."],
+      "answer": "Did she go to Paris last month?",
+      "explanation": "과거시제의 의문문은 「Did + 주어 + 동사원형 ~?」으로 쓴다. went는 동사원형 go로 돌아간다."
+    },
+    {
+      "file": "[기초] 4.조동사_종합문제(1회).pdf", "number": 8,
+      "포인트": "조동사 can의 의문문",
+      "prompt": "다음 우리말을 영어로 쓰시오.",
+      "body": ["그녀는 피아노를 칠 수 있니?",
+               "________________________________________________"],
+      "answer": "Can she play the piano?",
+      "explanation": "조동사가 있는 문장의 의문문은 「조동사 + 주어 + 동사원형 ~?」의 어순으로 쓴다. 악기 이름 앞에는 the를 붙인다."
+    },
+    {
+      "file": "[기초] 4.조동사_종합문제(1회).pdf", "number": 30,
+      "포인트": "should와 should not",
+      "prompt": "다음 우리말을 영작할 때 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["(1) 게임을 너무 많이 하지 말아야 해.",
+               "→ You ______________________ too much.",
+               "(2) 일찍 일어나야 해.",
+               "→ You ______________________ early."],
+      "answer": "(1) should not play games (2) should get up",
+      "explanation": "‘~해야 한다’는 「should + 동사원형」, ‘~하지 말아야 한다’는 「should not + 동사원형」으로 쓴다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_종합문제(1회).pdf", "number": 17,
+      "포인트": "물질·추상명사를 세는 단위 piece",
+      "prompt": "다음 빈칸에 공통으로 들어갈 표현을 쓰시오.",
+      "body": ["________ of bread", "________ of wood", "________ of advice"],
+      "answer": "piece",
+      "explanation": "셀 수 없는 명사의 수량은 단위 명사를 써서 나타내며, bread·wood·advice는 모두 「a piece of」로 센다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_종합문제(1회).pdf", "number": 18,
+      "포인트": "횟수를 나타내는 「~ times a + 기간」",
+      "prompt": "주어진 문장을 영작하시오.",
+      "body": ["나는 일주일에 4번 운동한다.",
+               "= __________________________________________",
+               "(* times와 week를 반드시 사용할 것)"],
+      "answer": "I exercise four times a week.",
+      "explanation": "‘일주일에 ~번’은 「~ times a week」로 나타낸다. 이때 a는 ‘~마다’라는 뜻이다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_종합문제(1회).pdf", "number": 25,
+      "포인트": "물질명사의 단위 loaf와 sheet",
+      "prompt": "<보기>에 주어진 단어들을 활용하여 빈칸에 알맞은 말을 써서 문장을 완성하시오.",
+      "body": ["<보기>",
+               "glass / bottle / slice / loaf / can / sheet",
+               "[A] 나는 세 덩어리의 빵을 샀다.",
+               "→ I bought ________ ________ _______ bread.",
+               "[B] 종이 다섯 장만 주세요.",
+               "→ Please give me _______ _______ _______ paper."],
+      "answer": "[A] three loaves of [B] five sheets of",
+      "explanation": "빵은 덩어리 단위 loaf로 세며 복수형은 loaves이다. 종이는 장 단위 sheet로 세며 복수형은 sheets이다."
+    },
+    {
+      "file": "[기초] 7.문장의 형식_종합문제(1회).pdf", "number": 29,
+      "포인트": "감각동사 look + 형용사, 부정문",
+      "prompt": "<보기> 낱말을 이용하여 우리말을 영어로 쓰시오.",
+      "body": ["<보기>",
+               "tired, today, look",
+               "__________________________________________.",
+               "그는 오늘 피곤해 보이지 않는다."],
+      "answer": "He doesn’t (does not) look tired today.",
+      "explanation": "감각동사 look 뒤에는 형용사가 온다. 주어가 3인칭 단수인 현재시제 부정문이므로 「doesn’t + 동사원형」으로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_종합문제(1회).pdf", "number": 10,
+      "포인트": "What 감탄문 「What + a(n) + 형용사 + 명사 + 주어 + 동사!」",
+      "prompt": "아래의 단어들을 모두 사용하여 주어진 글의 의미에 맞게 순서대로 배열하시오.",
+      "body": ["나무가 참 높구나! ( is, tall, what, a, it, tree )",
+               "→ ___________________________________________"],
+      "answer": "What a tall tree it is!",
+      "explanation": "What 감탄문은 「What + a(n) + 형용사 + 명사 + 주어 + 동사!」의 어순으로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_종합문제(1회).pdf", "number": 15,
+      "포인트": "모음으로 시작하는 형용사 앞의 an",
+      "prompt": "다음 단어를 이용하여 우리말과 같은 뜻이 되도록 영어 문장을 완성하시오.",
+      "body": ["이것은 참 재미있는 영화구나!(what, exciting, movie)",
+               "→ ___________________________________________!"],
+      "answer": "What an exciting movie this is!",
+      "explanation": "What 감탄문에서 형용사가 모음으로 시작하면 a 대신 an을 쓴다. exciting은 모음 e로 시작하므로 an exciting movie가 된다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_종합문제(1회).pdf", "number": 17,
+      "포인트": "일반동사 현재형의 부가의문문",
+      "prompt": "다음 문장을 읽고 뒤에 덧붙여 쓸 수 있는 부가의문문을 쓰시오. (단, Sora is a girl.)",
+      "body": ["Sora works at a bank, ____________?"],
+      "answer": "doesn’t she?",
+      "explanation": "앞 문장이 일반동사 현재형의 긍정문이고 주어가 3인칭 단수이므로 부가의문문은 「doesn’t + 대명사?」로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_종합문제(1회).pdf", "number": 29,
+      "포인트": "There are + 복수명사",
+      "prompt": "다음 문장의 의미가 되도록 빈칸에 알맞은 단어를 쓰시오.",
+      "body": ["________________ many books on the shelf.",
+               "선반에 많은 책들이 있다."],
+      "answer": "There are",
+      "explanation": "‘~이 있다’는 「There is/are ~」로 나타내며, 뒤에 오는 명사가 복수(many books)이므로 There are를 쓴다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(1회).pdf", "number": 4,
+      "포인트": "-thing으로 끝나는 말은 형용사가 뒤에서 꾸민다",
+      "prompt": "우리말의 의미와 어울리도록 주어진 단어를 사용하여 빈칸을 완성하시오.",
+      "body": ["나는 내 생일을 위해 특별한 뭔가를 하고 싶다.",
+               "(special, to, something, do)",
+               "→ I want ______________________ for my birthday."],
+      "answer": "to do something special",
+      "explanation": "something, anything처럼 -thing으로 끝나는 대명사는 형용사가 뒤에서 꾸민다. 따라서 something special의 순서로 쓴다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(1회).pdf", "number": 27,
+      "포인트": "-thing + 형용사 배열",
+      "prompt": "주어진 단어를 바르게 배열하여 문장을 완성하시오.",
+      "body": ["나는 따뜻한 무엇인가를 마시고 싶다. (something,",
+               "to, drink, warm, want)",
+               "→ I ________________________________________."],
+      "answer": "want to drink something warm.",
+      "explanation": "「want + to부정사」로 ‘~하고 싶다’를 나타내고, -thing으로 끝나는 대명사는 형용사가 뒤에서 꾸미므로 something warm이 된다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_종합문제(1회).pdf", "number": 30,
+      "포인트": "빈도부사는 be동사 뒤에 온다",
+      "prompt": "주어진 단어를 배열하여 다음 문장을 영작하시오.",
+      "body": ["친절은 종종 최고의 선물이다. (gift, is, the best,",
+               "often, kindness)",
+               "→ ________________________________________."],
+      "answer": "Kindness is often the best gift.",
+      "explanation": "빈도부사 often은 be동사 뒤, 일반동사 앞에 온다. 따라서 is 뒤에 often을 쓴다."
+    },
+    {
+      "file": "[기초] 10.to부정사_종합문제(1회).pdf", "number": 7,
+      "포인트": "want + to부정사 배열",
+      "prompt": "괄호 안의 단어들을 바르게 배열하여 문장을 완성하시오.",
+      "body": ["Tom ( drink, wants, to, some juice )",
+               "→ Tom _________________________________."],
+      "answer": "wants to drink some juice",
+      "explanation": "「want + to부정사」는 ‘~하고 싶다’는 뜻이다. 주어가 3인칭 단수이므로 wants로 쓰고 뒤에 to drink를 이어 쓴다."
+    },
+    {
+      "file": "[기초] 10.to부정사_종합문제(1회).pdf", "number": 13,
+      "포인트": "want to + 동사원형",
+      "prompt": "주어진 단어를 활용하여 다음 문장을 영어로 바꾸어 쓰시오.",
+      "body": ["나는 오늘 밤에 산책하고 싶어. (walk)",
+               "→ ___________________________________________."],
+      "answer": "I want to take a walk tonight.",
+      "explanation": "‘~하고 싶다’는 「want + to부정사」로 나타낸다. ‘산책하다’는 take a walk로 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(1회).pdf", "number": 1,
+      "포인트": "전치사 of 뒤에는 동명사",
+      "prompt": "주어진 단어를 순서에 맞게 배열하여 문장을 완성하시오.",
+      "body": ["나는 물에서 수영하기를 두려워한다. (in the water, I,",
+               "swimming, am afraid of)",
+               "→ __________________________________________."],
+      "answer": "I am afraid of swimming in the water.",
+      "explanation": "「be afraid of + 동명사」는 ‘~하는 것을 두려워하다’라는 뜻이다. of는 전치사이므로 뒤에 동명사가 온다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(1회).pdf", "number": 24,
+      "포인트": "동명사(또는 to부정사)가 주어일 때 동사는 단수",
+      "prompt": "괄호 안의 단어를 형태를 바꾸어 해석에 맞게 빈칸을 완성하시오.",
+      "body": ["________ in the park is fun. (run)",
+               "→ 공원에서 달리는 것은 즐겁다."],
+      "answer": "Running 또는 To run",
+      "explanation": "‘~하는 것’이라는 주어 자리에는 동명사나 to부정사를 쓸 수 있다. 주어가 동명사(구)이면 단수 취급하므로 동사는 is를 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(1회).pdf", "number": 25,
+      "포인트": "be interested in + 동명사",
+      "prompt": "다음 우리말을 영어로 쓰시오. (5단어)",
+      "body": ["수진이는 요리에 관심이 있었다.",
+               "→ Sujin _____ _________ _____ _________."],
+      "answer": "was interested in cooking",
+      "explanation": "「be interested in + 동명사」는 ‘~하는 것에 관심이 있다’는 뜻이다. 과거의 일이므로 be동사는 was를 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(1회).pdf", "number": 27,
+      "포인트": "주어 자리의 동사는 동명사로 바꾼다",
+      "prompt": "다음 문장에서 어법상 틀린 부분을 찾아 동명사를 사용하여 바르게 고쳐 다시 쓰시오.",
+      "body": ["Read books is a lot of fun."],
+      "answer": "Reading books is a lot of fun.",
+      "explanation": "문장의 주어 자리에는 동사원형을 쓸 수 없으므로 동명사 Reading으로 바꾼다. 동명사구 주어는 단수 취급하여 동사는 is를 쓴다."
+    },
+    {
+      "file": "[기초] 11.동명사_종합문제(1회).pdf", "number": 30,
+      "포인트": "be good at + 동명사 배열",
+      "prompt": "주어진 단어를 해석에 맞게 배열하시오.",
+      "body": ["Daniel은 이탈리아 음식을 잘 만든다.",
+               "Daniel / food / good / is / Italian / making / at",
+               "→ ___________________________________________."],
+      "answer": "Daniel is good at making Italian food.",
+      "explanation": "「be good at + 동명사」는 ‘~을 잘하다’라는 뜻이다. at은 전치사이므로 뒤에 동명사 making이 온다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(1회).pdf", "number": 7,
+      "포인트": "but(대조) · so(결과) · before(시간)",
+      "prompt": "문맥상 빈 칸에 가장 적절한 접속사를 <보기>에서 골라 쓰시오. (단, 각 접속사는 한번만 사용할 것)",
+      "body": ["<보기>",
+               "before, but, so",
+               "(1) I am tall, __________ my sister is short.",
+               "(2) She is kind, __________ everyone likes her.",
+               "(3) __________ my father comes back home, I",
+               "have to clean my room."],
+      "answer": "(1) but (2) so (3) Before",
+      "explanation": "(1) 앞뒤가 서로 대조되므로 but을 쓴다. (2) 앞이 원인, 뒤가 결과이므로 so를 쓴다. (3) ‘~하기 전에’라는 시간을 나타내므로 Before를 쓴다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(1회).pdf", "number": 9,
+      "포인트": "원인과 결과를 잇는 because",
+      "prompt": "다음 두 문장을 원인과 결과를 생각해서 한 문장으로 바꾸시오.",
+      "body": ["She is in the library. She has a test tomorrow.",
+               "→ _________________________________________."],
+      "answer": "Because she has a test tomorrow, she is in the library. 또는 She is in the library because she has a test tomorrow.",
+      "explanation": "내일 시험이 있는 것이 원인, 도서관에 있는 것이 결과이므로 원인 쪽에 because를 붙인다. because절은 문장 앞이나 뒤 어디에나 올 수 있다."
+    },
+    {
+      "file": "[기초] 13.접속사_종합문제(1회).pdf", "number": 11,
+      "포인트": "before와 after로 앞뒤 순서 바꾸기",
+      "prompt": "두 문장의 뜻이 같도록 빈 칸에 알맞은 표현을 쓰시오.",
+      "body": ["Before Mina eats breakfast, she brushes her teeth.",
+               "→ __________________________, Mina eats",
+               "breakfast."],
+      "answer": "After she brushes her teeth",
+      "explanation": "‘A하기 전에 B한다’는 ‘B한 후에 A한다’와 같은 뜻이다. 따라서 before를 after로 바꾸고 두 일의 순서를 바꿔 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(1회).pdf", "number": 6,
+      "포인트": "be different from / look at",
+      "prompt": "빈칸에 들어갈 적절한 전치사를 쓰시오.",
+      "body": ["Is it different __________ your plan?",
+               "Look __________ the blackboard!"],
+      "answer": "from, at",
+      "explanation": "‘~와 다르다’는 「be different from」, ‘~을 보다’는 「look at」으로 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(1회).pdf", "number": 9,
+      "포인트": "달 앞에는 in, 시각 앞에는 at",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "body": ["It rains a lot __________ July.",
+               "We have lunch _________ 12."],
+      "answer": "in, at",
+      "explanation": "월(月) 앞에는 전치사 in을, 구체적인 시각 앞에는 at을 쓴다."
+    },
+    {
+      "file": "[기초] 14.전치사_종합문제(1회).pdf", "number": 21,
+      "포인트": "with를 쓰는 여러 표현",
+      "prompt": "다음 빈칸에 공통으로 알맞은 전치사를 쓰시오.",
+      "body": ["You’re very good _______ your feet.",
+               "The table is covered _______ dust.",
+               "The bottle is filled _______ juice.",
+               "They came up _______ a good plan."],
+      "answer": "with",
+      "explanation": "‘~을 잘 쓰다(be good with)’, ‘~으로 덮이다(be covered with)’, ‘~으로 가득 차다(be filled with)’, ‘~을 생각해 내다(come up with)’ 모두 전치사 with를 쓴다."
+    }
+  ]
+}

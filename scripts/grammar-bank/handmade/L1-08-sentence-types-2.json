@@ -1,0 +1,151 @@
+{
+  "_설명": "기초 8과 다양한 문장의 형태 — 나머지. 감탄문, 부가의문문, There is/are. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 22,
+      "포인트": "What + 형용사 + 복수명사 + 주어 + 동사!",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그것들은 정말 아름다운 꽃들이구나!",
+               "(they, beautiful, are, what, flowers, !)",
+               "_____________________________________________."],
+      "answer": "What beautiful flowers they are!",
+      "explanation": "flowers가 복수명사이므로 「What + 형용사 + 복수명사 + 주어 + 동사!」의 어순으로 쓴다. 복수명사 앞에는 a[an]를 쓰지 않는다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 23,
+      "포인트": "What + a + 형용사 + 명사 + 주어 + 동사!",
+      "prompt": "다음 주어진 문장을 감탄문으로 바꿔 쓰시오.",
+      "body": ["The mystery novel has a very surprising ending.",
+               "→ What ____________________________________!"],
+      "answer": "a surprising ending the mystery novel has!",
+      "explanation": "What으로 시작하는 감탄문은 명사를 강조하며 「What + a + 형용사 + 명사 + 주어 + 동사!」의 어순으로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 24,
+      "포인트": "복수명사를 강조하는 What 감탄문",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그들은 정말 용감한 소방관들이구나!",
+               "(they, brave, are, what, firefighters, !)",
+               "→ __________________________________________."],
+      "answer": "What brave firefighters they are!",
+      "explanation": "firefighters가 복수명사이므로 「What + 형용사 + 복수명사 + 주어 + 동사!」의 어순으로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 25,
+      "포인트": "How + 형용사 + 주어 + 동사!",
+      "prompt": "다음 주어진 문장을 감탄문으로 바꿔 쓰시오.",
+      "body": ["The old folk song is very moving.",
+               "→ How _______________________________!"],
+      "answer": "moving the old folk song is!",
+      "explanation": "How로 시작하는 감탄문은 형용사를 강조하며 「How + 형용사 + 주어 + 동사!」의 어순으로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 26,
+      "포인트": "be동사 긍정문의 부가의문문",
+      "prompt": "다음 빈칸에 알맞은 부가의문문을 쓰시오.",
+      "body": ["That new smartphone is expensive, ___________?"],
+      "answer": "isn’t it?",
+      "explanation": "앞 문장이 be동사 3인칭 현재형의 긍정문이므로 부가의문문의 동사는 isn’t를 쓰고, 주어는 that new smartphone에 해당하는 인칭대명사 it을 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 27,
+      "포인트": "부정문 뒤에는 긍정의 부가의문문",
+      "prompt": "다음 빈칸에 알맞은 부가의문문을 쓰시오.",
+      "body": ["The milk isn’t cold, __________?"],
+      "answer": "is it",
+      "explanation": "앞 문장이 be동사가 쓰인 현재형의 부정문이므로 부가의문문의 동사는 is를 쓰고, 주어는 the milk에 해당하는 대명사 it을 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 28,
+      "포인트": "일반동사 긍정문의 부가의문문",
+      "prompt": "다음 빈칸에 알맞은 부가의문문을 쓰시오.",
+      "body": ["Your brother plays the drums, __________?"],
+      "answer": "doesn’t he",
+      "explanation": "앞 문장이 일반동사가 쓰인 현재형의 긍정문이므로 부가의문문의 동사는 doesn’t를 쓰고, 주어는 your brother에 해당하는 인칭대명사 he를 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 29,
+      "포인트": "조동사 will의 부가의문문",
+      "prompt": "다음 빈칸에 알맞은 부가의문문을 쓰시오.",
+      "body": ["You will join the club, __________?"],
+      "answer": "won’t you",
+      "explanation": "앞 문장이 조동사 will의 긍정문이므로 부가의문문의 동사는 won’t를 쓰고, 주어는 인칭대명사 you를 그대로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 32,
+      "포인트": "There 뒤의 주어에 be동사를 맞춘다",
+      "prompt": "문장의 빈칸을 문맥에 맞게 현재형 동사로 쓰세요.",
+      "body": ["(1) There ______ apples in the basket.",
+               "(2) There ______ some sugar in the jar."],
+      "answer": "(1) are (2) is",
+      "explanation": "There is/are 구문은 be동사 뒤에 오는 주어에 수를 일치시킨다. apples는 복수이므로 are, sugar는 셀 수 없는 명사이므로 is가 적절하다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 34,
+      "포인트": "There are + 복수명사",
+      "prompt": "우리말을 영어로 옮기세요.",
+      "body": ["7마리의 늑대가 있다.",
+               "→ There _______ _______ _______."],
+      "answer": "are seven wolves",
+      "explanation": "There is + 단수명사 ~. : ~이 있다 / There are + 복수명사 ~. : ~들이 있다. wolf의 복수형은 wolves이다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 35,
+      "포인트": "셀 수 없는 명사 앞에는 There was",
+      "prompt": "우리말에 맞게 알맞은 be 동사를 추가하여 괄호 안의 단어를 바르게 배열하세요.",
+      "body": ["냉장고 안에 우유가 많이 있었다.",
+               "(in / a lot of / milk / there / the fridge)",
+               "→ _____________________________________."],
+      "answer": "There was a lot of milk in the fridge.",
+      "explanation": "milk는 셀 수 없는 명사이므로 「There was + 단수 취급 명사」로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 36,
+      "포인트": "Don’t be + 형용사",
+      "prompt": "주어진 단어를 배열하시오.",
+      "body": ["noisy / be / Don’t"],
+      "answer": "Don’t be noisy.",
+      "explanation": "be동사가 쓰인 부정 명령문은 「Don’t be + 형용사 ~.」로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 37,
+      "포인트": "Don’t + 동사원형 + 목적어",
+      "prompt": "주어진 단어를 배열하시오.",
+      "body": ["window / Don’t / the / open"],
+      "answer": "Don’t open the window.",
+      "explanation": "부정 명령문은 「Don’t + 동사원형 + 목적어 ~.」의 어순으로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 40,
+      "포인트": "「관사 + 명사」가 있으면 What 감탄문",
+      "prompt": "다음 문장에서 [[틀린]]것을 고쳐 쓰세요.",
+      "body": ["How a small box it is!"],
+      "answer": "How → What",
+      "explanation": "a small box가 「관사 + 형용사 + 명사」의 순서로 나오므로 감탄사는 what과 함께 써야 한다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_체크체크.pdf", "number": 43,
+      "포인트": "How + 부사 + 주어 + 동사!",
+      "prompt": "주어진 단어를 배열하시오.",
+      "body": ["the / rabbit / How / quickly / hops!"],
+      "answer": "How quickly the rabbit hops!",
+      "explanation": "부사를 강조하는 감탄문은 「How + 부사 + 주어 + 동사!」의 어순으로 쓴다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_확인문제(2회).pdf", "number": 12,
+      "포인트": "How + 형용사 + 주어 + 동사!",
+      "prompt": "주어진 단어들을 배열하여 감탄문을 만드세요.",
+      "body": ["clever / the student / how / is"],
+      "answer": "How clever the student is!",
+      "explanation": "how를 이용한 감탄문은 「How + 형용사/부사 + (주어) + (동사)!」 순서이다."
+    },
+    {
+      "file": "[기초] 8.다양한 문장의 형태_확인문제(2회).pdf", "number": 13,
+      "포인트": "Please + 동사원형 명령문",
+      "prompt": "주어진 단어를 배열하시오.",
+      "body": ["careful / be / Please"],
+      "answer": "Please be careful.",
+      "explanation": "공손한 명령문은 Please를 앞에 두고 「be + 형용사」를 이어 쓴다."
+    }
+  ]
+}

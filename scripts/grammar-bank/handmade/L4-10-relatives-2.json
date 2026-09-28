@@ -1,0 +1,167 @@
+{
+  "_설명": "완성 10과 관계사 — 소유격 whose, 관계부사, 계속적 용법. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 10.관계사_종합문제(2회).pdf", "number": 32,
+      "포인트": "계속적 용법에는 that을 쓸 수 없다 — 틀린 자리를 옮김",
+      "prompt": "다음 중 밑줄 친 부분 중 어법상 맞지 [[않은]]것을 고르시오.",
+      "body": ["It can be difficult to decide the place of fine art,",
+               "such as oil paintings, watercolours, sketches or",
+               "sculptures, in an archival institution. Art can",
+               "serve"],
+      "choices": ["[[as]] documentary evidence, especially when the items were produced before photography became common. Sketches of soldiers on a battlefield, paintings of English country villages or portraits of Dutch townspeople can provide the only visual evidence of a long-ago place, person or time. But art can also carry aesthetic value,",
+                  "[[which]] elevates the job of evaluation into another realm. Aesthetic value and the notion of artistic beauty are important considerations,",
+                  "[[that]] are not what motivates archival preservation in the first instance. The best archival decisions about art do not focus on territoriality (this object belongs in my institution",
+                  "[[even though]] I do not have the resources to care for it) or on questions of monetary value or prestige (this object raises the cultural standing of my institution). The best decisions focus on",
+                  "[[what]] evidential value exists and what is best for the item.",
+                  "ⓐ", "ⓑ", "ⓒ", "ⓓ", "ⓔ"],
+      "answer": "③",
+      "explanation": "③ 쉼표(,)가 있는 관계대명사의 계속적 용법인데, 관계대명사 that은 계속적 용법으로 쓸 수 없다. 따라서 관계대명사 which로 바꾸어야 한다. ① serve as는 ‘~로서 역할을 하다’라는 의미이다. ② 계속적 용법의 관계대명사 which로 앞 절 전체를 받는다. ④ ‘비록 ~일지라도’라는 양보의 접속사이다. ⑤ 뒤에 명사를 이끄는 의문형용사 what이다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 1,
+      "포인트": "소유 관계에는 whose",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["There is a bottle of milk which expiration date",
+               "has already passed.",
+               "___________________ → ___________________"],
+      "answer": "which → whose",
+      "explanation": "우유의 유통기한이 이미 지난 것이므로 선행사는 milk이고 소유격 관계대명사인 whose가 필요하다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 2,
+      "포인트": "선행사가 없으면 what",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["Comic books are which I like reading the most.",
+               "___________________ → ___________________"],
+      "answer": "which → what",
+      "explanation": "관계대명사 which 앞에 선행사가 없으므로 which는 어법상 어색하다. 선행사를 자체에 포함하는 관계대명사는 what으로 ‘the thing(s) which[that]’의 의미를 가져 ‘~하는 것’으로 해석된다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 5,
+      "포인트": "the reason 뒤에는 관계부사 why",
+      "prompt": "다음 문장에서 어법상 [[어색한]]한 단어를 찾아 바르게 고쳐 쓰시오.",
+      "body": ["I want to know the reason how the train was",
+               "delayed.",
+               "___________________ → ___________________"],
+      "answer": "the reason how → the reason why 혹은 the reason",
+      "explanation": "선행사가 the reason이므로 관계부사는 why가 와야 한다. 또한 선행사가 일반적인 명사인 the reason이므로 관계부사와 선행사 중 하나는 생략이 가능하다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 6,
+      "포인트": "the way와 how는 함께 쓸 수 없다",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["Can you tell me more about the way how you",
+               "solved the problem?",
+               "___________________ → ___________________"],
+      "answer": "the way how → the way 혹은 how",
+      "explanation": "관계부사 how는 선행사 the way와 함께 쓸 수 없고, how 또는 the way 둘 중 하나만 써야 한다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 7,
+      "포인트": "소유 관계에는 whose",
+      "prompt": "다음 문장에서 어법상 [[틀린]]곳을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["A student who grades are excellent gets a",
+               "scholarship.",
+               "___________________ → ___________________"],
+      "answer": "who → whose",
+      "explanation": "선행사가 A student이고 학생의 성적이 뛰어난 것이므로 who가 아닌 소유격 관계대명사 whose가 되어야 한다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 8,
+      "포인트": "완전한 절 앞에는 관계부사 where",
+      "prompt": "다음 문장에서 어법상 [[틀린]]곳을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["The room which you can borrow books is on",
+               "the second floor.",
+               "___________________ → ___________________"],
+      "answer": "which → where",
+      "explanation": "관계사절이 완전한 문장이기 때문에 관계대명사 which 대신, 선행사를 장소 명사로 갖는 관계부사 where가 와야 한다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 9,
+      "포인트": "장소를 나타내는 관계부사 where",
+      "prompt": "아래 두 문장을 관계사를 사용하여 한 문장으로 영작하시오.",
+      "body": ["A library is a quiet place. We can concentrate",
+               "there.",
+               "→ ____________________________________________",
+               "___________________________________________."],
+      "answer": "A library is a quiet place where we can concentrate.",
+      "explanation": "앞 문장의 a quiet place는 뒤 문장의 there와 같은 장소를 가리킨다. 따라서 장소 명사를 선행사로 갖는 관계부사 where로 두 문장을 연결할 수 있다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 10,
+      "포인트": "시간을 나타내는 관계부사 when",
+      "prompt": "아래 두 문장을 <보기> 중 한 단어를 골라 한 문장으로 영작하시오.",
+      "body": ["<보기> who why what when where which",
+               "My first trip to Jeju was in winter. It was very",
+               "windy then.",
+               "→ __________________________________________",
+               "______________________________________________."],
+      "answer": "My first trip to Jeju was in winter when it was very windy.",
+      "explanation": "앞 문장의 winter는 뒤 문장의 then과 같은 시간을 의미한다. 따라서 시간 명사를 선행사로 갖는 관계부사 when으로 두 문장을 연결할 수 있다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 11,
+      "포인트": "계속적 용법의 관계부사 where",
+      "prompt": "주어진 두 문장을 관계사를 활용한 한 문장으로 바꿔 쓰시오.",
+      "body": ["I went to the park for my morning walk. I met",
+               "my neighbors there.",
+               "→ I went to the park for my morning walk,",
+               "______________________________________________."],
+      "answer": "where I met my neighbors",
+      "explanation": "앞 문장의 the park는 뒤 문장의 there와 같은 장소를 가리킨다. 따라서 장소 명사를 선행사로 갖는 관계부사 where로 두 문장을 연결할 수 있다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 12,
+      "포인트": "장소를 나타내는 관계부사 where",
+      "prompt": "주어진 두 문장을 관계부사를 활용한 한 문장으로 바꿔 쓰시오.",
+      "body": ["I’m going to visit the studio. Animations for",
+               "children are made there.",
+               "→ I’m going to ______________________________",
+               "______________________________________________."],
+      "answer": "visit the studio where animations for children are made",
+      "explanation": "앞 문장의 the studio는 뒤 문장의 there와 같은 장소를 가리킨다. 따라서 장소 명사를 선행사로 갖는 관계부사 where로 두 문장을 연결할 수 있다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 15,
+      "포인트": "이유를 나타내는 관계부사 why",
+      "prompt": "<보기> 중 한 단어를 골라 아래 두 문장을 한 문장으로 영작하시오.",
+      "body": ["<보기> who why what when where which",
+               "I can’t tell you the reason. I refused the offer for",
+               "the reason.",
+               "→ __________________________________________",
+               "______________________________________________."],
+      "answer": "I can’t tell you the reason why I refused the offer.",
+      "explanation": "앞 문장의 the reason은 뒤 문장의 the reason과 같으므로 for which로 바꿀 수 있고, 선행사가 ‘이유’이므로 관계부사 why로 바꿔서 문장을 완성한다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 17,
+      "포인트": "계속적 용법의 관계대명사 who",
+      "prompt": "계속적 용법을 이용하여 두 개의 문장을 한 개의 문장으로 영작하시오.",
+      "body": ["Marie Curie was born in 1867. She discovered",
+               "radium.",
+               "→ __________________________________________",
+               "______________________________________________."],
+      "answer": "Marie Curie, who discovered radium, was born in 1867.",
+      "explanation": "첫 번째 문장의 Marie Curie와 두 번째 문장의 She가 같은 대상을 가리키므로 선행사는 Marie Curie이고, 관계대명사 who를 써서 두 문장을 연결할 수 있다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 18,
+      "포인트": "소유격 관계대명사 whose",
+      "prompt": "빈칸에 들어갈 한 단어를 쓰시오.",
+      "body": ["They published a report __________ conclusion",
+               "surprised many scientists."],
+      "answer": "whose",
+      "explanation": "그들이 보고서를 냈는데 그 보고서의 결론이 많은 과학자를 놀라게 한 것이므로 빈칸에는 소유격 관계대명사가 들어가야 한다. 소유격 관계대명사는 선행사가 사물이든 사람이든 관계없이 whose를 쓴다."
+    },
+    {
+      "file": "[완성] 10.관계사_체크체크.pdf", "number": 19,
+      "포인트": "소유격 관계대명사 whose",
+      "prompt": "빈칸에 들어갈 한 단어를 쓰시오.",
+      "body": ["Sora doesn’t want to join the team __________",
+               "members argue too often."],
+      "answer": "whose",
+      "explanation": "소라가 들어가고 싶어 하지 않는 팀의 구성원들이 너무 자주 다투는 것이므로 빈칸에는 소유격 관계대명사가 들어가야 한다. 소유격 관계대명사는 선행사가 사물이든 사람이든 관계없이 whose를 쓴다."
+    }
+  ]
+}

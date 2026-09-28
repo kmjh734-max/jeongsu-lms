@@ -1,0 +1,64 @@
+{
+  "_설명": "회차마다 표현이 조금씩 달라 짝이 안 맞은 마지막 6문항. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 10.to부정사_종합문제(2회).pdf", "number": 1,
+      "포인트": "명사를 꾸미는 to부정사로 두 문장 합치기",
+      "prompt": "to부정사를 이용해서 다음 두 문장을 한 문장으로바꿔 쓰세요.",
+      "body": ["I need a pen.",
+               "I have to sign this form.",
+               "→"],
+      "answer": "I need a pen to sign this form.",
+      "explanation": "to부정사가 앞의 명사 pen을 꾸미는 형용사적 용법으로 두 문장을 하나로 합칠 수 있다."
+    },
+    {
+      "file": "[기초] 4.조동사_체크체크.pdf", "number": 26,
+      "포인트": "will not의 줄임말 won’t",
+      "prompt": "다음 문장의 의미가 같도록 빈칸에 알맞은 한단어를 쓰시오.",
+      "body": ["She ____________ tell anyone about it.",
+               "(그녀는 그것에 대해 아무에게도 말하지 않을 것이다.)"],
+      "answer": "won’t",
+      "explanation": "‘~할 것이다’라는 뜻의 will과 부정의 not을 줄이면 한 단어 won’t가 된다."
+    },
+    {
+      "file": "[기본] 4.부정사[2]_종합문제(2회).pdf", "number": 18,
+      "포인트": "too + 형용사 + to부정사",
+      "prompt": "다음 두 문장을 to부정사를 이용하여 한 문장으로 바꿀 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["The box is very heavy.",
+               "You can’t lift it.",
+               "→ The box is _________________________________."],
+      "answer": "too heavy to lift",
+      "explanation": "‘너무 무거워서 들 수 없다’는 뜻이므로 「too + 형용사 + to부정사」로 나타낸다."
+    },
+    {
+      "file": "[심화] 10.분사구문_확인문제(1회).pdf", "number": 8,
+      "포인트": "with + 목적어 + 형용사",
+      "prompt": "다음 두 개의 문장을 with를 사용하여 [[한 개의]] [[문장]]으로 연결하시오.",
+      "body": ["The boy slept.",
+               "His window was open.",
+               "→ __________________________________________."],
+      "answer": "The boy slept with his window open",
+      "explanation": "「with + 목적어 + 형용사(구)」를 써서 ‘~한 채로’라는 뜻을 나타낼 수 있다."
+    },
+    {
+      "file": "[심화] 11.일치와 화법_확인문제(1회).pdf", "number": 13,
+      "포인트": "명령문의 간접화법 전환",
+      "prompt": "다음 문장을 간접화법으로 바꿀 때 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["The nurse said to me, “Bring the chart to me.”",
+               "= The nurse told me _______ _______ the chart",
+               "to ________."],
+      "answer": "to bring, her",
+      "explanation": "명령문을 간접화법으로 고칠 때 동사원형은 to부정사로 바뀌며, 전달문 속 me는 말한 사람인 the nurse를 가리키므로 her로 바꾼다."
+    },
+    {
+      "file": "[심화] 2.동명사_확인문제(1회).pdf", "number": 20,
+      "포인트": "be used to + 동명사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["Sujin은 일찍 일어나는 게 익숙하다.",
+               "(to, is, early, used, getting up)",
+               "→ Sujin _____________________________________."],
+      "answer": "is used to getting up early",
+      "explanation": "be used to v-ing는 ‘~하는 것에 익숙하다’라는 뜻으로, to가 전치사이므로 뒤에 동명사가 온다."
+    }
+  ]
+}

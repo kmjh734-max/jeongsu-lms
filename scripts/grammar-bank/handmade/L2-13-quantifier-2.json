@@ -1,0 +1,120 @@
+{
+  "_설명": "기본 13과 형용사와 명사의 수량표현 — 나머지. few/a few, little/a little, 단위 표현, 서수. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 14,
+      "포인트": "little + 셀 수 없는 명사 — 거의 없는",
+      "prompt": "우리말을 영어로 바르게 옮기세요.",
+      "body": ["나는 시간이 거의 없다.",
+               "→ __________________________________________"],
+      "answer": "I have little time.",
+      "explanation": "time은 셀 수 없는 명사이고 ‘거의 없다’는 부정의 의미이므로 little을 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 16,
+      "포인트": "a few + 셀 수 있는 명사의 복수형",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["little each every",
+               "last latest few",
+               "A ______ students who stayed after class were",
+               "asking questions."],
+      "answer": "few",
+      "explanation": "students가 셀 수 있는 명사의 복수형이고 ‘몇몇의’라는 뜻이므로 a few가 알맞다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 17,
+      "포인트": "little + 셀 수 없는 명사",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["little each every",
+               "last latest few",
+               "The coach has given ______ hope of the team’s",
+               "victory."],
+      "answer": "little",
+      "explanation": "hope는 셀 수 없는 명사이고 ‘거의 없는’이라는 뜻이므로 little이 알맞다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 18,
+      "포인트": "a few + 셀 수 있는 명사의 복수형",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["little each every",
+               "last latest few",
+               "I have to pick up a ______ items at the bakery."],
+      "answer": "few",
+      "explanation": "items가 셀 수 있는 명사의 복수형이고 ‘몇 개의’라는 뜻이므로 a few가 알맞다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 21,
+      "포인트": "a little(약간 있는)과 little(거의 없는)",
+      "prompt": "Fill in the blanks with the proper expression.",
+      "body": ["a few, few, a little, little",
+               "(1) Don’t worry. We still have _______ time.",
+               "(2) There’s _______ sugar left, so we have to buy",
+               "some."],
+      "answer": "(1) a little, (2) little",
+      "explanation": "(1) time은 불가산명사이고 ‘약간 있는’ 긍정적 의미이므로 a little이 알맞다. (2) sugar는 불가산명사이고 ‘거의 없는’ 부정적 의미이므로 little이 알맞다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 22,
+      "포인트": "셀 수 있는 명사에는 a few",
+      "prompt": "다음 대화에서 어법상 [[틀린]]부분을 찾아 바르게 고치세요.",
+      "body": ["A : Sora, I checked your report. It had only a",
+               "little errors.",
+               "B : Should I fix them?",
+               "A : Yes.",
+               "→"],
+      "answer": "a little, a few",
+      "explanation": "error는 셀 수 있는 명사이므로 a little을 a few로 고쳐 주어야 한다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 24,
+      "포인트": "단위 표현은 복수로, 명사는 그대로",
+      "prompt": "우리말에 맞게 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["식탁 위에 차 세 잔이 있다.",
+               "→ There are",
+               "on the table."],
+      "answer": "three cups of tea",
+      "explanation": "차 한 잔은 a cup of tea이고 세 잔은 잔만 세어서 three cups of tea가 된다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 25,
+      "포인트": "a sheet of paper — 종이 한 장",
+      "prompt": "우리말을 참고하여 주어진 말을 바르게 배열하세요.",
+      "body": ["우리에게 필요한 것은 종이 한 장이다.",
+               "(paper / all / we / is / a sheet / need / of)",
+               "→"],
+      "answer": "All we need is a sheet of paper.",
+      "explanation": "a sheet of paper: 종이 한 장"
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 26,
+      "포인트": "학년은 서수로 나타낸다",
+      "prompt": "우리말에 맞게 빈칸에 알맞은 단어를 쓰세요.",
+      "body": ["나는 내년에 3학년이 될 것이다.",
+               "→ I’ll be in the _______ grade next year."],
+      "answer": "third",
+      "explanation": "be in the third grade : 3학년이다. 학년을 말할 때는 서수를 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 27,
+      "포인트": "pieces of + 셀 수 없는 명사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["Sora는 아침으로 빵 세 조각을 먹었다.",
+               "(had, for breakfast, bread, of, three, pieces)",
+               "→ Sora ____________________________________."],
+      "answer": "had three pieces of bread for breakfast",
+      "explanation": "three pieces of bread : 빵 세 조각"
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_확인문제(1회).pdf", "number": 4,
+      "포인트": "셀 수 없는 명사에는 little / a little",
+      "prompt": "다음의 단어 중 알맞은 말을 골라 우리말과 같은 뜻의 문장을 완성하시오.",
+      "body": ["little, a little, few, a few, advice, information",
+               "(1) I have _____________________________",
+               "(나는 조언이 조금 있다.)",
+               "(2) He has _____________________________",
+               "(그는 정보가 거의 없다.)"],
+      "answer": "(1)a little advice, (2)little information",
+      "explanation": "advice와 information 모두 셀 수 없는 불가산명사이므로 few, a few가 아닌 little, a little이 와야 하며, 긍정의 의미로는 a little, ‘거의 없다’라는 의미로는 little을 사용한다."
+    }
+  ]
+}

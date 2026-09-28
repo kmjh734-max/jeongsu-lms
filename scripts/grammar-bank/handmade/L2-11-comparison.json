@@ -1,0 +1,183 @@
+{
+  "_설명": "기본 11과 비교구문 — 규칙으로는 못 바꾼 서술형 문항들. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 1,
+      "포인트": "원급 비교 as + 형용사 + as",
+      "prompt": "주어진 문장과 같은 뜻이 되도록 알맞은 단어를 넣으시오.",
+      "body": ["그의 여동생은 모차르트만큼 음악적이다.",
+               "→ His sister is _________ _________ _________",
+               "Mozart."],
+      "answer": "as musical as",
+      "explanation": "‘~만큼 …한’은 「as + 형용사의 원급 + as」로 나타낸다. 비교 대상이 서로 같은 정도임을 나타내는 동등비교 구문이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 3,
+      "포인트": "as ~ as possible = as ~ as + 주어 + can",
+      "prompt": "두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Call me as soon as possible.",
+               "= Call me as _______ as _______ _______."],
+      "answer": "soon, you can",
+      "explanation": "「as + 원급 + as possible」은 「as + 원급 + as + 주어 + can」으로 바꿔 쓸 수 있다. 명령문이므로 주어는 you를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 4,
+      "포인트": "not so ~ as를 비교급으로 바꾸기",
+      "prompt": "두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Brown is not so tall as Green.",
+               "= Green _______ _______ _______ Brown."],
+      "answer": "is taller than",
+      "explanation": "‘A는 B만큼 ~하지 않다’는 ‘B가 A보다 더 ~하다’와 같은 뜻이므로, 주어를 바꾸고 비교급 + than으로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 5,
+      "포인트": "as ~ as 사이에는 원급을 그대로 쓴다",
+      "prompt": "주어진 단어를 적절한 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["This question is as _____ (easy) as that one."],
+      "answer": "easy",
+      "explanation": "「as ~ as」 사이에는 형용사나 부사의 원급을 그대로 쓴다. 비교급이나 최상급을 쓰지 않는다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 7,
+      "포인트": "「The 비교급 ~, the 비교급 …」",
+      "prompt": "다음 우리말에 맞게 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["더 많이 연습하면 할수록 더 잘할 수 있다.",
+               "→ _______ _______ you practice,",
+               "_______ _______ you can do."],
+      "answer": "The more, the better",
+      "explanation": "‘~하면 할수록 더 …하다’는 「The + 비교급 + 주어 + 동사, the + 비교급 + 주어 + 동사」로 쓴다. well의 비교급은 better이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 8,
+      "포인트": "bad의 불규칙 비교급 worse",
+      "prompt": "주어진 단어를 적절한 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["Mina’s cold was _____ (bad) than her sister’s",
+               "cold."],
+      "answer": "worse",
+      "explanation": "bad는 불규칙 변화 형용사로 비교급이 worse, 최상급이 worst이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 9,
+      "포인트": "비교급 문장을 not as ~ as로 바꾸기",
+      "prompt": "두 문장의 의미가 같도록 as ~ as 또는 –er than 표현을 이용하여 문장을 완성하세요.",
+      "body": ["He is taller than his brothers.",
+               "= His brothers are not",
+               "."],
+      "answer": "as tall as him",
+      "explanation": "‘A가 B보다 더 ~하다’는 ‘B는 A만큼 ~하지 않다’와 같은 뜻이다. 주어를 바꾸고 「not as + 원급 + as」로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 10,
+      "포인트": "음절이 긴 형용사의 비교급은 more를 붙인다",
+      "prompt": "괄호 안의 말을 어법에 맞게 고쳐 쓰세요.",
+      "body": ["Who is ___________________ (polite) than you in",
+               "your class?"],
+      "answer": "more polite",
+      "explanation": "polite처럼 음절이 긴 형용사는 앞에 more를 붙여 비교급을 만든다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 11,
+      "포인트": "짧은 형용사의 비교급은 -er을 붙인다",
+      "prompt": "괄호 안의 말을 어법에 맞게 고쳐 쓰세요.",
+      "body": ["Melons are __________ (sweet) than lemons."],
+      "answer": "sweeter",
+      "explanation": "sweet처럼 짧은 형용사는 뒤에 -er을 붙여 비교급을 만든다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 12,
+      "포인트": "비교급 문장을 not as ~ as로 바꾸기",
+      "prompt": "두 문장의 의미가 같도록 as ~ as 또는 –er than 표현을 이용하여 문장을 완성하세요.",
+      "body": ["I am faster than you.",
+               "= You are ."],
+      "answer": "not as fast as me",
+      "explanation": "‘내가 너보다 더 빠르다’는 ‘너는 나만큼 빠르지 않다’와 같은 뜻이므로 「not as + 원급 + as」로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 13,
+      "포인트": "not as ~ as를 비교급으로 바꾸기",
+      "prompt": "두 문장의 의미가 같도록 as ~ as 또는 –er than 표현을 이용하여 문장을 완성하세요.",
+      "body": ["I’m not as strong as Daniel.",
+               "= Daniel is than I."],
+      "answer": "stronger",
+      "explanation": "‘나는 Daniel만큼 힘이 세지 않다’는 ‘Daniel이 나보다 더 힘이 세다’와 같은 뜻이므로 비교급 stronger를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 14,
+      "포인트": "「the 비교급, the 비교급」 구문으로 바꾸기",
+      "prompt": "주어진 문장을 「the 비교급, the 비교급」구문으로 바꿔 쓰세요.",
+      "body": ["When it got colder, we felt more tired.",
+               "→ The colder it got, ____________________."],
+      "answer": "the more tired we felt",
+      "explanation": "‘~할수록 더 …하다’를 나타내는 구문으로, 두 번째 절도 「the + 비교급 + 주어 + 동사」의 어순으로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 15,
+      "포인트": "최상급을 「Nothing is 비교급 than」으로 바꾸기",
+      "prompt": "두 문장이 같은 뜻이 되도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["Science books are the most interesting.",
+               "= Nothing is _______ _______ _______ science",
+               "books."],
+      "answer": "more interesting than",
+      "explanation": "최상급의 뜻은 「Nothing is + 비교급 + than ~」으로도 나타낼 수 있다. ‘~보다 더 …한 것은 없다’는 곧 ‘~이 가장 …하다’는 뜻이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 16,
+      "포인트": "비교급 + than 영작",
+      "prompt": "우리말에 맞게 괄호 안의 말을 이용하여 영어로 옮기세요.",
+      "body": ["건강이 돈보다 더 중요하다.",
+               "(health, important, money)",
+               "→ ______________________________________."],
+      "answer": "Health is more important than money.",
+      "explanation": "important는 음절이 긴 형용사이므로 more를 붙여 비교급을 만들고 뒤에 than을 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 17,
+      "포인트": "like A better than B",
+      "prompt": "우리말에 맞게 문장을 완성하세요.",
+      "body": ["나는 여름보다 겨울을 더 좋아한다.",
+               "→ I like winter ________________ summer."],
+      "answer": "better than",
+      "explanation": "‘B보다 A를 더 좋아한다’는 「like A better than B」로 쓴다. well의 비교급 better를 쓰는 점에 주의한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 19,
+      "포인트": "비교급을 강조하는 much",
+      "prompt": "다음 우리말과 같은 뜻이 되도록 빈칸을 완성하세요.",
+      "body": ["약속을 지키는 것이 상을 타는 것보다 훨씬 더 값지다.",
+               "To _____ your _____ is much _____ _____ _____",
+               "to win the prize."],
+      "answer": "keep, promise, more valuable than",
+      "explanation": "비교급을 강조할 때는 앞에 much, far, even, a lot 등을 쓴다. valuable은 음절이 길어 more를 붙인다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 20,
+      "포인트": "early의 비교급 earlier",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["I go to bed at 10:00. My sister goes to bed at",
+               "11:00.",
+               "= I go to bed _______________ than my sister."],
+      "answer": "earlier",
+      "explanation": "early는 -y로 끝나므로 y를 i로 바꾸고 -er을 붙여 earlier로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 21,
+      "포인트": "비교급 + than 영작",
+      "prompt": "우리말에 맞게 괄호 안의 말을 이용하여 영어로 옮기세요.",
+      "body": ["멜론은 복숭아보다 비싸다.",
+               "(a melon, a peach, expensive)",
+               "→ _________________________________________"],
+      "answer": "A melon is more expensive than a peach.",
+      "explanation": "expensive는 음절이 긴 형용사이므로 more를 붙여 비교급을 만든다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf", "number": 22,
+      "포인트": "「The 비교급 ~, the 비교급 …」 배열",
+      "prompt": "우리말에 맞게 괄호 안의 단어를 바르게 배열하시오.",
+      "body": ["The deeper we dive, (it, darker, becomes, the)",
+               "답 : _________________________________________.",
+               "(우리가 깊이 내려갈수록, 더욱 더 어두워진다.)"],
+      "answer": "the darker it becomes",
+      "explanation": "「The + 비교급 + 주어 + 동사, the + 비교급 + 주어 + 동사」 구문이므로 뒷부분도 「the + 비교급 + 주어 + 동사」의 어순으로 배열한다."
+    }
+  ]
+}

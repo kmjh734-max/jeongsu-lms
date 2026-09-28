@@ -1,0 +1,189 @@
+{
+  "_설명": "천일문 3권 Chapter 12 특수 구문에서 가져와 변형한 문항. 은행에서는 심화 12과 특수구문 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 12,
+  "chapter": "특수 구문",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 12, "chapter": "특수구문" },
+  "points": [
+    { "unit_no": 1, "unit": "강조", "point_no": 1, "point": "do[does/did]+동사원형: 동사 강조", "frequent": true },
+    { "unit_no": 1, "unit": "강조", "point_no": 2, "point": "It is[was] ~ that … 강조 구문", "frequent": true },
+    { "unit_no": 2, "unit": "도치와 생략", "point_no": 3, "point": "so+동사+주어 / neither+동사+주어", "frequent": true },
+    { "unit_no": 2, "unit": "도치와 생략", "point_no": 4, "point": "부분부정: not always, not all", "frequent": true },
+    { "unit_no": 2, "unit": "도치와 생략", "point_no": 5, "point": "생략: 「주어+be동사」와 반복되는 말", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [3], "point_label": "so+동사+주어",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Mina has an interest in playing the drums, and ______."],
+      "choices": [
+        { "no": 1, "text": "so I do" },
+        { "no": 2, "text": "so do I" },
+        { "no": 3, "text": "so did I" },
+        { "no": 4, "text": "neither I do" },
+        { "no": 5, "text": "neither do I" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [1], "point_label": "과거 동사의 강조는 did",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Tom ______ like reading comic books when he was young."],
+      "choices": [
+        { "no": 1, "text": "is" },
+        { "no": 2, "text": "was" },
+        { "no": 3, "text": "do" },
+        { "no": 4, "text": "does" },
+        { "no": 5, "text": "did" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [5], "point_label": "「주어+be동사」의 생략",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 밑줄 친 부분 중 생략할 수 있는 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "If [[you are]] hungry, you eat something now." },
+        { "no": 2, "text": "Brody is very brave, though [[he is]] small." },
+        { "no": 3, "text": "I ordered soup, and [[Marie ordered]] salad." },
+        { "no": 4, "text": "We went by bike when [[others went]] on foot." },
+        { "no": 5, "text": "My brother is good at science but [[I’m good]] at art." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [1], "point_label": "강조의 do 뒤에는 동사원형",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 밑줄 친 부분이 어법상 알맞지 않은 것을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Cindy [[does enjoy]] baking bread at home." },
+        { "no": 2, "text": "All the food you made [[does looks]] delicious." },
+        { "no": 3, "text": "He [[does want]] to leave early because he is tired." },
+        { "no": 4, "text": "They [[did saw]] the sunset on the beach." },
+        { "no": 5, "text": "My little sister [[does need]] my help with her homework." }
+      ],
+      "answer": "②, ④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [2], "point_label": "강조 구문의 It과 가주어 It",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 쓰임이 다른 것을 고르세요.",
+      "body": ["<보기> [[It was]] Mina who I met in Osaka."],
+      "choices": [
+        { "no": 1, "text": "It was Mario who gave me this pen." },
+        { "no": 2, "text": "It was Mr. Lee who taught me math." },
+        { "no": 3, "text": "It was unknown who sent the parcel to me." },
+        { "no": 4, "text": "It was my aunt who bought her new car." },
+        { "no": 5, "text": "It was Judy who sang last night." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [2], "point_label": "It ~ that 강조 구문",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 쓰임이 다른 것을 고르세요.",
+      "body": ["<보기> [[It was]] in 2020 that I moved to Seoul."],
+      "choices": [
+        { "no": 1, "text": "It was strange that he forgot my name." },
+        { "no": 2, "text": "It was fishing that my father taught me." },
+        { "no": 3, "text": "It was his mom that Nick helped yesterday." },
+        { "no": 4, "text": "It was at the contest that she won the first prize." },
+        { "no": 5, "text": "It was last month that they went to the zoo." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [1], "point_label": "강조의 do와 부정의 do",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 쓰임이 다른 것을 고르세요.",
+      "body": ["<보기> I [[do]] wish that we will win the game."],
+      "choices": [
+        { "no": 1, "text": "You do look nice in that jacket." },
+        { "no": 2, "text": "The printers do not work well." },
+        { "no": 3, "text": "I do try hard to reach my goal." },
+        { "no": 4, "text": "Strawberries do have a lot of vitamins." },
+        { "no": 5, "text": "Aron and his friends do study all day long." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [1], "point_label": "동사를 강조하는 did",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "밑줄 친 부분을 강조하는 문장으로 바꿀 때 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["Nara [[hoped]] for a snowy Christmas.", "→ Nara ________________ for a snowy Christmas."],
+      "choices": [],
+      "answer": "did hope"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [2], "point_label": "주어를 강조하는 It ~ that",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "밑줄 친 부분을 강조하는 문장으로 바꿀 때 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["[[Daniel]] sent a birthday card to me.", "→ It ________________ sent a birthday card to me."],
+      "choices": [],
+      "answer": "was Daniel that[who]"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [2], "point_label": "목적어를 강조하는 It ~ that",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "밑줄 친 부분을 강조하는 문장으로 바꿀 때 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["Sora bought [[a hat]] at the market yesterday.", "→ It ________________ Sora bought at the market yesterday."],
+      "choices": [],
+      "answer": "was a hat that[which]"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [2], "point_label": "장소를 강조하는 It ~ that",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "밑줄 친 부분을 강조하는 문장으로 바꿀 때 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "Mia was practicing [[in the gym]] for the contest last week.",
+        "→ It ________________ Mia was practicing for the contest last week."
+      ],
+      "choices": [],
+      "answer": "was in the gym that[where]"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [4], "point_label": "부분부정 not always",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["그의 대답이 항상 옳은 것은 아니었다."],
+      "choices": [
+        { "no": 1, "text": "His answer was always not correct." },
+        { "no": 2, "text": "His answer was not always correct." },
+        { "no": 3, "text": "His answer always was not correct." },
+        { "no": 4, "text": "His answer did not always correct." },
+        { "no": 5, "text": "His answer not did always correct." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [2], "point_label": "강조하려는 말을 It과 that 사이에",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["Mia가 지금 내 옆에서 읽고 있는 것은 바로 시집이다."],
+      "choices": [
+        { "no": 1, "text": "It is Mia who is now reading a poetry book next to me." },
+        { "no": 2, "text": "It is a poetry book that Mia is now reading next to me." },
+        { "no": 3, "text": "It is next to me that Mia is now reading a poetry book." },
+        { "no": 4, "text": "It is now when Mia is reading a poetry book next to me." },
+        { "no": 5, "text": "This is a poetry book what Mia is now reading next to me." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [1], "point_label": "do로 동사 강조하기",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장의 밑줄 친 부분을 강조하여 <조건>에 맞게 문장을 다시 쓰세요.",
+      "body": [
+        "<조건> do를 활용하되, 필요하면 형태를 바꿀 것",
+        "(1) Suji [[knows]] how to bake cookies. → ______________________________",
+        "(2) Jinho [[liked]] math class. → ______________________________"
+      ],
+      "choices": [],
+      "answer": "(1) Suji does know how to bake cookies.  (2) Jinho did like math class."
+    }
+  ]
+}

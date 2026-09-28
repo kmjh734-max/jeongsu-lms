@@ -1,0 +1,215 @@
+{
+  "_설명": "천일문 1권 워크북 Chapter 08 여러 가지 문장 종류의 Chapter Test 가운데 명령문·감탄문·의문사 문항을 변형한 것. 기초 8과 다양한 문장의 형태 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 8,
+  "chapter": "여러 가지 문장 종류",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 8, "chapter": "다양한 문장의 형태" },
+  "points": [
+    { "unit_no": 1, "unit": "명령문과 감탄문", "point_no": 1, "point": "~해라: 동사원형으로 시작하는 명령문", "frequent": true },
+    { "unit_no": 1, "unit": "명령문과 감탄문", "point_no": 2, "point": "~하지 마라: Don’t[Do not]+동사원형", "frequent": true },
+    { "unit_no": 1, "unit": "명령문과 감탄문", "point_no": 3, "point": "~하자: Let’s+동사원형", "frequent": true },
+    { "unit_no": 1, "unit": "명령문과 감탄문", "point_no": 4, "point": "정말 ~하구나!: What/How ~!", "frequent": true },
+    { "unit_no": 2, "unit": "의문사 의문문", "point_no": 5, "point": "의문사+동사+주어 ~?", "frequent": true },
+    { "unit_no": 2, "unit": "의문사 의문문", "point_no": 7, "point": "who/which/whose 의문문", "frequent": true },
+    { "unit_no": 2, "unit": "의문사 의문문", "point_no": 8, "point": "where/when/why 의문문", "frequent": true },
+    { "unit_no": 2, "unit": "의문사 의문문", "point_no": 9, "point": "how 의문문", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1], "point_label": "명령문은 동사원형으로 시작한다",
+      "question_kind": "빈칸 고르기", "difficulty": "하", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Please ________ quiet in the library."],
+      "choices": [
+        { "no": 1, "text": "be" },
+        { "no": 2, "text": "do" },
+        { "no": 3, "text": "does" },
+        { "no": 4, "text": "don’t" },
+        { "no": 5, "text": "let’s" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [3], "point_label": "Let’s의 부정은 Let’s not",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Let’s waste not our time.", "→ ________"],
+      "choices": [],
+      "answer": "Let’s waste not → Let’s not waste"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [1, 2], "point_label": "부정 명령문은 Don’t+동사원형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Open the window, please." },
+        { "no": 2, "text": "Be kind to your classmates." },
+        { "no": 3, "text": "Eat fresh fruit and stay healthy." },
+        { "no": 4, "text": "Wash your hands before meals." },
+        { "no": 5, "text": "Be not noisy in class." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [4], "point_label": "How+형용사+주어+동사!",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장을 감탄문으로 바꿔 쓰세요.",
+      "body": ["The puzzle is really difficult.", "→ How ________________!"],
+      "choices": [],
+      "answer": "difficult the puzzle is"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [1, 2], "point_label": "긍정 명령문과 부정 명령문",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• ____(A)____ honest with your friends.",
+        "• ____(B)____ run in the hallway. It’s dangerous."
+      ],
+      "choices": [
+        { "no": 1, "text": "Be — Don’t" },
+        { "no": 2, "text": "Be — Doesn’t" },
+        { "no": 3, "text": "Don’t — be" },
+        { "no": 4, "text": "Don’t — Don’t" },
+        { "no": 5, "text": "Doesn’t — Don’t" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [8, 9], "point_label": "when과 how 의문문",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "A: ____(A)____ did you meet Jisu?",
+        "B: Last Friday.",
+        "A: ____(B)____ did you go to the café?",
+        "B: I walked there."
+      ],
+      "choices": [
+        { "no": 1, "text": "When — What" },
+        { "no": 2, "text": "What — Where" },
+        { "no": 3, "text": "When — How" },
+        { "no": 4, "text": "How — How" },
+        { "no": 5, "text": "What — Where" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [2], "point_label": "부정 명령문으로 바꿔 쓰기",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "두 문장의 의미가 일치하도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["Keep the window closed.", "= ________ open the window."],
+      "choices": [],
+      "answer": "Don’t[Do not]"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [7], "point_label": "둘 중 하나를 고를 때는 which",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 대화의 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": [
+        "A: ________ drink do you want, juice or milk?",
+        "B: I want juice."
+      ],
+      "choices": [
+        { "no": 1, "text": "Which" },
+        { "no": 2, "text": "Where" },
+        { "no": 3, "text": "How" },
+        { "no": 4, "text": "Why" },
+        { "no": 5, "text": "When" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [6, 9], "point_label": "how 의문문과 what 의문문",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 단어가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "________ far is the station?" },
+        { "no": 2, "text": "________ much is this ticket?" },
+        { "no": 3, "text": "________ sport do you like best?" },
+        { "no": 4, "text": "________ tall is your brother?" },
+        { "no": 5, "text": "________ many pets do you have?" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [4], "point_label": "What+a(n)+형용사+명사+주어+동사!",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["정말 아름다운 목소리구나!"],
+      "choices": [
+        { "no": 1, "text": "What beautiful it is!" },
+        { "no": 2, "text": "How a beautiful voice is!" },
+        { "no": 3, "text": "What a beautiful voice it is!" },
+        { "no": 4, "text": "How really beautiful voice is!" },
+        { "no": 5, "text": "What a really beautiful voice is!" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [9], "point_label": "How far와 How can I",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "다음 대화의 응답에 대한 알맞은 질문을 <조건>에 맞게 완성하세요.",
+      "body": [
+        "<조건> 동일한 의문사를 사용할 것",
+        "A: (1) ________ is the library?",
+        "B: It’s about 1 kilometer from here.",
+        "A: (2) ________ get there?",
+        "B: You can ride the subway."
+      ],
+      "choices": [],
+      "answer": "(1) How far  (2) How can I"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [6, 9], "point_label": "의문사에 맞는 대답 고르기",
+      "question_kind": "대화 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 대화가 어색한 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "A: How old is your dog?  B: It’s three years old." },
+        { "no": 2, "text": "A: How tall is the tower?  B: It’s 100 meters." },
+        { "no": 3, "text": "A: What’s your favorite sport?  B: Baseball is my favorite sport." },
+        { "no": 4, "text": "A: How often do you play the piano?  B: About two hours." },
+        { "no": 5, "text": "A: What do you usually do on Sundays?  B: I go hiking." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [1, 2, 3], "point_label": "명령문의 형태",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Raises your left hand." },
+        { "no": 2, "text": "Don’t be miss the bus." },
+        { "no": 3, "text": "Let’s not waste water." },
+        { "no": 4, "text": "Finish your report right now." },
+        { "no": 5, "text": "Don’t came back lately." }
+      ],
+      "answer": "③, ④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [4, 5, 8], "point_label": "여러 가지 문장의 형태 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 것끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ What a great song is it!",
+        "ⓑ When will Mina go camping?",
+        "ⓒ Don’t you drink milk every morning?",
+        "ⓓ He isn’t from Canada, is he?",
+        "ⓔ Where your sister was last night?",
+        "ⓕ Jiho and Mina had a great time, hadn’t they?"
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓑ, ⓒ" },
+        { "no": 2, "text": "ⓒ, ⓓ, ⓕ" },
+        { "no": 3, "text": "ⓐ, ⓓ, ⓕ" },
+        { "no": 4, "text": "ⓑ, ⓒ, ⓓ" },
+        { "no": 5, "text": "ⓐ, ⓓ, ⓔ, ⓕ" }
+      ],
+      "answer": "④"
+    }
+  ]
+}

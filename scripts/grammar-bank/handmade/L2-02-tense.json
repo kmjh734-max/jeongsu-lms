@@ -1,0 +1,173 @@
+{
+  "_설명": "기본 2과 시제 — 현재완료와 과거·현재진행. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 2.시제_종합문제(2회).pdf", "number": 25,
+      "포인트": "현재완료 결과 용법 have[has] gone to",
+      "prompt": "두 문장의 의미가 같은 한 문장이 되도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["Nora went to Canada.",
+               "She is not here.",
+               "→ Nora Canada."],
+      "answer": "has gone to",
+      "explanation": "‘가 버리고 없다’는 현재완료 결과 용법으로 have[has] gone to로 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 2,
+      "포인트": "과거진행시제 was + v-ing",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["나는 그때 설거지를 하고 있던 중이었다.",
+               "(the dishes, washing, was)",
+               "→ I __________ at that time."],
+      "answer": "was washing the dishes",
+      "explanation": "과거에 하고 있었던 일이므로 과거진행시제 「was + v-ing」로 나타낸다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 4,
+      "포인트": "현재완료 경험 용법",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["엄마는 스키를 두 번 타 본 적이 있다.",
+               "(skiing, has, twice, tried)",
+               "→ My mother _______________________________."],
+      "answer": "has tried skiing twice",
+      "explanation": "‘~해 본 적이 있다’라는 뜻으로 과거부터 현재까지의 경험을 나타내므로 현재완료 「have[has] + v-ed」로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 9,
+      "포인트": "현재완료 결과 용법 has gone to",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 <보기>에서 골라 형태를 바꿔 쓰시오.",
+      "body": ["<보기>",
+               "go watch stay",
+               "My brother _____ _____ to Canada. He is not",
+               "here now."],
+      "answer": "has, gone",
+      "explanation": "남동생이 캐나다에 가서 그 결과 지금 여기 없는 상황이므로 현재완료 「have[has] + v-ed」로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 11,
+      "포인트": "현재완료 계속 용법",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["• Ms. Park began to run the bakery ten years",
+               "ago.",
+               "• She still runs it.",
+               "→ Ms. Park ____________ for ten years."],
+      "answer": "has run the bakery",
+      "explanation": "‘10년 전에 빵집을 운영하기 시작해서 지금도 운영하고 있는’ 것이므로 현재완료시제의 계속 용법으로 표현한다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 12,
+      "포인트": "현재완료 결과 용법",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["• Someone took my umbrella.",
+               "• I don’t have it now.",
+               "→ Someone _______________ my umbrella."],
+      "answer": "has taken",
+      "explanation": "‘과거에 누군가 내 우산을 가져가서 지금도 우산이 없는’ 것이므로 현재완료시제의 결과 용법으로 표현한다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 17,
+      "포인트": "과거진행형 의문문",
+      "prompt": "다음 밑줄 친 부분의 우리말의 뜻에 맞도록 빈칸에 들어갈 말을 쓰세요.",
+      "body": ["[[누구와 이야기하고 있었니]]on the phone when I",
+               "came in?"],
+      "answer": "Who were you talking to",
+      "explanation": "내가 들어왔을 때가 과거이고, 그때 누구와 이야기하고 있었는가 하는 것은 과거진행형을 써야 한다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 19,
+      "포인트": "주어의 수에 맞는 현재진행형",
+      "prompt": "그림의 상황을 현재진행형으로 묘사하세요. (1) Emma ____________________________________. (2) Tom and Lily __________________________.",
+      "body": ["〈그림〉",
+               "〈그림〉"],
+      "answer": "is playing the piano / are riding bikes.",
+      "explanation": "Emma가 단수이므로 「is + 동사원형-ing」, Tom and Lily는 복수이므로 「are + 동사원형-ing」의 형태로 표현한다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 22,
+      "포인트": "복수 주어의 과거진행시제 were + v-ing",
+      "prompt": "과거진행시제를 사용하여 빈칸을 채우시오.",
+      "body": ["The children _____ (shout) with excitement at",
+               "the parade."],
+      "answer": "were shouting",
+      "explanation": "주어가 복수이고 과거에 하고 있던 일이므로 「were + v-ing」로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 24,
+      "포인트": "복수 주어의 과거진행시제",
+      "prompt": "과거진행시제를 사용하여 빈칸을 채우시오.",
+      "body": ["The parents _____ also _____ (sing) with the",
+               "kids in the hall."],
+      "answer": "were, singing",
+      "explanation": "주어가 복수이므로 were를 쓰고, also는 be동사 뒤에 놓인다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 26,
+      "포인트": "단수 주어의 과거진행시제 was + v-ing",
+      "prompt": "과거진행시제를 사용하여 빈칸을 채우시오.",
+      "body": ["She _____ (read) quietly when the phone rang."],
+      "answer": "was reading",
+      "explanation": "전화가 울린 과거의 한 시점에 하고 있던 일이므로 「was + v-ing」로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 27,
+      "포인트": "현재완료 결과 용법",
+      "prompt": "현재완료시제 또는 현재진행시제 중 적절한 형태로 빈칸을 채우시오.",
+      "body": ["Mina _____ (pack) her bag. She can leave for",
+               "the trip now."],
+      "answer": "has packed",
+      "explanation": "가방을 다 싸서 그 결과 지금 떠날 수 있는 것이므로 현재완료를 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 29,
+      "포인트": "현재완료 경험 의문문 Have you ever p.p.?",
+      "prompt": "완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["너 이 노래 들어 본 적 있니?",
+               "→ ______ you ever ______ this song?"],
+      "answer": "Have, heard",
+      "explanation": "‘~해 본 적 있니?’라는 경험을 묻는 말이므로 「Have + 주어 + ever + p.p. ~?」로 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 30,
+      "포인트": "현재완료 has + p.p.",
+      "prompt": "현재완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["Mr. Clark _____ (send) postcards to his friends."],
+      "answer": "has sent",
+      "explanation": "주어가 3인칭 단수이므로 has를 쓰고 send의 과거분사 sent를 붙인다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 31,
+      "포인트": "just는 have와 p.p. 사이에 놓인다",
+      "prompt": "현재완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["I _____ (just open) a box from my",
+               "grandmother."],
+      "answer": "have just opened",
+      "explanation": "just는 「have[has] + p.p.」 사이에 놓여 ‘막 ~했다’는 완료의 뜻을 나타낸다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 32,
+      "포인트": "집합명사 the staff는 복수 취급",
+      "prompt": "적절한 것을 골라 빈칸을 채우시오.",
+      "body": ["The staff _____ just completed the training.",
+               "(has, have)"],
+      "answer": "have",
+      "explanation": "the staff는 사람들의 무리를 가리키는 집합명사로 복수 취급하므로 have를 쓴다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 33,
+      "포인트": "단수 주어의 현재완료는 has + p.p.",
+      "prompt": "주어진 단어 중 옳은 것을 고르시오.",
+      "body": ["The chef (have made, has made) many other",
+               "famous dishes."],
+      "answer": "has made",
+      "explanation": "주어 The chef가 3인칭 단수이므로 has made가 알맞다."
+    },
+    {
+      "file": "[기본] 2.시제_체크체크.pdf", "number": 37,
+      "포인트": "현재완료 has + p.p.",
+      "prompt": "현재완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["The librarian _____ (arrange) the books on the",
+               "shelf."],
+      "answer": "has arranged",
+      "explanation": "주어가 3인칭 단수이므로 has를 쓰고 arrange의 과거분사 arranged를 붙인다."
+    }
+  ]
+}

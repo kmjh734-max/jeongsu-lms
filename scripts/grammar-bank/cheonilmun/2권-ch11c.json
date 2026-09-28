@@ -1,0 +1,77 @@
+{
+  "_설명": "천일문 2권 Chapter 11 접속사 Chapter Test 뒷장 가운데 부사절 문항(18·19·21·22번)을 변형한 것. 기본 14과 접속사[1] 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 11,
+  "chapter": "접속사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 14, "chapter": "접속사[1]" },
+  "points": [
+    { "unit_no": 2, "unit": "시간·이유의 접속사", "point_no": 3, "point": "when, while, before, after, until", "frequent": true },
+    { "unit_no": 2, "unit": "시간·이유의 접속사", "point_no": 4, "point": "because, since, as: ~ 때문에", "frequent": true },
+    { "unit_no": 3, "unit": "조건·양보의 접속사", "point_no": 5, "point": "if, unless: 만약 ~라면 / ~하지 않는다면", "frequent": true },
+    { "unit_no": 3, "unit": "조건·양보의 접속사", "point_no": 6, "point": "시간·조건의 부사절에서는 현재시제가 미래를 나타낸다", "frequent": true },
+    { "unit_no": 3, "unit": "조건·양보의 접속사", "point_no": 7, "point": "so+형용사/부사+that: 너무 ~해서 …하다", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 18, "point_nos": [5, 6], "point_label": "조건의 부사절은 현재시제로 미래를 나타낸다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "When the bell rang, I was eating lunch." },
+        { "no": 2, "text": "If it will snow tomorrow, we will go sledding." },
+        { "no": 3, "text": "You should not press the button unless it is urgent." },
+        { "no": 4, "text": "The library stays open until the last student leaves." },
+        { "no": 5, "text": "Because Mina’s eyes were tired, her dad bought her a lamp." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 19, "point_nos": [3, 5], "point_label": "unless에는 부정의 뜻이 들어 있다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Let’s wait here until the rain stops." },
+        { "no": 2, "text": "I visited the Colosseum when I traveled to Rome." },
+        { "no": 3, "text": "If you skip breakfast, you will feel tired." },
+        { "no": 4, "text": "Unless you don’t hurry, you will miss the train." },
+        { "no": 5, "text": "While Mom cooked dinner, I set the table." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 21, "point_nos": [4, 5, 7], "point_label": "부사절 접속사의 의미와 형태",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 것끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ Don’t go outside if you have a fever.",
+        "ⓑ Though the box is very light, I can’t lift it.",
+        "ⓒ Unless he apologizes, we won’t forgive him.",
+        "ⓓ The shoes were so small that she couldn’t wear them.",
+        "ⓔ The baby can’t walk yet because he is so little.",
+        "ⓕ The match was canceled because the heavy rain."
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓑ, ⓓ, ⓕ" },
+        { "no": 2, "text": "ⓐ, ⓒ, ⓓ, ⓔ" },
+        { "no": 3, "text": "ⓒ, ⓓ, ⓔ" },
+        { "no": 4, "text": "ⓐ, ⓑ, ⓒ, ⓔ" },
+        { "no": 5, "text": "ⓐ, ⓓ, ⓕ" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 22, "point_nos": [5, 6], "point_label": "if절은 현재시제, 주절은 미래시제",
+      "question_kind": "영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "<상황>과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "<상황> 내일 날씨가 맑으면 우리 가족은 소풍을 갈 것이다.",
+        "(if / the weather / be / sunny / my family / go)",
+        "→ ________________________ on a picnic tomorrow."
+      ],
+      "choices": [],
+      "answer": "If the weather is sunny, my family will go"
+    }
+  ]
+}

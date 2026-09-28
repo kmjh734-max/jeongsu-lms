@@ -16,7 +16,7 @@ export const ACADEMY_FEATURES = [
   {
     key: "grammar_bank",
     label: "중학 문법 문제 은행",
-    hint: "레벨·단원별로 문법 문제와 변형문제를 골라 시험지로 뽑을 수 있습니다.",
+    hint: "레벨·단원별로 문법 문항을 골라 시험지와 정답지로 뽑을 수 있습니다.",
   },
 ] as const;
 

@@ -1,0 +1,106 @@
+{
+  "_설명": "기본 13과 형용사와 명사의 수량표현 — many/much, few/little, 단위 표현. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_종합문제(2회).pdf", "number": 6,
+      "포인트": "셀 수 없는 명사의 단위 표현은 복수형으로",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["그녀는 우유 두 잔이 필요하다. (glass, milk)",
+               "→ She needs ________________________________."],
+      "answer": "two glasses of milk",
+      "explanation": "셀 수 없는 명사의 수량을 나타낼 때는 단위 표현을 복수형으로 만들어야 하므로 two glasses of milk로 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 2,
+      "포인트": "셀 수 없는 명사 앞의 a lot of = much",
+      "prompt": "밑줄 친 부분을 공통으로 바꿀 수 있는 한 단어를 쓰세요.",
+      "body": ["I will also drink [[a lot of]] water every day.",
+               "This trip is going to be [[lots of]] fun."],
+      "answer": "much",
+      "explanation": "a lot of나 lots of는 둘 다 ‘많은’이라는 의미로 many나 much와 같다. 뒤의 명사가 셀 수 없는 명사인 것으로 보아 much가 더 적절하다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 3,
+      "포인트": "셀 수 없는 명사에는 much",
+      "prompt": "다음 대화에서 어법상 [[틀린]]부분을 찾아 바르게 고치세요.",
+      "body": ["A : There is too many salt in the soup.",
+               "B : It’s not good for your health.",
+               "→"],
+      "answer": "many, much",
+      "explanation": "salt는 셀 수 없는 명사이므로 many는 much로 고쳐 주어야 한다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 4,
+      "포인트": "much + 불가산명사, many + 가산명사 복수",
+      "prompt": "many와 much 중 적절한 것을 빈칸에 쓰시오.",
+      "body": ["Why is there so ______ dust? How ______",
+               "windows are there in the room?"],
+      "answer": "much, many",
+      "explanation": "dust는 셀 수 없는 명사이므로 much를, windows는 셀 수 있는 명사의 복수형이므로 many를 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 5,
+      "포인트": "much + 불가산명사, many + 가산명사 복수",
+      "prompt": "many와 much 중 적절한 것을 빈칸에 쓰시오.",
+      "body": ["There is so ______ juice in the bottle, but there",
+               "are not ______ glasses on the shelf."],
+      "answer": "much, many",
+      "explanation": "juice는 셀 수 없는 명사이므로 much를, glasses는 셀 수 있는 명사의 복수형이므로 many를 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 6,
+      "포인트": "much + 불가산명사, many + 가산명사 복수",
+      "prompt": "many와 much 중 적절한 것을 빈칸에 쓰시오.",
+      "body": ["There is so ______ snow on the road, but there",
+               "are not ______ cars outside."],
+      "answer": "much, many",
+      "explanation": "snow는 셀 수 없는 명사이므로 much를, cars는 셀 수 있는 명사의 복수형이므로 many를 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 7,
+      "포인트": "many + 가산명사 복수, much + 불가산명사",
+      "prompt": "many와 much 중 적절한 것을 빈칸에 쓰시오.",
+      "body": ["Tom has ______ books at home, but he has not",
+               "______ time to read them."],
+      "answer": "many, much",
+      "explanation": "books는 셀 수 있는 명사의 복수형이므로 many를, time은 셀 수 없는 명사이므로 much를 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 8,
+      "포인트": "셀 수 없는 명사에는 much",
+      "prompt": "many와 much 중 적절한 것을 빈칸에 쓰시오.",
+      "body": ["He puts too ______ butter on the bread."],
+      "answer": "much",
+      "explanation": "butter는 셀 수 없는 명사이므로 much를 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 9,
+      "포인트": "Few + 셀 수 있는 명사의 복수형",
+      "prompt": "올바른 형용사를 고르시오.",
+      "body": ["(Few, Little) children like bitter vegetables."],
+      "answer": "Few",
+      "explanation": "children은 셀 수 있는 명사의 복수형이므로 Few가 알맞다. Little은 셀 수 없는 명사 앞에 쓴다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 12,
+      "포인트": "a few + 셀 수 있는 명사의 복수형",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["little each every",
+               "last latest few",
+               "A ______ birds were sitting on the wire this",
+               "morning."],
+      "answer": "few",
+      "explanation": "birds가 셀 수 있는 명사의 복수형이고 ‘몇몇의’라는 뜻이므로 a few가 알맞다."
+    },
+    {
+      "file": "[기본] 13.형용사와 명사의 수량표현_체크체크.pdf", "number": 13,
+      "포인트": "a little + 셀 수 없는 명사",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["little each every",
+               "last latest few",
+               "There was only a ______ water in the bottle."],
+      "answer": "little",
+      "explanation": "water가 셀 수 없는 명사이고 ‘약간의’라는 뜻이므로 a little이 알맞다."
+    }
+  ]
+}

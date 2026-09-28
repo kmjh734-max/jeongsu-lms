@@ -1,0 +1,145 @@
+{
+  "_설명": "심화 3과 완료시제 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[심화] 3.완료시제_종합문제(1회).pdf", "number": 5,
+      "포인트": "현재완료를 쓸 수 있는 자리",
+      "prompt": "어법상 옳은 것은?",
+      "body": [],
+      "choices": ["I have seen him in 2010.",
+                  "She has broken not her arm.",
+                  "It has been 5 years since she left.",
+                  "When have you finished your report?",
+                  "Everyone in this room have been to Paris."],
+      "answer": "③",
+      "explanation": "현재완료는 in 2010처럼 명확한 과거를 나타내는 말이나 When과 함께 쓰지 않으며, 부정은 has not으로 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_종합문제(1회).pdf", "number": 10,
+      "포인트": "현재완료진행형과 since",
+      "prompt": "다음 빈칸에 순서대로 알맞은 말은?",
+      "body": ["It started to rain last night. It is still raining.",
+               "→ It _____________ raining ________ last night."],
+      "choices": ["has been - for", "had been - for", "was - since",
+                  "has been - since", "had been - since"],
+      "answer": "④",
+      "explanation": "과거에 시작해 지금도 이어지므로 현재완료진행형을 쓰고, 시작 시점 앞에는 since를 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_종합문제(1회).pdf", "number": 12,
+      "포인트": "현재완료진행형의 뜻",
+      "prompt": "다음 문장에 대한 설명으로 가장 옳은 것은?",
+      "body": ["She's been practicing for 3 hours."],
+      "choices": ["She is practicing and she'll practice again after 3 hours.",
+                  "She's practicing and she'll stop practicing in 3 hours.",
+                  "She was practicing and stopped practicing 3 hours ago.",
+                  "She began to practice 3 hours ago, and is practicing now.",
+                  "She has practiced for 3 hours and she'll finish practicing soon."],
+      "answer": "④",
+      "explanation": "현재완료진행형은 과거에 시작한 일이 지금도 이어지고 있음을 나타낸다."
+    },
+    {
+      "file": "[심화] 3.완료시제_종합문제(1회).pdf", "number": 16,
+      "포인트": "현재완료진행형",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 들어갈 알맞은 말을 고르면?",
+      "body": ["The baby began to sleep two hours ago, and he is",
+               "still sleeping.",
+               "→ The baby ______________________ for two hours."],
+      "choices": ["have been sleeping", "as well sleeping", "was sleeping",
+                  "is being slept", "has been sleeping"],
+      "answer": "⑤",
+      "explanation": "주어가 3인칭 단수이고 지금도 이어지는 일이므로 has been sleeping으로 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_종합문제(2회).pdf", "number": 2,
+      "포인트": "계속을 나타내는 현재완료",
+      "prompt": "빈칸에 들어갈 알맞은 말은?",
+      "body": ["I got the bike in 2015, and I still ride it.",
+               "→ I ________ _________ the bike __________",
+               "2015."],
+      "choices": ["have gotten, since", "have gotten, last",
+                  "have had, since", "have had, last", "had had, since"],
+      "answer": "③",
+      "explanation": "지금까지 가지고 있으므로 have had를 쓰고, 연도 앞에는 since를 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_종합문제(2회).pdf", "number": 6,
+      "포인트": "과거완료 — 더 앞선 일",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Before I arrived at the station, the train _____."],
+      "choices": ["leaves", "left", "is left", "had left", "is leaving"],
+      "answer": "④",
+      "explanation": "도착한 것보다 기차가 떠난 것이 앞선 일이므로 과거완료를 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_종합문제(2회).pdf", "number": 10,
+      "포인트": "since가 이끄는 절의 시제",
+      "prompt": "다음 문장의 빈칸에 알맞은 말을 고르세요.",
+      "body": ["I haven’t seen him since we _____ in middle",
+               "school together."],
+      "choices": ["are", "were", "had been", "have been", "have are"],
+      "answer": "②",
+      "explanation": "since가 이끄는 절에는 과거시제를 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_종합문제(2회).pdf", "number": 22,
+      "포인트": "과거완료진행형",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 고르세요.",
+      "body": ["I _____ the room for almost two hours when",
+               "my brother came to help me."],
+      "choices": ["have cleaned", "cleaned", "will clean",
+                  "had clean", "had been cleaning"],
+      "answer": "⑤",
+      "explanation": "동생이 오기 전부터 계속 이어지던 일이므로 과거완료진행형을 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_종합문제(2회).pdf", "number": 24,
+      "포인트": "현재완료진행형",
+      "prompt": "다음 두 문장의 뜻이 같도록 빈칸에 들어갈 말을고르세요.",
+      "body": ["I started to play the violin last spring, and",
+               "I'm still playing it.",
+               "→ I ___________ the violin since last spring."],
+      "choices": ["play", "am playing", "will play",
+                  "have been playing", "have been played"],
+      "answer": "④",
+      "explanation": "과거에 시작해 지금도 이어지므로 현재완료진행형을 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_확인문제(1회).pdf", "number": 13,
+      "포인트": "현재완료진행형",
+      "prompt": "두 문장을 하나로 만들 때 빈칸에 알맞은 말은?",
+      "body": ["(A) He started to wait three hours ago.",
+               "(B) He's still waiting now.",
+               "→ He ___________________ since three hours ago."],
+      "choices": ["waits", "had waited", "was waiting",
+                  "has been waiting", "has been waited"],
+      "answer": "④",
+      "explanation": "과거에 시작해 지금도 이어지므로 has been waiting으로 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_확인문제(2회).pdf", "number": 9,
+      "포인트": "과거완료 — 더 앞선 일",
+      "prompt": "빈칸에 들어갈 말로 알맞은 것은?",
+      "body": ["When I called my friend last night, she",
+               "told me that she ________ busy all day."],
+      "choices": ["was", "is", "have been", "had been", "could be"],
+      "answer": "④",
+      "explanation": "전화한 때보다 바빴던 것이 앞선 일이므로 과거완료를 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_확인문제(2회).pdf", "number": 12,
+      "포인트": "과거완료 — 더 앞선 일",
+      "prompt": "다음 두 문장이 같은 의미를 지닐 때 빈칸에 알맞은 것은?",
+      "body": ["A young man broke the window of the shop. The",
+               "owner later found him.",
+               "The owner found the young man _________________."],
+      "choices": ["who had broken the window of the shop.",
+                  "who was broken the window of the shop.",
+                  "who were broken the window of the shop.",
+                  "who have been broken the window of the shop.",
+                  "who had been breaking the window of the shop."],
+      "answer": "①",
+      "explanation": "창문을 깬 것이 찾아낸 것보다 앞선 일이므로 과거완료 had broken을 쓴다."
+    }
+  ]
+}

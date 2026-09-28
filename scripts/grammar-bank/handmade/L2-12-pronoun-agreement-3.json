@@ -1,0 +1,108 @@
+{
+  "_설명": "기본 12과 대명사와 수일치 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 12.대명사와 수일치_종합문제(1회).pdf", "number": 18,
+      "포인트": "재귀대명사의 형태",
+      "prompt": "다음 중 바르게 연결되지 [[않은]]것은?",
+      "body": [],
+      "choices": ["You - yourselve", "I - myself", "He - himself",
+                  "It - itself", "They - themselves"],
+      "answer": "①",
+      "explanation": "you의 재귀대명사는 단수면 yourself, 복수면 yourselves이다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_종합문제(1회).pdf", "number": 20,
+      "포인트": "Each + 단수 명사",
+      "prompt": "다음 빈칸에 들어갈 수 [[없는]]것은?",
+      "body": ["Each _________ will get two tickets."],
+      "choices": ["guest", "player", "student", "children", "visitor"],
+      "answer": "④",
+      "explanation": "each 뒤에는 단수 명사가 오므로 복수형 children은 쓸 수 없다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_종합문제(1회).pdf", "number": 22,
+      "포인트": "재귀 용법과 강조 용법",
+      "prompt": "용법이 [[다른]]하나를 고르면?",
+      "body": [],
+      "choices": ["She taught [[herself]] to swim.",
+                  "I fixed the bike [[myself]].",
+                  "I'm afraid you may hurt [[yourself]].",
+                  "They finished the race and were proud of [[themselves]].",
+                  "He has to believe in [[himself]] first."],
+      "answer": "②",
+      "explanation": "②만 ‘직접’이라는 뜻의 강조 용법이라 생략할 수 있고, 나머지는 목적어로 쓰인 재귀 용법이다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_종합문제(2회).pdf", "number": 19,
+      "포인트": "권유의 some과 의문문의 any",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞게 짝지어진 것을고르시오.",
+      "body": ["Would you like _____ juice?",
+               "Are there _____ tomatoes in the basket?"],
+      "choices": ["much – much", "many – many", "some – any",
+                  "any – any", "any – some"],
+      "answer": "③",
+      "explanation": "권유하는 의문문에는 some을, 보통의 의문문에는 any를 쓴다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_종합문제(2회).pdf", "number": 24,
+      "포인트": "또 하나를 가리키는 another",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 것을 고르시오.",
+      "body": ["이 상자를 열 또 다른 방법이 있니?",
+               "→ Is there _____ way to open this box?"],
+      "choices": ["one", "some", "any", "another", "others"],
+      "answer": "④",
+      "explanation": "‘또 다른 하나’는 another로 나타내며 뒤에 단수 명사가 온다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_종합문제(2회).pdf", "number": 30,
+      "포인트": "Every + 단수 명사 + 단수 동사",
+      "prompt": "다음 문장의 빈칸에 들어갈 말로 알맞은 것은?",
+      "body": ["Every ________ is ready."],
+      "choices": ["men", "women", "children", "people", "player"],
+      "answer": "⑤",
+      "explanation": "every 뒤에는 단수 명사가 오고 동사도 단수형을 쓴다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_확인문제(1회).pdf", "number": 13,
+      "포인트": "부정문의 any",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["I may not have _________ free time today."],
+      "choices": ["it", "these", "those", "any", "some"],
+      "answer": "④",
+      "explanation": "부정문에서는 some 대신 any를 쓴다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_확인문제(1회).pdf", "number": 20,
+      "포인트": "같은 종류의 하나를 가리키는 one",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["I have some notebooks. I’ll give you a new",
+               "_____."],
+      "choices": ["it", "one", "ones", "that", "them"],
+      "answer": "②",
+      "explanation": "앞에 나온 것과 같은 종류의 정해지지 않은 하나를 가리킬 때는 one을 쓴다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_확인문제(2회).pdf", "number": 8,
+      "포인트": "생략할 수 있는 강조 용법의 재귀대명사",
+      "prompt": "다음 문장의 밑줄 친 부분 중 생략할 수 있는 것을 고르시오.",
+      "body": ["ⓐ[[My]] ⓑ[[brother]] ⓒ[[painted]] ⓓ[[the fence]] ⓔ[[himself]]."],
+      "choices": ["ⓐ", "ⓑ", "ⓒ", "ⓓ", "ⓔ"],
+      "answer": "⑤",
+      "explanation": "‘직접’을 뜻하는 강조 용법이므로 빼도 문장이 성립한다."
+    },
+    {
+      "file": "[기본] 12.대명사와 수일치_확인문제(2회).pdf", "number": 15,
+      "포인트": "의문문의 any + 복수 명사",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것을 고르시오.",
+      "body": ["바구니에 사과가 좀 있니?"],
+      "choices": ["Are there any apple in the basket?",
+                  "Are there any apples in the basket?",
+                  "Are there some apple in the basket?",
+                  "Are there these apples in the basket?",
+                  "Are there those apples in the basket?"],
+      "answer": "②",
+      "explanation": "의문문에는 any를 쓰고, 셀 수 있는 명사는 복수형으로 쓴다."
+    }
+  ]
+}

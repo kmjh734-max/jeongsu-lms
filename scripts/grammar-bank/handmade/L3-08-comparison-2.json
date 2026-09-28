@@ -1,0 +1,128 @@
+{
+  "_설명": "심화 8과 비교구문 — the 비교급, 최상급 바꿔 쓰기, superior to, less ~ than. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 8.비교구문_종합문제(2회).pdf", "number": 14,
+      "포인트": "the + 비교급 ~, the + 비교급 …",
+      "prompt": "다음 문장을 영작하시오.",
+      "body": ["▪ 그가 더 오래 기다릴수록, 나는 더욱 미안해졌다.",
+               "→ __________________________________________"],
+      "answer": "The longer he waited, the sorrier I became.",
+      "explanation": "「the + 비교급 ~, the + 비교급 …」을 사용하여 주어진 문장을 영작한다."
+    },
+    {
+      "file": "[심화] 8.비교구문_종합문제(2회).pdf", "number": 15,
+      "포인트": "비교급 + than any other = 최상급",
+      "prompt": "주어진 문장과 같은 의미가 되도록 빈칸을 채워 완성하시오.",
+      "body": ["▪ He is taller than any other boy in my class.",
+               "= He is _______ _______ _______ _______ _______",
+               "_______."],
+      "answer": "the tallest boy in my class",
+      "explanation": "「비교급 + than any other + 단수명사」는 최상급의 표현이므로 the tallest boy로 대신하여 표현한다."
+    },
+    {
+      "file": "[심화] 8.비교구문_체크체크.pdf", "number": 3,
+      "포인트": "superior to — ~보다 나은",
+      "prompt": "우리말을 참고하여 비교급 또는 최상급 문장으로 만드세요.",
+      "body": ["그는 수학에서 나보다 더 우수하다.",
+               "He is to in math."],
+      "answer": "superior, me",
+      "explanation": "superior to: ~보다 나은 cf. inferior to: ~보다 못한, senior to: ~보다 손위인, junior to: ~보다 아래인, prior to: ~보다 우선하는"
+    },
+    {
+      "file": "[심화] 8.비교구문_체크체크.pdf", "number": 4,
+      "포인트": "the same as ~ — ~와 똑같은",
+      "prompt": "다음 문장에서 [[잘못된]]부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Your bag is the same to my sister’s."],
+      "answer": "to → as",
+      "explanation": "‘A가 B와 똑같다’라고 할 때 the same as B를 쓴다."
+    },
+    {
+      "file": "[심화] 8.비교구문_체크체크.pdf", "number": 5,
+      "포인트": "the + 최상급 + 명사 + (that) + 주어 + 현재완료",
+      "prompt": "우리말과 같은 뜻이 되도록 주어진 단어를 모두 사용하여 한 문장으로 쓰시오. (단, 필요한 경우 주어진 단어를 변형하고, 필요한 단어를 더 추가하여 영어로 쓰시오.)",
+      "body": ["그것은 내가 지금까지 일본에서 먹었던 음식 중 최고의",
+               "음식이었다.",
+               "ever, was, had, Japan, I, it, the, food, in",
+               "Answer: _______________________________________"],
+      "answer": "It was the best food (that) I’ve ever had in Japan.",
+      "explanation": "「the + 최상급 + 명사 + (that) + 주어 + 현재완료」의 어순으로 문장을 완성한다."
+    },
+    {
+      "file": "[심화] 8.비교구문_체크체크.pdf", "number": 6,
+      "포인트": "이제껏 ~한 것 중 가장 …한",
+      "prompt": "다음 대화의 밑줄 친 부분을 우리말에 맞추어 영어로 쓰시오.",
+      "body": ["A : How was your trip to Rome?",
+               "B : Oh, Rome?",
+               "I think Rome is [[내가 가본 중 가장 오래된 도시.]]",
+               "______________________________________________"],
+      "answer": "the oldest city I’ve ever been",
+      "explanation": "「the + 최상급 + 명사 + (that) + 주어 + 현재완료」는 ‘이제까지 ~한 것 중 가장 …한 것’의 의미를 나타낸다."
+    },
+    {
+      "file": "[심화] 8.비교구문_체크체크.pdf", "number": 7,
+      "포인트": "the + 최상급 + 명사 + 현재완료",
+      "prompt": "아래 <보기> 표에 주어진 단어들을 이용하여 문장을 쓰시오. (예시 문장 활용)",
+      "body": ["<보기>",
+               "Frozen exciting movie watch",
+               "(예시) Kimbap is the most delicious food I have",
+               "ever eaten.",
+               "겨울왕국은 내가 여태껏 본 영화 중 가장 신나는 영화이다.",
+               "______________________________________________"],
+      "answer": "Frozen is the most exciting movie (that) I’ve ever watched.",
+      "explanation": "「the + 최상급 + 명사 + (that) + 주어 + 현재완료」의 어순으로 문장을 완성한다."
+    },
+    {
+      "file": "[심화] 8.비교구문_체크체크.pdf", "number": 11,
+      "포인트": "비교급 + than any other = the + 최상급",
+      "prompt": "다음 두 문장이 같은 뜻이 되도록 빈칸에 알맞은 말을 넣으시오.",
+      "body": ["The bread in my bakery is more famous than",
+               "any other bread in Seoul.",
+               "= My bakery sells _______ ________ ________",
+               "bread in Seoul."],
+      "answer": "the most famous",
+      "explanation": "most가 famous를 수식해서 최상급 표현으로 만든다."
+    },
+    {
+      "file": "[심화] 8.비교구문_체크체크.pdf", "number": 13,
+      "포인트": "최상급 = 부정주어 + 비교급 + than",
+      "prompt": "다음의 문장을 부정어를 사용하여 의미가 같은 문장으로 변형시켜 쓰시오.",
+      "body": ["Busan is the busiest port in Korea.",
+               "________ ________ is _________ _________",
+               "_________ Busan in Korea."],
+      "answer": "No port, busier than",
+      "explanation": "‘the + 최상급’의 최상급 표현은 ‘부정주어(no + 명사, nothing, nobody) + 비교급 + than ~’의 표현으로 바꾸어 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 8.비교구문_체크체크.pdf", "number": 15,
+      "포인트": "최상급을 비교급으로 바꿔 쓰기",
+      "prompt": "다음 세 문장의 뜻이 같도록 빈칸에 공통으로 들어갈 알맞은 말을 쓰세요.",
+      "body": ["Kevin is the fastest in his class.",
+               "= Kevin is than any other boy in his",
+               "class",
+               "= No other boy is than Kevin in his",
+               "class."],
+      "answer": "faster",
+      "explanation": "「비교급 + than any other + 단수명사」와 「No other + 단수명사 + 비교급 + than」은 모두 최상급의 뜻을 나타낸다."
+    },
+    {
+      "file": "[심화] 8.비교구문_체크체크.pdf", "number": 16,
+      "포인트": "less + 원급 + than — ~보다 덜 …한",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["이 가방은 저 가방보다 덜 무겁다. (heavy)",
+               "→ This bag is _______ _______ ______ that one."],
+      "answer": "less heavy than",
+      "explanation": "「A ~ less + 원급 + than B」는 ‘A는 B보다 덜 ~하다’의 의미이다."
+    },
+    {
+      "file": "[심화] 8.비교구문_체크체크.pdf", "number": 17,
+      "포인트": "as ~ as possible = as ~ as + 주어 + could",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["She walked home as quietly as possible.",
+               "= She walked home ________ ________",
+               "________ ________ ________."],
+      "answer": "as quietly as she could",
+      "explanation": "「as + 원급 + as possible」은 「as + 원급 + as + 주어 + can」으로 바꿔 쓸 수 있다. 이때 주절의 시제가 과거이면 조동사 can을 could로 써야 한다."
+    }
+  ]
+}

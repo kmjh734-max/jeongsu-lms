@@ -1,0 +1,243 @@
+{
+  "_설명": "천일문 3권 워크북 Chapter 03 수동태의 Chapter Test를 변형한 것. 심화 5과 수동태 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 3,
+  "chapter": "수동태",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 5, "chapter": "수동태" },
+  "points": [
+    { "unit_no": 1, "unit": "수동태의 형태와 시제", "point_no": 1, "point": "수동태 = be동사+p.p.(+by 행위자)", "frequent": true },
+    { "unit_no": 1, "unit": "수동태의 형태와 시제", "point_no": 2, "point": "미래·진행·완료의 수동태", "frequent": true },
+    { "unit_no": 1, "unit": "수동태의 형태와 시제", "point_no": 3, "point": "조동사가 있는 수동태: 조동사+be+p.p.", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 수동태", "point_no": 4, "point": "수동태로 쓸 수 없는 동사(자동사)", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 수동태", "point_no": 5, "point": "by 이외의 전치사를 쓰는 수동태", "frequent": true },
+    { "unit_no": 2, "unit": "주의할 수동태", "point_no": 6, "point": "4형식·5형식 문장의 수동태", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1, 5], "point_label": "구동사의 수동태",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• A woman ____(A)____ by the police for stealing a bag.",
+        "• His idea was ____(B)____ by the whole class."
+      ],
+      "choices": [
+        { "no": 1, "text": "caught — paid attention to" },
+        { "no": 2, "text": "was caught — paying attention to" },
+        { "no": 3, "text": "was caught — paid attention to" },
+        { "no": 4, "text": "has caught — paid attention" },
+        { "no": 5, "text": "has caught — paying attention" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [2, 3], "point_label": "조동사 수동태와 진행형 수동태",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• The report must ____(A)____ submitted before Friday.",
+        "• The song is ____(B)____ sung by the choir."
+      ],
+      "choices": [
+        { "no": 1, "text": "be — be" },
+        { "no": 2, "text": "be — being" },
+        { "no": 3, "text": "being — be" },
+        { "no": 4, "text": "be — been" },
+        { "no": 5, "text": "being — being" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [1, 3, 5], "point_label": "수동태의 형태와 전치사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Busan is divided by the Nakdong River." },
+        { "no": 2, "text": "You will helped by the manual." },
+        { "no": 3, "text": "The stadium was filled of fans." },
+        { "no": 4, "text": "The report must be submitted on time." },
+        { "no": 5, "text": "The singer is known for fans around the world." }
+      ],
+      "answer": "①, ④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [2, 4, 6], "point_label": "자동사는 수동태로 쓰지 않는다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "When was the earthquake occurred?" },
+        { "no": 2, "text": "My old laptop is been fixed now." },
+        { "no": 3, "text": "The novel was translated into 20 languages." },
+        { "no": 4, "text": "Some illnesses cannot being treated by medicine." },
+        { "no": 5, "text": "Sumin was told to wait outside by her teacher." }
+      ],
+      "answer": "③, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [6], "point_label": "5형식 문장의 수동태",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 단어를 빈칸에 어법상 알맞은 형태로 쓰세요.",
+      "body": ["I ________ ________ Bunny by my grandmother when I was little. (call)"],
+      "choices": [],
+      "answer": "was called"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [1, 5], "point_label": "구동사 put off의 수동태",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 단어를 빈칸에 어법상 알맞은 형태로 쓰세요.",
+      "body": ["Our field trip ________ ________ ________ because it snowed a lot. (put off)"],
+      "choices": [],
+      "answer": "was put off"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [5], "point_label": "by 이외의 전치사를 쓰는 수동태",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 (A)~(E)에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": [
+        "• Paper is mainly made ____(A)____ wood.",
+        "• A cake was made ____(B)____ me by Dad.",
+        "• The parcel was sent ____(C)____ me by Mina.",
+        "• What sport are you interested ____(D)____?",
+        "• We were surprised ____(E)____ his sudden visit."
+      ],
+      "choices": [
+        { "no": 1, "text": "(A) from" },
+        { "no": 2, "text": "(B) for" },
+        { "no": 3, "text": "(C) to" },
+        { "no": 4, "text": "(D) in" },
+        { "no": 5, "text": "(E) of" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [2, 3, 4], "point_label": "수동태 자리의 p.p.",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 (A)~(E)에 들어갈 말로 알맞지 않은 것을 고르세요.",
+      "body": [
+        "• Many kinds of plants are ____(A)____ in this greenhouse.",
+        "• Children should ____(B)____ protected from danger.",
+        "• So many towers ____(C)____ each other in this city.",
+        "• Tickets must be ____(D)____ through the mobile app.",
+        "• The final is ____(E)____ watched by over 3 million people around the world."
+      ],
+      "choices": [
+        { "no": 1, "text": "(A) grow" },
+        { "no": 2, "text": "(B) be" },
+        { "no": 3, "text": "(C) resemble" },
+        { "no": 4, "text": "(D) bought" },
+        { "no": 5, "text": "(E) being" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [6], "point_label": "4형식 문장의 수동태",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "다음 문장을 수동태 문장으로 바꿔 쓰세요.",
+      "body": [
+        "Mina sent me some beautiful postcards.",
+        "→ Some beautiful postcards ________________."
+      ],
+      "choices": [],
+      "answer": "were sent to me by Mina"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [6], "point_label": "5형식 문장의 수동태",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "다음 문장을 수동태 문장으로 바꿔 쓰세요.",
+      "body": [
+        "This notice tells us not to touch the paintings.",
+        "→ We ________________."
+      ],
+      "choices": [],
+      "answer": "are told not to touch the paintings by the notice"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [1, 2, 5], "point_label": "수동태 영작",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 우리말을 바르게 영작한 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "그 지붕은 우박에 맞았다. → The roof was struck by hail." },
+        { "no": 2, "text": "나는 내일 시험이 걱정된다. → I’m worried with the test tomorrow." },
+        { "no": 3, "text": "결과는 아직 발표되지 않았다. → The result has not be announced yet." },
+        { "no": 4, "text": "나는 훌륭한 발표로 선생님께 칭찬을 받았다. → I was praised my teacher for my great presentation." },
+        { "no": 5, "text": "도움이 필요한 아이들이 자원봉사자들에 의해 돌봐진다. → The children in need are looked after by the volunteers." }
+      ],
+      "answer": "①, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [1], "point_label": "주어가 동작을 받으면 be+p.p.",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["I invited to the wedding by Mina’s family.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "invited → was invited"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [5], "point_label": "구동사는 전치사까지 함께 쓴다",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Tom’s odd idea was laughed by his classmates.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "laughed → laughed at"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [1, 2, 4, 5], "point_label": "수동태로 쓸 수 없는 동사",
+      "question_kind": "개수 고르기", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장의 개수를 고르세요.",
+      "body": [
+        "ⓐ Cheese is made from milk.",
+        "ⓑ The scarf was made of me by my aunt.",
+        "ⓒ The report is contained useful data.",
+        "ⓓ My dog was appeared from behind the door.",
+        "ⓔ The violin was being played in the next room.",
+        "ⓕ Many toys were donated to the center by neighbors."
+      ],
+      "choices": [
+        { "no": 1, "text": "1개" },
+        { "no": 2, "text": "2개" },
+        { "no": 3, "text": "3개" },
+        { "no": 4, "text": "4개" },
+        { "no": 5, "text": "5개" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [5], "point_label": "be covered with ~",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "그 언덕은 눈으로 뒤덮여 있었다.",
+        "(was / the hill / with / snow / covered)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "The hill was covered with snow"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 16, "point_nos": [6], "point_label": "be allowed to+동사원형",
+      "question_kind": "배열 영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "나는 아빠께 캠핑 가는 것을 허락 받았다.",
+        "(by / camping / my dad / allowed / I / to go / was)",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "I was allowed to go camping by my dad"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 17, "point_nos": [4, 5], "point_label": "arrive는 수동태로 쓰지 않는다",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 밑줄 친 부분 중 어법상 알맞지 않은 것을 찾아 그 기호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": [
+        "When I ⓐ [[was arrived]] at the station to meet Sora, the platform ⓑ [[was filled]] with many travelers. I ⓒ [[was surprised]] by the crowd, and it was hard to spot her. But I ⓓ [[was pleased]] with seeing her after such a long time.",
+        "→ ________ , ________"
+      ],
+      "choices": [],
+      "answer": "ⓐ, arrived"
+    }
+  ]
+}

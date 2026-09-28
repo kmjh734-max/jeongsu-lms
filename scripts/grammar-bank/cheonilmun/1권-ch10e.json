@@ -1,0 +1,117 @@
+{
+  "_설명": "천일문 1권 워크북 Chapter 10 to부정사와 동명사의 Chapter Test 가운데 to부정사 문항을 변형한 것. 기초 10과 to부정사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 10,
+  "chapter": "to부정사와 동명사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 10, "chapter": "to부정사" },
+  "points": [
+    { "unit_no": 1, "unit": "to부정사", "point_no": 1, "point": "to부정사 = 주어 (~하는 것은)", "frequent": true },
+    { "unit_no": 1, "unit": "to부정사", "point_no": 2, "point": "to부정사 = 보어 (~하는 것이다)", "frequent": true },
+    { "unit_no": 1, "unit": "to부정사", "point_no": 3, "point": "to부정사 = 목적어 (~하는 것을)", "frequent": true },
+    { "unit_no": 1, "unit": "to부정사", "point_no": 4, "point": "목적과 감정의 원인을 나타내는 to부정사", "frequent": true },
+    { "unit_no": 1, "unit": "to부정사", "point_no": 5, "point": "(대)명사를 뒤에서 꾸미는 to부정사", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1, 2, 3], "point_label": "to 뒤에는 동사원형을 쓴다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Amy hoped [[to went]] there." },
+        { "no": 2, "text": "He decided [[to invite]] Mina." },
+        { "no": 3, "text": "I need [[to return]] these books." },
+        { "no": 4, "text": "[[To build]] trust takes a long time." },
+        { "no": 5, "text": "My favorite hobby is [[to ride]] a bike." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [3], "point_label": "wish 뒤에는 to부정사를 쓴다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Mia wants [[to meet]] him." },
+        { "no": 2, "text": "Paul stopped [[reading]] the novel." },
+        { "no": 3, "text": "The girl kept [[waving]] at us." },
+        { "no": 4, "text": "I promised [[to arrive]] early." },
+        { "no": 5, "text": "They wish [[finding]] a shortcut." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [3], "point_label": "plan은 to부정사를 목적어로 쓴다",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["We planned visiting the museum to see the new exhibit.", "→ ________"],
+      "choices": [],
+      "answer": "visiting → to visit"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [4], "point_label": "목적의 to부정사와 감정의 원인",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Jim opened the window [[to get]] fresh air." },
+        { "no": 2, "text": "We stopped by the store [[to buy]] milk." },
+        { "no": 3, "text": "Sam borrowed a book [[to study]] history." },
+        { "no": 4, "text": "She practiced hard [[to win]] the medal." },
+        { "no": 5, "text": "I was really glad [[to hear]] from my old friend." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [5], "point_label": "명사를 뒤에서 꾸미는 to부정사",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "<보기>와 같이 주어진 두 문장을 to부정사를 사용하여 한 문장으로 다시 쓰세요.",
+      "body": [
+        "<보기> He set the alarm. He needs to get up early tomorrow.  → He set the alarm to get up early tomorrow.",
+        "We have a chance. The chance is to meet the singer.",
+        "→ We ________________."
+      ],
+      "choices": [],
+      "answer": "have a chance to meet the singer"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [4], "point_label": "목적을 나타내는 to부정사",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "<보기>와 같이 주어진 두 문장을 to부정사를 사용하여 한 문장으로 다시 쓰세요.",
+      "body": [
+        "<보기> He set the alarm. He needs to get up early tomorrow.  → He set the alarm to get up early tomorrow.",
+        "Mina and Sora went to the park. They wanted to ride bikes.",
+        "→ Mina and Sora ________________."
+      ],
+      "choices": [],
+      "answer": "went to the park to ride bikes"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [4, 5], "point_label": "형용사적 용법과 부사적 용법의 구별",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> He went to the library [[to borrow]] a book."],
+      "choices": [
+        { "no": 1, "text": "There is no water [[to drink]]." },
+        { "no": 2, "text": "I have some time [[to rest]]." },
+        { "no": 3, "text": "Do you have a chance [[to join]] us?" },
+        { "no": 4, "text": "She is looking for a chair [[to sit]] on." },
+        { "no": 5, "text": "I turned on the lamp [[to read]] a book." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [3], "point_label": "hate+to부정사",
+      "question_kind": "영작", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 <조건>에 맞게 영작하세요.",
+      "body": [
+        "민호는 넥타이 매는 것을 싫어한다.",
+        "(hate, wear, ties)",
+        "<조건> • 네 단어로 쓸 것  • 필요한 경우 단어를 변형하여 쓸 것",
+        "→ Minho ________________."
+      ],
+      "choices": [],
+      "answer": "hates to wear ties"
+    }
+  ]
+}

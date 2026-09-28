@@ -1,0 +1,203 @@
+{
+  "_설명": "기본 5과 동명사 — 목적어로 쓰이는 동명사·to부정사, 전치사 + 동명사, 관용 표현. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 5.동명사_종합문제(2회).pdf", "number": 14,
+      "포인트": "give up은 동명사를 목적어로 취한다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["Sora는 너무 바빠서 피아노 배우는 것을 포기해야 했",
+               "다. (because, give up, busy)",
+               "→ Sora ____________________________________."],
+      "answer": "had to give up learning the piano because she was too busy",
+      "explanation": "give up은 동명사를 목적어로 취하는 동사이다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(2회).pdf", "number": 25,
+      "포인트": "be worth + 동명사 — ~할 가치가 있다",
+      "prompt": "주어진 단어를 활용하여 우리말에 맞게 빈칸을 채우시오.",
+      "body": ["The book is worth __________ twice. (read)",
+               "그 책은 두 번 읽을 가치가 있다."],
+      "answer": "reading",
+      "explanation": "「be worth + 동명사」는 ‘~할 가치가 있다’는 뜻이므로 read를 동명사 reading으로 쓴다."
+    },
+    {
+      "file": "[기본] 5.동명사_종합문제(2회).pdf", "number": 27,
+      "포인트": "stop + to부정사 — ~하려고 멈추다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["한 소년이 신발 끈을 묶으려고 멈췄다.",
+               "→ A boy stopped ______ his shoelaces. (tie)"],
+      "answer": "to tie",
+      "explanation": "「stop + to부정사」의 형태로 ‘~하기 위해 멈추다’의 의미를 나타내므로 to tie가 알맞다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 2,
+      "포인트": "동명사 주어는 단수 취급",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["Walking in the park every morning are good",
+               "for health."],
+      "answer": "are → is",
+      "explanation": "동명사 주어는 단수 취급하므로 동사도 단수 형태 is로 고쳐야 한다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 4,
+      "포인트": "보어 자리에는 동명사나 to부정사",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["• She designs clothes.",
+               "• It’s her job.",
+               "→ Her job is _____________________."],
+      "answer": "designing[to design] clothes",
+      "explanation": "동사가 보어로 쓰이려면 동명사나 to부정사 형태가 되어야 한다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 5,
+      "포인트": "주어 자리에는 동명사나 to부정사",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때, 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["• I often skip breakfast.",
+               "• It’s my bad habit.",
+               "→ ________________ is my bad habit."],
+      "answer": "Skipping[To skip] breakfast",
+      "explanation": "동사가 주어로 쓰이려면 동명사나 to부정사 형태가 되어야 한다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 7,
+      "포인트": "imagine은 동명사를 목적어로 취한다",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 <보기>에서 골라 형태를 바꿔 쓰시오.",
+      "body": ["<보기>",
+               "take go knock",
+               "Can you imagine ___________ to Mars?"],
+      "answer": "going",
+      "explanation": "imagine은 동명사를 목적어로 취하는 동사이다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 8,
+      "포인트": "feel like + 동명사 — ~하고 싶다",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["I feel like eat something sweet."],
+      "answer": "eat → eating",
+      "explanation": "「feel like + 동명사」의 형태로 ‘~하고 싶다’의 의미를 나타내므로 eat을 동명사 eating으로 고쳐야 한다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 9,
+      "포인트": "be good at + 동명사",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Sumi draws cartoons very well.",
+               "→ Sumi is very good at _______________________."],
+      "answer": "drawing cartoons",
+      "explanation": "‘만화를 아주 잘 그린다’는 의미이므로 ‘~을 잘하다’의 의미를 나타내는 「be + good at + 동명사」로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 10,
+      "포인트": "give up + 동명사",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["Noah hurt his wrist, so he can’t play tennis any",
+               "more.",
+               "→ Noah gave up _________ after hurting his",
+               "wrist."],
+      "answer": "playing tennis",
+      "explanation": "give up은 동명사를 목적어로 가지므로 playing tennis로 연결한다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 12,
+      "포인트": "refuse는 to부정사를 목적어로 취한다",
+      "prompt": "다음 두 문장을 한 문장으로 바꿀 때 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["He asked her to have dinner with him.",
+               "But she refused.",
+               "→ She refused ______ ______ ______ ______",
+               "______."],
+      "answer": "to have dinner with him",
+      "explanation": "refuse는 to부정사를 목적어로 취하는 동사이다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 13,
+      "포인트": "forget + to부정사 — (앞으로) ~할 것을 잊다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["Mina는 그에게 책을 좀 보내야 할 것을 잊었다.",
+               "(send, some, forgot, books, him, to)",
+               "→ Mina ____________________________________."],
+      "answer": "forgot to send him some books",
+      "explanation": "forget + to부정사: (미래에) ~할 것을 잊다, send + 간접목적어 + 직접목적어"
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 16,
+      "포인트": "try + 동명사 — 시험 삼아 ~해 보다",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 <보기>에서 골라 형태를 바꿔 쓰시오.",
+      "body": ["<보기>",
+               "take go knock",
+               "She tried ________ on the window, but nobody",
+               "came out."],
+      "answer": "knocking",
+      "explanation": "try v-ing: 시험 삼아 ~해 보다, cf. try + to부정사: ~하려고 노력하다, 애쓰다"
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 17,
+      "포인트": "remember + to부정사 — ~할 것을 기억하다",
+      "prompt": "다음 빈칸에 들어갈 알맞은 말을 <보기>에서 골라 형태를 바꿔 쓰시오.",
+      "body": ["<보기>",
+               "take go knock",
+               "I remember ________ my daughter to the library",
+               "tomorrow."],
+      "answer": "to take",
+      "explanation": "remember + to부정사: ~할 것을 기억하다 cf. remember v-ing: ~한 것을 기억하다"
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 18,
+      "포인트": "try + to부정사 — ~하려고 애쓰다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["나는 항상 일찍 자려고 노력한다.",
+               "(sleep, to, early, try)",
+               "→ I always _______________________."],
+      "answer": "try to sleep early",
+      "explanation": "「try + to부정사」의 형태로 ‘~하려고 애쓰다, 노력하다’의 의미를 나타낸다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 21,
+      "포인트": "love는 동명사와 to부정사를 모두 목적어로 취한다",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["He loves watching baseball games.",
+               "→ He loves _____ _____ baseball games."],
+      "answer": "to, watch",
+      "explanation": "love는 목적어로 동명사와 to부정사를 모두 가질 수 있으며 의미 차이가 없다. 따라서 빈칸에 to watch가 알맞다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 22,
+      "포인트": "전치사 뒤에는 동명사",
+      "prompt": "<보기>의 표현을 선택하여 우리말에 맞게 문장을 완성하되 어법에 맞게 고쳐 쓰시오.",
+      "body": ["<보기>",
+               "meet him read books before bed",
+               "I fall asleep easily by (1)_________________________.",
+               "(나는 자기 전 독서로 쉽게 잠든다.)",
+               "I am looking forward to (2)___________________.",
+               "(나는 그를 만나기를 무척 기대하고 있어.)"],
+      "answer": "(1) reading books before bed (2) meeting him",
+      "explanation": "전치사 뒤에는 동명사를 취한다. look forward to의 to도 전치사이다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 23,
+      "포인트": "look forward to의 to는 전치사",
+      "prompt": "우리말에 맞게 괄호 안의 동사 형태를 바꾸어 쓰세요.",
+      "body": ["나는 그 축제에 참가하기를 정말 기대한다.",
+               "I look forward to _____ in the festival.",
+               "(participate)"],
+      "answer": "participating",
+      "explanation": "look forward to ~ing는 ‘간절히 ~하고 싶어 하다’라는 뜻으로, 여기서 to는 부정사를 만드는 to가 아니라 전치사 to임을 반드시 기억해 두어야 한다. 따라서 전치사 to 다음의 동사 participate는 동명사 participating으로 나와야 한다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 24,
+      "포인트": "go + -ing — ~하러 가다",
+      "prompt": "우리말을 영어로 옮길 때 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["우리 낚시하러 가자.",
+               "Let’s _____ __________."],
+      "answer": "go fishing",
+      "explanation": "‘~하러 가다’는 관용적으로 go -ing을 쓴다. 「Let’s + 동사원형」이므로 형태는 go fishing이 되어야 한다."
+    },
+    {
+      "file": "[기본] 5.동명사_체크체크.pdf", "number": 25,
+      "포인트": "be used to + 동명사 — ~하는 데 익숙하다",
+      "prompt": "다음 우리말 뜻에 맞게 빈칸에 채우세요.",
+      "body": ["나는 혼자 여행하는 것이 익숙하지 않다.",
+               "→ I’m _____ _____ _____ _____ alone."],
+      "answer": "not used to traveling",
+      "explanation": "「be used to + 동명사」는 ‘~하는 데 익숙하다’는 뜻이며, 여기서 to는 전치사이므로 뒤에 동명사가 온다."
+    }
+  ]
+}

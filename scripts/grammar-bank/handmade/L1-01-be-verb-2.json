@@ -1,0 +1,133 @@
+{
+  "_설명": "기초 1과 be동사 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기초] 1.Be동사_종합문제(1회).pdf", "number": 4,
+      "포인트": "단수 주어에 쓰는 be동사",
+      "prompt": "다음 글의 빈칸에 공통으로 들어갈 말로 알맞은것은?",
+      "body": ["▪ The soup __________ hot.",
+               "▪ His voice _______ deep."],
+      "choices": ["do", "are", "is", "does", "am"],
+      "answer": "③",
+      "explanation": "두 문장 모두 주어가 3인칭 단수이므로 빈칸에는 is가 공통으로 들어간다."
+    },
+    {
+      "file": "[기초] 1.Be동사_종합문제(1회).pdf", "number": 28,
+      "포인트": "주어와 be동사의 축약형",
+      "prompt": "주어와 be동사의 축약형이 [[틀린]]것은?",
+      "body": [],
+      "choices": ["I am → I'm", "He is → He's", "You are → You're",
+                  "They are → Their", "She is → She's"],
+      "answer": "④",
+      "explanation": "They are의 축약형은 They're이다. Their는 ‘그들의’라는 뜻의 소유격이므로 혼동하지 않아야 한다."
+    },
+    {
+      "file": "[기초] 1.be동사_종합문제(2회).pdf", "number": 8,
+      "포인트": "be동사의 부정문·의문문 만들기",
+      "prompt": "다음 문장을 지시대로 바르게 바꾼 것은?",
+      "body": ["Mina's dad is busy."],
+      "choices": ["(의문문) Is Mina dad is busy?",
+                  "(부정문) Mina isn't dad is busy.",
+                  "(의문문) Does Mina's dad is busy?",
+                  "(부정문) Mina's dad is not angry.",
+                  "(부정문) Mina's dad is not busy."],
+      "answer": "⑤",
+      "explanation": "be동사의 부정문은 be동사 뒤에 not을 붙여 만든다. 의문문은 be동사를 주어 앞으로 보내야 하며 does를 쓰지 않는다."
+    },
+    {
+      "file": "[기초] 1.be동사_종합문제(2회).pdf", "number": 12,
+      "포인트": "부정의문문에 대한 대답",
+      "prompt": "다음 대화의 빈칸에 알맞은 대답을 고르세요.",
+      "body": ["A : Isn't he your cousin?",
+               "B : (사촌이 아닐 경우)"],
+      "choices": ["Yes, he is.", "No, he is.", "No, he isn't.",
+                  "Yes, you are.", "Yes, he isn't."],
+      "answer": "③",
+      "explanation": "부정의문문이라도 대답은 사실에 따라 한다. 사촌이 아니므로 No로 답하고 he isn't로 이어야 한다."
+    },
+    {
+      "file": "[기초] 1.be동사_종합문제(2회).pdf", "number": 30,
+      "포인트": "3인칭 단수 주어의 be동사 현재형",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["His jacket __________ new."],
+      "choices": ["are", "were", "is", "are not", "am not"],
+      "answer": "③",
+      "explanation": "주어 His jacket이 3인칭 단수이고 현재의 일이므로 is가 알맞다."
+    },
+    {
+      "file": "[기초] 1.Be동사_확인문제(1회).pdf", "number": 3,
+      "포인트": "과거를 나타내는 말과 be동사 과거형",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["They __________ at the terminal last night."],
+      "choices": ["is", "weren't", "are", "am", "aren't"],
+      "answer": "②",
+      "explanation": "last night이라는 과거를 나타내는 말이 있고 주어가 복수이므로 weren’t가 알맞다."
+    },
+    {
+      "file": "[기초] 1.Be동사_확인문제(1회).pdf", "number": 4,
+      "포인트": "There aren’t + 복수 명사",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 고르시오.",
+      "body": ["그 상자 안에는 인형이 없다.",
+               "→ There _____ any dolls in the box."],
+      "choices": ["isn't", "weren't", "aren't", "is", "were"],
+      "answer": "③",
+      "explanation": "뒤에 오는 명사가 복수 dolls이고 현재의 일이므로 aren’t가 알맞다."
+    },
+    {
+      "file": "[기초] 1.Be동사_확인문제(1회).pdf", "number": 9,
+      "포인트": "be동사 부정형의 줄임말",
+      "prompt": "다음 중 줄임말이 알맞지 [[않은]]것은?",
+      "body": [],
+      "choices": ["were not → weren’t", "is not → isn’t", "am not → amn’t",
+                  "was not → wasn’t", "are not → aren’t"],
+      "answer": "③",
+      "explanation": "am not은 줄여 쓰지 않는다. amn’t라는 형태는 없다."
+    },
+    {
+      "file": "[기초] 1.Be동사_확인문제(1회).pdf", "number": 10,
+      "포인트": "주어와 be동사의 축약형",
+      "prompt": "다음 밑줄 친 부분의 줄임말로 알맞지 [[않은]]것은",
+      "body": [],
+      "choices": ["[[We are]] in the garden. → We’re",
+                  "[[It is]] a puppy. → Its",
+                  "[[I am]] ready. → I’m",
+                  "[[She is]] my cousin. → She’s",
+                  "[[You are not]] late. → You aren’t"],
+      "answer": "②",
+      "explanation": "It is의 축약형은 It’s이다. Its는 ‘그것의’라는 뜻의 소유격이므로 구별해야 한다."
+    },
+    {
+      "file": "[기초] 1.Be동사_확인문제(1회).pdf", "number": 15,
+      "포인트": "주어의 수에 따른 be동사",
+      "prompt": "다음 빈칸에 들어갈 be동사가 나머지와 [[다른]]것을 고르시오.",
+      "body": [],
+      "choices": ["Brian ______ my nephew.",
+                  "The garden ______ wide.",
+                  "He ______ very kind.",
+                  "There ______ a rabbit in the cage.",
+                  "Leo and Sophie ______ brother and sister."],
+      "answer": "⑤",
+      "explanation": "⑤는 and로 이어진 복수 주어이므로 are가 들어가고, 나머지는 모두 단수 주어여서 is가 들어간다."
+    },
+    {
+      "file": "[기초] 1.Be동사_확인문제(1회).pdf", "number": 18,
+      "포인트": "복수 주어의 be동사 부정문",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것을 고르시오.",
+      "body": ["이 컵들은 따뜻하지 않아."],
+      "choices": ["These mugs is warm.", "There are not warm mugs.",
+                  "There mugs is not warm.", "They are not warm mugs.",
+                  "These mugs aren’t warm."],
+      "answer": "⑤",
+      "explanation": "주어가 복수 These mugs이므로 are를 쓰고, 부정문이므로 aren’t로 나타낸다."
+    },
+    {
+      "file": "[기초] 1.be동사_확인문제(2회).pdf", "number": 9,
+      "포인트": "am not은 줄여 쓰지 않는다",
+      "prompt": "다음 중 축약형이 [[잘못]]쓰인 것을 고르세요.",
+      "body": [],
+      "choices": ["you aren't", "it isn't", "I amn't", "they aren't", "he isn't"],
+      "answer": "③",
+      "explanation": "am not은 줄여 쓸 수 없으므로 I am not 또는 I’m not으로 써야 한다."
+    }
+  ]
+}

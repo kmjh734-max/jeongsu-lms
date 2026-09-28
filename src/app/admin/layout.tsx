@@ -9,6 +9,7 @@ import { CreditWall } from "@/components/credits/CreditWall";
 import { CreditConfirmHost } from "@/components/credits/CreditConfirmHost";
 import { GuideBanner } from "@/components/home/GuideBanner";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isGrammarBankOpen } from "@/lib/grammar-bank/queries";
 
 /** 개인회원(개인 선생님)에게는 강사·관리자 계정 관리가 필요 없다 */
 const TEAM_ONLY = new Set(["/admin/teachers", "/admin/admins"]);
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { href: "/admin/listening", label: "듣기학습", group: "학습" },
   { href: "/admin/question-generator", label: "변형문제", group: "학습" },
   { href: "/admin/lesson-materials", label: "수업자료", group: "학습" },
+  { href: "/admin/grammar", label: "문법 문제 은행", group: "학습" },
   { href: "/admin/classes", label: "반 관리", group: "수업 운영" },
   { href: "/admin/students", label: "학생·수강", group: "수업 운영" },
   { href: "/admin/progress", label: "수강 현황", group: "수업 운영" },
@@ -50,13 +52,16 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  const [personal, studyPlan] = await Promise.all([
+  const [personal, studyPlan, grammarOpen] = await Promise.all([
     isPersonalMember(profile.academy_id),
     isStudyPlanEnabled(profile.academy_id),
+    isGrammarBankOpen(profile.academy_id),
   ]);
   let navItems = NAV_ITEMS;
   if (personal) navItems = navItems.filter((i) => !TEAM_ONLY.has(i.href));
   if (!studyPlan) navItems = navItems.filter((i) => !isStudyPlanNavItem(i.href));
+  // 문법 문제 은행은 열어 준 학원에서만 메뉴에 둔다.
+  if (!grammarOpen) navItems = navItems.filter((i) => i.href !== "/admin/grammar");
 
   return (
     <DashboardLayout

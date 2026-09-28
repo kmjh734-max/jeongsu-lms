@@ -1,0 +1,366 @@
+{
+  "_설명": "기본 11과 비교구문 — 손으로 쓴 변형.",
+  "문항": [
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf",
+      "number": 3,
+      "포인트": "원급 비교 as + 형용사 + as",
+      "prompt": "다음 주어진 문장을 as ~ as를 이용하여 한 문장으로 만드시오.",
+      "body": [
+        "Sora is 165 cm. Mina is 165 cm.",
+        "→ Sora ______ ______ ______ ______ Mina."
+      ],
+      "answer": "is as tall as",
+      "explanation": "대상이 비슷하거나 같은 경우에 동등비교 구문을 사용하는데, 「as + 형용사/부사 + as」의 형태로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf",
+      "number": 7,
+      "포인트": "the + 최상급을 쓴 의문문",
+      "prompt": "주어진 단어와 최상급 표현을 이용해 빈칸에 알맞은 말을 써서 대화를 완성하시오.",
+      "body": [
+        "A : ___________________ in the world? (long)",
+        "B : It is the Nile."
+      ],
+      "answer": "What is the longest river",
+      "explanation": "‘the + 최상급’으로 써야 하므로 ‘the longest’를 사용해 의문문의 형태를 완성한다. 대답이 강을 가리키므로 river를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(1회).pdf",
+      "number": 30,
+      "포인트": "비교급 + than",
+      "prompt": "다음 우리말을 완전한 영어문장으로 쓰시오.",
+      "body": [
+        "영어가 수학보다 더 쉽다. (easy)",
+        "→ __________________________________________."
+      ],
+      "answer": "English is easier than math.",
+      "explanation": "‘비교급 + than’을 활용하여 문장을 완성한다. easy는 -y로 끝나므로 y를 i로 바꾸고 -er을 붙여 easier로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf",
+      "number": 7,
+      "포인트": "as ~ as possible = as ~ as + 주어 + can",
+      "prompt": "두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": [
+        "Call me as soon as possible.",
+        "= Call me as _______ as _______ _______."
+      ],
+      "answer": "soon, you can",
+      "explanation": "「as + 원급 + as possible」은 「as + 원급 + as + 주어 + can」으로 바꿔 쓸 수 있다. 명령문이므로 주어는 you를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf",
+      "number": 8,
+      "포인트": "not so ~ as를 비교급으로 바꾸기",
+      "prompt": "두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": [
+        "Brown is not so tall as Green.",
+        "= Green _______ _______ _______ Brown."
+      ],
+      "answer": "is taller than",
+      "explanation": "‘A는 B만큼 ~하지 않다’는 ‘B가 A보다 더 ~하다’와 같은 뜻이므로, 주어를 바꾸고 비교급 + than으로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_종합문제(2회).pdf",
+      "number": 24,
+      "포인트": "최상급을 「비교급 + than any other + 단수명사」로 바꾸기",
+      "prompt": "두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": [
+        "He is the tallest boy in my class.",
+        "= He any other",
+        "boy in my class."
+      ],
+      "answer": "is taller than",
+      "explanation": "최상급은 「비교급 + than any other + 단수명사」로 바꿔 쓸 수 있다. any other 뒤에는 단수명사가 오는 점에 주의한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 2,
+      "포인트": "원급 비교 as + 형용사 + as",
+      "prompt": "다음 주어진 문장을 as ~ as를 이용하여 한 문장으로 만드시오.",
+      "body": [
+        "Sora is 165 cm. Mina is 165 cm.",
+        "→ Sora ______ ______ ______ ______ Mina."
+      ],
+      "answer": "is as tall as",
+      "explanation": "대상이 비슷하거나 같은 경우에 동등비교 구문을 사용하는데, 「as + 형용사/부사 + as」의 형태로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 18,
+      "포인트": "비교급 + than",
+      "prompt": "다음 우리말을 완전한 영어문장으로 쓰시오.",
+      "body": [
+        "영어가 수학보다 더 쉽다. (easy)",
+        "→ __________________________________________."
+      ],
+      "answer": "English is easier than math.",
+      "explanation": "‘비교급 + than’을 활용하여 문장을 완성한다. easy는 -y로 끝나므로 y를 i로 바꾸고 -er을 붙여 easier로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 23,
+      "포인트": "「The 비교급 ~, the 비교급 …」",
+      "prompt": "다음 대화를 완성하려 할 때 비교급을 사용하여 빈 곳에 들어갈 알맞은 표현을 쓰시오.",
+      "body": [
+        "A : I don’t know how to throw the ball far.",
+        "How can I throw farther?",
+        "B : Try to throw as hard as possible.",
+        "______ h_________ you throw, ________",
+        "f_______ it can go."
+      ],
+      "answer": "The harder, the farther",
+      "explanation": "‘~하면 할수록 더 …하다’는 「The + 비교급 + 주어 + 동사, the + 비교급 + 주어 + 동사」로 쓴다. far의 비교급은 farther이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 24,
+      "포인트": "the + more + 긴 형용사",
+      "prompt": "주어진 우리말과 일치하도록 빈칸에 알맞은 단어를 쓰시오.",
+      "body": [
+        "길면 길수록, 더 비싸다.",
+        "= The longer it is, ________ _________ ________",
+        "it is."
+      ],
+      "answer": "the more expensive",
+      "explanation": "「The + 비교급 ~, the + 비교급 …」 구문이며, expensive는 음절이 길어 more를 붙여 비교급을 만든다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 25,
+      "포인트": "「The 비교급 ~, the 비교급 …」",
+      "prompt": "빈칸에 들어갈 알맞은 단어를 쓰시오.",
+      "body": [
+        "우리가 빠르게 움직일수록 공기는 더욱 더 더러워질",
+        "것이다.",
+        "_________________ we move, ________________",
+        "the air get."
+      ],
+      "answer": "The faster, the dirtier",
+      "explanation": "‘~할수록 더 …하다’를 나타내는 구문으로 두 절 모두 「the + 비교급」으로 시작한다. dirty는 -y로 끝나므로 dirtier가 된다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 26,
+      "포인트": "one of the + 최상급 + 복수명사",
+      "prompt": "우리말과 같은 뜻이 되도록 빈 칸에 알맞은 표현을 써 넣으시오.",
+      "body": [
+        "로마는 세계에서 가장 오래된 도시들 중 하나이다.",
+        "= Rome _______________________________________."
+      ],
+      "answer": "is one of the oldest cities in the world",
+      "explanation": "‘가장 ~한 … 중 하나’는 「one of the + 최상급 + 복수명사」로 쓴다. 명사를 복수로 쓰는 점에 주의한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 27,
+      "포인트": "one of the + 최상급 + 복수명사",
+      "prompt": "우리말과 의미가 같도록 빈칸을 채우시오.",
+      "body": [
+        "이곳은 한국에서 [[가장 붐비는 시장들 중 하나]]이다.",
+        "⇒ It is (___________________________) in Korea.",
+        "Answer: _______________________________________"
+      ],
+      "answer": "one of the busiest markets",
+      "explanation": "‘가장 ~한 … 중 하나’는 「one of the + 최상급 + 복수명사」로 쓴다. busy는 -y로 끝나므로 최상급이 busiest가 된다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 28,
+      "포인트": "the + 최상급 + 명사",
+      "prompt": "주어진 단어를 활용하여 빈칸에 알맞은 최상급 표현을 쓰세요.",
+      "body": [
+        "Today was a very happy day.",
+        "It was _______ _______ _______ of my life. (happy)"
+      ],
+      "answer": "the happiest day",
+      "explanation": "최상급 앞에는 the를 붙인다. happy는 -y로 끝나므로 y를 i로 바꾸고 -est를 붙여 happiest가 된다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 29,
+      "포인트": "the + 최상급",
+      "prompt": "우리말에 맞게 문장을 완성하세요.",
+      "body": [
+        "민수가 자기 반에서 가장 키가 크다.",
+        "→ Minsu is ______ _______ boy in his class."
+      ],
+      "answer": "the tallest",
+      "explanation": "‘가장 ~한’은 「the + 최상급」으로 나타낸다. tall은 짧은 형용사이므로 -est를 붙인다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 30,
+      "포인트": "good/well의 최상급 the best",
+      "prompt": "다음 우리말과 같은 뜻이 되도록 빈칸을 완성하세요.",
+      "body": [
+        "유나는 자기 반에서 그림을 가장 잘 그린다.",
+        "Yuna is _____ _____ painter _____ _____ class."
+      ],
+      "answer": "the best, in her",
+      "explanation": "good과 well은 불규칙 변화로 최상급이 best이다. ‘~에서’라는 범위는 「in + 장소·집단」으로 나타낸다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 32,
+      "포인트": "최상급 + of all",
+      "prompt": "다음 대화의 괄호 안의 단어를 알맞은 형태로 바꾸어 쓰세요.",
+      "body": [
+        "A : Who won the contest?",
+        "B : Ben did. He was the (smart) student of all."
+      ],
+      "answer": "smartest",
+      "explanation": "‘모두 중에서 가장 ~한’이라는 뜻이므로 최상급을 쓴다. smart는 짧은 형용사이므로 -est를 붙인다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 34,
+      "포인트": "the + 최상급",
+      "prompt": "우리말에 맞게 문장을 완성하세요.",
+      "body": [
+        "나는 이 세상에서 가장 운이 좋은 사람입니다.",
+        "→ I’m _______ _______ person in the world."
+      ],
+      "answer": "the luckiest",
+      "explanation": "lucky는 -y로 끝나므로 y를 i로 바꾸고 -est를 붙여 luckiest가 되며, 최상급 앞에는 the를 붙인다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 35,
+      "포인트": "최상급 + that + 주어 + have ever p.p.",
+      "prompt": "우리말을 참고하여 비교급 또는 최상급 문장으로 만드세요.",
+      "body": [
+        "설악산은 내가 이제껏 올라 본 곳 중 가장 높은 산이다.",
+        "→ Seoraksan is",
+        "."
+      ],
+      "answer": "the highest mountain that I’ve ever climbed",
+      "explanation": "‘내가 이제껏 ~해 본 것 중 가장 …한’은 「the + 최상급 + 명사 + that + 주어 + have ever + p.p.」로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 37,
+      "포인트": "-y로 끝나는 형용사의 최상급",
+      "prompt": "주어진 단어를 적절한 형태로 고쳐 빈칸을 채우시오.",
+      "body": [
+        "Sujin is the _____ (busy) girl in the school."
+      ],
+      "answer": "busiest",
+      "explanation": "busy는 -y로 끝나므로 y를 i로 바꾸고 -est를 붙여 busiest로 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 38,
+      "포인트": "one of the + 최상급 + 복수명사",
+      "prompt": "주어진 단어 중 적절한 것을 고르시오.",
+      "body": [
+        "Pablo Picasso is one of the (famous, more",
+        "famous, most famous) painters in the world."
+      ],
+      "answer": "most famous",
+      "explanation": "「one of the + 최상급 + 복수명사」 구문이므로 최상급 most famous를 골라야 한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 39,
+      "포인트": "one of the + 최상급 + 복수명사",
+      "prompt": "주어진 단어 중 적절한 것을 고르시오.",
+      "body": [
+        "Typhoon Rusa was one of the (dangerous, more",
+        "dangerous, most dangerous) typhoons ever to hit",
+        "Korea."
+      ],
+      "answer": "most dangerous",
+      "explanation": "「one of the + 최상급 + 복수명사」 구문이므로 최상급 most dangerous를 골라야 한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 41,
+      "포인트": "the + most + 긴 형용사",
+      "prompt": "주어진 단어 중 적절한 것을 고르시오.",
+      "body": [
+        "She is the (skilled, more skilled, most skilled)",
+        "doctor in the town."
+      ],
+      "answer": "most skilled",
+      "explanation": "앞에 the가 있고 ‘마을에서 가장 ~한’이라는 뜻이므로 최상급을 쓴다. skilled는 음절이 길어 most를 붙인다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 42,
+      "포인트": "부사의 최상급",
+      "prompt": "주어진 단어 중 적절한 것을 고르시오.",
+      "body": [
+        "Daniel swims the (fast, faster, fastest) in his",
+        "class."
+      ],
+      "answer": "fastest",
+      "explanation": "‘반에서 가장 빠르게’라는 뜻이므로 부사의 최상급 fastest를 쓴다."
+    },
+    {
+      "file": "[기본] 11.비교구문_체크체크.pdf",
+      "number": 44,
+      "포인트": "the + most + 긴 형용사",
+      "prompt": "주어진 단어 중 적절한 것을 고르시오.",
+      "body": [
+        "Which girl is the (diligent, more diligent,",
+        "most diligent) in the class?"
+      ],
+      "answer": "most diligent",
+      "explanation": "앞에 the가 있고 ‘반에서 가장 ~한’이라는 뜻이므로 최상급을 쓴다. diligent는 음절이 길어 most를 붙인다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(1회).pdf",
+      "number": 2,
+      "포인트": "「The 비교급 ~, the 비교급 …」 배열",
+      "prompt": "우리말에 맞게 괄호 안의 단어를 바르게 배열하시오.",
+      "body": [
+        "The deeper we dive, (it, darker, becomes, the)",
+        "답 : _________________________________________.",
+        "(우리가 깊이 내려갈수록, 더욱 더 어두워진다.)"
+      ],
+      "answer": "the darker it becomes",
+      "explanation": "「The + 비교급 + 주어 + 동사, the + 비교급 + 주어 + 동사」 구문이므로 뒷부분도 「the + 비교급 + 주어 + 동사」의 어순으로 배열한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(1회).pdf",
+      "number": 11,
+      "포인트": "원급 비교 as + 형용사 + as",
+      "prompt": "주어진 문장과 같은 뜻이 되도록 알맞은 단어를 넣으시오.",
+      "body": [
+        "그의 여동생은 모차르트만큼 음악적이다.",
+        "→ His sister is _________ _________ _________",
+        "Mozart."
+      ],
+      "answer": "as musical as",
+      "explanation": "‘~만큼 …한’은 「as + 형용사의 원급 + as」로 나타낸다. 비교 대상이 서로 같은 정도임을 나타내는 동등비교 구문이다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(1회).pdf",
+      "number": 15,
+      "포인트": "one of the + 최상급 + 복수명사",
+      "prompt": "우리말과 같은 뜻이 되도록 빈 칸에 알맞은 표현을 써 넣으시오.",
+      "body": [
+        "로마는 세계에서 가장 오래된 도시들 중 하나이다.",
+        "= Rome _______________________________________."
+      ],
+      "answer": "is one of the oldest cities in the world",
+      "explanation": "‘가장 ~한 … 중 하나’는 「one of the + 최상급 + 복수명사」로 쓴다. 명사를 복수로 쓰는 점에 주의한다."
+    },
+    {
+      "file": "[기본] 11.비교구문_확인문제(2회).pdf",
+      "number": 3,
+      "포인트": "「The 비교급 ~, the 비교급 …」",
+      "prompt": "빈칸에 들어갈 알맞은 단어를 쓰시오.",
+      "body": [
+        "우리가 빠르게 움직일수록 공기는 더욱 더 더러워질",
+        "것이다.",
+        "_________________ we move, ________________",
+        "the air get."
+      ],
+      "answer": "The faster, the dirtier",
+      "explanation": "‘~할수록 더 …하다’를 나타내는 구문으로 두 절 모두 「the + 비교급」으로 시작한다. dirty는 -y로 끝나므로 dirtier가 된다."
+    }
+  ]
+}

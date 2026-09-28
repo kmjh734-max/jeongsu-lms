@@ -1,0 +1,198 @@
+{
+  "_설명": "천일문 3권 Chapter 08 접속사에서 가져와 변형한 문항. 은행에서는 심화 9과 접속사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 8,
+  "chapter": "접속사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 9, "chapter": "접속사" },
+  "points": [
+    { "unit_no": 1, "unit": "부사절 접속사", "point_no": 1, "point": "시간: when, while, as, until", "frequent": true },
+    { "unit_no": 1, "unit": "부사절 접속사", "point_no": 2, "point": "이유: because, since, as", "frequent": true },
+    { "unit_no": 1, "unit": "부사절 접속사", "point_no": 3, "point": "조건: if, unless", "frequent": true },
+    { "unit_no": 1, "unit": "부사절 접속사", "point_no": 4, "point": "양보: although, though, even though", "frequent": true },
+    { "unit_no": 2, "unit": "so that과 상관접속사", "point_no": 5, "point": "so+형용사[부사]+that: 너무 ~해서 …하다", "frequent": true },
+    { "unit_no": 2, "unit": "so that과 상관접속사", "point_no": 6, "point": "so that: ~하도록", "frequent": true },
+    { "unit_no": 2, "unit": "so that과 상관접속사", "point_no": 7, "point": "not only A but also B 등 상관접속사", "frequent": false },
+    { "unit_no": 3, "unit": "명사절", "point_no": 8, "point": "명사절 접속사 that", "frequent": true },
+    { "unit_no": 3, "unit": "명사절", "point_no": 9, "point": "간접의문문: 의문사+주어+동사 / if[whether]", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [3], "point_label": "unless: ~하지 않으면",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["You will be tired later ______ you rest now."],
+      "choices": [
+        { "no": 1, "text": "since" },
+        { "no": 2, "text": "unless" },
+        { "no": 3, "text": "so that" },
+        { "no": 4, "text": "when" },
+        { "no": 5, "text": "if" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [4], "point_label": "although: 비록 ~이지만",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["______ I have known Daniel for 8 years, I still don’t know much about him."],
+      "choices": [
+        { "no": 1, "text": "Because" },
+        { "no": 2, "text": "Before" },
+        { "no": 3, "text": "Unless" },
+        { "no": 4, "text": "When" },
+        { "no": 5, "text": "Although" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [1, 9], "point_label": "when: ~할 때 / 언제",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["• The painter held her first show ______ she was 25 years old.", "• I wonder ______ the winter break starts."],
+      "choices": [
+        { "no": 1, "text": "while" },
+        { "no": 2, "text": "when" },
+        { "no": 3, "text": "or" },
+        { "no": 4, "text": "because" },
+        { "no": 5, "text": "as" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [3, 9], "point_label": "if: 만약 ~라면 / ~인지",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["• ______ you visit Jeju, you will see many orange trees.", "• I’m not sure ______ Mia will come to my concert."],
+      "choices": [
+        { "no": 1, "text": "Unless[unless]" },
+        { "no": 2, "text": "Though[though]" },
+        { "no": 3, "text": "As[as]" },
+        { "no": 4, "text": "If[if]" },
+        { "no": 5, "text": "Since[since]" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [1, 2], "point_label": "since: ~ 때문에 / ~한 이래로",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 의미가 다른 것을 고르세요.",
+      "body": ["<보기> Nara speaks Japanese very well [[since]] she lived in Tokyo."],
+      "choices": [
+        { "no": 1, "text": "Since I was tired, I went to bed early." },
+        { "no": 2, "text": "Our trip was canceled since it snowed a lot." },
+        { "no": 3, "text": "My uncle has worked in Busan since he got a new job." },
+        { "no": 4, "text": "I took a break since I felt dizzy after running." },
+        { "no": 5, "text": "They talked quietly since they didn’t want to wake the baby." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [1, 2], "point_label": "as: ~할 때 / ~ 때문에",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 의미가 다른 것을 고르세요.",
+      "body": ["<보기> You should lock the door [[as]] you leave the room."],
+      "choices": [
+        { "no": 1, "text": "I wash my hands first as I get back home." },
+        { "no": 2, "text": "I saw Mina as I went to the market." },
+        { "no": 3, "text": "As Wendy turned the corner, a dog ran out from the gate." },
+        { "no": 4, "text": "As people go in and out, the automatic door opens and closes." },
+        { "no": 5, "text": "As Tom was sick yesterday, he didn’t come to school." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [9], "point_label": "간접의문문: 의문사+주어+동사",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 두 문장을 한 문장으로 바꿔 쓸 때, 빈칸에 들어갈 알맞은 말을 쓰세요.",
+      "body": ["I don’t know. Where does he live now?", "→ I don’t know ________________ now."],
+      "choices": [],
+      "answer": "where he lives"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [9], "point_label": "의문사가 없는 간접의문문: if[whether]",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 두 문장을 한 문장으로 바꿔 쓸 때, 빈칸에 들어갈 알맞은 말을 쓰세요.",
+      "body": ["Can you tell me? Will you come to our club meeting?", "→ Can you tell me ________________ to our club meeting?"],
+      "choices": [],
+      "answer": "if[whether] you will come"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [5, 6, 8], "point_label": "명사절을 이끄는 that",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> I heard [[that]] Minho’s leg was badly hurt."],
+      "choices": [
+        { "no": 1, "text": "I prefer that jacket over this one." },
+        { "no": 2, "text": "The movie that you recommended was amazing." },
+        { "no": 3, "text": "Ms. Park spoke so fast that I couldn’t follow her." },
+        { "no": 4, "text": "It is strange that he didn’t answer the phone." },
+        { "no": 5, "text": "Mike left early so that he won’t miss the train." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [3, 9], "point_label": "조건의 if와 명사절의 if",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> You can take the last cookie, [[if]] you want it."],
+      "choices": [
+        { "no": 1, "text": "Blair asked me if I would join the club." },
+        { "no": 2, "text": "Jim isn’t sure if this can be recycled." },
+        { "no": 3, "text": "I need to check if my phone is charged." },
+        { "no": 4, "text": "Mina wonders if the shop opens on Sundays." },
+        { "no": 5, "text": "My family will go hiking if it is not rainy tomorrow." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [5], "point_label": "so+형용사+that+주어+동사",
+      "question_kind": "배열 영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "그 상자는 너무 무거워서 그가 혼자 들 수가 없었다.",
+        "(the box / heavy / could / not / he / that / was / it / so / lift)",
+        "→ ______________________________."
+      ],
+      "choices": [],
+      "answer": "The box was so heavy that he could not lift it"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [6], "point_label": "so that: ~하도록",
+      "question_kind": "배열 영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "극장 안에서는 다른 사람들이 즐길 수 있도록 조용히 해주세요.",
+        "(enjoy / so / quiet / others / that / can / be)",
+        "→ In the theater, please ________________."
+      ],
+      "choices": [],
+      "answer": "be quiet so that others can enjoy"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [7], "point_label": "not only A but also B",
+      "question_kind": "배열 영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요.",
+      "body": [
+        "그 공장은 물을 오염시킬 뿐만 아니라 많은 쓰레기도 만든다.",
+        "(the water / only / a lot of / makes / pollutes / also / trash / but / not)",
+        "→ The factory ________________."
+      ],
+      "choices": [],
+      "answer": "not only pollutes the water but also makes a lot of trash"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [9], "point_label": "간접의문문의 어순",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["고난도"],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Tony wonders what is his aunt’s job." },
+        { "no": 2, "text": "We know why our coach is so angry." },
+        { "no": 3, "text": "Do you know if can Mia play the violin?" },
+        { "no": 4, "text": "Joey doesn’t know what should he do this weekend." },
+        { "no": 5, "text": "My sister asked me whether she could borrow my bike." }
+      ],
+      "answer": "①, ③, ④"
+    }
+  ]
+}

@@ -1,0 +1,170 @@
+{
+  "_설명": "천일문 3권 워크북 Chapter 12 특수 구문의 Chapter Test를 변형한 것. 심화 12과 특수구문 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 12,
+  "chapter": "특수 구문",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 12, "chapter": "특수구문" },
+  "points": [
+    { "unit_no": 1, "unit": "강조", "point_no": 1, "point": "do[does/did]+동사원형: 동사 강조", "frequent": true },
+    { "unit_no": 1, "unit": "강조", "point_no": 2, "point": "It is[was] ~ that … 강조 구문", "frequent": true },
+    { "unit_no": 2, "unit": "도치와 생략", "point_no": 3, "point": "so+동사+주어 / neither+동사+주어", "frequent": true },
+    { "unit_no": 2, "unit": "도치와 생략", "point_no": 4, "point": "부분부정: not always, not all", "frequent": true },
+    { "unit_no": 2, "unit": "도치와 생략", "point_no": 5, "point": "생략: 「주어+be동사」와 반복되는 말", "frequent": true },
+    { "unit_no": 2, "unit": "도치와 생략", "point_no": 6, "point": "장소를 나타내는 말이 앞에 오면 주어와 동사가 도치된다", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [3], "point_label": "neither+동사+주어",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["I don’t know about the new rule, and ________."],
+      "choices": [
+        { "no": 1, "text": "so does Mina" },
+        { "no": 2, "text": "so did Mina" },
+        { "no": 3, "text": "neither does Mina" },
+        { "no": 4, "text": "neither Mina does" },
+        { "no": 5, "text": "neither did Mina" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [5], "point_label": "반복되는 말과 「주어+be동사」의 생략",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 밑줄 친 부분 중 생략할 수 있는 것을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Tell me first [[if you are]] ready to leave." },
+        { "no": 2, "text": "Mina always drinks warm milk [[when she is]] sleepy." },
+        { "no": 3, "text": "I wanted to order pizza but Jiho didn’t want [[to order it]]." },
+        { "no": 4, "text": "Sora answered the question easily but I [[couldn’t answer]] it." },
+        { "no": 5, "text": "The children didn’t notice that it was dark [[while they were]] playing." }
+      ],
+      "answer": "③, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [2], "point_label": "It is[was] ~ that … 강조 구문",
+      "question_kind": "빈칸 쓰기", "difficulty": "상", "badges": ["빈출", "서술형"],
+      "prompt": "밑줄 친 부분을 강조하는 문장으로 바꿀 때 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "Mina ran into Jiho [[at the library]] yesterday.",
+        "→ It ________________ Mina ran into Jiho yesterday."
+      ],
+      "choices": [],
+      "answer": "was at the library that[where]"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [1], "point_label": "did+동사원형으로 동사 강조",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "밑줄 친 부분을 강조하는 문장으로 바꿀 때 빈칸에 알맞은 말을 쓰세요.",
+      "body": [
+        "A loud noise from the street [[woke]] all of us up last night.",
+        "→ A loud noise from the street ________ ________ all of us up last night."
+      ],
+      "choices": [],
+      "answer": "did wake"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [1], "point_label": "do 뒤에는 동사원형",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 모두 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Jiho [[did look]] great in his new suit." },
+        { "no": 2, "text": "I [[do like]] spending time with my cousins." },
+        { "no": 3, "text": "The new drama’s poster [[do looks]] interesting." },
+        { "no": 4, "text": "Mina [[did wanted]] to buy new boots for the trip." },
+        { "no": 5, "text": "Everyone knows Sora and Minho [[do love]] each other." }
+      ],
+      "answer": "③, ④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [2], "point_label": "강조 구문의 that과 가주어 It ~ that",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 쓰임이 다른 것을 고르세요.",
+      "body": ["<보기> It was my mother’s advice [[that]] helped me make the choice."],
+      "choices": [
+        { "no": 1, "text": "It is this dictionary [[that]] I need for my report." },
+        { "no": 2, "text": "It was behind the door [[that]] I found my keys." },
+        { "no": 3, "text": "It is science [[that]] Mina likes most among all subjects." },
+        { "no": 4, "text": "It was surprising [[that]] the concert was canceled because of snow." },
+        { "no": 5, "text": "It was at her house [[that]] Sora held a party last month." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [2], "point_label": "질문이 묻는 말을 강조해서 답한다",
+      "question_kind": "대화 완성", "difficulty": "상", "badges": [],
+      "prompt": "다음 질문에 대한 응답으로 알맞은 것을 고르세요.",
+      "body": ["Where did you go with Mina last weekend?"],
+      "choices": [
+        { "no": 1, "text": "I did go to the science museum with Mina last weekend." },
+        { "no": 2, "text": "It was Mina that I went to the science museum with last weekend." },
+        { "no": 3, "text": "It was last weekend that I went to the science museum with Mina." },
+        { "no": 4, "text": "It was I that went to the science museum with Mina last weekend." },
+        { "no": 5, "text": "It was the science museum that I went to with Mina last weekend." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [6], "point_label": "장소를 앞에 두면 주어와 동사가 도치된다",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "주어진 문장을 밑줄 친 부분을 강조하는 문장으로 바꿔 쓰세요.",
+      "body": ["My cat jumped [[onto the table]].", "→ Onto the table ________________."],
+      "choices": [],
+      "answer": "jumped my cat"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [4], "point_label": "전체부정 None of ~",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["어떤 학생도 그 시험에서 떨어지지 않았다."],
+      "choices": [
+        { "no": 1, "text": "Not all the students failed the exam." },
+        { "no": 2, "text": "Not every the students failed the exam." },
+        { "no": 3, "text": "None of the students failed the exam." },
+        { "no": 4, "text": "Not every the students didn’t fail the exam." },
+        { "no": 5, "text": "None of the students didn’t fail the exam." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [5], "point_label": "동격을 나타내는 콤마",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["역사상 가장 위대한 과학자인 Newton은 만유인력의 법칙을 발견했다."],
+      "choices": [
+        { "no": 1, "text": "Newton, that is the greatest scientist in history, discovered the law of gravity." },
+        { "no": 2, "text": "Newton, is the greatest scientist in history, discovered the law of gravity." },
+        { "no": 3, "text": "Newton, which the greatest scientist is in history, discovered the law of gravity." },
+        { "no": 4, "text": "Newton, the greatest scientist is in history, discovered the law of gravity." },
+        { "no": 5, "text": "Newton, the greatest scientist in history, discovered the law of gravity." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [2], "point_label": "강조 구문에는 항상 that을 쓴다",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분을 강조한 문장으로 어법상 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I told my brother [[the good news]]. → It was the good news what I told my brother." },
+        { "no": 2, "text": "[[Mina]] has left her wallet at home. → It was Mina which has left her wallet at home." },
+        { "no": 3, "text": "Sora had her hair dyed [[last week]]. → It was last week which Sora had her hair dyed." },
+        { "no": 4, "text": "Jiho bought [[a new tablet]] online today. → It was a new tablet who Jiho bought online today." },
+        { "no": 5, "text": "[[My dog]] chewed my new shoes as soon as I bought them. → It was my dog that chewed my new shoes as soon as I bought them." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [1], "point_label": "does+동사원형으로 동사 강조",
+      "question_kind": "영작", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "지호는 이번 주말에 등산 가는 계획을 정말 좋아한다. (do, the plan, like, go hiking, of)",
+        "→ Jiho ________________ this weekend."
+      ],
+      "choices": [],
+      "answer": "does like the plan of going hiking"
+    }
+  ]
+}

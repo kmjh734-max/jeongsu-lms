@@ -1,0 +1,413 @@
+{
+  "_설명": "천일문 중등 GRAMMAR 1권 Chapter 05 명사와 관사에서 가져와 변형한 문항. 은행에서는 기초 5과 명사와 관사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 5,
+  "chapter": "명사와 관사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 5, "chapter": "명사와 관사" },
+  "points": [
+    { "unit_no": 1, "unit": "셀 수 있는 명사와 셀 수 없는 명사", "point_no": 1, "point": "셀 수 있는 명사 vs. 셀 수 없는 명사", "frequent": false },
+    { "unit_no": 1, "unit": "셀 수 있는 명사와 셀 수 없는 명사", "point_no": 2, "point": "~들: 명사+-(e)s", "frequent": true },
+    { "unit_no": 1, "unit": "셀 수 있는 명사와 셀 수 없는 명사", "point_no": 3, "point": "셀 수 없는 명사의 수량 표현(a cup of coffee, a piece of paper)", "frequent": false },
+    { "unit_no": 2, "unit": "관사", "point_no": 4, "point": "a[an]+명사 = (어떤) 하나의 ~ / the+명사 = 그 ~", "frequent": false },
+    { "unit_no": 2, "unit": "관사", "point_no": 5, "point": "a/an, the를 모두 쓰지 않는 경우", "frequent": false },
+    { "unit_no": 3, "unit": "There is/are", "point_no": 6, "point": "There is+단수·셀 수 없는 명사 / There are+복수명사", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [2], "point_label": "명사의 복수형 만드는 법",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 명사의 단수형과 복수형이 바르게 연결된 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "wolf — wolfs" },
+        { "no": 2, "text": "tooth — tooths" },
+        { "no": 3, "text": "box — boxes" },
+        { "no": 4, "text": "tomato — tomatos" },
+        { "no": 5, "text": "city — cityes" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [2, 6], "point_label": "There are+복수명사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["There are ______ in the yard."],
+      "choices": [
+        { "no": 1, "text": "sheep" },
+        { "no": 2, "text": "flowers" },
+        { "no": 3, "text": "children" },
+        { "no": 4, "text": "duck" },
+        { "no": 5, "text": "deer" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [3], "point_label": "셀 수 없는 명사의 단위",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["Mike needs a piece of ______."],
+      "choices": [
+        { "no": 1, "text": "cake" },
+        { "no": 2, "text": "paper" },
+        { "no": 3, "text": "juice" },
+        { "no": 4, "text": "pizza" },
+        { "no": 5, "text": "cheese" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [2], "point_label": "불규칙 복수형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "My sister has many [[friends]]." },
+        { "no": 2, "text": "I know many interesting [[stories]]." },
+        { "no": 3, "text": "Mrs. Green has four [[childs]]." },
+        { "no": 4, "text": "Look at the [[dishes]] over there." },
+        { "no": 5, "text": "Sam brushes his [[teeth]] every night." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [3], "point_label": "셀 수 없는 명사의 수량 표현",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I ate [[three pieces of]] cheese cake." },
+        { "no": 2, "text": "Jane will have [[a bowl of]] soup." },
+        { "no": 3, "text": "Can I have [[two slices of]] apple juice?" },
+        { "no": 4, "text": "Helen bought [[two bottles of]] water at the store." },
+        { "no": 5, "text": "Dad always drinks [[a cup of]] tea after dinner." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [4], "point_label": "a/an과 the 가려 쓰기",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• I found a cat. ______(A) cat was very small.", "• Will you buy ______(B) new bag? It’s too old."],
+      "choices": [
+        { "no": 1, "text": "A — an" },
+        { "no": 2, "text": "A — the" },
+        { "no": 3, "text": "The — the" },
+        { "no": 4, "text": "The — an" },
+        { "no": 5, "text": "The — a" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [6], "point_label": "There was/were와 Is/Are there",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• There ______(A) many sheep on the farm.", "• ______(B) there any milk in the bottle?"],
+      "choices": [
+        { "no": 1, "text": "was — Is" },
+        { "no": 2, "text": "was — Are" },
+        { "no": 3, "text": "were — Are" },
+        { "no": 4, "text": "were — Is" },
+        { "no": 5, "text": "were — Were" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [3], "point_label": "수량 표현 배열",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "주어진 단어를 올바르게 배열하여 다음 대화를 완성하세요. (필요시 단어의 형태를 바꿀 것)",
+      "body": [
+        "A: Can I help you?",
+        "B: Yes. Could you bring me (1) ________________? (cake / two / piece / of)",
+        "A: Sure. Anything else?",
+        "B: (2) ________________, please. (milk / three / glass / of)"
+      ],
+      "choices": [],
+      "answer": "(1) two pieces of cake  (2) Three glasses of milk"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [6], "point_label": "There is/are와 명사의 수",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "There are not any stars in the sky." },
+        { "no": 2, "text": "There was some books on the desk." },
+        { "no": 3, "text": "There is a bakery over there." },
+        { "no": 4, "text": "There was an accident last night." },
+        { "no": 5, "text": "There are many bikes in the park." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [6], "point_label": "There is와 There are",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 들어갈 단어가 나머지와 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "There ______ 12 months in a year." },
+        { "no": 2, "text": "There ______ an old bridge in my town." },
+        { "no": 3, "text": "There ______ lots of water in the pot." },
+        { "no": 4, "text": "______ there a bank on the corner?" },
+        { "no": 5, "text": "There ______ some jewelry in the box." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [2, 6], "point_label": "people의 수와 Are there",
+      "question_kind": "영작 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["그 공원에는 많은 사람들이 있니?"],
+      "choices": [
+        { "no": 1, "text": "Is there many person in the park?" },
+        { "no": 2, "text": "Is there many people in the park?" },
+        { "no": 3, "text": "Is there many persons in the park?" },
+        { "no": 4, "text": "Are there many person in the park?" },
+        { "no": 5, "text": "Are there many people in the park?" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [1, 2, 6], "point_label": "셀 수 없는 명사와 복수형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "He eats a bread for breakfast." },
+        { "no": 2, "text": "I stepped on the fallen leafs." },
+        { "no": 3, "text": "There is apples in the basket." },
+        { "no": 4, "text": "There are many benches in the park." },
+        { "no": 5, "text": "The boy caught many fishes in the river." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [6], "point_label": "There is/are로 묘사하기",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 내용을 보고 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "[교실 안] 책상 세 개 / 책상 위에 공책 두 권 / 공책 사이에 연필 한 자루",
+        "(1) There ________________ in the classroom. (desk)",
+        "(2) There ________________ on the desk. (notebook)",
+        "(3) There ________________ between the notebooks. (pencil)"
+      ],
+      "choices": [],
+      "answer": "(1) are three desks  (2) are two notebooks  (3) is a[one] pencil"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [2, 6], "point_label": "불규칙 복수형과 There is/are",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장 두 개를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The bags are very light." },
+        { "no": 2, "text": "The white cat caught two mouses." },
+        { "no": 3, "text": "There is five people in my class group." },
+        { "no": 4, "text": "I need four potatoes for the soup." },
+        { "no": 5, "text": "There are some kids on the playground." }
+      ],
+      "answer": "②, ③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [2, 6], "point_label": "There are와 복수형",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형", "고난도"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 두 개를 찾아 그 기호를 쓰고 바르게 고쳐 쓰세요.",
+      "body": [
+        "There ⓐ [[is]] many beautiful ⓑ [[flowers]] in the garden. Look! ⓒ [[A bee]] is sitting on the rose. ⓓ [[Bees]] usually work for about ten ⓔ [[hour]] a day.",
+        "(1) ________ → ________   (2) ________ → ________"
+      ],
+      "choices": [],
+      "answer": "(1) ⓐ, are  (2) ⓔ, hours"
+    },
+
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [2], "point_label": "명사의 복수형 만드는 법",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 명사의 단수형과 복수형이 잘못 연결된 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "knife — knives" },
+        { "no": 2, "text": "potato — potatos" },
+        { "no": 3, "text": "foot — feet" },
+        { "no": 4, "text": "deer — deer" },
+        { "no": 5, "text": "bench — benches" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [2, 6], "point_label": "There are+복수명사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["There are ______ on the desk."],
+      "choices": [
+        { "no": 1, "text": "watch" },
+        { "no": 2, "text": "a newspaper" },
+        { "no": 3, "text": "an eraser" },
+        { "no": 4, "text": "four photo" },
+        { "no": 5, "text": "some pencils" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [1, 6], "point_label": "Is there+셀 수 없는 명사",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Is there ______ in the box?"],
+      "choices": [
+        { "no": 1, "text": "people" },
+        { "no": 2, "text": "books" },
+        { "no": 3, "text": "sugar" },
+        { "no": 4, "text": "pens" },
+        { "no": 5, "text": "toys" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [3], "point_label": "수량 표현의 복수형",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Tom eats [[two bowls of]] soup." },
+        { "no": 2, "text": "I need [[a bottle of]] juice." },
+        { "no": 3, "text": "Please give me [[a sheet of]] paper." },
+        { "no": 4, "text": "Mina ordered [[two cups of]] tea." },
+        { "no": 5, "text": "He drinks [[three glass of]] water every day." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [1, 2], "point_label": "복수형과 셀 수 없는 명사",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "She bought [[some potatos]]." },
+        { "no": 2, "text": "[[Three ladys]] visited us." },
+        { "no": 3, "text": "My mom works [[nine hour]] a day." },
+        { "no": 4, "text": "The [[two woman]] are from Canada." },
+        { "no": 5, "text": "I drink [[some water]] in the morning." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [3, 6], "point_label": "There are+수량 표현",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요. (필요시 단어의 형태를 바꿀 것)",
+      "body": ["세 잔의 우유가 있다. (milk / are / three / there / of / glass)", "→ ______________________________."],
+      "choices": [],
+      "answer": "There are three glasses of milk"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [1, 6], "point_label": "There was not+셀 수 없는 명사",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요. (필요시 단어의 형태를 바꿀 것)",
+      "body": ["병 안에 물이 없었다. (was / water / not / there)", "→ ______________________________ in the bottle."],
+      "choices": [],
+      "answer": "There was not[wasn’t] water"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [2, 6], "point_label": "Are there+복수명사",
+      "question_kind": "배열 영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요. (필요시 단어의 형태를 바꿀 것)",
+      "body": ["교실에 학생들이 많이 있니? (there / many student / are)", "→ ______________________________ in the classroom?"],
+      "choices": [],
+      "answer": "Are there many students"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [2, 3], "point_label": "복수형과 셀 수 없는 명사",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞은 것을 고르세요.",
+      "body": [
+        "A: Can I help you?",
+        "B: Yes, please. Can I get ① three hamburgeres, ② two hot dogs, ③ two sandwichs, and ④ four apple piees?",
+        "A: OK. Anything else?",
+        "B: I want ⑤ five pieces of pizzas, too."
+      ],
+      "choices": [
+        { "no": 1, "text": "three hamburgeres" },
+        { "no": 2, "text": "two hot dogs" },
+        { "no": 3, "text": "two sandwichs" },
+        { "no": 4, "text": "four apple piees" },
+        { "no": 5, "text": "five pieces of pizzas" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [6], "point_label": "There are로 묘사하기",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 내용을 보고 주어진 단어를 사용하여 <보기>와 같이 문장을 완성하세요.",
+      "body": [
+        "<보기> There is a cat on the sofa.",
+        "[의자 위에 고양이 두 마리]",
+        "→ ________________ on the chair. (cat, two)"
+      ],
+      "choices": [],
+      "answer": "There are two cats"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [2, 3, 6], "point_label": "명사의 수와 There are",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I need four slice of cheese." },
+        { "no": 2, "text": "My uncle has only one children." },
+        { "no": 3, "text": "There are many passenger on the bus." },
+        { "no": 4, "text": "Is there Tom and Amy in the hall now?" },
+        { "no": 5, "text": "There are a hundred seats in the theater." }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [4], "point_label": "a/an과 the의 차례",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말이 순서대로 바르게 짝지어진 것을 고르세요.",
+      "body": ["______ cat and ______ owl are in the garden. ______ cat has soft fur, and ______ owl has big eyes."],
+      "choices": [
+        { "no": 1, "text": "A — an — A — the" },
+        { "no": 2, "text": "The — the — A — an" },
+        { "no": 3, "text": "An — a — The — the" },
+        { "no": 4, "text": "A — an — The — the" },
+        { "no": 5, "text": "The — an — An — the" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [6], "point_label": "There is/are 문장 판단",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 어법상 알맞은 문장의 개수를 고르세요.",
+      "body": [
+        "ⓐ Is there dog in your photo?",
+        "ⓑ There is a big desk in my room.",
+        "ⓒ There are many rivers in Korea.",
+        "ⓓ There are two turtles in the pond.",
+        "ⓔ Is there nice cafes around here?"
+      ],
+      "choices": [
+        { "no": 1, "text": "1개" },
+        { "no": 2, "text": "2개" },
+        { "no": 3, "text": "3개" },
+        { "no": 4, "text": "4개" },
+        { "no": 5, "text": "5개" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [2, 3, 4], "point_label": "관사·복수형·수량 표현",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": [],
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 말이 순서대로 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "민수는 점심으로 사과 한 개와 감자 두 개, 수프 한 그릇, 빵 한 덩이를 먹었다.",
+        "→ Minsu had ______ apple, two ______, a ______ of soup, and a ______ of bread for lunch."
+      ],
+      "choices": [
+        { "no": 1, "text": "a — potatos — loaf — bowl" },
+        { "no": 2, "text": "a — potatoes — loaf — bowl" },
+        { "no": 3, "text": "an — potatos — bowl — loaf" },
+        { "no": 4, "text": "an — potatoes — bowl — loaf" },
+        { "no": 5, "text": "the — potatoes — loaf — bowl" }
+      ],
+      "answer": "④"
+    }
+  ]
+}

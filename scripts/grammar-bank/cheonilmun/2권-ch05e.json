@@ -1,0 +1,167 @@
+{
+  "_설명": "천일문 2권 워크북 Chapter 05 to부정사의 Chapter Test 가운데 용법 문항을 변형한 것. 기본 3과 부정사[1] 자리에 합쳐 둔다.",
+  "book": "천일문 2권",
+  "chapter_no": 5,
+  "chapter": "to부정사",
+  "target": { "level": 2, "level_name": "기본", "chapter_no": 3, "chapter": "부정사[1]" },
+  "points": [
+    { "unit_no": 1, "unit": "명사적 용법", "point_no": 1, "point": "주어·보어·목적어로 쓰이는 to부정사", "frequent": true },
+    { "unit_no": 1, "unit": "명사적 용법", "point_no": 2, "point": "가주어 It ~ to부정사", "frequent": true },
+    { "unit_no": 1, "unit": "명사적 용법", "point_no": 3, "point": "의문사+to부정사", "frequent": true },
+    { "unit_no": 2, "unit": "형용사적 용법", "point_no": 4, "point": "(대)명사를 뒤에서 꾸미는 to부정사", "frequent": true },
+    { "unit_no": 2, "unit": "형용사적 용법", "point_no": 5, "point": "to부정사 뒤에 전치사가 남는 경우", "frequent": true },
+    { "unit_no": 3, "unit": "부사적 용법", "point_no": 6, "point": "목적: ~하기 위해", "frequent": true },
+    { "unit_no": 3, "unit": "부사적 용법", "point_no": 7, "point": "감정의 원인: ~해서", "frequent": true },
+    { "unit_no": 3, "unit": "부사적 용법", "point_no": 8, "point": "to부정사의 부정: not to+동사원형", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [4, 5], "point_label": "to부정사 뒤에 남는 전치사",
+      "question_kind": "빈칸 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["Mark’s partner left the team. Mark is looking for a new partner ________."],
+      "choices": [
+        { "no": 1, "text": "to work" },
+        { "no": 2, "text": "working" },
+        { "no": 3, "text": "work with" },
+        { "no": 4, "text": "to work with" },
+        { "no": 5, "text": "to working with" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [1, 2], "point_label": "목적어로 쓰인 to부정사",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> Sora hopes [[to join]] the science club."],
+      "choices": [
+        { "no": 1, "text": "It is hard [[to wake]] up early." },
+        { "no": 2, "text": "[[To collect]] stamps is her hobby." },
+        { "no": 3, "text": "They decided [[to meet]] at the library." },
+        { "no": 4, "text": "It is important [[to drink]] enough water." },
+        { "no": 5, "text": "His dream is [[to become]] a scientist." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [6], "point_label": "목적을 나타내는 to부정사",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 두 문장을 to부정사를 사용하여 한 문장으로 완성하세요.",
+      "body": [
+        "She wanted to buy a gift.",
+        "She went to the mall.",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "She went to the mall to buy a gift"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [7], "point_label": "감정의 원인을 나타내는 to부정사",
+      "question_kind": "문장 바꿔 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 두 문장을 to부정사를 사용하여 한 문장으로 완성하세요.",
+      "body": [
+        "I heard the good news from my teacher.",
+        "I was excited.",
+        "→ ________________."
+      ],
+      "choices": [],
+      "answer": "I was excited to hear the good news from my teacher"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [8], "point_label": "to부정사의 부정은 not to",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Somi left home early to catch the bus." },
+        { "no": 2, "text": "Do you need to stay late these days?" },
+        { "no": 3, "text": "I spoke quietly to not disturb the baby." },
+        { "no": 4, "text": "He planned to study abroad next year." },
+        { "no": 5, "text": "She likes to watch movies on weekends." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [3], "point_label": "how to: 어떻게 ~할지",
+      "question_kind": "해석 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분의 우리말 해석이 바르지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I’ll show you [[how to fold]] a paper crane. (얼마나 접을지)" },
+        { "no": 2, "text": "They talked about [[when to start]]. (언제 시작할지)" },
+        { "no": 3, "text": "I don’t know [[what to wear]] tomorrow. (무엇을 입을지)" },
+        { "no": 4, "text": "You should tell me [[what to prepare]] next. (무엇을 준비할지)" },
+        { "no": 5, "text": "He decided [[where to put]] the sofa. (어디에 놓을지)" }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [5], "point_label": "sit on, live in처럼 전치사가 필요한 경우",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Please give me a chance [[to explain]]." },
+        { "no": 2, "text": "Do you have any friends [[to play with]]?" },
+        { "no": 3, "text": "We found a chair [[to sit]] in the hall." },
+        { "no": 4, "text": "Mina, is there anything [[to worry about]]?" },
+        { "no": 5, "text": "I already found a house [[to live in]]." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [2], "point_label": "It is+형용사+to부정사",
+      "question_kind": "영작", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "물 없이 사는 것은 불가능하다.",
+        "(impossible, without, live, water)",
+        "→ It ________________."
+      ],
+      "choices": [],
+      "answer": "is impossible to live without water"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [2], "point_label": "가주어 It과 대명사 It의 구별",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "[[It]] was completely my fault." },
+        { "no": 2, "text": "[[It]] is one of my favorite songs." },
+        { "no": 3, "text": "[[It]] is a useful app for students." },
+        { "no": 4, "text": "[[It]] is exciting to travel to a new country." },
+        { "no": 5, "text": "[[It]] is very popular among my classmates." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [4, 6, 7], "point_label": "형용사적 용법과 부사적 용법",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "He is saving money [[to buy]] a guitar." },
+        { "no": 2, "text": "There are many places [[to visit]] in Jeju." },
+        { "no": 3, "text": "This book was hard [[to understand]]." },
+        { "no": 4, "text": "[[To catch]] the train, I ran to the station." },
+        { "no": 5, "text": "Sora was sad [[to hear]] the news." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [4], "point_label": "-thing+형용사+to부정사의 어순",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "주어진 우리말을 바르게 영작한 것을 고르세요.",
+      "body": ["나는 너에게 할 재미있는 이야기가 있다."],
+      "choices": [
+        { "no": 1, "text": "I have funny something to tell you." },
+        { "no": 2, "text": "I have something funny to tell you." },
+        { "no": 3, "text": "I have something to tell funny you." },
+        { "no": 4, "text": "I have to tell you funny something." },
+        { "no": 5, "text": "I have something to tell you funny." }
+      ],
+      "answer": "②"
+    }
+  ]
+}

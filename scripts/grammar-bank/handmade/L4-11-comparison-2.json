@@ -1,0 +1,190 @@
+{
+  "_설명": "완성 11과 비교 — one of the + 최상급 + 복수명사, the 비교급 ~ the 비교급. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 1,
+      "포인트": "one of the + 최상급 뒤에는 복수명사",
+      "prompt": "다음 중 어법상 [[틀린]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["She is one of the kindest teacher in this school."],
+      "answer": "teacher → teachers",
+      "explanation": "‘~들 중 하나’라고 표현할 때는 「one of the + 최상급 + 복수명사」로 써야 한다. 따라서 teacher(단수)가 아닌 teachers(복수)로 고쳐 써야 한다. [해석] 그녀는 이 학교에서 가장 친절한 선생님들 중 한 명이다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 2,
+      "포인트": "최상급 앞에는 the",
+      "prompt": "다음 중 어법상 [[틀린]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["Climbing Halla Mountain was one of best",
+               "memories I’ve ever had."],
+      "answer": "best → the best",
+      "explanation": "‘~들 중 하나’라고 표현할 때는 「one of the + 최상급 + 복수명사」로 써야 한다. 최상급인 best 앞에 the가 빠져 있다. [해석] 한라산을 오른 것은 내가 가진 최고의 추억들 중 하나였다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 3,
+      "포인트": "the + 비교급 ~, the + 비교급 …",
+      "prompt": "다음 중 어법상 [[틀린]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["The colder the room is, the uncomfortable he",
+               "feels."],
+      "answer": "the uncomfortable → the more uncomfortable",
+      "explanation": "‘~하면 할수록 더 …한’이라는 의미를 가진 표현은 「the + 비교급 ~, the + 비교급 …」으로 쓸 수 있다. uncomfortable의 비교급은 more uncomfortable이다. [해석] 방이 추우면 추울수록, 그는 더 불편해진다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 4,
+      "포인트": "the + 비교급 뒤에는 「주어 + 동사」 어순",
+      "prompt": "다음 중 어법상 [[틀린]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["The deeper dived they, the darker was the water."],
+      "answer": "The deeper they dived, the darker the water was.",
+      "explanation": "‘~하면 할수록 더 …하다’라는 의미를 가진 표현은 「the + 비교급 ~, the + 비교급 …」으로 쓸 수 있는데, 비교급 뒤에는 ‘주어 + 동사’의 어순이 되어야 한다. [해석] 그들이 더 깊이 잠수하면 잠수할수록, 물은 더 어두웠다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 5,
+      "포인트": "one of the + 최상급 + 복수명사는 단수 취급",
+      "prompt": "다음 중 어법상 [[틀린]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["One of the greatest pleasures are that you can",
+               "meet the artist in person."],
+      "answer": "are → is",
+      "explanation": "「one of the + 최상급 + 복수명사」는 ‘가장 ~한 복수명사들 중 하나’라는 뜻으로, 이 표현이 주어로 쓰이면 항상 단수 취급한다. 따라서 are를 is로 바꾸어야 한다. [해석] 가장 큰 즐거움들 중 하나는 당신이 그 예술가를 직접 만날 수 있다는 것이다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 6,
+      "포인트": "more가 꾸미는 명사는 more와 함께 앞으로",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["The more you practice, the more you will have",
+               "confidence."],
+      "answer": "the more you will have confidence → the more confidence you will have.",
+      "explanation": "「the + 비교급 ~, the + 비교급 …」은 ‘~하면 할수록 더 …하다’라는 뜻이다. 여기서는 더 많은 자신감을 갖는다고 하였으므로 more가 수식하는 명사인 confidence가 함께 뒤따라 나와야 한다. [해석] 당신이 더 연습할수록, 더 많은 자신감을 갖게 될 것이다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 7,
+      "포인트": "more가 꾸미는 형용사는 more와 함께 앞으로",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["The longer you wait, the more you’re going to",
+               "become impatient."],
+      "answer": "the more you’re going to become impatient. → the more impatient you’re going to become.",
+      "explanation": "「the + 비교급 ~, the + 비교급 …」은 ‘~하면 할수록 더 …하다’라는 뜻이다. 여기서는 더 초조해진다고 하였으므로 more가 수식하는 형용사인 impatient가 함께 뒤따라 나와야 한다. [해석] 당신이 더 오래 기다릴수록, 당신은 더 초조해질 것이다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 8,
+      "포인트": "「the + 비교급」이 주어이면 뒤에 동사만 온다",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["The stronger winds it blows, the more serious",
+               "damage we will get."],
+      "answer": "The stronger winds blow, the more serious damage we will get.",
+      "explanation": "「the + 비교급 ~, the + 비교급 …」은 ‘~하면 할수록 더 …하다’라는 뜻이다. ‘The stronger winds’가 ‘the + 비교급’의 형태이면서 동시에 주어의 역할을 하므로 뒤에는 동사인 blow만 따라오면 된다. [해석] 더 강한 바람이 불수록, 우리는 더 심각한 피해를 입게 될 것이다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 9,
+      "포인트": "조건문을 the 비교급 구문으로 바꾸기",
+      "prompt": "주어진 문장과 같은 의미가 되도록 영작하시오.",
+      "body": ["If you understand the story better, you can",
+               "enjoy the movie more.",
+               "= The ______________________________________",
+               "______________________________________________."],
+      "answer": "better you understand the story, the more you can enjoy the movie",
+      "explanation": "주어진 문장과 같은 의미를 가지고 The로 시작하는 문장을 쓰기 위해서는 ‘~하면 할수록 더 …한’이라는 의미를 가진 「the + 비교급 ~, the + 비교급 …」의 표현을 쓸 수 있다. [해석] 만약 네가 그 이야기를 더 잘 이해한다면, 너는 그 영화를 더 즐길 수 있을 것이다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 10,
+      "포인트": "the same + 명사 + as ~",
+      "prompt": "주어진 문장과 의미가 통하도록 괄호 안의 단어를 활용하여 빈칸을 완성하시오.",
+      "body": ["My bag weighs three kilograms and her bag",
+               "weighs three kilograms, too.",
+               "→ My bag is __________________________ her bag.",
+               "(weight)"],
+      "answer": "the same weight as",
+      "explanation": "내 가방이 3킬로그램이고 그녀의 가방도 3킬로그램이므로 둘은 서로 같은 무게이다. 따라서 「the same + 명사 + as ~」를 써서 ‘~와 같은 명사’라는 뜻을 전달할 수 있다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 11,
+      "포인트": "the + 비교급 + 명사 + 주어 + 동사 어순",
+      "prompt": "주어진 문장과 같은 의미가 되도록 괄호 속의 단어를 사용하여 영작하시오.",
+      "body": ["If you read more books, you will have more",
+               "ideas.",
+               "= ___________________________________________",
+               "_______________________________________. (the)"],
+      "answer": "The more books you read, the more ideas you will have.",
+      "explanation": "‘~하면 할수록 더 …한’이라는 의미를 가진 「the + 비교급 ~, the + 비교급 …」의 표현을 쓸 수 있고, more가 꾸미는 명사는 more와 함께 앞으로 나오며 비교급 뒤에는 ‘주어 + 동사’의 어순이 되어야 한다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 12,
+      "포인트": "As 구문을 the 비교급 구문으로 바꾸기",
+      "prompt": "주어진 문장과 같은 의미가 되도록 영작하시오.",
+      "body": ["As you sleep less, you become more forgetful.",
+               "= The ______________________________________",
+               "___________________________________________."],
+      "answer": "less you sleep, the more forgetful you become",
+      "explanation": "주어진 문장과 같은 의미를 가지고 The로 시작하는 문장을 쓰기 위해서는 ‘~하면 할수록 더 …한’이라는 의미를 가진 「the + 비교급 ~, the + 비교급 …」의 표현을 쓸 수 있다. [해석] 당신이 잠을 덜 잘수록, 당신은 더 잘 잊어버리게 된다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 13,
+      "포인트": "As 구문을 the 비교급 구문으로 바꾸기",
+      "prompt": "주어진 문장과 같은 의미가 되도록 괄호 속의 단어를 사용하여 영작하시오.",
+      "body": ["As we travel more, we are more open to new",
+               "cultures.",
+               "= ___________________________________________",
+               "_______________________________________. (the)"],
+      "answer": "The more we travel, the more open we are to new cultures.",
+      "explanation": "‘~하면 할수록 더 …한’이라는 의미를 가진 「the + 비교급 ~, the + 비교급 …」의 표현을 쓸 수 있고, 비교급 뒤에는 ‘주어 + 동사’의 어순이 되어야 한다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 14,
+      "포인트": "the 비교급 구문을 As 구문으로 바꾸기",
+      "prompt": "주어진 문장과 같은 의미가 되도록 영작하시오.",
+      "body": ["The longer she lived in the country, the more",
+               "she got to love the quiet life there.",
+               "→ As ______________________________________,",
+               "___________________________________________."],
+      "answer": "she lived in the country longer, she got to love the quiet life there more.",
+      "explanation": "「the + 비교급 ~, the + 비교급 …」은 ‘~하면 할수록 더 …하다’라는 의미를 가지고 있다. 접속사 as는 ‘~할수록’이라는 뜻을 가지고 있으므로 「As + 주어 + 동사 ~, 주어 + 동사 …」의 문장으로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 15,
+      "포인트": "the more + 형용사, the more + 명사",
+      "prompt": "빈칸에 들어갈 말을 순서대로 쓰시오.",
+      "body": ["_________ _________ powerful the computer",
+               "is, the _________ programs it can run."],
+      "answer": "The more, more",
+      "explanation": "‘~하면 할수록 더 …하다’라는 표현은 「the + 비교급 ~, the + 비교급 …」으로 쓴다. powerful의 비교급은 more powerful이므로 첫 두 빈칸에는 The more가 들어가고, 마지막 빈칸에는 many의 비교급인 more가 들어간다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 16,
+      "포인트": "one of the + 최상급 + 복수명사",
+      "prompt": "괄호 속에 주어진 단어를 활용하여, 빈칸에 들어갈 알맞은 표현을 5단어로 쓰시오.",
+      "body": ["A flood is one of _________ _________",
+               "_____________ _____________ ____________.",
+               "(frequent, natural disaster)"],
+      "answer": "the most frequent natural disasters",
+      "explanation": "「one of the + 최상급 + 복수명사」는 ‘가장 ~한 복수명사들 중 하나’라는 뜻이다. frequent의 최상급은 most frequent이고 natural disaster는 복수형으로 써 주면 된다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 18,
+      "포인트": "one of the + 최상급 + 복수명사",
+      "prompt": "괄호 속에 주어진 단어를 활용하여, 빈칸에 들어갈 알맞은 표현을 4단어로 쓰시오.",
+      "body": ["One of _________ _________ _________",
+               "_________ of the app is to save your battery.",
+               "(useful, function)"],
+      "answer": "the most useful functions",
+      "explanation": "「one of the + 최상급 + 복수명사」는 ‘가장 ~한 복수명사들 중 하나’라는 뜻이다. useful의 최상급은 most useful이고 function은 복수형으로 써 주면 된다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 19,
+      "포인트": "one of the + 최상급 + 복수명사",
+      "prompt": "괄호 속에 주어진 단어를 이용하여, 문맥상 빈칸에 들어갈 알맞은 말을 6단어로 쓰시오.",
+      "body": ["Shakespeare was a very influential writer. He",
+               "was _________ _________ _________ _________",
+               "_________ _________ in history. (one, most)"],
+      "answer": "one of the most influential writers",
+      "explanation": "셰익스피어가 영향력 있는 작가였다는 내용을 포함하면서 one과 most를 쓰기 위해서는 「one of the + 최상급 + 복수명사」의 구문을 사용할 수 있다. 이는 ‘가장 ~한 복수명사들 중 하나’라는 의미이다."
+    },
+    {
+      "file": "[완성] 11.비교_체크체크.pdf", "number": 20,
+      "포인트": "one of the + 최상급 + 복수명사",
+      "prompt": "주어진 단어를 활용하여 우리말 뜻에 맞게 빈칸을 채우시오.",
+      "body": ["간디는 20세기 가장 위대한 지도자들 중 한 명이었다.",
+               "→ Gandhi _________ _________ _________",
+               "_________ _________ _________ of the 20th",
+               "century. (great, leader)"],
+      "answer": "was one of the greatest leaders",
+      "explanation": "‘가장 ~한 …들 중 하나’라는 의미를 전달하기 위해서는 「one of the + 최상급 + 복수명사」의 구조를 이용하여 영작할 수 있다. great의 최상급은 greatest이다."
+    }
+  ]
+}

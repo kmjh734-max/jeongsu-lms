@@ -1,0 +1,29 @@
+{
+  "_설명": "완성 5과 종합1 32번 — 원본 PDF를 다시 떠서 지문 전체를 확인한 뒤, 틀린 자리를 ④에서 ②로 옮겼다. ④의 order 뒤 목적격보어를 바른 to부정사로 고치고, ②의 「전치사 + 관계대명사」를 that으로 바꿔 틀리게 했다.",
+  "문항": [
+    {
+      "file": "[완성] 5.부정사_종합문제(1회).pdf", "number": 32,
+      "포인트": "전치사 뒤에는 that을 쓰지 않는다",
+      "prompt": "다음 글의 밑줄 친 부분 중, 어법상 [[틀린]]것은?",
+      "body": ["Most importantly, money needs to be scarce in",
+               "a predictable way. Precious metals have been",
+               "desirable as money across the millennia not only",
+               "because ①[[they]] have intrinsic beauty but also",
+               "because they exist in fixed quantities. Gold and",
+               "silver enter society at the rate ②[[at that]] they are",
+               "discovered and mined; additional precious metals",
+               "cannot ③[[be produced]], at least not cheaply.",
+               "Commodities like rice and tobacco can be grown,",
+               "but that still takes time and resources. A dictator",
+               "like Zimbabwe’s Robert Mugabe could not order",
+               "the government ④[[to produce]] 100 trillion tons of",
+               "rice. He was able to produce and distribute",
+               "trillions of new Zimbabwe dollars, ⑤[[which]] is why",
+               "they eventually became more valuable as toilet",
+               "paper than currency."],
+      "choices": ["they", "at that", "be produced", "to produce", "which"],
+      "answer": "②",
+      "explanation": "전치사 바로 뒤에는 that을 쓸 수 없으므로 at which로 써야 한다."
+    }
+  ]
+}

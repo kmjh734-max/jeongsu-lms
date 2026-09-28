@@ -1,0 +1,209 @@
+{
+  "_설명": "천일문 3권 워크북 Chapter 08 접속사의 Chapter Test를 변형한 것. 심화 9과 접속사 자리에 합쳐 둔다.",
+  "book": "천일문 3권",
+  "chapter_no": 8,
+  "chapter": "접속사",
+  "target": { "level": 3, "level_name": "심화", "chapter_no": 9, "chapter": "접속사" },
+  "points": [
+    { "unit_no": 1, "unit": "부사절 접속사", "point_no": 1, "point": "시간: when, while, as, until", "frequent": true },
+    { "unit_no": 1, "unit": "부사절 접속사", "point_no": 2, "point": "이유: because, since, as", "frequent": true },
+    { "unit_no": 1, "unit": "부사절 접속사", "point_no": 3, "point": "조건: if, unless", "frequent": true },
+    { "unit_no": 1, "unit": "부사절 접속사", "point_no": 4, "point": "양보: although, though, even though", "frequent": true },
+    { "unit_no": 2, "unit": "so that과 상관접속사", "point_no": 5, "point": "so+형용사[부사]+that: 너무 ~해서 …하다", "frequent": true },
+    { "unit_no": 2, "unit": "so that과 상관접속사", "point_no": 6, "point": "so that: ~하도록", "frequent": true },
+    { "unit_no": 2, "unit": "so that과 상관접속사", "point_no": 7, "point": "not only A but also B 등 상관접속사", "frequent": true },
+    { "unit_no": 3, "unit": "명사절", "point_no": 8, "point": "명사절 접속사 that", "frequent": true },
+    { "unit_no": 3, "unit": "명사절", "point_no": 9, "point": "간접의문문: 의문사+주어+동사 / if[whether]", "frequent": true }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [2], "point_label": "이유를 나타내는 because",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 가장 알맞은 접속사를 고르세요.",
+      "body": ["I couldn’t finish my report anymore ________ my laptop broke down."],
+      "choices": [
+        { "no": 1, "text": "unless" },
+        { "no": 2, "text": "because" },
+        { "no": 3, "text": "before" },
+        { "no": 4, "text": "so that" },
+        { "no": 5, "text": "even though" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [1], "point_label": "~할 때까지: until",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 가장 알맞은 접속사를 고르세요.",
+      "body": ["We cheered for Mina ________ she crossed the finish line."],
+      "choices": [
+        { "no": 1, "text": "if" },
+        { "no": 2, "text": "until" },
+        { "no": 3, "text": "unless" },
+        { "no": 4, "text": "but" },
+        { "no": 5, "text": "although" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [7], "point_label": "not only A but also B",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 가장 알맞은 접속사를 고르세요.",
+      "body": ["Jiho not only listened to my worries ________ also gave me good advice."],
+      "choices": [
+        { "no": 1, "text": "or" },
+        { "no": 2, "text": "nor" },
+        { "no": 3, "text": "and" },
+        { "no": 4, "text": "also" },
+        { "no": 5, "text": "but" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [3, 9], "point_label": "조건의 if와 명사절의 if",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 <보기>의 밑줄 친 if와 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> I’ll take a taxi or subway [[if]] it’s far from my house."],
+      "choices": [
+        { "no": 1, "text": "I wonder [[if]] Mina lives near the school." },
+        { "no": 2, "text": "Jiho wasn’t sure [[if]] Sora’s story was true." },
+        { "no": 3, "text": "Somi asked me [[if]] I could visit her house." },
+        { "no": 4, "text": "Don’t hesitate to ask me for help [[if]] you need it." },
+        { "no": 5, "text": "We wanted to know [[if]] we made the teacher upset." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [2], "point_label": "이유의 as와 ‘~한 대로’의 as",
+      "question_kind": "다른 하나 고르기", "difficulty": "상", "badges": ["빈출"],
+      "prompt": "다음 중 <보기>의 밑줄 친 as와 의미가 다른 것을 고르세요.",
+      "body": ["<보기> The baby was crying a lot [[as]] he was hungry."],
+      "choices": [
+        { "no": 1, "text": "[[As]] it was snowing a lot, we decided to stay home." },
+        { "no": 2, "text": "Mina took the medicine [[as]] the doctor ordered." },
+        { "no": 3, "text": "Sora was tired before getting home [[as]] it was humid." },
+        { "no": 4, "text": "I couldn’t keep a promise with my friends [[as]] I was sick." },
+        { "no": 5, "text": "[[As]] my phone was out of battery, I wasn’t able to answer any calls." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [9], "point_label": "if[whether]+주어+동사",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "나는 소라가 집에 있는지 궁금하다. (if, be, home, at)",
+        "→ I wonder ________________."
+      ],
+      "choices": [],
+      "answer": "if Sora is at home"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [9], "point_label": "간접의문문의 어순",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "너는 마지막 기차가 언제 떠나는지 아니? (when, leave, the last train)",
+        "→ Do you know ________________?"
+      ],
+      "choices": [],
+      "answer": "when the last train leaves"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [1], "point_label": "as soon as: ~하자마자",
+      "question_kind": "영작", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 사용하여 문장을 완성하세요.",
+      "body": [
+        "민지는 그 편지를 읽자마자 울기 시작했다. (she, the letter, as soon as, read)",
+        "→ Minji started to cry ________________."
+      ],
+      "choices": [],
+      "answer": "as soon as she read the letter"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [4, 8, 9], "point_label": "간접의문문과 despite/although",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 두 개 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I wonder what is the title of the movie." },
+        { "no": 2, "text": "Do you know whether the museum opens on Mondays?" },
+        { "no": 3, "text": "It is strange that the shop has been closed for a month." },
+        { "no": 4, "text": "Mina saved a lot of money so that she could buy a new camera." },
+        { "no": 5, "text": "Jiho can’t speak Japanese well despite he has lived in Japan for 5 years." }
+      ],
+      "answer": "①, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [7], "point_label": "상관접속사가 잇는 말의 형태와 수일치",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 두 개 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Mina is good at skating as well as swim." },
+        { "no": 2, "text": "Are both your mother and your father teachers?" },
+        { "no": 3, "text": "She was not studying but chatting with her friends." },
+        { "no": 4, "text": "Not only teenagers but also adults likes the singer’s new song." },
+        { "no": 5, "text": "My brother neither looked at me nor talked to me after our fight." }
+      ],
+      "answer": "①, ④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [5], "point_label": "so+형용사+that",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "We played basketball at lunch break. When we came back to the classroom, it was very hot that we turned on the air conditioner.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "very → so"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [9], "point_label": "간접의문문은 의문문 어순을 쓰지 않는다",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "My family has not visited our grandparents for a while. I asked my dad if could we visit our grandparents for Seollal.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "could we visit → we could visit"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [7], "point_label": "not only A but also B의 형태",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "A new model of tablet is coming out! It has not a light body but also a long battery life. I have to save my money to buy it!",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "not → not only"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [7], "point_label": "both A and B는 복수 취급",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["고난도", "서술형"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "After finishing their homework, both Sora and Jiho likes playing board games. Sometimes, they invite their friends over to join them and play together.",
+        "→ ________ → ________"
+      ],
+      "choices": [],
+      "answer": "likes → like"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [5, 6, 8, 9], "point_label": "간접의문문의 어순 판단",
+      "question_kind": "영작 고르기", "difficulty": "상", "badges": [],
+      "prompt": "우리말을 영어로 옮긴 것 중 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "지호가 너무 급하게 먹어서 체했다. → Jiho ate so fast that he had an upset stomach." },
+        { "no": 2, "text": "너는 누가 내 우산을 가져갔는지 봤니? 나는 그것을 찾을 수 없어. → Did you see who my umbrella took? I can’t find it." },
+        { "no": 3, "text": "소라가 내 문자를 받았는지가 확실하지 않다. → Whether Sora received my text is uncertain." },
+        { "no": 4, "text": "나는 우리 이모가 일주일에 몇 편의 영화를 보는지 궁금하다. → I wonder how many movies my aunt watches a week." },
+        { "no": 5, "text": "너는 자전거를 탈 때, 머리를 보호하기 위해 헬멧을 써야 한다. → Riding a bike, you should wear a helmet so that it can protect your head." }
+      ],
+      "answer": "②"
+    }
+  ]
+}

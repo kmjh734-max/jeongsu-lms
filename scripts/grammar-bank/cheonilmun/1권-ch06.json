@@ -1,0 +1,437 @@
+{
+  "_설명": "천일문 중등 GRAMMAR 1권 Chapter 06 대명사에서 가져와 변형한 문항. 은행에서는 기초 6과 대명사 자리에 합쳐 둔다.",
+  "book": "천일문 1권",
+  "chapter_no": 6,
+  "chapter": "대명사",
+  "target": { "level": 1, "level_name": "기초", "chapter_no": 6, "chapter": "대명사" },
+  "points": [
+    { "unit_no": 1, "unit": "인칭대명사와 재귀대명사", "point_no": 1, "point": "역할에 따라 형태가 변하는 인칭대명사", "frequent": true },
+    { "unit_no": 1, "unit": "인칭대명사와 재귀대명사", "point_no": 2, "point": "소유대명사 mine = my+명사", "frequent": false },
+    { "unit_no": 1, "unit": "인칭대명사와 재귀대명사", "point_no": 3, "point": "재귀대명사: -self / -selves", "frequent": true },
+    { "unit_no": 2, "unit": "지시대명사와 it", "point_no": 4, "point": "this(이것, 이 사람), that(저것, 저 사람)", "frequent": false },
+    { "unit_no": 2, "unit": "지시대명사와 it", "point_no": 5, "point": "this[that]+명사: 이 ~, 저 ~", "frequent": false },
+    { "unit_no": 2, "unit": "지시대명사와 it", "point_no": 6, "point": "‘그것’으로 해석하지 않는 it", "frequent": true },
+    { "unit_no": 3, "unit": "one, some, any", "point_no": 7, "point": "one = a+명사", "frequent": false },
+    { "unit_no": 3, "unit": "one, some, any", "point_no": 8, "point": "some, any: 정확하지 않은 수량", "frequent": false },
+    { "unit_no": 3, "unit": "one, some, any", "point_no": 9, "point": "-one, -body, -thing: 정해져 있지 않은 사람·사물", "frequent": false }
+  ],
+  "questions": [
+    {
+      "kind": "실전문제", "round": 1, "number": 1, "point_nos": [1], "point_label": "소유격과 be동사 줄임말",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분의 성격이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "[[Its]] color is black." },
+        { "no": 2, "text": "[[He’s]] my cousin." },
+        { "no": 3, "text": "[[His]] name is Jiho." },
+        { "no": 4, "text": "[[My]] gloves are red." },
+        { "no": 5, "text": "Are you [[Tom’s]] sister?" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 2, "point_nos": [3], "point_label": "주어에 맞는 재귀대명사",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The machine can fix [[itself]]." },
+        { "no": 2, "text": "They hid [[himself]] behind the door." },
+        { "no": 3, "text": "You should take care of [[yourself]]." },
+        { "no": 4, "text": "Sumi is talking to [[herself]]." },
+        { "no": 5, "text": "We are very proud of [[ourselves]]." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 3, "point_nos": [1], "point_label": "목적격·주격·소유격",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B), (C)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "Junho and I are best friends. I visit ______(A) on Saturdays.",
+        "______(B) bake cookies. And I have lunch with ______(C) family."
+      ],
+      "choices": [
+        { "no": 1, "text": "he — We — he" },
+        { "no": 2, "text": "him — We — his" },
+        { "no": 3, "text": "his — We — his" },
+        { "no": 4, "text": "he — Us — him" },
+        { "no": 5, "text": "him — Our — him" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 4, "point_nos": [3], "point_label": "주어와 목적어가 같을 때",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 대화의 빈칸에 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["A: What do you draw in your diary?", "B: I draw pictures of ______ from my trip."],
+      "choices": [
+        { "no": 1, "text": "me" },
+        { "no": 2, "text": "my" },
+        { "no": 3, "text": "myself" },
+        { "no": 4, "text": "yourselves" },
+        { "no": 5, "text": "themselves" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 5, "point_nos": [2], "point_label": "소유대명사 뒤에는 명사를 쓰지 않는다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "The bike is mine." },
+        { "no": 2, "text": "This is my aunt." },
+        { "no": 3, "text": "He loves himself." },
+        { "no": 4, "text": "It’s hers jacket." },
+        { "no": 5, "text": "These are not his books." }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 6, "point_nos": [6], "point_label": "시간·요일·날씨의 it",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 It[it]의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "[[It’s]] 6 o’clock." },
+        { "no": 2, "text": "Is [[it]] Friday today?" },
+        { "no": 3, "text": "[[It’s]] her notebook." },
+        { "no": 4, "text": "[[It]] will be windy tomorrow." },
+        { "no": 5, "text": "[[It]] takes 20 minutes by bus." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 7, "point_nos": [6], "point_label": "시간·요일을 나타내는 it",
+      "question_kind": "대화 완성", "difficulty": "중", "badges": ["빈출", "서술형"],
+      "prompt": "다음 내용을 보고 질문에 알맞은 대답을 완성하세요.",
+      "body": [
+        "[시계] 9시   [달력] 금요일",
+        "(1) A: What time is it now?  B: ________________.",
+        "(2) A: What day is it today?  B: ________________."
+      ],
+      "choices": [],
+      "answer": "(1) It is[It’s] 9 o’clock.  (2) It is[It’s] Friday."
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 8, "point_nos": [6], "point_label": "‘그것’으로 해석하지 않는 it",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 <보기>의 밑줄 친 부분과 어법상 쓰임이 같은 것을 고르세요.",
+      "body": ["<보기> [[It]] is raining outside."],
+      "choices": [
+        { "no": 1, "text": "It is very interesting." },
+        { "no": 2, "text": "It is my water bottle." },
+        { "no": 3, "text": "It is March 3rd." },
+        { "no": 4, "text": "It is his notebook." },
+        { "no": 5, "text": "It is not a tall tower." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 9, "point_nos": [6], "point_label": "‘그것’으로 해석하지 않는 it",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 밑줄 친 ⓐ와 쓰임이 같은 것 두 개를 고르세요.",
+      "body": [
+        "Welcome to my house. Let’s look around. This is the living room. ⓐ [[It]] is dinner time now. Today’s menu is bibimbap. It’s a popular Korean dish."
+      ],
+      "choices": [
+        { "no": 1, "text": "Do you like it?" },
+        { "no": 2, "text": "It is cold outside." },
+        { "no": 3, "text": "It is my cat, Nabi." },
+        { "no": 4, "text": "It is different from yours." },
+        { "no": 5, "text": "It is 7 o’clock in the evening." }
+      ],
+      "answer": "②, ⑤"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 10, "point_nos": [1], "point_label": "목적격 인칭대명사",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["I met ______(A), but she didn’t see ______(B)."],
+      "choices": [
+        { "no": 1, "text": "she — I" },
+        { "no": 2, "text": "her — my" },
+        { "no": 3, "text": "her — me" },
+        { "no": 4, "text": "hers — my" },
+        { "no": 5, "text": "she — me" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 11, "point_nos": [8], "point_label": "some과 any",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• I need ______(A) sugar and butter for cooking.", "• He doesn’t have ______(B) coins in his pocket."],
+      "choices": [
+        { "no": 1, "text": "any — any" },
+        { "no": 2, "text": "some — any" },
+        { "no": 3, "text": "any — some" },
+        { "no": 4, "text": "some — some" },
+        { "no": 5, "text": "many — any" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 12, "point_nos": [7, 9], "point_label": "everyone은 단수 취급",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞지 않은 것을 고르세요.",
+      "body": [
+        "There is a tablet. It’s ① [[mine]]. But I can’t use ② [[it]]. My sister watches videos every day and my brother does ③ [[his]] homework with it. Everyone ④ [[use]] it. So I need a new ⑤ [[one]]!"
+      ],
+      "choices": [
+        { "no": 1, "text": "mine" },
+        { "no": 2, "text": "it" },
+        { "no": 3, "text": "his" },
+        { "no": 4, "text": "use" },
+        { "no": 5, "text": "one" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 13, "point_nos": [9], "point_label": "everyone+단수 동사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Almost everyone have their own dream.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "have → has"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 14, "point_nos": [7, 8, 9], "point_label": "some/any와 one/ones",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "I found any coins in my bag." },
+        { "no": 2, "text": "There are someone at the gate." },
+        { "no": 3, "text": "Can I have some milk?" },
+        { "no": 4, "text": "I need a pencil. Do you have ones?" },
+        { "no": 5, "text": "There aren’t some bakeries near here." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 1, "number": 15, "point_nos": [1, 5], "point_label": "대명사의 수와 these+복수명사",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "상", "badges": ["서술형", "고난도"],
+      "prompt": "다음 글에서 어법상 알맞지 않은 부분 두 군데를 찾아 바르게 고쳐 쓰세요.",
+      "body": [
+        "Mina has many lovely pets in her house. She feeds the rabbits every day and takes care of it. Sometimes she washes these rabbit and dries them with a towel.",
+        "(1) ________ → ________   (2) ________ → ________"
+      ],
+      "choices": [],
+      "answer": "(1) it → them  (2) rabbit → rabbits"
+    },
+
+    {
+      "kind": "실전문제", "round": 2, "number": 1, "point_nos": [1], "point_label": "소유격 자리에 오는 말",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["Sujin is ______ classmate."],
+      "choices": [
+        { "no": 1, "text": "my" },
+        { "no": 2, "text": "your" },
+        { "no": 3, "text": "he" },
+        { "no": 4, "text": "her" },
+        { "no": 5, "text": "Tom’s" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 2, "point_nos": [1], "point_label": "목적격 자리에 오는 말",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 빈칸에 들어갈 말로 어법상 알맞지 않은 것을 고르세요.",
+      "body": ["Mina met ______ at the station yesterday."],
+      "choices": [
+        { "no": 1, "text": "me" },
+        { "no": 2, "text": "you" },
+        { "no": 3, "text": "them" },
+        { "no": 4, "text": "her" },
+        { "no": 5, "text": "our" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 3, "point_nos": [1], "point_label": "앞의 명사를 받는 대명사",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 밑줄 친 부분이 어법상 알맞은 것을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "This is my cat. [[It]] is so soft." },
+        { "no": 2, "text": "Jane is in the garden. [[Her]] is busy." },
+        { "no": 3, "text": "Tom is my classmate. [[His]] from Canada." },
+        { "no": 4, "text": "Sue and I are sisters. [[They]] are very close." },
+        { "no": 5, "text": "Ann and Ben are Mia’s cousins. I know [[they]]." }
+      ],
+      "answer": "①"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 4, "point_nos": [2], "point_label": "소유대명사가 가리키는 것",
+      "question_kind": "빈칸 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "<보기>와 같이 밑줄 친 단어가 가리키는 것이 무엇인지 쓰세요.",
+      "body": [
+        "<보기> It’s not your fault. It’s [[mine]]. → my fault",
+        "(1) It’s his bag, not [[hers]]. → ________",
+        "(2) [[Their]] house is next to [[ours]]. → ________",
+        "(3) These pens are not ours. They are [[theirs]]. → ________"
+      ],
+      "choices": [],
+      "answer": "(1) her bag  (2) our house  (3) their pens"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 5, "point_nos": [1], "point_label": "소유격·주격·목적격",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B), (C)에 어법상 알맞은 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "Mina is ______(A) friend. ______(B) are in the same club.",
+        "She is very kind and funny. Everybody likes ______(C)."
+      ],
+      "choices": [
+        { "no": 1, "text": "me — We — her" },
+        { "no": 2, "text": "me — Us — hers" },
+        { "no": 3, "text": "my — Us — hers" },
+        { "no": 4, "text": "my — We — her" },
+        { "no": 5, "text": "my — We — hers" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 6, "point_nos": [3, 6, 9], "point_label": "nobody+단수 동사, its, 재귀대명사",
+      "question_kind": "짝짓기", "difficulty": "상", "badges": [],
+      "prompt": "다음 중 (A), (B), (C)에 어법상 알맞은 말이 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "• Nobody ______(A) noisy places.",
+        "• This town is famous for ______(B) old temple.",
+        "• Sumi and I took a photo of ______(C)."
+      ],
+      "choices": [
+        { "no": 1, "text": "like — it’s — us" },
+        { "no": 2, "text": "likes — its — ourselves" },
+        { "no": 3, "text": "likes — its — us" },
+        { "no": 4, "text": "like — it’s — ourselves" },
+        { "no": 5, "text": "like — its — us" }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 7, "point_nos": [4, 5], "point_label": "these: 대명사와 형용사로 모두 쓰인다",
+      "question_kind": "빈칸 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 빈칸에 공통으로 들어갈 말로 알맞은 것을 고르세요.",
+      "body": ["• ______ are not my gloves.", "• ______ scissors are Evan’s."],
+      "choices": [
+        { "no": 1, "text": "It" },
+        { "no": 2, "text": "This" },
+        { "no": 3, "text": "That" },
+        { "no": 4, "text": "These" },
+        { "no": 5, "text": "They" }
+      ],
+      "answer": "④"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 8, "point_nos": [6], "point_label": "‘그것’으로 해석하지 않는 it",
+      "question_kind": "다른 하나 고르기", "difficulty": "중", "badges": ["빈출"],
+      "prompt": "다음 중 밑줄 친 It의 쓰임이 다른 하나를 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "[[It]] is raining in Seoul." },
+        { "no": 2, "text": "[[It’s]] already late at night." },
+        { "no": 3, "text": "[[It]] is my favorite movie." },
+        { "no": 4, "text": "Hurry up! [[It]] is 7 o’clock." },
+        { "no": 5, "text": "[[It]] is 3 kilometers to the park." }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 9, "point_nos": [7], "point_label": "one과 ones",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["The shop has only white cups. I need blue one.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "one → ones"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 10, "point_nos": [9], "point_label": "-body는 단수 취급",
+      "question_kind": "어법 고쳐 쓰기", "difficulty": "중", "badges": ["서술형"],
+      "prompt": "다음 문장에서 어법상 알맞지 않은 부분을 찾아 바르게 고쳐 쓰세요.",
+      "body": ["Everybody need a good friend.", "→ ________ → ________"],
+      "choices": [],
+      "answer": "need → needs"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 11, "point_nos": [6], "point_label": "‘그것’으로 해석하지 않는 it",
+      "question_kind": "어법 판단", "difficulty": "상", "badges": ["빈출", "고난도"],
+      "prompt": "다음 중 밑줄 친 It[it]의 쓰임이 같은 것끼리 바르게 짝지어진 것을 고르세요.",
+      "body": [
+        "ⓐ What is it?",
+        "ⓑ It’s too heavy.",
+        "ⓒ It’s April 5th.",
+        "ⓓ It’s winter in Canada.",
+        "ⓔ What time is it now?",
+        "ⓕ Could you pass it to me?"
+      ],
+      "choices": [
+        { "no": 1, "text": "ⓐ, ⓔ, ⓕ" },
+        { "no": 2, "text": "ⓐ, ⓑ, ⓓ" },
+        { "no": 3, "text": "ⓐ, ⓒ, ⓓ" },
+        { "no": 4, "text": "ⓑ, ⓓ, ⓕ" },
+        { "no": 5, "text": "ⓒ, ⓓ, ⓔ" }
+      ],
+      "answer": "⑤"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 12, "point_nos": [8], "point_label": "부정문의 any, 권유의 some",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• We don’t have ______(A) time.", "• I want ______(B) cake for dessert."],
+      "choices": [
+        { "no": 1, "text": "any — any" },
+        { "no": 2, "text": "some — any" },
+        { "no": 3, "text": "any — some" },
+        { "no": 4, "text": "some — some" },
+        { "no": 5, "text": "many — some" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 13, "point_nos": [5, 9], "point_label": "these+복수명사, nothing+단수 동사",
+      "question_kind": "짝짓기", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 (A), (B)에 들어갈 말이 바르게 짝지어진 것을 고르세요.",
+      "body": ["• Look at ______(A) shoes by the door.", "• Nothing ______(B) wrong with my phone."],
+      "choices": [
+        { "no": 1, "text": "this — is" },
+        { "no": 2, "text": "this — are" },
+        { "no": 3, "text": "these — is" },
+        { "no": 4, "text": "these — are" },
+        { "no": 5, "text": "these — were" }
+      ],
+      "answer": "③"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 14, "point_nos": [8, 9], "point_label": "부정문에 nothing을 겹쳐 쓰지 않는다",
+      "question_kind": "어법 판단", "difficulty": "중", "badges": [],
+      "prompt": "다음 중 어법상 알맞지 않은 문장을 고르세요.",
+      "body": [],
+      "choices": [
+        { "no": 1, "text": "Is there anybody in the hall?" },
+        { "no": 2, "text": "We don’t do nothing on Sundays." },
+        { "no": 3, "text": "Would you like some more tea?" },
+        { "no": 4, "text": "Mia visited the museum and took some photos." },
+        { "no": 5, "text": "Dad bought some milk, but he didn’t buy any eggs." }
+      ],
+      "answer": "②"
+    },
+    {
+      "kind": "실전문제", "round": 2, "number": 15, "point_nos": [3, 9], "point_label": "everyone+단수 동사, 재귀대명사",
+      "question_kind": "배열 영작", "difficulty": "상", "badges": ["서술형"],
+      "prompt": "우리말과 일치하도록 주어진 단어를 올바르게 배열하세요. (필요시 단어의 형태를 바꿀 것)",
+      "body": [
+        "(1) 모든 사람은 서로 다른 꿈을 가지고 있다. (different / everyone / a / dream / have)",
+        "→ ______________________________.",
+        "(2) 나는 나 자신에 대한 시를 쓴다. (a poem / about / I / write / me)",
+        "→ ______________________________."
+      ],
+      "choices": [],
+      "answer": "(1) Everyone has a different dream  (2) I write a poem about myself"
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+{
+  "_설명": "기초 9과 형용사와 부사 — 나머지. 부사 만들기, many/much, 빈도부사. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 25,
+      "포인트": "명사에서 형용사로 바꿔 쓰기",
+      "prompt": "두 문장의 내용이 같도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["He is a man of courage.",
+               "= He is a man."],
+      "answer": "courageous",
+      "explanation": "courage의 형용사는 courageous이다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 27,
+      "포인트": "셀 수 있는 명사의 복수형에는 many",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["elder either many oldest",
+               "some any much",
+               "There were ______ stars shining in the sky last",
+               "night."],
+      "answer": "many",
+      "explanation": "stars는 셀 수 있는 명사의 복수형이므로 many가 알맞다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 28,
+      "포인트": "셀 수 없는 명사에는 much",
+      "prompt": "주어진 단어 중 적절한 것을 골라 빈칸에 쓰시오.",
+      "body": ["elder either many oldest",
+               "some any much",
+               "I don’t drink ______ coffee."],
+      "answer": "much",
+      "explanation": "coffee는 셀 수 없는 명사이므로 much가 알맞다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 30,
+      "포인트": "셀 수 있는 명사의 복수형에는 many",
+      "prompt": "올바른 형용사를 고르시오.",
+      "body": ["I borrowed (much, many) magazines yesterday."],
+      "answer": "many",
+      "explanation": "magazines는 셀 수 있는 명사의 복수형이므로 many가 알맞다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 34,
+      "포인트": "부사로 답하기",
+      "prompt": "주어진 부사를 사용하여 물음에 답하시오.",
+      "body": ["How did the firefighters work during the fire?",
+               "(calmly)"],
+      "answer": "They worked calmly during the fire.",
+      "explanation": "‘어떻게’를 묻는 How 의문문이므로 방법을 나타내는 부사를 넣어 답한다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 35,
+      "포인트": "동사를 꾸미는 부사",
+      "prompt": "주어진 단어를 적절한 형태로 고쳐 빈칸을 채우시오.",
+      "body": ["Everybody trusts him because he speaks _____.",
+               "(honestly)"],
+      "answer": "honestly",
+      "explanation": "동사 speaks를 꾸며 주므로 부사를 쓴다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 36,
+      "포인트": "형용사를 꾸밀 때도 부사",
+      "prompt": "주어진 단어를 적절한 형태로 고쳐 빈칸에 쓰시오.",
+      "body": ["He is an _____ talented player. (incredible)"],
+      "answer": "incredibly",
+      "explanation": "형용사 talented를 꾸며 주므로 부사 incredibly로 쓴다. -le로 끝나는 형용사는 e를 빼고 -y를 붙인다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 37,
+      "포인트": "-y로 끝나는 형용사의 부사형",
+      "prompt": "주어진 단어를 적절한 형태로 고쳐 빈칸에 쓰시오.",
+      "body": ["Kevin ran out to catch the bus _____.",
+               "(hurried)"],
+      "answer": "hurriedly",
+      "explanation": "동사 ran을 꾸며 주므로 부사 hurriedly로 쓴다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 39,
+      "포인트": "동사를 꾸미는 부사",
+      "prompt": "주어진 단어를 적절한 형태로 고쳐 빈칸에 쓰시오.",
+      "body": ["“Is my package here yet?” asked the man",
+               "_____. (anxious)"],
+      "answer": "anxiously",
+      "explanation": "동사 asked를 꾸며 주므로 부사 anxiously로 쓴다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 40,
+      "포인트": "동사를 꾸미는 부사",
+      "prompt": "주어진 단어를 적절한 형태로 고쳐 빈칸에 쓰시오.",
+      "body": ["Sam drives his car _____. (careless)"],
+      "answer": "carelessly",
+      "explanation": "동사 drives를 꾸며 주므로 부사 carelessly로 쓴다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 41,
+      "포인트": "부사로 답하기",
+      "prompt": "주어진 부사를 사용하여 물음에 답하시오.",
+      "body": ["How did Peter sing at the concert?(beautifully)"],
+      "answer": "He sang at the concert beautifully.",
+      "explanation": "‘어떻게’를 묻는 How 의문문이므로 방법을 나타내는 부사를 넣어 답한다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 42,
+      "포인트": "동사를 꾸미는 부사",
+      "prompt": "주어진 단어를 적절한 형태로 고쳐 빈칸에 쓰시오.",
+      "body": ["The gardener does his work _____. (patient)"],
+      "answer": "patiently",
+      "explanation": "동사 does를 꾸며 주므로 부사 patiently로 쓴다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 43,
+      "포인트": "동사를 꾸미는 부사",
+      "prompt": "주어진 단어를 적절한 형태로 고쳐 빈칸에 쓰시오.",
+      "body": ["The children laughed _____ at the funny clown.",
+               "(loud)"],
+      "answer": "loudly",
+      "explanation": "동사 laughed를 꾸며 주므로 부사 loudly로 쓴다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_체크체크.pdf", "number": 44,
+      "포인트": "동사를 꾸미는 부사",
+      "prompt": "주어진 단어를 적절한 형태로 고쳐 빈칸에 쓰시오.",
+      "body": ["Emma _____ moved to a new city. (recent)"],
+      "answer": "recently",
+      "explanation": "동사 moved를 꾸며 주므로 부사 recently로 쓴다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_확인문제(1회).pdf", "number": 13,
+      "포인트": "문장 전체를 꾸미는 부사",
+      "prompt": "다음 빈칸에 괄호 안의 단어를 알맞은 형태로 쓰시오.",
+      "body": ["__________, the old bridge collapsed last night.",
+               "(sudden)"],
+      "answer": "Suddenly",
+      "explanation": "문장 전체를 꾸며 주어야 하므로 부사 Suddenly가 알맞다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_확인문제(1회).pdf", "number": 17,
+      "포인트": "빈도부사는 조동사 뒤, 일반동사 앞",
+      "prompt": "다음 괄호 안의 말을 알맞은 곳에 넣어 문장을 다시 쓰시오.",
+      "body": ["I will break my promise. (never)",
+               "→ __________________________________________."],
+      "answer": "I will never break my promise.",
+      "explanation": "never는 빈도부사이므로 조동사 will 뒤에, 일반동사 break 앞에 위치한다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_확인문제(2회).pdf", "number": 12,
+      "포인트": "빈도부사 never는 be동사 뒤에",
+      "prompt": "빈칸을 채우시오.",
+      "body": ["Daniel은 절대 약속에 늦지 않는다.",
+               "→ Daniel is ______ late for appointments."],
+      "answer": "never",
+      "explanation": "‘절대 ~하지 않는다’는 빈도부사 never로 나타내며, be동사 뒤에 위치한다."
+    },
+    {
+      "file": "[기초] 9.형용사와 부사_확인문제(2회).pdf", "number": 15,
+      "포인트": "-thing으로 끝나는 대명사는 형용사가 뒤에서 꾸민다",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 단어를 이용하여 문장을 완성하시오.",
+      "body": ["나는 시원한 어떤 것을 원해. (cool)",
+               "→ I want _________________________."],
+      "answer": "something cool",
+      "explanation": "‘어떤 것’에 해당하는 단어는 something이고, 이와 같이 -thing으로 끝나는 대명사는 형용사가 뒤에서 꾸며 준다."
+    }
+  ]
+}

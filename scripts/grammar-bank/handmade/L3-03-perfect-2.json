@@ -1,0 +1,173 @@
+{
+  "_설명": "심화 3과 완료시제 — 나머지. 과거완료와 현재완료진행. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 22,
+      "포인트": "과거완료 had + p.p.",
+      "prompt": "다음 밑줄 친 곳에 괄호 안의 단어를 사용하여 알맞은 말을 쓰시오.",
+      "body": ["When I got to the station, the train _______",
+               "already __________. (depart)"],
+      "answer": "had, departed",
+      "explanation": "역에 도착한 시점보다 기차가 떠난 것이 더 이전이므로 과거완료시제를 사용하여 문장을 완성한다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 25,
+      "포인트": "과거완료 had + p.p.",
+      "prompt": "두 문장을 한 문장으로 바꿔 쓸 때 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["The concert started at 8:00 pm. My sister",
+               "showed up at 8:15 pm.",
+               "→ The concert _______ _______ before my sister",
+               "showed up."],
+      "answer": "had started",
+      "explanation": "언니가 도착한 시점보다 공연이 시작된 것이 더 이전이므로 과거완료를 사용하여 빈칸을 완성한다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 29,
+      "포인트": "주절이 종속절보다 앞서면 과거완료",
+      "prompt": "두 문장의 의미와 같은 한 문장이 되도록 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["I opened the door.",
+               "The meeting began.",
+               "→ The meeting when I",
+               "opened the door."],
+      "answer": "had begun",
+      "explanation": "종속절의 시제보다 한 시제 앞서야 하므로 빈칸에 과거완료 시제를 써야 한다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 33,
+      "포인트": "현재완료진행 has been + v-ing",
+      "prompt": "괄호에 주어진 것 중 적절한 것을 고르시오.",
+      "body": ["It has been (snowing, snowed)."],
+      "answer": "snowing",
+      "explanation": "‘눈이 계속 내리고 있다’는 현재완료진행이므로 「has been + v-ing」의 형태를 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 34,
+      "포인트": "현재완료진행의 부정은 have not been",
+      "prompt": "괄호에 주어진 것 중 적절한 것을 고르시오.",
+      "body": ["She (has not been, has been not) studying for",
+               "two hours."],
+      "answer": "has not been",
+      "explanation": "부정어 not은 has 바로 뒤에 놓이므로 has not been이 알맞다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 37,
+      "포인트": "과거완료진행을 현재완료진행으로",
+      "prompt": "주어진 조건에 맞게 문장을 바꿔 쓰시오.",
+      "body": ["They had been waiting for many hours. (Use",
+               "the present perfect continuous tense.)"],
+      "answer": "They have been waiting for many hours.",
+      "explanation": "과거완료진행 had been v-ing를 현재완료진행 have been v-ing로 바꾼다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 38,
+      "포인트": "지금 하고 있는 일은 현재진행",
+      "prompt": "현재완료시제 또는 현재진행시제 중 적절한 형태로 빈칸을 채우시오.",
+      "body": ["The boys _____ (search) for a quiet place to",
+               "study."],
+      "answer": "are searching",
+      "explanation": "지금 하고 있는 동작을 나타내므로 현재진행시제 「are + v-ing」를 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 39,
+      "포인트": "지금 하고 있는 일은 현재진행",
+      "prompt": "현재완료시제 또는 현재진행시제 중 적절한 형태로 빈칸을 채우시오.",
+      "body": ["Please do not wake my parents, they",
+               "_____ (sleep)."],
+      "answer": "are sleeping",
+      "explanation": "지금 자고 있는 상태를 나타내므로 현재진행시제 「are + v-ing」를 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 42,
+      "포인트": "How long have you been v-ing?",
+      "prompt": "우리말을 영어로 바르게 옮기세요.",
+      "body": ["피아노를 배운지 얼마나 됐나요?",
+               "→"],
+      "answer": "How long have you been learning the piano?",
+      "explanation": "「have been + v-ing」의 현재완료진행은 과거 시점에서 현재까지 지속되는 행동을 의미한다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 43,
+      "포인트": "It has been v-ing for + 기간",
+      "prompt": "우리말을 영어로 바르게 옮기세요.",
+      "body": ["5일 동안 눈이 오고 있다.",
+               "→"],
+      "answer": "It has been snowing for 5 days.",
+      "explanation": "과거에서 현재까지 지속적인 일을 말하므로 현재완료진행을 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 45,
+      "포인트": "현재완료진행 has been v-ing",
+      "prompt": "아래 주어진 두 문장을 한 문장으로 바꿀 경우 빈칸에 들어갈 알맞은 시제를 쓰시오.",
+      "body": ["Jian is painting a picture in the studio.",
+               "She started painting the picture 3 hours ago.",
+               "⇒ Jian _______ _______ ______ a picture in the",
+               "studio for 3 hours."],
+      "answer": "has been painting",
+      "explanation": "과거부터 지금까지 계속되고 있는 동작을 나타내므로 현재완료진행형 「have/has been + v-ing」를 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 47,
+      "포인트": "과거완료의 경험 부정 had never p.p.",
+      "prompt": "완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["그는 10살이 될 때까지 결코 비행기를 타 본 적이 없",
+               "었다.",
+               "→ He ______ ______ ______ a plane until he was",
+               "10 years old."],
+      "answer": "had never taken",
+      "explanation": "과거의 어느 시점까지의 경험을 말하므로 과거완료를 쓰고, never는 had와 과거분사 사이에 놓는다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 48,
+      "포인트": "과거완료 had + p.p.",
+      "prompt": "완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["내가 도착했을 때 손님들은 이미 떠나고 없었다.",
+               "→ When I arrived, the guests ______ already",
+               "______."],
+      "answer": "had, left",
+      "explanation": "내가 도착한 시점보다 손님들이 떠난 것이 더 이전이므로 과거완료를 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_체크체크.pdf", "number": 49,
+      "포인트": "과거보다 앞선 경험은 과거완료",
+      "prompt": "다음 우리말의 뜻이 되도록 빈칸에 들어갈 알맞은 말을 쓰세요.",
+      "body": ["나는 그 책을 절반쯤 읽고 나서야, 전에 이 책을 읽은",
+               "적이 있다는 것을 알아차렸다.",
+               "After I read about half of the book, I noticed",
+               "that I _____ it before."],
+      "answer": "had read",
+      "explanation": "책을 읽다가(read) 알아차린 것(noticed)보다 ‘이전에’ 읽은 것이므로 read와 noticed보다 앞선 시제, 즉 had p.p. 형태를 써야 한다."
+    },
+    {
+      "file": "[심화] 3.완료시제_확인문제(1회).pdf", "number": 9,
+      "포인트": "현재완료진행 has been v-ing",
+      "prompt": "다음의 두 문장을 하나의 문장으로 만들기 위해 필요한 단어들을 밑줄 친 부분에 쓰시오.",
+      "body": ["▪ Mike began to practice the guitar three hours",
+               "ago.",
+               "▪ Mike is still practicing now.",
+               "→ Mike _______________ the guitar for three",
+               "hours."],
+      "answer": "has been practicing",
+      "explanation": "현재완료진행 구문이므로 ‘have(has) been v-ing’를 사용한다."
+    },
+    {
+      "file": "[심화] 3.완료시제_확인문제(2회).pdf", "number": 15,
+      "포인트": "과거완료 had + p.p.",
+      "prompt": "과거완료시제를 사용하여 빈칸을 채우시오.",
+      "body": ["The chef _____ (prepare) the dishes before the",
+               "customers came in."],
+      "answer": "had prepared",
+      "explanation": "손님들이 들어온 시점보다 요리를 준비한 것이 더 이전이므로 과거완료를 쓴다."
+    },
+    {
+      "file": "[심화] 3.완료시제_확인문제(2회).pdf", "number": 18,
+      "포인트": "현재완료진행 have been v-ing",
+      "prompt": "다음의 두 문장을 합쳐 주어진 우리말과 같은 의미가 되도록 영작하시오.",
+      "body": ["I started to read a novel two hours ago.",
+               "I’m still reading it now.",
+               "→ ______ ______ ______ ______ ______ ______ for",
+               "two hours. (나는 소설을 두 시간째 읽고 있다.)"],
+      "answer": "I have been reading a novel",
+      "explanation": "과거에 일어난 일이 현재에도 계속될 때 현재완료진행형(have/has + been + ~ing)을 써서 나타낸다."
+    }
+  ]
+}

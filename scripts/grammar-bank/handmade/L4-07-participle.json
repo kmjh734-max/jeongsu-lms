@@ -1,0 +1,106 @@
+{
+  "_설명": "완성 7과 분사 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 7.분사_종합문제(1회).pdf", "number": 29,
+      "포인트": "과거분사의 명사 수식 / 분사구문 / with + 명사 + 분사",
+      "prompt": "우리말과 같은 뜻이 되도록 괄호 안의 단어들을 사용하여 분사구문으로 완성하시오. (필요시, 어형변형 가능)",
+      "body": ["<보기>",
+               "⑴ 여기 유명한 화가로부터 그려진 그림이 있다. (picture,",
+               "paint)",
+               "→ Here is a __________________ by the famous",
+               "painter.",
+               "⑵ 혼자 공부하기 때문에 그는 음악을 자주 듣는다. (study,",
+               "alone)",
+               "→ __________________, he often listens to music.",
+               "⑶ 음악이 흘렀고, 그의 발이 박자를 맞췄다. (with, his",
+               "feet, tap)",
+               "→ The music played _____________________________."],
+      "answer": "⑴ picture painted ⑵ Studying alone ⑶ with his feet tapping",
+      "explanation": "⑴ 문맥상 ‘그려진 그림’이라는 수동의 의미이므로 과거분사를 써서 ‘picture painted’로 쓴다. ⑵ 이유를 나타내는 부사절을 분사구문으로 바꾸면 Studying alone이 된다. ⑶ 「with + 명사 + 분사」에서 명사와 분사가 능동 관계이면 현재분사를 쓴다."
+    },
+    {
+      "file": "[완성] 7.분사_종합문제(2회).pdf", "number": 5,
+      "포인트": "get + 목적어 + 과거분사",
+      "prompt": "다음 문장의 밑줄 친 부분을 올바른 형태로 변형하시오.",
+      "body": ["We will never get all these boxes [[move]] in time.",
+               "→ __________"],
+      "answer": "moved",
+      "explanation": "‘우리는 이 상자들을 제시간에 다 옮기지 못할 것이다’라는 의미로, 상자는 옮겨지는 대상이므로 밑줄 친 move는 수동을 뜻하는 과거분사 moved로 써야 한다."
+    },
+    {
+      "file": "[완성] 7.분사_종합문제(2회).pdf", "number": 9,
+      "포인트": "동시동작을 나타내는 부대상황 분사구문",
+      "prompt": "다음 두 문장의 뜻이 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["He cooked dinner, as he was humming to himself.",
+               "= He cooked dinner, ________________ to himself."],
+      "answer": "(being) humming",
+      "explanation": "‘그는 혼자 흥얼거리면서 저녁을 만들었다’는 의미로 동시동작을 나타내는 부대상황의 분사구문이다. 빈칸에는 접속사와 주어를 생략하고 동사를 분사로 바꾼 형태가 들어간다."
+    },
+    {
+      "file": "[완성] 7.분사_확인문제(1회).pdf", "number": 6,
+      "포인트": "이유를 나타내는 부사절을 분사구문으로 바꾸기",
+      "prompt": "주어진 문장과 의미가 같도록 한 단어로 영작하시오.",
+      "body": ["Because she was watching a movie, she couldn’t",
+               "hear the doorbell.",
+               "→ _________________ a movie, she couldn’t hear",
+               "the doorbell."],
+      "answer": "Watching",
+      "explanation": "분사구문을 만들 때는 접속사를 생략할 수 있고, 부사절과 주절의 주어가 같을 때 주어를 생략한다. 그다음 동사를 현재분사로 바꾼다."
+    },
+    {
+      "file": "[완성] 7.분사_확인문제(1회).pdf", "number": 10,
+      "포인트": "조건을 나타내는 분사구문을 부사절로 바꾸기",
+      "prompt": "밑줄 친 분사구문을 부사절로 바꾸어 쓰시오.",
+      "body": ["[[Wearing this jacket every day]], you will stay",
+               "warm all winter.",
+               "__________________________________________"],
+      "answer": "If you wear this jacket every day",
+      "explanation": "분사구문과 주절의 논리관계를 살펴보면 ‘재킷을 입는 것’은 조건을 나타내는 분사구문임을 알 수 있다. 따라서 조건을 나타내는 접속사 If를 써서 부사절로 바꾼다."
+    },
+    {
+      "file": "[완성] 7.분사_확인문제(1회).pdf", "number": 13,
+      "포인트": "완료 분사구문의 수동형 Having been p.p.",
+      "prompt": "빈칸에 들어갈 말을 주어진 단어를 활용하여 세 단어로 쓰시오.(필요시, 변형 가능)",
+      "body": ["_______ by a bee, he is afraid of a fly.",
+               "______________________________________(sting)"],
+      "answer": "Having been stung",
+      "explanation": "벌에 쏘인 것(분사구문)이 파리를 두려워하게 된 것(주절)보다 더 이전의 일이므로 완료 분사구문을 사용해야 한다. 쏘인 것은 수동이므로 「Having been + p.p.」로 쓴다."
+    },
+    {
+      "file": "[완성] 7.분사_확인문제(1회).pdf", "number": 15,
+      "포인트": "with + 명사 + 과거분사",
+      "prompt": "우리말과 의미가 같도록 주어진 단어를 활용하여 빈칸에 알맞은 표현을 쓰시오.",
+      "body": ["그는 팔짱을 낀 채로, 문 옆에 서 있는 중이다.",
+               "→ He is standing by the door _____________",
+               "_____________________________. (with)"],
+      "answer": "with his arms folded",
+      "explanation": "「with + 명사 + 분사」는 ‘명사가 ~한 채로’라는 의미로, 명사와 분사가 수동의 관계이면 과거분사를 쓴다. 팔은 끼워지는 대상이므로 folded를 쓴다."
+    },
+    {
+      "file": "[완성] 7.분사_확인문제(2회).pdf", "number": 6,
+      "포인트": "분사구문의 부정형 Not + 분사",
+      "prompt": "주어진 문장의 의미가 서로 같도록 빈 칸을 완성하시오.",
+      "body": ["As Emma didn’t know how to use the new machine,",
+               "she asked for help.",
+               "→ _________ _________ _________ _________",
+               "_________ _________ _________, _________ asked",
+               "for help."],
+      "answer": "Not knowing how to use the new machine, Emma",
+      "explanation": "부사절을 분사구문으로 만드는 방법은 (a) 접속사 생략, (b) 부사절의 주어가 주절의 주어와 같을 경우 부사절의 주어 생략, (c) 동사를 분사로 바꾸기이다. 분사구문의 부정은 분사 앞에 not을 쓴다."
+    },
+    {
+      "file": "[완성] 7.분사_확인문제(2회).pdf", "number": 13,
+      "포인트": "과거분사로 시작하는 분사구문 배열",
+      "prompt": "우리말과 의미가 같도록 <보기>의 단어를 배열하여 문장을 완성하시오.",
+      "body": ["<보기> Mina, is, living, born, used, not, to, in",
+               "Jeju, in a big city",
+               "Jeju에서 태어나서 Mina는 큰 도시에 사는 것이 익숙하",
+               "지 않다.",
+               "→ __________________________________________",
+               "______________________________________________."],
+      "answer": "Born in Jeju, Mina is not used to living in a big city.",
+      "explanation": "Mina가 큰 도시에 사는 것이 익숙하지 않은 이유는 그녀가 Jeju에서 태어났기 때문이다. 태어나는 것은 수동이므로 과거분사 Born으로 시작하는 분사구문을 쓴다. 「be used to + V-ing」는 ‘~하는 데 익숙하다’라는 뜻이다."
+    }
+  ]
+}

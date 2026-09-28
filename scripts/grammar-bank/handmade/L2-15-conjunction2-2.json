@@ -1,0 +1,112 @@
+{
+  "_설명": "기본 15과 접속사[2] — 나머지. before/after, so/because, although. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 30,
+      "포인트": "양보의 접속사 Though",
+      "prompt": "우리말과 뜻이 되도록 빈칸에 들어갈 말을 쓰세요.",
+      "body": ["지호와 나, 둘 다 시험 준비가 되어 있었는데도 나만",
+               "뽑혔다.",
+               "__________ Jiho and I were _____ for the test,",
+               "only I got chosen."],
+      "answer": "Though, ready",
+      "explanation": "‘지호와 내가 둘 다 준비되어 있었음에도 불구하고’이므로 접속사는 though를 쓰고, ‘시험 준비가 되어 있다’는 be ready for the test이므로 빈칸에는 ready를 쓴다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 33,
+      "포인트": "양보의 접속사 although",
+      "prompt": "다음 although나 since를 사용하여 문장을 완성하세요.",
+      "body": ["I didn’t answer the phone, I’d seen his",
+               "name on the screen."],
+      "answer": "although",
+      "explanation": "화면에서 그의 이름을 보았음[[에도]] 전화를 받지 않았다는 뜻이므로 양보의 although가 알맞다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 35,
+      "포인트": "~한 후에 after",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["우리는 숙제를 끝낸 후에 게임을 했다.",
+               "→ We played games ________ we finished our",
+               "homework."],
+      "answer": "after",
+      "explanation": "‘~한 후에’의 의미를 나타내는 접속사는 after이다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 36,
+      "포인트": "before 문장을 after 문장으로",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["I wash my hands before I eat lunch.",
+               "→ I eat lunch __________ I wash my hands."],
+      "answer": "after",
+      "explanation": "‘점심을 먹기 전에 손을 씻는다’는 ‘손을 씻은 후에 점심을 먹는다’로 바꿔 쓸 수 있으므로 after가 알맞다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 39,
+      "포인트": "before + 주어 + 동사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["나는 도서관에 가기 전에 항상 목록을 적는다.",
+               "(go to, before, the library, I)",
+               "→ I always write a list _______________."],
+      "answer": "before I go to the library",
+      "explanation": "‘~하기 전에’라는 의미의 시간 접속사는 before이고 「before + 주어 + 동사 ~」의 어순으로 쓴다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 40,
+      "포인트": "문맥에 맞는 시간 접속사",
+      "prompt": "어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["You should return the books after the library",
+               "closes."],
+      "answer": "after → before",
+      "explanation": "도서관이 닫기 전에 책을 반납해야 하므로 ‘~ 후에’라는 의미의 after를 ‘~ 전에’라는 의미의 before로 고친다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 43,
+      "포인트": "결과를 나타내는 접속사 so",
+      "prompt": "다음 우리말과 의미가 같도록 빈칸에 알맞은 접속사를 쓰시오.",
+      "body": ["그녀는 늦잠을 자서 버스를 놓쳤다.",
+               "→ She overslept, _______ she missed the bus."],
+      "answer": "so",
+      "explanation": "‘~하다. 그래서 …’의 의미로 ‘결과’의 내용 앞에 접속사 so를 쓴다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 44,
+      "포인트": "「이유, so + 결과」 = 「결과 + because + 이유」",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["The concert was sold out, so Emma watched a",
+               "movie.",
+               "= Emma watched a movie _________________________."],
+      "answer": "because the concert was sold out",
+      "explanation": "「이유, so + 결과」는 「결과 + because + 이유」로 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 45,
+      "포인트": "조건의 부사절에서는 현재시제가 미래를 대신한다",
+      "prompt": "다음 밑줄 친 부분을 어법상 알맞은 형태로 고쳐 쓰시오.",
+      "body": ["If I [[will move]] to the countryside, I will grow",
+               "vegetables."],
+      "answer": "move",
+      "explanation": "조건의 부사절에서는 미래를 현재시제로 표현하므로 move로 고쳐야 옳다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_체크체크.pdf", "number": 46,
+      "포인트": "양보의 접속사 Although",
+      "prompt": "다음 두 문장의 의미가 같도록 빈칸에 알맞은 말을 쓰시오.",
+      "body": ["She is very young, but she takes care of her",
+               "brother well.",
+               "= ___________ she is very young, she takes care",
+               "of her brother well."],
+      "answer": "Although",
+      "explanation": "‘비록 ~일지라도’의 양보의 의미를 갖는 접속사로는 although, though, even though, even if가 있다."
+    },
+    {
+      "file": "[기본] 15.접속사[2]_확인문제(2회).pdf", "number": 18,
+      "포인트": "Although + 주어 + 동사 배열",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 바르게 배열하시오.",
+      "body": ["그들은 최선을 다했지만 졌다.",
+               "(their, they, did, although, best)",
+               "→ _______________________, they lost."],
+      "answer": "Although they did their best",
+      "explanation": "‘비록 ~이지만’의 의미로 ‘양보’를 나타낼 때 접속사 although로 표현한다."
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "_설명": "완성 8과 접속사 — 상관접속사 수일치, 부사절 접속사. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 1,
+      "포인트": "and로 연결된 것은 같은 꼴이어야 한다",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["Careful reading and steady practice build",
+               "confidence and improving scores.",
+               "___________________ → ___________________"],
+      "answer": "improving → improve",
+      "explanation": "주어는 ‘Careful reading and steady practice’이고 ‘build confidence’와 ‘improve scores’가 「동사구 + and + 동사구」로 연결되어야 한다. 따라서 improving을 improve로 바꾸어야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 2,
+      "포인트": "neither는 nor와 짝을 이룬다",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["When she saw the accident, she neither",
+               "screamed or called for help.",
+               "___________________ → ___________________"],
+      "answer": "or → nor",
+      "explanation": "「neither A nor B」는 ‘A도 아니고 B도 아니다’라는 뜻으로 쓰인다. 따라서 or를 nor로 바꾸어야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 4,
+      "포인트": "시간의 부사절에서는 현재시제가 미래를 대신한다",
+      "prompt": "다음 문장이 어법에 맞도록 올바른 문장으로 고쳐 쓰시오.",
+      "body": ["It will be cold and windy while we will be on",
+               "the trip.",
+               "→ It will be cold and windy ________________",
+               "_________________________________________."],
+      "answer": "while we are on the trip",
+      "explanation": "시간을 나타내는 부사절에서는 미래 시제 대신에 현재 시제를 써야 한다. 따라서 접속사 while이 쓰인 종속절의 미래 시제를 현재 시제인 are로 바꿔서 써야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 5,
+      "포인트": "동격의 명사절을 이끄는 that",
+      "prompt": "밑줄 친 부분을 어법에 맞게 고쳐 쓰시오.",
+      "body": ["There is a report [[which]] the company may",
+               "close its factory."],
+      "answer": "that",
+      "explanation": "밑줄 친 부분부터 문장 끝까지는 완전한 절로 a report의 내용을 설명하는 역할을 한다. 관계대명사는 불완전한 절을 이끌기 때문에 which를 사용할 수 없고, 동격을 이끄는 명사절 종속접속사 that이 와야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 6,
+      "포인트": "‘~라는 것’은 that, ‘~인지 아닌지’는 whether",
+      "prompt": "밑줄 친 부분을 어법에 맞게 고쳐 쓰시오.",
+      "body": ["Researchers have shown [[whether]] regular",
+               "exercise is good for the heart."],
+      "answer": "that",
+      "explanation": "연구자들이 규칙적인 운동이 심장에 좋다는 것을 밝혔다는 내용이므로 whether(~인지 아닌지)가 아닌 접속사 that이 와야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 7,
+      "포인트": "not only A but also B는 B에 동사를 맞춘다",
+      "prompt": "다음 문장에서 어법상 [[어색한]]부분을 찾아 바르게 고쳐 쓰시오.",
+      "body": ["Not only she but also her brothers has to clean",
+               "the classroom today.",
+               "___________________ → ___________________"],
+      "answer": "has → have",
+      "explanation": "「not only A but also B」는 ‘A뿐만 아니라 B도’라는 의미이다. 주어로 쓰일 경우에는 B에 동사 수일치를 시킨다. 따라서 her brothers가 복수이므로 has를 have로 바꾸어야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 8,
+      "포인트": "both A and B는 복수 취급",
+      "prompt": "다음 문장에서 어법상 [[어색한]]한 단어를 찾아 바르게 고쳐 쓰시오.",
+      "body": ["Both Mina and Jiho wants to join the science",
+               "club.",
+               "___________________ → ___________________"],
+      "answer": "wants → want",
+      "explanation": "「both A and B」는 ‘A와 B 둘 다’라는 의미이므로 주어로 쓰일 때는 항상 복수로 취급한다. 따라서 복수 동사를 써야 하므로 wants를 want로 고쳐야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 11,
+      "포인트": "neither A nor B는 B에 동사를 맞춘다",
+      "prompt": "괄호 안에주어진 단어들을 활용하여 우리말에 맞게 올바르게 영작하시오.",
+      "body": ["행운도 재능도 전부가 아니라는 것을 명심하는 것이",
+               "현명하다. (luck, talent, everything)",
+               "→ It is wise to keep in mind that _____________",
+               "______________________________________________."],
+      "answer": "neither luck nor talent is everything",
+      "explanation": "행운도 재능도 전부가 아니라고 하였으므로 「neither A nor B」를 써서 ‘A도 B도 아니다’라는 의미로 영작할 수 있다. 동사는 B에 일치시키므로 단수 be동사인 is를 쓰면 된다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 12,
+      "포인트": "unless — ~하지 않는다면",
+      "prompt": "괄호 안에 주어진 단어를 사용하여 우리말에 맞게 빈칸에 들어갈 말을 [[4단어]]로 영작하시오.",
+      "body": ["특별한 일이 생기지 않는다면, 나는 내일 일찍 출발할",
+               "것이다. (unless)",
+               "→ __________________________________________,",
+               "I’ll leave early tomorrow."],
+      "answer": "Unless something special happens",
+      "explanation": "‘~하지 않는다면’의 의미를 가지는 접속사는 unless이다. 조건의 부사절에서는 미래 시제 대신에 현재 시제를 써야 하므로 happens를 써야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 13,
+      "포인트": "as soon as — ~하자마자",
+      "prompt": "괄호 안에 주어진 단어들을 사용하여 우리말에 맞게 빈칸에 들어갈 말을 영작하시오.",
+      "body": ["천둥소리를 듣자마자 그 아이는 엄마에게 달려갔다.",
+               "(soon, hear)",
+               "→ The child ran to her mother ____________",
+               "______________________________________________."],
+      "answer": "as soon as she heard the thunder",
+      "explanation": "‘~하자마자’라는 뜻을 가지고 soon이 들어가는 접속사는 ‘as soon as’이다. 앞에 나온 주어 the child를 중복해서 쓰지 않도록 접속사절의 주어 자리에 대명사 she를 쓸 수 있다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 14,
+      "포인트": "once — 일단 ~하면",
+      "prompt": "괄호 안에 주어진 단어들을 활용하여 밑줄 친 부분을 [[6단어]]로 영작하시오.",
+      "body": ["[[일단 그가 무언가를 하기로 약속하면]], 너는 그를 믿어",
+               "도 된다. (promise, something)",
+               "→ _________________________________________,",
+               "you can trust him."],
+      "answer": "Once he promises to do something",
+      "explanation": "접속사 once는 조건을 나타내는 부사절을 이끄는 종속 접속사로 ‘일단 ~하면’이라는 뜻이다. ‘~하기로 약속하다’는 「promise + to부정사」로 쓴다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 17,
+      "포인트": "every time — ~할 때마다",
+      "prompt": "주어진 우리말에 맞게 빈칸에 들어갈 말을 쓰시오.",
+      "body": ["실수를 할 때마다 네가 배우고 있다는 것을 기억해라.",
+               "→ __________ __________ you make a mistake,",
+               "remember that you are learning."],
+      "answer": "Every time",
+      "explanation": "‘~할 때마다’라는 뜻을 가진 종속 접속사는 every time과 whenever가 있다. 빈칸이 2개이므로 두 단어의 접속사인 every time이 적절하다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 18,
+      "포인트": "not only A but (also) B",
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 말을 순서대로 쓰시오.",
+      "body": ["매일 아침 걷는 것은 당신을 건강하게 만들 뿐만 아니",
+               "라 당신의 기분도 좋게 한다.",
+               "→ Walking every morning __________ makes",
+               "you healthy __________ lifts your mood."],
+      "answer": "not only, but (also)",
+      "explanation": "「not only A but also B」는 ‘A뿐만 아니라 B 또한’이라는 의미이고 also는 생략이 가능하다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 19,
+      "포인트": "both A and B는 복수 취급",
+      "prompt": "괄호 안의 단어를 활용하여 빈칸을 올바른 형태로 채우시오.",
+      "body": ["You should rest since both your eyes and",
+               "shoulders ____________________ not fine. (be)"],
+      "answer": "are",
+      "explanation": "「both A and B」는 ‘A와 B 둘 다’라는 의미이므로 주어로 쓰일 때는 항상 복수로 취급한다. 따라서 빈칸에는 복수 be동사인 are가 들어가야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 20,
+      "포인트": "양보의 접속사 although",
+      "prompt": "빈칸에 들어갈 한 단어를 쓰시오.",
+      "body": ["__________ I respect your opinion, I’m afraid",
+               "that I can’t agree with you."],
+      "answer": "Although",
+      "explanation": "의견을 존중함에도 불구하고 동의할 수 없다는 내용이므로, ‘비록 ~지만, 그럼에도 불구하고’라는 의미를 가지는 양보를 나타내는 종속 접속사 although를 써야 한다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 21,
+      "포인트": "as — ~함에 따라, ~할수록",
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 한 단어를 쓰시오.",
+      "body": ["그 기차가 멀어질수록, 기적 소리는 점점 작아졌다.",
+               "→ ________________ the train moved away, the",
+               "sound of the whistle grew fainter."],
+      "answer": "As",
+      "explanation": "‘~함에 따라, ~할수록’이라는 의미를 가진 종속 접속사는 as이다."
+    },
+    {
+      "file": "[완성] 8.접속사_체크체크.pdf", "number": 22,
+      "포인트": "as long as — ~하는 한",
+      "prompt": "우리말과 일치하도록 빈칸에 들어갈 [[세 단어]]를 쓰시오.",
+      "body": ["그가 이 방에 있는 한, 우리는 조용히 해야 한다.",
+               "→ ________________________ he is in this room,",
+               "we have to keep quiet."],
+      "answer": "As long as",
+      "explanation": "‘~하는 한’이라는 의미의 조건의 종속 접속사는 ‘as long as’이다."
+    }
+  ]
+}

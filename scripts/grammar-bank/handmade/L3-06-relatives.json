@@ -1,0 +1,48 @@
+{
+  "_설명": "심화 6과 관계사 — 서술형 딱지가 붙었는데 규칙으로는 못 바꾼 문항들. 문법 포인트는 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[심화] 6.관계사_종합문제(1회).pdf", "number": 1,
+      "포인트": "계속적 용법의 관계대명사 which와 who",
+      "prompt": "빈칸에 알맞은 말을 차례로 쓰시오.",
+      "body": ["This is the Starry Night, _________ was painted",
+               "by Vincent van Gogh.",
+               "This is Jang Yeong-sil, _________ invented the",
+               "rain gauge.",
+               "This is Big Ben, _________ is in London."],
+      "answer": "which, who, which",
+      "explanation": "계속적 용법의 관계대명사는 제한적 용법과 달리 선행사를 수식하지 않고 ‘~했는데, 그 사람이(그 사물이) …’처럼 앞말을 보충 설명한다. 선행사가 사물이면 which, 사람이면 who를 쓰며, 계속적 용법에서는 that을 쓸 수 없다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(1회).pdf", "number": 23,
+      "포인트": "장소를 나타내는 관계부사 where",
+      "prompt": "다음 관계부사를 이용하여 두 문장을 한 문장으로 연결하여 쓰시오.",
+      "body": ["I’d like to visit the village.",
+               "I was raised in the village.",
+               "→ ___________________________________________."],
+      "answer": "I’d like to visit the village where I was raised.",
+      "explanation": "선행사가 장소를 나타내므로 관계부사 where를 사용하여 연결한다. 관계부사 where가 부사구 ‘in the village’를 대신하므로 전치사와 명사를 다시 쓰지 않는다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(1회).pdf", "number": 24,
+      "포인트": "복합관계부사 whenever",
+      "prompt": "두 문장이 같은 뜻이 되도록 빈칸에 알맞은 말을 넣으시오.",
+      "body": ["You can borrow these books every time you need",
+               "them.",
+               "= You can borrow these books [[w]] you need",
+               "them."],
+      "answer": "whenever",
+      "explanation": "‘whenever~’는 복합관계부사로 ‘~할 때면 언제든지’라는 뜻이며, every time과 바꿔 쓸 수 있다."
+    },
+    {
+      "file": "[심화] 6.관계사_종합문제(1회).pdf", "number": 30,
+      "포인트": "앞 절 전체를 선행사로 받는 계속적 용법의 which",
+      "prompt": "다음을 관계대명사를 사용하여 영어로 쓰시오.",
+      "body": ["Minho는 새 자전거를 샀는데, 그것은 우리를 놀라게",
+               "했다.",
+               "→ ___________________________________________"],
+      "answer": "Minho bought a new bike, which surprised us.",
+      "explanation": "계속적 용법에서는 앞 문장 전체를 선행사로 받을 수 있으며, 이때 관계대명사로는 which를 쓴다. 선행사가 절이므로 뒤따르는 동사는 단수형으로 쓴다."
+    }
+  ]
+}

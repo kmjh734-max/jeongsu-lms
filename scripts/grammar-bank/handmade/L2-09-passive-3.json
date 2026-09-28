@@ -1,0 +1,289 @@
+{
+  "_설명": "기본 9과 수동태와 능동태 — 보기 순서만 섞여 있던 객관식을 손으로 새로 썼다. 묻는 것과 푸는 방법은 그대로 두고 문장과 보기를 바꿨다.",
+  "문항": [
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 1,
+      "포인트": "by 대신 다른 전치사를 쓰는 수동태",
+      "prompt": "주어진 문장을 바꿔 쓴 것 중 옳은 것은?",
+      "body": [],
+      "choices": ["Everyone in this village knows her. → She is known to everyone in this village.",
+                  "Owen will invite the girl to his party. → His party will be invited to the girl.",
+                  "Korean food interests me. → I am interested by Korean food.",
+                  "Dust covered the desk. → The desk is covered with dust.",
+                  "We will always help our friends. → Our friends are always helped by us."],
+      "answer": "①",
+      "explanation": "be known to는 ‘~에게 알려져 있다’는 뜻이다. ②는 목적어가 잘못되었고 ③은 in, ④는 시제, ⑤는 will이 빠졌다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 2,
+      "포인트": "과거 수동태 was + 과거분사",
+      "prompt": "다음 대화에 빈칸에 들어갈 말로 가장 알맞은 것은?",
+      "body": ["A : Who painted the Mona Lisa?",
+               "B : The Mona Lisa _____________ by Leonardo da Vinci."],
+      "choices": ["is paint", "was paint", "was painted",
+                  "were painted", "were paint"],
+      "answer": "③",
+      "explanation": "주어가 단수이고 과거의 일이므로 「was + 과거분사」로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 11,
+      "포인트": "수동태를 능동태로 바꾸기",
+      "prompt": "다음 주어진 문장과 의미가 같은 것은?",
+      "body": ["Rice is grown in many parts of Asia."],
+      "choices": ["Rice grew by us in many parts of Asia.",
+                  "People grow rice in many parts of Asia.",
+                  "People grew rice in many parts of Asia.",
+                  "Rice is grown to us in many parts of Asia.",
+                  "People are grown rice in many parts of Asia."],
+      "answer": "②",
+      "explanation": "행위자가 드러나지 않은 수동태는 People을 주어로 하는 능동태로 바꿀 수 있고, 시제는 현재 그대로 둔다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 13,
+      "포인트": "was + 과거분사 + by + 행위자",
+      "prompt": "다음 우리말을 바르게 영작한 것은?",
+      "body": ["그 교실의 창문은 Owen에 의해 닦여졌다."],
+      "choices": ["The window of the classroom cleaned by Owen.",
+                  "Owen was cleaned the window of the classroom.",
+                  "The window of the classroom was cleaned Owen.",
+                  "Owen was cleaned by the window of the classroom.",
+                  "The window of the classroom was cleaned by Owen."],
+      "answer": "⑤",
+      "explanation": "「주어 + be동사 + 과거분사 + by + 행위자」의 순서로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 19,
+      "포인트": "능동태를 수동태로 바꾸기",
+      "prompt": "다음 주어진 문장을 수동태로 바르게 고쳐 쓴 것은?",
+      "body": ["The city built the bridge across the river."],
+      "choices": ["The city built across the river by the bridge.",
+                  "The bridge built across the river by the city.",
+                  "The city was built across the river by the bridge.",
+                  "The bridge had built across the river by the city.",
+                  "The bridge was built across the river by the city."],
+      "answer": "⑤",
+      "explanation": "목적어를 주어로 보내고 「was + 과거분사 + by + 행위자」로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 24,
+      "포인트": "수동태의 의문문",
+      "prompt": "빈칸에 들어갈 알맞은 단어는?",
+      "body": ["_______ the window broken by the storm?"],
+      "choices": ["Was", "Were", "Do", "Did", "Does"],
+      "answer": "①",
+      "explanation": "주어가 단수이고 과거의 수동태이므로 Was로 시작한다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(1회).pdf", "number": 26,
+      "포인트": "과거 수동태",
+      "prompt": "밑줄 친 부분을 올바른 형태로 바꾸어 쓴 것은?",
+      "body": ["The printing press [[invented]] by Gutenberg."],
+      "choices": ["invents", "was invented", "is invented",
+                  "has invented", "has been invented"],
+      "answer": "②",
+      "explanation": "인쇄기는 발명된 것이고 과거의 일이므로 was invented로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(2회).pdf", "number": 2,
+      "포인트": "생략할 수 있는 by + 행위자",
+      "prompt": "다음 문장의 밑줄 친 부분 중 생략할 수 있는 것을 고르시오.",
+      "body": ["ⓐ[[My]] ⓑ[[old bicycle]] ⓒ[[was taken]] ⓓ[[by someone]]",
+               "ⓔ[[last night]]."],
+      "choices": ["ⓐ", "ⓑ", "ⓒ", "ⓓ", "ⓔ"],
+      "answer": "④",
+      "explanation": "행위자가 막연한 someone일 때는 「by + 행위자」를 생략할 수 있다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(2회).pdf", "number": 6,
+      "포인트": "능동태와 수동태 가려 쓰기",
+      "prompt": "다음 문장의 빈칸에 들어갈 말이 바르게 짝지어진 것은?",
+      "body": ["∙I ________ this letter.",
+               "∙The novel ________ a famous author."],
+      "choices": ["wrote by was written", "wrote was written by",
+                  "wrote wrote", "was written by written by",
+                  "was written by wrote"],
+      "answer": "②",
+      "explanation": "내가 쓴 것이므로 능동태 wrote, 소설은 쓰인 것이므로 수동태 was written by를 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(2회).pdf", "number": 10,
+      "포인트": "수동태의 어순",
+      "prompt": "다음 문장을 수동태로 바꿔 쓸 때 네 번째로 와야 할 것은?",
+      "body": ["Hana painted many old walls."],
+      "choices": ["Many", "old", "were", "painted", "by"],
+      "answer": "③",
+      "explanation": "Many old walls were painted by Hana의 순서이므로 네 번째는 were이다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(2회).pdf", "number": 11,
+      "포인트": "be born — 태어나다",
+      "prompt": "다음 우리말을 영어로 바르게 옮긴 것은?",
+      "body": ["아버지는 1968년에 광주에서 태어나셨다."],
+      "choices": ["My father born in Gwangju in 1968.",
+                  "My father are born in Gwangju in 1968.",
+                  "My father was born in Gwangju in 1968.",
+                  "My father is born in Gwangju in 1968.",
+                  "My father be born in Gwangju in 1968."],
+      "answer": "③",
+      "explanation": "‘태어나다’는 be born으로 쓰며, 과거의 일이므로 was born이다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(2회).pdf", "number": 15,
+      "포인트": "수동태의 과거분사",
+      "prompt": "다음 중 밑줄 친 부분이 어법상 [[어색한]]문장을고르세요.",
+      "body": [],
+      "choices": ["Some errors in the report [[are fixed]] by an editor.",
+                  "Cinderella [[was told]] the news by her sisters.",
+                  "This song [[is singed]] by many children.",
+                  "French [[is spoken]] in parts of Africa.",
+                  "These shoes [[are sold]] at most malls."],
+      "answer": "③",
+      "explanation": "sing의 과거분사는 sung이므로 is sung으로 써야 한다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(2회).pdf", "number": 16,
+      "포인트": "수동태를 능동태로 바꾸기",
+      "prompt": "다음 문장을 능동태로 바르게 고친 문장을 고르세요.",
+      "body": ["He is respected by everybody."],
+      "choices": ["People is respected by him.", "People are respecting him.",
+                  "Everyone respect him.", "Everyone respects him.",
+                  "Everyone is respecting he."],
+      "answer": "④",
+      "explanation": "everybody를 주어로 삼으면 단수 취급하므로 respects를 쓰고, 목적어는 목적격 him으로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(2회).pdf", "number": 18,
+      "포인트": "능동태를 써야 하는 자리",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["The little girl _____ the sweet cake."],
+      "choices": ["ate", "eaten", "eating", "is eaten", "be eaten"],
+      "answer": "①",
+      "explanation": "소녀가 먹은 것이므로 능동태 과거형 ate를 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_종합문제(2회).pdf", "number": 20,
+      "포인트": "능동태를 써야 하는 자리",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["The cat ________ the little mouse."],
+      "choices": ["chased", "chasing", "is chased",
+                  "was chased", "will be chased"],
+      "answer": "①",
+      "explanation": "고양이가 쫓은 것이므로 능동태로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_확인문제(1회).pdf", "number": 2,
+      "포인트": "단수 주어의 수동태 be동사",
+      "prompt": "빈칸에 공통으로 들어갈 말로 알맞은 것은?",
+      "body": ["Spanish __________ spoken in Mexico.",
+               "The yen __________ used in Japan.",
+               "English __________ used all over the world."],
+      "choices": ["has", "be", "was", "are", "is"],
+      "answer": "⑤",
+      "explanation": "모두 단수 주어이고 현재의 일이므로 is를 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_확인문제(1회).pdf", "number": 4,
+      "포인트": "복수 주어의 수동태",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["Umbrellas __________ by many people on rainy days."],
+      "choices": ["use", "used", "are using", "are used", "have used"],
+      "answer": "④",
+      "explanation": "우산은 쓰이는 것이므로 수동태로 쓰고, 주어가 복수이므로 are used이다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_확인문제(1회).pdf", "number": 10,
+      "포인트": "수동태 의문문",
+      "prompt": "다음 대화의 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["A: ___________________ in 1903?",
+               "B: Yes, it was."],
+      "choices": ["Did this bridge build", "Was this bridge build",
+                  "Did this bridge built", "Was this bridge built",
+                  "Was this bridge be built"],
+      "answer": "④",
+      "explanation": "대답이 Yes, it was.이므로 「Was + 주어 + 과거분사 ~?」로 묻는다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_확인문제(1회).pdf", "number": 17,
+      "포인트": "by 대신 with를 쓰는 수동태",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞은 것을 고르시오.",
+      "body": ["I am pleased ________ the result."],
+      "choices": ["to", "by", "at", "with", "for"],
+      "answer": "④",
+      "explanation": "be pleased with는 ‘~에 만족하다’는 뜻으로 with를 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_확인문제(1회).pdf", "number": 19,
+      "포인트": "수동태로 쓸 수 없는 동사",
+      "prompt": "다음 빈칸에 들어갈 말로 알맞지 [[않은]]것을 고르시오.",
+      "body": ["It was _________ by Owen."],
+      "choices": ["read", "baked", "found", "painted", "happened"],
+      "answer": "⑤",
+      "explanation": "happen은 목적어를 취하지 않는 동사여서 수동태로 쓸 수 없다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_확인문제(1회).pdf", "number": 20,
+      "포인트": "과거 수동태",
+      "prompt": "다음 빈칸에 알맞은 것은?",
+      "body": ["I baked the bread.",
+               "→ The bread _____________ by me."],
+      "choices": ["bakes", "baked", "baking", "is baked", "was baked"],
+      "answer": "⑤",
+      "explanation": "능동태가 과거이므로 수동태도 was baked로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_확인문제(2회).pdf", "number": 2,
+      "포인트": "과거 수동태",
+      "prompt": "다음 수동태로 바꿀 때, 빈칸에 알맞은 말은?",
+      "body": ["You opened the door of the classroom.",
+               "→ The door of the classroom ______________ by you."],
+      "choices": ["is open", "was open", "is opened",
+                  "were opened", "was opened"],
+      "answer": "⑤",
+      "explanation": "주어가 단수이고 과거의 일이므로 was opened로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_확인문제(2회).pdf", "number": 5,
+      "포인트": "과거 수동태",
+      "prompt": "두 문장의 내용이 같도록 빈칸에 들어갈 말은?",
+      "body": ["Edison invented the light bulb.",
+               "The light bulb ____________ by Edison."],
+      "choices": ["invents", "invented", "is invented",
+                  "was invented", "were invented"],
+      "answer": "④",
+      "explanation": "능동태가 과거이고 주어가 단수이므로 was invented로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_확인문제(2회).pdf", "number": 6,
+      "포인트": "능동태를 수동태로 바꾸기",
+      "prompt": "주어진 문장을 수동태로 적절하게 바꾼 것을 고르시오.",
+      "body": ["\"The busy girl finished the report.\""],
+      "choices": ["The report finished by the busy girl.",
+                  "The report was finished by the busy girl.",
+                  "The busy girl was finished by the report.",
+                  "The report was finish by the busy girl.",
+                  "The report is finished by the busy girl."],
+      "answer": "②",
+      "explanation": "목적어를 주어로 보내고 「was + 과거분사 + by + 행위자」로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_확인문제(2회).pdf", "number": 8,
+      "포인트": "복수 주어의 과거 수동태",
+      "prompt": "빈칸에 들어갈 알맞은 말은?",
+      "body": ["The trees ________ 20 years ago."],
+      "choices": ["planted", "is planted", "was planted",
+                  "were planted", "be planted"],
+      "answer": "④",
+      "explanation": "나무는 심어진 것이고 주어가 복수이며 과거이므로 were planted로 쓴다."
+    },
+    {
+      "file": "[기본] 9.수동태와 능동태_확인문제(2회).pdf", "number": 13,
+      "포인트": "be surprised at",
+      "prompt": "다음 빈칸에 들어갈 전치사로 알맞은 것은?",
+      "body": ["The loud noise surprised Hana.",
+               "→ Hana was surprised _________ the loud noise."],
+      "choices": ["in", "of", "to", "for", "at"],
+      "answer": "⑤",
+      "explanation": "be surprised at은 ‘~에 놀라다’는 뜻으로 by 대신 at을 쓴다."
+    }
+  ]
+}

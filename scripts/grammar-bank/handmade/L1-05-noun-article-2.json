@@ -1,0 +1,156 @@
+{
+  "_설명": "기초 5과 명사와 관사 — 나머지. 셀 수 없는 명사와 수량 단위, 관사 가려 쓰기. 유형과 푸는 방법은 그대로 두고 상황만 새로 썼다.",
+  "문항": [
+    {
+      "file": "[기초] 5.명사와 관사_체크체크.pdf", "number": 22,
+      "포인트": "some 뒤의 셀 수 있는 명사는 복수형",
+      "prompt": "[[틀린]]부분을 찾아 바르게 고치세요.",
+      "body": ["There are some blueberry muffin here. Please",
+               "have some.",
+               "→"],
+      "answer": "muffin, muffins",
+      "explanation": "‘약간, 좀’을 나타내는 some이 있고 be동사가 are이므로 muffin을 복수형으로 써야 한다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_체크체크.pdf", "number": 24,
+      "포인트": "셀 수 없는 명사는 복수형으로 쓰지 않는다",
+      "prompt": "밑줄 친 단어를 올바른 형태로 고쳐 빈칸에 쓰시오.",
+      "body": ["Clean [[water]] is good for health. We must drink",
+               "a lot of clean ______."],
+      "answer": "water",
+      "explanation": "water는 셀 수 없는 명사이므로 복수형으로 쓰지 않고 그대로 쓴다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_체크체크.pdf", "number": 27,
+      "포인트": "셀 수 없는 명사는 형태를 바꾸지 않는다",
+      "prompt": "밑줄 친 단어를 올바른 형태로 고쳐 빈칸에 쓰시오.",
+      "body": ["He likes to drink [[milk]]. Please give him some",
+               "______."],
+      "answer": "milk",
+      "explanation": "milk는 셀 수 없는 명사이므로 그대로 쓴다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_체크체크.pdf", "number": 28,
+      "포인트": "bowls of ~ — ~ 그릇",
+      "prompt": "우리말에 맞게 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["지훈이는 국을 두 그릇 먹고 나니 몸이 따뜻해졌다.",
+               "→ Jihun had and got warm."],
+      "answer": "two bowls of soup",
+      "explanation": "국그릇의 단위: ~ bowls of"
+    },
+    {
+      "file": "[기초] 5.명사와 관사_체크체크.pdf", "number": 30,
+      "포인트": "pounds of ~, glasses of ~",
+      "prompt": "우리말에 맞게 빈칸에 알맞은 말을 쓰세요.",
+      "body": ["그릇에 설탕 1파운드와 우유 두 잔을 넣어라.",
+               "Put sugar and",
+               "milk into a bowl."],
+      "answer": "a pound of, two glasses of",
+      "explanation": "파운드의 단위: ~ pounds of / 우유 잔의 단위: ~ glasses of"
+    },
+    {
+      "file": "[기초] 5.명사와 관사_체크체크.pdf", "number": 33,
+      "포인트": "셀 수 없는 명사는 -s를 붙이지 않는다",
+      "prompt": "문장에서 [[틀린]]부분을 찾아 문장을 다시 고쳐 쓰세요.",
+      "body": ["I have some informations for you.",
+               "→ _____________________________________."],
+      "answer": "I have some information for you.",
+      "explanation": "information은 불가산 명사이다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_체크체크.pdf", "number": 34,
+      "포인트": "셀 수 없는 명사는 단수 취급",
+      "prompt": "문장에서 [[틀린]]부분을 찾아 문장을 다시 고쳐 쓰세요.",
+      "body": ["How much furniture are there?",
+               "→ _____________________________________."],
+      "answer": "How much furniture is there?",
+      "explanation": "furniture(가구)는 불가산 명사이므로 단수 취급하여 is를 쓴다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_확인문제(1회).pdf", "number": 9,
+      "포인트": "a block of ~ — ~ 한 덩어리",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["치즈 한 덩어리를 네 조각으로 자르세요. (block,",
+               "cheese)",
+               "→ Cut _________________ into four pieces."],
+      "answer": "a block of cheese",
+      "explanation": "‘치즈 한 덩어리’는 a block of cheese이다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_확인문제(1회).pdf", "number": 10,
+      "포인트": "cartons of ~ — ~ 몇 팩",
+      "prompt": "다음 <보기>에서 알맞은 말을 골라 대화를 완성하시오. (단, 필요하면 형태를 바꿀 것)",
+      "body": ["<보기>",
+               "piece cup carton",
+               "A : How much milk does the chef need?",
+               "B : He needs three __________________."],
+      "answer": "cartons of milk",
+      "explanation": "‘우유 한 팩’은 a carton of milk로 표현한다. 따라서 ‘우유 세 팩’은 three cartons of milk가 된다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_확인문제(1회).pdf", "number": 16,
+      "포인트": "모음 앞의 an과 -o로 끝나는 명사의 복수형",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 말을 이용하여 문장을 완성하시오.",
+      "body": ["나의 아빠는 달걀 한 개와 토마토 두 개가 필요하다.",
+               "(egg, tomato)",
+               "→ My dad needs __________ and __________."],
+      "answer": "an[one] egg, two tomatoes",
+      "explanation": "‘달걀 한 개’는 egg가 첫소리가 모음인 명사이므로 앞에 an을 쓰거나 one을 써서 an egg 또는 one egg로 나타내고, ‘토마토 두 개’는 tomato의 복수형이 tomatoes이므로 two tomatoes로 쓴다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_확인문제(1회).pdf", "number": 18,
+      "포인트": "단수와 복수의 형태가 같은 명사",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 단어를 바르게 배열하시오. (단, 필요하면 형태를 바꿀 것)",
+      "body": ["그 농부는 다섯 마리의 양을 기른다. (raise, sheep,",
+               "five)",
+               "→ The farmer ___________________________."],
+      "answer": "raises five sheep",
+      "explanation": "sheep은 단수형과 복수형의 형태가 같다. 주어가 3인칭 단수이므로 동사는 raises로 쓴다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_확인문제(2회).pdf", "number": 2,
+      "포인트": "처음 언급하는 막연한 하나에는 a",
+      "prompt": "빈칸에 a(an) 또는 the 중 적절한 것을 넣으시오.",
+      "body": ["Once I heard ______ song about the sea.",
+               "전에 바다에 관한 어떤 노래를 들었다."],
+      "answer": "a",
+      "explanation": "처음 언급하는 막연한 하나를 가리키므로 부정관사 a를 쓴다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_확인문제(2회).pdf", "number": 7,
+      "포인트": "말하는 사람과 듣는 사람이 아는 것에는 the",
+      "prompt": "빈칸에 a(an) 또는 the 중 적절한 것을 넣으시오.",
+      "body": ["______ old bridge was washed away by the",
+               "flood.",
+               "그 오래된 다리가 홍수에 떠내려갔다."],
+      "answer": "The",
+      "explanation": "‘그 오래된 다리’라고 특정한 대상을 가리키므로 정관사 The를 쓴다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_확인문제(2회).pdf", "number": 8,
+      "포인트": "셀 수 없는 명사는 -s를 붙이지 않는다",
+      "prompt": "문장의 오류를 찾아 고쳐 쓰시오.",
+      "body": ["I have a lot of furnitures to move this weekend."],
+      "answer": "furnitures → furniture",
+      "explanation": "furniture는 셀 수 없는 명사이므로 복수형으로 쓰지 않는다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_확인문제(2회).pdf", "number": 11,
+      "포인트": "‘~당, ~마다’를 뜻하는 부정관사 a",
+      "prompt": "다음 우리말과 의미가 같도록 괄호 안의 단어를 이용하여 문장을 완성하시오.",
+      "body": ["이 주스는 1병당 3달러이다.(bottle)",
+               "→ This juice costs 3 dollars ________."],
+      "answer": "a bottle",
+      "explanation": "‘~당, ~마다’라는 뜻을 나타낼 때 부정관사 a(an)를 쓴다."
+    },
+    {
+      "file": "[기초] 5.명사와 관사_확인문제(2회).pdf", "number": 14,
+      "포인트": "세상에 유일한 것 앞에는 the",
+      "prompt": "빈칸에 a(an) 또는 the 중 적절한 것을 넣으시오.",
+      "body": ["______ moon shines at night.",
+               "달은 밤에 빛난다."],
+      "answer": "The",
+      "explanation": "moon처럼 세상에 하나뿐인 것 앞에는 정관사 the를 쓴다."
+    }
+  ]
+}
