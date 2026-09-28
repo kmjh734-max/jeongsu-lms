@@ -7,6 +7,46 @@
 
 /* ── 공통 ── */
 
+/*
+ * 요약표 빈칸 유형의 표 (2026-09-28).
+ * 내용을 두 부류로 갈라 보여 주는 표라 가운데가 아니라 왼쪽에 맞추고,
+ * 칸이 길어지면 줄을 바꾼다. 어법 수정표(.qg-print-fix-table)는 답을 적는
+ * 빈 표라 규칙이 달라 따로 둔다.
+ */
+.qg-print-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5mm;
+  font-family: Georgia, "Times New Roman", "Noto Serif KR", serif;
+  font-size: 8pt;
+}
+
+.qg-print-summary-table th,
+.qg-print-summary-table td {
+  border: 1px solid #334155;
+  padding: 1.4mm;
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.4;
+  color: #1e293b;
+}
+
+.qg-print-summary-table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* 첫 칸은 견줄 점 이름 — 한글이라 본문 글꼴로 되돌린다 */
+.qg-print-summary-table tbody th {
+  width: 22%;
+  font-family: inherit;
+  font-size: 7.8pt;
+  font-weight: 600;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
 /* 문항 번호를 발문 앞에 걸어 두고 발문 둘째 줄부터는 번호 뒤로 내어쓴다. */
 .qg-style .qg-print-q-head {
   padding-left: 6.2mm;

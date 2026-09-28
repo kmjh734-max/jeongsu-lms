@@ -9,7 +9,8 @@ export function sanitizeInlineSectionMentions(text: string): string {
     .replace(/<보기>(의|를|에|만|와|과|로|을|은|이|가)/g, "보기$1")
     .replace(/<조건>(의|를|에|만|와|과|로|을|은|이|가)/g, "조건$1")
     .replace(/<해석>(의|를|에)/g, "해석$1")
-    .replace(/<요약문>(의|를|에)/g, "요약문$1");
+    .replace(/<요약문>(의|를|에)/g, "요약문$1")
+    .replace(/<표>(의|를|에|와|과|로|은|는|이|가)/g, "표$1");
 }
 
 /** 줄 단독 섹션 태그만 구분자로 인정 */
@@ -187,6 +188,58 @@ export function parseSummaryWritingBlocks(text: string): {
     new Set(summary.match(/[ⓐⓑⓒⓓⓔ]/g) ?? [])
   ).sort();
   return { conditions, words, summary, blankLabels };
+}
+
+/**
+ * 요약표 서술형 questionText: <조건> + <표>.
+ * 표는 한 줄이 한 행이고 | 로 칸을 나눈다. 첫 줄이 머리글 행이다.
+ *
+ * 선생님 지적(2026-09-28): 표가 「| | most political experts | Darby Saxbe | |」처럼
+ * 한 줄 글로 붙어 나와 읽을 수 없었다. 여기서 행·칸으로 갈라 진짜 표로 그린다.
+ */
+export function parseSummaryTableBlocks(text: string): {
+  conditions: string;
+  rows: string[][];
+  blankLabels: string[];
+} | null {
+  const cleaned = sanitizeInlineSectionMentions(cleanQuestionText(text)).trim();
+  if (!/<조건>/.test(cleaned) || !/<표>/.test(cleaned)) return null;
+
+  const afterCond = sliceAfterTag(cleaned, "조건");
+  const afterTable = sliceAfterTag(cleaned, "표");
+  if (afterCond == null || afterTable == null) return null;
+
+  const conditions = sliceUntilNextSection(afterCond, ["표", "보기", "해석", "요약문"]);
+  const body = sliceUntilNextSection(afterTable, ["조건", "보기", "해석", "요약문"]);
+
+  const rows = body
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter((line) => line.includes("|"))
+    .map((line) =>
+      line
+        .replace(/^\|/, "")
+        .replace(/\|$/, "")
+        .split("|")
+        .map((cell) => cell.trim())
+    );
+  if (rows.length < 2) return null;
+
+  // 칸 수가 들쭉날쭉하면 가장 넓은 줄에 맞춰 빈칸으로 채운다
+  const width = Math.max(...rows.map((r) => r.length));
+  if (width < 2) return null;
+  const padded = rows.map((r) => [...r, ...Array(Math.max(0, width - r.length)).fill("")]);
+
+  const blankLabels = Array.from(new Set(body.match(/\([A-E]\)/g) ?? [])).sort();
+  return { conditions, rows: padded, blankLabels };
+}
+
+/**
+ * 표 칸의 (A) 같은 빈칸을 밑줄로 넓혀 준다.
+ * 선생님 요청(2026-09-28): 「______(A)______」 이렇게 학생이 쓸 자리가 보이게.
+ */
+export function withBlankRules(cell: string): string {
+  return cell.replace(/\(([A-E])\)/g, "______($1)______");
 }
 
 /** 본문에 연속 N단어로 존재하는지 (대소문자·구두점 무시) */

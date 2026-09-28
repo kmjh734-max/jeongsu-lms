@@ -10,8 +10,12 @@ import { jsonError, jsonOk, requireStaffProfile } from "@/lib/question-generator
 export async function GET() {
   try {
     await requireStaffProfile();
+    // 이름만으로는 무엇을 묻는 어법인지 알기 어려워서 설명을 함께 내려 준다
     return jsonOk({
-      grammars: ONE_PAGE_GRAMMAR_RULES.slice(0, 30).map((r) => r.labelKo),
+      grammars: ONE_PAGE_GRAMMAR_RULES.slice(0, 30).map((r) => ({
+        label: r.labelKo,
+        hint: r.decide,
+      })),
     });
   } catch (e) {
     if (e instanceof Response) return e;

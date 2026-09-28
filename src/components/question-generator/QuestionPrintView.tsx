@@ -27,9 +27,11 @@ import {
   normalizePassage,
   parseGrammarCorrectionBlocks,
   parseReferenceAnswerBlock,
+  parseSummaryTableBlocks,
   parseSummaryWritingBlocks,
   parseWordOrderBlocks,
   reflowPassageForPrint,
+  withBlankRules,
 } from "@/lib/question-generator/text-utils";
 import "./question-print-styles.css";
 
@@ -323,6 +325,55 @@ function SummaryWritingBoxes({
   );
 }
 
+function SummaryTableBoxes({
+  blocks,
+}: {
+  blocks: NonNullable<ReturnType<typeof parseSummaryTableBlocks>>;
+}) {
+  const [headRow, ...bodyRows] = blocks.rows;
+  return (
+    <div className="qg-print-word-order">
+      <div className="qg-print-wo-box">
+        <p className="qg-print-wo-label">&lt;조건&gt;</p>
+        <div className="qg-print-wo-body">
+          {blocks.conditions.split(/\n+/).map((line, i) => (
+            <p key={i}>{line}</p>
+          ))}
+        </div>
+      </div>
+      <table className="qg-print-summary-table">
+        <thead>
+          <tr>
+            {(headRow ?? []).map((cell, i) => (
+              <th key={i}>{withBlankRules(cell)}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {bodyRows.map((row, ri) => (
+            <tr key={ri}>
+              {row.map((cell, ci) =>
+                ci === 0 ? (
+                  <th key={ci} scope="row">
+                    {withBlankRules(cell)}
+                  </th>
+                ) : (
+                  <td key={ci}>{withBlankRules(cell)}</td>
+                )
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {blocks.blankLabels.map((lab) => (
+        <p key={lab} className="qg-print-wo-answer-line">
+          {lab} : _____________________
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function GrammarCorrectionBoxes({
   blocks,
 }: {
@@ -398,20 +449,22 @@ function QuestionBlock({
   const isCount = q.question_type === "content_count";
   const isInsertion = q.question_type === "sentence_insertion";
   const isIrrelevant = q.question_type === "irrelevant_sentence";
-  const summaryWriting = parseSummaryWritingBlocks(q.question_text);
-  const wordOrder = summaryWriting
+  const summaryTable = parseSummaryTableBlocks(q.question_text);
+  const summaryWriting = summaryTable
     ? null
-    : parseWordOrderBlocks(q.question_text);
+    : parseSummaryWritingBlocks(q.question_text);
+  const wordOrder =
+    summaryTable || summaryWriting ? null : parseWordOrderBlocks(q.question_text);
   const grammarFix =
-    summaryWriting || wordOrder
+    summaryTable || summaryWriting || wordOrder
       ? null
       : parseGrammarCorrectionBlocks(q.question_text);
   const referenceAnswer =
-    summaryWriting || wordOrder || grammarFix
+    summaryTable || summaryWriting || wordOrder || grammarFix
       ? null
       : parseReferenceAnswerBlock(q.question_text);
   const extra =
-    summaryWriting || wordOrder || referenceAnswer || grammarFix
+    summaryTable || summaryWriting || wordOrder || referenceAnswer || grammarFix
       ? ""
       : cleanQuestionText(q.question_text);
   const passage = questionPassage(q);
@@ -420,6 +473,7 @@ function QuestionBlock({
     !isCount &&
     !isInsertion &&
     !isIrrelevant &&
+    !summaryTable &&
     !wordOrder &&
     !summaryWriting &&
     !referenceAnswer &&
@@ -484,6 +538,7 @@ function QuestionBlock({
       <PassageParas units={units} range={range} />
       {tail ? (
       <div data-qg-tail="">
+      {summaryTable ? <SummaryTableBoxes blocks={summaryTable} /> : null}
       {summaryWriting ? (
         <SummaryWritingBoxes blocks={summaryWriting} />
       ) : null}
@@ -497,6 +552,7 @@ function QuestionBlock({
           ))
         : null}
       {!isInsertion &&
+      !summaryTable &&
       !wordOrder &&
       !summaryWriting &&
       !referenceAnswer &&

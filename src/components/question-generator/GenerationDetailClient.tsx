@@ -13,8 +13,10 @@ import {
   cleanQuestionText,
   parseGrammarCorrectionBlocks,
   parseReferenceAnswerBlock,
+  parseSummaryTableBlocks,
   parseSummaryWritingBlocks,
   parseWordOrderBlocks,
+  withBlankRules,
 } from "@/lib/question-generator/text-utils";
 
 type QuestionRow = {
@@ -342,20 +344,28 @@ export function GenerationDetailClient({
           <div className="space-y-4">
             {list.map((q, idx) => {
               const editing = editingId === q.id;
-              const summaryWriting = parseSummaryWritingBlocks(q.question_text);
-              const wordOrder = summaryWriting
+              const summaryTable = parseSummaryTableBlocks(q.question_text);
+              const summaryWriting = summaryTable
                 ? null
-                : parseWordOrderBlocks(q.question_text);
+                : parseSummaryWritingBlocks(q.question_text);
+              const wordOrder =
+                summaryTable || summaryWriting
+                  ? null
+                  : parseWordOrderBlocks(q.question_text);
               const grammarFix =
-                summaryWriting || wordOrder
+                summaryTable || summaryWriting || wordOrder
                   ? null
                   : parseGrammarCorrectionBlocks(q.question_text);
               const referenceAnswer =
-                summaryWriting || wordOrder || grammarFix
+                summaryTable || summaryWriting || wordOrder || grammarFix
                   ? null
                   : parseReferenceAnswerBlock(q.question_text);
               const extra =
-                summaryWriting || wordOrder || referenceAnswer || grammarFix
+                summaryTable ||
+                summaryWriting ||
+                wordOrder ||
+                referenceAnswer ||
+                grammarFix
                   ? ""
                   : cleanQuestionText(q.question_text);
               return (
@@ -493,6 +503,55 @@ export function GenerationDetailClient({
                           }}
                         />
                       )}
+                      {summaryTable && (
+                        <div className="mt-3 space-y-2 text-sm">
+                          <div className="rounded-md border border-slate-400 px-3 py-2">
+                            <p className="mb-1 font-semibold text-slate-900">
+                              &lt;조건&gt;
+                            </p>
+                            <p className="whitespace-pre-wrap text-slate-800">
+                              {summaryTable.conditions}
+                            </p>
+                          </div>
+                          <table className="w-full border-collapse font-serif text-[13px]">
+                            <thead>
+                              <tr>
+                                {(summaryTable.rows[0] ?? []).map((cell, i) => (
+                                  <th
+                                    key={i}
+                                    className="border border-slate-400 bg-slate-50 px-2 py-1.5 text-left align-top font-semibold text-slate-900"
+                                  >
+                                    {withBlankRules(cell)}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {summaryTable.rows.slice(1).map((row, ri) => (
+                                <tr key={ri}>
+                                  {row.map((cell, ci) => (
+                                    <td
+                                      key={ci}
+                                      className={`border border-slate-400 px-2 py-1.5 align-top ${
+                                        ci === 0
+                                          ? "w-[22%] bg-slate-50/70 font-sans text-[12px] font-semibold text-slate-900"
+                                          : "text-slate-800"
+                                      }`}
+                                    >
+                                      {withBlankRules(cell)}
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          {summaryTable.blankLabels.map((lab) => (
+                            <p key={lab} className="font-medium text-slate-900">
+                              {lab} : ________________
+                            </p>
+                          ))}
+                        </div>
+                      )}
                       {summaryWriting && (
                         <div className="mt-3 space-y-2 text-sm">
                           <div className="rounded-md border border-slate-400 px-3 py-2">
@@ -624,6 +683,7 @@ export function GenerationDetailClient({
                         </div>
                       )}
                       {q.question_type !== "sentence_insertion" &&
+                        !summaryTable &&
                         !wordOrder &&
                         !summaryWriting &&
                         !referenceAnswer &&
@@ -635,6 +695,7 @@ export function GenerationDetailClient({
                       )}
                       {q.question_type !== "sentence_insertion" &&
                         q.question_type !== "irrelevant_sentence" &&
+                        !summaryTable &&
                         !wordOrder &&
                         !summaryWriting &&
                         !referenceAnswer &&

@@ -24,7 +24,9 @@ import {
   countEnglishSentences,
   countEnglishWords,
   passageHasConsecutiveWords,
+  parseSummaryTableBlocks,
   parseSummaryWritingBlocks,
+  parseWordOrderBlocks,
 } from "@/lib/question-generator/text-utils";
 import { MIN_SENTENCES_FOR_INSERTION_IRRELEVANT } from "@/lib/question-generator/constants";
 import {
@@ -81,7 +83,7 @@ function paraphraseChoiceRules(
  * 지문에 실제로 있는 어법만 고르게 하므로, 무작위여도 지문과 겉돌지 않는다.
  */
 const GRAMMAR_FOR_WRITING = ONE_PAGE_GRAMMAR_RULES.slice(0, 30)
-  .map((r) => `  · ${r.labelKo}`)
+  .map((r) => `  · ${r.labelKo} — ${r.decide}`)
   .join("\n");
 
 function typeRules(option: QuestionTypeOption): string {
@@ -436,18 +438,20 @@ ${choiceExplanationRules()}
          * 선생님 요청(2026-09-28): 특정 문법을 조건으로 하는 영작. 문법은 지문에 실제로
          * 있는 것 가운데 고른다(지문에 없는 문법을 억지로 시키면 답이 지문과 겉돈다).
          */
+        /*
+         * 칸 이름은 이미 쓰고 있는 제시어 배열 서술형과 똑같이 <조건>/<보기>/<해석>이다.
+         * 선생님 지적(2026-09-28): 새 유형만 모양이 달라 한 줄 글로 붙어 나왔다.
+         * 같은 칸 이름을 쓰면 기존 인쇄 틀(상자 세 개 + 답란)이 그대로 그려 준다.
+         */
         return `서술형 · 정해진 어법을 써서 영작하기:
 - passageModified 생략. 지문 영어만.
 - 먼저 지문에서 <b>어법 하나</b>를 고른다. 아래 목록에 있는 것만 쓴다.
 ${GRAMMAR_FOR_WRITING}
 - 고른 어법이 실제로 쓰인 지문 문장 하나를 정답 문장으로 삼는다.
   그 문장이 너무 짧거나(6낱말 미만) 어법이 분명히 드러나지 않으면 다른 문장을 고른다.
-- questionText 형식(필수):
-<우리말>
-(정답 문장의 우리말 뜻 한 줄. 자연스러운 한국어로)
-
+- questionText 형식(필수). 태그는 각각 <b>그 줄에 혼자</b> 있어야 한다:
 <조건>
-○ 반드시 [고른 어법 이름]을 사용할 것
+○ 반드시 [어법 이름(형태)]을 사용할 것
 ○ 보기의 단어를 모두 한 번씩 사용할 것
 ○ 필요하면 어형을 바꿀 것
 ○ 문장 부호와 대소문자를 바르게 쓸 것
@@ -455,6 +459,14 @@ ${GRAMMAR_FOR_WRITING}
 <보기>
 word1 / word2 / … (정답 문장의 낱말을 원형으로 흩어 놓는다. 8~14개)
 
+<해석>
+(정답 문장의 우리말 뜻 한 줄. 자연스러운 한국어로)
+
+- 첫 조건의 [어법 이름(형태)]: 이름은 위 목록에 적힌 이름을 그대로 쓰고, 괄호 안에
+  학생이 바로 알아보는 형태를 짧게 덧붙인다. 보기: 「가정법 과거(If+과거동사,
+  would+동사원형)」, 「부정어 도치(Never+조동사+주어)」, 「감정분사(-ing/-ed)」,
+  「관계대명사 what(선행사 없이)」, 「강조구문(It is ~ that)」.
+  「어법을 사용할 것」처럼 뭉뚱그리면 안 된다. 괄호 안 형태는 반드시 넣는다.
 - correctAnswer: 정답 영어 문장 하나(지문 그대로).
 - 보기에는 정답 문장에 쓰이는 낱말만 넣는다. 관사·전치사처럼 어형이 바뀌지 않는 말은
   그대로, 동사·명사는 원형으로 적는다.
@@ -591,7 +603,8 @@ word1 / word2 / … (10~14개, 정답 ⓐ+ⓑ를 섞은 단어·기능어. 원�
         return `서술형 · 내용을 표로 정리 · 빈칸에 본문 단어 찾아 쓰기:
 - passageModified 생략. 지문 영어만.
 - 지문에 <b>맞서는 두 부류·두 입장</b>이 있어야 이 유형이 된다. 없으면 만들지 말고 SKIP.
-- questionText 형식(필수):
+- questionText 형식(필수). <조건>과 <표>는 각각 <b>그 줄에 혼자</b> 있어야 하고,
+  표는 <b>한 줄이 한 행</b>이다(줄바꿈으로 행을 나눈다. 한 줄로 이어 붙이면 안 된다):
 <조건>
 ○ 빈칸에 들어갈 말은 본문에서 찾아 쓸 것
 ○ (A), (B), (C)는 각각 한 단어로 쓸 것
@@ -599,11 +612,15 @@ word1 / word2 / … (10~14개, 정답 ⓐ+ⓑ를 섞은 단어·기능어. 원�
 
 <표>
 | | 첫째 부류 이름 | 둘째 부류 이름 |
-| 견줄 점 1 | 영어 서술 … (A) … | 영어 서술 … |
-| 견줄 점 2 | 영어 서술 … (B) … | 영어 서술 … |
-| 견줄 점 3 | 영어 서술 … (C) … | 영어 서술 … (C) … |
+| 초점 | 영어 서술 … (A) … | 영어 서술 … |
+| 해결책 | 영어 서술 … (B) … | 영어 서술 … |
+| 공공 공간 | 영어 서술 … (C) … | 영어 서술 … (C) … |
 
 - 표는 두 칸(부류) × 세 줄(견줄 점)로 만든다. 줄마다 | 로 칸을 나눈다.
+- 첫 줄은 머리글이다. 첫 칸은 비우고, 뒤 두 칸에 부류 이름을 쓴다.
+- 둘째 줄부터 첫 칸은 <b>견줄 점의 이름</b>이다. 그 줄이 무엇을 견주는지 한글 2~5자로
+  적는다(보기: 초점, 근거, 해결책, 공공 공간, 태도). 「견줄 점 1」처럼 자리표시를
+  그대로 두면 안 된다.
 - 부류 이름은 본문에 나온 말을 그대로 쓴다(지어내지 않는다).
 - 표의 영어 서술은 지문 문장을 그대로 베끼지 말고 짧게 paraphrase 한다.
 - (A)(B)(C) 자리에 들어갈 낱말은 <b>반드시 지문에 그 형태 그대로</b> 있어야 한다.
@@ -1122,6 +1139,55 @@ export function assertBasicQuestionShape(
       q.questionText = `<조건>\n○ 틀린 곳의 기호와 수정한 형태를 모두 써야 정답으로 인정함\n\n<답안행>\n${wrongN}`;
     } else if (!/<답안행>/.test(q.questionText || "")) {
       q.questionText = `${q.questionText}\n\n<답안행>\n${wrongN}`;
+    }
+    q.choices = undefined;
+  } else if (option.aingkaCode === "요약표빈칸단어") {
+    /*
+     * 선생님 지적(2026-09-28): 표가 한 줄 글로 붙어 나왔다. 인쇄가 표로 그리려면
+     * <조건>·<표>가 줄 단위로 서 있어야 하므로, 여기서 갈라지지 않으면 버린다.
+     */
+    const blocks = parseSummaryTableBlocks(q.questionText || "");
+    if (!blocks) {
+      return "요약표 유형은 questionText에 <조건>과 <표>가 각각 줄 단위로 필요합니다.";
+    }
+    if (blocks.rows.length < 3 || (blocks.rows[0]?.length ?? 0) < 3) {
+      return "요약표는 머리글 한 줄과 견줄 점 두 줄 이상, 부류 두 칸이 필요합니다.";
+    }
+    const headers = blocks.rows.slice(1).map((r) => r[0] ?? "");
+    if (headers.some((h) => !h.trim() || /견줄\s*점\s*\d/.test(h))) {
+      return "표의 첫 칸에는 견줄 점 이름을 적어야 합니다(‘견줄 점 1’ 같은 자리표시 금지).";
+    }
+    if (blocks.blankLabels.length < 2) {
+      return "표 안에 (A)·(B) 같은 빈칸이 두 개 이상 필요합니다.";
+    }
+    const passage = q.passageOriginal || "";
+    for (const part of String(q.correctAnswer ?? "").split("/")) {
+      const word = part.replace(/\([A-E]\)\s*[:：]?/, "").trim();
+      if (!word) continue;
+      if (!passageHasConsecutiveWords(passage, word, 1)) {
+        return `정답 낱말 「${word}」이 지문에 그대로 없습니다.`;
+      }
+    }
+    q.choices = undefined;
+  } else if (option.aingkaCode === "문법조건영작") {
+    /*
+     * 기존 제시어 배열 서술형과 같은 칸(<조건>/<보기>/<해석>)이어야 인쇄가 상자로 그린다.
+     * 조건에 어법 이름과 괄호 안 형태가 없으면 학생이 무엇을 쓸지 알 수 없어 버린다.
+     */
+    const blocks = parseWordOrderBlocks(q.questionText || "");
+    if (!blocks) {
+      return "조건 영작은 questionText에 <조건>·<보기>·<해석>이 각각 줄 단위로 필요합니다.";
+    }
+    const firstCondition = blocks.conditions.split(/\n+/)[0] ?? "";
+    if (!/반드시/.test(firstCondition) || !/[(（][^)）]{2,}[)）]/.test(firstCondition)) {
+      return "첫 조건에 어법 이름과 괄호 안 형태가 필요합니다(예: 가정법 과거(If+과거동사, would+동사원형)).";
+    }
+    const answer = String(q.correctAnswer ?? "").trim();
+    if (!answer) {
+      return "조건 영작 정답 문장이 필요합니다.";
+    }
+    if (!passageHasConsecutiveWords(q.passageOriginal || "", answer)) {
+      return "조건 영작 정답은 지문에 있는 문장이어야 합니다.";
     }
     q.choices = undefined;
   } else if (

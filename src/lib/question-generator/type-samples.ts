@@ -230,6 +230,33 @@ const SAMPLES: Record<string, TypeSample> = {
     shape: "서술형. 본문에 있는 연속된 세 낱말을 그대로 찾아 쓰기",
     lines: ["요약문: What keeps a reader going is __________ __________ __________ ."],
   },
+  요약표빈칸단어: {
+    name: "요약표 빈칸 · 본문 단어",
+    stem: "다음 글의 내용을 표로 정리하고자 할 때, 빈칸 (A), (B), (C)에 들어갈 말을 본문에서 찾아 각각 한 단어로 쓰시오.",
+    shape: "서술형. 맞서는 두 부류를 표로 갈라 놓고, 빈칸을 본문 낱말로 채우기",
+    lines: [
+      "<조건> ○ 본문에서 찾아 쓸 것 ○ 각각 한 단어 ○ 본문 형태 그대로",
+      "| | Skimmers | Rereaders |",
+      "| 읽는 목적 | to finish (A) | to understand deeply |",
+      "| 멈추는 때 | when the plot (B) | when a line feels heavy |",
+      "| 남는 것 | a rough (C) | a lasting (C) |",
+      "→ 답: (A) fast / (B) slows / (C) impression",
+    ],
+    levelNote: "맞서는 두 부류가 없는 지문에서는 만들지 않고 건너뜁니다.",
+  },
+  문법조건영작: {
+    name: "조건 영작 · 지정 문법",
+    stem: "다음 우리말과 같은 뜻이 되도록 <조건>에 맞게 영작하시오.",
+    shape: "서술형. 정해 준 어법을 반드시 써서, <보기> 낱말로 한 문장 만들기",
+    lines: [
+      "<우리말> 독자가 책장을 계속 넘기게 하는 것은 바로 호기심이다.",
+      "<조건> ○ 반드시 강조구문(It is ~ that)을 사용할 것",
+      "　　　 ○ <보기>의 단어를 모두 한 번씩 사용할 것 ○ 필요하면 어형을 바꿀 것",
+      "<보기> it / be / curiosity / that / keep / a / reader / turn / page",
+      "→ 답: It is curiosity that keeps a reader turning pages.",
+    ],
+    levelNote: "지문에 실제로 쓰인 어법만 씁니다. 왼쪽에서 어법 범위를 좁힐 수 있어요.",
+  },
   지칭대명사서술: {
     name: "지칭 · 대명사",
     stem: "밑줄 친 ⓐit이 가리키는 바를 본문에서 정확히 찾아 한 단어의 영어로 쓰시오.",

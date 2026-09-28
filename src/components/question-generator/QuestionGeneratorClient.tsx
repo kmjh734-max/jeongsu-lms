@@ -47,9 +47,12 @@ const CATEGORY_ORDER = [
   "subjective",
 ] as const;
 
+export type GrammarChoice = { label: string; hint: string };
+
 /**
  * 조건 영작에 쓸 어법 범위 고르기.
  * 아무것도 고르지 않으면 지문에 실제로 있는 어법 가운데 알아서 고른다.
+ * 이름만 늘어놓으면 무엇을 묻는 어법인지 알기 어려워 설명을 한 줄씩 함께 보여 준다.
  */
 function GrammarScopeBox({
   choices,
@@ -58,7 +61,7 @@ function GrammarScopeBox({
   open,
   onToggle,
 }: {
-  choices: string[] | null;
+  choices: GrammarChoice[] | null;
   picked: string[];
   onChange: (next: string[]) => void;
   open: boolean;
@@ -75,7 +78,7 @@ function GrammarScopeBox({
           <b className="block text-slate-800">조건 영작 어법 범위</b>
           {picked.length === 0
             ? "지문에 있는 어법 가운데 알아서 고릅니다."
-            : `${picked.length}개로 좁힘`}
+            : `${picked.length}개로 좁힘 · ${picked.join(", ")}`}
         </span>
         <span className="shrink-0 text-xs text-slate-400">{open ? "▲" : "▼"}</span>
       </button>
@@ -84,37 +87,53 @@ function GrammarScopeBox({
           <p className="mt-1.5 text-[11px] text-slate-500">어법 목록을 불러오는 중이에요…</p>
         ) : (
           <>
-            <div className="mt-1.5 flex flex-wrap gap-1">
-              {choices.map((g) => {
-                const on = picked.includes(g);
-                return (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() =>
-                      onChange(on ? picked.filter((x) => x !== g) : [...picked, g])
-                    }
-                    aria-pressed={on}
-                    className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
-                      on
-                        ? "border-brand-600 bg-brand-600 text-white"
-                        : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
-                    }`}
-                  >
-                    {g}
-                  </button>
-                );
-              })}
-            </div>
-            {picked.length > 0 ? (
+            <div className="mt-1.5 flex items-center justify-between gap-2">
+              <span className="text-[10.5px] text-slate-500">
+                고른 어법이 지문에 없으면 그 문항은 건너뜁니다.
+              </span>
               <button
                 type="button"
-                onClick={() => onChange([])}
-                className="mt-1.5 text-[11px] font-semibold text-slate-500 hover:text-slate-800"
+                onClick={() =>
+                  onChange(picked.length > 0 ? [] : choices.map((c) => c.label))
+                }
+                className="shrink-0 rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[10.5px] font-semibold text-slate-600 hover:bg-slate-50"
               >
-                범위 풀기(알아서 고르기)
+                {picked.length > 0 ? "범위 풀기" : "모두 고르기"}
               </button>
-            ) : null}
+            </div>
+            <ul className="mt-1 max-h-[220px] space-y-0.5 overflow-y-auto rounded-md border border-slate-200 bg-white p-1">
+              {choices.map((g) => {
+                const on = picked.includes(g.label);
+                return (
+                  <li key={g.label}>
+                    <label
+                      className={`flex cursor-pointer items-start gap-1.5 rounded px-1.5 py-1 ${
+                        on ? "bg-brand-50" : "hover:bg-slate-50"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={on}
+                        onChange={() =>
+                          onChange(
+                            on ? picked.filter((x) => x !== g.label) : [...picked, g.label]
+                          )
+                        }
+                        className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-brand-600"
+                      />
+                      <span className="min-w-0">
+                        <span className="block text-[11px] font-semibold text-slate-900">
+                          {g.label}
+                        </span>
+                        <span className="block text-[10.5px] leading-snug text-slate-500">
+                          {g.hint}
+                        </span>
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
           </>
         )
       ) : null}
@@ -162,7 +181,7 @@ export function QuestionGeneratorClient({
    * 선생님 요청(2026-09-28): 무작위로 해도 되고 정해 둔 범위로 해도 되게.
    */
   const [grammarScope, setGrammarScope] = useState<string[]>([]);
-  const [grammarChoices, setGrammarChoices] = useState<string[] | null>(null);
+  const [grammarChoices, setGrammarChoices] = useState<GrammarChoice[] | null>(null);
   const [grammarScopeOpen, setGrammarScopeOpen] = useState(false);
   /** 유형에 마우스를 올렸을 때 띄우는 예시 */
   const [sample, setSample] = useState<{ s: TypeSample; level: SampleLevel; x: number; y: number } | null>(null);
@@ -253,7 +272,7 @@ export function QuestionGeneratorClient({
     if (writingCount === 0 || grammarChoices) return;
     fetch("/api/question-generator/grammar-scope")
       .then((r) => r.json())
-      .then((d: { ok?: boolean; grammars?: string[] }) => {
+      .then((d: { ok?: boolean; grammars?: GrammarChoice[] }) => {
         if (d.ok) setGrammarChoices(d.grammars ?? []);
       })
       .catch(() => undefined);
@@ -557,7 +576,8 @@ export function QuestionGeneratorClient({
         description: "고른 유형으로 지문마다 문항을 만듭니다. 문항 수만큼 크레딧이 나갑니다.",
         subject: `지문 ${filledPassages.length}개 × 지문당 ${perPassageTotals.total}문항 = 모두 ${grandTotal}문항`,
         items: [{ feature: "qg_generate_job", quantity: grandTotal }],
-        sample: "question",
+        // 선생님 요청(2026-09-28): 변형문제는 견본을 띄우지 않는다.
+        // 유형을 직접 골라 만드는 화면이라 한 장짜리 예시가 오히려 헷갈렸다.
       });
       if (!go) return;
 
