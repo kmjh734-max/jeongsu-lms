@@ -45,6 +45,10 @@ export const SAMPLE_IMAGES: Partial<Record<CreditSampleKind, SampleImage>> = {
     src: "/samples/integrated.jpg",
     alt: "최종통합자료 — 표지와 차례를 붙여 한 권으로 묶은 실제 인쇄 첫 장",
   },
+  question: {
+    src: "/samples/question.jpg",
+    alt: "변형문제 — 고른 유형으로 만든 시험지 실제 인쇄 첫 장",
+  },
 };
 
 export function sampleImageFor(kind: CreditSampleKind): SampleImage | null {
