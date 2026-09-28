@@ -192,17 +192,17 @@ export const spec: SetSpec = {
         ["W", "Could I borrow your pen for a second?"],
         ["M", "Sure, here you are."],
         ["ANN", "Number four."],
-        ["W", "How long have you been waiting?"],
-        ["M", "About fifteen minutes."],
-        ["ANN", "Number five."],
         ["W", "Excuse me, your coffee is about to spill."],
         ["M", "Oh no, thank you for telling me."],
+        ["ANN", "Number five."],
+        ["W", "How long have you been waiting?"],
+        ["M", "About fifteen minutes."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 5,
+      answer: 4,
       clue: "Excuse me, your coffee is about to spill.",
       explanation:
-        "그림은 카페에서 남자의 팔꿈치가 커피잔을 건드려 잔이 기울고, 여자가 그것을 가리키며 알려 주는 장면이다. 따라서 답은 ⑤이다.",
+        "그림은 카페에서 남자의 팔꿈치가 커피잔을 건드려 잔이 기울고, 여자가 그것을 가리키며 알려 주는 장면이다. 따라서 답은 ④이다.",
       figure: {
         kind: "scene",
         scene:
@@ -215,8 +215,8 @@ export const spec: SetSpec = {
         "① W: 이 자리 임자 있나요? / M: 아니요, 앉으세요.",
         "② W: 이 카페에 무료 와이파이 있나요? / M: 네, 계산대에서 비밀번호를 물어보세요.",
         "③ W: 펜 잠깐 빌려도 될까요? / M: 그럼요, 여기 있습니다.",
-        "④ W: 얼마나 기다리셨어요? / M: 15분쯤이요.",
-        "⑤ W: 저기요, 커피가 쏟아지려고 해요. / M: 어머, 알려 주셔서 감사합니다.",
+        "④ W: 저기요, 커피가 쏟아지려고 해요. / M: 어머, 알려 주셔서 감사합니다.",
+        "⑤ W: 얼마나 기다리셨어요? / M: 15분쯤이요.",
       ].join("\n"),
     },
     {

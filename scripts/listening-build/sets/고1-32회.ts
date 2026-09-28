@@ -129,10 +129,10 @@ export const spec: SetSpec = {
       lines: [
         ["M", "Chaerin, is this the art room you moved into?"],
         ["W", "Yes, we finished carrying everything over last week."],
-        ["M", "There's a tall wooden easel at the left end."],
-        ["W", "That one belonged to the teacher before me."],
         ["M", "And I count two stools in front of the easel."],
         ["W", "There are three. One is standing behind the easel."],
+        ["M", "There's a tall wooden easel at the left end."],
+        ["W", "That one belonged to the teacher before me."],
         ["M", "The wide window has its curtain tied back to one side."],
         ["W", "We keep it open all morning for the light."],
         ["M", "And there's a paint trolley on wheels next to the stools."],
@@ -141,10 +141,10 @@ export const spec: SetSpec = {
         ["W", "A student painted it three years ago."],
       ],
       choices: ["①", "②", "③", "④", "⑤"],
-      answer: 2,
+      answer: 1,
       clue: "There are three. One is standing behind the easel.",
       explanation:
-        "남자가 의자가 두 개라고 하자 여자가 세 개라고 바로잡는다. 그림에는 두 개가 그려져 있으므로 답은 ②이다.",
+        "남자가 의자가 두 개라고 하자 여자가 세 개라고 바로잡는다. 그림에는 두 개가 그려져 있으므로 답은 ①이다.",
       figure: {
         kind: "scene",
         scene:
@@ -159,10 +159,10 @@ export const spec: SetSpec = {
       translation: [
         "M: 채린아, 여기가 새로 옮긴 미술실이야?",
         "W: 응, 지난주에 다 옮겼어.",
+        "M: 이젤 앞에 의자가 두 개 보여.",
+        "W: 세 개야. 하나는 이젤 뒤에 서 있어.",
         "M: 왼쪽 끝에 키 큰 나무 이젤이 있네.",
         "W: 그건 내 앞 선생님 거였어.",
-        "M: 그리고 이젤 앞에 의자가 두 개 보여.",
-        "W: 세 개야. 하나는 이젤 뒤에 서 있어.",
         "M: 넓은 창문은 커튼을 한쪽으로 묶어 뒀네.",
         "W: 빛 때문에 오전 내내 열어 둬.",
         "M: 그리고 의자 옆에 바퀴 달린 물감 수레가 있네.",
