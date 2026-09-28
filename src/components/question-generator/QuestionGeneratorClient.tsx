@@ -134,7 +134,7 @@ function GrammarScopeBox({
         className="flex w-full items-center justify-between gap-2 text-left"
       >
         <span className="min-w-0 text-[11px] text-slate-700">
-          <b className="block text-slate-800">조건 영작 어법 범위</b>
+          <b className="block text-slate-800">지정 문법 범위</b>
           {picked.length === 0
             ? "지문에 있는 어법 가운데 알아서 고릅니다."
             : `${picked.length}개로 좁힘 · ${picked.join(", ")}`}

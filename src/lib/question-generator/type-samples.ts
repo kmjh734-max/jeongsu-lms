@@ -245,8 +245,8 @@ const SAMPLES: Record<string, TypeSample> = {
     levelNote: "두 갈래로 갈라 볼 수 없는 지문에서는 만들지 않고 건너뜁니다.",
   },
   문법조건영작: {
-    name: "조건 영작 · 지정 문법",
-    stem: "다음 우리말과 같은 뜻이 되도록 <조건>에 맞게 영작하시오.",
+    name: "제시어 배열 · 지정 문법",
+    stem: "다음 글의 빈칸 ⓐ에 들어갈 문장을 <조건>에 맞게 <보기>의 단어를 배열하여 완성하시오.",
     shape: "서술형. 지문에서 한 문장을 빼고, 그 문장을 정해 준 어법으로 써 넣기",
     lines: [
       "… A story slows, and the reader still turns the page.",
