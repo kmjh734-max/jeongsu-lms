@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { writingConditionText } from "@/lib/lesson-materials/writing-grammar-condition";
 import {
   circledHangul,
   circledLetter,
@@ -615,7 +616,11 @@ function TestTasks({ row }: { row: OnePageTestRow }) {
       {row.writing ? (
         <div className="op-tt">
           <p className="op-ttq">
-            ▸ 해석에 맞춰 영작하시오 <span className="op-ttc">(제시어를 모두 쓰고 필요하면 어형 변화)</span>{" "}
+            ▸ 해석에 맞춰 영작하시오{" "}
+            <span className="op-ttc">
+              (제시어를 모두 쓰고 필요하면 어형 변화
+              {row.writing.condition ? ` · ${writingConditionText(row.writing.condition)}` : ""})
+            </span>{" "}
             {row.writing.korean}
           </p>
           <p className="op-ttw op-en">( {row.writing.words.join(" / ")} )</p>

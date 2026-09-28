@@ -6,6 +6,7 @@
  * 정리자료를 만든 뒤 테스트를 만들어도 다시 만들지 않는다. 섞기는 모두 정해진 열쇠로 하므로
  * 같은 지문은 몇 번 열어도 같은 시험지가 나온다.
  */
+import { writingConditionFor } from "@/lib/lesson-materials/writing-grammar-condition";
 import {
   createSeededRng,
   fisherYatesShuffle,
@@ -407,9 +408,16 @@ function pickWritingIndexes(
   const usable = (i: number) =>
     i >= 0 && i < sentences.length && !!sentences[i]!.english.trim() && !!sentences[i]!.korean.trim();
   const words = (i: number) => answerSentence(sentences[i]!.english).split(/\s+/).length;
+  /*
+   * 선생님 요청(2026-09-29): 고르기로 못 내는 어법(관계부사·It-that 강조구문·조동사+have p.p.
+   * 같은 「둘 다 되는 자리」)을 영작으로 돌려 낸다. 그런 어법이 든 문장을 먼저 고르고,
+   * 한 자리도 못 잡으면 마지막 자리를 내준다.
+   */
+  const condOf = (i: number) => writingConditionFor(sentences[i]!.english);
+  const keyed = keyIndexes.filter((i) => usable(i));
   const chosen: number[] = [];
-  for (const i of keyIndexes) {
-    if (usable(i) && !chosen.includes(i)) chosen.push(i);
+  for (const i of [...keyed.filter((i) => condOf(i)), ...keyed.filter((i) => !condOf(i))]) {
+    if (!chosen.includes(i)) chosen.push(i);
     if (chosen.length >= WRITING_MAX) break;
   }
   if (chosen.length < WRITING_MAX) {
@@ -417,13 +425,27 @@ function pickWritingIndexes(
       .map((_, i) => i)
       .filter((i) => usable(i) && !chosen.includes(i) && words(i) >= 6)
       .sort((a, b) => {
+        const cond = (i: number) => (condOf(i) ? 0 : 1);
         const fit = (i: number) => (words(i) <= 35 ? 0 : 1);
-        return fit(a) - fit(b) || words(b) - words(a);
+        return cond(a) - cond(b) || fit(a) - fit(b) || words(b) - words(a);
       });
     for (const i of rest) {
       if (chosen.length >= WRITING_MAX) break;
       chosen.push(i);
     }
+  }
+  // 지정 문법이 붙는 자리를 절반까지는 잡아 둔다. 뒤 자리(재료가 나중에 고른 문장)부터 내준다.
+  const keep = chosen.length - Math.floor(chosen.length / 2);
+  const pool = sentences
+    .map((_, i) => i)
+    .filter((i) => usable(i) && !chosen.includes(i) && words(i) >= 6 && words(i) <= 35)
+    .map((i) => ({ i, books: condOf(i)?.books ?? 0 }))
+    .filter((r) => r.books > 0)
+    .sort((a, b) => b.books - a.books || words(b.i) - words(a.i));
+  for (let k = chosen.length - 1; k >= keep && pool.length; k -= 1) {
+    if (chosen.filter((i) => condOf(i)).length >= chosen.length - keep) break;
+    if (condOf(chosen[k]!)) continue;
+    chosen[k] = pool.shift()!.i;
   }
   return chosen.sort((a, b) => a - b);
 }
@@ -567,7 +589,13 @@ export type OnePageTestRow = {
   /** 이 문장의 함축의미 — 그 말이 문맥에서 뜻하는 바를 쓰게 한다 */
   imps: Array<{ surface: string; answer: string }>;
   /** 이 문장의 주요문장 영작(없으면 null) */
-  writing: { words: string[]; korean: string; answer: string } | null;
+  writing: {
+    words: string[];
+    korean: string;
+    answer: string;
+    /** 지정 문법 조건 — 고르기로 못 내는 어법을 여기서 낸다 (없으면 조건 없이) */
+    condition?: { label: string; form: string } | null;
+  } | null;
 };
 
 export type OnePageTestPassage = {
@@ -770,7 +798,12 @@ export function buildOnePageTestPassage(input: {
     const korean = input.sentences[si]!.korean.replace(/\s+/g, " ").trim();
     const writing =
       writingAt.has(si) && imps.length === 0 && korean
-        ? { words: scrambleSentenceWords(raw, `${seed}#w${si}`), korean, answer: answerSentence(raw) }
+        ? {
+            words: scrambleSentenceWords(raw, `${seed}#w${si}`),
+            korean,
+            answer: answerSentence(raw),
+            condition: writingConditionFor(raw),
+          }
         : null;
 
     rows.push({ no: rows.length + 1, segments, refs, imps, writing });
