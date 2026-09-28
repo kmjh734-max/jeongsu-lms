@@ -157,9 +157,12 @@ export async function loadClassPageData(
       todayIso,
     });
   } else if (tab === "courses") {
+    // 휴지통·보관 강좌는 반에 새로 배정할 수 없다(2026-09-28)
     let courseQuery = supabase
       .from("courses")
       .select("id, title, is_published")
+      .is("deleted_at", null)
+      .is("archived_at", null)
       .order("title");
     if (variant === "teacher") courseQuery = courseQuery.eq("teacher_id", viewerId);
     const [{ data: options }, schedules] = await Promise.all([

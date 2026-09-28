@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { CourseCategoryInput, normalizeCourseCategory } from "@/components/courses/CourseCategoryInput";
+import {
+  setCoursesArchivedAction,
+  trashCoursesAction,
+} from "@/app/admin/courses/actions";
+import { TRASH_DAYS } from "@/lib/courses/trash-days";
+import type { CourseFolder } from "@/lib/courses/load-courses-page";
 import type { Course, Profile } from "@/types/database";
 
 interface CourseSettingsFormProps {
@@ -11,7 +16,9 @@ interface CourseSettingsFormProps {
   variant: "admin" | "teacher";
   teachers?: Profile[];
   listHref: string;
-  categories?: string[];
+  folders?: CourseFolder[];
+  /** 지금 이 강좌를 듣는 학생 수 — 휴지통에 넣기 전에 알려 준다 */
+  studentCount?: number;
 }
 
 export function CourseSettingsForm({
@@ -19,17 +26,19 @@ export function CourseSettingsForm({
   variant,
   teachers = [],
   listHref,
-  categories = [],
+  folders = [],
+  studentCount = 0,
 }: CourseSettingsFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState(course.title);
   const [description, setDescription] = useState(course.description ?? "");
-  const [category, setCategory] = useState(course.category ?? "");
+  const [folderId, setFolderId] = useState(course.folder_id ?? "");
   const [teacherId, setTeacherId] = useState(course.teacher_id ?? "");
   const [isPublished, setIsPublished] = useState(course.is_published);
   const [loading, setLoading] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const archived = Boolean(course.archived_at);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,13 +49,13 @@ export function CourseSettingsForm({
     const payload: {
       title: string;
       description: string | null;
-      category: string | null;
+      folder_id: string | null;
       is_published: boolean;
       teacher_id?: string | null;
     } = {
       title: title.trim(),
       description: description.trim() || null,
-      category: normalizeCourseCategory(category),
+      folder_id: folderId || null,
       is_published: isPublished,
     };
 
@@ -69,35 +78,49 @@ export function CourseSettingsForm({
     setLoading(false);
   }
 
-  async function handleDelete() {
+  /**
+   * 삭제가 아니라 휴지통으로 옮긴다.
+   * 선생님 지적(2026-09-28): 예전에는 확인 창 한 번에 학생 진도 기록까지 영영 사라졌다.
+   */
+  async function handleTrash() {
+    const who = studentCount > 0 ? `\n지금 ${studentCount}명이 듣고 있어요.` : "";
     if (
       !window.confirm(
-        `「${course.title}」 강좌를 삭제할까요?\n\n등록된 모든 영상, 수강 배정, 학습 진도 기록이 함께 삭제되며 되돌릴 수 없습니다.`
+        `「${course.title}」 강좌를 휴지통으로 옮길까요?${who}\n\n학생 화면에서 바로 사라지지만, ${TRASH_DAYS}일 안에 되돌릴 수 있어요. 진도 기록은 지워지지 않아요.`
       )
     ) {
       return;
     }
-
-    setDeleting(true);
+    setWorking(true);
     setError(null);
-    const supabase = createClient();
-
-    const { error: deleteError } = await supabase
-      .from("courses")
-      .delete()
-      .eq("id", course.id);
-
-    if (deleteError) {
-      setError(deleteError.message);
-      setDeleting(false);
+    const r = await trashCoursesAction([course.id]);
+    if (!r.ok) {
+      setError(r.message);
+      setWorking(false);
       return;
     }
-
-    router.push(listHref);
+    router.push(`${listHref}?보기=휴지통`);
     router.refresh();
   }
 
-  const busy = loading || deleting;
+  async function handleArchive() {
+    if (
+      !archived &&
+      !window.confirm(
+        `「${course.title}」 강좌를 보관할까요?\n\n목록에서 접히고 새로 배정할 수 없게 되지만, 듣던 학생은 계속 볼 수 있어요.`
+      )
+    ) {
+      return;
+    }
+    setWorking(true);
+    setError(null);
+    const r = await setCoursesArchivedAction([course.id], !archived);
+    if (!r.ok) setError(r.message);
+    setWorking(false);
+    router.refresh();
+  }
+
+  const busy = loading || working;
 
   return (
     <div className="space-y-4">
@@ -112,8 +135,27 @@ export function CourseSettingsForm({
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-semibold text-slate-600">카테고리</label>
-          <CourseCategoryInput value={category} onChange={setCategory} existing={categories} compact />
+          <label className="mb-1 block text-xs font-semibold text-slate-600" htmlFor="course-folder">
+            카테고리
+          </label>
+          <select
+            id="course-folder"
+            value={folderId}
+            onChange={(e) => setFolderId(e.target.value)}
+            className="ui-input h-9 w-full text-sm"
+          >
+            <option value="">미분류</option>
+            {folders.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+          {folders.length === 0 ? (
+            <p className="mt-1 text-[11px] text-slate-400">
+              강좌 목록 왼쪽 ‘카테고리 +’에서 폴더를 만들 수 있어요.
+            </p>
+          ) : null}
         </div>
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-600">설명</label>
@@ -159,14 +201,33 @@ export function CourseSettingsForm({
           {loading ? "저장 중..." : "저장"}
         </button>
       </form>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={handleDelete}
-        className="text-xs text-slate-400 hover:text-red-600 disabled:opacity-50"
-      >
-        {deleting ? "삭제 중..." : "이 강좌 삭제 (영상·진도 기록 함께 삭제)"}
-      </button>
+
+      <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-3">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void handleArchive()}
+          className="h-8 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+        >
+          {archived ? "보관 풀기" : "보관함으로 옮기기"}
+        </button>
+        <p className="text-[11px] leading-snug text-slate-400">
+          {archived
+            ? "지금 보관함에 있어요. 새로 배정할 수 없지만 듣던 학생은 계속 봅니다."
+            : "끝난 강좌를 목록에서 접어 둡니다. 듣던 학생은 계속 볼 수 있어요."}
+        </p>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void handleTrash()}
+          className="mt-1 h-8 rounded-lg border border-rose-200 text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+        >
+          {working ? "옮기는 중..." : "휴지통으로 옮기기"}
+        </button>
+        <p className="text-[11px] leading-snug text-slate-400">
+          {TRASH_DAYS}일 안에 되돌릴 수 있어요. 진도 기록은 지워지지 않습니다.
+        </p>
+      </div>
     </div>
   );
 }

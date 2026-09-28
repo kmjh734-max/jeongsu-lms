@@ -37,8 +37,16 @@ export interface Course {
   teacher_id: string | null;
   is_published: boolean;
   created_at: string;
-  /** 문법·독해·내신 같은 묶음 (없으면 기타) */
+  /** 옛 카테고리 글자. 지금은 folder_id를 쓴다(2026-09-28) */
   category?: string | null;
+  /** 강좌 폴더(옛 카테고리). 없으면 미분류 */
+  folder_id?: string | null;
+  /** 휴지통에 넣은 때. 30일 뒤 비워진다 */
+  deleted_at?: string | null;
+  /** 보관한 때. 목록에서 접히고 새로 배정할 수 없다(듣던 학생은 계속 본다) */
+  archived_at?: string | null;
+  /** 목록에 보여 줄 차례. 학생 화면도 이 차례를 따른다 */
+  order_index?: number;
   teacher?: Profile | null;
 }
 

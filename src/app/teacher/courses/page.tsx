@@ -2,19 +2,31 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ButtonLink } from "@/components/ui/Button";
-import { CourseCardGrid } from "@/components/courses/CourseCardGrid";
-import { loadCourseCards } from "@/lib/courses/course-cards";
-import type { Course } from "@/types/database";
+import { CoursesBrowser, CoursesEmptyState } from "@/components/courses/CoursesBrowser";
+import { loadCoursesPage, type CourseScope } from "@/lib/courses/load-courses-page";
+import { purgeExpiredTrash } from "@/lib/courses/manage";
 
-export default async function TeacherCoursesPage() {
+/** ?보기=보관함 · ?보기=휴지통 */
+function scopeOf(v: string | undefined): CourseScope {
+  return v === "보관함" ? "archived" : v === "휴지통" ? "trash" : "alive";
+}
+
+export default async function TeacherCoursesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ 보기?: string }>;
+}) {
+  const { 보기 } = await searchParams;
+  const scope = scopeOf(보기);
+
   const profile = await getCurrentProfile();
+  if (scope === "trash" && profile?.academy_id) {
+    await purgeExpiredTrash(profile.academy_id);
+  }
+
   const supabase = await createClient();
-  const { data: courses } = await supabase
-    .from("courses")
-    .select("*")
-    .eq("teacher_id", profile!.id)
-    .order("created_at", { ascending: false });
-  const cards = await loadCourseCards(supabase, (courses ?? []) as Course[]);
+  const data = await loadCoursesPage(supabase, { scope, teacherId: profile!.id });
+  const nothingAtAll = data.counts.alive + data.counts.archived + data.counts.trash === 0;
 
   return (
     <div>
@@ -27,7 +39,18 @@ export default async function TeacherCoursesPage() {
           </ButtonLink>
         }
       />
-      <CourseCardGrid cards={cards} hrefBase="/teacher/courses" newHref="/teacher/courses/new" />
+      {nothingAtAll ? (
+        <CoursesEmptyState newHref="/teacher/courses/new" />
+      ) : (
+        <CoursesBrowser
+          cards={data.cards}
+          folders={data.folders}
+          counts={data.counts}
+          scope={scope}
+          basePath="/teacher/courses"
+          canPurge={false}
+        />
+      )}
     </div>
   );
 }

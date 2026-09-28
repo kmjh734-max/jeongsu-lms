@@ -23,7 +23,8 @@ export default async function StudentCoursePage({ params }: PageProps) {
   const [{ data: enrollment }, { data: course }, { data: sections }, { data: lessons }, { data: progress }] =
     await Promise.all([
       supabase.from("enrollments").select("id").eq("student_id", profile!.id).eq("course_id", courseId).maybeSingle(),
-      supabase.from("courses").select("*").eq("id", courseId).maybeSingle(),
+      // 휴지통에 든 강좌는 학생에게 보이지 않는다(보관한 것은 듣던 학생이 계속 본다)
+      supabase.from("courses").select("*").eq("id", courseId).is("deleted_at", null).maybeSingle(),
       supabase.from("sections").select("*").eq("course_id", courseId).order("order_index"),
       supabase.from("lessons").select("*").eq("course_id", courseId).eq("is_published", true).order("order_index"),
       supabase

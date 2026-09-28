@@ -2,15 +2,15 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { CourseCreateForm } from "@/components/courses/CourseCreateForm";
-import { loadCourseCategories } from "@/lib/courses/course-categories";
+import { loadCourseFolders } from "@/lib/courses/load-course-folders";
 import type { Profile } from "@/types/database";
 
 export default async function NewCoursePage() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-  const [{ data: teachers }, categories] = await Promise.all([
+  const [{ data: teachers }, folders] = await Promise.all([
     supabase.from("profiles").select("*").eq("role", "teacher").eq("is_active", true).order("name"),
-    loadCourseCategories(supabase),
+    loadCourseFolders(supabase),
   ]);
 
   return (
@@ -28,7 +28,7 @@ export default async function NewCoursePage() {
       <CourseCreateForm
         teachers={(teachers ?? []) as Profile[]}
         currentUserId={profile!.id}
-        categories={categories}
+        folders={folders}
       />
     </div>
   );

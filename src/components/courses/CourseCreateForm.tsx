@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { CourseCategoryInput, normalizeCourseCategory } from "@/components/courses/CourseCategoryInput";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { resolveLessonTeacherId } from "@/lib/courses/resolve-lesson-teacher-id";
@@ -14,6 +13,7 @@ import {
 } from "@/lib/courses/course-lessons";
 import { withLessonVideoPayload } from "@/lib/video/lesson-persist";
 import { VideoListEditor } from "@/components/courses/VideoListEditor";
+import type { CourseFolder } from "@/lib/courses/load-courses-page";
 import type { Profile } from "@/types/database";
 
 interface CourseCreateFormProps {
@@ -21,20 +21,20 @@ interface CourseCreateFormProps {
   /** Logged-in user id (admin or teacher) */
   currentUserId: string;
   variant?: "admin" | "teacher";
-  /** 학원에서 이미 쓰는 카테고리 */
-  categories?: string[];
+  /** 학원의 강좌 폴더(옛 카테고리) */
+  folders?: CourseFolder[];
 }
 
 export function CourseCreateForm({
   teachers = [],
   currentUserId,
   variant = "admin",
-  categories = [],
+  folders = [],
 }: CourseCreateFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
+  const [folderId, setFolderId] = useState("");
   const [teacherId, setTeacherId] = useState("");
   const [isPublished, setIsPublished] = useState(true);
   const [videoRows, setVideoRows] = useState<VideoDraftRow[]>([
@@ -94,7 +94,7 @@ export function CourseCreateForm({
       .insert({
         title: title.trim(),
         description: description.trim() || null,
-        category: normalizeCourseCategory(category),
+        folder_id: folderId || null,
         teacher_id: assignedTeacherId,
         is_published: isPublished,
         academy_id: me.academy_id,
@@ -181,8 +181,27 @@ export function CourseCreateForm({
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">카테고리</label>
-          <CourseCategoryInput value={category} onChange={setCategory} existing={categories} />
+          <label className="mb-1 block text-sm font-medium" htmlFor="new-course-folder">
+            카테고리
+          </label>
+          <select
+            id="new-course-folder"
+            value={folderId}
+            onChange={(e) => setFolderId(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          >
+            <option value="">미분류</option>
+            {folders.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+          {folders.length === 0 ? (
+            <p className="mt-1 text-xs text-slate-400">
+              강좌 목록 왼쪽 ‘카테고리 +’에서 폴더를 만들 수 있어요.
+            </p>
+          ) : null}
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">강좌 설명</label>

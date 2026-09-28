@@ -77,7 +77,14 @@ export async function loadStudentsPageData(
 
   let classQuery = supabase.from("classes").select("id, name").order("name");
   if (scope.classTeacherId) classQuery = classQuery.eq("teacher_id", scope.classTeacherId);
-  let courseQuery = supabase.from("courses").select("id, title").order("title").limit(500);
+  // 새로 배정할 때는 휴지통·보관 강좌를 고를 수 없다(2026-09-28)
+  let courseQuery = supabase
+    .from("courses")
+    .select("id, title")
+    .is("deleted_at", null)
+    .is("archived_at", null)
+    .order("title")
+    .limit(500);
   if (scope.courseTeacherId) courseQuery = courseQuery.eq("teacher_id", scope.courseTeacherId);
 
   const [{ data: classData }, { data: courseData }, classMembers] = await Promise.all([

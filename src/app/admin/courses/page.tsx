@@ -1,20 +1,33 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ButtonLink } from "@/components/ui/Button";
-import { CourseCardGrid } from "@/components/courses/CourseCardGrid";
-import { loadCourseCards } from "@/lib/courses/course-cards";
-import type { Course } from "@/types/database";
+import { CoursesBrowser, CoursesEmptyState } from "@/components/courses/CoursesBrowser";
+import { loadCoursesPage, type CourseScope } from "@/lib/courses/load-courses-page";
+import { purgeExpiredTrash } from "@/lib/courses/manage";
 
-export default async function AdminCoursesPage() {
+/** ?보기=보관함 · ?보기=휴지통 */
+function scopeOf(v: string | undefined): CourseScope {
+  return v === "보관함" ? "archived" : v === "휴지통" ? "trash" : "alive";
+}
+
+export default async function AdminCoursesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ 보기?: string }>;
+}) {
+  const { 보기 } = await searchParams;
+  const scope = scopeOf(보기);
+
+  const profile = await getCurrentProfile();
+  // 휴지통을 열 때 30일 지난 것을 비운다(따로 도는 일감이 없어 여기서 함께 한다)
+  if (scope === "trash" && profile?.academy_id) {
+    await purgeExpiredTrash(profile.academy_id);
+  }
+
   const supabase = await createClient();
-  const { data: courses } = await supabase
-    .from("courses")
-    .select("*, teacher:profiles!courses_teacher_id_fkey(name)")
-    .order("created_at", { ascending: false });
-  const cards = await loadCourseCards(
-    supabase,
-    (courses ?? []) as (Course & { teacher: { name: string | null } | null })[]
-  );
+  const data = await loadCoursesPage(supabase, { scope });
+  const nothingAtAll = data.counts.alive + data.counts.archived + data.counts.trash === 0;
 
   return (
     <div>
@@ -27,7 +40,19 @@ export default async function AdminCoursesPage() {
           </ButtonLink>
         }
       />
-      <CourseCardGrid cards={cards} hrefBase="/admin/courses" newHref="/admin/courses/new" showTeacher />
+      {nothingAtAll ? (
+        <CoursesEmptyState newHref="/admin/courses/new" />
+      ) : (
+        <CoursesBrowser
+          cards={data.cards}
+          folders={data.folders}
+          counts={data.counts}
+          scope={scope}
+          basePath="/admin/courses"
+          canPurge
+          showTeacher
+        />
+      )}
     </div>
   );
 }

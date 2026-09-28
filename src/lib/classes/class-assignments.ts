@@ -192,9 +192,18 @@ export async function assignCourseToClass(
 
   const { data: course, error: courseError } = await supabase
     .from("courses")
-    .select("id, title, teacher_id, academy_id")
+    .select("id, title, teacher_id, academy_id, deleted_at, archived_at")
     .eq("id", courseId)
     .single();
+
+  if (course && (course.deleted_at || course.archived_at)) {
+    return {
+      ok: false,
+      message: course.deleted_at
+        ? "휴지통에 있는 강좌는 배정할 수 없습니다."
+        : "보관한 강좌는 새로 배정할 수 없습니다. 보관을 먼저 풀어 주세요.",
+    };
+  }
 
   if (courseError || !course) {
     return { ok: false, message: "강좌를 찾을 수 없습니다." };

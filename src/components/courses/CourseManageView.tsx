@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { CourseSettingsForm } from "@/components/courses/CourseSettingsForm";
 import { CourseStudentVisibilityBanner } from "@/components/courses/CourseStudentVisibilityBanner";
+import { CourseStudentsPanel } from "@/components/courses/CourseStudentsPanel";
 import { CourseVideoManager } from "@/components/courses/CourseVideoManager";
 import { Icon } from "@/components/layout/NavIcon";
 import { formatDuration } from "@/lib/video/format-duration";
+import type { CourseFolder } from "@/lib/courses/load-courses-page";
 import type { VideoMeta } from "@/lib/video/video-meta";
 import type { Course, Lesson, Profile } from "@/types/database";
 
@@ -19,9 +21,8 @@ export function CourseManageView({
   teachers,
   lessonTeacherId,
   listHref,
-  studentsHref,
   lessonsError,
-  categories = [],
+  folders = [],
 }: {
   variant: "admin" | "teacher";
   course: Course;
@@ -31,12 +32,14 @@ export function CourseManageView({
   teachers?: Profile[];
   lessonTeacherId: string;
   listHref: string;
-  studentsHref?: string;
   lessonsError?: string | null;
-  categories?: string[];
+  folders?: CourseFolder[];
 }) {
   const published = lessons.filter((l) => l.is_published).length;
   const totalSeconds = lessons.reduce((s, l) => s + (meta[l.id]?.durationSeconds ?? 0), 0);
+  const folderLabel = course.folder_id
+    ? (folders.find((f) => f.id === course.folder_id)?.name ?? null)
+    : null;
 
   return (
     <div className="space-y-5">
@@ -49,8 +52,8 @@ export function CourseManageView({
           강좌 목록
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          {course.category ? (
-            <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{course.category}</span>
+          {folderLabel ? (
+            <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{folderLabel}</span>
           ) : null}
           <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-[22px]">{course.title}</h1>
           <span
@@ -60,6 +63,11 @@ export function CourseManageView({
           >
             {course.is_published ? "공개 중" : "비공개"}
           </span>
+          {course.archived_at ? (
+            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
+              보관함
+            </span>
+          ) : null}
         </div>
         <p className="mt-1 text-sm text-slate-500">
           영상 {lessons.length}개{published < lessons.length ? ` (공개 ${published})` : ""}
@@ -100,33 +108,17 @@ export function CourseManageView({
               course={course}
               teachers={teachers}
               listHref={listHref}
-              categories={categories}
+              folders={folders}
+              studentCount={students.length}
             />
           </section>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="mb-2 flex items-baseline justify-between">
-              <h2 className="text-sm font-bold text-slate-900">수강생 {students.length}명</h2>
-              {studentsHref ? (
-                <Link href={studentsHref} className="text-xs font-semibold text-brand-700 hover:underline">
-                  배정하기
-                </Link>
-              ) : null}
-            </div>
-            {students.length === 0 ? (
-              <p className="rounded-lg bg-slate-50 px-3 py-4 text-center text-xs text-slate-500">
-                아직 배정된 학생이 없어요. 반에 강좌를 넣거나 학생에게 직접 배정하세요.
-              </p>
-            ) : (
-              <ul className="flex flex-wrap gap-1.5">
-                {students.map((s) => (
-                  <li key={s.id} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-                    {s.name ?? s.username ?? "학생"}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          <CourseStudentsPanel
+            courseId={course.id}
+            courseTitle={course.title}
+            students={students}
+            canAssign={!course.archived_at && !course.deleted_at}
+          />
         </div>
       </div>
     </div>

@@ -51,7 +51,7 @@ export const loadStudentDashboardCourses = cache(
       supabase
         .from("enrollments")
         .select(
-          "course_id, course:courses(id, title, description, is_published, category)"
+          "course_id, course:courses(id, title, description, is_published, category, deleted_at, order_index)"
         )
         .eq("student_id", studentId),
       fetchPagesParallel<ProgressRow>((from, to, withCount) =>
@@ -73,7 +73,8 @@ export const loadStudentDashboardCourses = cache(
           enrollment.course as Course | Course[] | null | undefined,
           enrollment.course_id
         );
-        if (!course?.id) return null;
+        // 휴지통에 든 강좌는 학생 목록에서 뺀다(2026-09-28)
+        if (!course?.id || course.deleted_at) return null;
         return { course, courseId: course.id };
       })
       .filter(

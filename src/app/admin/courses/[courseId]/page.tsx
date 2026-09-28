@@ -5,7 +5,7 @@ import { resolveLessonTeacherId } from "@/lib/courses/resolve-lesson-teacher-id"
 import { flattenCourseLessons } from "@/lib/courses/course-lessons";
 import { unwrapRelation } from "@/lib/progress/enrollment-progress";
 import { loadLessonVideoMeta } from "@/lib/video/video-meta";
-import { loadCourseCategories } from "@/lib/courses/course-categories";
+import { loadCourseFolders } from "@/lib/courses/load-course-folders";
 import { CourseManageView } from "@/components/courses/CourseManageView";
 import type { Course, Lesson, Profile, Section } from "@/types/database";
 
@@ -38,7 +38,7 @@ export default async function AdminCourseDetailPage({ params }: PageProps) {
   if (!course) notFound();
   const typedCourse = course as Course;
   const flatLessons = flattenCourseLessons((sections ?? []) as Section[], (lessons ?? []) as Lesson[]);
-  const [meta, categories] = await Promise.all([loadLessonVideoMeta(flatLessons), loadCourseCategories(supabase)]);
+  const [meta, folders] = await Promise.all([loadLessonVideoMeta(flatLessons), loadCourseFolders(supabase)]);
 
   return (
     <CourseManageView
@@ -53,9 +53,8 @@ export default async function AdminCourseDetailPage({ params }: PageProps) {
       teachers={(teachers ?? []) as Profile[]}
       lessonTeacherId={resolveLessonTeacherId(typedCourse.teacher_id, profile!.id)}
       listHref="/admin/courses"
-      studentsHref="/admin/classes"
       lessonsError={lessonsError?.message ?? null}
-      categories={categories}
+      folders={folders}
     />
   );
 }
