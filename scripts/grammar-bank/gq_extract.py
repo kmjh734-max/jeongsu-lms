@@ -80,6 +80,45 @@ def question_kind(text):
     return "단답·서술"
 
 
+CHOICE = re.compile(r"^([①-⑩])\s*(.*)$")
+
+
+def choice_lines(rows, width):
+    """①~⑤ 로 나뉜 고르는 글을 차례대로 잇는다.
+
+    동그라미 번호와 그 옆 글이 따로 떨어져 있고 높이도 조금 어긋난다.
+    그래서 높이가 비슷한 줄을 한 줄로 모은 뒤 번호에서 끊는다.
+    """
+    rows = sorted(rows, key=lambda r: (r["x"] > width / 2, r["y"]))
+    merged, cur = [], []
+    for r in rows:
+        if (cur and abs(r["y"] - cur[0]["y"]) < 4
+                and (r["x"] > width / 2) == (cur[0]["x"] > width / 2)):
+            cur.append(r)
+        else:
+            if cur:
+                merged.append(cur)
+            cur = [r]
+    if cur:
+        merged.append(cur)
+
+    out, one = [], None
+    for group in merged:
+        text = " ".join(q["text"].strip() for q in sorted(group, key=lambda q: q["x"])).strip()
+        if not text or BROKEN.search(text):
+            continue
+        head = CHOICE.match(text)
+        if head:
+            if one:
+                out.append(one)
+            one = ("%s %s" % (head.group(1), head.group(2))).strip()
+        elif one is not None:
+            one = (one + " " + text).strip()
+    if one:
+        out.append(one)
+    return out
+
+
 def parse_page(page, page_no, carry):
     rows = lines_of(page)
     flat = "\n".join(r["text"] for r in rows)
@@ -99,20 +138,36 @@ def parse_page(page, page_no, carry):
     top, bottom = 58, page.rect.height - 45
     body = [r for r in rows if top < r["y"] < bottom]
 
-    steps, instrs, items = [], [], []
+    # 먼저 STEP 표시부터 모두 걷는다. 글 차례가 쪽 차례와 달라서, 띠를 다 안 뒤라야
+    # 어느 줄이 어느 STEP에 드는지 가릴 수 있다.
+    steps = []
+    for r in body:
+        if not (r["font"].startswith(STEP_FONT) and r["text"].strip().upper() == "STEP"):
+            continue
+        # 바로 아래 큰 숫자가 STEP 번호다. 쪽에 차례대로 놓이지 않으므로 번호를 읽는다.
+        no = None
+        for q in body:
+            if (q["font"].startswith("FuturaStd-Medium") and q["size"] > 20
+                    and abs(q["x"] - r["x"]) < 12 and 0 < q["y"] - r["y"] < 30):
+                hit = re.match(r"^(\d{1,2})$", q["text"].strip())
+                if hit:
+                    no = int(hit.group(1))
+                break
+        steps.append((r["y"], no))
+    steps.sort()
+
+    def band(y):
+        """이 높이가 어느 STEP 띠에 드는가 — 교재에 적힌 STEP 번호로 돌려준다"""
+        got = 0
+        for n, (sy, no) in enumerate(steps):
+            if y >= sy - 8:
+                got = no if no is not None else n + 1
+        return got
+
+    instrs, items, rest = [], [], []
     for r in body:
         text = r["text"].strip()
         if r["font"].startswith(STEP_FONT) and text.upper() == "STEP":
-            # 바로 아래 큰 숫자가 STEP 번호다. 쪽에 차례대로 놓이지 않으므로 번호를 읽는다.
-            no = None
-            for q in body:
-                if (q["font"].startswith("FuturaStd-Medium") and q["size"] > 20
-                        and abs(q["x"] - r["x"]) < 12 and 0 < q["y"] - r["y"] < 30):
-                    hit = re.match(r"^(\d{1,2})$", q["text"].strip())
-                    if hit:
-                        no = int(hit.group(1))
-                    break
-            steps.append((r["y"], no))
             continue
         # STEP 번호로 쓰인 큰 숫자는 문항 번호가 아니다
         if r["font"].startswith("FuturaStd-Medium") and r["size"] > 20:
@@ -128,28 +183,33 @@ def parse_page(page, page_no, carry):
                 items.append({"y": r["y"], "x": r["x"], "no": int(m.group(1)),
                               "text": m.group(2).strip()})
                 continue
-        # 번호 뒤에 이어지는 글 — 같은 단에서 가장 가까운 위 문항에 붙인다
-        if items:
-            same = [it for it in items if abs(it["x"] - r["x"]) < 40 and it["y"] <= r["y"]]
-            if same:
-                near = max(same, key=lambda it: it["y"])
-                near["text"] = (near["text"] + " " + text).strip()
-
-    steps.sort()
-
-    def band(y):
-        """이 높이가 어느 STEP 띠에 드는가 — 교재에 적힌 STEP 번호로 돌려준다"""
-        got = 0
-        for n, (sy, no) in enumerate(steps):
-            if y >= sy - 8:
-                got = no if no is not None else n + 1
-        return got
+        # 번호 뒤에 이어지는 글 — 같은 STEP·같은 단에서 가장 가까운 위 문항에 붙인다.
+        # STEP이 다르면 붙이지 않는다. 번호 없는 문항의 글이 윗 STEP으로 끌려가기 때문이다.
+        same = [it for it in items if abs(it["x"] - r["x"]) < 40 and it["y"] <= r["y"]
+                and band(it["y"]) == band(r["y"])]
+        if same:
+            near = max(same, key=lambda it: it["y"])
+            near["text"] = (near["text"] + " " + text).strip()
+        else:
+            rest.append(r)
 
     # 띠마다 지시문 — 그 띠에서 가장 위에 있는 것
     by_band = {}
     for y, x, text in instrs:
         by_band.setdefault(band(y), []).append((y, text))
     instr_of = {b: sorted(v)[0][1] for b, v in by_band.items()}
+
+    # 번호 없이 한 문항만 든 띠 — 「다음 중 어법상 틀린 문장은?」처럼 ①~⑤ 로만 나온다.
+    # 정답지도 이런 띠를 1번으로 세므로 1번 문항으로 세워 둔다.
+    has_item = {band(it["y"]) for it in items}
+    for b in sorted(set(instr_of) - has_item):
+        if not b:
+            continue
+        mine = [r for r in rest if band(r["y"]) == b]
+        picked = choice_lines(mine, page.rect.width)
+        if len(picked) >= 2:
+            items.append({"y": min(r["y"] for r in mine), "x": 0, "no": 1,
+                          "text": " ".join(picked)})
 
     out = []
     for it in sorted(items, key=lambda i: (band(i["y"]), i["x"] > page.rect.width / 2, i["y"])):

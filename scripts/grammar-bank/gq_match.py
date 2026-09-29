@@ -39,22 +39,49 @@ def clean_answer(text, no):
     return t
 
 
-def usable(answer):
+# 홑 번호 답 — ③, 5, "2, 5"
+ONLY_NO = re.compile(r"^[1-9①-⑩]([,\s]+[1-9①-⑩])*$")
+# 낱말 사이에 홀로 낀 번호 — 옆 줄이 딸려 들어온 자국이다
+STRAY_NO = re.compile(r"(?<![A-Za-z0-9'])\d{1,2}(?![A-Za-z0-9])")
+# 동그라미 번호가 둘 이상인 문항은 골라 쓰는 문항이다
+MANY_CHOICE = re.compile(r"[①-⑩].*[①-⑩]")
+
+
+def usable(answer, q=None):
     """넣어도 되는 답인가 — 읽다가 어긋난 것은 넣지 않는다.
 
+    정답지는 글자가 아니라 그림으로 그려져 있어 한 낱말씩 눈으로 읽는다.
     옆 줄이 딸려 들어오면 "5 7 Tom's 2 stu 5 children's" 처럼 번호와 낱말이
     번갈아 나온다. 그런 꼴은 답이 아니다.
+
+    수를 채우기보다 맞는 것만 남긴다. 조금이라도 어긋난 자국이 있으면 버린다.
     """
     t = str(answer or "").strip()
+    text = str((q or {}).get("text") or "")
     if not t or len(t) > 70:
         return False
     if GARBLED.search(t):
         return False
-    # 홑 번호 답(③, 5, "2, 5")은 그대로 둔다
-    if re.fullmatch(r"[1-9①-⑩][,\s]*[1-9①-⑩]?", t):
+
+    # ①~⑤ 중에 고르는 문항이면 답도 번호여야 한다
+    only_no = bool(ONLY_NO.match(t))
+    if MANY_CHOICE.search(text):
+        return only_no
+    if only_no:
         return True
-    # 번호가 두 번 이상 끼어 있으면 옆 답이 섞인 것이다
-    if len(re.findall(r"(?<![A-Za-z0-9])\d{1,2}(?![A-Za-z0-9])", t)) >= 2:
+
+    if STRAY_NO.search(t):
+        return False
+    if t.count("[") != t.count("]") or t.count("(") != t.count(")"):
+        return False
+    if re.search(r"[가-힣]", t) and re.search(r"[A-Za-z]", t):
+        return False
+    if len(t) < 2 and t not in "○×":
+        return False
+    if re.search(r"[a-z][A-Z]", t) and " " not in t:
+        return False
+    # 문항 글이 거의 없으면 답이 맞는지 가릴 길이 없다
+    if q is not None and not q.get("picks") and len(re.sub(r"[^A-Za-z가-힣]", "", text)) < 4:
         return False
     return True
 
@@ -80,9 +107,11 @@ def fill_blocks(blocks, questions):
     남은 자리에만 남은 쪽을 차례로 넣는다.
     """
     steps_of = collections.defaultdict(set)   # 본책 쪽 → 그 쪽에 있는 STEP 들
+    count_of = collections.Counter()          # (본책 쪽, STEP) → 문항 수
     for q in questions:
         if q.get("printed_page"):
             steps_of[q["printed_page"]].add(q["step"])
+            count_of[(q["printed_page"], q["step"])] += 1
 
     want = collections.defaultdict(list)   # 정답지 쪽 → 본책 쪽들 (차례대로)
     for q in questions:
@@ -103,11 +132,22 @@ def fill_blocks(blocks, questions):
             if b["book_pages"] or not left:
                 continue
             # STEP 번호가 실제로 있는 쪽을 고른다. 상자 차례만 믿으면 쪽이 어긋난다.
-            mine = {int(k) for k in b["steps"]}
-            fit = [p for p in left if mine & set(steps_of.get(p, ()))]
-            b["book_pages"] = [(fit or left)[0]]
+            # STEP만 같고 문항 수가 딴판인 쪽을 집으면 그 묶음은 통째로 버려지므로,
+            # 답 개수까지 맞아떨어지는 쪽에 더 높은 점수를 준다.
+            def fits(page):
+                score = 0.0
+                for key, answers in b["steps"].items():
+                    step = int(key)
+                    if step not in steps_of.get(page, ()):
+                        continue
+                    score += 1.0 if count_of[(page, step)] == len(answers) else 0.4
+                return score
+
+            best = max(left, key=fits)
+            b["book_pages"] = [best if fits(best) > 0 else left[0]]
             left.remove(b["book_pages"][0])
             b["guessed"] = True
+    return want
 
 
 def main(q_path, a_path, out_path, bad_path=None):
@@ -128,7 +168,7 @@ def main(q_path, a_path, out_path, bad_path=None):
     # 머리말에서 본책 쪽을 못 읽은 상자를 채운다.
     # 본책 쪽마다 "정답 및 해설 p.N" 이 적혀 있으므로, 같은 정답지 쪽에 딸린
     # 본책 쪽들을 차례대로 늘어놓고 쪽을 모르는 상자에 차례로 물려 준다.
-    fill_blocks(blocks, questions)
+    want = fill_blocks(blocks, questions)
 
     matched, failed = [], []
     for b in blocks:
@@ -136,22 +176,27 @@ def main(q_path, a_path, out_path, bad_path=None):
         for step_key, raw in b["steps"].items():
             step = int(step_key)
             answers = {str(k): v for k, v in raw.items()}
-            items = [q for p in pages for q in by_page.get(p, []) if q["step"] == step]
+            use = list(pages)
+            items = [q for p in use for q in by_page.get(p, []) if q["step"] == step]
             if not items:
-                # 쪽이 한 장 어긋나 적히는 일이 있다 (정답지가 두 쪽을 함께 가리킨다).
-                # 그 STEP 이 실제로 있는 이웃 쪽에서 찾는다.
+                # 상자 하나가 본책 두세 쪽에 걸치는데 머리말에는 한 쪽만 적히기도 한다.
+                # 먼저 바로 옆 쪽을 보고, 없으면 이 정답지 쪽을 가리키는 본책 쪽
+                # ("정답 및 해설 p.N")을 가까운 데서부터 훑는다.
                 near = []
-                for p in pages:
+                for p in use:
                     near += [p - 1, p + 1]
-                for p in near:
+                rest = [p for p in want.get(b["answer_page"], []) if p not in near]
+                if use:
+                    rest.sort(key=lambda p: min(abs(p - q) for q in use))
+                for p in near + rest:
                     got_near = [q for q in by_page.get(p, []) if q["step"] == step]
                     if got_near:
-                        items, pages = got_near, [p]
+                        items, use = got_near, [p]
                         break
             items.sort(key=lambda q: (q["printed_page"], q["no"]))
             got = [clean_answer(answers[k], k) for k in sorted(answers, key=int)]
             if not items:
-                failed.append({"pages": pages, "step": step, "문항": 0, "답": len(got),
+                failed.append({"pages": use, "step": step, "문항": 0, "답": len(got),
                                "까닭": "본책에서 그 STEP을 찾지 못함"})
                 continue
             # 개수가 딱 맞으면 차례대로, 아니면 문항 번호로 하나씩 맞댄다.
@@ -162,17 +207,17 @@ def main(q_path, a_path, out_path, bad_path=None):
                 pairs = [(q, clean_answer(answers[str(q["no"])], q["no"]))
                          for q in items if str(q["no"]) in answers]
                 if len(pairs) < len(items) * 0.6:
-                    failed.append({"pages": pages, "step": step, "문항": len(items), "답": len(got),
+                    failed.append({"pages": use, "step": step, "문항": len(items), "답": len(got),
                                    "까닭": "개수가 맞지 않음"})
                     continue
-            pairs = [(q, a) for q, a in pairs if usable(a)]
+            pairs = [(q, a) for q, a in pairs if usable(a, q)]
             if not pairs:
-                failed.append({"pages": pages, "step": step, "문항": len(items), "답": len(got),
+                failed.append({"pages": use, "step": step, "문항": len(items), "답": len(got),
                                "까닭": "읽은 답이 뭉개짐"})
                 continue
             bad = [1 for q, a in pairs if not in_choices(a, q["picks"])]
             if bad:
-                failed.append({"pages": pages, "step": step, "문항": len(items), "답": len(got),
+                failed.append({"pages": use, "step": step, "문항": len(items), "답": len(got),
                                "까닭": "고를 것 안에 없는 답 %d개" % len(bad)})
                 continue
             for q, a in pairs:

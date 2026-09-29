@@ -29,9 +29,13 @@ def step(title, args, node=False):
 
 def main():
     t0 = time.time()
-    for f in glob.glob(str(OUT / "*-box.json")):
+    # 정답지 읽는 코드가 바뀐 뒤에 읽은 것은 그대로 쓴다. 한 권에 7분이나 걸리므로
+    # 코드보다 먼저 읽어 둔 것만 지우고 다시 읽는다.
+    reader = (HERE / "gq_answers_ocr.py").stat().st_mtime
+    stale = [f for f in glob.glob(str(OUT / "*-box.json")) if os.path.getmtime(f) < reader]
+    for f in stale:
         os.remove(f)
-    print("정답지를 처음부터 다시 읽는다", file=log, flush=True)
+    print("다시 읽을 정답지 %d권" % len(stale), file=log, flush=True)
     step("그래머큐 여섯 권", [str(HERE / "gq_run_all.py")])
     step("잘 풀리는 세 권", [str(HERE / "jp_run_all.py")])
     if not step("은행 형식으로 맞추기", [str(HERE / "new_books_to_bank.py"), str(OUT / "new-bank.json")]):

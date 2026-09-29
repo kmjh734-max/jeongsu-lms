@@ -17,6 +17,11 @@ from pathlib import Path
 CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩"
 
 
+# 답을 걸러내는 그물은 그래머큐와 같은 것을 쓴다
+sys.path.insert(0, str(Path(__file__).parent))
+from gq_match import usable
+
+
 def answer_nos(answer):
     """'④' 또는 '4' 또는 '②, ⑤' 에서 보기 번호를 읽는다"""
     text = str(answer or "")
@@ -71,6 +76,12 @@ def main(q_path, a_path, out_path, bad_path=None):
         if bad:
             failed.append({"where": where, "문항": len(items), "답": len(got),
                            "까닭": "보기에 없는 답 %d개" % len(bad)})
+            continue
+        # 읽다가 어긋난 자국이 하나라도 있으면 그 묶음은 통째로 넘긴다
+        rough = [1 for q, a in zip(items, got) if not usable(a, q)]
+        if rough:
+            failed.append({"where": where, "문항": len(items), "답": len(got),
+                           "까닭": "읽은 답이 뭉개짐 %d개" % len(rough)})
             continue
         for q, a in zip(items, got):
             row = dict(q)
