@@ -16,6 +16,10 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
 1) roles  문장성분. 단어 아래에 S·V·O·C·IO·DO·M·A 로 적을 자리.
    - level 0 = 주절 성분, level 1 = 종속절·준동사구 안의 성분(S¹·V¹), level 2 = 그 안의 절.
    - 주절의 S와 V는 반드시 넣는다. O·C는 있을 때만.
+   - 의문문·도치문에서도 V를 빠뜨리지 않는다. 조동사와 본동사가 떨어져 있으면
+     본동사 자리에 V를 단다. (Do you recognize ~ → recognize에 V,
+     How could that be? → be에 V, Not one day did we drop ~ → drop에 V)
+     동사가 아예 없는 명사구 문장(제목·감탄구)만 V 없이 둔다.
    - 한 성분이 6단어를 넘으면 넣지 말고 대신 괄호(brackets)로 묶는다.
    - M(수식어)·A(필수 부사어)는 꼭 짚어야 할 때만. 전명구마다 M을 달지 않는다.
 2) brackets  구간 괄호. 세 가지만 쓴다.
