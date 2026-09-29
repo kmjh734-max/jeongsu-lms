@@ -14,11 +14,14 @@ export async function POST(request: Request) {
       role?: string;
       projectId?: string;
       forceRegenerate?: boolean;
+      /** 워크북에서 불렀는지, 1장 테스트지에서 불렀는지 */
+      usedIn?: "workbook" | "one_page_test";
     };
     const role = body.role === "admin" ? "admin" : "teacher";
     const result = await generateVocabChoicePassageAction(role, {
       projectId: String(body.projectId ?? ""),
       forceRegenerate: body.forceRegenerate === true,
+      usedIn: body.usedIn === "one_page_test" ? "one_page_test" : "workbook",
     });
     return NextResponse.json(result);
   } catch (e) {

@@ -290,8 +290,17 @@ export function OnePageWorkbench({
       if (mode === "test") {
         // 워크북 어법 선택·어휘 선택: 저장된 문항을 쓰고(차감 없음), 없으면 만든다(각 기능 가격).
         const [grammar, vocab] = await Promise.all([
-          postJson<GrammarResult>("/api/lesson-materials/grammar-choice", { role, projectId: project.id }),
-          postJson<VocabResult>("/api/lesson-materials/vocab-choice", { role, projectId: project.id }),
+          // 크레딧 내역에 「1장 테스트지」로 찍히게 어디서 부른 것인지 같이 보낸다
+          postJson<GrammarResult>("/api/lesson-materials/grammar-choice", {
+            role,
+            projectId: project.id,
+            usedIn: "one_page_test",
+          }),
+          postJson<VocabResult>("/api/lesson-materials/vocab-choice", {
+            role,
+            projectId: project.id,
+            usedIn: "one_page_test",
+          }),
         ]);
         const passage = buildOnePageTestPassage({
           projectId: project.id,

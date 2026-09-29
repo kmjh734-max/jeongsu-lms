@@ -199,7 +199,12 @@ export async function loadCreditsPageData(
     let text: string;
     if (kind === "use") {
       const qty = Number(meta.quantity ?? 0) || null;
-      text = featureUsageText(t.feature_key, qty, t.feature_key ? dbLabels.get(t.feature_key) : null);
+      text = featureUsageText(
+        t.feature_key,
+        qty,
+        t.feature_key ? dbLabels.get(t.feature_key) : null,
+        meta.used_for
+      );
     } else if (kind === "charge") {
       const bonus = Number(meta.bonus_credit ?? 0);
       const orderId = meta.payment_order_id as string | undefined;

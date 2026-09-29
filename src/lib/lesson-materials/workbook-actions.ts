@@ -1,9 +1,9 @@
 "use server";
 
 import {
-  debitLessonCredits,
   LESSON_CREDIT_FEATURES,
-  lessonCreditShortfall,
+  refundLessonCredits,
+  reserveLessonCredits,
 } from "@/lib/credits/lesson-credits";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
@@ -403,9 +403,19 @@ export async function generateWorkbookAction(
       : null;
     // T/F는 만들 때마다 새로 생성한다(지문당, 10문항을 넘으면 2배). 모자라면 시작하지 않는다.
     const tfCreditQty = passages.length * (tfOptions.count > 10 ? 2 : 1);
+    // 값을 먼저 잡아 둔다 — 모자라면 만들지 않는다(잔액이 마이너스로 내려가지 않게).
+    let tfHold = 0;
     if (wantTf) {
-      const shortfall = await lessonCreditShortfall(profile!.academy_id!, LESSON_CREDIT_FEATURES.workbookTf, tfCreditQty);
-      if (shortfall) return { ok: false, message: shortfall };
+      const hold = await reserveLessonCredits({
+        academyId: profile!.academy_id!,
+        actorId: profile!.id,
+        featureKey: LESSON_CREDIT_FEATURES.workbookTf,
+        quantity: tfCreditQty,
+        metadata: { used_for: "workbook" },
+        note: `워크북 O/X · 지문 ${passages.length}개 · ${tfOptions.count}문항`,
+      });
+      if (!hold.ok) return { ok: false, message: hold.message };
+      tfHold = hold.charged;
     }
     const blankTask = wantBlank
       ? settle(
@@ -501,15 +511,19 @@ export async function generateWorkbookAction(
     }
 
     if (wantTf) {
-      const tf = unwrap(await tfTask!);
+      let tf;
+      try {
+        tf = unwrap(await tfTask!);
+      } catch (e) {
+        await refundLessonCredits({
+          academyId: profile!.academy_id!,
+          actorId: profile!.id,
+          amount: tfHold,
+          note: "O/X 문항을 만들지 못해 되돌림",
+        });
+        throw e;
+      }
       workbook.sections = tf.sections;
-      await debitLessonCredits({
-        academyId: profile!.academy_id!,
-        actorId: profile!.id,
-        featureKey: LESSON_CREDIT_FEATURES.workbookTf,
-        quantity: tfCreditQty,
-        note: `워크북 T/F · 지문 ${passages.length}개 · ${tfOptions.count}문항`,
-      });
       // TF still uses OpenAI — timing note only for blank path when TF absent
       if (workbook.timing && !wantBlank) {
         workbook.timing.openAiRequestCount = passages.length;
@@ -702,7 +716,12 @@ export async function generateWorkbookAction(
  */
 export async function generateGrammarChoicePassageAction(
   role: Role,
-  input: { projectId: string; forceRegenerate?: boolean }
+  input: {
+    projectId: string;
+    forceRegenerate?: boolean;
+    /** 어느 화면에서 부른 것인지 — 크레딧 내역에 그대로 적는다 */
+    usedIn?: "workbook" | "one_page_test";
+  }
 ): Promise<
   | {
       ok: true;
@@ -754,9 +773,27 @@ export async function generateGrammarChoicePassageAction(
       : null;
 
   const forceRegenerate = input.forceRegenerate === true;
-  // 새로 만들 때만 크레딧을 쓴다(저장된 문항을 다시 쓰면 0). 모자라면 만들지 않는다.
-  const shortfall = await lessonCreditShortfall(profile!.academy_id!, LESSON_CREDIT_FEATURES.workbookGrammarChoice);
-  if (shortfall) return { ok: false, message: shortfall };
+  /*
+   * 새로 만들 때만 크레딧을 쓴다(저장된 문항을 다시 쓰면 0).
+   * 값을 먼저 잡아 두고 만든다 — 모자라면 여기서 멈춘다. 만들다 실패하면 되돌린다.
+   */
+  const usedFor = input.usedIn === "one_page_test" ? "one_page_test" : "workbook";
+  const hold = await reserveLessonCredits({
+    academyId: profile!.academy_id!,
+    actorId: profile!.id,
+    featureKey: LESSON_CREDIT_FEATURES.workbookGrammarChoice,
+    projectId: project.id,
+    metadata: { used_for: usedFor },
+    note: `${usedFor === "one_page_test" ? "1장 테스트지" : "워크북"} 어법 선택 · ${project.title}`,
+  });
+  if (!hold.ok) return { ok: false, message: hold.message };
+  const giveBack = (why: string) =>
+    refundLessonCredits({
+      academyId: profile!.academy_id!,
+      actorId: profile!.id,
+      amount: hold.charged,
+      note: `어법 선택을 만들지 못해 되돌림 (${why})`,
+    });
   const selection = resolveGrammarChoiceEngineVersion();
   const engine = selection.version;
 
@@ -805,15 +842,8 @@ export async function generateGrammarChoicePassageAction(
       );
     }
 
-    if (gc.timing.openAiRequestCount > 0) {
-      await debitLessonCredits({
-        academyId: profile!.academy_id!,
-        actorId: profile!.id,
-        featureKey: LESSON_CREDIT_FEATURES.workbookGrammarChoice,
-        projectId: project.id,
-        note: `워크북 어법 선택 · ${project.title}`,
-      });
-    }
+    // 저장된 문항을 그대로 쓴 경우(새로 부르지 않음)에는 잡아 둔 값을 돌려준다.
+    if (gc.timing.openAiRequestCount === 0) await giveBack("저장된 문항을 그대로 씀");
     const stamped = stampGrammarChoiceEngineDiagnostics(gc.sections, selection);
     return {
       ok: true,
@@ -822,6 +852,7 @@ export async function generateGrammarChoicePassageAction(
       openAiRequestCount: gc.timing.openAiRequestCount,
     };
   } catch (e) {
+    await giveBack("만들기 실패");
     return {
       ok: false,
       message: e instanceof Error ? e.message : "어법 선택 생성 실패",
@@ -835,7 +866,12 @@ export async function generateGrammarChoicePassageAction(
  */
 export async function generateVocabChoicePassageAction(
   role: Role,
-  input: { projectId: string; forceRegenerate?: boolean }
+  input: {
+    projectId: string;
+    forceRegenerate?: boolean;
+    /** 어느 화면에서 부른 것인지 — 크레딧 내역에 그대로 적는다 */
+    usedIn?: "workbook" | "one_page_test";
+  }
 ): Promise<
   | {
       ok: true;
@@ -890,8 +926,23 @@ export async function generateVocabChoicePassageAction(
     })),
   ];
 
-  const shortfall = await lessonCreditShortfall(profile!.academy_id!, LESSON_CREDIT_FEATURES.workbookVocabChoice);
-  if (shortfall) return { ok: false, message: shortfall };
+  const usedFor = input.usedIn === "one_page_test" ? "one_page_test" : "workbook";
+  const hold = await reserveLessonCredits({
+    academyId: profile!.academy_id!,
+    actorId: profile!.id,
+    featureKey: LESSON_CREDIT_FEATURES.workbookVocabChoice,
+    projectId: project.id,
+    metadata: { used_for: usedFor },
+    note: `${usedFor === "one_page_test" ? "1장 테스트지" : "워크북"} 어휘 선택 · ${project.title}`,
+  });
+  if (!hold.ok) return { ok: false, message: hold.message };
+  const giveBack = (why: string) =>
+    refundLessonCredits({
+      academyId: profile!.academy_id!,
+      actorId: profile!.id,
+      amount: hold.charged,
+      note: `어휘 선택을 만들지 못해 되돌림 (${why})`,
+    });
 
   try {
     const result = await generateVocabChoiceForPassage({
@@ -907,14 +958,9 @@ export async function generateVocabChoicePassageAction(
       await patchLessonPack(supabase, project.id, pack, {
         vocabChoiceCache: result.cacheToSave,
       });
-      // 저장할 새 결과가 있을 때만 새로 만든 것이다(저장본을 쓰면 cacheToSave가 없다).
-      await debitLessonCredits({
-        academyId: profile!.academy_id!,
-        actorId: profile!.id,
-        featureKey: LESSON_CREDIT_FEATURES.workbookVocabChoice,
-        projectId: project.id,
-        note: `워크북 어휘 선택 · ${project.title}`,
-      });
+    } else {
+      // 저장본을 그대로 썼다(새로 만들지 않았다) — 잡아 둔 값을 돌려준다.
+      await giveBack("저장된 문항을 그대로 씀");
     }
     return {
       ok: true,
@@ -928,6 +974,7 @@ export async function generateVocabChoicePassageAction(
           },
     };
   } catch (e) {
+    await giveBack("만들기 실패");
     return {
       ok: false,
       message: e instanceof Error ? e.message : "어휘 선택 생성 실패",

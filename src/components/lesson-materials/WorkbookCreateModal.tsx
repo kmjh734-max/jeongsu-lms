@@ -106,6 +106,11 @@ export function WorkbookCreateModal({
   onClose: () => void;
 }) {
   const [step, setStep] = useState<Step>("types");
+  /*
+   * 선생님 지적(2026-09-29): "과금 표시가 아래창으로 떠서 중복으로 뜨니 불편해."
+   * 값 확인 창이 이 창 위에 겹쳐 떠서 창이 둘로 보였다. 묻는 동안에는 이 창을 접는다.
+   */
+  const [asking, setAsking] = useState(false);
   const [selected, setSelected] = useState<Set<WorkbookTypeId>>(
     () => new Set(["tf"])
   );
@@ -150,7 +155,7 @@ export function WorkbookCreateModal({
   const wantFullEn = selected.has("full_en_writing");
   const wantWordOrder = selected.has("word_order_writing");
 
-  if (!open) return null;
+  if (!open || asking) return null;
 
   function toggleType(id: WorkbookTypeId, ready: boolean) {
     if (!ready) return;
@@ -208,14 +213,17 @@ export function WorkbookCreateModal({
     if (readySelected.includes("vocab_choice") || readySelected.includes("vocab_fix"))
       paid.push({ feature: "lesson_workbook_vocab_choice", quantity: n });
     if (readySelected.includes("tf")) paid.push({ feature: "lesson_workbook_tf", quantity: n });
-    if (!(await askCreditConfirm({
+    setAsking(true);
+    const go = await askCreditConfirm({
       title: "워크북",
       description: "학생이 직접 써 보는 연습지를 만듭니다. 고른 갈래 가운데 값이 나가는 것만 아래에 적었습니다.",
       subject: `고른 지문 ${projectIds.length}개 · 갈래 ${readySelected.length}가지`,
       contents: readySelected.map((t) => getWorkbookTypeMeta(t)?.title ?? t),
       items: paid,
       sample: "workbook",
-    }))) return;
+    });
+    setAsking(false);
+    if (!go) return;
 
     // 워크북도 파일로 저장한다. 제목이 곧 파일 이름이고, 만든 조건(유형·옵션)을 함께 둔다.
     const err = await openNewDocument(role, "workbook", [...projectIds], {

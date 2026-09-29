@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import {
   CreditError,
   InsufficientCreditsError,
+  adjustAcademyCredits,
   debitFeatureCredits,
   getFeatureCost,
 } from "@/lib/credits";
@@ -110,4 +111,91 @@ export async function debitLessonCredits(params: {
     }
   }
   return false;
+}
+
+/**
+ * 만들기 <b>전에</b> 값을 먼저 잡아 둔다.
+ *
+ * 선생님 지적(2026-09-29): "크레딧이 -가 될 것 같으면 모자라다 하고 멈춰 달라."
+ * 예전에는 만들기 전에 잔액만 보고(lessonCreditShortfall) 만든 뒤에 차감했는데,
+ * 지문 여러 개가 동시에 돌면 모두 "넉넉하다"를 통과한 뒤 차례로 차감돼
+ * 잔액이 마이너스까지 내려갔다(윌링어학원 -1,270). 차감은 DB 안에서 한 번에
+ * 일어나므로, 먼저 차감하면 모자랄 때 그 자리에서 막힌다.
+ *
+ * 만들다 실패하면 refundLessonCredits로 되돌린다.
+ */
+export async function reserveLessonCredits(params: {
+  academyId: string;
+  actorId: string;
+  featureKey: LessonCreditFeature | string;
+  quantity?: number;
+  projectId?: string;
+  metadata?: Record<string, unknown>;
+  note?: string;
+}): Promise<
+  | { ok: true; charged: number; idempotencyKey: string }
+  | { ok: false; message: string }
+> {
+  const admin = createAdminClient();
+  const pricing = await getFeatureCost(admin, params.featureKey);
+  if (!pricing || !pricing.active || pricing.cost <= 0) {
+    return { ok: true, charged: 0, idempotencyKey: "" };
+  }
+  const quantity = Math.max(1, Math.floor(params.quantity ?? 1));
+  const idempotencyKey = `${params.featureKey}:${params.projectId ?? "-"}:${randomUUID()}`;
+  try {
+    await debitFeatureCredits(admin, {
+      academyId: params.academyId,
+      featureKey: params.featureKey,
+      actorId: params.actorId,
+      idempotencyKey,
+      metadata: {
+        ...(params.projectId ? { project_id: params.projectId } : {}),
+        ...(params.metadata ?? {}),
+      },
+      note: params.note,
+      quantity,
+      // 잔액이 모자라면 차감하지 않고 막는다 — 마이너스로 내려가지 않게.
+      allowNegative: false,
+    });
+    return { ok: true, charged: pricing.cost * quantity, idempotencyKey };
+  } catch (e) {
+    if (e instanceof InsufficientCreditsError) {
+      const { data } = await admin
+        .from("academy_wallets")
+        .select("balance")
+        .eq("academy_id", params.academyId)
+        .maybeSingle();
+      const balance = Number(data?.balance ?? 0);
+      const need = pricing.cost * quantity;
+      return {
+        ok: false,
+        message: `크레딧이 부족합니다. ${pricing.label}에 ${need.toLocaleString("ko-KR")}크레딧이 필요한데 남은 크레딧은 ${balance.toLocaleString("ko-KR")}입니다. 학원 관리자에게 충전을 요청해 주세요.`,
+      };
+    }
+    if (e instanceof CreditError) return { ok: false, message: e.message };
+    return { ok: false, message: "크레딧을 확인하지 못했습니다. 잠시 뒤 다시 시도해 주세요." };
+  }
+}
+
+/** 잡아 둔 값을 되돌린다(만들다 실패했을 때). 되돌리지 못해도 만들기를 막지는 않는다. */
+export async function refundLessonCredits(params: {
+  academyId: string;
+  actorId: string;
+  amount: number;
+  note: string;
+}): Promise<void> {
+  if (!(params.amount > 0)) return;
+  try {
+    await adjustAcademyCredits(createAdminClient(), {
+      academyId: params.academyId,
+      amount: params.amount,
+      direction: "grant",
+      actorId: params.actorId,
+      note: params.note,
+      idempotencyKey: `refund:${randomUUID()}`,
+    });
+  } catch (e) {
+    console.error("[credits] 되돌리기 실패", e);
+  }
 }

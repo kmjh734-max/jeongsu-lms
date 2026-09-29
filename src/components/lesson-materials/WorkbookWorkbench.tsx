@@ -1960,6 +1960,7 @@ export function WorkbookWorkbench({
                     role,
                     projectId: ids[i]!,
                     forceRegenerate,
+                    usedIn: "workbook",
                   });
                   if (cancelled) return;
                   if (!one.ok) {
@@ -1986,7 +1987,7 @@ export function WorkbookWorkbench({
           ? runPassagesInParallel<WorkbookVocabChoiceSection>({
               ids,
               url: "/api/lesson-materials/vocab-choice",
-              body: (projectId) => ({ role, projectId, forceRegenerate }),
+              body: (projectId) => ({ role, projectId, forceRegenerate, usedIn: "workbook" }),
               isCancelled: () => cancelled,
             })
           : Promise.resolve(null);
