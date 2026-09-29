@@ -277,6 +277,16 @@ function useMarkupLayout(
   useLayoutEffect(() => {
     const box = sentenceRef.current;
     if (!box) return;
+
+    /*
+     * 인쇄·PDF에서는 한 번 더 잰다.
+     *
+     * 선생님 지적(2026-09-29): 화면에서는 안 겹치는데 인쇄하거나 PDF로 저장하면 겹친다.
+     * 자리를 화면에서 한 번 재어 박아 두는데, 인쇄로 넘어가면 글꼴이 조금 다르게 놓여
+     * 줄바꿈이 밀린다. 그러면 재어 둔 자리가 엉뚱한 낱말 위로 간다.
+     * 인쇄 판으로 바뀌는 때에 맞춰 다시 재면 그 판에 맞는 자리가 나온다.
+     */
+    const layOut = () => {
     const bounds = box.getBoundingClientRect();
     if (bounds.width <= 0) return;
     /*
@@ -474,7 +484,23 @@ function useMarkupLayout(
         stem.style.removeProperty("--ar-stem-x");
         stem.style.removeProperty("--ar-stem-h");
       }
-    }
+      }
+    };
+
+    layOut();
+
+    /*
+     * 인쇄 판이 켜지는 때(matchMedia)가 가장 정확하다. beforeprint가 그보다 먼저 오는
+     * 브라우저가 있어 함께 건다. 둘 다 와도 다시 재기만 하므로 해가 없다.
+     */
+    const onPrint = () => layOut();
+    const mq = typeof window !== "undefined" ? window.matchMedia?.("print") : null;
+    mq?.addEventListener?.("change", onPrint);
+    window.addEventListener("beforeprint", onPrint);
+    return () => {
+      mq?.removeEventListener?.("change", onPrint);
+      window.removeEventListener("beforeprint", onPrint);
+    };
   });
 }
 
