@@ -159,14 +159,20 @@ def parse_page(page, page_no, carry):
         text = r["text"].strip()
         if not text or ANSREF.search(text) or SECTION.search(text):
             continue
+        # 쪽의 글 차례가 자리 차례와 달라서, 높이를 함께 들고 있다가 나중에 줄 세운다.
+        # 그냥 나오는 대로 이으면 발문 조각이 뒤바뀌어 「…문장은? 시오.」처럼 된다.
+        spot = (round(r["y"], 1), round(r["x"], 1))
         if r["font"].startswith(BADGE_FONT) or (r["size"] < 8 and len(text) < 8):
-            h["badges"].append(text)
+            h["badges"].append((spot, text))
         elif abs(r["size"] - INSTR_SIZE) < 0.3:
-            h["prompt"].append(text)
+            h["prompt"].append((spot, text))
         elif text[0] in CIRCLED:
-            h["choices"].append(text)
+            h["choices"].append((spot, text))
         else:
-            h["body"].append(text)
+            h["body"].append((spot, text))
+    for h in heads:
+        for key in ("badges", "prompt", "body", "choices"):
+            h[key] = [t for _spot, t in sorted(h[key])]
 
     def tidy(text, keep_blank=False):
         """딸려 든 갈래 머리말을 떼고, 발문·보기에서는 빈칸도 뗀다.
@@ -177,8 +183,11 @@ def parse_page(page, page_no, carry):
         t = re.sub(r"\s+", " ", text or "").strip()
         t = re.sub(r"바로 ?풀리는 ?(실전|개념) ?문제", " ", t)
         if not keep_blank:
-            t = re.sub(r"(\s*_{3,})+\s*$", "", t)
-            t = re.sub(r"^\s*(_{3,}\s*)+", "", t)
+            # 발문과 보기에는 빈칸이 없다. 줄이 감기는 자리에서 옆 선을 집은 것이다.
+            t = re.sub(r"\s*_{3,}\s*", " ", t)
+            # 옆 문항 발문의 끝자락이 딸려 온 것("…알맞은 문장은? 시오.") — 물음표에서 끊는다.
+            # 제대로 된 발문은 「…시오」가 물음표 뒤에 오지 않는다.
+            t = re.sub(r"(\?)[^?]*시오\.?\s*$", r"", t)
         return re.sub(r"\s+", " ", t).strip()
 
     out = []
