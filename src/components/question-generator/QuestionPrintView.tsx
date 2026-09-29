@@ -34,7 +34,6 @@ import {
   withBlankRules,
 } from "@/lib/question-generator/text-utils";
 import "./question-print-styles.css";
-import { plainKorean } from "@/lib/question-generator/plain-korean";
 
 type QuestionRow = {
   id: string;
@@ -594,11 +593,7 @@ function AnswerBlock({
   const { cardClass, range, head, tail } = pieceProps(part);
   // 해설이 한 단보다 길면 문장 단위로 나눠 다음 단에 잇는다.
   // (white-space: normal이라 줄바꿈은 원래도 한 칸으로 보였다)
-  /*
-   * 예전에 만든 해설에는 존댓말이 섞여 있다(2026-09-29 기준 4,159개 중 1,175개).
-   * 만들 때도 「~다」로 고르지만, 이미 있는 것까지 한결같게 보이도록 여기서도 다듬는다.
-   */
-  const explanation = plainKorean(String(q.explanation ?? "").replace(/\s+/g, " ").trim());
+  const explanation = String(q.explanation ?? "").replace(/\s+/g, " ").trim();
   const units = splitPrintUnits(explanation ? [explanation] : []);
   const hardWords = questionNeedsVocabGloss({
     choices: q.choices,
