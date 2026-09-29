@@ -32,7 +32,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     typeName?: string;
     level?: string;
     points?: number | null;
-    source?: { kind: "auto" | "textbook" | "mock" | "material" | "outside"; textbookId?: string; label?: string };
+    source?: { kind: "auto" | "textbook" | "mock" | "outside"; passageId?: string };
   };
   const patch: Record<string, unknown> = { edited: true };
   if (typeof body.typeName === "string" && body.typeName.trim()) {
@@ -53,11 +53,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       patch.source_edited = false;
       patch.source_kind = null;
     } else if (kind === "textbook") {
-      const tid = String(body.source.textbookId ?? "");
       const { data: tb } = await admin
         .from("textbook_passages")
         .select("id, subject, publisher, lesson, part")
-        .eq("id", tid)
+        .eq("id", String(body.source.passageId ?? ""))
         .maybeSingle();
       if (!tb) return NextResponse.json({ ok: false, message: "교과서 본문을 찾을 수 없어요." }, { status: 400 });
       patch.source_edited = true;
@@ -66,6 +65,19 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       patch.matched_textbook_label = `${tb.publisher} ${tb.subject} ${tb.lesson} ${tb.part}`;
       patch.matched_mock_id = null;
       patch.matched_mock_label = null;
+    } else if (kind === "mock") {
+      const { data: mk } = await admin
+        .from("mock_exam_passages")
+        .select("id, year, month, grade, kind, item_no")
+        .eq("id", String(body.source.passageId ?? ""))
+        .maybeSingle();
+      if (!mk) return NextResponse.json({ ok: false, message: "모의고사 지문을 찾을 수 없어요." }, { status: 400 });
+      patch.source_edited = true;
+      patch.source_kind = "mock";
+      patch.matched_mock_id = mk.id;
+      patch.matched_mock_label = `${String(mk.year).slice(2)}년 고${mk.grade} ${mk.month}월 ${mk.kind === "모의평가" ? "모평" : "학평"} ${mk.item_no}번`;
+      patch.matched_textbook_id = null;
+      patch.matched_textbook_label = null;
     } else if (kind === "outside") {
       patch.source_edited = true;
       patch.source_kind = "outside";

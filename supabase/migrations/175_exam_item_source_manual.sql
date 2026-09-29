@@ -10,4 +10,4 @@ alter table public.school_exam_items
 comment on column public.school_exam_items.source_edited is
   '선생님이 출처를 손으로 정한 문항. 다시 대조해도 이 값은 덮어쓰지 않는다.';
 comment on column public.school_exam_items.source_kind is
-  '손으로 정한 출처의 갈래: textbook | mock | material | outside(교과서 밖). 비어 있으면 자동 대조를 따른다.';
+  '손으로 정한 출처의 갈래: textbook | mock | material | outside(외부지문). 비어 있으면 자동 대조를 따른다.';

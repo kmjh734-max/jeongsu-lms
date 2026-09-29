@@ -27,7 +27,7 @@ const SRC_BG: Record<string, string> = {
   교과서: "#29335c",
   모의고사: "#669bbc",
   수업자료: "#a8c686",
-  "교과서 밖": "#c9a227",
+  외부지문: "#c9a227",
   "못 찾음": "#ded3bb",
 };
 const CAT_COLOR: Record<string, string> = {
@@ -76,6 +76,10 @@ function Donut({ parts, total }: { parts: { c: string; n: number }[]; total: num
 }
 
 /** A4 한 쪽 (화면에서도 794×1123px, 인쇄는 210×297mm) */
+/** 출처를 손으로 고를 때 쓰는 목록 — 교재/시험으로 묶고 그 안에 지문이 있다 */
+type SourceGroup = { key: string; label: string; parts: { id: string; label: string }[] };
+type SourceLists = { books: SourceGroup[]; mocks: SourceGroup[] };
+
 /**
  * 출처를 손으로 다는 칸.
  *
@@ -85,67 +89,90 @@ function Donut({ parts, total }: { parts: { c: string; n: number }[]; total: num
  */
 function SourcePicker({
   item,
-  books,
+  lists,
   onPick,
 }: {
-  item: { matched_textbook_id: string | null; source_kind: string | null; source_edited: boolean };
-  books: { key: string; label: string; parts: { id: string; label: string }[] }[] | null;
-  onPick: (source: { kind: "auto" | "textbook" | "outside"; textbookId?: string }) => void;
+  item: {
+    matched_textbook_id: string | null;
+    matched_mock_id: string | null;
+    source_kind: string | null;
+    source_edited: boolean;
+  };
+  lists: SourceLists | null;
+  onPick: (source: { kind: "auto" | "textbook" | "mock" | "outside"; passageId?: string }) => void;
 }) {
-  const bookOf = (tid: string | null) =>
-    tid ? (books ?? []).find((b) => b.parts.some((x) => x.id === tid))?.key ?? "" : "";
-  const [bookKey, setBookKey] = useState(() => bookOf(item.matched_textbook_id));
-  useEffect(() => {
-    if (!bookKey) setBookKey(bookOf(item.matched_textbook_id));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [books]);
+  const kind =
+    item.source_kind === "outside"
+      ? "outside"
+      : item.source_kind === "mock"
+        ? "mock"
+        : item.source_kind === "textbook"
+          ? "textbook"
+          : item.matched_mock_id
+            ? "mock"
+            : item.matched_textbook_id
+              ? "textbook"
+              : "auto";
 
-  const book = (books ?? []).find((b) => b.key === bookKey) ?? null;
+  const groups = kind === "mock" ? lists?.mocks : kind === "textbook" ? lists?.books : null;
+  const pickedId = kind === "mock" ? item.matched_mock_id : item.matched_textbook_id;
+  const groupOf = (pid: string | null) =>
+    pid ? (groups ?? []).find((g) => g.parts.some((x) => x.id === pid))?.key ?? "" : "";
+  const [groupKey, setGroupKey] = useState(() => groupOf(pickedId));
+  useEffect(() => {
+    if (!groupKey) setGroupKey(groupOf(pickedId));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lists, kind]);
+
+  const group = (groups ?? []).find((g) => g.key === groupKey) ?? null;
   const cls = "ui-input h-7 py-0 text-[11px]";
+  const what = kind === "mock" ? "시험" : "교재";
 
   return (
     <span className="mt-1 flex flex-wrap items-center gap-1">
       <select
         aria-label="출처 갈래"
         className={`${cls} w-[86px]`}
-        value={item.source_kind === "outside" ? "outside" : item.source_edited ? "textbook" : "auto"}
+        value={kind}
         onChange={(e) => {
-          const v = e.target.value;
+          const v = e.target.value as "auto" | "textbook" | "mock" | "outside";
+          setGroupKey("");
+          // 교과서·모의고사는 아래에서 지문을 고를 때 보낸다
           if (v === "auto" || v === "outside") onPick({ kind: v });
-          // textbook은 아래에서 본문을 고를 때 보낸다
         }}
       >
         <option value="auto">자동</option>
         <option value="textbook">교과서</option>
-        <option value="outside">교과서 밖</option>
+        <option value="mock">모의고사</option>
+        <option value="outside">외부지문</option>
       </select>
-      {item.source_kind === "outside" ? null : (
+      {kind === "auto" || kind === "outside" ? null : (
         <>
           <select
-            aria-label="교재"
+            aria-label={what}
             className={`${cls} max-w-[150px]`}
-            value={bookKey}
-            onChange={(e) => setBookKey(e.target.value)}
-            disabled={!books}
+            value={groupKey}
+            onChange={(e) => setGroupKey(e.target.value)}
+            disabled={!groups}
           >
-            <option value="">{books ? "교재 고르기" : "읽는 중…"}</option>
-            {(books ?? []).map((b) => (
-              <option key={b.key} value={b.key}>
-                {b.label}
+            <option value="">{groups ? `${what} 고르기` : "읽는 중…"}</option>
+            {(groups ?? []).map((g) => (
+              <option key={g.key} value={g.key}>
+                {g.label}
               </option>
             ))}
           </select>
           <select
-            aria-label="본문"
+            aria-label="지문"
             className={`${cls} max-w-[120px]`}
-            value={item.matched_textbook_id ?? ""}
+            value={pickedId ?? ""}
             onChange={(e) => {
-              if (e.target.value) onPick({ kind: "textbook", textbookId: e.target.value });
+              if (e.target.value) onPick({ kind, passageId: e.target.value });
             }}
-            disabled={!book}
+            disabled={!group}
           >
-            <option value="">{book ? "본문 고르기" : "교재를 먼저"}</option>
-            {(book?.parts ?? []).map((x) => (
+            <option value="">{group ? "지문 고르기" : `${what}를 먼저`}</option>
+            {(group?.parts ?? []).map((x) => (
               <option key={x.id} value={x.id}>
                 {x.label}
               </option>
@@ -236,14 +263,14 @@ export function ExamReportView({
     const noMatch = hasPassage.filter(
       (i) => !i.matched_textbook_id && !i.matched_mock_id && !i.matched_item_id
     );
-    // 선생님이 「교과서 밖」이라 표시한 것은 못 찾은 것이 아니라 밝혀진 것이다
+    // 선생님이 「외부지문」이라 표시한 것은 못 찾은 것이 아니라 밝혀진 것이다
     const fromOutside = noMatch.filter((i) => i.source_kind === "outside");
     const fromUnknown = noMatch.filter((i) => i.source_kind !== "outside");
     const sources = [
       { key: "교과서", list: fromTextbook },
       { key: "모의고사", list: fromMock },
       { key: "수업자료", list: fromMaterial },
-      { key: "교과서 밖", list: fromOutside },
+      { key: "외부지문", list: fromOutside },
       { key: "못 찾음", list: fromUnknown },
     ]
       .map((x) => ({
@@ -283,21 +310,20 @@ export function ExamReportView({
    * 부교재에서 가져오면 잡히지 않는다. 그런 문항을 선생님이 직접 채우면
    * 교과서 적중률이 정확해진다.
    */
-  type TextbookBook = { key: string; label: string; parts: { id: string; label: string }[] };
-  const [books, setBooks] = useState<TextbookBook[] | null>(null);
+  const [lists, setLists] = useState<SourceLists | null>(null);
   useEffect(() => {
-    if (!editing || books) return;
+    if (!editing || lists) return;
     let alive = true;
     fetch(`/api/exam-analysis/${analysis.id}/textbooks`)
       .then((r) => r.json())
       .then((d) => {
-        if (alive && d?.ok) setBooks(d.books as TextbookBook[]);
+        if (alive && d?.ok) setLists({ books: d.books ?? [], mocks: d.mocks ?? [] });
       })
       .catch(() => {});
     return () => {
       alive = false;
     };
-  }, [editing, books, analysis.id]);
+  }, [editing, lists, analysis.id]);
 
   async function saveItem(
     id: string,
@@ -305,14 +331,14 @@ export function ExamReportView({
       typeName?: string;
       level?: ExamLevel;
       points?: number | null;
-      source?: { kind: "auto" | "textbook" | "outside"; textbookId?: string };
+      source?: { kind: "auto" | "textbook" | "mock" | "outside"; passageId?: string };
     }
   ) {
     const before = items;
-    const labelOfTextbook = (tid: string) => {
-      for (const b of books ?? []) {
-        const part = b.parts.find((x) => x.id === tid);
-        if (part) return `${b.label} ${part.label}`;
+    const labelOf = (groups: SourceGroup[] | undefined, pid: string) => {
+      for (const g of groups ?? []) {
+        const part = g.parts.find((x) => x.id === pid);
+        if (part) return `${g.label} ${part.label}`;
       }
       return null;
     };
@@ -324,14 +350,24 @@ export function ExamReportView({
               ...(patch.typeName ? { type_name: patch.typeName } : {}),
               ...(patch.level ? { level: patch.level, difficulty: patch.level === "상" ? 4 : patch.level === "하" ? 2 : 3 } : {}),
               ...("points" in patch ? { points: patch.points ?? null } : {}),
-              ...(patch.source?.kind === "textbook" && patch.source.textbookId
+              ...(patch.source?.kind === "textbook" && patch.source.passageId
                 ? {
                     source_edited: true,
                     source_kind: "textbook",
-                    matched_textbook_id: patch.source.textbookId,
-                    matched_textbook_label: labelOfTextbook(patch.source.textbookId),
+                    matched_textbook_id: patch.source.passageId,
+                    matched_textbook_label: labelOf(lists?.books, patch.source.passageId),
                     matched_mock_id: null,
                     matched_mock_label: null,
+                  }
+                : {}),
+              ...(patch.source?.kind === "mock" && patch.source.passageId
+                ? {
+                    source_edited: true,
+                    source_kind: "mock",
+                    matched_mock_id: patch.source.passageId,
+                    matched_mock_label: labelOf(lists?.mocks, patch.source.passageId),
+                    matched_textbook_id: null,
+                    matched_textbook_label: null,
                   }
                 : {}),
               ...(patch.source?.kind === "outside"
@@ -823,7 +859,7 @@ export function ExamReportView({
                             {String(i.passage_excerpt ?? "").trim() ? (
                               <SourcePicker
                                 item={i}
-                                books={books}
+                                lists={lists}
                                 onPick={(source) => saveItem(i.id, { source })}
                               />
                             ) : null}
@@ -853,7 +889,7 @@ export function ExamReportView({
                               ) : null}
                               {i.source_kind === "outside" ? (
                                 <span className="block text-[10px]" style={{ color: SOFT }}>
-                                  교과서 밖 (선생님이 표시)
+                                  외부지문 (선생님이 표시)
                                 </span>
                               ) : null}
                               {i.matched_textbook_label ? (
