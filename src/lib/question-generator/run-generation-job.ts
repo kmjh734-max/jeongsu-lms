@@ -321,6 +321,14 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
   const grammarCount = rowsToBill.filter((r) => isGrammarType(r.option_key)).length;
   const plainCount = toBill - grammarCount;
 
+  /*
+   * 내역에 무엇을 만들었는지 적는다.
+   *
+   * 선생님 요청(2026-09-29): 크레딧 사용 내역에 무엇을 썼는지 정확하게 찍히게 해 달라.
+   * 동형모의고사도 같은 길로 값을 받는데 「변형문제」로만 찍혀 어디에 쓴 값인지 몰랐다.
+   */
+  const madeBy = rc.examAnalysisId ? "동형모의고사" : "변형문제";
+
   let ok = true;
   if (plainCount > 0) {
     ok =
@@ -330,8 +338,8 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
         featureKey: CREDIT_FEATURES.qg_generate_job,
         quantity: plainCount,
         idempotencyKey: `qg_generate_job:${jobId}:upto-${latest}`,
-        metadata: { job_id: jobId, used_for: "question_generator" },
-        note: `변형문제 ${plainCount}문항`,
+        metadata: { job_id: jobId, used_for: "question_generator", made_by: madeBy },
+        note: `${madeBy} ${plainCount}문항`,
       })) && ok;
   }
   if (grammarCount > 0) {
@@ -342,8 +350,8 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
         featureKey: "qg_generate_grammar",
         quantity: grammarCount,
         idempotencyKey: `qg_generate_grammar:${jobId}:upto-${latest}`,
-        metadata: { job_id: jobId, used_for: "question_generator" },
-        note: `변형문제 어법 유형 ${grammarCount}문항`,
+        metadata: { job_id: jobId, used_for: "question_generator", made_by: madeBy },
+        note: `${madeBy} 어법 유형 ${grammarCount}문항`,
       })) && ok;
   }
   if (!ok) return;

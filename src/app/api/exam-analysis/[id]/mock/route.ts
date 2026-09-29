@@ -6,6 +6,7 @@ import { buildMockSlots } from "@/lib/exam-analysis/blueprint";
 import { levelBriefFor } from "@/lib/exam-analysis/reading-level";
 import { loadExamAnalysis, loadExamMocks } from "@/lib/exam-analysis/load";
 import { loadAcademyMaterialPassages } from "@/lib/exam-analysis/material-passages";
+import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { createJobFromConfig } from "@/lib/question-generator/create-job";
 import { runGenerationChunkAndChain } from "@/lib/question-generator/job-chain";
 import type { GenerationRequestConfig } from "@/lib/question-generator/types";
@@ -81,6 +82,24 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
     return { no: s.no, passageIndex, optionKey, level: s.level, points: s.points ?? null };
   });
+
+  /*
+   * 만들기 전에 크레딧이 모자라지 않은지 본다.
+   *
+   * 선생님 요청(2026-09-29): 크레딧이 마이너스가 될 것 같으면 모자란다고 알리고 멈춰 달라.
+   * 값은 만든 뒤에 받으므로(후불) 여기서 막지 않으면 잔액이 마이너스가 된다.
+   * 어법 유형은 값이 달라서 갈라 센다.
+   */
+  const grammarSlots = blueprint.filter((b) => /:(어법추론|어법개수)$/.test(b.optionKey)).length;
+  const plainSlots = blueprint.length - grammarSlots;
+  for (const [featureKey, quantity] of [
+    ["qg_generate_job", plainSlots],
+    ["qg_generate_grammar", grammarSlots],
+  ] as const) {
+    if (quantity <= 0) continue;
+    const short = await lessonCreditShortfall(profile.academy_id, featureKey, quantity);
+    if (short) return NextResponse.json({ ok: false, message: short }, { status: 402 });
+  }
 
   const a = data.analysis;
   const title =
