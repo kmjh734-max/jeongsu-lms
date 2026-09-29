@@ -96,6 +96,30 @@ export function parseGrammarFixExplanation(
   return out;
 }
 
+/**
+ * 해설이 「맞음」이라고 못박은 기호를 모은다.
+ *
+ * 선생님과 함께 전수조사(2026-09-29): 어법 수정 서술형 188문항 가운데 여덟 개가
+ * 정답으로 적힌 기호를 해설에서는 「맞다」고 설명하고 있었다. 어법오류수정3이 8%로
+ * 가장 심했고, 기호가 한 칸씩 밀린 꼴이었다. 학생이 해설을 보면 정답을 못 믿는다.
+ *
+ * 기호 바로 뒤 스무 자 안만 본다. 뒤에 딸린 설명에 「…가 맞습니다」가 붙어도
+ * 흔들리지 않게 하려는 것이다. 「ⓐ (맞음)」·「ⓐ reactions는 맞다」·「ⓐ는 맞다」를 잡는다.
+ */
+export function marksDeclaredCorrect(explanation: string): Set<string> {
+  const text = String(explanation ?? "");
+  const out = new Set<string>();
+  const re = new RegExp(MARK_RE, "g");
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    const head = text.slice(m.index + 1, m.index + 21);
+    if (/^[^가-힣→]{0,14}(\(맞음\)|맞음|맞다|맞습니다|는 맞|은 맞)/.test(head)) {
+      out.add(m[0]!);
+    }
+  }
+  return out;
+}
+
 function isRealChange(
   pair: GrammarFixPair,
   underlined: Map<string, string>
@@ -145,6 +169,16 @@ export function reconcileGrammarFixQuestion(opts: {
 
   let pairs = [...byMark.values()];
 
+  /*
+   * 해설이 「맞다」고 못박은 기호는 정답에서 뺀다. 그러고 나서 개수가 모자라면
+   * 아래에서 ok:false가 되어 다시 만든다. 정답과 해설이 맞선 채로 나가는 것보다,
+   * 한 번 더 만드는 쪽이 낫다.
+   */
+  const declaredOk = marksDeclaredCorrect(opts.explanation);
+  if (declaredOk.size) {
+    pairs = pairs.filter((p) => !declaredOk.has(p.mark));
+  }
+
   // 여전히 wrongN보다 많으면 해설에 나온 순서 우선
   if (pairs.length > opts.wrongN) {
     const explOrder = fromExpl.map((p) => p.mark);
@@ -164,7 +198,7 @@ export function reconcileGrammarFixQuestion(opts: {
       correctAnswer: opts.correctAnswer,
       explanation: opts.explanation,
       ok: false,
-      reason: `어법 수정: 실제 오류가 ${pairs.length}개뿐 (필요 ${opts.wrongN}개). 본문·정답·해설이 어긋남.`,
+      reason: `어법 수정: 실제 오류가 ${pairs.length}개뿐 (필요 ${opts.wrongN}개). 본문·정답·해설이 어긋남${declaredOk.size ? ` (해설이 ${[...declaredOk].join(" ")}를 맞다고 함)` : ""}.`,
     };
   }
 
