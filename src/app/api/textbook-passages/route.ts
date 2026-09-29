@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { joinOrphanParticles } from "@/lib/korean-spacing";
 import { requireExamStaff } from "@/lib/exam-analysis/access";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isTextbookPassageOpen, resolveTextbookPassageAcademyId } from "@/lib/textbooks/shared-passages";
@@ -55,7 +56,8 @@ export async function GET(req: Request) {
       label: String(p.label),
       shortLabel: `${p.lesson} ${p.part}`,
       text: String(p.english_text ?? ""),
-      korean: String(p.korean_text ?? ""),
+      // 떨어져 나온 조사를 붙인다 (korean-spacing.ts에 까닭을 적었다)
+      korean: joinOrphanParticles(String(p.korean_text ?? "")),
       words: Number(p.word_count ?? 0),
     })),
   });

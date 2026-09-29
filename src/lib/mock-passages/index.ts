@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { joinOrphanParticles } from "@/lib/korean-spacing";
 
 /** 모의고사 지문 모음(mock_exam_passages): 학력평가·모의평가 영어 지문 원문 */
 export type MockPassage = {
@@ -38,6 +39,22 @@ export const mockExamKey = (p: { year: number; month: number; grade: number }) =
 
 const COLUMNS = "id, year, month, grade, kind, item_no, english_text, korean_text, gloss, word_count";
 
+/*
+ * 해석의 띄어쓰기를 읽어 올 때 손본다.
+ *
+ * 선생님과 함께 훑어 보니(2026-09-29) 1,400개 가운데 886개(63%)에서 조사가
+ * 홀로 떨어져 있었다 — 「최적 의」·「비율 을」·「관점 에서」. PDF에서 줄이 바뀌던
+ * 자리가 공백으로 들어온 자국이고, 학생이 받는 자료에 그대로 실린다.
+ *
+ * 적재해 둔 것을 고치지 않고 읽는 자리에서 붙인다. 앞으로 새로 넣는 것도
+ * 함께 손질되고, 원본은 건드리지 않는다.
+ */
+function tidy<T extends { korean_text?: string | null }>(rows: T[]): T[] {
+  return rows.map((r) =>
+    r.korean_text ? { ...r, korean_text: joinOrphanParticles(r.korean_text) } : r
+  );
+}
+
 /** 시험 목록 (학년·연도·월별 지문 수) */
 export async function loadMockExamList(admin: SupabaseClient): Promise<MockExamSummary[]> {
   // 한 번에 1,000줄까지만 오므로 나눠 읽는다
@@ -75,7 +92,7 @@ export async function loadMockExamPassages(
     .eq("month", exam.month)
     .eq("grade", exam.grade)
     .order("sort_no");
-  return (data ?? []) as MockPassage[];
+  return tidy((data ?? []) as MockPassage[]);
 }
 
 /** 대조용: 전체 지문 */
@@ -87,7 +104,7 @@ export async function loadAllMockPassages(admin: SupabaseClient): Promise<MockPa
       .select(COLUMNS)
       .order("id")
       .range(from, from + 999);
-    out.push(...((data ?? []) as MockPassage[]));
+    out.push(...tidy((data ?? []) as MockPassage[]));
     if (!data || data.length < 1000) break;
   }
   return out;
