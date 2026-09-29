@@ -5,6 +5,7 @@ import {
   LESSON_CREDIT_FEATURES,
   lessonCreditShortfall,
 } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, withAiUsage } from "@/lib/ai-usage/context";
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -102,15 +103,26 @@ export async function generateAndSaveAnalysisReportAction(
   if (shortfall) return { ok: false, message: shortfall };
 
   try {
-    const generated = await generateAnalysisReport({
-      title: project.title,
-      headerLabel,
-      lines: (items ?? []).map((it) => ({
-        id: it.id,
-        english: it.english_text,
-        korean: it.korean_text,
-      })),
-    });
+    const generated = await withAiUsage(
+      {
+        academyId: profile!.academy_id,
+        actorId: profile!.id,
+        featureKey: LESSON_CREDIT_FEATURES.analysisReport,
+        usedFor: "analysis_report",
+        projectId,
+      },
+      () =>
+        generateAnalysisReport({
+          title: project.title,
+          headerLabel,
+          lines: (items ?? []).map((it) => ({
+            id: it.id,
+            english: it.english_text,
+            korean: it.korean_text,
+          })),
+        })
+    );
+    await flushAiUsage();
     const report: AnalysisReportData = {
       ...generated,
       sourceHash,

@@ -5,6 +5,7 @@ import {
   CREDIT_FEATURES,
 } from "@/lib/credits/charge";
 import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import { joinExamplePairs } from "@/lib/vocab/multi-example";
 import { openAiErrorMessage } from "@/lib/vocab/openai-error-message";
 import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
@@ -89,6 +90,12 @@ export async function POST(request: Request) {
         { status: 402 }
       );
     }
+    setAiUsage({
+      academyId: profile.academy_id,
+      actorId: profile.id,
+      featureKey: CREDIT_FEATURES.vocab_generate_examples,
+      usedFor: "vocab",
+    });
 
     const levelGuide =
       level === "high"

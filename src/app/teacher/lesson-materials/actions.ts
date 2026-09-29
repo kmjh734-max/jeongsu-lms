@@ -15,6 +15,7 @@ import {
   LESSON_CREDIT_FEATURES,
   lessonCreditShortfall,
 } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 
 type PassageInput = { english: string; korean?: string };
 
@@ -202,6 +203,12 @@ export async function generateLessonMaterialsIllustrationAction(input: {
 
   // 화면은 /api/lesson-materials/illustration을 쓴다. 이 경로로 와도 같은 값을 받는다.
   const shortfall = await lessonCreditShortfall(academyId, LESSON_CREDIT_FEATURES.illustration);
+  setAiUsage({
+    academyId,
+    actorId: profile!.id,
+    featureKey: LESSON_CREDIT_FEATURES.illustration,
+    usedFor: "illustration",
+  });
   if (shortfall) return { ok: false, message: shortfall };
 
   try {

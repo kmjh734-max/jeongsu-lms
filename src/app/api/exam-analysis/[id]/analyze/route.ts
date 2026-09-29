@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { debitLessonCredits } from "@/lib/credits/lesson-credits";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import { loadOwnAnalysis, requireExamStaff } from "@/lib/exam-analysis/access";
 import { analyzeExam } from "@/lib/exam-analysis/analyze";
 
@@ -15,8 +16,21 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
   const analysis = await loadOwnAnalysis(id, auth.profile.academy_id);
   if (!analysis) return NextResponse.json({ ok: false, message: "분석을 찾을 수 없어요." }, { status: 404 });
 
+  /*
+   * 값이 가장 큰 기능인데 잔액을 보지 않고 돌고 있었다(선생님 지적 2026-09-29).
+   * 만들기 전에 막는다 — 분석은 한 번에 한 건이라 동시에 겹칠 일이 적다.
+   */
+  const shortfall = await lessonCreditShortfall(auth.profile.academy_id!, "school_exam_analysis");
+  if (shortfall) return NextResponse.json({ ok: false, message: shortfall }, { status: 402 });
+
   const admin = createAdminClient();
   await admin.from("school_exam_analyses").update({ status: "analyzing", error: null }).eq("id", id);
+  setAiUsage({
+    academyId: auth.profile.academy_id,
+    actorId: auth.profile.id,
+    featureKey: "school_exam_analysis",
+    usedFor: "exam_analysis",
+  });
   try {
     await analyzeExam(admin, id, auth.profile.academy_id);
   } catch (e) {
@@ -25,6 +39,7 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
     await admin.from("school_exam_analyses").update({ status: "failed", error: message }).eq("id", id);
     return NextResponse.json({ ok: false, message }, { status: 502 });
   }
+  await flushAiUsage();
   await debitLessonCredits({
     academyId: auth.profile.academy_id,
     actorId: auth.profile.id,

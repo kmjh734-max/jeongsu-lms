@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
 import { CREDIT_FEATURES } from "@/lib/credits";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
 import { loadStudentNeltAttempts } from "@/lib/nelt/load-student-attempts";
 import {
@@ -105,6 +106,12 @@ export async function POST(request: Request) {
   if (shortfall) {
     return NextResponse.json({ ok: false, message: shortfall }, { status: 402 });
   }
+  setAiUsage({
+    academyId: auth.academyId,
+    actorId: auth.profile.id,
+    featureKey: CREDIT_FEATURES.nelt_report_narratives,
+    usedFor: "nelt",
+  });
   const result = await generateNeltReportNarrativesAi(analysis);
   if (!result.ok) {
     return NextResponse.json(

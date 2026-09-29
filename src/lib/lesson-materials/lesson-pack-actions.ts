@@ -5,6 +5,7 @@ import {
   LESSON_CREDIT_FEATURES,
   lessonCreditShortfall,
 } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
@@ -97,6 +98,14 @@ export async function generateAndSaveLessonPackVocabAction(
     .eq("project_id", projectId)
     .order("order_index", { ascending: true });
   if (iErr) return { ok: false, message: iErr.message };
+
+  setAiUsage({
+    academyId: profile!.academy_id,
+    actorId: profile!.id,
+    featureKey: LESSON_CREDIT_FEATURES.lessonPack,
+    usedFor: "lesson_pack",
+    projectId,
+  });
 
   const prevPack = (project.lesson_pack_json ?? {}) as Partial<LessonPackData>;
   const metaMap = readTranslationMeta(prevPack);

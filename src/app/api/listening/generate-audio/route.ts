@@ -7,6 +7,7 @@ import {
   chargeFeatureOrError,
   CREDIT_FEATURES,
 } from "@/lib/credits/charge";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import { adjustAcademyCredits, getFeatureCost } from "@/lib/credits";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
 
@@ -86,6 +87,12 @@ export async function POST(request: Request) {
       metadata: { set_id: setId, question_id: questionId },
     });
     if (chargeErr) return chargeErr;
+    setAiUsage({
+      academyId: profile.academy_id,
+      actorId: profile.id,
+      featureKey: CREDIT_FEATURES.listening_generate_audio,
+      usedFor: "listening",
+    });
 
     let result: Awaited<ReturnType<typeof generateQuestionAudio>>;
     try {

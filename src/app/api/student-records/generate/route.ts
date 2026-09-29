@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { CREDIT_FEATURES } from "@/lib/credits";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import {
   extractStudentIdentityFromRecordText,
   extractStudentNameFromReportHtml,
@@ -123,6 +124,12 @@ export async function POST(request: Request) {
           recordId = (retry?.id as string | undefined) ?? null;
         }
       }
+      setAiUsage({
+        academyId: payerAcademyId,
+        actorId: profile.id,
+        featureKey: CREDIT_FEATURES.student_record_analyze,
+        usedFor: "student_record",
+      });
     } catch (e) {
       console.error("[student-records/generate] history insert failed:", e);
     }

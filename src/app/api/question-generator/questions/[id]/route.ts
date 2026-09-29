@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CREDIT_FEATURES } from "@/lib/credits";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import { regenerateSingleQuestion } from "@/lib/question-generator/run-generation-job";
 
 export const maxDuration = 300;
@@ -154,10 +155,17 @@ export async function POST(
         const shortfall = await lessonCreditShortfall(academyId, CREDIT_FEATURES.qg_generate_job);
         if (shortfall) return jsonError(shortfall, 402);
       }
+      setAiUsage({
+        academyId,
+        actorId: profile.id,
+        featureKey: CREDIT_FEATURES.qg_generate_job,
+        usedFor: "question_generator",
+      });
       await regenerateSingleQuestion({
         questionId: id,
         mode: body.action === "regenerate_choices" ? "choices" : "full",
       });
+      await flushAiUsage();
       if (academyId) {
         await debitLessonCredits({
           academyId,

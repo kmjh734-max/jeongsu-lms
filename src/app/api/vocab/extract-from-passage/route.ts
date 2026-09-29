@@ -10,6 +10,7 @@ import {
   CREDIT_FEATURES,
 } from "@/lib/credits/charge";
 import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 function jsonError(message: string, status = 200) {
@@ -64,6 +65,12 @@ export async function POST(request: Request) {
         { status: 402 }
       );
     }
+    setAiUsage({
+      academyId: profile.academy_id,
+      actorId: profile.id,
+      featureKey: CREDIT_FEATURES.vocab_extract_passage,
+      usedFor: "vocab",
+    });
 
     const response = await openAiFetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

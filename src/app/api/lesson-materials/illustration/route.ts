@@ -6,6 +6,7 @@ import {
   LESSON_CREDIT_FEATURES,
   lessonCreditShortfall,
 } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -29,6 +30,12 @@ export async function POST(request: Request) {
     }
     const academyId = profile.academy_id;
     if (!academyId) return jsonError("소속 학원 정보가 없습니다.");
+    setAiUsage({
+      academyId,
+      actorId: profile.id,
+      featureKey: LESSON_CREDIT_FEATURES.illustration,
+      usedFor: "illustration",
+    });
 
     const body = (await request.json()) as {
       illustrationPrompt?: string;

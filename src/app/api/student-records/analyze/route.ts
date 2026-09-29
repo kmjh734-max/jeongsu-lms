@@ -9,6 +9,7 @@ import {
   chargeFeatureOrError,
   CREDIT_FEATURES,
 } from "@/lib/credits/charge";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -66,6 +67,12 @@ export async function POST(request: Request) {
       idempotencyKey: `student_record_analyze:${profile.id}:${Date.now()}`,
     });
     if (chargeErr) return chargeErr;
+    setAiUsage({
+      academyId: profile.academy_id,
+      actorId: profile.id,
+      featureKey: CREDIT_FEATURES.student_record_analyze,
+      usedFor: "student_record",
+    });
 
     const extracted = await extractStudentRecordContent({
       studentId: target.studentId,

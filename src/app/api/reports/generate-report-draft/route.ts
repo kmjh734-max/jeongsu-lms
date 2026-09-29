@@ -6,6 +6,7 @@ import {
   chargeFeatureOrError,
   CREDIT_FEATURES,
 } from "@/lib/credits/charge";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 
 export const runtime = "nodejs";
 
@@ -50,8 +51,15 @@ export async function POST(request: Request) {
       idempotencyKey: `report_ai_draft:${profile.id}:${Date.now()}`,
     });
     if (chargeErr) return chargeErr;
+    setAiUsage({
+      academyId: profile.academy_id,
+      actorId: profile.id,
+      featureKey: CREDIT_FEATURES.report_ai_draft,
+      usedFor: "report",
+    });
 
     const result = await generateReportDraft(body.report);
+    await flushAiUsage();
 
     if (!result.ok) {
       return NextResponse.json({ ok: false, message: result.message });
