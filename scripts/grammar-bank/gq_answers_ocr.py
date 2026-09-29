@@ -81,6 +81,23 @@ def shape_key(d):
     return hashlib.md5("|".join(parts).encode()).hexdigest()[:16]
 
 
+def mark_rows(glyphs):
+    """글자마다 몇 번째 줄인지 적어 둔다.
+
+    높이를 일정한 칸으로 나누면 'H' 처럼 키가 큰 글자가 윗줄로 튄다. 줄이 어긋나면
+    낱말 차례가 뒤섞여 답이 엉뚱하게 이어진다. 그래서 글자 밑선을 모아서 줄을 가른다.
+    """
+    row = 0
+    base = None
+    for g in sorted(glyphs, key=lambda g: g["y1"]):
+        if base is None or g["y1"] - base > 3.5:
+            if base is not None:
+                row += 1
+            base = g["y1"]
+        g["row"] = row
+    return glyphs
+
+
 def split_by_color(glyphs, rect):
     """상자 안 글자를 색으로 가른다.
 
@@ -108,11 +125,11 @@ def split_by_color(glyphs, rect):
 def clump(glyphs):
     """가로로 붙은 글자를 한 덩이로 묶는다 ('1' '0' → 10)"""
     out = []
-    for g in sorted(glyphs, key=lambda g: (round(g["y"] / ROW), g["x"])):
-        if out and abs(g["y"] - out[-1]["y"]) < ROW and g["x"] - out[-1]["x1"] < GAP:
+    for g in sorted(glyphs, key=lambda g: (g["row"], g["x"])):
+        if out and g["row"] == out[-1]["row"] and g["x"] - out[-1]["x1"] < GAP:
             out[-1]["x1"] = max(out[-1]["x1"], g["x1"])
         else:
-            out.append({"x": g["x"], "x1": g["x1"], "y": g["y"]})
+            out.append({"x": g["x"], "x1": g["x1"], "y": g["y"], "row": g["row"]})
     return out
 
 
@@ -135,15 +152,15 @@ def cuts(page, rect):
 
     줄이 바뀌어 이어지는 답(그 줄 첫 번호보다 왼쪽에 있는 글자)은 앞 문항에 붙인다.
     """
-    nums, answers, labels = split_by_color(glyphs_in(page, rect), rect)
+    nums, answers, labels = split_by_color(mark_rows(glyphs_in(page, rect)), rect)
     if not nums:
         return [], []
     nums = clump(nums)
-    label_rows = sorted({round(g["y"] / ROW) for g in clump(labels)}) if labels else []
+    label_rows = sorted({g["row"] for g in clump(labels)}) if labels else []
 
     rows = {}
     for g in nums:
-        rows.setdefault(round(g["y"] / ROW), []).append(g)
+        rows.setdefault(g["row"], []).append(g)
 
     out = []
     step = 0
@@ -163,20 +180,21 @@ def cuts(page, rect):
             right = line[i + 1]["x"] if i + 1 < len(line) else rect.x1
             run = [a for a in answers
                    if abs(a["y"] - g["y"]) < ROW * 1.5 and g["x1"] - 0.5 <= a["x"] < right - 0.3]
-            out.append({"step": max(step, 1), "no": seen, "y": g["y"], "x": g["x"], "run": run})
+            out.append({"step": max(step, 1), "no": seen, "y": g["y"], "x": g["x"],
+                        "row": g["row"], "run": run})
 
     # 번호가 하나도 없는 줄(앞 문항이 그대로 이어지는 줄)의 글자를 앞 문항에 붙인다
     taken = {id(a) for c in out for a in c["run"]}
-    for a in sorted(answers, key=lambda a: (round(a["y"] / ROW), a["x"])):
+    for a in sorted(answers, key=lambda a: (a["row"], a["x"])):
         if id(a) in taken:
             continue
         before = [c for c in out
-                  if (round(c["y"] / ROW), c["x"]) <= (round(a["y"] / ROW), a["x"])]
+                  if (c["row"], c["x"]) <= (a["row"], a["x"])]
         if before:
             before[-1]["run"].append(a)
 
     for c in out:
-        c["run"].sort(key=lambda a: (round(a["y"] / ROW), a["x"]))
+        c["run"].sort(key=lambda a: (a["row"], a["x"]))
     # STEP 표시 자리 — 번호를 읽어 실제 STEP 번호로 바꿔 쓴다.
     # 한 상자가 STEP 3·4·5 를 담기도 하므로 차례로 1·2·3 을 매기면 어긋난다.
     label_rects = []
@@ -222,7 +240,7 @@ def read_crop(reader, page, rect, dpi=None):
 def units_of(run):
     """겹쳐 그려진 글자는 한 덩이로 (× 는 직선 두 개가 같은 자리에 있다)"""
     out = []
-    for g in sorted(run, key=lambda a: (round(a["y"] / ROW), a["x"])):
+    for g in sorted(run, key=lambda a: (a["row"], a["x"])):
         if out and abs(g["x"] - out[-1][0]["x"]) < 1.0 and abs(g["y"] - out[-1][0]["y"]) < 1.0:
             out[-1].append(g)
         else:
@@ -276,11 +294,12 @@ def run(pdf_path, out_path):
             got, label_rects = cuts(page, rect)
             # 상자에 적힌 STEP 번호를 읽어 띠 번호를 바로잡는다
             real = {}
-            for i, lab in enumerate(label_rects, start=1):
+            # 쪽 번호(i)를 덮어쓰지 않도록 다른 이름을 쓴다
+            for band, lab in enumerate(label_rects, start=1):
                 text, _score = read_crop(reader, page, lab["rect"], dpi=600)
                 # 잘라 낸 자리에 옆 답이 딸려 오므로("24 STCP 2"), STEP 뒤의 숫자만 본다
                 hit = re.search(r"S[TICL][CEI]?P\s*(\d{1,2})", text, re.I)
-                real[i] = int(hit.group(1)) if hit else i
+                real[band] = int(hit.group(1)) if hit else band
             for c in got:
                 c["step"] = real.get(c["step"], c["step"])
                 text, score = run_text(reader, page, c["run"], cache)

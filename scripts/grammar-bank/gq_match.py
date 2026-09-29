@@ -206,7 +206,12 @@ def main(q_path, a_path, out_path, bad_path=None):
             else:
                 pairs = [(q, clean_answer(answers[str(q["no"])], q["no"]))
                          for q in items if str(q["no"]) in answers]
-                if len(pairs) < len(items) * 0.6:
+                # 개수가 다르면 문항 번호로 하나씩 맞댄다. 이때 쪽을 잘못 집었을까 봐
+                # 걱정되는데, 고를 것이 정해진 문항이 하나라도 들어 있으면 그것이
+                # 맞는지로 쪽이 맞는지 가릴 수 있다. 가릴 것이 없을 때만 수를 따진다.
+                checkable = any(q.get("picks") or MANY_CHOICE.search(str(q.get("text") or ""))
+                                for q, _ in pairs)
+                if not pairs or (not checkable and len(pairs) < len(items) * 0.6):
                     failed.append({"pages": use, "step": step, "문항": len(items), "답": len(got),
                                    "까닭": "개수가 맞지 않음"})
                     continue
