@@ -90,29 +90,49 @@ const VOCAB_SECTION = `[vocab] 이 지문의 뜻을 떠받치는 핵심 낱말(�
 - synonyms: 이 뜻으로 그 자리에 넣어도 말이 되는 낱말 2개. surface와 품사가 같아야 하고(명사↔명사, 동사↔동사), 한 낱말짜리를 먼저 쓴다. 지어낸 어구(ethical license, mountain vents 같은 것)는 쓰지 않는다.
 - antonyms: 이 뜻의 진짜 반대말 2개, 품사도 같아야 한다. "다른 것"은 반대말이 아니다(asteroid↔comet, diameter↔radius, wages↔poverty는 틀렸다). 진짜 반대말이 없으면 []로 두고, 그런 낱말은 애초에 고르지 않는 편이 낫다.`;
 
-const GRAMMAR_SECTION = `[grammar] 내신 어법 선택·수정 문제로 그대로 낼 수 있는 자리(개수는 아래 지시를 따른다. 되도록 서로 다른 code, 한 문장에 최대 2개).
-code는 아래 GRAMMAR_RULES에 있는 것만 쓴다. 각 자리는 다음을 모두 만족해야 하고, 하나라도 어기면 그 자리는 빼라.
+const GRAMMAR_SECTION = `어법은 두 걸음으로 만든다. scan을 먼저 채우고, 그 안에서 고른 것만 grammar에 넣는다.
+
+[scan] 1차 — 지문의 문법 자리를 구조로 훑는다 (아직 문항으로 만들지 않는다)
+문장을 하나씩 구조로 읽고, 고등학교 모의고사·수능이 다루는 문법 지점을 적는다.
+아래 넷 가운데 둘 이상에 해당해야 적는다.
+ 1) 모의고사 밑줄 어법 선택지로 바꿀 수 있다
+ 2) 문장 구조를 봐야 형태의 맞고 틀림을 가릴 수 있다
+ 3) 고등학생이 헷갈릴 다른 형태가 있다
+ 4) 정확한 해석에 실질적으로 영향을 준다
+적지 않는 것: 단순 현재·과거시제, 일반 복수·3인칭 단수, 일반 관사·전치사, 단순 SVO,
+단순 조동사+동사원형, to부정사에 이름만 붙이기, 모든 V-ing를 동명사라고 하기, 단순 be+p.p., 일반 숙어·어휘.
+- term: 구조를 가리키는 문법 항목 이름(관계대명사 what, 전치사+동명사, 지각동사 목적격보어, 분사구문처럼).
+  V-ing를 아무 데나 분사라고 하지 않는다 — 전치사 뒤면 동명사, 명사를 꾸미면 분사,
+  부사구를 이루면 분사구문, 동사의 목적어면 동명사다. p.p.도 마찬가지로 수동태·분사·완료를 가려 적는다.
+- span: 그 자리가 든, 지문에 나온 그대로의 부분(2~10 words).
+- structure: 그 문장의 구조를 한 줄로. 예) 주절: they(S) have seen(V) the kind(O) // 관계사절: we(S') have seen(V') bring about(C')
+- hard: 1~5. 고등학생이 실제로 틀릴 만한 정도. 구조를 봐야 풀리면 높고, 형태만 봐도 풀리면 낮다.
+- why: 무엇을 알아야 이 자리를 가릴 수 있는지 한국어 한 줄(20~40자).
+8~14개를 적는다. 한 문장에 최대 2개. 같은 원리가 되풀이되면 대표 하나만.
+
+[grammar] 2차 — scan에 적은 것 가운데 내신 어법 선택·수정 문제로 그대로 낼 수 있는 자리만 고른다
+hard가 큰 것부터 본다. code는 아래 GRAMMAR_RULES에 있는 것만 쓴다.
+각 자리는 다음을 모두 만족해야 하고, 하나라도 어기면 그 자리는 빼라.
 1) 이 문장에서 맞는 형태가 오직 하나여야 한다. 다른 형태도 문법에 맞으면 싣지 않는다. 예를 들어 주어 자리의 동명사(to부정사도 주어가 된다), 콤마 없는 관계절의 that/which, 목적격 관계대명사 생략, help 뒤의 원형/to V, 목적어절의 if/whether, 강조구문의 that/who는 모두 둘 다 되므로 금지다.
 2) 관사, 쉼표, 철자, 단수·복수 표기, 생략된 말은 고르게 할 수 없으니 금지다.
-   동사원형만 올 수 있는 자리도 금지다: 조동사 뒤(would become/would becomes, should run/should runs),
-   to 뒤(to go/to goes), 사역·지각동사 뒤(make him go/make him goes). 이런 짝은 틀린 쪽이 영어에 아예 없는
-   말이라 시험 문항이 되지 않는다. right 안에 조동사나 to가 들어가 있어도 마찬가지로 금지다.
+   조동사 뒤(would become/would becomes)와 to 뒤(to go/to goes)도 금지다 — 틀린 쪽이 영어에 아예 없는 말이다.
+   지각·사역동사 뒤(see him go, make her stay)는 오답을 to부정사로 세울 때만 낸다(see him to go).
+   원형과 V-ing를 맞세우는 것(see him go / see him going)은 둘 다 맞으므로 금지다.
 3) 답을 정하는 근거가 같은 문장 안에 드러나 있어야 한다.
 4) 주어가 동사 바로 앞에 있는 인칭·수 일치(I am, you need, they feel, Humans enjoy, There are)는 시험에 나오지 않는다. 수일치는 주어와 동사 사이에 수식어구·관계절이 끼어 있을 때만 낸다.
-5) 찾는 차례가 있다. 아래 GRAMMAR_RULES에 <b>교과서 N종</b>이라고 적힌 것이 고등 교과서가 실제로
-   가르치는 자리다. <b>종수가 큰 것부터</b> 지문에서 빠짐없이 찾고, 그런 자리가 더 없을 때만 나머지를 본다.
-   먼저 — 능동·수동, 긴 주어나 관계절·전치사구가 끼어든 수일치, 관계대명사 what, 분사구문, 분사의 능동·수동,
-   병렬, 시제·완료, 가정법, 비교 구문, 도치, 목적격보어 형태, 접속사·전치사 대비.
-   나중에 — 재귀대명사, 대명사 선행사, 형용사·부사 구분, 수량사, one/ones.
-   1~4를 지키는 자리는 지문에서 빠짐없이 찾아 올린다. 다만 1~4를 어기면서까지 개수를 채우지는 않는다.
-- caseId: 아래 "어법 빈출 자리"에 있는 id 그대로. 그 목록에 없는 자리는 내신에 잘 나오지 않으므로 싣지 않는다.
+5) code가 말하는 원리와 실제로 묻는 원리가 같아야 한다. 전치사 뒤 V-ing를 분사·분사구문 코드로 내지 않는다.
+- 6~9개를 낸다. 검수에서 걸러지므로 넉넉히 내되, hard가 낮은 것으로 개수를 채우지는 않는다.
+  조건 1~5를 지키는 자리가 그만큼 없으면 있는 만큼만 낸다.
+- from: 그 자리가 나온 scan 항목의 번호(1부터 센다).
+- hard: scan에 적은 값 그대로.
+- caseId: 아래 "어법 빈출 자리"에 있는 id 그대로. 그 목록에 없으면 "".
 - code: GRAMMAR_RULES의 코드 그대로.
 - target: 근거와 정답을 함께 담은, 지문에 나온 그대로의 부분(3~12 words). 정리자료에서 이 부분에 밑줄이 그어지므로 explanation이 말하는 것이 모두 이 안에 있어야 한다. 그 문장에 두 번 나오는 부분은 고르지 않는다.
 - right: target 안에서 정답이 되는 낱말(1~3 words), 지문 그대로.
 - cue: 오답이 왜 안 되는지를 정해 주는 말(진짜 주어 명사, 선행사, 전치사, to부정사의 to, 수동태의 be·been, 시간 표시어, 연결동사 등), 지문 그대로. 이 말은 반드시 target 안에 있어야 한다.
 - wrong: right와 한 가지만 다른 형태(굴절 하나 또는 기능어 하나). 학생이 실제로 하는 실수여야 하고 영어에 있는 형태여야 한다(slow downing, would caused, won’t able처럼 없는 형태 금지). 낱말을 덧붙이거나 빼지 않는다.
 - wrongWhy: wrong이 이 문장에서 왜 틀렸는지 한국어 한 문장. "어색하다", "덜 자연스럽다"가 아니라 문법적으로 왜 안 되는지 적는다. 그렇게 쓸 수 없으면 그 자리를 빼라.
-- explanation: right가 맞는 이유를 한국어 한 문장(35자 안팎, 짧을수록 좋다). 근거가 되는 본문 낱말을 그대로 적어 말한다("target", "cue", "문장" 같은 말은 쓰지 않는다). "~다"로 끝나는 평서형으로 쓰고(존댓말 금지), code가 말하는 원리와 실제로 묻는 원리가 다르면 그 자리를 빼라. 본문에 없는 규칙을 지어내지 않는다.`;
+- explanation: right가 맞는 이유를 한국어 한 문장(35자 안팎, 짧을수록 좋다). 근거가 되는 본문 낱말을 그대로 적어 말한다("target", "cue", "문장" 같은 말은 쓰지 않는다). "~다"로 끝나는 평서형으로 쓰고(존댓말 금지), 본문에 없는 규칙을 지어내지 않는다.`;
 
 const COMMON_HEADER = `너는 한국 고등학교 내신 영어 시험 대비 "1장 요약직보자료"와 "1장 테스트" 재료를 만드는 편집자다.
 입력 지문(문장마다 no가 있다)만 근거로 쓰고, 정해진 JSON으로만 답한다.
@@ -208,10 +228,17 @@ const VOCAB_SCHEMA = {
   items: obj({ no: int, surface: str, meaningKo: str, synonyms: strList, antonyms: strList }),
 } as const;
 
+const GRAMMAR_SCAN_SCHEMA = {
+  type: "array",
+  items: obj({ no: int, term: str, span: str, structure: str, hard: int, why: str }),
+} as const;
+
 const GRAMMAR_ITEMS_SCHEMA = {
   type: "array",
   items: obj({
     no: int,
+    from: int,
+    hard: int,
     code: str,
     caseId: str,
     target: str,
@@ -257,7 +284,7 @@ const EXAM_SCHEMA = obj({
   },
 });
 
-const GRAMMAR_SCHEMA = obj({ grammar: GRAMMAR_ITEMS_SCHEMA });
+const GRAMMAR_SCHEMA = obj({ scan: GRAMMAR_SCAN_SCHEMA, grammar: GRAMMAR_ITEMS_SCHEMA });
 
 const WORDS_SCHEMA = obj({ vocab: VOCAB_SCHEMA });
 
@@ -328,13 +355,17 @@ function locateKeywords(summary: string, raw: unknown): string[] {
     .map((f) => f.text);
 }
 
-/**
- * 정리자료 한 장에 실을 어법 포인트 수. 이 수보다 적으면 한 번 더 뽑는데, 그 호출이 맨 뒤에
- * 30초 넘게 붙으므로(선생님 지적: 느리다) 정말 허전할 때만 부른다.
+/*
+ * 한 장에 싣는 어법 포인트 수.
+ *
+ * 선생님 지적(2026-09-29): "너무 많은 어법을 골라내서 정작 필요한 어법이 안 나온다.
+ * 최소 5개 이상은 뽑아 달라." 상한을 여덟에서 여섯으로 줄이고, 다섯은 채우도록 한다.
+ * 채우는 방법은 검수를 무르게 하는 것이 아니라, 검수를 통과한 자리 가운데
+ * 점수를 한 칸 내려 고르는 것이다. 그래도 모자라면 한 번 더 뽑는데,
+ * 그 호출이 맨 뒤에 30초쯤 붙는다(선생님 지적: 느리다).
  */
-export const MIN_GRAMMAR = 3;
-/** 한 장에 싣는 최대 개수(선생님 지적 2026-09-22: 어법 포인트가 모자란다) */
-const MAX_GRAMMAR = 8;
+export const MIN_GRAMMAR = 5;
+const MAX_GRAMMAR = 6;
 /** 정리자료에 싣는 낱말 수 상한(선생님 요청: 10~12개) */
 const MAX_VOCAB = 12;
 /**
@@ -658,7 +689,13 @@ function checkGrammarPoint(
     cue: sentence.slice(cueHit.start, cueHit.end),
     wrong,
     wrongWhy,
-    point: examCase?.koLabel || rule.labelKo,
+    /*
+     * 이름은 code를 따른다. 검수도 설명도 code 기준인데 이름만 교재 케이스에서
+     * 가져오다 보니 어긋났다 — 분사구문 자리에 「수식하는 분사」가 찍히는 식이다
+     * (2026-09-29 확인). 교재 케이스는 팁(caseTipKo)으로만 남긴다.
+     */
+    point: rule.labelKo,
+    hard: Math.max(0, Math.min(5, Math.floor(Number(r.hard) || 0))) || undefined,
     caseId: examCase?.id,
     caseTipKo: examCase?.koTip,
     explanation,
@@ -1046,7 +1083,8 @@ async function rateGrammarPoints(input: {
   const list = points
     .map((g, i) => {
       const sentence = input.sentences[g.sentenceIndex] ?? "";
-      return `${i + 1}) [${g.code}] 밑줄: ${g.target}\n   정답: ${g.right} / 오답: ${g.wrong}\n   문장: ${sentence}`;
+      const hard = g.hard ? ` 어려움${g.hard}` : "";
+      return `${i + 1}) [${g.code}]${hard} 이름: ${g.point}\n   밑줄: ${g.target}\n   정답: ${g.right} / 오답: ${g.wrong}\n   문장: ${sentence}`;
     })
     .join("\n");
   try {
@@ -1056,7 +1094,10 @@ async function rateGrammarPoints(input: {
 - 교재 빈출 목록에 없는 자리는 2점 이하로 매긴다.
 - 높은 점수는 문장 구조를 알아야 풀리는 자리(관계사·준동사·병렬·태·시제·비교·가정법·도치, 수식어가 끼어든 수일치)에 준다. 철자·연어·인접 수일치는 낮다.
 - 그런 자리는 몇 개가 나오든 모두 4점 이상으로 매긴다. 한 장에 실을 개수를 생각해서 점수를 깎지 마라. 고르는 것은 이쪽에서 한다.
-- 거꾸로, 구조를 안 봐도 형태만 보고 풀리는 자리는 아무리 많이 남아도 3점을 넘기지 마라.`,
+- 거꾸로, 구조를 안 봐도 형태만 보고 풀리는 자리는 아무리 많이 남아도 3점을 넘기지 마라.
+- 이름이 그 자리의 실제 구조와 다르면 drop으로 한다. 전치사 뒤 V-ing를 분사·분사구문이라 부르거나,
+  동사의 목적어인 동명사를 현재분사라 부르거나, 수동태의 p.p.를 명사 수식 분사라 부르는 것이 그렇다.
+- 설명(정답이 맞는 이유)이 실제로 답을 정하는 근거와 다르면 drop으로 한다.`,
       input.signal,
       {
         system: "너는 한국 고등학교 내신 영어 출제 검수자다. 정해진 JSON으로만 답한다.",
@@ -1111,13 +1152,22 @@ async function rateGrammarPoints(input: {
      *  · 3점까지 내려받던 뒷문을 없앤다. 4점이 하나도 없으면 어법 칸을 비운다
      *    — 개수를 채우기보다 적중(2026-09-20 기준)을 지킨다.
      */
-    const sure = scored
-      .filter((g) => !g.drop && g.examScore >= 4)
-      .sort(
-        (a, b) =>
-          b.examScore - a.examScore ||
-          textbookWeightOf(b.code ?? "") - textbookWeightOf(a.code ?? "")
-      );
+    /*
+     * 2026-09-29 선생님 요청: "최소 5개 이상은 뽑아 달라."
+     * 검수(checkGrammarPoint)를 통과한 자리는 이미 「답이 하나로 정해지는 자리」다.
+     * 점수는 중요한 정도일 뿐이므로, 다섯이 안 될 때만 점수를 한 칸 내려 고른다.
+     * 검수에서 버린 자리를 다시 넣지는 않는다 — 틀린 자리로 개수를 채우지 않는다.
+     */
+    const rank = (a: (typeof scored)[number], b: (typeof scored)[number]) =>
+      b.examScore - a.examScore ||
+      (b.hard ?? 0) - (a.hard ?? 0) ||
+      textbookWeightOf(b.code ?? "") - textbookWeightOf(a.code ?? "");
+    const alive = scored.filter((g) => !g.drop);
+    const sure = alive.filter((g) => g.examScore >= 4).sort(rank);
+    if (sure.length < MIN_GRAMMAR) {
+      const more = alive.filter((g) => g.examScore === 3).sort(rank);
+      sure.push(...more.slice(0, MIN_GRAMMAR - sure.length));
+    }
     const dropped = points.length - sure.length;
     if (dropped > 0) input.notes.push(`어법 ${dropped}개 제외(시험에 낼 자리가 아님)`);
     return sure.map((g) => {
@@ -1764,12 +1814,18 @@ export async function generateOnePageContent(input: {
      * 10개에서 18개로 늘리면서 이 일이 더 자주 생겼다. 그래서 교재가 자주 묻는
      * 어법부터 고른다.
      */
-    const spread = <T extends { code?: string; caseId?: string; examScore?: number }>(list: T[], max: number) => {
+    const spread = <T extends { code?: string; caseId?: string; examScore?: number; hard?: number }>(
+      list: T[],
+      max: number
+    ) => {
       const freqOf = (x: T) => onePageGrammarRule(String(x.code ?? ""))?.freq ?? 0;
       // 시험에 나올 자리인지 매긴 점수가 먼저, 같으면 교재 빈출 케이스에 걸린 것, 그 다음 교재가 자주 묻는 어법 순서.
       const scoreOf = (x: T) => (typeof x.examScore === "number" ? x.examScore : 3);
       const caseOf = (x: T) => (x.caseId ? 1 : 0);
-      const ranked = [...list].sort((a, b) => scoreOf(b) - scoreOf(a) || caseOf(b) - caseOf(a) || freqOf(b) - freqOf(a));
+      const hardOf = (x: T) => (typeof x.hard === "number" ? x.hard : 0);
+      const ranked = [...list].sort(
+        (a, b) => scoreOf(b) - scoreOf(a) || hardOf(b) - hardOf(a) || caseOf(b) - caseOf(a) || freqOf(b) - freqOf(a)
+      );
       const seen = new Set<string>();
       const first = ranked.filter((x) => {
         const key = x.caseId ? `case:${x.caseId}` : `code:${x.code}`;
@@ -1811,7 +1867,7 @@ export async function generateOnePageContent(input: {
      * 마지막 보충은 한 장이 텅 빌 때만 한다(선생님 지적: 느리다). 여기서 부르는 시간은 통째로
      * 맨 뒤에 붙으므로, 어법이 한둘 모자란 정도면 있는 것으로 만든다.
      */
-    if (grammar.length < 1 || vocab.length < MIN_VOCAB - 2) {
+    if (grammar.length < MIN_GRAMMAR || vocab.length < MIN_VOCAB - 2) {
       const at = Date.now();
       const more = await refillMaterial({
         apiKey,

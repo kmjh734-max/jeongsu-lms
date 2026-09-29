@@ -64,6 +64,8 @@ export type OnePageGrammarPoint = {
   caseId?: string;
   /** 학생에게 보여 줄 케이스 한 줄 팁 */
   caseTipKo?: string;
+  /** 1차 훑기에서 매긴 어려움(1~5). 중요한 자리를 먼저 싣는 데 쓴다. 옛 재료에는 없다. */
+  hard?: number;
   /** 왜 그 형태인지 한 문장 */
   explanation: string;
 };
