@@ -22,15 +22,41 @@ def norm(s):
 LEAD_NO = re.compile(r"^\s*\d{1,2}\s+(?=[A-Za-z가-힣○×(])")
 
 
+# 읽다가 어긋난 답 — 글자가 뭉개졌거나 엉뚱한 기호가 섞였다
+GARBLED = re.compile(r"[@|~^\<>]|[A-Za-z]{2,}[0-9]{2,}|[)(\]\[]{2,}")
+
+
 def clean_answer(text, no):
+    """답 앞에 딸려 온 문항 번호를 뗀다.
+
+    잘라 읽는 자리가 조금 넓어 왼쪽 번호가 섞여 들어오면 "2 she" 처럼 나온다.
+    뒤에 글자가 남는다면 번호는 답이 아니므로 뗀다.
+    """
     t = str(text or "").strip()
     hit = LEAD_NO.match(t)
-    if hit:
-        # 그 번호가 이 문항의 번호이거나 바로 앞뒤 번호일 때만 뗀다
-        got = int(t.split()[0])
-        if abs(got - int(no)) <= 1:
-            t = t[hit.end():].strip()
+    if hit and re.search(r"[A-Za-z가-힣○×]", t[hit.end():]):
+        t = t[hit.end():].strip()
     return t
+
+
+def usable(answer):
+    """넣어도 되는 답인가 — 읽다가 어긋난 것은 넣지 않는다.
+
+    옆 줄이 딸려 들어오면 "5 7 Tom's 2 stu 5 children's" 처럼 번호와 낱말이
+    번갈아 나온다. 그런 꼴은 답이 아니다.
+    """
+    t = str(answer or "").strip()
+    if not t or len(t) > 70:
+        return False
+    if GARBLED.search(t):
+        return False
+    # 홑 번호 답(③, 5, "2, 5")은 그대로 둔다
+    if re.fullmatch(r"[1-9①-⑩][,\s]*[1-9①-⑩]?", t):
+        return True
+    # 번호가 두 번 이상 끼어 있으면 옆 답이 섞인 것이다
+    if len(re.findall(r"(?<![A-Za-z0-9])\d{1,2}(?![A-Za-z0-9])", t)) >= 2:
+        return False
+    return True
 
 
 def in_choices(answer, picks):
@@ -119,6 +145,11 @@ def main(q_path, a_path, out_path, bad_path=None):
                     failed.append({"pages": pages, "step": step, "문항": len(items), "답": len(got),
                                    "까닭": "개수가 맞지 않음"})
                     continue
+            pairs = [(q, a) for q, a in pairs if usable(a)]
+            if not pairs:
+                failed.append({"pages": pages, "step": step, "문항": len(items), "답": len(got),
+                               "까닭": "읽은 답이 뭉개짐"})
+                continue
             bad = [1 for q, a in pairs if not in_choices(a, q["picks"])]
             if bad:
                 failed.append({"pages": pages, "step": step, "문항": len(items), "답": len(got),
