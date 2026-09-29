@@ -7,12 +7,29 @@
 export type ModelPrice = { in: number; cachedIn: number; out: number };
 
 export const MODEL_PRICES: Record<string, ModelPrice> = {
-  "gpt-5": { in: 1.25, cachedIn: 0.125, out: 10 },
+  // 2026-09-29 공식 가격표에서 옮겨 적음 (developers.openai.com/api/docs/pricing)
+  "gpt-5.6-sol": { in: 4, cachedIn: 0.4, out: 20 },
+  "gpt-5.6-terra": { in: 2, cachedIn: 0.2, out: 12 },
+  "gpt-5.6-luna": { in: 0.2, cachedIn: 0.02, out: 1.2 },
+  "gpt-5.5": { in: 5, cachedIn: 0.5, out: 30 },
+  "gpt-5.4-nano": { in: 0.05, cachedIn: 0.005, out: 0.4 },
+  "gpt-5.4-mini": { in: 0.25, cachedIn: 0.025, out: 2 },
+  "gpt-5.4": { in: 2.5, cachedIn: 0.25, out: 15 },
+  "gpt-5.2": { in: 1.75, cachedIn: 0.175, out: 14 },
+  "gpt-5.1": { in: 1.25, cachedIn: 0.125, out: 10 },
   "gpt-5-mini": { in: 0.25, cachedIn: 0.025, out: 2 },
   "gpt-5-nano": { in: 0.05, cachedIn: 0.005, out: 0.4 },
-  "gpt-4o": { in: 2.5, cachedIn: 1.25, out: 10 },
+  "gpt-5": { in: 1.25, cachedIn: 0.125, out: 10 },
   "gpt-4o-mini": { in: 0.15, cachedIn: 0.075, out: 0.6 },
+  "gpt-4o": { in: 2.5, cachedIn: 1.25, out: 10 },
 };
+
+/*
+ * 두 가지는 여기서 셈하지 않는다 — 우리 호출에 해당하지 않아서다.
+ *  · 입력이 272K를 넘으면 입력 2배·출력 1.5배. 우리 지문은 그 근처도 못 간다.
+ *  · 지역 처리(data residency) 창구는 10% 더. 우리는 기본 창구를 쓴다.
+ * gpt-5.6-sol의 $4/$20은 2026-11-21까지의 할인가다. 그 뒤에는 다시 확인해야 한다.
+ */
 
 /** 1달러를 몇 원으로 볼지 */
 export const WON_PER_USD = 1400;
