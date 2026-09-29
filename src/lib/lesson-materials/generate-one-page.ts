@@ -408,8 +408,28 @@ const MODALS = new Set(["should","would","can","could","will","shall","may","mig
  * 선생님 지적(2026-09-17): "[would become / would becomes] 같은 얼토당토않은 어법 포인트".
  * 바뀌는 낱말 바로 앞을 보고, 그런 자리면 싣지 않는다.
  */
-const BARE_FORM_TRIGGERS = new Set([
-  "to","help","make","makes","made","let","lets","have","has","had","see","sees","saw","hear","hears","heard","watch","watches","watched",
+/**
+ * 동사원형만 올 수 있는 자리를 만드는 말.
+ *
+ * to와 조동사 뒤는 고를 거리가 없어 늘 버린다.
+ * 지각·사역동사 뒤는 다르다 — 선생님 지적(2026-09-29): 「we have seen bring about」의
+ * bring 자리는 엄청 중요한 자리인데 못 걸러내고 있다. 여기는 to부정사를 쓰면 틀리는
+ * 자리라 시험에 자주 나온다. 그래서 오답이 to부정사일 때만 살린다.
+ */
+const BARE_FORM_TRIGGERS = new Set(["to"]);
+
+/** 뒤에 동사원형이 오는 지각·사역동사. 오답이 to부정사면 낼 수 있는 자리다. */
+const CAUSATIVE_PERCEPTION = new Set([
+  "help","helps","helped","make","makes","made","let","lets","have","has","had",
+  "see","sees","saw","seen","hear","hears","heard","watch","watches","watched",
+  "feel","feels","felt","notice","notices","noticed",
+]);
+
+/** 뒤에 -ing가 오면 동명사다. 분사·분사구문 자리가 아니다. */
+const PREPOSITIONS_BEFORE_GERUND = new Set([
+  "by","after","before","in","on","at","of","for","with","without","about","through",
+  "upon","since","despite","besides","from","into","over","under","against","during",
+  "toward","towards","beyond","like","worth",
 ]);
 
 function inBareFormSlot(right: string, wrong: string, sentence: string, rightStart: number): boolean {
@@ -423,7 +443,17 @@ function inBareFormSlot(right: string, wrong: string, sentence: string, rightSta
       ? a[idx - 1]!.toLowerCase().replace(/[^a-z'’-]/g, "")
       : (sentence.slice(0, rightStart).match(/([A-Za-z’']+)\s*$/)?.[1] ?? "").toLowerCase();
   if (!prev) return false;
-  return MODALS.has(prev) || BARE_FORM_TRIGGERS.has(prev);
+  if (MODALS.has(prev) || BARE_FORM_TRIGGERS.has(prev)) return true;
+  if (CAUSATIVE_PERCEPTION.has(prev)) {
+    // to부정사를 맞세운 것만 남긴다. 원형 ↔ V-ing는 둘 다 맞아서 고를 수 없다.
+    return !/^to\s+[a-z]/i.test(wrong.trim());
+  }
+  return false;
+}
+
+/** 바른 형태 바로 앞에 오는 낱말 */
+function wordBefore(sentence: string, rightStart: number): string {
+  return (sentence.slice(0, rightStart).match(/([A-Za-z’']+)\s*$/)?.[1] ?? "").toLowerCase();
 }
 
 /** 오답이 바른 형태와 굴절·기능어 하나만 다른지. 워크북 오답 검사에 더해 낱말 자체가 바뀐 것을 막는다. */
@@ -594,8 +624,19 @@ function checkGrammarPoint(
   if (!wrong || wrong.toLowerCase() === right.toLowerCase()) return null;
   // 명사의 단수·복수 표기만 다른 짝(endings/ending)은 고르게 할 수 없다. 동사 수일치는 예외다.
   if (!code.startsWith("AGREEMENT_") && pluralOnlyPair(right, wrong)) return null;
-  // 동사원형만 올 수 있는 자리(조동사·to·사역동사 뒤)는 고를 거리가 없다.
+  // 동사원형만 올 수 있는 자리(조동사·to 뒤)는 고를 거리가 없다.
   if (inBareFormSlot(right, wrong, sentence, rightStart)) return null;
+  /*
+   * 선생님 지적(2026-09-29): by V-ing 같은 전치사 뒤 -ing를 「현재분사」·「분사구문」이라고
+   * 부르고 있었다. 전치사 뒤는 동명사 자리다. 분사 쪽 이름이 붙으면 버리고,
+   * 전치사 + 동명사 코드로만 내게 한다(설명까지 틀린 문법을 가르치던 것을 막는다).
+   */
+  if (/^(PARTICIP|WITH_OBJECT_PARTICIPLE|ABSOLUTE_PARTICIPLE)/.test(code)) {
+    const before = wordBefore(sentence, rightStart);
+    if (PREPOSITIONS_BEFORE_GERUND.has(before) && /^[a-z]+ing\b/i.test(right.trim())) {
+      return null;
+    }
+  }
   if (!minimalFormPair(right, wrong)) return null;
   if (rejectFabricatedDistractor({ pointCode: code, correct: right, wrong, sentence })) return null;
   if (validateMinimalPair({ pointCode: code, sourceSpan: right, distractor: wrong, sentence })) return null;
@@ -1079,7 +1120,11 @@ async function rateGrammarPoints(input: {
       );
     const dropped = points.length - sure.length;
     if (dropped > 0) input.notes.push(`어법 ${dropped}개 제외(시험에 낼 자리가 아님)`);
-    return sure.map(({ drop: _drop, ...g }) => g);
+    return sure.map((g) => {
+      const rest = { ...g } as Partial<typeof g>;
+      delete rest.drop;
+      return rest as Omit<typeof g, "drop">;
+    });
   } catch {
     return points;
   }

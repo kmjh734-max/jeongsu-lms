@@ -160,6 +160,27 @@ const TEXTBOOK_ONLY_RULES: Array<Omit<OnePageGrammarRule, "freq"> & { books: num
     avoid: "단순히 「~하는 것」으로 새기는 관계대명사 what 자리",
   },
   {
+    code: "TB_PREPOSITION_GERUND",
+    labelKo: "전치사 + 동명사",
+    books: 2,
+    decide: "by/after/in/without 같은 전치사 뒤에는 동사원형·to부정사가 못 오고 동명사(V-ing)만 온다",
+    avoid: "분사구문으로 읽히는 자리(앞에 전치사가 없는 V-ing)",
+  },
+  {
+    code: "TB_PERCEPTION_BARE_V",
+    labelKo: "지각동사 목적격보어",
+    books: 2,
+    decide: "see/hear/watch/feel + 목적어 뒤에는 동사원형이나 V-ing가 온다. to부정사는 쓰지 못한다",
+    avoid: "동사원형과 V-ing를 맞세운 자리(둘 다 맞다)",
+  },
+  {
+    code: "TB_CAUSATIVE_BARE_V",
+    labelKo: "사역동사 목적격보어",
+    books: 4,
+    decide: "make/have/let + 목적어 뒤에는 동사원형이 온다. to부정사는 쓰지 못한다",
+    avoid: "get·help처럼 to부정사도 되는 동사",
+  },
+  {
     code: "TB_WITH_NOUN_PARTICIPLE",
     labelKo: "with + 명사 + 분사",
     books: 4,
