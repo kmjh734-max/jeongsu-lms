@@ -211,18 +211,28 @@ ${choiceExplanationRules()}
             ? "HIGH (상)"
             : "standard"
       }.`;
-    case "sentence_blank":
+    case "sentence_blank": {
       if (code === "연결어빈칸") {
         return `In passageModified put discourse blanks (A) and (B). 5 ENGLISH pair choices like "However …… Therefore". Exactly one correct.
 LANGUAGE: passageModified + choices MUST be ENGLISH only (no Korean).`;
       }
       // 문장빈칸 (효자·학력평가형)
+      //
+      // 선생님과 함께 전수조사(2026-09-29): 214문항 가운데 정답이 가장 긴 선택지인 것이
+      // 42%였다(고르면 20%). 정답 평균 14.8낱말, 오답 평균 13.2낱말. 둘째로 긴 것보다
+      // 네 낱말 이상 긴 정답이 24개(11%)였다. 길이만 보고도 찍힌다.
+      //
+      // 「길이를 비슷하게」라는 말은 이미 공통 규칙에 있었는데도 지켜지지 않았다.
+      // 개수 유형과 같이 숫자로 못박는다.
+      const blankLengthRule = `- 다섯 선택지의 낱말 수를 맞춘다: 가장 긴 것과 가장 짧은 것의 차이가 <b>3낱말 이내</b>.
+- 정답이 가장 긴 선택지가 되지 않게 한다. 쓰고 나서 다섯 개의 낱말 수를 세어 보고, 정답이 제일 길면 오답을 늘리거나 정답을 줄여 다시 맞춘다.`;
       if (option.difficulty === "high") {
         return `문장빈칸 HIGH (상) — 효자 기출동형:
 - In passageModified, blank ONE important sentence (or key clause) with ____________________________________.
 - The blanked content must be a flow-critical sentence from the passage.
 - 5 ENGLISH full-sentence/phrase choices.
 - CRITICAL: ALL choices (including the correct one) must PARAPHRASE the blanked sentence — synonyms/rewording, NOT copy the original wording.
+${blankLengthRule}
 - Exactly one correct. questionText empty.
 LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean in passage or choices.`;
       }
@@ -230,8 +240,10 @@ LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean
 - In passageModified, blank ONE important sentence (or key clause) with ____________________________________.
 - The blanked content must be a flow-critical sentence from the passage (like mock-exam sentence blanks).
 - 5 ENGLISH full-sentence/phrase choices that fit the blank; correct answer may stay close to the original sentence meaning/wording.
+${blankLengthRule}
 - Exactly one correct. questionText empty.
 LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean in passage or choices.`;
+    }
     case "order":
       if (option.difficulty === "high") {
         return `순서추론 HIGH (상) — 효자 기출동형:
