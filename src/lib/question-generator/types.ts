@@ -133,6 +133,11 @@ export interface GenerationRequestConfig {
    * - "paraphrase": 중요한 문장을 그 어법으로 고쳐 써서 만든다(기본).
    */
   grammarWritingMode?: "passage" | "paraphrase";
+  /**
+   * 제시어 배열을 지문 문장 그대로 낼지, 고쳐 써서 낼지.
+   * 기본은 지문 그대로(선생님 결정 2026-09-29). 예전에는 늘 고쳐 썼다.
+   */
+  wordOrderMode?: "passage" | "paraphrase";
   forceGenerateDespiteWarnings?: boolean;
   /** 자료함(수업자료)에서 지문을 골라 만든 경우 그 지문 id. 있으면 자료함 변형문제 탭에 보인다. */
   lessonProjectIds?: string[];

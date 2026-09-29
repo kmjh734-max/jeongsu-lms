@@ -46,6 +46,7 @@ import {
 import { normalizeWordOrderQuestionText } from "@/lib/question-generator/word-order-normalize";
 import { reconcileGrammarFixQuestion } from "@/lib/question-generator/grammar-fix-normalize";
 import { plainKorean } from "@/lib/question-generator/plain-korean";
+import { bankWordsLeftInBlankLine } from "@/lib/question-generator/blank-line-overlap";
 import {
   findWritingGrammar,
   objectParticle,
@@ -97,7 +98,9 @@ const GRAMMAR_FOR_WRITING = WRITING_GRAMMAR_LIST;
 function typeRules(
   option: QuestionTypeOption,
   /** 지정 문법을 지문에서 찾을지, 고쳐 써서 만들지 (선생님 요청 2026-09-29) */
-  writingMode: "passage" | "paraphrase" = "paraphrase"
+  writingMode: "passage" | "paraphrase" = "paraphrase",
+  /** 제시어 배열을 지문 그대로 낼지 (기본: 지문 그대로) */
+  wordOrderMode: "passage" | "paraphrase" = "passage"
 ): string {
   const code = option.aingkaCode || "";
   const en = option.choiceLanguage === "english";
@@ -539,6 +542,8 @@ LANGUAGE: 지문·정답 영어만.`;
               ? "inflect"
               : "add";
         const { focusBlock, point, c } = pickWordOrderFocus(mode);
+        // 지문 그대로가 기본이다(선생님 결정 2026-09-29)
+        const wordOrderKeepPassage = wordOrderMode !== "paraphrase";
         const catalog = wordOrderCatalogBrief();
         const modeRules =
           mode === "basic"
@@ -565,7 +570,12 @@ ${focusBlock}
 형식 (수특·내신·교재 서술형 연습 동형):
 - passageModified = 영어 지문. 위 CASE에 맞는 **중요 문장/절** 한 곳을 ⓐ__________ 빈칸으로.
   · 지문의 핵심 주장·결과·정의·조건 등 ‘중요 문장’을 대상으로 할 것 (사소한 연결 문장 금지).
-  · 필요하면 그 문장만 교재 구문에 맞게 다듬어 빈칸화 (나머지 지문은 유지).
+  · ${wordOrderKeepPassage
+    ? "그 문장을 **지문에 있는 그대로** 쓴다. 고쳐 쓰지 말 것 — correctAnswer가 지문에 그대로 있어야 한다."
+    : "필요하면 그 문장만 교재 구문에 맞게 다듬어 빈칸화 (나머지 지문은 유지)."}
+  · CRITICAL: 정답 문장은 **통째로** 빈칸으로 지운다. 정답의 일부를 빈칸 옆에 남기지 말 것.
+    남긴 말이 <보기>에도 있으면 같은 말이 두 번 보여 문항이 못 쓰게 된다
+    (예: ⓐ__________ diverse viewpoints 인데 보기에도 diverse·viewpoints가 있는 경우).
 - questionText 형식(필수, 태그·순서 유지):
 <조건>
 (모드 규칙에 맞는 ○ 조건 1~2줄)
@@ -989,7 +999,9 @@ export function assertBasicQuestionShape(
   q: GeneratedQuestionPayload,
   option: QuestionTypeOption,
   /** 지정 문법을 지문에서 찾았는지, 고쳐 썼는지 (선생님 요청 2026-09-29) */
-  writingMode: "passage" | "paraphrase" = "paraphrase"
+  writingMode: "passage" | "paraphrase" = "paraphrase",
+  /** 제시어 배열을 지문 그대로 냈는지 (기본: 지문 그대로) */
+  wordOrderMode: "passage" | "paraphrase" = "passage"
 ): string | null {
   if (!q.instruction.trim()) return "발문이 비어 있습니다.";
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
@@ -1085,6 +1097,26 @@ export function assertBasicQuestionShape(
       correctAnswer: String(q.correctAnswer ?? ""),
       mode: woMode,
     });
+    /*
+     * 선생님 지적(2026-09-29): 빈칸 옆에 정답 낱말이 그대로 남아 있는데 보기에도 같은 말이
+     * 있어 중복이다. 정답 문장을 반만 지우고 나머지를 남긴 것이라 학생이 헷갈린다.
+     */
+    /*
+     * 「지문 그대로」로 고르면 정답이 원문에 있어야 한다. 예전에는 늘 고쳐 써서
+     * 제시어 배열의 96%가 원문에 없는 문장이었다(2026-09-29 확인).
+     */
+    if (wordOrderMode === "passage") {
+      if (!passageHasConsecutiveWords(q.passageOriginal || "", String(q.correctAnswer ?? ""))) {
+        return "「지문 그대로」로 만들 때는 정답이 지문에 있는 문장이어야 합니다.";
+      }
+    }
+    const leftOver = bankWordsLeftInBlankLine(
+      mod,
+      (q.questionText.match(/<보기>\s*\n([^\n]+)/) ?? [])[1] ?? ""
+    );
+    if (leftOver.length > 0) {
+      return `빈칸이 든 문장에 보기 낱말이 그대로 남아 있습니다: ${leftOver.join(", ")}`;
+    }
   } else if (
     option.type === "writing" &&
     (option.aingkaCode === "지칭대명사서술" ||
@@ -1309,6 +1341,12 @@ export function assertBasicQuestionShape(
         joinWordBank(buildWordBankFromAnswer(answer, "inflect", blocks.words))
       ) || normalizeAndShuffleWordBank(blocks.words);
 
+    // 제시어 배열과 같은 검사 — 빈칸 옆에 정답 낱말이 남아 있으면 버린다
+    const leftOver = bankWordsLeftInBlankLine(modified, bank);
+    if (leftOver.length > 0) {
+      return `빈칸이 든 문장에 보기 낱말이 그대로 남아 있습니다: ${leftOver.join(", ")}`;
+    }
+
     q.questionText = [
       "<조건>",
       conditionLines.join("\n"),
@@ -1484,6 +1522,8 @@ export async function generateOneQuestion(opts: {
   /** 조건 영작에서 쓸 어법 이름 목록. 비우면 교재 기준 30가지에서 고른다 */
   grammarScope?: string[];
   grammarWritingMode?: "passage" | "paraphrase";
+  /** 제시어 배열을 지문 그대로 낼지, 고쳐 써서 낼지 (기본: 지문 그대로) */
+  wordOrderMode?: "passage" | "paraphrase";
   /** 이 문항의 목표 난이도. 없으면 overallDifficulty(내신→중, 고난도→상)를 따른다 */
   targetLevel?: TargetLevel | null;
   /** 어법·어휘에서 지문을 바꿔 써도 되는지(기본은 원문 그대로) */
@@ -1718,7 +1758,7 @@ export async function generateOneQuestion(opts: {
     craftSystemHint,
     difficultyRule(option, opts.targetLevel ?? targetLevelFromOverall(opts.overallDifficulty)),
     opts.levelBrief ? `\n[원래 시험지의 수준]\n${opts.levelBrief}` : "",
-    typeRules(option, opts.grammarWritingMode ?? "paraphrase"),
+    typeRules(option, opts.grammarWritingMode ?? "paraphrase", opts.wordOrderMode ?? "passage"),
     // 선생님이 범위를 정해 두었으면 이번 문항에 쓸 어법 하나를 여기서 정해 준다
     option.aingkaCode === "문법조건영작" && pickedWritingGrammar
       ? `\n[이번 문항에 쓸 어법] ${pickedWritingGrammar.label}(${pickedWritingGrammar.form})\n` +
@@ -1839,7 +1879,8 @@ export async function generateOneQuestion(opts: {
   const shapeError = assertBasicQuestionShape(
     payload,
     option,
-    opts.grammarWritingMode ?? "paraphrase"
+    opts.grammarWritingMode ?? "paraphrase",
+    opts.wordOrderMode ?? "passage"
   );
   if (shapeError) throw new Error(shapeError);
   // 어법 추론은 수능처럼 지문 속 ①~⑤로 (정답 번호와 같은 기호)

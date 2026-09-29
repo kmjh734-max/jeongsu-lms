@@ -119,6 +119,49 @@ export type GrammarChoice = {
  * 아무것도 고르지 않으면 지문에 실제로 있는 어법 가운데 알아서 고른다.
  * 이름만 늘어놓으면 무엇을 묻는 어법인지 알기 어려워 설명을 한 줄씩 함께 보여 준다.
  */
+/** 제시어 배열을 지문 그대로 낼지 고쳐 써서 낼지 — 선생님 결정(2026-09-29) */
+function WordOrderModeBox({
+  mode,
+  onMode,
+}: {
+  mode: "passage" | "paraphrase";
+  onMode: (m: "passage" | "paraphrase") => void;
+}) {
+  return (
+    <div className="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+      <p className="mb-1 text-[11px] font-semibold text-slate-700">제시어 배열 문장</p>
+      <div className="mb-1.5 flex gap-1">
+        {(
+          [
+            { key: "passage" as const, label: "지문 그대로", hint: "지문에 있는 문장을 그대로 빈칸으로 냅니다" },
+            { key: "paraphrase" as const, label: "고쳐 써서", hint: "중요한 문장을 교재 구문에 맞게 다듬어 냅니다" },
+          ]
+        ).map((m) => (
+          <button
+            key={m.key}
+            type="button"
+            title={m.hint}
+            onClick={() => onMode(m.key)}
+            aria-pressed={mode === m.key}
+            className={`flex-1 rounded-md border px-2 py-1 text-[11px] font-semibold transition ${
+              mode === m.key
+                ? "border-brand-600 bg-brand-600 text-white"
+                : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+      <p className="text-[10.5px] leading-snug text-slate-500">
+        {mode === "passage"
+          ? "지문에 있는 문장만 씁니다. 원문이 그대로 정답이 됩니다."
+          : "지문 문장을 교재 구문에 맞게 다듬어 냅니다. 원문과 달라집니다."}
+      </p>
+    </div>
+  );
+}
+
 function GrammarScopeBox({
   choices,
   picked,
@@ -289,6 +332,8 @@ export function QuestionGeneratorClient({
   const [grammarScopeOpen, setGrammarScopeOpen] = useState(false);
   /** 지정 문법을 지문에서 찾을지, 고쳐 써서 만들지 (선생님 요청 2026-09-29) */
   const [grammarWritingMode, setGrammarWritingMode] = useState<"passage" | "paraphrase">("paraphrase");
+  /** 제시어 배열을 지문 그대로 낼지 (선생님 결정 2026-09-29: 기본은 지문 그대로) */
+  const [wordOrderMode, setWordOrderMode] = useState<"passage" | "paraphrase">("passage");
   /** 유형에 마우스를 올렸을 때 띄우는 예시 */
   const [sample, setSample] = useState<{ s: TypeSample; level: SampleLevel; x: number; y: number } | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -358,6 +403,7 @@ export function QuestionGeneratorClient({
       ...(paraphraseGV ? { paraphraseGrammarVocab: true } : {}),
       ...(grammarScope.length ? { grammarScope } : {}),
       ...((counts["writing:na:default:문법조건영작"] ?? 0) > 0 ? { grammarWritingMode } : {}),
+      ...(wordOrderCount > 0 ? { wordOrderMode } : {}),
       ...(lessonProjectIds.length ? { lessonProjectIds } : {}),
     }),
     [
@@ -365,6 +411,7 @@ export function QuestionGeneratorClient({
       paraphraseGV,
       grammarScope,
       grammarWritingMode,
+      wordOrderMode,
       title,
       schoolName,
       grade,
@@ -380,6 +427,11 @@ export function QuestionGeneratorClient({
 
   // 조건 영작 어법 목록 — 범위를 펼칠 때 한 번만 불러온다
   const writingCount = counts["writing:na:default:문법조건영작"] ?? 0;
+  /** 제시어 배열 세 유형을 하나라도 골랐나 */
+  const wordOrderCount =
+    (counts["writing:na:default:제시어배열기본"] ?? 0) +
+    (counts["writing:na:default:제시어배열어형변화"] ?? 0) +
+    (counts["writing:na:default:제시어배열단어추가"] ?? 0);
   useEffect(() => {
     if (writingCount === 0 || grammarChoices) return;
     fetch("/api/question-generator/grammar-scope")
@@ -1390,6 +1442,9 @@ export function QuestionGeneratorClient({
                               </div>
                             );
                           })}
+                          {group.category === "subjective" && wordOrderCount > 0 ? (
+                            <WordOrderModeBox mode={wordOrderMode} onMode={setWordOrderMode} />
+                          ) : null}
                           {group.category === "subjective" && writingCount > 0 ? (
                             <GrammarScopeBox
                               choices={grammarChoices}

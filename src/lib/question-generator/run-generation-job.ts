@@ -188,6 +188,8 @@ async function generateWithValidation(opts: {
   levelBrief?: string;
   grammarScope?: string[];
   grammarWritingMode?: "passage" | "paraphrase";
+  /** 제시어 배열을 지문 그대로 낼지 (기본: 지문 그대로) */
+  wordOrderMode?: "passage" | "paraphrase";
   sourceDetail?: string;
   diversitySlot?: { index: number; total: number; label: string };
   targetLevel?: TargetLevel | null;
@@ -805,6 +807,7 @@ export async function runGenerationJob(
         levelBrief: config.levelBrief,
         grammarScope: config.grammarScope,
         grammarWritingMode: config.grammarWritingMode,
+        wordOrderMode: config.wordOrderMode ?? "passage",
         retries: item.slot ? 2 : undefined,
       });
       // 다음 실행이 이 문항을 다시 만든다. 여기서 저장하면 같은 칸이 두 번 생긴다.
