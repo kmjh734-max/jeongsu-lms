@@ -45,6 +45,7 @@ import {
 } from "@/lib/question-generator/word-order-catalog";
 import { normalizeWordOrderQuestionText } from "@/lib/question-generator/word-order-normalize";
 import { reconcileGrammarFixQuestion } from "@/lib/question-generator/grammar-fix-normalize";
+import { plainKorean } from "@/lib/question-generator/plain-korean";
 import {
   findWritingGrammar,
   objectParticle,
@@ -962,7 +963,11 @@ function normalizePayload(
     acceptableAnswers: Array.isArray(raw.acceptableAnswers)
       ? raw.acceptableAnswers.map((x) => String(x))
       : undefined,
-    explanation,
+    /*
+     * 선생님 지적(2026-09-29): 해설지에 "맞다."와 "맞습니다."가 섞여 나와 헷갈린다.
+     * 프롬프트로도 시키지만 이따금 존댓말로 돌아가므로 내보내기 전에 어미를 고른다.
+     */
+    explanation: plainKorean(explanation),
     hardWords: questionNeedsVocabGloss({
       choices,
       questionType: option.type,
@@ -1461,6 +1466,8 @@ const QUESTION_WRITER_SHARED_SYSTEM = `Korean HS English exam writer. ONE questi
 - NEVER create 요약문완성 (Korean summary with (A)/(B) blanks and …… pair choices). That type is removed.
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
 - hardWords: When (a) English MCQ choices or (b) 일치개수 English <보기> (or Korean <보기>→passage): include 4~6 {word, meaning}. Target ≈ 중3+ / Lexile ≥~1000L (US Grade 8 CCSS text ~1010L–1185L). Prefer the HARDER lemmas that appear in THIS item's English — skip ultra-basics (people/important/money/make/need). Include short non-basic lemmas when apt (swap, skim, grasp, yield, burden, voucher, reluctant, scrutinize, comparable, misprint, conscious). Single dictionary token only (never phrases like "national monies"). Fake plurals (monies/datas) forbidden. meaning = short Korean gloss. Rotate lemmas across same-passage slots. If none fit → []. For Korean-only MCQ / count-only / subjective without English 보기 → [].
+- explanation(해설)은 "~다"로 끝나는 평서형으로 쓴다. 존댓말("맞습니다", "합니다", "해요") 금지.
+  보기: "정답은 ②다.", "앞 문장과 뜻이 반대라 틀리다.", "빈칸 뒤 근거와 맞다."
 - The user message gives the passage data (JSON) first, then ITEM RULES for this question. Follow every ITEM RULE exactly, with the same priority as the rules above.`;
 
 export async function generateOneQuestion(opts: {

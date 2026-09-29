@@ -18,6 +18,7 @@ import {
   parseWordOrderBlocks,
   withBlankRules,
 } from "@/lib/question-generator/text-utils";
+import { plainKorean } from "@/lib/question-generator/plain-korean";
 
 type QuestionRow = {
   id: string;
@@ -730,7 +731,7 @@ export function GenerationDetailClient({
                       </p>
                       <p className="mt-1 text-sm text-slate-700">
                         <span className="font-semibold">해설</span>{" "}
-                        {q.explanation}
+                        {plainKorean(q.explanation)}
                       </p>
                     </>
                   )}
