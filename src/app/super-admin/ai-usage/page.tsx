@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { loadAiUsagePage, type UsageRow } from "@/lib/ai-usage/load-usage-page";
 import { WON_PER_USD } from "@/lib/ai-usage/model-price";
+import { loadOpenAiBilling } from "@/lib/ai-usage/openai-billing";
 
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
 const num = (n: number) => n.toLocaleString("ko-KR");
@@ -90,7 +91,9 @@ export default async function SuperAdminAiUsagePage({
 
   const sp = await searchParams;
   const days = Math.min(180, Math.max(1, Math.floor(Number(sp?.days ?? 30)) || 30));
-  const data = await loadAiUsagePage(days);
+  const [data, billing] = await Promise.all([loadAiUsagePage(days), loadOpenAiBilling(days)]);
+  // 우리가 남긴 기록의 원가 합계 — OpenAI 쪽과 견줘 놓친 호출이 있는지 본다
+  const loggedWon = data.totals.costWon;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -163,6 +166,85 @@ export default async function SuperAdminAiUsagePage({
           에 단가를 적어 주세요.
         </div>
       ) : null}
+
+      <section className="mt-9">
+        <h2 className="text-base font-bold text-slate-900">OpenAI 청구와 맞춰 보기</h2>
+        <p className="mt-0.5 text-sm text-slate-500">
+          저쪽이 실제로 매긴 값, 그 사용량을 우리 단가표로 셈한 값, 우리가 남긴 기록.
+          셋이 비슷해야 단가표도 맞고 기록도 빠짐없는 것이다.
+        </p>
+        {!billing.ok ? (
+          <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            {billing.message}
+          </div>
+        ) : (
+          <>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold text-slate-500">OpenAI가 매긴 값</p>
+                <p className="mt-1 text-2xl font-bold text-slate-900">{won(billing.totalBilledWon)}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold text-slate-500">우리 단가표로 셈하면</p>
+                <p className="mt-1 text-2xl font-bold text-slate-900">{won(billing.totalByOurPriceWon)}</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {billing.totalBilledWon > 0
+                    ? `${Math.round((billing.totalByOurPriceWon / billing.totalBilledWon) * 100)}% — 100%에 가까울수록 단가표가 맞다`
+                    : "—"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold text-slate-500">우리가 남긴 기록</p>
+                <p className="mt-1 text-2xl font-bold text-slate-900">{won(loggedWon)}</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {billing.totalByOurPriceWon > 0
+                    ? `${Math.round((loggedWon / billing.totalByOurPriceWon) * 100)}% — 낮으면 기록에서 빠진 호출이 있다`
+                    : "—"}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+              <table className="w-full min-w-[520px] border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500">
+                    <th className="px-3 py-2 text-left font-semibold">날짜</th>
+                    <th className="px-3 py-2 text-right font-semibold">OpenAI 청구</th>
+                    <th className="px-3 py-2 text-right font-semibold">우리 단가표</th>
+                    <th className="px-3 py-2 text-right font-semibold">맞음</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {billing.days.map((d) => {
+                    const pct = d.billedWon > 0 ? Math.round((d.byOurPriceWon / d.billedWon) * 100) : 0;
+                    const off = d.billedWon > 0 && (pct < 90 || pct > 110);
+                    return (
+                      <tr key={d.date} className="border-b border-slate-100 last:border-0">
+                        <td className="px-3 py-2 tabular-nums text-slate-700">
+                          {d.date}
+                          {d.unknownModels.length > 0 ? (
+                            <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-700">
+                              단가 모름: {d.unknownModels.join(", ")}
+                            </span>
+                          ) : null}
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-slate-900">{won(d.billedWon)}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-slate-600">{won(d.byOurPriceWon)}</td>
+                        <td
+                          className={`px-3 py-2 text-right tabular-nums font-semibold ${
+                            off ? "text-amber-700" : "text-slate-500"
+                          }`}
+                        >
+                          {d.billedWon > 0 ? `${pct}%` : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </section>
 
       <Table
         title="기능별"

@@ -109,8 +109,20 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }),
   };
 
+  /*
+   * 선생님 지적(2026-09-29): 최다빈 선생님이 문제를 꽤 만드는데 차감이 안 된다.
+   *
+   * 값은 실제로 만들어진 문항 수만큼 작업이 끝날 때 받는다(billGeneratedQuestions).
+   * 그런데 그쪽은 request_config에 _billing 표시가 있어야 일한다. 변형문제 화면은
+   * 시작할 때 /jobs/[id]로 그 표시를 붙이는데, 동형모의고사는 여기서 바로 돌리느라
+   * 붙이지 않았다. 그래서 동형모의고사로 만든 문항은 값을 한 푼도 안 받고 있었다
+   * (2026-09-29까지 네 학원 1,383문항).
+   */
   const supabase = await createClient();
-  const result = await createJobFromConfig(supabase, profile.id, profile.academy_id, config);
+  const result = await createJobFromConfig(supabase, profile.id, profile.academy_id, {
+    ...config,
+    _billing: { mode: "post", billed: 0, billedAt: new Date(0).toISOString() },
+  } as typeof config);
   if ("error" in result) return NextResponse.json({ ok: false, message: result.error }, { status: result.status ?? 400 });
 
   const origin = new URL(request.url).origin;
