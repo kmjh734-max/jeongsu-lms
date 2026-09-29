@@ -52,7 +52,9 @@ def split_choices(text):
     for n, m in enumerate(marks):
         end = marks[n + 1].start() if n + 1 < len(marks) else len(text)
         picks.append(text[m.end():end].strip())
-    return ([stem] if stem else []), [p for p in picks if p]
+    picks = [p for p in picks if p]
+    # 은행에 담긴 보기 꼴에 맞춘다 — {no, text}
+    return ([stem] if stem else []), [{"no": n, "text": t} for n, t in enumerate(picks, 1)]
 
 
 MARKERS = "①②③④⑤"
