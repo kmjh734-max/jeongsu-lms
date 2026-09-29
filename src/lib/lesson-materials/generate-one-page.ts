@@ -107,13 +107,20 @@ const GRAMMAR_SECTION = `어법은 두 걸음으로 만든다. scan을 먼저 �
   부사구를 이루면 분사구문, 동사의 목적어면 동명사다. p.p.도 마찬가지로 수동태·분사·완료를 가려 적는다.
 - span: 그 자리가 든, 지문에 나온 그대로의 부분(2~10 words).
 - structure: 그 문장의 구조를 한 줄로. 예) 주절: they(S) have seen(V) the kind(O) // 관계사절: we(S') have seen(V') bring about(C')
-- hard: 1~5. 고등학생이 실제로 틀릴 만한 정도. 구조를 봐야 풀리면 높고, 형태만 봐도 풀리면 낮다.
+- hard: 1~5. 고등학생이 실제로 틀릴 만한 정도. 아래 잣대로 매긴다.
+  · 1~2 — 앞말만 보면 바로 풀리는 자리. 전치사 뒤 동명사, 관사 뒤 명사, 형용사·부사 자리,
+    주어 바로 뒤 수일치처럼 구조를 따질 것 없이 형태만 맞추면 되는 것.
+  · 3 — 한 가지를 더 따져야 하는 자리. 수식어가 하나 끼어든 수일치, 분사의 능동·수동.
+  · 4~5 — 문장 구조를 읽어야 풀리는 자리. 긴 주어·삽입절을 건너뛴 수일치, 관계사의 격과
+    선행사, 병렬의 짝, 시제의 앞뒤 관계, 가정법·도치처럼 학생이 실제로 자주 틀리는 것.
 - why: 무엇을 알아야 이 자리를 가릴 수 있는지 한국어 한 줄(20~40자).
 이번에 받은 문장에서만, 문장마다 많아야 2개씩 적는다. 같은 원리가 되풀이되면 대표 하나만.
 scan은 고르기 위한 메모다 — 짧게 적고, 없으면 적지 않는다.
 
 [grammar] 2차 — scan에 적은 것 가운데 내신 어법 선택·수정 문제로 그대로 낼 수 있는 자리만 고른다
-hard가 큰 것부터 본다. code는 아래 GRAMMAR_RULES에 있는 것만 쓴다.
+hard가 큰 것부터 본다. hard가 4~5인 자리를 먼저 다 담고, 모자랄 때만 3을 담는다.
+hard가 1~2인 자리(전치사 뒤 동명사 같은 것)는 그 위 자리가 모자랄 때만 담는다 —
+쉬운 자리로 개수를 채우면 정작 시험에 나올 자리가 밀려난다. code는 아래 GRAMMAR_RULES에 있는 것만 쓴다.
 각 자리는 다음을 모두 만족해야 하고, 하나라도 어기면 그 자리는 빼라.
 1) 이 문장에서 맞는 형태가 오직 하나여야 한다. 다른 형태도 문법에 맞으면 싣지 않는다. 예를 들어 주어 자리의 동명사(to부정사도 주어가 된다), 콤마 없는 관계절의 that/which, 목적격 관계대명사 생략, help 뒤의 원형/to V, 목적어절의 if/whether, 강조구문의 that/who는 모두 둘 다 되므로 금지다.
 2) 관사, 쉼표, 철자, 단수·복수 표기, 생략된 말은 고르게 할 수 없으니 금지다.
@@ -393,7 +400,7 @@ const MAX_VOCAB = 12;
  * 조각 호출은 서로 병렬이라 여기서 늘어난 시간은 맨 뒤에 붙지 않는다. 대신 검수를
  * 통과한 자리가 늘어 보충 호출 자체가 덜 걸린다(그쪽이 꼬리에 붙는 시간이다).
  */
-const GRAMMAR_CANDIDATES = 20;
+const GRAMMAR_CANDIDATES = 28;
 /** 보충(모자란 어법을 더 뽑는 호출)을 기다리는 한도. 늦으면 있는 것으로 만든다. */
 const SPARE_DEADLINE_MS = 26_000;
 /**
@@ -1107,6 +1114,7 @@ async function rateGrammarPoints(input: {
 - 높은 점수는 문장 구조를 알아야 풀리는 자리(관계사·준동사·병렬·태·시제·비교·가정법·도치, 수식어가 끼어든 수일치)에 준다. 철자·연어·인접 수일치는 낮다.
 - 그런 자리는 몇 개가 나오든 모두 4점 이상으로 매긴다. 한 장에 실을 개수를 생각해서 점수를 깎지 마라. 고르는 것은 이쪽에서 한다.
 - 거꾸로, 구조를 안 봐도 형태만 보고 풀리는 자리는 아무리 많이 남아도 3점을 넘기지 마라.
+  전치사 뒤 동명사, 관사 뒤 명사, 형용사·부사 자리, 주어 바로 뒤 수일치가 그렇다 — 2점 이하로 매겨라.
 - 이름이 그 자리의 실제 구조와 다르면 drop으로 한다. 전치사 뒤 V-ing를 분사·분사구문이라 부르거나,
   동사의 목적어인 동명사를 현재분사라 부르거나, 수동태의 p.p.를 명사 수식 분사라 부르는 것이 그렇다.
 - 설명(정답이 맞는 이유)이 실제로 답을 정하는 근거와 다르면 drop으로 한다.`,
@@ -1170,9 +1178,14 @@ async function rateGrammarPoints(input: {
      * 점수는 중요한 정도일 뿐이므로, 다섯이 안 될 때만 점수를 한 칸 내려 고른다.
      * 검수에서 버린 자리를 다시 넣지는 않는다 — 틀린 자리로 개수를 채우지 않는다.
      */
+    /*
+     * 선생님 요청(2026-09-29): "전치사 동명사 이런 건 솔직히 쉬워. 어려운 순으로 뽑아."
+     * 그래서 어려움을 먼저 본다. 시험에 낼 자리인지(examScore)는 이미 drop으로 걸러진
+     * 뒤라, 남은 것 가운데서는 어려운 자리가 먼저 실리는 것이 맞다.
+     */
     const rank = (a: (typeof scored)[number], b: (typeof scored)[number]) =>
-      b.examScore - a.examScore ||
       (b.hard ?? 0) - (a.hard ?? 0) ||
+      b.examScore - a.examScore ||
       textbookWeightOf(b.code ?? "") - textbookWeightOf(a.code ?? "");
     const alive = scored.filter((g) => !g.drop);
     const sure = alive.filter((g) => g.examScore >= 4).sort(rank);
@@ -1875,8 +1888,9 @@ export async function generateOnePageContent(input: {
       const scoreOf = (x: T) => (typeof x.examScore === "number" ? x.examScore : 3);
       const caseOf = (x: T) => (x.caseId ? 1 : 0);
       const hardOf = (x: T) => (typeof x.hard === "number" ? x.hard : 0);
+      // 어려운 자리가 먼저다(선생님 요청 2026-09-29). 같으면 시험에 나올 자리부터.
       const ranked = [...list].sort(
-        (a, b) => scoreOf(b) - scoreOf(a) || hardOf(b) - hardOf(a) || caseOf(b) - caseOf(a) || freqOf(b) - freqOf(a)
+        (a, b) => hardOf(b) - hardOf(a) || scoreOf(b) - scoreOf(a) || caseOf(b) - caseOf(a) || freqOf(b) - freqOf(a)
       );
       const seen = new Set<string>();
       const first = ranked.filter((x) => {
@@ -1887,11 +1901,10 @@ export async function generateOnePageContent(input: {
       });
       const chosen = [...first, ...ranked.filter((x) => !first.includes(x))].slice(0, max);
       /*
-       * 어려움 1짜리(형태만 보면 풀리는 자리)는 개수를 채울 때만 쓴다.
-       * 선생님 지적(2026-09-29): "그냥 그런 게 섞인다." 뒤에서부터 덜어내되
-       * 실을 최소(5)는 지킨다.
+       * 쉬운 자리(어려움 1~2 — 전치사 뒤 동명사처럼 앞말만 보면 풀리는 것)는
+       * 개수를 채울 때만 쓴다. 뒤에서부터 덜어내되 실을 최소(5)는 지킨다.
        */
-      while (chosen.length > MIN_GRAMMAR && hardOf(chosen[chosen.length - 1]!) <= 1) chosen.pop();
+      while (chosen.length > MIN_GRAMMAR && hardOf(chosen[chosen.length - 1]!) <= 2) chosen.pop();
       return chosen;
     };
     // 검수에서 버려진 자리는 같이 띄워 둔 보충에서 겹치지 않는 것으로 메운다.
