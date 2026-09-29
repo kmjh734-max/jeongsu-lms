@@ -90,6 +90,9 @@ def usable(answer, q=None):
     # 낱말 하나가 덜 읽혀 홑글자로 남은 것 ("e should Could the irthquake?")
     if [w for w in re.findall(r"[A-Za-z]+", t) if len(w) == 1 and w not in ("a", "A", "I")]:
         return False
+    # 낱말 가운데에 대문자가 든 것 ("VV QSIl") — 선 모양을 잘못 읽은 자국이다
+    if [w for w in re.findall(r"[A-Za-z]+", t) if len(w) > 1 and re.search(r"[A-Z]", w[1:])]:
+        return False
     # 문항 글이 거의 없으면 답이 맞는지 가릴 길이 없다
     if q is not None and not q.get("picks") and len(re.sub(r"[^A-Za-z가-힣]", "", text)) < 4:
         return False
@@ -230,11 +233,16 @@ def main(q_path, a_path, out_path, bad_path=None):
                 failed.append({"pages": use, "step": step, "문항": len(items), "답": len(got),
                                "까닭": "읽은 답이 뭉개짐"})
                 continue
-            bad = [1 for q, a in pairs if not in_choices(a, q["picks"])]
-            if bad:
+            # 고를 것이 정해진 문항은 답이 그 안에 있어야 한다.
+            # 몇 개가 어긋나면 그 낱말을 잘못 읽은 것이니 그것만 뺀다. 하지만 여럿이
+            # 어긋나면 상자와 쪽이 어긋난 것이므로 묶음을 통째로 넘긴다.
+            checked = [(q, a) for q, a in pairs if q["picks"]]
+            bad = [1 for q, a in checked if not in_choices(a, q["picks"])]
+            if bad and len(bad) > max(1, len(checked) * 0.2):
                 failed.append({"pages": use, "step": step, "문항": len(items), "답": len(got),
                                "까닭": "고를 것 안에 없는 답 %d개" % len(bad)})
                 continue
+            pairs = [(q, a) for q, a in pairs if in_choices(a, q["picks"])]
             for q, a in pairs:
                 if not str(a or "").strip():
                     continue
