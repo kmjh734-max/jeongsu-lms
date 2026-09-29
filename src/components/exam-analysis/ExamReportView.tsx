@@ -168,6 +168,17 @@ export function ExamReportView({
       }))
       .filter((x) => x.n > 0);
     const passagePts = r1(sum(hasPassage.map((i) => i.points)));
+    /*
+     * 이 학교가 어느 교과서를 쓰는지 — 맞은 본문의 출판사·과목으로 센다.
+     * 상담에서 「이 학교는 천재(조수경) 영어1을 씁니다」가 바로 나오게 하려는 것이다.
+     * 출처 표시는 「천재(조수경) 영어1 1과 본문4」 꼴이라 앞 두 마디가 교재 이름이다.
+     */
+    const bookCount = new Map<string, number>();
+    for (const i of fromTextbook) {
+      const book = String(i.matched_textbook_label ?? "").split(" ").slice(0, 2).join(" ");
+      if (book) bookCount.set(book, (bookCount.get(book) ?? 0) + 1);
+    }
+    const books = [...bookCount.entries()].sort((a, b) => b[1] - a[1]);
 
     const avg = items.length ? r1(sum(items.map((i) => i.difficulty)) / items.length) : 0;
     const subjPts = r1(sum(subj.map((i) => i.points)));
@@ -175,7 +186,7 @@ export function ExamReportView({
       .slice()
       .sort((x, y) => (y.points ?? 0) - (x.points ?? 0) || y.difficulty - x.difficulty)
       .slice(0, 6);
-    return { total, subj, subjPts, hard, matched, cats, levels, avg, decisive, sources, hasPassage, passagePts };
+    return { total, subj, subjPts, hard, matched, cats, levels, avg, decisive, sources, hasPassage, passagePts, books };
   }, [items]);
   const pct = (x: number) => (s.total ? Math.round((x / s.total) * 100) : 0);
 
@@ -417,6 +428,14 @@ export function ExamReportView({
                   <span className="ml-1.5 text-[11px] font-normal" style={{ color: SOFT }}>
                     지문이 있는 {s.hasPassage.length}문항 · {s.passagePts}점 기준 (글자로 대조해 맞은 것만)
                   </span>
+                  {s.books.length ? (
+                    <span className="ml-1.5 text-[11px] font-normal" style={{ color: SOFT }}>
+                      · 쓰는 교재{" "}
+                      <b style={{ color: NAVY }}>
+                        {s.books.map(([b, n]) => `${b}(${n}문항)`).join(", ")}
+                      </b>
+                    </span>
+                  ) : null}
                 </h3>
                 <div className="mb-[7px] flex h-[9px] overflow-hidden rounded-full bg-white">
                   {s.sources.map((x) => (
