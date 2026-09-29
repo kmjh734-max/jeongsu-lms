@@ -18,6 +18,7 @@ import {
   parseGradesFromOcrText,
   type ParsedGradeRow,
 } from "@/lib/student-records/parse-grades-from-text";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 type GradeExtractJson = {
   rows?: ParsedGradeRow[];
@@ -236,7 +237,7 @@ async function callGradeExtract(
         body.response_format = { type: "json_object" };
       }
 
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

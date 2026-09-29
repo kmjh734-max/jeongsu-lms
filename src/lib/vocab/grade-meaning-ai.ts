@@ -3,6 +3,7 @@ import {
   gradeMeaningAnswer,
   gradeMeaningExact,
 } from "@/lib/vocab/grade-stage3";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 export { cleanMeaningFeedback };
 
@@ -128,7 +129,7 @@ async function gradeMeaningChunkWithAi(
   const timer = setTimeout(() => controller.abort(), MEANING_AI_TIMEOUT_MS);
 
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

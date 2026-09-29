@@ -10,6 +10,7 @@ import {
   CREDIT_FEATURES,
 } from "@/lib/credits/charge";
 import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await openAiFetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,

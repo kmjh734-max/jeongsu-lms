@@ -8,6 +8,7 @@ import {
   listeningMaxCompletionTokensForCount,
   listeningModelSupportsCustomTemperature,
 } from "@/lib/listening/openai-listening-model";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 export interface ListeningChatOptions {
   system: string;
@@ -100,7 +101,7 @@ async function postChatCompletion(
   opts: ListeningChatOptions,
   profile: RequestProfile
 ): Promise<Response> {
-  return fetch("https://api.openai.com/v1/chat/completions", {
+  return openAiFetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,

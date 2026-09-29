@@ -16,6 +16,7 @@ import {
 } from "@/lib/student-records/simple-analysis-prompt";
 import { STUDENT_RECORD_ANALYSIS_SYSTEM_PROMPT } from "@/lib/student-records/system-prompt";
 import type { AcademyBranding } from "@/lib/tenant/academy-branding";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 export type GenerateStudentRecordOptions = {
   /** 기본 종합 분석 문구·빈 값이면 성적 포함 상세 모드. 그 외는 맞춤(간단) 분석 */
@@ -147,7 +148,7 @@ export async function generateStudentRecordReport(
       let profile = defaultProfile(model);
 
       for (let attempt = 0; attempt < 3; attempt++) {
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

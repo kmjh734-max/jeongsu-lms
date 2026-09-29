@@ -22,6 +22,7 @@ import type {
   OnePageReference,
   OnePageVocabNote,
 } from "@/lib/lesson-materials/one-page";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 /** 검수 모델. 만드는 모델보다 싸고 짧게 답하는 것을 쓴다. */
 export function resolveOnePageVerifyModel(): string {
@@ -118,7 +119,7 @@ async function callJson(input: {
     } else {
       body.max_tokens = 3_000;
     }
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${input.apiKey}` },
       signal: input.signal,

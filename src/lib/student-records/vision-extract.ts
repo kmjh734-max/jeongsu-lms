@@ -19,6 +19,7 @@ import {
   VISION_OCR_MAX_OUTPUT_TOKENS,
 } from "@/lib/student-records/ocr-chat";
 import { VISION_PAGE_EXTRACTION_SYSTEM } from "@/lib/student-records/ocr-prompts";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 type ImageDetail = "auto" | "high";
 
@@ -119,7 +120,7 @@ async function callVisionText(
     let profile = defaultProfile();
 
     for (let attempt = 0; attempt < 3; attempt++) {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

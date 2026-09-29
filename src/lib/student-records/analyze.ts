@@ -16,6 +16,7 @@ import { STUDENT_RECORD_ANALYSIS_SYSTEM_PROMPT } from "@/lib/student-records/sys
 import type { AnalyzeStudentRecordInput } from "@/lib/student-records/types";
 import { extractTextFromPdfDocuments } from "@/lib/student-records/pdf-ocr";
 import { extractTextFromPageImages } from "@/lib/student-records/vision-extract";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 type ContentPart =
   | { type: "text"; text: string }
@@ -90,7 +91,7 @@ async function generateHtmlReport(
     let bodyText = "";
 
     for (let attempt = 0; attempt < 3; attempt++) {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

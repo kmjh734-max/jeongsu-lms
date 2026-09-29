@@ -5,6 +5,7 @@ import {
   refundLessonCredits,
   reserveLessonCredits,
 } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, withAiUsage } from "@/lib/ai-usage/context";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { patchLessonPack } from "@/lib/lesson-materials/patch-lesson-pack";
@@ -805,7 +806,15 @@ export async function generateGrammarChoicePassageAction(
       sentences,
       analysisReport,
     };
-    const gc =
+    const gc = await withAiUsage(
+      {
+        academyId: profile!.academy_id,
+        actorId: profile!.id,
+        featureKey: LESSON_CREDIT_FEATURES.workbookGrammarChoice,
+        usedFor,
+        projectId: project.id as string,
+      },
+      async () =>
       engine === "v2"
         ? await generateWorkbookGrammarChoiceV2({
             forceRegenerate,
@@ -830,7 +839,9 @@ export async function generateGrammarChoicePassageAction(
                     null),
               },
             ],
-          });
+          })
+    );
+    await flushAiUsage();
 
     // 이 지문이 끝나는 즉시 캐시에 남긴다. 뒤 지문이 실패해도 다시 만들지 않는다.
     for (const { cache } of gc.cachesToSave) {
@@ -945,15 +956,26 @@ export async function generateVocabChoicePassageAction(
     });
 
   try {
-    const result = await generateVocabChoiceForPassage({
+    const result = await withAiUsage(
+      {
+        academyId: profile!.academy_id,
+        actorId: profile!.id,
+        featureKey: LESSON_CREDIT_FEATURES.workbookVocabChoice,
+        usedFor,
+        projectId: project.id as string,
+      },
+      () =>
+        generateVocabChoiceForPassage({
       projectId: project.id,
       title: project.title,
       source: (project.source as string | null) ?? null,
       sentences,
       hints,
       cache: (pack.vocabChoiceCache as StoredVocabChoiceCache | null | undefined) ?? null,
-      forceRegenerate: input.forceRegenerate === true,
-    });
+          forceRegenerate: input.forceRegenerate === true,
+        })
+    );
+    await flushAiUsage();
     if (result.cacheToSave) {
       await patchLessonPack(supabase, project.id, pack, {
         vocabChoiceCache: result.cacheToSave,

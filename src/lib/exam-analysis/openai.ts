@@ -1,4 +1,5 @@
 /** 시험지 분석용 OpenAI 호출. 연결이 끊기면 잠시 뒤 다시 한다. */
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 export type ChatResult = { text: string; finishReason: string | null };
 
 export async function examChat(body: Record<string, unknown>, tries = 3): Promise<ChatResult> {
@@ -7,7 +8,7 @@ export async function examChat(body: Record<string, unknown>, tries = 3): Promis
   let lastError = "";
   for (let i = 1; i <= tries; i++) {
     try {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
         body: JSON.stringify(body),

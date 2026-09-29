@@ -7,6 +7,7 @@ import {
   LISTENING_GPT5_MAX_COMPLETION_TOKENS,
   listeningModelSupportsCustomTemperature,
 } from "@/lib/listening/openai-listening-model";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 function modelCandidates(preferred?: string[]): string[] {
   const dedicated = process.env.OPENAI_MODEL_QUESTION_GENERATOR?.trim();
@@ -236,7 +237,7 @@ export async function questionGeneratorChatJson(opts: {
       let res: Response;
       let bodyText: string;
       try {
-        res = await fetch("https://api.openai.com/v1/chat/completions", {
+        res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${apiKey}`,

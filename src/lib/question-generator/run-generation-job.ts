@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { TargetLevel } from "@/lib/question-generator/difficulty";
 import { analyzePassage } from "@/lib/question-generator/analyze-passage";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import {
   GENERATION_CONCURRENCY,
   MAX_REGENERATION_ATTEMPTS,
@@ -337,6 +338,8 @@ async function finalizeGenerationJob(
     errorMessage?: string | null;
   }
 ): Promise<void> {
+  // 작업이 끝났으니 모아 둔 사용량 기록을 밀어 넣는다(서버가 곧 잠든다).
+  await flushAiUsage();
   const completed = await countSavedQuestions(jobId);
   const failed = Math.max(0, opts.totalRequested - completed - opts.skipped);
   const finalStatus = completed > 0 ? "completed" : "failed";
@@ -468,6 +471,16 @@ export async function runGenerationJob(
       .maybeSingle();
     academyId = (creator?.academy_id as string | null) ?? null;
   }
+  /*
+   * 이 작업이 부르는 모델 호출을 모두 「변형문제」로 묶어 둔다.
+   * 지문 분석처럼 값을 따로 받지 않는 호출도 여기 안에서 일어나므로 같이 잡힌다.
+   */
+  setAiUsage({
+    academyId,
+    actorId: (job.created_by as string | null) ?? null,
+    featureKey: "qg_generate_job",
+    usedFor: "question_generator",
+  });
   if (!academyId) {
     throw new Error("생성 작업에 학원 정보가 없습니다.");
   }

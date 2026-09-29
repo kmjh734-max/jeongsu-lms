@@ -7,6 +7,7 @@ import {
 import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { joinExamplePairs } from "@/lib/vocab/multi-example";
 import { openAiErrorMessage } from "@/lib/vocab/openai-error-message";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 interface RequestItem {
   word: string;
@@ -130,7 +131,7 @@ Return ONLY valid JSON in this exact shape (no markdown):
 Words to process:
 ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.trim() })))}`;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await openAiFetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,

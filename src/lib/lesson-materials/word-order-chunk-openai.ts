@@ -9,6 +9,7 @@ import {
   normalizeWhitespace,
   type WordOrderToken,
 } from "@/lib/lesson-materials/word-order-tokenize";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 const SYSTEM = `너는 고등학교 영어 구문 교재의 문장을 학생이 의미 단위로 끊어 읽을 수 있도록 나누는 전문가다.
 
@@ -87,7 +88,7 @@ export async function callWordOrderChunkOpenAI(input: {
     let bodyText = "";
     let ok = false;
     for (const model of models) {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,

@@ -17,6 +17,7 @@ import {
   type AnalysisSentenceMarkup,
 } from "@/lib/lesson-materials/analysis-markup";
 import type { MarkupUsage } from "@/lib/lesson-materials/generate-analysis-markup";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 export function resolveAnalysisMarkupVerifyModel(): string {
   return process.env.OPENAI_MODEL_ANALYSIS_MARKUP_VERIFY?.trim() || "gpt-5-mini";
@@ -125,7 +126,7 @@ async function callJson(input: {
     let res: Response;
     let text: string;
     try {
-      res = await fetch("https://api.openai.com/v1/chat/completions", {
+      res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

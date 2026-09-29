@@ -18,6 +18,7 @@ import {
 import { BW_FIGURE_RULES } from "@/lib/listening/print-bw";
 import { strokeDigit } from "@/lib/listening/grid-digits";
 import { stripThinLines } from "@/lib/listening/strip-thin-lines";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
 
@@ -317,7 +318,7 @@ export async function verifyChoiceGrid(
 
   for (const model of models) {
     try {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify(

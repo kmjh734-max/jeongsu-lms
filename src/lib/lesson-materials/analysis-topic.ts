@@ -3,6 +3,7 @@
  * 선생님 요청(2026-09-17): 주제·제목이 영어로도 쓰여 있으면 좋겠다.
  * 지문 전체를 한 번만 보고 짧게 받으므로 값싼 모델로 충분하다. 실패해도 분석지는 그대로 나간다.
  */
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 export type AnalysisTopic = {
   /** 영어 제목(4~10 words, Title Case) */
   titleEn: string;
@@ -55,7 +56,7 @@ Return JSON:
     ],
   };
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${input.apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify(body),

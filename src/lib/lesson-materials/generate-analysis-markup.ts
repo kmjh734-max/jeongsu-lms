@@ -41,6 +41,7 @@ import {
   SPAN_TAGS,
   verifiedChunks,
 } from "@/lib/lesson-materials/analysis-markup";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 export type MarkupUsage = { inputTokens: number; outputTokens: number; calls: number };
 
@@ -112,7 +113,7 @@ async function callMarkup(input: {
       let res: Response;
       let text: string;
       try {
-        res = await fetch("https://api.openai.com/v1/chat/completions", {
+        res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

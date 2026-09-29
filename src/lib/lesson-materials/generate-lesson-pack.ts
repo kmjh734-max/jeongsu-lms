@@ -1,6 +1,7 @@
 import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
 import type { StoredWordOrderChunkCache } from "@/lib/lesson-materials/word-order-chunk-cache";
 import type { StoredSentenceTranslation } from "@/lib/lesson-materials/translation-meta";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 export type LessonPackVocabItem = {
   word: string;
@@ -137,7 +138,7 @@ async function openAiJson(
   user: string,
   signal: AbortSignal
 ): Promise<unknown> {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

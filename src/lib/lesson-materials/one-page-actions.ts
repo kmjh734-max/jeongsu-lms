@@ -6,6 +6,7 @@ import {
   lessonCreditShortfall,
 } from "@/lib/credits/lesson-credits";
 import { createClient } from "@/lib/supabase/server";
+import { flushAiUsage, withAiUsage } from "@/lib/ai-usage/context";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { generateOnePageContent } from "@/lib/lesson-materials/generate-one-page";
 import type { LessonPackData } from "@/lib/lesson-materials/generate-lesson-pack";
@@ -92,7 +93,17 @@ export async function prepareOnePageContentAction(
   }
 
   try {
-    const { content } = await generateOnePageContent({ title: project.title as string, sentences: english });
+    const { content } = await withAiUsage(
+      {
+        academyId: profile!.academy_id,
+        actorId: profile!.id,
+        featureKey: feature,
+        usedFor: input.kind === "test" ? "one_page_test" : "one_page_summary",
+        projectId: project.id as string,
+      },
+      () => generateOnePageContent({ title: project.title as string, sentences: english })
+    );
+    await flushAiUsage();
     await patchLessonPack(supabase, project.id as string, pack, { onePageContent: content });
     await charge();
     return { ok: true, content, generated: true };

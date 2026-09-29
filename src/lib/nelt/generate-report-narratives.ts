@@ -13,6 +13,7 @@ import {
   buildDomainSections,
   buildParentOverallSummary,
 } from "@/lib/nelt/compare/domain-sections";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 export type NeltAiNarratives = {
   version: 1;
@@ -276,7 +277,7 @@ export async function generateNeltReportNarrativesAi(
           if (includeReasoningEffort) body.reasoning_effort = "medium";
         }
 
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${apiKey}`,

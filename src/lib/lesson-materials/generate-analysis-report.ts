@@ -26,6 +26,7 @@ import {
 } from "@/lib/lesson-materials/generate-analysis-markup";
 import { verifyAnalysisMarkups } from "@/lib/lesson-materials/analysis-markup-verify";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 export type AnalysisChunkRole =
   | "s"
@@ -490,7 +491,7 @@ async function requestAnalysisContent(
 
       let res: Response;
       try {
-        res = await fetch("https://api.openai.com/v1/chat/completions", {
+        res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

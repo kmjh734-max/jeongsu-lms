@@ -15,6 +15,7 @@ import {
   normalizeStudentNamesInMessage,
 } from "@/lib/nelt/korean-name";
 import { ACADEMY_NAME } from "@/lib/branding";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 export type NeltParentMessageTone = "standard" | "short" | "detail";
 
@@ -778,7 +779,7 @@ ${JSON.stringify(facts, null, 2)}`;
           else delete body.reasoning_effort;
         }
 
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${apiKey}`,

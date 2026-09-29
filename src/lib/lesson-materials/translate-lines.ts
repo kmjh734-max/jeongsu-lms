@@ -4,6 +4,7 @@ import {
 } from "@/lib/lesson-materials/refine-workbook-translation";
 import { computeSentenceSourceHash } from "@/lib/lesson-materials/translation-meta";
 import type { StoredSentenceTranslation } from "@/lib/lesson-materials/translation-meta";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 const TRANSLATION_SYSTEM = `당신은 대한민국 고등학교 영어 수업용 교안을 제작하는
 전문 영어 강사이자 번역가이다.
@@ -99,7 +100,7 @@ async function callStructuredTranslate(
     },
   };
 
-  let res = await fetch("https://api.openai.com/v1/chat/completions", {
+  let res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -113,7 +114,7 @@ async function callStructuredTranslate(
   // Fallback: json_object without schema
   if (!res.ok && (bodyText.includes("json_schema") || res.status === 400)) {
     body.response_format = { type: "json_object" };
-    res = await fetch("https://api.openai.com/v1/chat/completions", {
+    res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

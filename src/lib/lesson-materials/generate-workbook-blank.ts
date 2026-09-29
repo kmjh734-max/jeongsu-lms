@@ -50,6 +50,7 @@ import {
 } from "@/lib/lesson-materials/workbook-types";
 
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 /**
  * 빈칸 생성에서 동시에 처리하는 지문 수.
@@ -248,7 +249,7 @@ export async function callBlankOpenAI(input: {
           body.max_completion_tokens = 6_144;
         }
 
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

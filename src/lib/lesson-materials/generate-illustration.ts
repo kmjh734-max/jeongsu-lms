@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 const BUCKET = "listening-images";
 
@@ -91,7 +92,7 @@ async function generateImagePngBytes(prompt: string, deadlineAt: number): Promis
     );
     let res: Response;
     try {
-      res = await fetch("https://api.openai.com/v1/images/generations", {
+      res = await openAiFetch("https://api.openai.com/v1/images/generations", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,

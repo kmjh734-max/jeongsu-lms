@@ -19,6 +19,7 @@ import {
   isGpt5FamilyModel,
   listeningModelSupportsCustomTemperature,
 } from "@/lib/listening/openai-listening-model";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 /** 그림 검수(비전) 응답 상한 — GPT-5 계열은 추론 토큰도 여기서 차감되므로 넉넉히 */
 const VERIFY_GPT5_MAX_COMPLETION_TOKENS = 2000;
@@ -278,7 +279,7 @@ export async function generateImagePngBytes(
       body.background = "opaque";
     }
 
-    const res = await fetch("https://api.openai.com/v1/images/generations", {
+    const res = await openAiFetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -404,7 +405,7 @@ async function verifyCompositeFigure(
 
   for (const model of models) {
     try {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,

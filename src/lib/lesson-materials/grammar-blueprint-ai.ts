@@ -19,6 +19,7 @@ import type {
   GrammarPointExclusionReason,
   PassageSentenceSpan,
 } from "@/lib/lesson-materials/grammar-blueprint-types";
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 function parseJsonSafe<T>(text: string): T | null {
   try {
@@ -251,7 +252,7 @@ export async function callGrammarBlueprintOpenAI(input: {
           body.response_format = { type: "json_object" };
         }
 
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${apiKey}`,

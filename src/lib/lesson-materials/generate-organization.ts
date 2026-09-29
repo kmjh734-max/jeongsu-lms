@@ -1,4 +1,5 @@
 type InputItem = { english: string; korean?: string | null };
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
 export type LessonMaterialAnalysisCard = {
   title: string;
@@ -81,7 +82,7 @@ export async function generateLessonMaterialsOrganizationDraft(input: {
       })
       .join("\n\n");
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
