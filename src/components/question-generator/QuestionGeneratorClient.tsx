@@ -403,7 +403,13 @@ export function QuestionGeneratorClient({
       ...(paraphraseGV ? { paraphraseGrammarVocab: true } : {}),
       ...(grammarScope.length ? { grammarScope } : {}),
       ...((counts["writing:na:default:문법조건영작"] ?? 0) > 0 ? { grammarWritingMode } : {}),
-      ...(wordOrderCount > 0 ? { wordOrderMode } : {}),
+      // 아래 wordOrderCount는 이 useMemo보다 뒤에 만들어지므로 여기서는 직접 센다
+      ...((counts["writing:na:default:제시어배열기본"] ?? 0) +
+        (counts["writing:na:default:제시어배열어형변화"] ?? 0) +
+        (counts["writing:na:default:제시어배열단어추가"] ?? 0) >
+      0
+        ? { wordOrderMode }
+        : {}),
       ...(lessonProjectIds.length ? { lessonProjectIds } : {}),
     }),
     [
