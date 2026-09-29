@@ -1506,9 +1506,38 @@ export function assertBasicQuestionShape(
       if (!rebuilt) {
         return "요약문 빈칸 보기를 만들지 못했습니다.";
       }
+      /*
+       * 조건의 낱말 수도 코드가 다시 쓴다.
+       *
+       * 선생님과 함께 전수조사(2026-09-29): 84문항 가운데 35개가 「ⓐ는 6단어,
+       * ⓑ는 6단어」인데 실제 정답은 네 낱말에서 여덟 낱말까지였다. 여섯을 기본값처럼
+       * 적어 둔 것이다. 학생이 조건대로 여섯 낱말에 맞춰 쓰면 도리어 틀린다.
+       * 문법조건영작이 이미 정답에서 세어 적으므로 같은 방식으로 맞춘다.
+       */
+      const perBlank = [
+        ...String(q.correctAnswer ?? "").matchAll(
+          /([ⓐ-ⓔ])\s*[:：]\s*([^/\n]+)/g
+        ),
+      ].map((m) => ({
+        mark: m[1]!,
+        count: tokenizeAnswerPhrase(m[2]!).length,
+      }));
+      const keptConditions = blocks.conditions
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter((line) => line && !/\d+\s*단어/.test(line));
+      const conditionLines = perBlank.length
+        ? [
+            ...keptConditions,
+            `○ ${perBlank
+              .map((b) => `${b.mark}는 ${b.count}단어`)
+              .join(", ")}로 쓸 것`,
+          ]
+        : keptConditions;
+
       q.questionText = [
         "<조건>",
-        blocks.conditions.trim(),
+        conditionLines.join("\n"),
         "",
         "<보기>",
         rebuilt,
