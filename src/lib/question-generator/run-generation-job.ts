@@ -310,8 +310,13 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
   const toBill = rowsToBill.length;
   if (toBill <= 0 || !latest) return;
 
-  const isGrammarInference = (key: string | null) => String(key ?? "").endsWith(":어법추론");
-  const grammarCount = rowsToBill.filter((r) => isGrammarInference(r.option_key)).length;
+  /*
+   * 어법 유형은 원가가 다른 유형의 두 배쯤이다(실측: 어법추론 77원 · 어법개수 72원,
+   * 빈칸추론 32원). 지문 전체를 다시 읽고 다섯 자리를 한꺼번에 봐야 해서다.
+   */
+  const isGrammarType = (key: string | null) =>
+    /:(어법추론|어법개수)$/.test(String(key ?? ""));
+  const grammarCount = rowsToBill.filter((r) => isGrammarType(r.option_key)).length;
   const plainCount = toBill - grammarCount;
 
   let ok = true;
@@ -336,7 +341,7 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
         quantity: grammarCount,
         idempotencyKey: `qg_generate_grammar:${jobId}:upto-${latest}`,
         metadata: { job_id: jobId, used_for: "question_generator" },
-        note: `변형문제 어법추론 ${grammarCount}문항`,
+        note: `변형문제 어법 유형 ${grammarCount}문항`,
       })) && ok;
   }
   if (!ok) return;

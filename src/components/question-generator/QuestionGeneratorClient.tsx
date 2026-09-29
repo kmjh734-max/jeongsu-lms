@@ -337,9 +337,10 @@ export function QuestionGeneratorClient({
   );
   const perPassageTotals = useMemo(() => sumCounts(counts), [counts]);
   const grandTotal = perPassageTotals.total * Math.max(1, filledPassages.length);
-  /** 어법추론은 문항당 값이 다르다(2026-09-29) */
+  /** 어법 유형(어법추론·어법개수)은 문항당 값이 다르다(2026-09-29) */
   const grammarInferenceTotal =
-    (counts["grammar:na:default:어법추론"] ?? 0) * Math.max(1, filledPassages.length);
+    ((counts["grammar:na:default:어법추론"] ?? 0) + (counts["grammar:na:default:어법개수"] ?? 0)) *
+    Math.max(1, filledPassages.length);
 
   const config: GenerationRequestConfig = useMemo(
     () => ({
