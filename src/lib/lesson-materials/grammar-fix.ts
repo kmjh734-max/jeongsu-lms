@@ -142,6 +142,12 @@ export function buildGrammarFixSection(
   let spots: PairItem[];
   let errors: PairItem[];
   if (options.mode === "underline") {
+    /*
+     * 밑줄이 하나뿐이면 「틀린 것 찾기」가 되지 않는다. 그 하나가 곧 정답이라
+     * 학생이 고를 것이 없다. 선생님과 함께 워크북 88묶음을 훑어 보니
+     * 그런 묶음이 하나 있었다(2026-09-29). 그런 지문은 건너뛴다.
+     */
+    if (usable.length < 2) return null;
     // 맞게 쓴 밑줄이 적어도 하나는 있어야 "틀린 것 찾기"가 된다.
     const errorTarget = Math.min(options.errorCount, Math.max(1, usable.length - 1));
     const spotTarget = Math.min(usable.length, MAX_UNDERLINES, Math.max(5, errorTarget + 3));
