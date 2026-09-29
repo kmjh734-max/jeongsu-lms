@@ -87,6 +87,9 @@ def usable(answer, q=None):
         return False
     if re.search(r"[a-z][A-Z]", t) and " " not in t:
         return False
+    # 낱말 하나가 덜 읽혀 홑글자로 남은 것 ("e should Could the irthquake?")
+    if [w for w in re.findall(r"[A-Za-z]+", t) if len(w) == 1 and w not in ("a", "A", "I")]:
+        return False
     # 문항 글이 거의 없으면 답이 맞는지 가릴 길이 없다
     if q is not None and not q.get("picks") and len(re.sub(r"[^A-Za-z가-힣]", "", text)) < 4:
         return False
