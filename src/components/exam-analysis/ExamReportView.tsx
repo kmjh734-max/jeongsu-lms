@@ -185,7 +185,7 @@ export function ExamReportView({
     const decisive = hard
       .slice()
       .sort((x, y) => (y.points ?? 0) - (x.points ?? 0) || y.difficulty - x.difficulty)
-      .slice(0, 6);
+      .slice(0, 4);
     return { total, subj, subjPts, hard, matched, cats, levels, avg, decisive, sources, hasPassage, passagePts, books };
   }, [items]);
   const pct = (x: number) => (s.total ? Math.round((x / s.total) * 100) : 0);
@@ -247,7 +247,50 @@ export function ExamReportView({
     .join(" · ");
   const footer = `${academyName} · 내신 시험 분석 · ${title}`;
   const showMatched = matchOn && s.matched.length > 0;
-  const pageTotal = showMatched ? 3 : 2;
+  /*
+   * 문항표를 A4 한 장에 들어갈 만큼씩 잘라 여러 쪽에 싣는다.
+   *
+   * 선생님 말씀(2026-09-30): 내용이 길어 한 장을 넘어가는데, 쪽이 늘어나도 좋으니
+   * 한 장이 A4에 맞게 나오게 해 달라. 인쇄 CSS가 A4로 자르고 넘치는 것은 버리므로,
+   * 그대로 두면 뒤쪽 문항이 아예 안 보인다.
+   *
+   * 줄 높이가 문항마다 다르다(난이도 근거·교과서 출처가 길면 두세 줄이 된다).
+   * 그래서 개수가 아니라 글자 수로 어림한 무게를 쌓아 나눈다.
+   */
+  const itemPages = useMemo(() => {
+    // A4(1123px)에서 위아래 여백과 머리말·표머리·합계줄을 뺀 나머지
+    const ROOM = 900;
+    const ROW = 27; // 한 줄짜리 문항의 높이
+    const LINE = 14; // 딸린 글 한 줄
+    const PER_LINE = 26; // 딸린 글은 한 줄에 스물여섯 자쯤 들어간다
+    const heightOf = (i: (typeof items)[number]) => {
+      const notes = [
+        i.difficulty_reason,
+        i.matched_textbook_label && `교과서: ${i.matched_textbook_label}`,
+        i.matched_label && `수업자료: ${i.matched_label}`,
+        i.matched_mock_label && `출처: ${i.matched_mock_label}`,
+      ].filter(Boolean) as string[];
+      const lines = notes.reduce((n, t) => n + Math.max(1, Math.ceil(t.length / PER_LINE)), 0);
+      return ROW + lines * LINE;
+    };
+    const out: (typeof items)[] = [];
+    let cur: typeof items = [];
+    let used = 0;
+    for (const it of items) {
+      const h = heightOf(it);
+      if (cur.length && used + h > ROOM) {
+        out.push(cur);
+        cur = [];
+        used = 0;
+      }
+      cur.push(it);
+      used += h;
+    }
+    if (cur.length) out.push(cur);
+    return out.length ? out : [[]];
+  }, [items]);
+
+  const pageTotal = 1 + itemPages.length + (showMatched ? 1 : 0);
   const h3 = "mb-[7px] text-[13.5px] font-bold";
 
   return (
@@ -415,8 +458,7 @@ export function ExamReportView({
                 <p className="mt-[7px] text-[10.5px] leading-[1.5]" style={{ color: SOFT }}>
                   해당 학년 학생을 기준으로 <b>지문 길이 · 어휘 수준 · 유형 자체의 난도 ·
                   선택지의 매력도 · 서술형 조건 수</b> 다섯 가지를 보고 1~5점을 매겨 상·중·하로
-                  나눕니다. 문항마다 왜 그 등급인지는 아래 표에 적혀 있고, 고쳐 쓰기를 켜면
-                  선생님이 직접 바꾸실 수 있습니다.
+                  나눕니다.
                 </p>
               </div>
             </div>
@@ -425,19 +467,16 @@ export function ExamReportView({
               <div>
                 <h3 className={h3} style={{ color: NAVY }}>
                   지문 출처별
-                  <span className="ml-1.5 text-[11px] font-normal" style={{ color: SOFT }}>
-                    지문이 있는 {s.hasPassage.length}문항 · {s.passagePts}점 기준 (글자로 대조해 맞은 것만)
-                  </span>
                   {s.books.length ? (
                     <span className="ml-1.5 text-[11px] font-normal" style={{ color: SOFT }}>
-                      · 쓰는 교재{" "}
+                      쓰는 교재{" "}
                       <b style={{ color: NAVY }}>
                         {s.books.map(([b, n]) => `${b}(${n}문항)`).join(", ")}
                       </b>
                     </span>
                   ) : null}
                 </h3>
-                <div className="mb-[7px] flex h-[9px] overflow-hidden rounded-full bg-white">
+                <div className="mb-[5px] flex h-[7px] overflow-hidden rounded-full bg-white">
                   {s.sources.map((x) => (
                     <span
                       key={x.key}
@@ -451,7 +490,7 @@ export function ExamReportView({
                 </div>
                 <div className="grid grid-cols-4 gap-[9px]">
                   {s.sources.map((x) => (
-                    <div key={x.key} className="rounded-[12px] bg-white px-[11px] py-[9px]">
+                    <div key={x.key} className="rounded-[12px] bg-white px-[11px] py-[6px]">
                       <span className="flex items-center gap-1.5 text-[11.5px]" style={{ color: SOFT }}>
                         <i
                           className="inline-block h-[9px] w-[9px] rounded-full"
@@ -459,7 +498,7 @@ export function ExamReportView({
                         />
                         {x.key}
                       </span>
-                      <b className="block text-[22px] leading-[1.2] tabular-nums">
+                      <b className="block text-[19px] leading-[1.15] tabular-nums">
                         {s.passagePts ? Math.round((x.pts / s.passagePts) * 100) : 0}%
                       </b>
                       <span className="text-[11px] tabular-nums" style={{ color: SOFT }}>
@@ -564,15 +603,23 @@ export function ExamReportView({
             ) : null}
           </A4Page>
 
-          {/* 2쪽: 문항정보표 + 서술형·대비 전략 */}
-          <A4Page footer={`${footer} · 2 / ${pageTotal}`}>
+          {/* 2쪽부터: 문항정보표 (길면 여러 장) + 첫 장 오른쪽에 서술형·대비 전략 */}
+          {itemPages.map((pageItems, pi) => (
+          <A4Page key={`items-${pi}`} footer={`${footer} · ${pi + 2} / ${pageTotal}`}>
             <div className="flex items-baseline justify-between border-b-2 border-[#1f2937] pb-1.5">
-              <b className="text-[15px]">{title} · 문항정보표</b>
+              <b className="text-[15px]">
+                {title} · 문항정보표
+                {itemPages.length > 1 ? (
+                  <span className="ml-1.5 text-[11px] font-semibold" style={{ color: SOFT }}>
+                    ({pi + 1}/{itemPages.length})
+                  </span>
+                ) : null}
+              </b>
               <span className="text-[11px]" style={{ color: SOFT }}>
                 {meta.examLabel}
               </span>
             </div>
-            <div className="grid flex-1 grid-cols-[1.12fr_1fr] gap-[18px]">
+            <div className={`grid flex-1 gap-[18px] ${pi === 0 ? "grid-cols-[1.12fr_1fr]" : "grid-cols-1"}`}>
               <div className="self-start rounded-xl bg-white px-3 py-2">
                 <table className="w-full border-collapse text-[11.5px]">
                   <thead>
@@ -584,7 +631,7 @@ export function ExamReportView({
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map((i) => (
+                    {pageItems.map((i) => (
                       <tr key={i.id} className="border-t align-middle" style={{ borderColor: "#f1ead9" }}>
                         <td className="whitespace-nowrap px-1 py-[3.5px] font-bold">{i.item_no}</td>
                         <td className="px-1 py-[3.5px]">
@@ -673,15 +720,22 @@ export function ExamReportView({
                       </tr>
                     ))}
                     <tr className="border-t" style={{ borderColor: "#f1ead9" }}>
-                      <td className="px-1 py-[3.5px] font-bold">계</td>
-                      <td className="px-1 py-[3.5px]">{items.length}문항</td>
+                      <td className="px-1 py-[3.5px] font-bold">
+                        {pi === itemPages.length - 1 ? "계" : "이어짐"}
+                      </td>
+                      <td className="px-1 py-[3.5px]">
+                        {pi === itemPages.length - 1 ? `${items.length}문항` : `${pageItems.length}문항`}
+                      </td>
                       <td />
-                      <td className="px-1 py-[3.5px] text-right font-bold tabular-nums">{s.total}</td>
+                      <td className="px-1 py-[3.5px] text-right font-bold tabular-nums">
+                        {pi === itemPages.length - 1 ? s.total : ""}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
+              {pi === 0 ? (
               <div className="min-w-0">
                 {s.subj.length ? (
                   <>
@@ -722,12 +776,14 @@ export function ExamReportView({
                   ))}
                 </ul>
               </div>
+              ) : null}
             </div>
           </A4Page>
+          ))}
 
           {/* 3쪽: 수업자료 적중 문항 (대조를 켰고 맞은 문항이 있을 때만) */}
           {showMatched ? (
-            <A4Page footer={`${footer} · 3 / 3`}>
+            <A4Page footer={`${footer} · ${pageTotal} / ${pageTotal}`}>
               <div className="flex items-baseline justify-between border-b-2 border-[#1f2937] pb-1.5">
                 <b className="text-[15px]">{title} · 수업자료 적중 문항</b>
                 <span className="text-[11px]" style={{ color: SOFT }}>

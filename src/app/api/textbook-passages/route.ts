@@ -48,9 +48,21 @@ export async function GET(req: Request) {
     .eq("publisher", publisher ?? "")
     .order("order_index");
 
+  /*
+   * 대화문(듣기·말하기 단원)은 지문 불러오기에 내지 않는다.
+   *
+   * 선생님 말씀(2026-09-30): 대화문은 DB에 두어 내신 보고서에서 출처를 파악하는
+   * 데는 써야 하지만, 지문을 불러와 자료를 만들 때는 나오면 안 된다.
+   * 주제·제목·빈칸 같은 독해 유형을 대화문으로 내면 문항이 서지 않는다.
+   *
+   * 출처 대조는 DB를 바로 읽으므로 그대로 잡힌다. 여기서만 걷어 낸다.
+   * 적재할 때 part를 「대화문N」으로 따로 두므로 글 내용을 짐작할 것 없이 가려진다.
+   */
+  const rows = (data ?? []).filter((p) => !String(p.part ?? "").startsWith("대화문"));
+
   return NextResponse.json({
     ok: true,
-    passages: (data ?? []).map((p) => ({
+    passages: rows.map((p) => ({
       id: p.id as string,
       itemNo: `${p.lesson} ${p.part}`,
       label: String(p.label),
