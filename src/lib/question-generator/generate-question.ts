@@ -139,7 +139,10 @@ Difficulty: ${
             ? "HIGH (상) — nuanced correct answer, competitive distractors"
             : "standard"
       }. questionText empty.`;
-    case "content_count":
+    case "content_count": {
+      // 보기 6개면 1~4개, 8개면 2~5개를 틀리게 — 개수가 한쪽으로 몰리지 않게 코드가 정한다
+      const many = option.difficulty === "high";
+      const contentFalseN = (many ? 2 : 1) + Math.floor(Math.random() * 4);
       return `일치개수 SHORT-ANSWER (NOT MCQ). Format like Korean school worksheets.
 - instruction is fixed (count how many <보기> items do NOT match the passage).
 - questionText = <보기> statements only, labeled (1) (2) (3) ... each on its own line.
@@ -147,7 +150,9 @@ Difficulty: ${
 - Statement count: ${
         option.difficulty === "high" ? "exactly 8" : "exactly 6"
       }.
-- Mix true and false statements; correctAnswer = the COUNT of FALSE (non-matching) statements as an integer string (e.g. "3").
+- 틀린 진술을 <b>정확히 ${contentFalseN}개</b> 두고 나머지는 지문과 맞게 쓴다.
+  correctAnswer = "${contentFalseN}".
+  (전수조사 2026-09-29: 408문항 가운데 358개가 2~3개였다. 두셋만 찍어도 88%를 맞혔다.)
 - choices: omit or empty array. No ①~⑤ options.
 - Do NOT change the passage; omit passageModified.
 - explanation: list which numbers are false and why (Korean, brief).
@@ -161,6 +166,7 @@ Difficulty: ${
             ? "HIGH (상) — subtler distinctions"
             : "standard"
       }.`;
+    }
     case "topic":
       return `${en ? "5 ENGLISH" : "5 Korean"} topic phrases. Exactly one correct.
 ${craft}
@@ -403,15 +409,20 @@ ${catalog}`;
     }
     case "vocabulary":
       if (code === "어휘개수") {
+        /*
+         * 전수조사(2026-09-29): 146문항 가운데 100개가 정답 「3개」였다. 세 개만 찍어도
+         * 68%를 맞힌다. 어법개수처럼 코드가 개수를 정해 주어 고르게 흩는다.
+         */
+        const wrongN = 1 + Math.floor(Math.random() * 5);
         return `어휘 개수 — 고1 학력평가·내신 고퀄리티 (A4 변형동형):
 - passageModified = FULL ENGLISH passage with exactly six vocabulary spots ① ② ③ ④ ⑤ ⑥ as ①<u>word/phrase</u>.
-- Put 1~5 contextually WRONG items; rest correct and natural.
+- 문맥에 맞지 않는 곳을 <b>정확히 ${wrongN}개</b> 두고, 나머지는 자연스럽게 맞게 쓴다.
+- correctAnswer = ${wrongN}.
 - WRONG 기법: 반의·방향 반전 / 유사 철자·형태 혼동어 / 문맥만 틀린 유의어.
 ${vocabChoiceCraft()}
 ${choiceExplanationRules()}
 - choices MUST be EXACTLY and ONLY these five texts in order:
   1:"1개"  2:"2개"  3:"3개"  4:"4개"  5:"5개"
-- correctAnswer = N = count of wrong spots.
 - questionText empty. explanation: Korean — 틀린 번호 + 왜 반의/혼동인지 + 바른 말.
 LANGUAGE: passage ENGLISH only.`;
       }
