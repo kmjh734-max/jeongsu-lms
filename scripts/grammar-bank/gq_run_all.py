@@ -44,10 +44,11 @@ def main():
         matched = OUT / ("gq-%s-matched.json" % key)
         bad = OUT / ("gq-%s-bad.json" % key)
 
-        if not q.exists():
-            print("  문항 뽑는 중…", file=log, flush=True)
-            r = run([str(HERE / "gq_extract.py"), str(SRC / book), str(q)])
-            print("   " + (r.stdout or "").strip().replace("\n", "\n   "), file=log, flush=True)
+        # 문항 뽑기는 빠르므로 늘 다시 한다 (뽑는 규칙을 고쳤을 수 있다).
+        # 오래 걸리는 정답지 읽기만 이미 있으면 건너뛴다.
+        print("  문항 뽑는 중…", file=log, flush=True)
+        r = run([str(HERE / "gq_extract.py"), str(SRC / book), str(q)])
+        print("   " + (r.stdout or "").strip().replace("\n", "\n   "), file=log, flush=True)
         if not box.exists():
             print("  정답지 읽는 중… (7분쯤)", file=log, flush=True)
             r = run([str(HERE / "gq_answers_ocr.py"), str(SRC / answer), str(box)])

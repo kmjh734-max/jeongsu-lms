@@ -173,12 +173,161 @@ def parse_page(page, page_no, carry):
     return out
 
 
+CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩"
+
+
+def parse_exam_page(page, page_no, carry):
+    """「내신 적중」 쪽 — Point 01·02·03 으로 문항이 셋씩 있다.
+
+    문항 머리는 BauhausStd-Demi "Point" 와 그 아래 FuturaStd-Heavy 번호다.
+    정답지도 이 쪽을 세 문항으로 세므로 STEP 1 의 1·2·3 번으로 둔다.
+    """
+    rows = lines_of(page)
+    flat = "\n".join(r["text"] for r in rows)
+    if "내신" not in flat or "적중" not in flat:
+        return []
+    if len(BROKEN.findall(flat)) > 20:
+        return []
+
+    ch_no, ch, ans_page, printed = page_info(rows, page.rect.height)
+    if ch_no:
+        carry["chapter_no"], carry["chapter"] = ch_no, ch
+
+    body = [r for r in rows if 200 < r["y"] < page.rect.height - 45]
+    heads = []
+    for r in body:
+        if r["font"].startswith("BauhausStd-Demi") and r["text"].strip() == "Point":
+            heads.append(r["y"])
+    if not heads:
+        return []
+    heads.sort()
+
+    def owner(y):
+        got = None
+        for i, hy in enumerate(heads):
+            if y >= hy - 20:
+                got = i
+        return got
+
+    items = [{"prompt": [], "body": [], "choices": []} for _ in heads]
+    for r in body:
+        text = r["text"].strip()
+        if not text or ANSREF.search(text):
+            continue
+        if r["font"].startswith(("BauhausStd", "FuturaStd")):
+            continue
+        i = owner(r["y"])
+        if i is None:
+            continue
+        if INSTR_FONT in r["font"] and 9.0 <= r["size"] <= 11.0:
+            items[i]["prompt"].append(text)
+        elif text[0] in CIRCLED:
+            items[i]["choices"].append(text)
+        else:
+            items[i]["body"].append(text)
+
+    out = []
+    for n, it in enumerate(items, start=1):
+        prompt = re.sub(r"\s+", " ", " ".join(it["prompt"])).strip()
+        text = re.sub(r"\s+", " ", " ".join(it["body"] + it["choices"])).strip()
+        if not prompt and not text:
+            continue
+        out.append({
+            "page": page_no,
+            "printed_page": printed,
+            "answer_page": ans_page,
+            "chapter_no": carry["chapter_no"],
+            "chapter": carry["chapter"],
+            "step": 1,
+            "instruction": prompt,
+            "no": n,
+            "text": text,
+            "picks": PICK.findall(text),
+            "question_kind": "객관식" if it["choices"] else "단답·서술",
+        })
+    return out
+
+
+def parse_writing_page(page, page_no, carry):
+    """「Writing Exercises」 쪽 — 큰 번호 1·2 아래에 (1)(2)(3) 이 딸린다.
+
+    정답지도 큰 번호로 세므로 큰 번호를 문항으로 잡고, 딸린 것은 한 문항에 담는다.
+    """
+    rows = lines_of(page)
+    flat = "\n".join(r["text"] for r in rows)
+    if "Writing Exercises" not in flat:
+        return []
+    if len(BROKEN.findall(flat)) > 20:
+        return []
+
+    ch_no, ch, ans_page, printed = page_info(rows, page.rect.height)
+    if ch_no:
+        carry["chapter_no"], carry["chapter"] = ch_no, ch
+
+    body = [r for r in rows if 100 < r["y"] < page.rect.height - 45]
+    heads = []
+    for r in body:
+        if r["font"].startswith("Institution") and r["size"] > 15:
+            hit = re.match(r"^(\d{1,2})$", r["text"].strip())
+            if hit:
+                heads.append((r["y"], int(hit.group(1))))
+    if not heads:
+        return []
+    heads.sort()
+
+    def owner(y):
+        got = None
+        for i, (hy, _no) in enumerate(heads):
+            if y >= hy - 12:
+                got = i
+        return got
+
+    items = [{"prompt": [], "body": []} for _ in heads]
+    for r in body:
+        text = r["text"].strip()
+        if not text or ANSREF.search(text) or "Writing Exercises" in text:
+            continue
+        if r["font"].startswith("Institution") and r["size"] > 15:
+            continue
+        i = owner(r["y"])
+        if i is None:
+            continue
+        if INSTR_FONT in r["font"] and r["size"] < 10 and not re.match(r"^\(\d\)$", text):
+            items[i]["prompt"].append(text)
+        else:
+            items[i]["body"].append(text)
+
+    out = []
+    for (_y, no), it in zip(heads, items):
+        prompt = re.sub(r"\s+", " ", " ".join(it["prompt"])).strip()
+        text = re.sub(r"\s+", " ", " ".join(it["body"])).strip()
+        if not text:
+            continue
+        out.append({
+            "page": page_no,
+            "printed_page": printed,
+            "answer_page": ans_page,
+            "chapter_no": carry["chapter_no"],
+            "chapter": carry["chapter"],
+            "step": 1,
+            "instruction": prompt,
+            "no": no,
+            "text": text,
+            "picks": [],
+            "question_kind": "영작",
+        })
+    return out
+
+
 def parse(path):
     doc = fitz.open(path)
     carry = {"chapter_no": None, "chapter": None}
     out = []
     for i, page in enumerate(doc):
-        for row in parse_page(page, i + 1, carry):
+        got = (parse_page(page, i + 1, carry)
+               or parse_exam_page(page, i + 1, carry)
+               or parse_writing_page(page, i + 1, carry))
+        for row in got:
             row["book"] = Path(path).stem
             out.append(row)
     return out

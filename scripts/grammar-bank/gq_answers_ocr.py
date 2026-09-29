@@ -177,13 +177,33 @@ def cuts(page, rect):
     return [c for c in out if c["run"]], [g["y"] for g in clump(labels)]
 
 
-def read_crop(reader, page, rect):
-    # 작은 글자일수록 크게 키워 읽는다 (동그라미 숫자 ①~⑤ 는 크게 키워야 읽힌다)
-    dpi = DPI if rect.width > 40 else (600 if rect.width > 14 else 900)
+BRACKET = re.compile(r"(?<=[A-Za-z])l(?=[A-Za-z'’]{1,10}\])")
+
+
+STRAY = re.compile(r"^[<>›‹|~^·]+|[<>›‹|~^]+$")
+
+
+def tidy(text):
+    """OCR 이 자주 어긋나는 데를 바로잡는다.
+
+    · 여는 대괄호를 l 로 읽는다
+    · 둘레를 넓게 잘라 읽다 보면 옆 글자의 조각이 > 같은 기호로 딸려 온다
+    """
+    got = BRACKET.sub("[", text).strip()
+    return STRAY.sub("", got).strip()
+
+
+def read_crop(reader, page, rect, dpi=None):
+    # 작은 글자일수록 크게 키워 읽고, 둘레도 넉넉히 둔다 (너무 딱 붙으면 못 읽는다)
+    if dpi is None:
+        dpi = DPI if rect.width > 40 else (600 if rect.width > 14 else 900)
+    if rect.width < 40:
+        pad = max(2.0, rect.width * 0.35)
+        rect = fitz.Rect(rect.x0 - pad, rect.y0 - pad, rect.x1 + pad, rect.y1 + pad)
     png = page.get_pixmap(dpi=dpi, clip=rect).tobytes("png")
     got = reader.readtext(png, detail=1, paragraph=False)
     got.sort(key=lambda r: (min(p[1] for p in r[0]) // 40, min(p[0] for p in r[0])))
-    text = " ".join(t for _b, t, _s in got).strip()
+    text = tidy(" ".join(t for _b, t, _s in got).strip())
     score = round(sum(float(s) for _b, _t, s in got) / len(got), 3) if got else 0.0
     return text, score
 
@@ -236,8 +256,10 @@ def run(pdf_path, out_path):
     out, cache = [], {}
     for i, page in enumerate(doc):
         for rect in answer_boxes(page):
-            head_rect = fitz.Rect(rect.x0 - 10, max(0, rect.y0 - 90), rect.x1 + 60, rect.y0)
-            head, _ = read_crop(reader, page, head_rect)
+            # 머리말("PRACTICE … p.36")은 글씨가 작아 크게 키워 읽는다.
+            # 여기서 본책 쪽을 못 읽으면 그 상자의 답을 통째로 쓸 수 없다.
+            head_rect = fitz.Rect(rect.x0 - 14, max(0, rect.y0 - 95), rect.x1 + 70, rect.y0)
+            head, _ = read_crop(reader, page, head_rect, dpi=600)
             pieces = []
             got, _labels = cuts(page, rect)
             for c in got:

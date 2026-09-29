@@ -38,9 +38,9 @@ def main():
     for key, book, answer in BOOKS:
         print("\n══ %s (%.0f분째)" % (key, (time.time() - t0) / 60), file=log, flush=True)
         q = OUT / ("%s.json" % key)
-        if not q.exists():
-            r = run([str(HERE / "jp_extract.py"), str(SRC / book), str(q)])
-            print("   " + (r.stdout or "").strip().replace("\n", "\n   "), file=log, flush=True)
+        # 문항 뽑기는 빠르므로 늘 다시 한다 (뽑는 규칙을 고쳤을 수 있다)
+        r = run([str(HERE / "jp_extract.py"), str(SRC / book), str(q)])
+        print("   " + (r.stdout or "").strip().replace("\n", "\n   "), file=log, flush=True)
         if not answer:
             print("   정답 파일이 없어 문항만 둔다", file=log, flush=True)
             continue

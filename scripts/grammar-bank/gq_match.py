@@ -31,6 +31,35 @@ def in_choices(answer, picks):
     return all(any(norm(p) == norm(o) for o in opts) for p in parts)
 
 
+def fill_blocks(blocks, questions):
+    """본책 쪽을 못 읽은 상자에 쪽을 물려 준다.
+
+    본책 쪽마다 "정답 및 해설 p.N" 이 적혀 있다. 그러니 정답지 N쪽에 실린 상자들은
+    그 N을 가리키는 본책 쪽들에 차례대로 대응한다. 이미 읽은 쪽은 그대로 두고,
+    남은 자리에만 남은 쪽을 차례로 넣는다.
+    """
+    want = collections.defaultdict(list)   # 정답지 쪽 → 본책 쪽들 (차례대로)
+    for q in questions:
+        ap, bp = q.get("answer_page"), q.get("printed_page")
+        if ap and bp and bp not in want[ap]:
+            want[ap].append(bp)
+    for v in want.values():
+        v.sort()
+
+    by_answer_page = collections.defaultdict(list)
+    for b in blocks:
+        by_answer_page[b["answer_page"]].append(b)
+    for ap, group in by_answer_page.items():
+        group.sort(key=lambda b: b.get("order", 0))
+        taken = {p for b in group for p in b["book_pages"]}
+        left = [p for p in want.get(ap, []) if p not in taken]
+        for b in group:
+            if b["book_pages"] or not left:
+                continue
+            b["book_pages"] = [left.pop(0)]
+            b["guessed"] = True
+
+
 def main(q_path, a_path, out_path, bad_path=None):
     questions = json.load(open(q_path, encoding="utf-8"))
     blocks = json.load(open(a_path, encoding="utf-8"))
@@ -38,6 +67,11 @@ def main(q_path, a_path, out_path, bad_path=None):
     by_page = collections.defaultdict(list)
     for q in questions:
         by_page[q["printed_page"]].append(q)
+
+    # 머리말에서 본책 쪽을 못 읽은 상자를 채운다.
+    # 본책 쪽마다 "정답 및 해설 p.N" 이 적혀 있으므로, 같은 정답지 쪽에 딸린
+    # 본책 쪽들을 차례대로 늘어놓고 쪽을 모르는 상자에 차례로 물려 준다.
+    fill_blocks(blocks, questions)
 
     matched, failed = [], []
     for b in blocks:

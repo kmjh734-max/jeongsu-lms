@@ -45,6 +45,9 @@ def main(src, dst):
         elif PRACTICE.search(head):
             kind = "실전"
         if kind is None:
+            # 머리말을 못 읽었어도 답은 살려 둔다 — 맞대는 쪽에서 차례로 채운다
+            kind = "실전" if last_page else None
+        if kind is None:
             continue
         answers = {}
         for p in b["pieces"]:
