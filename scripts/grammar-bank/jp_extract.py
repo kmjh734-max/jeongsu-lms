@@ -28,19 +28,37 @@ SECTION = re.compile(r"(통합 ?문제|마무리 ?실전문제\s*\d*회?)")
 ASK = re.compile(r"(것은\?|것을?\s*(모두\s*)?(고르|쓰)|하시오\.|쓰시오\.|고르시오\.|완성하시오\.|것인가\?|짝지어진 것)")
 
 
+# 빈칸은 글자가 아니라 가는 가로선으로 그려져 있다 — 그래머큐와 같은 손질을 쓴다
+sys.path.insert(0, str(Path(__file__).parent))
+from gq_extract import BLANK, blank_rules, put_blanks
+
+
 def lines_of(page):
-    out = []
+    """글줄을 걷는다. 빈칸 자리에는 밑줄을 되살려 넣는다."""
+    lines = []
     for block in page.get_text("dict")["blocks"]:
         for ln in block.get("lines", []):
-            text = "".join(s["text"] for s in ln["spans"])
-            if not text.strip():
+            spans = [{"x": q["bbox"][0], "x1": q["bbox"][2], "t": q["text"]}
+                     for q in ln["spans"] if q["text"].strip()]
+            if not spans:
                 continue
             sp = ln["spans"][0]
-            out.append({
+            lines.append({
                 "x": ln["bbox"][0], "y": ln["bbox"][1], "x1": ln["bbox"][2],
+                "bottom": ln["bbox"][3],
                 "font": sp["font"], "size": round(sp["size"], 1),
-                "text": text.rstrip(),
+                "spans": spans, "blanks": [],
             })
+    # 문항 번호 글줄에는 빈칸을 붙이지 않는다 — 붙으면 번호로 알아보지 못한다
+    put_blanks([ln for ln in lines if not ln["font"].startswith(NUM_FONT)], blank_rules(page))
+
+    out = []
+    for ln in lines:
+        parts = [{"x": q["x"], "t": q["t"]} for q in ln["spans"]]
+        parts += [{"x": x, "t": BLANK} for x in ln["blanks"]]
+        parts.sort(key=lambda q: q["x"])
+        ln["text"] = "".join(q["t"] for q in parts).rstrip()
+        out.append(ln)
     return out
 
 
@@ -150,19 +168,32 @@ def parse_page(page, page_no, carry):
         else:
             h["body"].append(text)
 
+    def tidy(text, keep_blank=False):
+        """딸려 든 갈래 머리말을 떼고, 발문·보기에서는 빈칸도 뗀다.
+
+        빈칸은 본문에만 있다. 발문이나 보기 끝에 붙은 것은 옆 선을 잘못 집은 것이다.
+        본문에서는 빈칸이 곧 문제이므로 그대로 둔다.
+        """
+        t = re.sub(r"\s+", " ", text or "").strip()
+        t = re.sub(r"바로 ?풀리는 ?(실전|개념) ?문제", " ", t)
+        if not keep_blank:
+            t = re.sub(r"(\s*_{3,})+\s*$", "", t)
+            t = re.sub(r"^\s*(_{3,}\s*)+", "", t)
+        return re.sub(r"\s+", " ", t).strip()
+
     out = []
     for h in heads:
-        prompt = re.sub(r"\s+", " ", " ".join(h["prompt"])).strip()
-        body = [re.sub(r"\s+", " ", b).strip() for b in h["body"]]
+        prompt = tidy(" ".join(h["prompt"]))
+        body = [b for b in (tidy(x, keep_blank=True) for x in h["body"]) if b]
         # RULE 쪽은 발문 글씨 크기가 달라 본문에 섞인다 — 발문꼴이면 끌어올린다
         if not prompt and body and ASK.search(body[0]):
-            prompt, body = body[0], body[1:]
+            prompt, body = tidy(body[0]), body[1:]
         if not prompt and not h["choices"]:
             continue
         choices = []
         for c in h["choices"]:
             n = CIRCLED.index(c[0]) + 1
-            choices.append({"no": n, "text": c[1:].strip()})
+            choices.append({"no": n, "text": tidy(c[1:])})
         out.append({
             "page": page_no,
             "printed_page": printed,
