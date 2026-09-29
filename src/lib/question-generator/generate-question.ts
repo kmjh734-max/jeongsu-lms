@@ -832,22 +832,40 @@ function shuffleObjectiveChoices(
 
   let nextExplanation = explanation;
   if (explanation && [...oldToNew.entries()].some(([a, b]) => a !== b)) {
-    // ①~⑤를 한 번에 바꾼다. 차례로 바꾸면 방금 바꾼 것을 또 바꾼다.
-    nextExplanation = explanation.replace(/[①-⑤]/g, (mark) => {
-      const oldNum = CIRCLED.indexOf(mark) + 1;
-      const to = oldToNew.get(oldNum);
-      return to ? CIRCLED[to - 1]! : mark;
-    });
-    // "정답: 3번", "답: 3"처럼 숫자로 적은 것도 함께
-    nextExplanation = nextExplanation
-      .replace(/(정답\s*[:：]?\s*)(\d)(\s*번?)/g, (whole, head: string, num: string, tail: string) => {
-        const to = oldToNew.get(Number(num));
-        return to ? `${head}${to}${tail}` : whole;
-      })
-      .replace(/(^|[^가-힣])(답\s*[:：]\s*)(\d)/g, (whole, lead: string, head: string, num: string) => {
-        const to = oldToNew.get(Number(num));
-        return to ? `${lead}${head}${to}` : whole;
-      });
+    /*
+     * ①~⑤와 숫자로 적은 번호를 <b>한 번에</b> 바꾼다. 나눠서 바꾸면 방금 바꾼 것을
+     * 또 바꾸게 된다.
+     *
+     * 선생님과 함께 전수조사(2026-09-29): 해설이 「3번이 알맞다」처럼 그냥 「N번」으로
+     * 적은 문항이 84개였는데 그 가운데 65개(77%)가 정답 번호와 달랐다. 빈칸추론이
+     * 79개 중 60개로 가장 심했다. 「정답: N」 꼴만 바꾸고 「N번」은 두었기 때문이다.
+     */
+    nextExplanation = explanation.replace(
+      /([①-⑤])|((?:정답\s*[:：]?|답\s*[:：])\s*)([1-5])(\s*번?)|(?<!\d)([1-5])(\s*번)/g,
+      (
+        whole,
+        circled: string | undefined,
+        head: string | undefined,
+        headNum: string | undefined,
+        headTail: string | undefined,
+        plainNum: string | undefined,
+        plainTail: string | undefined
+      ) => {
+        if (circled) {
+          const to = oldToNew.get(CIRCLED.indexOf(circled) + 1);
+          return to ? CIRCLED[to - 1]! : whole;
+        }
+        if (headNum) {
+          const to = oldToNew.get(Number(headNum));
+          return to ? `${head}${to}${headTail}` : whole;
+        }
+        if (plainNum) {
+          const to = oldToNew.get(Number(plainNum));
+          return to ? `${to}${plainTail}` : whole;
+        }
+        return whole;
+      }
+    );
   }
 
   return {
