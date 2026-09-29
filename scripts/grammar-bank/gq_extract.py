@@ -30,19 +30,72 @@ PICK = re.compile(r"\[([^\[\]]+?)\]")
 BROKEN = re.compile(r"[԰-ࣿऀ-෿က-႟]")
 
 
-def lines_of(page):
+BLANK = " _____ "
+
+
+def blank_rules(page):
+    """빈칸은 글자가 아니라 가는 가로선으로 그려져 있다 — 자리와 함께 걷는다"""
     out = []
+    for d in page.get_drawings():
+        r = d["rect"]
+        if r.height < 2.5 and 8 < r.width < 260:
+            out.append({"x": r.x0, "x1": r.x1, "y": r.y1})
+    return out
+
+
+def put_blanks(lines, rules):
+    """선마다 임자 줄을 하나만 고른다.
+
+    빈칸은 바로 앞 글자에 이어 붙는다. 앞에 글자가 없으면 뒤 글자 앞에 놓는다.
+    한 선이 여러 줄에 걸쳐 보여도 한 줄에만 붙이므로 빈칸이 겹쳐 나오지 않는다.
+    """
+    for r in rules:
+        # 「STEP」·「Point」·쪽 번호 같은 표시 글줄에는 빈칸을 붙이지 않는다.
+        # 붙이면 그 글자가 「Point _____」가 되어 표시로 알아보지 못한다.
+        same = [ln for ln in lines
+                if abs(ln["bottom"] - r["y"]) < 4
+                and not ln["font"].startswith(("BauhausStd", "FuturaStd"))]
+        if not same:
+            continue
+        left = [ln for ln in same if max(q["x1"] for q in ln["spans"]) <= r["x"] + 2]
+        if left:
+            owner = min(left, key=lambda ln: r["x"] - max(q["x1"] for q in ln["spans"]))
+        else:
+            right = [ln for ln in same if min(q["x"] for q in ln["spans"]) >= r["x1"] - 2]
+            if not right:
+                continue
+            owner = min(right, key=lambda ln: min(q["x"] for q in ln["spans"]) - r["x1"])
+        owner["blanks"].append(r["x"])
+
+
+def lines_of(page):
+    """글줄을 걷는다. 빈칸 자리에는 밑줄을 되살려 넣는다.
+
+    문항의 빈칸이 글자가 아니라 선으로 그려져 있어, 그냥 뽑으면
+    「Yesterday Jiyun's birthday.」처럼 빈칸이 사라진 문장이 나온다.
+    """
+    lines = []
     for block in page.get_text("dict")["blocks"]:
         for ln in block.get("lines", []):
-            text = "".join(s["text"] for s in ln["spans"])
-            if not text.strip():
+            spans = [{"x": q["bbox"][0], "x1": q["bbox"][2], "t": q["text"]}
+                     for q in ln["spans"] if q["text"].strip()]
+            if not spans:
                 continue
             span = ln["spans"][0]
-            out.append({
-                "x": ln["bbox"][0], "y": ln["bbox"][1],
+            lines.append({
+                "x": ln["bbox"][0], "y": ln["bbox"][1], "bottom": ln["bbox"][3],
                 "font": span["font"], "size": round(span["size"], 1),
-                "text": text.rstrip(),
+                "spans": spans, "blanks": [],
             })
+    put_blanks(lines, blank_rules(page))
+
+    out = []
+    for ln in lines:
+        parts = [{"x": q["x"], "t": q["t"]} for q in ln["spans"]]
+        parts += [{"x": x, "t": BLANK} for x in ln["blanks"]]
+        parts.sort(key=lambda q: q["x"])
+        ln["text"] = "".join(q["t"] for q in parts).rstrip()
+        out.append(ln)
     return out
 
 
