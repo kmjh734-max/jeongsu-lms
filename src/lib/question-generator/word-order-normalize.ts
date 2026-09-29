@@ -405,9 +405,11 @@ export function tokenizeAnswerPhrase(answer: string): string[] {
      * 낱말 안의 홑따옴표는 살린다 — artist’s가 artists가 되면 정답을 쓸 수 없다
      * (선생님 지적 2026-09-29 요약문 빈칸). 낱말 밖의 따옴표만 걷어 낸다.
      */
-    .replace(/([A-Za-z])[’'ʼ]([A-Za-z])/g, "$1$2")
-    .replace(/[“”‘’"'`]/g, "")
-    .replace(//g, "’")
+    .replace(/[“”‘’"'`ʼ]/g, (mark, at: number, whole: string) => {
+      const before = whole[at - 1] ?? "";
+      const after = whole[at + 1] ?? "";
+      return /[A-Za-z]/.test(before) && /[A-Za-z]/.test(after) ? "’" : "";
+    })
     .replace(/[.,!?;:()[\]{}…—–-]/g, " ")
     .split(/\s+/)
     .map((w) => w.trim())
