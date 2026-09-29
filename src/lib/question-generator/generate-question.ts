@@ -18,6 +18,7 @@ import {
   pickGrammarFocus,
 } from "@/lib/question-generator/grammar-catalog";
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
+import { relabelOrderQuestion } from "@/lib/question-generator/order-relabel";
 import { findAingkaOption } from "@/lib/question-generator/question-types";
 import {
   cleanQuestionText,
@@ -1995,6 +1996,33 @@ export async function generateOneQuestion(opts: {
     passage,
     forcedInstruction
   );
+
+  /*
+   * 순서추론: 정답이 (A)-(B)-(C)로 나오면 라벨을 돌려 준다.
+   * 글을 자르고 이름표만 차례대로 붙인 것이라 ①만 찍어도 맞던 것을 막는다.
+   * 자세한 사정은 order-relabel.ts에 적었다.
+   */
+  if (
+    option.type === "order" &&
+    payload.passageModified &&
+    Array.isArray(payload.choices) &&
+    payload.choices.length >= 2
+  ) {
+    const answerNo = Number(payload.correctAnswer);
+    if (Number.isFinite(answerNo) && answerNo >= 1) {
+      const fixed = relabelOrderQuestion({
+        passageModified: payload.passageModified,
+        choices: payload.choices,
+        correctAnswer: answerNo,
+        explanation: payload.explanation || "",
+      });
+      if (fixed.changed) {
+        payload.passageModified = fixed.passageModified;
+        payload.choices = fixed.choices;
+        payload.explanation = fixed.explanation;
+      }
+    }
+  }
   const shapeError = assertBasicQuestionShape(
     payload,
     option,
