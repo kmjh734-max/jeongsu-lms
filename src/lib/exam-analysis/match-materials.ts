@@ -47,6 +47,81 @@ function bestMatches(
   return result;
 }
 
+/**
+ * 바꿔 쓴 지문을 고유명사로 잡는다.
+ *
+ * 선생님과 함께 살펴보니(2026-09-30) 학교가 교과서 지문을 다시 써서 내는 일이
+ * 있다. 「wanted to experiment with how easily one can manipulate public opinion」이
+ * 시험지에서는 「wanted to see how easy people could influence public opinion」이 된다.
+ * 다섯 낱말 묶음으로는 하나도 안 겹쳐 출처를 못 단다.
+ *
+ * 고유명사는 바꿔 써도 남는다. 교과서 모음 전체에서 세 지문 이하에만 나오는
+ * 낱말(Oobah·Butler 같은 것)이 두 개 넘게 한 지문에 몰리면 같은 글로 본다.
+ *
+ * 다만 낱말만 보면 같은 인물을 다루는 <b>다른 글</b>이 걸린다. 일곱 건을 짚어 보니
+ * 넷이 그랬다 — Carol Dweck을 말하는 교과서 대화문과 시험지 설명글이 엮이는 식이다.
+ * 그래서 세 낱말 묶음도 12% 넘게 겹칠 때만 인정한다. 맞는 것은 18%였고 엮인 넷은
+ * 0~5%여서 이 선에서 갈린다.
+ */
+const RARE_MAX_DOCS = 3;
+const MIN_RARE_HITS = 2;
+const MIN_TRIGRAM = 0.12;
+
+type ParaphrasePool = {
+  id: string;
+  label: string;
+  rare: Set<string>;
+  three: Set<string>;
+};
+
+function buildParaphrasePool(
+  rows: { id: string; label: string; text: string }[]
+): ParaphrasePool[] {
+  const docFreq = new Map<string, number>();
+  const wordSets = rows.map((r) => {
+    const set = new Set(words(r.text).filter((w) => w.length >= 4));
+    for (const w of set) docFreq.set(w, (docFreq.get(w) ?? 0) + 1);
+    return set;
+  });
+  return rows.map((r, i) => ({
+    id: r.id,
+    label: r.label,
+    rare: new Set([...wordSets[i]!].filter((w) => (docFreq.get(w) ?? 0) <= RARE_MAX_DOCS)),
+    three: new Set(shingles(words(r.text), 3)),
+  }));
+}
+
+/** 드문 낱말이 으뜸으로 몰리고 세 낱말 묶음도 겹치면 같은 지문으로 본다 */
+function bestParaphraseMatch(
+  pool: ParaphrasePool[],
+  excerpt: string,
+  rareWords: Set<string>
+): { id: string; label: string } | null {
+  const ws = words(excerpt);
+  const mine = [...new Set(ws.filter((w) => w.length >= 4 && rareWords.has(w)))];
+  if (mine.length < MIN_RARE_HITS) return null;
+  const tri = shingles(ws, 3);
+  if (tri.length === 0) return null;
+
+  let best: { id: string; label: string; hits: number; tri: number } | null = null;
+  let second = 0;
+  for (const m of pool) {
+    let hits = 0;
+    for (const w of mine) if (m.rare.has(w)) hits++;
+    if (!best || hits > best.hits) {
+      second = best?.hits ?? 0;
+      let t = 0;
+      for (const g of tri) if (m.three.has(g)) t++;
+      best = { id: m.id, label: m.label, hits, tri: t / tri.length };
+    } else if (hits > second) {
+      second = hits;
+    }
+  }
+  if (!best || best.hits < MIN_RARE_HITS || best.hits <= second) return null;
+  if (best.tri < MIN_TRIGRAM) return null;
+  return { id: best.id, label: best.label };
+}
+
 export async function matchLessonMaterials(
   admin: SupabaseClient,
   academyId: string,
@@ -106,6 +181,27 @@ export async function matchTextbookPassages(
   }));
   const out = new Map<string, { textbookId: string; label: string }>();
   for (const [k, v] of bestMatches(pool, excerpts)) out.set(k, { textbookId: v.id, label: v.label });
+
+  /*
+   * 글자로 못 잡은 것은 고유명사로 한 번 더 본다 — 학교가 지문을 바꿔 써서 내는
+   * 일이 있다. 자세한 사정은 bestParaphraseMatch에 적었다.
+   */
+  const left = excerpts.filter((e) => !out.has(e.key) && e.excerpt && words(e.excerpt).length >= 8);
+  if (left.length > 0) {
+    const paraPool = buildParaphrasePool(
+      rows.map((m) => ({
+        id: m.id,
+        label: `${m.publisher} ${m.subject} ${m.lesson} ${m.part}`,
+        text: String(m.english_text ?? ""),
+      }))
+    );
+    const rareWords = new Set<string>();
+    for (const p of paraPool) for (const w of p.rare) rareWords.add(w);
+    for (const e of left) {
+      const hit = bestParaphraseMatch(paraPool, e.excerpt!, rareWords);
+      if (hit) out.set(e.key, { textbookId: hit.id, label: hit.label });
+    }
+  }
   return out;
 }
 
