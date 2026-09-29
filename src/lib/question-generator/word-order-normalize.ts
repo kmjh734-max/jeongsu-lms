@@ -410,7 +410,20 @@ export function tokenizeAnswerPhrase(answer: string): string[] {
       const after = whole[at + 1] ?? "";
       return /[A-Za-z]/.test(before) && /[A-Za-z]/.test(after) ? "’" : "";
     })
-    .replace(/[.,!?;:()[\]{}…—–-]/g, " ")
+    /*
+     * 낱말 안의 붙임표도 살린다 — hip-hop이 hip과 hop으로 갈라지면 <보기>에 둘로
+     * 나와서 붙여 쓸 길이 없고, 조건의 낱말 수와도 어긋난다.
+     *
+     * 선생님과 함께 전수조사(2026-09-29): 제시어배열어형변화 9월분 152문항 가운데
+     * 여섯 개가 그랬다. English-speaking·self-worth·hip-hop이 갈라져 있었다.
+     * 긴 줄표(— –)는 낱말 사이를 가르는 것이므로 그대로 공백으로 둔다.
+     */
+    .replace(/-/g, (mark, at: number, whole: string) => {
+      const before = whole[at - 1] ?? "";
+      const after = whole[at + 1] ?? "";
+      return /[A-Za-z]/.test(before) && /[A-Za-z]/.test(after) ? "-" : " ";
+    })
+    .replace(/[.,!?;:()[\]{}…—–]/g, " ")
     .split(/\s+/)
     .map((w) => w.trim())
     .filter((w) => w.length > 0 && /[A-Za-z]/.test(w));
