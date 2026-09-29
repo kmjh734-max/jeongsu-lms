@@ -38,6 +38,7 @@ import {
 } from "@/lib/vocab/student-study-writes";
 import { ensureExamCompactStageSkip } from "@/lib/question-generator/exam-vocab";
 import type { VocabItem } from "@/types/database";
+import { recordVocabWrong } from "@/lib/vocab/review";
 
 /*
  * 학생 단어학습 쓰기는 모두 서버에서만 한다.
@@ -445,6 +446,13 @@ export async function submitStage4(
         ai_feedback: g.aiFeedback,
       }))
     );
+
+  // 종합테스트에서 틀린 단어도 복습 목록으로(뜻 문항이 대부분이라 뜻 단계로 둔다)
+  await recordVocabWrong(
+    admin,
+    studentId,
+    graded.filter((g) => !g.isCorrect).map((g) => ({ itemId: g.itemId, setId, stage: "meaning" as const }))
+  );
 
   if (answersError) {
     console.error("[vocab] stage4 answers insert failed", answersError);

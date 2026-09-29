@@ -12,6 +12,7 @@ import {
   gradeExampleBlankAnswer,
 } from "@/lib/vocab/example-blank";
 import { gradeSpellingAnswer } from "@/lib/vocab/grade-spelling";
+import { recordVocabWrong } from "@/lib/vocab/review";
 import { loadStageProgress } from "@/lib/vocab/load-stage-progress";
 import { isStudentAssignedToVocabSet } from "@/lib/vocab/student-assignment";
 import type { VocabItem } from "@/types/database";
@@ -292,6 +293,13 @@ export async function recordStage2Batch(
     console.error("[vocab] stage2 attempts insert failed", error);
     return actionError("저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.");
   }
+
+  // 틀린 철자는 복습 목록으로 — 이 단계에서는 결국 다 맞혀야 넘어가므로 기록이 여기밖에 없다
+  await recordVocabWrong(
+    admin,
+    studentId,
+    inserts.filter((r) => !r.is_correct).map((r) => ({ itemId: r.item_id, setId, stage: "spelling" as const }))
+  );
   return actionSuccess("기록했어요.");
 }
 
@@ -350,5 +358,12 @@ export async function recordStage3Batch(
     console.error("[vocab] stage3 attempts insert failed", error);
     return actionError("저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.");
   }
+
+  // 틀린 예문 빈칸도 복습 목록으로
+  await recordVocabWrong(
+    admin,
+    studentId,
+    inserts.filter((r) => !r.is_correct).map((r) => ({ itemId: r.item_id, setId, stage: "example" as const }))
+  );
   return actionSuccess("기록했어요.");
 }
