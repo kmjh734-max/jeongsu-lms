@@ -213,6 +213,15 @@ export function WorkbookCreateModal({
     if (readySelected.includes("vocab_choice") || readySelected.includes("vocab_fix"))
       paid.push({ feature: "lesson_workbook_vocab_choice", quantity: n });
     if (readySelected.includes("tf")) paid.push({ feature: "lesson_workbook_tf", quantity: n });
+    // 한 줄 해석·전체 영작·제시어 배열도 모델을 부른다(2026-09-29부터 값을 받는다)
+    if (
+      readySelected.includes("one_line_ko") ||
+      readySelected.includes("full_en_writing") ||
+      readySelected.includes("word_order_writing")
+    )
+      paid.push({ feature: "lesson_workbook_line_translation", quantity: n });
+    if (readySelected.includes("word_order_writing"))
+      paid.push({ feature: "lesson_workbook_word_order", quantity: n });
     setAsking(true);
     const go = await askCreditConfirm({
       title: "워크북",

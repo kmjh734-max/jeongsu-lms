@@ -284,6 +284,50 @@ export async function generateWorkbookAction(
   };
   const workbookId = `${workbook.metadata.title}|${workbook.metadata.createdAt}`;
 
+  /*
+   * 선생님 지적(2026-09-29): "API를 쓰는 곳은 모두 크레딧을 쓰도록 해야 해."
+   * 한 줄 해석·전체 영작·제시어 배열 영작은 「값이 들지 않는 갈래」로 두었는데
+   * 실제로는 모델을 부른다. 값을 먼저 잡아 두고 만든다.
+   */
+  const extraHolds: Array<{ amount: number; what: string }> = [];
+  for (const [want, feature, what] of [
+    [wantBilingual, LESSON_CREDIT_FEATURES.workbookLineTranslation, "한 줄 해석·전체 영작"],
+    [wantWordOrder, LESSON_CREDIT_FEATURES.workbookWordOrder, "제시어 배열 영작"],
+  ] as const) {
+    if (!want) continue;
+    const hold = await reserveLessonCredits({
+      academyId: profile!.academy_id!,
+      actorId: profile!.id,
+      featureKey: feature,
+      quantity: passages.length,
+      metadata: { used_for: "workbook" },
+      note: `워크북 ${what} · 지문 ${passages.length}개`,
+    });
+    if (!hold.ok) {
+      for (const h of extraHolds) {
+        await refundLessonCredits({
+          academyId: profile!.academy_id!,
+          actorId: profile!.id,
+          amount: h.amount,
+          note: `워크북을 만들지 못해 되돌림 (${h.what})`,
+        });
+      }
+      return { ok: false, message: hold.message };
+    }
+    extraHolds.push({ amount: hold.charged, what });
+  }
+  const giveBackExtras = async (why: string) => {
+    for (const h of extraHolds) {
+      await refundLessonCredits({
+        academyId: profile!.academy_id!,
+        actorId: profile!.id,
+        amount: h.amount,
+        note: `워크북 ${h.what}을 만들지 못해 되돌림 (${why})`,
+      });
+    }
+    extraHolds.length = 0;
+  };
+
   try {
     let openAiFromBlank = 0;
     let openAiFromGrammar = 0;
@@ -690,6 +734,7 @@ export async function generateWorkbookAction(
 
     return { ok: true, workbook };
   } catch (e) {
+    await giveBackExtras("만들기 실패");
     const code =
       e && typeof e === "object" && "code" in e
         ? String((e as { code?: string }).code)

@@ -32,6 +32,12 @@ export const LESSON_CREDIT_FEATURES = {
   onePageSummary: "lesson_one_page_summary",
   /** 1장 테스트, 지문당 */
   onePageTest: "lesson_one_page_test",
+  /** 워크북 제시어 배열 영작, 지문당 */
+  workbookWordOrder: "lesson_workbook_word_order",
+  /** 워크북 한 줄 해석·전체 영작, 지문당 */
+  workbookLineTranslation: "lesson_workbook_line_translation",
+  /** 문장 해석 다시 만들기(자료함), 지문당 */
+  lineTranslate: "lesson_line_translate",
 } as const;
 
 export type LessonCreditFeature =
