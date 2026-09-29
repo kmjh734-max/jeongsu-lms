@@ -108,7 +108,8 @@ const GRAMMAR_SECTION = `어법은 두 걸음으로 만든다. scan을 먼저 �
 - structure: 그 문장의 구조를 한 줄로. 예) 주절: they(S) have seen(V) the kind(O) // 관계사절: we(S') have seen(V') bring about(C')
 - hard: 1~5. 고등학생이 실제로 틀릴 만한 정도. 구조를 봐야 풀리면 높고, 형태만 봐도 풀리면 낮다.
 - why: 무엇을 알아야 이 자리를 가릴 수 있는지 한국어 한 줄(20~40자).
-8~14개를 적는다. 한 문장에 최대 2개. 같은 원리가 되풀이되면 대표 하나만.
+이번에 받은 문장에서만, 문장마다 많아야 2개씩 적는다. 같은 원리가 되풀이되면 대표 하나만.
+scan은 고르기 위한 메모다 — 짧게 적고, 없으면 적지 않는다.
 
 [grammar] 2차 — scan에 적은 것 가운데 내신 어법 선택·수정 문제로 그대로 낼 수 있는 자리만 고른다
 hard가 큰 것부터 본다. code는 아래 GRAMMAR_RULES에 있는 것만 쓴다.
@@ -121,7 +122,7 @@ hard가 큰 것부터 본다. code는 아래 GRAMMAR_RULES에 있는 것만 쓴�
 3) 답을 정하는 근거가 같은 문장 안에 드러나 있어야 한다.
 4) 주어가 동사 바로 앞에 있는 인칭·수 일치(I am, you need, they feel, Humans enjoy, There are)는 시험에 나오지 않는다. 수일치는 주어와 동사 사이에 수식어구·관계절이 끼어 있을 때만 낸다.
 5) code가 말하는 원리와 실제로 묻는 원리가 같아야 한다. 전치사 뒤 V-ing를 분사·분사구문 코드로 내지 않는다.
-- 6~9개를 낸다. 검수에서 걸러지므로 넉넉히 내되, hard가 낮은 것으로 개수를 채우지는 않는다.
+- 아래에 적힌 개수만큼 낸다. 검수에서 걸러지므로 넉넉히 내되, hard가 낮은 것으로 개수를 채우지는 않는다.
   조건 1~5를 지키는 자리가 그만큼 없으면 있는 만큼만 낸다.
 - from: 그 자리가 나온 scan 항목의 번호(1부터 센다).
 - hard: scan에 적은 값 그대로.
@@ -285,6 +286,11 @@ const EXAM_SCHEMA = obj({
 });
 
 const GRAMMAR_SCHEMA = obj({ scan: GRAMMAR_SCAN_SCHEMA, grammar: GRAMMAR_ITEMS_SCHEMA });
+/*
+ * 보충은 이미 훑어 둔 자리를 메우는 호출이라 1차 메모(scan)를 다시 받을 까닭이 없다.
+ * 그 메모가 답을 길게 만들고, 보충은 맨 뒤에 붙는 시간이다(2026-09-29 속도 손질).
+ */
+const GRAMMAR_REFILL_SCHEMA = obj({ grammar: GRAMMAR_ITEMS_SCHEMA });
 
 const WORDS_SCHEMA = obj({ vocab: VOCAB_SCHEMA });
 
@@ -381,9 +387,14 @@ const MAX_VOCAB = 12;
  * 호출 횟수는 그대로이고, 조각마다 3개씩 묻던 것을 4개씩 묻게 된다.
  * 기준을 낮춰 개수를 채우면 2026-09-20에 지적받은 "안 나올 자리가 섞인다"로 돌아간다.
  */
-const GRAMMAR_CANDIDATES = 16;
+/*
+ * 2026-09-29 속도 손질: scan 메모를 조각 크기에 맞춰 짧게 줄인 만큼 후보를 조금 늘린다.
+ * 조각 호출은 서로 병렬이라 여기서 늘어난 시간은 맨 뒤에 붙지 않는다. 대신 검수를
+ * 통과한 자리가 늘어 보충 호출 자체가 덜 걸린다(그쪽이 꼬리에 붙는 시간이다).
+ */
+const GRAMMAR_CANDIDATES = 20;
 /** 보충(모자란 어법을 더 뽑는 호출)을 기다리는 한도. 늦으면 있는 것으로 만든다. */
-const SPARE_DEADLINE_MS = 40_000;
+const SPARE_DEADLINE_MS = 26_000;
 /**
  * 어법 조각 하나(만들기+검수)를 기다리는 한도. 대개 25~40초에 돌아오는데 한 조각이 70초 넘게
  * 끄는 일이 있어, 그런 조각만 끊고 나머지로 만든다(조각은 서로 기다리지 않는다).
@@ -1341,12 +1352,12 @@ async function refillMaterial(input: {
 
 이미 쓴 ${kind === "grammar" ? "어법 자리" : "낱말"}: ${JSON.stringify(used)}
 이것들과 겹치지 않는 것을, no가 ${part.from}~${part.to}인 문장에서만 ${part.ask}개 더 골라라.${
-          kind === "grammar" ? " 두 형태가 다 맞는 자리는 넣지 마라." : ""
+          kind === "grammar" ? " 두 형태가 다 맞는 자리는 넣지 마라. 이번에는 scan을 적지 말고 grammar만 낸다." : ""
         }`;
         const res = await requestContent(input.apiKey, user, input.signal, {
           system: kind === "grammar" ? GRAMMAR_PROMPT : WORDS_PROMPT,
           schemaName: kind === "grammar" ? "one_page_grammar" : "one_page_words",
-          schema: (kind === "grammar" ? GRAMMAR_SCHEMA : WORDS_SCHEMA) as unknown as Record<string, unknown>,
+          schema: (kind === "grammar" ? GRAMMAR_REFILL_SCHEMA : WORDS_SCHEMA) as unknown as Record<string, unknown>,
           effort: kind === "grammar" ? "low" : "minimal",
         });
         input.usage.inputTokens += res.usage.inputTokens;
@@ -1717,8 +1728,11 @@ export async function generateOnePageContent(input: {
      * 나눠 동시에 부르고, 늦으면 끊고 있는 것으로 만든다.
      */
     const sparePromise = Promise.all(grammarChunks.map((c) => c.picked)).then((lists) => {
-      // 한 장이 텅 빌 만큼 적을 때만 부른다. 한둘 모자란 정도로 부르면 기다리는 시간만 늘었다.
-      if (lists.flat().length >= MIN_GRAMMAR) return { grammar: [] as OnePageGrammarPoint[] };
+      /*
+       * 검수에서 한둘은 버려지므로, 뽑은 수가 실을 수보다 두 개쯤 많지 않으면 미리 띄운다.
+       * 이 호출은 검수·채점과 겹쳐 도니 맨 뒤에 붙는 시간이 아니다(2026-09-29 속도 손질).
+       */
+      if (lists.flat().length >= MIN_GRAMMAR + 2) return { grammar: [] as OnePageGrammarPoint[] };
       const spareAbort = new AbortController();
       const stop = () => spareAbort.abort();
       controller.signal.addEventListener("abort", stop);
@@ -1732,7 +1746,7 @@ export async function generateOnePageContent(input: {
           grammar: lists.flat(),
           vocab: [],
           dropped: { targets: [], words: [] },
-          need: { grammar: 3, vocab: 0 },
+          need: { grammar: Math.max(3, MIN_GRAMMAR + 2 - lists.flat().length), vocab: 0 },
           signal: spareAbort.signal,
           usage,
         })
@@ -1798,6 +1812,43 @@ export async function generateOnePageContent(input: {
       })
     );
 
+    /*
+     * 모자란 어법을 채우는 보충을 어법 검수가 끝나는 대로 띄운다.
+     *
+     * 앞서는 이것을 채점 바로 앞에 두었는데, 그 자리는 위 Promise.all이 <b>모두</b> 끝난
+     * 뒤였다. 같이 띄워 둔 보충(spare)이 40초를 쓰면 그만큼 늦게 시작해, 결국 통째로
+     * 맨 뒤에 붙었다(2026-09-29 실측 114초). 어법 검수만 끝나면 몇 개가 모자란지 알 수
+     * 있으니, 다른 갈래를 기다리지 않고 여기서 바로 부른다.
+     */
+    const tailRefill = grammarPromise.then((parts) => {
+      const verified = parts.flatMap((p) => p.grammar);
+      /*
+       * 채점에서 또 한둘이 떨어지므로, 검수를 통과한 수만 보고 딱 맞게 부르면 모자란다.
+       * 모자랄 때는 넉넉히(둘 이상) 가져온다 — 어차피 한 번만 부르는 호출이다.
+       */
+      if (verified.length >= MIN_GRAMMAR + 2) {
+        return { grammar: [] as OnePageGrammarPoint[], vocab: [] as OnePageVocabNote[] };
+      }
+      const need = Math.max(2, MIN_GRAMMAR + 2 - verified.length);
+      return refillMaterial({
+        apiKey,
+        baseUser,
+        sentences,
+        grammar: verified,
+        vocab: [],
+        dropped: {
+          targets: parts
+            .flatMap((p) => p.picked)
+            .filter((g) => !verified.some((k) => k.target === g.target))
+            .map((g) => g.target),
+          words: [],
+        },
+        need: { grammar: need, vocab: 0 },
+        signal: controller.signal,
+        usage,
+      }).catch(() => ({ grammar: [] as OnePageGrammarPoint[], vocab: [] as OnePageVocabNote[] }));
+    });
+
     const [{ checked: core, verified: translated }, vocabDone, grammarParts, referenceDone, spare] =
       await Promise.all([corePipeline, vocabPromise, grammarPromise, referencePromise, sparePromise]);
 
@@ -1833,7 +1884,14 @@ export async function generateOnePageContent(input: {
         seen.add(key);
         return true;
       });
-      return [...first, ...ranked.filter((x) => !first.includes(x))].slice(0, max);
+      const chosen = [...first, ...ranked.filter((x) => !first.includes(x))].slice(0, max);
+      /*
+       * 어려움 1짜리(형태만 보면 풀리는 자리)는 개수를 채울 때만 쓴다.
+       * 선생님 지적(2026-09-29): "그냥 그런 게 섞인다." 뒤에서부터 덜어내되
+       * 실을 최소(5)는 지킨다.
+       */
+      while (chosen.length > MIN_GRAMMAR && hardOf(chosen[chosen.length - 1]!) <= 1) chosen.pop();
+      return chosen;
     };
     // 검수에서 버려진 자리는 같이 띄워 둔 보충에서 겹치지 않는 것으로 메운다.
     const verifiedGrammar = grammarParts.flatMap((p) => p.grammar);
@@ -1863,33 +1921,35 @@ export async function generateOnePageContent(input: {
     let grammar = spread(gradedGrammar, MAX_GRAMMAR);
     let vocab = vocabDone.vocab.slice(0, MAX_VOCAB);
 
-    /**
-     * 마지막 보충은 한 장이 텅 빌 때만 한다(선생님 지적: 느리다). 여기서 부르는 시간은 통째로
-     * 맨 뒤에 붙으므로, 어법이 한둘 모자란 정도면 있는 것으로 만든다.
-     */
-    if (grammar.length < MIN_GRAMMAR || vocab.length < MIN_VOCAB - 2) {
+    // 검수 직후에 띄워 둔 보충을 여기서 받는다. 어법이 찼으면 기다리지 않는다.
+    if (grammar.length < MIN_GRAMMAR) {
+      const at = Date.now();
+      const more = await tailRefill;
+      const has = new Set(grammar.map((g) => `${g.sentenceIndex}|${g.target.toLowerCase()}`));
+      const add = more.grammar.filter((g) => !has.has(`${g.sentenceIndex}|${g.target.toLowerCase()}`));
+      if (add.length) notes.push(`어법 ${add.length}개 더 뽑음`);
+      grammar = [...grammar, ...add].slice(0, MAX_GRAMMAR);
+      lap.push(`어법 보충 ${seconds(at)}초`);
+    }
+    if (vocab.length < MIN_VOCAB - 2) {
       const at = Date.now();
       const more = await refillMaterial({
         apiKey,
         baseUser,
         sentences,
-        grammar,
+        grammar: [],
         vocab,
         dropped: {
-          targets: grammarParts
-            .flatMap((p) => p.picked)
-            .filter((g) => !grammar.some((k) => k.target === g.target))
-            .map((g) => g.target),
+          targets: [],
           words: vocabDone.picked.filter((v) => !vocab.some((k) => k.surface === v.surface)).map((v) => v.surface),
         },
+        need: { grammar: 0, vocab: MIN_VOCAB - vocab.length },
         signal: controller.signal,
         usage,
       });
-      if (more.grammar.length) notes.push(`어법 ${more.grammar.length}개 더 뽑음`);
       if (more.vocab.length) notes.push(`낱말 ${more.vocab.length}개 더 뽑음`);
-      grammar = [...grammar, ...more.grammar].slice(0, MAX_GRAMMAR);
       vocab = [...vocab, ...more.vocab].slice(0, MAX_VOCAB);
-      lap.push(`보충 ${seconds(at)}초`);
+      lap.push(`낱말 보충 ${seconds(at)}초`);
     }
 
     notes.unshift(`전체 ${seconds(startedAt)}초(${lap.join(", ")})`);
