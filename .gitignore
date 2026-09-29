@@ -41,3 +41,14 @@ next-env.d.ts
 
 # 선생님 참고 교재(저작권 자료) - 커밋하지 않는다
 /참고파일/
+.claude/settings.local.json
+
+# 파이썬 캐시
+__pycache__/
+*.pyc
+
+# 듣기 세트 그림 원본(용량이 크고 업로드하면 DB에 들어간다)
+/scripts/listening-build/figs/
+
+# 한 번 쓰고 버리는 작업 스크립트
+/scripts/tmp-rv/
