@@ -63,10 +63,17 @@ def usable(answer, q=None):
     if GARBLED.search(t):
         return False
 
-    # ①~⑤ 중에 고르는 문항이면 답도 번호여야 한다
+    # ①~⑤ 중에 고르는 문항이면 답도 번호여야 하고, 보기 수를 넘어서도 안 된다
     only_no = bool(ONLY_NO.match(t))
     if MANY_CHOICE.search(text):
-        return only_no
+        if not only_no:
+            return False
+        many = len(re.findall(r"[①-⑩]", text))
+        for piece in re.findall(r"[1-9①-⑩]", t):
+            got = int(piece) if piece.isdigit() else ord(piece) - 0x2460 + 1
+            if got > many:
+                return False
+        return True
     if only_no:
         return True
 

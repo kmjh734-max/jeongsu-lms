@@ -35,16 +35,53 @@ SOURCES = [
 PICK = re.compile(r"\[([^\[\]]+?)\]")
 
 
+CIRCLED = re.compile(r"[①-⑩]")
+
+
+def split_choices(text):
+    """①~⑤ 로 갈린 문항을 본문과 보기로 가른다.
+
+    「다음 중 어법상 틀린 문장은?」처럼 고르는 문항은 보기를 따로 두어야
+    화면에 한 줄씩 나온다.
+    """
+    marks = list(CIRCLED.finditer(text))
+    if len(marks) < 2:
+        return [text], []
+    stem = text[:marks[0].start()].strip()
+    picks = []
+    for n, m in enumerate(marks):
+        end = marks[n + 1].start() if n + 1 < len(marks) else len(text)
+        picks.append(text[m.end():end].strip())
+    return ([stem] if stem else []), [p for p in picks if p]
+
+
+MARKERS = "①②③④⑤"
+
+
+def mark_answer(answer, choices):
+    """고르는 문항의 답을 동그라미 번호로 맞춘다 (3 → ③).
+
+    변형을 만드는 쪽이 동그라미 번호로 답의 자리를 읽으므로 꼴을 맞춰 둔다.
+    """
+    t = str(answer or "").strip()
+    if not choices or t in MARKERS:
+        return t
+    if t.isdigit() and 1 <= int(t) <= len(choices) and int(t) <= 5:
+        return MARKERS[int(t) - 1]
+    return t
+
+
 def from_gq(q, book):
     """그래머큐 — 지시문 하나에 문장 하나. 고를 것은 문장 안 [A / B] 에 있다."""
+    body, choices = split_choices(q["text"])
     return {
         "kind": "PRACTICE",
-        "question_kind": q.get("question_kind") or "단답·서술",
+        "question_kind": ("객관식" if choices else (q.get("question_kind") or "단답·서술")),
         "badges": [],
         "prompt": q.get("instruction") or "",
-        "body": [q["text"]],
-        "choices": [],
-        "answer": q.get("answer"),
+        "body": body,
+        "choices": choices,
+        "answer": mark_answer(q.get("answer"), choices),
         "explanation": None,
         "chapter_title": q.get("chapter"),
     }
