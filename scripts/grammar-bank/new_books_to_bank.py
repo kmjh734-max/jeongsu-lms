@@ -113,6 +113,15 @@ def main(dst):
             print("  %-26s 건너뜀 (파일 없음)" % book, file=log)
             continue
         got = json.loads(path.read_text(encoding="utf-8"))
+        # 답을 붙인 비율이 터무니없이 낮으면 그 교재의 정답지를 잘못 읽은 것이다.
+        # 몇 개 건지려고 넣으면 어긋난 답이 은행에 섞인다.
+        whole = OUT / fname.replace("-matched", "")
+        if whole.exists():
+            total = len(json.loads(whole.read_text(encoding="utf-8")))
+            if total and len(got) < total * 0.05:
+                print("  %-26s 넣지 않음 (답 붙은 것이 %d/%d — 정답지를 잘못 읽었다)"
+                      % (book, len(got), total), file=log)
+                continue
         made = 0
         for i, q in enumerate(got, 1):
             row = from_gq(q, book) if kind == "gq" else from_jp(q, book)
