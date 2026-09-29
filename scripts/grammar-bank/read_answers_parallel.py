@@ -43,8 +43,11 @@ def main(at_once=3, threads=4):
         while todo and len(live) < at_once:
             key, name = todo.pop(0)
             box = OUT / ("%s-box.json" % key)
+            # 몇 쪽까지 읽었는지 따로 적어 둔다 — 오래 걸리는 일이라 눈으로 볼 길이 있어야 한다
+            trail = open(str(OUT / ("%s-읽는중.log" % key)), "w", encoding="utf-8")
             proc = subprocess.Popen([PY, str(HERE / "gq_answers_ocr.py"), str(SRC / name), str(box)],
-                                    stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, env=env)
+                                    stdout=trail, stderr=subprocess.PIPE, env=env)
+            proc._trail = trail
             live.append((key, proc))
             print("  시작 %s" % key, file=log, flush=True)
         done = []
@@ -52,6 +55,7 @@ def main(at_once=3, threads=4):
             if proc.poll() is None:
                 continue
             done.append((key, proc))
+            getattr(proc, "_trail", None) and proc._trail.close()
             err = (proc.stderr.read() or b"").decode("utf-8", "replace")[-300:]
             mark = "끝" if proc.returncode == 0 else "실패 " + err
             print("  %s %s (%.0f분째)" % (key, mark, (time.time() - t0) / 60), file=log, flush=True)
