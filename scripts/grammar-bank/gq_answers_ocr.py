@@ -174,7 +174,13 @@ def cuts(page, rect):
 
     for c in out:
         c["run"].sort(key=lambda a: (round(a["y"] / ROW), a["x"]))
-    return [c for c in out if c["run"]], [g["y"] for g in clump(labels)]
+    # STEP 표시 자리 — 번호를 읽어 실제 STEP 번호로 바꿔 쓴다.
+    # 한 상자가 STEP 3·4·5 를 담기도 하므로 차례로 1·2·3 을 매기면 어긋난다.
+    label_rects = []
+    for g in clump(labels):
+        label_rects.append({"y": g["y"], "rect": fitz.Rect(rect.x0 - 1, g["y"] - 3,
+                                                           rect.x0 + 34, g["y"] + 12)})
+    return [c for c in out if c["run"]], label_rects
 
 
 BRACKET = re.compile(r"(?<=[A-Za-z])l(?=[A-Za-z'’]{1,10}\])")
@@ -198,8 +204,10 @@ def read_crop(reader, page, rect, dpi=None):
     if dpi is None:
         dpi = DPI if rect.width > 40 else (600 if rect.width > 14 else 900)
     if rect.width < 40:
+        # 위아래·오른쪽만 넉넉히 둔다. 왼쪽을 넓히면 바로 옆 문항 번호가 딸려 들어와
+        # "2 she" 처럼 답에 번호가 섞인다.
         pad = max(2.0, rect.width * 0.35)
-        rect = fitz.Rect(rect.x0 - pad, rect.y0 - pad, rect.x1 + pad, rect.y1 + pad)
+        rect = fitz.Rect(rect.x0 - 0.8, rect.y0 - pad, rect.x1 + pad, rect.y1 + pad)
     png = page.get_pixmap(dpi=dpi, clip=rect).tobytes("png")
     got = reader.readtext(png, detail=1, paragraph=False)
     got.sort(key=lambda r: (min(p[1] for p in r[0]) // 40, min(p[0] for p in r[0])))
@@ -261,8 +269,16 @@ def run(pdf_path, out_path):
             head_rect = fitz.Rect(rect.x0 - 14, max(0, rect.y0 - 95), rect.x1 + 70, rect.y0)
             head, _ = read_crop(reader, page, head_rect, dpi=600)
             pieces = []
-            got, _labels = cuts(page, rect)
+            got, label_rects = cuts(page, rect)
+            # 상자에 적힌 STEP 번호를 읽어 띠 번호를 바로잡는다
+            real = {}
+            for i, lab in enumerate(label_rects, start=1):
+                text, _score = read_crop(reader, page, lab["rect"], dpi=600)
+                # 잘라 낸 자리에 옆 답이 딸려 오므로("24 STCP 2"), STEP 뒤의 숫자만 본다
+                hit = re.search(r"S[TICL][CEI]?P\s*(\d{1,2})", text, re.I)
+                real[i] = int(hit.group(1)) if hit else i
             for c in got:
+                c["step"] = real.get(c["step"], c["step"])
                 text, score = run_text(reader, page, c["run"], cache)
                 if text:
                     pieces.append({"step": c["step"], "no": c["no"],

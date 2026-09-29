@@ -18,6 +18,21 @@ def norm(s):
     return re.sub(r"[^a-z0-9가-힣○×]", "", str(s).lower())
 
 
+# 답 앞에 문항 번호가 딸려 들어온 꼴 ("2 she", "8 we") — 떼어 낸다
+LEAD_NO = re.compile(r"^\s*\d{1,2}\s+(?=[A-Za-z가-힣○×(])")
+
+
+def clean_answer(text, no):
+    t = str(text or "").strip()
+    hit = LEAD_NO.match(t)
+    if hit:
+        # 그 번호가 이 문항의 번호이거나 바로 앞뒤 번호일 때만 뗀다
+        got = int(t.split()[0])
+        if abs(got - int(no)) <= 1:
+            t = t[hit.end():].strip()
+    return t
+
+
 def in_choices(answer, picks):
     if not picks:
         return True
@@ -68,6 +83,13 @@ def main(q_path, a_path, out_path, bad_path=None):
     for q in questions:
         by_page[q["printed_page"]].append(q)
 
+    # 머리말에서 잘못 읽은 쪽을 버린다. 본책에 문항이 있는 쪽만 쓸 수 있다
+    # (작은 글씨를 잘못 읽어 p.1·2·3 처럼 엉뚱한 쪽이 나오기도 한다).
+    real = {q["printed_page"] for q in questions if q.get("printed_page")}
+    for b in blocks:
+        if b["book_pages"] and not any(p in real for p in b["book_pages"]):
+            b["book_pages"] = []
+
     # 머리말에서 본책 쪽을 못 읽은 상자를 채운다.
     # 본책 쪽마다 "정답 및 해설 p.N" 이 적혀 있으므로, 같은 정답지 쪽에 딸린
     # 본책 쪽들을 차례대로 늘어놓고 쪽을 모르는 상자에 차례로 물려 준다.
@@ -76,25 +98,35 @@ def main(q_path, a_path, out_path, bad_path=None):
     matched, failed = [], []
     for b in blocks:
         pages = b["book_pages"]
-        for step_key, answers in b["steps"].items():
+        for step_key, raw in b["steps"].items():
             step = int(step_key)
+            answers = {str(k): v for k, v in raw.items()}
             items = [q for p in pages for q in by_page.get(p, []) if q["step"] == step]
             items.sort(key=lambda q: (q["printed_page"], q["no"]))
-            got = [answers[k] for k in sorted(answers, key=int)]
+            got = [clean_answer(answers[k], k) for k in sorted(answers, key=int)]
             if not items:
                 failed.append({"pages": pages, "step": step, "문항": 0, "답": len(got),
                                "까닭": "본책에서 그 STEP을 찾지 못함"})
                 continue
-            if len(items) != len(got):
-                failed.append({"pages": pages, "step": step, "문항": len(items), "답": len(got),
-                               "까닭": "개수가 맞지 않음"})
-                continue
-            bad = [i for i, (q, a) in enumerate(zip(items, got)) if not in_choices(a, q["picks"])]
+            # 개수가 딱 맞으면 차례대로, 아니면 문항 번호로 하나씩 맞댄다.
+            # 번호로 맞대면 몇 개가 빠져도 나머지는 살릴 수 있다.
+            if len(items) == len(got):
+                pairs = list(zip(items, got))
+            else:
+                pairs = [(q, clean_answer(answers[str(q["no"])], q["no"]))
+                         for q in items if str(q["no"]) in answers]
+                if len(pairs) < len(items) * 0.6:
+                    failed.append({"pages": pages, "step": step, "문항": len(items), "답": len(got),
+                                   "까닭": "개수가 맞지 않음"})
+                    continue
+            bad = [1 for q, a in pairs if not in_choices(a, q["picks"])]
             if bad:
                 failed.append({"pages": pages, "step": step, "문항": len(items), "답": len(got),
                                "까닭": "고를 것 안에 없는 답 %d개" % len(bad)})
                 continue
-            for q, a in zip(items, got):
+            for q, a in pairs:
+                if not str(a or "").strip():
+                    continue
                 row = dict(q)
                 row["answer"] = a
                 matched.append(row)
