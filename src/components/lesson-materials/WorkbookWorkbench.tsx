@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
+  createContext,
+  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -97,6 +99,57 @@ function TitleNo({ no }: { no: ReactNode }) {
       {no}
       <span className="wb-title-dot">.</span>
     </span>
+  );
+}
+
+/**
+ * 지문 번호(1부터). 선생님 요청(2026-09-30): 지문 제목 대신 번호와 출처로 가른다.
+ * 제목이 곧 답이 되는 지문이 있어 제목은 싣지 않고, 지문끼리는 번호로 구분한다.
+ * 유형 컴포넌트가 열둘이라 값을 일일이 넘기지 않고 자리(context)로 나눠 쓴다.
+ */
+const PassageNoContext = createContext<Record<string, number>>({});
+
+/** "지문 2 · 2026년 9월 고1 20번" — 번호도 출처도 없으면 빈 문자열 */
+function passageTag(no: number | undefined, source: string | null | undefined): string {
+  const src = (source ?? "").trim();
+  const head = no ? `지문 ${no}` : "";
+  if (head && src) return `${head} · ${src}`;
+  return head || src;
+}
+
+/** 지문 위(또는 정답지 제목 옆)에 다는 딱지. 문제지·정답지가 같은 말을 쓰게 한다. */
+function usePassageTag(projectId: string | undefined, source: string | null | undefined): string {
+  const nos = useContext(PassageNoContext);
+  return passageTag(projectId ? nos[projectId] : undefined, source);
+}
+
+/** 정답지 제목 옆에 다는 지문 딱지("1. 한줄해석 · 지문 2 · 2026년 9월 고1 20번") */
+function AnswerTag({ projectId, source }: { projectId?: string; source?: string | null }) {
+  const tag = usePassageTag(projectId, source);
+  return tag ? <> · {tag}</> : null;
+}
+
+/** 지문 위에 다는 한 줄. 달 것이 없으면 자리만 비우거나(spacer) 아무것도 그리지 않는다. */
+function PassageMeta({
+  projectId,
+  source,
+  continued = false,
+  gap = "mb-2",
+  spacer = false,
+}: {
+  projectId?: string;
+  source?: string | null;
+  continued?: boolean;
+  gap?: string;
+  spacer?: boolean;
+}) {
+  const tag = usePassageTag(projectId, source);
+  if (!tag) return spacer ? <div className="mb-3" /> : null;
+  return (
+    <p className={`wb-passage-meta ${gap} text-[12px] font-semibold text-slate-500`}>
+      {tag}
+      {continued ? " (계속)" : ""}
+    </p>
   );
 }
 
@@ -480,19 +533,12 @@ function BlankAnswerBody({ section }: { section: WorkbookBlankSection }) {
 
 function TfQuestionBody({
   section,
-  multi,
 }: {
   section: WorkbookPassageSection;
-  multi: boolean;
 }) {
   return (
     <>
-      {multi ? (
-        <p className="wb-passage-meta mb-2 text-[12px] font-semibold text-slate-500">
-          {section.title}
-          {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
-        </p>
-      ) : null}
+      <PassageMeta projectId={section.projectId} source={section.source} />
       <p className="workbook-passage text-[13px] leading-relaxed text-slate-900">
         {formatWorkbookPassage(section.passage)}
       </p>
@@ -524,17 +570,15 @@ function TfQuestionBody({
 function TfAnswerBody({
   section,
   typeOrder,
-  multi,
 }: {
   section: WorkbookPassageSection;
   typeOrder: number;
-  multi: boolean;
 }) {
   return (
     <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         <TitleNo no={typeOrder} /> T/F 문제
-        {multi ? ` · ${section.title}` : ""}
+        <AnswerTag projectId={section.projectId} source={section.source} />
       </h3>
       <p className="wb-ak-text text-[10.5px] font-semibold text-slate-800">
         {section.items.map((it, i) => (
@@ -550,35 +594,15 @@ function TfAnswerBody({
 
 function GrammarChoiceQuestionBody({
   section,
-  multi,
   instruction = "다음 글의 번호별 선택지에서 문법상 알맞은 표현을 고르세요.",
 }: {
   /** 어법 선택·어휘 선택 모두 같은 모양([A / B])으로 그린다. */
-  section: Pick<WorkbookGrammarChoiceSection, "title" | "source" | "segments">;
-  multi: boolean;
+  section: Pick<WorkbookGrammarChoiceSection, "projectId" | "title" | "source" | "segments">;
   instruction?: string;
 }) {
   return (
     <>
-      {multi ? (
-        <p className="wb-passage-meta mb-2 text-[12px] font-semibold text-slate-500">
-          {section.title}
-          {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
-        </p>
-      ) : (
-        <>
-          <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
-            {section.title}
-          </p>
-          {section.source?.trim() ? (
-            <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
-              · {section.source.trim()}
-            </p>
-          ) : (
-            <div className="mb-3" />
-          )}
-        </>
-      )}
+      <PassageMeta projectId={section.projectId} source={section.source} gap="mb-3" spacer />
       <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">{instruction}</p>
       <p className="grammar-passage text-[13px] text-slate-900">
         {section.segments.map((seg, i) =>
@@ -606,17 +630,15 @@ function GrammarChoiceQuestionBody({
 function GrammarChoiceAnswerBody({
   section,
   typeOrder,
-  multi,
 }: {
   section: WorkbookGrammarChoiceSection;
   typeOrder: number;
-  multi: boolean;
 }) {
   return (
     <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         <TitleNo no={typeOrder} /> 어법 선택
-        {multi ? ` · ${section.title}` : ""}
+        <AnswerTag projectId={section.projectId} source={section.source} />
       </h3>
       <ol className="grid grid-cols-3 gap-x-4 gap-y-0.5">
         {section.items.map((it) => (
@@ -709,17 +731,15 @@ const VOCAB_CHOICE_INSTRUCTION = "다음 글의 번호별 선택지에서 문맥
 function VocabChoiceAnswerBody({
   section,
   typeOrder,
-  multi,
 }: {
   section: WorkbookVocabChoiceSection;
   typeOrder: number;
-  multi: boolean;
 }) {
   return (
     <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         <TitleNo no={typeOrder} /> 어휘 선택
-        {multi ? ` · ${section.title}` : ""}
+        <AnswerTag projectId={section.projectId} source={section.source} />
       </h3>
       <ol className="grid grid-cols-4 gap-x-4 gap-y-0.5">
         {section.items.map((it) => (
@@ -739,34 +759,16 @@ function VocabChoiceAnswerBody({
 
 function GrammarFixQuestionBody({
   section,
-  multi,
   kind = "grammar",
 }: {
   section: WorkbookGrammarFixSection;
-  multi: boolean;
   /** 어법 수정과 어휘 수정은 모양이 같고 지시문만 다르다. */
   kind?: "grammar" | "vocab";
 }) {
   const errors = section.answers.length;
   return (
     <>
-      {multi ? (
-        <p className="wb-passage-meta mb-2 text-[12px] font-semibold text-slate-500">
-          {section.title}
-          {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
-        </p>
-      ) : (
-        <>
-          <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">{section.title}</p>
-          {section.source?.trim() ? (
-            <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
-              · {section.source.trim()}
-            </p>
-          ) : (
-            <div className="mb-3" />
-          )}
-        </>
-      )}
+      <PassageMeta projectId={section.projectId} source={section.source} gap="mb-3" spacer />
       <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
         {kind === "vocab"
           ? section.mode === "underline"
@@ -811,19 +813,17 @@ function GrammarFixQuestionBody({
 function GrammarFixAnswerBody({
   section,
   typeOrder,
-  multi,
   label = "어법 수정",
 }: {
   section: WorkbookGrammarFixSection;
   typeOrder: number;
-  multi: boolean;
   label?: string;
 }) {
   return (
     <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         <TitleNo no={typeOrder} /> {label}
-        {multi ? ` · ${section.title}` : ""}
+        <AnswerTag projectId={section.projectId} source={section.source} />
       </h3>
       <ol className="grid grid-cols-3 gap-x-4 gap-y-0.5">
         {section.answers.map((a, i) => (
@@ -856,21 +856,14 @@ function sentenceOrderHeading(
 
 function SentenceOrderQuestionBody({
   question,
-  showPassageMeta,
 }: {
   question: WorkbookSentenceOrderQuestion;
-  showPassageMeta: boolean;
 }) {
   const answerBoxCount = question.shuffledItems.length;
 
   return (
     <>
-      {showPassageMeta ? (
-        <p className="wb-passage-meta mb-2 text-[12px] font-semibold text-slate-500">
-          {question.title}
-          {question.source?.trim() ? ` · ${question.source.trim()}` : ""}
-        </p>
-      ) : null}
+      <PassageMeta projectId={question.passageId} source={question.source} />
       <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
         다음 문장들을 글의 흐름에 맞게 배열하세요.
       </p>
@@ -962,17 +955,13 @@ function LineTranslationQuestionBody({
 
   return (
     <>
-      <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
-        {section.title}
-        {continued ? " (계속)" : ""}
-      </p>
-      {section.source?.trim() ? (
-        <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
-          · {section.source.trim()}
-        </p>
-      ) : (
-        <div className="mb-3" />
-      )}
+      <PassageMeta
+        projectId={section.projectId}
+        source={section.source}
+        continued={continued}
+        gap="mb-3"
+        spacer
+      />
       {!continued ? (
         <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
           다음 영어 문장을 우리말로 해석하세요.
@@ -1024,13 +1013,11 @@ function AnswerContinued({
 function LineTranslationAnswerBody({
   section,
   typeOrder,
-  multi,
   itemIndices,
   showHeader = true,
 }: {
   section: WorkbookLineTranslationSection;
   typeOrder: number;
-  multi: boolean;
   /** 정답지 쪽 나눔: 이 문장들만 그린다(없으면 전부). */
   itemIndices?: number[];
   /** 유형 제목·지문 제목을 그린다. 쪽을 넘겨 이어지는 문장이면 false. */
@@ -1046,20 +1033,8 @@ function LineTranslationAnswerBody({
       <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         <TitleNo no={typeOrder} /> 한줄해석
-        {multi ? ` · ${section.title}` : ""}
+        <AnswerTag projectId={section.projectId} source={section.source} />
       </h3>
-      {!multi ? (
-        <>
-          <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
-            {section.title}
-            {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
-          </p>
-        </>
-      ) : section.source?.trim() ? (
-        <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
-          · {section.source.trim()}
-        </p>
-      ) : null}
       </>
       ) : null}
       <div className="space-y-0.5">
@@ -1095,17 +1070,13 @@ function FullEnWritingQuestionBody({
 
   return (
     <>
-      <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
-        {section.title}
-        {continued ? " (계속)" : ""}
-      </p>
-      {section.source?.trim() ? (
-        <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
-          · {section.source.trim()}
-        </p>
-      ) : (
-        <div className="mb-3" />
-      )}
+      <PassageMeta
+        projectId={section.projectId}
+        source={section.source}
+        continued={continued}
+        gap="mb-3"
+        spacer
+      />
       {!continued ? (
         <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
           다음 우리말 뜻에 맞도록 영어 문장 전체를 쓰세요.
@@ -1140,13 +1111,11 @@ function FullEnWritingQuestionBody({
 function FullEnWritingAnswerBody({
   section,
   typeOrder,
-  multi,
   itemIndices,
   showHeader = true,
 }: {
   section: WorkbookFullEnWritingSection;
   typeOrder: number;
-  multi: boolean;
   /** 정답지 쪽 나눔: 이 문장들만 그린다(없으면 전부). */
   itemIndices?: number[];
   /** 유형 제목·지문 제목을 그린다. 쪽을 넘겨 이어지는 문장이면 false. */
@@ -1162,20 +1131,8 @@ function FullEnWritingAnswerBody({
       <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         <TitleNo no={typeOrder} /> 통문장 영작
-        {multi ? ` · ${section.title}` : ""}
+        <AnswerTag projectId={section.projectId} source={section.source} />
       </h3>
-      {!multi ? (
-        <>
-          <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
-            {section.title}
-            {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
-          </p>
-        </>
-      ) : section.source?.trim() ? (
-        <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
-          · {section.source.trim()}
-        </p>
-      ) : null}
       </>
       ) : null}
       <div className="space-y-0.5">
@@ -1267,13 +1224,11 @@ function WordOrderQuestionBody({
 function WordOrderAnswerBody({
   section,
   typeOrder,
-  multi,
   itemIndices,
   showHeader = true,
 }: {
   section: WorkbookWordOrderWritingSection;
   typeOrder: number;
-  multi: boolean;
   /** 정답지 쪽 나눔: 이 문장들만 그린다(없으면 전부). */
   itemIndices?: number[];
   /** 유형 제목·지문 제목을 그린다. 쪽을 넘겨 이어지는 문장이면 false. */
@@ -1289,20 +1244,8 @@ function WordOrderAnswerBody({
       <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
         <TitleNo no={typeOrder} /> 어순배열 영작
-        {multi ? ` · ${section.title}` : ""}
+        <AnswerTag projectId={section.projectId} source={section.source} />
       </h3>
-      {!multi ? (
-        <>
-          <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
-            {section.title}
-            {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
-          </p>
-        </>
-      ) : section.source?.trim() ? (
-        <p className="wb-ak-meta text-[10px] font-semibold text-slate-500">
-          · {section.source.trim()}
-        </p>
-      ) : null}
       </>
       ) : null}
       <div className="space-y-0.5">
@@ -1655,6 +1598,15 @@ export function WorkbookWorkbench({
     for (const q of workbook.sentenceOrderQuestions ?? []) add(q.passageId, q.title, q.source);
     return [...seen.values()];
   }, [workbook]);
+
+  /**
+   * 지문 번호(1부터). 지문이 하나뿐이면 번호를 붙이지 않는다 — 가를 것이 없는데
+   * '지문 1'만 붙으면 군더더기다. 그때는 출처만 나온다.
+   */
+  const passageNos = useMemo(() => {
+    if (editablePassages.length < 2) return {};
+    return Object.fromEntries(editablePassages.map((p, i) => [p.projectId, i + 1]));
+  }, [editablePassages]);
 
   /**
    * 생성을 다시 돌릴지 가르는 키. 파일을 만든 뒤 주소에 doc=를 붙이고 newDoc을 떼는 것은
@@ -3040,7 +2992,7 @@ export function WorkbookWorkbench({
             <>
               <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
                 <TitleNo no={ob} /> 빈칸 채우기
-                {workbook.blankSections.length > 1 ? ` · ${section.title}` : ""}
+                <AnswerTag projectId={section.projectId} source={section.source} />
               </h3>
               <BlankAnswerBody section={section} />
             </>
@@ -3054,7 +3006,7 @@ export function WorkbookWorkbench({
         answerBlocks.push({
           key: `gca-${i}`,
           order: ogc,
-          node: <GrammarChoiceAnswerBody section={section} typeOrder={ogc} multi={gcSections.length > 1} />,
+          node: <GrammarChoiceAnswerBody section={section} typeOrder={ogc} />,
         })
       );
     }
@@ -3064,7 +3016,7 @@ export function WorkbookWorkbench({
         answerBlocks.push({
           key: `gfa-${i}`,
           order: ogf,
-          node: <GrammarFixAnswerBody section={section} typeOrder={ogf} multi={gfSections.length > 1} />,
+          node: <GrammarFixAnswerBody section={section} typeOrder={ogf} />,
         })
       );
       addSkipped("gfs", ogf, gfSkipped);
@@ -3075,7 +3027,7 @@ export function WorkbookWorkbench({
         answerBlocks.push({
           key: `vca-${i}`,
           order: ovc,
-          node: <VocabChoiceAnswerBody section={section} typeOrder={ovc} multi={vcSections.length > 1} />,
+          node: <VocabChoiceAnswerBody section={section} typeOrder={ovc} />,
         })
       );
       addSkipped("vcs", ovc, vcSkipped);
@@ -3090,7 +3042,7 @@ export function WorkbookWorkbench({
             <GrammarFixAnswerBody
               section={section}
               typeOrder={ovf}
-              multi={vfSections.length > 1}
+             
               label="어휘 수정"
             />
           ),
@@ -3104,7 +3056,7 @@ export function WorkbookWorkbench({
         answerBlocks.push({
           key: `ta-${i}`,
           order: otf,
-          node: <TfAnswerBody section={section} typeOrder={otf} multi={workbook.sections.length > 1} />,
+          node: <TfAnswerBody section={section} typeOrder={otf} />,
         })
       );
     }
@@ -3140,7 +3092,7 @@ export function WorkbookWorkbench({
         <LineTranslationAnswerBody
           section={section}
           typeOrder={olt}
-          multi={ltSections.length > 1}
+         
           itemIndices={[ii]}
           showHeader={showHeader}
         />
@@ -3153,7 +3105,7 @@ export function WorkbookWorkbench({
         <FullEnWritingAnswerBody
           section={section}
           typeOrder={ofe}
-          multi={feSections.length > 1}
+         
           itemIndices={[ii]}
           showHeader={showHeader}
         />
@@ -3166,7 +3118,7 @@ export function WorkbookWorkbench({
         <WordOrderAnswerBody
           section={section}
           typeOrder={owo}
-          multi={woSections.length > 1}
+         
           itemIndices={[ii]}
           showHeader={showHeader}
         />
@@ -3201,13 +3153,13 @@ export function WorkbookWorkbench({
     if (type === "grammar_choice") {
       const section = gcSections[i];
       return section ? (
-        <GrammarChoiceQuestionBody section={section} multi={gcSections.length > 1} />
+        <GrammarChoiceQuestionBody section={section} />
       ) : null;
     }
     if (type === "grammar_fix") {
       const section = gfSections[i];
       return section ? (
-        <GrammarFixQuestionBody section={section} multi={gfSections.length > 1} />
+        <GrammarFixQuestionBody section={section} />
       ) : null;
     }
     if (type === "vocab_choice") {
@@ -3215,7 +3167,7 @@ export function WorkbookWorkbench({
       return section ? (
         <GrammarChoiceQuestionBody
           section={section}
-          multi={vcSections.length > 1}
+         
           instruction={VOCAB_CHOICE_INSTRUCTION}
         />
       ) : null;
@@ -3223,7 +3175,7 @@ export function WorkbookWorkbench({
     if (type === "vocab_fix") {
       const section = vfSections[i];
       return section ? (
-        <GrammarFixQuestionBody section={section} multi={vfSections.length > 1} kind="vocab" />
+        <GrammarFixQuestionBody section={section} kind="vocab" />
       ) : null;
     }
     if (type === "blank_fill") {
@@ -3232,10 +3184,7 @@ export function WorkbookWorkbench({
       return (
         <>
           {workbook.blankSections.length > 1 ? (
-            <p className="wb-passage-meta mb-2 text-[12px] font-semibold text-slate-500">
-              {section.title}
-              {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
-            </p>
+            <PassageMeta projectId={section.projectId} source={section.source} />
           ) : null}
           <BlankQuestionBody
             section={section}
@@ -3248,7 +3197,7 @@ export function WorkbookWorkbench({
     if (type === "tf") {
       const section = workbook.sections[i];
       return section ? (
-        <TfQuestionBody section={section} multi={workbook.sections.length > 1} />
+        <TfQuestionBody section={section} />
       ) : null;
     }
     const question = soQuestions[i];
@@ -3261,7 +3210,7 @@ export function WorkbookWorkbench({
             {typeOrders.get("sentence_order") ?? 1}-{question.setIndex}
           </p>
         ) : null}
-        <SentenceOrderQuestionBody question={question} showPassageMeta />
+        <SentenceOrderQuestionBody question={question} />
       </>
     );
   };
@@ -3459,31 +3408,24 @@ export function WorkbookWorkbench({
           {ltSections.map((section, si) => (
             <div key={`m-lt-${section.projectId}`}>
               <div data-wb-measure={`lt-intro-${si}`}>
-                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
-                  {section.title}
-                </p>
-                {section.source?.trim() ? (
-                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
-                    · {section.source.trim()}
-                  </p>
-                ) : (
-                  <div className="mb-3" />
-                )}
+                <PassageMeta
+                  projectId={section.projectId}
+                  source={section.source}
+                  gap="mb-3"
+                  spacer
+                />
                 <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
                   다음 영어 문장을 우리말로 해석하세요.
                 </p>
               </div>
               <div data-wb-measure={`lt-cont-${si}`}>
-                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
-                  {section.title} (계속)
-                </p>
-                {section.source?.trim() ? (
-                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
-                    · {section.source.trim()}
-                  </p>
-                ) : (
-                  <div className="mb-3" />
-                )}
+                <PassageMeta
+                  projectId={section.projectId}
+                  source={section.source}
+                  continued
+                  gap="mb-3"
+                  spacer
+                />
               </div>
               {section.items.map((it, ii) => (
                 <div
@@ -3514,31 +3456,24 @@ export function WorkbookWorkbench({
           {feSections.map((section, si) => (
             <div key={`m-fe-${section.projectId}`}>
               <div data-wb-measure={`fe-intro-${si}`}>
-                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
-                  {section.title}
-                </p>
-                {section.source?.trim() ? (
-                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
-                    · {section.source.trim()}
-                  </p>
-                ) : (
-                  <div className="mb-3" />
-                )}
+                <PassageMeta
+                  projectId={section.projectId}
+                  source={section.source}
+                  gap="mb-3"
+                  spacer
+                />
                 <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
                   다음 우리말 뜻에 맞도록 영어 문장 전체를 쓰세요.
                 </p>
               </div>
               <div data-wb-measure={`fe-cont-${si}`}>
-                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
-                  {section.title} (계속)
-                </p>
-                {section.source?.trim() ? (
-                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
-                    · {section.source.trim()}
-                  </p>
-                ) : (
-                  <div className="mb-3" />
-                )}
+                <PassageMeta
+                  projectId={section.projectId}
+                  source={section.source}
+                  continued
+                  gap="mb-3"
+                  spacer
+                />
               </div>
               {section.items.map((it, ii) => (
                 <section
@@ -3565,32 +3500,25 @@ export function WorkbookWorkbench({
           {woSections.map((section, si) => (
             <div key={`m-wo-${section.projectId}`}>
               <div data-wb-measure={`wo-intro-${si}`}>
-                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
-                  {section.title}
-                </p>
-                {section.source?.trim() ? (
-                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
-                    · {section.source.trim()}
-                  </p>
-                ) : (
-                  <div className="mb-3" />
-                )}
+                <PassageMeta
+                  projectId={section.projectId}
+                  source={section.source}
+                  gap="mb-3"
+                  spacer
+                />
                 <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
                   우리말 뜻과 일치하도록 주어진 영어 어절을 올바르게 배열하여
                   완전한 문장을 쓰세요.
                 </p>
               </div>
               <div data-wb-measure={`wo-cont-${si}`}>
-                <p className="wb-passage-meta mb-1 text-[12px] font-semibold text-slate-500">
-                  {section.title} (계속)
-                </p>
-                {section.source?.trim() ? (
-                  <p className="wb-passage-meta mb-3 text-[12px] font-semibold text-slate-500">
-                    · {section.source.trim()}
-                  </p>
-                ) : (
-                  <div className="mb-3" />
-                )}
+                <PassageMeta
+                  projectId={section.projectId}
+                  source={section.source}
+                  continued
+                  gap="mb-3"
+                  spacer
+                />
               </div>
               {section.items.map((it, ii) => (
                 <section
@@ -3647,6 +3575,7 @@ export function WorkbookWorkbench({
   }
 
   return (
+    <PassageNoContext.Provider value={passageNos}>
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[260px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
         <div className="space-y-2 border-b border-slate-100 p-4">
@@ -3882,5 +3811,6 @@ export function WorkbookWorkbench({
         {measureBlock}
       </main>
     </div>
+    </PassageNoContext.Provider>
   );
 }

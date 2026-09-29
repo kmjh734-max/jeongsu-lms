@@ -106,15 +106,11 @@ type PrintBranding = {
   footerRight: string;
   showLogo: boolean;
   /**
-   * 문항 위에 다는 지문 제목을 감춘다.
-   * 선생님 요청(2026-09-28): 자료 제목이 그대로 나오는데, 그 제목이 곧 답인 문항이 많다
-   * (요지·주제·제목 문항). 시험지로 낼 때는 가릴 수 있어야 한다.
-   */
-  hideTitle: boolean;
-  /**
-   * 머리말의 출처와 문항 번호 띠를 감춘다.
-   * 선생님 요청(2026-09-28): 제목만 감출지, 출처도 감출지 따로 고르게.
-   * 출처는 답을 알려 주지는 않지만, 어디서 가져온 지문인지 밝히고 싶지 않을 때가 있다.
+   * 머리말의 출처, 문항 번호 띠, 그리고 문항 번호 위의 출처를 감춘다.
+   * 선생님 요청(2026-09-28): 출처는 답을 알려 주지는 않지만, 어디서 가져온 지문인지
+   * 밝히고 싶지 않을 때가 있다.
+   * 선생님 요청(2026-09-30): 문항 위에는 지문 제목 대신 출처를 단다. 제목이 곧 답이 되는
+   * 문항(요지·주제·제목)이 많아 제목은 빼고, 출처만 이 하나로 켜고 끈다.
    */
   hideOrigin: boolean;
 };
@@ -439,12 +435,12 @@ function QuestionBlock({
   q,
   index,
   part,
-  passageName,
+  passageSource,
 }: {
   q: QuestionRow;
   index: number;
-  /** 지문이 여럿일 때 문항 위에 작게 다는 지문 이름 */
-  passageName?: string;
+  /** 문항 번호 위에 작게 다는 지문 출처(없거나 감추면 안 단다) */
+  passageSource?: string;
   /** 한 단보다 긴 문항을 나눠 실을 때 이 부분(없으면 문항 전체). */
   part?: PrintPiecePart;
 }) {
@@ -492,7 +488,7 @@ function QuestionBlock({
     return (
       <section className={`qg-print-card qg-print-count-card${cardClass}`}>
         {!head ? <ContinuedLabel index={index} /> : null}
-        {head && passageName ? <p className="qg-print-q-source" data-qg-head="">{passageName}</p> : null}
+        {head && passageSource ? <p className="qg-print-q-source" data-qg-head="">{passageSource}</p> : null}
         {head ? (
           <p className="qg-print-q-head" data-qg-head="">
             <span className={`qg-print-q-num qg-print-count-num${qNo(q, index).length > 2 ? " qg-print-q-num--wide" : ""}`}>
@@ -528,7 +524,7 @@ function QuestionBlock({
       {!head ? <ContinuedLabel index={index} /> : null}
       {head ? (
         <div data-qg-head="">
-          {passageName ? <p className="qg-print-q-source">{passageName}</p> : null}
+          {passageSource ? <p className="qg-print-q-source">{passageSource}</p> : null}
           <p className="qg-print-q-head">
             <span className={`qg-print-q-num${qNo(q, index).length > 2 ? " qg-print-q-num--wide" : ""}`}>{qNo(q, index)}</span> {q.instruction}
             {pointsTag(q)}
@@ -696,8 +692,8 @@ export function QuestionPrintView({
   const [grade, setGrade] = useState("");
   const [sourceDetail, setSourceDetail] = useState("");
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
-  /** 지문 id → 지문 이름(문항 위에 작게 단다) */
-  const [passageNames, setPassageNames] = useState<Record<string, string>>({});
+  /** 지문 id → 출처(문항 번호 위에 작게 단다) */
+  const [passageSources, setPassageSources] = useState<Record<string, string>>({});
   const [printLayout, setPrintLayout] = useState<PrintLayoutMode>(layoutProp);
   const [vocabSetId, setVocabSetId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -709,7 +705,6 @@ export function QuestionPrintView({
     footerLeft: academyName,
     footerRight: "영어 변형문제",
     showLogo: true,
-    hideTitle: false,
     hideOrigin: false,
   });
   const [brandingReady, setBrandingReady] = useState(false);
@@ -770,11 +765,12 @@ export function QuestionPrintView({
     setGrade(nextGrade);
     setSourceDetail(nextDetail);
     setQuestions(data.questions ?? []);
-    setPassageNames(
+    // 문항 위에는 출처만 단다. 제목은 그 자체가 답이 되는 문항이 많아 싣지 않는다.
+    setPassageSources(
       Object.fromEntries(
-        ((data.passages ?? []) as Array<{ id: string; title: string | null; source_detail: string | null }>).map((p) => [
+        ((data.passages ?? []) as Array<{ id: string; source_detail: string | null }>).map((p) => [
           p.id,
-          (p.title || p.source_detail || "").trim(),
+          (p.source_detail || "").trim(),
         ])
       )
     );
@@ -815,9 +811,12 @@ export function QuestionPrintView({
         footerLeft: shared?.footerLeft ?? academyName,
         footerRight: own?.footerRight ?? defaultFooterRight(nextTitle, mode),
         showLogo: shared?.showLogo ?? true,
-        // 예전에 하나로 저장해 둔 값(hideSource)은 제목 감추기로 이어 받는다
-        hideTitle: own?.hideTitle ?? (own as { hideSource?: boolean } | null)?.hideSource ?? false,
-        hideOrigin: own?.hideOrigin ?? false,
+        // 예전에 따로 저장해 둔 값(hideSource·hideTitle)도 출처 감추기로 이어 받는다
+        hideOrigin:
+          own?.hideOrigin ??
+          (own as { hideTitle?: boolean; hideSource?: boolean } | null)?.hideTitle ??
+          (own as { hideSource?: boolean } | null)?.hideSource ??
+          false,
       };
     });
     setBrandingReady(true);
@@ -833,7 +832,7 @@ export function QuestionPrintView({
       // 학원 이름·로고는 이 학원의 모든 자료에 같게, 제목·출처·꼬리말은 이 자료에만 저장한다.
       // 예전에는 전부 브라우저에 한 벌이라, 고친 제목이 다음 자료에, 한 학원 이름이 다른
       // 학원 계정의 머리말에 그대로 붙었다.
-      const { headerKicker, footerLeft, showLogo, headerTitle, headerSub, footerRight, hideTitle, hideOrigin } =
+      const { headerKicker, footerLeft, showLogo, headerTitle, headerSub, footerRight, hideOrigin } =
         branding;
       localStorage.setItem(
         brandingKey({ academy: academyName }),
@@ -841,7 +840,7 @@ export function QuestionPrintView({
       );
       localStorage.setItem(
         brandingKey({ jobId }),
-        JSON.stringify({ headerTitle, headerSub, footerRight, hideTitle, hideOrigin })
+        JSON.stringify({ headerTitle, headerSub, footerRight, hideOrigin })
       );
     } catch {
       /* ignore */
@@ -1109,7 +1108,6 @@ export function QuestionPrintView({
       footerLeft: academyName,
       footerRight: defaultFooterRight(title, mode),
       showLogo: true,
-      hideTitle: false,
       hideOrigin: false,
     });
   }
@@ -1233,7 +1231,7 @@ export function QuestionPrintView({
         q={item.q}
         index={item.num}
         part={part}
-        passageName={branding.hideTitle ? undefined : passageNames[item.q.passage_id ?? ""]}
+        passageSource={branding.hideOrigin ? undefined : passageSources[item.q.passage_id ?? ""]}
       />
     ) : (
       <AnswerBlock q={item.q} index={item.num} part={part} />
@@ -1491,28 +1489,14 @@ export function QuestionPrintView({
               <input
                 type="checkbox"
                 className="mt-0.5"
-                checked={branding.hideTitle}
-                onChange={(e) => patchBranding({ hideTitle: e.target.checked })}
-              />
-              <span>
-                지문 제목 감추기
-                <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">
-                  문항 위에 붙는 지문 이름을 뺍니다. 제목이 곧 답이 되는 문항(요지·주제·제목)에서
-                  답이 드러나지 않게 합니다.
-                </span>
-              </span>
-            </label>
-            <label className="mt-2 flex items-start gap-2 text-xs text-slate-700">
-              <input
-                type="checkbox"
-                className="mt-0.5"
                 checked={branding.hideOrigin}
                 onChange={(e) => patchBranding({ hideOrigin: e.target.checked })}
               />
               <span>
                 출처 감추기
                 <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">
-                  머리말의 출처(예: 2026년 9월 고1 모의고사)와 문항 번호 띠를 뺍니다.
+                  문항 번호 위의 출처와 머리말의 출처(예: 2026년 9월 고1 모의고사),
+                  문항 번호 띠를 뺍니다.
                 </span>
               </span>
             </label>

@@ -85,10 +85,11 @@ export async function GET(
 
     const { data: questions } = await qQuery;
 
-    // 지문 순서로 출력할 때 쓸 지문 이름(문항 위에 작게 단다)
+    // 문항 번호 위에 작게 다는 지문 출처.
+    // 지문이 하나여도 보낸다 — 출처가 적혀 있으면 문항마다 달라는 선생님 요청(2026-09-30).
     const passageIds = [...new Set((questions ?? []).map((q) => q.passage_id).filter(Boolean))] as string[];
     let passages: Array<{ id: string; title: string | null; source_detail: string | null }> = [];
-    if (passageIds.length > 1) {
+    if (passageIds.length > 0) {
       const { data } = await supabase
         .from("english_source_passages")
         .select("id, title, source_detail")
