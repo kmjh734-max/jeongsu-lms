@@ -34,7 +34,10 @@ def answer_boxes(page):
         if min(fill) < 0.85 or min(fill) > 0.995:
             continue
         out.append(fitz.Rect(r))
-    out.sort(key=lambda r: (round(r.y0), r.x0))
+    # 두 단짜리 쪽이다. 높이만으로 줄 세우면 왼쪽·오른쪽이 섞여 차례가 어긋난다.
+    # 왼쪽 단을 위에서 아래로 다 읽고 나서 오른쪽 단을 읽는다.
+    mid = page.rect.width / 2
+    out.sort(key=lambda r: (0 if r.x0 < mid else 1, round(r.y0)))
     kept = []
     for r in out:
         if any(r in k for k in kept):
@@ -266,7 +269,8 @@ def run(pdf_path, out_path):
         for rect in answer_boxes(page):
             # 머리말("PRACTICE … p.36")은 글씨가 작아 크게 키워 읽는다.
             # 여기서 본책 쪽을 못 읽으면 그 상자의 답을 통째로 쓸 수 없다.
-            head_rect = fitz.Rect(rect.x0 - 14, max(0, rect.y0 - 95), rect.x1 + 70, rect.y0)
+            # 머리말은 그 상자 위에만 있다. 옆 단까지 넓히면 딴 단의 쪽 번호를 읽는다.
+            head_rect = fitz.Rect(rect.x0 - 14, max(0, rect.y0 - 95), rect.x1 + 18, rect.y0)
             head, _ = read_crop(reader, page, head_rect, dpi=600)
             pieces = []
             got, label_rects = cuts(page, rect)

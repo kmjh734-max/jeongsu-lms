@@ -79,6 +79,11 @@ def fill_blocks(blocks, questions):
     그 N을 가리키는 본책 쪽들에 차례대로 대응한다. 이미 읽은 쪽은 그대로 두고,
     남은 자리에만 남은 쪽을 차례로 넣는다.
     """
+    steps_of = collections.defaultdict(set)   # 본책 쪽 → 그 쪽에 있는 STEP 들
+    for q in questions:
+        if q.get("printed_page"):
+            steps_of[q["printed_page"]].add(q["step"])
+
     want = collections.defaultdict(list)   # 정답지 쪽 → 본책 쪽들 (차례대로)
     for q in questions:
         ap, bp = q.get("answer_page"), q.get("printed_page")
@@ -97,7 +102,11 @@ def fill_blocks(blocks, questions):
         for b in group:
             if b["book_pages"] or not left:
                 continue
-            b["book_pages"] = [left.pop(0)]
+            # STEP 번호가 실제로 있는 쪽을 고른다. 상자 차례만 믿으면 쪽이 어긋난다.
+            mine = {int(k) for k in b["steps"]}
+            fit = [p for p in left if mine & set(steps_of.get(p, ()))]
+            b["book_pages"] = [(fit or left)[0]]
+            left.remove(b["book_pages"][0])
             b["guessed"] = True
 
 
@@ -128,6 +137,17 @@ def main(q_path, a_path, out_path, bad_path=None):
             step = int(step_key)
             answers = {str(k): v for k, v in raw.items()}
             items = [q for p in pages for q in by_page.get(p, []) if q["step"] == step]
+            if not items:
+                # 쪽이 한 장 어긋나 적히는 일이 있다 (정답지가 두 쪽을 함께 가리킨다).
+                # 그 STEP 이 실제로 있는 이웃 쪽에서 찾는다.
+                near = []
+                for p in pages:
+                    near += [p - 1, p + 1]
+                for p in near:
+                    got_near = [q for q in by_page.get(p, []) if q["step"] == step]
+                    if got_near:
+                        items, pages = got_near, [p]
+                        break
             items.sort(key=lambda q: (q["printed_page"], q["no"]))
             got = [clean_answer(answers[k], k) for k in sorted(answers, key=int)]
             if not items:
