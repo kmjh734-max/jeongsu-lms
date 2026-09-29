@@ -173,7 +173,7 @@ const CORE_PROMPT = `${COMMON_HEADER}
   주어와 동사가 있는 문장 꼴로 쓰고, 누가 무엇을 하는지/무엇이 무엇을 낳는지가 드러나게 한다.
 - ko: 같은 내용의 한국어(20~45자). 영어를 그대로 옮기되 자연스럽게.
 - 마지막 단계는 결론·교훈이다.
-[tf] 내용 일치 T/F 영어 문장 정확히 5개(각 12~25 words). 지문 문장을 그대로 베끼지 말고 내용 이해를 묻는다. T 2~3개, F 2~3개를 섞고, F는 지문에 비추어 분명히 틀린 내용이어야 한다(애매하면 안 됨).
+[tf] 내용 일치 T/F 영어 문장 정확히 5개(각 12~25 words). 지문 문장을 그대로 베끼지 말고 내용 이해를 묻는다. {{TF_TRUE_COUNT}} F는 지문에 비추어 분명히 틀린 내용이어야 한다(애매하면 안 됨).
 [keySentences] 서술형·영작에 나올 핵심 문장 번호 4개(주제문·핵심 주장·중요 구문이 있는 문장, 가능하면 8~35 words). 문장이 4개보다 적으면 모두.
 `;
 
@@ -1638,9 +1638,22 @@ export async function generateOnePageContent(input: {
       });
     };
 
+    /*
+     * 참·거짓의 참 개수를 코드가 먼저 정한다.
+     *
+     * 선생님과 함께 훑어 보니(2026-09-29) 1장 요약자료 705문항의 58%, 1장
+     * 테스트지 202문항의 60%가 참이었다. 「T 2~3개」라고만 적어 두니 3개 쪽으로
+     * 기울었다. 다섯 중 둘 또는 셋으로 못박으면 평균이 절반이 된다.
+     */
+    const trueCount = 2 + Math.floor(Math.random() * 2);
+    const corePrompt = CORE_PROMPT.replace(
+      "{{TF_TRUE_COUNT}}",
+      `T를 정확히 ${trueCount}개, F를 정확히 ${5 - trueCount}개 둔다.`
+    );
+
     const corePromise = ask(
       "core",
-      CORE_PROMPT,
+      corePrompt,
       "one_page_core",
       CORE_SCHEMA as unknown as Record<string, unknown>,
       "",

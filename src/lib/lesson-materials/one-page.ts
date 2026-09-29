@@ -632,6 +632,43 @@ const TEST_IMPLICATION_MAX = 2;
 /** 시험지에 실을 T/F 문항 수 */
 const TEST_TF_MAX = 3;
 
+/**
+ * 참·거짓을 잘라 실을 때 참이 한쪽으로 몰리지 않게 고른다.
+ *
+ * 선생님과 함께 훑어 보니(2026-09-29) 시험지 202문항의 60%가 참이었다.
+ * 만들 때는 다섯 개에 참 둘·셋을 섞어 두는데, 앞에서 셋만 잘라 쓰다 보니
+ * 앞쪽에 몰린 참이 그대로 실렸다.
+ *
+ * 지문마다 참 개수를 먼저 정한다. 셋을 실으면 참은 하나 또는 둘이고,
+ * 어느 쪽인지는 지문의 sourceHash로 가른다 — 무작위가 아니라서 다시 만들어도
+ * 같은 자료가 나오고, 지문이 모이면 절반으로 수렴한다.
+ */
+function pickBalancedTf<T extends { answer: string }>(
+  items: T[],
+  max: number,
+  seed: string
+): T[] {
+  if (items.length <= max) return items;
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+  const wantTrue = Math.floor(max / 2) + (Math.abs(h) % 2);
+
+  const yes = items.filter((t) => String(t.answer).toUpperCase() === "T");
+  const no = items.filter((t) => String(t.answer).toUpperCase() !== "T");
+  const takeTrue = Math.min(wantTrue, yes.length);
+  const picked = new Set<T>([
+    ...yes.slice(0, takeTrue),
+    ...no.slice(0, max - takeTrue),
+  ]);
+  // 모자라면 남은 것으로 채운다
+  for (const t of items) {
+    if (picked.size >= max) break;
+    picked.add(t);
+  }
+  // 고른 것을 원래 글 차례대로 되돌린다
+  return items.filter((t) => picked.has(t));
+}
+
 type SentenceChoice = { start: number; end: number; left: string; right: string; correct: string };
 
 /** 이어 붙인 본문 위의 자리를 문장 번호와 문장 안의 자리로 되돌린다. */
@@ -834,7 +871,7 @@ export function buildOnePageTestPassage(input: {
             ko: content.summaryKo,
           }
         : null,
-    tf: content.tf.slice(0, TEST_TF_MAX),
+    tf: pickBalancedTf(content.tf, TEST_TF_MAX, content.sourceHash),
   };
 }
 
