@@ -262,9 +262,11 @@ export function ExamReportView({
     const ROOM = 900;
     const ROW = 27; // 한 줄짜리 문항의 높이
     const LINE = 14; // 딸린 글 한 줄
-    const PER_LINE = 26; // 딸린 글은 한 줄에 스물여섯 자쯤 들어간다
+    const PER_LINE = 88; // 온 폭이라 한 줄에 여든여덟 자쯤 들어간다
     const heightOf = (i: (typeof items)[number]) => {
       const notes = [
+        i.conditions && `조건: ${i.conditions}`,
+        i.grammar_point && `문법: ${i.grammar_point}`,
         i.difficulty_reason,
         i.matched_textbook_label && `교과서: ${i.matched_textbook_label}`,
         i.matched_label && `수업자료: ${i.matched_label}`,
@@ -273,22 +275,40 @@ export function ExamReportView({
       const lines = notes.reduce((n, t) => n + Math.max(1, Math.ceil(t.length / PER_LINE)), 0);
       return ROW + lines * LINE;
     };
+    /*
+     * 마지막 장 아래에 「다음 시험 대비 전략」이 들어가므로 그만큼 자리를 비워 둔다.
+     * 선생님 지적(2026-09-30): 서술형이 오른쪽에 따로 떠 있고 뒷장은 표만 길게
+     * 나와 어색하다. 서술형 조건·문법은 표 안으로 넣고 전략만 끝에 붙인다.
+     */
+    const strategyRoom =
+      analysis.strategy.length === 0
+        ? 0
+        : 30 +
+          analysis.strategy.reduce((n, t) => n + Math.max(1, Math.ceil(t.length / 82)) * 18, 0);
+
+    const heights = items.map(heightOf);
+    const total = heights.reduce((a2, b2) => a2 + b2, 0);
+    // 전략까지 마지막 장에 들어갈 수 있는지 보고 장 수를 정한다
+    const pages = Math.max(1, Math.ceil((total + strategyRoom) / ROOM));
+    const perPage = (total + strategyRoom) / pages;
+
     const out: (typeof items)[] = [];
     let cur: typeof items = [];
     let used = 0;
-    for (const it of items) {
-      const h = heightOf(it);
-      if (cur.length && used + h > ROOM) {
+    items.forEach((it, idx) => {
+      const h = heights[idx]!;
+      const limit = out.length === pages - 1 ? ROOM - strategyRoom : Math.min(ROOM, perPage + 60);
+      if (cur.length && used + h > limit) {
         out.push(cur);
         cur = [];
         used = 0;
       }
       cur.push(it);
       used += h;
-    }
+    });
     if (cur.length) out.push(cur);
     return out.length ? out : [[]];
-  }, [items]);
+  }, [items, analysis.strategy]);
 
   const pageTotal = 1 + itemPages.length + (showMatched ? 1 : 0);
   const h3 = "mb-[7px] text-[13.5px] font-bold";
@@ -619,7 +639,7 @@ export function ExamReportView({
                 {meta.examLabel}
               </span>
             </div>
-            <div className={`grid flex-1 gap-[18px] ${pi === 0 ? "grid-cols-[1.12fr_1fr]" : "grid-cols-1"}`}>
+            <div className="flex flex-1 flex-col gap-[14px]">
               <div className="self-start rounded-xl bg-white px-3 py-2">
                 <table className="w-full border-collapse text-[11.5px]">
                   <thead>
@@ -659,6 +679,16 @@ export function ExamReportView({
                               {i.matched_label ? (
                                 <span className="block text-[10px]" style={{ color: SOFT }}>
                                   수업자료: {i.matched_label}
+                                </span>
+                              ) : null}
+                              {i.conditions ? (
+                                <span className="block text-[10px]" style={{ color: SOFT }}>
+                                  조건: {i.conditions}
+                                </span>
+                              ) : null}
+                              {i.grammar_point ? (
+                                <span className="block text-[10px]" style={{ color: NAVY }}>
+                                  문법: {i.grammar_point}
                                 </span>
                               ) : null}
                               {i.difficulty_reason ? (
@@ -735,47 +765,17 @@ export function ExamReportView({
                 </table>
               </div>
 
-              {pi === 0 ? (
-              <div className="min-w-0">
-                {s.subj.length ? (
-                  <>
-                    <h3 className={h3} style={{ color: NAVY }}>
-                      서술형{" "}
-                      <span className="text-[11px] font-semibold" style={{ color: SOFT }}>
-                        {s.subj.length}문항 · {s.subjPts}점
-                      </span>
-                    </h3>
-                    {s.subj.map((i) => (
-                      <div key={i.id} className="mb-1.5 rounded-[11px] bg-white px-[11px] py-2">
-                        <div className="flex justify-between font-bold">
-                          <span>
-                            {i.item_no} · {i.type_name}
-                          </span>
-                          <span>{i.points ?? "–"}점</span>
-                        </div>
-                        {i.conditions ? (
-                          <p className="mt-px text-[11px]" style={{ color: SOFT }}>
-                            {i.conditions}
-                          </p>
-                        ) : null}
-                        {i.grammar_point ? (
-                          <p className="text-[11px]" style={{ color: NAVY }}>
-                            문법: {i.grammar_point}
-                          </p>
-                        ) : null}
-                      </div>
+              {pi === itemPages.length - 1 ? (
+                <div>
+                  <h3 className={h3} style={{ color: NAVY }}>
+                    다음 시험 대비 전략
+                  </h3>
+                  <ul className="list-disc space-y-[3px] pl-4">
+                    {analysis.strategy.map((f) => (
+                      <li key={f}>{f}</li>
                     ))}
-                  </>
-                ) : null}
-                <h3 className={`${h3} mt-3`} style={{ color: NAVY }}>
-                  다음 시험 대비 전략
-                </h3>
-                <ul className="list-disc space-y-[3px] pl-4">
-                  {analysis.strategy.map((f) => (
-                    <li key={f}>{f}</li>
-                  ))}
-                </ul>
-              </div>
+                  </ul>
+                </div>
               ) : null}
             </div>
           </A4Page>
