@@ -1251,6 +1251,13 @@ export function assertBasicQuestionShape(
       if (expr) {
         q.instruction = `다음 글의 밑줄 친 ${expr}가 문맥상 의미하는 바를 본문에서 찾아 ${n}단어의 영어로 쓰시오.`;
       }
+      /*
+       * 답란은 늘 ⓐ인데 본문에는 ⓐ가 없는 것이 마흔 개 가운데 여섯 개였다(2026-09-29).
+       * 학생 눈에는 답란의 ⓐ가 가리키는 자리가 본문에 없다. 밑줄 앞에 ⓐ를 붙여 준다.
+       */
+      if (!/ⓐ\s*<u>/i.test(mod)) {
+        q.passageModified = mod.replace(/<u>/i, "ⓐ<u>");
+      }
     }
     if (!/<지칭답란>/.test(q.questionText || "")) {
       q.questionText = "<지칭답란>\nⓐ";

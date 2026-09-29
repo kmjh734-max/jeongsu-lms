@@ -342,6 +342,20 @@ export function parseGrammarCorrectionBlocks(text: string): {
 /** 단어 수 (영어 공백 기준) */
 export function countEnglishWords(text: string): number {
   return (text || "")
+    /*
+     * 낱말 안에 든 굽은 따옴표는 곧은 것으로 바꿔 한 낱말로 센다.
+     *
+     * 선생님과 함께 전수조사(2026-09-29): 특정표현의미서술에서 발문이 요구한 낱말 수와
+     * 정답의 낱말 수가 어긋난 것이 있었다. 「10단어로 쓰시오」인데 정답은 아홉 낱말,
+     * 「5단어」인데 네 낱말이었다. 까닭은 opponent’s와 can’t의 ’를 낱말 사이 공백으로
+     * 바꿔 두 낱말로 센 것이다(곧은 '는 세지 않았다). 발문 숫자를 이 셈으로 적으므로
+     * 학생이 세어 보면 하나가 모자란다.
+     */
+    .replace(/[’ʼ‘]/gu, (mark, at: number, whole: string) => {
+      const before = whole[at - 1] ?? "";
+      const after = whole[at + 1] ?? "";
+      return /\p{L}/u.test(before) && /\p{L}/u.test(after) ? "'" : " ";
+    })
     .replace(/[^\p{L}\p{N}\s']/gu, " ")
     .trim()
     .split(/\s+/)
