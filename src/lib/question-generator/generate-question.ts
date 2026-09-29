@@ -58,6 +58,7 @@ import {
   buildWordBankFromAnswer,
   joinWordBank,
   normalizeAndShuffleWordBank,
+  shuffleWordBankKeepForms,
   tokenizeAnswerPhrase,
 } from "@/lib/question-generator/word-order-normalize";
 
@@ -1396,6 +1397,36 @@ export function assertBasicQuestionShape(
       if (!passageHasConsecutiveWords(passage, phrase, n)) {
         return `요약문 ${n}단어 정답(ⓐ)이 본문에 연속 ${n}단어로 있어야 합니다.`;
       }
+    }
+
+    if (option.aingkaCode === "요약문빈칸영작") {
+      /*
+       * 선생님 지적(2026-09-29): 요약문 안에 이미 그 낱말이 있는데 보기에도 또 나오니,
+       * 그 낱말을 넣을 자리가 없다. 실제로 81문항 가운데 10개가 그랬다
+       * (while·doctor처럼 요약문에 보이는 말이 보기에 또 있었다).
+       *
+       * 보기를 정답에서 다시 짠다. 그러면 보기에 있는 말은 모두 갈 자리가 있고,
+       * 정답에 필요한 말이 빠지지도 않는다. 섞는 것은 normalizeAndShuffleWordBank가 한다.
+       */
+      const answerText = String(q.correctAnswer ?? "")
+        .replace(/[\u24D0-\u24D4]\s*[:：]?/g, " ")
+        .replace(/\s*\/\s*/g, " ");
+      const rebuilt = shuffleWordBankKeepForms(
+        joinWordBank(buildWordBankFromAnswer(answerText, "basic", blocks.words ?? ""))
+      );
+      if (!rebuilt) {
+        return "요약문 빈칸 보기를 만들지 못했습니다.";
+      }
+      q.questionText = [
+        "<조건>",
+        blocks.conditions.trim(),
+        "",
+        "<보기>",
+        rebuilt,
+        "",
+        "<요약문>",
+        blocks.summary.trim(),
+      ].join("\n");
     }
     q.choices = undefined;
   } else if (option.isObjective && option.choiceLanguage) {

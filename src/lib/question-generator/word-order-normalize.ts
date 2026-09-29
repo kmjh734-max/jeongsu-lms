@@ -401,7 +401,13 @@ export function joinWordBank(words: string[]): string {
 export function tokenizeAnswerPhrase(answer: string): string[] {
   return String(answer ?? "")
     .replace(/^[ⓐⓑⓒⓓⓔ]\s*[:：]?\s*/i, "")
+    /*
+     * 낱말 안의 홑따옴표는 살린다 — artist’s가 artists가 되면 정답을 쓸 수 없다
+     * (선생님 지적 2026-09-29 요약문 빈칸). 낱말 밖의 따옴표만 걷어 낸다.
+     */
+    .replace(/([A-Za-z])[’'ʼ]([A-Za-z])/g, "$1$2")
     .replace(/[“”‘’"'`]/g, "")
+    .replace(//g, "’")
     .replace(/[.,!?;:()[\]{}…—–-]/g, " ")
     .split(/\s+/)
     .map((w) => w.trim())
@@ -482,6 +488,19 @@ export function normalizeAndShuffleWordBank(raw: string): string {
   const tokens = splitWordBank(scrubWordBankNoise(raw))
     .map(lemmaEnglishToken)
     .filter(Boolean);
+  if (tokens.length === 0) return "";
+  shuffleInPlace(tokens);
+  return joinWordBank(tokens);
+}
+
+/**
+ * 어형을 그대로 두고 섞기만 한다.
+ *
+ * 요약문 빈칸 영작처럼 「보기 단어를 모두 한 번씩」 쓰는 유형에 쓴다. 원형으로 바꾸면
+ * expresses가 express로, child's가 child로 되어 정답과 맞지 않는다.
+ */
+export function shuffleWordBankKeepForms(raw: string): string {
+  const tokens = splitWordBank(scrubWordBankNoise(raw)).filter(Boolean);
   if (tokens.length === 0) return "";
   shuffleInPlace(tokens);
   return joinWordBank(tokens);
