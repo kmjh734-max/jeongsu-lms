@@ -1,4 +1,5 @@
 import {
+import { plainKorean } from "@/lib/question-generator/plain-korean";
   isGpt5FamilyModel,
   isUnsupportedParameterError,
   isUnsupportedTemperatureError,
@@ -691,8 +692,15 @@ function checkGrammarPoint(
   if (rejectFabricatedDistractor({ pointCode: code, correct: right, wrong, sentence })) return null;
   if (validateMinimalPair({ pointCode: code, sourceSpan: right, distractor: wrong, sentence })) return null;
 
-  const explanation = str1(r.explanation);
-  const wrongWhy = str1(r.wrongWhy);
+  /*
+   * 해설 말투를 「맞다.」체로 맞춘다.
+   *
+   * 선생님 요청(2026-09-29): 「맞다」와 「맞습니다」가 섞여 나와 학생이 헷갈린다.
+   * 변형문제는 그때 고쳤는데 1장 요약자료는 그대로였다. 훑어 보니 어법 해설
+   * 372군데 가운데 112군데가 존댓말이었고 오늘 만든 것에도 섞여 있었다.
+   */
+  const explanation = plainKorean(str1(r.explanation));
+  const wrongWhy = plainKorean(str1(r.wrongWhy));
   if (!explanation || !wrongWhy) return null;
   // "어색하다"는 둘 다 된다는 뜻이다. 그런 자리는 싣지 않는다.
   if (WEAK_WORDS.test(wrongWhy)) return null;
