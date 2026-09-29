@@ -22,6 +22,10 @@ export const MODEL_PRICES: Record<string, ModelPrice> = {
   "gpt-5": { in: 1.25, cachedIn: 0.125, out: 10 },
   "gpt-4o-mini": { in: 0.15, cachedIn: 0.075, out: 0.6 },
   "gpt-4o": { in: 2.5, cachedIn: 1.25, out: 10 },
+  // 그림 모델. 입력은 글·그림 단가가 다른데(글 $5·그림 $8) 사용량이 나뉘어 오지 않아
+  // 글 쪽으로 잡는다. 삽화는 출력이 거의 전부라 차이가 작다.
+  "gpt-image-1.5": { in: 5, cachedIn: 2, out: 32 },
+  "gpt-image-1": { in: 5, cachedIn: 2.5, out: 40 },
 };
 
 /*
