@@ -740,7 +740,17 @@ function parseChoiceAnswer(raw: unknown): number | null {
   return null;
 }
 
-/** 객관식 선택지를 섞고 정답 번호를 맞춤 (① 편향 방지) */
+/**
+ * 객관식 선택지를 섞고, 정답 번호와 해설의 번호를 함께 다시 매긴다 (① 편향 방지).
+ *
+ * 선생님과 함께 전수조사(2026-09-29): 해설이 정답 번호를 오답처럼 설명하는 문항이
+ * 객관식 2,352개 가운데 611개(26%)였다. 까닭은 섞은 뒤 해설에서 <b>정답 기호만</b>
+ * 바꾸고 나머지 오답 기호는 그대로 둔 것이다. 정답이 ①에서 ④으로 갔다면 해설의
+ * ①만 ④으로 바뀌어, 원래 ④이던 오답 설명과 번호가 겹치고 ① 자리 선택지의 설명은
+ * 사라졌다.
+ *
+ * 이제 자리바꿈 전체를 해설에 적용한다. 한 번에 바꿔야 서로 덮어쓰지 않는다.
+ */
 function shuffleObjectiveChoices(
   choices: Array<{ number: number; text: string }>,
   correctAnswer: number,
@@ -755,9 +765,8 @@ function shuffleObjectiveChoices(
     return { choices, correctAnswer, explanation };
   }
 
-  const texts = choices.map((c) => c.text);
-  const correctText = texts[correctAnswer - 1]!;
-
+  const before = choices.map((c) => c.text);
+  const texts = [...before];
   for (let i = texts.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     const tmp = texts[i]!;
@@ -765,29 +774,43 @@ function shuffleObjectiveChoices(
     texts[j] = tmp;
   }
 
-  const newCorrect = texts.findIndex((t) => t === correctText) + 1;
+  // 섞기 전 번호 → 섞은 뒤 번호. 같은 글이 둘이면 앞에서부터 하나씩 짝지어 준다.
+  const taken = new Array<boolean>(texts.length).fill(false);
+  const oldToNew = new Map<number, number>();
+  before.forEach((text, oldIdx) => {
+    const newIdx = texts.findIndex((t, k) => !taken[k] && t === text);
+    if (newIdx >= 0) {
+      taken[newIdx] = true;
+      oldToNew.set(oldIdx + 1, newIdx + 1);
+    }
+  });
+
+  const newCorrect = oldToNew.get(correctAnswer) ?? correctAnswer;
   const newChoices = texts.map((text, i) => ({ number: i + 1, text }));
 
   let nextExplanation = explanation;
-  if (newCorrect !== correctAnswer && explanation) {
-    const from = CIRCLED[correctAnswer - 1]!;
-    const to = CIRCLED[newCorrect - 1]!;
-    nextExplanation = explanation
-      .split(from)
-      .join(to)
-      .replace(
-        new RegExp(`정답\\s*[:：]?\\s*${correctAnswer}\\s*번?`, "g"),
-        `정답: ${newCorrect}번`
-      )
-      .replace(
-        new RegExp(`답\\s*[:：]?\\s*${correctAnswer}\\b`, "g"),
-        `답: ${newCorrect}`
-      );
+  if (explanation && [...oldToNew.entries()].some(([a, b]) => a !== b)) {
+    // ①~⑤를 한 번에 바꾼다. 차례로 바꾸면 방금 바꾼 것을 또 바꾼다.
+    nextExplanation = explanation.replace(/[①-⑤]/g, (mark) => {
+      const oldNum = CIRCLED.indexOf(mark) + 1;
+      const to = oldToNew.get(oldNum);
+      return to ? CIRCLED[to - 1]! : mark;
+    });
+    // "정답: 3번", "답: 3"처럼 숫자로 적은 것도 함께
+    nextExplanation = nextExplanation
+      .replace(/(정답\s*[:：]?\s*)(\d)(\s*번?)/g, (whole, head: string, num: string, tail: string) => {
+        const to = oldToNew.get(Number(num));
+        return to ? `${head}${to}${tail}` : whole;
+      })
+      .replace(/(^|[^가-힣])(답\s*[:：]\s*)(\d)/g, (whole, lead: string, head: string, num: string) => {
+        const to = oldToNew.get(Number(num));
+        return to ? `${lead}${head}${to}` : whole;
+      });
   }
 
   return {
     choices: newChoices,
-    correctAnswer: newCorrect || correctAnswer,
+    correctAnswer: newCorrect,
     explanation: nextExplanation,
   };
 }
@@ -1006,6 +1029,23 @@ export function assertBasicQuestionShape(
 ): string | null {
   if (!q.instruction.trim()) return "발문이 비어 있습니다.";
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
+
+  /*
+   * 밑줄 기호는 지문에 나오는 차례대로여야 한다.
+   *
+   * 실제 문항을 훑어보니 열여덟 개가 어긋나 있었다(2026-09-29). 심한 것은
+   * ⓐ ⓕ ⓔ ⓓ ⓑ ⓒ ⓖ 차례로 찍혀, 학생이 몇 번째 밑줄인지 찾기가 어렵다.
+   * 번호를 다시 매기면 정답 번호·해설까지 손봐야 하므로, 그냥 다시 만들게 한다.
+   */
+  {
+    const marks = "ⓐⓑⓒⓓⓔⓕⓖ①②③④⑤";
+    const seen = [...String(q.passageModified ?? "").matchAll(/([ⓐ-ⓖ①-⑤])\s*<u>/g)].map((m) =>
+      marks.indexOf(m[1]!)
+    );
+    if (seen.length >= 2 && seen.some((v, i) => i > 0 && seen[i - 1]! >= v)) {
+      return "밑줄 기호가 지문에 나오는 차례와 다릅니다.";
+    }
+  }
 
   const englishBodyTypes = new Set([
     "order",
