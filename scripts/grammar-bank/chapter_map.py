@@ -129,7 +129,8 @@ def place(book_name, chapter_title):
     lv = level_of(book_name)
     if lv is None or not chapter_title:
         return None
-    title = chapter_title.strip()
+    # 꼬리말에서 가끔 보이지 않는 글자가 앞에 붙어 온다 — 떼고 본다
+    title = re.sub(r"[\x00-\x1f\x7f]", "", str(chapter_title)).strip()
     hit = CHAPTER_MAP.get((lv, title))
     if hit:
         return lv, hit[0], hit[1]
