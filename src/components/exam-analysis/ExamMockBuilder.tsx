@@ -76,6 +76,32 @@ export function ExamMockBuilder({
     return chosen.length ? (o !== undefined && o < chosen.length ? o : (g + round - 1) % chosen.length) : -1;
   });
 
+  /*
+   * 최다빈 선생님 요청(2026-09-29):
+   * "동형 모고 만들때 어떤 지문이 안쓰였는지 미사용 지문을 알 수 있는 표시가 따로 있을까요?"
+   * "동형 모고에서 각 지문에 배정되는 문제 유형을 다시 섞이는 기능 부탁드려도 될까용?"
+   *
+   * 고른 지문이 묶음 수보다 많으면 남는 지문이 생기는데 그 표시가 없었다.
+   * 배정도 회차마다 한 칸씩 미는 것뿐이라 손으로 바꾸는 수밖에 없었다.
+   */
+  const usedPassages = useMemo(() => new Set(assignment.filter((a) => a >= 0)), [assignment]);
+  const unusedCount = chosen.length - usedPassages.size;
+
+  /** 문항 묶음에 들어갈 지문을 다시 섞는다. 고른 지문은 그대로 두고 배정만 바꾼다. */
+  function reshuffleAssignment() {
+    if (chosen.length < 2) return;
+    const order = chosen.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j]!, order[i]!];
+    }
+    const next: Record<number, number> = {};
+    groups.forEach((_, g) => {
+      next[g] = order[g % order.length]!;
+    });
+    setOverride(next);
+  }
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return materials.filter((m) => !q || `${m.project} ${m.title} ${m.preview}`.toLowerCase().includes(q)).slice(0, 200);
@@ -320,13 +346,25 @@ export function ExamMockBuilder({
           )}
 
           <div className="mt-4">
-            <p className="text-sm font-bold text-slate-900">고른 지문 {chosen.length}</p>
+            <p className="text-sm font-bold text-slate-900">
+              고른 지문 {chosen.length}
+              {unusedCount > 0 ? (
+                <span className="ml-1.5 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                  이번 회차에 안 쓰는 지문 {unusedCount}
+                </span>
+              ) : null}
+            </p>
             {chosen.length ? (
               <ol className="mt-1.5 space-y-1">
                 {chosen.map((c, i) => (
                   <li key={c.kind === "material" ? c.id : c.key} className="flex items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5 text-sm">
                     <span className="w-5 text-xs font-bold text-slate-400">{i + 1}</span>
                     <span className="min-w-0 flex-1 truncate">{labelOf(c)}</span>
+                    {usedPassages.has(i) ? null : (
+                      <span className="shrink-0 rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                        안 씀
+                      </span>
+                    )}
                     <button type="button" aria-label="위로" onClick={() => move(i, -1)} className="text-[10px] text-slate-400 hover:text-slate-700">▲</button>
                     <button type="button" aria-label="아래로" onClick={() => move(i, 1)} className="text-[10px] text-slate-400 hover:text-slate-700">▼</button>
                     <button type="button" aria-label="빼기" onClick={() => setChosen((p) => p.filter((_, k) => k !== i))} className="text-slate-400 hover:text-red-600">
@@ -343,7 +381,28 @@ export function ExamMockBuilder({
 
         {/* 2. 설계도 */}
         <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="text-base font-bold text-slate-900">2. 문항 설계도</h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-bold text-slate-900">2. 문항 설계도</h2>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={reshuffleAssignment}
+                disabled={chosen.length < 2}
+                className="h-8 rounded-lg border border-slate-300 px-3 text-[13px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+              >
+                지문 다시 섞기
+              </button>
+              {Object.keys(override).length ? (
+                <button
+                  type="button"
+                  onClick={() => setOverride({})}
+                  className="h-8 rounded-lg px-2.5 text-[13px] font-semibold text-slate-500 hover:text-slate-800"
+                >
+                  처음대로
+                </button>
+              ) : null}
+            </div>
+          </div>
           <p className="mt-0.5 text-xs text-slate-500">원래 시험의 지문 묶음마다 새 지문이 들어가요. 바꾸려면 오른쪽에서 고르세요.</p>
           {slots.some((s) => /^(sentence_insertion|irrelevant_sentence):/.test(s.optionKey)) ? (
             <p className="mt-1 text-xs text-slate-500">

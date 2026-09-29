@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadAcademyMaterialPassages } from "@/lib/exam-analysis/material-passages";
 import { loadAllMockPassages, mockPassageShortLabel } from "@/lib/mock-passages";
+import { resolveTextbookPassageAcademyId } from "@/lib/textbooks/shared-passages";
 
 /**
  * 시험지 지문이 학원 수업자료(lesson_material_items) 지문과 같은지 글자로 대조한다.
@@ -60,6 +61,51 @@ export async function matchLessonMaterials(
   }));
   const out = new Map<string, { itemId: string; label: string }>();
   for (const [k, v] of bestMatches(pool, excerpts)) out.set(k, { itemId: v.id, label: v.label });
+  return out;
+}
+
+/**
+ * 교과서 본문과 대조 → 출처(예: 천재(조수경) 영어1 2과 본문3). 맞은 것만 단다.
+ *
+ * 이득희 선생님 말씀(2026-09-29): "저희 지역 학교가 지난번 서술형 포함하면
+ * 교과서에서 70%가 나왔습니다. 이런 데이터가 없다면 70%라는 확률도 나오지 않기에
+ * 분석지가 더 꼼꼼하게 작성되어 있으면 효율성의 면에서 도움이 되리라 봅니다."
+ *
+ * 그때까지는 수업자료와 모의고사만 대조했고 교과서 본문은 보지 않았다. 그래서
+ * 분석한 여덟 시험 모두 교과서 적중이 0건이었다. 교과서 본문 891개를 넣어 보니
+ * 호원고 고2가 77%, 의정부고 고2가 50%, 발곡고 고2가 41%로 바로 잡혔다.
+ */
+export async function matchTextbookPassages(
+  admin: SupabaseClient,
+  academyId: string,
+  excerpts: { key: string; excerpt: string | null }[]
+): Promise<Map<string, { textbookId: string; label: string }>> {
+  if (!excerpts.some((e) => e.excerpt && words(e.excerpt).length >= 8)) return new Map();
+  const ownerId = await resolveTextbookPassageAcademyId(admin, academyId);
+  const rows: {
+    id: string;
+    subject: string;
+    publisher: string;
+    lesson: string;
+    part: string;
+    english_text: string;
+  }[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data } = await admin
+      .from("textbook_passages")
+      .select("id, subject, publisher, lesson, part, english_text")
+      .eq("academy_id", ownerId)
+      .range(from, from + 999);
+    rows.push(...((data ?? []) as typeof rows));
+    if (!data || data.length < 1000) break;
+  }
+  const pool = rows.map((m) => ({
+    id: m.id,
+    label: `${m.publisher} ${m.subject} ${m.lesson} ${m.part}`,
+    set: new Set(shingles(words(String(m.english_text ?? "")))),
+  }));
+  const out = new Map<string, { textbookId: string; label: string }>();
+  for (const [k, v] of bestMatches(pool, excerpts)) out.set(k, { textbookId: v.id, label: v.label });
   return out;
 }
 

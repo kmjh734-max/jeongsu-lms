@@ -1,7 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ALL_QUESTION_OPTIONS } from "@/lib/question-generator/question-types";
 import { examChat } from "@/lib/exam-analysis/openai";
-import { matchLessonMaterials, matchMockPassages } from "@/lib/exam-analysis/match-materials";
+import {
+  matchLessonMaterials,
+  matchMockPassages,
+  matchTextbookPassages,
+} from "@/lib/exam-analysis/match-materials";
 import { typeNameFromKey } from "@/lib/exam-analysis/types";
 import { measureExamPages, measureText } from "@/lib/exam-analysis/reading-level";
 
@@ -102,10 +106,16 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
           items.map((it, i) => ({ key: String(i), excerpt: it.passage_excerpt ?? null }))
         );
 
-  const mockMatches = await matchMockPassages(
-    admin,
-    items.map((it, i) => ({ key: String(i), excerpt: it.passage_excerpt ?? null }))
-  );
+  const excerptKeys = items.map((it, i) => ({
+    key: String(i),
+    excerpt: it.passage_excerpt ?? null,
+  }));
+  const mockMatches = await matchMockPassages(admin, excerptKeys);
+  /*
+   * 교과서 본문과도 대조한다 — 이득희 선생님 요청(2026-09-29).
+   * 학교 시험은 교과서에서 많이 나오는데 그 비율을 낼 자료가 없었다.
+   */
+  const textbookMatches = await matchTextbookPassages(admin, academyId, excerptKeys);
 
   const rows = items.map((it, i) => {
     const isSubjective = String(it.format ?? "").startsWith("sub") || String(it.no).includes("서");
@@ -113,6 +123,7 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
     const level = LEVELS.has(String(it.level)) ? String(it.level) : "중";
     const match = matches.get(String(i));
     const mock = mockMatches.get(String(i));
+    const textbook = textbookMatches.get(String(i));
     return {
       analysis_id: analysisId,
       order_index: i,
@@ -136,6 +147,8 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
       matched_label: match?.label ?? null,
       matched_mock_id: mock?.mockId ?? null,
       matched_mock_label: mock?.label ?? null,
+      matched_textbook_id: textbook?.textbookId ?? null,
+      matched_textbook_label: textbook?.label ?? null,
       ...(() => {
         // 지문 발췌로 이 문항의 수준을 잰다(발췌가 짧으면 렉사일은 내지 않는다)
         const m = measureText(String(it.passage_excerpt ?? ""));

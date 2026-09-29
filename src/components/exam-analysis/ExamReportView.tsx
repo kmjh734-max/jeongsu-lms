@@ -22,6 +22,13 @@ const SOFT = "#6b5f4b";
 const NAVY = "#29335c";
 const LV_BG: Record<ExamLevel, string> = { 하: "#f1e3c6", 중: "#f3a712", 상: "#e4572e" };
 const LV_INK: Record<ExamLevel, string> = { 하: SOFT, 중: "#fff", 상: "#fff" };
+/** 지문 출처 색 — 난이도 색과 겹치지 않게 골랐다 */
+const SRC_BG: Record<string, string> = {
+  교과서: "#29335c",
+  모의고사: "#669bbc",
+  수업자료: "#a8c686",
+  "못 찾음": "#ded3bb",
+};
 const CAT_COLOR: Record<string, string> = {
   "대의 파악": "#e4572e",
   "세부 정보": "#29335c",
@@ -130,13 +137,45 @@ export function ExamReportView({
       const list = items.filter((i) => i.level === l);
       return { l, n: list.length, pts: r1(sum(list.map((i) => i.points))) };
     });
+    /*
+     * 지문 출처별 갈래 — 이득희 선생님 요청(2026-09-29).
+     * "지난번 서술형 포함하면 교과서에서 70%가 나왔습니다. 이런 데이터가 없다면
+     * 70%라는 확률도 나오지 않기에 분석지가 더 꼼꼼하게 작성되어 있으면 좋겠습니다."
+     *
+     * 짐작하지 않고 글자로 대조해 맞은 것만 센다. 한 문항이 교과서와 모의고사에
+     * 모두 걸리면 교과서를 앞세운다(학교 시험은 교과서가 먼저다).
+     */
+    const hasPassage = items.filter((i) => String(i.passage_excerpt ?? "").trim());
+    const fromTextbook = hasPassage.filter((i) => i.matched_textbook_id);
+    const fromMock = hasPassage.filter((i) => !i.matched_textbook_id && i.matched_mock_id);
+    const fromMaterial = hasPassage.filter(
+      (i) => !i.matched_textbook_id && !i.matched_mock_id && i.matched_item_id
+    );
+    const fromUnknown = hasPassage.filter(
+      (i) => !i.matched_textbook_id && !i.matched_mock_id && !i.matched_item_id
+    );
+    const sources = [
+      { key: "교과서", list: fromTextbook },
+      { key: "모의고사", list: fromMock },
+      { key: "수업자료", list: fromMaterial },
+      { key: "못 찾음", list: fromUnknown },
+    ]
+      .map((x) => ({
+        key: x.key,
+        n: x.list.length,
+        pts: r1(sum(x.list.map((i) => i.points))),
+        subjPts: r1(sum(x.list.filter((i) => i.is_subjective).map((i) => i.points))),
+      }))
+      .filter((x) => x.n > 0);
+    const passagePts = r1(sum(hasPassage.map((i) => i.points)));
+
     const avg = items.length ? r1(sum(items.map((i) => i.difficulty)) / items.length) : 0;
     const subjPts = r1(sum(subj.map((i) => i.points)));
     const decisive = hard
       .slice()
       .sort((x, y) => (y.points ?? 0) - (x.points ?? 0) || y.difficulty - x.difficulty)
       .slice(0, 6);
-    return { total, subj, subjPts, hard, matched, cats, levels, avg, decisive };
+    return { total, subj, subjPts, hard, matched, cats, levels, avg, decisive, sources, hasPassage, passagePts };
   }, [items]);
   const pct = (x: number) => (s.total ? Math.round((x / s.total) * 100) : 0);
 
@@ -357,8 +396,62 @@ export function ExamReportView({
                     </span>
                   </div>
                 ))}
+                {/*
+                  Jayden 선생님 물음(2026-09-29): "상중하 분류로 나뉘는 건 기준이 있나요?"
+                  기준은 있었는데 화면에 없어서 상담에서 답할 근거가 보이지 않았다.
+                  문항마다 근거 한 문장도 따로 적어 두니 함께 보이게 한다.
+                */}
+                <p className="mt-[7px] text-[10.5px] leading-[1.5]" style={{ color: SOFT }}>
+                  해당 학년 학생을 기준으로 <b>지문 길이 · 어휘 수준 · 유형 자체의 난도 ·
+                  선택지의 매력도 · 서술형 조건 수</b> 다섯 가지를 보고 1~5점을 매겨 상·중·하로
+                  나눕니다. 문항마다 왜 그 등급인지는 아래 표에 적혀 있고, 고쳐 쓰기를 켜면
+                  선생님이 직접 바꾸실 수 있습니다.
+                </p>
               </div>
             </div>
+
+            {s.sources.length ? (
+              <div>
+                <h3 className={h3} style={{ color: NAVY }}>
+                  지문 출처별
+                  <span className="ml-1.5 text-[11px] font-normal" style={{ color: SOFT }}>
+                    지문이 있는 {s.hasPassage.length}문항 · {s.passagePts}점 기준 (글자로 대조해 맞은 것만)
+                  </span>
+                </h3>
+                <div className="mb-[7px] flex h-[9px] overflow-hidden rounded-full bg-white">
+                  {s.sources.map((x) => (
+                    <span
+                      key={x.key}
+                      title={`${x.key} ${x.n}문항`}
+                      style={{
+                        width: `${s.passagePts ? (x.pts / s.passagePts) * 100 : 0}%`,
+                        background: SRC_BG[x.key] ?? SOFT,
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="grid grid-cols-4 gap-[9px]">
+                  {s.sources.map((x) => (
+                    <div key={x.key} className="rounded-[12px] bg-white px-[11px] py-[9px]">
+                      <span className="flex items-center gap-1.5 text-[11.5px]" style={{ color: SOFT }}>
+                        <i
+                          className="inline-block h-[9px] w-[9px] rounded-full"
+                          style={{ background: SRC_BG[x.key] ?? SOFT }}
+                        />
+                        {x.key}
+                      </span>
+                      <b className="block text-[22px] leading-[1.2] tabular-nums">
+                        {s.passagePts ? Math.round((x.pts / s.passagePts) * 100) : 0}%
+                      </b>
+                      <span className="text-[11px] tabular-nums" style={{ color: SOFT }}>
+                        {x.n}문항 · {x.pts}점
+                        {x.subjPts ? ` (서술형 ${x.subjPts}점)` : ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div>
               <h3 className={h3} style={{ color: NAVY }}>
@@ -500,6 +593,16 @@ export function ExamReportView({
                               {i.matched_label ? (
                                 <span className="block text-[10px]" style={{ color: SOFT }}>
                                   수업자료: {i.matched_label}
+                                </span>
+                              ) : null}
+                              {i.difficulty_reason ? (
+                                <span className="block text-[10px]" style={{ color: SOFT }}>
+                                  난이도 근거: {i.difficulty_reason}
+                                </span>
+                              ) : null}
+                              {i.matched_textbook_label ? (
+                                <span className="block text-[10px]" style={{ color: SOFT }}>
+                                  교과서: {i.matched_textbook_label}
                                 </span>
                               ) : null}
                               {i.matched_mock_label ? (

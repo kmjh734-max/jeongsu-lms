@@ -40,6 +40,9 @@ export type ExamItemRow = {
   /** 모의고사 지문 모음에서 맞은 출처 (예: 24년 고2 6월 학평 24번) */
   matched_mock_id: string | null;
   matched_mock_label: string | null;
+  /** 교과서 본문에서 맞은 출처 (예: 천재(조수경) 영어1 2과 본문3) */
+  matched_textbook_id: string | null;
+  matched_textbook_label: string | null;
   edited: boolean;
 };
 
