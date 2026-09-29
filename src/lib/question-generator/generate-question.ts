@@ -247,14 +247,20 @@ LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean
 - Keep (A)(B)(C) as ORIGINAL wording from the passage.
 - Exactly one correct order. Put lead-in+(A)(B)(C) in passageModified. questionText empty.
 LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean in passage or choices.`;
-    case "sentence_insertion":
+    case "sentence_insertion": {
+      // 선생님과 함께 전수조사(2026-09-29): 정답 자리가 ④에 44%, ③④를 합치면 71%였다.
+      // ①은 174문항 가운데 3개뿐. 지문 속 자리가 곧 번호라 나중에 섞을 수 없으므로,
+      // 개수 유형과 같이 자리를 코드가 먼저 정해 준다. ①은 도입문 바로 뒤라 뺀다.
+      const slot = 2 + Math.floor(Math.random() * 4);
+      const slotRule = `- correctAnswer = ${slot}. 반드시 ${CIRCLED[slot - 1]} 자리에서만 자연스럽게 이어지도록 지문을 끊어라.
+- 자리를 먼저 정해 두고 그 앞뒤 문장이 삽입문 없이는 이어지지 않게 배치한다. 다른 자리가 되면 처음부터 다시 잡아라.`;
       if (option.difficulty === "high") {
         return `문장삽입 HIGH (상) — 효자 기출동형 (PDF: 위치):
 - Pick a flow-critical sentence from the passage as the sentence to insert.
 - CRITICAL: questionText = PARAPHRASE of that sentence (ENGLISH), not a verbatim copy.
 - passageModified = remaining ENGLISH passage with five insertion slots marked ① ② ③ ④ ⑤ in the text.
 - choices: omit or empty array — slots IN the passage are the options; do NOT invent separate choice texts.
-- correctAnswer 1-5. Exactly one best slot.
+${slotRule}
 ${insertionChoiceCraft()}
 LANGUAGE: questionText + passageModified MUST be ENGLISH only.`;
       }
@@ -263,10 +269,19 @@ LANGUAGE: questionText + passageModified MUST be ENGLISH only.`;
 - questionText = that sentence in ORIGINAL ENGLISH wording (do not paraphrase).
 - passageModified = remaining ENGLISH passage with five insertion slots marked ① ② ③ ④ ⑤ in the text.
 - choices: omit or empty array — slots IN the passage are the options; do NOT invent separate choice texts.
-- correctAnswer 1-5. Exactly one best slot.
+${slotRule}
 ${insertionChoiceCraft()}
 LANGUAGE: questionText + passageModified MUST be ENGLISH only.`;
+    }
     case "irrelevant_sentence": {
+      // 선생님과 함께 전수조사(2026-09-29): 133문항의 정답이 ⓒ(38%)·ⓓ(62%) 둘뿐이었다.
+      // ⓑ와 ⓔ는 한 번도 정답이 아니었으니, ⓓ만 찍어도 열에 여섯을 맞힌다.
+      // ⓐ는 주제문 자리라 그대로 빼고, ⓑ~ⓔ 넷 가운데 코드가 먼저 정한다.
+      // ⓔ가 마지막 문장이면 정답으로 쓰기 어색했으므로(133개 중 73개) 마무리 문장을 남기게 한다.
+      const mark = 2 + Math.floor(Math.random() * 4);
+      const markRule = `- correctAnswer = ${mark} (${LETTERED[mark - 1]}). 무관한 문장은 반드시 ${LETTERED[mark - 1]} 자리에 둔다.
+- ⓐ는 글의 주제를 세우는 문장이므로 무관한 문장으로 쓰지 않는다.
+- ⓔ 뒤에는 번호를 붙이지 않은 마무리 문장을 한 문장 이상 남겨, 글의 흐름이 끝까지 보이게 한다.`;
       const irrelevantQuality = `IRRELEVANT SENTENCE QUALITY (효자 기출동형 — 필수):
 - Do NOT invent a bizarre, random, or absurd sentence that has nothing to do with the passage vocabulary.
 - The irrelevant sentence MUST reuse similar words / related content from the passage (same domain, overlapping vocabulary) so it LOOKS related at a glance.
@@ -280,7 +295,8 @@ ${irrelevantChoiceCraft()}`;
 ${irrelevantQuality}
 - For HIGH: the irrelevant sentence should be subtler — same keywords/theme words, but a shifted claim/point that does not follow.
 - choices: omit or empty array — letters IN the passage are the options; do NOT invent bottom choice texts.
-- correctAnswer 1-5 mapping ⓐ=1 … ⓔ=5. questionText empty.
+${markRule}
+- questionText empty.
 LANGUAGE: passageModified MUST be ENGLISH only.`;
       }
       return `무관한문장 LOW (하) — 효자 기출동형:
@@ -291,7 +307,8 @@ LANGUAGE: passageModified MUST be ENGLISH only.`;
 ${irrelevantQuality}
 - For LOW: the topic shift can be clearer (still reuse similar wording; never totally weird).
 - choices: omit or empty array — letters IN the passage are the options; do NOT invent bottom choice texts.
-- correctAnswer 1-5 mapping ⓐ=1 … ⓔ=5. questionText empty.
+${markRule}
+- questionText empty.
 LANGUAGE: passageModified MUST be ENGLISH only.`;
     }
     case "grammar": {
@@ -739,6 +756,7 @@ const COUNT_CHOICES = [
 ];
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
+const LETTERED = ["ⓐ", "ⓑ", "ⓒ", "ⓓ", "ⓔ"];
 
 function parseChoiceAnswer(raw: unknown): number | null {
   if (typeof raw === "number" && raw >= 1 && raw <= 5) return raw;
