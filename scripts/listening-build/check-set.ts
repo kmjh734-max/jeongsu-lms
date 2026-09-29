@@ -132,6 +132,7 @@ export function checkSet(spec: SetSpec): Problem[] {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  void (async () => {
   const specPath = process.argv[2];
   if (!specPath) throw new Error("쓰는 법: node ... check-set.mts <세트 파일>");
   const mod = (await import(pathToFileURL(resolve(specPath)).href)) as { spec: SetSpec };
@@ -145,4 +146,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   }
   console.log(problems.length === 0 ? "  문제 없음" : `\n막음 ${block.length}개 · 살핌 ${warn.length}개`);
   if (block.length) process.exitCode = 1;
+  })();
 }
