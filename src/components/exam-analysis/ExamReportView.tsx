@@ -27,6 +27,7 @@ const SRC_BG: Record<string, string> = {
   교과서: "#29335c",
   모의고사: "#669bbc",
   수업자료: "#a8c686",
+  "교과서 밖": "#c9a227",
   "못 찾음": "#ded3bb",
 };
 const CAT_COLOR: Record<string, string> = {
@@ -75,6 +76,87 @@ function Donut({ parts, total }: { parts: { c: string; n: number }[]; total: num
 }
 
 /** A4 한 쪽 (화면에서도 794×1123px, 인쇄는 210×297mm) */
+/**
+ * 출처를 손으로 다는 칸.
+ *
+ * 글자로 대조해 잡히는 것만 자동으로 달린다. 학교가 지문을 바꿔 쓰거나 부교재에서
+ * 가져오면 잡히지 않으므로(현대고 11%, 동성고 29%) 선생님이 직접 채울 수 있게 한다.
+ * 교재를 먼저 고르고 그 안에서 과·본문을 고른다 — 본문이 천칠백 개라 한 번에 늘어놓으면 못 찾는다.
+ */
+function SourcePicker({
+  item,
+  books,
+  onPick,
+}: {
+  item: { matched_textbook_id: string | null; source_kind: string | null; source_edited: boolean };
+  books: { key: string; label: string; parts: { id: string; label: string }[] }[] | null;
+  onPick: (source: { kind: "auto" | "textbook" | "outside"; textbookId?: string }) => void;
+}) {
+  const bookOf = (tid: string | null) =>
+    tid ? (books ?? []).find((b) => b.parts.some((x) => x.id === tid))?.key ?? "" : "";
+  const [bookKey, setBookKey] = useState(() => bookOf(item.matched_textbook_id));
+  useEffect(() => {
+    if (!bookKey) setBookKey(bookOf(item.matched_textbook_id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [books]);
+
+  const book = (books ?? []).find((b) => b.key === bookKey) ?? null;
+  const cls = "ui-input h-7 py-0 text-[11px]";
+
+  return (
+    <span className="mt-1 flex flex-wrap items-center gap-1">
+      <select
+        aria-label="출처 갈래"
+        className={`${cls} w-[86px]`}
+        value={item.source_kind === "outside" ? "outside" : item.source_edited ? "textbook" : "auto"}
+        onChange={(e) => {
+          const v = e.target.value;
+          if (v === "auto" || v === "outside") onPick({ kind: v });
+          // textbook은 아래에서 본문을 고를 때 보낸다
+        }}
+      >
+        <option value="auto">자동</option>
+        <option value="textbook">교과서</option>
+        <option value="outside">교과서 밖</option>
+      </select>
+      {item.source_kind === "outside" ? null : (
+        <>
+          <select
+            aria-label="교재"
+            className={`${cls} max-w-[150px]`}
+            value={bookKey}
+            onChange={(e) => setBookKey(e.target.value)}
+            disabled={!books}
+          >
+            <option value="">{books ? "교재 고르기" : "읽는 중…"}</option>
+            {(books ?? []).map((b) => (
+              <option key={b.key} value={b.key}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="본문"
+            className={`${cls} max-w-[120px]`}
+            value={item.matched_textbook_id ?? ""}
+            onChange={(e) => {
+              if (e.target.value) onPick({ kind: "textbook", textbookId: e.target.value });
+            }}
+            disabled={!book}
+          >
+            <option value="">{book ? "본문 고르기" : "교재를 먼저"}</option>
+            {(book?.parts ?? []).map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.label}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
+    </span>
+  );
+}
+
 function A4Page({ children, footer }: { children: ReactNode; footer: string }) {
   return (
     <section
@@ -151,13 +233,17 @@ export function ExamReportView({
     const fromMaterial = hasPassage.filter(
       (i) => !i.matched_textbook_id && !i.matched_mock_id && i.matched_item_id
     );
-    const fromUnknown = hasPassage.filter(
+    const noMatch = hasPassage.filter(
       (i) => !i.matched_textbook_id && !i.matched_mock_id && !i.matched_item_id
     );
+    // 선생님이 「교과서 밖」이라 표시한 것은 못 찾은 것이 아니라 밝혀진 것이다
+    const fromOutside = noMatch.filter((i) => i.source_kind === "outside");
+    const fromUnknown = noMatch.filter((i) => i.source_kind !== "outside");
     const sources = [
       { key: "교과서", list: fromTextbook },
       { key: "모의고사", list: fromMock },
       { key: "수업자료", list: fromMaterial },
+      { key: "교과서 밖", list: fromOutside },
       { key: "못 찾음", list: fromUnknown },
     ]
       .map((x) => ({
@@ -190,8 +276,46 @@ export function ExamReportView({
   }, [items]);
   const pct = (x: number) => (s.total ? Math.round((x / s.total) * 100) : 0);
 
-  async function saveItem(id: string, patch: { typeName?: string; level?: ExamLevel; points?: number | null }) {
+  /*
+   * 출처를 손으로 달 때 고를 교과서 본문. 처음 「고쳐 쓰기」를 켤 때 한 번만 읽는다.
+   *
+   * 글자로 대조해 잡히는 것만 자동으로 달리는데, 학교가 지문을 바꿔 쓰거나
+   * 부교재에서 가져오면 잡히지 않는다. 그런 문항을 선생님이 직접 채우면
+   * 교과서 적중률이 정확해진다.
+   */
+  type TextbookBook = { key: string; label: string; parts: { id: string; label: string }[] };
+  const [books, setBooks] = useState<TextbookBook[] | null>(null);
+  useEffect(() => {
+    if (!editing || books) return;
+    let alive = true;
+    fetch(`/api/exam-analysis/${analysis.id}/textbooks`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (alive && d?.ok) setBooks(d.books as TextbookBook[]);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [editing, books, analysis.id]);
+
+  async function saveItem(
+    id: string,
+    patch: {
+      typeName?: string;
+      level?: ExamLevel;
+      points?: number | null;
+      source?: { kind: "auto" | "textbook" | "outside"; textbookId?: string };
+    }
+  ) {
     const before = items;
+    const labelOfTextbook = (tid: string) => {
+      for (const b of books ?? []) {
+        const part = b.parts.find((x) => x.id === tid);
+        if (part) return `${b.label} ${part.label}`;
+      }
+      return null;
+    };
     setItems((prev) =>
       prev.map((it) =>
         it.id === id
@@ -200,6 +324,28 @@ export function ExamReportView({
               ...(patch.typeName ? { type_name: patch.typeName } : {}),
               ...(patch.level ? { level: patch.level, difficulty: patch.level === "상" ? 4 : patch.level === "하" ? 2 : 3 } : {}),
               ...("points" in patch ? { points: patch.points ?? null } : {}),
+              ...(patch.source?.kind === "textbook" && patch.source.textbookId
+                ? {
+                    source_edited: true,
+                    source_kind: "textbook",
+                    matched_textbook_id: patch.source.textbookId,
+                    matched_textbook_label: labelOfTextbook(patch.source.textbookId),
+                    matched_mock_id: null,
+                    matched_mock_label: null,
+                  }
+                : {}),
+              ...(patch.source?.kind === "outside"
+                ? {
+                    source_edited: true,
+                    source_kind: "outside",
+                    matched_textbook_id: null,
+                    matched_textbook_label: null,
+                    matched_mock_id: null,
+                    matched_mock_label: null,
+                    matched_item_id: null,
+                    matched_label: null,
+                  }
+                : {}),
               edited: true,
             }
           : it
@@ -508,7 +654,7 @@ export function ExamReportView({
                     />
                   ))}
                 </div>
-                <div className="grid grid-cols-4 gap-[9px]">
+                <div className="grid gap-[9px]" style={{ gridTemplateColumns: `repeat(${Math.min(5, s.sources.length)}, minmax(0,1fr))` }}>
                   {s.sources.map((x) => (
                     <div key={x.key} className="rounded-[12px] bg-white px-[11px] py-[6px]">
                       <span className="flex items-center gap-1.5 text-[11.5px]" style={{ color: SOFT }}>
@@ -656,6 +802,7 @@ export function ExamReportView({
                         <td className="whitespace-nowrap px-1 py-[3.5px] font-bold">{i.item_no}</td>
                         <td className="px-1 py-[3.5px]">
                           {editing ? (
+                            <>
                             <select
                               id={`type-${i.id}`}
                               className="ui-input h-7 max-w-[170px] py-0 text-[11.5px]"
@@ -673,6 +820,14 @@ export function ExamReportView({
                                 </optgroup>
                               ))}
                             </select>
+                            {String(i.passage_excerpt ?? "").trim() ? (
+                              <SourcePicker
+                                item={i}
+                                books={books}
+                                onPick={(source) => saveItem(i.id, { source })}
+                              />
+                            ) : null}
+                            </>
                           ) : (
                             <>
                               {i.type_name}
@@ -694,6 +849,11 @@ export function ExamReportView({
                               {i.difficulty_reason ? (
                                 <span className="block text-[10px]" style={{ color: SOFT }}>
                                   난이도 근거: {i.difficulty_reason}
+                                </span>
+                              ) : null}
+                              {i.source_kind === "outside" ? (
+                                <span className="block text-[10px]" style={{ color: SOFT }}>
+                                  교과서 밖 (선생님이 표시)
                                 </span>
                               ) : null}
                               {i.matched_textbook_label ? (

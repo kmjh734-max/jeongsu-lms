@@ -228,10 +228,14 @@ export async function refreshMaterialMatches(
   academyId: string,
   enabled: boolean
 ): Promise<number> {
+  /*
+   * 선생님이 손으로 단 출처는 건드리지 않는다 — 자동 대조가 덮어쓰면 다시 비어 버린다.
+   */
   const { data: items } = await admin
     .from("school_exam_items")
     .select("id, passage_excerpt")
-    .eq("analysis_id", analysisId);
+    .eq("analysis_id", analysisId)
+    .eq("source_edited", false);
   const rows = items ?? [];
   const matches = enabled
     ? await matchLessonMaterials(

@@ -5,7 +5,13 @@ import { categoryOfName, EXAM_LEVELS } from "@/lib/exam-analysis/types";
 
 export const runtime = "nodejs";
 
-/** 문항표 한 줄 고치기 { typeName?, level?, points? } — 선생님이 바로잡은 값 */
+/**
+ * 문항표 한 줄 고치기 { typeName?, level?, points?, source? } — 선생님이 바로잡은 값
+ *
+ * source는 출처를 손으로 다는 것이다. 글자로 대조해 잡히는 것만 자동으로 달리는데,
+ * 학교가 지문을 바꿔 쓰거나 부교재에서 가져오면 잡히지 않는다. 손으로 단 것은
+ * 다시 대조해도 덮어쓰지 않는다(source_edited).
+ */
 export async function PATCH(request: Request, context: { params: Promise<{ id: string; itemId: string }> }) {
   const auth = await requireExamStaff();
   if ("error" in auth) return auth.error;
@@ -22,7 +28,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     .maybeSingle();
   if (!item) return NextResponse.json({ ok: false, message: "문항을 찾을 수 없어요." }, { status: 404 });
 
-  const body = (await request.json().catch(() => ({}))) as { typeName?: string; level?: string; points?: number | null };
+  const body = (await request.json().catch(() => ({}))) as {
+    typeName?: string;
+    level?: string;
+    points?: number | null;
+    source?: { kind: "auto" | "textbook" | "mock" | "material" | "outside"; textbookId?: string; label?: string };
+  };
   const patch: Record<string, unknown> = { edited: true };
   if (typeof body.typeName === "string" && body.typeName.trim()) {
     patch.type_name = body.typeName.trim().slice(0, 40);
@@ -35,6 +46,38 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (body.points === null || (typeof body.points === "number" && body.points >= 0 && body.points <= 100)) {
     patch.points = body.points;
   }
+  if (body.source) {
+    const kind = body.source.kind;
+    if (kind === "auto") {
+      // 자동 대조로 되돌린다 — 다음 대조 때 다시 채워진다
+      patch.source_edited = false;
+      patch.source_kind = null;
+    } else if (kind === "textbook") {
+      const tid = String(body.source.textbookId ?? "");
+      const { data: tb } = await admin
+        .from("textbook_passages")
+        .select("id, subject, publisher, lesson, part")
+        .eq("id", tid)
+        .maybeSingle();
+      if (!tb) return NextResponse.json({ ok: false, message: "교과서 본문을 찾을 수 없어요." }, { status: 400 });
+      patch.source_edited = true;
+      patch.source_kind = "textbook";
+      patch.matched_textbook_id = tb.id;
+      patch.matched_textbook_label = `${tb.publisher} ${tb.subject} ${tb.lesson} ${tb.part}`;
+      patch.matched_mock_id = null;
+      patch.matched_mock_label = null;
+    } else if (kind === "outside") {
+      patch.source_edited = true;
+      patch.source_kind = "outside";
+      patch.matched_textbook_id = null;
+      patch.matched_textbook_label = null;
+      patch.matched_mock_id = null;
+      patch.matched_mock_label = null;
+      patch.matched_item_id = null;
+      patch.matched_label = null;
+    }
+  }
+
   await admin.from("school_exam_items").update(patch).eq("id", itemId);
 
   // 총점 다시 계산

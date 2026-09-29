@@ -43,6 +43,10 @@ export type ExamItemRow = {
   /** 교과서 본문에서 맞은 출처 (예: 천재(조수경) 영어1 2과 본문3) */
   matched_textbook_id: string | null;
   matched_textbook_label: string | null;
+  /** 선생님이 출처를 손으로 정했는지 — 다시 대조해도 덮어쓰지 않는다 */
+  source_edited: boolean;
+  /** 손으로 정한 갈래: textbook | mock | material | outside(교과서 밖) */
+  source_kind: string | null;
   edited: boolean;
 };
 
