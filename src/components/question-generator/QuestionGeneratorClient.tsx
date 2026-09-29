@@ -337,6 +337,9 @@ export function QuestionGeneratorClient({
   );
   const perPassageTotals = useMemo(() => sumCounts(counts), [counts]);
   const grandTotal = perPassageTotals.total * Math.max(1, filledPassages.length);
+  /** 어법추론은 문항당 값이 다르다(2026-09-29) */
+  const grammarInferenceTotal =
+    (counts["grammar:na:default:어법추론"] ?? 0) * Math.max(1, filledPassages.length);
 
   const config: GenerationRequestConfig = useMemo(
     () => ({
@@ -683,7 +686,15 @@ export function QuestionGeneratorClient({
         title: "변형문제",
         description: "고른 유형으로 지문마다 문항을 만듭니다. 문항 수만큼 크레딧이 나갑니다.",
         subject: `지문 ${filledPassages.length}개 × 지문당 ${perPassageTotals.total}문항 = 모두 ${grandTotal}문항`,
-        items: [{ feature: "qg_generate_job", quantity: grandTotal }],
+        // 어법추론은 값이 달라(원가가 커서) 따로 적는다
+        items: [
+          ...(grandTotal - grammarInferenceTotal > 0
+            ? [{ feature: "qg_generate_job", quantity: grandTotal - grammarInferenceTotal }]
+            : []),
+          ...(grammarInferenceTotal > 0
+            ? [{ feature: "qg_generate_grammar", quantity: grammarInferenceTotal }]
+            : []),
+        ],
         // 2026-09-28에 뺐다가 2026-09-29에 되살린다. 손으로 그린 예시가 헷갈렸던 것이지
         // 미리보기 자체가 문제가 아니었다. 이제 실제 시험지를 찍은 사진을 보여 준다.
         sample: "question",

@@ -285,39 +285,60 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
   const billing = rc?._billing;
   if (!job?.academy_id || !job.created_by || !rc || billing?.mode !== "post") return;
 
-  let toBill: number;
+  /*
+   * 아직 값을 매기지 않은 문항만 가져온다.
+   * 선생님 결정(2026-09-29): 어법추론은 원가가 82원이라 다른 유형(32~53원)과 달리
+   * 100으로 받는다. 그래서 유형을 보고 갈라 센다.
+   */
+  let rowsToBill: Array<{ created_at: string; option_key: string | null }> = [];
   let latest: string | null = null;
-  if (billing.billedAt) {
-    const { data: rows, count } = await admin
+  {
+    let q = admin
       .from("generated_english_questions")
-      .select("created_at", { count: "exact" })
+      .select("created_at, option_key")
       .eq("generation_job_id", jobId)
-      .gt("created_at", billing.billedAt)
-      .order("created_at", { ascending: false })
-      .limit(1);
-    toBill = count ?? 0;
-    latest = (rows?.[0]?.created_at as string | undefined) ?? null;
-  } else {
-    // billedAt 없이 시작한 예전 작업
-    toBill = completed - (billing.billed ?? 0);
-    const { data: rows } = await admin
-      .from("generated_english_questions")
-      .select("created_at")
-      .eq("generation_job_id", jobId)
-      .order("created_at", { ascending: false })
-      .limit(1);
-    latest = (rows?.[0]?.created_at as string | undefined) ?? null;
+      .order("created_at", { ascending: true });
+    if (billing.billedAt) q = q.gt("created_at", billing.billedAt);
+    const { data } = await q;
+    rowsToBill = (data ?? []) as Array<{ created_at: string; option_key: string | null }>;
+    // billedAt 없이 시작한 예전 작업은 이미 받은 만큼을 앞에서 덜어 낸다
+    if (!billing.billedAt && (billing.billed ?? 0) > 0) {
+      rowsToBill = rowsToBill.slice(billing.billed ?? 0);
+    }
+    latest = rowsToBill[rowsToBill.length - 1]?.created_at ?? null;
   }
+  const toBill = rowsToBill.length;
   if (toBill <= 0 || !latest) return;
-  const ok = await debitLessonCredits({
-    academyId: job.academy_id as string,
-    actorId: job.created_by as string,
-    featureKey: CREDIT_FEATURES.qg_generate_job,
-    quantity: toBill,
-    idempotencyKey: `qg_generate_job:${jobId}:upto-${latest}`,
-    metadata: { job_id: jobId },
-    note: `변형문제 ${toBill}문항`,
-  });
+
+  const isGrammarInference = (key: string | null) => String(key ?? "").endsWith(":어법추론");
+  const grammarCount = rowsToBill.filter((r) => isGrammarInference(r.option_key)).length;
+  const plainCount = toBill - grammarCount;
+
+  let ok = true;
+  if (plainCount > 0) {
+    ok =
+      (await debitLessonCredits({
+        academyId: job.academy_id as string,
+        actorId: job.created_by as string,
+        featureKey: CREDIT_FEATURES.qg_generate_job,
+        quantity: plainCount,
+        idempotencyKey: `qg_generate_job:${jobId}:upto-${latest}`,
+        metadata: { job_id: jobId, used_for: "question_generator" },
+        note: `변형문제 ${plainCount}문항`,
+      })) && ok;
+  }
+  if (grammarCount > 0) {
+    ok =
+      (await debitLessonCredits({
+        academyId: job.academy_id as string,
+        actorId: job.created_by as string,
+        featureKey: "qg_generate_grammar",
+        quantity: grammarCount,
+        idempotencyKey: `qg_generate_grammar:${jobId}:upto-${latest}`,
+        metadata: { job_id: jobId, used_for: "question_generator" },
+        note: `변형문제 어법추론 ${grammarCount}문항`,
+      })) && ok;
+  }
   if (!ok) return;
   await admin
     .from("question_generation_jobs")
