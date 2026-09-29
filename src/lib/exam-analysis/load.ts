@@ -51,6 +51,8 @@ export type MaterialPassage = {
   id: string;
   project: string;
   title: string;
+  /** 자료에 적어 둔 출처 (예: 공통영어2 YBM(박준언) 1과 본문1). 없으면 빈 글 */
+  source: string;
   words: number;
   preview: string;
   /** 우리 단어장으로 잰 어휘 수준(예: 중학필수). 못 재면 null */
@@ -63,11 +65,11 @@ export async function loadMaterialPassages(academyId: string): Promise<MaterialP
   return list
     .map((p) => {
       const words = p.text.split(/\s+/).filter(Boolean);
-      return { id: p.projectId, project: p.folder, title: p.title, words: words.length, preview: words.slice(0, 14).join(" "), level: measureVocabLevel(p.text).label, updated: p.updatedAt };
+      return { id: p.projectId, project: p.folder, title: p.title, source: p.source, words: words.length, preview: words.slice(0, 14).join(" "), level: measureVocabLevel(p.text).label, updated: p.updatedAt };
     })
     .filter((m) => m.words >= 40)
     .sort((a, b) => b.updated.localeCompare(a.updated))
-    .map(({ id, project, title, words, preview, level }) => ({ id, project, title, words, preview, level }));
+    .map(({ id, project, title, source, words, preview, level }) => ({ id, project, title, source, words, preview, level }));
 }
 
 /** 이 시험 분석으로 만든 동형모의고사(변형문제 작업) — 최근 것부터 */

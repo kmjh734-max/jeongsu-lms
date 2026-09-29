@@ -899,7 +899,7 @@ export function ExamReportView({
                               ) : null}
                               {i.matched_mock_label ? (
                                 <span className="block text-[10px]" style={{ color: SOFT }}>
-                                  출처: {i.matched_mock_label}
+                                  모의고사: {i.matched_mock_label}
                                 </span>
                               ) : null}
                             </>

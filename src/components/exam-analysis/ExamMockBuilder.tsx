@@ -9,6 +9,16 @@ import type { MaterialPassage } from "@/lib/exam-analysis/load";
 import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 
+/*
+ * 지문 이름은 출처를 앞세운다 — 선생님 요청(2026-09-30).
+ * 설계도에서 어느 교과서 몇 과인지가 한눈에 보여야 한다. 출처를 안 적어 둔
+ * 자료는 예전처럼 폴더·제목으로 보여 준다.
+ */
+function passageLabel(m: { project: string; title: string; source?: string }): string {
+  const src = String(m.source ?? "").trim();
+  return src ? `${src} · ${m.title}` : `${m.project} · ${m.title}`;
+}
+
 type Chosen =
   | { kind: "material"; id: string; label: string; words: number }
   | { kind: "text"; key: string; title: string; text: string };
@@ -58,7 +68,7 @@ export function ExamMockBuilder({
     initialPassageIds
       .map((id) => materials.find((m) => m.id === id))
       .filter((m): m is MaterialPassage => Boolean(m))
-      .map((m) => ({ kind: "material", id: m.id, label: `${m.project} · ${m.title}`, words: m.words }))
+      .map((m) => ({ kind: "material", id: m.id, label: passageLabel(m), words: m.words }))
   );
   const [draft, setDraft] = useState({ title: "", text: "" });
   const [override, setOverride] = useState<Record<number, number>>({});
@@ -104,7 +114,7 @@ export function ExamMockBuilder({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return materials.filter((m) => !q || `${m.project} ${m.title} ${m.preview}`.toLowerCase().includes(q)).slice(0, 200);
+    return materials.filter((m) => !q || `${m.source} ${m.project} ${m.title} ${m.preview}`.toLowerCase().includes(q)).slice(0, 200);
   }, [materials, query]);
   const byProject = useMemo(() => {
     const map = new Map<string, MaterialPassage[]>();
@@ -117,7 +127,7 @@ export function ExamMockBuilder({
     setChosen((prev) =>
       isChosen(m.id)
         ? prev.filter((c) => !(c.kind === "material" && c.id === m.id))
-        : [...prev, { kind: "material", id: m.id, label: `${m.project} · ${m.title}`, words: m.words }]
+        : [...prev, { kind: "material", id: m.id, label: passageLabel(m), words: m.words }]
     );
   }
   function addText() {
@@ -249,7 +259,7 @@ export function ExamMockBuilder({
                                 const rest = prev.filter((c) => !(c.kind === "material" && list.some((m) => m.id === c.id)));
                                 return all
                                   ? rest
-                                  : [...rest, ...list.map((m) => ({ kind: "material" as const, id: m.id, label: `${m.project} · ${m.title}`, words: m.words }))];
+                                  : [...rest, ...list.map((m) => ({ kind: "material" as const, id: m.id, label: passageLabel(m), words: m.words }))];
                               })
                             }
                           />
@@ -283,7 +293,11 @@ export function ExamMockBuilder({
                                 <label className={`flex cursor-pointer gap-2 rounded-md px-2 py-1.5 text-sm ${isChosen(m.id) ? "bg-brand-50" : "hover:bg-slate-50"}`}>
                                   <input type="checkbox" className="mt-0.5 h-4 w-4 accent-brand-600" checked={isChosen(m.id)} onChange={() => toggleMaterial(m)} />
                                   <span className="min-w-0">
-                                    <b className="font-semibold text-slate-900">{m.title}</b>
+                                    {m.source ? (
+                                      <b className="font-semibold text-slate-900">{m.source}</b>
+                                    ) : (
+                                      <b className="font-semibold text-slate-900">{m.title}</b>
+                                    )}
                                     <span className="ml-1.5 text-xs text-slate-400">{m.words}단어</span>
                                     {m.level ? (
                                       <span
@@ -297,7 +311,10 @@ export function ExamMockBuilder({
                                         {m.level}
                                       </span>
                                     ) : null}
-                                    <span className="block truncate text-xs text-slate-500">{m.preview}…</span>
+                                    <span className="block truncate text-xs text-slate-500">
+                                      {m.source ? `${m.title} · ` : ""}
+                                      {m.preview}…
+                                    </span>
                                   </span>
                                 </label>
                               </li>

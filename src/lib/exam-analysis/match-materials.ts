@@ -24,7 +24,20 @@ function shingles(ws: string[], n = 5): string[] {
 
 type PoolEntry = { id: string; label: string; set: Set<string> };
 
-/** 지문마다 가장 많이 겹치는 것을 찾아 30% 이상이면 같은 지문으로 본다 */
+/**
+ * 지문마다 가장 많이 겹치는 것을 찾는다.
+ *
+ * 5낱말 묶음이 30% 넘게 겹치면 같은 지문으로 본다. 다만 발췌가 짧으면 묶음이 적어
+ * 한 개 차이로 비율이 크게 흔들린다 — 스물다섯 낱말이면 묶음이 스물한 개뿐이라
+ * 여섯 개가 겹쳐도 29%다. 그래서 겹친 <b>개수</b>가 다섯을 넘어도 같은 지문으로 본다.
+ * 연속 다섯 낱말이 다섯 군데나 같으면 우연일 수 없다.
+ *
+ * 선생님과 함께 짚어 보니(2026-09-30) 발곡고 고1 19번이 25년 고1 6월 30번과
+ * 여섯 군데 겹치는데 29%라 놓치고 있었다.
+ */
+const MIN_RATIO = 0.3;
+const MIN_HITS = 5;
+
 function bestMatches(
   pool: PoolEntry[],
   excerpts: { key: string; excerpt: string | null }[]
@@ -35,14 +48,16 @@ function bestMatches(
     if (!excerpt || words(excerpt).length < 8) continue;
     const sh = shingles(words(excerpt));
     if (sh.length === 0) continue;
-    let best: { id: string; label: string; score: number } | null = null;
+    let best: { id: string; label: string; hit: number } | null = null;
     for (const m of pool) {
       let hit = 0;
       for (const s of sh) if (m.set.has(s)) hit++;
-      const score = hit / sh.length;
-      if (!best || score > best.score) best = { id: m.id, label: m.label, score };
+      if (!best || hit > best.hit) best = { id: m.id, label: m.label, hit };
     }
-    if (best && best.score >= 0.3) result.set(key, { id: best.id, label: best.label });
+    if (!best || best.hit === 0) continue;
+    if (best.hit / sh.length >= MIN_RATIO || best.hit >= MIN_HITS) {
+      result.set(key, { id: best.id, label: best.label });
+    }
   }
   return result;
 }

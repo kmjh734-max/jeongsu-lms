@@ -49,6 +49,14 @@ export const SAMPLE_IMAGES: Partial<Record<CreditSampleKind, SampleImage>> = {
     src: "/samples/question.jpg",
     alt: "변형문제 — 고른 유형으로 만든 시험지 실제 인쇄 첫 장",
   },
+  /*
+   * 선생님 지적(2026-09-30): 시험 분석을 만들 때 뜨는 예시가 보고서 화면이 아니었다.
+   * 그려 둔 견본이 나오고 있었다. 실제 분석지 첫 장을 찍어 넣는다.
+   */
+  exam_mock: {
+    src: "/samples/exam-analysis.jpg",
+    alt: "내신 시험 분석 — 영역·난이도·지문 출처를 한 장에 모은 실제 분석지 첫 장",
+  },
 };
 
 export function sampleImageFor(kind: CreditSampleKind): SampleImage | null {

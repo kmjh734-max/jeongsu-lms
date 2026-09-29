@@ -10,6 +10,8 @@ export type MaterialPassageFull = {
   firstItemId: string;
   folder: string;
   title: string;
+  /** 자료에 적어 둔 출처 (예: 공통영어2 YBM(박준언) 1과 본문1). 없으면 빈 글 */
+  source: string;
   text: string;
   updatedAt: string;
 };
@@ -21,7 +23,7 @@ export async function loadAcademyMaterialPassages(
 ): Promise<MaterialPassageFull[]> {
   let pq = admin
     .from("lesson_material_projects")
-    .select("id, title, updated_at, folder:lesson_material_folders(name)")
+    .select("id, title, source, updated_at, folder:lesson_material_folders(name)")
     .eq("academy_id", academyId)
     .limit(2000);
   if (projectIds?.length) pq = pq.in("id", projectIds);
@@ -53,6 +55,7 @@ export async function loadAcademyMaterialPassages(
         firstItemId: rows[0]?.id ?? "",
         folder: (folder?.name as string | undefined) ?? "미분류",
         title: (p.title as string) || "수업자료",
+        source: String(p.source ?? "").trim(),
         text: rows.map((r) => String(r.english_text ?? "").trim()).filter(Boolean).join(" "),
         updatedAt: String(p.updated_at ?? ""),
       };
