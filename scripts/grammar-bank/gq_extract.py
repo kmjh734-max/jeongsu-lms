@@ -226,6 +226,8 @@ def parse_page(page, page_no, carry):
         if r["font"].startswith("FuturaStd-Medium") and r["size"] > 20:
             continue
         if INSTR_FONT in r["font"] and r["size"] < 11:
+            # 지시문에는 빈칸이 없다 — 줄이 감기는 자리에서 옆 선을 집은 것이다
+            text = re.sub(r"\s*_{3,}\s*", " ", text).strip()
             if ANSREF.search(text) or len(text) < 6:
                 continue
             instrs.append((r["y"], r["x"], text))
@@ -333,7 +335,7 @@ def parse_exam_page(page, page_no, carry):
         if i is None:
             continue
         if INSTR_FONT in r["font"] and 9.0 <= r["size"] <= 11.0:
-            items[i]["prompt"].append(text)
+            items[i]["prompt"].append(re.sub(r"\s*_{3,}\s*", " ", text).strip())
         elif text[0] in CIRCLED:
             items[i]["choices"].append(text)
         else:
@@ -406,7 +408,7 @@ def parse_writing_page(page, page_no, carry):
         if i is None:
             continue
         if INSTR_FONT in r["font"] and r["size"] < 10 and not re.match(r"^\(\d\)$", text):
-            items[i]["prompt"].append(text)
+            items[i]["prompt"].append(re.sub(r"\s*_{3,}\s*", " ", text).strip())
         else:
             items[i]["body"].append(text)
 
