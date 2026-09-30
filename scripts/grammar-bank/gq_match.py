@@ -69,10 +69,15 @@ def usable(answer, q=None):
         if not only_no:
             return False
         many = len(re.findall(r"[①-⑩]", text))
+        picked = []
         for piece in re.findall(r"[1-9①-⑩]", t):
             got = int(piece) if piece.isdigit() else ord(piece) - 0x2460 + 1
             if got > many:
                 return False
+            picked.append(got)
+        # 같은 번호가 되풀이되거나 번호가 넷을 넘으면 옆 답이 섞인 것이다
+        if len(picked) > 3 or len(set(picked)) != len(picked):
+            return False
         return True
     if only_no:
         return True
