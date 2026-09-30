@@ -167,7 +167,7 @@ def infinitive(text, allow):
 # ── 동명사 ──────────────────────────────────────────────────────────
 GER_IDIOM = [
     r"\b(be\s+)?(busy|worth)\s+\w+ing\b",
-    r"\bcan'?t\s+help\s+\w+ing\b",
+    r"\bcan['’]?t\s+help\s+\w+ing\b",
     r"\bfeel\s+like\s+\w+ing\b",
     r"\bgo\s+\w+ing\b",
     r"\bhow\s+about\s+\w+ing\b",
@@ -184,7 +184,8 @@ GER_IDIOM = [
 ]
 # 이 갈래는 to부정사와 동명사를 견주는 자리다. 한쪽만 있으면 그냥 쓰임이다.
 GER_BOTH = [
-    r"\b(remember|forget|try|stop|regret)\s+(to\s+\w+|\w+ing)\b",
+    r"\b(remember|forget|try|stop|regret|remembered|forgot|tried|stopped|regretted|"
+    r"remembers|forgets)\b[^.]{0,20}(to\s+\w+|\w+ing)\b",
     r"\[[^\]]*\bto\s+\w+[^\]]*/[^\]]*\w+ing[^\]]*\]",
     r"\[[^\]]*\w+ing[^\]]*/[^\]]*\bto\s+\w+[^\]]*\]",
     r"\bto\s+\w+\b.{0,40}\b\w+ing\b.{0,20}(고르|알맞은|같은)",
@@ -231,8 +232,8 @@ CMP_MAIN = [
     r"\bthe\s+(\w+er|more|less)\b.{0,34}\bthe\s+(\w+er|more|less)\b",
     r"\b\w+er\s+and\s+\w+er\b",
     r"\bmore\s+and\s+more\b",
-    r"\bone\s+of\s+the\s+(\w+est|most\s+\w+|_{3,})\b",
-    r"\bthe\s+(\w+er|more|less)\b.{0,44}\bthe\s+(_{3,}|\(\w\))",
+    r"\bone\s+of\s+(the\s+)?(\w+est|most\s+\w+|_{3,}|\(\w\))",
+    r"\bthe\s+(\w+er|more|less)\b.{0,48}(\bthe\s+)?(_{3,}|\(\w\))",
     r"\bno\s+other\b|\bnothing\s+is\s+(more|as)\b",
     r"\btwice\s+as\b|\b\w+\s+times\s+as\b|\b\d+\s+times\s+\w*(er|more)\b",
     r"주요 구문",
@@ -313,7 +314,7 @@ SUB_BASE = [r"\bif\s+.{0,30}\b(were|had|would|could|should)\b", r"가정법 과�
 SUB_CARE = [
     r"\bhad\s+it\s+not\s+been\b", r"\bwere\s+it\s+not\b", r"\bit\s+is\s+time\b",
     # 단순 조건절(if + 현재, will)은 가정법과 갈라 써야 하는 자리다
-    r"\bif\s+\w+\s+(\w+s|do|does|is|are|don'?t|doesn'?t)\b.{0,40}\bwill\b",
+    r"\bif\s+\w+\s+(\w+s|do|does|is|are|don['’]?t|doesn['’]?t)\b.{0,40}\bwill\b",
     r"\bif\s+.{0,30}\bwill\b",
     r"주의할 가정법",
 ]
@@ -348,6 +349,8 @@ PART_USE = [
     # 명사 뒤에서 꾸미는 분사 — 「the photos [[taking]] in Africa」
     r"\b(the|a|an|my|his|her|their|our)\s+\w+\s*\[\[\s*\w+\s*\]\]",
     r"\b(is|are|was|were)\s+(an?|the)\s+\w+\s+\[\[",
+    # 「(make, making, made)」처럼 세 꼴을 늘어놓고 고르게 하는 자리
+    r"\(\s*\w+,\s*\w+ing,\s*\w+(ed|en)\s*\)",
 ]
 
 
@@ -364,9 +367,20 @@ def participle(text, allow):
 
 
 # ── 조동사 ──────────────────────────────────────────────────────────
-MOD_HAVE = [r"\b(must|should|may|might|could|can'?t)\s+have\s+\w+(ed|en)\b", r"have p\.?p\.?"]
-MOD_DUTY = [r"\b(must|have\s+to|has\s+to|had\s+to|should|ought\s+to|had\s+better|used\s+to)\b"]
-MOD_CAN = [r"\b(can|could|may|might|will|would)\b"]
+MOD_HAVE = [
+    r"\b(must|should|may|might|could|can['’]?t|cannot)\s+have\s+\w+(ed|en)\b",
+    r"have p\.?p\.?",
+    # 우리말 자국 — 「했어야 했다」·「했을 리가 없다」·「했을지도 모른다」
+    r"했어야|했을 리가|했을지도|였음에 틀림없|했음에 틀림없",
+]
+MOD_DUTY = [
+    r"\b(must|have\s+to|has\s+to|had\s+to|should|ought\s+to|had\s+better|used\s+to)\b",
+    r"해야 한다|하는 게 좋|하곤 했|하지 않는 게 좋|의무|충고",
+]
+MOD_CAN = [
+    r"\b(can|could|may|might|will|would|shall)\b",
+    r"할 수 있|일 것이다|해도 좋|일지도 모른|허락|추측",
+]
 
 
 def modal(text, allow):
@@ -388,13 +402,13 @@ def modal(text, allow):
 TABLE = {
     "be동사": [
         ("be동사의 부정문과 의문문",
-         [r"\b(is|are|am|was|were)\s+not\b", r"\b(isn'?t|aren'?t|wasn'?t|weren'?t)\b",
+         [r"\b(is|are|am|was|were)\s+not\b", r"\b(isn['’]?t|aren['’]?t|wasn['’]?t|weren['’]?t)\b",
           r"(^|[.?!/]\s*)(Is|Are|Am|Was|Were)\s+\w+"]),
         ("be동사의 긍정문", [r"\b(is|are|am|was|were)\b"]),
     ],
     "일반동사": [
         ("일반동사의 부정문과 의문문",
-         [r"\b(do|does|did)\s+not\b", r"\b(don'?t|doesn'?t|didn'?t)\b",
+         [r"\b(do|does|did)\s+not\b", r"\b(don['’]?t|doesn['’]?t|didn['’]?t)\b",
           r"(^|[.?!/]\s*)(Do|Does|Did)\s+\w+"]),
         ("일반동사의 과거형",
          [r"\b(yesterday|last\s+\w+|ago)\b", r"어제|지난|과거형",
@@ -480,13 +494,22 @@ TABLE = {
           r"seem|seems|get|gets|turn|turns|stay|remain)\s+\w+", r"보어"]),
     ],
     "다양한 문장의 형태": [
-        ("There is/are", [r"\bthere\s+(is|are|was|were|isn'?t|aren'?t)\b", r"\bThere\s+_{3,}"]),
+        ("There is/are",
+         [r"\bthere\s+(is|are|was|were|isn['’]?t|aren['’]?t)\b",
+          r"\bThere\s+(_{3,}|\[\[|\(\w\))"]),
         ("부가의문문과 부정의문문",
-         [r",\s*(isn'?t|aren'?t|wasn'?t|weren'?t|don'?t|doesn'?t|didn'?t|can'?t|won'?t|"
-          r"is|are|do|does|did|can|will)\s+\w+\?", r"부가의문문|부정의문문"]),
+         [r",\s*(isn['’]?t|aren['’]?t|wasn['’]?t|weren['’]?t|don['’]?t|doesn['’]?t|didn['’]?t|can['’]?t|won['’]?t|"
+          r"is|are|do|does|did|can|will)\s+\w+\?", r"부가의문문|부정의문문",
+          r",\s*(_{3,}|\[\[[^\]]*\]\])\s*\?"]),
         ("명령문과 감탄문",
          [r"\bWhat\s+(a|an)\s+\w+", r"\bHow\s+\w+\s+(he|she|it|they|you|I)\b",
-          r"(^|[.?!/]\s*)(Don'?t|Let'?s|Be\b|Never\b)", r"명령문|감탄문"]),
+          r"(^|[.?!/]\s*)(Don['’]?t|Let['’]?s|Be\b|Never\b)", r"명령문|감탄문",
+          # 빈칸으로 시작하는 감탄문 — 「___ nice the backpack is!」
+          r"_{3,}\s+(a|an\s+)?\w+[^.!?]{0,24}\b(is|are|was|were)\s*!",
+          r"_{3,}\s+\w+[^!]{0,30}!",
+          # 빈칸 뒤에 동사원형만 오는 명령문
+          r"_{3,}\s+(use|play|be|open|close|turn|put|take|come|go|eat|drink|study|"
+          r"listen|wash|clean|help|look|write|read|stop|keep)\b"]),
         ("의문사 의문문",
          [r"(^|[.?!/]\s*)(What|Who|Whom|Whose|When|Where|Why|How|Which)\b", r"의문사"]),
     ],
@@ -495,7 +518,7 @@ TABLE = {
          [r"\b(know|wonder|tell\s+me|ask|sure)\b.{0,20}\b(what|who|when|where|why|how|if|whether)\b\s+\w+\s+\w+",
           r"간접의문문"]),
         ("부가의문문과 부정의문문",
-         [r",\s*(isn'?t|aren'?t|don'?t|doesn'?t|didn'?t|can'?t|won'?t|is|are|do|does|did|can|will)\s+\w+\?",
+         [r",\s*(isn['’]?t|aren['’]?t|don['’]?t|doesn['’]?t|didn['’]?t|can['’]?t|won['’]?t|is|are|do|does|did|can|will)\s+\w+\?",
           r"부가의문문|부정의문문"]),
         ("의문사 의문문", [r"(^|[.?!/]\s*)(What|Who|When|Where|Why|How|Which)\b", r"의문사"]),
     ],
@@ -521,19 +544,30 @@ TABLE = {
           r"\bso\s*~?\s*that\s*~?", r"\bsuch\s+.{0,16}\s+that\b",
           r"상관접속사|짝을 이루"]),
         ("명사절을 이끄는 접속사",
-         [r"\b(know|think|say|believe|hope|sure)\s+(that)?\b.{0,12}\bthat\b",
-          r"\bwhether\b|\bif\s+\w+\s+\w+", r"명사절"]),
+         [r"\b(know|knew|think|thought|say|said|believe|hope|sure|heard|hear|suggest|"
+          r"realize|feel|felt)\b[^.]{0,16}that\b",
+          r"\bwhether\b|\bif\s+\w+\s+\w+", r"명사절",
+          # 「The reason … is ___ she is kind」처럼 보어 자리의 명사절
+          r"\b(reason|fact|problem|point|question)\b.{0,30}\bis\s*(\(\w\)|_{3,})",
+          r"\b(believe|know|think|say|suggest)\s*(\(\w\)|_{3,})\s+\w+\s+\w+"]),
         ("명사절을 이끄는 that", [r"\bthat\b.{0,30}\b(is|are|was|were|will|can)\b", r"that절|명사절"]),
         ("부사절을 이끄는 접속사",
          [r"\b(when|while|before|after|until|as\s+soon\s+as|because|since|although|though|"
-          r"even\s+though|if|unless)\b", r"부사절"]),
+          r"even\s+though|if|unless)\b", r"부사절",
+          # 빈칸 뒤에 절이 이어지는 자리 — 「(A)___ it was snowing heavily」
+          r"(\(\w\)|_{3,})\s*(it|he|she|they|we|you|I|[A-Z][a-z]+)\s+(was|were|is|are|had|has|"
+          r"did|do|does|could|would|will|can)\b"]),
         ("시간·이유·조건의 접속사",
          [r"\b(when|while|before|after|until|because|since|if|unless)\b", r"시간|이유|조건",
           # 빈칸 뒤에 절(주어+동사)이 오면 부사절을 이끄는 자리다
           r"_{3,}\s+(I|you|he|she|we|they|it|[A-Z][a-z]+)\s+[a-z]+"]),
         ("시간·이유의 접속사", [r"\b(when|while|before|after|until|because|since)\b"]),
         ("조건·양보의 접속사", [r"\b(if|unless|although|though|even\s+if|even\s+though)\b"]),
-        ("등위접속사", [r"\b(and|but|or|so)\b", r"등위"]),
+        ("등위접속사",
+         [r"\b(and|but|or|so)\b", r"등위",
+          # 「명령문, ___ 주어+동사」 — 그러면·그렇지 않으면
+          r"(^|[.!?/]\s*)[A-Z]\w+[^.!?,]{0,30},\s*(_{3,}|\(\s*\w\s*\))\s*"
+          r"(you|he|she|they|we|I)\b"]),
     ],
     # 전치사는 낱말만 보면 아무 문장에나 걸린다. 뒤에 오는 말까지 함께 본다.
     # 그래도 안 걸리면 아래 prepositions() 가 때·곳을 가리키는 낱말을 세어 가른다.
@@ -568,6 +602,8 @@ TABLE = {
          [r"\b(Never|Little|Only|Hardly|Rarely|Seldom|Not\s+until|Neither|Nor|So)\b"
           r".{0,26}\b(do|does|did|is|are|was|were|have|has|had|can|could|will|would)\b",
           r"\bNot\s+until\b", r"\b(So|Neither)\s+(do|does|did|am|is|are|was|were|can|will)\s+\w",
+          # 빈칸이 조동사 자리인 도치 — 「Never (A)___ such a sight」
+          r"\b(Never|Little|Only|Hardly|Rarely|Seldom|Neither|Nor)\b\s*(\(\w\)\s*)?(_{3,}|\[\[)",
           r"도치"]),
         ("강조",
          [r"\bIt\s+(is|was)\b.{1,34}[\s\[]that\b",
@@ -582,7 +618,7 @@ TABLE = {
 
 # ── 전치사 — 때를 가리키는 말과 곳을 가리키는 말을 세어 가른다
 TIME_WORD = re.compile(
-    r"\b(o'?clock|morning|afternoon|evening|night|noon|midnight|today|tomorrow|yesterday|"
+    r"\b(o['’]?clock|morning|afternoon|evening|night|noon|midnight|today|tomorrow|yesterday|"
     r"Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|"
     r"January|February|March|April|May|June|July|August|September|October|November|December|"
     r"spring|summer|fall|autumn|winter|weekend|holiday|vacation|birthday|christmas|"
