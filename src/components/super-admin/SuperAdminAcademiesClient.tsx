@@ -101,6 +101,37 @@ export function SuperAdminAcademiesClient({
   const [createUsername, setCreateUsername] = useState("");
   const [createPassword, setCreatePassword] = useState("");
   const [inviteHint, setInviteHint] = useState<string | null>(null);
+  /*
+   * 그 학원 관리자로 바로 들어간다 — 선생님 요청(2026-09-30).
+   *
+   * 학원마다 무엇이 어떻게 보이는지는 그 학원 관리자 눈으로 봐야 안다.
+   * 비밀번호는 건드리지 않고 일회용 로그인 고리를 받아 따라간다.
+   * 돌아올 때는 슈퍼관리자 계정으로 다시 로그인하면 된다.
+   */
+  async function enterAcademy(academyId: string, academyName: string, adminId?: string) {
+    if (!window.confirm(`${academyName}의 관리자 화면으로 들어갑니다.
+지금 슈퍼관리자에서 나가고, 돌아올 때는 다시 로그인해야 해요.`)) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/super-admin/academies/${academyId}/impersonate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(adminId ? { adminId } : {}),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.message ?? "들어가지 못했습니다.");
+        setBusy(false);
+        return;
+      }
+      window.location.href = data.url as string;
+    } catch {
+      setError("들어가지 못했습니다.");
+      setBusy(false);
+    }
+  }
+
   /** 관리자 수정 중인 행 */
   const [editAdmin, setEditAdmin] = useState<{
     id: string;
@@ -750,6 +781,15 @@ export function SuperAdminAcademiesClient({
                         ? "닫기"
                         : "관리자"}
                     </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      className="text-xs font-medium text-slate-700 hover:underline disabled:opacity-40"
+                      title="이 학원 관리자 화면으로 들어갑니다"
+                      onClick={() => void enterAcademy(r.id, r.name)}
+                    >
+                      접속
+                    </button>
                     {r.status !== "active" && (
                       <button
                         type="button"
@@ -1198,9 +1238,18 @@ export function SuperAdminAcademiesClient({
                           <td className="whitespace-nowrap text-right">
                             <button
                               type="button"
+                              disabled={busy || !a.is_active}
+                              onClick={() => void enterAcademy(manageId!, managed?.name ?? "이 학원", a.id)}
+                              title={a.is_active ? "이 관리자로 들어갑니다" : "비활성 계정으로는 들어갈 수 없어요"}
+                              className="rounded-md px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40"
+                            >
+                              이 계정으로 접속
+                            </button>
+                            <button
+                              type="button"
                               disabled={busy}
                               onClick={() => startEditAdmin(a)}
-                              className="rounded-md px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-50"
+                              className="ml-1 rounded-md px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-50"
                             >
                               수정
                             </button>
