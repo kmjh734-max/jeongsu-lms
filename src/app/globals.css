@@ -4748,6 +4748,14 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 }
 
 @media print {
+  /* 선생님 지적(2026-09-30): 문법 시험지를 인쇄하면 빈 쪽이 줄줄이 나왔다.
+     쪽 나누기를 재는 숨은 틀(.gb-measure)은 눈에만 안 보일 뿐 자리는 그대로
+     차지한다. 문항을 두 너비로 한 번씩 담고 있어 몇 미터 길이가 되고, 그만큼
+     빈 쪽이 뒤에 붙었다. 인쇄할 때는 아예 들어내야 한다. */
+  .gb-measure {
+    display: none !important;
+  }
+
   #grammar-print-root .gb-sheet {
     box-shadow: none !important;
     margin: 0 !important;
