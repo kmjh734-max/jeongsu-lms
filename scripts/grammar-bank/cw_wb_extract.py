@@ -54,10 +54,18 @@ def lines_of(page):
             })
     put_blanks([ln for ln in lines if not is_num(ln["font"])], blank_rules(page))
     for ln in lines:
-        parts = [{"x": q["x"], "t": q["t"]} for q in ln["spans"]]
-        parts += [{"x": x, "t": BLANK} for x in ln["blanks"]]
+        parts = [{"x": q["x"], "x1": q["x1"], "t": q["t"]} for q in ln["spans"]]
+        parts += [{"x": x, "x1": x, "t": BLANK} for x in ln["blanks"]]
         parts.sort(key=lambda q: q["x"])
-        ln["text"] = "".join(q["t"] for q in parts).rstrip()
+        # 조각 사이가 떨어져 있으면 띄어쓰기다 — 붙여 두면 「Thelegend」가 된다
+        made = []
+        last = None
+        for q in parts:
+            if last is not None and q["x"] - last > 1.2 and made and not made[-1].endswith(" "):
+                made.append(" ")
+            made.append(q["t"])
+            last = q.get("x1", q["x"])
+        ln["text"] = "".join(made).rstrip()
     return lines
 
 
