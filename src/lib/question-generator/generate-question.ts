@@ -1097,10 +1097,43 @@ export function assertBasicQuestionShape(
   /** 지정 문법을 지문에서 찾았는지, 고쳐 썼는지 (선생님 요청 2026-09-29) */
   writingMode: "passage" | "paraphrase" = "paraphrase",
   /** 제시어 배열을 지문 그대로 냈는지 (기본: 지문 그대로) */
-  wordOrderMode: "passage" | "paraphrase" = "passage"
+  wordOrderMode: "passage" | "paraphrase" = "passage",
+  /** 어법·어휘에서 지문을 그대로 두어야 하는지 (재진술을 껐으면 그대로) */
+  keepPassage = true
 ): string | null {
   if (!q.instruction.trim()) return "발문이 비어 있습니다.";
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
+
+  /*
+   * 어법·어휘는 밑줄 자리 말고는 지문을 그대로 두어야 한다.
+   *
+   * 전수조사(2026-09-30): 재진술을 켜지 않았는데도 문장을 고쳐 쓴 것이 55개 있었다.
+   * 「To find」를 「To uncover」로, 「we're」를 「we are」로 바꾸는 식이다.
+   * 프롬프트에 적어 두기만 하고 확인은 안 하고 있었다.
+   *
+   * 밑줄 자리 낱말은 바뀌는 것이 맞으므로 열에 여덟은 남아야 한다고 본다.
+   */
+  if (
+    keepPassage &&
+    (option.type === "grammar" || option.type === "vocabulary") &&
+    q.passageModified &&
+    q.passageOriginal &&
+    q.passageOriginal.length > 400
+  ) {
+    const words = (t: string) =>
+      t
+        .replace(/<\/?[a-z][^>]*>/gi, " ")
+        .toLowerCase()
+        .split(/[^a-z']+/)
+        .filter((w) => w.length > 3);
+    const made = words(q.passageModified);
+    const from = new Set(words(q.passageOriginal));
+    const kept = made.filter((w) => from.has(w)).length;
+    const ratio = made.length ? kept / made.length : 1;
+    if (ratio < 0.8) {
+      return `지문을 고쳐 썼습니다(원문 낱말이 ${Math.round(ratio * 100)}%만 남음). 밑줄 자리 말고는 원문 그대로 두어야 합니다.`;
+    }
+  }
 
   /*
    * 밑줄 기호는 지문에 나오는 차례대로여야 한다.
@@ -2100,7 +2133,8 @@ export async function generateOneQuestion(opts: {
     payload,
     option,
     opts.grammarWritingMode ?? "paraphrase",
-    opts.wordOrderMode ?? "passage"
+    opts.wordOrderMode ?? "passage",
+    !opts.paraphraseGrammarVocab
   );
   if (shapeError) throw new Error(shapeError);
   // 어법 추론은 수능처럼 지문 속 ①~⑤로 (정답 번호와 같은 기호)
