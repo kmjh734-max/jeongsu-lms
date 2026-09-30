@@ -1,4 +1,5 @@
 import { difficultyRule, targetLevelFromOverall, type TargetLevel } from "@/lib/question-generator/difficulty";
+import { summaryBlankFitProblem } from "@/lib/question-generator/summary-blank-fit";
 import {
   choiceCraftCommonRules,
   choiceExplanationRules,
@@ -1501,6 +1502,9 @@ export function assertBasicQuestionShape(
     if (!ans) {
       return "요약문 빈칸 정답이 필요합니다.";
     }
+    // 정답을 끼운 요약문이 어법에 맞는지 본다 (summary-blank-fit.ts 에 까닭이 적혀 있다)
+    const fitProblem = summaryBlankFitProblem(blocks.summary, ans);
+    if (fitProblem) return fitProblem;
     const passage = q.passageOriginal || "";
     if (
       option.aingkaCode === "요약문빈칸2단어" ||
