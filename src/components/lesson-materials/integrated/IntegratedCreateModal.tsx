@@ -88,6 +88,28 @@ export function IntegratedCreateModal({
     };
   });
 
+  /** 지문을 넣은 차례로 줄 세운다 — 폴더 차례, 그 안에서 번호순 */
+  const sortByInputOrder = useMemo(() => {
+    const all = [...data.projects, ...data.unfiledProjects];
+    const rank = new Map((data.folders ?? []).map((f, i) => [f.id, i] as const));
+    const byId = new Map(all.map((p) => [p.id, p] as const));
+    const key = (id: string) => {
+      const p = byId.get(id);
+      if (!p) return [Number.MAX_SAFE_INTEGER, 0, ""] as const;
+      return [
+        p.folder_id ? (rank.get(p.folder_id) ?? rank.size) : -1,
+        p.order_index ?? 0,
+        p.created_at ?? "",
+      ] as const;
+    };
+    return (ids: string[]) =>
+      [...ids].sort((a, b) => {
+        const [ar, ao, ac] = key(a);
+        const [br, bo, bc] = key(b);
+        return ar - br || ao - bo || String(ac).localeCompare(String(bc));
+      });
+  }, [data.projects, data.unfiledProjects, data.folders]);
+
   const projectsInFolder = useMemo(() => {
     if (folder === "all") return null;
     const all = [...data.projects, ...data.unfiledProjects];
@@ -150,13 +172,15 @@ export function IntegratedCreateModal({
       // 목록에 보이는 순서(최신순)대로 넣는다.
       payload.selections[k] = rowsByKind[k].filter((r) => selected[k].has(r.id)).map((r) => r.id);
     }
-    const projectIds = [
+    // 자료 파일 차례로 모으면 지문이 파일별로 뭉쳐 섞인다(10·11·12 다음에 7·8·9).
+    // 지문은 넣은 차례(폴더 차례 → 폴더 안 번호)로 줄 세운다.
+    const projectIds = sortByInputOrder([
       ...new Set(
         (Object.keys(selected) as IntegratedSectionKind[]).flatMap((k) =>
           rowsByKind[k].filter((r) => selected[k].has(r.id)).flatMap((r) => r.projectIds)
         )
       ),
-    ];
+    ]);
     setBusy(true);
     try {
       const res = await createIntegratedDocument(role, {
