@@ -86,6 +86,21 @@ async function countRunningJobs(selfId: string): Promise<number> {
  * items를 동시에 limit()개까지 처리한다. limit은 처리 중에도 바뀔 수 있다(다른 작업이
  * 시작되거나 한도가 빠듯해지면 줄고, 풀리면 는다). fn이 던지면 전체가 실패한다.
  */
+const isGrammarType = (key: string | null) =>
+  /:(어법추론|어법개수)$/.test(String(key ?? ""));
+/*
+ * 서술형도 따로 받는다.
+ *
+ * 실측(2026-10-01): 지문 셋으로 나란히 재 보니 객관식은 문항당 41원, 서술형·어법은
+ * 114원이었다. 호출이 2.3번 들어가고(검수에서 걸려 다시 만드는 일이 잦다) 해설이
+ * 길어서다. 한 값으로 매기면 객관식 쓰는 분이 서술형 쓰는 분을 떠받치게 된다.
+ */
+const isWritingType = (key: string | null) =>
+  /^(writing|summary_short):/.test(String(key ?? "")) ||
+  /:(어법문장오류수정|어법오류수정2|어법오류수정3|지칭대명사서술|특정표현의미서술|요약표빈칸단어)$/.test(
+    String(key ?? "")
+  );
+
 export function runAdaptivePool<T>(
   items: T[],
   limit: () => number,
@@ -316,10 +331,11 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
    * 어법 유형은 원가가 다른 유형의 두 배쯤이다(실측: 어법추론 77원 · 어법개수 72원,
    * 빈칸추론 32원). 지문 전체를 다시 읽고 다섯 자리를 한꺼번에 봐야 해서다.
    */
-  const isGrammarType = (key: string | null) =>
-    /:(어법추론|어법개수)$/.test(String(key ?? ""));
   const grammarCount = rowsToBill.filter((r) => isGrammarType(r.option_key)).length;
-  const plainCount = toBill - grammarCount;
+  const writingCount = rowsToBill.filter(
+    (r) => !isGrammarType(r.option_key) && isWritingType(r.option_key)
+  ).length;
+  const plainCount = toBill - grammarCount - writingCount;
 
   /*
    * 내역에 무엇을 만들었는지 적는다.
@@ -340,6 +356,18 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
         idempotencyKey: `qg_generate_job:${jobId}:upto-${latest}`,
         metadata: { job_id: jobId, used_for: "question_generator", made_by: madeBy },
         note: `${madeBy} ${plainCount}문항`,
+      })) && ok;
+  }
+  if (writingCount > 0) {
+    ok =
+      (await debitLessonCredits({
+        academyId: job.academy_id as string,
+        actorId: job.created_by as string,
+        featureKey: "qg_generate_writing",
+        quantity: writingCount,
+        idempotencyKey: `qg_generate_writing:${jobId}:upto-${latest}`,
+        metadata: { job_id: jobId, used_for: "question_generator", made_by: madeBy },
+        note: `${madeBy} 서술형 ${writingCount}문항`,
       })) && ok;
   }
   if (grammarCount > 0) {
@@ -862,9 +890,11 @@ export async function runGenerationJob(
       setAiUsage({
         academyId,
         actorId: userId,
-        featureKey: /:(어법추론|어법개수)$/.test(item.option.key)
+        featureKey: isGrammarType(item.option.key)
           ? "qg_generate_grammar"
-          : "qg_generate_job",
+          : isWritingType(item.option.key)
+            ? "qg_generate_writing"
+            : "qg_generate_job",
         usedFor: "question_generator",
       });
 
