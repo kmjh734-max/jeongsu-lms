@@ -249,11 +249,15 @@ def main(q_path, a_path, out_path, bad_path=None):
             failed.append({"정답지쪽": b["answer_page"], "본책쪽": blk["page"],
                            "답": len(answers), "까닭": "번호가 맞지 않음"})
             continue
-        bad = [1 for q, a in pairs if not ok_choice(a, q.get("choices"))]
-        if bad:
+        # 보기 번호가 아닌 답이 하나 섞이면 그 낱말을 잘못 읽은 것이니 그것만 뺀다.
+        # 여럿이 어긋나면 상자와 묶음이 어긋난 것이므로 통째로 넘긴다.
+        looks = [(q, a) for q, a in pairs if q.get("choices")]
+        bad = [1 for q, a in looks if not ok_choice(a, q.get("choices"))]
+        if bad and len(bad) > max(1, len(looks) * 0.2):
             failed.append({"정답지쪽": b["answer_page"], "본책쪽": blk["page"],
                            "답": len(answers), "까닭": "보기에 없는 답 %d개" % len(bad)})
             continue
+        pairs = [(q, a) for q, a in pairs if ok_choice(a, q.get("choices"))]
         # [A / B] 처럼 고를 것이 정해진 문항은 답이 그 안에 있어야 한다.
         # 몇 개가 어긋나면 그 낱말을 잘못 읽은 것이니 그것만 빼고, 여럿이 어긋나면
         # 상자와 묶음이 어긋난 것이므로 통째로 넘긴다.
