@@ -246,6 +246,27 @@ export function LessonMaterialsLibrary({
     ...visibleProjects.filter((p) => selected.has(p.id)).map((p) => p.id),
     ...selectedIds.filter((id) => !visibleProjects.some((p) => p.id === id)),
   ];
+  /**
+   * 자료를 만들 때 쓰는 순서 — 화면을 어떻게 보고 있든 지문을 넣은 순서로 낸다.
+   *
+   * 「최근 추가순」으로 보다가 전체 선택하면 수업자료·1장 요약자료가 마지막 지문부터
+   * 거꾸로 나왔다. 무엇을 보고 있든 자료는 1번 지문부터 나와야 헷갈리지 않는다.
+   */
+  const selectedInInputOrder = (() => {
+    const folderRank = new Map(foldersFlat.map(({ folder }, i) => [folder.id, i] as const));
+    const byId = new Map(activeProjects.map((p) => [p.id, p] as const));
+    const key = (id: string) => {
+      const p = byId.get(id);
+      if (!p) return [Number.MAX_SAFE_INTEGER, 0, 0] as const;
+      const rank = p.folder_id ? (folderRank.get(p.folder_id) ?? foldersFlat.length) : -1;
+      return [rank, p.order_index ?? 0, Date.parse(p.created_at ?? p.updated_at) || 0] as const;
+    };
+    return [...selectedIds].sort((a, b) => {
+      const [ar, ao, ac] = key(a);
+      const [br, bo, bc] = key(b);
+      return ar - br || ao - bo || ac - bc;
+    });
+  })();
   const inTrash = folderFilter === "trash";
   const tabComingSoon = false;
   /** 만든 파일을 보여 주는 탭. 워크북 탭은 파일만 있고 지문별 목록이 없다. */
@@ -1198,8 +1219,8 @@ export function LessonMaterialsLibrary({
         <LessonMaterialsSelectionBar
           role={role}
           selectedCount={selectedCount}
-          selectedIds={selectedInViewOrder}
-          onIntegrated={() => setIntegratedOpen({ preselected: selectedInViewOrder })}
+          selectedIds={selectedInInputOrder}
+          onIntegrated={() => setIntegratedOpen({ preselected: selectedInInputOrder })}
         />
       ) : null}
       {integratedOpen ? (

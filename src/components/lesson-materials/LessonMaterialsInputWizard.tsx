@@ -594,8 +594,8 @@ export function LessonMaterialsInputWizard({
         return;
       }
       // 저장 완료 화면과 이어지는 링크는 입력 순서(1번부터)를 쓴다.
-      createdIds.reverse();
-
+      // 위에서 이미 1번 지문부터 저장했으므로 그대로 둔다. 예전에 거꾸로 저장하던
+      // 때의 뒤집기가 남아 있어, 「지문 1 프로젝트 열기」가 마지막 지문을 열었다.
       setSavedProjectIds(createdIds);
       setSavedProjectId(createdIds[0] ?? null);
       setSavedItemsCount(totalItems);
