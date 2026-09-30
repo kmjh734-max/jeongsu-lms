@@ -918,11 +918,19 @@ export async function runGenerationJob(
       if (abandoned) return;
 
       /*
-       * 설계도 칸(동형모의고사)은 비우지 않는다. 그 유형으로 못 만들면 다른 유형으로
-       * 바꿔 다시 만든다 — 번호가 빠지면 1번부터 나오지 않고 배점도 모자란다.
+       * 빠지는 문항을 두지 않는다. 동형모의고사는 번호가 빠지면 1번부터 나오지 않고
+       * 배점도 모자란다.
+       *
+       * 선생님 지적(2026-10-01): 만들다 버린 값도 우리가 낸다. 빠질 것 같으면 아예
+       * 만들지 말든가 다 만들든가 해야 한다. 지금까지는 설계도 칸(동형모의고사)만
+       * 다른 유형으로 살리고, 보통 변형문제는 그냥 빠졌다. 값은 이미 다 치렀는데
+       * 문항은 없는 꼴이라 제일 아깝다.
+       *
+       * 이제 어느 쪽이든 다른 유형으로 바꿔 한 번 더 만든다. 난이도는 그대로 둔다.
        */
-      if ((result.skipped || !result.payload) && item.slot) {
-        for (const alt of fallbackOptionsFor(item.option.key, item.slot.level)) {
+      if (result.skipped || !result.payload) {
+        const level = item.slot?.level ?? (item.option.difficulty === "high" ? "상" : "하");
+        for (const alt of fallbackOptionsFor(item.option.key, level)) {
           const retry = await generateWithValidation({
             passage: item.passageText,
             analysis: item.analysis,

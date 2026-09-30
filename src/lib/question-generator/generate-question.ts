@@ -1510,15 +1510,52 @@ export function assertBasicQuestionShape(
      * 선생님 지적(2026-09-28): 지문에 정답 문장이 그대로 있으면 베껴 쓰면 된다.
      * 기존 제시어 배열처럼 그 자리를 ⓐ__________ 빈칸으로 뚫어야 한다.
      */
-    const modified = String(q.passageModified ?? "").trim();
-    if (!modified) {
-      return "조건 영작은 정답 문장을 빈칸으로 뚫은 지문(passageModified)이 필요합니다.";
-    }
-    if (!/ⓐ/.test(modified) || !/_{3,}/.test(modified)) {
-      return "지문에 ⓐ__________ 빈칸이 필요합니다.";
-    }
-    if (passageHasConsecutiveWords(modified, answer)) {
-      return "지문에 정답 문장이 그대로 남아 있습니다. 그 자리를 빈칸으로 바꿔야 합니다.";
+    /*
+     * 빈칸은 코드가 뚫는다 — 버리지 말고 고쳐 쓴다.
+     *
+     * 선생님 지적(2026-10-01): 만들다 버린 값도 우리가 낸다. 빠질 것 같으면 아예
+     * 만들지 말든가 다 만들든가 해야 한다.
+     *
+     * 실측(2026-10-01): 조건 영작 여섯 번 가운데 세 번이 「빈칸을 안 뚫었다」로
+     * 통째로 버려졌다. 그런데 정답이 지문에 있는 문장이면 그 자리를 빈칸으로 바꾸는
+     * 일은 코드가 할 수 있다. 다시 부를 까닭이 없다.
+     */
+    const blankOut = (source: string): string | null => {
+      const src = String(source ?? "");
+      if (!src.trim()) return null;
+      const tidy = (t: string) => t.toLowerCase().replace(/[^a-z]/g, "");
+      const want = tidy(answer);
+      if (want.length < 12) return null;
+      // 지문에서 정답 문장이 있는 자리를 글자 기준으로 찾는다 (구두점·공백 무시)
+      const map: number[] = [];
+      let flat = "";
+      for (let i = 0; i < src.length; i += 1) {
+        const c = src[i]!.toLowerCase();
+        if (c >= "a" && c <= "z") {
+          flat += c;
+          map.push(i);
+        }
+      }
+      const at = flat.indexOf(want);
+      if (at < 0) return null;
+      const from = map[at]!;
+      const to = map[at + want.length - 1]! + 1;
+      return `${src.slice(0, from)}ⓐ__________${src.slice(to)}`;
+    };
+
+    let modified = String(q.passageModified ?? "").trim();
+    const needsBlank =
+      !modified ||
+      !/ⓐ/.test(modified) ||
+      !/_{3,}/.test(modified) ||
+      passageHasConsecutiveWords(modified, answer);
+    if (needsBlank) {
+      const fixed = blankOut(modified || q.passageOriginal || "") ?? blankOut(q.passageOriginal || "");
+      if (!fixed) {
+        return "조건 영작은 정답 문장을 빈칸으로 뚫은 지문(passageModified)이 필요합니다.";
+      }
+      modified = fixed;
+      q.passageModified = fixed;
     }
 
     /*
