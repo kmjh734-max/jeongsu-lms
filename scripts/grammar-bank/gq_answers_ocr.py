@@ -137,9 +137,11 @@ def mark_of(run):
     """○ 와 × 는 OCR 로 읽히지 않는다 — 선 모양으로 가린다"""
     if not run:
         return None
-    if len(run) == 1 and run[0]["curved"] and run[0]["items"] <= 6:
+    # 동그라미를 몇 도막으로 그리는지는 교재마다 다르다. 천일문은 여덟 도막이라
+    # 여섯까지만 보던 때는 「맞으면 ○」 문항의 답이 통째로 빠졌다.
+    if len(run) == 1 and run[0]["curved"] and run[0]["items"] <= 12:
         w, h = run[0]["x1"] - run[0]["x"], run[0]["y1"] - run[0]["y"]
-        if abs(w - h) < 1.2:
+        if abs(w - h) < 1.2 and 2.5 < w < 12:
             return "○"
     if len(run) == 2 and all(not g["curved"] and g["items"] == 1 for g in run):
         if abs(run[0]["x"] - run[1]["x"]) < 1.0:
