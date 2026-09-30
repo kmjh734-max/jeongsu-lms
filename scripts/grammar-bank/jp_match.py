@@ -198,7 +198,7 @@ def main(q_path, a_path, out_path, bad_path=None):
             if i in used:
                 continue
             got = []
-            for take in range(1, 4):
+            for take in range(1, 6):
                 if i + take > len(blocks) or (i + take - 1) in used:
                     break
                 got += blocks[i + take - 1]["items"]
@@ -218,7 +218,7 @@ def main(q_path, a_path, out_path, bad_path=None):
                 if i in used:
                     continue
                 got = []
-                for take in range(1, 4):
+                for take in range(1, 6):
                     if i + take > len(blocks) or (i + take - 1) in used:
                         break
                     got += blocks[i + take - 1]["items"]
