@@ -101,13 +101,20 @@ def main(q_path, a_path, out_path, bad_path=None):
     matched, failed = [], []
     used = set()
     at = 0
+    last_page = None
     carried = 0
     for b in boxes:
         answers = b["answers"]
         # 머리말에서 본책 쪽을 읽은 상자만 쓴다. 쪽을 모르면 차례만 믿게 되는데,
         # 한 번 밀리면 그 뒤가 줄줄이 어긋나 엉뚱한 답이 붙는다.
-        if b.get("book_page") in first_on:
-            at = first_on[b["book_page"]]
+        page = b.get("book_page")
+        if page not in first_on and last_page is not None:
+            # 「바로 풀리는 실전 문제」 상자에는 머리말에 쪽이 없다. 본책에서 그 문제는
+            # 바로 앞 RULE 과 같은 쪽 아래에 있으므로, 앞 상자의 쪽을 그대로 쓴다.
+            # 쪽을 옮기지 않으니 차례가 밀려도 엉뚱한 쪽으로 새지 않는다.
+            page = last_page
+        if page in first_on:
+            at = first_on[page]
         else:
             # 쪽을 못 읽은 상자는 쓰지 않는다. 차례만 믿으면 한 번 밀린 뒤로
             # 줄줄이 엉뚱한 답이 붙는데, 붙고 나면 가려낼 길이 없다.
@@ -118,9 +125,12 @@ def main(q_path, a_path, out_path, bad_path=None):
         # 통합 문제는 한 상자가 본책 두 쪽에 걸치므로 묶음을 이어 붙여서도 본다.
         # 이어 붙인 번호가 1부터 빠짐없이 이어질 때만 한 묶음으로 본다.
         spot = span = None
+        stay = page if b.get("book_page") not in first_on else None
         for step in range(REACH + 1):
             i = at + step
             if i >= len(blocks):
+                break
+            if stay is not None and blocks[i]["page"] != stay:
                 break
             if i in used:
                 continue
@@ -146,6 +156,7 @@ def main(q_path, a_path, out_path, bad_path=None):
                "items": [q for k in range(span) for q in blocks[spot + k]["items"]]}
         used.update(range(spot, spot + span))
         at = spot + span
+        last_page = blk["page"]
         if b.get("book_page") in first_on:
             carried = 0
         pairs = [(q, answers.get(str(q["no"]))) for q in blk["items"]]
