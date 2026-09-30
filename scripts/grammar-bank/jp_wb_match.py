@@ -107,9 +107,12 @@ def lexicon(*paths):
     words = set()
     for path in paths:
         for q in json.load(open(path, encoding="utf-8")):
-            text = " ".join([q.get("prompt") or ""]
+            # 교재마다 담는 자리가 달라 다 훑는다 (본책은 text·instruction·picks)
+            text = " ".join([str(q.get("prompt") or ""), str(q.get("instruction") or ""),
+                             str(q.get("text") or "")]
                             + [str(b) for b in (q.get("body") or [])]
-                            + [c["text"] for c in (q.get("choices") or [])]
+                            + [str(c.get("text", c)) for c in (q.get("choices") or [])]
+                            + [str(c) for c in (q.get("picks") or [])]
                             + list(q.get("bank") or []))
             for w in re.findall(r"[A-Za-z][A-Za-z'’\-]*", text):
                 words.add(w.lower())

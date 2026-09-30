@@ -123,6 +123,8 @@ def main_book_only(boxes):
 
 
 def main(q_path, a_path, out_path, bad_path=None):
+    from jp_wb_match import lexicon, unfuse          # 서로 부르지 않도록 여기서 가져온다
+    words = lexicon(q_path)
     questions = json.load(open(q_path, encoding="utf-8"))
     boxes = json.load(open(a_path, encoding="utf-8"))
 
@@ -272,6 +274,8 @@ def main(q_path, a_path, out_path, bad_path=None):
         pairs = [(q, a) for q, a in pairs
                  if q.get("choices") or not ONLY_NO.match(str(a or "").strip())]
         # 읽다가 어긋난 답은 그것만 뺀다
+        # 정답지를 읽을 때 낱말 사이 좁은 틈을 놓쳐 둘이 붙는다 — 떼어 놓는다
+        pairs = [(q, unfuse(a, words)) for q, a in pairs]
         pairs = [(q, a) for q, a in pairs if usable(a, as_gq(q))]
         if not pairs:
             failed.append({"정답지쪽": b["answer_page"], "본책쪽": blk["page"],

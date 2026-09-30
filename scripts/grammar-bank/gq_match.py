@@ -171,6 +171,8 @@ def fill_blocks(blocks, questions):
 def main(q_path, a_path, out_path, bad_path=None):
     questions = json.load(open(q_path, encoding="utf-8"))
     blocks = json.load(open(a_path, encoding="utf-8"))
+    from jp_wb_match import lexicon, unfuse          # 서로 부르지 않도록 여기서 가져온다
+    words = lexicon(q_path)
 
     by_page = collections.defaultdict(list)
     for q in questions:
@@ -233,6 +235,8 @@ def main(q_path, a_path, out_path, bad_path=None):
                     failed.append({"pages": use, "step": step, "문항": len(items), "답": len(got),
                                    "까닭": "개수가 맞지 않음"})
                     continue
+            # 정답지를 읽을 때 낱말 사이 좁은 틈을 놓쳐 둘이 붙는다 — 떼어 놓는다
+            pairs = [(q, unfuse(a, words)) for q, a in pairs]
             pairs = [(q, a) for q, a in pairs if usable(a, q)]
             if not pairs:
                 failed.append({"pages": use, "step": step, "문항": len(items), "답": len(got),
