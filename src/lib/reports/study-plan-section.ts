@@ -96,7 +96,6 @@ export async function loadStudyPlanSection(
   const homework: Record<Exclude<HomeworkCheck, "">, number> = {
     none: 0,
     weak: 0,
-    checked: 0,
     done: 0,
   };
   for (const r of rows ?? []) {
@@ -136,7 +135,7 @@ export async function loadStudyPlanSection(
     parts.push(`수업 ${sessionsPlanned}회 예정`);
   }
   // 숙제를 찍어 둔 회차가 있으면 완수부터 차례로 적는다
-  const homeworkParts = (["done", "checked", "weak", "none"] as const)
+  const homeworkParts = (["done", "weak", "none"] as const)
     .filter((k) => homework[k] > 0)
     .map((k) => `${HOMEWORK_CHECK_LABELS[k]} ${homework[k]}회`);
   if (homeworkParts.length) parts.push(`숙제 ${homeworkParts.join(", ")}`);

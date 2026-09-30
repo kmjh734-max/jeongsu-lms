@@ -16,14 +16,14 @@ export const DEFAULT_AREAS = ["영단어", "문법", "독해", "듣기"];
  * 숙제를 했는지 선생님이 찍어 두는 칸 — 빈 문자열은 아직 안 찍음.
  *
  * 선생님 요청(2026-09-30): 영역마다 숙제를 했는지 체크하고 싶다.
- * 「미실시 · 미흡 · 확인 · 완수」 네 단계를 그대로 쓴다.
+ * 「미실시 · 미흡 · 완료」 세 단계를 쓴다. 처음에 「확인」을 끼워 넣었다가
+ * 선생님이 세 단계로 줄이자고 해서 뺐다 — 예전 값은 빈 칸으로 열린다.
  */
-export type HomeworkCheck = "" | "none" | "weak" | "checked" | "done";
+export type HomeworkCheck = "" | "none" | "weak" | "done";
 export const HOMEWORK_CHECK_LABELS: Record<Exclude<HomeworkCheck, "">, string> = {
   none: "미실시",
   weak: "미흡",
-  checked: "확인",
-  done: "완수",
+  done: "완료",
 };
 const HOMEWORK_CHECKS = Object.keys(HOMEWORK_CHECK_LABELS) as Array<Exclude<HomeworkCheck, "">>;
 

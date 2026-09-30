@@ -17,7 +17,6 @@ function CheckMark({ check }: { check: HomeworkCheck }) {
   const tone: Record<Exclude<HomeworkCheck, "">, string> = {
     none: "border-rose-200 bg-rose-50 text-rose-700",
     weak: "border-amber-200 bg-amber-50 text-amber-700",
-    checked: "border-sky-200 bg-sky-50 text-sky-700",
     done: "border-emerald-200 bg-emerald-50 text-emerald-700",
   };
   return (
