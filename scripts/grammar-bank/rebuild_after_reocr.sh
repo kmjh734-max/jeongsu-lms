@@ -42,4 +42,7 @@ done
 
 echo "── 은행 형식으로"
 python scripts/grammar-bank/new_books_to_bank.py $T/redo-bank.json
-python scripts/grammar-bank/make_variants.py $T/redo-bank.json $T/redo-variants.json | tail -2
+
+echo
+echo "이제 표본을 눈으로 보세요:  python scripts/grammar-bank/sample_check.py 6"
+echo "괜찮으면 넣기:              bash scripts/grammar-bank/import_after_rebuild.sh"
