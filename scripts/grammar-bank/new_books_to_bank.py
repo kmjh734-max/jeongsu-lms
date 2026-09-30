@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from chapter_map import place, LEVEL_NAME
 import cw_map
 import hs_map
+import tb_map
 from official_units import units_of
 from to_official import nearest
 
@@ -41,6 +42,7 @@ SOURCES = [
     ("cwwb-2-matched.json", "천일문 GRAMMAR 2권 워크북", "cwwb"),
     ("cwwb-3-matched.json", "천일문 GRAMMAR 3권 워크북", "cwwb"),
     ("hs.json", "고등영어 어법서술형", "hs"),
+    ("tb.json", "고등 교과서 문법", "tb"),
 ]
 
 PICK = re.compile(r"\[([^\[\]]+?)\]")
@@ -161,6 +163,21 @@ def from_hs(q, book):
     }
 
 
+def from_tb(q, book):
+    """고등 교과서 문법 — 연습문제 하나에 발문 하나, 답은 열쇠에서 가져왔다."""
+    return {
+        "kind": "연습문제",
+        "question_kind": q.get("question_kind") or "단답·서술",
+        "badges": [],
+        "prompt": q.get("prompt") or "",
+        "body": q.get("body") or [],
+        "choices": [],
+        "answer": q.get("answer"),
+        "explanation": None,
+        "chapter_title": q.get("title"),
+    }
+
+
 def unit_for(kind, q, level, chapter):
     """워크북의 RULE 이름을 은행이 쓰는 세부 목차 이름으로 옮긴다.
 
@@ -171,6 +188,9 @@ def unit_for(kind, q, level, chapter):
         return nearest(q.get("rule") or "", units_of(level, chapter))
     if kind == "cwwb":
         return nearest(q.get("unit") or "", units_of(level, chapter))
+    if kind == "tb":
+        # PATTERN 이름이 세부 갈래 그대로다 — 공식 목차에서 가장 가까운 것으로
+        return nearest(q.get("title") or "", units_of(level, chapter))
     if kind == "hs":
         # 교재 단원 이름이 「조동사」처럼 뭉뚱그려져 있어 그대로 가져오면
         # 「조동사 Can」 같은 중1 갈래가 붙는다. 적재 뒤 말씨로 가리게 비워 둔다.
@@ -209,7 +229,8 @@ def main(dst, only=None):
             row = (from_gq(q, book) if kind == "gq" else
                    from_jp_wb(q, book) if kind == "jpwb" else
                    from_cw_wb(q, book) if kind == "cwwb" else
-                   from_hs(q, book) if kind == "hs" else from_jp(q, book))
+                   from_hs(q, book) if kind == "hs" else
+                   from_tb(q, book) if kind == "tb" else from_jp(q, book))
             if not str(row["answer"] or "").strip():
                 continue
             title = row.pop("chapter_title") or ""
@@ -217,6 +238,8 @@ def main(dst, only=None):
             # 둘을 묶어 놓은 단원은 Unit 이름을 보고 가른다)
             if kind == "cwwb":
                 spot = cw_map.place(book, title, q.get("unit"))
+            elif kind == "tb":
+                spot = tb_map.place(title)
             elif kind == "hs":
                 # 「동사의 시제와 태」는 문항을 보고 시제·수동태로 가른다
                 spot = hs_map.place(title, " ".join(row["body"] + [row["answer"] or ""]))
