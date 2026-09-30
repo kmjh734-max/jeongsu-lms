@@ -2049,13 +2049,18 @@ export async function generateOneQuestion(opts: {
       })}${diversityHint ? `\n${diversityHint}` : ""}`
     : "";
 
-  // 순서: 공통 규칙(system) → 지문 → 유형·문항별 데이터/규칙 → 슬롯 (앞부분일수록 여러 문항이 공유)
+  /*
+   * 순서: 공통 규칙(system) → 유형 규칙·틀 → 지문 → 슬롯.
+   *
+   * 실험(2026-10-01): 지문을 앞에 두면 (지문×유형) 짝이 저마다 한 번씩이라 같은
+   * 앞머리가 두 번 나오지 않아 캐시가 0%였다. 유형 규칙을 앞으로 올리면 같은 유형의
+   * 문항끼리 앞머리를 나눠 가져, 지문이 달라도 캐시가 걸린다.
+   * 보내는 차례만 바꾸는 것이라 모델이 읽는 내용은 그대로다.
+   */
   const itemData = JSON.stringify({
     grade: opts.grade,
-    passage,
     difficulty: option.difficulty,
     forcedInstruction,
-    hint: englishBodyTypes.has(option.type) ? undefined : slimAnalysis,
     schema: {
       ...(option.type === "sentence_insertion"
         ? {
@@ -2121,7 +2126,11 @@ export async function generateOneQuestion(opts: {
 
   const raw = (await questionGeneratorChatJsonWithRetry({
     system: QUESTION_WRITER_SHARED_SYSTEM,
-    user: `${itemData}\n\nITEM RULES:\n${itemRules}${slotTail}`,
+    // 유형 규칙·틀(같은 유형끼리 같음) → 지문(문항마다 다름) → 슬롯
+    user:
+      `ITEM RULES:\n${itemRules}\n\nITEM FORM:\n${itemData}\n\nPASSAGE:\n` +
+      `${JSON.stringify({ passage, hint: englishBodyTypes.has(option.type) ? undefined : slimAnalysis })}` +
+      `${slotTail}`,
     // 한 지문에서 여러 문항을 한꺼번에 만든다. 유형이 같으면 앞부분(공통 규칙·
     // 지문·유형 규칙)이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게
     // 이름표를 준다. 이것을 안 붙인 문항 생성만 캐시 적중이 0%였다.
