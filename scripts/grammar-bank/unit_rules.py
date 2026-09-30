@@ -17,15 +17,19 @@ SAME_USE = re.compile(r"쓰임이\s*(같은|다른)|용법이\s*(같은|다른)|
 
 
 def flatten(q):
-    """문항 하나를 한 덩이 글로 편다"""
+    """문항 하나를 한 덩이 글로 편다.
+
+    보기는 일부러 틀린 것을 섞어 둔 자리다. 본문이 있으면 본문으로 가리고,
+    본문이 없는 문항(보기만 늘어놓은 것)에서만 보기를 본다.
+    """
     prompt = str(q.get("prompt") or "")
-    body = [str(b) for b in (q.get("body") or [])]
-    if SAME_USE.search(prompt) and any(b.strip() for b in body):
-        return re.sub(r"\s+", " ", " ".join(body))
-    bits = [prompt] + body
-    bits += [str(c.get("text") or "") for c in (q.get("choices") or [])]
-    bits.append(str(q.get("answer") or ""))
-    return re.sub(r"\s+", " ", " ".join(bits))
+    body = [str(b) for b in (q.get("body") or []) if str(b).strip()]
+    picks = [str(c.get("text") or "") for c in (q.get("choices") or [])]
+    if body:
+        if SAME_USE.search(prompt):
+            return re.sub(r"\s+", " ", " ".join(body))
+        return re.sub(r"\s+", " ", " ".join([prompt] + body))
+    return re.sub(r"\s+", " ", " ".join([prompt] + picks + [str(q.get("answer") or "")]))
 
 
 V = r"[a-z]+"          # 동사로 볼 만한 낱말
@@ -270,6 +274,174 @@ def modal(text, allow):
     return None
 
 
+# ── 나머지 단원 — 좁은 것부터 차례로 본다
+# (단원 이름) → [(세부 이름, 자국들), …]  먼저 걸리는 것이 임자다.
+TABLE = {
+    "be동사": [
+        ("be동사의 부정문과 의문문",
+         [r"\b(is|are|am|was|were)\s+not\b", r"\b(isn'?t|aren'?t|wasn'?t|weren'?t)\b",
+          r"(^|[.?!/]\s*)(Is|Are|Am|Was|Were)\s+\w+"]),
+        ("be동사의 긍정문", [r"\b(is|are|am|was|were)\b"]),
+    ],
+    "일반동사": [
+        ("일반동사의 부정문과 의문문",
+         [r"\b(do|does|did)\s+not\b", r"\b(don'?t|doesn'?t|didn'?t)\b",
+          r"(^|[.?!/]\s*)(Do|Does|Did)\s+\w+"]),
+        ("일반동사의 과거형",
+         [r"\b(yesterday|last\s+\w+|ago)\b", r"어제|지난|과거형",
+          r"\b(went|came|ate|saw|made|took|got|had|did|said|bought|wrote|found)\b"]),
+        ("일반동사의 현재형", [r"\b(always|usually|often|every\s+day)\b", r"현재형", r"\w+s\b"]),
+    ],
+    "동사의 시제": [
+        ("미래 표현",
+         [r"\bwill\b", r"\b(is|are|am)\s+going\s+to\b", r"\b(tomorrow|next\s+\w+)\b", r"미래"]),
+        ("현재진행형", [r"\b(is|are|am|was|were)\s+\w+ing\b", r"진행형"]),
+        ("시제의 판단", [r"판단|알맞은 시제|시제에 맞게"]),
+        ("과거시제",
+         [r"\b(yesterday|last\s+\w+|ago)\b", r"어제|지난",
+          r"\b(was|were)\b", r"\b\w+ed\b"]),
+    ],
+    "시제": [
+        ("현재완료", [r"\b(have|has)\s+(not\s+)?(been|\w+(ed|en))\b", r"현재완료",
+                  r"\b(since|for)\s+\w+", r"\bever\b|\bnever\b|\byet\b|\balready\b"]),
+        ("진행형", [r"\b(is|are|am|was|were)\s+\w+ing\b", r"진행형"]),
+        ("여러 가지 시제", [r"\bwill\b|\bwas\b|\bwere\b|시제"]),
+    ],
+    "완료시제": [
+        ("현재완료진행", [r"\b(have|has)\s+been\s+\w+ing\b", r"완료진행"]),
+        ("과거완료", [r"\bhad\s+(not\s+)?(been|\w+(ed|en))\b", r"과거완료"]),
+        ("현재완료", [r"\b(have|has)\s+(not\s+)?(been|\w+(ed|en))\b", r"현재완료"]),
+    ],
+    "명사와 관사": [
+        # 「관사를 쓰시오」는 There is 문장을 예로 들기도 한다 — 발문을 먼저 본다
+        ("관사", [r"관사", r"\[\s*(a|an|the|x)\s*/\s*(a|an|the|x)\b",
+                r"\b(a|an|the)\s*[/·]\s*(a|an|the)\b"]),
+        ("There is/are", [r"\bthere\s+(is|are|was|were)\b.{0,12}_{3,}",
+                          r"_{3,}\s*(is|are|was|were)\b", r"There is|There are"]),
+        ("명사의 수일치", [r"\b(is|are)\b.{0,24}\b(water|money|milk|bread|information|news)\b",
+                    r"수일치"]),
+        ("셀 수 있는 명사와 셀 수 없는 명사",
+         [r"\b(many|much|a\s+few|a\s+little|some|any)\b", r"\b\w+(s|es|ies|ves)\b",
+          r"셀 수 (있는|없는)"]),
+    ],
+    "대명사": [
+        ("재귀대명사", [r"\b\w*(self|selves)\b", r"재귀"]),
+        ("부정대명사", [r"\b(one|ones|some|any|another|the\s+other|others|each\s+other)\b", r"부정대명사"]),
+        ("지시대명사와 it", [r"\b(this|that|these|those)\b", r"지시대명사"]),
+        ("인칭대명사", [r"\b(I|my|me|mine|you|your|yours|he|his|him|she|her|hers|we|our|us|"
+                   r"they|their|them|theirs)\b", r"인칭대명사"]),
+    ],
+    "대명사와 수일치": [
+        ("재귀대명사", [r"\b\w*(self|selves)\b", r"재귀"]),
+        ("수일치", [r"수일치|\b(each|every|either|neither|both|all|none)\s+of\b"]),
+        ("부정대명사", [r"\b(one|ones|some|any|another|the\s+other|others|each\s+other)\b", r"부정대명사"]),
+        ("대명사 it", [r"\bit\s+(is|was|takes)\b", r"비인칭"]),
+    ],
+    "문장의 형식": [
+        ("주어+동사+목적어+목적격보어",
+         [r"\b(make|makes|made|call|called|find|found|keep|kept|name|named|elect|leave|left)\s+"
+          + WHO + r"\s+\w+", r"목적격보어"]),
+        ("주어+동사+간접목적어+직접목적어",
+         [r"\b(give|gave|send|sent|show|showed|buy|bought|make|made|teach|taught|tell|told|"
+          r"lend|lent|write|wrote|ask|asked)\s+" + WHO + r"\s+(a|an|the|some|my|his|her)\b",
+          r"\b(to|for|of)\s+(me|him|her|us|them|you)\b", r"간접목적어"]),
+        ("주어+동사+보어",
+         [r"\b(become|became|look|looks|looked|feel|felt|taste|tastes|sound|sounds|smell|"
+          r"seem|seems|get|gets|turn|turns|stay|remain)\s+\w+", r"보어"]),
+    ],
+    "다양한 문장의 형태": [
+        ("부가의문문과 부정의문문",
+         [r",\s*(isn'?t|aren'?t|wasn'?t|weren'?t|don'?t|doesn'?t|didn'?t|can'?t|won'?t|"
+          r"is|are|do|does|did|can|will)\s+\w+\?", r"부가의문문|부정의문문"]),
+        ("명령문과 감탄문",
+         [r"\bWhat\s+(a|an)\s+\w+", r"\bHow\s+\w+\s+(he|she|it|they|you|I)\b",
+          r"(^|[.?!/]\s*)(Don'?t|Let'?s|Be\b|Never\b)", r"명령문|감탄문"]),
+        ("의문사 의문문",
+         [r"(^|[.?!/]\s*)(What|Who|Whom|Whose|When|Where|Why|How|Which)\b", r"의문사"]),
+    ],
+    "부가의문문과 간접의문문": [
+        ("간접의문문",
+         [r"\b(know|wonder|tell\s+me|ask|sure)\b.{0,20}\b(what|who|when|where|why|how|if|whether)\b\s+\w+\s+\w+",
+          r"간접의문문"]),
+        ("부가의문문과 부정의문문",
+         [r",\s*(isn'?t|aren'?t|don'?t|doesn'?t|didn'?t|can'?t|won'?t|is|are|do|does|did|can|will)\s+\w+\?",
+          r"부가의문문|부정의문문"]),
+        ("의문사 의문문", [r"(^|[.?!/]\s*)(What|Who|When|Where|Why|How|Which)\b", r"의문사"]),
+    ],
+    "형용사와 부사": [
+        ("부사", [r"\b\w+ly\b", r"\b(always|usually|often|sometimes|never|seldom|hardly)\b", r"부사"]),
+        ("형용사", [r"형용사", r"\b(beautiful|kind|happy|large|small|tall|young|new|old)\b"]),
+    ],
+    "형용사와 명사의 수량표현": [
+        ("주의해야 할 형용사와 부사",
+         [r"\b(hard|hardly|late|lately|near|nearly|high|highly|most|almost)\b", r"주의"]),
+        ("부사", [r"\b\w+ly\b", r"\b(always|usually|often|sometimes|never)\b", r"부사"]),
+        ("형용사", [r"\b(many|much|a\s+few|a\s+little|few|little|some|any)\b", r"형용사"]),
+    ],
+    "접속사": [
+        ("짝을 이루는 접속사",
+         [r"\bboth\s+\w+\s+and\b", r"\beither\s+\w+\s+or\b", r"\bneither\s+\w+\s+nor\b",
+          r"\bnot\s+only\b.{0,24}\bbut\s+also\b", r"\bbut\s+also\b",
+          r"\bso\s*~?\s*that\s*~?", r"\bsuch\s+.{0,16}\s+that\b",
+          r"상관접속사|짝을 이루"]),
+        ("명사절을 이끄는 접속사",
+         [r"\b(know|think|say|believe|hope|sure)\s+(that)?\b.{0,12}\bthat\b",
+          r"\bwhether\b|\bif\s+\w+\s+\w+", r"명사절"]),
+        ("명사절을 이끄는 that", [r"\bthat\b.{0,30}\b(is|are|was|were|will|can)\b", r"that절|명사절"]),
+        ("부사절을 이끄는 접속사",
+         [r"\b(when|while|before|after|until|as\s+soon\s+as|because|since|although|though|"
+          r"even\s+though|if|unless)\b", r"부사절"]),
+        ("시간·이유·조건의 접속사",
+         [r"\b(when|while|before|after|until|because|since|if|unless)\b", r"시간|이유|조건"]),
+        ("시간·이유의 접속사", [r"\b(when|while|before|after|until|because|since)\b"]),
+        ("조건·양보의 접속사", [r"\b(if|unless|although|though|even\s+if|even\s+though)\b"]),
+        ("등위접속사", [r"\b(and|but|or|so)\b", r"등위"]),
+    ],
+    # 전치사는 낱말만 보면 아무 문장에나 걸린다. 뒤에 오는 말까지 함께 본다.
+    "전치사": [
+        ("시간 전치사",
+         [r"\b(at|on|in|before|after|during|until|by|since|for|from)\s+"
+          r"(\d{1,4}|noon|midnight|morning|afternoon|evening|night|sunset|sunrise|"
+          r"Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|"
+          r"January|February|March|April|May|June|July|August|September|October|November|December|"
+          r"spring|summer|fall|autumn|winter|breakfast|lunch|dinner|\w+day)\b",
+          r"시간을 나타내는|때를 나타내는"]),
+        ("장소·위치·방향 전치사",
+         [r"\b(under|over|above|below|behind|between|among|beside|near|"
+          r"next\s+to|in\s+front\s+of|into|out\s+of|through|across|along|around|toward)\b",
+          r"\b(in|on|at|to|from)\s+(the\s+)?(school|house|home|room|table|wall|park|station|"
+          r"store|city|country|street|box|bag|corner|garden|kitchen|library|hospital)\b",
+          r"장소|위치|방향"]),
+        ("여러 가지 전치사", [r"\b(with|without|about|of|for|by)\s+\w+"]),
+    ],
+    "일치와 화법": [
+        ("화법", [r"said\s+to\b", r"\btold\s+\w+\s+that\b", r"\basked\s+\w+\s+(if|whether)\b",
+                r"[“\"].{0,40}[”\"]", r"화법|전달"]),
+        ("시제 일치", [r"시제\s*일치", r"\bsaid\s+that\b.{0,24}\b(was|were|had|would|could)\b"]),
+        ("수일치", [r"수일치", r"\b(each|every|either|neither|both|all|none|the\s+number\s+of|"
+                 r"a\s+number\s+of)\b"]),
+    ],
+    "특수구문": [
+        ("도치", [r"(^|[.?!/]\s*)(Never|Little|Only|Hardly|Rarely|Seldom|Not\s+until|So|Neither|Nor)\b"
+                r".{0,20}\b(do|does|did|is|are|was|were|have|has|had|can|will)\b", r"도치"]),
+        ("강조", [r"\bIt\s+(is|was)\s+.{1,30}\s+that\b", r"\b(do|does|did)\s+\w+\b.{0,20}강조",
+                r"\bthe\s+very\b", r"강조"]),
+        ("생략과 동격", [r"생략|동격", r",\s*(a|an|the)\s+\w+\s*,"]),
+        ("부정과 무생물주어", [r"부분\s*부정|전체\s*부정|무생물\s*주어", r"\bnot\s+(all|every|always|both)\b"]),
+    ],
+}
+
+
+def by_table(chapter):
+    """표로 가리는 단원 — 좁은 것부터 차례로 본다"""
+    def pick(text, allow):
+        for name, pats in TABLE[chapter]:
+            if name in allow and has(text, *pats):
+                return name
+        return None
+    return pick
+
+
 # ── 단원마다 어느 가림법을 쓸지
 PICKERS = {
     "to부정사": infinitive, "부정사": infinitive, "부정사[1]": infinitive, "부정사[2]": infinitive,
@@ -281,6 +453,15 @@ PICKERS = {
     "분사": participle, "분사구문": participle,
     "조동사": modal,
 }
+
+
+for _name in TABLE:
+    PICKERS.setdefault(_name, by_table(_name))
+# 같은 짜임을 쓰는 단원들
+for _a, _b in (("접속사[1]", "접속사"), ("접속사[2]", "접속사"),
+               ("문장의 형식", "문장의 형식"), ("비교", "비교구문")):
+    if _b in TABLE:
+        PICKERS.setdefault(_a, by_table(_b))
 
 
 def guess(level, chapter, question, allow):
