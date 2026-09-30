@@ -34,6 +34,8 @@ const rows = variants.map((v) => ({
   level_name: v.level_name ?? "",
   chapter_no: num(v.chapter_no) ?? 0,
   chapter: v.chapter ?? "",
+  unit_no: num(v.unit_no),
+  unit: v.unit ?? null,
   kind: v.kind ?? null,
   round: num(v.round),
   question_kind: v.question_kind ?? null,

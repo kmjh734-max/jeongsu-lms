@@ -58,6 +58,7 @@ def main(bank_path, out_path, seed=20260923):
             "origin_number": question["number"],
             "level": question["level"], "level_name": question["level_name"],
             "chapter_no": question["chapter_no"], "chapter": question["chapter"],
+            "unit_no": question.get("unit_no"), "unit": question.get("unit"),
             "kind": question["kind"], "round": question["round"],
             "question_kind": question["question_kind"],
             "difficulty": question.get("difficulty"),

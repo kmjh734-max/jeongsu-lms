@@ -278,6 +278,8 @@ def parse_page(page, page_no, carry):
             "answer_page": ans_page,
             "chapter_no": carry["chapter_no"],
             "chapter": carry["chapter"],
+            "unit_no": unit_of(carry)[0],
+            "unit": unit_of(carry)[1],
             "step": b,
             "instruction": instr_of.get(b, ""),
             "no": it["no"],
@@ -353,6 +355,8 @@ def parse_exam_page(page, page_no, carry):
             "answer_page": ans_page,
             "chapter_no": carry["chapter_no"],
             "chapter": carry["chapter"],
+            "unit_no": unit_of(carry)[0],
+            "unit": unit_of(carry)[1],
             "step": 1,
             "instruction": prompt,
             "no": n,
@@ -424,6 +428,8 @@ def parse_writing_page(page, page_no, carry):
             "answer_page": ans_page,
             "chapter_no": carry["chapter_no"],
             "chapter": carry["chapter"],
+            "unit_no": unit_of(carry)[0],
+            "unit": unit_of(carry)[1],
             "step": 1,
             "instruction": prompt,
             "no": no,
@@ -434,18 +440,89 @@ def parse_writing_page(page, page_no, carry):
     return out
 
 
+def read_unit(page, carry):
+    """개념 쪽 머리의 「Unit 01 | 인칭대명사와 be동사」를 걷어 둔다.
+
+    연습 쪽에는 단원 이름만 적혀 있고 세부 이름이 없다. 바로 앞 개념 쪽의
+    Unit 이름을 물려주면 「to부정사」 안에서 명사적·부사적 쓰임처럼 잘게 나뉜다.
+    """
+    every = lines_of(page)
+    # 단원이 바뀌면 앞 단원의 세부 이름은 버린다. 그냥 두면 다음 단원 문항에 묻어난다.
+    # 세부 단원이 어느 단원의 것인지 따로 적어 둔다. 단원이 바뀌면 버린다.
+    ch_no = page_info(every, page.rect.height)[0]
+    if ch_no and carry.get("unit_chapter") not in (None, ch_no):
+        carry["unit_no"], carry["unit"], carry["unit_chapter"] = None, None, None
+    rows = [r for r in every if r["y"] < 130]
+    # 「Overall Exercises · Unit04-06」처럼 여러 세부 단원에 걸친 쪽은 하나로 못 묶는다
+    if any("Overall" in r["text"] for r in rows):
+        carry["unit_no"], carry["unit"] = None, None
+        return
+    mark = [r for r in rows if r["font"].startswith("FuturaStd") and r["text"].strip() == "Unit"]
+    if not mark:
+        return
+    at = mark[0]
+    no = None
+    title = None
+    for r in rows:
+        if abs(r["y"] - at["y"]) > 45 or r is at:
+            continue
+        text = r["text"].strip()
+        if r["font"].startswith("FuturaStd") and re.fullmatch(r"\d{1,2}", text):
+            no = int(text)
+        elif r["size"] > 18 and len(text) > 1 and not BROKEN.search(text):
+            title = text
+    if title:
+        carry["unit_no"], carry["unit"] = no, title
+        carry["unit_chapter"] = ch_no or carry.get("chapter_no")   # 이 세부의 집
+
+
+def unit_of(carry):
+    """세부 단원 — 지금 쪽의 단원과 같은 단원의 것일 때만 쓴다.
+
+    단원 끝자락의 「내신 적중」·Writing 쪽이 다음 단원의 Unit 쪽 뒤에 오기도 한다.
+    그때 물려받으면 엉뚱한 세부 이름이 붙는다.
+    """
+    if carry.get("unit_chapter") != carry.get("chapter_no"):
+        return None, None
+    return carry.get("unit_no"), carry.get("unit")
+
+
 def parse(path):
     doc = fitz.open(path)
-    carry = {"chapter_no": None, "chapter": None}
+    carry = {"chapter_no": None, "chapter": None, "unit_no": None, "unit": None}
     out = []
     for i, page in enumerate(doc):
+        read_unit(page, carry)
         got = (parse_page(page, i + 1, carry)
                or parse_exam_page(page, i + 1, carry)
                or parse_writing_page(page, i + 1, carry))
         for row in got:
             row["book"] = Path(path).stem
             out.append(row)
-    return out
+    return settle_units(out)
+
+
+def settle_units(rows):
+    """세부 단원은 제 단원에만 남긴다.
+
+    단원이 바뀌는 자리에서 앞뒤 쪽이 섞여, 같은 세부 단원이 두 단원에 걸쳐 붙는
+    일이 있다. 그 세부 단원의 문항이 가장 많은 단원만 제자리로 보고 나머지는 지운다.
+    """
+    home = {}
+    tally = {}
+    for r in rows:
+        if r.get("unit_no") is None:
+            continue
+        key = (r["unit_no"], r.get("unit"))
+        tally.setdefault(key, {})
+        tally[key][r.get("chapter")] = tally[key].get(r.get("chapter"), 0) + 1
+    for key, by in tally.items():
+        home[key] = max(by, key=by.get)
+    for r in rows:
+        key = (r.get("unit_no"), r.get("unit"))
+        if r.get("unit_no") is not None and home.get(key) != r.get("chapter"):
+            r["unit_no"], r["unit"] = None, None
+    return rows
 
 
 if __name__ == "__main__":

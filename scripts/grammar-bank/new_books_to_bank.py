@@ -142,6 +142,9 @@ def main(dst):
                 "level_name": LEVEL_NAME[level],
                 "chapter_no": ch_no,
                 "chapter": ch,
+                # 교재가 나눈 세부 단원 — 목차를 잘게 나눠 고를 때 쓴다
+                "unit_no": q.get("unit_no"),
+                "unit": q.get("unit"),
                 "round": None,
                 "difficulty": None,
                 **row,
