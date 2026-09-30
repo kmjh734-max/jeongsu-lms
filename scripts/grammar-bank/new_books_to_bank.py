@@ -16,6 +16,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from chapter_map import place, LEVEL_NAME
+from official_units import units_of
+from to_official import nearest
 
 OUT = Path("tmp-grammar-bank")
 
@@ -30,6 +32,9 @@ SOURCES = [
     ("jp-1-matched.json", "잘풀리는영문법_1권", "jp"),
     ("jp-2-matched.json", "잘풀리는영문법_2권", "jp"),
     ("jp-3-matched.json", "잘풀리는영문법_3권", "jp"),
+    ("jpwb-1-matched.json", "잘풀리는영문법_1권 워크북", "jpwb"),
+    ("jpwb-2-matched.json", "잘풀리는영문법_2권 워크북", "jpwb"),
+    ("jpwb-3-matched.json", "잘풀리는영문법_3권 워크북", "jpwb"),
 ]
 
 PICK = re.compile(r"\[([^\[\]]+?)\]")
@@ -104,10 +109,44 @@ def from_jp(q, book):
     }
 
 
-def main(dst):
+def from_jp_wb(q, book):
+    """잘 풀리는 영문법 워크북 — RULE 이름이 곧 세부 단원이다."""
+    return {
+        "kind": "RULE",
+        "question_kind": q.get("question_kind") or ("객관식" if q.get("choices") else "단답·서술"),
+        "badges": [],
+        "prompt": q.get("prompt") or "",
+        "body": q.get("body") or [],
+        "choices": q.get("choices") or [],
+        "answer": q.get("answer"),
+        "explanation": None,
+        "chapter_title": q.get("chapter"),
+    }
+
+
+def unit_for(kind, q, level, chapter):
+    """워크북의 RULE 이름을 은행이 쓰는 세부 목차 이름으로 옮긴다.
+
+    은행의 세부 목차는 족보닷컴 갈래로 맞춰 두었다. 교재가 붙인 RULE 이름을
+    그대로 넣으면 같은 뜻이 두 이름으로 갈라지므로, 가장 가까운 것으로 보낸다.
+    """
+    if kind != "jpwb":
+        return q.get("unit")
+    return nearest(q.get("rule") or "", units_of(level, chapter))
+
+
+def main(dst, only=None):
+    """only 를 주면 이름에 그 말이 든 교재만 모은다.
+
+    적재 스크립트는 이 파일에 없는 줄을 그 교재에서 지우고 세부 목차도 덮어쓴다.
+    이미 넣어 둔 교재까지 함께 돌리면 손봐 둔 세부 목차가 날아가므로, 새로
+    넣을 교재만 골라 돌린다.
+    """
     rows = []
     log = io.open(1, "w", encoding="utf-8", closefd=False)
     for fname, book, kind in SOURCES:
+        if only and only not in book:
+            continue
         path = OUT / fname
         if not path.exists():
             print("  %-26s 건너뜀 (파일 없음)" % book, file=log)
@@ -124,7 +163,8 @@ def main(dst):
                 continue
         made = 0
         for i, q in enumerate(got, 1):
-            row = from_gq(q, book) if kind == "gq" else from_jp(q, book)
+            row = (from_gq(q, book) if kind == "gq" else
+                   from_jp_wb(q, book) if kind == "jpwb" else from_jp(q, book))
             if not str(row["answer"] or "").strip():
                 continue
             spot = place(book, row.pop("chapter_title") or "")
@@ -144,7 +184,7 @@ def main(dst):
                 "chapter": ch,
                 # 교재가 나눈 세부 단원 — 목차를 잘게 나눠 고를 때 쓴다
                 "unit_no": q.get("unit_no"),
-                "unit": q.get("unit"),
+                "unit": unit_for(kind, q, level, ch),
                 "round": None,
                 "difficulty": None,
                 **row,
@@ -156,4 +196,5 @@ def main(dst):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "tmp-grammar-bank/new-bank.json")
+    main(sys.argv[1] if len(sys.argv) > 1 else "tmp-grammar-bank/new-bank.json",
+         sys.argv[2] if len(sys.argv) > 2 else None)
