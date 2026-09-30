@@ -216,6 +216,7 @@ ${choiceExplanationRules()}
     case "sentence_blank": {
       if (code === "연결어빈칸") {
         return `In passageModified put discourse blanks (A) and (B). 5 ENGLISH pair choices like "However …… Therefore". Exactly one correct.
+${choiceExplanationRules()}
 LANGUAGE: passageModified + choices MUST be ENGLISH only (no Korean).`;
       }
       // 문장빈칸 (효자·학력평가형)
@@ -236,6 +237,7 @@ LANGUAGE: passageModified + choices MUST be ENGLISH only (no Korean).`;
 - CRITICAL: ALL choices (including the correct one) must PARAPHRASE the blanked sentence — synonyms/rewording, NOT copy the original wording.
 ${blankLengthRule}
 - Exactly one correct. questionText empty.
+${choiceExplanationRules()}
 LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean in passage or choices.`;
       }
       return `문장빈칸 LOW (하) — 효자 기출동형:
@@ -244,6 +246,7 @@ LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean
 - 5 ENGLISH full-sentence/phrase choices that fit the blank; correct answer may stay close to the original sentence meaning/wording.
 ${blankLengthRule}
 - Exactly one correct. questionText empty.
+${choiceExplanationRules()}
 LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean in passage or choices.`;
     }
     case "order":
