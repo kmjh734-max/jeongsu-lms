@@ -163,11 +163,14 @@ def parse_page(page, page_no, carry):
         # 번호에 붙어 온 발문은 그 문항의 첫 줄이다
         if h.get("lead"):
             h["prompt"].append(((h["y"] - 0.1, h["x"]), h["lead"]))
+    loose = []          # 첫 번호보다 위에 있는 지시문 — 묶음 전체의 지시문이다
     for r in body:
         if r["font"].startswith(NUM_FONT):
             continue
         h = owner(r)
         if h is None:
+            if INSTR_LO <= r["size"] <= INSTR_HI and len(r["text"].strip()) > 5:
+                loose.append(r)
             continue
         text = r["text"].strip()
         if not text or ANSREF.search(text) or SECTION.search(text):
@@ -212,6 +215,23 @@ def parse_page(page, page_no, carry):
             block += 1
         h["block"] = block
         last = h["no"]
+
+    # 드릴 문제는 지시문이 묶음 머리에 한 번만 적혀 있다. 그 지시문을 묶음 전체에
+    # 물려준다 — 문항마다 발문이 없으면 시험지에서 물음이 사라진다.
+    for key in {h["block"] for h in heads}:
+        mine = [h for h in heads if h["block"] == key]
+        top_head = min(mine, key=lambda h: h["y"])
+        above = [r for r in loose
+                 if (0 if r["x"] < mid else 1) == top_head["col"] and r["y"] < top_head["y"]]
+        if not above:
+            continue
+        near = max(above, key=lambda r: r["y"])
+        if top_head["y"] - near["y"] > 60:
+            continue
+        for h in mine:
+            if not h["prompt"]:
+                # 이 자리에서는 이미 줄을 세운 뒤라 글만 넣는다
+                h["prompt"].append(near["text"].strip())
 
     out = []
     for h in heads:
