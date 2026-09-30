@@ -16,6 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from chapter_map import place, LEVEL_NAME
+import cw_map
 from official_units import units_of
 from to_official import nearest
 
@@ -35,6 +36,9 @@ SOURCES = [
     ("jpwb-1-matched.json", "잘풀리는영문법_1권 워크북", "jpwb"),
     ("jpwb-2-matched.json", "잘풀리는영문법_2권 워크북", "jpwb"),
     ("jpwb-3-matched.json", "잘풀리는영문법_3권 워크북", "jpwb"),
+    ("cwwb-1-matched.json", "천일문 GRAMMAR 1권 워크북", "cwwb"),
+    ("cwwb-2-matched.json", "천일문 GRAMMAR 2권 워크북", "cwwb"),
+    ("cwwb-3-matched.json", "천일문 GRAMMAR 3권 워크북", "cwwb"),
 ]
 
 PICK = re.compile(r"\[([^\[\]]+?)\]")
@@ -124,15 +128,32 @@ def from_jp_wb(q, book):
     }
 
 
+def from_cw_wb(q, book):
+    """천일문 워크북 — Unit 이름이 곧 세부 단원이다."""
+    return {
+        "kind": "Unit",
+        "question_kind": q.get("question_kind") or ("객관식" if q.get("choices") else "단답·서술"),
+        "badges": [],
+        "prompt": q.get("prompt") or "",
+        "body": q.get("body") or [],
+        "choices": q.get("choices") or [],
+        "answer": q.get("answer"),
+        "explanation": None,
+        "chapter_title": q.get("chapter"),
+    }
+
+
 def unit_for(kind, q, level, chapter):
     """워크북의 RULE 이름을 은행이 쓰는 세부 목차 이름으로 옮긴다.
 
     은행의 세부 목차는 족보닷컴 갈래로 맞춰 두었다. 교재가 붙인 RULE 이름을
     그대로 넣으면 같은 뜻이 두 이름으로 갈라지므로, 가장 가까운 것으로 보낸다.
     """
-    if kind != "jpwb":
-        return q.get("unit")
-    return nearest(q.get("rule") or "", units_of(level, chapter))
+    if kind == "jpwb":
+        return nearest(q.get("rule") or "", units_of(level, chapter))
+    if kind == "cwwb":
+        return nearest(q.get("unit") or "", units_of(level, chapter))
+    return q.get("unit")
 
 
 def main(dst, only=None):
@@ -164,10 +185,15 @@ def main(dst, only=None):
         made = 0
         for i, q in enumerate(got, 1):
             row = (from_gq(q, book) if kind == "gq" else
-                   from_jp_wb(q, book) if kind == "jpwb" else from_jp(q, book))
+                   from_jp_wb(q, book) if kind == "jpwb" else
+                   from_cw_wb(q, book) if kind == "cwwb" else from_jp(q, book))
             if not str(row["answer"] or "").strip():
                 continue
-            spot = place(book, row.pop("chapter_title") or "")
+            title = row.pop("chapter_title") or ""
+            # 천일문은 단원 짜임이 달라 표를 따로 둔다 (「to부정사와 동명사」처럼
+            # 둘을 묶어 놓은 단원은 Unit 이름을 보고 가른다)
+            spot = (cw_map.place(book, title, q.get("unit")) if kind == "cwwb"
+                    else place(book, title))
             if not spot:
                 continue
             level, ch_no, ch = spot
