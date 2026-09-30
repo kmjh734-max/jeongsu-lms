@@ -31,7 +31,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!(await loadOwnAnalysis(id, profile.academy_id))) {
     return NextResponse.json({ ok: false, message: "분석을 찾을 수 없어요." }, { status: 404 });
   }
-  const body = (await request.json().catch(() => ({}))) as { passages?: PassageIn[]; assignment?: number[]; title?: string; round?: number };
+  const body = (await request.json().catch(() => ({}))) as { passages?: PassageIn[]; assignment?: number[];
+    /** 배정을 문항마다 보냈는가 (묶음을 푼 경우) */
+    perSlot?: boolean; title?: string; round?: number };
   const inputs = (body.passages ?? []).slice(0, 30);
   if (inputs.length === 0) {
     return NextResponse.json({ ok: false, message: "시험 범위 지문을 1개 이상 골라 주세요." }, { status: 400 });
@@ -64,16 +66,32 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!data || data.items.length === 0) {
     return NextResponse.json({ ok: false, message: "분석한 문항이 없어요." }, { status: 400 });
   }
-  const { slots } = buildMockSlots(data.items);
+  const { slots, groupCount } = buildMockSlots(data.items);
   const round = (await loadExamMocks(id, profile.academy_id)).length + 1;
   const assignment = Array.isArray(body.assignment) ? body.assignment : [];
   // 문장 삽입·무관한 문장은 6문장 이상 지문이 있어야 만들 수 있다. 짧으면 긴 지문으로 옮기고,
   // 긴 지문이 하나도 없으면 같은 난이도의 순서 배열로 바꾼다(빈 번호가 생기지 않게).
   const longEnough = passages.map((p) => countEnglishSentences(p.text) >= MIN_SENTENCES_FOR_INSERTION_IRRELEVANT);
-  const blueprint = slots.map((s) => {
-    const want = assignment[s.group];
+  /*
+   * 고른 지문을 하나도 남기지 않고 쓴다.
+   *
+   * 선생님 지적(2026-09-30): 지문을 다 골랐는데 고른 지문이 다 안 들어간다.
+   * 까닭은 지문을 「묶음」에 하나씩만 주고 있었기 때문이다. 묶음은 원래 시험에서
+   * 같은 지문을 쓴 문항끼리 묶은 것이라, 원래 시험의 지문 수보다 많이 고르면
+   * 남는 지문은 갈 자리가 없었다(여덟 묶음짜리 시험에 열여섯 지문을 고르면 여덟 개만 썼다).
+   *
+   * 고른 지문이 묶음보다 많으면 묶음을 풀어 문항마다 다른 지문을 준다.
+   * 그러면 문항 수만큼은 반드시 쓰인다. 손으로 정해 둔 자리는 그대로 지킨다.
+   */
+  const spread = passages.length > groupCount;
+  // 화면이 문항마다 정해 보내면 그 차례로 읽는다 (묶음을 푼 경우)
+  const perSlot = body.perSlot === true;
+  const blueprint = slots.map((s, slotIdx) => {
+    const want = assignment[perSlot ? slotIdx : s.group];
     let passageIndex =
-      Number.isInteger(want) && want! >= 0 && want! < passages.length ? want! : (s.group + round - 1) % passages.length;
+      Number.isInteger(want) && want! >= 0 && want! < passages.length
+        ? want!
+        : ((spread ? slotIdx : s.group) + round - 1) % passages.length;
     let optionKey = s.optionKey;
     if (/^(sentence_insertion|irrelevant_sentence):/.test(optionKey) && !longEnough[passageIndex]) {
       const alt = longEnough.findIndex(Boolean);
@@ -146,5 +164,17 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
   const origin = new URL(request.url).origin;
   after(() => runGenerationChunkAndChain(result.jobId, origin));
-  return NextResponse.json({ ok: true, jobId: result.jobId });
+  /*
+   * 그래도 남는 지문이 있으면(고른 지문이 문항 수보다 많을 때) 몇 개가 남는지 알린다.
+   * 말없이 빼 버리면 선생님은 다 들어간 줄 안다.
+   */
+  const used = new Set(blueprint.map((b) => b.passageIndex));
+  const unused = passages.length - used.size;
+  return NextResponse.json({
+    ok: true,
+    jobId: result.jobId,
+    passageCount: passages.length,
+    usedPassageCount: used.size,
+    unusedPassageCount: unused,
+  });
 }

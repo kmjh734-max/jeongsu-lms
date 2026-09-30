@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 import type { MockSlot } from "@/lib/exam-analysis/blueprint";
 import type { MaterialPassage } from "@/lib/exam-analysis/load";
@@ -75,11 +75,28 @@ export function ExamMockBuilder({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  /*
+   * 고른 지문이 원래 시험의 지문 묶음보다 많으면 묶음을 푼다.
+   *
+   * 선생님 지적(2026-09-30): 지문을 다 골랐는데 고른 지문이 다 안 들어간다.
+   * 묶음은 원래 시험에서 같은 지문을 쓴 문항끼리 묶은 것이라, 여덟 묶음짜리
+   * 시험에 열일곱 지문을 고르면 여덟 개만 쓰였다. 묶음을 풀어 문항마다 지문을
+   * 주면 문항 수만큼은 반드시 쓰인다 (24문항에 17지문이면 17개 다 들어간다).
+   */
+  const perSlot = chosen.length > groupCount;
+  /*
+   * 묶음이 풀리고 다시 묶이면 손으로 바꿔 둔 자리의 번호 뜻이 달라진다
+   * (묶음 번호 ↔ 문항 번호). 엉뚱한 지문이 붙지 않게 비운다.
+   */
+  useEffect(() => {
+    setOverride({});
+  }, [perSlot]);
   const groups = useMemo(() => {
+    if (perSlot) return slots.map((s) => [s]);
     const out: MockSlot[][] = Array.from({ length: groupCount }, () => []);
     for (const s of slots) out[s.group]!.push(s);
     return out;
-  }, [slots, groupCount]);
+  }, [slots, groupCount, perSlot]);
   const assignment = groups.map((_, g) => {
     const o = override[g];
     // 회차마다 한 칸씩 밀어 같은 지문이 같은 번호에 다시 오지 않게 한다
@@ -178,6 +195,7 @@ export function ExamMockBuilder({
         body: JSON.stringify({
           passages: chosen.map((c) => (c.kind === "material" ? { materialItemId: c.id } : { text: c.text, title: c.title })),
           assignment,
+          perSlot,
           round,
         }),
       });
@@ -218,7 +236,9 @@ export function ExamMockBuilder({
         <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="text-base font-bold text-slate-900">1. 시험 범위 지문</h2>
           <p className="mt-0.5 text-xs text-slate-500">
-            원래 시험처럼 지문 {groupCount}개를 고르면 한 지문씩 배정돼요. 적게 고르면 돌아가며 여러 번 써요.
+            {perSlot
+              ? `고른 ${chosen.length}개 지문이 문항마다 하나씩 다 들어가요.`
+              : `원래 시험처럼 지문 ${groupCount}개를 고르면 한 지문씩 배정돼요. 적게 고르면 돌아가며 여러 번 써요.`}
           </p>
           <div className="mt-3 flex gap-1 rounded-lg bg-slate-100 p-1 text-sm font-semibold">
             {(
