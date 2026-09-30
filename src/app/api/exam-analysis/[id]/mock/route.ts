@@ -33,7 +33,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   }
   const body = (await request.json().catch(() => ({}))) as { passages?: PassageIn[]; assignment?: number[];
     /** 배정을 문항마다 보냈는가 (묶음을 푼 경우) */
-    perSlot?: boolean; title?: string; round?: number };
+    perSlot?: boolean; title?: string; round?: number;
+    /** 변형문제 화면과 같은 만들기 설정 (선생님 요청 2026-09-30) */
+    overallDifficulty?: string;
+    paraphraseGrammarVocab?: boolean;
+    wordOrderMode?: "passage" | "paraphrase";
+    grammarWritingMode?: "passage" | "paraphrase";
+  };
   const inputs = (body.passages ?? []).slice(0, 30);
   if (inputs.length === 0) {
     return NextResponse.json({ ok: false, message: "시험 범위 지문을 1개 이상 골라 주세요." }, { status: 400 });
@@ -129,7 +135,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     grade: a.grade ? `고${String(a.grade).replace(/\D/g, "") || "1"}` : "고1",
     sourceType: "자체 지문",
     sourceDetail: a.exam_label ? `${a.exam_label} 동형` : "",
-    overallDifficulty: "내신",
+    overallDifficulty: body.overallDifficulty?.trim() || "내신",
     passage: passages[0]!.text,
     passages,
     mode: "custom",
@@ -137,6 +143,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     counts: {},
     blueprint,
     examAnalysisId: id,
+    ...(body.paraphraseGrammarVocab ? { paraphraseGrammarVocab: true } : {}),
+    ...(body.wordOrderMode ? { wordOrderMode: body.wordOrderMode } : {}),
+    ...(body.grammarWritingMode ? { grammarWritingMode: body.grammarWritingMode } : {}),
     // 원래 시험지에서 잰 수준을 그대로 넘긴다(선생님 요청 2026-09-28: 수준이 정말 반영되도록)
     levelBrief: levelBriefFor({
       sentenceWords: a.sentence_words,

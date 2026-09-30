@@ -83,6 +83,16 @@ export function ExamMockBuilder({
    * 시험에 열일곱 지문을 고르면 여덟 개만 쓰였다. 묶음을 풀어 문항마다 지문을
    * 주면 문항 수만큼은 반드시 쓰인다 (24문항에 17지문이면 17개 다 들어간다).
    */
+  /*
+   * 변형문제 화면에 있던 만들기 설정을 여기에도 둔다.
+   * 선생님 요청(2026-09-30): 동형모의고사 문항설계도에도 난이도·재진술 같은
+   * 설정을 넣어 달라. 지금까지는 난이도가 「내신」으로 박혀 있었다.
+   */
+  const [overallDifficulty, setOverallDifficulty] = useState("내신");
+  const [paraphraseGV, setParaphraseGV] = useState(false);
+  const [wordOrderMode, setWordOrderMode] = useState<"passage" | "paraphrase">("passage");
+  const [grammarWritingMode, setGrammarWritingMode] = useState<"passage" | "paraphrase">("paraphrase");
+
   const perSlot = chosen.length > groupCount;
   /*
    * 묶음이 풀리고 다시 묶이면 손으로 바꿔 둔 자리의 번호 뜻이 달라진다
@@ -196,6 +206,10 @@ export function ExamMockBuilder({
           passages: chosen.map((c) => (c.kind === "material" ? { materialItemId: c.id } : { text: c.text, title: c.title })),
           assignment,
           perSlot,
+          overallDifficulty,
+          paraphraseGrammarVocab: paraphraseGV,
+          wordOrderMode,
+          grammarWritingMode,
           round,
         }),
       });
@@ -240,6 +254,60 @@ export function ExamMockBuilder({
               ? `고른 ${chosen.length}개 지문이 문항마다 하나씩 다 들어가요.`
               : `원래 시험처럼 지문 ${groupCount}개를 고르면 한 지문씩 배정돼요. 적게 고르면 돌아가며 여러 번 써요.`}
           </p>
+          <div className="mt-3 space-y-2 rounded-lg border border-slate-200 bg-slate-50/70 p-3">
+            <p className="text-xs font-bold text-slate-700">만들기 설정</p>
+            <label className="flex items-center gap-2 text-xs text-slate-700">
+              <span className="w-20 shrink-0 font-semibold">전체 난이도</span>
+              <select
+                value={overallDifficulty}
+                onChange={(e) => setOverallDifficulty(e.target.value)}
+                className="ui-input h-8 flex-1 text-xs"
+              >
+                <option value="내신">내신</option>
+                <option value="기본">기본</option>
+                <option value="심화">심화</option>
+                <option value="수능">수능</option>
+              </select>
+            </label>
+            <label className="flex items-start gap-2 text-[11px] text-slate-700">
+              <input
+                type="checkbox"
+                checked={paraphraseGV}
+                onChange={(e) => setParaphraseGV(e.target.checked)}
+                className="mt-0.5 h-3.5 w-3.5 accent-brand-600"
+              />
+              <span>
+                <b className="block text-slate-800">지문 바꿔 쓰기 (어법·어휘)</b>
+                꺼 두면 지문이 원문 그대로 나오고 밑줄 자리만 바뀝니다. 켜면 밑줄 자리를
+                만들려고 문장도 바꿔 씁니다.
+              </span>
+            </label>
+            <label className="flex items-center gap-2 text-xs text-slate-700">
+              <span className="w-20 shrink-0 font-semibold">제시어 배열</span>
+              <select
+                value={wordOrderMode}
+                onChange={(e) => setWordOrderMode(e.target.value as "passage" | "paraphrase")}
+                className="ui-input h-8 flex-1 text-xs"
+              >
+                <option value="passage">지문 문장 그대로</option>
+                <option value="paraphrase">고쳐 써서 내기</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-2 text-xs text-slate-700">
+              <span className="w-20 shrink-0 font-semibold">지정 문법</span>
+              <select
+                value={grammarWritingMode}
+                onChange={(e) =>
+                  setGrammarWritingMode(e.target.value as "passage" | "paraphrase")
+                }
+                className="ui-input h-8 flex-1 text-xs"
+              >
+                <option value="paraphrase">문장을 그 문법으로 고쳐 쓰기</option>
+                <option value="passage">그 문법이 이미 있는 문장으로만</option>
+              </select>
+            </label>
+          </div>
+
           <div className="mt-3 flex gap-1 rounded-lg bg-slate-100 p-1 text-sm font-semibold">
             {(
               [
