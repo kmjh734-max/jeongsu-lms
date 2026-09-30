@@ -38,6 +38,12 @@ SOURCES = [
     ("jpwb-1-matched.json", "잘풀리는영문법_1권 워크북", "jpwb"),
     ("jpwb-2-matched.json", "잘풀리는영문법_2권 워크북", "jpwb"),
     ("jpwb-3-matched.json", "잘풀리는영문법_3권 워크북", "jpwb"),
+    ("gqwb-s1-matched.json", "그래머큐 Starter 1 워크북", "cwwb"),
+    ("gqwb-s2-matched.json", "그래머큐 Starter 2 워크북", "cwwb"),
+    ("gqwb-i1-matched.json", "그래머큐 Intermediate 1 워크북", "cwwb"),
+    ("gqwb-i2-matched.json", "그래머큐 Intermediate 2 워크북", "cwwb"),
+    ("gqwb-a1-matched.json", "그래머큐 Advanced 1 워크북", "cwwb"),
+    ("gqwb-a2-matched.json", "그래머큐 Advanced 2 워크북", "cwwb"),
     ("cwwb-1-matched.json", "천일문 GRAMMAR 1권 워크북", "cwwb"),
     ("cwwb-2-matched.json", "천일문 GRAMMAR 2권 워크북", "cwwb"),
     ("cwwb-3-matched.json", "천일문 GRAMMAR 3권 워크북", "cwwb"),
@@ -237,7 +243,9 @@ def main(dst, only=None):
             # 천일문은 단원 짜임이 달라 표를 따로 둔다 (「to부정사와 동명사」처럼
             # 둘을 묶어 놓은 단원은 Unit 이름을 보고 가른다)
             if kind == "cwwb":
-                spot = cw_map.place(book, title, q.get("unit"))
+                # 그래머큐 워크북은 단원 이름이 본책과 같아 기존 표를 그대로 쓴다
+                spot = (place(book, title) if "그래머큐" in book
+                        else cw_map.place(book, title, q.get("unit")))
             elif kind == "tb":
                 spot = tb_map.place(title)
             elif kind == "hs":
