@@ -54,7 +54,7 @@ export function QuestionSetsClient({ basePath }: { basePath: string }) {
     <div>
       <PageHeader
         title="문제 세트"
-        description="승인된 문제로 구성한 세트를 관리합니다. 학생 배정·PDF는 추후 연동합니다."
+        description="유형별로 골라 묶은 시험지예요. 차례를 바꾸고 바로 인쇄할 수 있어요."
         action={
           <Link
             href={`${basePath}/approved`}
@@ -83,6 +83,28 @@ export function QuestionSetsClient({ basePath }: { basePath: string }) {
                 {items.length}문항 ·{" "}
                 {new Date(s.updated_at).toLocaleString("ko-KR")}
               </p>
+              {items.length > 0 ? (
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  <Link
+                    href={`${basePath}/sets/${s.id}/print?mode=exam`}
+                    className="rounded-lg bg-brand-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-800"
+                  >
+                    시험지 PDF
+                  </Link>
+                  <Link
+                    href={`${basePath}/sets/${s.id}/print?mode=exam&layout=byType`}
+                    className="rounded-lg border border-brand-700 bg-white px-3 py-1.5 text-sm font-semibold text-brand-800 hover:bg-brand-50"
+                  >
+                    유형별 PDF
+                  </Link>
+                  <Link
+                    href={`${basePath}/sets/${s.id}/print?mode=answers`}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    해설지 PDF
+                  </Link>
+                </div>
+              ) : null}
               <ul className="mt-3 space-y-1">
                 {items.map((it, idx) => (
                   <li

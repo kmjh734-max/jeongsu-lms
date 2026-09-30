@@ -667,6 +667,7 @@ function loadStoredBranding(
 
 export function QuestionPrintView({
   jobId,
+  setId,
   backHref,
   printBaseHref,
   mode = "exam",
@@ -676,6 +677,13 @@ export function QuestionPrintView({
   embedded = false,
 }: {
   jobId: string;
+  /**
+   * 골라 묶은 시험지를 찍을 때 그 시험지 id.
+   *
+   * 선생님 요청(2026-09-30): 유형별로 골라 새 시험지를 조립하고 싶다.
+   * 있으면 생성 묶음 대신 이 시험지에 담긴 문항을 담은 차례대로 읽는다.
+   */
+  setId?: string;
   /** ← 뒤로: 내 자료 목록 */
   backHref: string;
   /** 문제지/해설지 전환용 (…/generations/{id}) */
@@ -744,7 +752,11 @@ export function QuestionPrintView({
   }, [designStyle]);
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/question-generator/jobs/${jobId}`);
+    const res = await fetch(
+      setId
+        ? `/api/question-generator/sets/${setId}/print-data`
+        : `/api/question-generator/jobs/${jobId}`
+    );
     const data = await res.json();
     if (!data.ok) {
       setError(data.message ?? "불러오기 실패");
@@ -778,8 +790,8 @@ export function QuestionPrintView({
       typeof job?.vocab_set_id === "string" ? job.vocab_set_id : null
     );
 
-    // 보기 단어장 동기화 (QR용 vocab_set_id 확보)
-    if ((data.questions ?? []).length > 0) {
+    // 보기 단어장 동기화 (QR용 vocab_set_id 확보) — 생성 묶음에만 있다
+    if (!setId && (data.questions ?? []).length > 0) {
       try {
         const vr = await fetch(
           `/api/question-generator/jobs/${jobId}/exam-vocab`,
@@ -820,7 +832,7 @@ export function QuestionPrintView({
       };
     });
     setBrandingReady(true);
-  }, [jobId, mode, academyName]);
+  }, [jobId, setId, mode, academyName]);
 
   useEffect(() => {
     void load();
@@ -1113,11 +1125,16 @@ export function QuestionPrintView({
   }
 
   function renderHeader(compact: boolean, pageIdx: number, totalPages: number) {
+    /*
+     * 보기 단어 QR 은 생성 묶음에 딸린 것이라, 골라 묶은 시험지에는 걸지 않는다.
+     * (jobId 가 빈 채로 주소를 만들면 열리지 않는 고리가 된다)
+     */
     const showVocabQr =
       mode === "exam" &&
       !compact &&
       pageIdx === 0 &&
-      questions.length > 0;
+      questions.length > 0 &&
+      (!setId || Boolean(vocabSetId));
     return (
       <header
         className={`qg-print-header ${compact ? "qg-print-header-compact" : ""} ${
