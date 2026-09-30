@@ -29,7 +29,8 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
     label: "수동태",
     form: "be + p.p.",
     hint: "주어가 동작을 당하는 쪽이면 be동사 뒤에 과거분사를 쓴다.",
-    check: /\b(am|is|are|was|were|be|been|being)\s+(\w+ed|\w+en|done|made|given|taken|written|built|held|kept|told)\b/i,
+    // be 와 분사 사이에 부사가 끼어도 알아본다 — can be <b>continuously</b> updated
+    check: /\b(am|is|are|was|were|be|been|being)\s+(?:\w+ly\s+|not\s+|also\s+|already\s+|still\s+|often\s+|never\s+|always\s+){0,2}(\w+ed|\w+en|done|made|given|taken|written|built|held|kept|told)\b/i,
     textbookBooks: 2,
   },
   {
@@ -214,7 +215,9 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
     label: "현재완료 수동태",
     form: "have been + p.p.",
     hint: "지금까지 이어지는 일을 당하는 쪽에서 말한다.",
-    check: /\b(have|has|had)\s+been\s+(\w+ed|\w+en|built|kept|told|made|done|given|taken|written|held|left|lost|found|brought|bought|sent|spent|put|set|cut|read|felt|met|paid|said|sold|thought|taught|won|understood|become|begun|chosen|driven|drawn|grown|known|shown|worn)\b/i,
+    // have 와 been 사이, been 과 분사 사이 어디에 부사가 끼어도 알아본다
+    check:
+      /\b(have|has|had)\s+(?:\w+ly\s+|not\s+|already\s+|always\s+|never\s+|just\s+){0,2}been\s+(?:\w+ly\s+|not\s+|already\s+|always\s+){0,2}(\w+ed|\w+en|built|kept|told|made|done|given|taken|written|held|left|lost|found|brought|bought|sent|spent|put|set|cut|read|felt|met|paid|said|sold|thought|taught|won|understood|become|begun|chosen|driven|drawn|grown|known|shown|worn)\b/i,
     textbookBooks: 8,
   },
   {

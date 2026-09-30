@@ -193,12 +193,22 @@ export function reconcileGrammarFixQuestion(opts: {
     pairs = pairs.slice(0, opts.wrongN);
   }
 
-  if (pairs.length < opts.wrongN) {
+  /*
+   * 바라던 개수보다 적어도 둘 이상이면 그대로 쓴다 — 버리지 말고 고쳐 쓴다.
+   *
+   * 선생님 지적(2026-10-01): 만들다 버린 값도 우리가 낸다. 빠질 것 같으면 아예
+   * 만들지 말든가 다 만들든가 해야 한다.
+   *
+   * 셋을 요구했는데 둘만 만들어 왔다고 통째로 버리면 그 호출 값이 그대로 날아간다.
+   * 「모두 고르기」 문항이라 둘이어도 문항으로 성립하고, 답칸 수는 정답에서 세므로
+   * 저절로 맞는다. 하나뿐이면 「모두」라는 발문과 어긋나니 그때만 버린다.
+   */
+  if (pairs.length < 2) {
     return {
       correctAnswer: opts.correctAnswer,
       explanation: opts.explanation,
       ok: false,
-      reason: `어법 수정: 실제 오류가 ${pairs.length}개뿐 (필요 ${opts.wrongN}개). 본문·정답·해설이 어긋남${declaredOk.size ? ` (해설이 ${[...declaredOk].join(" ")}를 맞다고 함)` : ""}.`,
+      reason: `어법 수정: 실제 오류가 ${pairs.length}개뿐 (적어도 둘은 있어야 함). 본문·정답·해설이 어긋남${declaredOk.size ? ` (해설이 ${[...declaredOk].join(" ")}를 맞다고 함)` : ""}.`,
     };
   }
 

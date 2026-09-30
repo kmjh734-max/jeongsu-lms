@@ -53,3 +53,28 @@ export function bankWordsLeftInBlankLine(passageModified: string, bankLine: stri
   }
   return [...new Set(hit)];
 }
+
+/**
+ * 빈칸을 그 문장 전체로 넓힌다.
+ *
+ * 선생님 지적(2026-10-01): 만들다 버린 값도 우리가 낸다. 빈칸 문장에 보기 낱말이
+ * 남았다고 통째로 버리면 그 호출 값이 그대로 날아간다. 남은 낱말까지 빈칸이 삼키면
+ * 되는 일이라 다시 부를 까닭이 없다.
+ *
+ * 넓히지 못하면 null (그때는 버린다).
+ */
+export function widenBlankToSentence(passageModified: string): string | null {
+  const src = String(passageModified ?? "");
+  const at = src.search(/[ⓐ-ⓔ㉮-㉲]\s*_{3,}|_{5,}/);
+  if (at < 0) return null;
+  const from = Math.max(0, src.lastIndexOf(".", at) + 1);
+  let to = src.indexOf(".", at);
+  to = to < 0 ? src.length : to + 1;
+  const head = src.slice(0, from);
+  const tail = src.slice(to);
+  const mark = src.slice(at).match(/[ⓐ-ⓔ㉮-㉲]/)?.[0] ?? "ⓐ";
+  const next = `${head}${head && !head.endsWith(" ") ? " " : ""}${mark}__________${tail}`;
+  // 넓힌 뒤에도 빈칸이 하나여야 한다
+  if ((next.match(/_{3,}/g) ?? []).length !== 1) return null;
+  return next;
+}

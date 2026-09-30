@@ -1,3 +1,4 @@
+import { renumberMarksInOrder } from "@/lib/question-generator/renumber-marks";
 import { difficultyRule, targetLevelFromOverall, type TargetLevel } from "@/lib/question-generator/difficulty";
 import { summaryBlankFitProblem } from "@/lib/question-generator/summary-blank-fit";
 import {
@@ -48,7 +49,10 @@ import {
 import { normalizeWordOrderQuestionText } from "@/lib/question-generator/word-order-normalize";
 import { reconcileGrammarFixQuestion } from "@/lib/question-generator/grammar-fix-normalize";
 import { plainKorean } from "@/lib/question-generator/plain-korean";
-import { bankWordsLeftInBlankLine } from "@/lib/question-generator/blank-line-overlap";
+import {
+  bankWordsLeftInBlankLine,
+  widenBlankToSentence,
+} from "@/lib/question-generator/blank-line-overlap";
 import {
   findWritingGrammar,
   objectParticle,
@@ -599,6 +603,13 @@ LANGUAGE: 지문·정답 영어만.`;
               ? "inflect"
               : "add";
         const { focusBlock, point, c } = pickWordOrderFocus(mode);
+        /*
+         * 쓸 문장을 코드가 골라 준다.
+         *
+         * 선생님 지적(2026-10-01): 만들다 버린 값도 우리가 낸다. 「지문 그대로」인데
+         * 모델이 문장을 고쳐 써 와서 버리는 일이 잦았다(여섯 번에 네 번). 어느 문장을
+         * 쓸지 미리 박아 주면 벗어날 데가 없다. 슬롯마다 다른 문장을 준다.
+         */
         // 지문 그대로가 기본이다(선생님 결정 2026-09-29)
         const wordOrderKeepPassage = wordOrderMode !== "paraphrase";
         const catalog = wordOrderCatalogBrief();
@@ -1182,7 +1193,10 @@ export function assertBasicQuestionShape(
    *
    * 실제 문항을 훑어보니 열여덟 개가 어긋나 있었다(2026-09-29). 심한 것은
    * ⓐ ⓕ ⓔ ⓓ ⓑ ⓒ ⓖ 차례로 찍혀, 학생이 몇 번째 밑줄인지 찾기가 어렵다.
-   * 번호를 다시 매기면 정답 번호·해설까지 손봐야 하므로, 그냥 다시 만들게 한다.
+   *
+   * 예전에는 그냥 다시 만들게 했는데, 만들다 버린 값도 우리가 낸다(선생님 지적
+   * 2026-10-01). 나온 차례대로 다시 매기고 정답·해설의 기호도 같이 옮긴다 —
+   * 어제 옛 문항 스물한 개를 이 규칙으로 고쳤고 글자는 하나도 안 바뀌었다.
    */
   {
     const marks = "ⓐⓑⓒⓓⓔⓕⓖ①②③④⑤";
@@ -1190,7 +1204,9 @@ export function assertBasicQuestionShape(
       marks.indexOf(m[1]!)
     );
     if (seen.length >= 2 && seen.some((v, i) => i > 0 && seen[i - 1]! >= v)) {
-      return "밑줄 기호가 지문에 나오는 차례와 다릅니다.";
+      if (!renumberMarksInOrder(q)) {
+        return "밑줄 기호가 지문에 나오는 차례와 다릅니다.";
+      }
     }
   }
 
@@ -1298,10 +1314,16 @@ export function assertBasicQuestionShape(
         return "「지문 그대로」로 만들 때는 정답이 지문에 있는 문장이어야 합니다.";
       }
     }
-    const leftOver = bankWordsLeftInBlankLine(
-      mod,
-      (q.questionText.match(/<보기>\s*\n([^\n]+)/) ?? [])[1] ?? ""
-    );
+    const bankLine = (q.questionText.match(/<보기>\s*\n([^\n]+)/) ?? [])[1] ?? "";
+    let leftOver = bankWordsLeftInBlankLine(mod, bankLine);
+    if (leftOver.length > 0) {
+      // 남은 낱말까지 빈칸이 삼키게 넓힌다 — 버리지 말고 고쳐 쓴다
+      const widened = widenBlankToSentence(mod);
+      if (widened && bankWordsLeftInBlankLine(widened, bankLine).length === 0) {
+        q.passageModified = widened;
+        leftOver = [];
+      }
+    }
     if (leftOver.length > 0) {
       return `빈칸이 든 문장에 보기 낱말이 그대로 남아 있습니다: ${leftOver.join(", ")}`;
     }
@@ -1537,10 +1559,47 @@ export function assertBasicQuestionShape(
         }
       }
       const at = flat.indexOf(want);
-      if (at < 0) return null;
-      const from = map[at]!;
-      const to = map[at + want.length - 1]! + 1;
-      return `${src.slice(0, from)}ⓐ__________${src.slice(to)}`;
+      if (at >= 0) {
+        const from = map[at]!;
+        const to = map[at + want.length - 1]! + 1;
+        return `${src.slice(0, from)}ⓐ__________${src.slice(to)}`;
+      }
+
+      /*
+       * 「고쳐 쓰기」에서는 정답이 지문에 그대로 없다. 정답은 지문의 어느 한 문장을
+       * 그 어법으로 고쳐 쓴 것이므로, 알맹이 낱말이 가장 많이 겹치는 문장을 뚫는다.
+       */
+      const words = (t: string) =>
+        new Set(
+          t
+            .toLowerCase()
+            .split(/[^a-z']+/)
+            .filter((w) => w.length > 3)
+        );
+      const ansWords = words(answer);
+      if (ansWords.size < 3) return null;
+      const sentences: { text: string; at: number }[] = [];
+      let cursor = 0;
+      for (const piece of src.split(/(?<=[.!?])\s+/)) {
+        const idx = src.indexOf(piece, cursor);
+        if (idx >= 0) {
+          sentences.push({ text: piece, at: idx });
+          cursor = idx + piece.length;
+        }
+      }
+      let best: { text: string; at: number; score: number } | null = null;
+      for (const sent of sentences) {
+        if (sent.text.trim().split(/\s+/).length < 6) continue;
+        const sw = words(sent.text);
+        if (sw.size === 0) continue;
+        let shared = 0;
+        for (const w of sw) if (ansWords.has(w)) shared += 1;
+        const score = shared / Math.min(sw.size, ansWords.size);
+        if (!best || score > best.score) best = { ...sent, score };
+      }
+      // 절반도 안 겹치면 엉뚱한 문장을 뚫는 셈이라 손대지 않는다
+      if (!best || best.score < 0.5) return null;
+      return `${src.slice(0, best.at)}ⓐ__________${src.slice(best.at + best.text.length)}`;
     };
 
     let modified = String(q.passageModified ?? "").trim();
@@ -1585,7 +1644,15 @@ export function assertBasicQuestionShape(
       ) || normalizeAndShuffleWordBank(blocks.words);
 
     // 제시어 배열과 같은 검사 — 빈칸 옆에 정답 낱말이 남아 있으면 버린다
-    const leftOver = bankWordsLeftInBlankLine(modified, bank);
+    let leftOver = bankWordsLeftInBlankLine(modified, bank);
+    if (leftOver.length > 0) {
+      const widened = widenBlankToSentence(modified);
+      if (widened && bankWordsLeftInBlankLine(widened, bank).length === 0) {
+        modified = widened;
+        q.passageModified = widened;
+        leftOver = [];
+      }
+    }
     if (leftOver.length > 0) {
       return `빈칸이 든 문장에 보기 낱말이 그대로 남아 있습니다: ${leftOver.join(", ")}`;
     }
@@ -2075,6 +2142,29 @@ export async function generateOneQuestion(opts: {
     .filter((line) => line.trim())
     .join("\n");
 
+  /*
+   * 「지문 그대로」 제시어 배열은 쓸 문장을 코드가 골라 준다.
+   *
+   * 선생님 지적(2026-10-01): 만들다 버린 값도 우리가 낸다. 모델이 문장을 고쳐 써 와서
+   * 버리는 일이 잦았다(여섯 번에 네 번). 어느 문장을 쓸지 박아 주면 벗어날 데가 없다.
+   *
+   * 지문 뒤에 붙인다 — 유형 규칙 안에 넣으면 문항마다 앞머리가 달라져 캐시가 깨진다.
+   */
+  const pickedSentenceLine = (() => {
+    if ((opts.wordOrderMode ?? "passage") === "paraphrase") return "";
+    if (!/제시어배열/.test(option.aingkaCode ?? "")) return "";
+    const sents = String(passage ?? "")
+      .split(/(?<=[.!?])\s+/)
+      .map((t) => t.trim())
+      .filter((t) => {
+        const n = t.split(/\s+/).length;
+        return n >= 8 && n <= 26;
+      });
+    if (sents.length === 0) return "";
+    const pick = sents[(opts.diversitySlot?.index ?? 0) % sents.length]!;
+    return `\n\nUSE THIS SENTENCE: 이번 문항은 이 문장을 빈칸으로 한다(글자 그대로, 한 자도 바꾸지 말 것).\n"${pick}"`;
+  })();
+
   // 슬롯 정보는 같은 유형 문항끼리도 달라지므로 맨 끝에 둔다
   const slotTail = opts.diversitySlot
     ? `\n\nITEM SLOT: ${JSON.stringify({
@@ -2167,7 +2257,7 @@ export async function generateOneQuestion(opts: {
     user:
       `ITEM RULES:\n${itemRules}\n\nITEM FORM:\n${itemData}\n\nPASSAGE:\n` +
       `${JSON.stringify({ passage, hint: englishBodyTypes.has(option.type) ? undefined : slimAnalysis })}` +
-      `${slotTail}`,
+      `${pickedSentenceLine}${slotTail}`,
     // 한 지문에서 여러 문항을 한꺼번에 만든다. 유형이 같으면 앞부분(공통 규칙·
     // 지문·유형 규칙)이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게
     // 이름표를 준다. 이것을 안 붙인 문항 생성만 캐시 적중이 0%였다.
