@@ -218,8 +218,14 @@ def gerund(text, allow):
     # 빈칸이 있는 문항 — 빈칸 뒤에 무엇이 오는지로 가른다
     if "동명사와 to부정사" in allow and re.search(r"_{3,}\s*to\s+[a-z]+", text):
         return "동명사와 to부정사"
+    if "동명사와 to부정사" in allow and re.search(
+            r"\b(like|love|hate|likes|loves|hates|begin|start|prefer)s?\s*_{3,}", text):
+        return "동명사와 to부정사"
     if "동명사의 쓰임" in allow:
         if re.search(r"_{3,}\s*\w+ing\b", text):
+            return "동명사의 쓰임"
+        # 동명사 주어 뒤에 동사 자리가 빈칸인 꼴
+        if re.search(r"(^|[.!?/]\s*)[A-Z]\w*ing\b[^.!?]{0,40}_{3,}", text):
             return "동명사의 쓰임"
         # 문장 첫머리의 동명사 주어 — 「Getting up early is …」
         if re.search(r"(^|[.!?/]\s*)[A-Z]\w*ing\b[^.!?]{0,40}\b(is|was|are|were)\b", text):
@@ -240,7 +246,11 @@ CMP_MAIN = [
 ]
 CMP_SUP = [r"\b(the\s+)?\w+est\b", r"\bthe\s+most\s+\w+\b", r"최상급"]
 CMP_CMP = [r"\b\w+er\s+than\b", r"\bmore\s+\w+\s+than\b", r"\bless\s+\w+\s+than\b", r"비교급"]
-CMP_EQ = [r"\bas\s+\w+\s+as\b", r"\bnot\s+so\s+\w+\s+as\b", r"원급"]
+CMP_EQ = [
+    r"\bas\s+\w+\s+as\b", r"\bnot\s+so\s+\w+\s+as\b", r"원급",
+    r"\bthe\s+same\b.{0,30}\bas\b", r"\bsame\b.{0,20}(_{3,}|\(\s*\w\s*\))",
+    r"와 같은|과 같은|만큼",
+]
 
 
 def compare(text, allow):
@@ -259,10 +269,23 @@ def compare(text, allow):
 
 
 # ── 관계사 ──────────────────────────────────────────────────────────
-REL_ADV = [r"\b(where|when|why|how)\b.{0,40}\b(place|time|reason|way)\b", r"관계부사",
-           r"\bthe\s+(place|time|reason|way)\s+(where|when|why|how)\b"]
-REL_CONT = [r",\s*(who|which|whose|where|when)\b", r"계속적 용법"]
-REL_PRON = [r"\b(who|whom|whose|which|that)\b", r"관계대명사"]
+BLANK = r"(_{3,}|\(\s*\w\s*\)_*|\[\[[^\]]*\]\])"
+REL_ADV = [
+    r"\b(where|when|why|how)\b.{0,40}\b(place|time|reason|way)\b", r"관계부사",
+    r"\bthe\s+(place|time|reason|way)\s+(where|when|why|how)\b",
+    # 빈칸 앞이 곳·때를 가리키는 말이면 관계부사 자리다
+    r"\b(place|time|reason|way|day|year|city|town|house|school|room|moment)s?\s*" + BLANK,
+]
+REL_CONT = [
+    r",\s*(who|which|whose|where|when)\b", r"계속적 용법",
+    # 쉼표 뒤 빈칸에 이어 주어·동사가 오는 자리
+    r",\s*" + BLANK + r"\s*(we|they|he|she|I|you|it|[A-Z][a-z]+)\b",
+]
+REL_PRON = [
+    r"\b(who|whom|whose|which|that)\b", r"관계대명사",
+    # 명사 뒤 빈칸에 이어 절이 오는 자리
+    r"\b\w+\s*" + BLANK + r"\s*(we|they|he|she|I|you|it|is|are|was|were|has|have|can)\b",
+]
 
 
 def relative(text, allow):
@@ -285,6 +308,9 @@ PAS_SPECIAL = [
     r"(as|to|with|of|in|at|about|for)\b",
     # 「is said to ~」처럼 that절을 받아 넘긴 수동태
     r"\b(is|are|was|were)\s+(said|believed|thought|reported|expected|supposed)\s+to\b",
+    # 전치사가 빈칸인 굳은 수동태 — 「covered ___ snow」
+    r"\b(known|filled|covered|made|interested|surprised|satisfied|worried|crowded|"
+    r"tired|excited|disappointed|pleased)\s*(_{3,}|\(\s*\w\s*\)_*)",
 ]
 PAS_CARE = [
     r"\bwas\s+\w+ed\s+to\s+\w+", r"\bbe\s+p\.?p\.?\b", r"주의할 수동태",
@@ -292,7 +318,12 @@ PAS_CARE = [
 ]
 PAS_NEG = [r"\b(is|are|was|were)\s+not\s+\w+ed\b", r"^\s*(Is|Are|Was|Were)\s+\w+\s+\w+ed\b",
            r"부정문|의문문"]
-PAS_FORM = [r"\b(is|are|was|were|be)\s+\w+(ed|en)\b\s*(by\b)?", r"수동태"]
+PAS_FORM = [
+    r"\b(is|are|was|were|be)\s+\w+(ed|en)\b\s*(by\b)?", r"수동태",
+    # 빈칸이 분사 자리인 꼴 — 「were felt (A)___ by Mike」
+    r"\b(is|are|was|were|been|be)\s+\w*\s*(_{3,}|\(\s*\w\s*\)_*)",
+    r"\b(had|has|have)\s+(_{3,}|\(\s*\w\s*\)_*)\s*\w*(ed|en)\b",
+]
 
 
 def passive(text, allow):
@@ -610,7 +641,12 @@ TABLE = {
           r"\[\[\s*(do|does|did)\s*\]\]",
           r"\b(do|does|did)\s+\w+\b.{0,20}강조", r"정말로|바로 그",
           r"\bthe\s+very\b", r"강조"]),
-        ("생략과 동격", [r"생략|동격", r",\s*(a|an|the)\s+\w+\s*,"]),
+        ("생략과 동격",
+         [r"생략|동격", r",\s*(a|an|the)\s+\w+\s*,",
+          r"(When|While|If|Though|Although)\s+(asked|seen|compared|necessary|possible|"
+          r"needed|young|alone|in\s+doubt)",
+          r"If\s+you\s+are.{0,20}=\s*(_{3,}|\(\s*\w\s*\))"]),
+
         ("부정과 무생물주어", [r"부분\s*부정|전체\s*부정|무생물\s*주어", r"\bnot\s+(all|every|always|both)\b"]),
     ],
 }
@@ -700,13 +736,16 @@ BY_LEVEL = {
          [r"\b(who|which|that)\s+(was|were|is|are)\b.{0,30}(고쳐|어색|틀린)",
           r"\b(in|on|at|for|with|to|about)\s+(which|whom)\b", r"주의"]),
         ("관계대명사의 종류",
-         [r"\bwhose\b", r"\bwhat\b.{0,24}관계", r"who,\s*whom,\s*whose", r"종류"]),
+         [r"\bwhose\b", r"\bwhat\b.{0,24}관계", r"who,\s*whom,\s*whose", r"종류",
+          r"\b\w+\s*" + BLANK + r"\s*\w+\s+(is|are|was|were)\b"]),
         ("목적격 관계대명사",
          [r"\bwho\s?\(?m\)?\b", r"\bwhom\b",
           r"\b(who|which|that)\s+(I|you|he|she|we|they|[A-Z][a-z]+)\b",
-          r"목적격"]),
+          r"목적격",
+          r"\b\w+\s*" + BLANK + r"\s*(I|you|he|she|we|they)\s+[a-z]+"]),
         ("주격 관계대명사",
-         [r"\b(who|which|that)\s+(is|are|was|were|has|have|had|\w+s|\w+ed)\b", r"주격"]),
+         [r"\b(who|which|that)\s+(is|are|was|were|has|have|had|\w+s|\w+ed)\b", r"주격",
+          r"\b\w+\s*" + BLANK + r"\s*(is|are|was|were|has|have|can|will)\b"]),
     ],
     (2, "접속사[2]"): [
         ("짝을 이루는 접속사",

@@ -11,6 +11,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import db
+from official_units import units_of
+from to_official import nearest
 from unit_map import UNITS
 from unit_rules import guess
 
@@ -23,10 +25,14 @@ def main(apply=False, show=12):
 
     plan = collections.defaultdict(list)
     for q in got:
-        allow = UNITS.get((q["level"], q["chapter"]))
-        name = guess(q["level"], q["chapter"], q, allow)
-        if name:
-            plan[(q["level"], q["chapter"], name)].append(q)
+        # 규칙은 내 이름으로 가린다. 그 뒤 족보닷컴 공식 갈래로 옮겨 담는다.
+        mine = UNITS.get((q["level"], q["chapter"]))
+        name = guess(q["level"], q["chapter"], q, mine)
+        if not name:
+            continue
+        want = nearest(name, units_of(q["level"], q["chapter"]))
+        if want:
+            plan[(q["level"], q["chapter"], want)].append(q)
 
     filled = sum(len(v) for v in plan.values())
     print("가려낸 것 %d개 (%d%%)" % (filled, round(filled / max(len(got), 1) * 100)), file=log)
