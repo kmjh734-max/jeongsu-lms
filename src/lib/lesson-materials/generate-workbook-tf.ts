@@ -151,6 +151,8 @@ async function callTfOpenAI(input: {
             { role: "system", content: WORKBOOK_TF_SYSTEM_PROMPT },
             { role: "user", content: userContent },
           ],
+          // 앞부분(지시·규칙·지문)이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게 이름표를 준다
+          prompt_cache_key: "workbook-tf",
         };
         if (includeJsonMode) body.response_format = { type: "json_object" };
         if (includeTemperature) body.temperature = 0.35;

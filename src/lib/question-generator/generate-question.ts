@@ -2122,6 +2122,10 @@ export async function generateOneQuestion(opts: {
   const raw = (await questionGeneratorChatJsonWithRetry({
     system: QUESTION_WRITER_SHARED_SYSTEM,
     user: `${itemData}\n\nITEM RULES:\n${itemRules}${slotTail}`,
+    // 한 지문에서 여러 문항을 한꺼번에 만든다. 유형이 같으면 앞부분(공통 규칙·
+    // 지문·유형 규칙)이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게
+    // 이름표를 준다. 이것을 안 붙인 문항 생성만 캐시 적중이 0%였다.
+    cacheKey: `qg-${option.type}-${option.aingkaCode ?? ""}`,
     temperature:
       option.type === "grammar"
         ? 0.55

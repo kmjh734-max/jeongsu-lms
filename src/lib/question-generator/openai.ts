@@ -45,7 +45,8 @@ function buildBody(
   temperature: number,
   maxTokens: number,
   profile: RequestProfile,
-  reasoningEffort?: "low" | "medium" | "high" | "xhigh"
+  reasoningEffort?: "low" | "medium" | "high" | "xhigh",
+  cacheKey?: string
 ): Record<string, unknown> {
   const body: Record<string, unknown> = {
     model,
@@ -54,6 +55,12 @@ function buildBody(
       { role: "user", content: user },
     ],
   };
+  // 같은 앞부분을 다시 보내면 값이 십분의 일이다. 여러 문항을 한꺼번에 만들면
+  // 요청이 서로 다른 기계로 흩어져 앞부분을 다시 읽는데, 이 이름표를 붙이면
+  // 같은 자리로 모인다. 안 붙인 문항 생성만 캐시 적중이 0%였다.
+  if (cacheKey) {
+    body.prompt_cache_key = cacheKey;
+  }
   if (profile.includeJsonMode) {
     body.response_format = { type: "json_object" };
   }
@@ -209,6 +216,8 @@ export async function questionGeneratorChatJson(opts: {
   reasoningEffort?: "low" | "medium" | "high" | "xhigh";
   /** 우선 시도할 모델 (예: gpt-5.5) */
   preferredModels?: string[];
+  /** 프롬프트 앞부분 재사용 이름표 (유형마다 하나) */
+  cacheKey?: string;
 }): Promise<unknown> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
@@ -251,7 +260,8 @@ export async function questionGeneratorChatJson(opts: {
               temperature,
               maxTokens,
               profile,
-              opts.reasoningEffort
+              opts.reasoningEffort,
+              opts.cacheKey
             )
           ),
         });
