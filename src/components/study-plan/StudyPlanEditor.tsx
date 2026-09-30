@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { classScheduleAction, createPlanAction, savePlanAction } from "@/app/admin/study-plans/actions";
@@ -100,6 +100,42 @@ function CheckButtons({
       })}
     </div>
   );
+}
+
+/** 영역 이름을 보고 듣기·단어 중 무엇과 이어지는지 고른다 */
+function autoFillArea(area: string): AutoFillArea | null {
+  const t = area.replace(/\s/g, "");
+  if (t.includes("듣기")) return "listening";
+  if (t.includes("단어") || t.includes("어휘")) return "vocab";
+  return null;
+}
+
+/**
+ * 듣기·단어를 다 한 회차를 저절로 「완료」로 찍는다.
+ *
+ * 선생님 요청(2026-09-30): 듣기를 했으면 자동으로 완료가 되게 해 달라.
+ * 이미 손으로 찍어 둔 칸은 건드리지 않는다 — 선생님이 미흡이라 본 것을
+ * 기계가 완료로 덮으면 안 된다.
+ */
+function applyAutoDone(
+  rows: Row[],
+  done: Map<string, PlanDoneCell>,
+): { rows: Row[]; count: number } {
+  let count = 0;
+  const next = rows.map((r) => {
+    const kind = autoFillArea(r.area);
+    if (!kind) return r;
+    let touched = false;
+    const entries = r.entries.map((e, i) => {
+      if (e.check) return e;
+      if (done.get(`${kind}-${r.week}-${i}`)?.state !== "done") return e;
+      touched = true;
+      count += 1;
+      return { ...e, check: "done" as HomeworkCheck };
+    });
+    return touched ? { ...r, entries } : r;
+  });
+  return { rows: count > 0 ? next : rows, count };
 }
 
 /** 밀려온 진도를 원래 있던 글 앞에 붙인다 */
@@ -249,6 +285,12 @@ export function StudyPlanEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plan?.id]);
 
+  /** 저절로 찍을 때 지금 줄을 본다 — 효과가 옛 줄을 들고 있지 않게 */
+  const rowsRef = useRef(rows);
+  useEffect(() => {
+    rowsRef.current = rows;
+  });
+
   /** 회차 날짜를 한 줄로 — 이것이 바뀔 때만 실제 기록을 다시 읽는다 */
   const dateKey = useMemo(
     () =>
@@ -278,7 +320,17 @@ export function StudyPlanEditor({
           sessionDates: dates,
         });
         if (!alive || !r.ok) return;
-        setDone(new Map(r.cells.map((c) => [`${c.area}-${c.week}-${c.index}`, c])));
+        const map = new Map(r.cells.map((c) => [`${c.area}-${c.week}-${c.index}`, c]));
+        setDone(map);
+        // 듣기·단어를 다 한 회차는 여기서 바로 완료로 찍어 둔다
+        const auto = applyAutoDone(rowsRef.current, map);
+        if (auto.count > 0) {
+          setRows(auto.rows);
+          setMsg({
+            ok: true,
+            text: `듣기·단어를 다 한 ${auto.count}칸을 완료로 찍어 뒀어요. 저장을 눌러 주세요.`,
+          });
+        }
       })();
     }, 600);
     return () => {
@@ -417,14 +469,6 @@ export function StudyPlanEditor({
         };
       });
     });
-  }
-
-  /** 영역 이름을 보고 듣기·단어 중 무엇과 이어지는지 고른다 */
-  function autoFillArea(area: string): AutoFillArea | null {
-    const t = area.replace(/\s/g, "");
-    if (t.includes("듣기")) return "listening";
-    if (t.includes("단어") || t.includes("어휘")) return "vocab";
-    return null;
   }
 
   /** "Day 3, 4" → [3, 4] */
