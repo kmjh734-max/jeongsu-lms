@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   actionError,
@@ -395,7 +396,19 @@ export async function submitStage4(
   });
 
   if (meaningPending.length > 0) {
+    /*
+     * 선생님 물음(2026-10-01): 원가가 제대로 책정되고 있는가.
+     * 뜻 쓰기 채점은 학생이 낼 때마다 모델을 부르는데(똑같이 쓴 답은 빼고) 테두리가 없어
+     * 학원도 안 붙고 기록을 밀어 넣지도 않았다. 이 값은 단어학습 월 이용료에 들어 있으므로
+     * 따로 받는 기능 키는 없다 — 학원과 쓰인 자리만 남긴다.
+     */
+    setAiUsage({
+      academyId: ctx.academyId,
+      actorId: studentId,
+      usedFor: "vocab_grade_meaning",
+    });
     const result = await gradeMeaningWithAi(meaningPending.map((p) => p.input));
+    await flushAiUsage();
     const rows = result.ok ? result.results : [];
     meaningPending.forEach((pending, i) => {
       const r = rows[i];

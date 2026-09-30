@@ -35,6 +35,11 @@ export type StudentSetContext = {
   studentId: string;
   admin: SupabaseClient;
   examCompact: boolean;
+  /**
+   * 학생의 학원. 뜻 쓰기 채점이 모델을 부르므로 원가를 학원에 붙이는 데 쓴다
+   * (선생님 물음 2026-10-01: 새는 곳은 없는가 — 이 호출이 학원 없이 기록됐다).
+   */
+  academyId: string | null;
 };
 
 type ContextResult =
@@ -102,6 +107,7 @@ export async function studentSetContext(setId: unknown): Promise<ContextResult> 
       studentId: profile.id,
       admin,
       examCompact: Boolean(set.exam_compact),
+      academyId: profile.academy_id ?? null,
     },
     error: null,
   };
