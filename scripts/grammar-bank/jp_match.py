@@ -20,6 +20,11 @@ from pathlib import Path
 
 CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩"
 FINAL = re.compile(r"마\s?무\s?리")
+# 개념 설명 글이 발문으로 딸려 온 자국 — 문제가 아니라 규칙 풀이다
+EXPLAIN = re.compile(r"라는 의미|의미로|사용한다|나타내며|해석한다|붙인다")
+ASKING = re.compile(r"시오|세요|것은\?|고르|완성|배열|바꿔|고치|쓰")
+# 보기 없이 번호만 답으로 온 것 — 옆 상자의 답이 섞인 자국이다
+ONLY_NO = re.compile(r"^[1-9①-⑩]([,\s]+[1-9①-⑩])*$")
 # 차례가 한두 묶음 밀리는 일이 있다 — 이만큼까지는 앞으로 훑어본다
 REACH = 3
 
@@ -81,6 +86,10 @@ def main(q_path, a_path, out_path, bad_path=None):
     # 마무리 실전문제는 여러 단원에 걸쳐 있어 넣을 자리가 없다
     questions = [q for q in questions if not FINAL.search(str(q.get("section") or ""))]
     boxes = [b for b in boxes if b.get("kind") != "마무리"]
+    # 규칙을 풀어 쓴 글이 발문으로 딸려 온 것은 문제가 아니다
+    questions = [q for q in questions
+                 if not (EXPLAIN.search(str(q.get("prompt") or ""))
+                         and not ASKING.search(str(q.get("prompt") or "")[:40]))]
 
     blocks = blocks_of(questions)
     first_on = {}
@@ -159,6 +168,9 @@ def main(q_path, a_path, out_path, bad_path=None):
                            "답": len(answers), "까닭": "고를 것 안에 없는 답 %d개" % len(off)})
             continue
         pairs = [(q, a) for q, a in pairs if in_choices(a, as_gq(q)["picks"])]
+        # 보기가 없는 문항에 번호만 답으로 왔다면 옆 상자의 답이 섞인 것이다
+        pairs = [(q, a) for q, a in pairs
+                 if q.get("choices") or not ONLY_NO.match(str(a or "").strip())]
         # 읽다가 어긋난 답은 그것만 뺀다
         pairs = [(q, a) for q, a in pairs if usable(a, as_gq(q))]
         if not pairs:
