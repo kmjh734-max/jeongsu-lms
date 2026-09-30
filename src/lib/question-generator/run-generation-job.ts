@@ -151,6 +151,8 @@ function toRow(
     validationScore: number | null;
     errorMessage?: string | null;
     slot?: { index: number; itemNo: string; points: number | null; level: string | null } | null;
+    /** 고른 유형으로 안 되어 다른 유형으로 바꿔 만들었을 때, 원래 고른 유형의 이름 */
+    substitutedFrom?: string | null;
   }
 ) {
   const approved = opts.status === "approved";
@@ -181,7 +183,13 @@ function toRow(
     hard_words: payload.hardWords ?? [],
     evidence: payload.evidence ?? [],
     scoring_guide: payload.scoringGuide ?? null,
-    validation_result: payload.validation ?? null,
+    /*
+     * 선생님 지적(2026-10-01): 대체는 조용히 일어나면 안 된다. 어법을 골랐는데
+     * 주제추론이 섞여 나오면 선생님이 당황한다. 바꿔 만든 것은 자취를 남긴다.
+     */
+    validation_result: opts.substitutedFrom
+      ? { ...(payload.validation ?? {}), substitutedFrom: opts.substitutedFrom }
+      : payload.validation ?? null,
     validation_score: opts.validationScore,
     status: opts.status,
     generation_attempt: opts.attempt,
@@ -282,6 +290,17 @@ async function countSavedQuestions(jobId: string): Promise<number> {
     .from("generated_english_questions")
     .select("id", { count: "exact", head: true })
     .eq("generation_job_id", jobId);
+  return count ?? 0;
+}
+
+/** 고른 유형으로 안 되어 다른 유형으로 바꿔 만든 문항 수. 여러 번에 나눠 돌려도 맞는다. */
+async function countSubstitutedQuestions(jobId: string): Promise<number> {
+  const admin = createAdminClient();
+  const { count } = await admin
+    .from("generated_english_questions")
+    .select("id", { count: "exact", head: true })
+    .eq("generation_job_id", jobId)
+    .not("validation_result->>substitutedFrom", "is", null);
   return count ?? 0;
 }
 
@@ -430,6 +449,7 @@ async function finalizeGenerationJob(
   const completed = await countSavedQuestions(jobId);
   const failed = Math.max(0, opts.totalRequested - completed - opts.skipped);
   const finalStatus = completed > 0 ? "completed" : "failed";
+  const substituted = await countSubstitutedQuestions(jobId);
 
   let progressMessage = "생성 완료";
   if (finalStatus === "completed") {
@@ -440,6 +460,8 @@ async function finalizeGenerationJob(
     } else if (opts.skipped > 0) {
       progressMessage = `생성 완료 (생략 ${opts.skipped})`;
     }
+    // 고른 유형으로 안 되어 바꿔 만든 것은 반드시 알린다 — 조용히 섞이면 안 된다
+    if (substituted > 0) progressMessage += ` · 다른 유형으로 바꿔 만든 것 ${substituted}개`;
   } else {
     progressMessage = "생성 실패";
   }
@@ -928,7 +950,9 @@ export async function runGenerationJob(
        *
        * 이제 어느 쪽이든 다른 유형으로 바꿔 한 번 더 만든다. 난이도는 그대로 둔다.
        */
+      let substitutedFrom: string | null = null;
       if (result.skipped || !result.payload) {
+        const requestedLabel = item.option.label || item.option.key.split(":").pop() || "";
         const level = item.slot?.level ?? (item.option.difficulty === "high" ? "상" : "하");
         for (const alt of fallbackOptionsFor(item.option.key, level)) {
           const retry = await generateWithValidation({
@@ -950,6 +974,7 @@ export async function runGenerationJob(
           if (retry.payload) {
             result = retry;
             item.option = alt;
+            substitutedFrom = requestedLabel;
             break;
           }
         }
@@ -974,6 +999,7 @@ export async function runGenerationJob(
             validationScore: result.payload.validation?.overallScore ?? null,
             errorMessage: null,
             slot: item.slot ?? null,
+            substitutedFrom,
           })
         );
         const tracked = Promise.resolve(insert).finally(() => inserts.delete(tracked));

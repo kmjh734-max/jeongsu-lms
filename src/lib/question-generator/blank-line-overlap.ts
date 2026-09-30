@@ -73,8 +73,34 @@ export function widenBlankToSentence(passageModified: string): string | null {
   const head = src.slice(0, from);
   const tail = src.slice(to);
   const mark = src.slice(at).match(/[ⓐ-ⓔ㉮-㉲]/)?.[0] ?? "ⓐ";
-  const next = `${head}${head && !head.endsWith(" ") ? " " : ""}${mark}__________${tail}`;
+  const next = `${head}${head && !head.endsWith(" ") ? " " : ""}${mark}__________.${tail}`;
   // 넓힌 뒤에도 빈칸이 하나여야 한다
   if ((next.match(/_{3,}/g) ?? []).length !== 1) return null;
   return next;
+}
+
+/**
+ * 빈칸이 문장 끝 마침표까지 삼킨 것을 되돌린다.
+ *
+ * 선생님 지적(2026-10-01): 빠질 것 같으면 아예 다른 유형으로 만들라 하셨는데, 그 전에
+ * 애먼 데서 빠지고 있었다. 한 문장을 통째로 빈칸으로 만들 때 마침표까지 같이 지워지면
+ * 빈칸 문장이 어디서 끝나는지 알 수 없어, 뒤 문장의 낱말까지 「빈칸에 남은 보기 낱말」로
+ * 세었다. 지문의 주제어가 이어지는 문장에 또 나오면 그대로 걸렸다.
+ * 제시어배열 여덟 지문 가운데 세 지문이 이 때문에 세 번씩 다시 만들다 버려졌고,
+ * 이미 만들어 둔 331개 가운데 57개(17%)는 학생이 받는 지문에도 마침표가 없다.
+ *
+ * 빈칸이 문장 하나를 통째로 차지할 때만(앞이 문장 끝이거나 글머리) 마침표를 돌려준다.
+ * 문장 가운데 빈칸이면 뒤에 오는 대문자는 고유명사이므로 손대지 않는다.
+ */
+export function closeBlankSentence(passageModified: string): string {
+  const src = String(passageModified ?? "");
+  const m = src.match(/[ⓐ-ⓔ㉮-㉲]\s*_{3,}|_{5,}/);
+  if (!m || m.index === undefined) return src;
+  const before = src.slice(0, m.index).replace(/\s+$/, "");
+  if (before !== "" && !/[.!?"”')\]]$/.test(before)) return src;
+  const end = m.index + m[0].length;
+  const after = src.slice(end);
+  // 같은 줄에서 다음 문장이 곧바로 이어질 때만. 줄이 바뀌면(대화문) 그대로 둔다.
+  if (!/^[ \t]+[A-Z]/.test(after)) return src;
+  return `${src.slice(0, end)}.${after}`;
 }
