@@ -3,12 +3,28 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { listStudyPlans, loadStudyPlan } from "@/lib/study-plan";
+import { HOMEWORK_CHECK_LABELS, listStudyPlans, loadStudyPlan, type HomeworkCheck } from "@/lib/study-plan";
 import { weeksInMonth } from "@/lib/study-plan/weekday-dates";
 import { isStudyPlanEnabled } from "@/lib/study-plan/access";
 
 interface PageProps {
   searchParams: Promise<{ year?: string; month?: string }>;
+}
+
+/** 선생님이 찍어 둔 숙제 확인 — 아직 안 찍은 회차는 아무것도 안 보인다 */
+function CheckMark({ check }: { check: HomeworkCheck }) {
+  if (!check) return null;
+  const tone: Record<Exclude<HomeworkCheck, "">, string> = {
+    none: "border-rose-200 bg-rose-50 text-rose-700",
+    weak: "border-amber-200 bg-amber-50 text-amber-700",
+    checked: "border-sky-200 bg-sky-50 text-sky-700",
+    done: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  };
+  return (
+    <span className={`mt-1 inline-block rounded-full border px-2 py-0.5 text-[11px] font-semibold ${tone[check]}`}>
+      {HOMEWORK_CHECK_LABELS[check]}
+    </span>
+  );
 }
 
 /** 그 달이 걸치는 주 + 일정표에 실제로 적힌 주. 둘을 합쳐 빠짐없이 보여 준다. */
@@ -95,7 +111,10 @@ export default async function StudentPlanPage({ searchParams }: PageProps) {
                             {e.progress ? <p className="text-slate-800">{e.progress}</p> : null}
                             {e.homework ? <p className="text-brand-700">숙제: {e.homework}</p> : null}
                             {e.note ? <p className="text-xs text-slate-500">{e.note}</p> : null}
-                            {!e.progress && !e.homework && !e.note ? <span className="text-slate-300">–</span> : null}
+                            <CheckMark check={e.check} />
+                            {!e.progress && !e.homework && !e.note && !e.check ? (
+                              <span className="text-slate-300">–</span>
+                            ) : null}
                           </td>
                         ))}
                       </tr>

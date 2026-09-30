@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ATTENDANCE_LABELS, type Attendance } from "@/lib/study-plan";
+import {
+  ATTENDANCE_LABELS,
+  HOMEWORK_CHECK_LABELS,
+  type Attendance,
+  type HomeworkCheck,
+} from "@/lib/study-plan";
 
 /** 리포트에 들어가는 학습일정표 요약 */
 export interface StudyPlanReportSection {
@@ -11,6 +16,8 @@ export interface StudyPlanReportSection {
   sessionsPlanned: number;
   /** 진도를 적은 회차 수 */
   sessionsRecorded: number;
+  /** 숙제 확인 개수 — 선생님이 찍지 않은 회차는 세지 않는다 */
+  homework: Record<Exclude<HomeworkCheck, "">, number>;
   /** 영역별 진도 한 줄 — ["영단어: 1과, 2과", …] */
   areaLines: string[];
   /** 학부모께 그대로 보여 줄 한 문장 */
@@ -86,11 +93,19 @@ export async function loadStudyPlanSection(
   // 영역마다 적어 둔 진도를 모은다
   const byArea = new Map<string, string[]>();
   let sessionsRecorded = 0;
+  const homework: Record<Exclude<HomeworkCheck, "">, number> = {
+    none: 0,
+    weak: 0,
+    checked: 0,
+    done: 0,
+  };
   for (const r of rows ?? []) {
     const area = String(r.area ?? "").trim();
     if (!area) continue;
-    const entries = (r.entries ?? []) as Array<{ progress?: string }>;
+    const entries = (r.entries ?? []) as Array<{ progress?: string; check?: string }>;
     for (const e of entries) {
+      const check = String(e?.check ?? "");
+      if (check && check in homework) homework[check as Exclude<HomeworkCheck, "">] += 1;
       const text = String(e?.progress ?? "").trim();
       if (!text) continue;
       sessionsRecorded += 1;
@@ -120,6 +135,11 @@ export async function loadStudyPlanSection(
   } else if (sessionsPlanned > 0) {
     parts.push(`수업 ${sessionsPlanned}회 예정`);
   }
+  // 숙제를 찍어 둔 회차가 있으면 완수부터 차례로 적는다
+  const homeworkParts = (["done", "checked", "weak", "none"] as const)
+    .filter((k) => homework[k] > 0)
+    .map((k) => `${HOMEWORK_CHECK_LABELS[k]} ${homework[k]}회`);
+  if (homeworkParts.length) parts.push(`숙제 ${homeworkParts.join(", ")}`);
   if (count.absent + count.holiday > 0) {
     parts.push("수업이 없던 회차의 진도는 다음 회차로 넘겼습니다");
   }
@@ -129,6 +149,7 @@ export async function loadStudyPlanSection(
     attendance: count,
     sessionsPlanned,
     sessionsRecorded,
+    homework,
     areaLines: [...byArea].map(([area, list]) => `${area}: ${list.join(", ")}`),
     line: parts.length ? `${monthLabel} ${parts.join(" · ")}` : `${monthLabel} 학습일정표`,
   };
