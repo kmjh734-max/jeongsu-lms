@@ -80,7 +80,10 @@ def as_written(question, answer):
     일이 있다. 고를 것에 「on」이라 적혀 있으면 그쪽을 따른다.
     """
     flat = str(answer).strip()
-    for pick in re.split(r"\s*/\s*", " / ".join(as_gq(question)["picks"])):
+    said = re.split(r"\s*/\s*", " / ".join(as_gq(question)["picks"]))
+    said += [c["text"] for c in (question.get("choices") or [])]
+    said += list(question.get("bank") or [])
+    for pick in said:
         if pick.strip() and pick.strip().lower() == flat.lower():
             return pick.strip()
     return answer

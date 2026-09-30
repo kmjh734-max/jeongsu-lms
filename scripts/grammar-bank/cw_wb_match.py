@@ -31,61 +31,49 @@ UNIT = re.compile(r"U\s?n\s?i\s?t\s*(\d{1,2})", re.I)
 LETTER = re.compile(r"(?<![A-Za-z])([A-D])[\s.:]*$")
 
 
-def workbook_only(boxes):
-    """정답지 뒤쪽의 워크북 부분만 남긴다.
+MID_X = 300           # 정답지도 두 단이다 — 왼 단을 다 읽고 오른 단을 읽는다
+HAS_UNIT = re.compile(r"U\s?n\s?[il1]\s?t", re.I)
+IS_TEST = re.compile(r"T\s?e\s?s\s?t", re.I)
 
-    한 권의 정답지에 본책 답과 워크북 답이 함께 들어 있다. 본책 쪽에도 Ⓐ·Ⓑ 가
-    있지만 그것은 상자 **안**에 찍혀 있고, 워크북은 상자 **위**에 있다. 그래서
-    머리가 글자로 끝나는 상자는 워크북 것이다.
 
-    본책 머리에도 어쩌다 글자가 걸릴 수 있으므로, 그런 상자가 몰려 있는 뒤쪽
-    구간만 잘라 쓴다. 본책의 「p.47」 같은 쪽이 워크북 쪽으로 오해되는 것을 막는다.
-    """
-    hit = collections.Counter(b["answer_page"] for b in boxes
-                              if LETTER.search(re.sub(r"\s+", " ", b.get("head") or "").strip()))
-    if not hit:
-        return boxes
-    whole = sum(hit.values())
-    pages = sorted(hit)
-    start = pages[0]
-    for page in pages:
-        if sum(n for p, n in hit.items() if p >= page) < whole * 0.9:
-            break
-        start = page
-    return [b for b in boxes if b["answer_page"] >= start]
+def order(boxes):
+    """상자를 읽는 차례대로 세운다 — 쪽 → 왼 단 → 오른 단 → 위에서 아래로"""
+    return sorted(boxes, key=lambda b: (b["answer_page"],
+                                        0 if b["rect"][0] < MID_X else 1,
+                                        round(b["rect"][1])))
 
 
 def spots(boxes, units):
     """정답지 상자마다 (단원, Unit, 묶음번호)를 붙인다.
 
-    묶음 Ⓐ 가 나오면 다음 Unit 으로 넘어가고, Ⓑ·Ⓒ·Ⓓ 는 그 Unit 을 물려받는다.
-    머리에서 Unit 번호나 쪽을 읽었으면 그 자리에 다시 못을 박아, 한 군데가
-    어긋나도 뒤로 번지지 않게 한다.
+    묶음 표시 Ⓐ·Ⓑ·Ⓒ·Ⓓ 는 동그라미 안에 든 글자라 OCR 이 「시·8·D」로 흘려 읽는다.
+    글자를 믿지 않고, 「01 Unit SVC p.68」 머리가 보이면 그 자리에서 새 Unit 이
+    시작하고 그 뒤로는 차례대로 Ⓑ·Ⓒ·Ⓓ 라고 본다.
+
+    머리에 적힌 워크북 쪽으로 Unit 마다 다시 못을 박으므로, 한 군데가 어긋나도
+    그 Unit 안에서 끝난다. 「Chapter Test」 상자는 Unit 이 없어 버린다.
 
     `units` 는 (단원번호, Unit번호, Ⓐ가 실린 인쇄 쪽) 목록, 차례대로.
     """
-    boxes = sorted(boxes, key=lambda b: (b["answer_page"], b["rect"][1]))
     by_page = {u[2]: i for i, u in enumerate(units) if u[2]}
 
     out = []
-    at = -1
-    for b in boxes:
+    at, block = -1, None
+    for b in order(boxes):
         head = re.sub(r"\s+", " ", b.get("head") or "").strip()
-        mark = LETTER.search(head)
-        if not mark:
-            continue                      # Chapter Test 등 — Unit 이 없어 버린다
-        block = ord(mark.group(1)) - ord("A")
-        if block == 0:
-            told = PAGEREF.findall(head)
-            page = int(told[-1]) if told else None
-            said = UNIT.search(head)
-            if page in by_page:
-                at = by_page[page]        # 쪽이 읽혔다 — 그대로 못을 박는다
-            elif said and at + 1 < len(units) and units[at + 1][1] == int(said.group(1)):
-                at += 1
-            else:
-                at += 1
-        if not 0 <= at < len(units):
+        told = PAGEREF.findall(head)
+        page = int(told[-1]) if told else None
+        if HAS_UNIT.search(head):
+            at = by_page[page] if page in by_page else at + 1
+            block = 0
+        elif IS_TEST.search(head[-24:]):
+            block = None              # 마무리 묶음 — 다음 Unit 을 기다린다
+            continue
+        elif block is None:
+            continue
+        else:
+            block += 1
+        if not 0 <= at < len(units) or block > 3:
             continue
         answers = {str(p["no"]): p["text"] for p in b["pieces"]}
         if answers:
@@ -113,7 +101,14 @@ def main(q_path, box_path, out_path, bad_path=None):
         head = blocks.get((key[0], key[1], 0)) or []
         units.append((key[0], key[1], head[0]["printed_page"] if head else None))
 
-    boxes = workbook_only(boxes)
+    # 본책 답이 앞쪽에 있다. 워크북 쪽 번호가 적힌 Unit 머리가 처음 나오는
+    # 자리부터가 워크북 부분이다.
+    want = {u[2] for u in units if u[2]}
+    first = min((b["answer_page"] for b in boxes
+                 if HAS_UNIT.search(re.sub(r"\s+", " ", b.get("head") or ""))
+                 and any(int(n) in want for n in PAGEREF.findall(b.get("head") or ""))),
+                default=0)
+    boxes = [b for b in boxes if b["answer_page"] >= first]
     placed = spots(boxes, units)
     exact = sum(1 for ch, un, bl, ans in placed
                 if blocks.get((ch, un, bl))
@@ -129,12 +124,15 @@ def main(q_path, box_path, out_path, bad_path=None):
                            "까닭": "그 자리에 문항이 없음"})
             continue
         nos = {str(q["no"]) for q in items}
+        # 번호가 하나라도 어긋나면 자리를 잘못 짚은 것이다. 정답지에서 번호를
+        # 덜 읽은 상자도 섞여 있지만, 받아들여 보니 열에 다섯이 틀렸다 —
+        # 묶음이 통째로 밀린 상자가 그 안에 숨어 있다. 번호가 꼭 같을 때만 쓴다.
         if set(answers) != nos:
             failed.append({"단원": ch, "Unit": un, "묶음": bl, "답": len(answers),
                            "까닭": "번호가 문항과 다름"})
             continue
 
-        pairs = [(q, answers[str(q["no"])]) for q in items]
+        pairs = [(q, answers[str(q["no"])]) for q in items if str(q["no"]) in answers]
         why = None
         for q, a in pairs:
             if not ok_choice(a, q.get("choices")):
