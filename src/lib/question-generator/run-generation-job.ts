@@ -803,7 +803,29 @@ export async function runGenerationJob(
     const busyNote = () =>
       limit() < GENERATION_CONCURRENCY ? " · 이용자가 많아 조금 천천히 만드는 중" : "";
 
-    const pool = runAdaptivePool(work, limit, async (item) => {
+    /*
+     * 지문마다 첫 문항을 먼저 끝내고 나머지를 돌린다 — 값을 아끼려는 것이다.
+     *
+     * 실험(2026-09-30): 같은 지문·같은 앞머리로 차례로 부르면 두 번째부터 입력의
+     * 80%가 캐시로 들어간다(캐시 입력은 제값의 1/10). 그런데 실제로는 한 지문의
+     * 문항을 한꺼번에 병렬로 부르다 보니 아무도 앞사람 캐시를 못 봐서, 하루치를
+     * 재 보니 캐시가 3%뿐이었다.
+     *
+     * 지문마다 한 발을 먼저 보내 캐시를 데워 두면 나머지가 그 덕을 본다.
+     * 보내는 차례만 바꾸는 것이라 문항 내용은 하나도 달라지지 않는다.
+     */
+    const warmed = new Set<string>();
+    const firstOfPassage: typeof work = [];
+    const restOfWork: typeof work = [];
+    for (const item of work) {
+      if (warmed.has(item.passageId)) restOfWork.push(item);
+      else {
+        warmed.add(item.passageId);
+        firstOfPassage.push(item);
+      }
+    }
+
+    const makeOne = async (item: (typeof work)[number]) => {
       if (Date.now() > dispatchUntil) {
         deferred += 1;
         return;
@@ -924,7 +946,12 @@ export async function runGenerationJob(
           skipped > 0 ? ` (생략 ${skipped})` : ""
         }${busyNote()}`,
       });
-    });
+    };
+
+    const pool = (async () => {
+      await runAdaptivePool(firstOfPassage, limit, makeOne);
+      await runAdaptivePool(restOfWork, limit, makeOne);
+    })();
 
     let hardStop: ReturnType<typeof setTimeout> | undefined;
     let finishedInTime: boolean;
