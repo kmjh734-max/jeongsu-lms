@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { QuestionEditFields } from "@/components/question-generator/QuestionEditFields";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { QgJobProgressBar } from "@/components/question-generator/QgJobProgressBar";
 import { useQgJobProgress } from "@/components/question-generator/useQgJobProgress";
@@ -374,111 +375,13 @@ export function GenerationDetailClient({
                   className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card"
                 >
                   {editing ? (
-                    <div className="space-y-2">
-                      <label className="block text-xs">
-                        발문
-                        <textarea
-                          className="ui-input mt-1 min-h-[60px]"
-                          value={editDraft.instruction ?? ""}
-                          onChange={(e) =>
-                            setEditDraft((d) => ({
-                              ...d,
-                              instruction: e.target.value,
-                            }))
-                          }
-                        />
-                      </label>
-                      <label className="block text-xs">
-                        추가 안내 (선택)
-                        <textarea
-                          className="ui-input mt-1 min-h-[60px]"
-                          value={editDraft.question_text ?? ""}
-                          onChange={(e) =>
-                            setEditDraft((d) => ({
-                              ...d,
-                              question_text: e.target.value,
-                            }))
-                          }
-                        />
-                      </label>
-                      <label className="block text-xs">
-                        변형 지문
-                        <textarea
-                          className="ui-input mt-1 min-h-[100px] font-serif"
-                          value={editDraft.passage_modified ?? ""}
-                          onChange={(e) =>
-                            setEditDraft((d) => ({
-                              ...d,
-                              passage_modified: e.target.value,
-                            }))
-                          }
-                        />
-                      </label>
-                      <label className="block text-xs">
-                        선택지 (JSON)
-                        <textarea
-                          className="ui-input mt-1 min-h-[100px] font-mono text-xs"
-                          value={JSON.stringify(editDraft.choices ?? [], null, 2)}
-                          onChange={(e) => {
-                            try {
-                              setEditDraft((d) => ({
-                                ...d,
-                                choices: JSON.parse(e.target.value),
-                              }));
-                            } catch {
-                              /* ignore while typing */
-                            }
-                          }}
-                        />
-                      </label>
-                      <label className="block text-xs">
-                        정답
-                        <input
-                          className="ui-input mt-1"
-                          value={String(editDraft.correct_answer ?? "")}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            const num = Number(v);
-                            setEditDraft((d) => ({
-                              ...d,
-                              correct_answer:
-                                Number.isFinite(num) && v.trim() !== ""
-                                  ? num
-                                  : v,
-                            }));
-                          }}
-                        />
-                      </label>
-                      <label className="block text-xs">
-                        해설
-                        <textarea
-                          className="ui-input mt-1 min-h-[80px]"
-                          value={editDraft.explanation ?? ""}
-                          onChange={(e) =>
-                            setEditDraft((d) => ({
-                              ...d,
-                              explanation: e.target.value,
-                            }))
-                          }
-                        />
-                      </label>
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          disabled={busyId === q.id}
-                          onClick={() => void saveEdit(q.id)}
-                        >
-                          저장
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() => setEditingId(null)}
-                        >
-                          취소
-                        </Button>
-                      </div>
-                    </div>
+                    <QuestionEditFields
+                      draft={editDraft}
+                      onChange={(next) => setEditDraft(next as Partial<QuestionRow>)}
+                      onSave={() => void saveEdit(q.id)}
+                      onCancel={() => setEditingId(null)}
+                      busy={busyId === q.id}
+                    />
                   ) : (
                     <>
                       <p className="text-sm font-semibold text-slate-900">
