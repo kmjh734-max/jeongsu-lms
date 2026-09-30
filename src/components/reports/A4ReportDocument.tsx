@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ReportDashboard } from "@/components/reports/ReportDashboard";
+import { StudyPlanSessions } from "@/components/reports/StudyPlanSessions";
 import { ReportOverviewPanel } from "@/components/reports/ReportOverviewPanel";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { formatLastStudiedDate } from "@/lib/progress/enrollment-progress";
@@ -114,6 +115,14 @@ export function A4ReportDocument({
                   ))}
                 </ul>
               ) : null}
+              {report.studyPlan.sessions.length ? (
+                <>
+                  <p className="mt-2 border-t border-slate-200 pt-1.5 text-[10px] font-bold text-slate-500">
+                    회차별 내용
+                  </p>
+                  <StudyPlanSessions sessions={report.studyPlan.sessions} print />
+                </>
+              ) : null}
             </section>
           ) : null}
 
@@ -184,6 +193,14 @@ export function A4ReportDocument({
                   </li>
                 ))}
               </ul>
+            ) : null}
+            {report.studyPlan.sessions.length ? (
+              <>
+                <p className="mt-2 border-t border-slate-200 pt-1.5 text-[10px] font-bold text-slate-500">
+                  회차별 내용
+                </p>
+                <StudyPlanSessions sessions={report.studyPlan.sessions} print />
+              </>
             ) : null}
           </section>
         ) : null}

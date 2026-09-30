@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ReportMobileParent } from "@/components/reports/ReportMobileParent";
 import { ReportDashboard } from "@/components/reports/ReportDashboard";
+import { StudyPlanSessions } from "@/components/reports/StudyPlanSessions";
 import Link from "next/link";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { formatLastStudiedDate } from "@/lib/progress/enrollment-progress";
@@ -197,6 +198,14 @@ export function SharedReportHtmlView({
                   </li>
                 ))}
               </ul>
+            ) : null}
+            {report.studyPlan.sessions.length ? (
+              <>
+                <p className="mt-3 border-t border-slate-200 pt-2.5 text-xs font-bold text-slate-500">
+                  회차별 내용
+                </p>
+                <StudyPlanSessions sessions={report.studyPlan.sessions} />
+              </>
             ) : null}
           </SectionCard>
         ) : null}

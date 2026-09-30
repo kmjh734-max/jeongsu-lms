@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { classDaySet, compareLines } from "@/components/reports/ReportDashboard";
+import { StudyPlanSessions } from "@/components/reports/StudyPlanSessions";
 import { ATTENDANCE_LABELS } from "@/lib/study-plan";
 import { reviewWordSlice } from "@/lib/reports/report-shape";
 import type { StudentReport } from "@/lib/reports/types";
@@ -315,7 +316,7 @@ export function ReportMobileParent({
           ) : null}
         </Card>
 
-        {plan && plan.areaLines.length > 0 ? (
+        {plan && (plan.areaLines.length > 0 || plan.sessions.length > 0) ? (
           <Card title="학습일정표" note={plan.monthLabel}>
             <ul className="mt-2.5">
               {plan.areaLines.map((line) => {
@@ -335,6 +336,14 @@ export function ReportMobileParent({
                 );
               })}
             </ul>
+            {plan.sessions.length > 0 ? (
+              <>
+                <p className="mt-3 border-t border-slate-200 pt-2.5 text-xs font-bold text-slate-500">
+                  회차별 내용
+                </p>
+                <StudyPlanSessions sessions={plan.sessions} />
+              </>
+            ) : null}
           </Card>
         ) : null}
 

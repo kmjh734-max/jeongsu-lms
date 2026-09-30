@@ -6,6 +6,7 @@ import {
 } from "@/lib/progress/enrollment-progress";
 import { canViewStudentReport } from "@/lib/reports/access";
 import { loadStudyPlanSection } from "@/lib/reports/study-plan-section";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getReportRangeBounds,
   getReportRangeLabel,
@@ -670,7 +671,13 @@ export async function getStudentReport(
     video: { courses: courses.length, lessonsDone: completedLessons },
   };
 
-  const studyPlan = await loadStudyPlanSection(supabase, student.id as string, {
+  /*
+   * 일정표는 관리자 접속으로 읽는다.
+   * study_plans·study_plan_rows 는 RLS 가 켜져 있는데 정책이 하나도 없어(155),
+   * 로그인 접속으로는 한 줄도 안 읽힌다 — 그래서 리포트의 학습일정표 칸이 여태
+   * 늘 비어 있었다. 어느 학생 것인지는 위에서 이미 가려 놓았다.
+   */
+  const studyPlan = await loadStudyPlanSection(createAdminClient(), student.id as string, {
     // 기간을 안 정하면(all) 최근 1년치 일정표를 본다
     from: (bounds.start ?? new Date(bounds.end.getTime() - 365 * 86400000)).toISOString().slice(0, 10),
     to: bounds.end.toISOString().slice(0, 10),

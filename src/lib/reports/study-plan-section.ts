@@ -5,6 +5,33 @@ import {
   type Attendance,
   type HomeworkCheck,
 } from "@/lib/study-plan";
+import { WEEKDAY_LABELS } from "@/lib/study-plan/weekday-dates";
+
+/** "2026-09-28" → "9/28 (월)" */
+function sessionLabel(iso: string): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  const weekday = WEEKDAY_LABELS[(d.getUTCDay() + 6) % 7] ?? "";
+  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}${weekday ? ` (${weekday})` : ""}`;
+}
+
+/** 회차 하나에 적어 둔 것 — 학부모 리포트 아래에 그대로 펼친다 */
+export interface StudyPlanReportSession {
+  /** "2026-09-28" */
+  date: string;
+  /** "9/28 (월)" */
+  label: string;
+  /** 출결 이름 — 안 적었으면 빈 값 */
+  attendance: string;
+  /** 영역마다 적어 둔 것 (빈 줄은 빠진다) */
+  areas: Array<{
+    area: string;
+    progress: string;
+    homework: string;
+    note: string;
+    /** "완료" 같은 이름 — 안 찍었으면 빈 값 */
+    check: string;
+  }>;
+}
 
 /** 리포트에 들어가는 학습일정표 요약 */
 export interface StudyPlanReportSection {
@@ -18,6 +45,14 @@ export interface StudyPlanReportSection {
   sessionsRecorded: number;
   /** 숙제 확인 개수 — 선생님이 찍지 않은 회차는 세지 않는다 */
   homework: Record<Exclude<HomeworkCheck, "">, number>;
+  /**
+   * 회차마다 적어 둔 것을 날짜 순으로.
+   *
+   * 선생님 요청(2026-09-30): 학부모 리포트에도 회차별 내용이 전부 나오게 해 달라.
+   * 영역별 한 줄 요약만으로는 어느 날 무엇을 했는지 알 수 없었다.
+   * 아무것도 안 적고 출결도 안 찍은 회차는 담지 않는다.
+   */
+  sessions: StudyPlanReportSession[];
   /** 영역별 진도 한 줄 — ["영단어: 1과, 2과", …] */
   areaLines: string[];
   /** 학부모께 그대로 보여 줄 한 문장 */
@@ -114,6 +149,57 @@ export async function loadStudyPlanSection(
     }
   }
 
+  /*
+   * 회차마다 적어 둔 것을 날짜 순으로 모은다.
+   * 줄(영역)은 일정표에 놓인 차례(order_index) 그대로 둔다 — 선생님이 본 것과 같게.
+   */
+  const rowsByPlanWeek = new Map<string, typeof rows>();
+  for (const r of rows ?? []) {
+    const key = `${r.plan_id}-${r.week}`;
+    const list = rowsByPlanWeek.get(key) ?? [];
+    list.push(r);
+    rowsByPlanWeek.set(key, list);
+  }
+  const sessions: StudyPlanReportSession[] = [];
+  for (const p of wanted) {
+    const dates = (p.session_dates ?? {}) as Record<string, string[]>;
+    const att = (p.attendance ?? {}) as Record<string, Attendance[]>;
+    for (const [week, list] of Object.entries(dates)) {
+      (list ?? []).forEach((date, i) => {
+        if (!date || date < range.from || date > range.to) return;
+        const mark = att[week]?.[i] ?? "";
+        const areas: StudyPlanReportSession["areas"] = [];
+        for (const r of rowsByPlanWeek.get(`${p.id}-${Number(week)}`) ?? []) {
+          const entry = ((r.entries ?? []) as Array<Record<string, unknown>>)[i];
+          if (!entry) continue;
+          const progress = String(entry.progress ?? "").trim();
+          const homework = String(entry.homework ?? "").trim();
+          const note = String(entry.note ?? "").trim();
+          const check = String(entry.check ?? "");
+          if (!progress && !homework && !note && !check) continue;
+          areas.push({
+            area: String(r.area ?? "").trim(),
+            progress,
+            homework,
+            note,
+            check: check in HOMEWORK_CHECK_LABELS
+              ? HOMEWORK_CHECK_LABELS[check as Exclude<HomeworkCheck, "">]
+              : "",
+          });
+        }
+        // 아무것도 안 적고 출결도 안 찍은 회차는 담지 않는다
+        if (areas.length === 0 && !mark) return;
+        sessions.push({
+          date,
+          label: sessionLabel(date),
+          attendance: mark ? ATTENDANCE_LABELS[mark as Exclude<Attendance, "">] : "",
+          areas,
+        });
+      });
+    }
+  }
+  sessions.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+
   const first = wanted[0]!;
   const last = wanted[wanted.length - 1]!;
   const monthLabel =
@@ -149,6 +235,7 @@ export async function loadStudyPlanSection(
     sessionsPlanned,
     sessionsRecorded,
     homework,
+    sessions,
     areaLines: [...byArea].map(([area, list]) => `${area}: ${list.join(", ")}`),
     line: parts.length ? `${monthLabel} ${parts.join(" · ")}` : `${monthLabel} 학습일정표`,
   };
