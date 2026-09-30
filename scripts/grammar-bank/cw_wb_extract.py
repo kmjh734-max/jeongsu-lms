@@ -161,6 +161,14 @@ def parse_block(body, block, mark, page, page_no, carry):
                 best = h
         return best
 
+
+    # 번호 글자가 잘못 찍혀 나오는 쪽이 있다(3이 2로 뽑힌다). 개수가 맞으면
+    # 눈에 보이는 차례가 곧 번호이므로 다시 매긴다.
+    seen = sorted(h["no"] for h in heads)
+    if seen != list(range(1, len(heads) + 1)) and len(heads) == max(seen):
+        for i, h in enumerate(sorted(heads, key=lambda h: (h["col"], h["y"])), start=1):
+            h["no"] = i
+
     # 지시문은 묶음 표시와 같은 줄에 한 번 적혀 있다. 끝의 POINT 번호는 더 잔
     # 갈래라 따로 떼어 둔다.
     lead_in, point = "", None

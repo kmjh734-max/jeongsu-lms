@@ -158,6 +158,13 @@ def parse_block(body, block, mark, page, page_no, carry):
                 best = h
         return best
 
+    # 번호 글자가 잘못 찍혀 나오는 쪽이 있다(3이 2로 뽑힌다). 개수가 맞으면
+    # 눈에 보이는 차례가 곧 번호이므로 다시 매긴다.
+    seen = sorted(h["no"] for h in heads)
+    if seen != list(range(1, len(heads) + 1)) and len(heads) == max(seen):
+        for i, h in enumerate(sorted(heads, key=lambda h: (h["col"], h["y"])), start=1):
+            h["no"] = i
+
     # <보기> 상자는 묶음 머리에 따로 놓여 있다. 어느 한 문항에 붙여 두면 그 문항
     # 본문이 더러워지므로, 걷어 내어 묶음 전체가 함께 갖도록 한다.
     bank, drop = [], []
