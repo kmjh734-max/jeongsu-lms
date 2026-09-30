@@ -117,6 +117,27 @@ def lexicon(*paths):
     return words
 
 
+def unfuse(text, words):
+    """붙어 버린 낱말을 떼어 놓는다 — 「Heis」 → 「He is」.
+
+    정답지를 읽을 때 낱말 사이 좁은 틈을 놓쳐 둘이 하나로 붙는다. 책에 없는
+    낱말이 나오면 가운데를 갈라 보고, 두 쪽 다 책에 있는 말이면 떼어 놓는다.
+    """
+    out = []
+    for word in re.split(r"(\W+)", str(text)):
+        flat = word.lower()
+        if not word.isalpha() or len(word) < 4 or flat in words:
+            out.append(word)
+            continue
+        cut = None
+        for i in range(2, len(word) - 1):
+            if word[:i].lower() in words and word[i:].lower() in words:
+                cut = i
+                break
+        out.append(word if cut is None else word[:cut] + " " + word[cut:])
+    return "".join(out)
+
+
 def known(answer, words):
     """답에 든 낱말이 모두 책에 있는 말이어야 한다."""
     if re.search(r"[가-힣]", str(answer)):
@@ -222,6 +243,8 @@ def main(q_path, box_path, out_path, bad_path=None):
             continue
 
         pairs = [(q, answers[str(q["no"])]) for q in items if str(q["no"]) in answers]
+        # 정답지를 읽을 때 낱말 사이 좁은 틈을 놓쳐 둘이 붙는다 — 떼어 놓는다
+        pairs = [(q, unfuse(a, words)) for q, a in pairs]
 
         # 한 상자는 한 묶음이다. 그 안에서 하나라도 검산에 걸리면 자리를 잘못
         # 짚었다는 뜻이므로, 남은 답도 믿을 수 없다 — 상자째 버린다. 걸러 내고

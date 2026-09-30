@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from gq_match import in_choices, usable
 from jp_match import as_gq, ok_choice
-from jp_wb_match import as_written, from_bank, known, lexicon, uses_given
+from jp_wb_match import as_written, from_bank, known, lexicon, unfuse, uses_given
 
 log = io.open(1, "w", encoding="utf-8", closefd=False)
 
@@ -111,6 +111,8 @@ def main(q_path, box_path, out_path, bad_path=None):
             failed.append({"Unit": un, "묶음": bl, "답": len(answers), "까닭": "번호가 문항과 다름"})
             continue
         pairs = [(q, answers[str(q["no"])]) for q in items]
+        # 정답지를 읽을 때 낱말 사이 좁은 틈을 놓쳐 둘이 붙는다 — 떼어 놓는다
+        pairs = [(q, unfuse(a, words)) for q, a in pairs]
         why = None
         for q, a in pairs:
             if not ok_choice(a, q.get("choices")):
