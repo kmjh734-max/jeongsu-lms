@@ -1105,6 +1105,40 @@ export function assertBasicQuestionShape(
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
 
   /*
+   * 보기가 너무 길면 문항으로 쓰기 어렵다.
+   *
+   * 전수조사(2026-09-30): 제시어 배열 보기가 스물여덟 개, 마흔 개까지 나온 것이
+   * 일곱 개 있었다. 낱말 마흔 개를 늘어놓고 배열하라는 것은 시험 문항이 아니다.
+   * 정답 문장을 짧은 것으로 고르게 다시 만든다.
+   */
+  {
+    const box = (q.questionText || "").match(
+      new RegExp("(?:^|\\n)<보기>\\s*\\n([\\s\\S]*?)(?=\\n<|$)")
+    )?.[1];
+    if (box) {
+      const n = box.split(/\s*\/\s*|\n/).filter((w) => w.trim()).length;
+      if (n > 25) {
+        return `보기가 ${n}개나 됩니다. 스물다섯 개를 넘지 않는 짧은 문장으로 만들어 주세요.`;
+      }
+    }
+  }
+
+  /*
+   * 요약문 빈칸이 문장 경계를 넘으면 안 된다.
+   *
+   * 전수조사(2026-09-30): 정답이 「already watched. Then」처럼 마침표를 품은 것이
+   * 있었다. 빈칸 하나가 두 문장에 걸쳐 있어 학생이 무엇을 쓰라는 것인지 알 수 없다.
+   */
+  if (option.type === "summary_short") {
+    for (const part of String(q.correctAnswer ?? "").split(/\s*\/\s*/)) {
+      const body = part.replace(/^[\u24D0-\u24D6]\s*[:：]\s*/, "").trim();
+      if (/[.!?;]/.test(body.slice(0, -1))) {
+        return "정답이 문장 경계를 넘습니다. 빈칸은 한 문장 안에서 닫아야 합니다.";
+      }
+    }
+  }
+
+  /*
    * 어법·어휘는 밑줄 자리 말고는 지문을 그대로 두어야 한다.
    *
    * 전수조사(2026-09-30): 재진술을 켜지 않았는데도 문장을 고쳐 쓴 것이 55개 있었다.
