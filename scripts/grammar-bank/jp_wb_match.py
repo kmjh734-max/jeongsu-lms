@@ -122,8 +122,8 @@ def known(answer, words):
     if re.search(r"[가-힣]", str(answer)):
         return False              # 우리말 답은 OCR을 믿기 어렵다 — 넣지 않는다
     for w in re.findall(r"[A-Za-z][A-Za-z'’\-]*", str(answer)):
-        if len(w) < 3:
-            continue
+        if len(w) < 2:
+            continue          # 한 글자는 I·a 라서 따지지 않는다
         if w.lower() not in words and stem(w) not in words:
             return False
     return True

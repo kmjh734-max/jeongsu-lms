@@ -43,6 +43,16 @@ def order(boxes):
                                         round(b["rect"][1])))
 
 
+MARKS = "ⓐⓑⓒⓓⓔ①②③④⑤ⓞⓧ○×"
+
+
+def by_mark(question, answer):
+    """「기호를 쓰세요」인데 영어 문장이 붙어 있으면 남의 묶음 답이다."""
+    if "기호" not in (question.get("prompt") or ""):
+        return True
+    return any(c in MARKS for c in str(answer)) or len(str(answer).strip()) <= 3
+
+
 def spots(boxes, units):
     """정답지 상자마다 (단원, Unit, 묶음번호)를 붙인다.
 
@@ -143,6 +153,8 @@ def main(q_path, box_path, out_path, bad_path=None):
                 why = "괄호 안에 주어진 낱말을 안 씀"
             elif not from_bank(q, a):
                 why = "<보기> 밖의 답"
+            elif not by_mark(q, a):
+                why = "기호를 쓰라는데 기호가 아닌 답"
             if why:
                 break
         if not why:

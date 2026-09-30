@@ -109,7 +109,8 @@ def parse_page(page, page_no, carry):
     if printed:
         carry["printed"] = printed
 
-    body = [r for r in rows if 90 < r["y"] < page.rect.height - 45]
+    # 쪽 아래의 어휘 풀이(6.9pt)는 문항 글이 아니다 — 크기로 걸러 낸다
+    body = [r for r in rows if 90 < r["y"] < page.rect.height - 45 and r["size"] >= 8]
     marker = marks(body)
     if not marker:
         return []
