@@ -81,6 +81,17 @@ const HEDGE_AFTER_MS: Record<"GENERATOR" | "REVIEWER", number> = {
 };
 
 /**
+ * 이긴 쪽이 나온 뒤, 지는 쪽을 얼마나 더 두고 볼지.
+ *
+ * 선생님 물음(2026-10-01): 원가가 제대로 책정되고 있는가, 새는 곳은 없는가.
+ * 여기가 한 자리였다. 끊어도 OpenAI는 만든 값을 다 받는데, 끊으면 응답이 오지 않아
+ * 우리 기록(ai_usage_logs)에는 한 줄도 안 남았다. 값은 나갔고 원가에는 없는 꼴이라,
+ * 청구서와 우리 표가 어긋난다. 끊지 않고 두어 사용량만 받아 적고 내용은 버린다.
+ * 답을 기다리는 게 아니므로 선생님이 기다리는 시간은 그대로다.
+ */
+const HEDGE_DRAIN_MS = 30_000;
+
+/**
  * 판정 단계는 이 시간이 지나면 복제 요청까지 모두 접고 실패로 끝낸다.
  *
  * 복제로 못 구하는 느린 호출이 있다. 같은 묶음에서 모델이 추론을 멈추지 않아
@@ -154,7 +165,13 @@ export async function callGrammarChoiceV2Json(
         (result) => {
           if (settled) return;
           finish();
-          other.abort();
+          if (launched > 1) {
+            // 지는 쪽도 값은 이미 나갔다. 사용량만 받아 적게 두었다가 끊는다.
+            const drain = setTimeout(() => other.abort(), HEDGE_DRAIN_MS);
+            (drain as unknown as { unref?: () => void }).unref?.();
+          } else {
+            other.abort();
+          }
           resolve({ ...result, latencyMs: Date.now() - started });
         },
         (error: unknown) => {
@@ -175,6 +192,10 @@ export async function callGrammarChoiceV2Json(
         : setTimeout(() => {
             if (settled) return;
             launched = 2;
+            // 복제는 값이 두 배다. 몇 번 붙는지 로그에 남겨 문턱을 다시 잡을 근거로 쓴다.
+            console.warn(
+              `[hedge] ${input.stage} ${input.model} ${Math.round(hedgeAfterMs / 1000)}초 넘어 복제 요청`
+            );
             run(backup, primary);
           }, hedgeAfterMs);
 

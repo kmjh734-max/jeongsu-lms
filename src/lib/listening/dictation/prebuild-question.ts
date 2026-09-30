@@ -1,3 +1,4 @@
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
 import { generateDictationBlanks } from "@/lib/listening/dictation/generate-blanks";
@@ -132,10 +133,21 @@ export async function prebuildDictationForQuestion(
   const { data: setRow } = await admin
     .from("listening_sets")
     .select(
-      "dictation_enabled, dictation_blank_level, dictation_randomize_on_retry"
+      "academy_id, dictation_enabled, dictation_blank_level, dictation_randomize_on_retry"
     )
     .eq("id", question.set_id)
     .maybeSingle();
+
+  /*
+   * 원가 귀속(2026-10-01): 받아쓰기 빈칸은 여기서 모델을 부르는데, 이 자리로 들어오는
+   * 입구가 다섯(start·warmup·ensure-set·prebuild-set·generate-audio-batch)이라 입구마다
+   * 두르면 빠진다. 부르는 자리 한 곳에 둔다. 값을 따로 받지 않는 보조 호출이라
+   * 기능 키는 비우고 학원만 남긴다 — 학원별 원가를 볼 수 있어야 한다.
+   */
+  setAiUsage({
+    academyId: (setRow?.academy_id as string | null) ?? null,
+    usedFor: "dictation_blanks",
+  });
 
   const settings: DictationSetSettings = {
     ...DEFAULT_DICTATION_SETTINGS,
@@ -175,6 +187,8 @@ export async function prebuildDictationForQuestion(
   });
 
   if (primary.length === 0) {
+    // 못 찾았어도 부른 값은 나갔다. 기록은 남긴다.
+    await flushAiUsage();
     return { ok: false, message: "빈칸 후보를 찾지 못했습니다." };
   }
 
@@ -197,6 +211,8 @@ export async function prebuildDictationForQuestion(
       }
     }
   }
+
+  await flushAiUsage();
 
   const { error: upErr } = await admin
     .from("listening_questions")

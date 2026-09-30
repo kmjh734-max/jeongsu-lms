@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { extractStudentRecordContent } from "@/lib/student-records/extract-content";
 import { parseStudentRecordUpload } from "@/lib/student-records/parse-upload";
@@ -78,6 +79,17 @@ export async function POST(request: Request) {
       });
     }
 
+    /*
+     * 원가 귀속(2026-10-01): 학생부 PDF를 읽는 호출이 여기서 나가는데 테두리가 없어
+     * 학원도 안 붙고 기록을 밀어 넣지도 않았다. 읽기는 값을 따로 받지 않으므로
+     * 기능 키는 비우고 학원·쓰인 자리만 남긴다.
+     */
+    setAiUsage({
+      academyId,
+      actorId: profile.id,
+      usedFor: "student_record_read",
+    });
+
     const result = await extractStudentRecordContent({
       studentId: target.studentId,
       studentName: target.studentName,
@@ -85,6 +97,9 @@ export async function POST(request: Request) {
       imageDataUrls: parsed.imageDataUrls,
       pdfDocuments: parsed.pdfDocuments,
     });
+
+    // 못 읽었어도 부른 값은 나갔다. 기록은 남긴다.
+    await flushAiUsage();
 
     if (!result.ok) {
       return jsonError(result.message);

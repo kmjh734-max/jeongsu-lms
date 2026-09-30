@@ -398,6 +398,9 @@ const GRAMMAR_EFFORT: ReasoningEffort = "low";
  */
 const HEDGE_AFTER_MS = 90_000;
 
+/** 이긴 쪽이 나온 뒤 지는 쪽을 얼마나 더 두고 볼지. 사용량만 받아 적으려고 둔다. */
+const HEDGE_DRAIN_MS = 30_000;
+
 /**
  * 문장 표시 분석을 한 지문 안에서 동시에 부르는 수. 보통 지문(7~12문장)이 한 번에 나가도록 연다.
  * 6이면 12문장 지문이 두 번에 나뉘어 기다리는 시간이 곱절이 됐다(선생님 지적: 너무 오래 걸린다).
@@ -446,12 +449,15 @@ async function requestAnalysisContent(
   signal: AbortSignal,
   effort: ReasoningEffort
 ): Promise<string> {
+  /*
+   * 지문분석서 모델 (2026-10-01 나란히 재 봄, 지문 6개·문장 22개).
+   *   gpt-5.5       11/12 성함 · 문장당 66.0원
+   *   gpt-5.6-sol   20/22 성함 · 문장당 62.3원  ← 같은 품질에 더 쌈
+   *   gpt-5.6-terra 16/22 성함 · 문장당 31.6원  ← 반값이지만 성분 이름표가 27% 무너진다
+   * 되살리기는 sol이 안 되면 5.5로 간다.
+   */
   const configured = process.env.OPENAI_MODEL_ANALYSIS_REPORT?.trim();
-  const candidates = configured
-    ? configured === "gpt-5.5"
-      ? ["gpt-5.5", "gpt-5"]
-      : [configured]
-    : ["gpt-5.5", "gpt-5"];
+  const candidates = configured ? [configured, "gpt-5.5"] : ["gpt-5.6-sol", "gpt-5.5"];
 
   let bodyText = "";
   let lastErr = "";
@@ -613,7 +619,20 @@ function requestHedged(
         (content) => {
           if (settled) return;
           finish();
-          for (const c of children) if (c !== child) c.abort();
+          /*
+           * 선생님 물음(2026-10-01): 새는 곳은 없는가. 여기가 한 자리였다.
+           * 지는 쪽을 끊어도 OpenAI는 만든 값을 다 받는데, 끊으면 응답이 오지 않아
+           * 우리 기록에는 한 줄도 안 남았다. 값은 나갔고 원가에는 없는 꼴이다.
+           * 끊지 않고 두어 사용량만 받아 적고 내용은 버린다. 답은 이미 냈으므로
+           * 선생님이 기다리는 시간은 그대로다.
+           */
+          const losers = children.filter((c) => c !== child);
+          if (losers.length > 0) {
+            const drain = setTimeout(() => {
+              for (const c of losers) c.abort();
+            }, HEDGE_DRAIN_MS);
+            (drain as unknown as { unref?: () => void }).unref?.();
+          }
           resolve(content);
         },
         (e) => {

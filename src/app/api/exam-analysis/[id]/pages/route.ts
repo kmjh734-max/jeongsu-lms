@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import { loadOwnAnalysis, requireExamStaff } from "@/lib/exam-analysis/access";
 import { readExamImage } from "@/lib/exam-analysis/read-page";
 
@@ -25,6 +26,20 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (pageNo < 1 || pageNo > analysis.page_count) {
     return NextResponse.json({ ok: false, message: "쪽 번호가 올바르지 않아요." }, { status: 400 });
   }
+
+  /*
+   * 선생님 물음(2026-10-01): 원가가 제대로 책정되고 있는가.
+   * 시험지 읽기는 시험분석에서 값이 가장 큰 호출인데(쪽마다 그림을 높은 해상도로 본다)
+   * 여기에 테두리가 없어 학원도 기능도 안 붙었고, 밀어 넣지도 않아 기록이 통째로
+   * 빠질 수 있었다. 그래서 시험분석 원가에는 읽기 값이 들어 있지 않았다.
+   * 값은 분석이 끝날 때 한 번만 받으므로, 읽기는 같은 기능에 원가로만 붙인다.
+   */
+  setAiUsage({
+    academyId: auth.profile.academy_id,
+    actorId: auth.profile.id,
+    featureKey: "school_exam_analysis",
+    usedFor: "exam_page_read",
+  });
 
   try {
     let text = "";
@@ -54,9 +69,12 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (!prev || text.length >= String(prev.text ?? "").length) {
       await admin.from("school_exam_pages").upsert({ analysis_id: id, page_no: pageNo, text });
     }
+    await flushAiUsage();
     return NextResponse.json({ ok: true, complete });
   } catch (e) {
     console.error("[exam-analysis/pages]", e);
+    // 못 읽었어도 부른 값은 나갔다. 기록은 남긴다.
+    await flushAiUsage();
     return NextResponse.json({ ok: false, message: "이 쪽을 읽지 못했어요. 다시 시도해 주세요." }, { status: 502 });
   }
 }

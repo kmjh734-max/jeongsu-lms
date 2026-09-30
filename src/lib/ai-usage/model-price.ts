@@ -22,6 +22,13 @@ export const MODEL_PRICES: Record<string, ModelPrice> = {
   "gpt-5": { in: 1.25, cachedIn: 0.125, out: 10 },
   "gpt-4o-mini": { in: 0.15, cachedIn: 0.075, out: 0.6 },
   "gpt-4o": { in: 2.5, cachedIn: 1.25, out: 10 },
+  /*
+   * 되살리기용 모델(2026-10-01 확인). 평소에는 안 부르지만, 시험지를 못 읽었을 때·
+   * 학생부 OCR·듣기 그림 계획에서 이 모델로 한 번 더 부른다. 단가가 없으면 그 호출만
+   * 「단가 모름」으로 빠져, 정작 실패해서 두 번 부른 자리의 값이 원가에 안 잡힌다.
+   */
+  "gpt-4.1-mini": { in: 0.4, cachedIn: 0.1, out: 1.6 },
+  "gpt-4.1": { in: 2, cachedIn: 0.5, out: 8 },
   // 그림 모델. 입력은 글·그림 단가가 다른데(글 $5·그림 $8) 사용량이 나뉘어 오지 않아
   // 글 쪽으로 잡는다. 삽화는 출력이 거의 전부라 차이가 작다.
   "gpt-image-1.5": { in: 5, cachedIn: 2, out: 32 },

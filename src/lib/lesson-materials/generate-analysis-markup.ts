@@ -61,8 +61,14 @@ const MAX_CALLOUTS = 1;
 const MAX_ROLE_WORDS = 8;
 const MAX_ROLE_CHARS = 64;
 
+/*
+ * 문장 성분 표시 모델 (2026-10-01 나란히 재 봄, 문장 22개).
+ *   gpt-5.5       11/12 성함 · 문장당 66.0원
+ *   gpt-5.6-sol   20/22 성함 · 문장당 62.3원  ← 같은 품질에 더 쌈
+ *   gpt-5.6-terra 16/22 성함 · 문장당 31.6원  ← 반값이지만 이름표가 27% 무너진다
+ */
 export function resolveAnalysisMarkupModel(): string {
-  return process.env.OPENAI_MODEL_ANALYSIS_MARKUP?.trim() || "gpt-5.5";
+  return process.env.OPENAI_MODEL_ANALYSIS_MARKUP?.trim() || "gpt-5.6-sol";
 }
 
 type Called = { text: string; inputTokens: number; outputTokens: number };
@@ -73,7 +79,7 @@ async function callMarkup(input: {
   signal: AbortSignal;
 }): Promise<Called | null> {
   const configured = resolveAnalysisMarkupModel();
-  const candidates = configured === "gpt-5.5" ? ["gpt-5.5", "gpt-5"] : [configured];
+  const candidates = configured === "gpt-5.6-sol" ? ["gpt-5.6-sol", "gpt-5.5"] : [configured];
 
   for (const model of candidates) {
     let includeTemperature = studentRecordModelSupportsTemperature(model);

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { examChat } from "@/lib/exam-analysis/openai";
 
@@ -76,6 +77,17 @@ export async function POST(request: Request) {
     if (body.kind === "image") {
       const dataUrl = String(body.dataUrl ?? "");
       if (!dataUrl.startsWith("data:image/")) return jsonError("사진을 읽지 못했어요.");
+      /*
+       * 선생님 물음(2026-10-01): 원가가 제대로 책정되고 있는가.
+       * 목차 사진 읽기는 그림을 높은 해상도로 보는 호출인데 테두리가 없어, 어느 학원
+       * 것인지도 안 남고 기록을 밀어 넣지도 않았다. 값은 따로 받지 않는 보조 호출이라
+       * 기능 키는 비우고, 학원·쓰인 자리만 남긴다.
+       */
+      setAiUsage({
+        academyId: profile.academy_id,
+        actorId: profile.id,
+        usedFor: "textbook_toc_read",
+      });
       const { text } = await examChat({
         model: "gpt-5.5",
         reasoning_effort: "low",
@@ -90,6 +102,7 @@ export async function POST(request: Request) {
           },
         ],
       });
+      await flushAiUsage();
       return NextResponse.json({ ok: true, toc: text.trim() });
     }
 
