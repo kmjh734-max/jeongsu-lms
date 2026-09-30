@@ -95,7 +95,15 @@ def from_bank(question, answer):
     if not bank or "보기" not in (question.get("prompt") or ""):
         return True
     got = {stem(w) for w in re.findall(r"[A-Za-z']+", str(answer))}
-    return any(stem(w) in got for w in bank)
+    if not any(stem(w) in got for w in bank):
+        return False
+    # <보기>에서 하나만 골라 쓰는 문항인데 답에 두 개가 들어 있으면, 정답지를
+    # 읽다 옆 답까지 붙여 온 것이다 (「must have to」).
+    if "한 번씩" in (question.get("prompt") or "") or "골라" in (question.get("prompt") or ""):
+        hit = {stem(w) for w in bank if stem(w) in got}
+        if len(hit) > 1 and len(got) <= 4:
+            return False
+    return True
 
 
 def lexicon(*paths):
