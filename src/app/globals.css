@@ -3873,7 +3873,12 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #student-record-print-root,
   #nelt-print-root,
   #lesson-pack-print-root,
-  #analysis-report-print-root {
+  #analysis-report-print-root,
+  /* 선생님 지적(2026-09-30): 1장 테스트를 인쇄하면 오른쪽과 아래에 여백이 크게
+     남았다. 이 자리에만 빠져 있어 용지 크기가 안 정해졌고, 브라우저가 기본 용지
+     (레터 216x279mm)로 잡아 A4 내용이 한쪽으로 쏠렸다. */
+  #one-page-print-root,
+  #workbook-print-root {
     page: app-print-a4;
   }
 

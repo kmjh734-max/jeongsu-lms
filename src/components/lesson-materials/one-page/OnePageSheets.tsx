@@ -139,8 +139,10 @@ ruby.op-voc rt .op-vocw i{display:block;font-style:normal;white-space:nowrap}
 .op-ans h3 span{color:#6b4fd3;margin-right:.4em}
 .op-arow{display:grid;grid-template-columns:6.2em 1fr;column-gap:.5em;margin:.14em 0;line-height:1.45}
 .op-arow dt{font-weight:700;color:#6b7280}
-.op-arow dd{margin:0}
-.op-ai{display:inline-block;margin-right:1.1em;white-space:nowrap}
+/* 정답 줄이 길면 접힌다. 안 접히면 쪽을 넘쳐 나가고, 넘친 만큼 인쇄가 통째로
+   줄어들어 오른쪽·아래에 큰 여백이 생긴다(선생님 지적 2026-09-30). */
+.op-arow dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.op-ai{display:inline-block;margin-right:1.1em;white-space:normal;overflow-wrap:anywhere}
 .op-ai b{font-family:ui-sans-serif,system-ui,sans-serif;color:#6b4fd3;margin-right:.3em}
 .op-sheet section,.op-sheet .op-grid2,.op-sheet .op-flow,.op-sheet .op-meta,.op-sheet .op-head{break-inside:avoid;page-break-inside:avoid}
 .op-list li,.op-tf li,.op-oitem{break-inside:avoid;page-break-inside:avoid}
