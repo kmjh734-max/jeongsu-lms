@@ -136,6 +136,26 @@ export function GrammarBankClient({
     return blank > 0 ? [...named, ["", blank] as [string, number]] : named;
   }, [allQuestions]);
 
+  /** 세부 단원을 옮긴다 — 화면을 먼저 바꾸고, 어긋나면 되돌린다 */
+  async function moveUnit(id: number, unit: string) {
+    const before = allQuestions;
+    setAllQuestions((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, unit } : q)),
+    );
+    try {
+      const res = await fetch("/api/grammar-bank/questions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, unit }),
+      });
+      const got = (await res.json()) as { ok: boolean; message?: string };
+      if (!got.ok) throw new Error(got.message ?? "옮기지 못했습니다.");
+    } catch (e) {
+      setAllQuestions(before);
+      setError(e instanceof Error ? e.message : "옮기지 못했습니다.");
+    }
+  }
+
   /** 세부 단원을 고르면 그 안에서만 담는다 */
   const scoped = useMemo(
     () => (unit == null ? allQuestions : allQuestions.filter((q) => (q.unit ?? "") === unit)),
@@ -742,11 +762,11 @@ export function GrammarBankClient({
                   {questions.map((q) => {
                     const on = picked.includes(q.id);
                     return (
-                      <li key={q.id}>
+                      <li key={q.id} className="relative">
                         <button
                           type="button"
                           onClick={() => toggle(q)}
-                          className={`flex w-full gap-3 rounded-md border p-3 text-left transition ${
+                          className={`flex w-full gap-3 rounded-md border p-3 pr-[168px] text-left transition ${
                             on
                               ? "border-brand-400 bg-brand-50/60"
                               : "border-slate-200 hover:bg-slate-50"
@@ -801,6 +821,23 @@ export function GrammarBankClient({
                             ) : null}
                           </span>
                         </button>
+                        {/* 세부 단원은 문제를 보고 자동으로 붙인 것이라 더러 어긋난다 —
+                            눈에 걸리면 여기서 바로 옮긴다 */}
+                        {unitOptions.length > 1 ? (
+                          <select
+                            value={q.unit ?? ""}
+                            onChange={(e) => moveUnit(q.id, e.target.value)}
+                            aria-label="세부 단원"
+                            title="세부 단원 — 어긋났으면 바꿔 주세요"
+                            className="absolute right-3 top-3 h-7 max-w-[150px] rounded border border-slate-200 bg-white px-1.5 text-[11px] text-slate-500 hover:border-slate-300"
+                          >
+                            {unitOptions.map(([name]) => (
+                              <option key={name || "(없음)"} value={name}>
+                                {name || "세부 없음"}
+                              </option>
+                            ))}
+                          </select>
+                        ) : null}
                       </li>
                     );
                   })}

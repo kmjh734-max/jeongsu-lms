@@ -98,3 +98,40 @@ export async function loadGrammarQuestionsByIds(
   const order = new Map(ids.map((id, i) => [id, i]));
   return rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 }
+
+/**
+ * 문항 하나를 같은 단원 안의 다른 세부 단원으로 옮긴다.
+ *
+ * 세부는 문제를 보고 자동으로 붙인 것이라 더러 어긋난다. 그래서 고칠 수 있게
+ * 열어 두되, 그 단원에 이미 쓰이고 있는 세부로만 옮길 수 있게 막는다.
+ */
+export async function moveGrammarQuestionUnit(
+  id: number,
+  unit: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const admin = createAdminClient();
+  const { data: row } = await admin
+    .from("grammar_bank_questions")
+    .select("id, level, chapter_no")
+    .eq("id", id)
+    .maybeSingle();
+  if (!row) return { ok: false, message: "문항을 찾을 수 없어요." };
+
+  const { data: siblings } = await admin
+    .from("grammar_bank_questions")
+    .select("unit")
+    .eq("level", row.level)
+    .eq("chapter_no", row.chapter_no)
+    .not("unit", "is", null);
+  const allowed = new Set((siblings ?? []).map((s) => s.unit as string));
+  if (!allowed.has(unit)) {
+    return { ok: false, message: "이 단원에 없는 세부 단원이에요." };
+  }
+
+  const { error } = await admin
+    .from("grammar_bank_questions")
+    .update({ unit })
+    .eq("id", id);
+  if (error) return { ok: false, message: error.message };
+  return { ok: true };
+}
