@@ -45,6 +45,8 @@ export interface ListeningStatusRow {
   studentId: string;
   studentName: string;
   classLabel: string;
+  /** 이 학생이 든 반의 담당 선생님 — 정해 두지 않았으면 빈 값 */
+  teacherLabel: string;
   programLabel: string;
   days: HomeworkDayCell[];
   completedCount: number;

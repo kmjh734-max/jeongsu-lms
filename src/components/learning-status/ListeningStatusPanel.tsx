@@ -23,6 +23,77 @@ import type { ReportClassOption } from "@/lib/reports/types";
 import { isFirstUseOfServerData } from "@/lib/ui/server-data-first-use";
 
 const NAME_SEARCH_DEBOUNCE_MS = 400;
+/** 담당 선생님을 정해 두지 않은 반의 학생들이 모이는 자리 */
+const NO_TEACHER = "담당 없음";
+
+/** 선생님 한 분의 오늘 현황 카드 */
+function TeacherCard({
+  card,
+  active,
+  onPick,
+}: {
+  card: {
+    name: string;
+    classes: Set<string>;
+    students: number;
+    done: number;
+    missed: number;
+    correct: number;
+    answered: number;
+  };
+  active: boolean;
+  onPick: () => void;
+}) {
+  const rate = card.students > 0 ? Math.round((card.done / card.students) * 100) : 0;
+  const tone = rate >= 80 ? "bg-emerald-500" : rate >= 50 ? "bg-amber-500" : "bg-rose-500";
+  const accuracy = pct(card.correct, card.answered);
+  return (
+    <button
+      type="button"
+      onClick={onPick}
+      aria-pressed={active}
+      className={`rounded-lg border bg-white px-[15px] py-3 text-left shadow-card transition ${
+        active ? "border-brand-600 ring-2 ring-brand-50" : "border-slate-200 hover:border-slate-300"
+      }`}
+    >
+      <span className="flex items-baseline justify-between gap-2">
+        <span className="text-[15px] font-bold text-slate-900">{card.name}</span>
+        <span className="truncate text-xs text-slate-400">
+          {[...card.classes].join(" · ") || "반 없음"}
+        </span>
+      </span>
+      <span className="mt-1.5 flex items-baseline gap-1.5">
+        <span className="text-[25px] font-extrabold leading-none tabular-nums text-slate-900">
+          {rate}%
+        </span>
+        <span className="text-[12.5px] text-slate-500">
+          오늘 {card.done} / {card.students}명
+        </span>
+      </span>
+      <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-slate-200">
+        <span className={`block h-full ${tone}`} style={{ width: `${rate}%` }} />
+      </span>
+      <span className="mt-2 flex flex-wrap gap-1.5">
+        <span
+          className={`rounded-full px-2 py-0.5 text-[11.5px] font-semibold ${
+            card.missed > 3
+              ? "bg-rose-50 text-rose-700"
+              : card.missed > 0
+                ? "bg-amber-50 text-amber-700"
+                : "bg-emerald-50 text-emerald-700"
+          }`}
+        >
+          {card.missed > 0 ? `안 한 학생 ${card.missed}명` : "모두 마침"}
+        </span>
+        {accuracy !== "—" ? (
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11.5px] font-semibold text-slate-600">
+            정답률 {accuracy}%
+          </span>
+        ) : null}
+      </span>
+    </button>
+  );
+}
 
 interface ListeningStatusPanelProps {
   basePath: ListeningBasePath;
@@ -93,6 +164,7 @@ export function ListeningStatusPanel({
 }: ListeningStatusPanelProps) {
   const { year, month } = getKoreaYearMonth();
   const [classId, setClassId] = useState("");
+  const [teacher, setTeacher] = useState("");   // 담당 선생님 이름 ("" 면 전체)
   const [nameInput, setNameInput] = useState("");
   const [appliedNameQuery, setAppliedNameQuery] = useState("");
   const [monthValue, setMonthValue] = useState(formatKoreaMonth(year, month));
@@ -167,7 +239,62 @@ export function ListeningStatusPanel({
   }, [loadStatus]);
 
   const initialLoading = refreshing && table === null;
-  const rows = useMemo(() => table?.rows ?? [], [table]);
+  const allRows = useMemo(() => table?.rows ?? [], [table]);
+
+  /** 선생님별로 묶은 오늘 현황 — 이름 없는 반은 「담당 없음」으로 모은다 */
+  const teacherCards = useMemo(() => {
+    if (!table) return [];
+    const todayIso = table.todayIso;
+    const by = new Map<
+      string,
+      { name: string; classes: Set<string>; students: number; done: number;
+        missed: number; correct: number; answered: number }
+    >();
+    for (const r of allRows) {
+      const key = r.teacherLabel?.trim() || NO_TEACHER;
+      let got = by.get(key);
+      if (!got) {
+        got = { name: key, classes: new Set(), students: 0, done: 0, missed: 0,
+                correct: 0, answered: 0 };
+        by.set(key, got);
+      }
+      got.students += 1;
+      got.correct += r.correctCount;
+      got.answered += r.answeredCount;
+      for (const label of r.classLabel.split(",")) {
+        const one = label.trim();
+        if (one && one !== "—") got.classes.add(one);
+      }
+      const cell = r.days.find((d) => d.taskDate === todayIso);
+      if (!cell?.isStudyDay) continue;
+      if (cell.symbol === "complete") got.done += 1;
+      else if (cell.symbol === "missing" || cell.symbol === "partial") got.missed += 1;
+    }
+    return [...by.values()].sort(
+      (a, b) =>
+        (a.name === NO_TEACHER ? 1 : 0) - (b.name === NO_TEACHER ? 1 : 0) ||
+        b.students - a.students ||
+        a.name.localeCompare(b.name)
+    );
+  }, [table, allRows]);
+
+  // 선생님을 고르면 그분 학생만 본다. 표를 다시 부르지 않고 여기서 거른다.
+  const rows = useMemo(
+    () =>
+      teacher
+        ? allRows.filter((r) => (r.teacherLabel?.trim() || NO_TEACHER) === teacher)
+        : allRows,
+    [allRows, teacher]
+  );
+
+  // 선생님을 고르면 반 고르기도 그분 반만 남긴다
+  const classOptions = useMemo(() => {
+    if (!teacher) return initialClasses;
+    const mine = initialClasses.filter(
+      (c) => (c.teacherName?.trim() || NO_TEACHER) === teacher
+    );
+    return mine.length > 0 ? mine : initialClasses;
+  }, [initialClasses, teacher]);
 
   const summary = useMemo(() => {
     if (!table) return null;
@@ -228,9 +355,52 @@ export function ListeningStatusPanel({
       <ListeningModuleHeader basePath={basePath} setCount={setCount} assignCount={assignCount} />
 
       <div className="space-y-4">
+        {/* 선생님별 오늘 현황 — 담당이 두 분 이상일 때만 보인다 */}
+        {teacherCards.length > 1 ? (
+          <section>
+            <h2 className="mb-2 flex items-baseline gap-2 text-[15px] font-bold text-slate-900">
+              선생님별 듣기 현황
+              <span className="text-[12.5px] font-medium text-slate-400">
+                오늘 · 누르면 그 선생님 학생만 봅니다
+              </span>
+            </h2>
+            <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {teacherCards.map((card) => (
+                <TeacherCard
+                  key={card.name}
+                  card={card}
+                  active={teacher === card.name}
+                  onPick={() => {
+                    setTeacher((prev) => (prev === card.name ? "" : card.name));
+                    setClassId("");
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {/* 거르기 + 범례 */}
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap gap-2">
+            {teacherCards.length > 1 ? (
+              <select
+                value={teacher}
+                onChange={(e) => {
+                  setTeacher(e.target.value);
+                  setClassId("");
+                }}
+                aria-label="선생님"
+                className="ui-select h-9 w-auto min-w-[150px] py-1.5"
+              >
+                <option value="">{`선생님 전체 · ${allRows.length}명`}</option>
+                {teacherCards.map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {`${c.name} · ${c.students}명`}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             <select
               value={classId}
               onChange={(e) => setClassId(e.target.value)}
@@ -240,7 +410,7 @@ export function ListeningStatusPanel({
               <option value="">
                 {`전체 반${!classId && table && !appliedNameQuery ? ` · ${rows.length}명` : ""}`}
               </option>
-              {initialClasses.map((c) => (
+              {classOptions.map((c) => (
                 <option key={c.id} value={c.id}>
                   {`${c.name}${c.id === classId && table && !appliedNameQuery ? ` · ${rows.length}명` : ""}`}
                 </option>
@@ -381,7 +551,12 @@ export function ListeningStatusPanel({
               rows={rows.map((r) => ({
                 id: r.studentId,
                 name: r.studentName,
-                sub: selectedClass ? undefined : r.classLabel,
+                // 선생님을 따로 고르지 않았으면 이름 아래에 담당 선생님도 적어 준다
+                sub: selectedClass
+                  ? undefined
+                  : !teacher && r.teacherLabel?.trim()
+                    ? `${r.classLabel} · ${r.teacherLabel}`
+                    : r.classLabel,
                 pausedLabel: pausedLabelOf(r),
                 days: r.days,
                 rate: r.totalCount > 0 ? r.executionRate : null,

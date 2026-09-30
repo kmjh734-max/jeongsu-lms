@@ -6,11 +6,16 @@ export interface ReportStudentOption {
   name: string;
   loginId: string | null;
   classNames: string[];
+  /** 이 학생이 든 반의 담당 선생님들 — 담당이 없으면 비어 있다 */
+  teacherNames: string[];
 }
 
 export interface ReportClassOption {
   id: string;
   name: string;
+  /** 담당 선생님 — 정해 두지 않은 반은 없다 */
+  teacherId?: string | null;
+  teacherName?: string | null;
 }
 
 export interface CourseReportSection {

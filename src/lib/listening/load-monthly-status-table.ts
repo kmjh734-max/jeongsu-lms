@@ -336,7 +336,11 @@ export async function loadListeningMonthlyStatusTable(
   const studentById = new Map(
     students.map((s) => [
       s.id,
-      { name: s.name, classLabel: s.classNames.join(", ") || "—" },
+      {
+        name: s.name,
+        classLabel: s.classNames.join(", ") || "—",
+        teacherLabel: s.teacherNames.join(", "),
+      },
     ])
   );
   const studentIds = students.map((s) => s.id);
@@ -544,6 +548,7 @@ export async function loadListeningMonthlyStatusTable(
       studentId: student.id,
       studentName: student.name,
       classLabel: student.classNames.join(", ") || "—",
+      teacherLabel: student.teacherNames.join(", "),
       programLabel,
       days,
       completedCount,

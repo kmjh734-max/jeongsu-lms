@@ -23,17 +23,40 @@ export async function listReportClasses(
   role: UserRole,
   viewerId: string
 ): Promise<ReportClassOption[]> {
-  let query = supabase.from("classes").select("id, name").order("name");
+  let query = supabase
+    .from("classes")
+    .select("id, name, teacher_id")
+    .order("name");
 
   if (role === "teacher") {
     query = query.eq("teacher_id", viewerId);
   }
 
   const { data } = await query;
-  return (data ?? []).map((c) => ({
+  const rows = data ?? [];
+  const names = await teacherNamesByIdOf(
+    supabase,
+    rows.map((c) => c.teacher_id as string | null)
+  );
+  return rows.map((c) => ({
     id: c.id as string,
     name: c.name as string,
+    teacherId: (c.teacher_id as string | null) ?? null,
+    teacherName: names.get((c.teacher_id as string | null) ?? "") ?? null,
   }));
+}
+
+/** 담당 선생님 id → 이름. 담당이 없는 반이 많아 빈 값은 걸러 낸다. */
+async function teacherNamesByIdOf(
+  supabase: SupabaseClient,
+  ids: (string | null)[]
+): Promise<Map<string, string>> {
+  const want = [...new Set(ids.filter((id): id is string => Boolean(id)))];
+  if (want.length === 0) return new Map();
+  const { data } = await supabase.from("profiles").select("id, name").in("id", want);
+  return new Map(
+    (data ?? []).map((p) => [p.id as string, (p.name as string) || "—"])
+  );
 }
 
 export async function listReportStudents(
@@ -108,7 +131,7 @@ export async function listReportStudents(
   const classLinksFor = (ids: string[]) =>
     supabase
       .from("class_students")
-      .select("student_id, class:classes(name)")
+      .select("student_id, class:classes(name, teacher_id)")
       .in("student_id", ids);
 
   let profiles: { id: unknown; name: unknown; username: unknown }[] | null;
@@ -130,22 +153,41 @@ export async function listReportStudents(
     classLinks = (await classLinksFor(ids)).data;
   }
 
+  type ClassRel = { name?: string; teacher_id?: string | null };
   const classesByStudent = new Map<string, string[]>();
+  const teacherIdsByStudent = new Map<string, string[]>();
   for (const link of classLinks ?? []) {
     const studentId = link.student_id as string;
-    const rel = link.class as { name?: string } | { name?: string }[] | null;
-    const className = Array.isArray(rel) ? rel[0]?.name : (rel?.name ?? undefined);
-    if (!className) continue;
+    const rel = link.class as ClassRel | ClassRel[] | null;
+    const one = Array.isArray(rel) ? rel[0] : rel;
+    if (!one?.name) continue;
     const list = classesByStudent.get(studentId) ?? [];
-    list.push(className);
+    list.push(one.name);
     classesByStudent.set(studentId, list);
+    if (one.teacher_id) {
+      const owned = teacherIdsByStudent.get(studentId) ?? [];
+      owned.push(one.teacher_id);
+      teacherIdsByStudent.set(studentId, owned);
+    }
   }
+
+  const teacherNames = await teacherNamesByIdOf(
+    supabase,
+    [...teacherIdsByStudent.values()].flat()
+  );
 
   const options: ReportStudentOption[] = profiles.map((p) => ({
     id: p.id as string,
     name: (p.name as string) || "—",
     loginId: (p.username as string | null) ?? null,
     classNames: classesByStudent.get(p.id as string) ?? [],
+    teacherNames: [
+      ...new Set(
+        (teacherIdsByStudent.get(p.id as string) ?? [])
+          .map((id) => teacherNames.get(id))
+          .filter((n): n is string => Boolean(n))
+      ),
+    ],
   }));
 
   return options.filter((s) => matchesSearch(s, nameQuery, loginQuery));
