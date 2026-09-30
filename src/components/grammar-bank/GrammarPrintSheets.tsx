@@ -131,9 +131,13 @@ export function GrammarPrintSheets({
     const footH = root.querySelector<HTMLElement>("[data-gb-foot]")?.offsetHeight ?? 0;
     const cards = [...root.querySelectorAll<HTMLElement>("[data-gb-card]")];
 
+    // 문항 사이 여백까지 재야 한다. offsetHeight 는 아래 여백을 빼고 세므로,
+    // 그것만 믿으면 문항 수만큼 조금씩 모자라 마지막 문항이 쪽 밖으로 넘친다.
+    const takes = (el: HTMLElement) =>
+      el.offsetHeight + parseFloat(getComputedStyle(el).marginBottom || "0");
     const half = cards.length / 2;   // 앞의 절반은 단 너비, 뒤의 절반은 쪽 너비로 잰 것
-    const narrow = cards.slice(0, half).map((el) => el.offsetHeight);
-    const wide = cards.slice(half).map((el) => el.offsetHeight);
+    const narrow = cards.slice(0, half).map(takes);
+    const wide = cards.slice(half).map(takes);
 
     const qHeights = narrow.slice(0, questions.length);
     const aHeights = narrow.slice(questions.length);
