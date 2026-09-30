@@ -16,6 +16,28 @@ export async function isGrammarBankOpen(
 const COLUMNS =
   "id, source_file, number, level, level_name, chapter_no, chapter, kind, round, tier, unit_no, unit, point_nos, point_label, question_kind, difficulty, badges, prompt, body, choices, answer, explanation";
 
+/** 한 번에 돌려주는 줄 수 (Supabase 가 여기서 끊는다) */
+const PAGE = 1000;
+
+/**
+ * 1,000줄씩 끊어서 끝까지 가져온다.
+ *
+ * 그냥 부르면 1,000줄에서 말없이 잘린다. 은행이 만 문항을 넘었으므로 한 단원이
+ * 그만큼 커질 수 있고, 그러면 뒤쪽 문항이 화면에서 통째로 사라진다.
+ */
+async function everyRow<T>(
+  make: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>,
+): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await make(from, from + PAGE - 1);
+    if (error) throw new Error(error.message);
+    const got = data ?? [];
+    out.push(...got);
+    if (got.length < PAGE) return out;
+  }
+}
+
 /** 레벨 → 단원 → 묶음 차례로 정리해 돌려준다 */
 export async function loadGrammarChapters(): Promise<GrammarChapterGroup[]> {
   const admin = createAdminClient();
@@ -67,20 +89,23 @@ export async function loadGrammarQuestions(opts: {
   tier?: number | null;
 }): Promise<GrammarQuestion[]> {
   const admin = createAdminClient();
-  let query = admin
-    .from("grammar_bank_questions")
-    .select(COLUMNS)
-    .eq("level", opts.level)
-    .eq("chapter_no", opts.chapterNo)
-    .order("tier", { ascending: true })
-    .order("source_file", { ascending: true })
-    .order("number", { ascending: true });
-
-  if (opts.tier != null) query = query.eq("tier", opts.tier);
-
-  const { data, error } = await query;
-  if (error) throw new Error(error.message);
-  return (data ?? []) as GrammarQuestion[];
+  const rows = await everyRow<GrammarQuestion>((from, to) => {
+    let query = admin
+      .from("grammar_bank_questions")
+      .select(COLUMNS)
+      .eq("level", opts.level)
+      .eq("chapter_no", opts.chapterNo)
+      .order("tier", { ascending: true })
+      .order("source_file", { ascending: true })
+      .order("number", { ascending: true })
+      .range(from, to);
+    if (opts.tier != null) query = query.eq("tier", opts.tier);
+    return query as unknown as PromiseLike<{
+      data: GrammarQuestion[] | null;
+      error: { message: string } | null;
+    }>;
+  });
+  return rows;
 }
 
 /** 시험지에 담은 문항을 한 번에 */
@@ -89,12 +114,15 @@ export async function loadGrammarQuestionsByIds(
 ): Promise<GrammarQuestion[]> {
   if (ids.length === 0) return [];
   const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("grammar_bank_questions")
-    .select(COLUMNS)
-    .in("id", ids);
-  if (error) throw new Error(error.message);
-  const rows = (data ?? []) as GrammarQuestion[];
+  const rows: GrammarQuestion[] = [];
+  for (let i = 0; i < ids.length; i += 500) {
+    const { data, error } = await admin
+      .from("grammar_bank_questions")
+      .select(COLUMNS)
+      .in("id", ids.slice(i, i + 500));
+    if (error) throw new Error(error.message);
+    rows.push(...((data ?? []) as GrammarQuestion[]));
+  }
   const order = new Map(ids.map((id, i) => [id, i]));
   return rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 }
@@ -117,13 +145,20 @@ export async function moveGrammarQuestionUnit(
     .maybeSingle();
   if (!row) return { ok: false, message: "문항을 찾을 수 없어요." };
 
-  const { data: siblings } = await admin
-    .from("grammar_bank_questions")
-    .select("unit")
-    .eq("level", row.level)
-    .eq("chapter_no", row.chapter_no)
-    .not("unit", "is", null);
-  const allowed = new Set((siblings ?? []).map((s) => s.unit as string));
+  const siblings = await everyRow<{ unit: string }>((from, to) =>
+    admin
+      .from("grammar_bank_questions")
+      .select("unit")
+      .eq("level", row.level)
+      .eq("chapter_no", row.chapter_no)
+      .not("unit", "is", null)
+      .order("id", { ascending: true })
+      .range(from, to) as unknown as PromiseLike<{
+      data: { unit: string }[] | null;
+      error: { message: string } | null;
+    }>,
+  );
+  const allowed = new Set(siblings.map((s) => s.unit));
   if (!allowed.has(unit)) {
     return { ok: false, message: "이 단원에 없는 세부 단원이에요." };
   }
