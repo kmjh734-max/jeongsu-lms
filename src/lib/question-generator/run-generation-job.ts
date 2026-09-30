@@ -802,6 +802,22 @@ export async function runGenerationJob(
         return;
       }
 
+      /*
+       * 이 문항이 어느 값으로 걷히는지 기록에도 그대로 적는다.
+       *
+       * 전수조사(2026-09-30): 값은 어법·일반으로 나눠 받는데 사용량 기록은 모두
+       * qg_generate_job 하나로 남아, 어법 유형의 원가를 따로 볼 수가 없었다.
+       * 어법이 더 비싼지 아닌지를 모르면 값을 제대로 매길 수 없다.
+       */
+      setAiUsage({
+        academyId,
+        actorId: userId,
+        featureKey: /:(어법추론|어법개수)$/.test(item.option.key)
+          ? "qg_generate_grammar"
+          : "qg_generate_job",
+        usedFor: "question_generator",
+      });
+
       let result = await generateWithValidation({
         passage: item.passageText,
         analysis: item.analysis,
