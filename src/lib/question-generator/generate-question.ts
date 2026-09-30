@@ -445,9 +445,20 @@ ${catalog}`;
          * 68%를 맞힌다. 어법개수처럼 코드가 개수를 정해 주어 고르게 흩는다.
          */
         const wrongN = 1 + Math.floor(Math.random() * 5);
+        /*
+         * 밑줄 자리 수를 틀린 개수에 맞춰 늘린다.
+         *
+         * 전수조사(2026-09-30): 9/29에 개수를 코드가 정해 주도록 고쳤는데도 그 뒤 만든
+         * 31문항이 2개·3개에만 몰렸다(14·16). 자리는 늘 여섯인데 「1개만 틀리게」나
+         * 「5개 틀리게」는 여섯 자리에 억지스러워 모델이 따르지 않은 것이다.
+         * 자리를 wrongN+3개로 두면 1개든 5개든 자연스러워진다.
+         */
+        const spots = wrongN + 3;
+        const marks = "①②③④⑤⑥⑦⑧".slice(0, spots).split("").join(" ");
         return `어휘 개수 — 고1 학력평가·내신 고퀄리티 (A4 변형동형):
-- passageModified = FULL ENGLISH passage with exactly six vocabulary spots ① ② ③ ④ ⑤ ⑥ as ①<u>word/phrase</u>.
-- 문맥에 맞지 않는 곳을 <b>정확히 ${wrongN}개</b> 두고, 나머지는 자연스럽게 맞게 쓴다.
+- passageModified = FULL ENGLISH passage with exactly ${spots} vocabulary spots ${marks} as ①<u>word/phrase</u>.
+- 문맥에 맞지 않는 곳을 <b>정확히 ${wrongN}개</b> 두고, 나머지 ${spots - wrongN}개는 <b>반드시</b> 문맥에 맞게 쓴다.
+- 이 개수는 바꾸지 않는다. ${wrongN}개보다 많이도 적게도 두지 않는다.
 - correctAnswer = ${wrongN}.
 - WRONG 기법: 반의·방향 반전 / 유사 철자·형태 혼동어 / 문맥만 틀린 유의어.
 ${vocabChoiceCraft()}
