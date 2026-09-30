@@ -63,9 +63,44 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
     exams.get(key)!.parts.push({ id: r.id, label: `${r.item_no}번` });
   }
 
+  /*
+   * 이 시험이 주로 어느 교재·회차에서 나왔는지 앞으로 올린다.
+   *
+   * 선생님 말씀(2026-09-30): 다른 지문이 2026년 고2 3월이면 그 지문도 그 3월 안에
+   * 있을 가능성이 높다. 자동으로 그 안을 다시 뒤지는 것은 해 보니 겹침이 0이라
+   * 소용이 없었다 — 대신 손으로 달 때 그 회차가 맨 위에 오게 해 찾기 쉽게 한다.
+   */
+  const { data: matched } = await admin
+    .from("school_exam_items")
+    .select("matched_textbook_id, matched_mock_id")
+    .eq("analysis_id", id);
+  const bookHits = new Map<string, number>();
+  const examHits = new Map<string, number>();
+  for (const r of matched ?? []) {
+    if (r.matched_textbook_id) {
+      const row = rows.find((x) => x.id === r.matched_textbook_id);
+      if (row) {
+        const k = `${row.subject}|${row.publisher}`;
+        bookHits.set(k, (bookHits.get(k) ?? 0) + 1);
+      }
+    }
+    if (r.matched_mock_id) {
+      const row = mockRows.find((x) => x.id === r.matched_mock_id);
+      if (row) {
+        const k = `${row.year}-${row.month}-${row.grade}`;
+        examHits.set(k, (examHits.get(k) ?? 0) + 1);
+      }
+    }
+  }
+  const byUse = (hits: Map<string, number>) =>
+    (a: { key: string; label: string }, b: { key: string; label: string }) => {
+      const d = (hits.get(b.key) ?? 0) - (hits.get(a.key) ?? 0);
+      return d !== 0 ? d : a.label.localeCompare(b.label, "ko");
+    };
+
   return NextResponse.json({
     ok: true,
-    books: [...books.values()].sort((a, b) => a.label.localeCompare(b.label, "ko")),
-    mocks: [...exams.values()],
+    books: [...books.values()].sort(byUse(bookHits)),
+    mocks: [...exams.values()].sort(byUse(examHits)),
   });
 }

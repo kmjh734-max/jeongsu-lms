@@ -37,6 +37,26 @@ type PoolEntry = { id: string; label: string; set: Set<string> };
  */
 const MIN_RATIO = 0.3;
 const MIN_HITS = 5;
+/*
+ * 겹친 묶음이 그것대로 흔한지도 본다.
+ *
+ * 선생님 말씀(2026-09-30): 한 문장이라도 일치하거나 발췌한 것이면 출처로 삼아라.
+ * 그런데 묶음 개수만 세면 흔한 인사말이 걸린다 — 불곡중 4번은 「do this weekend」가
+ * 여덟 낱말이나 이어지는데 주말 계획을 묻는다는 것만 같은 전혀 다른 대화다.
+ *
+ * 그래서 겹친 묶음 가운데 <b>세 지문 이하에만 나오는 것</b>이 셋을 넘을 때만 잡는다.
+ * 발곡고 고1 22번은 25년 고1 6월 24번을 다시 쓴 것인데 드문 묶음이 네 개라 잡히고,
+ * 불곡중 4번은 두 개뿐이라 걸러진다.
+ */
+const RARE_SHINGLE_MAX_DOCS = 3;
+const MIN_RARE_SHINGLES = 3;
+
+/** 묶음마다 몇 개 지문에 나오는지 — 흔한 묶음을 가려내려고 미리 센다 */
+function shingleDocFreq(pool: PoolEntry[]): Map<string, number> {
+  const df = new Map<string, number>();
+  for (const m of pool) for (const g of m.set) df.set(g, (df.get(g) ?? 0) + 1);
+  return df;
+}
 
 function bestMatches(
   pool: PoolEntry[],
@@ -44,20 +64,28 @@ function bestMatches(
 ): Map<string, { id: string; label: string }> {
   const result = new Map<string, { id: string; label: string }>();
   if (pool.length === 0) return result;
+  const df = shingleDocFreq(pool);
   for (const { key, excerpt } of excerpts) {
     if (!excerpt || words(excerpt).length < 8) continue;
     const sh = shingles(words(excerpt));
     if (sh.length === 0) continue;
-    let best: { id: string; label: string; hit: number } | null = null;
+    let best: { id: string; label: string; hit: number; rare: number } | null = null;
     for (const m of pool) {
       let hit = 0;
-      for (const s of sh) if (m.set.has(s)) hit++;
-      if (!best || hit > best.hit) best = { id: m.id, label: m.label, hit };
+      let rare = 0;
+      for (const s of sh) {
+        if (!m.set.has(s)) continue;
+        hit += 1;
+        if ((df.get(s) ?? 0) <= RARE_SHINGLE_MAX_DOCS) rare += 1;
+      }
+      if (!best || hit > best.hit) best = { id: m.id, label: m.label, hit, rare };
     }
     if (!best || best.hit === 0) continue;
-    if (best.hit / sh.length >= MIN_RATIO || best.hit >= MIN_HITS) {
-      result.set(key, { id: best.id, label: best.label });
-    }
+    const enough =
+      best.hit / sh.length >= MIN_RATIO ||
+      best.hit >= MIN_HITS ||
+      best.rare >= MIN_RARE_SHINGLES;
+    if (enough) result.set(key, { id: best.id, label: best.label });
   }
   return result;
 }
