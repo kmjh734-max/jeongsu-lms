@@ -72,7 +72,11 @@ export function CreditChargeClient() {
 
       const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim();
       if (!clientKey) {
-        setInfo("결제를 준비하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        /*
+         * 결제 열쇠를 아직 안 넣은 상태다. 「잠시 후 다시」라고 하면 몇 번이고
+         * 다시 누르게 되는데, 기다린다고 열리지 않는다. 있는 그대로 적는다.
+         */
+        setInfo("카드 결제가 아직 열리지 않았어요. 준비되면 알려 드릴게요.");
         return;
       }
       setInfo(null);
@@ -127,7 +131,7 @@ export function CreditChargeClient() {
         return;
       }
       if (!orderData.configured || !orderData.clientKey) {
-        setError("결제를 준비하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        setError("카드 결제가 아직 열리지 않았어요. 준비되면 알려 드릴게요.");
         return;
       }
 
