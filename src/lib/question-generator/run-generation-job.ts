@@ -366,12 +366,35 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
     .eq("id", jobId);
 }
 
+/**
+ * 버려진 문항의 까닭을 짧게 간추린다.
+ *
+ * 만들었다가 검수에 걸려 버리는 문항이 열에 하나쯤 된다. 까닭을 남기지 않으면
+ * 어느 규칙이 자주 걸리는지 알 수 없어, 지시문을 어디부터 다듬을지 못 고른다.
+ */
+function dropReasons(said: string[] | undefined): string | null {
+  if (!said || said.length === 0) return null;
+  const tally = new Map<string, number>();
+  for (const one of said) {
+    const key = String(one || "까닭 없음").slice(0, 60);
+    tally.set(key, (tally.get(key) ?? 0) + 1);
+  }
+  const top = [...tally.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([key, n]) => `${key} ×${n}`);
+  return `버려진 문항 ${said.length}개 — ${top.join(" · ")}`;
+}
+
+
 async function finalizeGenerationJob(
   jobId: string,
   opts: {
     totalRequested: number;
     skipped: number;
     errorMessage?: string | null;
+    /** 검수에 걸려 버린 문항들의 까닭 — 무엇을 다듬어야 하는지 보이게 남긴다 */
+    dropped?: string[];
   }
 ): Promise<void> {
   // 작업이 끝났으니 모아 둔 사용량 기록을 밀어 넣는다(서버가 곧 잠든다).
@@ -399,7 +422,7 @@ async function finalizeGenerationJob(
     error_message:
       finalStatus === "failed"
         ? opts.errorMessage ?? "선택한 유형 생성에 실패했습니다."
-        : null,
+        : dropReasons(opts.dropped),
     completed_at: new Date().toISOString(),
     total_completed: completed,
     total_failed: failed,
@@ -754,6 +777,7 @@ export async function runGenerationJob(
     let completed = initialCompleted;
     let failed = 0;
     let skipped = 0;
+    const dropped: string[] = [];
     /** 시간이 모자라 이번 실행에서 시작하지 않은 문항 수. */
     let deferred = 0;
     /** 시간 초과로 이번 실행을 접었다. 이후에 끝나는 문항은 저장하지 않는다. */
@@ -871,6 +895,7 @@ export async function runGenerationJob(
         skipped += 1;
       } else if (!result.payload) {
         failed += 1;
+        dropped.push(result.error ?? "까닭 없음");
       } else {
         completed += 1;
         const insert = admin.from("generated_english_questions").insert(
@@ -936,6 +961,7 @@ export async function runGenerationJob(
     await finalizeGenerationJob(jobId, {
       totalRequested,
       skipped,
+      dropped,
     });
     return { more: false };
   } catch (e) {
