@@ -1,3 +1,4 @@
+import { findOptionByKey } from "@/lib/question-generator/question-types";
 import { after, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -39,6 +40,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     paraphraseGrammarVocab?: boolean;
     wordOrderMode?: "passage" | "paraphrase";
     grammarWritingMode?: "passage" | "paraphrase";
+    /** 문항 번호마다 바꾼 유형·난이도 */
+    slotEdit?: Record<string, { optionKey?: string; level?: "상" | "중" | "하" }>;
   };
   const inputs = (body.passages ?? []).slice(0, 30);
   if (inputs.length === 0) {
@@ -98,13 +101,16 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       Number.isInteger(want) && want! >= 0 && want! < passages.length
         ? want!
         : ((spread ? slotIdx : s.group) + round - 1) % passages.length;
-    let optionKey = s.optionKey;
+    // 선생님이 그 번호의 유형·난이도를 바꿨으면 그것을 쓴다
+    const edit = body.slotEdit?.[s.no] ?? {};
+    const level = edit.level ?? s.level;
+    let optionKey = edit.optionKey && findOptionByKey(edit.optionKey) ? edit.optionKey : s.optionKey;
     if (/^(sentence_insertion|irrelevant_sentence):/.test(optionKey) && !longEnough[passageIndex]) {
       const alt = longEnough.findIndex(Boolean);
       if (alt >= 0) passageIndex = alt;
-      else optionKey = `order:na:${s.level === "상" ? "high" : "low"}:순서추론`;
+      else optionKey = `order:na:${level === "상" ? "high" : "low"}:순서추론`;
     }
-    return { no: s.no, passageIndex, optionKey, level: s.level, points: s.points ?? null };
+    return { no: s.no, passageIndex, optionKey, level, points: s.points ?? null };
   });
 
   /*

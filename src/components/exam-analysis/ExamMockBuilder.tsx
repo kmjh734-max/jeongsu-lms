@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 import type { MockSlot } from "@/lib/exam-analysis/blueprint";
+import { QUESTION_TYPE_GROUPS } from "@/lib/question-generator/question-types";
 import type { MaterialPassage } from "@/lib/exam-analysis/load";
 import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
@@ -92,6 +93,27 @@ export function ExamMockBuilder({
   const [paraphraseGV, setParaphraseGV] = useState(false);
   const [wordOrderMode, setWordOrderMode] = useState<"passage" | "paraphrase">("passage");
   const [grammarWritingMode, setGrammarWritingMode] = useState<"passage" | "paraphrase">("paraphrase");
+
+  /*
+   * 칸마다 유형·난이도를 바꾼다.
+   *
+   * 선생님 요청(2026-09-30): 동형모의고사에도 변형문제처럼 난이도·유형 조절을
+   * 넣어 달라. 지금까지는 원래 시험에서 읽은 유형과 난이도를 그대로 쓸 수밖에
+   * 없어, 그 지문에 안 맞는 유형이어도 바꿀 수가 없었다.
+   */
+  const typeChoices = useMemo(
+    () =>
+      QUESTION_TYPE_GROUPS.flatMap((g) =>
+        g.options.map((o) => ({ key: o.key, label: `${g.label.replace(/^Section · /, "")} · ${o.label}` }))
+      ),
+    []
+  );
+  const [slotEdit, setSlotEdit] = useState<
+    Record<string, { optionKey?: string; level?: "상" | "중" | "하" }>
+  >({});
+  const editOf = (no: string) => slotEdit[no] ?? {};
+  const setEdit = (no: string, patch: { optionKey?: string; level?: "상" | "중" | "하" }) =>
+    setSlotEdit((p) => ({ ...p, [no]: { ...p[no], ...patch } }));
 
   const perSlot = chosen.length > groupCount;
   /*
@@ -206,6 +228,7 @@ export function ExamMockBuilder({
           passages: chosen.map((c) => (c.kind === "material" ? { materialItemId: c.id } : { text: c.text, title: c.title })),
           assignment,
           perSlot,
+          slotEdit,
           overallDifficulty,
           paraphraseGrammarVocab: paraphraseGV,
           wordOrderMode,
@@ -508,7 +531,9 @@ export function ExamMockBuilder({
               ) : null}
             </div>
           </div>
-          <p className="mt-0.5 text-xs text-slate-500">원래 시험의 지문 묶음마다 새 지문이 들어가요. 바꾸려면 오른쪽에서 고르세요.</p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            원래 시험의 지문 묶음마다 새 지문이 들어가요. 문항마다 난이도와 유형도 바꿀 수 있어요.
+          </p>
           {slots.some((s) => /^(sentence_insertion|irrelevant_sentence):/.test(s.optionKey)) ? (
             <p className="mt-1 text-xs text-slate-500">
               문장 삽입·무관한 문장은 6문장 이상인 지문에서 만들어요. 고른 지문이 모두 짧으면 같은 난이도의 순서 배열로 만들어요.
@@ -536,14 +561,39 @@ export function ExamMockBuilder({
                 </div>
                 <ul className="mt-1.5 space-y-1">
                   {g.map((s) => (
-                    <li key={s.no} className="flex items-center gap-2 text-[13px]">
-                      <b className="w-12 shrink-0">{s.no}</b>
-                      <span className={`w-6 shrink-0 rounded text-center text-[11px] font-bold ${LV[s.level]}`}>{s.level}</span>
-                      <span className="min-w-0 flex-1 truncate">
-                        {s.typeLabel}
-                        {s.substituted ? <span className="ml-1 text-[11px] text-amber-700">(원래 {s.sourceType} → 비슷한 유형)</span> : null}
-                      </span>
+                    <li key={s.no} className="flex flex-wrap items-center gap-1.5 text-[13px]">
+                      <b className="w-10 shrink-0">{s.no}</b>
+                      <select
+                        aria-label={`${s.no}번 난이도`}
+                        className={`h-7 shrink-0 rounded border px-1 text-[11px] font-bold ${LV[editOf(s.no).level ?? s.level]}`}
+                        value={editOf(s.no).level ?? s.level}
+                        onChange={(e) => setEdit(s.no, { level: e.target.value as "상" | "중" | "하" })}
+                      >
+                        <option value="상">상</option>
+                        <option value="중">중</option>
+                        <option value="하">하</option>
+                      </select>
+                      <select
+                        aria-label={`${s.no}번 유형`}
+                        className="ui-input h-7 min-w-0 flex-1 py-0 text-[12px]"
+                        value={editOf(s.no).optionKey ?? s.optionKey}
+                        onChange={(e) => setEdit(s.no, { optionKey: e.target.value })}
+                      >
+                        {typeChoices.some((t) => t.key === (editOf(s.no).optionKey ?? s.optionKey)) ? null : (
+                          <option value={s.optionKey}>{s.typeLabel}</option>
+                        )}
+                        {typeChoices.map((t) => (
+                          <option key={t.key} value={t.key}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </select>
                       <span className="shrink-0 tabular-nums text-slate-500">{s.points ?? "–"}점</span>
+                      {s.substituted ? (
+                        <span className="w-full text-[11px] text-amber-700">
+                          원래 {s.sourceType} → 비슷한 유형으로 바꿨어요
+                        </span>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
