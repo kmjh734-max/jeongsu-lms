@@ -314,6 +314,14 @@ const S_KEEP = new Set(
  */
 const DOUBLE_END_KEEP = new Set(["add", "ebb", "egg", "err", "inn", "odd", "purr"]);
 
+/** -ves 가 f 로 돌아가는 낱말 (wolves → wolf) */
+const VES_TO_F = new Set([
+  "calf", "elf", "half", "leaf", "loaf", "scarf", "self", "sheaf", "shelf",
+  "thief", "wharf", "wolf",
+]);
+/** -ves 가 fe 로 돌아가는 낱말 (knives → knife) */
+const VES_TO_FE = new Set(["knife", "life", "wife"]);
+
 function stripDoubledConsonant(stem: string): string | null {
   if (!/(.)\1$/.test(stem) || stem.length < 2) return null;
   if ("flsz".includes(stem.slice(-1))) return null;
@@ -334,9 +342,18 @@ export function lemmaEnglishToken(raw: string): string {
   if (/^[a-z]+ies$/i.test(lower) && lower.length > 4) {
     return lower.slice(0, -3) + "y";
   }
-  // -ves → f (wolves → wolf) — lives/leaves 등은 IRREGULAR_NOUN
+  /*
+   * -ves → f 는 정해 둔 낱말에만 쓴다.
+   *
+   * 선생님과 함께 전수조사(2026-09-30): 보기에 prof·detectif·motif 같은 말이
+   * 나왔다. proves·detectives·motives처럼 ves 로 끝나기만 하면 f 를 붙인 탓이다.
+   * f·fe 로 바뀌는 낱말은 몇 개뿐이라 적어 두고, 나머지는 -s 만 뗀다.
+   */
   if (/^[a-z]+ves$/i.test(lower) && lower.length > 4) {
-    return lower.slice(0, -3) + "f";
+    const base = lower.slice(0, -3);
+    if (VES_TO_F.has(`${base}f`)) return `${base}f`;
+    if (VES_TO_FE.has(`${base}fe`)) return `${base}fe`;
+    return lower.slice(0, -1);
   }
   // -oes → o (heroes → hero, goes → go)
   if (/^[a-z]+oes$/i.test(lower) && lower.length > 4) {
