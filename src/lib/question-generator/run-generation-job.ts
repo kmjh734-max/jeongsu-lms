@@ -802,7 +802,7 @@ export async function runGenerationJob(
         return;
       }
 
-      const result = await generateWithValidation({
+      let result = await generateWithValidation({
         passage: item.passageText,
         analysis: item.analysis,
         option: item.option,
@@ -820,6 +820,36 @@ export async function runGenerationJob(
       });
       // 다음 실행이 이 문항을 다시 만든다. 여기서 저장하면 같은 칸이 두 번 생긴다.
       if (abandoned) return;
+
+      /*
+       * 설계도 칸(동형모의고사)은 비우지 않는다. 그 유형으로 못 만들면 다른 유형으로
+       * 바꿔 다시 만든다 — 번호가 빠지면 1번부터 나오지 않고 배점도 모자란다.
+       */
+      if ((result.skipped || !result.payload) && item.slot) {
+        for (const alt of fallbackOptionsFor(item.option.key, item.slot.level)) {
+          const retry = await generateWithValidation({
+            passage: item.passageText,
+            analysis: item.analysis,
+            option: alt,
+            grade: config.grade || "고1",
+            overallDifficulty: config.overallDifficulty || "기본",
+            sourceDetail: item.sourceDetail,
+            diversitySlot: item.diversitySlot,
+            targetLevel: item.slot?.level ?? null,
+            paraphraseGrammarVocab: config.paraphraseGrammarVocab === true,
+            levelBrief: config.levelBrief,
+            grammarScope: config.grammarScope,
+            grammarWritingMode: config.grammarWritingMode,
+            wordOrderMode: config.wordOrderMode ?? "passage",
+            retries: 1,
+          });
+          if (retry.payload) {
+            result = retry;
+            item.option = alt;
+            break;
+          }
+        }
+      }
 
       if (result.skipped) {
         skipped += 1;
@@ -932,6 +962,32 @@ export async function runGenerationJob(
     }
     return { more: false };
   }
+}
+
+/**
+ * 시험지 번호를 비우지 않기 위한 대체 유형.
+ *
+ * 선생님 지적(2026-09-30): 미생성이 하나라도 있으면 번호가 1번부터 안 나온다.
+ * 배점을 다 채워야 100점이 되므로, 그 지문에 안 맞는 유형이면 다른 유형으로라도
+ * 만들어 번호를 채운다. 어떤 지문에도 낼 수 있는 유형부터 차례로 시도한다.
+ */
+function fallbackOptionsFor(optionKey: string, level: "상" | "중" | "하") {
+  const tier = level === "상" ? "high" : "low";
+  const keys = /sentence_insertion|irrelevant_sentence/.test(optionKey)
+    ? [`order:na:${tier}:순서추론`, `topic:en:${tier}:주제추론`, `title:en:${tier}:제목추론`]
+    : [
+        `topic:en:${tier}:주제추론`,
+        `title:en:${tier}:제목추론`,
+        `summary_mcq:en:${tier}:요지추론`,
+        `order:na:${tier}:순서추론`,
+      ];
+  const out = [];
+  for (const k of keys) {
+    if (k === optionKey) continue;
+    const got = findOptionByKey(k);
+    if (got) out.push(got);
+  }
+  return out;
 }
 
 export async function regenerateSingleQuestion(opts: {
