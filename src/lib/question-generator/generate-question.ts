@@ -52,6 +52,7 @@ import { plainKorean } from "@/lib/question-generator/plain-korean";
 import {
   bankWordsLeftInBlankLine,
   widenBlankToSentence,
+  closeBlankSentence,
 } from "@/lib/question-generator/blank-line-overlap";
 import {
   findWritingGrammar,
@@ -1280,7 +1281,9 @@ export function assertBasicQuestionShape(
     if (!/<조건>/.test(qt) || !/<보기>/.test(qt) || !/<해석>/.test(qt)) {
       return "제시어 배열은 questionText에 <조건>·<보기>·<해석>이 필요합니다.";
     }
-    const mod = q.passageModified || "";
+    // 빈칸이 문장 끝 마침표까지 삼켰으면 돌려준다 — 버리지 말고 고쳐 쓴다
+    const mod = closeBlankSentence(q.passageModified || "");
+    q.passageModified = mod;
     if (!/ⓐ/.test(mod) || !/_{3,}/.test(mod)) {
       return "제시어 배열 본문에 ⓐ__________ 빈칸 표시가 필요합니다.";
     }
@@ -1871,6 +1874,32 @@ export function assertBasicQuestionShape(
  * 같은 지문의 여러 문항에서 프롬프트 캐시가 앞부분을 재사용한다.
  * 유형·문항별 규칙은 user 메시지 끝(ITEM RULES)에 붙인다.
  */
+/*
+ * 유형마다 모델을 달리 쓴다 (2026-10-01 실험).
+ *
+ * 지문 4개 · 유형 9가지 · 문항 3개씩을 세 모델로 만들고, 어느 모델이 만들었는지
+ * 가린 채 채점해 봤다(324문항).
+ *   · 제목·요지·빈칸추론·내용불일치 — 가장 싼 모델도 형태를 한 번도 안 깨고 답도
+ *     100%였다. 값은 2.5~2.7배 싸다.
+ *   · 어법 — 가장 싼 모델은 셋 중 하나가 밑줄 번호를 안 붙여 다시 만들어야 했고
+ *     답도 75%로 떨어졌다. 싼 값이 재생성으로 사라진다.
+ *   · 서술형 요약영작 — 가장 싼 모델은 58%. 「보기를 모두 한 번씩」·단어 수 조건을
+ *     못 지킨다.
+ *   · 그 밖의 유형은 중간 모델이 예전 모델과 같거나 나았고(서술형은 83%→100%)
+ *     값은 20~84% 싸다.
+ *
+ * 되돌리려면 환경변수로 덮어쓴다.
+ */
+const QG_MODEL_LIGHT = process.env.OPENAI_MODEL_QG_LIGHT?.trim() || "gpt-5.6-terra";
+const QG_MODEL_MAIN = process.env.OPENAI_MODEL_QG_MAIN?.trim() || "gpt-5.6-sol";
+
+/** 싼 모델로 만들어도 차이가 없던 유형 */
+const LIGHT_TYPES = new Set(["title", "topic", "sentence_blank", "content_false"]);
+
+function modelForType(option: { type: string }): string {
+  return LIGHT_TYPES.has(option.type) ? QG_MODEL_LIGHT : QG_MODEL_MAIN;
+}
+
 const QUESTION_WRITER_SHARED_SYSTEM = `Korean HS English exam writer. ONE question JSON only. Fast & concise.
 - No meta tags.
 - NEVER create 요약문완성 (Korean summary with (A)/(B) blanks and …… pair choices). That type is removed.
@@ -2252,6 +2281,7 @@ export async function generateOneQuestion(opts: {
   });
 
   const raw = (await questionGeneratorChatJsonWithRetry({
+    preferredModels: [modelForType(option)],
     system: QUESTION_WRITER_SHARED_SYSTEM,
     // 유형 규칙·틀(같은 유형끼리 같음) → 지문(문항마다 다름) → 슬롯
     user:
