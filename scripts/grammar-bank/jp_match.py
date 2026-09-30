@@ -79,6 +79,36 @@ def blocks_of(items):
             for key in sorted(by)]
 
 
+BACK = 30      # 이만큼 뒤로 돌아가면 제자리가 아니다
+RESTART = 3    # 이만큼 잇따라 돌아가면 워크북이 시작된 것이다
+
+
+def main_book_only(boxes):
+    """정답지 뒤쪽에 붙은 워크북 답을 잘라 낸다.
+
+    이 정답지는 본책 답 뒤에 워크북 답을 이어 싣는다. 워크북 쪽 번호가 본책과
+    겹쳐서, 그대로 두면 워크북 답이 본책 문항에 붙는다.
+
+    본책 쪽은 앞에서 뒤로 커진다. 한 번 툭 튀는 것은 잘못 읽은 것이니 쪽만
+    버리고, 잇따라 뒤로 돌아가면 거기서부터 워크북이다.
+    """
+    out = []
+    top = 0
+    back = []
+    for b in boxes:
+        page = b.get("book_page")
+        if page and page < top - BACK:
+            back.append(b)
+            if len(back) >= RESTART:
+                break          # 워크북이 시작됐다 — 여기서 끊는다
+            b = dict(b, book_page=None)   # 한 번 튄 것은 잘못 읽은 쪽이다
+        elif page:
+            back = []
+            top = max(top, page)
+        out.append(b)
+    return out[:len(out) - len(back)] if len(back) < RESTART else out
+
+
 def main(q_path, a_path, out_path, bad_path=None):
     questions = json.load(open(q_path, encoding="utf-8"))
     boxes = json.load(open(a_path, encoding="utf-8"))
@@ -97,6 +127,7 @@ def main(q_path, a_path, out_path, bad_path=None):
         first_on.setdefault(blk["page"], i)
 
     boxes.sort(key=lambda b: (b["answer_page"], b["order"]))
+    boxes = main_book_only(boxes)
 
     matched, failed = [], []
     used = set()
