@@ -50,7 +50,9 @@ export function systemPrompt(): string {
 - 시험지에 있는 모든 문항을 시험지 순서대로 빠짐없이 적는다(선택형·서술형 모두). 한 지문에 여러 문항이 달려도 문항마다 한 줄.
 - no: 선택형은 "1", "2" …, 서술형은 "서술 1", "서술 2" … (시험지가 논술형·서답형이라 불러도 "서술 n").
 - 배점은 시험지에 적힌 값 그대로. 없으면 null.
+- 묶음 발문: "[1 ~ 2]", "[5 ~ 7]" 처럼 여러 문항에 걸친 발문은 그 범위의 문항 **모두**에 그대로 쓴다. 쪽이 바뀌어 학교 이름·쪽 번호·날짜 같은 머리글이 끼어들어도 발문은 이어진다. 문항 번호 뒤에 발문이 없으면 앞에서 가장 가까운 묶음 발문을 찾아 쓴다. stem에도 그 발문을 적는다.
 - 유형(type_key)은 아래 목록에서 가장 가까운 key 하나. 맞는 게 없으면 "other:유형이름"(예: other:대화문, other:영영풀이, other:우리말 조건 영작, other:본문 찾아 쓰기, other:요약표 수정).
+- 발문에 "모두 고르시오"가 있으면 **개수** 유형이다(어법개수·어휘개수). 하나만 고르게 하면 추론 유형이다(어법추론·어휘추론). 이 둘을 바꿔 적지 않는다.
 - 난이도(difficulty 1~5, level 상/중/하)는 해당 학년 학생 기준. 근거(difficulty_reason)는 한 문장: 지문 길이·어휘 수준·유형 자체 난도·선택지 매력도·서술형 조건 수.
 - passage_excerpt: 문항이 딸린 영어 지문의 첫 30단어 정도를 시험지 그대로(빈칸·밑줄 표시는 빼고). 지문이 없으면 "".
 - grammar_point: 어법·서술형이면 묻는 문법 요소를 짧게.
@@ -83,8 +85,22 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
   const transcript = (pages ?? []).map((p) => `===== ${p.page_no}쪽 =====\n${p.text}`).join("\n\n");
   if (!transcript.trim()) throw new Error("읽은 쪽이 없습니다.");
 
+  /*
+   * 문항표 모델 (2026-10-01 실측, 7쪽 시험지 하나로 설정마다 두 번씩).
+   *
+   * 유형 판정을 「시험지에 적힌 발문」과 사람이 대조해 채점했다(문항 7개: [1~2]·[5~7]
+   * 묶음 발문과 「모두 고르시오」가 걸린 것들).
+   *   묶음 발문 규칙을 넣기 전 — 5.5 medium 4.0/7 · 5.5 low 7.0/7 · sol medium 1.0/7
+   *   넣은 뒤          — 5.5 medium 7.0/7 445원 · 5.5 low 7.0/7 304원
+   *                      sol medium 7.0/7 270원 · terra medium 6.0/7 118원
+   * 넷 다 문항 29개를 찾고 배점은 29/29 같았다. 갈리는 것은 유형·난이도뿐이었다.
+   *
+   * sol이 5.5와 같은 정확도로 39% 싸서 sol로 옮긴다. terra는 73% 싸지만 「주장하는 바」를
+   * 주제추론으로 적어 쓰지 않는다. 추론은 medium을 지킨다 — low로 내리면 값은 더 싸지만
+   * 긴 시험지에서 난이도 판정이 흔들렸다.
+   */
   const { text } = await examChat({
-    model: "gpt-5.5",
+    model: process.env.OPENAI_MODEL_EXAM_ANALYZE?.trim() || "gpt-5.6-sol",
     reasoning_effort: "medium",
     response_format: { type: "json_object" },
     messages: [
