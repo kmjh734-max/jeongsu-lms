@@ -45,7 +45,9 @@ _ENGLISH = sorted((w for w in FLIP if re.fullmatch(r"[A-Za-z']+", w)), key=len, 
 _KOREAN = sorted((w for w in FLIP if re.search(r"[가-힣]", w)), key=len, reverse=True)
 # 영어 경계는 \b로 잡으면 "Mike는"에서 한글을 낱말로 봐 어긋난다.
 FLIP_RE = re.compile(
-    r"(?<![A-Za-z'])(?:%s)(?![A-Za-z'])|(?:%s)"
+    # 우리말은 낱말 첫머리에서만 본다. 앞에 한글이 붙어 있으면 낱말 가운데이므로
+    # 건드리면 안 된다 — 「받아들여야」의 아들을 딸로 바꿔 「받딸여야」가 되었다.
+    r"(?<![A-Za-z'])(?:%s)(?![A-Za-z'])|(?<![가-힣])(?:%s)"
     % ("|".join(re.escape(w) for w in _ENGLISH),
        "|".join(re.escape(w) for w in _KOREAN)))
 
