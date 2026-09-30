@@ -1,6 +1,7 @@
 "use server";
 
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isStudyPlanEnabled } from "@/lib/study-plan/access";
 
@@ -470,4 +471,155 @@ async function vocabPlanRow(
       return { week: s.week, index: s.index, text: chunk.length ? `Day ${chunk.join(", ")}` : "" };
     }),
   };
+}
+
+
+/** 일정표 한 회차에 그 영역을 실제로 했는지 */
+export type PlanDoneState = "done" | "partial" | "missing" | "upcoming" | "none";
+
+export interface PlanDoneCell {
+  week: number;
+  index: number;
+  area: AutoFillArea;
+  state: PlanDoneState;
+  /** 칸에 붙일 짧은 글 — "3/3일", "2단계" */
+  label: string;
+}
+
+/**
+ * 일정표 회차마다 듣기·단어를 실제로 했는지 돌려준다.
+ *
+ * 선생님 요청(2026-09-30): 일정표에서도 단어·듣기와 이어서 학습을 했는지 안 했는지
+ * 표시가 나오게 해 달라. 진도 칸에 적힌 것은 「할 것」이지 「한 것」이 아니어서,
+ * 옆에 실제 기록을 따로 붙인다.
+ *
+ * 한 회차는 「그 수업 날부터 다음 수업 전날까지」를 본다 — 진도를 깔 때와 같은 규칙이다.
+ * 아직 오지 않은 날은 안 한 것으로 세지 않는다.
+ */
+export async function loadPlanDoneStatus(input: {
+  studentId: string;
+  year: number;
+  month: number;
+  /** 주차별 회차 날짜: { "1": ["2026-09-01", …] } */
+  sessionDates: Record<string, string[]>;
+}): Promise<{ ok: true; cells: PlanDoneCell[] } | { ok: false; message: string }> {
+  const profile = await getCurrentProfile();
+  if (!profile || !["admin", "teacher"].includes(profile.role) || !profile.academy_id) {
+    return { ok: false, message: "권한이 없어요." };
+  }
+  if (!(await isStudyPlanEnabled(profile.academy_id))) {
+    return { ok: false, message: "권한이 없어요." };
+  }
+
+  const slots: { week: number; index: number; date: string }[] = [];
+  for (const [week, list] of Object.entries(input.sessionDates)) {
+    (list ?? []).forEach((date, index) => {
+      if (date) slots.push({ week: Number(week), index, date });
+    });
+  }
+  if (slots.length === 0) return { ok: false, message: "회차 날짜를 먼저 넣어 주세요." };
+  slots.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.index - b.index));
+
+  const admin = createAdminClient();
+  const { data: student } = await admin
+    .from("profiles")
+    .select("id, academy_id")
+    .eq("id", input.studentId)
+    .maybeSingle();
+  if (!student || student.academy_id !== profile.academy_id) {
+    return { ok: false, message: "우리 학원 학생이 아니에요." };
+  }
+
+  const first = slots[0]!.date;
+  const last = monthEnd(input.year, input.month);
+  const today = getTodayIsoKorea();
+  /** 날짜 → 그 날이 속한 회차 자리 (그 날 이하인 마지막 회차) */
+  const slotOf = (date: string): number => {
+    let at = -1;
+    for (let i = 0; i < slots.length; i += 1) {
+      if (slots[i]!.date <= date) at = i;
+    }
+    return at;
+  };
+
+  const [listeningRows, vocabRows] = await Promise.all([
+    admin
+      .from("listening_daily_tasks")
+      .select("task_date, status, completed_count, total_count")
+      .eq("student_id", input.studentId)
+      .gte("task_date", first)
+      .lte("task_date", last),
+    admin
+      .from("vocab_stage_progress")
+      .select(
+        "stage1_completed_at, stage2_completed_at, stage3_completed_at, stage4_passed_at",
+      )
+      .eq("student_id", input.studentId),
+  ]);
+
+  /** 회차 자리 → 그 사이에 나간 듣기 과제 (아직 안 온 날은 뺀다) */
+  const listenBySlot = new Map<number, { due: number; done: number; part: number }>();
+  for (const r of listeningRows.data ?? []) {
+    const date = String(r.task_date);
+    const at = slotOf(date);
+    if (at < 0 || date > today) continue;
+    const got = listenBySlot.get(at) ?? { due: 0, done: 0, part: 0 };
+    got.due += 1;
+    if (r.status === "completed") got.done += 1;
+    else if (Number(r.completed_count ?? 0) > 0) got.part += 1;
+    listenBySlot.set(at, got);
+  }
+
+  /** 회차 자리 → 그 사이에 끝낸 단어 단계 수 */
+  const vocabBySlot = new Map<number, number>();
+  for (const r of vocabRows.data ?? []) {
+    for (const key of [
+      "stage1_completed_at",
+      "stage2_completed_at",
+      "stage3_completed_at",
+      "stage4_passed_at",
+    ] as const) {
+      const at = (r as unknown as Record<string, string | null>)[key];
+      if (!at) continue;
+      // UTC 시각을 한국 날짜로
+      const iso = new Date(new Date(at).getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+      if (iso < first || iso > last || iso > today) continue;
+      const slot = slotOf(iso);
+      if (slot < 0) continue;
+      vocabBySlot.set(slot, (vocabBySlot.get(slot) ?? 0) + 1);
+    }
+  }
+
+  const cells: PlanDoneCell[] = [];
+  slots.forEach((s, at) => {
+    const upcoming = s.date > today;
+
+    const listen = listenBySlot.get(at);
+    cells.push({
+      week: s.week,
+      index: s.index,
+      area: "listening",
+      state: upcoming
+        ? "upcoming"
+        : !listen
+          ? "none"
+          : listen.done === listen.due
+            ? "done"
+            : listen.done + listen.part > 0
+              ? "partial"
+              : "missing",
+      label: listen ? `${listen.done}/${listen.due}일` : "",
+    });
+
+    const stages = vocabBySlot.get(at) ?? 0;
+    cells.push({
+      week: s.week,
+      index: s.index,
+      area: "vocab",
+      state: upcoming ? "upcoming" : stages > 0 ? "done" : "missing",
+      label: stages > 0 ? `${stages}단계` : "",
+    });
+  });
+
+  return { ok: true, cells };
 }

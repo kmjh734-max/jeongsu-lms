@@ -4,11 +4,19 @@ import { useEffect, useMemo, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { classScheduleAction, createPlanAction, savePlanAction } from "@/app/admin/study-plans/actions";
-import { loadAssignedPlan, type AutoFillArea } from "@/lib/study-plan/auto-fill";
+import {
+  loadAssignedPlan,
+  loadPlanDoneStatus,
+  type AutoFillArea,
+  type PlanDoneCell,
+  type PlanDoneState,
+} from "@/lib/study-plan/auto-fill";
 import {
   ATTENDANCE_LABELS,
   emptyEntry,
+  HOMEWORK_CHECK_LABELS,
   type Attendance,
+  type HomeworkCheck,
   type PlanEntry,
   type StudyPlan,
 } from "@/lib/study-plan";
@@ -36,6 +44,63 @@ function weekdayOf(iso: string): string {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
   const d = new Date(`${iso}T00:00:00Z`);
   return WEEKDAY_LABELS[(d.getUTCDay() + 6) % 7] ?? "";
+}
+
+/** 실제로 했는지를 한 알약으로 — 일정표 듣기·단어 칸에 붙는다 */
+function DoneBadge({ cell }: { cell: PlanDoneCell }) {
+  const look: Record<PlanDoneState, { text: string; className: string } | null> = {
+    done: { text: "했음", className: "border-emerald-300 bg-emerald-50 text-emerald-700" },
+    partial: { text: "덜 함", className: "border-amber-300 bg-amber-50 text-amber-700" },
+    missing: { text: "안 함", className: "border-rose-300 bg-rose-50 text-rose-700" },
+    upcoming: { text: "아직", className: "border-slate-200 bg-white text-slate-400" },
+    none: { text: "과제 없음", className: "border-slate-200 bg-white text-slate-400" },
+  };
+  const got = look[cell.state];
+  if (!got) return null;
+  return (
+    <span
+      title={cell.area === "listening" ? "실제 듣기 기록" : "실제 단어 기록"}
+      className={`inline-flex h-8 shrink-0 items-center gap-1 rounded-md border px-1.5 text-[11px] font-semibold ${got.className}`}
+    >
+      {got.text}
+      {cell.label ? <span className="font-normal tabular-nums">{cell.label}</span> : null}
+    </span>
+  );
+}
+
+/** 숙제 확인 네 단계 단추 */
+function CheckButtons({
+  value,
+  onPick,
+}: {
+  value: HomeworkCheck;
+  onPick: (next: HomeworkCheck) => void;
+}) {
+  const tone: Record<Exclude<HomeworkCheck, "">, string> = {
+    none: "border-rose-500 bg-rose-50 text-rose-700",
+    weak: "border-amber-500 bg-amber-50 text-amber-700",
+    checked: "border-sky-500 bg-sky-50 text-sky-700",
+    done: "border-emerald-500 bg-emerald-50 text-emerald-700",
+  };
+  return (
+    <div className="flex gap-0.5">
+      {(Object.keys(HOMEWORK_CHECK_LABELS) as Array<Exclude<HomeworkCheck, "">>).map((key) => {
+        const on = value === key;
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onPick(on ? "" : key)}
+            className={`h-6 flex-1 rounded border text-[11px] font-semibold transition ${
+              on ? tone[key] : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50"
+            }`}
+          >
+            {HOMEWORK_CHECK_LABELS[key]}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 /** 밀려온 진도를 원래 있던 글 앞에 붙인다 */
@@ -75,6 +140,8 @@ export function StudyPlanEditor({
   const [filling, setFilling] = useState<string | null>(null);
   /** 단어를 한 회차에 며칠 치씩 볼지 */
   const [vocabDays, setVocabDays] = useState(2);
+  /** 실제로 했는지 — "listening-1-0" 꼴 열쇠 */
+  const [done, setDone] = useState<Map<string, PlanDoneCell>>(new Map());
 
   /** 이 달이 달력상 걸치는 주차 — 9월이면 1~5주 */
   const monthWeeks = useMemo(() => weeksInMonth(year, month), [year, month]);
@@ -182,6 +249,46 @@ export function StudyPlanEditor({
     // 처음 열 때 한 번
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plan?.id]);
+
+  /** 회차 날짜를 한 줄로 — 이것이 바뀔 때만 실제 기록을 다시 읽는다 */
+  const dateKey = useMemo(
+    () =>
+      weeks
+        .map((w) => `${w}:${(dates[String(w)] ?? []).slice(0, sessions).join(",")}`)
+        .join("|"),
+    [weeks, dates, sessions],
+  );
+
+  /**
+   * 회차마다 듣기·단어를 실제로 했는지 읽어 온다.
+   * 날짜 칸을 고치는 동안 매번 부르지 않도록 조금 기다렸다 부른다.
+   */
+  useEffect(() => {
+    if (!plan) return;
+    if (Object.values(dates).flat().filter(Boolean).length === 0) {
+      setDone(new Map());
+      return;
+    }
+    let alive = true;
+    const timer = setTimeout(() => {
+      void (async () => {
+        const r = await loadPlanDoneStatus({
+          studentId: student.id,
+          year,
+          month,
+          sessionDates: dates,
+        });
+        if (!alive || !r.ok) return;
+        setDone(new Map(r.cells.map((c) => [`${c.area}-${c.week}-${c.index}`, c])));
+      })();
+    }, 600);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+    // 날짜가 바뀔 때만 — dates 는 dateKey 로 대신 본다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan?.id, dateKey, student.id, year, month]);
 
   function patch(week: number, area: string, apply: (r: Row) => Row) {
     setRows((prev) => prev.map((r) => (r.week === week && r.area === area ? apply(r) : r)));
@@ -653,7 +760,10 @@ export function StudyPlanEditor({
                       )}
                     </td>
                     {row.entries.map((entry, i) => {
-                      const linked = autoFillArea(area) !== null;
+                      const kind = autoFillArea(area);
+                      const linked = kind !== null;
+                      // 듣기·단어 영역이면 그 회차에 실제로 했는지 옆에 붙인다
+                      const doneCell = kind ? done.get(`${kind}-${week}-${i}`) : undefined;
                       return (
                       <td key={i} className="p-1">
                         <div className="space-y-1">
@@ -664,6 +774,7 @@ export function StudyPlanEditor({
                               className="ui-input h-8 flex-1 text-sm"
                               placeholder={linked ? "진도" : "학습진도"}
                             />
+                            {doneCell ? <DoneBadge cell={doneCell} /> : null}
                             {linked ? null : (
                               <button
                                 type="button"
@@ -698,6 +809,15 @@ export function StudyPlanEditor({
                             }
                             className="ui-input h-8 text-sm"
                             placeholder="특이사항"
+                          />
+                          <CheckButtons
+                            value={entry.check}
+                            onPick={(next) =>
+                              patch(week, area, (r) => ({
+                                ...r,
+                                entries: r.entries.map((x, k) => (k === i ? { ...x, check: next } : x)),
+                              }))
+                            }
                           />
                         </div>
                       </td>

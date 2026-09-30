@@ -12,7 +12,27 @@ export const DEFAULT_AREAS = ["영단어", "문법", "독해", "듣기"];
  * 5주차 줄을 통째로 빠뜨렸다(선생님 지적 2026-09-28).
  */
 
-export type PlanEntry = { progress: string; homework: string; note: string };
+/**
+ * 숙제를 했는지 선생님이 찍어 두는 칸 — 빈 문자열은 아직 안 찍음.
+ *
+ * 선생님 요청(2026-09-30): 영역마다 숙제를 했는지 체크하고 싶다.
+ * 「미실시 · 미흡 · 확인 · 완수」 네 단계를 그대로 쓴다.
+ */
+export type HomeworkCheck = "" | "none" | "weak" | "checked" | "done";
+export const HOMEWORK_CHECK_LABELS: Record<Exclude<HomeworkCheck, "">, string> = {
+  none: "미실시",
+  weak: "미흡",
+  checked: "확인",
+  done: "완수",
+};
+const HOMEWORK_CHECKS = Object.keys(HOMEWORK_CHECK_LABELS) as Array<Exclude<HomeworkCheck, "">>;
+
+export type PlanEntry = {
+  progress: string;
+  homework: string;
+  note: string;
+  check: HomeworkCheck;
+};
 
 /** 회차 출결 — 빈 문자열은 아직 적지 않음 */
 export type Attendance = "" | "present" | "late" | "absent" | "makeup" | "holiday";
@@ -46,16 +66,24 @@ export type StudyPlan = {
   rows: PlanRow[];
 };
 
-export const emptyEntry = (): PlanEntry => ({ progress: "", homework: "", note: "" });
+export const emptyEntry = (): PlanEntry => ({
+  progress: "",
+  homework: "",
+  note: "",
+  check: "",
+});
 
 export function fitEntries(entries: unknown, sessions: number): PlanEntry[] {
   const list = Array.isArray(entries) ? entries : [];
   return Array.from({ length: sessions }, (_, i) => {
     const e = (list[i] ?? {}) as Partial<PlanEntry>;
+    const check = String(e.check ?? "");
     return {
       progress: String(e.progress ?? ""),
       homework: String(e.homework ?? ""),
       note: String(e.note ?? ""),
+      // 예전에 저장한 줄에는 이 칸이 없다 — 모르는 값은 빈 칸으로 둔다
+      check: (HOMEWORK_CHECKS as string[]).includes(check) ? (check as HomeworkCheck) : "",
     };
   });
 }
