@@ -560,6 +560,8 @@ export function ListeningStatusPanel({
                 pausedLabel: pausedLabelOf(r),
                 days: r.days,
                 rate: r.totalCount > 0 ? r.executionRate : null,
+                correct: r.correctCount,
+                answered: r.answeredCount,
               }))}
             />
           ) : null}

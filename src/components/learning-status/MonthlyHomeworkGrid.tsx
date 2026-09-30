@@ -71,12 +71,23 @@ export interface MonthlyHomeworkGridRow {
   days: HomeworkDayCell[];
   /** 수행률 % — 없으면 — */
   rate: number | null;
+  /** 객관식에서 맞은 문항 수 */
+  correct?: number;
+  /** 채점된(응시한) 객관식 문항 수 */
+  answered?: number;
 }
 
 function rateTone(rate: number): string {
   if (rate < 60) return "text-rose-700";
   if (rate < 85) return "text-amber-700";
   return "text-slate-900";
+}
+
+/** 맞은 문항 비율 % — 채점된 문항이 없으면 null */
+function accuracyOf(row: MonthlyHomeworkGridRow): number | null {
+  const answered = row.answered ?? 0;
+  if (answered <= 0) return null;
+  return Math.round(((row.correct ?? 0) / answered) * 100);
 }
 
 /** 학생 × 공부하는 날 표 (학생 이름 칸 고정) */
@@ -99,6 +110,8 @@ export function MonthlyHomeworkGrid({
     }
   }
   const columns = [...studyDays.values()].sort((a, b) => a.day - b.day);
+  // 채점된 문항이 하나도 없으면 「맞은 문항」 열은 빈 칸만 되므로 아예 접는다
+  const withAccuracy = rows.some((r) => (r.answered ?? 0) > 0);
 
   if (columns.length === 0) {
     return (
@@ -132,11 +145,15 @@ export function MonthlyHomeworkGrid({
               );
             })}
             <th className="w-[70px] min-w-[70px] px-4 py-2.5 text-right font-semibold">수행률</th>
+            {withAccuracy ? (
+              <th className="w-[92px] min-w-[92px] px-4 py-2.5 text-right font-semibold">맞은 문항</th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
           {rows.map((row, i) => {
             const byDay = new Map(row.days.map((d) => [d.day, d]));
+            const accuracy = accuracyOf(row);
             return (
               <tr key={row.id} className={i > 0 ? "border-t border-slate-100" : ""}>
                 <th
@@ -194,6 +211,22 @@ export function MonthlyHomeworkGrid({
                 >
                   {row.rate === null ? "—" : `${row.rate}%`}
                 </td>
+                {withAccuracy ? (
+                  <td className="px-4 py-2 text-right tabular-nums">
+                    {accuracy === null ? (
+                      <span className="text-[13px] font-bold text-slate-300">—</span>
+                    ) : (
+                      <>
+                        <span className={`block text-[13px] font-bold ${rateTone(accuracy)}`}>
+                          {accuracy}%
+                        </span>
+                        <span className="block text-[11px] text-slate-400">
+                          {row.correct ?? 0}/{row.answered ?? 0}개
+                        </span>
+                      </>
+                    )}
+                  </td>
+                ) : null}
               </tr>
             );
           })}
