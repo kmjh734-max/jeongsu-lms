@@ -83,6 +83,19 @@ BACK = 30      # 이만큼 뒤로 돌아가면 제자리가 아니다
 RESTART = 3    # 이만큼 잇따라 돌아가면 워크북이 시작된 것이다
 
 
+def fits(items, answers):
+    """이 묶음이 그 상자의 답과 맞는가.
+
+    상자가 첫 줄이나 끝 줄을 못 읽어 답이 한둘 빠지기도 한다. 그러니 개수가 꼭
+    같아야 한다고 보지 않고, 답의 번호가 모두 묶음 안에 있고 묶음의 절반을
+    훨씬 넘게 채우는지를 본다. 작은 상자가 큰 묶음을 삼키지 못하게 막는다.
+    """
+    nos = {str(q["no"]) for q in items}
+    if not set(answers) <= nos:
+        return False
+    return len(answers) >= len(items) * 0.75
+
+
 def main_book_only(boxes):
     """정답지 뒤쪽에 붙은 워크북 답을 잘라 낸다.
 
@@ -134,7 +147,11 @@ def main(q_path, a_path, out_path, bad_path=None):
     at = 0
     last_page = None
     carried = 0
-    for b in boxes:
+    skip = 0
+    for spot_in_list, b in enumerate(boxes):
+        if skip:
+            skip -= 1
+            continue
         answers = b["answers"]
         # 머리말에서 본책 쪽을 읽은 상자만 쓴다. 쪽을 모르면 차례만 믿게 되는데,
         # 한 번 밀리면 그 뒤가 줄줄이 어긋나 엉뚱한 답이 붙는다.
@@ -155,6 +172,21 @@ def main(q_path, a_path, out_path, bad_path=None):
         # 이 자리부터 답 개수가 맞아떨어지는 묶음을 찾는다.
         # 통합 문제는 한 상자가 본책 두 쪽에 걸치므로 묶음을 이어 붙여서도 본다.
         # 이어 붙인 번호가 1부터 빠짐없이 이어질 때만 한 묶음으로 본다.
+        # 통합 문제처럼 답이 많은 묶음은 정답지에서 상자 둘로 쪼개져 있기도 하다.
+        # 뒤 상자의 번호가 앞 상자에 이어지면 한 상자로 보고 함께 맞댄다.
+        joined = 0
+        for extra in range(1, 3):
+            nxt = spot_in_list + extra
+            if nxt >= len(boxes) or boxes[nxt]["answer_page"] != b["answer_page"]:
+                break
+            if boxes[nxt].get("book_page") not in (None, page):
+                break
+            more = boxes[nxt]["answers"]
+            if set(more) & set(answers):
+                break
+            answers = dict(answers, **more)
+            joined = extra
+
         spot = span = None
         stay = page if b.get("book_page") not in first_on else None
         for step in range(REACH + 1):
@@ -170,18 +202,39 @@ def main(q_path, a_path, out_path, bad_path=None):
                 if i + take > len(blocks) or (i + take - 1) in used:
                     break
                 got += blocks[i + take - 1]["items"]
-                if len(got) != len(answers):
-                    continue
-                nos = [q["no"] for q in got]
-                if sorted(nos) == list(range(1, len(nos) + 1)):
+                if fits(got, answers):
                     spot, span = i, take
                     break
             if spot is not None:
                 break
+        if spot is None and joined:
+            # 이어 붙여도 안 맞으면 원래 상자만으로 다시 본다
+            answers = b["answers"]
+            joined = 0
+            for step in range(REACH + 1):
+                i = at + step
+                if i >= len(blocks) or (stay is not None and blocks[i]["page"] != stay):
+                    break
+                if i in used:
+                    continue
+                got = []
+                for take in range(1, 4):
+                    if i + take > len(blocks) or (i + take - 1) in used:
+                        break
+                    got += blocks[i + take - 1]["items"]
+                    if len(got) != len(answers):
+                        continue
+                    nos = [q["no"] for q in got]
+                    if sorted(nos) == list(range(1, len(nos) + 1)):
+                        spot, span = i, take
+                        break
+                if spot is not None:
+                    break
         if spot is None:
             failed.append({"정답지쪽": b["answer_page"], "본책쪽": b.get("book_page"),
                            "답": len(answers), "까닭": "개수가 맞는 묶음을 찾지 못함"})
             continue
+        skip = joined
 
         blk = {"page": blocks[spot]["page"],
                "items": [q for k in range(span) for q in blocks[spot + k]["items"]]}
@@ -190,8 +243,9 @@ def main(q_path, a_path, out_path, bad_path=None):
         last_page = blk["page"]
         if b.get("book_page") in first_on:
             carried = 0
-        pairs = [(q, answers.get(str(q["no"]))) for q in blk["items"]]
-        if any(a is None for _q, a in pairs):
+        pairs = [(q, answers[str(q["no"])]) for q in blk["items"]
+                 if str(q["no"]) in answers]
+        if not pairs:
             failed.append({"정답지쪽": b["answer_page"], "본책쪽": blk["page"],
                            "답": len(answers), "까닭": "번호가 맞지 않음"})
             continue
