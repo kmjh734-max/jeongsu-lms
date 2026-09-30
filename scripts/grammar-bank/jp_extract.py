@@ -129,12 +129,21 @@ def parse_page(page, page_no, carry):
     heads = []
     for r in body:
         if r["font"].startswith(NUM_FONT):
-            m = re.match(r"^(\d{1,2})$", r["text"].strip())
-            if m:
+            # 왼쪽 단은 번호만 한 줄에 있지만, 오른쪽 단은 번호와 발문이 한 줄에 붙어 있다.
+            # 번호만 찾으면 오른쪽 단 문항이 통째로 빠진다.
+            m = re.match(r"^(\d{1,2})\s*(.*)$", r["text"].strip())
+            if m and not m.group(2)[:1].isdigit():
                 heads.append({"no": int(m.group(1)), "x": r["x"], "y": r["y"],
-                              "col": 0 if r["x"] < mid else 1})
+                              "lead": (m.group(2) or "").strip()})
     if not heads:
         return []
+
+    # 단이 갈리는 자리는 쪽 한가운데가 아니라 번호가 놓인 자리로 잡는다.
+    # 오른쪽 단 번호가 한가운데보다 조금 왼쪽에 있어, 반으로 가르면 두 단이 섞인다.
+    xs = [h["x"] for h in heads]
+    mid = (min(xs) + max(xs)) / 2 if max(xs) - min(xs) > 100 else page.rect.width
+    for h in heads:
+        h["col"] = 0 if h["x"] < mid else 1
     heads.sort(key=lambda h: (h["col"], h["y"]))
 
     def owner(r):
@@ -150,6 +159,9 @@ def parse_page(page, page_no, carry):
 
     for h in heads:
         h["badges"], h["prompt"], h["body"], h["choices"] = [], [], [], []
+        # 번호에 붙어 온 발문은 그 문항의 첫 줄이다
+        if h.get("lead"):
+            h["prompt"].append(((h["y"] - 0.1, h["x"]), h["lead"]))
     for r in body:
         if r["font"].startswith(NUM_FONT):
             continue
