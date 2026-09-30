@@ -1325,11 +1325,22 @@ export function assertBasicQuestionShape(
     }
     q.correctAnswer = reconciled.correctAnswer;
     q.explanation = reconciled.explanation;
-    if (!/<조건>/.test(q.questionText || "")) {
-      q.questionText = `<조건>\n○ 틀린 곳의 기호와 수정한 형태를 모두 써야 정답으로 인정함\n\n<답안행>\n${wrongN}`;
-    } else if (!/<답안행>/.test(q.questionText || "")) {
-      q.questionText = `${q.questionText}\n\n<답안행>\n${wrongN}`;
-    }
+    /*
+     * 답칸 줄 수는 정답에서 세어 우리가 정한다.
+     *
+     * 선생님 지적(2026-09-30): 답지에는 정답이 2개인데 답칸이 하나만 나온다.
+     * 모델이 <조건>과 <답안행>을 제 나름대로 적어 오면 그 수를 그대로 믿고 있었다.
+     * 그리고 「모두 고르기」인데 답칸 수가 곧 정답 개수를 알려 주어 힌트가 됐다.
+     * 그래서 늘 한 줄을 더 둔다 — 모자라지도 않고 개수도 새지 않는다.
+     */
+    const answerMarks = (reconciled.correctAnswer.match(/[\u2460-\u2473\u24D0-\u24D6]/g) ?? [])
+      .length;
+    const answerRows = Math.max(3, answerMarks + 1);
+    const conditionLine = "\u25cb 틀린 곳의 기호와 수정한 형태를 모두 써야 정답으로 인정함";
+    const askBody = /<조건>/.test(q.questionText || "")
+      ? String(q.questionText).replace(/<답안행>[\s\S]*$/, "").trimEnd()
+      : `<조건>\n${conditionLine}`;
+    q.questionText = `${askBody}\n\n<답안행>\n${answerRows}`;
     q.choices = undefined;
   } else if (option.aingkaCode === "요약표빈칸단어") {
     /*
