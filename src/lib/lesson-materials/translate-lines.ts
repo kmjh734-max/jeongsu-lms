@@ -71,6 +71,8 @@ async function callStructuredTranslate(
         content: `${extraNote ? extraNote + "\n\n" : ""}다음 JSON의 각 문장을 번역하라. sentenceId를 유지하고 translations 배열로만 반환하라.\n\n${JSON.stringify(payload)}`,
       },
     ],
+    // 앞부분이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게 이름표를 준다
+    prompt_cache_key: "lesson-translate",
     response_format: {
       type: "json_schema",
       json_schema: {

@@ -54,6 +54,8 @@ Return JSON:
  "topicKo":"topicEn의 뜻을 한국 학생이 바로 읽히는 한국어 한 문장으로(영어 어순대로 옮기지 말고 다시 씀, 45자 안팎), '~다.'로 끝냄"}`,
       },
     ],
+    // 앞부분이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게 이름표를 준다
+    prompt_cache_key: "analysis-topic",
   };
   try {
     const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {

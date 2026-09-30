@@ -116,7 +116,13 @@ export async function callBlankOpenAI(input: {
   const configured = process.env.OPENAI_MODEL_WORKBOOK_BLANK?.trim();
   const modelCandidates = configured
     ? [configured]
-    : ["gpt-4o-mini", "gpt-4o"];
+    : ["gpt-5.6-luna", "gpt-4o-mini"];
+  /*
+   * 모델 견줌(2026-10-01): 지문 4개로 여덟 벌씩 골라 눈가림 채점했다.
+   *   gpt-4o-mini   괜찮음 4/8 (절반은 관사·전치사처럼 시험 가치 없는 낱말을 골랐다)
+   *   gpt-5.6-luna  괜찮음 8/8 · 건당 $0.0037   ← 값은 조금 더 들지만 제대로 고른다
+   *   gpt-5-mini    괜찮음 6/8 · 건당 $0.0069
+   */
 
   const scoreProps = {
     type: "object",

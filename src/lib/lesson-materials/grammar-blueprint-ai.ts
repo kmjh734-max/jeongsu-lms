@@ -184,6 +184,8 @@ export async function callGrammarBlueprintOpenAI(input: {
             { role: "system", content: SYSTEM },
             { role: "user", content: userContent },
           ],
+          // 앞부분이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게 이름표를 준다
+          prompt_cache_key: "workbook-blueprint",
           max_tokens: 12_000,
         };
         if (includeTemperature && !isGpt5FamilyModel(model)) {

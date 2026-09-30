@@ -185,6 +185,8 @@ export async function callGrammarChoiceReviewer(input: {
           { role: "system", content: GRAMMAR_CHOICE_REVIEWER_SYSTEM_PROMPT },
           { role: "user", content: userContent },
         ],
+        // 앞부분이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게 이름표를 준다
+        prompt_cache_key: "workbook-grammar-v5-review",
       };
       if (isGpt5FamilyModel(requestedModel)) {
         body.max_completion_tokens = 8_000;

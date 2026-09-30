@@ -111,6 +111,8 @@ export async function callWordOrderChunkOpenAI(input: {
               content: `Split each sentence into semantic chunks with types. Return {"sentences":[{"sentenceId":"...","chunks":[{"chunkId":"...","text":"...","startTokenIndex":0,"endTokenIndex":2,"type":"verb-phrase"}]}]}.\n\n${userContent}`,
             },
           ],
+          // 앞부분이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게 이름표를 준다
+          prompt_cache_key: "workbook-word-order",
         }),
       });
       bodyText = await res.text();

@@ -128,7 +128,14 @@ async function callTfOpenAI(input: {
     ? configured.startsWith("gpt-5")
       ? [configured, "gpt-4o"]
       : [configured]
-    : ["gpt-4o", "gpt-4o-mini"];
+    : ["gpt-5.6-luna", "gpt-4o"];
+  /*
+   * 모델 견줌(2026-10-01): 지문 4개로 여덟 벌씩 만들어 눈가림 채점했다.
+   *   gpt-4o        괜찮음 7/8 · 건당 $0.0074
+   *   gpt-5.6-luna  괜찮음 8/8 · 건당 $0.0010   ← 7배 싸고 더 정확
+   *   gpt-5-mini    괜찮음 8/8 · 건당 $0.0021
+   * 그래서 luna 를 먼저 쓰고, 안 되면 예전 모델로 넘어간다.
+   */
 
   const controller = new AbortController();
   // 지문당 최대 20문항이라 응답이 길다. 워크북 라우트 한도(300초) 안에서 넉넉히 둔다.
