@@ -227,6 +227,89 @@ export async function deleteClass(classId: string): Promise<ClassActionResult> {
   };
 }
 
+/** 반 하나가 지워질 때 함께 사라지는 것들 — 지우기 전에 보여 준다 */
+export async function countClassLinks(classId: string): Promise<{
+  ok: boolean;
+  message?: string;
+  name?: string;
+  students?: number;
+  courses?: number;
+  assignments?: number;
+}> {
+  const auth = await requireAdmin();
+  if (!auth.ok) return { ok: false, message: auth.message };
+
+  const admin = createAdminClient();
+  const { data: existing } = await admin
+    .from("classes")
+    .select("id, name")
+    .eq("id", classId)
+    .eq("academy_id", auth.academyId)
+    .maybeSingle();
+  if (!existing) return { ok: false, message: "반을 찾을 수 없습니다." };
+
+  const count = async (table: string, column: string) => {
+    const { count: n } = await admin
+      .from(table)
+      .select("id", { count: "exact", head: true })
+      .eq(column, classId);
+    return n ?? 0;
+  };
+  const [students, courses, listening, vocab, schedules] = await Promise.all([
+    count("class_students", "class_id"),
+    count("class_courses", "class_id"),
+    count("listening_assignments", "class_id"),
+    count("vocab_assignments", "class_id"),
+    count("listening_schedule_assignments", "target_class_id"),
+  ]);
+
+  return {
+    ok: true,
+    name: existing.name as string,
+    students,
+    courses,
+    assignments: listening + vocab + schedules,
+  };
+}
+
+/**
+ * 반을 아주 지운다.
+ *
+ * 반에 딸린 것(학생 연결·강좌 연결·듣기/단어 배정)은 함께 사라진다. 학생 계정과
+ * 학습 기록은 학생 쪽에 남으므로 그대로다. 되돌릴 수 없으니 화면에서 반 이름을
+ * 받아 적게 한 뒤에만 부른다.
+ */
+export async function purgeClass(
+  classId: string,
+  typedName: string
+): Promise<ClassActionResult> {
+  const auth = await requireAdmin();
+  if (!auth.ok) return { ok: false, message: auth.message };
+
+  const admin = createAdminClient();
+  const { data: existing } = await admin
+    .from("classes")
+    .select("id, name")
+    .eq("id", classId)
+    .eq("academy_id", auth.academyId)
+    .maybeSingle();
+  if (!existing) return { ok: false, message: "반을 찾을 수 없습니다." };
+
+  if ((typedName ?? "").trim() !== (existing.name as string).trim()) {
+    return { ok: false, message: "반 이름이 다릅니다. 그대로 적어 주세요." };
+  }
+
+  const { error } = await admin
+    .from("classes")
+    .delete()
+    .eq("id", classId)
+    .eq("academy_id", auth.academyId);
+  if (error) return { ok: false, message: error.message };
+
+  revalidateClassPaths();
+  return { ok: true, message: `「${existing.name}」 반을 지웠습니다.` };
+}
+
 export async function adminAddStudentToClass(
   classId: string,
   studentId: string

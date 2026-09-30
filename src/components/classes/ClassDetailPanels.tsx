@@ -9,6 +9,8 @@ import {
   adminRemoveCourseFromClass,
   adminRemoveStudentFromClass,
   deleteClass,
+  countClassLinks,
+  purgeClass,
   updateClass,
 } from "@/app/admin/classes/actions";
 import {
@@ -18,6 +20,7 @@ import {
   teacherRemoveCourseFromClass,
   teacherRemoveStudentFromClass,
 } from "@/app/teacher/classes/actions";
+import { PurgeClassButton } from "@/components/classes/PurgeClassButton";
 import { ArchiveClassButton } from "@/components/classes/ArchiveClassButton";
 import { ClassModal } from "@/components/classes/ClassModal";
 import { MiniBar, SearchBox } from "@/components/classes/ClassUi";
@@ -848,6 +851,25 @@ export function ClassSettingsPanel({
               : "다시 쓰려면 관리자에게 요청해 주세요."}
           </p>
         )}
+
+        {isAdmin ? (
+          <div className="mt-5 border-t border-rose-100 pt-4">
+            <h3 className="text-sm font-bold text-slate-900">반 완전 삭제</h3>
+            <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <p className="text-sm text-slate-600">
+                보관으로도 정리가 안 되는 반은 아주 지울 수 있어요. 반에 딸린 학생 연결과
+                배정이 함께 사라지고, 되돌릴 수 없어요.
+              </p>
+              <PurgeClassButton
+                classId={classId}
+                className={initialName}
+                countLinks={countClassLinks}
+                purge={purgeClass}
+                redirectTo="/admin/classes"
+              />
+            </div>
+          </div>
+        ) : null}
       </section>
     </div>
   );
