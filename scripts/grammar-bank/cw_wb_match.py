@@ -111,13 +111,27 @@ def main(q_path, box_path, out_path, bad_path=None):
         head = blocks.get((key[0], key[1], 0)) or []
         units.append((key[0], key[1], head[0]["printed_page"] if head else None))
 
-    # 본책 답이 앞쪽에 있다. 워크북 쪽 번호가 적힌 Unit 머리가 처음 나오는
-    # 자리부터가 워크북 부분이다.
-    want = {u[2] for u in units if u[2]}
-    first = min((b["answer_page"] for b in boxes
-                 if HAS_UNIT.search(re.sub(r"\s+", " ", b.get("head") or ""))
-                 and any(int(n) in want for n in PAGEREF.findall(b.get("head") or ""))),
-                default=0)
+    # 본책 답이 앞쪽에 있고 워크북 답이 뒤쪽에 있다. 본책에도 「Unit Exercise
+    # p.47」 같은 머리가 있어, 쪽 번호만 보고 처음 나오는 자리를 잡으면 본책이
+    # 통째로 딸려 들어온다. 그래서 시작 자리를 하나씩 옮겨 가며, 문항 번호까지
+    # 그대로 맞아떨어지는 상자가 가장 많은 자리를 고른다.
+    def fits(start):
+        got = 0
+        for ch, un, bl, ans in spots([b for b in boxes if b["answer_page"] >= start], units):
+            items = blocks.get((ch, un, bl))
+            if items and set(ans) == {str(q["no"]) for q in items}:
+                got += 1
+        return got
+
+    # 본책 답 상자 머리에는 「Unit Exercise」가 붙는다. 워크북 쪽에는 없다.
+    # 마지막 Exercise 뒤부터가 워크북이다.
+    # 답 안에 쓰인 낱말 exercise 와 섞이지 않게 「Unit Exercise」 통째로 본다
+    said = re.compile(r"U\s?n\s?[il1]\s?t\s*Ex[e0o]r[cs]", re.I)
+    ends = [b["answer_page"] for b in boxes
+            if said.search(re.sub(r"\s+", " ", b.get("head") or ""))]
+    floor = max(ends) + 1 if ends else 0
+    pages = sorted({b["answer_page"] for b in boxes if b["answer_page"] >= floor})
+    first = max(pages, key=lambda p: (fits(p), p)) if pages else floor
     boxes = [b for b in boxes if b["answer_page"] >= first]
     placed = spots(boxes, units)
     exact = sum(1 for ch, un, bl, ans in placed
