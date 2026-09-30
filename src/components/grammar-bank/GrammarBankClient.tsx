@@ -64,6 +64,7 @@ export function GrammarBankClient({
   const [tier, setTier] = useState<number | null>(null);
 
   const [allQuestions, setAllQuestions] = useState<GrammarQuestion[]>([]);
+  const [unit, setUnit] = useState<string | null>(null);   // 세부 단원 ("" 는 세부 없는 것)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -124,23 +125,37 @@ export function GrammarBankClient({
     return () => controller.abort();
   }, [level, chapterNo]);
 
+  /** 이 단원의 세부 단원 — 문항이 있는 것만, 많은 차례로 */
+  const unitOptions = useMemo(() => {
+    const table = new Map<string, number>();
+    for (const q of allQuestions) table.set(q.unit ?? "", (table.get(q.unit ?? "") ?? 0) + 1);
+    const named = [...table.entries()]
+      .filter(([name]) => name)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    const blank = table.get("") ?? 0;
+    return blank > 0 ? [...named, ["", blank] as [string, number]] : named;
+  }, [allQuestions]);
+
+  /** 세부 단원을 고르면 그 안에서만 담는다 */
+  const scoped = useMemo(
+    () => (unit == null ? allQuestions : allQuestions.filter((q) => (q.unit ?? "") === unit)),
+    [allQuestions, unit],
+  );
+
   const questions = useMemo(
-    () =>
-      tier == null
-        ? allQuestions
-        : allQuestions.filter((q) => tierOf(q) === tier),
-    [allQuestions, tier],
+    () => (tier == null ? scoped : scoped.filter((q) => tierOf(q) === tier)),
+    [scoped, tier],
   );
 
   /** 이 단원에 단계·유형별로 몇 문항이 있는지 */
   const stock = useMemo(() => {
     const table: Plan = { 1: { mcq: 0, written: 0 }, 2: { mcq: 0, written: 0 }, 3: { mcq: 0, written: 0 } };
-    for (const q of allQuestions) {
+    for (const q of scoped) {
       const row = table[tierOf(q)];
       if (row) row[kindOf(q)] += 1;
     }
     return table;
-  }, [allQuestions]);
+  }, [scoped]);
 
   const pickedList = useMemo(
     () =>
@@ -189,7 +204,7 @@ export function GrammarBankClient({
     for (const t of GRAMMAR_TIERS) {
       for (const kind of KINDS) {
         const want = plan[t.tier]?.[kind.key] ?? 0;
-        const pool = allQuestions.filter(
+        const pool = scoped.filter(
           (q) => tierOf(q) === t.tier && kindOf(q) === kind.key,
         );
         const poolIds = new Set(pool.map((q) => q.id));
@@ -452,6 +467,7 @@ export function GrammarBankClient({
                   onClick={() => {
                     setChapterNo(c.chapter_no);
                     setTier(null);
+                    setUnit(null);
                   }}
                   className={`flex w-full items-center justify-between gap-2 px-4 py-2 text-left text-sm transition ${
                     chapterNo === c.chapter_no
@@ -472,6 +488,42 @@ export function GrammarBankClient({
         </div>
 
         <div className="space-y-4">
+          {/* 세부 단원 — 「to부정사」 안에서 명사적·부사적처럼 더 좁혀 담는다 */}
+          {chapterNo != null && unitOptions.length > 1 ? (
+            <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p className="text-xs font-semibold text-slate-500">세부 단원</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setUnit(null)}
+                  aria-pressed={unit === null}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                    unit === null
+                      ? "bg-brand-600 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  전체 {allQuestions.length}
+                </button>
+                {unitOptions.map(([name, count]) => (
+                  <button
+                    key={name || "(없음)"}
+                    type="button"
+                    onClick={() => setUnit(unit === name ? null : name)}
+                    aria-pressed={unit === name}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                      unit === name
+                        ? "bg-brand-600 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {name || "세부 없음"} {count}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {chapterNo != null && allQuestions.length > 0 ? (
             <div className="rounded-lg border border-slate-200 bg-white">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">

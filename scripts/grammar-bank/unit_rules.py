@@ -25,11 +25,15 @@ def flatten(q):
     prompt = str(q.get("prompt") or "")
     body = [str(b) for b in (q.get("body") or []) if str(b).strip()]
     picks = [str(c.get("text") or "") for c in (q.get("choices") or [])]
+    answer = str(q.get("answer") or "")
     if body:
         if SAME_USE.search(prompt):
             return re.sub(r"\s+", " ", " ".join(body))
-        return re.sub(r"\s+", " ", " ".join([prompt] + body))
-    return re.sub(r"\s+", " ", " ".join([prompt] + picks + [str(q.get("answer") or "")]))
+        # 보기가 없는 서술형은 답이 곧 문법이 드러나는 자리다 — 함께 본다.
+        # 보기가 있는 문항의 답은 번호뿐이라 보태도 얻을 것이 없다.
+        tail = [answer] if not picks else []
+        return re.sub(r"\s+", " ", " ".join([prompt] + body + tail))
+    return re.sub(r"\s+", " ", " ".join([prompt] + picks + [answer]))
 
 
 V = r"[a-z]+"          # 동사로 볼 만한 낱말
@@ -102,18 +106,35 @@ GER_IDIOM = [
     r"\bfeel\s+like\s+\w+ing\b",
     r"\bgo\s+\w+ing\b",
     r"\bhow\s+about\s+\w+ing\b",
-    r"\blook\s+forward\s+to\s+\w+ing\b",
+    r"\blook(ing)?\s+forward\s+to\b",
     r"\bspend\s+.{0,16}\s+\w+ing\b",
     r"\bit\s+is\s+no\s+use\s+\w+ing\b",
+    # 전치사를 데리고 다니는 굳은 표현 — 뒤에는 동명사가 온다
+    r"\b(is|are|was|were|am|be)\s+"
+    r"(good|bad|fond|afraid|interested|tired|proud|capable|ashamed|aware|sure|"
+    r"worried|used|accustomed|busy|sorry)\s+(at|of|in|about|for|to|with)\b",
+    r"\b(object|devote|contribute|be\s+opposed)\s+to\b",
+    r"\bin\s+addition\s+to\b|\bwhat\s+about\b",
     r"관용",
 ]
+# 이 갈래는 to부정사와 동명사를 견주는 자리다. 한쪽만 있으면 그냥 쓰임이다.
 GER_BOTH = [
     r"\b(remember|forget|try|stop|regret)\s+(to\s+\w+|\w+ing)\b",
-    r"\b(like|love|hate|begin|start|continue)\s+(to\s+\w+|\w+ing)\b",
+    r"\[[^\]]*\bto\s+\w+[^\]]*/[^\]]*\w+ing[^\]]*\]",
+    r"\[[^\]]*\w+ing[^\]]*/[^\]]*\bto\s+\w+[^\]]*\]",
+    r"\bto\s+\w+\b.{0,40}\b\w+ing\b.{0,20}(고르|알맞은|같은)",
+    # 같은 동사가 두 꼴을 다 데리고 나온다 (「loves watching → loves to watch」)
+    r"\b(like|love|hate|begin|start|continue|prefer)s?\s+\w+ing\b.{0,60}"
+    r"\b(like|love|hate|begin|start|continue|prefer)s?\s+to\b",
+    # to부정사만 받는 동사 — 동명사와 갈라 쓰는 자리다
+    r"\b(refuse|decide|hope|plan|promise|expect|agree|wish|choose|manage|afford)s?\b"
+    r".{0,24}\bto\s+\w+",
     r"동명사와 to부정사|to부정사와 동명사",
 ]
 GER_USE = [
-    r"\b(enjoy|finish|mind|avoid|keep|give up|practice|suggest|quit|deny|admit)\s+\w+ing\b",
+    # 동명사만 받는 동사 — 뒤가 빈칸이거나 틀린 꼴이어도 이 갈래다
+    r"\b(enjoy|finish|mind|avoid|keep|give\s+up|practice|suggest|quit|deny|admit|"
+    r"consider|postpone|put\s+off|imagine|escape|delay)s?\b",
     r"\b(is|are|was|were)\s+\w+ing\b.{0,30}\b(hobby|dream|job)\b",
     r"\bby\s+\w+ing\b|\bwithout\s+\w+ing\b|\bafter\s+\w+ing\b|\bbefore\s+\w+ing\b",
     r"동명사",
@@ -186,6 +207,8 @@ PAS_SPECIAL = [
     r"(known|filled|covered|made|interested|surprised|satisfied|worried|"
     r"crowded|tired|excited|disappointed|pleased)\s+"
     r"(as|to|with|of|in|at|about|for)\b",
+    # 「is said to ~」처럼 that절을 받아 넘긴 수동태
+    r"\b(is|are|was|were)\s+(said|believed|thought|reported|expected|supposed)\s+to\b",
 ]
 PAS_CARE = [
     r"\bwas\s+\w+ed\s+to\s+\w+", r"\bbe\s+p\.?p\.?\b", r"주의할 수동태",
@@ -340,7 +363,11 @@ TABLE = {
     "문장의 형식": [
         ("주어+동사+목적어+목적격보어",
          [r"\b(make|makes|made|call|called|find|found|keep|kept|name|named|elect|leave|left)\s+"
-          + WHO + r"\s+\w+", r"목적격보어"]),
+          + WHO + r"\s+\w+",
+          # ask/tell/want + 목적어 + to부정사 도 목적격보어다
+          r"\b(ask|asked|tell|told|want|wanted|allow|allowed|advise|advised|order|ordered|"
+          r"expect|expected|encourage|encouraged|get|got)\s+" + WHO + r"\s+to\s+\w+",
+          r"목적격보어"]),
         ("주어+동사+간접목적어+직접목적어",
          [r"\b(give|gave|send|sent|show|showed|buy|bought|make|made|teach|taught|tell|told|"
           r"lend|lent|write|wrote|ask|asked)\s+" + WHO + r"\s+(a|an|the|some|my|his|her)\b",
@@ -457,6 +484,10 @@ PICKERS = {
 
 for _name in TABLE:
     PICKERS.setdefault(_name, by_table(_name))
+# 레벨 4는 단원 이름만 조금 다르다
+for _a, _b in (("일치, 화법", "일치와 화법"), ("분사", "분사"), ("비교", "비교구문")):
+    if _b in TABLE:
+        PICKERS.setdefault(_a, by_table(_b))
 # 같은 짜임을 쓰는 단원들
 for _a, _b in (("접속사[1]", "접속사"), ("접속사[2]", "접속사"),
                ("문장의 형식", "문장의 형식"), ("비교", "비교구문")):
@@ -464,12 +495,49 @@ for _a, _b in (("접속사[1]", "접속사"), ("접속사[2]", "접속사"),
         PICKERS.setdefault(_a, by_table(_b))
 
 
+# 레벨마다 세부 이름이 다른 단원은 따로 본다
+BY_LEVEL = {
+    (2, "관계사"): [
+        ("관계대명사에서 주의할 점",
+         [r"\b(who|which|that)\s+(was|were|is|are)\b.{0,30}(고쳐|어색|틀린)",
+          r"\b(in|on|at|for|with|to|about)\s+(which|whom)\b", r"주의"]),
+        ("관계대명사의 종류",
+         [r"\bwhose\b", r"\bwhat\b.{0,24}관계", r"who,\s*whom,\s*whose", r"종류"]),
+        ("목적격 관계대명사",
+         [r"\bwho\s?\(?m\)?\b", r"\bwhom\b",
+          r"\b(who|which|that)\s+(I|you|he|she|we|they|[A-Z][a-z]+)\b",
+          r"목적격"]),
+        ("주격 관계대명사",
+         [r"\b(who|which|that)\s+(is|are|was|were|has|have|had|\w+s|\w+ed)\b", r"주격"]),
+    ],
+    (2, "접속사[2]"): [
+        ("짝을 이루는 접속사",
+         [r"\bboth\s+\w+\s+and\b", r"\beither\s+\w+\s+or\b", r"\bneither\s+\w+\s+nor\b",
+          r"\bnot\s+only\b", r"\bbut\s+also\b", r"\bso\s*~?\s*that\b", r"상관접속사|짝을 이루"]),
+        ("명사절을 이끄는 that",
+         [r"\bthat\b", r"\bwhether\b", r"명사절|that절"]),
+        ("시간 전치사",
+         [r"\b(at|on|in|before|after|during|until|by|since|for)\s+"
+          r"(\d{1,4}|noon|midnight|morning|afternoon|evening|night|\w+day|"
+          r"January|February|March|April|May|June|July|August|September|October|November|December)\b",
+          r"시간"]),
+        ("장소 전치사",
+         [r"\b(under|over|above|below|behind|between|among|beside|near|next\s+to|"
+          r"in\s+front\s+of|into|through|across|along)\b", r"장소"]),
+        ("여러 가지 전치사", [r"\b(with|without|about|of|for|by)\s+\w+"]),
+    ],
+}
+for _key, _rules in BY_LEVEL.items():
+    TABLE["%d|%s" % _key] = _rules
+    PICKERS["%d|%s" % _key] = by_table("%d|%s" % _key)
+
+
 def guess(level, chapter, question, allow):
     """이 문항의 세부 단원 — 가릴 수 없으면 None.
 
     allow 는 그 단원에서 쓸 수 있는 세부 이름들이다. 표에 없는 이름은 내놓지 않는다.
     """
-    pick = PICKERS.get(chapter)
+    pick = PICKERS.get("%d|%s" % (level, chapter)) or PICKERS.get(chapter)
     if not pick or not allow:
         return None
     return pick(flatten(question), set(allow))
