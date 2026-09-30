@@ -124,15 +124,15 @@ def main(q_path, box_path, out_path, bad_path=None):
                            "까닭": "그 자리에 문항이 없음"})
             continue
         nos = {str(q["no"]) for q in items}
-        # 번호가 하나라도 어긋나면 자리를 잘못 짚은 것이다. 정답지에서 번호를
-        # 덜 읽은 상자도 섞여 있지만, 받아들여 보니 열에 다섯이 틀렸다 —
-        # 묶음이 통째로 밀린 상자가 그 안에 숨어 있다. 번호가 꼭 같을 때만 쓴다.
+        # 번호가 딱 맞으면 그 자체가 자리를 확인해 준다. 정답지가 번호를 몇 개
+        # 덜 읽은 상자는 그 확인이 없어, 묶음이 통째로 밀린 상자가 섞여 들어온다.
+        # 맞대어 볼 문항이 둘 이상 있을 때만 받아 보기도 했지만, 건진 것은 다섯
+        # 문항뿐이고 그중에도 틀린 것이 있었다. 번호가 꼭 같을 때만 쓴다.
         if set(answers) != nos:
             failed.append({"단원": ch, "Unit": un, "묶음": bl, "답": len(answers),
                            "까닭": "번호가 문항과 다름"})
             continue
-
-        pairs = [(q, answers[str(q["no"])]) for q in items if str(q["no"]) in answers]
+        pairs = [(q, answers[str(q["no"])]) for q in items]
         why = None
         for q, a in pairs:
             if not ok_choice(a, q.get("choices")):
