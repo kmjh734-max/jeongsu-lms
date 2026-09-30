@@ -7,6 +7,7 @@ const MM = 96 / 25.4; // 1mm = 3.78px
 const SHEET_INNER_H = (296 - 11 - 8) * MM; // 쪽 안쪽 높이
 const COLS_PAD_TOP = 3.6 * MM;
 const COL_W = 85 * MM; // 오른쪽 단(좁은 쪽)에 맞춰 잰다
+const FULL_W = 186 * MM; // 단을 가르지 않고 쪽 너비로 눕힐 때
 const SLACK = 2 * MM;
 
 const CIRCLED = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
@@ -22,7 +23,7 @@ export type GrammarPrintOptions = {
 };
 
 type Block = { key: string; kind: "q" | "a"; index: number };
-type Page = { left: Block[]; right: Block[]; answers: boolean };
+type Page = { left: Block[]; right: Block[]; answers: boolean; wide?: boolean };
 
 /** 본문 속 [[ ]] 는 밑줄 친 부분 */
 function withUnderlines(line: string) {
@@ -130,14 +131,21 @@ export function GrammarPrintSheets({
     const footH = root.querySelector<HTMLElement>("[data-gb-foot]")?.offsetHeight ?? 0;
     const cards = [...root.querySelectorAll<HTMLElement>("[data-gb-card]")];
 
-    const qHeights = cards.slice(0, questions.length).map((el) => el.offsetHeight);
-    const aHeights = cards.slice(questions.length).map((el) => el.offsetHeight);
+    const half = cards.length / 2;   // 앞의 절반은 단 너비, 뒤의 절반은 쪽 너비로 잰 것
+    const narrow = cards.slice(0, half).map((el) => el.offsetHeight);
+    const wide = cards.slice(half).map((el) => el.offsetHeight);
+
+    const qHeights = narrow.slice(0, questions.length);
+    const aHeights = narrow.slice(questions.length);
+    const qWide = wide.slice(0, questions.length);
+    const aWide = wide.slice(questions.length);
 
     const base = SHEET_INNER_H - headH - footH - COLS_PAD_TOP - SLACK;
     const firstPage = base - nameH;
 
     function fill(
       heights: number[],
+      wides: number[],
       kind: "q" | "a",
       answers: boolean,
       startsFirst: boolean,
@@ -147,6 +155,9 @@ export function GrammarPrintSheets({
       let column: "left" | "right" = "left";
       let used = 0;
       let limit = startsFirst ? firstPage : base;
+      // 한 단에 담기지 않는 긴 문항은 쪽 너비로 눕혀 따로 모은다
+      let long: Page | null = null;
+      let longUsed = 0;
 
       const pushPage = () => {
         out.push(page);
@@ -155,8 +166,26 @@ export function GrammarPrintSheets({
         used = 0;
         limit = base;
       };
+      const closeLong = () => {
+        if (long) out.push(long);
+        long = null;
+        longUsed = 0;
+      };
 
       heights.forEach((h, i) => {
+        const block = { key: `${kind}-${i}`, kind, index: i } as Block;
+        if (h > limit) {
+          // 단 하나로는 못 담는다 — 쪽 너비로 눕히면 높이가 절반쯤으로 준다.
+          // 그냥 얹으면 쪽 밖으로 넘쳐 인쇄에서 잘려 나간다.
+          if (page.left.length > 0 || page.right.length > 0) pushPage();
+          const tall = wides[i] ?? h;
+          if (long && longUsed + tall > base) closeLong();
+          if (!long) long = { left: [], right: [], answers, wide: true };
+          long.left.push(block);
+          longUsed += tall;
+          return;
+        }
+        closeLong();
         if (used > 0 && used + h > limit) {
           if (column === "left") {
             column = "right";
@@ -165,16 +194,17 @@ export function GrammarPrintSheets({
             pushPage();
           }
         }
-        page[column].push({ key: `${kind}-${i}`, kind, index: i });
+        page[column].push(block);
         used += h;
       });
+      closeLong();
       if (page.left.length > 0 || page.right.length > 0) out.push(page);
       return out;
     }
 
-    const sheetPages = fill(qHeights, "q", false, true);
+    const sheetPages = fill(qHeights, qWide, "q", false, true);
     const answerPages =
-      answerQuestions.length > 0 ? fill(aHeights, "a", true, false) : [];
+      answerQuestions.length > 0 ? fill(aHeights, aWide, "a", true, false) : [];
     setPages([...sheetPages, ...answerPages]);
   }, [questions, answerQuestions, options.showName, options.style, options.title]);
 
@@ -261,6 +291,15 @@ export function GrammarPrintSheets({
             <AnswerRow key={`ma-${q.id}`} q={q} no={i + 1} measuring />
           ))}
         </div>
+        {/* 같은 문항을 쪽 너비로도 재 둔다 — 단 하나에 안 담기는 긴 문항을 눕히려면 필요하다 */}
+        <div style={{ width: FULL_W }}>
+          {questions.map((q, i) => (
+            <QuestionCard key={`w-${q.id}`} q={q} no={i + 1} measuring />
+          ))}
+          {answerQuestions.map((q, i) => (
+            <AnswerRow key={`wa-${q.id}`} q={q} no={i + 1} measuring />
+          ))}
+        </div>
         {footer(1, false)}
       </div>
 
@@ -269,12 +308,18 @@ export function GrammarPrintSheets({
           <div key={i} className={`gb-sheet gb-sheet--${options.style}`}>
             {header(i + 1, total, page.answers)}
             {options.showName && i === 0 && !page.answers ? nameRow : null}
-            <div className="gb-cols">
-              <div className="gb-col">{page.left.map(renderBlock)}</div>
-              <div className="gb-col gb-col--right">
-                {page.right.map(renderBlock)}
+            {page.wide ? (
+              <div className="gb-cols gb-cols--wide">
+                <div className="gb-col">{page.left.map(renderBlock)}</div>
               </div>
-            </div>
+            ) : (
+              <div className="gb-cols">
+                <div className="gb-col">{page.left.map(renderBlock)}</div>
+                <div className="gb-col gb-col--right">
+                  {page.right.map(renderBlock)}
+                </div>
+              </div>
+            )}
             {footer(i + 1, page.answers)}
           </div>
         ))}

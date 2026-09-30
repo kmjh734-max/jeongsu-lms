@@ -3548,6 +3548,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   align-items: start;
 }
 .gb-col { min-width: 0 }
+/* 단 하나에 안 담기는 긴 문항은 쪽 너비로 눕힌다 */
+.gb-cols--wide { grid-template-columns: 1fr }
 .gb-col--right {
   border-left: 0.2mm solid var(--gb-line);
   padding-left: 5mm;
@@ -4745,7 +4747,13 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     box-shadow: none !important;
     margin: 0 !important;
     width: 210mm !important;
-    min-height: 296mm !important;
+    /* 높이를 못 박는다. min-height 로 두면 한 줄만 넘쳐도 쪽이 늘어나
+       다음 장으로 밀리고, overflow: hidden 에 잘려 나간다. */
+    min-height: 0 !important;
+    height: 296mm !important;
+    max-height: 296mm !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
     break-after: page;
     page-break-after: always;
     -webkit-print-color-adjust: exact !important;
