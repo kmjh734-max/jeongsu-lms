@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
-"""잘 풀리는 영문법 — 본책 문항과 정답지에서 읽은 답을 맞댄다.
+"""본책에서 뽑은 문항과 정답지에서 읽은 답을 맞댄다 (잘 풀리는 영문법).
 
-맞대는 열쇠
-  · RULE·실전문제 상자 → (본책에 인쇄된 쪽, 문항 번호)
-  · 통합 문제 상자     → (단원 번호, 문항 번호)  ─ 통합 문제는 두 쪽에 걸쳐 이어진다
+정답지는 본책 차례를 그대로 따라간다. 그래서 본책의 문항 묶음(한 쪽 안에서
+번호가 1부터 다시 시작하는 단위)과 정답지의 상자를 앞에서부터 차례대로 맞댄다.
+머리말에서 본책 쪽이 읽힌 상자는 그 쪽에 못을 박아 차례가 밀리지 않게 한다.
 
-검산 — 하나라도 어긋나면 그 묶음은 넣지 않는다.
+검산 — 하나라도 어긋나면 그 묶음은 넣지 않고 따로 남긴다.
   · 문항 수와 답 개수가 같아야 한다
-  · 보기 ①~⑤ 가 있는 문항은 답이 그 안의 번호여야 한다
+  · ①~⑤ 로 고르는 문항은 답이 보기 안에 있어야 한다
+  · 읽다가 뭉개진 답은 뺀다 (그래머큐와 같은 그물을 쓴다)
+
+「마무리 실전문제」는 여러 단원에 걸쳐 있어 은행의 단원에 넣을 자리가 없다.
+선생님 뜻에 따라 넣지 않는다.
 
   python scripts/grammar-bank/jp_match.py 문항.json 답.json 결과.json [어긋난것.json]
 """
@@ -15,11 +19,13 @@ import collections, io, json, re, sys
 from pathlib import Path
 
 CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩"
-
+FINAL = re.compile(r"마\s?무\s?리")
+# 차례가 한두 묶음 밀리는 일이 있다 — 이만큼까지는 앞으로 훑어본다
+REACH = 3
 
 # 답을 걸러내는 그물은 그래머큐와 같은 것을 쓴다
 sys.path.insert(0, str(Path(__file__).parent))
-from gq_match import usable
+from gq_match import in_choices, usable
 
 
 def answer_nos(answer):
@@ -41,49 +47,125 @@ def ok_choice(answer, choices):
     return all(n in have for n in nos)
 
 
+PICK = re.compile(r"\[([^\[\]]+?)\]")
+
+
+def as_gq(q):
+    """그래머큐 그물에 넣어 보려고 글과 고를 것을 꺼내 둔다.
+
+    그래머큐는 문항 글이 text 한 줄이고 고를 것이 그 안의 [A / B] 인데,
+    여기서는 글이 body 여러 줄이고 보기가 choices 로 따로 있다.
+    """
+    text = " ".join(q.get("body") or [])
+    return {"text": text, "picks": PICK.findall(text)}
+
+
+def blocks_of(items):
+    """본책 문항을 묶음으로 나눈다 — (인쇄 쪽, 묶음 번호)
+
+    한 쪽에 문제 묶음이 둘 이상이면 번호가 1부터 다시 시작한다. 정답지도
+    묶음마다 상자가 따로 있으므로, 묶음을 단위로 맞대야 번호가 어긋나지 않는다.
+    """
+    by = collections.defaultdict(list)
+    for q in items:
+        by[(q.get("printed_page") or 0, q.get("block") or 0)].append(q)
+    return [{"page": key[0], "block": key[1],
+             "items": sorted(by[key], key=lambda q: q["no"])}
+            for key in sorted(by)]
+
+
 def main(q_path, a_path, out_path, bad_path=None):
     questions = json.load(open(q_path, encoding="utf-8"))
-    blocks = json.load(open(a_path, encoding="utf-8"))
+    boxes = json.load(open(a_path, encoding="utf-8"))
 
-    by_page = collections.defaultdict(list)
-    by_chapter = collections.defaultdict(list)
-    for q in questions:
-        by_page[q.get("printed_page")].append(q)
-        if "통합" in str(q.get("section") or ""):
-            by_chapter[q.get("chapter_no")].append(q)
-    for v in by_page.values():
-        v.sort(key=lambda q: q["no"])
-    for v in by_chapter.values():
-        v.sort(key=lambda q: (q.get("printed_page") or 0, q["no"]))
+    # 마무리 실전문제는 여러 단원에 걸쳐 있어 넣을 자리가 없다
+    questions = [q for q in questions if not FINAL.search(str(q.get("section") or ""))]
+    boxes = [b for b in boxes if b.get("kind") != "마무리"]
+
+    blocks = blocks_of(questions)
+    first_on = {}
+    for i, blk in enumerate(blocks):
+        first_on.setdefault(blk["page"], i)
+
+    boxes.sort(key=lambda b: (b["answer_page"], b["order"]))
 
     matched, failed = [], []
-    for b in blocks:
+    used = set()
+    at = 0
+    carried = 0
+    for b in boxes:
         answers = b["answers"]
-        got = [answers[k] for k in sorted(answers, key=int)]
-        if b["kind"] == "통합":
-            items = by_chapter.get(b.get("chapter_no"), [])
-            where = "CH%s 통합" % b.get("chapter_no")
+        # 머리말에서 본책 쪽을 읽은 상자만 쓴다. 쪽을 모르면 차례만 믿게 되는데,
+        # 한 번 밀리면 그 뒤가 줄줄이 어긋나 엉뚱한 답이 붙는다.
+        if b.get("book_page") in first_on:
+            at = first_on[b["book_page"]]
         else:
-            items = by_page.get(b.get("book_page"), [])
-            where = "p.%s" % b.get("book_page")
-        if not items:
-            failed.append({"where": where, "문항": 0, "답": len(got), "까닭": "본책에서 찾지 못함"})
+            # 쪽을 못 읽은 상자는 쓰지 않는다. 차례만 믿으면 한 번 밀린 뒤로
+            # 줄줄이 엉뚱한 답이 붙는데, 붙고 나면 가려낼 길이 없다.
+            failed.append({"정답지쪽": b["answer_page"], "본책쪽": b.get("book_page"),
+                           "답": len(answers), "까닭": "본책 쪽을 읽지 못함"})
             continue
-        if len(items) != len(got):
-            failed.append({"where": where, "문항": len(items), "답": len(got), "까닭": "개수가 맞지 않음"})
+        # 이 자리부터 답 개수가 맞아떨어지는 묶음을 찾는다.
+        # 통합 문제는 한 상자가 본책 두 쪽에 걸치므로 묶음을 이어 붙여서도 본다.
+        # 이어 붙인 번호가 1부터 빠짐없이 이어질 때만 한 묶음으로 본다.
+        spot = span = None
+        for step in range(REACH + 1):
+            i = at + step
+            if i >= len(blocks):
+                break
+            if i in used:
+                continue
+            got = []
+            for take in range(1, 4):
+                if i + take > len(blocks) or (i + take - 1) in used:
+                    break
+                got += blocks[i + take - 1]["items"]
+                if len(got) != len(answers):
+                    continue
+                nos = [q["no"] for q in got]
+                if sorted(nos) == list(range(1, len(nos) + 1)):
+                    spot, span = i, take
+                    break
+            if spot is not None:
+                break
+        if spot is None:
+            failed.append({"정답지쪽": b["answer_page"], "본책쪽": b.get("book_page"),
+                           "답": len(answers), "까닭": "개수가 맞는 묶음을 찾지 못함"})
             continue
-        bad = [i for i, (q, a) in enumerate(zip(items, got)) if not ok_choice(a, q.get("choices"))]
+
+        blk = {"page": blocks[spot]["page"],
+               "items": [q for k in range(span) for q in blocks[spot + k]["items"]]}
+        used.update(range(spot, spot + span))
+        at = spot + span
+        if b.get("book_page") in first_on:
+            carried = 0
+        pairs = [(q, answers.get(str(q["no"]))) for q in blk["items"]]
+        if any(a is None for _q, a in pairs):
+            failed.append({"정답지쪽": b["answer_page"], "본책쪽": blk["page"],
+                           "답": len(answers), "까닭": "번호가 맞지 않음"})
+            continue
+        bad = [1 for q, a in pairs if not ok_choice(a, q.get("choices"))]
         if bad:
-            failed.append({"where": where, "문항": len(items), "답": len(got),
-                           "까닭": "보기에 없는 답 %d개" % len(bad)})
+            failed.append({"정답지쪽": b["answer_page"], "본책쪽": blk["page"],
+                           "답": len(answers), "까닭": "보기에 없는 답 %d개" % len(bad)})
             continue
-        # 읽다가 어긋난 자국이 하나라도 있으면 그 묶음은 통째로 넘긴다
-        rough = [1 for q, a in zip(items, got) if not usable(a, q)]
-        if rough:
-            failed.append({"where": where, "문항": len(items), "답": len(got),
-                           "까닭": "읽은 답이 뭉개짐 %d개" % len(rough)})
+        # [A / B] 처럼 고를 것이 정해진 문항은 답이 그 안에 있어야 한다.
+        # 몇 개가 어긋나면 그 낱말을 잘못 읽은 것이니 그것만 빼고, 여럿이 어긋나면
+        # 상자와 묶음이 어긋난 것이므로 통째로 넘긴다.
+        checked = [(q, a) for q, a in pairs if as_gq(q)["picks"]]
+        off = [1 for q, a in checked if not in_choices(a, as_gq(q)["picks"])]
+        if off and len(off) > max(1, len(checked) * 0.2):
+            failed.append({"정답지쪽": b["answer_page"], "본책쪽": blk["page"],
+                           "답": len(answers), "까닭": "고를 것 안에 없는 답 %d개" % len(off)})
             continue
-        for q, a in zip(items, got):
+        pairs = [(q, a) for q, a in pairs if in_choices(a, as_gq(q)["picks"])]
+        # 읽다가 어긋난 답은 그것만 뺀다
+        pairs = [(q, a) for q, a in pairs if usable(a, as_gq(q))]
+        if not pairs:
+            failed.append({"정답지쪽": b["answer_page"], "본책쪽": blk["page"],
+                           "답": len(answers), "까닭": "읽은 답이 뭉개짐"})
+            continue
+        for q, a in pairs:
             row = dict(q)
             row["answer"] = a
             matched.append(row)
@@ -91,13 +173,14 @@ def main(q_path, a_path, out_path, bad_path=None):
     Path(out_path).write_text(json.dumps(matched, ensure_ascii=False, indent=1), encoding="utf-8")
     if bad_path:
         Path(bad_path).write_text(json.dumps(failed, ensure_ascii=False, indent=1), encoding="utf-8")
+
     log = io.open(1, "w", encoding="utf-8", closefd=False)
     total = max(len(questions), 1)
-    print("본책 문항 %d개 중 답을 붙인 것 %d개 (%d%%)"
+    print("본책 문항 %d개(마무리 뺀 것) 중 답을 붙인 것 %d개 (%d%%)"
           % (len(questions), len(matched), round(len(matched) / total * 100)), file=log)
     why = collections.Counter(f["까닭"] for f in failed)
     for k, n in why.most_common():
-        print("   %s: %d묶음" % (k, n), file=log)
+        print("   %s: %d상자" % (k, n), file=log)
     log.flush()
 
 

@@ -19,7 +19,8 @@ import fitz
 
 NUM_FONT = "BriemAkademi"
 BADGE_FONT = "YDVYGOStd14"
-INSTR_SIZE = 10.0
+# 지시문 글씨 크기 — 쪽마다 9.5pt 와 10pt 를 섞어 쓴다
+INSTR_LO, INSTR_HI = 9.0, 10.4
 CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩"
 HEAD = re.compile(r"CHAPTER\s*(\d{1,2})\s*(?:[ⅠI|]\s*)?(.*)")
 ANSREF = re.compile(r"정답\s*및\s*해설\s*p\.?\s*(\d+)")
@@ -176,7 +177,7 @@ def parse_page(page, page_no, carry):
         spot = (round(r["y"], 1), round(r["x"], 1))
         if r["font"].startswith(BADGE_FONT) or (r["size"] < 8 and len(text) < 8):
             h["badges"].append((spot, text))
-        elif abs(r["size"] - INSTR_SIZE) < 0.3:
+        elif INSTR_LO <= r["size"] <= INSTR_HI:
             h["prompt"].append((spot, text))
         elif text[0] in CIRCLED:
             h["choices"].append((spot, text))
@@ -202,6 +203,16 @@ def parse_page(page, page_no, carry):
             t = re.sub(r"(\?)[^?]*시오\.?\s*$", r"", t)
         return re.sub(r"\s+", " ", t).strip()
 
+    # 한 쪽에 묶음이 둘 이상이면 번호가 1부터 다시 시작한다(A·B 문제).
+    # 번호가 되돌아가는 자리에서 묶음을 가른다 — 정답지도 묶음마다 상자가 따로 있다.
+    block = 0
+    last = 0
+    for h in sorted(heads, key=lambda h: (h["col"], h["y"])):
+        if h["no"] <= last:
+            block += 1
+        h["block"] = block
+        last = h["no"]
+
     out = []
     for h in heads:
         prompt = tidy(" ".join(h["prompt"]))
@@ -209,7 +220,8 @@ def parse_page(page, page_no, carry):
         # RULE 쪽은 발문 글씨 크기가 달라 본문에 섞인다 — 발문꼴이면 끌어올린다
         if not prompt and body and ASK.search(body[0]):
             prompt, body = tidy(body[0]), body[1:]
-        if not prompt and not h["choices"]:
+        # 지시문이 묶음 머리에 한 번만 적혀 문항마다 없을 수 있다 — 본문이 있으면 살린다
+        if not prompt and not h["choices"] and not body:
             continue
         choices = []
         for c in h["choices"]:
@@ -223,6 +235,7 @@ def parse_page(page, page_no, carry):
             "chapter": carry["chapter"],
             "section": carry["section"],
             "no": h["no"],
+            "block": h["block"],
             "badges": [b for b in h["badges"] if b],
             "prompt": prompt,
             "body": body,
