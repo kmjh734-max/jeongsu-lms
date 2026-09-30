@@ -28,7 +28,7 @@ const SRC_BG: Record<string, string> = {
   모의고사: "#669bbc",
   수업자료: "#a8c686",
   외부지문: "#c9a227",
-  "못 찾음": "#ded3bb",
+  "미분류": "#ded3bb",
 };
 const CAT_COLOR: Record<string, string> = {
   "대의 파악": "#e4572e",
@@ -271,7 +271,7 @@ export function ExamReportView({
       { key: "모의고사", list: fromMock },
       { key: "수업자료", list: fromMaterial },
       { key: "외부지문", list: fromOutside },
-      { key: "못 찾음", list: fromUnknown },
+      { key: "미분류", list: fromUnknown },
     ]
       .map((x) => ({
         key: x.key,
@@ -423,10 +423,25 @@ export function ExamReportView({
     }
   }
 
+  /*
+   * 배점이 덜 읽혔으면 알린다.
+   *
+   * 선생님 지적(2026-09-30): 동형모의고사 설계도가 처음부터 94점으로 나온 시험지가
+   * 있었다. 까닭은 분석에서 배점을 못 읽은 문항이 하나 있었기 때문인데, 아무 말도
+   * 없이 넘어가고 있었다. 합이 100점이 아니거나 배점이 빈 문항이 있으면 적어 준다.
+   */
+  const noPoints = items.filter((i) => i.points == null || i.points === 0).length;
+  const pointsOff = items.length > 0 && (noPoints > 0 || Math.abs(s.total - 100) > 0.5);
+
   const title = [meta.schoolName || "학교 미입력", meta.grade ? `${meta.grade}학년` : "", meta.subject].filter(Boolean).join(" ");
   const examLine = [meta.examLabel, `선택형 ${items.length - s.subj.length} · 서술형 ${s.subj.length}문항`, `${s.total}점`]
     .filter(Boolean)
     .join(" · ");
+  const pointsNote = pointsOff
+    ? noPoints > 0
+      ? `배점이 빈 문항이 ${noPoints}개 있어 합이 ${s.total}점이에요. 문항표에서 채워 주세요.`
+      : `배점 합이 ${s.total}점이에요. 100점이 아니면 문항표에서 고쳐 주세요.`
+    : "";
   const footer = `${academyName} · 내신 시험 분석 · ${title}`;
   const showMatched = matchOn && s.matched.length > 0;
   /*
@@ -590,6 +605,9 @@ export function ExamReportView({
                 </span>
                 <h1 className="mb-0.5 mt-2 text-[27px] font-bold leading-tight tracking-tight">{title}</h1>
                 <p style={{ color: SOFT }}>{examLine}</p>
+                {pointsNote ? (
+                  <p className="mt-1 text-[12px] font-semibold text-amber-700">{pointsNote}</p>
+                ) : null}
               </div>
               <div className="shrink-0 text-right text-[11px]" style={{ color: SOFT }}>
                 <b className="block text-[14px] text-[#1f2937]">{academyName}</b>

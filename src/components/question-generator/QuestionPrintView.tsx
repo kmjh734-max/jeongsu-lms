@@ -700,6 +700,16 @@ export function QuestionPrintView({
   const [grade, setGrade] = useState("");
   const [sourceDetail, setSourceDetail] = useState("");
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
+  /*
+   * 만들어 둔 문제 가운데 원하는 유형만 뽑아 낸다.
+   *
+   * 선생님 요청(2026-09-30): 변형문제에서 만든 문제 중에 내가 원하는 유형만
+   * 출제하도록 해 달라. 지금까지는 한 묶음을 통째로 찍을 수밖에 없어서, 유형
+   * 하나만 쓰려면 그 유형만 다시 만들어야 했다.
+   *
+   * 빈 집합은 「다 쓴다」는 뜻이다 (처음 열었을 때).
+   */
+  const [offTypes, setOffTypes] = useState<Set<string>>(new Set());
   /** 지문 id → 출처(문항 번호 위에 작게 단다) */
   const [passageSources, setPassageSources] = useState<Record<string, string>>({});
   const [printLayout, setPrintLayout] = useState<PrintLayoutMode>(layoutProp);
@@ -864,8 +874,21 @@ export function QuestionPrintView({
     branding.headerTitle ||
     (mode === "answers" ? `${title} · 해설지` : title);
 
+  /** 이 묶음에 든 유형들 (고르개에 쓴다) */
+  const typeGroups = useMemo(
+    () => groupQuestionsByPrintType(questions).map((g) => ({ code: g.code, label: g.label, n: g.items.length })),
+    [questions]
+  );
+  /** 끈 유형을 뺀 문항 */
+  const shown = useMemo(() => {
+    if (offTypes.size === 0) return questions;
+    return groupQuestionsByPrintType(questions)
+      .filter((g) => !offTypes.has(g.code))
+      .flatMap((g) => g.items);
+  }, [questions, offTypes]);
+
   const displayItems: DisplayItem[] = useMemo(() => {
-    if (questions.length === 0) return [];
+    if (shown.length === 0) return [];
     /*
      * 지문 순서로 한 바퀴: 지문을 넣은 순서대로 한 문항씩 돌고, 다시 첫 지문으로 돌아온다.
      * (선생님 요청 2026-09-20: "전체 세트가 순서대로 한 바퀴 돌고 다시 18번 문제부터 쭉")
@@ -873,7 +896,7 @@ export function QuestionPrintView({
     if (printLayout === "byPassage") {
       const order: string[] = [];
       const byPassage = new Map<string, QuestionRow[]>();
-      for (const q of questions) {
+      for (const q of shown) {
         const key = q.passage_id ?? "";
         if (!byPassage.has(key)) {
           byPassage.set(key, []);
@@ -900,14 +923,14 @@ export function QuestionPrintView({
       return items;
     }
     if (printLayout !== "byType") {
-      return questions.map((q, i) => ({
+      return shown.map((q, i) => ({
         kind: "q" as const,
         id: q.id,
         q,
         num: i + 1,
       }));
     }
-    const groups = groupQuestionsByPrintType(questions);
+    const groups = groupQuestionsByPrintType(shown);
     const items: DisplayItem[] = [];
     let num = 1;
     for (const g of groups) {
@@ -917,12 +940,12 @@ export function QuestionPrintView({
       }
     }
     return items;
-  }, [questions, printLayout]);
+  }, [shown, printLayout]);
 
   /** 유형별: 각 유형 구간 [start, end) — 새 페이지 강제용 */
   const typeRanges = useMemo(() => {
-    if (printLayout !== "byType" || questions.length === 0) return [];
-    const groups = groupQuestionsByPrintType(questions);
+    if (printLayout !== "byType" || shown.length === 0) return [];
+    const groups = groupQuestionsByPrintType(shown);
     const ranges: { start: number; end: number; label: string }[] = [];
     let start = 0;
     for (const g of groups) {
@@ -931,7 +954,7 @@ export function QuestionPrintView({
       start = end;
     }
     return ranges;
-  }, [questions, printLayout]);
+  }, [shown, printLayout]);
 
   useEffect(() => {
     if (displayItems.length === 0) {
@@ -1401,6 +1424,59 @@ export function QuestionPrintView({
               </button>
             </div>
           )}
+
+          {typeGroups.length > 1 ? (
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  낼 유형 고르기
+                </p>
+                {offTypes.size > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setOffTypes(new Set())}
+                    className="text-[11px] font-semibold text-brand-700 hover:underline"
+                  >
+                    다 켜기
+                  </button>
+                ) : null}
+              </div>
+              <div className="space-y-1">
+                {typeGroups.map((t) => {
+                  const on = !offTypes.has(t.code);
+                  return (
+                    <label
+                      key={t.code}
+                      className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${
+                        on ? "border-slate-200 bg-white" : "border-slate-200 bg-slate-100 text-slate-400"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={on}
+                        onChange={() =>
+                          setOffTypes((p) => {
+                            const next = new Set(p);
+                            if (next.has(t.code)) next.delete(t.code);
+                            else next.add(t.code);
+                            return next;
+                          })
+                        }
+                        className="h-3.5 w-3.5 accent-brand-600"
+                      />
+                      <span className="min-w-0 flex-1 truncate font-semibold">{t.label}</span>
+                      <span className="shrink-0 tabular-nums text-slate-400">{t.n}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {offTypes.size > 0 ? (
+                <p className="text-[11px] text-slate-500">
+                  {shown.length}문항만 냅니다 (전체 {questions.length}문항).
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="flex flex-col gap-1.5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
