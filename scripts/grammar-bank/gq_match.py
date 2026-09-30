@@ -23,7 +23,7 @@ LEAD_NO = re.compile(r"^\s*\d{1,2}\s+(?=[A-Za-z가-힣○×(])")
 
 
 # 읽다가 어긋난 답 — 글자가 뭉개졌거나 엉뚱한 기호가 섞였다
-GARBLED = re.compile(r"[@|~^\<>]|[A-Za-z]{2,}[0-9]{2,}|[)(\]\[]{2,}")
+GARBLED = re.compile(r"[@|~^\<>]|[A-Za-z]{2,}[0-9]{2,}|[)(\]\[]{2,}|[+*=]\s*[A-Za-z]")
 
 
 def clean_answer(text, no):
