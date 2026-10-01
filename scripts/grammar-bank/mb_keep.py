@@ -12,7 +12,7 @@ from pathlib import Path
 
 LOG = io.open(1, "w", encoding="utf-8", closefd=False)
 BLANK = "_____"
-MARKS = re.compile(r"^[\s_\-.,;:()\[\]'\"/·□■★→▶]*$")
+MARKS = re.compile(r"^[\s_\-.,;:()\[\]'\"/·□■★→▶|ⓐ-ⓩ]*$")
 # 「(down, under)」·「(at; on; in)」처럼 고를 말을 괄호에 적어 둔 자리
 PICK = re.compile(r"\(([^()]{2,60}[,;][^()]{2,60})\)")
 
@@ -21,6 +21,25 @@ def tidy(text):
     text = re.sub(r"\s+", " ", str(text or "")).strip()
     # 빈칸이 여러 번 이어진 것은 하나로 줄인다
     return re.sub(r"(?:_{3,}\s*){2,}", BLANK + " ", text).strip()
+
+
+def trim_answer(text):
+    """답에 붙은 찌꺼기를 걷어낸다.
+
+    곁에 적힌 낱말 풀이가 답 끝에 붙고(「boiled, depressing형 우울하게 만드는」),
+    고르는 문항에서는 닫는 괄호가 따라온다(「who, that)」).
+    """
+    t = str(text or "").strip()
+    # 「낱말 + 품사표시 + 우리말 뜻」이 뒤에 붙은 것
+    t = re.sub(r"\s*[A-Za-z][A-Za-z'\-]*\s*[형명동부접감대]\s*[가-힣].*$", "", t).strip()
+    # 한 글자 + 우리말이 꼬리처럼 붙은 것
+    t = re.sub(r"\s*,?\s*[A-Za-z]\s+[가-힣]{1,4}$", "", t).strip()
+    # 「short + en 단축하다」처럼 낱말 만드는 법을 곁들여 적어 둔 것
+    t = re.split(r"\s[+]\s", t)[0].strip()
+    # 짝이 맞지 않는 닫는 괄호
+    if t.count(")") > t.count("("):
+        t = t.rstrip(")").strip()
+    return t.strip(" ,;")
 
 
 def note(text):
@@ -55,10 +74,11 @@ def main(src, dst):
 
     out, why = [], collections.Counter()
     for r in rows:
-        answer = [tidy(a) for a in (r.get("answer") or [])]
+        answer = [trim_answer(tidy(a)) for a in (r.get("answer") or [])]
         answer = [a for a in answer if a and not MARKS.match(a) and not note(a)]
         body = [tidy(b) for b in (r.get("body") or [])]
-        body = [b for b in body if b]
+        # 쪽 가장자리에서 떨어져 나온 한두 글자 조각은 본문이 아니다
+        body = [b for b in body if b and len(b) > 2]
         prompt = tidy(r.get("prompt"))
         said = " ".join([prompt] + body + answer)
 
@@ -74,6 +94,55 @@ def main(src, dst):
         if not prompt:
             why["발문이 없다"] += 1
             continue
+        # 발문은 「~쓰세요」·「~고르시오」처럼 시키는 말로 끝난다. 그렇지 않으면
+        # 보기 상자나 앞 문항의 글이 발문 자리에 끼어든 것이다.
+        if not re.search(r"(?:세요|시오|쓰기|보세요|하세요)", prompt):
+            why["발문이 시키는 말이 아니다"] += 1
+            continue
+        if re.search(r"[@`~¤■□|]", " ".join(answer)):
+            why["답에 쓸 수 없는 글자가 있다"] += 1
+            continue
+        # 한글 사이에 영문자가 끼어든 것은 글자를 잘못 읽은 자리다(「추p과」).
+        # 「여uestions」처럼 영어 낱말 앞머리를 한글로 읽은 자리도 함께 거른다.
+        # (「be동사」·「3형식」처럼 제대로 붙여 쓰는 말은 거르지 않는다.)
+        if re.search(r"[가-힣][A-Za-z](?![A-Za-z])|(?<![A-Za-z])[A-Za-z][가-힣]"
+                     r"|[가-힣][A-Za-z]{2,}", said):
+            why["우리말에 영문자가 끼었다"] += 1
+            continue
+        # 기호를 고르는 문항(답이 A~E 한 글자)은 고를 보기가 문항 밖에 있어
+        # 떼어 오면 풀 수 없다
+        if any(re.fullmatch(r"[A-EO]", a) for a in answer):
+            why["고를 보기가 문항에 없다"] += 1
+            continue
+        # 「every two weeks = every second week」처럼 짝이 맞아야 하는 수가
+        # 어긋난 것은 답이 옆 문항에서 넘어온 것이다
+        pair = {"two": "second", "three": "third", "four": "fourth", "five": "fifth",
+                "six": "sixth", "seven": "seventh", "eight": "eighth",
+                "nine": "ninth", "ten": "tenth"}
+        here = " ".join(body).lower()
+        got = " ".join(answer).lower()
+        said_ord = [o for o in pair.values() if re.search(r"%s" % o, got)]
+        if said_ord:
+            want = [c for c, o in pair.items() if o in said_ord]
+            if want and not any(re.search(r"%s" % c, here) for c in want):
+                why["수가 짝이 맞지 않는다"] += 1
+                continue
+        # 날짜 문항은 우리말 달과 영어 달이 맞아야 한다(「9월 … December」는 어긋난 것)
+        MONTH = ["January", "February", "March", "April", "May", "June", "July",
+                 "August", "September", "October", "November", "December"]
+        said_month = [i + 1 for i, m in enumerate(MONTH) if m.lower() in got]
+        here_month = [int(m) for m in re.findall(r"(\d{1,2})\s*월", here)]
+        if said_month and here_month and not (set(said_month) & set(here_month)):
+            why["달이 맞지 않는다"] += 1
+            continue
+        # 「고르세요」 문항은 괄호 안에 적힌 말 가운데 하나가 답이어야 한다
+        if re.search(r"고르|골라", prompt):
+            box = re.findall(r"\(([^()]{2,70})\)", " ".join(body))
+            words = [w for b in box for w in re.split(r"[,;/\s]+", b)
+                     if w and not set(w) <= set("_")]
+            if len(words) >= 2 and not any(a.strip(" _.") in words for a in answer):
+                why["고를 말 밖의 답"] += 1
+                continue
         if len(" ".join(body)) < 12:
             why["글이 너무 짧다"] += 1
             continue
