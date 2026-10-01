@@ -18,6 +18,21 @@ export async function ExamAnalysisListPage({ academyId, basePath }: { academyId:
       <ExamUploadPanel basePath={basePath} />
 
       {list.length ? (
+        <Link
+          href={`${basePath}/pattern`}
+          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 hover:bg-brand-100"
+        >
+          <span>
+            <span className="text-sm font-bold text-brand-900">학교별 출제 버릇 보기</span>
+            <span className="mt-0.5 block text-xs text-brand-800">
+              같은 학교 시험을 모아 어디서 어떤 유형으로 내는지 보여 줍니다. 다음 시험에 무엇을 만들지 고르실 때 보세요.
+            </span>
+          </span>
+          <span className="text-sm font-semibold text-brand-700">보기 →</span>
+        </Link>
+      ) : null}
+
+      {list.length ? (
         <section>
           <h2 className="mb-2.5 text-sm font-bold text-slate-700">분석한 시험 {list.length}</h2>
           <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
