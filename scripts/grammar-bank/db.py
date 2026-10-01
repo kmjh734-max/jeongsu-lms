@@ -21,8 +21,12 @@ def _url(query):
     return BASE + "?" + urllib.parse.quote(query, safe='=&()",.[]*<>!')
 
 
-def rows(select, where="", step=1000, cap=20000):
-    """줄을 모두 읽어 온다"""
+def rows(select, where="", step=1000, cap=200000):
+    """줄을 모두 읽어 온다.
+
+    cap 을 넉넉히 둔다 — 2만 줄에서 끊겨 있어, 새로 넣은 교재가 아예 읽히지
+    않고 세부 목차가 빈 채로 남았다.
+    """
     out = []
     for start in range(0, cap, step):
         q = "select=%s&order=id&offset=%d&limit=%d" % (select, start, step)
