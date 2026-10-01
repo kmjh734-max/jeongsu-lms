@@ -2114,6 +2114,28 @@ export async function generateOneQuestion(opts: {
     return scope[turn % scope.length]!;
   })();
 
+  /*
+   * 틀 낱말이 굳어 같은 말이 되풀이된다(선생님 지적 2026-10-01).
+   *
+   * 저장된 문항을 세어 보니 한눈에 보였다 — 내용일치 보기에 mainly 49%·because 57%,
+   * 제목추론에 hidden 20%·through 22%, 주제추론에 role 26%·through 27%. 지문이 달라도
+   * 같은 틀로 찍어 낸 것이다. 학생이 틀만 보고 찍는다.
+   *
+   * 쓰지 말 말을 못 박고(아래), 문항마다 보기 모양을 돌려 쓴다(frameShapeLine).
+   */
+  const FRAME_BANS: Partial<Record<string, string>> = {
+    title:
+      "Hidden, Behind, Through, Beyond, Turning Point, The Power of, The Secret of, The Role of",
+    topic: "the role of X in Y, through, the importance of, the power of",
+    summary_mcq: "mainly, because, through",
+    content_true: "mainly, because, presented, described, suggests",
+    content_false: "mainly, because, presented, described, suggests",
+    content_count: "mainly, because, presented, described, suggests",
+  };
+  const frameBanHint = FRAME_BANS[option.type]
+    ? `- BANNED FRAMES (overused; never use these wordings): ${FRAME_BANS[option.type]}. Also: across the five choices, do NOT open two choices with the same word, and use any one causal/hedge frame (because/so that/in order to/mainly/largely) at MOST once.`
+    : "";
+
   const paraphraseSystemHint = paraphraseTypes.has(option.type)
     ? "- Choices/<보기> MUST paraphrase with ROTATING synonyms/near-synonyms (동의어·유의어). Do NOT copy passage phrases. Across same-passage items, avoid reusing the same theme-word set every time; vary wording and use antonyms mainly in distractors."
     : "";
@@ -2211,6 +2233,7 @@ export async function generateOneQuestion(opts: {
       ? "- 지문 재진술 켜짐: 밑줄 자리를 만들기 위해 문장을 바꿔 써도 된다(원문 뜻은 지킬 것)."
       : "",
     paraphraseSystemHint,
+    frameBanHint,
     craftSystemHint,
     difficultyRule(option, opts.targetLevel ?? targetLevelFromOverall(opts.overallDifficulty)),
     opts.levelBrief ? `\n[원래 시험지의 수준]\n${opts.levelBrief}` : "",
@@ -2247,6 +2270,44 @@ export async function generateOneQuestion(opts: {
     if (sents.length === 0) return "";
     const pick = sents[(opts.diversitySlot?.index ?? 0) % sents.length]!;
     return `\n\nUSE THIS SENTENCE: 이번 문항은 이 문장을 빈칸으로 한다(글자 그대로, 한 자도 바꾸지 말 것).\n"${pick}"`;
+  })();
+
+  /*
+   * 문항마다 보기 모양을 돌려 쓴다. 금지 낱말만으로는 또 다른 틀 하나로 몰릴 뿐이다.
+   * 작업 전체 차례(typeTurn)로 돌리므로 지문이 바뀌면 다음 모양으로 넘어간다.
+   * 지문 뒤에 붙인다 — 유형 규칙 안에 넣으면 문항마다 앞머리가 달라져 캐시가 깨진다.
+   */
+  const frameShapeLine = (() => {
+    const SHAPES: Partial<Record<string, string[]>> = {
+      title: [
+        "명사구 하나로 (콜론·대시 없이)",
+        "콜론으로 가른 두 토막 (A: B)",
+        "의문문 (Why/What/How 로 시작)",
+        "동명사로 시작 (Rethinking ~ / Making ~)",
+        "대조·이동 (From A to B / When A Meets B)",
+      ],
+      topic: [
+        "how 로 시작하는 절",
+        "why 로 시작하는 절",
+        "the way (that) ~ 로 시작",
+        "what ~ 로 시작하는 절",
+        "명사구 하나로 (절을 쓰지 않는다)",
+      ],
+      content_true: [
+        "주어를 사람·집단으로",
+        "주어를 사물·현상으로",
+        "시간 표현을 앞세워 (In the past ~ / Today ~)",
+        "비교로 (A is more ~ than B)",
+        "조건·범위로 (Only when ~ / In most cases ~)",
+      ],
+    };
+    SHAPES.content_false = SHAPES.content_true;
+    const list = SHAPES[option.type];
+    if (!list) return "";
+    const turn = opts.typeTurn ?? opts.diversitySlot?.index ?? 0;
+    return `
+
+CHOICE SHAPE: 이번 문항의 보기는 이 모양을 우선한다 — ${list[turn % list.length]}. 억지로 맞추지는 말되, 지난 문항과 같은 틀로 쓰지 않는다.`;
   })();
 
   // 슬롯 정보는 같은 유형 문항끼리도 달라지므로 맨 끝에 둔다
@@ -2352,7 +2413,7 @@ export async function generateOneQuestion(opts: {
        */
       `ITEM RULES:\n${itemRules}\n\nOUTPUT KEYS (fill these; do not copy this wrapper):\n${itemData}\n\nPASSAGE:\n` +
       `${JSON.stringify({ passage, hint: englishBodyTypes.has(option.type) ? undefined : slimAnalysis })}` +
-      `${pickedSentenceLine}${slotTail}`,
+      `${pickedSentenceLine}${frameShapeLine}${slotTail}`,
     // 한 지문에서 여러 문항을 한꺼번에 만든다. 유형이 같으면 앞부분(공통 규칙·
     // 지문·유형 규칙)이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게
     // 이름표를 준다. 이것을 안 붙인 문항 생성만 캐시 적중이 0%였다.
