@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 import type { MockSlot } from "@/lib/exam-analysis/blueprint";
+import { billingFeatureFor } from "@/lib/question-generator/billing-buckets";
 import { QUESTION_TYPE_GROUPS } from "@/lib/question-generator/question-types";
 import type { MaterialPassage } from "@/lib/exam-analysis/load";
 import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
@@ -115,6 +116,17 @@ export function ExamMockBuilder({
   const setEdit = (no: string, patch: { optionKey?: string; level?: "상" | "중" | "하" }) =>
     setSlotEdit((p) => ({ ...p, [no]: { ...p[no], ...patch } }));
 
+  /** 값 받는 갈래별 문항 수. 바꿔 둔 유형이 있으면 그것으로 센다(서버와 같은 잣대) */
+  const mockBilling = useMemo(() => {
+    const sum: Record<string, number> = {};
+    for (const s of slots) {
+      const key = slotEdit[s.no]?.optionKey ?? s.optionKey;
+      const feature = billingFeatureFor(key);
+      sum[feature] = (sum[feature] ?? 0) + 1;
+    }
+    return sum;
+  }, [slots, slotEdit]);
+
   const perSlot = chosen.length > groupCount;
   /*
    * 묶음이 풀리고 다시 묶이면 손으로 바꿔 둔 자리의 번호 뜻이 달라진다
@@ -214,8 +226,14 @@ export function ExamMockBuilder({
     if (!(await askCreditConfirm({
       title: "동형모의고사",
       description: "분석해 둔 학교 시험과 같은 번호·유형·난이도·배점으로 새 시험지를 만듭니다.",
-      subject: `고른 지문 ${chosen.length}개`,
-      items: [{ feature: "qg_generate_job", quantity: Math.max(1, chosen.length) }],
+      subject: `고른 지문 ${chosen.length}개 · 문항 ${slots.length}개`,
+      /*
+       * 갈래마다 값이 다른데 지문 수로 한 갈래만 세고 있었다 — 보신 금액과 빠져나간
+       * 금액이 달랐다(2026-10-01 선생님 지적). 서버가 차감할 때와 같은 잣대로 센다.
+       */
+      items: Object.entries(mockBilling)
+        .filter(([, q]) => q > 0)
+        .map(([feature, quantity]) => ({ feature, quantity })),
       sample: "exam_mock",
     }))) return;
     setBusy(true);

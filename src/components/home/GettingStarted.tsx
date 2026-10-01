@@ -19,7 +19,16 @@ export async function GettingStarted({ academyId }: { academyId: string | null }
       admin
         .from("feature_pricing")
         .select("feature_key, credit_cost")
-        .in("feature_key", ["lesson_one_page", "lesson_analysis_report", "qg_generate_job"]),
+        /*
+         * 꺼 둔 줄(lesson_one_page)을 읽고 있었다. 지금 값을 받는 것은 요약자료·테스트
+         * 두 줄이고, 꺼진 줄은 가격표를 고쳐도 따라 바뀌지 않는다(2026-10-01).
+         */
+        .eq("is_active", true)
+        .in("feature_key", [
+          "lesson_one_page_summary",
+          "lesson_analysis_report",
+          "qg_generate_job",
+        ]),
     ]);
 
   const studentIds = (students ?? []).map((s) => s.id as string);
@@ -45,7 +54,7 @@ export async function GettingStarted({ academyId }: { academyId: string | null }
   const balance = Number(wallet?.balance ?? 0);
   const cost = new Map((pricing ?? []).map((p) => [p.feature_key as string, Number(p.credit_cost)]));
   const canMake = [
-    ["1장 자료", cost.get("lesson_one_page")],
+    ["1장 자료", cost.get("lesson_one_page_summary")],
     ["지문 분석서", cost.get("lesson_analysis_report")],
     ["변형문제", cost.get("qg_generate_job"), "문항"],
   ]
