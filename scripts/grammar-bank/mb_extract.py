@@ -127,10 +127,67 @@ def number_of(line, table):
     return int(text), line["gl"][len(head):]
 
 
+def circled(glyphs):
+    """고른 자리에 쳐 둔 **동그라미**를 찾는다.
+
+    이 책은 「(down, under)」처럼 고를 말을 주고 고른 쪽에 동그라미를 친다.
+    동그라미는 글자가 아니라 하늘색 획 도형이라 모양표에 없다. 그대로 두면
+    답이 □ 로 남아 문항을 통째로 버리게 되므로, 동그라미 안에 든 글자를
+    찾아 답으로 삼는다.
+    """
+    rings, rest = [], []
+    for g in glyphs:
+        wide = g["x1"] - g["x"]
+        tall = g["y1"] - g["y"]
+        if g["color"] == BLUE and wide > 16 and 6 < tall < 22:
+            rings.append(g)
+        else:
+            rest.append(g)
+    return rings, rest
+
+
+def inside(ring, glyphs, table):
+    """동그라미 안에 든 글자를 글로 돌려준다"""
+    mine = [g for g in glyphs
+            if ring["x"] - 1 <= (g["x"] + g["x1"]) / 2 <= ring["x1"] + 1
+            and ring["y"] - 3 <= (g["y"] + g["y1"]) / 2 <= ring["y1"] + 3]
+    return say(sorted(mine, key=lambda g: g["x"]), table)
+
+
+def cut_items(first, glyphs, table):
+    """줄 가운데 다시 나오는 빛깔 번호에서 끊어, 문항마다 제 글자를 돌려준다"""
+    out, seat, mine = [], first, []
+    at = 0
+    while at < len(glyphs):
+        g = glyphs[at]
+        # 빛깔 번호가 잇달아 나오고, 그 앞이 넉넉히 벌어져 있으면 새 문항이다
+        if (is_mark(g) and mine and g["x"] - mine[-1]["x1"] > 6):
+            run = []
+            while at < len(glyphs) and is_mark(glyphs[at]):
+                run.append(glyphs[at])
+                at += 1
+            text = re.sub(r"\s+", "", say(run, table))
+            if text.isdigit() and at < len(glyphs):
+                out.append((seat, mine))
+                seat, mine = int(text), []
+                continue
+            mine += run
+            continue
+        mine.append(g)
+        at += 1
+    out.append((seat, mine))
+    return out
+
+
 def split_answer(glyphs, table):
     """문제 글과 답을 가른다 — 하늘색 자리가 답이고, 그 자리는 빈칸이 된다"""
+    rings, glyphs = circled(glyphs)
     body, answer, run = [], [], []
     last = None
+    for ring in rings:
+        got = inside(ring, glyphs, table).strip(" _.,;")
+        if got:
+            answer.append(got)
     for g in glyphs:
         if g["color"] == BLUE:
             run.append(g)
@@ -176,7 +233,7 @@ def parse_page(page, page_no, table, carry):
         if said_unit and len(text) < 44:
             # 제목 뒤에 붙은 쪽 안내(「페이지」·「□이지」·쪽 번호)는 걷어낸다
             name = re.sub(r"\s+", " ", said_unit.group(1)).strip()
-            name = re.sub(r"\s*(?:[□페]이지|페이지)\s*\d*$", "", name).strip()
+            name = re.sub(r"\s*[□페폐]?이[페지]\s*\d*$", "", name).strip()
             name = re.sub(r"\s*\d{1,3}$", "", name).strip()
             carry["unit"] = name
             now = None
@@ -189,15 +246,23 @@ def parse_page(page, page_no, table, carry):
             continue
         no, rest = number_of(line, table)
         if no is not None and rest:
-            piece, answer = split_answer(rest, table)
-            now = {"no": no, "body": [piece], "answer": answer,
-                   "prompt": said, "block": carry.get("block"),
-                   "unit": carry.get("unit"),
-                   "chapter_no": carry.get("chapter_no"), "chapter": carry.get("chapter"),
-                   "printed_page": printed or page_no}
-            now["_y"] = line["mid"]
-            now["_x"] = rest[0]["x"] if rest else line["x"]
-            out.append(now)
+            # 한 줄에 문항이 둘·셋씩 놓인 쪽이 있다(「5 invent → ___  6 believe → ___」).
+            # 줄 가운데 다시 나오는 빛깔 번호에서 끊어, 각각 제 문항으로 세운다.
+            now = None
+            for at, (seat, mine) in enumerate(cut_items(no, rest, table)):
+                if not mine:
+                    continue
+                piece, answer = split_answer(mine, table)
+                if not piece and not answer:
+                    continue
+                now = {"no": seat, "body": [piece], "answer": answer,
+                       "prompt": said, "block": carry.get("block"),
+                       "unit": carry.get("unit"),
+                       "chapter_no": carry.get("chapter_no"), "chapter": carry.get("chapter"),
+                       "printed_page": printed or page_no}
+                now["_y"] = line["mid"]
+                now["_x"] = mine[0]["x"]
+                out.append(now)
             continue
         # 이어지는 줄은 바로 아래에 붙어 있고 번호보다 안쪽에서 시작한다. 줄 사이가
         # 벌어지면 문항이 끝난 것이다 — 그러지 않으면 뒤따르는 설명까지 삼킨다.
