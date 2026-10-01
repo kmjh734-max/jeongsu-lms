@@ -46,8 +46,15 @@ export function wrongSpotLabel(total: number, n: number, turn: number, kind: "ma
     .join("·");
 }
 
-/** 객관식 어법·어휘 추론에서 이번 문항의 정답 번호(1~5). 해당 없으면 null */
+/**
+ * 이번 문항의 정답 번호(1~5). 해당 없으면 null.
+ *
+ * 어법추론·어휘추론뿐 아니라 문장삽입·무관한문장도 자리가 가운데로 몰린다 —
+ * 전수 대조(2026-10-01)에서 무관한문장은 ③④ 두 가지만 나왔고 ④가 54%였다.
+ */
+const SPOT_ROTATED = new Set(["어법추론", "어휘추론", "문장삽입", "무관한문장"]);
+
 export function plannedAnswerNumber(code: string, turn: number): number | null {
-  if (code !== "어법추론" && code !== "어휘추론") return null;
+  if (!SPOT_ROTATED.has(code)) return null;
   return (Math.max(0, Math.floor(turn)) % 5) + 1;
 }

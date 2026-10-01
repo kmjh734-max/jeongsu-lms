@@ -2416,9 +2416,16 @@ CHOICE SHAPE: 이번 문항의 보기는 이 모양을 우선한다 — ${list[t
   const answerSpotLine = (() => {
     const no = plannedAnswerNumber(option.aingkaCode ?? "", opts.typeTurn ?? opts.diversitySlot?.index ?? 0);
     if (!no) return "";
+    const c = option.aingkaCode ?? "";
+    const how =
+      c === "문장삽입"
+        ? `주어진 문장이 들어갈 자리를 <b>${no}번</b>으로 잡는다. 나머지 자리에 넣으면 글이 어색해야 한다.`
+        : c === "무관한문장"
+          ? `흐름에 어긋나는 문장을 <b>${no}번</b>에 둔다. 나머지 네 문장은 자연스럽게 이어진다.`
+          : `${no}번 자리만 틀리게(문맥에 어긋나게) 하고 나머지 네 자리는 모두 맞게 둔다.`;
     return `
 
-ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${no}번 자리만 틀리게(문맥에 어긋나게) 하고 나머지 네 자리는 모두 맞게 둔다.`;
+ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
   })();
 
   // 슬롯 정보는 같은 유형 문항끼리도 달라지므로 맨 끝에 둔다
