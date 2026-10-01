@@ -730,9 +730,8 @@ word1 / word2 / … (10~14개, 정답 ⓐ+ⓑ를 섞은 단어·기능어. 원�
 - questionText 형식(필수). <조건>과 <표>는 각각 <b>그 줄에 혼자</b> 있어야 하고,
   표는 <b>한 줄이 한 행</b>이다(줄바꿈으로 행을 나눈다. 한 줄로 이어 붙이면 안 된다):
 <조건>
-○ 빈칸에 들어갈 말은 본문에서 찾아 쓸 것
+○ 빈칸에 들어갈 말은 지문에 나온 단어를 쓰되, 문맥에 맞게 형태를 바꿔 쓸 것
 ○ (A), (B), (C)는 각각 한 단어로 쓸 것
-○ 본문에 나온 형태를 그대로 쓸 것 (형태 변형 금지)
 
 <표>
 | | 첫째 갈래 이름 | 둘째 갈래 이름 |
@@ -758,8 +757,14 @@ word1 / word2 / … (10~14개, 정답 ⓐ+ⓑ를 섞은 단어·기능어. 원�
   대한 다른 쪽 이야기를 쓴다.
 - 칸 속 영어는 완결된 문장 한두 개로 쓴다(한 칸에 6~18낱말).
 - 표의 영어 서술은 지문 문장을 그대로 베끼지 말고 짧게 paraphrase 한다.
-- (A)(B)(C) 자리에 들어갈 낱말은 <b>반드시 지문에 그 형태 그대로</b> 있어야 한다.
-  같은 낱말이 두 칸에 들어가도 된다(그때는 같은 기호를 두 번 쓴다).
+- (A)(B)(C) 자리에 들어갈 낱말의 <b>어간은 반드시 지문에</b> 있어야 한다.
+  지문에 없는 낱말을 지어내지 않는다.
+- <b>셋 가운데 적어도 둘은 지문에 있는 형태와 달라야 한다</b>(품사·시제·수·태를 바꾼다).
+  답이 지문을 눈으로 훑기만 해도 보이면 시험 문항이 되지 않는다(선생님 지적 2026-10-01).
+  바꾸는 보기: make → making / to make, important → importance, decide → decision,
+  grow → growth, quickly → quick, analyze → analysis, able → ability, lose → loss.
+  바꾼 형태는 그 빈칸 자리에서 <b>문법적으로 맞아야</b> 한다(동사 자리에 명사를 넣지 않는다).
+- 같은 낱말이 두 칸에 들어가도 된다(그때는 같은 기호를 두 번 쓴다).
 - 빈칸을 <b>한쪽 칸에만 몰지 않는다</b>. 왼쪽 칸과 오른쪽 칸에 <b>나눠</b> 둔다
   (선생님 지적 2026-09-29: 보기가 한쪽 열에만 들어가는 경우가 있다).
   빈칸이 셋이면 한쪽에 둘·다른 쪽에 하나처럼 갈라 놓는다. 줄도 서로 다른 줄에 둔다.
@@ -1537,13 +1542,32 @@ export function assertBasicQuestionShape(
     if (blocks.blankLabels.length < 2) {
       return "표 안에 (A)·(B) 같은 빈칸이 두 개 이상 필요합니다.";
     }
+    /*
+     * 이제는 형태를 바꿔 쓰게 한다(선생님 지적 2026-10-01: 「답이 너무 직관적이다」).
+     * 그래서 그대로 있는지가 아니라 <b>어간이 지문에 있는지</b>로 본다 —
+     * make → making, important → importance 는 받고, 지문에 없는 낱말은 거른다.
+     */
     const passage = q.passageOriginal || "";
+    const bodyWords: string[] = passage.toLowerCase().match(/[a-z]{3,}/g) ?? [];
+    const stem = (w: string) => w.slice(0, Math.max(4, Math.floor(w.length * 0.6)));
+    let changed = 0;
+    let total = 0;
     for (const part of String(q.correctAnswer ?? "").split("/")) {
       const word = part.replace(/\([A-E]\)\s*[:：]?/, "").trim();
       if (!word) continue;
-      if (!passageHasConsecutiveWords(passage, word, 1)) {
-        return `정답 낱말 「${word}」이 지문에 그대로 없습니다.`;
+      total += 1;
+      const w = word.toLowerCase().replace(/[^a-z]/g, "");
+      if (w.length < 3) return `정답 낱말 「${word}」이 너무 짧습니다.`;
+      const exact = bodyWords.includes(w);
+      if (!exact) changed += 1;
+      const rooted = bodyWords.some((b) => b.startsWith(stem(w)) || w.startsWith(stem(b)));
+      if (!rooted) {
+        return `정답 낱말 「${word}」은 지문에 뿌리가 없습니다.`;
       }
+    }
+    // 셋 다 지문 그대로면 눈으로 훑기만 해도 답이 보인다
+    if (total >= 3 && changed === 0) {
+      return "빈칸 답이 모두 지문 그대로입니다. 적어도 둘은 형태를 바꿔 주세요.";
     }
     q.choices = undefined;
   } else if (option.aingkaCode === "문법조건영작") {

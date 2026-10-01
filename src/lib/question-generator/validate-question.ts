@@ -201,8 +201,27 @@ export function validateGeneratedQuestion(opts: {
     }
   }
 
-  // 3) 「본문에서 찾아 쓰기」인데 정답이 본문에 없다
-  if (ansText && /본문에서 찾아|본문에 나오는|본문의 한 단어|본문에서 정확히/.test(q.questionText ?? "")) {
+  /*
+   * 3) 「본문에서 찾아 쓰기」인데 정답이 본문에 없다.
+   *
+   * 형태를 바꿔 쓰라고 한 문항은 그대로 있을 수가 없다(요약표 (A)(B)(C) —
+   * 선생님 지적 2026-10-01: 「답이 너무 직관적이다」). 그때는 어간으로 본다.
+   */
+  const formChanged = /형태를 바꿔|어형을 바꿔|형태를 변형/.test(q.questionText ?? "");
+  if (ansText && formChanged) {
+    const bodyWords = `${opts.passage} ${q.passageModified ?? ""}`.toLowerCase().match(/[a-z]{3,}/g) ?? [];
+    const parts = [...ansText.matchAll(/\([A-G]\)\s*[:：]\s*([^/]+)/g)].map((m) => m[1]!.trim());
+    for (const text of parts) {
+      const w = text.toLowerCase().replace(/[^a-z]/g, "");
+      if (w.length < 4) continue;
+      const stem = w.slice(0, Math.max(4, Math.floor(w.length * 0.6)));
+      if (!bodyWords.some((b) => b.startsWith(stem) || w.startsWith(b.slice(0, Math.max(4, Math.floor(b.length * 0.6)))))) {
+        warnings.push(`본문에 없는 낱말을 답으로 썼습니다: "${text.slice(0, 24)}"`);
+        score -= 45;
+        break;
+      }
+    }
+  } else if (ansText && /본문에서 찾아|본문에 나오는|본문의 한 단어|본문에서 정확히/.test(q.questionText ?? "")) {
     const body = `${opts.passage} ${q.passageModified ?? ""}`.toLowerCase().replace(/[^a-z]/g, "");
     const parts = [
       ...[...ansText.matchAll(/[ⓐ-ⓖ]\s*[:：]\s*([^/]+)/g)].map((m) => m[1]!.trim()),
