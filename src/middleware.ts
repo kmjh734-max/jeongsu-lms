@@ -13,6 +13,7 @@ import {
 import {
   ACADEMY_COOKIE,
   ACADEMY_COOKIE_MAX_AGE,
+  normalizeAcademySlug,
   resolveAcademySlug,
 } from "@/lib/tenant/resolve-login-academy";
 import type { UserRole } from "@/types/database";
@@ -88,6 +89,15 @@ function clearRoleCookie(res: NextResponse) {
   });
 }
 
+function clearAcademyCookie(res: NextResponse) {
+  res.cookies.set(ACADEMY_COOKIE, "", {
+    path: "/",
+    maxAge: 0,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+}
+
 function readAcademySlug(request: NextRequest): string | null {
   return resolveAcademySlug({
     queryAcademy: request.nextUrl.searchParams.get("academy"),
@@ -98,6 +108,24 @@ function readAcademySlug(request: NextRequest): string | null {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  /*
+   * ?academy= (빈 값)은 「이 학원에서 나간다」는 뜻이다. 어느 학원이었는지 기억해 둔
+   * 쿠키(90일)를 지우고 주소에서도 뺀다.
+   *
+   * 슈퍼관리자가 학원에 들어갔다 나오면 engcore.co.kr 로 와도 계속 그 학원 화면이 떴다
+   * (2026-10-01 선생님 지적). 로그아웃할 때는 지우지만, 로그아웃을 안 하면 빠져나올
+   * 길이 없었다. 학원 주소(서브도메인)로 들어오면 그 학원이 다시 이긴다.
+   */
+  const academyParam = request.nextUrl.searchParams.get("academy");
+  if (academyParam !== null && !normalizeAcademySlug(academyParam)) {
+    const url = request.nextUrl.clone();
+    url.searchParams.delete("academy");
+    const res = NextResponse.redirect(url);
+    clearAcademyCookie(res);
+    return res;
+  }
+
   const academySlug = readAcademySlug(request);
 
   // 학생 QR 경로 → 공개 학습 (로그인 전 리다이렉트)
