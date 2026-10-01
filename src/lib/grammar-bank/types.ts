@@ -55,13 +55,15 @@ export type GrammarChapterGroup = {
   }[];
 };
 
-/** 인쇄 서식 다섯 가지 */
+/**
+ * 인쇄 서식 — 선생님 결정(2026-10-01): 초록 라벨형과 파랑 워크북형만 쓴다.
+ *
+ * 예전 서식(정갈형·음영 머리글형·저널형)의 서식은 globals.css 에 그대로 둔다.
+ * 그 서식으로 저장해 둔 시험지가 있어, 서식까지 걷으면 그 자료가 모양을 잃는다.
+ */
 export const GRAMMAR_SHEET_STYLES = [
-  { key: "f", label: "정갈형", hint: "색 없이 굵은 가로줄, 번호는 여백 바깥" },
   { key: "g", label: "초록 라벨형", hint: "초록 라벨과 사각 번호, 예문은 연초록 칸" },
-  { key: "h", label: "음영 머리글형", hint: "회색 머리글 상자 안에 반·이름·점수" },
   { key: "i", label: "파랑 워크북형", hint: "문항마다 연파랑 카드, 앱 색과 같음" },
-  { key: "j", label: "저널형", hint: "제목 가운데, 굵은 이중선, 세리프 본문" },
 ] as const;
 
 export type GrammarSheetStyle = (typeof GRAMMAR_SHEET_STYLES)[number]["key"];

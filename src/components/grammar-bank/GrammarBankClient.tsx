@@ -81,7 +81,7 @@ export function GrammarBankClient({
   const [objectiveFirst, setObjectiveFirst] = useState(true);
   const [view, setView] = useState<"pick" | "print">("pick");
   const [options, setOptions] = useState<GrammarPrintOptions>({
-    style: "f",
+    style: "g",
     title: "",
     subtitle: "",
     academyName,
