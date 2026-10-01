@@ -78,6 +78,10 @@ SOURCES = [
     ("mpp-1-matched.json", "문제로 풀자 L1 실전문제PLUS", "mpp"),
     ("mpp-2-matched.json", "문제로 풀자 L2 실전문제PLUS", "mpp"),
     ("mpp-3-matched.json", "문제로 풀자 L3 실전문제PLUS", "mpp"),
+    ("tfgwb-basic-matched.json", "Time for Grammar Basic 워크북", "tfgwb"),
+    ("tfgwb-inter-matched.json", "Time for Grammar Intermediate 워크북", "tfgwb"),
+    ("tfgwb-adv-matched.json", "Time for Grammar Advanced 워크북", "tfgwb"),
+    ("tfgwb-expert-matched.json", "Time for Grammar Expert 워크북", "tfgwb"),
     ("tfg-basic-matched.json", "Time for Grammar Basic", "tfg"),
     ("tfg-inter-matched.json", "Time for Grammar Intermediate", "tfg"),
     ("tfg-adv-matched.json", "Time for Grammar Advanced", "tfg"),
@@ -351,6 +355,21 @@ def from_mpp(q, book):
     }
 
 
+def from_tfgwb(q, book):
+    """Time for Grammar 워크북 — 지시문마다 묶음이 갈리는 연습 문항이다."""
+    return {
+        "kind": "워크북",
+        "question_kind": q.get("question_kind") or ("객관식" if q.get("choices") else "단답·서술"),
+        "badges": [],
+        "prompt": q.get("prompt") or "",
+        "body": q.get("body") or [],
+        "choices": q.get("choices") or [],
+        "answer": q.get("answer"),
+        "explanation": None,
+        "chapter_title": q.get("chapter"),
+    }
+
+
 def unit_for(kind, q, level, chapter):
     """워크북의 RULE 이름을 은행이 쓰는 세부 목차 이름으로 옮긴다.
 
@@ -366,7 +385,7 @@ def unit_for(kind, q, level, chapter):
         return nearest(q.get("point") or "", units_of(level, chapter))
     if kind == "gg":
         return nearest(q.get("unit") or "", units_of(level, chapter))
-    if kind == "tfg":
+    if kind in ("tfg", "tfgwb"):
         # 교재가 세부 갈래 이름을 적어 두지 않는다 — 적재 뒤 말씨로 가린다
         return None
     if kind == "mpj":
@@ -435,6 +454,7 @@ def main(dst, only=None):
                    from_ilg(q, book) if kind == "ilg" else
                    from_gg(q, book) if kind == "gg" else
                    from_tfg(q, book) if kind == "tfg" else
+                   from_tfgwb(q, book) if kind == "tfgwb" else
                    from_mpj(q, book) if kind == "mpj" else
                    from_mpp(q, book) if kind == "mpp" else from_jp(q, book))
             if not str(row["answer"] or "").strip():
@@ -458,6 +478,11 @@ def main(dst, only=None):
             elif kind in ("mpj", "mpp"):
                 # 단원 번호로 찾고, 묶음 단원은 POINT 제목으로 가른다
                 spot = mpj_map.place(book, q.get("chapter_no"), q.get("unit"))
+            elif kind == "tfgwb":
+                # 쪽머리 이름에서 글자가 빠져 들어오는 쪽이 있어 번호로 찾는다
+                spot = tfg_map.place(
+                    book, tfg_map.name_of(book, q.get("chapter_no")) or title,
+                    " ".join([row["prompt"]] + row["body"] + [str(row["answer"] or "")]))
             elif kind == "tfg":
                 # 단원 이름이 영어다. 한 단원에 두 갈래를 묶어 놓은 데가 있어
                 # 문항의 말씨를 함께 넘긴다 — 단원 이름은 섞지 않는다.

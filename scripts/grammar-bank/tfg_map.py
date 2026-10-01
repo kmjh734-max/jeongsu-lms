@@ -73,6 +73,40 @@ MAP = {
     (4, "Sentence Arrangement"): (4, 12, "특수구문"),
 }
 
+# 단원 번호 → 단원 이름. 워크북은 쪽머리 이름에서 글자가 빠져 들어오는 쪽이
+# 있어(「Sentence atterns」) 번호로 찾는다. 본책 가름 쪽에서 가져왔다.
+NAME_BY_NO = {
+    (1, 1): "Personal Pronouns & Be Verbs", (1, 2): "General Verbs",
+    (1, 3): "Verb Tense", (1, 4): "Modal Verbs",
+    (1, 5): "Verbs & Sentence Patterns", (1, 6): "Sentence Types",
+    (1, 7): "Nouns & Articles", (1, 8): "Pronouns",
+    (1, 9): "Adjectives & Adverbs", (1, 10): "To-Infinitives & Gerunds",
+    (1, 11): "Prepositions", (1, 12): "Conjunctions",
+    (2, 1): "Verbs & Sentence Patterns", (2, 2): "To-infinitives",
+    (2, 3): "Gerunds", (2, 4): "Participles", (2, 5): "Tenses",
+    (2, 6): "Modal Verbs", (2, 7): "Pronouns", (2, 8): "Comparison",
+    (2, 9): "Conjunctions", (2, 10): "Relative Pronouns",
+    (2, 11): "Passive Voice", (2, 12): "Subjunctive Mood & Sentence Arrangement",
+    (3, 1): "Sentence Patterns", (3, 2): "To-infinitives", (3, 3): "Gerunds",
+    (3, 4): "Participles", (3, 5): "Perfect Tenses", (3, 6): "Modals",
+    (3, 7): "Passive Voice", (3, 8): "Subjunctive Mood", (3, 9): "Relatives",
+    (3, 10): "Comparison", (3, 11): "Conjunctions", (3, 12): "Agreement & Narration",
+    (4, 1): "Sentence Patterns", (4, 2): "Perfect Aspect", (4, 3): "Modals",
+    (4, 4): "Passives", (4, 5): "To-infinitives", (4, 6): "Gerunds",
+    (4, 7): "Participles", (4, 8): "Comparisons", (4, 9): "Conjunctions",
+    (4, 10): "Relatives", (4, 11): "Subjunctive Mood", (4, 12): "Agreement & Narration",
+    (4, 13): "Sentence Arrangement",
+}
+
+
+def name_of(book, chapter_no):
+    """단원 번호로 단원 이름을 찾는다"""
+    lv = level_of(book)
+    if lv is None or not chapter_no:
+        return None
+    return NAME_BY_NO.get((lv, int(chapter_no)))
+
+
 # 「-est」로 끝나지만 최상급이 아닌 말 — 이것만 걸러도 최상급을 가릴 수 있다
 NOT_TOP = {
     "rest", "test", "west", "best", "guest", "honest", "forest", "interest",
