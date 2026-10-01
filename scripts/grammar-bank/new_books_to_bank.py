@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from chapter_map import place, LEVEL_NAME
 import cw_map
 import gi_map
+import ilg_map
 import hs_map
 import mj_map
 import tb_map
@@ -62,6 +63,9 @@ SOURCES = [
     ("yj-1-matched.json", "열중 16강 문법 LEVEL 1", "yj"),
     ("yj-2-matched.json", "열중 16강 문법 LEVEL 2", "yj"),
     ("yj-3-matched.json", "열중 16강 문법 LEVEL 3", "yj"),
+    ("ilg-1-keep.json", "I Love Grammar L1", "ilg"),
+    ("ilg-2-keep.json", "I Love Grammar L2", "ilg"),
+    ("ilg-3-keep.json", "I Love Grammar L3", "ilg"),
 ]
 
 PICK = re.compile(r"\[([^\[\]]+?)\]")
@@ -248,6 +252,25 @@ def from_yj(q, book):
     }
 
 
+def from_ilg(q, book):
+    """I Love Grammar — Grammar Practice·Writing Practice 만 쓴다.
+
+    LANGUAGE FOCUS 는 한 쪽에 과제가 둘이라 답이 엇갈리고, ACTUAL TEST 는 발문이
+    절반 넘게 비어 학생이 무엇을 할지 모른다. 수를 채우기보다 맞는 것만 넣는다.
+    """
+    return {
+        "kind": q.get("section") or "Grammar Practice",
+        "question_kind": q.get("question_kind") or ("객관식" if q.get("choices") else "단답·서술"),
+        "badges": [],
+        "prompt": q.get("prompt") or "",
+        "body": q.get("body") or [],
+        "choices": q.get("choices") or [],
+        "answer": q.get("answer"),
+        "explanation": None,
+        "chapter_title": q.get("chapter"),
+    }
+
+
 def unit_for(kind, q, level, chapter):
     """워크북의 RULE 이름을 은행이 쓰는 세부 목차 이름으로 옮긴다.
 
@@ -261,6 +284,8 @@ def unit_for(kind, q, level, chapter):
     if kind == "mj":
         # POINT 이름이 세부 갈래 그대로다 — 공식 목차에서 가장 가까운 것으로
         return nearest(q.get("point") or "", units_of(level, chapter))
+    if kind == "ilg":
+        return nearest(q.get("unit") or "", units_of(level, chapter))
     if kind == "yj":
         # 강 이름(또는 문법정리 OX 의 이름표)이 세부 갈래 그대로다
         return nearest(q.get("unit") or q.get("point") or "", units_of(level, chapter))
@@ -315,7 +340,8 @@ def main(dst, only=None):
                    from_tb(q, book) if kind == "tb" else
                    from_mj(q, book) if kind == "mj" else
                    from_gi(q, book) if kind == "gi" else
-                   from_yj(q, book) if kind == "yj" else from_jp(q, book))
+                   from_yj(q, book) if kind == "yj" else
+                   from_ilg(q, book) if kind == "ilg" else from_jp(q, book))
             if not str(row["answer"] or "").strip():
                 continue
             title = row.pop("chapter_title") or ""
@@ -330,6 +356,8 @@ def main(dst, only=None):
             elif kind == "gi":
                 # 쪽마다 단원 이름이 조금씩 잘려 들어오므로 번호로 찾는다
                 spot = gi_map.place(book, q.get("chapter_no"), q.get("unit"))
+            elif kind == "ilg":
+                spot = ilg_map.place(book, q.get("chapter_no"), q.get("unit"))
             elif kind == "yj":
                 # 한 단원에 두 강을 묶어 놓아, 강 이름을 보고 가른다
                 spot = yj_map.place(
