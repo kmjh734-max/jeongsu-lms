@@ -36,6 +36,11 @@ import {
   questionNeedsVocabGloss,
   normalizeHardWordsFromRaw,
 } from "@/lib/question-generator/exam-vocab";
+import {
+  plannedAnswerNumber,
+  plannedWrongCount,
+  wrongSpotLabel,
+} from "@/lib/question-generator/item-variety";
 import type { QuestionTypeOption } from "@/lib/question-generator/types";
 import type {
   GeneratedQuestionPayload,
@@ -46,12 +51,17 @@ import {
   wordOrderCatalogBrief,
   type WordOrderMode,
 } from "@/lib/question-generator/word-order-catalog";
-import { normalizeWordOrderQuestionText } from "@/lib/question-generator/word-order-normalize";
+import {
+  lemmaEnglishToken,
+  normalizeWordOrderQuestionText,
+  splitWordBank,
+} from "@/lib/question-generator/word-order-normalize";
 import {
   reconcileGrammarFixQuestion,
   parseGrammarFixAnswer,
 } from "@/lib/question-generator/grammar-fix-normalize";
 import { agreementBreakAfterFix } from "@/lib/question-generator/agreement-check";
+import { falseGrammarError } from "@/lib/question-generator/grammar-false-error";
 import { plainKorean } from "@/lib/question-generator/plain-korean";
 import {
   bankWordsLeftInBlankLine,
@@ -112,7 +122,9 @@ function typeRules(
   /** 지정 문법을 지문에서 찾을지, 고쳐 써서 만들지 (선생님 요청 2026-09-29) */
   writingMode: "passage" | "paraphrase" = "paraphrase",
   /** 제시어 배열을 지문 그대로 낼지 (기본: 지문 그대로) */
-  wordOrderMode: "passage" | "paraphrase" = "passage"
+  wordOrderMode: "passage" | "paraphrase" = "passage",
+  /** 같은 유형이 작업 전체에서 몇 번째인가 — 개수·자리·정답 번호를 돌리는 데 쓴다 */
+  turn = 0
 ): string {
   const code = option.aingkaCode || "";
   const en = option.choiceLanguage === "english";
@@ -385,8 +397,21 @@ ${catalog}`;
         code === "어법오류수정3" ||
         code === "어법문장오류수정"
       ) {
-        const wrongN =
-          code === "어법오류수정2" ? 2 : code === "어법오류수정3" ? 3 : 2;
+        /*
+         * 발문이 「모두 찾아」인데 개수가 늘 같으면 세어 볼 까닭이 없다.
+         * 저장된 문항은 어법오류수정2가 100% 2개, 어법오류수정3이 97% 3개였다
+         * (2026-10-01 최다빈 선생님 지적). 문항마다 돌려 가며 바꾼다.
+         */
+        const wrongN = plannedWrongCount(code, turn);
+        const spotTotal = code === "어법오류수정3" ? 7 : 5;
+        const spotLabel = wrongSpotLabel(
+          spotTotal,
+          wrongN,
+          turn,
+          code === "어법문장오류수정" ? "number" : "mark"
+        );
+        const spotLine = `- 틀린 곳은 <b>${spotLabel}</b> 이다. 다른 자리는 모두 어법상 맞게 둔다.
+  (자리가 ⓑⓓ·②④처럼 한쪽으로 몰리던 것을 막는다.)`;
         const { focusBlock } = pickGrammarFocus(wrongN);
         if (code === "어법문장오류수정") {
           return `서술형 · 어법 틀린 문장 수정 (수특형):
@@ -395,6 +420,7 @@ ${focusBlock}
 형식:
 - passageModified = 영어 지문. 문장(또는 절) 앞에 ① ② ③ ④ ⑤ 표지.
 - 어법상 틀린 문장 정확히 ${wrongN}개 — 위 ‘이번 문항’ 문법을 서로 다른 단원으로 반영.
+${spotLine}
 - 나머지 문장은 어법상 맞음.
 - questionText:
 <조건>
@@ -423,6 +449,7 @@ ${focusBlock}
 형식:
 - passageModified = 영어 지문. 밑줄 정확히 ${marks} → ⓐ<u>틀린형태또는맞는형태</u>
 - 틀린 곳 정확히 ${wrongN}개 — <u>안에는 틀린 형태</u>를 넣음. 위 ‘이번 문항’ 문법을 서로 다른 단원으로 하나씩.
+${spotLine}
 - 나머지 밑줄은 어법상 맞음 (함정처럼 보이되 옳음) — <u>안에는 이미 바른 형태</u>.
 - questionText:
 <조건>
@@ -1137,10 +1164,36 @@ export function assertBasicQuestionShape(
   /** 제시어 배열을 지문 그대로 냈는지 (기본: 지문 그대로) */
   wordOrderMode: "passage" | "paraphrase" = "passage",
   /** 어법·어휘에서 지문을 그대로 두어야 하는지 (재진술을 껐으면 그대로) */
-  keepPassage = true
+  keepPassage = true,
+  /** 같은 유형이 작업 전체에서 몇 번째인가 — 만들 때 박아 준 개수와 맞춰 본다 */
+  turn = 0
 ): string | null {
   if (!q.instruction.trim()) return "발문이 비어 있습니다.";
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
+
+  /*
+   * 맞는 것을 틀렸다고 한 어법 문항은 버린다.
+   * 「allows us to rehearse」의 to 를 떼라고 한 일이 있었다(2026-10-01 Jayden 선생님).
+   * 문항 5,696개로 재 보니 이 잣대에 걸린 것은 그 한 문항뿐이었다 — 헛경보가 없다.
+   */
+  if (option.type === "grammar") {
+    const ansText = typeof q.correctAnswer === "string" ? q.correctAnswer : "";
+    const pairs = [
+      ...ansText.split("/").flatMap((part) => {
+        const m = part.match(/([ⓐ-ⓖ①-⑤])\s*[:：]\s*(.+)/);
+        return m ? [{ mark: m[1]!, to: m[2]!.replace(/.*(?:→|->|⇒)\s*/, "").trim() }] : [];
+      }),
+      ...[
+        ...q.explanation.matchAll(
+          /([ⓐ-ⓖ①-⑤])[^→]{0,30}?(?:→|->|⇒)\s*([A-Za-z][A-Za-z' ]{0,40})/g
+        ),
+      ].map((m) => ({ mark: m[1]!, to: m[2]!.trim() })),
+    ];
+    const wrongCall = falseGrammarError(String(q.passageModified ?? ""), pairs);
+    if (wrongCall) {
+      return `맞는 자리를 틀렸다고 했습니다: ${wrongCall}`;
+    }
+  }
 
   /*
    * 보기가 너무 길면 문항으로 쓰기 어렵다.
@@ -1437,12 +1490,8 @@ export function assertBasicQuestionShape(
       option.aingkaCode === "어법오류수정3" ||
       option.aingkaCode === "어법문장오류수정")
   ) {
-    const wrongN =
-      option.aingkaCode === "어법오류수정2"
-        ? 2
-        : option.aingkaCode === "어법오류수정3"
-          ? 3
-          : 2;
+    // 만들 때 박아 준 개수와 같은 값을 본다(item-variety 한곳에서 정한다)
+    const wrongN = plannedWrongCount(option.aingkaCode ?? "", turn);
     const mod = q.passageModified || "";
     if (hasHangul(mod)) {
       return "어법 수정 본문은 영어여야 합니다.";
@@ -1729,6 +1778,25 @@ export function assertBasicQuestionShape(
     }
     if (leftOver.length > 0) {
       return `빈칸이 든 문장에 보기 낱말이 그대로 남아 있습니다: ${leftOver.join(", ")}`;
+    }
+
+    /*
+     * 조건은 「보기에 있는 단어를 모두 한 번씩, 더하거나 빼지 말 것」이다. 그러면 보기와
+     * 정답의 낱말이 하나하나 맞아야 한다. 숫자를 낱말로 세지 않아 2018이 보기에서 빠진
+     * 채로 나간 일이 있었다(2026-10-01 Jayden 선생님 지적). 여기서 세어 막는다.
+     */
+    const bankWords = splitWordBank(bank).map((w) => lemmaEnglishToken(w).toLowerCase());
+    const answerWords = tokenizeAnswerPhrase(answer).map((w) => lemmaEnglishToken(w).toLowerCase());
+    if (bankWords.length !== answerWords.length) {
+      return `<보기> ${bankWords.length}낱말과 정답 ${answerWords.length}낱말이 맞지 않습니다.`;
+    }
+    const spare = [...bankWords];
+    for (const w of answerWords) {
+      const at = spare.indexOf(w);
+      if (at < 0) {
+        return `정답의 낱말 「${w}」이 <보기>에 없습니다.`;
+      }
+      spare.splice(at, 1);
     }
 
     q.questionText = [
@@ -2262,7 +2330,12 @@ export async function generateOneQuestion(opts: {
     craftSystemHint,
     difficultyRule(option, opts.targetLevel ?? targetLevelFromOverall(opts.overallDifficulty)),
     opts.levelBrief ? `\n[원래 시험지의 수준]\n${opts.levelBrief}` : "",
-    typeRules(option, opts.grammarWritingMode ?? "paraphrase", opts.wordOrderMode ?? "passage"),
+    typeRules(
+      option,
+      opts.grammarWritingMode ?? "paraphrase",
+      opts.wordOrderMode ?? "passage",
+      opts.typeTurn ?? opts.diversitySlot?.index ?? 0
+    ),
     // 선생님이 범위를 정해 두었으면 이번 문항에 쓸 어법 하나를 여기서 정해 준다
     option.aingkaCode === "문법조건영작" && pickedWritingGrammar
       ? `\n[이번 문항에 쓸 어법] ${pickedWritingGrammar.label}(${pickedWritingGrammar.form})\n` +
@@ -2333,6 +2406,19 @@ export async function generateOneQuestion(opts: {
     return `
 
 CHOICE SHAPE: 이번 문항의 보기는 이 모양을 우선한다 — ${list[turn % list.length]}. 억지로 맞추지는 말되, 지난 문항과 같은 틀로 쓰지 않는다.`;
+  })();
+
+  /*
+   * 어법추론·어휘추론은 정답 번호가 한쪽으로 몰렸다 — 어휘추론 4번 32%, 1번 0%
+   * (2026-10-01 Jayden 선생님 지적: 「정답 선지가 4번으로 패턴화」).
+   * 이번 문항의 정답 번호를 박아 주어 고루 흩뜨린다. 지문 뒤에 붙여 캐시를 지킨다.
+   */
+  const answerSpotLine = (() => {
+    const no = plannedAnswerNumber(option.aingkaCode ?? "", opts.typeTurn ?? opts.diversitySlot?.index ?? 0);
+    if (!no) return "";
+    return `
+
+ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${no}번 자리만 틀리게(문맥에 어긋나게) 하고 나머지 네 자리는 모두 맞게 둔다.`;
   })();
 
   // 슬롯 정보는 같은 유형 문항끼리도 달라지므로 맨 끝에 둔다
@@ -2438,7 +2524,7 @@ CHOICE SHAPE: 이번 문항의 보기는 이 모양을 우선한다 — ${list[t
        */
       `ITEM RULES:\n${itemRules}\n\nOUTPUT KEYS (fill these; do not copy this wrapper):\n${itemData}\n\nPASSAGE:\n` +
       `${JSON.stringify({ passage, hint: englishBodyTypes.has(option.type) ? undefined : slimAnalysis })}` +
-      `${pickedSentenceLine}${frameShapeLine}${slotTail}`,
+      `${pickedSentenceLine}${frameShapeLine}${answerSpotLine}${slotTail}`,
     // 한 지문에서 여러 문항을 한꺼번에 만든다. 유형이 같으면 앞부분(공통 규칙·
     // 지문·유형 규칙)이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게
     // 이름표를 준다. 이것을 안 붙인 문항 생성만 캐시 적중이 0%였다.
@@ -2497,7 +2583,8 @@ CHOICE SHAPE: 이번 문항의 보기는 이 모양을 우선한다 — ${list[t
     option,
     opts.grammarWritingMode ?? "paraphrase",
     opts.wordOrderMode ?? "passage",
-    !opts.paraphraseGrammarVocab
+    !opts.paraphraseGrammarVocab,
+    opts.typeTurn ?? opts.diversitySlot?.index ?? 0
   );
   if (shapeError) throw new Error(shapeError);
   // 어법 추론은 수능처럼 지문 속 ①~⑤로 (정답 번호와 같은 기호)

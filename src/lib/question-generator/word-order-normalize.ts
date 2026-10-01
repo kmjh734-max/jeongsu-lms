@@ -407,7 +407,8 @@ export function splitWordBank(raw: string): string[] {
   return raw
     .split(/\s*\/\s*|\s*,\s*|\n+/)
     .map((w) => w.trim())
-    .filter((w) => w && /[A-Za-z]/.test(w) && !/[\uAC00-\uD7A3]/.test(w));
+    // \uC22B\uC790\uB3C4 \uB0B1\uB9D0\uC774\uB2E4(2018 \uB4F1) \u2014 \uC601\uBB38\uC790\uB9CC \uC138\uBA74 <\uBCF4\uAE30>\uC5D0\uC11C \uBE60\uC9C4\uB2E4
+    .filter((w) => w && /[A-Za-z0-9]/.test(w) && !/[\uAC00-\uD7A3]/.test(w));
 }
 
 export function joinWordBank(words: string[]): string {
@@ -443,7 +444,12 @@ export function tokenizeAnswerPhrase(answer: string): string[] {
     .replace(/[.,!?;:()[\]{}…—–]/g, " ")
     .split(/\s+/)
     .map((w) => w.trim())
-    .filter((w) => w.length > 0 && /[A-Za-z]/.test(w));
+    /*
+     * 숫자도 낱말이다. 영문자가 있어야만 센 탓에 「It was in 2018 that …」의 2018이
+     * <보기>에서도 빠지고 낱말 수에서도 빠졌다. 조건은 「단어를 더하거나 빼지 말 것」인데
+     * 보기에 없는 2018을 넣어야 답이 되었다(2026-10-01 Jayden 선생님 지적).
+     */
+    .filter((w) => w.length > 0 && /[A-Za-z0-9]/.test(w));
 }
 
 export type WordOrderBankMode = "basic" | "inflect" | "add";
