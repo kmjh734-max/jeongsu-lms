@@ -16,6 +16,11 @@ export function ExamHitReport({ report }: { report: HitReport }) {
 
   const pct = Math.round((report.hit / Math.max(1, report.total)) * 100);
   const shown = report.items.filter((it) => it.rows.length > 0);
+  /*
+   * 못 맞춘 문항 가운데 지문 출처를 아는 것 — 다음에 그 지문으로 만들면 된다.
+   * 고등 시험지는 지문이 거의 모의고사·교과서에서 나온다(2026-10-01 실측).
+   */
+  const toMake = report.items.filter((it) => !it.hit && !it.passageOnly && it.source);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
@@ -95,6 +100,27 @@ export function ExamHitReport({ report }: { report: HitReport }) {
           이 시험지의 지문과 같은 자료를 아직 만들지 않으셨습니다.
         </p>
       )}
+
+      {toMake.length > 0 ? (
+        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div className="text-xs font-bold text-slate-700">
+            이 지문으로 만들어 두면 다음에 맞습니다 ({toMake.length}문항)
+          </div>
+          <ul className="mt-1.5 flex flex-col gap-1 text-[12.5px] text-slate-600">
+            {toMake.slice(0, 12).map((it) => (
+              <li key={it.itemId} className="flex flex-wrap items-center gap-1.5">
+                <span className="font-semibold text-slate-800">{it.itemNo}번</span>
+                <span>{it.typeName}</span>
+                <span className="text-slate-400">·</span>
+                <span className="rounded bg-white px-1.5 py-0.5 text-[11px] text-slate-700">{it.source}</span>
+              </li>
+            ))}
+          </ul>
+          {toMake.length > 12 ? (
+            <p className="mt-1 text-[11px] text-slate-400">그 밖 {toMake.length - 12}문항</p>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

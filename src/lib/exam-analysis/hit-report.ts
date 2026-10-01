@@ -42,6 +42,13 @@ export type ItemHit = {
   hit: boolean;
   /** 지문만 같은 것이 있는가 */
   passageOnly: boolean;
+  /**
+   * 이 지문이 어디서 온 것인가(모의고사·교과서·수업자료).
+   *
+   * 고등 시험지를 재 보니(2026-10-01) 지문이 거의 모의고사 지문 모음과 교과서에서
+   * 나왔다. 못 맞춘 문항은 「어디서 가져올지」를 알려 주어야 다음에 만들 수 있다.
+   */
+  source: string | null;
 };
 
 export type HitReport = {
@@ -235,6 +242,11 @@ export async function buildHitReport(
       rows: rows.slice(0, 12),
       hit,
       passageOnly: !hit && rows.length > 0,
+      source:
+        it.matched_mock_label ||
+        it.matched_textbook_label ||
+        it.matched_label ||
+        null,
     });
   }
 
