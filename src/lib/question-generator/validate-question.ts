@@ -237,13 +237,50 @@ export function validateGeneratedQuestion(opts: {
     }
   }
 
-  // 4) 「개수」 유형: 정답 숫자와 해설이 든 틀린 개수가 다르다
+  /*
+   * 4) 「개수」 유형: 정답 숫자와 해설이 든 틀린 개수가 다르다.
+   *
+   * 처음에는 「ⓑ (틀림)」 꼴만 읽어서, 가장 흔한 「· ⓑ to rehearse → rehearse : …」를
+   * 통째로 못 읽었다(2026-10-01). 일부만 읽히면 개수를 적게 세어 멀쩡한 문항을 버린다.
+   * 그래서 세 가지 꼴을 모두 읽고, 기호마다 맞다/틀리다가 다 가려졌을 때만 센다.
+   */
   if (/개수$/.test(option.aingkaCode ?? "")) {
     const no = Number(q.correctAnswer);
+    const expl = q.explanation;
     const wrong = new Set<string>();
-    for (const m of q.explanation.matchAll(/([ⓐ-ⓖ①-⑤])[^가-힣]{0,12}(틀림|틀리다|어색|부적절)/g)) wrong.add(m[1]!);
-    for (const m of q.explanation.matchAll(/(틀린|어색한)[^가-힣]{0,6}([ⓐ-ⓖ①-⑤])/g)) wrong.add(m[2]!);
-    if (Number.isFinite(no) && wrong.size > 0 && wrong.size !== no) {
+    const right = new Set<string>();
+    /*
+     * 줄 단위로 가린다. 한 줄이 기호 하나를 말하는 것이 해설의 꼴이다.
+     * 글자 사이 거리로 재면 「ⓒ z는 올바른 표현이다」의 한글 조사에 막혀 못 읽는다.
+     */
+    for (const line of expl.split("\n")) {
+      const mk = line.match(/[ⓐ-ⓖ①-⑤]/);
+      if (!mk) continue;
+      const isList = /(?:어색한|틀린)\s*것은/.test(line);
+      if (isList) {
+        for (const m of line.matchAll(/[ⓐ-ⓖ①-⑤]/g)) wrong.add(m[0]!);
+        continue;
+      }
+      if (/→|->|⇒|틀림|틀리다|어색|부적절/.test(line)) wrong.add(mk[0]!);
+      else if (/맞음|맞다|맞습니다|올바른|알맞|적절하다/.test(line)) right.add(mk[0]!);
+    }
+    // 머리글이 한 줄에 다 들어온 해설도 읽는다
+    const listed = expl.match(/(?:어색한|틀린)\s*것은[^\n]{1,60}/);
+    if (listed) for (const m of listed[0]!.matchAll(/[ⓐ-ⓖ①-⑤]/g)) wrong.add(m[0]!);
+
+    const inBody = new Set(
+      [...String(q.passageModified ?? "").matchAll(/([ⓐ-ⓖ①-⑤])\s*<u>/g)].map((m) => m[1]!)
+    );
+    /*
+     * 본문에 있는 기호만 센다. 「정답은 ⑤이다」의 ⑤는 보기 번호이지 틀린 자리가 아니다 —
+     * 그것까지 세어 멀쩡한 문항을 버리던 것을 막는다.
+     */
+    for (const mk of [...wrong]) if (!inBody.has(mk)) wrong.delete(mk);
+    for (const mk of [...right]) if (!inBody.has(mk)) right.delete(mk);
+    // 기호마다 맞다/틀리다가 다 가려졌을 때만 센다 — 덜 읽고 버리면 안 된다
+    const judged = new Set([...wrong, ...right]);
+    const allJudged = inBody.size > 0 && [...inBody].every((mk) => judged.has(mk));
+    if (Number.isFinite(no) && allJudged && wrong.size !== no) {
       warnings.push(`정답은 ${no}개인데 해설은 ${wrong.size}개를 틀렸다고 합니다.`);
       score -= 40;
     }
@@ -271,7 +308,8 @@ export function validateGeneratedQuestion(opts: {
   const HEAD_VARIETY_TYPES = new Set(["title", "topic", "main_idea", "content_true", "content_false"]);
   if (HEAD_VARIETY_TYPES.has(option.type) && Array.isArray(q.choices) && q.choices.length >= 5) {
     const heads = q.choices
-      .map((c) => String(typeof c === "string" ? c : "").trim().split(/\s+/)[0]?.toLowerCase() ?? "")
+      // 보기는 {number, text} 꼴이다. 문자열로 읽어 규칙이 한 번도 안 걸리던 것을 고친다.
+      .map((c) => String(c?.text ?? "").trim().split(/\s+/)[0]?.toLowerCase() ?? "")
       .filter(Boolean);
     if (heads.length >= 5) {
       const cnt = new Map<string, number>();
