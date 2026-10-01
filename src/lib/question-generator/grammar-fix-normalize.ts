@@ -107,6 +107,29 @@ export function parseGrammarFixExplanation(
     if (norm(from) === norm(to)) continue;
     out.push({ mark, from, to });
   }
+
+  /*
+   * 화살표 없이 「them을 it으로 고쳐야 한다」로 쓴 해설도 읽는다.
+   *
+   * 선생님 지시(2026-10-01)로 문항을 하나하나 대조하다 찾았다. 해설은 ⓐ·ⓕ·ⓖ 셋을
+   * 틀렸다고 하는데 정답에는 ⓕ·ⓖ 둘만 적혀 있었다. 해설이 이 꼴이라 위 정규식이
+   * ⓐ를 못 읽어, 정답을 바로잡지 못하고 모델이 준 그대로 나간 것이다.
+   * 정답이 하나 빠지면 채점이 틀린다.
+   */
+  const koRe = new RegExp(
+    `(${MARK_RE})[^${MARK_RE.slice(1, -1)}]{0,40}?([A-Za-z][A-Za-z'\\- ]{0,80}?)\\s*(?:을|를)\\s*([A-Za-z][A-Za-z'\\- ]{0,80}?)\\s*(?:으로|로)\\s*고쳐`,
+    "g"
+  );
+  while ((m = koRe.exec(explanation))) {
+    const mark = m[1]!;
+    const from = m[2]!.trim();
+    const to = m[3]!.trim();
+    if (!to) continue;
+    if (norm(from) === norm(to)) continue;
+    // 위에서 이미 읽은 기호는 그대로 둔다(화살표 꼴을 더 믿는다)
+    if (out.some((p) => p.mark === mark)) continue;
+    out.push({ mark, from, to });
+  }
   return out;
 }
 
@@ -179,7 +202,18 @@ export function reconcileGrammarFixQuestion(opts: {
   // mark 중복 제거 (해설 우선)
   const byMark = new Map<string, GrammarFixPair>();
   for (const p of fromAnswer) byMark.set(p.mark, p);
-  for (const p of fromExpl) byMark.set(p.mark, p); // expl wins
+  for (const p of fromExpl) {
+    /*
+     * 해설을 더 믿지만, 정답이 더 긴 구를 적어 둔 것이면 그대로 둔다.
+     *
+     * 보기: 해설 「separating을 separate로 고쳐야 한다. 따라서 used to separate가 맞다」
+     * 정답 「used to separate」. 해설에서 뽑은 낱말(separate)로 덮으면 구가 토막난다.
+     * 학생이 받아 적을 말은 구 전체다.
+     */
+    const had = byMark.get(p.mark);
+    if (had && norm(had.to).includes(norm(p.to)) && had.to.length > p.to.length) continue;
+    byMark.set(p.mark, p);
+  }
 
   let pairs = [...byMark.values()];
 
