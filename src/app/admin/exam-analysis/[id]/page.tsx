@@ -21,7 +21,13 @@ export default async function ExamAnalysisDetailPage({ params }: { params: Promi
    */
   let hitReport = null;
   try {
-    hitReport = await buildHitReport(createAdminClient(), profile!.academy_id!, data.items);
+    hitReport = await buildHitReport(
+      createAdminClient(),
+      profile!.academy_id!,
+      data.items,
+      // 이 시험지를 올리기 전에 만든 자료만 적중으로 센다
+      data.analysis.created_at ?? null
+    );
   } catch (e) {
     console.error("hit report failed", e);
   }

@@ -28,7 +28,8 @@ export function ExamHitReport({ report }: { report: HitReport }) {
         <div>
           <span className="text-sm font-bold text-slate-900">내가 만든 자료와 대조</span>
           <p className="mt-0.5 text-xs text-slate-500">
-            지문과 유형이 모두 같은 문항을 적중으로 셉니다. 지문만 같은 것은 그 유형을 더 내시면 됩니다.
+            지문과 유형이 모두 같고, <b>시험지를 올리기 전에 만든</b> 문항만 적중으로 셉니다.
+            지문만 같은 것은 그 유형을 더 내시면 됩니다.
           </p>
         </div>
         <span className="text-sm font-bold text-brand-700">
@@ -87,6 +88,12 @@ export function ExamHitReport({ report }: { report: HitReport }) {
                         <span className="font-medium">{r.from}</span>
                         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px]">{r.typeName}</span>
                         <span className="truncate">{r.label}</span>
+                        {r.madeAt ? (
+                          <span className={`text-[11px] ${r.before ? "text-slate-400" : "text-amber-600"}`}>
+                            {r.before ? "" : "시험 뒤 · "}
+                            {r.madeAt.slice(0, 10)}
+                          </span>
+                        ) : null}
                       </li>
                     ))}
                   </ul>
@@ -100,6 +107,13 @@ export function ExamHitReport({ report }: { report: HitReport }) {
           이 시험지의 지문과 같은 자료를 아직 만들지 않으셨습니다.
         </p>
       )}
+
+      {report.afterOnly > 0 ? (
+        <p className="mt-2 text-xs text-slate-500">
+          시험지를 올린 <b>뒤에</b> 만든 자료로 같은 유형을 맞춘 것이 {report.afterOnly}문항 있습니다.
+          지난 시험을 올리고 이번 시험용 자료와 대보면 이렇게 나옵니다 — 적중으로는 세지 않았습니다.
+        </p>
+      ) : null}
 
       {toMake.length > 0 ? (
         <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">

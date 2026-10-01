@@ -30,6 +30,10 @@ export type HitRow = {
   questionId?: string;
   /** 문항 미리보기(발문 한 줄) */
   preview?: string;
+  /** 언제 만든 자료인가 */
+  madeAt?: string;
+  /** 시험지를 올리기 전에 만든 것인가 — 적중은 이것만 센다 */
+  before: boolean;
 };
 
 export type ItemHit = {
@@ -57,6 +61,10 @@ export type HitReport = {
   hit: number;
   passageOnly: number;
   missed: number;
+  /** 적중을 가르는 기준 날짜(이 시험지를 올린 때) */
+  cutoff: string | null;
+  /** 시험 뒤에 만들어 적중으로 세지 않은 문항 수 */
+  afterOnly: number;
 };
 
 /** 자료 갈래를 사람이 읽는 이름으로 */
@@ -109,14 +117,33 @@ const WORKBOOK_TO_EXAM: Record<string, string[]> = {
   one_line_ko: [],
 };
 
+/**
+ * @param cutoff 이 시험지를 올린 때. 그보다 <b>앞서</b> 만든 자료만 적중으로 센다.
+ *   선생님 말씀(2026-10-01): 「지금 올린 건 지난번 시험이니 적중이 0인 게 당연하다」.
+ *   맞는 말이다. 시험이 끝난 뒤에 만든 자료를 적중이라고 하면 아무 뜻이 없다.
+ */
 export async function buildHitReport(
   admin: SupabaseClient,
   academyId: string,
-  items: ExamItemRow[]
+  items: ExamItemRow[],
+  cutoff?: string | null
 ): Promise<HitReport> {
+  const cutoffMs = cutoff ? new Date(cutoff).getTime() : Number.POSITIVE_INFINITY;
+  const madeBefore = (at: unknown) => {
+    const t = at ? new Date(String(at)).getTime() : NaN;
+    return Number.isFinite(t) ? t < cutoffMs : true;
+  };
   const withPassage = items.filter((it) => (it.passage_excerpt ?? "").trim().length > 40);
   if (withPassage.length === 0) {
-    return { items: [], total: items.length, hit: 0, passageOnly: 0, missed: items.length };
+    return {
+      items: [],
+      total: items.length,
+      hit: 0,
+      passageOnly: 0,
+      missed: items.length,
+      cutoff: cutoff ?? null,
+      afterOnly: 0,
+    };
   }
 
   // ── 내 변형문제 지문과 그 지문으로 만든 문항
@@ -168,7 +195,7 @@ export async function buildHitReport(
   }
   const { data: docs } = await admin
     .from("lesson_material_documents")
-    .select("id, kind, name, project_ids, payload")
+    .select("id, kind, name, project_ids, payload, created_at")
     .eq("academy_id", academyId)
     .is("deleted_at", null)
     .limit(3000);
@@ -206,6 +233,8 @@ export async function buildHitReport(
             sameType: !want.substituted && String(q.option_key) === want.key,
             questionId: String(q.id),
             preview: String(q.instruction ?? "").slice(0, 60),
+            madeAt: String(q.created_at ?? ""),
+            before: madeBefore(q.created_at),
           });
         }
       }
@@ -217,7 +246,14 @@ export async function buildHitReport(
           const kinds = Array.isArray(payload.selectedTypes) ? (payload.selectedTypes as string[]) : [];
           const name = String(d.name ?? "수업자료");
           if (kinds.length === 0) {
-            rows.push({ from: "수업자료", label: `${name} 「${m.title}」`, typeName: KIND_NAME[String(d.kind)] ?? String(d.kind), sameType: false });
+            rows.push({
+              from: "수업자료",
+              label: `${name} 「${m.title}」`,
+              typeName: KIND_NAME[String(d.kind)] ?? String(d.kind),
+              sameType: false,
+              madeAt: String(d.created_at ?? ""),
+              before: madeBefore(d.created_at),
+            });
             continue;
           }
           const examName = it.type_name.split(" · ")[0]!.trim();
@@ -227,14 +263,17 @@ export async function buildHitReport(
               label: `${name} 「${m.title}」`,
               typeName: getWorkbookTypeMeta(k as never)?.title ?? k,
               sameType: (WORKBOOK_TO_EXAM[k] ?? []).includes(examName),
+              madeAt: String(d.created_at ?? ""),
+              before: madeBefore(d.created_at),
             });
           }
         }
       }
     }
 
-    rows.sort((a, b) => Number(b.sameType) - Number(a.sameType));
-    const hit = rows.some((r) => r.sameType);
+    rows.sort((a, b) => Number(b.sameType && b.before) - Number(a.sameType && a.before));
+    // 적중은 시험지를 올리기 전에 만든 것만 센다
+    const hit = rows.some((r) => r.sameType && r.before);
     out.push({
       itemId: it.id,
       itemNo: it.item_no,
@@ -256,5 +295,7 @@ export async function buildHitReport(
     hit: out.filter((x) => x.hit).length,
     passageOnly: out.filter((x) => x.passageOnly).length,
     missed: out.filter((x) => !x.hit && !x.passageOnly).length,
+    cutoff: cutoff ?? null,
+    afterOnly: out.filter((x) => !x.hit && x.rows.some((r) => r.sameType && !r.before)).length,
   };
 }
