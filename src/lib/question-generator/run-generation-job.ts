@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sweepSavedQuestions } from "@/lib/question-generator/final-sweep";
 import {
   isGrammarBillingType,
   isWritingBillingType,
@@ -458,6 +459,26 @@ async function finalizeGenerationJob(
 ): Promise<void> {
   // 작업이 끝났으니 모아 둔 사용량 기록을 밀어 넣는다(서버가 곧 잠든다).
   await flushAiUsage();
+
+  /*
+   * 저장이 끝난 뒤 한 번 더 훑는다 — 마지막 그물.
+   * 선생님이 문항을 받기 전에 걸러져야 한다. 사람이 보는 일이 없어야 한다
+   * (2026-10-01: 「강사가 매번 어떻게 확인하느냐」). 모델을 부르지 않는다.
+   */
+  const swept: string[] = [];
+  try {
+    const admin = createAdminClient();
+    const { data: jobRow } = await admin
+      .from("question_generation_jobs")
+      .select("request_config")
+      .eq("id", jobId)
+      .maybeSingle();
+    const rc = (jobRow?.request_config ?? {}) as Record<string, unknown>;
+    swept.push(...(await sweepSavedQuestions(admin, jobId, rc.paraphraseGrammarVocab === true)));
+  } catch (e) {
+    console.error("final sweep failed", e);
+  }
+
   const completed = await countSavedQuestions(jobId);
   const failed = Math.max(0, opts.totalRequested - completed - opts.skipped);
   const finalStatus = completed > 0 ? "completed" : "failed";
@@ -484,7 +505,7 @@ async function finalizeGenerationJob(
     error_message:
       finalStatus === "failed"
         ? opts.errorMessage ?? "선택한 유형 생성에 실패했습니다."
-        : dropReasons(opts.dropped),
+        : dropReasons([...(opts.dropped ?? []), ...swept]),
     completed_at: new Date().toISOString(),
     total_completed: completed,
     total_failed: failed,
