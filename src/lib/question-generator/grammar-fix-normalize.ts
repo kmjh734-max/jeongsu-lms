@@ -80,8 +80,22 @@ export function parseGrammarFixExplanation(
   explanation: string
 ): GrammarFixPair[] {
   const out: GrammarFixPair[] = [];
+  /*
+   * 기호와 영어 사이에 한국어가 끼어도 읽는다.
+   *
+   * 선생님 지시(2026-10-01)로 만들어 둔 문항을 하나하나 대조하다 찾았다. 해설이
+   * 「ⓓ (틀림: making → make)」 꼴이면 기호 뒤에 바로 영어가 오지 않아 이 정규식이
+   * 아무것도 못 읽었다. 그러면 해설로 정답을 바로잡을 수가 없어, 모델이 고친 말을
+   * 한 칸씩 밀려 적어 와도 그대로 나갔다.
+   * 실제로 어법오류수정 235문항 가운데 18개가 정답과 해설이 어긋난 채로 저장돼 있었다
+   * (보기: 정답 「ⓓ: made / ⓕ: come」, 해설 「ⓓ making → make, ⓕ making → made」).
+   *
+   * 기호와 화살표 사이만 건너뛴다 — 다음 기호나 화살표를 넘지 않으므로 옆 설명을
+   * 끌어오지 않는다.
+   */
   const re = new RegExp(
-    `(${MARK_RE})\\s*[:：]?\\s*([A-Za-z][A-Za-z'\\- ]{0,40}?)\\s*(?:→|->|⇒)\\s*([A-Za-z][A-Za-z'\\- ]{0,40})`,
+    // 고친 말이 긴 유형(not only A but also B)도 토막나지 않게 여든 자까지 본다
+    `(${MARK_RE})[^${MARK_RE.slice(1, -1)}→]{0,18}?([A-Za-z][A-Za-z'\\- ]{0,80}?)\\s*(?:→|->|⇒)\\s*([A-Za-z][A-Za-z'\\- ]{0,80})`,
     "g"
   );
   let m: RegExpExecArray | null;
@@ -211,6 +225,14 @@ export function reconcileGrammarFixQuestion(opts: {
       reason: `어법 수정: 실제 오류가 ${pairs.length}개뿐 (적어도 둘은 있어야 함). 본문·정답·해설이 어긋남${declaredOk.size ? ` (해설이 ${[...declaredOk].join(" ")}를 맞다고 함)` : ""}.`,
     };
   }
+
+  /*
+   * 정답 기호를 ⓐⓑⓒ 차례로 적는다.
+   * 해설에 나온 차례대로 두면 「ⓓ … / ⓑ … / ⓒ …」 같은 꼴이 되어,
+   * 선생님이 답지를 대조할 때 헷갈린다.
+   */
+  const MARK_ORDER = "ⓐⓑⓒⓓⓔⓕⓖ①②③④⑤";
+  pairs.sort((a, b) => MARK_ORDER.indexOf(a.mark) - MARK_ORDER.indexOf(b.mark));
 
   const correctAnswer = formatGrammarFixAnswer(pairs);
   const wrongMarks = new Set(pairs.map((p) => p.mark));
