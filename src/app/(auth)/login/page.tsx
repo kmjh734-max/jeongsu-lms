@@ -8,6 +8,8 @@ import { SITE_NAME } from "@/lib/branding";
 import { getActiveAcademyBySlug } from "@/lib/tenant/academy-branding";
 import {
   ACADEMY_COOKIE,
+  academySlugFromHost,
+  normalizeAcademySlug,
   resolveAcademySlug,
 } from "@/lib/tenant/resolve-login-academy";
 
@@ -71,6 +73,16 @@ export default async function LoginPage({ searchParams }: PageProps) {
 
   const academy = slug ? await getActiveAcademyBySlug(slug) : null;
   const academyMissing = Boolean(slug && !academy);
+  /*
+   * 어느 학원이었는지 기억하는 쿠키 때문에 이 화면이 떴을 때만 빠져나올 고리를 둔다.
+   * 학원 주소나 학원 전용 링크로 들어오신 분(학생·선생님)께는 보이지 않는다 —
+   * 눌러도 다시 그 학원으로 돌아오므로 헷갈리기만 한다(2026-10-01).
+   */
+  const stuckFromCookie = Boolean(
+    academy &&
+      !academySlugFromHost(headerList.get("host")) &&
+      !normalizeAcademySlug(academyParam)
+  );
   const displayName = academy ? academy.name : SITE_NAME;
 
   return (
@@ -123,6 +135,22 @@ export default async function LoginPage({ searchParams }: PageProps) {
               }
             />
           </Suspense>
+          {stuckFromCookie ? (
+            <p className="text-center text-sm">
+              {/*
+                쿠키를 지우는 것은 미들웨어라, 화면 안에서 넘기면(Link) 지워지지 않을 수
+                있다. 주소를 통째로 다시 부른다.
+              */}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a
+                href="/?academy="
+                className="font-medium text-slate-500 underline hover:text-slate-900"
+              >
+                {SITE_NAME} 홈으로
+              </a>
+            </p>
+          ) : null}
+
           {/* 학원 주소로 들어온 로그인(학생·선생님용)에는 가입 안내를 두지 않는다 */}
           {academy ? null : (
             <p className="text-center text-sm text-slate-500">
