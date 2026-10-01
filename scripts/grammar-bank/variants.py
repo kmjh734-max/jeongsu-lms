@@ -79,6 +79,32 @@ def substitute(text, replace):
     return "".join(out)
 
 
+# 붙어 쓰는 말의 뒷자리 — 여기 낱말을 바꾸면 말이 깨진다.
+# 「cell phone」이 「cell wallet」, 「living room」이 「living kitchen」,
+# 「best friend」가 「best teammate」가 되어 학생에게 그대로 나갔다.
+GLUED = {
+    "cell", "Christmas", "high", "middle", "elementary", "swimming", "living",
+    "best", "ice", "post", "birthday", "department", "text", "traffic",
+    "cotton", "police", "fire", "news", "rail", "tooth", "hair", "dining",
+    "living", "grand", "class", "home", "week", "wedding", "water", "air",
+}
+
+
+def keep_glued(replace):
+    """앞말이 붙어 쓰는 말이면 그 뒤 낱말은 그대로 둔다"""
+    def swap(piece):
+        out, last = [], 0
+        for m in re.finditer(r"[A-Za-z][A-Za-z'’\-]*", piece):
+            out.append(piece[last:m.start()])
+            before = re.search(r"([A-Za-z]+)\s*$", piece[:m.start()])
+            out.append(m.group(0) if before and before.group(1) in GLUED
+                       else replace(m.group(0)))
+            last = m.end()
+        out.append(piece[last:])
+        return "".join(out)
+    return swap
+
+
 def visible(question):
     """학생이 보는 곳 — 여기에 없는 말을 바꾸면 정답만 달라져 앞뒤가 어긋난다."""
     return ([question["prompt"]] + list(question["body"])
@@ -357,7 +383,8 @@ def build_variant(question, report, rng, want=None):
         def swap_vocab(piece):
             return pattern.sub(lambda m: table_[m.group(0)], piece)
 
-        changed = {key: substitute(text, swap_vocab) for key, text in fields(working)}
+        changed = {key: substitute(text, keep_glued(swap_vocab))
+                   for key, text in fields(working)}
         working = dict(working, **rebuild(working, changed))
         table.update(table_)
         applied.append("낱말 " + ", ".join("%s→%s" % kv for kv in moved.items()))
@@ -374,7 +401,7 @@ def build_variant(question, report, rng, want=None):
             def swap_forms(piece):
                 return shape.sub(lambda m: forms[m.group(0)], piece)
 
-            changed = {key: substitute(text, swap_forms)
+            changed = {key: substitute(text, keep_glued(swap_forms))
                        for key, text in fields(working)}
             working = dict(working, **rebuild(working, changed))
             table.update(forms)
