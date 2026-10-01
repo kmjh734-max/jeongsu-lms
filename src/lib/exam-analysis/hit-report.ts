@@ -16,6 +16,12 @@ import type { ExamItemRow } from "@/lib/exam-analysis/types";
 import { examTypeToOptionKey } from "@/lib/exam-analysis/blueprint";
 import { getWorkbookTypeMeta } from "@/lib/lesson-materials/workbook-types";
 import { findPassageAt, typesNear } from "@/lib/exam-analysis/uploaded-material";
+import {
+  askedSameSpot,
+  examAskedWords,
+  examAskedWordsFromPage,
+  myAskedWords,
+} from "@/lib/exam-analysis/detail-match";
 
 /** 적중 한 줄 — 시험지 문항 하나에 걸린 내 문항 하나 */
 export type HitRow = {
@@ -27,6 +33,11 @@ export type HitRow = {
   typeName: string;
   /** 유형까지 같은가 */
   sameType: boolean;
+  /**
+   * 묻는 자리까지 같은가 — 유형이 같아도 빈칸·밑줄 자리가 다르면 다른 문제다.
+   * null 이면 잴 수 없었다는 뜻(시험지 쪽에 정답 짐작이 없다).
+   */
+  sameSpot?: boolean | null;
   /** 눌러서 펼쳐 볼 수 있게 — 변형문제면 문항 id */
   questionId?: string;
   /** 문항 미리보기(발문 한 줄) */
@@ -45,6 +56,8 @@ export type ItemHit = {
   rows: HitRow[];
   /** 지문도 유형도 같은 것이 있는가 */
   hit: boolean;
+  /** 묻는 자리까지 같은 것이 있는가 — 진짜 적중 */
+  spotHit: boolean;
   /** 지문만 같은 것이 있는가 */
   passageOnly: boolean;
   /**
@@ -66,6 +79,8 @@ export type HitReport = {
   cutoff: string | null;
   /** 시험 뒤에 만들어 적중으로 세지 않은 문항 수 */
   afterOnly: number;
+  /** 묻는 자리까지 같은 문항 수 */
+  spotHit: number;
 };
 
 /** 자료 갈래를 사람이 읽는 이름으로 */
@@ -146,7 +161,23 @@ export async function buildHitReport(
       missed: items.length,
       cutoff: cutoff ?? null,
       afterOnly: 0,
+      spotHit: 0,
     };
+  }
+
+  /*
+   * 시험지 쪽 글 — 문항표에는 지문 앞 150자뿐이라 빈칸·밑줄이 없다. 쪽 글에는 남아 있다.
+   * 「묻는 자리까지 같은가」는 이것으로 잰다(2026-10-01).
+   */
+  const analysisId = (items[0] as unknown as { analysis_id?: string })?.analysis_id ?? null;
+  let pageText = "";
+  if (analysisId) {
+    const { data: pages } = await admin
+      .from("school_exam_pages")
+      .select("text")
+      .eq("analysis_id", analysisId)
+      .order("page_no");
+    pageText = (pages ?? []).map((p) => String(p.text ?? "")).join("\n");
   }
 
   // ── 내 변형문제 지문과 그 지문으로 만든 문항
@@ -156,7 +187,7 @@ export async function buildHitReport(
     .limit(4000);
   const { data: made } = await admin
     .from("generated_english_questions")
-    .select("id, passage_id, option_key, instruction, created_at")
+    .select("id, passage_id, option_key, instruction, created_at, passage_modified, correct_answer, question_text, choices")
     .eq("academy_id", academyId)
     .limit(20000);
   const madeByPassage = new Map<string, NonNullable<typeof made>>();
@@ -225,6 +256,7 @@ export async function buildHitReport(
         if (!samePassage(examSet, p.set)) continue;
         for (const q of madeByPassage.get(p.id) ?? []) {
           const code = String(q.option_key).split(":").pop() ?? "";
+          const sameType = !want.substituted && String(q.option_key) === want.key;
           rows.push({
             from: "변형문제",
             label: `변형문제 「${p.title}」`,
@@ -233,7 +265,22 @@ export async function buildHitReport(
              * 대체 유형(영영풀이 → 어휘추론처럼 비슷한 것으로 바꿔 둔 것)은 적중이 아니다.
              * 선생님 결정(2026-10-01): 지문 + 유형이 <b>같아야</b> 적중이다.
              */
-            sameType: !want.substituted && String(q.option_key) === want.key,
+            sameType,
+            // 유형이 같을 때만 더 들어가 본다 — 유형이 다르면 자리를 견줄 까닭이 없다
+            sameSpot: sameType
+              ? askedSameSpot(
+                  [
+                    ...examAskedWordsFromPage(pageText, it.passage_excerpt ?? ""),
+                    ...examAskedWords(it.answer_guess, it.grammar_point),
+                  ],
+                  myAskedWords({
+                    passageModified: q.passage_modified as string | null,
+                    correctAnswer: q.correct_answer,
+                    questionText: q.question_text as string | null,
+                    choices: q.choices as Array<{ text?: string }> | null,
+                  })
+                )
+              : null,
             questionId: String(q.id),
             preview: String(q.instruction ?? "").slice(0, 60),
             madeAt: String(q.created_at ?? ""),
@@ -254,6 +301,7 @@ export async function buildHitReport(
               label: `${name} 「${m.title}」`,
               typeName: KIND_NAME[String(d.kind)] ?? String(d.kind),
               sameType: false,
+              sameSpot: null,
               madeAt: String(d.created_at ?? ""),
               before: madeBefore(d.created_at),
             });
@@ -266,6 +314,8 @@ export async function buildHitReport(
               label: `${name} 「${m.title}」`,
               typeName: getWorkbookTypeMeta(k as never)?.title ?? k,
               sameType: (WORKBOOK_TO_EXAM[k] ?? []).includes(examName),
+              // 워크북은 문항 속을 들여다볼 수 없어 자리까지는 못 잰다
+              sameSpot: null,
               madeAt: String(d.created_at ?? ""),
               before: madeBefore(d.created_at),
             });
@@ -285,24 +335,28 @@ export async function buildHitReport(
         if (at < 0) continue;
         const near = typesNear(u.text, at);
         if (near.length === 0) {
-          rows.push({ from: "올린 자료", label: u.name, typeName: "지문 있음", sameType: false, before: true });
+          rows.push({ from: "올린 자료", label: u.name, typeName: "지문 있음", sameType: false, sameSpot: null, before: true });
           continue;
         }
         for (const t of near) {
-          rows.push({ from: "올린 자료", label: u.name, typeName: t, sameType: t === examName, before: true });
+          rows.push({ from: "올린 자료", label: u.name, typeName: t, sameType: t === examName, sameSpot: null, before: true });
         }
       }
     }
 
-    rows.sort((a, b) => Number(b.sameType && b.before) - Number(a.sameType && a.before));
+    const rank = (r: HitRow) =>
+      (r.sameType && r.before ? 2 : 0) + (r.sameSpot === true ? 1 : 0);
+    rows.sort((a, b) => rank(b) - rank(a));
     // 적중은 시험지를 올리기 전에 만든 것만 센다
     const hit = rows.some((r) => r.sameType && r.before);
+    const spotHit = rows.some((r) => r.sameType && r.before && r.sameSpot === true);
     out.push({
       itemId: it.id,
       itemNo: it.item_no,
       typeName: it.type_name,
       rows: rows.slice(0, 12),
       hit,
+      spotHit,
       passageOnly: !hit && rows.length > 0,
       source:
         it.matched_mock_label ||
@@ -320,5 +374,6 @@ export async function buildHitReport(
     missed: out.filter((x) => !x.hit && !x.passageOnly).length,
     cutoff: cutoff ?? null,
     afterOnly: out.filter((x) => !x.hit && x.rows.some((r) => r.sameType && !r.before)).length,
+    spotHit: out.filter((x) => x.spotHit).length,
   };
 }

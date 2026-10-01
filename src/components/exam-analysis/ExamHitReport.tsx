@@ -145,8 +145,8 @@ export function ExamHitReport({
         <div>
           <span className="text-sm font-bold text-slate-900">내가 만든 자료와 대조</span>
           <p className="mt-0.5 text-xs text-slate-500">
-            지문과 유형이 모두 같고, <b>시험지를 올리기 전에 만든</b> 문항만 적중으로 셉니다.
-            지문만 같은 것은 그 유형을 더 내시면 됩니다.
+            <b>시험지를 올리기 전에 만든</b> 문항만 셉니다. 유형이 같아도 빈칸·밑줄 자리가
+            다르면 학생에게는 다른 문제라, <b>묻는 자리까지 같은 것</b>을 따로 셉니다.
             {at ? ` · ${at.slice(0, 10)} 대조` : ""}
           </p>
         </div>
@@ -169,9 +169,10 @@ export function ExamHitReport({
       {step ? <p className="mt-2 text-xs text-slate-500">{step}</p> : null}
       {message ? <p className="mt-2 text-xs text-red-600">{message}</p> : null}
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+      <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          ["지문도 유형도 같음", report.hit, "border-emerald-200 bg-emerald-50 text-emerald-800"],
+          ["묻는 자리까지 같음", report.spotHit ?? 0, "border-emerald-300 bg-emerald-50 text-emerald-900"],
+          ["유형까지 같음", report.hit, "border-emerald-200 bg-emerald-50/60 text-emerald-800"],
           ["지문만 같음", report.passageOnly, "border-amber-200 bg-amber-50 text-amber-800"],
           ["못 맞춤", report.missed, "border-slate-200 bg-slate-50 text-slate-600"],
         ].map(([label, n, cls]) => (
@@ -200,10 +201,14 @@ export function ExamHitReport({
                     <span className="text-slate-600">{it.typeName}</span>
                     <span
                       className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                        it.hit ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                        it.spotHit
+                          ? "bg-emerald-600 text-white"
+                          : it.hit
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-amber-100 text-amber-800"
                       }`}
                     >
-                      {it.hit ? "적중" : "지문만 같음"}
+                      {it.spotHit ? "묻는 자리까지 적중" : it.hit ? "유형까지 같음" : "지문만 같음"}
                     </span>
                   </div>
                   <ul className="mt-1.5 flex flex-col gap-1">
@@ -214,9 +219,20 @@ export function ExamHitReport({
                           r.sameType ? "text-slate-800" : "text-slate-500"
                         }`}
                       >
-                        <span className={r.sameType ? "text-emerald-600" : "text-slate-300"}>
-                          {r.sameType ? "●" : "○"}
+                        <span
+                          className={
+                            r.sameSpot === true
+                              ? "text-emerald-700"
+                              : r.sameType
+                                ? "text-emerald-500"
+                                : "text-slate-300"
+                          }
+                        >
+                          {r.sameSpot === true ? "★" : r.sameType ? "●" : "○"}
                         </span>
+                        {r.sameType && r.sameSpot === false ? (
+                          <span className="text-[11px] text-amber-600">묻는 자리 다름</span>
+                        ) : null}
                         <span className="font-medium">{r.from}</span>
                         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px]">{r.typeName}</span>
                         <span className="truncate">{r.label}</span>
