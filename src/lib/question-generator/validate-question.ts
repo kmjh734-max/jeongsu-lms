@@ -154,6 +154,92 @@ export function validateGeneratedQuestion(opts: {
     }
   }
 
+  /*
+   * 아래 다섯 가지는 전수 대조(선생님 지시 2026-10-01)에서 나온 흠이다.
+   * 검수기(scripts/check-questions.mts)로만 보고 있었는데, 만들 때 막지 않으면
+   * 다시 생긴다. 그래서 여기로 옮겨 왔다.
+   */
+  const marksOf = (t: string) => [...String(t ?? "").matchAll(/([ⓐ-ⓖ])\s*[:：]/g)].map((m) => m[1]!);
+  const ansText = typeof q.correctAnswer === "string" ? q.correctAnswer : "";
+
+  // 1) 정답이 본문에 없는 기호를 가리킨다
+  if (ansText && (q.passageModified ?? "").includes("<u>")) {
+    const inBody = new Set(
+      [...String(q.passageModified).matchAll(/([ⓐ-ⓖ①-⑤])\s*<u>/g)].map((m) => m[1]!)
+    );
+    if (inBody.size > 0) {
+      const missing = marksOf(ansText).filter((mk) => !inBody.has(mk));
+      if (missing.length > 0) {
+        warnings.push(`정답이 본문에 없는 기호를 가리킵니다: ${missing.join(" ")}`);
+        score -= 45;
+      }
+    }
+  }
+
+  /*
+   * 2) 객관식인데 해설이 다른 번호를 정답이라고 못 박는다.
+   *    정답을 말로만 풀고 오답 번호만 나열하는 것은 정상 꼴이라 건드리지 않는다
+   *    (전수 5,696개에서 그 꼴 세 건이 모두 옳은 해설이었다). 「③이 알맞다」처럼
+   *    번호를 정답으로 지목한 것만 본다.
+   */
+  if (Array.isArray(q.choices) && q.choices.length >= 4) {
+    const no = Number(q.correctAnswer);
+    if (Number.isFinite(no)) {
+      const claimed = new Set<number>();
+      const push = (ch: string) => {
+        const at = "①②③④⑤".indexOf(ch);
+        if (at >= 0) claimed.add(at + 1);
+      };
+      for (const m of q.explanation.matchAll(
+        /([①-⑤])\s*(?:이|가|은|는|을|를|번)?\s*(?:정답|알맞|적절하다|적절한|맞다|들어가)/g
+      )) push(m[1]!);
+      for (const m of q.explanation.matchAll(/정답[^①-⑤가-힣]{0,4}([①-⑤])/g)) push(m[1]!);
+      if (claimed.size > 0 && !claimed.has(no)) {
+        warnings.push(`정답은 ${no}번인데 해설은 ${[...claimed].join(",")}번을 정답이라고 합니다.`);
+        score -= 40;
+      }
+    }
+  }
+
+  // 3) 「본문에서 찾아 쓰기」인데 정답이 본문에 없다
+  if (ansText && /본문에서 찾아|본문에 나오는|본문의 한 단어|본문에서 정확히/.test(q.questionText ?? "")) {
+    const body = `${opts.passage} ${q.passageModified ?? ""}`.toLowerCase().replace(/[^a-z]/g, "");
+    const parts = [
+      ...[...ansText.matchAll(/[ⓐ-ⓖ]\s*[:：]\s*([^/]+)/g)].map((m) => m[1]!.trim()),
+      ...[...ansText.matchAll(/\([A-G]\)\s*[:：]\s*([^/]+)/g)].map((m) => m[1]!.trim()),
+    ];
+    for (const text of parts.length ? parts : [ansText]) {
+      const key = text.toLowerCase().replace(/[^a-z]/g, "");
+      if (key.length >= 4 && !body.includes(key)) {
+        warnings.push(`본문에서 찾아 쓰는 문항인데 정답이 본문에 없습니다: "${text.slice(0, 30)}"`);
+        score -= 45;
+        break;
+      }
+    }
+  }
+
+  // 4) 「개수」 유형: 정답 숫자와 해설이 든 틀린 개수가 다르다
+  if (/개수$/.test(option.aingkaCode ?? "")) {
+    const no = Number(q.correctAnswer);
+    const wrong = new Set<string>();
+    for (const m of q.explanation.matchAll(/([ⓐ-ⓖ①-⑤])[^가-힣]{0,12}(틀림|틀리다|어색|부적절)/g)) wrong.add(m[1]!);
+    for (const m of q.explanation.matchAll(/(틀린|어색한)[^가-힣]{0,6}([ⓐ-ⓖ①-⑤])/g)) wrong.add(m[2]!);
+    if (Number.isFinite(no) && wrong.size > 0 && wrong.size !== no) {
+      warnings.push(`정답은 ${no}개인데 해설은 ${wrong.size}개를 틀렸다고 합니다.`);
+      score -= 40;
+    }
+  }
+
+  // 5) 해설 끝에 이 문장과 무관한 문법 포인트 꼬리표가 붙었다
+  if (/제시어배열/.test(option.aingkaCode ?? "")) {
+    const tail = q.explanation.split(/(?<=[.다])\s+/).filter((line) => /^\s*GP\d{2}/.test(line));
+    if (tail.length > 0) {
+      warnings.push("해설 끝에 문법 포인트 꼬리표가 붙었습니다.");
+      // 통과선(70)을 넘겨야 다시 만든다
+      score -= 35;
+    }
+  }
+
   return {
     singleCorrectAnswer: true,
     answerMatchesExplanation: Boolean(q.explanation.trim()),
