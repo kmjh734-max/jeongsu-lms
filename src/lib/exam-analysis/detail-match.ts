@@ -22,6 +22,15 @@ const STOP = new Set(
 const content = (s: string): string[] =>
   (String(s ?? "").toLowerCase().match(/[a-z][a-z'-]{2,}/g) ?? []).filter((w) => !STOP.has(w));
 
+/**
+ * 유형만 같으면 적중으로 치는 유형 (선생님 결정 2026-10-01).
+ *
+ * 문장삽입·순서배열·무관한문장은 정답이 번호뿐이라 「묻는 자리」를 잴 수가 없다.
+ * 게다가 이 셋은 같은 지문에 같은 유형을 내 두었으면 학생이 그 지문을 그 방식으로
+ * 이미 풀어 본 것이라, 자리가 조금 달라도 준비가 된 것으로 본다.
+ */
+export const TYPE_ONLY_IS_ENOUGH = new Set(["문장삽입", "순서추론", "무관한문장"]);
+
 /** 시험지가 물은 자리의 낱말 — 정답 짐작·어법 포인트에서 */
 export function examAskedWords(answerGuess: string | null, grammarPoint: string | null): string[] {
   return [...new Set([...content(answerGuess ?? ""), ...content(grammarPoint ?? "")])];

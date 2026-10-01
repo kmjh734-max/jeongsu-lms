@@ -21,6 +21,7 @@ import {
   examAskedWords,
   examAskedWordsFromPage,
   myAskedWords,
+  TYPE_ONLY_IS_ENOUGH,
 } from "@/lib/exam-analysis/detail-match";
 
 /** 적중 한 줄 — 시험지 문항 하나에 걸린 내 문항 하나 */
@@ -267,8 +268,12 @@ export async function buildHitReport(
              */
             sameType,
             // 유형이 같을 때만 더 들어가 본다 — 유형이 다르면 자리를 견줄 까닭이 없다
-            sameSpot: sameType
-              ? askedSameSpot(
+            sameSpot: !sameType
+              ? null
+              : // 문장삽입·순서배열·무관한문장은 유형만 같으면 적중으로 친다
+                TYPE_ONLY_IS_ENOUGH.has(code)
+                ? true
+                : askedSameSpot(
                   [
                     ...examAskedWordsFromPage(pageText, it.passage_excerpt ?? ""),
                     ...examAskedWords(it.answer_guess, it.grammar_point),
@@ -279,8 +284,7 @@ export async function buildHitReport(
                     questionText: q.question_text as string | null,
                     choices: q.choices as Array<{ text?: string }> | null,
                   })
-                )
-              : null,
+                ),
             questionId: String(q.id),
             preview: String(q.instruction ?? "").slice(0, 60),
             madeAt: String(q.created_at ?? ""),
