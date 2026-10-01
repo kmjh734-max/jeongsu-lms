@@ -47,6 +47,32 @@ STRAY_NO = re.compile(r"(?<![A-Za-z0-9'])\d{1,2}(?![A-Za-z0-9])")
 MANY_CHOICE = re.compile(r"[①-⑩].*[①-⑩]")
 
 
+# 「그리고·또는」처럼 답을 여럿 적어 둔 자국 — 이런 답은 겹쳐도 괜찮다
+SAID_TWICE = re.compile(r"[\[\]/;,→~]|or")
+# 되풀이가 자연스러운 말
+SMALL = {"a", "an", "the", "to", "of", "in", "on", "at", "is", "are", "am", "was",
+         "were", "be", "been", "not", "you", "i", "it", "he", "she", "they", "we",
+         "my", "your", "his", "her", "their", "our", "and", "that", "this"}
+
+
+def twice_over(text):
+    """같은 말이 두 번 든 답 — 옆 문항 답이 붙어 온 자국.
+
+    「left had left」·「my friends by my friends」·「wasting not not wasting」처럼
+    나온다. 답을 둘 적어 둔 것(대괄호·빗금·쉼표)은 그래도 된다.
+    """
+    if SAID_TWICE.search(text):
+        return False
+    seen = set()
+    for word in re.findall(r"[A-Za-z'’]+", text.lower()):
+        if word in SMALL or len(word) < 3:
+            continue
+        if word in seen:
+            return True
+        seen.add(word)
+    return False
+
+
 def usable(answer, q=None):
     """넣어도 되는 답인가 — 읽다가 어긋난 것은 넣지 않는다.
 
@@ -59,6 +85,8 @@ def usable(answer, q=None):
     t = str(answer or "").strip()
     text = str((q or {}).get("text") or "")
     if not t or len(t) > 70:
+        return False
+    if twice_over(t):
         return False
     if GARBLED.search(t):
         return False
@@ -171,7 +199,7 @@ def fill_blocks(blocks, questions):
 def main(q_path, a_path, out_path, bad_path=None):
     questions = json.load(open(q_path, encoding="utf-8"))
     blocks = json.load(open(a_path, encoding="utf-8"))
-    from jp_wb_match import lexicon, unfuse          # 서로 부르지 않도록 여기서 가져온다
+    from jp_wb_match import known, lexicon, unfuse   # 서로 부르지 않도록 여기서 가져온다
     words = lexicon(q_path)
 
     by_page = collections.defaultdict(list)
@@ -237,7 +265,8 @@ def main(q_path, a_path, out_path, bad_path=None):
                     continue
             # 정답지를 읽을 때 낱말 사이 좁은 틈을 놓쳐 둘이 붙는다 — 떼어 놓는다
             pairs = [(q, unfuse(a, words)) for q, a in pairs]
-            pairs = [(q, a) for q, a in pairs if usable(a, q)]
+            # 책에 없는 낱말이 섞인 답은 잘못 읽은 것이다 (「'atisfying」·「ickina」)
+            pairs = [(q, a) for q, a in pairs if usable(a, q) and known(a, words)]
             if not pairs:
                 failed.append({"pages": use, "step": step, "문항": len(items), "답": len(got),
                                "까닭": "읽은 답이 뭉개짐"})

@@ -128,6 +128,14 @@ def lexicon(*paths):
     return words
 
 
+# 좁은 틈이 있어 자주 붙어 나오는 말
+FUSE = {"i", "he", "she", "it", "we", "you", "they", "the", "a", "an",
+        "is", "are", "am", "was", "were", "be", "been", "being",
+        "to", "of", "in", "on", "at", "for", "and", "or", "not",
+        "have", "has", "had", "do", "does", "did",
+        "will", "would", "can", "could", "may", "might", "must", "should"}
+
+
 def unfuse(text, words):
     """붙어 버린 낱말을 떼어 놓는다 — 「Heis」 → 「He is」.
 
@@ -142,7 +150,12 @@ def unfuse(text, words):
             continue
         cut = None
         for i in range(2, len(word) - 1):
-            if word[:i].lower() in words and word[i:].lower() in words:
+            left, right = word[:i].lower(), word[i:].lower()
+            if left not in words or right not in words:
+                continue
+            # 아무 데나 가르면 「hottest」가 「hot test」가 된다. 잘 붙는 말
+            # (대명사·be동사·관사 따위) 이 한쪽에 있을 때만 가른다.
+            if left in FUSE or right in FUSE:
                 cut = i
                 break
         out.append(word if cut is None else word[:cut] + " " + word[cut:])

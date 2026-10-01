@@ -194,6 +194,9 @@ def unit_for(kind, q, level, chapter):
         return nearest(q.get("rule") or "", units_of(level, chapter))
     if kind == "cwwb":
         return nearest(q.get("unit") or "", units_of(level, chapter))
+    if kind == "gq":
+        # 교재가 붙인 단원 이름을 그대로 쓰면 공식 목차 밖으로 나간다
+        return nearest(q.get("unit") or "", units_of(level, chapter))
     if kind == "tb":
         # PATTERN 이름이 세부 갈래 그대로다 — 공식 목차에서 가장 가까운 것으로
         return nearest(q.get("title") or "", units_of(level, chapter))

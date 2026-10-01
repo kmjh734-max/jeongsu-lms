@@ -29,11 +29,6 @@ for n in 1 2 3; do
     $T/jpwb-$n-matched.json $T/jpwb-$n-bad.json 2>&1 | grep 붙인
 done
 
-echo "── 그래머큐 워크북"
-for k in s1 s2 i1 i2 a1 a2; do
-  python scripts/grammar-bank/gqwb_match.py $T/gqwb-$k.json $T/gqwb-$k-box.json     $T/gqwb-$k-matched.json $T/gqwb-$k-bad.json 2>&1 | grep 붙인
-done
-
 echo "── 천일문 워크북"
 for n in 1 2 3; do
   python scripts/grammar-bank/cw_wb_match.py $T/cwwb-$n.json $T/cw-$n-box.json \
