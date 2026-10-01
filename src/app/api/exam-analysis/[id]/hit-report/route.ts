@@ -17,7 +17,7 @@ const FEATURE = "exam_hit_report";
  * 화면을 열 때마다 돌리면 지문 수천 개를 매번 훑어 느리고 헛일이다(2026-10-01).
  * 눌렀을 때만 돌리고 결과를 담아 둔다. 자료를 더 만든 뒤 다시 누르면 새로 담긴다.
  */
-export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const profile = await getCurrentProfile();
   if (!profile?.academy_id || (profile.role !== "admin" && profile.role !== "teacher")) {
@@ -46,12 +46,25 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ ok: false, message: "문항표가 아직 없습니다." }, { status: 400 });
   }
 
+  // 선생님이 올리신 자료에서 뽑은 글(화면 쪽에서 읽어 보낸다)
+  let uploads: Array<{ name: string; text: string }> = [];
+  try {
+    const body = (await req.json()) as { uploads?: Array<{ name?: string; text?: string }> };
+    uploads = (body.uploads ?? [])
+      .map((u) => ({ name: String(u.name ?? "올린 자료"), text: String(u.text ?? "") }))
+      .filter((u) => u.text.trim().length > 40)
+      .slice(0, 20);
+  } catch {
+    // 몸체가 없으면 올린 자료 없이 돈다
+  }
+
   const report = await buildHitReport(
     admin,
     profile.academy_id,
     items as ExamItemRow[],
     // 시험지를 올리기 전에 만든 자료만 적중으로 센다
-    (analysis.created_at as string) ?? null
+    (analysis.created_at as string) ?? null,
+    uploads
   );
 
   const at = new Date().toISOString();
@@ -68,7 +81,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     projectId: id,
     idempotencyKey: `${FEATURE}:${id}:${at}`,
     metadata: { analysis_id: id, used_for: "exam_hit_report" },
-    note: `시험지 적중 대조 ${report.total}문항`,
+    note: `시험지 적중 대조 ${report.total}문항${uploads.length ? ` · 올린 자료 ${uploads.length}개` : ""}`,
   });
 
   return NextResponse.json({ ok: true, report, at });

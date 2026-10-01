@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
+import { readUploadedMaterial } from "@/lib/exam-analysis/read-upload-client";
 import type { HitReport } from "@/lib/exam-analysis/hit-report";
 
 /**
@@ -27,6 +28,12 @@ export function ExamHitReport({
   const [report, setReport] = useState<HitReport | null>(saved);
   const [at, setAt] = useState<string | null>(savedAt);
   const [message, setMessage] = useState<string | null>(null);
+  /*
+   * 선생님이 EngCore 밖에서 만든 자료도 대조에 넣는다(선생님 지시 2026-10-01).
+   * PDF 에 글자가 있으면 화면에서 공짜로 뽑고, 스캔본·사진만 서버에 읽힌다.
+   */
+  const [files, setFiles] = useState<File[]>([]);
+  const [step, setStep] = useState<string | null>(null);
 
   async function run() {
     if (!(await askCreditConfirm({
@@ -38,7 +45,22 @@ export function ExamHitReport({
     setBusy(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/exam-analysis/${analysisId}/hit-report`, { method: "POST" });
+      const uploads: Array<{ name: string; text: string }> = [];
+      for (const [i, f] of files.entries()) {
+        setStep(`올리신 자료를 읽는 중 (${i + 1}/${files.length}) — ${f.name}`);
+        try {
+          const read = await readUploadedMaterial(f, analysisId);
+          if (read.text.trim().length > 40) uploads.push({ name: read.name, text: read.text });
+        } catch (e) {
+          setMessage(e instanceof Error ? e.message : `${f.name}을 읽지 못했습니다.`);
+        }
+      }
+      setStep("대조하는 중…");
+      const res = await fetch(`/api/exam-analysis/${analysisId}/hit-report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uploads }),
+      });
       const json = (await res.json()) as { ok: boolean; message?: string; report?: HitReport; at?: string };
       if (!json.ok) {
         setMessage(json.message ?? "대조하지 못했습니다.");
@@ -52,8 +74,34 @@ export function ExamHitReport({
       setMessage("대조하지 못했습니다. 잠시 뒤 다시 시도해 주세요.");
     } finally {
       setBusy(false);
+      setStep(null);
     }
   }
+
+  const picker = (
+    <div className="mt-2 flex flex-wrap items-center gap-2 print:hidden">
+      <label className="cursor-pointer rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+        직접 만든 자료 올리기 (PDF·사진·글)
+        <input
+          type="file"
+          multiple
+          accept=".pdf,.txt,.md,.csv,image/*"
+          className="hidden"
+          onChange={(e) => setFiles([...(e.target.files ?? [])].slice(0, 10))}
+        />
+      </label>
+      {files.length ? (
+        <span className="text-xs text-slate-500">
+          {files.map((f) => f.name).join(" · ").slice(0, 70)}
+          <button type="button" onClick={() => setFiles([])} className="ml-1.5 underline">
+            비우기
+          </button>
+        </span>
+      ) : (
+        <span className="text-[11px] text-slate-400">없어도 됩니다 — EngCore 자료는 그냥 대조합니다.</span>
+      )}
+    </div>
+  );
 
   if (!report) {
     return (
@@ -74,6 +122,8 @@ export function ExamHitReport({
             {busy ? "대조하는 중…" : "대조하기"}
           </button>
         </div>
+        {picker}
+        {step ? <p className="mt-2 text-xs text-slate-500">{step}</p> : null}
         {message ? <p className="mt-2 text-xs text-red-600">{message}</p> : null}
       </div>
     );
@@ -114,6 +164,10 @@ export function ExamHitReport({
           </button>
         </div>
       </div>
+
+      {picker}
+      {step ? <p className="mt-2 text-xs text-slate-500">{step}</p> : null}
+      {message ? <p className="mt-2 text-xs text-red-600">{message}</p> : null}
 
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
         {[

@@ -15,11 +15,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ExamItemRow } from "@/lib/exam-analysis/types";
 import { examTypeToOptionKey } from "@/lib/exam-analysis/blueprint";
 import { getWorkbookTypeMeta } from "@/lib/lesson-materials/workbook-types";
+import { findPassageAt, typesNear } from "@/lib/exam-analysis/uploaded-material";
 
 /** 적중 한 줄 — 시험지 문항 하나에 걸린 내 문항 하나 */
 export type HitRow = {
   /** 어디서 온 문항인가 */
-  from: "변형문제" | "수업자료";
+  from: "변형문제" | "수업자료" | "올린 자료";
   /** 보여 줄 이름 (예: 변형문제 「시각적 심상」 12번) */
   label: string;
   /** 유형 이름 */
@@ -126,7 +127,9 @@ export async function buildHitReport(
   admin: SupabaseClient,
   academyId: string,
   items: ExamItemRow[],
-  cutoff?: string | null
+  cutoff?: string | null,
+  /** 선생님이 올리신 자료에서 뽑은 글 (파일 이름 + 본문) */
+  uploads: Array<{ name: string; text: string }> = []
 ): Promise<HitReport> {
   const cutoffMs = cutoff ? new Date(cutoff).getTime() : Number.POSITIVE_INFINITY;
   const madeBefore = (at: unknown) => {
@@ -267,6 +270,26 @@ export async function buildHitReport(
               before: madeBefore(d.created_at),
             });
           }
+        }
+      }
+    }
+
+    /*
+     * 올리신 자료 — 문항표가 없으므로 지문 자리를 찾고 그 가까이의 발문으로 유형을 읽는다.
+     * 파일 전체에서 아무 발문이나 끌어오면 내지도 않은 유형을 맞췄다고 하게 된다.
+     */
+    if (excerpt.length > 40) {
+      const examName = it.type_name.split(" · ")[0]!.trim();
+      for (const u of uploads) {
+        const at = findPassageAt(u.text, excerpt);
+        if (at < 0) continue;
+        const near = typesNear(u.text, at);
+        if (near.length === 0) {
+          rows.push({ from: "올린 자료", label: u.name, typeName: "지문 있음", sameType: false, before: true });
+          continue;
+        }
+        for (const t of near) {
+          rows.push({ from: "올린 자료", label: u.name, typeName: t, sameType: t === examName, before: true });
         }
       }
     }
