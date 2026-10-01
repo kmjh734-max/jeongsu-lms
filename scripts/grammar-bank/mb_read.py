@@ -25,6 +25,23 @@ GREEN = (0.0, 0.7, 0.3)
 NAMES = {INK: "글", BLUE: "답", GREEN: "번호"}
 
 
+FIX = Path("tmp-grammar-bank/mb-fix.json")
+
+
+def load_table(path):
+    """모양표를 읽고, 사람이 고쳐 둔 것(mb-fix.json)을 얹는다.
+
+    기계가 만든 표에는 늘 같은 자리에서 틀리는 글자가 있다(w를 e로, '를 t로).
+    그런 것은 사람이 한 번 보고 적어 두면 책 전체가 깨끗해진다.
+    """
+    said = json.loads(Path(path).read_text(encoding="utf-8"))
+    table = said["table"]
+    if FIX.exists():
+        for shape, ch in json.loads(FIX.read_text(encoding="utf-8")).items():
+            table[shape] = {"ch": ch, "sure": 1.0, "n": 99, "사람": True}
+    return table
+
+
 def line_text(row, table, gap=1.6):
     """한 줄을 글로 되살린다. 조각 사이가 벌어지면 띄어쓰기를 넣는다."""
     out, last = [], None
@@ -38,8 +55,7 @@ def line_text(row, table, gap=1.6):
 
 
 def main(table_path, pdf, pno):
-    said = json.loads(Path(table_path).read_text(encoding="utf-8"))
-    table = said["table"]
+    table = load_table(table_path)
     doc = fitz.open(pdf)
     page = doc[int(pno) - 1]
     gl = glyphs_of(page)

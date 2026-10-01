@@ -17,6 +17,7 @@ import fitz
 
 sys.path.insert(0, str(Path(__file__).parent))
 from mb_glyphs import glyphs_of
+from mb_read import load_table
 
 LOG = io.open(1, "w", encoding="utf-8", closefd=False)
 OUT = Path("tmp-grammar-bank")
@@ -37,7 +38,7 @@ def places(pdf, want, upto=120):
 
 def main(table_path, pdf, sheet_no, per=120):
     said = json.loads(Path(table_path).read_text(encoding="utf-8"))
-    table, seen = said["table"], said["seen"]
+    table, seen = load_table(table_path), said["seen"]
     order = sorted(table, key=lambda s: -seen.get(s, 0))
     sheet_no, per = int(sheet_no), int(per)
     chunk = order[(sheet_no - 1) * per: sheet_no * per]
@@ -57,12 +58,24 @@ def main(table_path, pdf, sheet_no, per=120):
         if not spot:
             continue
         pno, x0, y0, x1, y1 = spot
-        pix = doc[pno].get_pixmap(dpi=400, clip=fitz.Rect(x0 - 1, y0 - 1, x1 + 1, y1 + 1))
-        box = fitz.Rect((i % cols) * cell + 8, (i // cols) * cell + 15,
-                        (i % cols) * cell + cell - 8, (i // cols) * cell + cell - 6)
+        # 테두리를 붙이지 않는다 — 글자가 촘촘해서 조금만 넓혀도 옆 글자가 끼어든다
+        pix = doc[pno].get_pixmap(dpi=500, clip=fitz.Rect(x0, y0, x1, y1))
+        if pix.width < 2 or pix.height < 2:
+            continue          # 획이 한 줄뿐인 도형 — 그릴 거리가 없다
+        # 글자 모양이 찌그러지지 않게, 칸 안에서 본디 비율을 지킨다
+        room_w, room_h = cell - 10, cell - 22
+        scale = min(room_w / pix.width, room_h / pix.height)
+        w, h = pix.width * scale, pix.height * scale
+        left = (i % cols) * cell + (cell - w) / 2
+        top = (i // cols) * cell + 14 + (room_h - h) / 2
+        box = fitz.Rect(left, top, left + w, top + h)
         page.insert_image(box, pixmap=pix)
+        # 표가 말한 글자를 한글까지 그린다 — 눈으로 그림과 맞대어 보기 위해서다
         page.insert_text(fitz.Point((i % cols) * cell + 3, (i // cols) * cell + 11),
-                         "%d %s" % (i + 1, table[shape]["ch"]), fontsize=6.5)
+                         "%d" % (i + 1), fontsize=6.5)
+        page.insert_text(fitz.Point((i % cols) * cell + cell - 20, (i // cols) * cell + 12),
+                         str(table[shape]["ch"]), fontsize=9, fontname="korea",
+                         color=(0.85, 0.1, 0.1))
         legend.append({"n": i + 1, "shape": shape, "ch": table[shape]["ch"],
                        "sure": table[shape]["sure"], "times": seen.get(shape, 0)})
     name = OUT / ("mb-sheet-%02d" % sheet_no)
