@@ -235,7 +235,20 @@ export default async function StudyPlansPage({ searchParams }: PageProps) {
       </div>
 
       {student ? (
-        <StudyPlanEditor student={student} year={year} month={month} plan={plan} books={books} />
+        /*
+         * 선생님 지적(2026-10-01): 8월·9월·10월로 넘겨도 아래 표가 안 바뀌었다.
+         * 편집기는 받은 일정표로 처음 한 번만 칸을 채우고, 그 뒤로는 손으로 고친
+         * 것이 날아가지 않게 제 안에 들고 있다. 그래서 달이 바뀌어도 첫 달 표가
+         * 그대로 남아 있었다. 학생·달이 바뀌면 아예 새로 그리게 한다.
+         */
+        <StudyPlanEditor
+          key={`${student.id}-${year}-${month}`}
+          student={student}
+          year={year}
+          month={month}
+          plan={plan}
+          books={books}
+        />
       ) : (
         <p className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-500">
           {classes.length === 0 ? "등록된 학생이 없어요." : "이 반에 학생이 없어요. 다른 반을 골라 주세요."}
