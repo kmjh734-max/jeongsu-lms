@@ -22,7 +22,7 @@ import hs_map
 import mj_map
 import tb_map
 import yj_map
-from official_units import units_of
+from unit_tree import units_of_name as units_of   # 세부 트리를 다시 짜면서 옮겼다
 from to_official import nearest
 
 OUT = Path("tmp-grammar-bank")

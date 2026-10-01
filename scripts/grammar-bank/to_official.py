@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import db
-from official_units import units_of
+from unit_tree import units_of_name as units_of   # 세부 트리를 다시 짜면서 옮겼다
 
 log = io.open(1, "w", encoding="utf-8", closefd=False)
 FLOOR = 0.34      # 이만큼은 닮아야 같은 갈래로 본다
