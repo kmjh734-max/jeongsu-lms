@@ -24,6 +24,7 @@ import { StudentRecordJobIndicator } from "@/components/student-records/StudentR
 import { createClient } from "@/lib/supabase/client";
 import { clearKeepLoginCookieClient } from "@/lib/auth/keep-login";
 import { clearRoleCookieClient } from "@/lib/auth/role-cookie";
+import { clearAcademyCookieClient } from "@/lib/tenant/academy-cookie-client";
 import { ENGCORE_PRODUCTS, SITE_NAME } from "@/lib/branding";
 import { STUDENT_TODAY_CHANGED_EVENT } from "@/lib/student/today-refresh";
 import type { Profile } from "@/types/database";
@@ -75,7 +76,9 @@ async function signOut() {
   const supabase = createClient();
   await supabase.auth.signOut();
   clearKeepLoginCookieClient();
-  window.location.assign("/login");
+  clearAcademyCookieClient();
+  // 처음 메인 화면으로 보낸다. 학원 주소로 들어와 있으면 거기서 그 학원 로그인으로 간다.
+  window.location.assign("/");
 }
 
 /** 메뉴에 마우스를 올리거나 포커스하면 그 화면을 미리 준비한다(전체 미리 부르기는 서버 부담이 커서 하지 않음) */
