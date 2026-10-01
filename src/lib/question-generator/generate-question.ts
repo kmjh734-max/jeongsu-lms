@@ -1462,16 +1462,15 @@ export function assertBasicQuestionShape(
     q.correctAnswer = reconciled.correctAnswer;
     q.explanation = reconciled.explanation;
     /*
-     * 답칸 줄 수는 정답에서 세어 우리가 정한다.
+     * 답칸은 큰 칸 하나만 둔다.
      *
-     * 선생님 지적(2026-09-30): 답지에는 정답이 2개인데 답칸이 하나만 나온다.
-     * 모델이 <조건>과 <답안행>을 제 나름대로 적어 오면 그 수를 그대로 믿고 있었다.
-     * 그리고 「모두 고르기」인데 답칸 수가 곧 정답 개수를 알려 주어 힌트가 됐다.
-     * 그래서 늘 한 줄을 더 둔다 — 모자라지도 않고 개수도 새지 않는다.
+     * 선생님 지적(2026-09-30): 답지에는 정답이 2개인데 답칸이 하나만 나온다
+     *  → 정답에서 세어 넉넉히 두게 고쳤다.
+     * 선생님 지적(2026-10-01): 그래도 칸을 셋 만들어 두면 학생이 세 개인 줄 안다.
+     *  → 칸 수로도 개수가 새지 않게 아예 큰 칸 하나만 둔다. 발문에서도 개수를 뺐다
+     *    (「2개 찾아」 → 「모두 찾아」). 몇 개인지는 학생이 스스로 판단한다.
      */
-    const answerMarks = (reconciled.correctAnswer.match(/[\u2460-\u2473\u24D0-\u24D6]/g) ?? [])
-      .length;
-    const answerRows = Math.max(3, answerMarks + 1);
+    const answerRows = 1;
     const conditionLine = "\u25cb 틀린 곳의 기호와 수정한 형태를 모두 써야 정답으로 인정함";
     const askBody = /<조건>/.test(q.questionText || "")
       ? String(q.questionText).replace(/<답안행>[\s\S]*$/, "").trimEnd()

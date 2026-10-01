@@ -2241,6 +2241,15 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   height: 7mm;
 }
 
+/*
+ * 선생님 지적(2026-10-01): 답칸을 셋 만들어 두면 학생이 세 개인 줄 안다.
+ * 한 칸만 두는 대신 세 줄 쓸 만큼 넉넉히 둔다.
+ */
+.qg-print-fix-table tr.qg-print-fix-tall td {
+  height: 21mm;
+  vertical-align: top;
+}
+
 .qg-print-hard-words {
   margin-top: 1.2mm;
   padding-top: 1mm;

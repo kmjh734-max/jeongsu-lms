@@ -389,6 +389,10 @@ function GrammarCorrectionBoxes({
           ))}
         </div>
       </div>
+      {/*
+       * 선생님 지적(2026-10-01): 칸을 셋 만들어 두면 학생이 세 개인 줄 안다.
+       * 한 칸만 크게 둔다 — 몇 개를 쓸지는 학생이 정한다.
+       */}
       <table className="qg-print-fix-table">
         <thead>
           <tr>
@@ -398,7 +402,7 @@ function GrammarCorrectionBoxes({
         </thead>
         <tbody>
           {rows.map((i) => (
-            <tr key={i}>
+            <tr key={i} className={rows.length === 1 ? "qg-print-fix-tall" : undefined}>
               <td>&nbsp;</td>
               <td>&nbsp;</td>
             </tr>

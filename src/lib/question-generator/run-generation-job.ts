@@ -153,6 +153,8 @@ function toRow(
     slot?: { index: number; itemNo: string; points: number | null; level: string | null } | null;
     /** 고른 유형으로 안 되어 다른 유형으로 바꿔 만들었을 때, 원래 고른 유형의 이름 */
     substitutedFrom?: string | null;
+    /** 그 유형으로 안 된 까닭 (어느 검수에 걸렸는지) */
+    substitutedReason?: string | null;
   }
 ) {
   const approved = opts.status === "approved";
@@ -188,7 +190,11 @@ function toRow(
      * 주제추론이 섞여 나오면 선생님이 당황한다. 바꿔 만든 것은 자취를 남긴다.
      */
     validation_result: opts.substitutedFrom
-      ? { ...(payload.validation ?? {}), substitutedFrom: opts.substitutedFrom }
+      ? {
+          ...(payload.validation ?? {}),
+          substitutedFrom: opts.substitutedFrom,
+          substitutedReason: opts.substitutedReason ?? null,
+        }
       : payload.validation ?? null,
     validation_score: opts.validationScore,
     status: opts.status,
@@ -430,7 +436,11 @@ function dropReasons(said: string[] | undefined): string | null {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([key, n]) => `${key} ×${n}`);
-  return `버려진 문항 ${said.length}개 — ${top.join(" · ")}`;
+  /*
+   * 고른 유형으로 안 돼 버린 것과 다른 유형으로 바꾼 것을 함께 적는다.
+   * 선생님 물음(2026-10-01): 탈락한 문제들은 왜 그런지도 알고 싶다.
+   */
+  return `고른 유형으로 안 된 문항 ${said.length}개 — ${top.join(" · ")}`;
 }
 
 
@@ -951,8 +961,18 @@ export async function runGenerationJob(
        * 이제 어느 쪽이든 다른 유형으로 바꿔 한 번 더 만든다. 난이도는 그대로 둔다.
        */
       let substitutedFrom: string | null = null;
+      let substitutedReason: string | null = null;
       if (result.skipped || !result.payload) {
         const requestedLabel = item.option.label || item.option.key.split(":").pop() || "";
+        /*
+         * 왜 고른 유형으로 안 됐는지 적어 둔다.
+         *
+         * 선생님 물음(2026-10-01): 탈락한 문제들은 왜 그런지도 파악하면 좋겠다.
+         * 지금까지는 대체가 성공하면 원래 까닭이 아무 데도 안 남아, 어떤 유형이
+         * 어떤 자리에서 걸리는지 알 수가 없었다(버려진 문항 기록은 대체까지 실패할
+         * 때만 쌓인다).
+         */
+        substitutedReason = result.error ?? "까닭 없음";
         const level = item.slot?.level ?? (item.option.difficulty === "high" ? "상" : "하");
         for (const alt of fallbackOptionsFor(item.option.key, level)) {
           const retry = await generateWithValidation({
@@ -975,6 +995,7 @@ export async function runGenerationJob(
             result = retry;
             item.option = alt;
             substitutedFrom = requestedLabel;
+            dropped.push(`[${requestedLabel} → ${alt.label || alt.key.split(":").pop()}] ${substitutedReason}`);
             break;
           }
         }
@@ -1000,6 +1021,7 @@ export async function runGenerationJob(
             errorMessage: null,
             slot: item.slot ?? null,
             substitutedFrom,
+            substitutedReason,
           })
         );
         const tracked = Promise.resolve(insert).finally(() => inserts.delete(tracked));
