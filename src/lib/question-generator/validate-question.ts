@@ -240,6 +240,31 @@ export function validateGeneratedQuestion(opts: {
     }
   }
 
+  /*
+   * 보기 다섯 개가 같은 말로 시작하면 틀로 굳은 것이다.
+   *
+   * 윌링어학원 세트(2F4D57)를 보니 주제추론 열넷 가운데 셋이 다섯 보기를 전부
+   * 「The ~」나 「How ~」로 시작했다. 학생이 내용이 아니라 틀을 보고 가른다.
+   * 저장된 문항 전체로 재 보니 주제추론 14%·내용일치 21%·요지추론 14%가 그랬다.
+   *
+   * 빈칸추론·함축의미추론은 뺀다 — 거기서는 다섯 보기가 같은 꼴로 늘어서는 것이 맞다.
+   */
+  const HEAD_VARIETY_TYPES = new Set(["title", "topic", "main_idea", "content_true", "content_false"]);
+  if (HEAD_VARIETY_TYPES.has(option.type) && Array.isArray(q.choices) && q.choices.length >= 5) {
+    const heads = q.choices
+      .map((c) => String(typeof c === "string" ? c : "").trim().split(/\s+/)[0]?.toLowerCase() ?? "")
+      .filter(Boolean);
+    if (heads.length >= 5) {
+      const cnt = new Map<string, number>();
+      for (const h of heads) cnt.set(h, (cnt.get(h) ?? 0) + 1);
+      const [word, n] = [...cnt].sort((a, b) => b[1] - a[1])[0]!;
+      if (n >= 4) {
+        warnings.push(`보기 ${n}개가 "${word}"로 시작합니다. 틀을 바꿔 주세요.`);
+        score -= 35;
+      }
+    }
+  }
+
   return {
     singleCorrectAnswer: true,
     answerMatchesExplanation: Boolean(q.explanation.trim()),

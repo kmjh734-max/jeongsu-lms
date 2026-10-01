@@ -2126,14 +2126,15 @@ export async function generateOneQuestion(opts: {
   const FRAME_BANS: Partial<Record<string, string>> = {
     title:
       "Hidden, Behind, Through, Beyond, Turning Point, The Power of, The Secret of, The Role of",
-    topic: "the role of X in Y, through, the importance of, the power of",
+    topic:
+      "the role of X in Y, the replacement of, the limits of, the growth of, the importance of, the power of, through",
     summary_mcq: "mainly, because, through",
     content_true: "mainly, because, presented, described, suggests",
     content_false: "mainly, because, presented, described, suggests",
     content_count: "mainly, because, presented, described, suggests",
   };
   const frameBanHint = FRAME_BANS[option.type]
-    ? `- BANNED FRAMES (overused; never use these wordings): ${FRAME_BANS[option.type]}. Also: across the five choices, do NOT open two choices with the same word, and use any one causal/hedge frame (because/so that/in order to/mainly/largely) at MOST once.`
+    ? `- BANNED FRAMES (overused; never use these wordings): ${FRAME_BANS[option.type]}. Also: across the five choices, AT MOST TWO may start with the same word (never three), and use any one causal/hedge frame (because/so that/in order to/mainly/largely) at MOST once.`
     : "";
 
   const paraphraseSystemHint = paraphraseTypes.has(option.type)
