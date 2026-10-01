@@ -166,9 +166,29 @@ export async function createStudyPlan(
     ? await loadStudyPlan(admin, input.studentId, input.copyFrom.year, input.copyFrom.month)
     : null;
 
-  // 지난달 영역·교재명만 물려받는다
-  const areas = previous
-    ? [...new Map(previous.rows.filter((r) => r.week === 1).map((r) => [r.area, r.textbook])).entries()]
+  /*
+   * 지난달 영역·교재명만 물려받는다.
+   *
+   * 선생님 지적(2026-10-01): 10월 표가 통째로 비어 있었다. 지난달 **1주차** 줄만
+   * 보고 물려받는데, 달 중간에 들어온 학생은 앞 주차를 빼 두어 1주차에 줄이 없다
+   * (9월은 5주차만 있었다). 그래서 물려받을 것이 없다고 보고 빈 표를 만들었다.
+   *
+   * 줄이 있는 **마지막 주차**를 본다 — 교재는 달이 갈수록 바뀌므로 그 달의 끝이
+   * 다음 달 시작에 가깝다. 지난달이 아예 비어 있으면 기본 영역으로 채운다.
+   */
+  const lastWeek = previous?.rows.length
+    ? Math.max(...previous.rows.map((r) => r.week))
+    : null;
+  const carried = previous && lastWeek !== null
+    ? [...new Map(
+        previous.rows
+          .filter((r) => r.week === lastWeek)
+          .sort((a, b) => a.orderIndex - b.orderIndex)
+          .map((r) => [r.area, r.textbook]),
+      ).entries()]
+    : [];
+  const areas = carried.length
+    ? carried
     : DEFAULT_AREAS.map((a) => [a, ""] as [string, string]);
 
   const rows = weeksInMonth(input.year, input.month).flatMap((week) =>
