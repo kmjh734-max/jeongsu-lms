@@ -70,6 +70,8 @@ SOURCES = [
     ("ilg-2-keep.json", "I Love Grammar L2", "ilg"),
     ("ilg-3-keep.json", "I Love Grammar L3", "ilg"),
     ("gg-1-matched.json", "Good Grammar L1", "gg"),
+    ("gg-2-matched.json", "Good Grammar L2", "gg"),
+    ("gg-3-matched.json", "Good Grammar L3", "gg"),
     ("mpj-1-matched.json", "문제로 풀자 중학영문법 L1", "mpj"),
     ("mpj-2-matched.json", "문제로 풀자 중학영문법 L2", "mpj"),
     ("mpj-3-matched.json", "문제로 풀자 중학영문법 L3", "mpj"),
@@ -450,7 +452,9 @@ def main(dst, only=None):
                 # 쪽마다 단원 이름이 조금씩 잘려 들어오므로 번호로 찾는다
                 spot = gi_map.place(book, q.get("chapter_no"), q.get("unit"))
             elif kind == "gg":
-                spot = gg_map.place(book, title, q.get("unit"))
+                # L2·L3 은 단원 번호와 인쇄 쪽으로 찾는다(이름 꼬리말이 드물다)
+                spot = gg_map.place(book, title, q.get("unit"),
+                                    q.get("chapter_no"), q.get("printed_page"))
             elif kind in ("mpj", "mpp"):
                 # 단원 번호로 찾고, 묶음 단원은 POINT 제목으로 가른다
                 spot = mpj_map.place(book, q.get("chapter_no"), q.get("unit"))

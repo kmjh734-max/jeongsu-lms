@@ -25,6 +25,21 @@ def as_gq(q):
 LOG = io.open(1, "w", encoding="utf-8", closefd=False)
 
 
+def clear(answer, q):
+    """답의 낱말이 붙어 버리지 않았는가.
+
+    정답지에서 두 낱말이 붙어 「roadthey, which」처럼 들어오는 데가 있다. 문항에
+    없는 긴 영어 덩어리는 그렇게 뭉개진 것이다.
+    """
+    said = " ".join([str(q.get("prompt") or "")] + (q.get("body") or [])
+                    + [c.get("text", "") for c in (q.get("choices") or [])]).lower()
+    import re as _re
+    for word in _re.findall(r"[a-z]{10,}", str(answer or "").lower()):
+        if word not in said:
+            return False
+    return True
+
+
 def fine(answer):
     """넣어도 되는 답인가 — 글자층이 살아 있어 가벼이 본다"""
     t = str(answer or "").strip()
@@ -111,7 +126,7 @@ def main(q_path, a_path, out_path, bad_path=None):
 
         for q, a in pairs:
             if not (ok_choice(a, q.get("choices")) and in_choices(a, as_gq(q)["picks"])
-                    and fine(a) and belongs(a, q)):
+                    and fine(a) and clear(a, q) and belongs(a, q)):
                 dropped += 1
                 continue
             row = dict(q)

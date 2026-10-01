@@ -149,9 +149,14 @@ def gather(rows, heads, cut):
         bare = t.lstrip(" _")
         if bare[:1] in CIRCLED or (bare[:1] in LETTERED and len(bare) > 2):
             h["choices"].append(bare)
+            h["mark_y"] = r["y"]
         elif (r["font"].startswith(ASK_FONT) and re.search(r"[가-힣]", t)
               and re.search(r"(?:시오|것은|고르|쓰|완성|배열|바꿔)", t) and len(t) > 8):
             h["prompt"].append(t)
+        elif h.get("mark_y") is not None and r["y"] > h["mark_y"] - 1 and h["choices"]:
+            # 보기가 다음 줄로 넘어간 꼬리다. 본문에 두면 보기는 잘린 채로,
+            # 꼬리는 보기 위에 따로 적혀 나간다(「… password to the」 / 「Wi-Fi?」).
+            h["choices"][-1] = h["choices"][-1].rstrip() + " " + t
         else:
             h["body"].append(t)
     return heads
@@ -176,22 +181,27 @@ def pack(heads, asks, chapter, page_no, book):
             continue
         said = [a["text"] for a in asks if a["lo"] <= h["no"] <= a["hi"]]
         prompt = " ".join(said + h["prompt"]).strip()
+        # 밑줄만 남은 발문은 발문이 아니다 — 먼저 걷어내고 되찾기로 넘어간다
+        prompt = re.sub(r"^(?:_+\s*)+|(?:\s*_+)+$", "", prompt).strip()
         # 발문이 두 줄로 끊겨 「… 바르게 짝지어진」 + 「것은?」 으로 들어오면 앞
         # 줄에 맺음말이 없어 본문으로 샌다. 발문이 빈 문항은 본문 앞머리에서
         # 우리말 발문을 되찾는다.
         if not prompt:
             taken = 0
             for line in body[:3]:
-                if re.search(r"[A-Za-z]{3}", line) or not re.search(r"[가-힣]", line):
+                # 발문에도 영어가 섞이고(「밑줄 친 May의 의미가 …」) 맺음말만 홀로
+                # 떨어진 줄(「것은?」)도 있다. 그러니 영어가 있다고 끊지 말고,
+                # 맺음말이 아닌데 우리말이 거의 없는 줄에서 끊는다.
+                done = re.search(r"(?:것은\?|것\?|고르면\?|시오\.?|쓰세요\.?)\s*$", line)
+                if not done and len(re.findall(r"[가-힣]", line)) < 3:
                     break
                 taken += 1
-                if re.search(r"(?:것은\?|것\?|고르면\?|시오\.?|쓰세요\.?)\s*$", line):
+                if done:
                     prompt = " ".join(body[:taken]).strip()
                     body = body[taken:]
                     break
             else:
                 taken = 0
-        prompt = re.sub(r"^(?:_+\s*)+|(?:\s*_+)+$", "", prompt).strip()
         out.append({"book": book, "chapter_no": chapter, "printed_page": page_no,
                     "section": "실전문제 PLUS", "no": h["no"],
                     "prompt": prompt, "body": body, "choices": choices, "bank": [],

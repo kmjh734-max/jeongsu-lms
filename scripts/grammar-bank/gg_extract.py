@@ -65,8 +65,16 @@ def lines_of(page):
 
 
 def page_head(rows, page):
-    """어떤 꼴의 쪽인가, 인쇄 쪽은 몇 쪽인가, 꼬리말의 단원 이름"""
-    kind = printed = chapter = None
+    """어떤 꼴의 쪽인가, 단원 번호·이름은 무엇인가.
+
+    꼬리말이 두 가지다 — 홀수 쪽은 「문장의 형식 13」(이름과 인쇄 쪽), 짝수 쪽은
+    「CHAPTER 1」(단원 번호). 예전에는 「CHAPTER 1」의 1을 인쇄 쪽으로 읽어, 그
+    쪽부터 자리가 통째로 어긋났다. L2·L3 를 넣지 못한 까닭이 이것이다.
+
+    인쇄 쪽은 PDF 쪽을 그대로 쓴다 — 이름이 적힌 꼬리말 154군데를 모두 재어
+    보니 셋 다 PDF 쪽과 인쇄 쪽이 같았다.
+    """
+    kind = printed = chapter = chapter_no = None
     h = page.rect.height
     for r in rows:
         t = r["text"]
@@ -80,11 +88,15 @@ def page_head(rows, page):
         if re.search(r"내신대비|실력완성", flat) and r["size"] > 10:
             kind = TEST
         if r["y"] > h - 55:
+            mark = re.fullmatch(r"CHAPTER\s*(\d{1,2})", t.strip())
+            if mark:
+                chapter_no = int(mark.group(1))
+                continue
             got = FOOT.match(t)
-            if got and got.group(1).strip():
+            if got and re.search(r"[가-힣]", got.group(1) or ""):
                 chapter = got.group(1).strip()
                 printed = int(got.group(2))
-    return kind, printed, chapter
+    return kind, printed, chapter, chapter_no
 
 
 def unfold(text):
@@ -147,7 +159,9 @@ def gather(rows, heads, cut):
 def pack(heads, lead, carry, block, kind):
     out = []
     for h in sorted(heads, key=lambda h: (h["col"], h["no"])):
-        body = [b for b in h["body"] if b.strip()]
+        # 꼬리말(「Chapter 04완료시제」)이 본문 높이 안으로 들어오는 쪽이 있다
+        body = [b for b in h["body"] if b.strip()
+                and not re.match(r"(?i)chapter\s*\d", b.strip())]
         picked = [c for c in h["choices"] if c.strip() and re.sub(r"[_\s]", "", c[1:]).strip()]
         spread = []
         for c in picked:
@@ -166,6 +180,7 @@ def pack(heads, lead, carry, block, kind):
         prompt = " ".join(([head] if head else []) + h["prompt"]).strip()
         prompt = re.sub(r"^(?:_+\s*)+|(?:\s*_+)+$", "", prompt).strip()
         out.append({"printed_page": carry.get("printed"), "chapter": carry.get("chapter"),
+                    "chapter_no": carry.get("chapter_no"),
                     "seq": (carry.get("seq") or {}).get(kind),
                     "section": kind, "block": block, "no": h["no"],
                     "prompt": prompt, "body": body, "choices": choices, "bank": [],
@@ -173,13 +188,19 @@ def pack(heads, lead, carry, block, kind):
     return out
 
 
-def parse_page(page, carry):
+def parse_page(page, carry, page_no=None):
     rows = lines_of(page)
-    kind, printed, chapter = page_head(rows, page)
+    kind, printed, chapter, chapter_no = page_head(rows, page)
+    # 인쇄 쪽은 PDF 쪽이다. 꼬리말에 적힌 쪽과 다르면 알아차리게 적어 둔다.
+    if printed and page_no and printed != page_no:
+        carry.setdefault("odd", []).append((page_no, printed))
+    printed = page_no or printed
     if printed:
         carry["printed"] = printed
     if chapter:
         carry["chapter"] = chapter
+    if chapter_no:
+        carry["chapter_no"] = chapter_no
     if not kind:
         return []
     # 쪽 번호가 권마다 들쭉날쭉해, 「실력 다지기」 쪽이 나온 차례를 들고 간다.
@@ -235,8 +256,8 @@ def main(src, dst):
     doc = fitz.open(src)
     carry = {}
     out = []
-    for page in doc:
-        for row in parse_page(page, carry):
+    for page_no, page in enumerate(doc, 1):
+        for row in parse_page(page, carry, page_no):
             row["book"] = Path(src).stem
             out.append(row)
     Path(dst).write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
