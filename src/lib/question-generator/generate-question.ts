@@ -1966,6 +1966,8 @@ export async function generateOneQuestion(opts: {
   sourceDetail?: string;
   /** 같은 지문 내 슬롯 (어휘·paraphrase 다양화) */
   diversitySlot?: { index: number; total: number; label: string };
+  /** 같은 유형이 작업 전체에서 몇 번째인가(0부터). 지문이 달라도 이어진다. */
+  typeTurn?: number;
   /** 원래 시험지의 수준을 적은 한 문단(동형모의고사). 선택지 길이·어휘를 여기에 맞춘다 */
   levelBrief?: string;
   /** 조건 영작에서 쓸 어법 이름 목록. 비우면 교재 기준 30가지에서 고른다 */
@@ -2103,7 +2105,12 @@ export async function generateOneQuestion(opts: {
       .map((label) => WRITING_GRAMMARS.find((g) => g.label === label))
       .filter((g): g is WritingGrammar => Boolean(g));
     if (scope.length === 0) return null;
-    const turn = opts.diversitySlot?.index ?? 0;
+    /*
+     * 지문 안 차례만 보면 지문마다 유형 차례가 똑같아 늘 같은 어법이 나왔다.
+     * 고른 어법이 여럿인데 한두 개만 계속 나온다는 지적(2026-10-01). 작업 전체
+     * 차례로 돌리면 지문이 바뀌어도 다음 어법으로 넘어간다.
+     */
+    const turn = opts.typeTurn ?? opts.diversitySlot?.index ?? 0;
     return scope[turn % scope.length]!;
   })();
 

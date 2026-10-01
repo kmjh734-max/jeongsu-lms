@@ -214,6 +214,8 @@ async function generateWithValidation(opts: {
   wordOrderMode?: "passage" | "paraphrase";
   sourceDetail?: string;
   diversitySlot?: { index: number; total: number; label: string };
+  /** 같은 유형이 작업 전체에서 몇 번째인가(0부터) */
+  typeTurn?: number;
   targetLevel?: TargetLevel | null;
   /** 어법·어휘에서 지문을 바꿔 써도 되는지(기본은 원문 그대로) */
   paraphraseGrammarVocab?: boolean;
@@ -275,6 +277,13 @@ type WorkItem = {
   sourceDetail?: string;
   label: string;
   diversitySlot: { index: number; total: number; label: string };
+  /**
+   * 같은 유형이 작업 전체에서 몇 번째인가(0부터). 지문이 달라도 이어진다.
+   *
+   * 지문 안 차례(diversitySlot)만 보고 돌리면, 지문마다 유형 차례가 똑같아 늘 같은
+   * 번호가 나온다 — 조건 문법을 여럿 골라도 한두 개만 계속 나왔다(2026-10-01 지적).
+   */
+  typeTurn: number;
   /** 설계도(동형모의고사) 칸 */
   slot?: { index: number; itemNo: string; points: number | null; level: TargetLevel };
 };
@@ -633,6 +642,12 @@ export async function runGenerationJob(
       slotKey(String(r.passage_id), String(r.option_key ?? ""))
     )
   );
+  /** 유형마다 이미 만들어 둔 문항 수 — 이어 받아도 조건 문법 차례가 처음으로 돌아가지 않게 */
+  const madeByType = new Map<string, number>();
+  for (const r of existingRows ?? []) {
+    const k = String(r.option_key ?? "");
+    madeByType.set(k, (madeByType.get(k) ?? 0) + 1);
+  }
   /** 설계도 작업: 이미 만든 칸 번호 */
   const doneSlotIndexes = new Set(
     (existingRows ?? []).map((r) => r.slot_index).filter((x): x is number => typeof x === "number")
@@ -741,6 +756,7 @@ export async function runGenerationJob(
           sourceDetail: resolved[b.passageIndex]?.sourceDetail || config.sourceDetail || undefined,
           label: `${b.no}번 · ${option.label}`,
           diversitySlot: { index: 0, total: 0, label: option.label },
+          typeTurn: 0,
           slot: { index, itemNo: b.no, points: b.points ?? null, level: b.level },
         });
       });
@@ -774,6 +790,7 @@ export async function runGenerationJob(
             total: 0,
             label: option.label,
           },
+          typeTurn: 0,
         });
       }
     }
@@ -797,6 +814,14 @@ export async function runGenerationJob(
         total: totalByPassage.get(item.passageId) ?? 1,
         label: item.label,
       };
+    }
+
+    // 유형마다 작업 전체에서 몇 번째인지 — 조건 문법·어법 포인트를 고루 돌리는 데 쓴다
+    const turnByType = new Map(madeByType);
+    for (const item of work) {
+      const n = turnByType.get(item.option.key) ?? 0;
+      turnByType.set(item.option.key, n + 1);
+      item.typeTurn = n;
     }
 
     // 재시도 시 남은 슬롯이 없으면 바로 완료 처리. 이어 받기가 너무 많이 반복되면
@@ -931,6 +956,7 @@ export async function runGenerationJob(
         overallDifficulty: config.overallDifficulty || "기본",
         sourceDetail: item.sourceDetail,
         diversitySlot: item.diversitySlot,
+        typeTurn: item.typeTurn,
         targetLevel: item.slot?.level ?? null,
         paraphraseGrammarVocab: config.paraphraseGrammarVocab === true,
         levelBrief: config.levelBrief,
@@ -976,6 +1002,7 @@ export async function runGenerationJob(
             overallDifficulty: config.overallDifficulty || "기본",
             sourceDetail: item.sourceDetail,
             diversitySlot: item.diversitySlot,
+            typeTurn: item.typeTurn,
             targetLevel: item.slot?.level ?? null,
             paraphraseGrammarVocab: config.paraphraseGrammarVocab === true,
             levelBrief: config.levelBrief,
