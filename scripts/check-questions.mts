@@ -21,6 +21,7 @@ import { validateGeneratedQuestion } from "../src/lib/question-generator/validat
 import { ALL_QUESTION_OPTIONS, findAingkaOption } from "../src/lib/question-generator/question-types";
 import { bankWordsLeftInBlankLine, closeBlankSentence } from "../src/lib/question-generator/blank-line-overlap";
 import { parseGrammarFixAnswer } from "../src/lib/question-generator/grammar-fix-normalize";
+import { agreementBreakAfterFix } from "../src/lib/question-generator/agreement-check";
 import type { GeneratedQuestionPayload } from "../src/lib/question-generator/types";
 
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
@@ -144,6 +145,12 @@ for (const r of qs) {
 
   // 4) 어법 수정 정답지
   if (/오류수정/.test(name)) {
+    /* 정답대로 고쳐도 주어·동사가 안 맞으면 채점을 못 한다 */
+    const pairs = parseGrammarFixAnswer(ans);
+    if (pairs.length > 0) {
+      const stillBroken = agreementBreakAfterFix(mod, pairs);
+      if (stillBroken) add(r, "고쳐도 주어·동사 안 맞음", `"${stillBroken}"`);
+    }
     const inBody = new Set([...mod.matchAll(/([ⓐ-ⓖ①-⑤])\s*<u>/g)].map((m) => m[1]!));
     for (const p of parseGrammarFixAnswer(ans)) {
       if (inBody.size > 0 && !inBody.has(p.mark)) {
