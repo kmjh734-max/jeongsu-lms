@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import type { HitReport } from "@/lib/exam-analysis/hit-report";
 
 /**
@@ -10,8 +12,73 @@ import type { HitReport } from "@/lib/exam-analysis/hit-report";
  * 보여 주어야 한다. 그래서 지문이 같은 내 문항을 실제로 늘어놓고, 유형까지 같은 것만
  * 적중으로 센다(지문만 같은 것은 「이 유형도 내야 한다」는 뜻으로 따로 모은다).
  */
-export function ExamHitReport({ report }: { report: HitReport }) {
+export function ExamHitReport({
+  analysisId,
+  report: saved,
+  savedAt,
+}: {
+  analysisId: string;
+  report: HitReport | null;
+  savedAt: string | null;
+}) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [report, setReport] = useState<HitReport | null>(saved);
+  const [at, setAt] = useState<string | null>(savedAt);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function run() {
+    if (!(await askCreditConfirm({
+      title: "시험지 적중 대조",
+      description: "이 시험지의 지문을 선생님이 만들어 두신 자료와 맞춰 봅니다. 지문과 유형이 모두 같고, 시험지를 올리기 전에 만든 문항만 적중으로 셉니다.",
+      subject: "이 시험지 한 회",
+      items: [{ feature: "exam_hit_report", quantity: 1 }],
+    }))) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/exam-analysis/${analysisId}/hit-report`, { method: "POST" });
+      const json = (await res.json()) as { ok: boolean; message?: string; report?: HitReport; at?: string };
+      if (!json.ok) {
+        setMessage(json.message ?? "대조하지 못했습니다.");
+        return;
+      }
+      setReport(json.report ?? null);
+      setAt(json.at ?? null);
+      setOpen(true);
+      router.refresh();
+    } catch {
+      setMessage("대조하지 못했습니다. 잠시 뒤 다시 시도해 주세요.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!report) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-white p-4 print:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span className="text-sm font-bold text-slate-900">내가 만든 자료와 대조</span>
+            <p className="mt-0.5 text-xs text-slate-500">
+              이 시험지의 지문을 변형문제·수업자료와 맞춰 봅니다. 무엇을 맞췄고 무엇을 더 만들어야 하는지 보입니다.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void run()}
+            disabled={busy}
+            className="h-9 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {busy ? "대조하는 중…" : "대조하기"}
+          </button>
+        </div>
+        {message ? <p className="mt-2 text-xs text-red-600">{message}</p> : null}
+      </div>
+    );
+  }
+
   if (report.total === 0) return null;
 
   const pct = Math.round((report.hit / Math.max(1, report.total)) * 100);
@@ -30,11 +97,22 @@ export function ExamHitReport({ report }: { report: HitReport }) {
           <p className="mt-0.5 text-xs text-slate-500">
             지문과 유형이 모두 같고, <b>시험지를 올리기 전에 만든</b> 문항만 적중으로 셉니다.
             지문만 같은 것은 그 유형을 더 내시면 됩니다.
+            {at ? ` · ${at.slice(0, 10)} 대조` : ""}
           </p>
         </div>
-        <span className="text-sm font-bold text-brand-700">
-          적중 {report.hit}/{report.total}문항 · {pct}%
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-brand-700">
+            적중 {report.hit}/{report.total}문항 · {pct}%
+          </span>
+          <button
+            type="button"
+            onClick={() => void run()}
+            disabled={busy}
+            className="h-7 rounded-lg border border-slate-300 px-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 print:hidden"
+          >
+            {busy ? "대조하는 중…" : "다시 대조"}
+          </button>
+        </div>
       </div>
 
       <div className="mt-3 grid gap-2 sm:grid-cols-3">

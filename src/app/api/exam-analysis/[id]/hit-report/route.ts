@@ -1,0 +1,75 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+import { buildHitReport } from "@/lib/exam-analysis/hit-report";
+import type { ExamItemRow } from "@/lib/exam-analysis/types";
+
+export const runtime = "nodejs";
+export const maxDuration = 300;
+
+const FEATURE = "exam_hit_report";
+
+/**
+ * 학교 시험지와 내가 만든 자료를 대조한다.
+ *
+ * 화면을 열 때마다 돌리면 지문 수천 개를 매번 훑어 느리고 헛일이다(2026-10-01).
+ * 눌렀을 때만 돌리고 결과를 담아 둔다. 자료를 더 만든 뒤 다시 누르면 새로 담긴다.
+ */
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const profile = await getCurrentProfile();
+  if (!profile?.academy_id || (profile.role !== "admin" && profile.role !== "teacher")) {
+    return NextResponse.json({ ok: false, message: "권한이 없습니다." }, { status: 403 });
+  }
+  const supabase = await createClient();
+  const { data: analysis } = await supabase
+    .from("school_exam_analyses")
+    .select("id, academy_id, created_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (!analysis || analysis.academy_id !== profile.academy_id) {
+    return NextResponse.json({ ok: false, message: "시험 분석을 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  const shortfall = await lessonCreditShortfall(profile.academy_id, FEATURE);
+  if (shortfall) return NextResponse.json({ ok: false, message: shortfall }, { status: 402 });
+
+  const admin = createAdminClient();
+  const { data: items } = await admin
+    .from("school_exam_items")
+    .select("*")
+    .eq("analysis_id", id)
+    .order("order_index");
+  if (!items?.length) {
+    return NextResponse.json({ ok: false, message: "문항표가 아직 없습니다." }, { status: 400 });
+  }
+
+  const report = await buildHitReport(
+    admin,
+    profile.academy_id,
+    items as ExamItemRow[],
+    // 시험지를 올리기 전에 만든 자료만 적중으로 센다
+    (analysis.created_at as string) ?? null
+  );
+
+  const at = new Date().toISOString();
+  await admin
+    .from("school_exam_analyses")
+    .update({ hit_report: report, hit_report_at: at })
+    .eq("id", id);
+
+  // 만든 뒤에 받는다(후불) — 돌다 실패하면 값이 나가지 않는다
+  await debitLessonCredits({
+    academyId: profile.academy_id,
+    actorId: profile.id,
+    featureKey: FEATURE,
+    projectId: id,
+    idempotencyKey: `${FEATURE}:${id}:${at}`,
+    metadata: { analysis_id: id, used_for: "exam_hit_report" },
+    note: `시험지 적중 대조 ${report.total}문항`,
+  });
+
+  return NextResponse.json({ ok: true, report, at });
+}

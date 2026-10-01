@@ -211,13 +211,16 @@ export function ExamReportView({
   mocks = [],
   generationsHref,
   hitReport = null,
+  hitReportAt = null,
 }: {
   analysis: ExamAnalysisRow;
   items: ExamItemRow[];
   academyName: string;
   listHref: string;
-  /** 내가 만든 자료와 대조한 적중표 (선생님 지시 2026-10-01) */
+  /** 내가 만든 자료와 대조한 적중표 (선생님 지시 2026-10-01). 눌러서 돌린 결과를 담아 둔다 */
   hitReport?: HitReport | null;
+  /** 언제 대조했는가 */
+  hitReportAt?: string | null;
   /** 이 시험으로 만든 동형모의고사 */
   mocks?: { id: string; title: string; created_at: string; status: string }[];
   generationsHref: string;
@@ -563,7 +566,7 @@ export function ExamReportView({
         </div>
       </div>
 
-      {hitReport ? <ExamHitReport report={hitReport} /> : null}
+      <ExamHitReport analysisId={analysis.id} report={hitReport} savedAt={hitReportAt} />
 
       {mocks.length ? (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm print:hidden">
