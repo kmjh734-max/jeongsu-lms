@@ -12,6 +12,7 @@ import {
   MAX_TOTAL_QUESTIONS,
 } from "@/lib/question-generator/constants";
 import { emptyPassageInput } from "@/lib/question-generator/passages";
+import { billingFeatureFor } from "@/lib/question-generator/billing-buckets";
 import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
 import { sampleLevelFor, typeSampleFor, type SampleLevel, type TypeSample } from "@/lib/question-generator/type-samples";
 import {
@@ -382,10 +383,59 @@ export function QuestionGeneratorClient({
   );
   const perPassageTotals = useMemo(() => sumCounts(counts), [counts]);
   const grandTotal = perPassageTotals.total * Math.max(1, filledPassages.length);
-  /** 어법 유형(어법추론·어법개수)은 문항당 값이 다르다(2026-09-29) */
-  const grammarInferenceTotal =
-    ((counts["grammar:na:default:어법추론"] ?? 0) + (counts["grammar:na:default:어법개수"] ?? 0)) *
-    Math.max(1, filledPassages.length);
+  /*
+   * 값은 세 갈래로 받는다(일반·어법추론과 어법개수·서술형). 확인 창이 두 갈래만 세어
+   * 서술형이 일반에 섞여 보이던 것을 고친다 — 실제 차감과 같은 잣대를 쓴다.
+   */
+  /*
+   * 유형을 고르는 자리에서 바로 값이 보이게 한다. 문항 수만 보이고 크레딧은 만들기를
+   * 누른 뒤에야 알 수 있어서, 고르는 동안 얼마가 드는지 몰랐다(2026-10-01 선생님 지적).
+   */
+  const [unitCosts, setUnitCosts] = useState<Record<string, number>>({});
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const res = await fetch("/api/credits?limit=1", { cache: "no-store" });
+        const json = (await res.json()) as {
+          pricing?: Array<{ feature_key: string; credit_cost: number }>;
+        };
+        if (!alive) return;
+        const map: Record<string, number> = {};
+        for (const row of json.pricing ?? []) {
+          map[row.feature_key] = Number(row.credit_cost ?? 0);
+        }
+        setUnitCosts(map);
+      } catch {
+        // 값을 못 읽으면 문항 수만 보인다 — 만들기 확인 창에서 다시 알려 준다
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const billingTotals = useMemo(() => {
+    const per = Math.max(1, filledPassages.length);
+    const sum: Record<string, number> = {};
+    for (const [key, n] of Object.entries(counts)) {
+      const q = Number(n ?? 0);
+      if (q <= 0) continue;
+      const feature = billingFeatureFor(key);
+      sum[feature] = (sum[feature] ?? 0) + q * per;
+    }
+    return sum;
+  }, [counts, filledPassages.length]);
+
+  /** 고른 유형으로 이번에 나갈 크레딧. 값을 아직 못 읽었으면 null(문항 수만 보인다) */
+  const creditTotal = useMemo(() => {
+    if (Object.keys(unitCosts).length === 0) return null;
+    let sum = 0;
+    for (const [feature, quantity] of Object.entries(billingTotals)) {
+      sum += (unitCosts[feature] ?? 0) * quantity;
+    }
+    return sum;
+  }, [billingTotals, unitCosts]);
 
   const config: GenerationRequestConfig = useMemo(
     () => ({
@@ -745,15 +795,10 @@ export function QuestionGeneratorClient({
         title: "변형문제",
         description: "고른 유형으로 지문마다 문항을 만듭니다. 문항 수만큼 크레딧이 나갑니다.",
         subject: `지문 ${filledPassages.length}개 × 지문당 ${perPassageTotals.total}문항 = 모두 ${grandTotal}문항`,
-        // 어법추론은 값이 달라(원가가 커서) 따로 적는다
-        items: [
-          ...(grandTotal - grammarInferenceTotal > 0
-            ? [{ feature: "qg_generate_job", quantity: grandTotal - grammarInferenceTotal }]
-            : []),
-          ...(grammarInferenceTotal > 0
-            ? [{ feature: "qg_generate_grammar", quantity: grammarInferenceTotal }]
-            : []),
-        ],
+        // 갈래마다 값이 달라 따로 적는다. 가격표에 값이 없는 갈래는 확인 창이 알아서 뺀다.
+        items: Object.entries(billingTotals)
+          .filter(([, q]) => q > 0)
+          .map(([feature, quantity]) => ({ feature, quantity })),
         // 2026-09-28에 뺐다가 2026-09-29에 되살린다. 손으로 그린 예시가 헷갈렸던 것이지
         // 미리보기 자체가 문제가 아니었다. 이제 실제 시험지를 찍은 사진을 보여 준다.
         sample: "question",
@@ -1734,6 +1779,14 @@ export function QuestionGeneratorClient({
             <span className="font-semibold text-slate-900">
               총 {grandTotal}문항
             </span>
+            {creditTotal !== null && (
+              <>
+                <span className="mx-2 text-slate-300">|</span>
+                <span className="font-semibold text-amber-700">
+                  {creditTotal.toLocaleString("ko-KR")}크레딧
+                </span>
+              </>
+            )}
             <span className="mx-2 text-slate-300">|</span>
             지문 {Math.max(filledPassages.length, 1)}개 × 지문당{" "}
             {perPassageTotals.total}

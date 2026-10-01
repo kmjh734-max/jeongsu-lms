@@ -13,7 +13,12 @@ type FeatureInfo = {
 
 const FEATURES: Record<string, FeatureInfo> = {
   qg_generate_job: { label: "변형문제", group: "변형문제", unit: "문항" },
-  qg_generate_grammar: { label: "변형문제 어법 유형", group: "변형문제", unit: "문항" },
+  /*
+   * 어법 유형이라고만 적으니 어법오류수정·제시어배열도 여기 들어가는 줄 아셨다
+   * (2026-10-01 선생님 지적). 값이 다른 두 유형만 여기 든다는 것을 이름에 적는다.
+   */
+  qg_generate_grammar: { label: "변형문제 어법추론·어법개수", group: "변형문제", unit: "문항" },
+  qg_generate_writing: { label: "변형문제 서술형", group: "변형문제", unit: "문항" },
   lesson_analysis_report: { label: "지문 분석서", group: "지문 분석서", unit: "지문" },
   lesson_pack: { label: "수업용 자료", group: "수업자료", unit: "지문" },
   lesson_illustration: { label: "지문 삽화", group: "수업자료", unit: "장" },

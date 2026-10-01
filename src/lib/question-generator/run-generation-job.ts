@@ -1,4 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  isGrammarBillingType,
+  isWritingBillingType,
+} from "@/lib/question-generator/billing-buckets";
 import type { TargetLevel } from "@/lib/question-generator/difficulty";
 import { analyzePassage } from "@/lib/question-generator/analyze-passage";
 import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
@@ -82,25 +86,14 @@ async function countRunningJobs(selfId: string): Promise<number> {
   return n;
 }
 
+/** 값 받는 갈래는 billing-buckets 한곳에서 정한다(확인 창도 같은 것을 쓴다) */
+const isGrammarType = isGrammarBillingType;
+const isWritingType = isWritingBillingType;
+
 /**
  * items를 동시에 limit()개까지 처리한다. limit은 처리 중에도 바뀔 수 있다(다른 작업이
  * 시작되거나 한도가 빠듯해지면 줄고, 풀리면 는다). fn이 던지면 전체가 실패한다.
  */
-const isGrammarType = (key: string | null) =>
-  /:(어법추론|어법개수)$/.test(String(key ?? ""));
-/*
- * 서술형도 따로 받는다.
- *
- * 실측(2026-10-01): 지문 셋으로 나란히 재 보니 객관식은 문항당 41원, 서술형·어법은
- * 114원이었다. 호출이 2.3번 들어가고(검수에서 걸려 다시 만드는 일이 잦다) 해설이
- * 길어서다. 한 값으로 매기면 객관식 쓰는 분이 서술형 쓰는 분을 떠받치게 된다.
- */
-const isWritingType = (key: string | null) =>
-  /^(writing|summary_short):/.test(String(key ?? "")) ||
-  /:(어법문장오류수정|어법오류수정2|어법오류수정3|지칭대명사서술|특정표현의미서술|요약표빈칸단어)$/.test(
-    String(key ?? "")
-  );
-
 export function runAdaptivePool<T>(
   items: T[],
   limit: () => number,

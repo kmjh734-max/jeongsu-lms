@@ -8,6 +8,7 @@ import { levelBriefFor } from "@/lib/exam-analysis/reading-level";
 import { loadExamAnalysis, loadExamMocks } from "@/lib/exam-analysis/load";
 import { loadAcademyMaterialPassages } from "@/lib/exam-analysis/material-passages";
 import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+import { billingFeatureFor } from "@/lib/question-generator/billing-buckets";
 import { createJobFromConfig } from "@/lib/question-generator/create-job";
 import { runGenerationChunkAndChain } from "@/lib/question-generator/job-chain";
 import type { GenerationRequestConfig } from "@/lib/question-generator/types";
@@ -120,12 +121,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
    * 값은 만든 뒤에 받으므로(후불) 여기서 막지 않으면 잔액이 마이너스가 된다.
    * 어법 유형은 값이 달라서 갈라 센다.
    */
-  const grammarSlots = blueprint.filter((b) => /:(어법추론|어법개수)$/.test(b.optionKey)).length;
-  const plainSlots = blueprint.length - grammarSlots;
-  for (const [featureKey, quantity] of [
-    ["qg_generate_job", plainSlots],
-    ["qg_generate_grammar", grammarSlots],
-  ] as const) {
+  // 갈래는 billing-buckets 한곳에서 정한다(만들 때 차감하는 기준과 같아야 한다)
+  const billSlots = new Map<string, number>();
+  for (const b of blueprint) {
+    const feature = billingFeatureFor(b.optionKey);
+    billSlots.set(feature, (billSlots.get(feature) ?? 0) + 1);
+  }
+  for (const [featureKey, quantity] of billSlots) {
     if (quantity <= 0) continue;
     const short = await lessonCreditShortfall(profile.academy_id, featureKey, quantity);
     if (short) return NextResponse.json({ ok: false, message: short }, { status: 402 });

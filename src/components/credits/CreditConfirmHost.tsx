@@ -8,6 +8,7 @@ import {
   setCreditConfirmSkipped,
   type CreditConfirmRequest,
 } from "@/lib/credits/confirm-store";
+import { featureUsageText } from "@/lib/credits/feature-labels";
 
 type Pending = CreditConfirmRequest & { resolve: (ok: boolean) => void };
 
@@ -170,9 +171,13 @@ export function CreditConfirmHost({ chargeHref }: { chargeHref: string }) {
 
                 {quote.lines.map((l) => (
                   <div key={l.feature} className="flex justify-between text-[12.5px] text-amber-900">
+                    {/*
+                      「변형문제 생성 (문항당) × 150」은 150이 값인지 개수인지 헷갈린다
+                      (2026-10-01 선생님 지적). 개수에 단위를 붙이고 한 개 값을 같이 적는다.
+                    */}
                     <span>
-                      {l.label}
-                      {l.quantity > 1 ? ` × ${l.quantity}` : ""}
+                      {featureUsageText(l.feature, l.quantity, l.label)}
+                      {l.quantity > 1 ? ` × ${l.unitCost.toLocaleString("ko-KR")}크레딧` : ""}
                     </span>
                     <span className="tabular-nums">{won(l.cost)}</span>
                   </div>
