@@ -88,6 +88,7 @@ export function GrammarBankClient({
     showName: true,
     timeLimit: "",
     withAnswers: true,
+    withExplanations: false,
   });
 
   const level = groups[levelIdx];
@@ -436,6 +437,19 @@ export function GrammarBankClient({
                 }
               />
               정답지 함께 뽑기
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={options.withExplanations}
+                onChange={(e) =>
+                  setOptions((prev) => ({
+                    ...prev,
+                    withExplanations: e.target.checked,
+                  }))
+                }
+              />
+              해설지 함께 뽑기
             </label>
             <label className="flex items-center gap-2">
               <input

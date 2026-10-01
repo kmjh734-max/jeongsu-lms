@@ -4786,3 +4786,25 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     page-break-after: auto;
   }
 }
+
+/* 해설지 — 정답지는 답만 담으므로 풀이는 여기에 따로 적는다 */
+.gb-why-row {
+  display: flex;
+  gap: 2mm;
+  align-items: baseline;
+  margin-bottom: 1.6mm;
+  break-inside: avoid;
+}
+.gb-why-text {
+  flex: 1;
+  font-size: 9pt;
+  line-height: 1.45;
+}
+.gb-why-text b {
+  color: #1d4ed8;
+  font-weight: 700;
+  margin-right: 1.6mm;
+}
+.gb-why-text span {
+  color: #374151;
+}

@@ -20,10 +20,12 @@ export type GrammarPrintOptions = {
   showName: boolean;
   timeLimit: string;
   withAnswers: boolean;
+  withExplanations: boolean;
 };
 
-type Block = { key: string; kind: "q" | "a"; index: number };
-type Page = { left: Block[]; right: Block[]; answers: boolean; wide?: boolean };
+type Block = { key: string; kind: "q" | "a" | "e"; index: number };
+type Sheet = "q" | "a" | "e";
+type Page = { left: Block[]; right: Block[]; sheet: Sheet; wide?: boolean };
 
 /** 본문 속 [[ ]] 는 밑줄 친 부분 */
 function withUnderlines(line: string) {
@@ -103,6 +105,27 @@ function AnswerRow({
   );
 }
 
+/** 해설지 — 정답지는 답만 담으므로, 풀이는 따로 뽑는다 */
+function WhyRow({
+  q,
+  no,
+  measuring,
+}: {
+  q: GrammarQuestion;
+  no: number;
+  measuring?: boolean;
+}) {
+  return (
+    <div className="gb-why-row" data-gb-card={measuring ? "" : undefined}>
+      <span className="gb-ans-no">{no}</span>
+      <span className="gb-why-text">
+        <b>{q.answer ?? ""}</b>
+        {q.explanation ? <span>{withUnderlines(q.explanation)}</span> : null}
+      </span>
+    </div>
+  );
+}
+
 export function GrammarPrintSheets({
   questions,
   options,
@@ -116,6 +139,11 @@ export function GrammarPrintSheets({
   const answerQuestions = useMemo(
     () => (options.withAnswers ? questions : []),
     [questions, options.withAnswers],
+  );
+  // 해설이 달린 문항만 해설지에 올린다 — 빈 줄만 늘어놓으면 쪽만 먹는다
+  const whyQuestions = useMemo(
+    () => (options.withExplanations ? questions.filter((q) => q.explanation) : []),
+    [questions, options.withExplanations],
   );
 
   useEffect(() => {
@@ -140,9 +168,11 @@ export function GrammarPrintSheets({
     const wide = cards.slice(half).map(takes);
 
     const qHeights = narrow.slice(0, questions.length);
-    const aHeights = narrow.slice(questions.length);
+    const aHeights = narrow.slice(questions.length, questions.length + answerQuestions.length);
+    const eHeights = narrow.slice(questions.length + answerQuestions.length);
     const qWide = wide.slice(0, questions.length);
-    const aWide = wide.slice(questions.length);
+    const aWide = wide.slice(questions.length, questions.length + answerQuestions.length);
+    const eWide = wide.slice(questions.length + answerQuestions.length);
 
     const base = SHEET_INNER_H - headH - footH - COLS_PAD_TOP - SLACK;
     const firstPage = base - nameH;
@@ -150,12 +180,12 @@ export function GrammarPrintSheets({
     function fill(
       heights: number[],
       wides: number[],
-      kind: "q" | "a",
-      answers: boolean,
+      kind: Sheet,
+      sheet: Sheet,
       startsFirst: boolean,
     ): Page[] {
       const out: Page[] = [];
-      let page: Page = { left: [], right: [], answers };
+      let page: Page = { left: [], right: [], sheet };
       let column: "left" | "right" = "left";
       let used = 0;
       let limit = startsFirst ? firstPage : base;
@@ -165,7 +195,7 @@ export function GrammarPrintSheets({
 
       const pushPage = () => {
         out.push(page);
-        page = { left: [], right: [], answers };
+        page = { left: [], right: [], sheet };
         column = "left";
         used = 0;
         limit = base;
@@ -184,7 +214,7 @@ export function GrammarPrintSheets({
           if (page.left.length > 0 || page.right.length > 0) pushPage();
           const tall = wides[i] ?? h;
           if (long && longUsed + tall > base) closeLong();
-          if (!long) long = { left: [], right: [], answers, wide: true };
+          if (!long) long = { left: [], right: [], sheet, wide: true };
           long.left.push(block);
           longUsed += tall;
           return;
@@ -206,19 +236,30 @@ export function GrammarPrintSheets({
       return out;
     }
 
-    const sheetPages = fill(qHeights, qWide, "q", false, true);
+    const sheetPages = fill(qHeights, qWide, "q", "q", true);
     const answerPages =
-      answerQuestions.length > 0 ? fill(aHeights, aWide, "a", true, false) : [];
-    setPages([...sheetPages, ...answerPages]);
-  }, [questions, answerQuestions, options.showName, options.style, options.title]);
+      answerQuestions.length > 0 ? fill(aHeights, aWide, "a", "a", false) : [];
+    const whyPages =
+      whyQuestions.length > 0 ? fill(eHeights, eWide, "e", "e", false) : [];
+    setPages([...sheetPages, ...answerPages, ...whyPages]);
+  }, [
+    questions,
+    answerQuestions,
+    whyQuestions,
+    options.showName,
+    options.style,
+    options.title,
+  ]);
 
   if (questions.length === 0) return null;
 
-  const header = (page: number, total: number, answers: boolean) => (
+  const SHEET_NAME: Record<Sheet, string> = { q: "", a: " · 정답", e: " · 해설" };
+
+  const header = (page: number, total: number, sheet: Sheet) => (
     <header className="gb-head" data-gb-head="">
       <div className="gb-head-main">
         <p className="gb-kicker">
-          {options.academyName} · 중학 문법{answers ? " · 정답" : ""}
+          {options.academyName} · 중학 문법{SHEET_NAME[sheet]}
         </p>
         <h1 className="gb-title">{options.title || "중학 문법"}</h1>
         {options.subtitle ? <p className="gb-sub">{options.subtitle}</p> : null}
@@ -228,7 +269,7 @@ export function GrammarPrintSheets({
           <b>{questions.length}</b>문항
         </div>
         <div>
-          {options.timeLimit && !answers ? `${options.timeLimit} · ` : ""}
+          {options.timeLimit && sheet === "q" ? `${options.timeLimit} · ` : ""}
           {page} / {total}
         </div>
       </div>
@@ -249,16 +290,20 @@ export function GrammarPrintSheets({
     </div>
   );
 
-  const footer = (page: number, answers: boolean) => (
+  const footer = (page: number, sheet: Sheet) => (
     <footer className="gb-foot" data-gb-foot="">
       <span>{options.academyName}</span>
       <span className="gb-foot-page">- {page} -</span>
       <span className="gb-foot-right">
         {options.title}
-        {answers ? " 정답" : ""}
+        {SHEET_NAME[sheet]}
       </span>
     </footer>
   );
+
+  // 해설지의 번호는 시험지의 문항 번호를 그대로 쓴다 — 해설이 달린 것만 추렸으므로
+  // 자리로 세면 11번 해설이 3번으로 나와 선생님이 못 맞춰 본다.
+  const whyNo = new Map(whyQuestions.map((q, i) => [i, questions.findIndex((x) => x.id === q.id) + 1]));
 
   const renderBlock = (block: Block) =>
     block.kind === "q" ? (
@@ -267,11 +312,17 @@ export function GrammarPrintSheets({
         q={questions[block.index]}
         no={block.index + 1}
       />
-    ) : (
+    ) : block.kind === "a" ? (
       <AnswerRow
         key={block.key}
         q={answerQuestions[block.index]}
         no={block.index + 1}
+      />
+    ) : (
+      <WhyRow
+        key={block.key}
+        q={whyQuestions[block.index]}
+        no={whyNo.get(block.index) ?? block.index + 1}
       />
     );
 
@@ -285,7 +336,7 @@ export function GrammarPrintSheets({
         className={`gb-measure gb-sheet gb-sheet--${options.style}`}
         aria-hidden
       >
-        {header(1, 1, false)}
+        {header(1, 1, "q")}
         {nameRow}
         <div style={{ width: COL_W }}>
           {questions.map((q, i) => (
@@ -293,6 +344,9 @@ export function GrammarPrintSheets({
           ))}
           {answerQuestions.map((q, i) => (
             <AnswerRow key={`ma-${q.id}`} q={q} no={i + 1} measuring />
+          ))}
+          {whyQuestions.map((q, i) => (
+            <WhyRow key={`me-${q.id}`} q={q} no={i + 1} measuring />
           ))}
         </div>
         {/* 같은 문항을 쪽 너비로도 재 둔다 — 단 하나에 안 담기는 긴 문항을 눕히려면 필요하다 */}
@@ -303,15 +357,18 @@ export function GrammarPrintSheets({
           {answerQuestions.map((q, i) => (
             <AnswerRow key={`wa-${q.id}`} q={q} no={i + 1} measuring />
           ))}
+          {whyQuestions.map((q, i) => (
+            <WhyRow key={`we-${q.id}`} q={q} no={i + 1} measuring />
+          ))}
         </div>
-        {footer(1, false)}
+        {footer(1, "q")}
       </div>
 
       <div id="grammar-print-root">
         {(pages ?? []).map((page, i) => (
           <div key={i} className={`gb-sheet gb-sheet--${options.style}`}>
-            {header(i + 1, total, page.answers)}
-            {options.showName && i === 0 && !page.answers ? nameRow : null}
+            {header(i + 1, total, page.sheet)}
+            {options.showName && i === 0 && page.sheet === "q" ? nameRow : null}
             {page.wide ? (
               <div className="gb-cols gb-cols--wide">
                 <div className="gb-col">{page.left.map(renderBlock)}</div>
@@ -324,7 +381,7 @@ export function GrammarPrintSheets({
                 </div>
               </div>
             )}
-            {footer(i + 1, page.answers)}
+            {footer(i + 1, page.sheet)}
           </div>
         ))}
       </div>
