@@ -21,6 +21,7 @@ import gi_map
 import hs_map
 import mj_map
 import tb_map
+import yj_map
 from official_units import units_of
 from to_official import nearest
 
@@ -58,6 +59,9 @@ SOURCES = [
     ("gi-1-matched.json", "Grammar Inside Level_1", "gi"),
     ("gi-2-matched.json", "Grammar Inside Level_2", "gi"),
     ("gi-3-matched.json", "Grammar Inside Level_3", "gi"),
+    ("yj-1-matched.json", "열중 16강 문법 LEVEL 1", "yj"),
+    ("yj-2-matched.json", "열중 16강 문법 LEVEL 2", "yj"),
+    ("yj-3-matched.json", "열중 16강 문법 LEVEL 3", "yj"),
 ]
 
 PICK = re.compile(r"\[([^\[\]]+?)\]")
@@ -226,6 +230,24 @@ def from_gi(q, book):
     }
 
 
+def from_yj(q, book):
+    """열중 16강 — 강 묶음·내신 적중 테스트·문법정리 OX·서술형 내공 Up.
+
+    문법정리 OX 는 쪽 오른쪽에 접혀 있는 풀이를 해설로 들고 왔다.
+    """
+    return {
+        "kind": q.get("section") or "UNIT",
+        "question_kind": q.get("question_kind") or ("객관식" if q.get("choices") else "단답·서술"),
+        "badges": [],
+        "prompt": q.get("prompt") or "",
+        "body": q.get("body") or [],
+        "choices": q.get("choices") or [],
+        "answer": q.get("answer"),
+        "explanation": q.get("explanation"),
+        "chapter_title": q.get("chapter"),
+    }
+
+
 def unit_for(kind, q, level, chapter):
     """워크북의 RULE 이름을 은행이 쓰는 세부 목차 이름으로 옮긴다.
 
@@ -239,6 +261,9 @@ def unit_for(kind, q, level, chapter):
     if kind == "mj":
         # POINT 이름이 세부 갈래 그대로다 — 공식 목차에서 가장 가까운 것으로
         return nearest(q.get("point") or "", units_of(level, chapter))
+    if kind == "yj":
+        # 강 이름(또는 문법정리 OX 의 이름표)이 세부 갈래 그대로다
+        return nearest(q.get("unit") or q.get("point") or "", units_of(level, chapter))
     if kind == "gi":
         # UNIT 이름이 세부 갈래 그대로다 — 공식 목차에서 가장 가까운 것으로
         return nearest(q.get("unit") or "", units_of(level, chapter))
@@ -289,7 +314,8 @@ def main(dst, only=None):
                    from_hs(q, book) if kind == "hs" else
                    from_tb(q, book) if kind == "tb" else
                    from_mj(q, book) if kind == "mj" else
-                   from_gi(q, book) if kind == "gi" else from_jp(q, book))
+                   from_gi(q, book) if kind == "gi" else
+                   from_yj(q, book) if kind == "yj" else from_jp(q, book))
             if not str(row["answer"] or "").strip():
                 continue
             title = row.pop("chapter_title") or ""
@@ -304,6 +330,12 @@ def main(dst, only=None):
             elif kind == "gi":
                 # 쪽마다 단원 이름이 조금씩 잘려 들어오므로 번호로 찾는다
                 spot = gi_map.place(book, q.get("chapter_no"), q.get("unit"))
+            elif kind == "yj":
+                # 한 단원에 두 강을 묶어 놓아, 강 이름을 보고 가른다
+                spot = yj_map.place(
+                    book, q.get("chapter_no"), q.get("unit"),
+                    " ".join([q.get("point") or "", q.get("explanation") or "",
+                              row["prompt"]] + row["body"]))
             elif kind == "tb":
                 spot = tb_map.place(title)
             elif kind == "hs":
