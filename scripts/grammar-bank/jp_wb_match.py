@@ -227,7 +227,13 @@ def main(q_path, box_path, out_path, bad_path=None):
     for v in blocks.values():
         v.sort(key=lambda q: q["no"])
 
-    words = lexicon(q_path)
+    # 낱말 곳간은 한 권만으로는 좁다. 답에 쓰인 말이 그 권 문항에 안 나오면
+    # 멀쩡한 답도 「책에 없는 낱말」로 걸린다. 같은 꼴 교재를 모두 모아 쓴다.
+    import glob
+    kin = sorted(glob.glob(str(Path(q_path).parent / "cwwb-*.json"))
+                 + glob.glob(str(Path(q_path).parent / "jpwb-*.json")))
+    kin = [f for f in kin if "-matched" not in f and "-bad" not in f]
+    words = lexicon(*(kin or [q_path]))
 
     told = {}
     for q in questions:
