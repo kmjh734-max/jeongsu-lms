@@ -1907,7 +1907,8 @@ const QUESTION_WRITER_SHARED_SYSTEM = `Korean HS English exam writer. ONE questi
 - hardWords: When (a) English MCQ choices or (b) 일치개수 English <보기> (or Korean <보기>→passage): include 4~6 {word, meaning}. Target ≈ 중3+ / Lexile ≥~1000L (US Grade 8 CCSS text ~1010L–1185L). Prefer the HARDER lemmas that appear in THIS item's English — skip ultra-basics (people/important/money/make/need). Include short non-basic lemmas when apt (swap, skim, grasp, yield, burden, voucher, reluctant, scrutinize, comparable, misprint, conscious). Single dictionary token only (never phrases like "national monies"). Fake plurals (monies/datas) forbidden. meaning = short Korean gloss. Rotate lemmas across same-passage slots. If none fit → []. For Korean-only MCQ / count-only / subjective without English 보기 → [].
 - explanation(해설)은 "~다"로 끝나는 평서형으로 쓴다. 존댓말("맞습니다", "합니다", "해요") 금지.
   보기: "정답은 ②다.", "앞 문장과 뜻이 반대라 틀리다.", "빈칸 뒤 근거와 맞다."
-- The user message gives the passage data (JSON) first, then ITEM RULES for this question. Follow every ITEM RULE exactly, with the same priority as the rules above.`;
+- The user message comes in this order: ITEM RULES → OUTPUT KEYS → PASSAGE. Follow every ITEM RULE exactly, with the same priority as the rules above.
+- OUTPUT: exactly ONE JSON object whose keys are the ones listed under OUTPUT KEYS. NEVER output the wrapper keys "grade", "difficulty", "forcedInstruction" or "schema" — those describe the request, not the answer. "explanation" is a TOP-LEVEL key and must never be empty.`;
 
 export async function generateOneQuestion(opts: {
   passage: string;
@@ -2285,7 +2286,17 @@ export async function generateOneQuestion(opts: {
     system: QUESTION_WRITER_SHARED_SYSTEM,
     // 유형 규칙·틀(같은 유형끼리 같음) → 지문(문항마다 다름) → 슬롯
     user:
-      `ITEM RULES:\n${itemRules}\n\nITEM FORM:\n${itemData}\n\nPASSAGE:\n` +
+      /*
+       * 선생님 지적(2026-10-01): 고른 유형이 자꾸 주제추론으로 바뀐다.
+       *
+       * 오간 것을 엿보니 모델이 답을 만들지 않고 이 덩어리(grade·difficulty·
+       * forcedInstruction·schema)를 그대로 되돌려 주고 있었다. 해설이 schema 안에
+       * 갇혀 「해설이 비어 있습니다」로 버려지고, 대체 유형으로 바뀐 것이다.
+       * 같은 지문·같은 유형으로 재 보니 gpt-5.6-sol은 48문항 가운데 44개가 바뀌었다
+       * (gpt-5.5는 9개). 「ITEM FORM」이라는 이름이 「이 틀을 내놓으라」로 읽혔다.
+       * 이름을 OUTPUT KEYS로 바꾸고, 지시문에 되돌려 주지 말라고 박았다.
+       */
+      `ITEM RULES:\n${itemRules}\n\nOUTPUT KEYS (fill these; do not copy this wrapper):\n${itemData}\n\nPASSAGE:\n` +
       `${JSON.stringify({ passage, hint: englishBodyTypes.has(option.type) ? undefined : slimAnalysis })}` +
       `${pickedSentenceLine}${slotTail}`,
     // 한 지문에서 여러 문항을 한꺼번에 만든다. 유형이 같으면 앞부분(공통 규칙·
