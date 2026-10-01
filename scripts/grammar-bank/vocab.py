@@ -35,15 +35,20 @@ GROUPS = {
     "동물": [("dog", "강아지"), ("cat", "고양이"), ("rabbit", "토끼"),
            ("monkey", "원숭이"), ("tiger", "호랑이"), ("elephant", "코끼리"),
            ("horse", "조랑말"), ("turtle", "거북이")],
-    "장소": [("park", "공원"), ("library", "도서관"), ("museum", "박물관"),
+    # park 는 넣지 않는다 — 「You must not park here」의 park 까지 바뀌어
+    # 「must not theater here」가 되었다. 뜻이 여럿인 낱말은 빼 둔다.
+    "장소": [("library", "도서관"), ("museum", "박물관"),
            ("hospital", "병원"), ("church", "교회"),
            ("theater", "극장"), ("airport", "공항"), ("restaurant", "식당"),
            ("bakery", "빵집"), ("market", "시장"), ("beach", "해변"),
            ("zoo", "동물원"), ("school", "학교"), ("office", "사무실"),
            ("factory", "공장"), ("hotel", "호텔")],
+    # 「play soccer」와 「go swimming」은 앞에 오는 동사가 달라 섞을 수 없다.
+    # 섞으면 「I go basketball」 같은 말이 된다.
     "운동": [("soccer", "축구"), ("baseball", "야구"), ("basketball", "농구"),
-           ("tennis", "테니스"), ("badminton", "배드민턴"), ("golf", "골프"),
-           ("swimming", "수영"), ("skiing", "스키")],
+           ("tennis", "테니스"), ("badminton", "배드민턴"), ("golf", "골프")],
+    "운동동작": [("swimming", "수영"), ("skiing", "스키"),
+             ("jogging", "조깅"), ("hiking", "등산")],
     "요일": [("Monday", "월요일"), ("Tuesday", "화요일"), ("Wednesday", "수요일"),
            ("Thursday", "목요일"), ("Friday", "금요일"), ("Saturday", "토요일"),
            ("Sunday", "일요일")],

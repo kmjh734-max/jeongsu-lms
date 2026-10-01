@@ -23,6 +23,7 @@ import ilg_map
 import hs_map
 import mj_map
 import tb_map
+import tfg_map
 import yj_map
 from unit_tree import units_of_name as units_of   # 세부 트리를 다시 짜면서 옮겼다
 from to_official import nearest
@@ -68,6 +69,10 @@ SOURCES = [
     ("ilg-2-keep.json", "I Love Grammar L2", "ilg"),
     ("ilg-3-keep.json", "I Love Grammar L3", "ilg"),
     ("gg-1-matched.json", "Good Grammar L1", "gg"),
+    ("tfg-basic-matched.json", "Time for Grammar Basic", "tfg"),
+    ("tfg-inter-matched.json", "Time for Grammar Intermediate", "tfg"),
+    ("tfg-adv-matched.json", "Time for Grammar Advanced", "tfg"),
+    ("tfg-expert-matched.json", "Time for Grammar Expert", "tfg"),
 ]
 
 PICK = re.compile(r"\[([^\[\]]+?)\]")
@@ -288,6 +293,21 @@ def from_gg(q, book):
     }
 
 
+def from_tfg(q, book):
+    """Time for Grammar — 지시문마다 묶음이 갈리는 연습 문항만 쓴다."""
+    return {
+        "kind": q.get("section") or "연습",
+        "question_kind": q.get("question_kind") or ("객관식" if q.get("choices") else "단답·서술"),
+        "badges": [],
+        "prompt": q.get("prompt") or "",
+        "body": q.get("body") or [],
+        "choices": q.get("choices") or [],
+        "answer": q.get("answer"),
+        "explanation": None,
+        "chapter_title": q.get("chapter"),
+    }
+
+
 def unit_for(kind, q, level, chapter):
     """워크북의 RULE 이름을 은행이 쓰는 세부 목차 이름으로 옮긴다.
 
@@ -303,6 +323,9 @@ def unit_for(kind, q, level, chapter):
         return nearest(q.get("point") or "", units_of(level, chapter))
     if kind == "gg":
         return nearest(q.get("unit") or "", units_of(level, chapter))
+    if kind == "tfg":
+        # 교재가 세부 갈래 이름을 적어 두지 않는다 — 적재 뒤 말씨로 가린다
+        return None
     if kind == "ilg":
         return nearest(q.get("unit") or "", units_of(level, chapter))
     if kind == "yj":
@@ -361,7 +384,8 @@ def main(dst, only=None):
                    from_gi(q, book) if kind == "gi" else
                    from_yj(q, book) if kind == "yj" else
                    from_ilg(q, book) if kind == "ilg" else
-                   from_gg(q, book) if kind == "gg" else from_jp(q, book))
+                   from_gg(q, book) if kind == "gg" else
+                   from_tfg(q, book) if kind == "tfg" else from_jp(q, book))
             if not str(row["answer"] or "").strip():
                 continue
             title = row.pop("chapter_title") or ""
@@ -378,6 +402,12 @@ def main(dst, only=None):
                 spot = gi_map.place(book, q.get("chapter_no"), q.get("unit"))
             elif kind == "gg":
                 spot = gg_map.place(book, title, q.get("unit"))
+            elif kind == "tfg":
+                # 단원 이름이 영어다. 한 단원에 두 갈래를 묶어 놓은 데가 있어
+                # 문항의 말씨를 함께 넘긴다 — 단원 이름은 섞지 않는다.
+                spot = tfg_map.place(
+                    book, title,
+                    " ".join([row["prompt"]] + row["body"] + [str(row["answer"] or "")]))
             elif kind == "ilg":
                 spot = ilg_map.place(book, q.get("chapter_no"), q.get("unit"))
             elif kind == "yj":

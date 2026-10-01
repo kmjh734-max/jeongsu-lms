@@ -90,18 +90,30 @@ GLUED = {
 }
 
 
+GLUE_RE = re.compile(
+    # 붙어 쓰는 두 낱말, 그리고 붇임표로 묶인 말(T-shirt·old-fashioned)
+    r"\b(?:%s)\s+[A-Za-z]+|\b[A-Za-z]+(?:-[A-Za-z]+)+\b"
+    % "|".join(sorted(GLUED, key=len, reverse=True)), re.I)
+
+
 def keep_glued(replace):
-    """앞말이 붙어 쓰는 말이면 그 뒤 낱말은 그대로 둔다"""
+    """붙어 쓰는 말만 잠시 가려 두고, 나머지 글은 그대로 바꾼다.
+
+    영어 낱말을 하나씩 떼어 바꾸면 안 된다 — 낱말표에는 「ice cream」처럼 두
+    낱말짜리 말과 우리말 짝(skiing↔스키)이 함께 들어 있어, 영어만 집으면 짝이
+    따로 남는다. 「스키 타러 갈 텐데」 밑에 basketball 이 적힌 변형본이 그렇게
+    나왔다. 그러니 가릴 것만 가리고 글 전체를 한 번에 바꾼다.
+    """
     def swap(piece):
-        out, last = [], 0
-        for m in re.finditer(r"[A-Za-z][A-Za-z'’\-]*", piece):
-            out.append(piece[last:m.start()])
-            before = re.search(r"([A-Za-z]+)\s*$", piece[:m.start()])
-            out.append(m.group(0) if before and before.group(1) in GLUED
-                       else replace(m.group(0)))
-            last = m.end()
-        out.append(piece[last:])
-        return "".join(out)
+        kept = []
+
+        def hide(found):
+            kept.append(found.group(0))
+            return "\x01%d\x01" % (len(kept) - 1)
+
+        masked = GLUE_RE.sub(hide, piece)
+        done = replace(masked)
+        return re.sub(r"\x01(\d+)\x01", lambda m: kept[int(m.group(1))], done)
     return swap
 
 
@@ -214,8 +226,10 @@ def plan_numbers(question, report, rng):
     """단수/복수가 바뀌지 않게, 둘 이상인 수끼리만 바꾼다.
 
     본문에 없이 정답에만 있는 수는 건드리지 않는다. 바꾸면 문제와 답이 어긋난다.
+    발문의 수도 세지 않는다 — 「Combine the two sentences」의 two 는 문장의
+    내용이 아니라 할 일의 개수라서, 바꾸면 발문이 거짓말이 된다.
     """
-    blob = " ".join(visible(question))
+    blob = " ".join(list(question["body"]) + [c["text"] for c in question["choices"]])
     found = []
     for word in NUMBER_RE.findall(blob):
         if word not in found and word not in report["locked"]:
@@ -346,7 +360,30 @@ def validate(original, variant):
     bad = re.compile(r"\ba\s+[aeiouAEIOU]")
     if len(bad.findall(" ".join(new_texts))) > len(bad.findall(" ".join(old_texts))):
         problems.append("a/an이 어긋난다")
+
+    if mismatched(" ".join(new_texts)) and not mismatched(" ".join(old_texts)):
+        problems.append("우리말 뜻과 영어가 어긋난다")
     return problems
+
+
+def mismatched(text):
+    """우리말에는 옛 낱말이 남고 영어만 바뀐 글인가.
+
+    붙어 쓰는 말을 가려 두면(Christmas gift) 영어는 그대로인데 우리말만 바뀌어
+    「입장권 ↔ gift」처럼 어긋난다. 두 쪽 다 짝이 맞는지 여기서 본다.
+    """
+    if not re.search(r"[가-힣]", text):
+        return False
+    for group in vocab.GROUPS.values():
+        here_ko = [ko for en, ko in group if ko in text]
+        here_en = [en for en, ko in group
+                   if re.search(r"(?:^|[^A-Za-z])%s(?:[^A-Za-z]|$)" % re.escape(en),
+                                text, re.I)]
+        off = [ko for en, ko in group if ko in here_ko and en not in here_en]
+        other = [en for en, ko in group if en in here_en and ko not in here_ko]
+        if off and other:
+            return True
+    return False
 
 
 # ── 변형 만들기 ─────────────────────────────────────────────────────────────
