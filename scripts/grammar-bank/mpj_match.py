@@ -37,8 +37,18 @@ def fine(answer):
     return True
 
 
+# 정답지 한 줄에 여러 답이 나란히 적힌 곳이 있다 — 「isolated 1 1 climbing 12
+# completed」처럼 뒷 번호의 답까지 끌려 들어온다. 그런 답은 넣지 않는다.
+GLUED = re.compile(r"\s\d{1,2}\s+\S+\s+\d{1,2}\s")
+
+
 def trim(answer):
     return re.sub(r"\s+\d{1,2}$", "", str(answer or "").strip())
+
+
+def alone(answer):
+    """한 문항의 답 하나만 들어 있는가"""
+    return not GLUED.search(" " + str(answer or "") + " ")
 
 
 MARKS = re.compile(r"^[①-⑩○◦×xXOo✓\s,·]+$")
@@ -79,21 +89,22 @@ def main(q_path, a_path, out_path, bad_path=None):
     questions = json.load(open(q_path, encoding="utf-8"))
     boxes = json.load(open(a_path, encoding="utf-8"))
 
-    # 번호(단원·POINT)는 꼬리말 없는 쪽에서 어긋나지만, POINT 가 **나온 차례**는
-    # 본책과 정답지가 똑같다. 그 차례로 맞춘다.
+    # 정답지가 POINT 마다 「p. 14」로 본책 쪽을 적어 두고, 본책은 PDF 쪽이 곧
+    # 인쇄 쪽이다. 그러니 쪽·꼴·묶음이면 자리가 하나로 정해진다. 나온 차례로
+    # 맞추던 때에는 쪽이 어긋나면 그 뒤가 줄줄이 밀렸다.
     seats = collections.defaultdict(list)
     for q in questions:
-        seats[(q.get("run"), q["section"], q["block"])].append(q)
+        seats[(q.get("printed_page"), q["section"], q["block"])].append(q)
     for v in seats.values():
         v.sort(key=lambda q: q["no"])
 
     def items_for(b):
-        return seats.get((b.get("run"), b["section"], b["block"])) or None
+        return seats.get((b.get("page"), b["section"], b["block"])) or None
 
     matched, failed, dropped = [], [], 0
     for b in boxes:
         items = items_for(b)
-        where = "%d째 POINT %s 묶음%s" % (b.get("run") or 0, b["section"], b["block"])
+        where = "p%s %s 묶음%s" % (b.get("page"), b["section"], b["block"])
         if not items:
             failed.append({"자리": where, "까닭": "그 자리에 문항이 없음"})
             continue
@@ -111,10 +122,19 @@ def main(q_path, a_path, out_path, bad_path=None):
 
         for q, a in pairs:
             if not (ok_choice(a, q.get("choices")) and in_choices(a, as_gq(q)["picks"])
-                    and fine(a) and belongs(a, q)):
+                    and fine(a) and belongs(a, q) and alone(a)):
                 dropped += 1
                 continue
             row = dict(q)
+            # 세부 갈래 이름은 정답지에서 가져온다 — 본책 쪽에서 읽은 것은
+            # 단원이 바뀌는 자리에서 한 칸씩 밀려 들어온다.
+            if b.get("point_title"):
+                row["unit"] = b["point_title"]
+                row["point_no"] = b.get("point")
+            # 단원 번호도 정답지에서 든다. 이름은 들지 않는다 — 정답지에서
+            # 단원 이름이 한 칸 밀려 읽히고, 이름은 표가 번호로 다시 붙인다.
+            if b.get("chapter_no"):
+                row["chapter_no"] = b["chapter_no"]
             row["answer"] = a
             matched.append(row)
 

@@ -87,6 +87,7 @@ GLUED = {
     "best", "ice", "post", "birthday", "department", "text", "traffic",
     "cotton", "police", "fire", "news", "rail", "tooth", "hair", "dining",
     "living", "grand", "class", "home", "week", "wedding", "water", "air",
+    "video",            # 「video games」가 「radio games」가 되었다
 }
 
 

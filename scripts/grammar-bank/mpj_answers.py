@@ -92,16 +92,25 @@ def main(src, dst):
     for page_no, page in enumerate(doc, 1):
         for r in rows_of(page):
             t = r["text"]
-            got = re.match(r"^CHAPTER\s*(\d{1,2})", t)
+            got = re.match(r"^CHAPTER\s*(\d{1,2})\s*(.*)$", t)
             if got and r["size"] > 10:
                 close()
-                now = {"chapter_no": int(got.group(1)), "point": None, "page": None}
+                # 단원 이름도 함께 든다. 본책 꼬리말은 홀수 쪽에만 있어 단원이
+                # 바뀌는 자리에서 앞 단원을 들고 가지만, 정답지는 단원이 바뀌는
+                # 곳마다 「CHAPTER 01 문장의 종류」로 또박또박 적어 둔다.
+                now = {"chapter_no": int(got.group(1)),
+                       "chapter": (got.group(2) or "").strip() or None,
+                       "point": None, "page": None}
                 continue
             got = POINT.match(t)
             if got and r["font"].startswith(ANS_FONT):
                 close()
-                now = {**now, "point": int(got.group(1)), "page": None,
-                       "run": now.get("run", 0) + 1}
+                # POINT 제목도 들고 간다. 본책 쪽에서 읽은 제목은 한 칸씩 밀려
+                # 들어오는데, 정답지에는 「POINT 1 | be동사 문장과 인칭대명사」로
+                # 번호와 제목이 한 줄에 붙어 있어 어긋날 자리가 없다.
+                now = {**now, "point": int(got.group(1)),
+                       "point_title": (got.group(2) or "").strip() or None,
+                       "page": None, "run": now.get("run", 0) + 1}
                 waiting[0] = True
                 continue
             ref = PAGEREF.match(t)

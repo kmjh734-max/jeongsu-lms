@@ -22,6 +22,7 @@ import gg_map
 import ilg_map
 import hs_map
 import mj_map
+import mpj_map
 import tb_map
 import tfg_map
 import yj_map
@@ -69,6 +70,9 @@ SOURCES = [
     ("ilg-2-keep.json", "I Love Grammar L2", "ilg"),
     ("ilg-3-keep.json", "I Love Grammar L3", "ilg"),
     ("gg-1-matched.json", "Good Grammar L1", "gg"),
+    ("mpj-1-matched.json", "문제로 풀자 중학영문법 L1", "mpj"),
+    ("mpj-2-matched.json", "문제로 풀자 중학영문법 L2", "mpj"),
+    ("mpj-3-matched.json", "문제로 풀자 중학영문법 L3", "mpj"),
     ("tfg-basic-matched.json", "Time for Grammar Basic", "tfg"),
     ("tfg-inter-matched.json", "Time for Grammar Intermediate", "tfg"),
     ("tfg-adv-matched.json", "Time for Grammar Advanced", "tfg"),
@@ -308,6 +312,25 @@ def from_tfg(q, book):
     }
 
 
+def from_mpj(q, book):
+    """문제로 풀자 — POINT 연습(CHECK·PRACTICE)만 쓴다.
+
+    「내신대비 실전문제」는 정답지에서 답이 아직 또박또박 읽히지 않는다. 수를
+    채우려고 넣으면 어긋난 답이 섞이므로, 읽히는 것만 넣는다.
+    """
+    return {
+        "kind": q.get("section") or "PRACTICE",
+        "question_kind": q.get("question_kind") or ("객관식" if q.get("choices") else "단답·서술"),
+        "badges": [],
+        "prompt": q.get("prompt") or "",
+        "body": q.get("body") or [],
+        "choices": q.get("choices") or [],
+        "answer": q.get("answer"),
+        "explanation": None,
+        "chapter_title": q.get("chapter"),
+    }
+
+
 def unit_for(kind, q, level, chapter):
     """워크북의 RULE 이름을 은행이 쓰는 세부 목차 이름으로 옮긴다.
 
@@ -326,6 +349,9 @@ def unit_for(kind, q, level, chapter):
     if kind == "tfg":
         # 교재가 세부 갈래 이름을 적어 두지 않는다 — 적재 뒤 말씨로 가린다
         return None
+    if kind == "mpj":
+        # POINT 제목이 세부 갈래 그대로다(정답지에서 들고 왔다)
+        return nearest(q.get("unit") or "", units_of(level, chapter))
     if kind == "ilg":
         return nearest(q.get("unit") or "", units_of(level, chapter))
     if kind == "yj":
@@ -385,7 +411,8 @@ def main(dst, only=None):
                    from_yj(q, book) if kind == "yj" else
                    from_ilg(q, book) if kind == "ilg" else
                    from_gg(q, book) if kind == "gg" else
-                   from_tfg(q, book) if kind == "tfg" else from_jp(q, book))
+                   from_tfg(q, book) if kind == "tfg" else
+                   from_mpj(q, book) if kind == "mpj" else from_jp(q, book))
             if not str(row["answer"] or "").strip():
                 continue
             title = row.pop("chapter_title") or ""
@@ -402,6 +429,9 @@ def main(dst, only=None):
                 spot = gi_map.place(book, q.get("chapter_no"), q.get("unit"))
             elif kind == "gg":
                 spot = gg_map.place(book, title, q.get("unit"))
+            elif kind == "mpj":
+                # 단원 번호로 찾고, 묶음 단원은 POINT 제목으로 가른다
+                spot = mpj_map.place(book, q.get("chapter_no"), q.get("unit"))
             elif kind == "tfg":
                 # 단원 이름이 영어다. 한 단원에 두 갈래를 묶어 놓은 데가 있어
                 # 문항의 말씨를 함께 넘긴다 — 단원 이름은 섞지 않는다.

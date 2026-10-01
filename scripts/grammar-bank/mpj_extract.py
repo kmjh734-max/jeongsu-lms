@@ -108,6 +108,28 @@ def heads_in(rows, font, lo_hi, cut=None):
     return out
 
 
+def ask_after(rows, y0, y1):
+    """묶음 표시 뒤에 따로 적힌 지시문을 줍는다.
+
+    이 책은 「A」 와 지시문을 다른 줄에 앉혀 둔다. 표시 줄만 보면 지시문이
+    통째로 빠져, 학생이 무엇을 할지 모르는 문항이 된다. 찾은 줄도 함께
+    돌려주어 첫 문항의 본문으로 섞여 들어가지 않게 한다.
+    """
+    said = [r for r in rows if y0 - 6 <= r["y"] < y1
+            and r["font"].startswith(ASK_FONT) and re.search(r"[가-힣]", r["text"])]
+    said.sort(key=lambda r: (r["y"], r["x"]))
+    return " ".join(r["text"] for r in said).strip(), said
+
+
+def lead_for(mark, rows, heads):
+    """묶음의 지시문 — 표시 줄에 붙어 있으면 그것, 없으면 아래 줄에서 줍는다"""
+    said = mark["text"][1:].strip() if mark else ""
+    if said or not heads:
+        return said, []
+    first = min(h["y"] for h in heads)
+    return ask_after(rows, mark["y"] if mark else first, first - 4)
+
+
 def gather(rows, heads, cut):
     order = sorted(heads, key=lambda h: (h["col"], h["y"], h["x"]))
     for h in heads:
@@ -181,9 +203,16 @@ def pack(heads, lead, carry, block, kind):
     return out
 
 
-def parse_page(page, carry):
+def parse_page(page, carry, page_no=None):
     rows = lines_of(page)
     point, title, printed, chapter_no, chapter = page_head(rows, page)
+    # 꼬리말은 홀수 쪽에만 찍혀 있다. 그런데 꼬리말이 있는 99쪽 모두 PDF 쪽과
+    # 인쇄 쪽이 같았다 — 그러니 짝수 쪽은 PDF 쪽을 그대로 쓴다. 앞 쪽의 번호를
+    # 들고 가다 쪽이 어긋나던 것이 여기서 났다.
+    if printed is None and page_no is not None:
+        printed = page_no
+    elif printed is not None and page_no is not None and printed != page_no:
+        carry.setdefault("odd", []).append((page_no, printed))
     # POINT 머리글이 쪽 가운데 있으면 그 위는 앞 POINT, 그 아래는 새 POINT 다.
     # 쪽 전체를 새 POINT 로 보내면 앞 POINT 의 답이 통째로 어긋난다.
     mark_y = None
@@ -236,6 +265,9 @@ def parse_page(page, carry):
             heads = heads_in(part, ITEM_FONT, (9, 12))
             if not heads:
                 continue
+            if not said:
+                said, used = ask_after(part, lo, min(h["y"] for h in heads) - 4)
+                part = [r for r in part if r not in used]
             out += pack(gather(part, heads, None), said, carry, block, PRACTICE)
         return out
 
@@ -250,9 +282,13 @@ def parse_page(page, carry):
         name = CHECK if tag["text"].startswith("CHECK") else PRACTICE
         if name == CHECK:
             said = re.sub(r"^CHECK\s*", "", tag["text"]).strip()
-            heads = heads_in([r for r in mine if r is not tag], ITEM_FONT, (9, 12))
+            part = [r for r in mine if r is not tag]
+            heads = heads_in(part, ITEM_FONT, (9, 12))
             if heads:
-                out += pack(gather(mine, heads, None), said, carry, 0, CHECK)
+                if not said:
+                    said, used = ask_after(part, tag["y"], min(h["y"] for h in heads) - 4)
+                    part = [r for r in part if r not in used]
+                out += pack(gather(part, heads, None), said, carry, 0, CHECK)
             continue
         marks = [r for r in mine if r["font"].startswith(MARK_FONT) and 13 < r["size"] < 18
                  and re.match(r"^[A-F](\s|$)", r["text"])]
@@ -264,7 +300,9 @@ def parse_page(page, carry):
             heads = heads_in(part, ITEM_FONT, (9, 12))
             if not heads:
                 continue
-            out += pack(gather(part, heads, None), m["text"][1:].strip(), carry,
+            said, used = lead_for(m, part, heads)
+            part = [r for r in part if r not in used]
+            out += pack(gather(part, heads, None), said, carry,
                         ord(m["text"][0]) - ord("A"), PRACTICE)
         if marks:
             carry["open"] = ord(marks[-1]["text"][0]) - ord("A")
@@ -276,8 +314,8 @@ def main(src, dst):
     doc = fitz.open(src)
     carry = {}
     out = []
-    for page in doc:
-        for row in parse_page(page, carry):
+    for page_no, page in enumerate(doc, 1):
+        for row in parse_page(page, carry, page_no):
             row["book"] = Path(src).stem
             out.append(row)
     Path(dst).write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -285,6 +323,9 @@ def main(src, dst):
     print("문제로 풀자 문항 %d개 저장: %s" % (len(out), dst), file=log)
     for k, n in collections.Counter(r["section"] for r in out).most_common():
         print("   %-14s %d문항" % (k, n), file=log)
+    if carry.get("odd"):
+        print("   ! 꼬리말 쪽과 PDF 쪽이 다른 곳 %d군데: %s"
+              % (len(carry["odd"]), carry["odd"][:5]), file=log)
     print("   단원 %s · POINT %d가지 · 인쇄 쪽 %d가지"
           % (sorted({r["chapter_no"] for r in out if r["chapter_no"]}),
              len({r["point_no"] for r in out}), len({r["printed_page"] for r in out})), file=log)
