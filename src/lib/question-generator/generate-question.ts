@@ -1209,6 +1209,19 @@ export function assertBasicQuestionShape(
         return "밑줄 기호가 지문에 나오는 차례와 다릅니다.";
       }
     }
+    /*
+     * 요약문·표 빈칸은 본문이 아니라 묻는 글에 찍힌다. 거기도 차례를 본다.
+     *
+     * 선생님 지시(2026-10-01)로 문항을 하나하나 대조하다 찾았다. 요약문이
+     * 「… in ⓑ____ and … where ⓐ____ …」로 거꾸로 찍혀 있었다(학원 전체 6문항).
+     * 학생은 ⓐ부터 쓰는데 지면은 ⓑ가 먼저여서 헷갈린다. 글자는 안 바꾸고 기호만 옮긴다.
+     */
+    const inText = [...String(q.questionText ?? "").matchAll(/([ⓐ-ⓖ])\s*_{3,}/g)].map((m) =>
+      marks.indexOf(m[1]!)
+    );
+    if (inText.length >= 2 && inText.some((v, i) => i > 0 && inText[i - 1]! >= v)) {
+      renumberMarksInOrder(q, "questionText");
+    }
   }
 
   const englishBodyTypes = new Set([
