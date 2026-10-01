@@ -47,7 +47,11 @@ import {
   type WordOrderMode,
 } from "@/lib/question-generator/word-order-catalog";
 import { normalizeWordOrderQuestionText } from "@/lib/question-generator/word-order-normalize";
-import { reconcileGrammarFixQuestion } from "@/lib/question-generator/grammar-fix-normalize";
+import {
+  reconcileGrammarFixQuestion,
+  parseGrammarFixAnswer,
+} from "@/lib/question-generator/grammar-fix-normalize";
+import { agreementBreakAfterFix } from "@/lib/question-generator/agreement-check";
 import { plainKorean } from "@/lib/question-generator/plain-korean";
 import {
   bankWordsLeftInBlankLine,
@@ -1464,6 +1468,23 @@ export function assertBasicQuestionShape(
     }
     q.correctAnswer = reconciled.correctAnswer;
     q.explanation = reconciled.explanation;
+    /*
+     * 정답대로 고쳐도 여전히 틀린 문장이면 버린다.
+     *
+     * 선생님 지시(2026-10-01)로 문항을 하나하나 대조하다 찾았다. ⓓ를
+     * 「suggests that it become」으로 고쳐도 바로 앞의 we와 안 맞아
+     * 「the particular market we suggests that it become」이 남았다.
+     * 정답지대로 고쳐도 틀린 문항은 선생님이 채점할 수가 없다.
+     * 밑줄 안에 일부러 심은 오류는 고침을 넣은 뒤에 보므로 걸리지 않는다
+     * (문항 5,696개로 확인: 걸린 것은 그 한 문항뿐이었다).
+     */
+    const stillBroken = agreementBreakAfterFix(
+      mod,
+      parseGrammarFixAnswer(reconciled.correctAnswer)
+    );
+    if (stillBroken) {
+      return `정답대로 고쳐도 주어·동사가 맞지 않습니다: "${stillBroken}"`;
+    }
     /*
      * 답칸은 큰 칸 하나만 둔다.
      *
