@@ -78,6 +78,17 @@ function pickByKey(typeKey: string, level: ExamLevel): Pick | null {
   return { key: typeKey };
 }
 
+/**
+ * 시험지 문항 하나가 어떤 변형문제 유형에 해당하는지 — 적중 대조(hit-report)도 같은 길을 쓴다.
+ * 동형모의고사를 만들 때와 같은 잣대라야 「유형이 같다」는 말이 같은 뜻이 된다.
+ */
+export function examTypeToOptionKey(it: ExamItemRow): { key: string; substituted: boolean } {
+  const pick =
+    (!it.edited && it.type_key ? pickByKey(it.type_key, it.level) : null) ??
+    pickByName(it.type_name, it.level, it.is_subjective);
+  return { key: pick.key, substituted: pick.substituted === true };
+}
+
 const passageHead = (s: string | null) =>
   (s ?? "")
     .toLowerCase()

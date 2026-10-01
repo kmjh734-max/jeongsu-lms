@@ -1,5 +1,7 @@
 "use client";
 
+import { ExamHitReport } from "@/components/exam-analysis/ExamHitReport";
+import type { HitReport } from "@/lib/exam-analysis/hit-report";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -208,11 +210,14 @@ export function ExamReportView({
   listHref,
   mocks = [],
   generationsHref,
+  hitReport = null,
 }: {
   analysis: ExamAnalysisRow;
   items: ExamItemRow[];
   academyName: string;
   listHref: string;
+  /** 내가 만든 자료와 대조한 적중표 (선생님 지시 2026-10-01) */
+  hitReport?: HitReport | null;
   /** 이 시험으로 만든 동형모의고사 */
   mocks?: { id: string; title: string; created_at: string; status: string }[];
   generationsHref: string;
@@ -557,6 +562,8 @@ export function ExamReportView({
           </button>
         </div>
       </div>
+
+      {hitReport ? <ExamHitReport report={hitReport} /> : null}
 
       {mocks.length ? (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm print:hidden">

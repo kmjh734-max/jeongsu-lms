@@ -1,0 +1,100 @@
+"use client";
+
+import { useState } from "react";
+import type { HitReport } from "@/lib/exam-analysis/hit-report";
+
+/**
+ * 학교 시험지와 내가 만들어 둔 것을 대조한 적중표.
+ *
+ * 선생님 지시(2026-10-01): 「출처가 비슷하다」가 아니라 <b>이 문제를 내가 이미 냈다</b>를
+ * 보여 주어야 한다. 그래서 지문이 같은 내 문항을 실제로 늘어놓고, 유형까지 같은 것만
+ * 적중으로 센다(지문만 같은 것은 「이 유형도 내야 한다」는 뜻으로 따로 모은다).
+ */
+export function ExamHitReport({ report }: { report: HitReport }) {
+  const [open, setOpen] = useState(false);
+  if (report.total === 0) return null;
+
+  const pct = Math.round((report.hit / Math.max(1, report.total)) * 100);
+  const shown = report.items.filter((it) => it.rows.length > 0);
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <span className="text-sm font-bold text-slate-900">내가 만든 자료와 대조</span>
+          <p className="mt-0.5 text-xs text-slate-500">
+            지문과 유형이 모두 같은 문항을 적중으로 셉니다. 지문만 같은 것은 그 유형을 더 내시면 됩니다.
+          </p>
+        </div>
+        <span className="text-sm font-bold text-brand-700">
+          적중 {report.hit}/{report.total}문항 · {pct}%
+        </span>
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        {[
+          ["지문도 유형도 같음", report.hit, "border-emerald-200 bg-emerald-50 text-emerald-800"],
+          ["지문만 같음", report.passageOnly, "border-amber-200 bg-amber-50 text-amber-800"],
+          ["못 맞춤", report.missed, "border-slate-200 bg-slate-50 text-slate-600"],
+        ].map(([label, n, cls]) => (
+          <div key={String(label)} className={`rounded-lg border px-3 py-2 ${cls}`}>
+            <div className="text-[11px] font-medium opacity-80">{label}</div>
+            <div className="text-lg font-bold tabular-nums">{n as number}문항</div>
+          </div>
+        ))}
+      </div>
+
+      {shown.length > 0 ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="mt-3 text-xs font-semibold text-brand-700 underline print:hidden"
+          >
+            {open ? "접기" : `문항별로 보기 (${shown.length}문항)`}
+          </button>
+          {open ? (
+            <ul className="mt-3 flex flex-col gap-2">
+              {shown.map((it) => (
+                <li key={it.itemId} className="rounded-lg border border-slate-200 p-2.5">
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <span className="font-bold text-slate-900">{it.itemNo}번</span>
+                    <span className="text-slate-600">{it.typeName}</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        it.hit ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {it.hit ? "적중" : "지문만 같음"}
+                    </span>
+                  </div>
+                  <ul className="mt-1.5 flex flex-col gap-1">
+                    {it.rows.map((r, i) => (
+                      <li
+                        key={`${it.itemId}-${i}`}
+                        className={`flex flex-wrap items-center gap-1.5 text-[12.5px] ${
+                          r.sameType ? "text-slate-800" : "text-slate-500"
+                        }`}
+                      >
+                        <span className={r.sameType ? "text-emerald-600" : "text-slate-300"}>
+                          {r.sameType ? "●" : "○"}
+                        </span>
+                        <span className="font-medium">{r.from}</span>
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px]">{r.typeName}</span>
+                        <span className="truncate">{r.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
+      ) : (
+        <p className="mt-3 text-xs text-slate-500">
+          이 시험지의 지문과 같은 자료를 아직 만들지 않으셨습니다.
+        </p>
+      )}
+    </div>
+  );
+}
