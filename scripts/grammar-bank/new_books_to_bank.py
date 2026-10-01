@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from chapter_map import place, LEVEL_NAME
 import cw_map
 import hs_map
+import mj_map
 import tb_map
 from official_units import units_of
 from to_official import nearest
@@ -49,6 +50,9 @@ SOURCES = [
     ("cwwb-3-matched.json", "천일문 GRAMMAR 3권 워크북", "cwwb"),
     ("hs.json", "고등영어 어법서술형", "hs"),
     ("tb.json", "고등 교과서 문법", "tb"),
+    ("mj-1-matched.json", "문법을 마중하다 Level_1", "mj"),
+    ("mj-2-matched.json", "문법을 마중하다 Level_2", "mj"),
+    ("mj-3-matched.json", "문법을 마중하다 Level_3", "mj"),
 ]
 
 PICK = re.compile(r"\[([^\[\]]+?)\]")
@@ -184,6 +188,21 @@ def from_tb(q, book):
     }
 
 
+def from_mj(q, book):
+    """문법을 마중하다 — POINT 이름이 곧 세부 단원이다."""
+    return {
+        "kind": "POINT",
+        "question_kind": q.get("question_kind") or ("객관식" if q.get("choices") else "단답·서술"),
+        "badges": [],
+        "prompt": q.get("prompt") or "",
+        "body": q.get("body") or [],
+        "choices": q.get("choices") or [],
+        "answer": q.get("answer"),
+        "explanation": None,
+        "chapter_title": q.get("chapter"),
+    }
+
+
 def unit_for(kind, q, level, chapter):
     """워크북의 RULE 이름을 은행이 쓰는 세부 목차 이름으로 옮긴다.
 
@@ -194,6 +213,9 @@ def unit_for(kind, q, level, chapter):
         return nearest(q.get("rule") or "", units_of(level, chapter))
     if kind == "cwwb":
         return nearest(q.get("unit") or "", units_of(level, chapter))
+    if kind == "mj":
+        # POINT 이름이 세부 갈래 그대로다 — 공식 목차에서 가장 가까운 것으로
+        return nearest(q.get("point") or "", units_of(level, chapter))
     if kind == "gq":
         # 교재가 붙인 단원 이름을 그대로 쓰면 공식 목차 밖으로 나간다
         return nearest(q.get("unit") or "", units_of(level, chapter))
@@ -239,7 +261,8 @@ def main(dst, only=None):
                    from_jp_wb(q, book) if kind == "jpwb" else
                    from_cw_wb(q, book) if kind == "cwwb" else
                    from_hs(q, book) if kind == "hs" else
-                   from_tb(q, book) if kind == "tb" else from_jp(q, book))
+                   from_tb(q, book) if kind == "tb" else
+                   from_mj(q, book) if kind == "mj" else from_jp(q, book))
             if not str(row["answer"] or "").strip():
                 continue
             title = row.pop("chapter_title") or ""
@@ -249,6 +272,8 @@ def main(dst, only=None):
                 # 그래머큐 워크북은 단원 이름이 본책과 같아 기존 표를 그대로 쓴다
                 spot = (place(book, title) if "그래머큐" in book
                         else cw_map.place(book, title, q.get("unit")))
+            elif kind == "mj":
+                spot = mj_map.place(book, title, q.get("point"))
             elif kind == "tb":
                 spot = tb_map.place(title)
             elif kind == "hs":

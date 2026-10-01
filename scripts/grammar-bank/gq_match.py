@@ -99,7 +99,12 @@ def usable(answer, q=None):
         many = len(re.findall(r"[①-⑩]", text))
         picked = []
         for piece in re.findall(r"[1-9①-⑩]", t):
-            got = int(piece) if piece.isdigit() else ord(piece) - 0x2460 + 1
+            if piece.isascii() and piece.isdigit():
+                got = int(piece)
+            elif 0x2460 <= ord(piece) <= 0x2469:
+                got = ord(piece) - 0x2460 + 1
+            else:
+                continue          # ⓐ 같은 다른 동그라미 글자는 번호가 아니다
             if got > many:
                 return False
             picked.append(got)
