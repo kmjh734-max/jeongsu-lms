@@ -1089,7 +1089,10 @@ function normalizePayload(
     passageOriginal: passage,
     passageModified,
     instruction: instructionOut,
-    questionText: cleanQuestionText(String(raw.questionText ?? "")),
+    questionText: stripRepeatedInstruction(
+      cleanQuestionText(String(raw.questionText ?? "")),
+      instructionOut
+    ),
     choices,
     correctAnswer,
     acceptableAnswers: Array.isArray(raw.acceptableAnswers)
@@ -2391,4 +2394,23 @@ export async function generateOneQuestion(opts: {
     payload.explanation = swap(payload.explanation) ?? payload.explanation;
   }
   return payload;
+}
+
+/**
+ * 묻는 글에 발문이 또 적혀 있으면 떼어낸다.
+ *
+ * 선생님 지시(2026-10-01)로 문항을 하나하나 대조하다 찾았다. 모델이 발문을
+ * questionText 머리에 한 번 더 적어 와서, 인쇄물에 같은 발문이 두 번 나왔다
+ * (「다음 글의 ①~⑤ 중 어법상 틀린 문장의 번호를 모두 쓰고…」가 발문 칸과 묻는 글에).
+ * 발문은 instruction 칸이 맡으므로 묻는 글에서는 지운다.
+ *
+ * 글자가 똑같은 줄만 지운다 — 조금이라도 다르면 그 줄에 다른 뜻이 있을 수 있어 둔다.
+ */
+export function stripRepeatedInstruction(questionText: string, instruction: string): string {
+  const want = String(instruction ?? "").trim();
+  if (want.length < 14) return questionText;
+  const kept = String(questionText ?? "")
+    .split("\n")
+    .filter((line) => line.trim() !== want);
+  return kept.join("\n").replace(/^\n+/, "");
 }
