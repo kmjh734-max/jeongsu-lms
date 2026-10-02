@@ -1487,6 +1487,17 @@ export function assertBasicQuestionShape(
       if (!passageHasConsecutiveWords(q.passageOriginal || "", String(q.correctAnswer ?? ""))) {
         return "「지문 그대로」로 만들 때는 정답이 지문에 있는 문장이어야 합니다.";
       }
+      /*
+       * 정답을 빈칸에 넣으면 원문이 그대로 돌아와야 한다. 원문 문장 전체를 비워 놓고 정답은 그 일부
+       * (주어 없는 술부·관계절 조각)만 낸 문항이 여러 학원에서 나왔다(2026-10-03 전수 대조).
+       */
+      const toks = (s: string) =>
+        s.toLowerCase().replace(/<\/?[ub]>/g, "").replace(/[^a-z0-9'\s]/g, " ").split(/\s+/).filter(Boolean);
+      const filled = toks(mod.replace(/[ⓐ-ⓔ]?\s*_{3,}/, ` ${String(q.correctAnswer ?? "")} `));
+      const orig = toks(cleanSourcePassage(q.passageOriginal || ""));
+      if (filled.length && Math.abs(filled.length - orig.length) > 2) {
+        return `정답을 빈칸에 넣어도 원문이 되지 않습니다(낱말 ${filled.length} / 원문 ${orig.length}). 빈칸은 정답 문장만 비워야 합니다.`;
+      }
     }
     const bankLine = (q.questionText.match(/<보기>\s*\n([^\n]+)/) ?? [])[1] ?? "";
     let leftOver = bankWordsLeftInBlankLine(mod, bankLine);
