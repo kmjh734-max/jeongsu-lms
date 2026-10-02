@@ -65,7 +65,7 @@ export function findPassageAt(materialText: string, examPassage: string): number
  * 그 자리 가까이에 있는 발문으로 유형을 읽는다.
  * 앞뒤 900자만 본다 — 멀리 있는 발문은 다른 지문의 것이다.
  */
-export function typesNear(materialText: string, at: number, span = 900): string[] {
+export function typesNear(materialText: string, at: number, span = 2500): string[] {
   if (at < 0) return [];
   const window = materialText.slice(Math.max(0, at - span), at + span);
   const noSpace = window.replace(/\s+/g, "");
