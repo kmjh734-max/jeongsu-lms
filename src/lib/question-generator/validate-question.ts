@@ -15,6 +15,7 @@ import {
 function plainText(text: string): string {
   return String(text ?? "")
     .replace(/<\/?u>/g, "")
+    .replace(/<\/?b>/gi, "")
     .replace(/\*\*/g, "")
     .replace(/[ⓐ-ⓩ①-⑳]/g, " ")
     .replace(/_{3,}/g, " ")
@@ -238,6 +239,130 @@ export function validateGeneratedQuestion(opts: {
       if (sorted(bank) === sorted(answerTokens)) {
         warnings.push("어형변화 유형인데 보기가 정답 꼴 그대로라 바꿀 어형이 없습니다. 보기는 원형으로 주어야 합니다.");
         score -= 45;
+      }
+    }
+  }
+
+  /*
+   * 아래는 382문항 전수 대조(2026-10-02, 선생님이 새로 만든 작업)에서 나온 꼴이다.
+   */
+  const originalPlain = plainText(opts.passage);
+
+  // 문장삽입: 번호가 문장 중간에 찍힘(#46 「leaves, ④ chew them」), 하 난이도인데 원문에 없는 문장을 넣음(#145)
+  if (option.type === "sentence_insertion" && modifiedText) {
+    const body = modifiedText.replace(/<\/?[ub]>/gi, "");
+    const midSentence = [...body.matchAll(/[①②③④⑤]/g)].find((m) => {
+      const before = body.slice(0, m.index).replace(/\s+$/, "");
+      if (!before) return false;
+      return !/[.!?]["'’”)]*$/.test(before);
+    });
+    if (midSentence) {
+      warnings.push(`삽입 자리 ${midSentence[0]}가 문장 중간에 있습니다. 번호는 문장과 문장 사이에만 둡니다.`);
+      score -= 45;
+    } else if (!opts.allowParaphrase && option.difficulty === "low") {
+      const origN = sentencesOf(opts.passage).length;
+      const modN = sentencesOf(modifiedText).length;
+      if (origN >= 3 && modN > origN - 1) {
+        warnings.push("원문에 없는 문장을 지문에 넣었습니다. 주어진 문장만 빼고 나머지는 원문 그대로 둡니다.");
+        score -= 45;
+      }
+    }
+  }
+
+  // 어법 문장 수정: 정답으로 적은 번호의 문장이 원문과 같다 = 오류를 심지 않았다 (#124 「정답을 구성할 수 없다」, #219 번호 밀림)
+  if (code === "어법문장오류수정" && !opts.allowParaphrase && modifiedText && answerStr) {
+    const body = modifiedText.replace(/<\/?[ub]>/gi, "");
+    const segments = new Map<string, string>();
+    const parts = body.split(/([①②③④⑤])/);
+    for (let i = 1; i < parts.length; i += 2) segments.set(parts[i]!, plainText(parts[i + 1] ?? ""));
+    for (const m of answerStr.matchAll(/([①②③④⑤])\s*[:：]/g)) {
+      const seg = segments.get(m[1]!);
+      if (seg && seg.length > 10 && originalPlain.includes(seg)) {
+        warnings.push(`정답 ${m[1]}의 문장이 원문과 같습니다. 그 문장에 틀린 곳이 없습니다.`);
+        score -= 45;
+        break;
+      }
+    }
+  }
+
+  // 어법 수정 2·3: 밑줄 수가 발문(ⓐ~ⓔ / ⓐ~ⓖ)과 다름 (#220 7개, #221 5개)
+  if (code === "어법오류수정2" || code === "어법오류수정3") {
+    const n = (modifiedText.match(/<u>/gi) ?? []).length;
+    const need = code === "어법오류수정2" ? 5 : 7;
+    if (n > 0 && n !== need) {
+      warnings.push(`밑줄이 ${n}개입니다. ${code === "어법오류수정2" ? "ⓐ~ⓔ 다섯" : "ⓐ~ⓖ 일곱"} 개여야 합니다.`);
+      score -= 45;
+    }
+  }
+
+  /*
+   * 밑줄마다 앞뒤 두 낱말을 붙여 원문과 견준다. 바뀐 밑줄의 자리와 수가 정답과 맞아야 한다.
+   *  - 어법추론·어휘추론: 바뀐 밑줄이 하나뿐이고 그 번호가 정답 (#224는 ④를 바꾸고 정답을 3이라 했다)
+   *  - 어법개수·어휘개수: 바뀐 밑줄 수 = 정답 개수
+   * 바뀐 낱말이 지문 다른 곳에 우연히 있어도 앞뒤 낱말까지 보면 가려진다.
+   */
+  if (
+    !opts.allowParaphrase &&
+    (option.type === "grammar" || option.type === "vocabulary") &&
+    /(어법추론|어휘추론|어법개수|어휘개수)$/.test(code) &&
+    modifiedText
+  ) {
+    const windows = [...modifiedText.matchAll(
+      /((?:[A-Za-z’'-]+[\s,;:]+){0,2})(?:[ⓐ-ⓖ①-⑤]\s*)?<u>([\s\S]*?)<\/u>((?:[\s,;:]+[A-Za-z’'-]+){0,2})/g
+    )];
+    const changed = windows
+      .map((m, i) => ({ i, text: plainText(`${m[1] ?? ""}${m[2] ?? ""}${m[3] ?? ""}`) }))
+      .filter((w) => w.text && !originalPlain.includes(w.text));
+    const no = Number(q.correctAnswer);
+    if (/추론$/.test(code) && windows.length >= 4) {
+      if (changed.length !== 1) {
+        warnings.push(`원문과 다른 밑줄이 ${changed.length}개입니다. 하나만 바꿔야 합니다.`);
+        score -= 45;
+      } else if (Number.isFinite(no) && changed[0]!.i + 1 !== no) {
+        warnings.push(`바뀐 밑줄은 ${changed[0]!.i + 1}번인데 정답은 ${no}번입니다.`);
+        score -= 45;
+      }
+    } else if (/개수$/.test(code) && windows.length >= 4 && Number.isFinite(no) && changed.length !== no) {
+      warnings.push(`원문과 다른 밑줄이 ${changed.length}개인데 정답은 ${no}개입니다.`);
+      score -= 45;
+    }
+    // 어휘는 낱말 하나를 바꾸는 유형이다 — 「carry away from the nest」처럼 구를 통째로 바꾸면 어휘 문항이 아니다 (#86)
+    if (option.type === "vocabulary") {
+      const long = windows.find((m) => wordCount(m[2] ?? "") > 2);
+      if (long) {
+        warnings.push(`어휘 밑줄 "${plainText(long[2] ?? "").slice(0, 30)}"이 세 낱말 넘습니다. 낱말 하나(많아야 둘)만 밑줄 칩니다.`);
+        score -= 45;
+      }
+    }
+  }
+
+  // 빈칸추론: 두 보기가 말만 바꾼 같은 뜻이면 정답이 둘이다 (#139 「limits … apparent」 vs 「shortcomings … clear」)
+  if (option.type === "sentence_blank" && Array.isArray(q.choices) && q.choices.length >= 5) {
+    const bag = (s: string) =>
+      new Set(
+        plainText(s)
+          .toLowerCase()
+          .replace(/[^a-z' ]/g, " ")
+          .split(/\s+/)
+          .filter((w) => w.length >= 3)
+      );
+    const bags = q.choices.map((c) => bag(String(c?.text ?? "")));
+    // 「not·only·less」 같은 말 하나로 뜻이 뒤집히는 보기는 같은 말이 아니다 (#233 「matter」 vs 「do not matter」)
+    const POLARITY = /^(not|no|never|only|less|least|fewer|little|more|most|without|rather|instead|hardly|cannot|unlike|merely|although|despite|secondary|equally)$/;
+    outer: for (let a = 0; a < bags.length; a++) {
+      for (let b = a + 1; b < bags.length; b++) {
+        const A = bags[a]!;
+        const B = bags[b]!;
+        if (A.size < 4 || B.size < 4) continue;
+        let both = 0;
+        for (const w of A) if (B.has(w)) both++;
+        const jaccard = both / (A.size + B.size - both);
+        const diff = [...A].filter((w) => !B.has(w)).concat([...B].filter((w) => !A.has(w)));
+        if (jaccard >= 0.6 && !diff.some((w) => POLARITY.test(w))) {
+          warnings.push(`보기 ${"①②③④⑤"[a]}과 ${"①②③④⑤"[b]}가 거의 같은 말입니다. 오답은 뜻이 달라야 합니다.`);
+          score -= 45;
+          break outer;
+        }
       }
     }
   }

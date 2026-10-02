@@ -416,7 +416,8 @@ ${catalog}`;
           turn,
           code === "어법문장오류수정" ? "number" : "mark"
         );
-        const spotLine = `- 틀린 곳은 <b>${spotLabel}</b> 이다. 다른 자리는 모두 어법상 맞게 둔다.
+        // <b>로 강조했더니 모델이 본문의 틀린 낱말까지 <b>로 감싸 답이 드러났다(382문항 대조 2026-10-02)
+        const spotLine = `- 틀린 곳은 「${spotLabel}」 이다. 다른 자리는 모두 어법상 맞게 둔다. 본문에 <b> 같은 꾸밈 태그를 넣지 않는다.
   (자리가 ⓑⓓ·②④처럼 한쪽으로 몰리던 것을 막는다.)`;
         const { focusBlock } = pickGrammarFocus(wrongN);
         if (code === "어법문장오류수정") {
@@ -1144,7 +1145,8 @@ function normalizePayload(
     difficulty: option.difficulty,
     choiceLanguage: option.choiceLanguage,
     passageOriginal: passage,
-    passageModified,
+    // 모델이 틀린 자리를 <b>로 감싸 보내는 일이 있다 — 화면에 글자 그대로 찍히고 답이 드러난다
+    passageModified: passageModified ? passageModified.replace(/<\/?b>/gi, "") : passageModified,
     instruction: instructionOut,
     questionText: stripRepeatedInstruction(
       cleanQuestionText(String(raw.questionText ?? "")),
@@ -1328,6 +1330,28 @@ export function assertBasicQuestionShape(
     );
     if (inText.length >= 2 && inText.some((v, i) => i > 0 && inText[i - 1]! >= v)) {
       renumberMarksInOrder(q, "questionText");
+    }
+    /*
+     * 밑줄 없는 번호(문장삽입 ①~⑤, 무관한문장 ⓐ~ⓔ, 어법 문장 수정 ①~⑤)도 차례를 본다.
+     *
+     * 382문항 대조(2026-10-02): 문장삽입이 「② … ③ … ④ … ① … ⑤」로, 어법 문장 수정이
+     * 「② … ③ … ④ … ① …」로 찍혀 나왔다. 자리를 코드가 정해 주니 모델이 번호를 자리에
+     * 맞춰 찍고 나머지를 다시 매기지 않은 것이다. 글자는 두고 번호만 차례대로 옮긴다.
+     */
+    if (
+      option.type === "sentence_insertion" ||
+      option.type === "irrelevant_sentence" ||
+      option.aingkaCode === "어법문장오류수정"
+    ) {
+      const bare = [...String(q.passageModified ?? "").matchAll(/[ⓐ-ⓖ①-⑤]/g)].map((m) =>
+        marks.indexOf(m[0]!)
+      );
+      const distinct = bare.filter((v, i) => bare.indexOf(v) === i);
+      if (distinct.length >= 2 && distinct.some((v, i) => i > 0 && distinct[i - 1]! >= v)) {
+        if (!renumberMarksInOrder(q, "passage", option.aingkaCode !== "어법문장오류수정")) {
+          return "번호가 지문에 나오는 차례와 다릅니다.";
+        }
+      }
     }
   }
 

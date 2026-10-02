@@ -37,14 +37,37 @@ export async function sweepSavedQuestions(
   const { data } = await admin
     .from("generated_english_questions")
     .select(
-      "id, option_key, instruction, question_text, passage_original, passage_modified, choices, correct_answer, explanation"
+      "id, passage_id, option_key, instruction, question_text, passage_original, passage_modified, choices, correct_answer, explanation"
     )
-    .eq("generation_job_id", jobId);
+    .eq("generation_job_id", jobId)
+    .order("created_at");
   if (!data?.length) return [];
 
   const badIds: string[] = [];
   const reasons: string[] = [];
+  /*
+   * 같은 지문·같은 유형으로 둘을 청하면 모델이 똑같은 문항을 둘 내놓는 일이 있다
+   * (382문항 대조 2026-10-02: 지칭·특정표현이 짝마다 글자까지 같았다). 하나만 남긴다.
+   */
+  const seenSame = new Set<string>();
   for (const row of data) {
+    const option = OPTION_BY_KEY.get(String(row.option_key));
+    const sameKey = [
+      String(row.passage_id ?? ""),
+      String(row.option_key ?? ""),
+      String(row.question_text ?? "").replace(/\s+/g, " ").trim(),
+      String(row.passage_modified ?? "").replace(/\s+/g, " ").trim(),
+      JSON.stringify(row.correct_answer ?? ""),
+    ].join("\u0001");
+    if (seenSame.has(sameKey)) {
+      badIds.push(String(row.id));
+      reasons.push(`[${option?.label ?? row.option_key}] 똑같은 문항이 둘이라 하나를 지웠습니다`);
+      continue;
+    }
+    seenSame.add(sameKey);
+  }
+  for (const row of data) {
+    if (badIds.includes(String(row.id))) continue;
     const option = OPTION_BY_KEY.get(String(row.option_key));
     if (!option) continue;
     const question = {
