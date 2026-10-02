@@ -4,6 +4,7 @@ import type {
   QuestionTypeOption,
   QuestionValidation,
 } from "@/lib/question-generator/types";
+import { validateVocabularyConsistency } from "@/lib/question-generator/vocabulary-consistency";
 
 /** 지문에서 낱말만 뽑아 센다(밑줄 기호·문장부호는 뺀다) */
 function passageWords(text: string): string[] {
@@ -135,6 +136,22 @@ export function validateGeneratedQuestion(opts: {
     score -= 30;
   }
 
+  if (
+    option.type === "vocabulary" &&
+    (option.aingkaCode === "어휘추론" || option.aingkaCode === "어휘개수")
+  ) {
+    const consistency = validateVocabularyConsistency({
+      code: option.aingkaCode,
+      passageModified: q.passageModified,
+      correctAnswer: q.correctAnswer,
+      explanation: q.explanation,
+    });
+    if (!consistency.ok) {
+      warnings.push(...consistency.problems);
+      score -= 80;
+    }
+  }
+
   // 요지인데 요약문완성(빈칸·…… 쌍)으로 나온 경우 폐기
   if (option.type === "summary_mcq") {
     const blob = [
@@ -244,7 +261,7 @@ export function validateGeneratedQuestion(opts: {
    * 통째로 못 읽었다(2026-10-01). 일부만 읽히면 개수를 적게 세어 멀쩡한 문항을 버린다.
    * 그래서 세 가지 꼴을 모두 읽고, 기호마다 맞다/틀리다가 다 가려졌을 때만 센다.
    */
-  if (/개수$/.test(option.aingkaCode ?? "")) {
+  if (/개수$/.test(option.aingkaCode ?? "") && option.type !== "vocabulary") {
     const no = Number(q.correctAnswer);
     const expl = q.explanation;
     const wrong = new Set<string>();

@@ -62,6 +62,7 @@ import {
 } from "@/lib/question-generator/grammar-fix-normalize";
 import { agreementBreakAfterFix } from "@/lib/question-generator/agreement-check";
 import { falseGrammarError } from "@/lib/question-generator/grammar-false-error";
+import { validateVocabularyConsistency } from "@/lib/question-generator/vocabulary-consistency";
 import { plainKorean } from "@/lib/question-generator/plain-korean";
 import {
   bankWordsLeftInBlankLine,
@@ -370,7 +371,7 @@ LANGUAGE: 지문은 영어만.
 ${catalog}`;
       }
       if (code === "어법개수") {
-        const wrongN = 1 + Math.floor(Math.random() * 5);
+        const wrongN = plannedWrongCount(code, turn);
         const { focusBlock } = pickGrammarFocus(wrongN);
         return `어법 개수 — 교재 단원별 문법 다양 출제:
 ${focusBlock}
@@ -504,7 +505,10 @@ ${vocabChoiceCraft()}
 ${choiceExplanationRules()}
 - choices MUST be EXACTLY and ONLY these five texts in order:
   1:"1개"  2:"2개"  3:"3개"  4:"4개"  5:"5개"
-- questionText empty. explanation: Korean — 틀린 번호 + 왜 반의/혼동인지 + 바른 말.
+- vocabularyJudgments: ${spots}개를 번호 순서대로 모두 쓴다.
+  · 각 항목 = {"number":1, "verdict":"correct" 또는 "wrong", "replacement":"틀린 경우의 바른 영어", "reason":"한글 이유"}
+  · wrong은 정확히 ${wrongN}개, correct는 정확히 ${spots - wrongN}개다.
+- questionText empty. explanation은 짧게 써도 되며, 서버가 vocabularyJudgments에서 학생용 해설을 다시 만든다.
 LANGUAGE: passage ENGLISH only.`;
       }
       // 어휘추론 (어색한 것 고르기) — PDF형 ①~⑤, 하단 보기 없음
@@ -515,8 +519,12 @@ LANGUAGE: passage ENGLISH only.`;
 ${vocabChoiceCraft()}
 ${choiceExplanationRules()}
 - choices: omit or empty array — numbers IN the passage are the options; do NOT print a separate choice list.
+- CRITICAL: Do NOT use choices like "1개/2개/3개". That is a DIFFERENT question type (어휘개수). This is 어휘추론 — exactly ONE wrong word.
 - correctAnswer 1-5 = the wrong underlined number. questionText empty.
-- explanation (Korean): which number + why opposite/lookalike/wrong-in-context + replacement word.
+- vocabularyJudgments: ①~⑤를 번호 순서대로 모두 쓴다.
+  · 각 항목 = {"number":1, "verdict":"correct" 또는 "wrong", "replacement":"틀린 경우의 바른 영어", "reason":"한글 이유"}
+  · wrong은 정확히 하나이고 correctAnswer와 같은 번호여야 한다. 나머지 네 개는 correct다.
+- explanation은 짧게 써도 되며, 서버가 vocabularyJudgments에서 학생용 해설을 다시 만든다.
 LANGUAGE: passage ENGLISH only.`;
     case "underlined_inference":
       if (code === "목적추론") {
@@ -1012,12 +1020,16 @@ function normalizePayload(
     (option.type === "grammar" && option.aingkaCode === "어법개수") ||
     (option.type === "vocabulary" && option.aingkaCode === "어휘개수")
   ) {
+    const text = String(correctAnswer ?? "").trim();
+    const match = text.match(/^([1-5])\s*(?:개)?$/);
     const n =
-      typeof correctAnswer === "number"
+      typeof correctAnswer === "number" && Number.isInteger(correctAnswer)
         ? correctAnswer
-        : parseInt(String(correctAnswer ?? "").replace(/[^\d]/g, ""), 10);
-    const clamped = Number.isFinite(n) ? Math.min(5, Math.max(1, n)) : 1;
-    correctAnswer = clamped;
+        : match
+          ? Number(match[1])
+          : 0;
+    // 잘못된 값을 1이나 5로 조용히 고치지 않는다. 아래 형태 검수에서 실패시킨다.
+    correctAnswer = n;
   } else {
     const parsed = parseChoiceAnswer(correctAnswer);
     if (
@@ -1160,6 +1172,15 @@ function normalizePayload(
   };
 }
 
+/** 정답 숫자가 「몇 번째 기호」를 뜻하는 유형(개수형은 아니다) */
+function answerIsMarkIndex(option: QuestionTypeOption): boolean {
+  return (
+    option.aingkaCode === "어휘추론" ||
+    option.aingkaCode === "어법추론" ||
+    option.aingkaCode === "어법모두고르기"
+  );
+}
+
 export function assertBasicQuestionShape(
   q: GeneratedQuestionPayload,
   option: QuestionTypeOption,
@@ -1285,7 +1306,8 @@ export function assertBasicQuestionShape(
       marks.indexOf(m[1]!)
     );
     if (seen.length >= 2 && seen.some((v, i) => i > 0 && seen[i - 1]! >= v)) {
-      if (!renumberMarksInOrder(q)) {
+      // 어휘추론·어법추론의 정답 숫자는 「몇 번째 기호」라 기호를 옮기면 같이 옮겨야 한다
+      if (!renumberMarksInOrder(q, "passage", answerIsMarkIndex(option))) {
         return "밑줄 기호가 지문에 나오는 차례와 다릅니다.";
       }
     }
@@ -1982,21 +2004,22 @@ export function assertBasicQuestionShape(
       if (texts.join("|") !== "1개|2개|3개|4개|5개") {
         return "어휘 개수 보기는 1개~5개여야 합니다.";
       }
-      if (!/[①②③④⑤⑥]/.test(mod) || !/<u>[\s\S]*?<\/u>/i.test(mod)) {
-        return "어휘 개수 문항은 ①~⑥ 밑줄 표지가 필요합니다.";
-      }
-    } else {
-      // 어휘추론: 하단 보기 없음
+    } else if (option.aingkaCode === "어휘추론") {
+      // 어휘추론: 하단 보기 없음, ①~⑤만
       q.choices = undefined;
-      if (!/[①②③④⑤]/.test(mod) || !/<u>[\s\S]*?<\/u>/i.test(mod)) {
-        return "어휘 고르기 문항은 ①~⑤ 밑줄 표지가 필요합니다.";
-      }
-      const ans = parseChoiceAnswer(q.correctAnswer);
-      if (ans == null) {
-        return "어휘 고르기 정답은 1~5여야 합니다.";
-      }
-      q.correctAnswer = ans;
     }
+    const expectedAnswer = option.aingkaCode === "어휘개수"
+      ? plannedWrongCount("어휘개수", turn)
+      : plannedAnswerNumber("어휘추론", turn);
+    const consistency = validateVocabularyConsistency({
+      code: option.aingkaCode,
+      passageModified: mod,
+      correctAnswer: q.correctAnswer,
+      explanation: q.explanation,
+      expectedAnswer,
+    });
+    if (!consistency.ok) return consistency.problems[0] ?? "어휘 문항의 문제·정답·해설이 맞지 않습니다.";
+    q.explanation = consistency.explanation ?? q.explanation;
     if (hasHangul(mod)) {
       return "본문은 영어여야 합니다 (한글 포함됨).";
     }
@@ -2476,6 +2499,14 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
                   "ENGLISH passage with ①<u>…</u> … ⑤<u>…</u>; exactly one wrong",
                 choices: [],
                 correctAnswer: "integer 1-5",
+                vocabularyJudgments: [
+                  {
+                    number: "integer 1-5; include every number once in order",
+                    verdict: "correct | wrong",
+                    replacement: "ENGLISH; required only when wrong",
+                    reason: "Korean reason",
+                  },
+                ],
               }
             : option.aingkaCode === "어법개수" ||
                 option.aingkaCode === "어휘개수"
@@ -2489,6 +2520,18 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
                     { number: 5, text: "5개" },
                   ],
                   correctAnswer: "integer 1-5 (= count of wrong spots)",
+                  ...(option.aingkaCode === "어휘개수"
+                    ? {
+                        vocabularyJudgments: [
+                          {
+                            number: "integer; include every marked spot once in order",
+                            verdict: "correct | wrong",
+                            replacement: "ENGLISH; required only when wrong",
+                            reason: "Korean reason",
+                          },
+                        ],
+                      }
+                    : {}),
                 }
               : allowSkip
                 ? {
@@ -2562,6 +2605,57 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
     passage,
     forcedInstruction
   );
+
+  if (
+    option.type === "vocabulary" &&
+    (option.aingkaCode === "어휘추론" || option.aingkaCode === "어휘개수")
+  ) {
+    const turn = opts.typeTurn ?? opts.diversitySlot?.index ?? 0;
+    const expectedAnswer = option.aingkaCode === "어휘개수"
+      ? plannedWrongCount("어휘개수", turn)
+      : plannedAnswerNumber("어휘추론", turn);
+    /*
+     * 기호가 ② ① ③…으로 뒤바뀌어 왔으면 대조하기 전에 차례대로 매긴다.
+     * 판정(vocabularyJudgments)의 번호는 모델이 찍은 기호를 가리키므로 같은 짝으로 옮긴다.
+     * 뒤의 형태 검수에 맡기면 판정으로 만든 해설과 본문이 어긋난 채 매겨진다(2026-10-02).
+     */
+    let judgments = raw.vocabularyJudgments;
+    const circled = "①②③④⑤";
+    const seenMarks: string[] = [];
+    for (const m of String(payload.passageModified ?? "").matchAll(/[①②③④⑤]/g)) {
+      if (!seenMarks.includes(m[0]!)) seenMarks.push(m[0]!);
+    }
+    if (
+      seenMarks.length >= 2 &&
+      seenMarks.join("") !== circled.slice(0, seenMarks.length) &&
+      renumberMarksInOrder(payload, "passage", answerIsMarkIndex(option)) &&
+      Array.isArray(judgments)
+    ) {
+      // 옛 기호가 몇 번째로 나왔는지가 곧 새 번호다
+      const newNo = (old: number) => {
+        const at = seenMarks.indexOf(circled[old - 1] ?? "");
+        return at >= 0 ? at + 1 : old;
+      };
+      judgments = judgments
+        .map((j) => {
+          const row = (j ?? {}) as Record<string, unknown>;
+          const n = Number(row.number);
+          return Number.isInteger(n) ? { ...row, number: newNo(n) } : row;
+        })
+        .sort((a, b) => Number(a.number) - Number(b.number));
+    }
+    const consistency = validateVocabularyConsistency({
+      code: option.aingkaCode,
+      passageModified: payload.passageModified,
+      correctAnswer: payload.correctAnswer,
+      judgments,
+      expectedAnswer,
+    });
+    if (!consistency.ok) {
+      throw new Error(consistency.problems.join(" · "));
+    }
+    payload.explanation = plainKorean(consistency.explanation ?? payload.explanation);
+  }
 
   /*
    * 순서추론: 정답이 (A)-(B)-(C)로 나오면 라벨을 돌려 준다.

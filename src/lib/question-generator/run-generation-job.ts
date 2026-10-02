@@ -1002,7 +1002,7 @@ export async function runGenerationJob(
        */
       let substitutedFrom: string | null = null;
       let substitutedReason: string | null = null;
-      if (result.skipped || !result.payload) {
+      if ((result.skipped || !result.payload) && item.option.type !== "vocabulary") {
         const requestedLabel = item.option.label || item.option.key.split(":").pop() || "";
         /*
          * 왜 고른 유형으로 안 됐는지 적어 둔다.

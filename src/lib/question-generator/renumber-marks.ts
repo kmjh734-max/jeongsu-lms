@@ -27,7 +27,16 @@ type MarkedQuestion = {
  */
 export function renumberMarksInOrder(
   q: MarkedQuestion,
-  source: "passage" | "questionText" = "passage"
+  source: "passage" | "questionText" = "passage",
+  /**
+   * 정답 숫자가 「몇 번째 기호인가」(어휘추론·어법추론의 1~5)이면 true.
+   * 어법개수·어휘개수처럼 「틀린 개수」이면 false — 기호를 옮겨도 개수는 그대로다.
+   *
+   * 선생님 지적(2026-10-02): 어휘추론 정답지와 해설이 안 맞았다. 기호가 ② ① ③…으로
+   * 뒤바뀐 문항을 여기서 다시 매길 때 본문·해설의 기호만 옮기고 숫자 정답은 그대로
+   * 두어, 해설은 ②라 하는데 정답지는 1이었다. 어휘추론 2건, 어법추론 9건이 그랬다.
+   */
+  answerIsMarkIndex = false
 ): boolean {
   const passage = String(
     (source === "questionText" ? q.questionText : q.passageModified) ?? ""
@@ -73,10 +82,44 @@ export function renumberMarksInOrder(
     if (typeof q.correctAnswer === "string") {
       q.correctAnswer = sortAnswerByMark(swap(q.correctAnswer), marks);
     }
+    if (answerIsMarkIndex) {
+      q.correctAnswer = moveMarkIndexAnswer(q.correctAnswer, map, marks);
+    }
     if (q.explanation) q.explanation = swap(String(q.explanation));
     return true;
   }
   return false;
+}
+
+/**
+ * 「몇 번째 기호인가」로 적힌 숫자 정답을 옮긴 기호에 맞춘다.
+ *
+ * 예: ② ① ③ ④ ⑤ 로 찍힌 글에서 정답이 1(①)이면, ①은 둘째 자리라 ②가 되므로 정답도 2.
+ * 숫자·숫자 배열·"3" 같은 숫자 글자를 받는다. 그 밖의 값은 손대지 않는다.
+ */
+function moveMarkIndexAnswer(
+  answer: unknown,
+  map: Map<string, string>,
+  marks: string
+): unknown {
+  const moveNo = (n: number): number => {
+    const old = marks[n - 1];
+    const next = old ? map.get(old) : undefined;
+    return next ? marks.indexOf(next) + 1 : n;
+  };
+  if (typeof answer === "number") {
+    return Number.isInteger(answer) ? moveNo(answer) : answer;
+  }
+  if (Array.isArray(answer)) {
+    const moved = answer.map((v) => (typeof v === "number" && Number.isInteger(v) ? moveNo(v) : v));
+    return moved.every((v) => typeof v === "number")
+      ? [...(moved as number[])].sort((a, b) => a - b)
+      : moved;
+  }
+  if (typeof answer === "string" && /^\s*\d+\s*$/.test(answer)) {
+    return String(moveNo(Number(answer)));
+  }
+  return answer;
 }
 
 /**
