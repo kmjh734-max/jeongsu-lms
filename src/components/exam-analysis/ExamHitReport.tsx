@@ -139,7 +139,7 @@ export function ExamHitReport({
         </div>
       </div>
 
-      {picker}
+
       {step ? <p className="mt-2 text-xs text-slate-500">{step}</p> : null}
       {message ? <p className="mt-2 text-xs text-red-600">{message}</p> : null}
 
