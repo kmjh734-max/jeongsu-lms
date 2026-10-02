@@ -13,6 +13,9 @@ export function cleanSourcePassage(text: string): string {
   // 도표 문항의 문장 번호: 「①The biggest …」처럼 대문자 앞에 붙은 것이 셋 이상이면 뗀다
   const numbered = out.match(/[①②③④⑤]\s*(?=[A-Z‘“"'])/g) ?? [];
   if (numbered.length >= 3) out = out.replace(/[①②③④⑤]\s*(?=[A-Z‘“"'])/g, "");
+  // 소제목 꺾쇠가 깨져 남은 「<The social criticism」의 홀로 선 < 를 뗀다(<u>·<b> 태그는 둔다).
+  // 2026-10-03 전수 대조에서 학생 화면에 그대로 나왔다.
+  out = out.replace(/<(?!\/?[ub]>)(?=[A-Za-z])/g, "");
   return out.replace(/[ \t]{2,}/g, " ").trim();
 }
 

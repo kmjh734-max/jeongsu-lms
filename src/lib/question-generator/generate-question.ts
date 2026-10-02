@@ -2861,6 +2861,14 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
       );
     }
   }
+  /*
+   * 해설에 내부 문법 꼬리표(GP04·GP11 …)가 새어 나오지 않게 지운다. 프롬프트에서 막았는데도
+   * 여러 학원 문항에서 보였다(2026-10-03 전수 대조).
+   */
+  payload.explanation = String(payload.explanation ?? "")
+    .replace(/\s*\(?\bGP\s?\d{2}\b\)?\s*[:：·-]?\s*/g, " ")
+    .replace(/[ 	]{2,}/g, " ")
+    .trim();
   return payload;
 }
 
