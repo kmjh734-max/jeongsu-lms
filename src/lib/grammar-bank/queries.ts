@@ -95,6 +95,7 @@ export async function loadGrammarQuestions(opts: {
       .select(COLUMNS)
       .eq("level", opts.level)
       .eq("chapter_no", opts.chapterNo)
+      .is("excluded_reason", null)
       .order("tier", { ascending: true })
       .order("source_file", { ascending: true })
       .order("number", { ascending: true })
