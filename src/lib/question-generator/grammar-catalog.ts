@@ -795,9 +795,16 @@ export function pickGrammarFocus(wrongCount: number): GrammarFocusPick {
   }
 
   const pairSet = new Set(wrongCases.map((x) => x.c.pairForms.split("·")[0]));
+  /*
+   * 「필수」라고 못 박았더니 모델이 지문에 없는 가정법·조동사 추측을 심으려고 문장을
+   * 새로 지어 넣거나 구문을 통째로 고쳐 썼다(100문항 대조 2026-10-02: #15·#36·#52·#92).
+   * 지문에 있는 구조일 때만 쓰고, 없으면 다른 문법으로 바꾸게 한다.
+   */
   const lines: string[] = [
-    "=== 이번 문항에서 심을 문법 (필수 · 문항마다 다르게) ===",
-    `틀린 밑줄 ${wrongCases.length}개는 아래 서로 다른 문법을 하나씩 반영하세요.`,
+    "=== 이번 문항에서 심을 문법 (문항마다 다르게) ===",
+    `틀린 밑줄 ${wrongCases.length}개는 아래 서로 다른 문법을 하나씩 반영한다 — 단, 그 구조가 지문에 이미 있을 때만.`,
+    "지문에 없는 문법이면 아래 전체 목록에서 지문에 있는 다른 문법으로 바꾼다.",
+    "문장을 새로 지어 넣거나 구문을 고쳐 써서 심지 않는다. 틀린 밑줄은 원문 낱말 한두 개(많아야 넷)만 바꾼 것이어야 한다.",
   ];
   wrongCases.forEach((x, i) => {
     const book = [

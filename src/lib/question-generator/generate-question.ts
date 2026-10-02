@@ -33,6 +33,11 @@ import {
 } from "@/lib/question-generator/text-utils";
 import { MIN_SENTENCES_FOR_INSERTION_IRRELEVANT } from "@/lib/question-generator/constants";
 import {
+  CHART_UNFIT_TYPES,
+  cleanSourcePassage,
+  isChartDescriptionPassage,
+} from "@/lib/question-generator/passage-clean";
+import {
   questionNeedsVocabGloss,
   normalizeHardWordsFromRaw,
 } from "@/lib/question-generator/exam-vocab";
@@ -2099,7 +2104,9 @@ export async function generateOneQuestion(opts: {
   /** 어법·어휘에서 지문을 바꿔 써도 되는지(기본은 원문 그대로) */
   paraphraseGrammarVocab?: boolean;
 }): Promise<GeneratedQuestionPayload> {
-  const { option, passage, analysis } = opts;
+  const { option, analysis } = opts;
+  // 시험지 흔적(정답 표기·문장 번호)을 걷어 낸 지문으로 만든다
+  const passage = cleanSourcePassage(opts.passage);
 
   // 문장삽입·무관한문장: 문장 5개 이하면 출제 불가
   if (
@@ -2112,6 +2119,13 @@ export async function generateOneQuestion(opts: {
         `지문 문장이 ${n}개라 문장삽입·무관한문장을 생략합니다 (6개 이상 필요).`
       );
     }
+  }
+
+  // 도표 설명문: 제목·주제·빈칸처럼 그래프가 있어야 풀리거나 유형이 안 맞는 것은 만들지 않는다
+  if (isChartDescriptionPassage(passage) && CHART_UNFIT_TYPES.has(option.type)) {
+    throw new SkipQuestionError(
+      `도표 설명 지문이라 「${option.label || option.type}」 유형을 생략합니다 (내용일치·불일치·일치개수·어법·어휘·서술형만 만듭니다).`
+    );
   }
 
   const meta = findAingkaOption(option.key);

@@ -5,6 +5,36 @@ import type {
   QuestionValidation,
 } from "@/lib/question-generator/types";
 import { validateVocabularyConsistency } from "@/lib/question-generator/vocabulary-consistency";
+import {
+  scrubWordBankNoise,
+  splitWordBank,
+  tokenizeAnswerPhrase,
+} from "@/lib/question-generator/word-order-normalize";
+
+/** 밑줄 태그·기호·빈칸을 걷어 내고 따옴표를 통일한 본문 */
+function plainText(text: string): string {
+  return String(text ?? "")
+    .replace(/<\/?u>/g, "")
+    .replace(/\*\*/g, "")
+    .replace(/[ⓐ-ⓩ①-⑳]/g, " ")
+    .replace(/_{3,}/g, " ")
+    .replace(/[’‘]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** 영어 문장 단위(짧은 조각은 뺀다) */
+function sentencesOf(text: string): string[] {
+  return plainText(text)
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 15);
+}
+
+function wordCount(text: string): number {
+  return plainText(text).split(/\s+/).filter(Boolean).length;
+}
 
 /** 지문에서 낱말만 뽑아 센다(밑줄 기호·문장부호는 뺀다) */
 function passageWords(text: string): string[] {
@@ -120,6 +150,95 @@ export function validateGeneratedQuestion(opts: {
     if (kept < PASSAGE_KEEP_MIN) {
       warnings.push(`지문을 고쳐 썼습니다(원문 유지 ${Math.round(kept * 100)}%). 원문 그대로 다시 만듭니다.`);
       score -= 45;
+    } else {
+      /*
+       * 낱말 주머니 90%로는 못 잡는 것이 있다(100문항 대조 2026-10-02).
+       * 170낱말 지문에 12낱말짜리 가정법 문장을 새로 끼워 넣어도 93%라 통과했고,
+       * 원문 한 절을 14낱말짜리 구문으로 바꿔 밑줄을 쳐도 통과했다.
+       * 밑줄 하나하나를 원문과 견주고, 문장 수가 늘었는지 본다.
+       */
+      const original = plainText(opts.passage);
+      const foreign = [...String(q.passageModified).matchAll(/<u>([\s\S]*?)<\/u>/g)]
+        .map((m) => plainText(m[1] ?? ""))
+        // 여섯 낱말부터 잡는다 — 「keep their children mildly supervise」(목적격보어, 다섯 낱말)는 정상이었다
+        .filter((u) => u && !original.includes(u) && wordCount(u) > 5);
+      if (foreign.length > 0) {
+        warnings.push(
+          `밑줄이 원문과 다르게 길게 고쳐졌습니다: "${foreign[0]!.slice(0, 40)}". 원문 낱말 한두 개만 바꿔야 합니다.`
+        );
+        score -= 45;
+      } else if (sentencesOf(q.passageModified ?? "").length > sentencesOf(opts.passage).length) {
+        warnings.push("원문에 없는 문장을 지문에 넣었습니다. 원문 문장 안에서만 밑줄을 쳐야 합니다.");
+        score -= 45;
+      }
+    }
+  }
+
+  /*
+   * 아래 넷은 100문항 대조(2026-10-02)에서 검수기가 못 잡던 꼴이다.
+   */
+  const modifiedText = String(q.passageModified ?? "");
+  const code = option.aingkaCode ?? "";
+  const answerStr = typeof q.correctAnswer === "string" ? q.correctAnswer : "";
+
+  // 빈칸추론: 원문 문장을 비운 것이 아니라 새 문장을 끼워 넣음 (#23·#72)
+  if (option.type === "sentence_blank" && code !== "연결어빈칸" && /_{3,}/.test(modifiedText)) {
+    const modPlain = plainText(modifiedText);
+    const removed = sentencesOf(opts.passage).filter((s) => !modPlain.includes(s));
+    if (removed.length === 0) {
+      warnings.push("원문 문장을 비우지 않고 새 문장을 끼워 넣었습니다. 원문 문장 하나를 빈칸으로 바꿔야 합니다.");
+      score -= 45;
+    }
+  }
+
+  // 문장삽입: 번호 두 개 사이에 문장이 없어 같은 자리가 됨 (#98 「③ ④ If hip-hop…」)
+  if (option.type === "sentence_insertion" && modifiedText) {
+    const segments = modifiedText.replace(/<\/?u>/g, "").split(/[①②③④⑤]/);
+    if (segments.length >= 3) {
+      const between = segments.slice(1, -1);
+      const empty = between.findIndex((s) => wordCount(s) < 3);
+      if (empty >= 0) {
+        const marks = "①②③④⑤";
+        warnings.push(`삽입 자리 ${marks[empty]}과 ${marks[empty + 1]} 사이에 문장이 없습니다. 자리마다 문장이 있어야 합니다.`);
+        score -= 45;
+      }
+    }
+  }
+
+  // 요약문 2·3단어: ⓐ 말고 다른 빈칸은 1~2단어여야 한다 (#74 「expand their territory」)
+  if (option.type === "summary_short" && /요약문빈칸[23]단어$/.test(code) && answerStr) {
+    for (const m of answerStr.matchAll(/([ⓑ-ⓔ])\s*[:：]\s*([^/]+)/g)) {
+      const n = wordCount(m[2] ?? "");
+      if (n > 2) {
+        warnings.push(`${m[1]} 답이 ${n}단어입니다. ⓐ 말고 다른 빈칸은 본문 1~2단어여야 합니다.`);
+        score -= 45;
+        break;
+      }
+    }
+  }
+
+  // 제시어 배열(지문 그대로): 원문 문장을 하나만 비워야 한다 (#82는 두 문장을 지웠다).
+  // 조건 영작은 문장을 고쳐 써서 내므로 원문 문장이 빠지는 것이 정상이라 여기서 보지 않는다.
+  if (/제시어배열/.test(code) && /_{3,}/.test(modifiedText)) {
+    const modPlain = plainText(modifiedText);
+    const removed = sentencesOf(opts.passage).filter((s) => !modPlain.includes(s));
+    if (removed.length >= 2) {
+      warnings.push(`원문 문장을 ${removed.length}개 지웠습니다. 빈칸으로 비울 문장 하나만 지워야 합니다.`);
+      score -= 45;
+    }
+  }
+
+  // 어형변화: 보기가 정답 꼴 그대로면 바꿀 어형이 없다 (#37 aren't·is가 보기에 그대로)
+  if (code === "제시어배열어형변화") {
+    const bankLine = (q.questionText ?? "").match(/<보기>\s*\n?([^\n]+)/)?.[1] ?? "";
+    const bank = splitWordBank(scrubWordBankNoise(bankLine)).map((t) => t.toLowerCase());
+    const answerTokens = tokenizeAnswerPhrase(String(q.correctAnswer ?? "")).map((t) => t.toLowerCase());
+    if (bank.length > 0 && bank.length === answerTokens.length) {
+      const sorted = (a: string[]) => [...a].sort().join("\u0001");
+      if (sorted(bank) === sorted(answerTokens)) {
+        warnings.push("어형변화 유형인데 보기가 정답 꼴 그대로라 바꿀 어형이 없습니다. 보기는 원형으로 주어야 합니다.");
+        score -= 45;
+      }
     }
   }
 

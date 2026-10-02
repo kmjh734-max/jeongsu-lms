@@ -1,4 +1,5 @@
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
+import { cleanSourcePassage } from "@/lib/question-generator/passage-clean";
 import type { PassageAnalysis } from "@/lib/question-generator/types";
 
 function asString(v: unknown, fallback = ""): string {
@@ -47,7 +48,7 @@ export async function analyzePassage(opts: {
       system: `Summarize this English passage for exam writing. Return ONLY compact JSON. Korean for topic/mainIdea.`,
       user: JSON.stringify({
         grade: opts.grade,
-        passage: opts.passage.slice(0, 3500),
+        passage: cleanSourcePassage(opts.passage).slice(0, 3500),
         schema: {
           overallTopic: "string",
           overallMainIdea: "string",

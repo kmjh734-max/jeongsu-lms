@@ -201,7 +201,8 @@ const IRREGULAR_NOUN: Record<string, string> = {
   children: "child",
   men: "man",
   women: "woman",
-  people: "person",
+  // people → person, data → datum 은 뺐다. 보기에 person이 나오면 정답 people을 못 쓴다
+  // (100문항 대조 2026-10-02, 제시어배열단어추가 #82).
   teeth: "tooth",
   feet: "foot",
   mice: "mouse",
@@ -218,7 +219,36 @@ const IRREGULAR_NOUN: Record<string, string> = {
   theses: "thesis",
   phenomena: "phenomenon",
   criteria: "criterion",
-  data: "datum",
+};
+
+/**
+ * be·do·have 꼴 → 원형. 어형변화 보기를 만들 때만 쓴다(auxiliaries: true).
+ * 부정 축약형은 원형만 남기고 not은 학생이 붙인다(조건에 「어형 변화」가 있다).
+ */
+const AUX_BASE: Record<string, string> = {
+  am: "be",
+  is: "be",
+  are: "be",
+  was: "be",
+  were: "be",
+  been: "be",
+  being: "be",
+  "isn't": "be",
+  "aren't": "be",
+  "wasn't": "be",
+  "weren't": "be",
+  does: "do",
+  did: "do",
+  done: "do",
+  "don't": "do",
+  "doesn't": "do",
+  "didn't": "do",
+  has: "have",
+  had: "have",
+  having: "have",
+  "hasn't": "have",
+  "haven't": "have",
+  "hadn't": "have",
 };
 
 function shuffleInPlace<T>(arr: T[]): T[] {
@@ -329,10 +359,16 @@ function stripDoubledConsonant(stem: string): string | null {
   return stem.slice(0, -1);
 }
 
-export function lemmaEnglishToken(raw: string): string {
+export function lemmaEnglishToken(
+  raw: string,
+  opts?: { auxiliaries?: boolean } | number
+): string {
   const trimmed = raw.trim();
   if (!trimmed) return trimmed;
-  const lower = trimmed.toLowerCase();
+  const lower = trimmed.toLowerCase().replace(/[’ʼ]/g, "'");
+  // .map(lemmaEnglishToken)으로 불리면 둘째 인자가 index(숫자)다 — 그때는 옵션이 없다
+  const auxiliaries = typeof opts === "object" && opts !== null && opts.auxiliaries === true;
+  if (auxiliaries && AUX_BASE[lower]) return AUX_BASE[lower];
   if (FUNCTION_KEEP.has(lower)) return lower;
   if (IRREGULAR[lower]) return IRREGULAR[lower];
   if (IRREGULAR_NOUN[lower]) return IRREGULAR_NOUN[lower];
@@ -363,8 +399,13 @@ export function lemmaEnglishToken(raw: string): string {
   if (/(?:ss|ch|sh|x|z)es$/i.test(lower)) {
     return lower.slice(0, -2);
   }
-  // buses / gases → bus / gas
-  if (/[aeiou]ses$/i.test(lower) && lower.length > 4) {
+  /*
+   * buses / gases → bus / gas. 짧은 낱말에만 쓴다.
+   *
+   * 100문항 대조(2026-10-02): purchases가 purchas로 나왔다. 모음+ses면 다 es를 떼던
+   * 탓이다. purchases·houses·cases·causes·promises는 s 하나만 떼야 한다.
+   */
+  if (/[aeiou]ses$/i.test(lower) && lower.length === 5) {
     return lower.slice(0, -2);
   }
   // -ied → y (studied → study)
@@ -455,9 +496,33 @@ export function tokenizeAnswerPhrase(answer: string): string[] {
 export type WordOrderBankMode = "basic" | "inflect" | "add";
 
 /**
+ * 문장 가운데 대문자로 시작하는 낱말(고유명사·약어·I)은 보기에서도 그 꼴을 지킨다.
+ * 100문항 대조(2026-10-02): OED·Korean·Datanla가 oed·korean·datanla로 나왔다.
+ */
+function keepProperCase(original: string, lemma: string, index: number): string {
+  if (/^[A-Z][A-Z0-9-]+$/.test(original)) return original; // OED, AI, U.S.
+  if (original === "I") return "I";
+  if (index > 0 && /^[A-Z]/.test(original) && lemma) {
+    return lemma.charAt(0).toUpperCase() + lemma.slice(1);
+  }
+  return lemma;
+}
+
+function sameMultiset(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const ca = countMap(a);
+  const cb = countMap(b);
+  for (const [k, n] of ca) if (cb.get(k) !== n) return false;
+  return true;
+}
+
+/**
  * 정답에 쓰인 단어가 <보기>에 빠지지 않게 맞춤.
- * - basic / inflect: 보기 = 정답 토큰 다중집합 (어형변화 모드는 원형)
- * - add: 기존 보기 유지 + 정답의 내용어(전치사·관사 제외) 누락분 보강
+ * - basic / inflect: 모델이 낸 보기가 정답과 맞으면 그대로 쓰고, 아니면 정답에서 다시 만든다
+ *   (어형변화 모드는 원형). 모델 보기를 되도록 지키는 까닭: 해설이 그 보기를 보고 쓰였다.
+ *   보기만 갈아 끼우면 「be를 are로 바꾼다」처럼 해설이 보기와 어긋난다(100문항 대조 2026-10-02).
+ * - add: 모델 보기 가운데 정답에 뿌리가 있는 낱말만 남기고, 정답의 내용어 누락분을 보강
+ *   (zip-line·zip-lining 중복, 정답에 없는 sneaky·make가 보기에 남던 것을 막는다)
  */
 export function buildWordBankFromAnswer(
   correctAnswer: string,
@@ -465,29 +530,38 @@ export function buildWordBankFromAnswer(
   existingBankRaw = ""
 ): string[] {
   const answerTokens = tokenizeAnswerPhrase(correctAnswer);
+  const given = splitWordBank(scrubWordBankNoise(existingBankRaw));
   if (answerTokens.length === 0) {
-    return splitWordBank(scrubWordBankNoise(existingBankRaw)).map(lemmaEnglishToken);
+    return given.map((t) => lemmaEnglishToken(t));
   }
+  const lem = (t: string) => lemmaEnglishToken(t, { auxiliaries: mode === "inflect" });
 
   if (mode === "add") {
-    const bank = splitWordBank(scrubWordBankNoise(existingBankRaw)).map(
-      lemmaEnglishToken
-    );
+    const answerLemmas = new Set(answerTokens.map(lem));
+    const bank: string[] = [];
+    for (const g of given) {
+      const l = lem(g);
+      if (answerLemmas.has(l) && !bank.some((x) => x.toLowerCase() === l)) bank.push(l);
+    }
     const contentNeeded = answerTokens
-      .map(lemmaEnglishToken)
-      .filter((t) => t && !FUNCTION_KEEP.has(t));
+      .map((t, i) => keepProperCase(t, lem(t), i))
+      .filter((t) => t && !FUNCTION_KEEP.has(t.toLowerCase()));
     for (const w of contentNeeded) {
-      const need = contentNeeded.filter((x) => x === w).length;
-      while (bank.filter((x) => x === w).length < need) {
+      const need = contentNeeded.filter((x) => x.toLowerCase() === w.toLowerCase()).length;
+      while (bank.filter((x) => x.toLowerCase() === w.toLowerCase()).length < need) {
         bank.push(w);
       }
     }
     return bank.filter(Boolean);
   }
 
+  if (given.length === answerTokens.length && sameMultiset(given.map(lem), answerTokens.map(lem))) {
+    return given;
+  }
+
   // basic: 형태 고정 → 정답 표면형 유지 / inflect: 원형
   return answerTokens
-    .map((t) => (mode === "inflect" ? lemmaEnglishToken(t) : t.toLowerCase()))
+    .map((t, i) => keepProperCase(t, mode === "inflect" ? lem(t) : t.toLowerCase(), i))
     .filter(Boolean);
 }
 
