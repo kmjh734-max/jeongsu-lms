@@ -761,7 +761,7 @@ export function ExamReportView({
             {!matchOn && (
               <div className="mt-1 flex items-center gap-2 text-[12.5px] text-brand-600 font-medium bg-brand-50 p-2 rounded-lg border border-brand-100">
                 <Icon name="info" size={14} />
-                파일을 올린 후 위의 <b className="text-brand-700">'수업자료 대조 끄기'</b> 버튼을 눌러 대조를 다시 켜주셔야 분석지에 반영됩니다.
+                파일을 올린 후 위의 <b className="text-brand-700">&apos;수업자료 대조 끄기&apos;</b> 버튼을 눌러 대조를 다시 켜주셔야 분석지에 반영됩니다.
               </div>
             )}
           </div>
