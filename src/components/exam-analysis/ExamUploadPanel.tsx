@@ -141,7 +141,7 @@ export function ExamUploadPanel({ basePath }: { basePath: string }) {
         학교 시험지 PDF나 사진을 올리면 문항마다 유형·난이도·배점을 정리해 보고서로 만들어요. 학생이 푼 시험지도 괜찮아요.
       </p>
 
-      <label className="mt-4 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-7 text-center hover:border-brand-400">
+      <label className="mt-4 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-7 text-center hover:border-brand-400 transition-colors">
         <input
           id="exam-files"
           type="file"
@@ -149,19 +149,41 @@ export function ExamUploadPanel({ basePath }: { basePath: string }) {
           multiple
           disabled={busy}
           className="sr-only"
-          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+          onChange={(e) => setFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])])}
         />
-        {files.length ? (
-          <span className="text-sm font-semibold text-slate-800">
-            {files.map((f) => f.name).join(", ")}
+        <div className="flex flex-col items-center gap-1.5">
+          <span className="text-sm font-bold text-slate-800 bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 cursor-pointer hover:border-brand-300">
+            PDF 또는 사진 고르기 (여러 장 추가 가능)
           </span>
-        ) : (
-          <>
-            <span className="text-sm font-semibold text-slate-800">PDF 또는 사진 고르기</span>
-            <span className="text-xs text-slate-500">여러 장이면 쪽 순서대로 한꺼번에 고르세요 · 한글(HWP)은 PDF로 저장해서 올려 주세요</span>
-          </>
-        )}
+          <span className="text-xs text-slate-500 mt-1">
+            여러 장이면 쪽 순서대로 한꺼번에 고르거나 여러 번 추가하세요. (한글 HWP는 PDF로 저장)
+          </span>
+          <span className="text-[11.5px] font-medium text-brand-600 mt-0.5">
+            ※ 스캔본이나 사진은 한 장당 5MB 이하로 올려주세요.
+          </span>
+        </div>
       </label>
+
+      {files.length > 0 && (
+        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-slate-700">올릴 파일 ({files.length}개)</span>
+            <button type="button" onClick={(e) => { e.preventDefault(); setFiles([]); }} className="text-xs text-slate-500 hover:text-red-500 underline">
+              전체 비우기
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {files.map((f, i) => (
+              <div key={i} className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded border border-slate-200 text-xs">
+                <span className="truncate text-slate-700 font-medium pr-2">{f.name} <span className="text-slate-400 font-normal">({Math.round(f.size / 1024)}KB)</span></span>
+                <button type="button" onClick={(e) => { e.preventDefault(); setFiles(prev => prev.filter((_, idx) => idx !== i)); }} className="text-slate-400 hover:text-red-500 px-1">
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
         <input id="exam-school" className={input} placeholder="학교 (비우면 시험지에서 읽어요)" value={meta.schoolName} disabled={busy}
