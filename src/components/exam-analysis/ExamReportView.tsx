@@ -17,6 +17,7 @@ import {
   type ExamItemRow,
   type ExamLevel,
 } from "@/lib/exam-analysis/types";
+import { matchAction } from "@/app/actions/match-action";
 
 /** 보고서 색: 크림 바탕 위 주황·남색 (승인된 A4 두 쪽 시안) */
 const CREAM = "#fbf7ef";
@@ -575,14 +576,18 @@ export function ExamReportView({
       setMatchStep("대조하는 중…");
     }
 
-    const res = await fetch(`/api/exam-analysis/${analysis.id}/match`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled: next, uploads: next && uploads.length > 0 ? uploads : undefined }),
-    });
+    let ok = false;
+    try {
+      await matchAction(analysis.id, next, next && uploads.length > 0 ? uploads : undefined);
+      ok = true;
+    } catch (e) {
+      console.error(e);
+      alert("대조 중 오류가 발생했습니다. 용량이 너무 클 수 있습니다.");
+    }
+    
     setMatchBusy(false);
     setMatchStep(null);
-    if (res.ok) {
+    if (ok) {
       setMatchOn(next);
       router.refresh();
     }

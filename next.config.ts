@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_BUILD_SHA: process.env.VERCEL_GIT_COMMIT_SHA ?? "dev",
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
+  },
   serverExternalPackages: [
     "@ffmpeg-installer/ffmpeg",
     "@napi-rs/canvas",
