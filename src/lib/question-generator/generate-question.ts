@@ -2704,7 +2704,8 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
      * 어림: 영문·기호는 4글자에 1토큰, 한글은 1글자에 0.8토큰쯤.
      */
     const head = `${callBase.system}${userParts[0]}`;
-    const nonAscii = head.replace(/[\x00-\x7f]/g, "").length;
+    let nonAscii = 0;
+    for (let i = 0; i < head.length; i++) if (head.charCodeAt(i) > 0x7f) nonAscii++;
     const approxTokens = (head.length - nonAscii) / 4 + nonAscii * 0.8;
     if (approxTokens < 1200) return null as unknown as GeneratedQuestionPayload;
     await primeQuestionGeneratorCache({ ...callBase, user: [userParts[0]!] });
