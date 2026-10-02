@@ -110,12 +110,14 @@ def main(src, dst):
 
     now = {"unit": None, "pages": None}
     said, block = [], [0]
+    last_piece = [None]
 
     def close():
         if said and now["unit"]:
             out.append({"unit": now["unit"], "pages": now["pages"], "block": block[0],
                         "pieces": [{"no": n, "text": t} for n, t in said]})
         said.clear()
+        last_piece[0] = None
 
     for page in list(doc)[start:]:
         rows = rows_of(page)
@@ -135,6 +137,16 @@ def main(src, dst):
                 continue
             hits = list(PIECE.finditer(" " + r["text"]))
             if not hits:
+                # A prose answer may wrap to following PDF text lines. The
+                # continuation has no repeated item number, so retain it when
+                # it is directly below the preceding answer in the same column.
+                prev = last_piece[0]
+                if (prev and prev["col"] == r["col"]
+                        and 0 < r["y"] - prev["y"] < 22
+                        and r["x"] >= prev["x"] - 3):
+                    no, old = said[-1]
+                    said[-1] = (no, (old + " " + r["text"]).strip())
+                    prev["y"] = r["y"]
                 continue
             for i, m in enumerate(hits):
                 no = int(m.group(1))
@@ -146,6 +158,7 @@ def main(src, dst):
                     close()
                     block[0] += 1
                 said.append((no, text))
+                last_piece[0] = {"col": r["col"], "x": r["x"], "y": r["y"]}
     close()
 
     Path(dst).write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")

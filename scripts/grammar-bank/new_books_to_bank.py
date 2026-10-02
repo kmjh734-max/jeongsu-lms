@@ -22,6 +22,7 @@ import gg_map
 import ilg_map
 import hs_map
 import mj_map
+import mb_map
 import mpj_map
 import tb_map
 import tfg_map
@@ -72,6 +73,9 @@ SOURCES = [
     ("gg-1-matched.json", "Good Grammar L1", "gg"),
     ("gg-2-matched.json", "Good Grammar L2", "gg"),
     ("gg-3-matched.json", "Good Grammar L3", "gg"),
+    ("mb-1-keep.json", "중학영문법 3800제 1학년", "mb"),
+    ("mb-2-keep.json", "중학영문법 3800제 2학년", "mb"),
+    ("mb-3-keep.json", "중학영문법 3800제 3학년", "mb"),
     ("mpj-1-matched.json", "문제로 풀자 중학영문법 L1", "mpj"),
     ("mpj-2-matched.json", "문제로 풀자 중학영문법 L2", "mpj"),
     ("mpj-3-matched.json", "문제로 풀자 중학영문법 L3", "mpj"),
@@ -370,6 +374,25 @@ def from_tfgwb(q, book):
     }
 
 
+def from_mb(q, book):
+    """중학영문법 3800제 — 답이 문제 위에 하늘색으로 적힌 책이다.
+
+    하늘색 자리를 빈칸으로 돌려놓은 것이 문제고, 그 글자가 답이다.
+    """
+    return {
+        "kind": "연습",
+        "question_kind": "단답·서술",
+        "badges": [],
+        "prompt": q.get("prompt") or "",
+        "body": q.get("body") or [],
+        "choices": [],
+        "answer": ", ".join(q.get("answer") or []) if isinstance(q.get("answer"), list)
+                  else q.get("answer"),
+        "explanation": None,
+        "chapter_title": q.get("chapter"),
+    }
+
+
 def unit_for(kind, q, level, chapter):
     """워크북의 RULE 이름을 은행이 쓰는 세부 목차 이름으로 옮긴다.
 
@@ -394,6 +417,9 @@ def unit_for(kind, q, level, chapter):
     if kind == "mpp":
         # 내신형 문항에는 갈래 이름이 없다 — 적재 뒤 말씨로 가린다
         return None
+    if kind == "mb":
+        # UNIT 제목이 세부 갈래 그대로다 — 공식 목차에서 가장 가까운 것으로
+        return nearest(q.get("unit") or "", units_of(level, chapter))
     if kind == "ilg":
         return nearest(q.get("unit") or "", units_of(level, chapter))
     if kind == "yj":
@@ -456,7 +482,8 @@ def main(dst, only=None):
                    from_tfg(q, book) if kind == "tfg" else
                    from_tfgwb(q, book) if kind == "tfgwb" else
                    from_mpj(q, book) if kind == "mpj" else
-                   from_mpp(q, book) if kind == "mpp" else from_jp(q, book))
+                   from_mpp(q, book) if kind == "mpp" else
+                   from_mb(q, book) if kind == "mb" else from_jp(q, book))
             if not str(row["answer"] or "").strip():
                 continue
             title = row.pop("chapter_title") or ""
@@ -475,6 +502,8 @@ def main(dst, only=None):
                 # L2·L3 은 단원 번호와 인쇄 쪽으로 찾는다(이름 꼬리말이 드물다)
                 spot = gg_map.place(book, title, q.get("unit"),
                                     q.get("chapter_no"), q.get("printed_page"))
+            elif kind == "mb":
+                spot = mb_map.place(book, q.get("chapter_no"), q.get("unit"))
             elif kind in ("mpj", "mpp"):
                 # 단원 번호로 찾고, 묶음 단원은 POINT 제목으로 가른다
                 spot = mpj_map.place(book, q.get("chapter_no"), q.get("unit"))

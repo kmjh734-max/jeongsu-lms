@@ -64,12 +64,14 @@ def main(src, dst):
     page_ref = [None]
     block = [0]
     said = []          # (번호, 답)
+    last_piece = [None]
 
     def close():
         if said and page_ref[0]:
             out.append({"page": page_ref[0], "section": "연습", "block": block[0],
                         "pieces": [{"no": n, "text": t} for n, t in said]})
         said.clear()
+        last_piece[0] = None
 
     for page_no, page in enumerate(doc, 1):
         for r in rows_of(page):
@@ -85,6 +87,17 @@ def main(src, dst):
             # 「1 it   2 it   3 he」 를 번호마다 가른다
             hits = list(PIECE.finditer(" " + t))
             if not hits:
+                # Long written answers wrap onto a second PDF text line. Those
+                # continuation lines do not repeat the item number, so retain
+                # them when they sit directly below the preceding answer.
+                prev = last_piece[0]
+                if (prev and prev["page"] == page_no
+                        and prev["col"] == (0 if r["x"] < COL else 1)
+                        and 0 < r["y"] - prev["y"] < 22
+                        and r["x"] >= prev["x"] - 3):
+                    no, old = said[-1]
+                    said[-1] = (no, (old + " " + t).strip())
+                    prev["y"] = r["y"]
                 continue
             for i, m in enumerate(hits):
                 no = int(m.group(1))
@@ -96,6 +109,9 @@ def main(src, dst):
                     close()
                     block[0] += 1
                 said.append((no, text))
+                last_piece[0] = {"page": page_no,
+                                 "col": 0 if r["x"] < COL else 1,
+                                 "x": r["x"], "y": r["y"]}
     close()
 
     Path(dst).write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")

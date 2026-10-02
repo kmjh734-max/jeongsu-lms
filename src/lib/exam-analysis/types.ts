@@ -45,8 +45,12 @@ export type ExamItemRow = {
   matched_textbook_label: string | null;
   /** 선생님이 출처를 손으로 정했는지 — 다시 대조해도 덮어쓰지 않는다 */
   source_edited: boolean;
-  /** 손으로 정한 갈래: textbook | mock | material | outside(외부지문) */
+  /** 손으로 정한 갈래: textbook | mock | material | sub_material(부교재) | outside(외부지문) | custom */
   source_kind: string | null;
+  /** 선생님이 직접 입력한 출처 명칭 (예: 올림포스 12강 3번) */
+  source_label?: string | null;
+  /** 점수가 갈린 문항(변별력 문항)으로 직접 지정되었는지 */
+  is_decisive?: boolean;
   edited: boolean;
 };
 
@@ -64,6 +68,8 @@ export type ExamAnalysisRow = {
   total_points: number | null;
   features: string[];
   strategy: string[];
+  /** 선생님이 직접 지정한 점수가 갈린 문항 ID 목록 */
+  decisive_item_ids?: string[] | null;
   /** 지문 전체의 평균 문장 길이(낱말). 쪽 글자로 코드가 잰 값 */
   sentence_words: number | null;
   /** 영어 선택지 평균 낱말 수 */

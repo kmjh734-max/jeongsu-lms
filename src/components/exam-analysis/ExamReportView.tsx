@@ -27,6 +27,7 @@ const LV_INK: Record<ExamLevel, string> = { 하: SOFT, 중: "#fff", 상: "#fff" 
 /** 지문 출처 색 — 난이도 색과 겹치지 않게 골랐다 */
 const SRC_BG: Record<string, string> = {
   교과서: "#29335c",
+  부교재: "#7c3aed",
   모의고사: "#669bbc",
   수업자료: "#a8c686",
   외부지문: "#c9a227",
@@ -98,33 +99,42 @@ function SourcePicker({
     matched_textbook_id: string | null;
     matched_mock_id: string | null;
     source_kind: string | null;
+    source_label?: string | null;
     source_edited: boolean;
   };
   lists: SourceLists | null;
-  onPick: (source: { kind: "auto" | "textbook" | "mock" | "outside"; passageId?: string }) => void;
+  onPick: (source: { kind: "auto" | "textbook" | "mock" | "outside" | "sub_material"; passageId?: string; label?: string }) => void;
 }) {
-  const kind =
-    item.source_kind === "outside"
-      ? "outside"
-      : item.source_kind === "mock"
-        ? "mock"
-        : item.source_kind === "textbook"
-          ? "textbook"
-          : item.matched_mock_id
-            ? "mock"
-            : item.matched_textbook_id
-              ? "textbook"
-              : "auto";
+  const currentKind: "auto" | "textbook" | "mock" | "outside" | "sub_material" =
+    item.source_kind === "sub_material"
+      ? "sub_material"
+      : item.source_kind === "outside"
+        ? "outside"
+        : item.source_kind === "mock"
+          ? "mock"
+          : item.source_kind === "textbook"
+            ? "textbook"
+            : item.matched_mock_id
+              ? "mock"
+              : item.matched_textbook_id
+                ? "textbook"
+                : "auto";
+
+  const [kind, setKind] = useState<"auto" | "textbook" | "mock" | "outside" | "sub_material">(currentKind);
+  const [customLabel, setCustomLabel] = useState(item.source_label ?? "");
 
   const groups = kind === "mock" ? lists?.mocks : kind === "textbook" ? lists?.books : null;
   const pickedId = kind === "mock" ? item.matched_mock_id : item.matched_textbook_id;
   const groupOf = (pid: string | null) =>
     pid ? (groups ?? []).find((g) => g.parts.some((x) => x.id === pid))?.key ?? "" : "";
   const [groupKey, setGroupKey] = useState(() => groupOf(pickedId));
+
   useEffect(() => {
+    setKind(currentKind);
+    setCustomLabel(item.source_label ?? "");
     if (!groupKey) setGroupKey(groupOf(pickedId));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lists, kind]);
+  }, [item, lists, currentKind, pickedId]);
 
   const group = (groups ?? []).find((g) => g.key === groupKey) ?? null;
   const cls = "ui-input h-7 py-0 text-[11px]";
@@ -134,30 +144,42 @@ function SourcePicker({
     <span className="mt-1 flex flex-wrap items-center gap-1">
       <select
         aria-label="출처 갈래"
-        className={`${cls} w-[86px]`}
+        className={`${cls} w-[92px] font-medium`}
         value={kind}
         onChange={(e) => {
-          const v = e.target.value as "auto" | "textbook" | "mock" | "outside";
+          const v = e.target.value as "auto" | "textbook" | "mock" | "outside" | "sub_material";
+          setKind(v);
           setGroupKey("");
-          // 교과서·모의고사는 아래에서 지문을 고를 때 보낸다
-          if (v === "auto" || v === "outside") onPick({ kind: v });
+          if (v === "auto") {
+            onPick({ kind: "auto" });
+          } else if (v === "sub_material") {
+            onPick({ kind: "sub_material", label: customLabel || "부교재" });
+          } else if (v === "outside") {
+            onPick({ kind: "outside", label: customLabel || "외부지문" });
+          } else if (v === "textbook") {
+            onPick({ kind: "textbook", passageId: pickedId ?? undefined, label: customLabel || undefined });
+          } else if (v === "mock") {
+            onPick({ kind: "mock", passageId: pickedId ?? undefined, label: customLabel || undefined });
+          }
         }}
       >
-        <option value="auto">자동</option>
+        <option value="auto">자동 대조</option>
         <option value="textbook">교과서</option>
+        <option value="sub_material">부교재</option>
         <option value="mock">모의고사</option>
         <option value="outside">외부지문</option>
       </select>
-      {kind === "auto" || kind === "outside" ? null : (
+
+      {kind === "textbook" || kind === "mock" ? (
         <>
           <select
             aria-label={what}
-            className={`${cls} max-w-[150px]`}
+            className={`${cls} max-w-[130px]`}
             value={groupKey}
             onChange={(e) => setGroupKey(e.target.value)}
             disabled={!groups}
           >
-            <option value="">{groups ? `${what} 고르기` : "읽는 중…"}</option>
+            <option value="">{groups ? `${what} 선택` : "읽는 중…"}</option>
             {(groups ?? []).map((g) => (
               <option key={g.key} value={g.key}>
                 {g.label}
@@ -169,11 +191,11 @@ function SourcePicker({
             className={`${cls} max-w-[120px]`}
             value={pickedId ?? ""}
             onChange={(e) => {
-              if (e.target.value) onPick({ kind, passageId: e.target.value });
+              if (e.target.value) onPick({ kind, passageId: e.target.value, label: customLabel || undefined });
             }}
             disabled={!group}
           >
-            <option value="">{group ? "지문 고르기" : `${what}를 먼저`}</option>
+            <option value="">{group ? "지문 선택" : `${what} 먼저`}</option>
             {(group?.parts ?? []).map((x) => (
               <option key={x.id} value={x.id}>
                 {x.label}
@@ -181,7 +203,33 @@ function SourcePicker({
             ))}
           </select>
         </>
-      )}
+      ) : null}
+
+      {kind !== "auto" ? (
+        <input
+          aria-label="출처 직접 입력"
+          placeholder={
+            kind === "sub_material"
+              ? "부교재명 (예: 올림포스 12강)"
+              : kind === "outside"
+                ? "상세 출처 (예: 외부지문)"
+                : "직접 입력 (선택)"
+          }
+          className={`${cls} w-[140px]`}
+          value={customLabel}
+          onChange={(e) => setCustomLabel(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onPick({ kind, passageId: pickedId ?? undefined, label: customLabel });
+            }
+          }}
+          onBlur={() => {
+            if (customLabel !== (item.source_label ?? "")) {
+              onPick({ kind, passageId: pickedId ?? undefined, label: customLabel });
+            }
+          }}
+        />
+      ) : null}
     </span>
   );
 }
@@ -241,6 +289,44 @@ export function ExamReportView({
   });
   const [saving, setSaving] = useState(false);
 
+  // 출제 특징 & 대비 전략 & 점수 갈린 문항 상태
+  const [features, setFeatures] = useState<string[]>(analysis.features ?? []);
+  const [strategy, setStrategy] = useState<string[]>(analysis.strategy ?? []);
+  const [decisiveItemIds, setDecisiveItemIds] = useState<string[]>(analysis.decisive_item_ids ?? []);
+  const [featuresSaving, setFeaturesSaving] = useState(false);
+  const [strategySaving, setStrategySaving] = useState(false);
+
+  async function saveFeatures(newFeatures: string[]) {
+    setFeatures(newFeatures);
+    setFeaturesSaving(true);
+    await fetch(`/api/exam-analysis/${analysis.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ features: newFeatures }),
+    });
+    setFeaturesSaving(false);
+  }
+
+  async function saveStrategy(newStrategy: string[]) {
+    setStrategy(newStrategy);
+    setStrategySaving(true);
+    await fetch(`/api/exam-analysis/${analysis.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ strategy: newStrategy }),
+    });
+    setStrategySaving(false);
+  }
+
+  async function saveDecisiveIds(newIds: string[]) {
+    setDecisiveItemIds(newIds);
+    await fetch(`/api/exam-analysis/${analysis.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decisiveItemIds: newIds }),
+    });
+  }
+
   const s = useMemo(() => {
     const total = r1(sum(items.map((i) => i.points)));
     const subj = items.filter((i) => i.is_subjective);
@@ -256,26 +342,45 @@ export function ExamReportView({
     });
     /*
      * 지문 출처별 갈래 — 이득희 선생님 요청(2026-09-29).
-     * "지난번 서술형 포함하면 교과서에서 70%가 나왔습니다. 이런 데이터가 없다면
-     * 70%라는 확률도 나오지 않기에 분석지가 더 꼼꼼하게 작성되어 있으면 좋겠습니다."
-     *
-     * 짐작하지 않고 글자로 대조해 맞은 것만 센다. 한 문항이 교과서와 모의고사에
-     * 모두 걸리면 교과서를 앞세운다(학교 시험은 교과서가 먼저다).
+     * 교과서, 부교재(올림포스·EBS 등), 모의고사, 수업자료, 외부지문으로 세분화.
      */
-    const hasPassage = items.filter((i) => String(i.passage_excerpt ?? "").trim());
-    const fromTextbook = hasPassage.filter((i) => i.matched_textbook_id);
-    const fromMock = hasPassage.filter((i) => !i.matched_textbook_id && i.matched_mock_id);
+    const hasPassage = items.filter((i) => String(i.passage_excerpt ?? "").trim() || i.source_kind || i.source_label);
+    const fromSubMaterial = hasPassage.filter((i) => i.source_kind === "sub_material");
+    const fromTextbook = hasPassage.filter(
+      (i) => i.source_kind !== "sub_material" && (Boolean(i.matched_textbook_id) || i.source_kind === "textbook")
+    );
+    const fromMock = hasPassage.filter(
+      (i) =>
+        i.source_kind !== "sub_material" &&
+        !fromTextbook.includes(i) &&
+        (Boolean(i.matched_mock_id) || i.source_kind === "mock")
+    );
     const fromMaterial = hasPassage.filter(
-      (i) => !i.matched_textbook_id && !i.matched_mock_id && i.matched_item_id
+      (i) =>
+        !fromSubMaterial.includes(i) &&
+        !fromTextbook.includes(i) &&
+        !fromMock.includes(i) &&
+        Boolean(i.matched_item_id)
     );
-    const noMatch = hasPassage.filter(
-      (i) => !i.matched_textbook_id && !i.matched_mock_id && !i.matched_item_id
+    const fromOutside = hasPassage.filter(
+      (i) =>
+        !fromSubMaterial.includes(i) &&
+        !fromTextbook.includes(i) &&
+        !fromMock.includes(i) &&
+        !fromMaterial.includes(i) &&
+        i.source_kind === "outside"
     );
-    // 선생님이 「외부지문」이라 표시한 것은 못 찾은 것이 아니라 밝혀진 것이다
-    const fromOutside = noMatch.filter((i) => i.source_kind === "outside");
-    const fromUnknown = noMatch.filter((i) => i.source_kind !== "outside");
+    const fromUnknown = hasPassage.filter(
+      (i) =>
+        !fromSubMaterial.includes(i) &&
+        !fromTextbook.includes(i) &&
+        !fromMock.includes(i) &&
+        !fromMaterial.includes(i) &&
+        !fromOutside.includes(i)
+    );
     const sources = [
       { key: "교과서", list: fromTextbook },
+      { key: "부교재", list: fromSubMaterial },
       { key: "모의고사", list: fromMock },
       { key: "수업자료", list: fromMaterial },
       { key: "외부지문", list: fromOutside },
@@ -289,34 +394,41 @@ export function ExamReportView({
       }))
       .filter((x) => x.n > 0);
     const passagePts = r1(sum(hasPassage.map((i) => i.points)));
-    /*
-     * 이 학교가 어느 교과서를 쓰는지 — 맞은 본문의 출판사·과목으로 센다.
-     * 상담에서 「이 학교는 천재(조수경) 영어1을 씁니다」가 바로 나오게 하려는 것이다.
-     * 출처 표시는 「천재(조수경) 영어1 1과 본문4」 꼴이라 앞 두 마디가 교재 이름이다.
-     */
+
     const bookCount = new Map<string, number>();
     for (const i of fromTextbook) {
-      const book = String(i.matched_textbook_label ?? "").split(" ").slice(0, 2).join(" ");
+      const book = String(i.matched_textbook_label ?? i.source_label ?? "").split(" ").slice(0, 2).join(" ");
       if (book) bookCount.set(book, (bookCount.get(book) ?? 0) + 1);
     }
     const books = [...bookCount.entries()].sort((a, b) => b[1] - a[1]);
 
     const avg = items.length ? r1(sum(items.map((i) => i.difficulty)) / items.length) : 0;
     const subjPts = r1(sum(subj.map((i) => i.points)));
-    const decisive = hard
-      .slice()
-      .sort((x, y) => (y.points ?? 0) - (x.points ?? 0) || y.difficulty - x.difficulty)
-      .slice(0, 4);
+
+    // 점수가 갈린 문항: 1) 명시된 ID 목록 우선 2) is_decisive 플래그 3) 기본 난이도 상 배점순
+    let decisive: ExamItemRow[] = [];
+    if (decisiveItemIds.length > 0) {
+      const itemMap = new Map(items.map((it) => [it.id, it]));
+      decisive = decisiveItemIds.map((id) => itemMap.get(id)).filter(Boolean) as ExamItemRow[];
+    }
+    if (decisive.length === 0) {
+      const flagged = items.filter((it) => it.is_decisive);
+      if (flagged.length > 0) {
+        decisive = flagged;
+      } else {
+        decisive = hard
+          .slice()
+          .sort((x, y) => (y.points ?? 0) - (x.points ?? 0) || y.difficulty - x.difficulty)
+          .slice(0, 4);
+      }
+    }
+
     return { total, subj, subjPts, hard, matched, cats, levels, avg, decisive, sources, hasPassage, passagePts, books };
-  }, [items]);
+  }, [items, decisiveItemIds]);
   const pct = (x: number) => (s.total ? Math.round((x / s.total) * 100) : 0);
 
   /*
    * 출처를 손으로 달 때 고를 교과서 본문. 처음 「고쳐 쓰기」를 켤 때 한 번만 읽는다.
-   *
-   * 글자로 대조해 잡히는 것만 자동으로 달리는데, 학교가 지문을 바꿔 쓰거나
-   * 부교재에서 가져오면 잡히지 않는다. 그런 문항을 선생님이 직접 채우면
-   * 교과서 적중률이 정확해진다.
    */
   const [lists, setLists] = useState<SourceLists | null>(null);
   useEffect(() => {
@@ -339,7 +451,9 @@ export function ExamReportView({
       typeName?: string;
       level?: ExamLevel;
       points?: number | null;
-      source?: { kind: "auto" | "textbook" | "mock" | "outside"; passageId?: string };
+      difficultyReason?: string | null;
+      isDecisive?: boolean;
+      source?: { kind: "auto" | "textbook" | "mock" | "outside" | "sub_material"; passageId?: string; label?: string };
     }
   ) {
     const before = items;
@@ -358,36 +472,59 @@ export function ExamReportView({
               ...(patch.typeName ? { type_name: patch.typeName } : {}),
               ...(patch.level ? { level: patch.level, difficulty: patch.level === "상" ? 4 : patch.level === "하" ? 2 : 3 } : {}),
               ...("points" in patch ? { points: patch.points ?? null } : {}),
-              ...(patch.source?.kind === "textbook" && patch.source.passageId
+              ...("difficultyReason" in patch ? { difficulty_reason: patch.difficultyReason ?? null } : {}),
+              ...("isDecisive" in patch ? { is_decisive: patch.isDecisive ?? false } : {}),
+              ...(patch.source?.kind === "textbook"
                 ? {
                     source_edited: true,
                     source_kind: "textbook",
-                    matched_textbook_id: patch.source.passageId,
-                    matched_textbook_label: labelOf(lists?.books, patch.source.passageId),
+                    matched_textbook_id: patch.source.passageId ?? null,
+                    matched_textbook_label: patch.source.label || (patch.source.passageId ? labelOf(lists?.books, patch.source.passageId) : null) || "교과서",
+                    source_label: patch.source.label || (patch.source.passageId ? labelOf(lists?.books, patch.source.passageId) : null) || "교과서",
                     matched_mock_id: null,
                     matched_mock_label: null,
                   }
                 : {}),
-              ...(patch.source?.kind === "mock" && patch.source.passageId
+              ...(patch.source?.kind === "mock"
                 ? {
                     source_edited: true,
                     source_kind: "mock",
-                    matched_mock_id: patch.source.passageId,
-                    matched_mock_label: labelOf(lists?.mocks, patch.source.passageId),
+                    matched_mock_id: patch.source.passageId ?? null,
+                    matched_mock_label: patch.source.label || (patch.source.passageId ? labelOf(lists?.mocks, patch.source.passageId) : null) || "모의고사",
+                    source_label: patch.source.label || (patch.source.passageId ? labelOf(lists?.mocks, patch.source.passageId) : null) || "모의고사",
                     matched_textbook_id: null,
                     matched_textbook_label: null,
+                  }
+                : {}),
+              ...(patch.source?.kind === "sub_material"
+                ? {
+                    source_edited: true,
+                    source_kind: "sub_material",
+                    source_label: patch.source.label || "부교재",
+                    matched_textbook_id: null,
+                    matched_textbook_label: null,
+                    matched_mock_id: null,
+                    matched_mock_label: null,
                   }
                 : {}),
               ...(patch.source?.kind === "outside"
                 ? {
                     source_edited: true,
                     source_kind: "outside",
+                    source_label: patch.source.label || "외부지문",
                     matched_textbook_id: null,
                     matched_textbook_label: null,
                     matched_mock_id: null,
                     matched_mock_label: null,
                     matched_item_id: null,
                     matched_label: null,
+                  }
+                : {}),
+              ...(patch.source?.kind === "auto"
+                ? {
+                    source_edited: false,
+                    source_kind: null,
+                    source_label: null,
                   }
                 : {}),
               edited: true,
@@ -433,10 +570,6 @@ export function ExamReportView({
 
   /*
    * 배점이 덜 읽혔으면 알린다.
-   *
-   * 선생님 지적(2026-09-30): 동형모의고사 설계도가 처음부터 94점으로 나온 시험지가
-   * 있었다. 까닭은 분석에서 배점을 못 읽은 문항이 하나 있었기 때문인데, 아무 말도
-   * 없이 넘어가고 있었다. 합이 100점이 아니거나 배점이 빈 문항이 있으면 적어 준다.
    */
   const noPoints = items.filter((i) => i.points == null || i.points === 0).length;
   const pointsOff = items.length > 0 && (noPoints > 0 || Math.abs(s.total - 100) > 0.5);
@@ -452,27 +585,18 @@ export function ExamReportView({
     : "";
   const footer = `${academyName} · 내신 시험 분석 · ${title}`;
   const showMatched = matchOn && s.matched.length > 0;
-  /*
-   * 문항표를 A4 한 장에 들어갈 만큼씩 잘라 여러 쪽에 싣는다.
-   *
-   * 선생님 말씀(2026-09-30): 내용이 길어 한 장을 넘어가는데, 쪽이 늘어나도 좋으니
-   * 한 장이 A4에 맞게 나오게 해 달라. 인쇄 CSS가 A4로 자르고 넘치는 것은 버리므로,
-   * 그대로 두면 뒤쪽 문항이 아예 안 보인다.
-   *
-   * 줄 높이가 문항마다 다르다(난이도 근거·교과서 출처가 길면 두세 줄이 된다).
-   * 그래서 개수가 아니라 글자 수로 어림한 무게를 쌓아 나눈다.
-   */
+
   const itemPages = useMemo(() => {
-    // A4(1123px)에서 위아래 여백과 머리말·표머리·합계줄을 뺀 나머지
     const ROOM = 900;
-    const ROW = 27; // 한 줄짜리 문항의 높이
-    const LINE = 14; // 딸린 글 한 줄
-    const PER_LINE = 88; // 온 폭이라 한 줄에 여든여덟 자쯤 들어간다
+    const ROW = 27;
+    const LINE = 14;
+    const PER_LINE = 88;
     const heightOf = (i: (typeof items)[number]) => {
       const notes = [
         i.conditions && `조건: ${i.conditions}`,
         i.grammar_point && `문법: ${i.grammar_point}`,
         i.difficulty_reason,
+        i.source_kind === "sub_material" && `부교재: ${i.source_label || "부교재"}`,
         i.matched_textbook_label && `교과서: ${i.matched_textbook_label}`,
         i.matched_label && `수업자료: ${i.matched_label}`,
         i.matched_mock_label && `출처: ${i.matched_mock_label}`,
@@ -480,20 +604,15 @@ export function ExamReportView({
       const lines = notes.reduce((n, t) => n + Math.max(1, Math.ceil(t.length / PER_LINE)), 0);
       return ROW + lines * LINE;
     };
-    /*
-     * 마지막 장 아래에 「다음 시험 대비 전략」이 들어가므로 그만큼 자리를 비워 둔다.
-     * 선생님 지적(2026-09-30): 서술형이 오른쪽에 따로 떠 있고 뒷장은 표만 길게
-     * 나와 어색하다. 서술형 조건·문법은 표 안으로 넣고 전략만 끝에 붙인다.
-     */
+
     const strategyRoom =
-      analysis.strategy.length === 0
+      strategy.length === 0
         ? 0
         : 30 +
-          analysis.strategy.reduce((n, t) => n + Math.max(1, Math.ceil(t.length / 82)) * 18, 0);
+          strategy.reduce((n, t) => n + Math.max(1, Math.ceil(t.length / 82)) * 18, 0);
 
     const heights = items.map(heightOf);
     const total = heights.reduce((a2, b2) => a2 + b2, 0);
-    // 전략까지 마지막 장에 들어갈 수 있는지 보고 장 수를 정한다
     const pages = Math.max(1, Math.ceil((total + strategyRoom) / ROOM));
     const perPage = (total + strategyRoom) / pages;
 
@@ -513,7 +632,7 @@ export function ExamReportView({
     });
     if (cur.length) out.push(cur);
     return out.length ? out : [[]];
-  }, [items, analysis.strategy]);
+  }, [items, strategy]);
 
   const pageTotal = 1 + itemPages.length + (showMatched ? 1 : 0);
   const h3 = "mb-[7px] text-[13.5px] font-bold";
@@ -542,9 +661,9 @@ export function ExamReportView({
           <button
             type="button"
             onClick={() => setEditing((v) => !v)}
-            className={`h-9 rounded-lg border px-3.5 text-sm font-semibold ${editing ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+            className={`h-9 rounded-lg border px-3.5 text-sm font-semibold transition-colors ${editing ? "border-brand-600 bg-brand-600 text-white shadow-sm" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
           >
-            {editing ? "고치기 끝" : "문항표 고치기"}
+            {editing ? "✓ 편집 완료" : "보고서 내용 고치기"}
           </button>
           <button
             type="button"
@@ -796,34 +915,143 @@ export function ExamReportView({
             ) : null}
 
             <div>
-              <h3 className={h3} style={{ color: NAVY }}>
-                출제 특징
-              </h3>
-              <ul className="list-disc space-y-[3px] pl-4">
-                {analysis.features.map((f) => (
-                  <li key={f}>{f}</li>
+              <div className="flex items-center justify-between">
+                <h3 className={h3} style={{ color: NAVY }}>
+                  출제 특징
+                </h3>
+                {editing ? (
+                  <span className="text-[10.5px] font-semibold text-brand-600 print:hidden">
+                    {featuresSaving ? "저장 중…" : "수정 내용이 자동 저장됩니다"}
+                  </span>
+                ) : null}
+              </div>
+              {editing ? (
+                <div className="space-y-1.5 print:hidden">
+                  {features.map((f, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-bold text-slate-400">•</span>
+                      <input
+                        className="ui-input h-7 flex-1 text-[11.5px]"
+                        value={f}
+                        onChange={(e) => {
+                          const updated = [...features];
+                          updated[idx] = e.target.value;
+                          setFeatures(updated);
+                        }}
+                        onBlur={() => saveFeatures(features)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = features.filter((_, i) => i !== idx);
+                          saveFeatures(updated);
+                        }}
+                        className="flex h-7 w-7 items-center justify-center rounded bg-slate-100 text-[11px] font-bold text-slate-500 hover:bg-red-50 hover:text-red-600"
+                        title="항목 삭제"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = [...features, ""];
+                      setFeatures(updated);
+                    }}
+                    className="inline-flex h-6 items-center gap-1 rounded bg-slate-100 px-2 text-[10.5px] font-medium text-slate-600 hover:bg-slate-200"
+                  >
+                    + 특징 항목 추가
+                  </button>
+                </div>
+              ) : null}
+              <ul className={`list-disc space-y-[3px] pl-4 ${editing ? "hidden print:block" : ""}`}>
+                {features.map((f, idx) => (
+                  <li key={idx}>{f}</li>
                 ))}
               </ul>
             </div>
 
-            {s.decisive.length ? (
+            {s.decisive.length || editing ? (
               <div>
-                <h3 className={h3} style={{ color: NAVY }}>
-                  점수가 갈린 문항{" "}
-                  <span className="text-[11px] font-semibold" style={{ color: SOFT }}>
-                    난이도 상 · 배점 큰 순
-                  </span>
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className={h3} style={{ color: NAVY }}>
+                    점수가 갈린 문항{" "}
+                    <span className="text-[11px] font-semibold" style={{ color: SOFT }}>
+                      {decisiveItemIds.length > 0 || items.some((it) => it.is_decisive)
+                        ? "선생님 지정 문항"
+                        : "난이도 상 · 배점 큰 순"}
+                    </span>
+                  </h3>
+                  {editing ? (
+                    <div className="flex items-center gap-1 print:hidden">
+                      <select
+                        aria-label="점수 갈린 문항 추가"
+                        className="ui-input h-6 py-0 text-[10.5px]"
+                        value=""
+                        onChange={(e) => {
+                          const pickedId = e.target.value;
+                          if (!pickedId) return;
+                          const currentIds = s.decisive.map((d) => d.id);
+                          if (!currentIds.includes(pickedId)) {
+                            const updated = [...currentIds, pickedId];
+                            saveDecisiveIds(updated);
+                            saveItem(pickedId, { isDecisive: true });
+                          }
+                        }}
+                      >
+                        <option value="">+ 문항 추가</option>
+                        {items
+                          .filter((it) => !s.decisive.some((d) => d.id === it.id))
+                          .map((it) => (
+                            <option key={it.id} value={it.id}>
+                              {it.item_no} ({it.type_name}, {it.points ?? "–"}점)
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  ) : null}
+                </div>
                 <div className="grid grid-cols-2 gap-1.5">
                   {s.decisive.map((i) => (
-                    <div key={i.id} className="rounded-[11px] bg-white px-[11px] py-2">
+                    <div key={i.id} className="relative rounded-[11px] bg-white px-[11px] py-2">
                       <div className="flex justify-between font-bold">
                         <span>
                           {i.item_no} · {i.type_name}
                         </span>
-                        <span>{i.points ?? "–"}점</span>
+                        <div className="flex items-center gap-1">
+                          <span>{i.points ?? "–"}점</span>
+                          {editing ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentIds = s.decisive.map((d) => d.id).filter((id) => id !== i.id);
+                                saveDecisiveIds(currentIds);
+                                saveItem(i.id, { isDecisive: false });
+                              }}
+                              className="ml-1 text-[11px] text-slate-400 hover:text-red-500 print:hidden"
+                              title="점수 갈린 문항에서 제외"
+                            >
+                              ✕
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
-                      <p className="mt-px text-[11px]" style={{ color: SOFT }}>
+                      {editing ? (
+                        <div className="mt-1 print:hidden">
+                          <input
+                            className="ui-input h-6 w-full text-[10.5px]"
+                            defaultValue={i.difficulty_reason ?? ""}
+                            placeholder="점수가 갈린 까닭 입력..."
+                            onBlur={(e) => {
+                              if (e.target.value !== (i.difficulty_reason ?? "")) {
+                                saveItem(i.id, { difficultyReason: e.target.value });
+                              }
+                            }}
+                          />
+                        </div>
+                      ) : null}
+                      <p className={`mt-px text-[11px] ${editing ? "hidden print:block" : ""}`} style={{ color: SOFT }}>
                         {(i.difficulty_reason ?? "").slice(0, 70)}
                       </p>
                     </div>
@@ -863,34 +1091,75 @@ export function ExamReportView({
                   <tbody>
                     {pageItems.map((i) => (
                       <tr key={i.id} className="border-t align-middle" style={{ borderColor: "#f1ead9" }}>
-                        <td className="whitespace-nowrap px-1 py-[3.5px] font-bold">{i.item_no}</td>
+                        <td className="whitespace-nowrap px-1 py-[3.5px] font-bold">
+                          <div className="flex items-center gap-1">
+                            <span>{i.item_no}</span>
+                            {editing ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const isCurrentlyDecisive = s.decisive.some((d) => d.id === i.id);
+                                  const nextDecisive = !isCurrentlyDecisive;
+                                  const currentIds = s.decisive.map((d) => d.id);
+                                  const updatedIds = nextDecisive
+                                    ? [...currentIds, i.id]
+                                    : currentIds.filter((id) => id !== i.id);
+                                  saveDecisiveIds(updatedIds);
+                                  saveItem(i.id, { isDecisive: nextDecisive });
+                                }}
+                                className={`rounded px-1 py-0.5 text-[9.5px] font-bold transition-colors ${
+                                  s.decisive.some((d) => d.id === i.id)
+                                    ? "bg-red-500 text-white"
+                                    : "bg-slate-100 text-slate-400 hover:text-slate-600"
+                                }`}
+                                title="점수가 갈린 문항(킬러)으로 지정/해제"
+                              >
+                                {s.decisive.some((d) => d.id === i.id) ? "★킬러" : "☆킬러"}
+                              </button>
+                            ) : s.decisive.some((d) => d.id === i.id) ? (
+                              <span className="rounded bg-red-100 px-1 py-0.2 text-[9px] font-bold text-red-700">★킬러</span>
+                            ) : null}
+                          </div>
+                        </td>
                         <td className="px-1 py-[3.5px]">
                           {editing ? (
                             <>
-                            <select
-                              id={`type-${i.id}`}
-                              className="ui-input h-7 max-w-[170px] py-0 text-[11.5px]"
-                              value={i.type_name}
-                              onChange={(e) => saveItem(i.id, { typeName: e.target.value })}
-                            >
-                              {!EXAM_TYPE_CHOICES.some((g) => g.names.includes(i.type_name)) ? <option value={i.type_name}>{i.type_name}</option> : null}
-                              {EXAM_TYPE_CHOICES.map((g) => (
-                                <optgroup key={g.category} label={g.category}>
-                                  {g.names.map((n) => (
-                                    <option key={n} value={n}>
-                                      {n}
-                                    </option>
+                              <div className="flex flex-wrap items-center gap-1">
+                                <select
+                                  id={`type-${i.id}`}
+                                  className="ui-input h-7 max-w-[170px] py-0 text-[11.5px]"
+                                  value={i.type_name}
+                                  onChange={(e) => saveItem(i.id, { typeName: e.target.value })}
+                                >
+                                  {!EXAM_TYPE_CHOICES.some((g) => g.names.includes(i.type_name)) ? (
+                                    <option value={i.type_name}>{i.type_name}</option>
+                                  ) : null}
+                                  {EXAM_TYPE_CHOICES.map((g) => (
+                                    <optgroup key={g.category} label={g.category}>
+                                      {g.names.map((n) => (
+                                        <option key={n} value={n}>
+                                          {n}
+                                        </option>
+                                      ))}
+                                    </optgroup>
                                   ))}
-                                </optgroup>
-                              ))}
-                            </select>
-                            {String(i.passage_excerpt ?? "").trim() ? (
+                                </select>
+                              </div>
                               <SourcePicker
                                 item={i}
                                 lists={lists}
                                 onPick={(source) => saveItem(i.id, { source })}
                               />
-                            ) : null}
+                              <input
+                                placeholder="난이도 근거 / 점수 갈린 까닭 입력..."
+                                className="ui-input mt-1 h-6 w-full text-[10.5px]"
+                                defaultValue={i.difficulty_reason ?? ""}
+                                onBlur={(e) => {
+                                  if (e.target.value !== (i.difficulty_reason ?? "")) {
+                                    saveItem(i.id, { difficultyReason: e.target.value });
+                                  }
+                                }}
+                              />
                             </>
                           ) : (
                             <>
@@ -915,19 +1184,32 @@ export function ExamReportView({
                                   난이도 근거: {i.difficulty_reason}
                                 </span>
                               ) : null}
+                              {i.source_kind === "sub_material" ? (
+                                <span className="block text-[10px] font-semibold text-purple-700">
+                                  부교재: {i.source_label || "부교재"}
+                                </span>
+                              ) : null}
                               {i.source_kind === "outside" ? (
                                 <span className="block text-[10px]" style={{ color: SOFT }}>
-                                  외부지문 (선생님이 표시)
+                                  외부지문 {i.source_label && i.source_label !== "외부지문" ? `(${i.source_label})` : "(선생님이 표시)"}
                                 </span>
                               ) : null}
                               {i.matched_textbook_label ? (
                                 <span className="block text-[10px]" style={{ color: SOFT }}>
                                   교과서: {i.matched_textbook_label}
                                 </span>
+                              ) : i.source_kind === "textbook" && i.source_label ? (
+                                <span className="block text-[10px]" style={{ color: SOFT }}>
+                                  교과서: {i.source_label}
+                                </span>
                               ) : null}
                               {i.matched_mock_label ? (
                                 <span className="block text-[10px]" style={{ color: SOFT }}>
                                   모의고사: {i.matched_mock_label}
+                                </span>
+                              ) : i.source_kind === "mock" && i.source_label ? (
+                                <span className="block text-[10px]" style={{ color: SOFT }}>
+                                  모의고사: {i.source_label}
                                 </span>
                               ) : null}
                             </>
@@ -991,12 +1273,59 @@ export function ExamReportView({
 
               {pi === itemPages.length - 1 ? (
                 <div>
-                  <h3 className={h3} style={{ color: NAVY }}>
-                    다음 시험 대비 전략
-                  </h3>
-                  <ul className="list-disc space-y-[3px] pl-4">
-                    {analysis.strategy.map((f) => (
-                      <li key={f}>{f}</li>
+                  <div className="flex items-center justify-between">
+                    <h3 className={h3} style={{ color: NAVY }}>
+                      다음 시험 대비 전략
+                    </h3>
+                    {editing ? (
+                      <span className="text-[10.5px] font-semibold text-brand-600 print:hidden">
+                        {strategySaving ? "저장 중…" : "수정 내용이 자동 저장됩니다"}
+                      </span>
+                    ) : null}
+                  </div>
+                  {editing ? (
+                    <div className="space-y-1.5 print:hidden">
+                      {strategy.map((st, idx) => (
+                        <div key={idx} className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-bold text-slate-400">•</span>
+                          <input
+                            className="ui-input h-7 flex-1 text-[11.5px]"
+                            value={st}
+                            onChange={(e) => {
+                              const updated = [...strategy];
+                              updated[idx] = e.target.value;
+                              setStrategy(updated);
+                            }}
+                            onBlur={() => saveStrategy(strategy)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = strategy.filter((_, i) => i !== idx);
+                              saveStrategy(updated);
+                            }}
+                            className="flex h-7 w-7 items-center justify-center rounded bg-slate-100 text-[11px] font-bold text-slate-500 hover:bg-red-50 hover:text-red-600"
+                            title="전략 삭제"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...strategy, ""];
+                          setStrategy(updated);
+                        }}
+                        className="inline-flex h-6 items-center gap-1 rounded bg-slate-100 px-2 text-[10.5px] font-medium text-slate-600 hover:bg-slate-200"
+                      >
+                        + 대비 전략 항목 추가
+                      </button>
+                    </div>
+                  ) : null}
+                  <ul className={`list-disc space-y-[3px] pl-4 ${editing ? "hidden print:block" : ""}`}>
+                    {strategy.map((f, idx) => (
+                      <li key={idx}>{f}</li>
                     ))}
                   </ul>
                 </div>

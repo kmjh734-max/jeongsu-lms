@@ -32,7 +32,13 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     typeName?: string;
     level?: string;
     points?: number | null;
-    source?: { kind: "auto" | "textbook" | "mock" | "outside"; passageId?: string };
+    difficultyReason?: string | null;
+    isDecisive?: boolean;
+    source?: {
+      kind: "auto" | "textbook" | "mock" | "sub_material" | "outside" | "material" | "custom";
+      passageId?: string;
+      label?: string;
+    };
   };
   const patch: Record<string, unknown> = { edited: true };
   if (typeof body.typeName === "string" && body.typeName.trim()) {
@@ -46,47 +52,89 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (body.points === null || (typeof body.points === "number" && body.points >= 0 && body.points <= 100)) {
     patch.points = body.points;
   }
+  if ("difficultyReason" in body) {
+    patch.difficulty_reason = typeof body.difficultyReason === "string" ? body.difficultyReason.trim() : null;
+  }
+  if ("isDecisive" in body) {
+    patch.is_decisive = Boolean(body.isDecisive);
+  }
   if (body.source) {
     const kind = body.source.kind;
+    const label = (body.source.label ?? "").trim();
     if (kind === "auto") {
       // 자동 대조로 되돌린다 — 다음 대조 때 다시 채워진다
       patch.source_edited = false;
       patch.source_kind = null;
+      patch.source_label = null;
     } else if (kind === "textbook") {
-      const { data: tb } = await admin
-        .from("textbook_passages")
-        .select("id, subject, publisher, lesson, part")
-        .eq("id", String(body.source.passageId ?? ""))
-        .maybeSingle();
-      if (!tb) return NextResponse.json({ ok: false, message: "교과서 본문을 찾을 수 없어요." }, { status: 400 });
+      let tbLabel = label || "교과서";
+      let tbId: string | null = null;
+      if (body.source.passageId) {
+        const { data: tb } = await admin
+          .from("textbook_passages")
+          .select("id, subject, publisher, lesson, part")
+          .eq("id", String(body.source.passageId))
+          .maybeSingle();
+        if (tb) {
+          tbId = tb.id;
+          tbLabel = label || `${tb.publisher} ${tb.subject} ${tb.lesson} ${tb.part}`;
+        }
+      }
       patch.source_edited = true;
       patch.source_kind = "textbook";
-      patch.matched_textbook_id = tb.id;
-      patch.matched_textbook_label = `${tb.publisher} ${tb.subject} ${tb.lesson} ${tb.part}`;
+      patch.matched_textbook_id = tbId;
+      patch.matched_textbook_label = tbLabel;
+      patch.source_label = tbLabel;
       patch.matched_mock_id = null;
       patch.matched_mock_label = null;
     } else if (kind === "mock") {
-      const { data: mk } = await admin
-        .from("mock_exam_passages")
-        .select("id, year, month, grade, kind, item_no")
-        .eq("id", String(body.source.passageId ?? ""))
-        .maybeSingle();
-      if (!mk) return NextResponse.json({ ok: false, message: "모의고사 지문을 찾을 수 없어요." }, { status: 400 });
+      let mkLabel = label || "모의고사";
+      let mkId: string | null = null;
+      if (body.source.passageId) {
+        const { data: mk } = await admin
+          .from("mock_exam_passages")
+          .select("id, year, month, grade, kind, item_no")
+          .eq("id", String(body.source.passageId))
+          .maybeSingle();
+        if (mk) {
+          mkId = mk.id;
+          mkLabel = label || `${String(mk.year).slice(2)}년 고${mk.grade} ${mk.month}월 ${mk.kind === "모의평가" ? "모평" : "학평"} ${mk.item_no}번`;
+        }
+      }
       patch.source_edited = true;
       patch.source_kind = "mock";
-      patch.matched_mock_id = mk.id;
-      patch.matched_mock_label = `${String(mk.year).slice(2)}년 고${mk.grade} ${mk.month}월 ${mk.kind === "모의평가" ? "모평" : "학평"} ${mk.item_no}번`;
+      patch.matched_mock_id = mkId;
+      patch.matched_mock_label = mkLabel;
+      patch.source_label = mkLabel;
       patch.matched_textbook_id = null;
       patch.matched_textbook_label = null;
+    } else if (kind === "sub_material") {
+      // 부교재 (EBS, 수능특강, 올림포스 등)
+      patch.source_edited = true;
+      patch.source_kind = "sub_material";
+      patch.source_label = label || "부교재";
+      patch.matched_textbook_id = null;
+      patch.matched_textbook_label = null;
+      patch.matched_mock_id = null;
+      patch.matched_mock_label = null;
     } else if (kind === "outside") {
       patch.source_edited = true;
       patch.source_kind = "outside";
+      patch.source_label = label || "외부지문";
       patch.matched_textbook_id = null;
       patch.matched_textbook_label = null;
       patch.matched_mock_id = null;
       patch.matched_mock_label = null;
       patch.matched_item_id = null;
       patch.matched_label = null;
+    } else if (kind === "custom") {
+      patch.source_edited = true;
+      patch.source_kind = "custom";
+      patch.source_label = label || "기타";
+      patch.matched_textbook_id = null;
+      patch.matched_textbook_label = null;
+      patch.matched_mock_id = null;
+      patch.matched_mock_label = null;
     }
   }
 
