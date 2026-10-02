@@ -2365,7 +2365,9 @@ export async function generateOneQuestion(opts: {
       ? `- SAME-TYPE COPY ${copyIndex + 1} for this passage: another item of this exact type already exists for this passage. Make this one DIFFERENT — anchor the answer/underline/blank/referent in the ${["LATER part", "MIDDLE part", "EARLIER part"][copyIndex % 3]} of the passage, pick a different target sentence or word than the most obvious one, and write different choices.`
       : "";
 
+  // 순서추론도 나열 지문이면 건너뛴다(2026-10-03 전수 대조: 「I have a dream」 반복 연설·항목 나열에서 순서가 둘 이상 성립)
   const allowSkip =
+    option.type === "order" ||
     (option.type === "underlined_inference" &&
       (option.aingkaCode === "함축의미추론" ||
         meta?.aingkaCode === "함축의미추론")) ||
@@ -2434,7 +2436,9 @@ export async function generateOneQuestion(opts: {
     `- explanation: ${explanationRule}`,
     englishOnlyHint,
     allowSkip
-      ? isReferenceWriting
+      ? option.type === "order"
+        ? '- 순서추론: 덩어리 사이를 잇는 단서(지시어·연결어·시간 흐름·앞 문단을 받는 말)가 없는 나열 지문(같은 꼴 문장의 반복, 항목 소개 나열)이면 순서가 하나로 정해지지 않는다. 그럴 때는 {"skip":true,"reason":"순서 단서 없음"}.'
+        : isReferenceWriting
         ? '- 지칭 서술: 명확한 선행사/문맥 동의 구가 있을 때만. 없으면 {"skip":true,"reason":"..."}.'
         : '- 함축의미: 문맥 의존 표현만. 정답은 사전 뜻이 아니라 지문 구체 paraphrase (do double duty ≠ "do two things"). 없으면 {"skip":true,"reason":"..."}. 본문은 (A)<u>…</u>.'
       : "",
