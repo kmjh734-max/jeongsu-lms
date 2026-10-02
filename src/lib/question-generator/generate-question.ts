@@ -19,7 +19,7 @@ import {
   grammarExplanationRules,
   pickGrammarFocus,
 } from "@/lib/question-generator/grammar-catalog";
-import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
+import { primeQuestionGeneratorCache, questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
 import { relabelOrderQuestion } from "@/lib/question-generator/order-relabel";
 import { findAingkaOption } from "@/lib/question-generator/question-types";
 import {
@@ -179,9 +179,6 @@ Difficulty: ${
 - Statement count: ${
         option.difficulty === "high" ? "exactly 8" : "exactly 6"
       }.
-- 틀린 진술을 <b>정확히 ${contentFalseN}개</b> 두고 나머지는 지문과 맞게 쓴다.
-  correctAnswer = "${contentFalseN}".
-  (전수조사 2026-09-29: 408문항 가운데 358개가 2~3개였다. 두셋만 찍어도 88%를 맞혔다.)
 - choices: omit or empty array. No ①~⑤ options.
 - Do NOT change the passage; omit passageModified.
 - explanation: list which numbers are false and why (Korean, brief).
@@ -194,7 +191,12 @@ Difficulty: ${
           : option.difficulty === "high"
             ? "HIGH (상) — subtler distinctions"
             : "standard"
-      }.`;
+      }.
+
+--- 이번 문항 ---
+- 틀린 진술을 <b>정확히 ${contentFalseN}개</b> 두고 나머지는 지문과 맞게 쓴다.
+  correctAnswer = "${contentFalseN}".
+  (전수조사 2026-09-29: 408문항 가운데 358개가 2~3개였다. 두셋만 찍어도 88%를 맞혔다.)`;
     }
     case "topic":
       return `${en ? "5 ENGLISH" : "5 Korean"} topic phrases. Exactly one correct.
@@ -295,7 +297,9 @@ LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean
       // 선생님과 함께 전수조사(2026-09-29): 정답 자리가 ④에 44%, ③④를 합치면 71%였다.
       // ①은 174문항 가운데 3개뿐. 지문 속 자리가 곧 번호라 나중에 섞을 수 없으므로,
       // 개수 유형과 같이 자리를 코드가 먼저 정해 준다. ①은 도입문 바로 뒤라 뺀다.
-      const slot = 2 + Math.floor(Math.random() * 4);
+      // 정답 자리는 plannedAnswerNumber 하나로만 정한다. 전에는 여기서 따로 무작위로 골라
+      // 끝의 ANSWER SPOT과 번호가 어긋날 수 있었다(2026-10-03).
+      const slot = plannedAnswerNumber("문장삽입", turn) ?? 3;
       const slotRule = `- correctAnswer = ${slot}. 반드시 ${CIRCLED[slot - 1]} 자리에서만 자연스럽게 이어지도록 지문을 끊어라.
 - 자리를 먼저 정해 두고 그 앞뒤 문장이 삽입문 없이는 이어지지 않게 배치한다. 다른 자리가 되면 처음부터 다시 잡아라.`;
       if (option.difficulty === "high") {
@@ -304,25 +308,30 @@ LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean
 - CRITICAL: questionText = PARAPHRASE of that sentence (ENGLISH), not a verbatim copy.
 - passageModified = remaining ENGLISH passage with five insertion slots marked ① ② ③ ④ ⑤ in the text.
 - choices: omit or empty array — slots IN the passage are the options; do NOT invent separate choice texts.
-${slotRule}
 ${insertionChoiceCraft()}
-LANGUAGE: questionText + passageModified MUST be ENGLISH only.`;
+LANGUAGE: questionText + passageModified MUST be ENGLISH only.
+
+--- 이번 문항 ---
+${slotRule}`;
       }
       return `문장삽입 LOW (하) — 효자 기출동형 (PDF: 위치):
 - Pick a flow-critical sentence from the passage as the sentence to insert.
 - questionText = that sentence in ORIGINAL ENGLISH wording (do not paraphrase).
 - passageModified = remaining ENGLISH passage with five insertion slots marked ① ② ③ ④ ⑤ in the text.
 - choices: omit or empty array — slots IN the passage are the options; do NOT invent separate choice texts.
-${slotRule}
 ${insertionChoiceCraft()}
-LANGUAGE: questionText + passageModified MUST be ENGLISH only.`;
+LANGUAGE: questionText + passageModified MUST be ENGLISH only.
+
+--- 이번 문항 ---
+${slotRule}`;
     }
     case "irrelevant_sentence": {
       // 선생님과 함께 전수조사(2026-09-29): 133문항의 정답이 ⓒ(38%)·ⓓ(62%) 둘뿐이었다.
       // ⓑ와 ⓔ는 한 번도 정답이 아니었으니, ⓓ만 찍어도 열에 여섯을 맞힌다.
       // ⓐ는 주제문 자리라 그대로 빼고, ⓑ~ⓔ 넷 가운데 코드가 먼저 정한다.
       // ⓔ가 마지막 문장이면 정답으로 쓰기 어색했으므로(133개 중 73개) 마무리 문장을 남기게 한다.
-      const mark = 2 + Math.floor(Math.random() * 4);
+      // 정답 자리는 plannedAnswerNumber 하나로만 정한다(문장삽입과 같은 까닭, 2026-10-03)
+      const mark = plannedAnswerNumber("무관한문장", turn) ?? 3;
       const markRule = `- correctAnswer = ${mark} (${LETTERED[mark - 1]}). 무관한 문장은 반드시 ${LETTERED[mark - 1]} 자리에 둔다.
 - ⓐ는 글의 주제를 세우는 문장이므로 무관한 문장으로 쓰지 않는다.
 - ⓔ 뒤에는 번호를 붙이지 않은 마무리 문장을 한 문장 이상 남겨, 글의 흐름이 끝까지 보이게 한다.`;
@@ -339,9 +348,11 @@ ${irrelevantChoiceCraft()}`;
 ${irrelevantQuality}
 - For HIGH: the irrelevant sentence should be subtler — same keywords/theme words, but a shifted claim/point that does not follow.
 - choices: omit or empty array — letters IN the passage are the options; do NOT invent bottom choice texts.
-${markRule}
 - questionText empty.
-LANGUAGE: passageModified MUST be ENGLISH only.`;
+LANGUAGE: passageModified MUST be ENGLISH only.
+
+--- 이번 문항 ---
+${markRule}`;
       }
       return `무관한문장 LOW (하) — 효자 기출동형:
 - Keep most of the passage ORIGINAL ENGLISH in passageModified.
@@ -351,16 +362,21 @@ LANGUAGE: passageModified MUST be ENGLISH only.`;
 ${irrelevantQuality}
 - For LOW: the topic shift can be clearer (still reuse similar wording; never totally weird).
 - choices: omit or empty array — letters IN the passage are the options; do NOT invent bottom choice texts.
-${markRule}
 - questionText empty.
-LANGUAGE: passageModified MUST be ENGLISH only.`;
+LANGUAGE: passageModified MUST be ENGLISH only.
+
+--- 이번 문항 ---
+${markRule}`;
     }
     case "grammar": {
       const catalog = grammarCatalogPromptBlock();
       const explainRules = grammarExplanationRules();
       if (code === "어법추론" || code === "어법모두고르기") {
         const { focusBlock } = pickGrammarFocus(1);
-        return `어법 추론 — 틀린 어법 하나 고르기 (어휘 추론과 동일 형식):
+        return `${catalog}
+
+--- 이번 문항 ---
+어법 추론 — 틀린 어법 하나 고르기 (어휘 추론과 동일 형식):
 ${focusBlock}
 
 형식:
@@ -371,14 +387,15 @@ ${focusBlock}
 - correctAnswer 1-5 mapping ⓐ=1 … ⓔ=5 (= 틀린 밑줄 번호). questionText 빈칸
 ${explainRules}
 ${grammarChoiceCraftNote()}
-LANGUAGE: 지문은 영어만.
-
-${catalog}`;
+LANGUAGE: 지문은 영어만.`;
       }
       if (code === "어법개수") {
         const wrongN = plannedWrongCount(code, turn);
         const { focusBlock } = pickGrammarFocus(wrongN);
-        return `어법 개수 — 교재 단원별 문법 다양 출제:
+        return `${catalog}
+
+--- 이번 문항 ---
+어법 개수 — 교재 단원별 문법 다양 출제:
 ${focusBlock}
 
 형식:
@@ -388,9 +405,7 @@ ${focusBlock}
 - correctAnswer = ${wrongN}. questionText 빈칸
 ${explainRules}
 ${grammarChoiceCraftNote()}
-LANGUAGE: 지문은 영어만.
-
-${catalog}`;
+LANGUAGE: 지문은 영어만.`;
       }
       if (code === "어법연결") {
         return `In passageModified mark ⓐ, ⓑ, ⓒ with two alternatives in parentheses. 5 ENGLISH connection choices. Exactly one correct.`;
@@ -421,7 +436,10 @@ ${catalog}`;
   (자리가 ⓑⓓ·②④처럼 한쪽으로 몰리던 것을 막는다.)`;
         const { focusBlock } = pickGrammarFocus(wrongN);
         if (code === "어법문장오류수정") {
-          return `서술형 · 어법 틀린 문장 수정 (수특형):
+          return `${catalog}
+
+--- 이번 문항 ---
+서술형 · 어법 틀린 문장 수정 (수특형):
 ${focusBlock}
 
 형식:
@@ -442,15 +460,16 @@ CRITICAL 정합:
 2) correctAnswer의 기호 = 실제로 틀린 ${wrongN}개만. 맞는 문장 번호를 넣지 말 것.
 3) explanation도 같은 ${wrongN}개만 틀림으로 설명. 정답과 해설이 모순되면 안 됨.
 4) "are → are"처럼 고친 결과가 본문과 같은 쌍 금지.
-LANGUAGE: 지문 영어만.
-
-${catalog}`;
+LANGUAGE: 지문 영어만.`;
         }
         const marks =
           wrongN === 2
             ? "ⓐⓑⓒⓓⓔ (5개 밑줄)"
             : "ⓐⓑⓒⓓⓔⓕⓖ (7개 밑줄)";
-        return `서술형 · 어법 틀린 곳 ${wrongN}개 수정 (수특형):
+        return `${catalog}
+
+--- 이번 문항 ---
+서술형 · 어법 틀린 곳 ${wrongN}개 수정 (수특형):
 ${focusBlock}
 
 형식:
@@ -472,16 +491,16 @@ CRITICAL 정합 (필수):
 2) explanation에서 틀리다고 한 기호 집합 = correctAnswer 기호 집합 (동일 ${wrongN}개).
 3) explanation에서 맞다고 한 기호는 correctAnswer에 넣지 말 것.
 4) 본문 밑줄 텍스트와 고친 형태가 같으면 그 기호는 정답이 될 수 없음.
-LANGUAGE: 지문 영어만.
-
-${catalog}`;
+LANGUAGE: 지문 영어만.`;
       }
       {
         const { focusBlock } = pickGrammarFocus(1);
-        return `밑줄 5개 중 틀린 것 1개.
+        return `${catalog}
+
+--- 이번 문항 ---
+밑줄 5개 중 틀린 것 1개.
 ${focusBlock}
-${explainRules}
-${catalog}`;
+${explainRules}`;
       }
     }
     case "vocabulary":
@@ -501,7 +520,10 @@ ${catalog}`;
          */
         const spots = wrongN + 3;
         const marks = "①②③④⑤⑥⑦⑧".slice(0, spots).split("").join(" ");
-        return `어휘 개수 — 고1 학력평가·내신 고퀄리티 (A4 변형동형):
+        return `
+
+--- 이번 문항 ---
+어휘 개수 — 고1 학력평가·내신 고퀄리티 (A4 변형동형):
 - passageModified = FULL ENGLISH passage with exactly ${spots} vocabulary spots ${marks} as ①<u>word/phrase</u>.
 - 문맥에 맞지 않는 곳을 <b>정확히 ${wrongN}개</b> 두고, 나머지 ${spots - wrongN}개는 <b>반드시</b> 문맥에 맞게 쓴다.
 - 이 개수는 바꾸지 않는다. ${wrongN}개보다 많이도 적게도 두지 않는다.
@@ -689,7 +711,10 @@ LANGUAGE: 지문·정답 영어만.`;
          * 학생이 해설을 믿지 못한다. POINT는 문장을 고르는 데만 쓰고, 해설은 그 문장
          * 자체를 풀이하게 한다.
          */
-        return `서술형 · 제시어 배열 — 『고등영어 어법서술형』 반영
+        return `${catalog}
+
+--- 이번 문항 ---
+서술형 · 제시어 배열 — 『고등영어 어법서술형』 반영
 ${focusBlock}
 
 형식 (수특·내신·교재 서술형 연습 동형):
@@ -715,9 +740,7 @@ ${modeRules}
 - acceptableAnswers: 구두점·대소문자만 다른 허용 답
 - choices 없음
 - explanation 한글: 정답 문장 + 왜 그 차례인지 (어떤 말이 주어·동사·목적어이고 무엇이 무엇을 꾸미는지). 지문에 없는 문법 이름이나 포인트 번호를 지어 붙이지 말 것.
-- 금지: 이번 POINT와 무관한 단순 SVO만 반복, 지문과 무관한 새 주제 문장
-
-${catalog}`;
+- 금지: 이번 POINT와 무관한 단순 SVO만 반복, 지문과 무관한 새 주제 문장`;
       }
       return `Korean prompt + <조건> + given words in questionText. Model English answer in correctAnswer. passageModified optional.`;
     }
@@ -2129,6 +2152,10 @@ export async function generateOneQuestion(opts: {
   paraphraseGrammarVocab?: boolean;
   /** 같은 지문·같은 유형의 몇 번째 사본인가(0부터). 사본마다 근거 자리를 달리 잡게 한다 */
   copyIndex?: number;
+  /** 앞 시도가 버려진 까닭. 다시 만들 때 같은 실수를 되풀이하지 않게 끝에 붙인다 */
+  retryNote?: string;
+  /** 첫 메시지(유형 규칙)만 보내 캐시를 데우고 끝낸다 */
+  primeOnly?: boolean;
 }): Promise<GeneratedQuestionPayload> {
   const { option, analysis } = opts;
   // 시험지 흔적(정답 표기·문장 번호)을 걷어 낸 지문으로 만든다
@@ -2370,6 +2397,24 @@ export async function generateOneQuestion(opts: {
             : "1-2 Korean sentences.";
 
   // 유형·문항별 규칙 (예전 system 중간에 있던 가변 부분 — 문구 그대로, 순서만 뒤로)
+  /*
+   * 캐시 실험(2026-10-03): gpt-5.6은 앞 요청의 프롬프트 「전체」가 새 요청의 앞부분과
+   * 메시지 단위로 같을 때만 캐시를 읽는다. 앞부분 일부만 같으면 0%다. 그래서 유형마다
+   * 같은 규칙을 첫 메시지로 떼어 두고, 작업 시작 때 그 메시지만으로 한 번 불러 캐시를
+   * 데운다(primeQuestionCache). 그러면 같은 유형의 모든 문항이 첫 메시지를 캐시로 읽는다.
+   * 유형 규칙 가운데 문항마다 달라지는 부분(「--- 이번 문항 ---」 아래)은 둘째 메시지로 보낸다.
+   */
+  const typeRulesFull = typeRules(
+    option,
+    opts.grammarWritingMode ?? "paraphrase",
+    opts.wordOrderMode ?? "passage",
+    opts.typeTurn ?? opts.diversitySlot?.index ?? 0
+  );
+  const ITEM_MARK = "\n\n--- 이번 문항 ---\n";
+  const markAt = typeRulesFull.indexOf(ITEM_MARK);
+  const typeRulesStatic = markAt >= 0 ? typeRulesFull.slice(0, markAt) : typeRulesFull;
+  const typeRulesForItem = markAt >= 0 ? typeRulesFull.slice(markAt + ITEM_MARK.length) : "";
+
   const itemRules = [
     `- instruction EXACTLY: ${JSON.stringify(forcedInstruction)}`,
     `- ${questionTextRule}`,
@@ -2415,15 +2460,16 @@ export async function generateOneQuestion(opts: {
     craftSystemHint,
     difficultyRule(option, opts.targetLevel ?? targetLevelFromOverall(opts.overallDifficulty)),
     opts.levelBrief ? `\n[원래 시험지의 수준]\n${opts.levelBrief}` : "",
-    typeRules(
-      option,
-      opts.grammarWritingMode ?? "paraphrase",
-      opts.wordOrderMode ?? "passage",
-      opts.typeTurn ?? opts.diversitySlot?.index ?? 0
-    ),
+    typeRulesStatic,
+  ]
+    .filter((line) => line.trim())
+    .join("\n");
+  // 문항마다 달라지는 규칙 — 둘째 메시지로 보낸다(첫 메시지 캐시를 깨지 않게)
+  const itemRulesForThisItem = [
+    typeRulesForItem,
     // 선생님이 범위를 정해 두었으면 이번 문항에 쓸 어법 하나를 여기서 정해 준다
     option.aingkaCode === "문법조건영작" && pickedWritingGrammar
-      ? `\n[이번 문항에 쓸 어법] ${pickedWritingGrammar.label}(${pickedWritingGrammar.form})\n` +
+      ? `[이번 문항에 쓸 어법] ${pickedWritingGrammar.label}(${pickedWritingGrammar.form})\n` +
         `  — ${pickedWritingGrammar.hint}\n` +
         `  이 어법으로 <b>반드시</b> 만든다. 다른 어법으로 바꾸지 않는다.\n` +
         `  지문에 이 어법이 없으면 중요한 문장 하나를 이 어법으로 <b>고쳐 써서</b> 만든다.`
@@ -2619,27 +2665,30 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
     },
   });
 
-  const raw = (await questionGeneratorChatJsonWithRetry({
-    preferredModels: [modelForType(option)],
-    system: QUESTION_WRITER_SHARED_SYSTEM,
-    // 유형 규칙·틀(같은 유형끼리 같음) → 지문(문항마다 다름) → 슬롯
-    user:
+  const userParts: string[] = [
+    `ITEM RULES:\n${itemRules}`,
+    `${itemRulesForThisItem ? `ITEM RULES (this item):\n${itemRulesForThisItem}\n\n` : ""}` +
       /*
-       * 선생님 지적(2026-10-01): 고른 유형이 자꾸 주제추론으로 바뀐다.
-       *
-       * 오간 것을 엿보니 모델이 답을 만들지 않고 이 덩어리(grade·difficulty·
-       * forcedInstruction·schema)를 그대로 되돌려 주고 있었다. 해설이 schema 안에
-       * 갇혀 「해설이 비어 있습니다」로 버려지고, 대체 유형으로 바뀐 것이다.
-       * 같은 지문·같은 유형으로 재 보니 gpt-5.6-sol은 48문항 가운데 44개가 바뀌었다
-       * (gpt-5.5는 9개). 「ITEM FORM」이라는 이름이 「이 틀을 내놓으라」로 읽혔다.
-       * 이름을 OUTPUT KEYS로 바꾸고, 지시문에 되돌려 주지 말라고 박았다.
+       * 선생님 지적(2026-10-01): 모델이 이 덩어리를 그대로 되돌려 주던 일이 있었다(gpt-5.6-sol
+       * 48문항 가운데 44개). 「ITEM FORM」이 「이 틀을 내놓으라」로 읽혀 OUTPUT KEYS로 바꾸고
+       * 되돌려 주지 말라고 박았다.
        */
-      `ITEM RULES:\n${itemRules}\n\nOUTPUT KEYS (fill these; do not copy this wrapper):\n${itemData}\n\nPASSAGE:\n` +
+      `OUTPUT KEYS (fill these; do not copy this wrapper):\n${itemData}\n\nPASSAGE:\n` +
       `${JSON.stringify({ passage, hint: englishBodyTypes.has(option.type) ? undefined : slimAnalysis })}` +
       `${pickedSentenceLine}${frameShapeLine}${answerSpotLine}${slotTail}`,
-    // 한 지문에서 여러 문항을 한꺼번에 만든다. 유형이 같으면 앞부분(공통 규칙·
-    // 지문·유형 규칙)이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게
-    // 이름표를 준다. 이것을 안 붙인 문항 생성만 캐시 적중이 0%였다.
+    /*
+     * 다시 만들 때 앞 시도가 왜 버려졌는지 알려 준다(2026-10-03). 이전에는 같은 프롬프트를
+     * 그대로 다시 보내 같은 실수를 되풀이했다. 셋째 메시지로 따로 보내야 앞 두 메시지를
+     * 캐시로 읽는다.
+     */
+    ...(opts.retryNote
+      ? [`PREVIOUS ATTEMPT REJECTED (do not repeat this problem; every rule above still applies):\n${opts.retryNote.slice(0, 400)}`]
+      : []),
+  ];
+  const callBase = {
+    preferredModels: [modelForType(option)],
+    system: QUESTION_WRITER_SHARED_SYSTEM,
+    // 같은 유형끼리 같은 자리로 모이게 이름표를 준다
     cacheKey: `qg-${option.type}-${option.aingkaCode ?? ""}`,
     temperature:
       option.type === "grammar"
@@ -2647,6 +2696,24 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
         : option.type === "vocabulary"
           ? 0.4
           : 0.25,
+  };
+  if (opts.primeOnly) {
+    /*
+     * OpenAI는 1,024토큰보다 짧은 앞부분은 캐시하지 않는다. 그런 유형을 데우면 값만 든다
+     * (무관한문장 941토큰은 데워도 0이었다, 2026-10-03). 토큰 수를 어림해 넉넉히 넘을 때만 데운다.
+     * 어림: 영문·기호는 4글자에 1토큰, 한글은 1글자에 0.8토큰쯤.
+     */
+    const head = `${callBase.system}${userParts[0]}`;
+    const nonAscii = head.replace(/[\x00-\x7f]/g, "").length;
+    const approxTokens = (head.length - nonAscii) / 4 + nonAscii * 0.8;
+    if (approxTokens < 1200) return null as unknown as GeneratedQuestionPayload;
+    await primeQuestionGeneratorCache({ ...callBase, user: [userParts[0]!] });
+    return null as unknown as GeneratedQuestionPayload;
+  }
+
+  const raw = (await questionGeneratorChatJsonWithRetry({
+    ...callBase,
+    user: userParts,
     maxTokens:
       option.type === "grammar" || option.type === "vocabulary" ? 2800 : 1600,
   })) as Record<string, unknown>;

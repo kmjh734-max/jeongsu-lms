@@ -60,5 +60,11 @@ const SPOT_ROTATED = new Set(["어법추론", "어휘추론", "문장삽입", "�
 
 export function plannedAnswerNumber(code: string, turn: number): number | null {
   if (!SPOT_ROTATED.has(code)) return null;
-  return (Math.max(0, Math.floor(turn)) % 5) + 1;
+  const t = Math.max(0, Math.floor(turn));
+  /*
+   * 문장삽입 ①은 도입문 바로 뒤, 무관한문장 ⓐ는 주제문 자리라 정답으로 두지 않는다
+   * (선생님과 함께 한 전수조사 2026-09-29). 두 유형은 2~5번만 돌린다.
+   */
+  if (code === "문장삽입" || code === "무관한문장") return (t % 4) + 2;
+  return (t % 5) + 1;
 }

@@ -208,6 +208,10 @@ export interface QuestionValidation {
   typeMatch?: boolean;
   /** 뜻을 읽는 검수(모델)의 판정. 규칙 검수가 못 보는 복수 정답·비문·원문 표현 오류 지목을 본다 */
   review?: { verdict: "pass" | "fix" | "drop"; reason: string; fixed?: string[] };
+  /** 몇 번째 시도에서 통과했나(1부터) */
+  attempt?: number;
+  /** 앞 시도들이 버려진 까닭 */
+  earlierIssues?: string[];
 }
 
 export interface GeneratedQuestionPayload {

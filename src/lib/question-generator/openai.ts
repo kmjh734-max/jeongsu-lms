@@ -41,7 +41,7 @@ function defaultProfile(model: string): RequestProfile {
 function buildBody(
   model: string,
   system: string,
-  user: string,
+  user: string | string[],
   temperature: number,
   maxTokens: number,
   profile: RequestProfile,
@@ -52,7 +52,8 @@ function buildBody(
     model,
     messages: [
       { role: "system", content: system },
-      { role: "user", content: user },
+      // 여러 덩어리면 메시지를 나눠 보낸다 — gpt-5.6은 메시지 단위로 캐시를 읽는다
+      ...(Array.isArray(user) ? user : [user]).map((content) => ({ role: "user", content })),
     ],
   };
   // 같은 앞부분을 다시 보내면 값이 십분의 일이다. 여러 문항을 한꺼번에 만들면
@@ -209,7 +210,7 @@ function extractJsonObject(text: string): unknown {
 
 export async function questionGeneratorChatJson(opts: {
   system: string;
-  user: string;
+  user: string | string[];
   temperature?: number;
   maxTokens?: number;
   /** GPT-5 계열 reasoning_effort (기본 low) */
@@ -379,6 +380,40 @@ export async function questionGeneratorChatJson(opts: {
  * 재시도·모델 폴백은 questionGeneratorChatJson 안에서 처리한다.
  * (예전처럼 전체를 한 번 더 돌리면 최악 호출 수가 두 배가 되므로 그대로 위임)
  */
+/**
+ * 캐시를 데운다 — 첫 메시지(유형 규칙)까지만 보내고 16토큰에서 끊는다.
+ *
+ * 실험(2026-10-03): gpt-5.6은 앞 요청의 프롬프트 「전체」가 새 요청의 앞부분과 메시지 단위로
+ * 같을 때만 캐시를 읽는다. 이렇게 한 번 보내 두면 같은 유형 문항들이 이 부분을 캐시로
+ * 읽는다(제목추론 2,500토큰 가운데 2,131토큰). 실패해도 문항 만들기에는 상관없다.
+ * 사용량은 openAiFetch가 평소처럼 기록한다.
+ */
+export async function primeQuestionGeneratorCache(opts: {
+  system: string;
+  user: string[];
+  temperature?: number;
+  preferredModels?: string[];
+  cacheKey?: string;
+  reasoningEffort?: "low" | "medium" | "high" | "xhigh";
+}): Promise<void> {
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  if (!apiKey) return;
+  const model = modelCandidates(opts.preferredModels)[0];
+  if (!model) return;
+  try {
+    const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify(
+        buildBody(model, opts.system, opts.user, opts.temperature ?? 0.35, 16, defaultProfile(model), opts.reasoningEffort, opts.cacheKey)
+      ),
+    });
+    await res.text();
+  } catch {
+    // 데우기는 덤이다 — 실패해도 그냥 넘어간다
+  }
+}
+
 export async function questionGeneratorChatJsonWithRetry(
   opts: Parameters<typeof questionGeneratorChatJson>[0]
 ): Promise<unknown> {

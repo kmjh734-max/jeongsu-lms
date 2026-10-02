@@ -242,9 +242,14 @@ async function generateWithValidation(opts: {
   let reviewDropped = 0;
 
   const maxAttempts = (opts.retries ?? MAX_REGENERATION_ATTEMPTS) + 1;
+  /** 앞 시도들이 버려진 까닭 — 다음 시도 프롬프트에 붙이고, 통과한 문항에 기록한다 */
+  const issues: string[] = [];
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const payload = await generateOneQuestion(opts);
+      const payload = await generateOneQuestion({
+        ...opts,
+        retryNote: issues.length ? issues[issues.length - 1] : undefined,
+      });
       const validation = validateGeneratedQuestion({
         passage: opts.passage,
         option: opts.option,
@@ -274,12 +279,16 @@ async function generateWithValidation(opts: {
           if (review.verdict === "drop") {
             reviewDropped += 1;
             lastError = `검수: ${review.reason}`;
+            issues.push(lastError);
             continue;
           }
         }
+        validation.attempt = attempt;
+        if (issues.length) validation.earlierIssues = issues.slice();
         return { payload, status: "approved", attempt, error: null, reviewDropped };
       }
       lastError = validation.warnings.join(" · ") || "형태 검수 미달";
+      issues.push(lastError);
     } catch (e) {
       if (e instanceof SkipQuestionError) {
         return {
@@ -1013,6 +1022,57 @@ export async function runGenerationJob(
       restOfWork.push(...list.slice(1));
     }
 
+    /** 문항 하나를 만들 때 넘기는 값 — 캐시 데우기도 똑같은 값으로 해야 첫 메시지가 같다 */
+    const optsFor = (item: (typeof work)[number]) => ({
+      passage: item.passageText,
+      analysis: item.analysis,
+      option: item.option,
+      grade: config.grade || "고1",
+      overallDifficulty: config.overallDifficulty || "기본",
+      sourceDetail: item.sourceDetail,
+      diversitySlot: item.diversitySlot,
+      typeTurn: item.typeTurn,
+      copyIndex: item.copyIndex,
+      targetLevel: item.slot?.level ?? null,
+      paraphraseGrammarVocab: config.paraphraseGrammarVocab === true,
+      levelBrief: config.levelBrief,
+      grammarScope: config.grammarScope,
+      grammarWritingMode: config.grammarWritingMode,
+      wordOrderMode: config.wordOrderMode ?? "passage",
+      retries: item.slot ? 2 : undefined,
+    });
+
+    /*
+     * 캐시 데우기(2026-10-03). 유형마다 첫 메시지(유형 규칙)만으로 한 번씩 불러 두면, 그 유형
+     * 문항들이 그 부분을 캐시(값 1/10)로 읽는다. 이전에는 유형마다 첫 문항을 통째로 먼저
+     * 만들고 다 끝날 때까지 나머지를 세워 두었다 — 검수가 붙은 뒤로 그 기다림이 1분을 넘었고,
+     * 캐시는 gpt-5.6이 앞부분 일부만 같은 요청은 읽지 않아 거의 걸리지 않았다.
+     * 데우기는 16토큰에서 끊는 짧은 호출이라 몇 초면 끝난다. 문항이 둘 이상인 묶음만 데운다.
+     */
+    const primeCaches = async () => {
+      const groups = new Map<string, (typeof work)[number]>();
+      const counts = new Map<string, number>();
+      for (const item of work) {
+        const k = `${item.option.key}|${item.slot?.level ?? ""}`;
+        counts.set(k, (counts.get(k) ?? 0) + 1);
+        if (!groups.has(k)) groups.set(k, item);
+      }
+      const firsts = [...groups.entries()].filter(([k]) => (counts.get(k) ?? 0) >= 2).map(([, it]) => it);
+      await runAdaptivePool(firsts, limit, async (item) => {
+        setAiUsage({
+          academyId,
+          actorId: userId,
+          featureKey: isGrammarType(item.option.key)
+            ? "qg_generate_grammar"
+            : isWritingType(item.option.key)
+              ? "qg_generate_writing"
+              : "qg_generate_job",
+          usedFor: "question_generator",
+        });
+        await generateOneQuestion({ ...optsFor(item), primeOnly: true }).catch(() => undefined);
+      });
+    };
+
     const makeOne = async (item: (typeof work)[number]) => {
       if (Date.now() > dispatchUntil) {
         deferred += 1;
@@ -1054,24 +1114,7 @@ export async function runGenerationJob(
         usedFor: "question_generator",
       });
 
-      let result = await generateWithValidation({
-        passage: item.passageText,
-        analysis: item.analysis,
-        option: item.option,
-        grade: config.grade || "고1",
-        overallDifficulty: config.overallDifficulty || "기본",
-        sourceDetail: item.sourceDetail,
-        diversitySlot: item.diversitySlot,
-        typeTurn: item.typeTurn,
-        copyIndex: item.copyIndex,
-        targetLevel: item.slot?.level ?? null,
-        paraphraseGrammarVocab: config.paraphraseGrammarVocab === true,
-        levelBrief: config.levelBrief,
-        grammarScope: config.grammarScope,
-        grammarWritingMode: config.grammarWritingMode,
-        wordOrderMode: config.wordOrderMode ?? "passage",
-        retries: item.slot ? 2 : undefined,
-      });
+      let result = await generateWithValidation(optsFor(item));
       reviewDropped += result.reviewDropped ?? 0;
       // 다음 실행이 이 문항을 다시 만든다. 여기서 저장하면 같은 칸이 두 번 생긴다.
       if (abandoned) return;
@@ -1171,8 +1214,8 @@ export async function runGenerationJob(
     };
 
     const pool = (async () => {
-      await runAdaptivePool(firstOfPassage, limit, makeOne);
-      await runAdaptivePool(restOfWork, limit, makeOne);
+      await primeCaches();
+      await runAdaptivePool([...firstOfPassage, ...restOfWork], limit, makeOne);
     })();
 
     let hardStop: ReturnType<typeof setTimeout> | undefined;
