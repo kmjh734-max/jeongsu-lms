@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { readUploadedMaterial } from "@/lib/exam-analysis/read-upload-client";
 import type { HitReport } from "@/lib/exam-analysis/hit-report";
+import { hitReportActionCompressed } from "@/app/actions/hit-report-action";
 
 /**
  * 학교 시험지와 내가 만들어 둔 것을 대조한 적중표.
@@ -52,23 +53,27 @@ export function ExamHitReport({
           setMessage(e instanceof Error ? e.message : `${f.name}을 읽지 못했습니다.`);
         }
       }
-      setStep("대조하는 중…");
-      const res = await fetch(`/api/exam-analysis/${analysisId}/hit-report`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uploads }),
-      });
-      const json = (await res.json()) as { ok: boolean; message?: string; report?: HitReport; at?: string };
-      if (!json.ok) {
-        setMessage(json.message ?? "대조하지 못했습니다.");
-        return;
+      setStep("업로드 데이터 압축 중…");
+      const fd = new FormData();
+      fd.append("id", analysisId);
+      
+      if (uploads.length > 0) {
+        const jsonString = JSON.stringify(uploads);
+        const stream = new Blob([jsonString]).stream().pipeThrough(new CompressionStream("gzip"));
+        const response = new Response(stream);
+        const blob = await response.blob();
+        fd.append("uploads", blob, "uploads.gz");
       }
+
+      setStep("대조하는 중…");
+      const json = await hitReportActionCompressed(fd);
+      
       setReport(json.report ?? null);
       setAt(json.at ?? null);
       setOpen(true);
       router.refresh();
-    } catch {
-      setMessage("대조하지 못했습니다. 잠시 뒤 다시 시도해 주세요.");
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "대조하지 못했습니다. 잠시 뒤 다시 시도해 주세요.");
     } finally {
       setBusy(false);
       setStep(null);
