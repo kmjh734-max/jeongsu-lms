@@ -578,18 +578,20 @@ export function ExamReportView({
 
     let ok = false;
     try {
-      let formData: FormData | undefined = undefined;
+      const fd = new FormData();
+      fd.append("id", analysis.id);
+      fd.append("enabled", String(next));
+
       if (next && uploads.length > 0) {
         setMatchStep("업로드 데이터 압축 중…");
         const jsonString = JSON.stringify(uploads);
         const stream = new Blob([jsonString]).stream().pipeThrough(new CompressionStream("gzip"));
         const response = new Response(stream);
         const blob = await response.blob();
-        formData = new FormData();
-        formData.append("uploads", blob, "uploads.gz");
+        fd.append("uploads", blob, "uploads.gz");
       }
 
-      await matchActionCompressed(analysis.id, next, formData);
+      await matchActionCompressed(fd);
       ok = true;
     } catch (e) {
       console.error(e);

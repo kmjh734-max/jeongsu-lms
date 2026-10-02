@@ -181,11 +181,21 @@ export async function matchLessonMaterials(
   if (uploads?.length) {
     let uploadIdCounter = 1;
     for (const u of uploads) {
-      pool.push({
-        id: `upload-${uploadIdCounter++}`,
-        label: `올린 자료 · ${u.name}`,
-        set: new Set(shingles(words(u.text))),
-      });
+      const chunkWords = words(u.text);
+      // 대용량 PDF(예: 엔코어 변형문제 등)를 통째로 한 지문으로 취급하면,
+      // MIN_HITS(5개)에 걸려 모든 문제가 다 적중했다고 나오는 False Positive가 발생함.
+      // 따라서 250단어(약 1페이지 지문) 단위로 끊어서 판별한다.
+      const chunkSize = 250;
+      const overlap = 100;
+      for (let i = 0; i < chunkWords.length; i += chunkSize - overlap) {
+        const chunk = chunkWords.slice(i, i + chunkSize);
+        if (chunk.length < 10) continue;
+        pool.push({
+          id: `upload-${uploadIdCounter++}`,
+          label: `올린 자료 · ${u.name}`,
+          set: new Set(shingles(chunk)),
+        });
+      }
     }
   }
   const out = new Map<string, { itemId: string; label: string }>();

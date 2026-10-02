@@ -4,13 +4,16 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { loadOwnAnalysis, requireExamStaff } from "@/lib/exam-analysis/access";
 import { refreshMaterialMatches } from "@/lib/exam-analysis/match-materials";
 
-export async function matchActionCompressed(id: string, enabled: boolean, formData?: FormData) {
+export async function matchActionCompressed(formData: FormData) {
+  const id = formData.get("id") as string;
+  const enabled = formData.get("enabled") === "true";
+
   const auth = await requireExamStaff();
   if ("error" in auth) {
     throw new Error("Unauthorized");
   }
   if (!(await loadOwnAnalysis(id, auth.profile.academy_id))) {
-    throw new Error("분석을 찾을 수 없어요.");
+    throw new Error(`분석을 찾을 수 없어요. (요청 ID: ${id}, 학원 ID: ${auth.profile.academy_id})`);
   }
   
   let uploads: Array<{ name: string; text: string }> | undefined = undefined;
