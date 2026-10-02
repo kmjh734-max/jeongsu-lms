@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 import { ExamDeleteButton } from "@/components/exam-analysis/ExamDeleteButton";
+import { readUploadedMaterial } from "@/lib/exam-analysis/read-upload-client";
 import { readingBand } from "@/lib/exam-analysis/reading-level";
 import {
   EXAM_CATEGORIES,
@@ -296,6 +297,9 @@ export function ExamReportView({
   const [featuresSaving, setFeaturesSaving] = useState(false);
   const [strategySaving, setStrategySaving] = useState(false);
 
+  const [matchFiles, setMatchFiles] = useState<File[]>([]);
+  const [matchStep, setMatchStep] = useState<string | null>(null);
+
   async function saveFeatures(newFeatures: string[]) {
     setFeatures(newFeatures);
     setFeaturesSaving(true);
@@ -556,12 +560,28 @@ export function ExamReportView({
   async function toggleMatch() {
     setMatchBusy(true);
     const next = !matchOn;
+    const uploads: Array<{ name: string; text: string }> = [];
+    
+    if (next && matchFiles.length > 0) {
+      for (const [i, f] of matchFiles.entries()) {
+        setMatchStep(`올리신 자료 읽는 중 (${i + 1}/${matchFiles.length}) — ${f.name}`);
+        try {
+          const read = await readUploadedMaterial(f, analysis.id);
+          if (read.text.trim().length > 40) uploads.push({ name: read.name, text: read.text });
+        } catch (e) {
+          console.error("Failed to read", f.name, e);
+        }
+      }
+      setMatchStep("대조하는 중…");
+    }
+
     const res = await fetch(`/api/exam-analysis/${analysis.id}/match`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled: next }),
+      body: JSON.stringify({ enabled: next, uploads: next && uploads.length > 0 ? uploads : undefined }),
     });
     setMatchBusy(false);
+    setMatchStep(null);
     if (res.ok) {
       setMatchOn(next);
       router.refresh();
@@ -665,15 +685,33 @@ export function ExamReportView({
           >
             {editing ? "✓ 편집 완료" : "보고서 내용 고치기"}
           </button>
-          <button
-            type="button"
-            onClick={toggleMatch}
-            disabled={matchBusy}
-            title="시험 지문이 우리 학원 수업자료 지문과 같은지 대조해요"
-            className={`h-9 rounded-lg border px-3.5 text-sm font-semibold disabled:opacity-50 ${matchOn ? "border-emerald-600 bg-emerald-50 text-emerald-700" : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"}`}
-          >
-            {matchBusy ? "대조 중…" : matchOn ? "수업자료 대조 켜짐" : "수업자료 대조 꺼짐"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleMatch}
+              disabled={matchBusy}
+              title="시험 지문이 우리 학원 수업자료 지문과 같은지 대조해요"
+              className={`h-9 rounded-lg border px-3.5 text-sm font-semibold disabled:opacity-50 ${matchOn ? "border-emerald-600 bg-emerald-50 text-emerald-700" : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"}`}
+            >
+              {matchBusy ? (matchStep || "대조 중…") : matchOn ? "수업자료 대조 켜짐" : "수업자료 대조 끄기"}
+            </button>
+            <label title="직접 만든 자료를 여러 개 올려서 같이 대조해요" className="cursor-pointer h-9 inline-flex items-center rounded-lg border border-slate-300 bg-white px-3.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+              <Icon name="upload" size={16} className="mr-1.5" />
+              올린 자료 추가 {matchFiles.length > 0 ? `(${matchFiles.length})` : ""}
+              <input
+                type="file"
+                multiple
+                accept=".pdf,.txt,.md,.csv,image/*"
+                className="hidden"
+                onChange={(e) => setMatchFiles([...(e.target.files ?? [])].slice(0, 10))}
+              />
+            </label>
+            {matchFiles.length > 0 && (
+              <button type="button" onClick={() => setMatchFiles([])} className="text-xs text-slate-400 hover:text-slate-600 underline">
+                지우기
+              </button>
+            )}
+          </div>
           <ExamDeleteButton id={analysis.id} label={title} redirectTo={listHref} variant="button" />
           <button
             type="button"

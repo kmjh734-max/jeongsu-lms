@@ -13,7 +13,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!(await loadOwnAnalysis(id, auth.profile.academy_id))) {
     return NextResponse.json({ ok: false, message: "분석을 찾을 수 없어요." }, { status: 404 });
   }
-  const body = (await request.json().catch(() => ({}))) as { enabled?: boolean };
-  const matched = await refreshMaterialMatches(createAdminClient(), id, auth.profile.academy_id, body.enabled !== false);
+  const body = (await request.json().catch(() => ({}))) as { enabled?: boolean; uploads?: Array<{ name: string; text: string }> };
+  const matched = await refreshMaterialMatches(
+    createAdminClient(),
+    id,
+    auth.profile.academy_id,
+    body.enabled !== false,
+    body.uploads
+  );
   return NextResponse.json({ ok: true, matched });
 }

@@ -168,7 +168,8 @@ function bestParaphraseMatch(
 export async function matchLessonMaterials(
   admin: SupabaseClient,
   academyId: string,
-  excerpts: { key: string; excerpt: string | null }[]
+  excerpts: { key: string; excerpt: string | null }[],
+  uploads?: Array<{ name: string; text: string }>
 ): Promise<Map<string, { itemId: string; label: string }>> {
   if (!excerpts.some((e) => e.excerpt && words(e.excerpt).length >= 8)) return new Map();
   // 수업자료 하나 = 지문 하나(문장들을 이어 붙인 것)와 대조한다
@@ -177,6 +178,16 @@ export async function matchLessonMaterials(
     label: `${m.folder} · ${m.title}`,
     set: new Set(shingles(words(m.text))),
   }));
+  if (uploads?.length) {
+    let uploadIdCounter = 1;
+    for (const u of uploads) {
+      pool.push({
+        id: `upload-${uploadIdCounter++}`,
+        label: `올린 자료 · ${u.name}`,
+        set: new Set(shingles(words(u.text))),
+      });
+    }
+  }
   const out = new Map<string, { itemId: string; label: string }>();
   for (const [k, v] of bestMatches(pool, excerpts)) out.set(k, { itemId: v.id, label: v.label });
   return out;
@@ -294,7 +305,8 @@ export async function refreshMaterialMatches(
   admin: SupabaseClient,
   analysisId: string,
   academyId: string,
-  enabled: boolean
+  enabled: boolean,
+  uploads?: Array<{ name: string; text: string }>
 ): Promise<number> {
   /*
    * 선생님이 손으로 단 출처는 건드리지 않는다 — 자동 대조가 덮어쓰면 다시 비어 버린다.
@@ -309,7 +321,8 @@ export async function refreshMaterialMatches(
     ? await matchLessonMaterials(
         admin,
         academyId,
-        rows.map((r) => ({ key: r.id as string, excerpt: (r.passage_excerpt as string | null) ?? null }))
+        rows.map((r) => ({ key: r.id as string, excerpt: (r.passage_excerpt as string | null) ?? null })),
+        uploads
       )
     : new Map<string, { itemId: string; label: string }>();
   await Promise.all(
