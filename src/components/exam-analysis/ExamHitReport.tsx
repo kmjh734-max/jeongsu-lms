@@ -17,10 +17,12 @@ export function ExamHitReport({
   analysisId,
   report: saved,
   savedAt,
+  files = [],
 }: {
   analysisId: string;
   report: HitReport | null;
   savedAt: string | null;
+  files?: File[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -28,11 +30,6 @@ export function ExamHitReport({
   const [report, setReport] = useState<HitReport | null>(saved);
   const [at, setAt] = useState<string | null>(savedAt);
   const [message, setMessage] = useState<string | null>(null);
-  /*
-   * 선생님이 EngCore 밖에서 만든 자료도 대조에 넣는다(선생님 지시 2026-10-01).
-   * PDF 에 글자가 있으면 화면에서 공짜로 뽑고, 스캔본·사진만 서버에 읽힌다.
-   */
-  const [files, setFiles] = useState<File[]>([]);
   const [step, setStep] = useState<string | null>(null);
 
   async function run() {
@@ -78,30 +75,7 @@ export function ExamHitReport({
     }
   }
 
-  const picker = (
-    <div className="mt-2 flex flex-wrap items-center gap-2 print:hidden">
-      <label className="cursor-pointer rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
-        직접 만든 자료 올리기 (PDF·사진·글)
-        <input
-          type="file"
-          multiple
-          accept=".pdf,.txt,.md,.csv,image/*"
-          className="hidden"
-          onChange={(e) => setFiles([...(e.target.files ?? [])].slice(0, 10))}
-        />
-      </label>
-      {files.length ? (
-        <span className="text-xs text-slate-500">
-          {files.map((f) => f.name).join(" · ").slice(0, 70)}
-          <button type="button" onClick={() => setFiles([])} className="ml-1.5 underline">
-            비우기
-          </button>
-        </span>
-      ) : (
-        <span className="text-[11px] text-slate-400">없어도 됩니다 — EngCore 자료는 그냥 대조합니다.</span>
-      )}
-    </div>
-  );
+
 
   if (!report) {
     return (
@@ -122,7 +96,6 @@ export function ExamHitReport({
             {busy ? "대조하는 중…" : "대조하기"}
           </button>
         </div>
-        {picker}
         {step ? <p className="mt-2 text-xs text-slate-500">{step}</p> : null}
         {message ? <p className="mt-2 text-xs text-red-600">{message}</p> : null}
       </div>

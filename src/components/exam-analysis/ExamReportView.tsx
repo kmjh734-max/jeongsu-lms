@@ -770,7 +770,7 @@ export function ExamReportView({
         )}
       </div>
 
-      <ExamHitReport analysisId={analysis.id} report={hitReport} savedAt={hitReportAt} />
+      <ExamHitReport analysisId={analysis.id} report={hitReport} savedAt={hitReportAt} files={matchFiles} />
 
       {mocks.length ? (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm print:hidden">
