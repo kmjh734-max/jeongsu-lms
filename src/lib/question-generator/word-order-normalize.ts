@@ -772,6 +772,8 @@ export function alignInflectBankToExplanation(questionText: string, explanation:
     const src = (p[1] ?? p[3] ?? "").trim();
     const dst = (p[2] ?? p[4] ?? "").trim();
     if (!src || !dst || src.toLowerCase() === dst.toLowerCase()) continue;
+    // 같은 낱말의 다른 꼴일 때만(어간이 같거나 불규칙 짝). 「that은 because로 이어진다」 같은 짝은 건드리지 않는다.
+    if (!sameLexeme(src, dst)) continue;
     const hasSrc = tokens.some((t) => t.toLowerCase() === src.toLowerCase());
     const at = tokens.findIndex((t) => t.toLowerCase() === dst.toLowerCase());
     if (!hasSrc && at >= 0) {
@@ -781,4 +783,27 @@ export function alignInflectBankToExplanation(questionText: string, explanation:
   }
   if (!changed) return questionText;
   return questionText.replace(m[0], `${m[1]}${joinWordBank(tokens)}`);
+}
+
+const IRREGULAR_FAMILIES: string[][] = [
+  ["be", "am", "is", "are", "was", "were", "been", "being"],
+  ["have", "has", "had", "having"],
+  ["do", "does", "did", "done", "doing"],
+  ["will", "would"], ["can", "could"], ["shall", "should"], ["may", "might"],
+  ["go", "goes", "went", "gone"], ["make", "made"], ["take", "took", "taken"], ["give", "gave", "given"],
+  ["bring", "brought"], ["buy", "bought"], ["think", "thought"], ["teach", "taught"], ["catch", "caught"],
+  ["see", "saw", "seen"], ["come", "came"], ["become", "became"], ["get", "got", "gotten"], ["find", "found"],
+  ["leave", "left"], ["keep", "kept"], ["feel", "felt"], ["lead", "led"], ["hold", "held"], ["stand", "stood"],
+  ["understand", "understood"], ["write", "wrote", "written"], ["speak", "spoke", "spoken"], ["know", "knew", "known"],
+  ["grow", "grew", "grown"], ["show", "showed", "shown"], ["begin", "began", "begun"], ["run", "ran"],
+  ["child", "children"], ["person", "people"], ["man", "men"], ["woman", "women"], ["mouse", "mice"], ["foot", "feet"], ["tooth", "teeth"],
+  ["good", "better", "best"], ["bad", "worse", "worst"], ["many", "more", "most"], ["much", "more", "most"], ["little", "less", "least"],
+];
+/** 두 낱말이 같은 낱말의 다른 꼴인지(어간 앞 세 글자가 같거나, 불규칙 짝) */
+function sameLexeme(a: string, b: string): boolean {
+  const x = a.toLowerCase();
+  const y = b.toLowerCase();
+  if (x.length >= 3 && y.length >= 3 && x.slice(0, 3) === y.slice(0, 3)) return true;
+  if (Math.min(x.length, y.length) <= 2 && (y.startsWith(x) || x.startsWith(y))) return true;
+  return IRREGULAR_FAMILIES.some((f) => f.includes(x) && f.includes(y));
 }
