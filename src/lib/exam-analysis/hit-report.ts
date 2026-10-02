@@ -342,8 +342,12 @@ export async function buildHitReport(
           rows.push({ from: "올린 자료", label: u.name, typeName: "지문 있음", sameType: false, sameSpot: null, before: true });
           continue;
         }
-        for (const t of near) {
-          rows.push({ from: "올린 자료", label: u.name, typeName: t, sameType: t === examName, sameSpot: null, before: true });
+        if (near.includes(examName)) {
+          rows.push({ from: "올린 자료", label: u.name, typeName: examName, sameType: true, sameSpot: null, before: true });
+        } else {
+          for (const t of near.slice(0, 2)) {
+            rows.push({ from: "올린 자료", label: u.name, typeName: t, sameType: false, sameSpot: null, before: true });
+          }
         }
       }
     }
