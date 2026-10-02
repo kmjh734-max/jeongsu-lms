@@ -17,7 +17,7 @@ import {
   type ExamItemRow,
   type ExamLevel,
 } from "@/lib/exam-analysis/types";
-import { matchAction } from "@/app/actions/match-action";
+import { matchActionCompressed } from "@/app/actions/match-action";
 
 /** 보고서 색: 크림 바탕 위 주황·남색 (승인된 A4 두 쪽 시안) */
 const CREAM = "#fbf7ef";
@@ -578,11 +578,22 @@ export function ExamReportView({
 
     let ok = false;
     try {
-      await matchAction(analysis.id, next, next && uploads.length > 0 ? uploads : undefined);
+      let formData: FormData | undefined = undefined;
+      if (next && uploads.length > 0) {
+        setMatchStep("업로드 데이터 압축 중…");
+        const jsonString = JSON.stringify(uploads);
+        const stream = new Blob([jsonString]).stream().pipeThrough(new CompressionStream("gzip"));
+        const response = new Response(stream);
+        const blob = await response.blob();
+        formData = new FormData();
+        formData.append("uploads", blob, "uploads.gz");
+      }
+
+      await matchActionCompressed(analysis.id, next, formData);
       ok = true;
     } catch (e) {
       console.error(e);
-      alert("대조 중 오류가 발생했습니다. 용량이 너무 클 수 있습니다.");
+      alert("대조 중 오류가 발생했습니다. (사유: " + (e instanceof Error ? e.message : "알 수 없음") + ")");
     }
     
     setMatchBusy(false);
