@@ -107,6 +107,22 @@ export function falseGrammarError(
         return `${prev1} ${inside} (명사를 꾸미는 to부정사는 능동도 맞다)`;
       }
     }
+    /*
+     * 7) 단순과거를 had + 과거분사로 고치라 한 것(made → had made, resulted → had resulted).
+     *    앞선 시점을 못 박는 말(before·by the time·already·after·earlier·previously·until·when ~ had)이
+     *    그 문장에 없으면 단순과거도 맞다(2026-10-03 전수 대조: 4개 학원에서 6건).
+     */
+    if (/^[a-z]+$/i.test(inside) && /^had\s+(?:been\s+)?[a-z]+$/i.test(toWord)) {
+      const sentenceStart = Math.max(before.lastIndexOf(". "), before.lastIndexOf("? "), before.lastIndexOf("! "));
+      const sentenceBefore = before.slice(sentenceStart + 1).toLowerCase();
+      const after = mod.slice(m.index + m[0].length).replace(/<\/?[ub]>/g, "");
+      const sentenceAfter = (after.split(/(?<=[.!?])\s/)[0] ?? "").toLowerCase();
+      // before·after가 있으면 순서가 이미 드러나 단순과거도 맞다. 과거완료가 꼭 필요한 것은 by the time·already 류뿐이다.
+      const anchored = /\b(by the time|by then|already|ever since|never before)\b/.test(`${sentenceBefore} ${sentenceAfter}`);
+      if (!anchored) {
+        return `${inside} → ${toWord} (앞선 시점을 나타내는 말이 없으면 단순과거도 맞다)`;
+      }
+    }
     // 1) 밑줄은 to + 동사, 고친 말은 그 동사 하나
     if (!/^to\s+[a-z]+$/i.test(inside)) continue;
     if (stripTo(inside) !== p.to.trim().toLowerCase()) continue;

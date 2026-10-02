@@ -230,14 +230,44 @@ export function validateGeneratedQuestion(opts: {
     }
   }
 
-  // 제시어 배열(지문 그대로): 원문 문장을 하나만 비워야 한다 (#82는 두 문장을 지웠다).
-  // 조건 영작은 문장을 고쳐 써서 내므로 원문 문장이 빠지는 것이 정상이라 여기서 보지 않는다.
-  if (/제시어배열/.test(code) && /_{3,}/.test(modifiedText)) {
+  // 제시어 배열·지정 문법 영작: 원문 문장을 하나만 비워야 한다 (#82는 두 문장을 지웠다).
+  // 조건 영작은 그 한 문장을 고쳐 써서 내므로 하나가 빠지는 것은 정상이다. 둘 이상 지우면 앞뒤를 가리키는
+  // 말(These changes…)이 대상을 잃는다(2026-10-03 전수 대조: 윌링어학원 영작 5개).
+  if (/제시어배열|문법조건영작/.test(code) && /_{3,}/.test(modifiedText)) {
     const modPlain = plainText(modifiedText);
     const removed = sentencesOf(opts.passage).filter((s) => !modPlain.includes(s));
     if (removed.length >= 2) {
       warnings.push(`원문 문장을 ${removed.length}개 지웠습니다. 빈칸으로 비울 문장 하나만 지워야 합니다.`);
       score -= 45;
+    }
+  }
+
+  /*
+   * 요약표: 빈칸 (A)(B)(C)는 표 안에서 차례대로 나와야 한다. (A)→(C)→(B)로 섞인 표가 있었다
+   * (2026-10-03 전수 대조 #1000).
+   */
+  if (/요약표/.test(code)) {
+    const labels = [...String(q.questionText ?? "").matchAll(/\(([A-E])\)/g)].map((m) => m[1]!);
+    const firsts = labels.filter((l, i) => labels.indexOf(l) === i);
+    if (firsts.length >= 2 && firsts.join("") !== "ABCDE".slice(0, firsts.length)) {
+      warnings.push(`표 빈칸이 ${firsts.map((l) => `(${l})`).join("→")} 차례로 나옵니다. (A)(B)(C) 차례여야 합니다.`);
+      score -= 45;
+    }
+  }
+
+  /*
+   * 개수형(어법개수): 해설이 「어색한 것은 ⓐ, ⓓ이다」로 짚은 수와 정답 개수가 같아야 한다.
+   * 정답 5개인데 해설은 넷을 짚은 문항이 있었다(2026-10-03 전수 대조 #6082·#6090).
+   */
+  if (code === "어법개수") {
+    const listed = String(q.explanation ?? "").match(/어색한\s*것은\s*((?:[ⓐ-ⓕ][\s,·와과및]*)+)/);
+    const n = Number(q.correctAnswer);
+    if (listed && Number.isInteger(n)) {
+      const marks = new Set([...listed[1]!.matchAll(/[ⓐ-ⓕ]/g)].map((m) => m[0]));
+      if (marks.size > 0 && marks.size !== n) {
+        warnings.push(`해설이 틀린 곳을 ${marks.size}개 짚었는데 정답은 ${n}개입니다.`);
+        score -= 45;
+      }
     }
   }
 

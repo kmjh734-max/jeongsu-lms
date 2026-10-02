@@ -405,7 +405,9 @@ export function lemmaEnglishToken(
    * 100문항 대조(2026-10-02): purchases가 purchas로 나왔다. 모음+ses면 다 es를 떼던
    * 탓이다. purchases·houses·cases·causes·promises는 s 하나만 떼야 한다.
    */
-  if (/[aeiou]ses$/i.test(lower) && lower.length === 5) {
+  // 다섯 글자여도 bases·cases·noses·roses·doses·vases·poses는 s 하나만 뗀다(2026-10-03 bas·cas·nos가 나왔다).
+  // es를 떼는 것은 bus·gas처럼 원형이 자음으로 끝나는 몇 낱말뿐이다.
+  if (/^(buses|gases|pluses|minuses|bonuses|campuses|viruses|focuses|census?es)$/i.test(lower)) {
     return lower.slice(0, -2);
   }
   // -ied → y (studied → study)
@@ -740,11 +742,13 @@ export function normalizeWordOrderQuestionText(
     .join("\n");
 
   // add 모드: 조건에 "단어 추가 가능" 이 반드시 있어야 한다
+  /*
+   * 단어추가의 조건은 늘 이 두 줄로 고정한다. 모델이 「주어진 단어를 모두 한 번씩만 사용할 것」을
+   * 남겨 두면, 정답에 makes가 필요한데 조건상 make를 바꿀 수 없는 문항이 된다
+   * (2026-10-03 전수 대조: Born English 단어추가 3개가 모두 이랬다).
+   */
   if (mode === "add") {
-    const hasDaneoAdd = /단어\s*추가\s*가능/.test(condBlock);
-    const finalCond = hasDaneoAdd
-      ? condBlock
-      : `${condBlock}\n○ 단어 추가 가능`.trim();
+    const finalCond = "○ 단어 중복·어형 변화 가능\n○ 보기에 없는 단어 추가 가능";
     return `<조건>\n${finalCond}\n\n<보기>\n${words}\n\n<해석>\n${translation}`.trim();
   }
 
