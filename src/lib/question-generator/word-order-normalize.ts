@@ -556,7 +556,12 @@ export function buildWordBankFromAnswer(
   }
 
   if (given.length === answerTokens.length && sameMultiset(given.map(lem), answerTokens.map(lem))) {
-    return given;
+    /*
+     * 어형변화는 보기를 원형으로 둔다. 모델이 destined·doing·ideas처럼 바뀐 꼴을 보기에 넣고
+     * 해설에는 「destine을 destined로 바꾼다」고 써서, 보기와 해설이 어긋났다(2026-10-03 #95·#86).
+     * 기본·추가는 모델 보기를 그대로 둔다.
+     */
+    return mode === "inflect" ? given.map((t, i) => keepProperCase(t, lem(t), i)).filter(Boolean) : given;
   }
 
   // basic: 형태 고정 → 정답 표면형 유지 / inflect: 원형
@@ -746,3 +751,34 @@ export function normalizeWordOrderQuestionText(
   return `<조건>\n${condBlock}\n\n<보기>\n${words}\n\n<해석>\n${translation}`.trim();
 }
 
+
+
+/**
+ * 어형변화: 해설이 「destine을 destined로 바꾼다」고 했는데 보기에 이미 destined가 있으면,
+ * 보기 낱말을 해설이 말한 원래 꼴(destine)로 돌려 둘을 맞춘다.
+ *
+ * 2026-10-03 대조에서 어형변화마다 이 어긋남이 나왔다(#86 ideas, #91 exhaled, #95 destined).
+ * 모델이 보기에 바뀐 꼴을 넣고, 해설은 원형에서 바꾼다고 쓴 것이다. 원형 변환기로는 -ed·-ing를
+ * 다 돌릴 수 없어, 해설이 직접 밝힌 짝만 쓴다.
+ */
+export function alignInflectBankToExplanation(questionText: string, explanation: string): string {
+  const m = questionText.match(/(<보기>\s*\n)([^\n]+)/);
+  if (!m) return questionText;
+  const tokens = splitWordBank(m[2]!);
+  if (tokens.length === 0) return questionText;
+  const pairRe = /([A-Za-z][A-Za-z'-]*)\s*(?:은|는|을|를|이|가)\s*(?:각각\s*)?(?:[가-힣]+\s+)?([A-Za-z][A-Za-z'-]*)\s*(?:으로|로)(?![가-힣])|([A-Za-z][A-Za-z'-]*)\s*(?:→|->)\s*([A-Za-z][A-Za-z'-]*)/g;
+  let changed = false;
+  for (const p of String(explanation ?? "").matchAll(pairRe)) {
+    const src = (p[1] ?? p[3] ?? "").trim();
+    const dst = (p[2] ?? p[4] ?? "").trim();
+    if (!src || !dst || src.toLowerCase() === dst.toLowerCase()) continue;
+    const hasSrc = tokens.some((t) => t.toLowerCase() === src.toLowerCase());
+    const at = tokens.findIndex((t) => t.toLowerCase() === dst.toLowerCase());
+    if (!hasSrc && at >= 0) {
+      tokens[at] = src.toLowerCase();
+      changed = true;
+    }
+  }
+  if (!changed) return questionText;
+  return questionText.replace(m[0], `${m[1]}${joinWordBank(tokens)}`);
+}

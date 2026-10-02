@@ -57,6 +57,7 @@ import {
   type WordOrderMode,
 } from "@/lib/question-generator/word-order-catalog";
 import {
+  alignInflectBankToExplanation,
   lemmaEnglishToken,
   normalizeWordOrderQuestionText,
   splitWordBank,
@@ -1471,6 +1472,9 @@ export function assertBasicQuestionShape(
       correctAnswer: String(q.correctAnswer ?? ""),
       mode: woMode,
     });
+    if (woMode === "inflect") {
+      q.questionText = alignInflectBankToExplanation(q.questionText, q.explanation || "");
+    }
     /*
      * 선생님 지적(2026-09-29): 빈칸 옆에 정답 낱말이 그대로 남아 있는데 보기에도 같은 말이
      * 있어 중복이다. 정답 문장을 반만 지우고 나머지를 남긴 것이라 학생이 헷갈린다.
@@ -2505,7 +2509,12 @@ export async function generateOneQuestion(opts: {
         return n >= 8 && n <= 26;
       });
     if (sents.length === 0) return "";
-    const pick = sents[(opts.diversitySlot?.index ?? 0) % sents.length]!;
+    /*
+     * 같은 지문에서 제시어 배열이 같은 문장을 두 번 고르지 않게, 사본 번호와 유형(기본·어형변화·
+     * 단어추가)도 자리에 더한다. 대체로 들어온 문항이 원래 문항과 똑같이 나왔다(2026-10-03 #91·#92).
+     */
+    const typeOffset = { 제시어배열기본: 0, 제시어배열어형변화: 1, 제시어배열단어추가: 2 }[option.aingkaCode as string] ?? 0;
+    const pick = sents[((opts.diversitySlot?.index ?? 0) + typeOffset + (opts.copyIndex ?? 0) * 3) % sents.length]!;
     return `\n\nUSE THIS SENTENCE: 이번 문항은 이 문장을 빈칸으로 한다(글자 그대로, 한 자도 바꾸지 말 것).\n"${pick}"`;
   })();
 
