@@ -2882,7 +2882,7 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
    */
   payload.explanation = String(payload.explanation ?? "")
     .replace(/\s*\(?\bGP\s?\d{2}\b\)?\s*[:：·-]?\s*/g, " ")
-    .replace(/[ 	]{2,}/g, " ")
+    .replace(/[ \t]{2,}/g, " ")
     .trim();
   return payload;
 }
