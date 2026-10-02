@@ -194,6 +194,19 @@ export function validateGeneratedQuestion(opts: {
   const code = option.aingkaCode ?? "";
   const answerStr = typeof q.correctAnswer === "string" ? q.correctAnswer : "";
 
+  /*
+   * 빈칸추론: 정답 보기가 빈칸 뒤(또는 앞)에 그대로 남아 있으면 답이 드러난다.
+   * 2026-10-03 전수 대조에서 정수학원 문항 둘(#2410·#5186)이 이랬다.
+   */
+  if (option.type === "sentence_blank" && modifiedText && Array.isArray(q.choices)) {
+    const keyed = q.choices.find((c) => Number(c.number) === Number(q.correctAnswer));
+    const ans = plainText(String(keyed?.text ?? "")).toLowerCase().replace(/[.!?]+$/, "");
+    if (ans.split(/\s+/).length >= 5 && plainText(modifiedText).toLowerCase().includes(ans)) {
+      warnings.push("빈칸 정답이 지문에 그대로 남아 있습니다. 답이 드러납니다.");
+      score -= 45;
+    }
+  }
+
   // 빈칸추론: 원문 문장을 비운 것이 아니라 새 문장을 끼워 넣음 (#23·#72)
   if (option.type === "sentence_blank" && code !== "연결어빈칸" && /_{3,}/.test(modifiedText)) {
     const modPlain = plainText(modifiedText);

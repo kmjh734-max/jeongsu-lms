@@ -38,8 +38,15 @@ function stripTrailingJunk(text: string): string {
       t = t.slice(0, lastCut + 1).trim();
       continue;
     }
+    // 「… whether people live. suburbs need to create …」처럼 보통 마침표 뒤에 소문자로 시작하는 마지막 토막은
+    // 요약문 조각이다(대화문 「"Mama?" peeped …」은 마침표 앞이 따옴표·물음표라 걸리지 않는다).
+    const lowerTail = t.match(/[a-z]{2}\.\s+([a-z][^.!?]*[.!?]?)$/);
+    if (lowerTail && lowerTail.index !== undefined && lowerTail.index > t.length * 0.5 && lowerTail[1]!.split(/\s+/).length >= 3) {
+      t = t.slice(0, lowerTail.index + 3).trim();
+      continue;
+    }
     if (/[.!?"”’)]$/.test(t)) break;
-    const cut = Math.max(t.lastIndexOf(". "), t.lastIndexOf("! "), t.lastIndexOf("? "), t.lastIndexOf(".” "), t.lastIndexOf(".\" "));
+    const cut =Math.max(t.lastIndexOf(". "), t.lastIndexOf("! "), t.lastIndexOf("? "), t.lastIndexOf(".” "), t.lastIndexOf(".\" "));
     if (cut < 0 || cut < t.length * 0.5) break;
     const head = t.slice(0, cut + 1).replace(/[”"]$/, (m) => m);
     const tail = t.slice(cut + 1).trim();
@@ -70,6 +77,8 @@ export function isChartDescriptionPassage(text: string): boolean {
  * 무관한문장·함축의미는 수치 사실을 그래프 없이 묻게 된다(100문항 대조에서 #17·#23·#89).
  */
 export const CHART_UNFIT_TYPES = new Set([
+  // 어휘: 「higher/lower」가 맞는지는 도표를 봐야 안다(2026-10-03 전수 대조, 도표 지문 어휘 6문항이 풀 수 없었다)
+  "vocabulary",
   "title",
   "topic",
   "summary_mcq",
