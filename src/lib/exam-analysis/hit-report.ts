@@ -257,7 +257,8 @@ export async function buildHitReport(
         if (!samePassage(examSet, p.set)) continue;
         for (const q of madeByPassage.get(p.id) ?? []) {
           const code = String(q.option_key).split(":").pop() ?? "";
-          const sameType = !want.substituted && String(q.option_key) === want.key;
+          const wantCode = want.key.split(":").pop() ?? "";
+          const sameType = !want.substituted && code === wantCode;
           rows.push({
             from: "변형문제",
             label: `변형문제 「${p.title}」`,

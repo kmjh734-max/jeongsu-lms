@@ -17,37 +17,46 @@ const STEM_PATTERNS: Array<{ type: string; re: RegExp }> = [
   { type: "요지", re: /요지(?:로|를)|주장(?:하는|으로)/ },
   { type: "목적", re: /목적(?:으로|을)/ },
   { type: "심경·분위기", re: /심경|분위기/ },
-  { type: "내용 일치", re: /일치하는\s*것(?:은|을)/ },
-  { type: "내용 불일치", re: /일치하지\s*않는/ },
-  { type: "일치 개수", re: /(?:일치하는|일치하지\s*않는)[^]*개수/ },
+  { type: "내용 일치", re: /일치하는것(?:은|을)/ },
+  { type: "내용 불일치", re: /일치하지않는/ },
+  { type: "일치 개수", re: /(?:일치하는|일치하지않는)[^]*개수/ },
   { type: "빈칸 추론", re: /빈칸/ },
   { type: "순서 배열", re: /순서/ },
-  { type: "문장 삽입", re: /주어진\s*문장|문장이\s*들어가기/ },
-  { type: "무관한 문장", re: /관계\s*없는\s*문장|무관한\s*문장|흐름과\s*관계\s*없는/ },
-  { type: "밑줄 의미", re: /밑줄\s*친|의미하는\s*바|함축/ },
-  { type: "어법 판단", re: /어법상\s*(?:틀린|적절하지|어색한|바르지)/ },
-  { type: "어법 (개수)", re: /어법상\s*(?:틀린|적절하지|어색한|바르지)[^]*개수/ },
-  { type: "어휘 판단", re: /(?:낱말|어휘)(?:의\s*쓰임이|가)|문맥상\s*(?:낱말|어휘|적절하지|쓰임)/ },
+  { type: "문장 삽입", re: /주어진문장|문장이들어가기/ },
+  { type: "무관한 문장", re: /관계없는문장|무관한문장|흐름과관계없는/ },
+  { type: "밑줄 의미", re: /밑줄친|의미하는바|함축/ },
+  { type: "어법 판단", re: /어법상(?:틀린|적절하지|어색한|바르지)/ },
+  { type: "어법 (개수)", re: /어법상(?:틀린|적절하지|어색한|바르지)[^]*개수/ },
+  { type: "어휘 판단", re: /(?:낱말|어휘)(?:의쓰임이|가)|문맥상(?:낱말|어휘|적절하지|쓰임)/ },
   { type: "어휘 (개수)", re: /(?:낱말|어휘)[^]*개수/ },
-  { type: "어법 오류 수정", re: /어법상\s*틀린\s*곳|바르게\s*고치/ },
-  { type: "조건 영작(배열)", re: /배열|조건에\s*맞게\s*영작/ },
+  { type: "어법 오류 수정", re: /어법상틀린곳|바르게고치/ },
+  { type: "조건 영작(배열)", re: /배열|조건에맞게영작/ },
   { type: "요약문 영작", re: /요약문/ },
-  { type: "본문 찾아 쓰기", re: /본문에서\s*찾아/ },
-  { type: "영영풀이", re: /영영\s*(?:풀이|정의)/ },
+  { type: "본문 찾아 쓰기", re: /본문에서찾아/ },
+  { type: "영영풀이", re: /영영(?:풀이|정의)/ },
 ];
 
 /** 자료 글에서 지문이 있는 자리를 찾는다 — 없으면 -1 */
 export function findPassageAt(materialText: string, examPassage: string): number {
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ");
-  const hay = norm(materialText);
   const need = norm(examPassage).split(" ").filter(Boolean);
-  if (need.length < 5 || hay.length < 40) return -1;
+  if (need.length < 5 || materialText.length < 40) return -1;
   
   for (let i = 0; i <= need.length - 5; i++) {
-    const key = need.slice(i, i + 5).join(" ");
-    if (key.length < 25) continue;
-    const at = hay.indexOf(key);
-    if (at >= 0) return at;
+    const words = need.slice(i, i + 5);
+    if (words.join("").length < 15) continue;
+    
+    // 영어 낱말 사이에 문장부호, 줄바꿈, 한글 등 영숫자가 아닌 모든 것을 허용
+    const pattern = words.join("[^a-zA-Z0-9]+");
+    try {
+      const re = new RegExp(pattern, "i");
+      const match = materialText.match(re);
+      if (match && match.index !== undefined) {
+        return match.index;
+      }
+    } catch {
+      // Regex compilation error (shouldn't happen with [^a-zA-Z0-9]+)
+    }
   }
   return -1;
 }
@@ -59,7 +68,8 @@ export function findPassageAt(materialText: string, examPassage: string): number
 export function typesNear(materialText: string, at: number, span = 900): string[] {
   if (at < 0) return [];
   const window = materialText.slice(Math.max(0, at - span), at + span);
+  const noSpace = window.replace(/\s+/g, "");
   const out: string[] = [];
-  for (const { type, re } of STEM_PATTERNS) if (re.test(window)) out.push(type);
+  for (const { type, re } of STEM_PATTERNS) if (re.test(noSpace)) out.push(type);
   return [...new Set(out)];
 }
