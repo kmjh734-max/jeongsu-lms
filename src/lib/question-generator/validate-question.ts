@@ -1,4 +1,5 @@
 import { VALIDATION_PASS_SCORE } from "@/lib/question-generator/constants";
+import { cleanSourcePassage } from "@/lib/question-generator/passage-clean";
 import type {
   GeneratedQuestionPayload,
   QuestionTypeOption,
@@ -28,7 +29,8 @@ function plainText(text: string): string {
 /** 영어 문장 단위(짧은 조각은 뺀다) */
 function sentencesOf(text: string): string[] {
   return plainText(text)
-    .split(/(?<=[.!?])\s+/)
+    // 「U.S. who」처럼 약어 뒤에서 끊지 않는다 — 문장 하나를 둘로 세어 「2개 지웠다」고 잘못 걸렸다
+    .split(/(?<=[.!?])\s+(?=[A-Z"'“‘(])/)
     .map((s) => s.trim())
     .filter((s) => s.length > 15);
 }
@@ -81,6 +83,12 @@ export function validateGeneratedQuestion(opts: {
   /** 지문 재진술을 켜고 만든 문항이면 원문 대조를 건너뛴다 */
   allowParaphrase?: boolean;
 }): QuestionValidation {
+  /*
+   * 만들 때는 손질한 지문(cleanSourcePassage)을 쓰는데 대조는 날것으로 했다. 그래서
+   * 원문을 그대로 쓴 문항도 「원문을 고쳐 썼다」「문장 2개를 지웠다」로 걸려 버려졌다
+   * (2026-10-03 288문항 작업). 대조도 같은 지문으로 한다.
+   */
+  opts = { ...opts, passage: cleanSourcePassage(opts.passage) };
   const q = opts.question;
   const option = opts.option;
   const warnings: string[] = [];

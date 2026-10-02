@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sweepSavedQuestions } from "@/lib/question-generator/final-sweep";
 import { aiReviewEnabled, reviewGeneratedQuestion } from "@/lib/question-generator/ai-review";
+import { CHART_UNFIT_TYPES, cleanSourcePassage, isChartDescriptionPassage } from "@/lib/question-generator/passage-clean";
 import { withAiUsage } from "@/lib/ai-usage/context";
 import { currentAiUsage } from "@/lib/ai-usage/record";
 import {
@@ -833,6 +834,8 @@ export async function runGenerationJob(
       });
     }
 
+    let chartSkipped = 0;
+    const chartSkippedTypes = new Set<string>();
     for (const row of blueprint ? [] : analyzed) {
       if (!row) continue;
       const { passageId, passageRow, analysis, pi } = row;
@@ -845,7 +848,18 @@ export async function runGenerationJob(
 
       /** 이 지문에서 유형마다 몇 번째 사본인가 — 이미 저장된 수만큼은 건너뛴다 */
       const copyIndexByKey = new Map<string, number>();
+      /*
+       * 도표 설명문에는 제목·주제·요지·빈칸·삽입·순서·무관·함축을 만들지 않는다. 부르기 전에
+       * 빼고 요청 수에서도 뺀다. 안에서 생략하면 「288 중 201」처럼 보여 선생님이 놀란다
+       * (2026-10-03: 도표 지문 하나로 39개가 생략됐다).
+       */
+      const chartPassage = isChartDescriptionPassage(cleanSourcePassage(String(passageRow.passage ?? "")));
       for (const option of options) {
+        if (chartPassage && CHART_UNFIT_TYPES.has(option.type)) {
+          chartSkipped += 1;
+          chartSkippedTypes.add(option.label || option.type);
+          continue;
+        }
         const key = slotKey(passageId, option.key);
         const copyIndex = copyIndexByKey.get(key) ?? 0;
         copyIndexByKey.set(key, copyIndex + 1);
@@ -880,7 +894,7 @@ export async function runGenerationJob(
      */
     const totalRequested = blueprint
       ? blueprint.length
-      : options.length * analyzed.filter(Boolean).length;
+      : options.length * analyzed.filter(Boolean).length - chartSkipped;
 
     // 지문별로 슬롯 번호 부여 (동의어·보기단어 다양화 힌트)
     const slotByPassage = new Map<string, number>();
@@ -943,6 +957,11 @@ export async function runGenerationJob(
     let skipped = 0;
     const dropped: string[] = [];
     let reviewDropped = 0;
+    if (chartSkipped > 0) {
+      dropped.push(
+        `도표 설명 지문에는 ${[...chartSkippedTypes].join("·")} 유형을 만들지 않아 ${chartSkipped}개를 요청에서 뺐습니다`
+      );
+    }
     /** 시간이 모자라 이번 실행에서 시작하지 않은 문항 수. */
     let deferred = 0;
     /** 시간 초과로 이번 실행을 접었다. 이후에 끝나는 문항은 저장하지 않는다. */
@@ -1114,6 +1133,8 @@ export async function runGenerationJob(
 
       if (result.skipped) {
         skipped += 1;
+        // 생략 까닭도 남긴다 — 「생략 39」만 보이면 왜 빠졌는지 알 수 없다(2026-10-03)
+        dropped.push(`[${item.option.label || item.option.key.split(":").pop()}] 생략: ${result.error ?? ""}`);
       } else if (!result.payload) {
         failed += 1;
         dropped.push(result.error ?? "까닭 없음");

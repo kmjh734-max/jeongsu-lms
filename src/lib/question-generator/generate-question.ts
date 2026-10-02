@@ -2444,7 +2444,7 @@ export async function generateOneQuestion(opts: {
     if ((opts.wordOrderMode ?? "passage") === "paraphrase") return "";
     if (!/제시어배열/.test(option.aingkaCode ?? "")) return "";
     const sents = String(passage ?? "")
-      .split(/(?<=[.!?])\s+/)
+      .split(/(?<=[.!?])\s+(?=[A-Z"'“‘(])/)
       .map((t) => t.trim())
       .filter((t) => {
         const n = t.split(/\s+/).length;

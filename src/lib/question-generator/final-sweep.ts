@@ -52,11 +52,18 @@ export async function sweepSavedQuestions(
   const seenSame = new Set<string>();
   for (const row of data) {
     const option = OPTION_BY_KEY.get(String(row.option_key));
+    /*
+     * 보기와 발문까지 넣어 견준다. 처음에는 묻는 글·본문·정답만 넣었는데, 내용일치는 묻는 글도
+     * 본문도 비어 있어 정답 번호만 같으면 「똑같다」고 보고 멀쩡한 문항을 지웠다
+     * (2026-10-03 새벽 작업에서 18개, 그 앞 작업에서 9개).
+     */
     const sameKey = [
       String(row.passage_id ?? ""),
       String(row.option_key ?? ""),
+      String(row.instruction ?? "").replace(/\s+/g, " ").trim(),
       String(row.question_text ?? "").replace(/\s+/g, " ").trim(),
       String(row.passage_modified ?? "").replace(/\s+/g, " ").trim(),
+      JSON.stringify(row.choices ?? null),
       JSON.stringify(row.correct_answer ?? ""),
     ].join("\u0001");
     if (seenSame.has(sameKey)) {

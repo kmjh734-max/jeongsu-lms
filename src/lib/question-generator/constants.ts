@@ -25,7 +25,9 @@ export const MAX_REGENERATION_ATTEMPTS = 2;
  * 그쳤다. 24개로 올려도 호출 속도는 같고 오류(429)도 없었으며(63문항 167초 → 87초), gpt-5.5 한도
  * (분당 10,000건·400만 토큰)에 비해 여유가 크다.
  */
-export const GENERATION_CONCURRENCY = 24;
+// 검수 호출이 문항마다 하나 더 붙어(2026-10-03) 288문항이 7분 걸렸다. 32로 올린다.
+// 전체 몫(GLOBAL_CALL_BUDGET 120) 안이라 다른 기능 자리는 그대로 남는다.
+export const GENERATION_CONCURRENCY = 32;
 
 /** 지문 최소 단어 수 (경고) */
 export const MIN_PASSAGE_WORDS = 40;
