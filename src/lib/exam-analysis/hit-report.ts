@@ -330,17 +330,30 @@ export async function buildHitReport(
     }
 
     /*
-     * 올리신 자료 — 지문이 올린 파일에 있으면 "같은 유형"으로 바로 적중 처리.
-     * (PDF 발문 패턴으로 유형을 추출하는 방식은 PDF 추출물의 공백·줄바꿈 오류로
-     *  신뢰하기 어렵다. 지문이 일치한다 = 같은 자료이므로 유형도 같다고 본다.)
+     * 올리신 자료 — 지문 자리를 찾고 그 가까이의 발문으로 유형을 확인한다.
+     * 발문 패턴이 잡힌 경우: 유형이 같으면 적중, 다르면 지문만 같음.
+     * 발문 패턴이 하나도 안 잡히는 경우: PDF 추출 오류일 수 있으므로
+     *   지문이 있으면 적중으로 본다(유형 확인 불가 fallback).
      */
     if (excerpt.length > 40) {
       const examName = it.type_name.split(" · ")[0]!.trim();
       for (const u of uploads) {
         const at = findPassageAt(u.text, excerpt);
         if (at < 0) continue;
-        // 지문이 올린 파일에 있으면 → 같은 자료 → 유형 적중으로 처리
-        rows.push({ from: "올린 자료", label: u.name, typeName: examName, sameType: true, sameSpot: null, before: true });
+        const near = typesNear(u.text, at);
+        if (near.length === 0) {
+          // PDF 발문 추출 실패 → 지문이 있으니 유형도 같다고 본다
+          rows.push({ from: "올린 자료", label: u.name, typeName: examName, sameType: true, sameSpot: null, before: true });
+          continue;
+        }
+        if (near.includes(examName)) {
+          rows.push({ from: "올린 자료", label: u.name, typeName: examName, sameType: true, sameSpot: null, before: true });
+        } else {
+          // 지문은 같지만 유형이 다른 자료
+          for (const t of near.slice(0, 2)) {
+            rows.push({ from: "올린 자료", label: u.name, typeName: t, sameType: false, sameSpot: null, before: true });
+          }
+        }
       }
     }
 
