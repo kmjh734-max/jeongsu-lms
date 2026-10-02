@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { readExamImage } from "@/lib/exam-analysis/read-page";
+import { readMaterialImage } from "@/lib/exam-analysis/read-page";
 import { setAiUsage, flushAiUsage } from "@/lib/ai-usage/context";
 
 export const runtime = "nodejs";
@@ -10,7 +10,8 @@ export const maxDuration = 300;
 /**
  * 선생님이 올리신 자료의 쪽 그림을 읽는다(스캔본일 때만 쓴다).
  *
- * PDF에 글자가 들어 있으면 화면 쪽에서 공짜로 뽑으므로 여기까지 오지 않는다.
+ * PDF에 글자가 들어 있으면 화면 쪽에서 공짜로 뽑으므로 여기까지 오지 않는다. 스캔본도
+ * 화면 쪽 무료 읽기로 지문이 있는 쪽을 고른 뒤 그 쪽만 보낸다(2026-10-02).
  * 값은 적중 대조(exam_hit_report, 1,500)에 들어 있으므로 여기서 따로 받지 않는다.
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -42,7 +43,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     usedFor: "exam_hit_report_upload",
   });
   try {
-    const { text } = await readExamImage(dataUrl, String(body.label ?? "올린 자료"));
+    const { text } = await readMaterialImage(dataUrl, String(body.label ?? "올린 자료"));
     return NextResponse.json({ ok: true, text });
   } catch (e) {
     return NextResponse.json(

@@ -17,6 +17,39 @@ const SYSTEM = `한국 고등학교 영어 시험지 스캔을 옮겨 적는다.
 - 밑줄 친 부분은 <u>…</u>, 빈칸은 ______, 번호 붙은 밑줄은 ①<u>…</u>.
 - 설명·요약 없이 옮긴 글자만 출력하고, 다 옮긴 뒤 마지막 줄에 ${END} 을 적는다.`;
 
+/**
+ * 올린 자료(수업자료·변형문제 스캔)의 한 쪽을 읽는다 — 시험지 분석보다 싼 모델로.
+ *
+ * 선생님 지시(2026-10-02): 읽기 값을 줄여라. 올린 자료는 손글씨·채점 표시가 없는 인쇄물이고,
+ * 대조에 필요한 것은 영어 지문과 한글 발문뿐이라 gpt-4o-mini로 충분하다(쪽당 원가가
+ * gpt-5.5의 몇 분의 일). 시험지 분석 쪽 읽기(readExamImage)는 그대로 둔다.
+ */
+export async function readMaterialImage(dataUrl: string, label: string): Promise<{ text: string }> {
+  const { text } = await examChat({
+    model: "gpt-4o-mini",
+    temperature: 0,
+    max_tokens: 4000,
+    messages: [
+      { role: "system", content: MATERIAL_SYSTEM },
+      {
+        role: "user",
+        content: [
+          { type: "text", text: label },
+          { type: "image_url", image_url: { url: dataUrl, detail: "high" } },
+        ],
+      },
+    ],
+  });
+  return { text: text.replaceAll(END, "").trim() };
+}
+
+const MATERIAL_SYSTEM = `영어 수업자료·문제지 스캔을 옮겨 적는다. 학원 선생님이 자기 자료를 시험지와 대조하려고 올린 것이다.
+- 인쇄된 글자만 원문 그대로 옮긴다. 설명·요약은 하지 않는다.
+- 2단 편집이면 왼쪽 단을 위에서 아래로 끝까지, 그다음 오른쪽 단.
+- 문항 번호와 발문(예: 「다음 글의 제목으로 가장 적절한 것은?」), 배점, 지문, 보기 ①~⑤를 빠짐없이 적는다.
+- 밑줄 친 부분은 <u>…</u>, 빈칸은 ______.
+- 다 옮긴 뒤 마지막 줄에 ${END} 을 적는다.`;
+
 export async function readExamImage(
   dataUrl: string,
   label: string

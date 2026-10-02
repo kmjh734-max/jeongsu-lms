@@ -19,11 +19,14 @@ export function ExamHitReport({
   report: saved,
   savedAt,
   files = [],
+  excerpts = [],
 }: {
   analysisId: string;
   report: HitReport | null;
   savedAt: string | null;
   files?: File[];
+  /** 시험지 문항들의 지문 앞부분 — 스캔본에서 유료로 읽을 쪽을 고르는 데 쓴다 */
+  excerpts?: string[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -48,8 +51,11 @@ export function ExamHitReport({
       for (const [i, f] of files.entries()) {
         setStep(`올리신 자료를 읽는 중 (${i + 1}/${files.length}) — ${f.name}`);
         try {
-          const read = await readUploadedMaterial(f, analysisId, (done, total) =>
-            setStep(`올리신 자료를 읽는 중 (${i + 1}/${files.length}) — ${f.name} · 스캔본 ${done}/${total}쪽`)
+          const read = await readUploadedMaterial(
+            f,
+            analysisId,
+            (message) => setStep(`올리신 자료를 읽는 중 (${i + 1}/${files.length}) — ${message}`),
+            excerpts
           );
           if (read.note) notes.push(read.note);
           if (read.text.trim().length > 40) uploads.push({ name: read.name, text: read.text });

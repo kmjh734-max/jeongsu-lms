@@ -746,6 +746,10 @@ export function ExamReportView({
                 전체 지우기
               </button>
             </div>
+            <div className="text-[12px] text-slate-500">
+              한글(HWP)·워드에서 바로 내보낸 PDF처럼 글자가 든 파일은 읽기 값 없이 바로 대조합니다.
+              스캔·사진은 지문이 보이는 쪽만 골라 읽되, 쪽마다 읽기 값이 들고 시간이 더 걸립니다.
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {matchFiles.map((f, i) => (
                 <div key={i} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-[13px] group hover:border-brand-300 transition-colors">
@@ -770,7 +774,13 @@ export function ExamReportView({
         )}
       </div>
 
-      <ExamHitReport analysisId={analysis.id} report={hitReport} savedAt={hitReportAt} files={matchFiles} />
+      <ExamHitReport
+        analysisId={analysis.id}
+        report={hitReport}
+        savedAt={hitReportAt}
+        files={matchFiles}
+        excerpts={items.map((i) => String(i.passage_excerpt ?? "")).filter((t) => t.trim().length > 40)}
+      />
 
       {mocks.length ? (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm print:hidden">
