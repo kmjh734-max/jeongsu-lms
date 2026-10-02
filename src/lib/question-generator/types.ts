@@ -206,6 +206,8 @@ export interface QuestionValidation {
   overallScore: number;
   warnings: string[];
   typeMatch?: boolean;
+  /** 뜻을 읽는 검수(모델)의 판정. 규칙 검수가 못 보는 복수 정답·비문·원문 표현 오류 지목을 본다 */
+  review?: { verdict: "pass" | "fix" | "drop"; reason: string; fixed?: string[] };
 }
 
 export interface GeneratedQuestionPayload {

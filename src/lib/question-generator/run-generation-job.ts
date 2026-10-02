@@ -1,5 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sweepSavedQuestions } from "@/lib/question-generator/final-sweep";
+import { aiReviewEnabled, reviewGeneratedQuestion } from "@/lib/question-generator/ai-review";
+import { withAiUsage } from "@/lib/ai-usage/context";
+import { currentAiUsage } from "@/lib/ai-usage/record";
 import {
   isGrammarBillingType,
   isWritingBillingType,
@@ -227,11 +230,15 @@ async function generateWithValidation(opts: {
 }): Promise<{
   payload: GeneratedQuestionPayload | null;
   status: "approved";
+  /** 뜻을 읽는 검수가 버려서 다시 만든 횟수 */
+  reviewDropped?: number;
   attempt: number;
   error: string | null;
   skipped?: boolean;
 }> {
   let lastError: string | null = null;
+  /** 뜻을 읽는 검수가 버려서 다시 만든 횟수 */
+  let reviewDropped = 0;
 
   const maxAttempts = (opts.retries ?? MAX_REGENERATION_ATTEMPTS) + 1;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -246,7 +253,30 @@ async function generateWithValidation(opts: {
       payload.validation = validation;
 
       if (!shouldRegenerate(validation)) {
-        return { payload, status: "approved", attempt, error: null };
+        /*
+         * 규칙 검수를 지난 문항을 뜻을 읽는 검수에 한 번 더 넘긴다(선생님 결정 2026-10-03).
+         * drop이면 다시 만들고, fix면 정답 번호·해설만 고쳐 저장한다. 호출이 실패하면 pass다.
+         * 사용량은 생성 값에 섞이지 않게 used_for를 따로 적는다(값은 받지 않는다).
+         */
+        if (aiReviewEnabled()) {
+          const review = await withAiUsage(
+            { ...currentAiUsage(), featureKey: null, usedFor: "qg_review" },
+            () =>
+              reviewGeneratedQuestion({
+                passage: opts.passage,
+                option: opts.option,
+                payload,
+                allowParaphrase: opts.paraphraseGrammarVocab === true,
+              })
+          );
+          validation.review = { verdict: review.verdict, reason: review.reason, fixed: review.fixed };
+          if (review.verdict === "drop") {
+            reviewDropped += 1;
+            lastError = `검수: ${review.reason}`;
+            continue;
+          }
+        }
+        return { payload, status: "approved", attempt, error: null, reviewDropped };
       }
       lastError = validation.warnings.join(" · ") || "형태 검수 미달";
     } catch (e) {
@@ -459,6 +489,8 @@ async function finalizeGenerationJob(
   jobId: string,
   opts: {
     totalRequested: number;
+    /** 뜻을 읽는 검수가 버려서 다시 만든 수 */
+    reviewDropped?: number;
     skipped: number;
     errorMessage?: string | null;
     /** 검수에 걸려 버린 문항들의 까닭 — 무엇을 다듬어야 하는지 보이게 남긴다 */
@@ -503,6 +535,7 @@ async function finalizeGenerationJob(
     }
     // 고른 유형으로 안 되어 바꿔 만든 것은 반드시 알린다 — 조용히 섞이면 안 된다
     if (substituted > 0) progressMessage += ` · 다른 유형으로 바꿔 만든 것 ${substituted}개`;
+    if ((opts.reviewDropped ?? 0) > 0) progressMessage += ` · 검수에서 걸러 다시 만든 것 ${opts.reviewDropped}개`;
   } else {
     progressMessage = "생성 실패";
   }
@@ -909,6 +942,7 @@ export async function runGenerationJob(
     let failed = 0;
     let skipped = 0;
     const dropped: string[] = [];
+    let reviewDropped = 0;
     /** 시간이 모자라 이번 실행에서 시작하지 않은 문항 수. */
     let deferred = 0;
     /** 시간 초과로 이번 실행을 접었다. 이후에 끝나는 문항은 저장하지 않는다. */
@@ -1019,6 +1053,7 @@ export async function runGenerationJob(
         wordOrderMode: config.wordOrderMode ?? "passage",
         retries: item.slot ? 2 : undefined,
       });
+      reviewDropped += result.reviewDropped ?? 0;
       // 다음 실행이 이 문항을 다시 만든다. 여기서 저장하면 같은 칸이 두 번 생긴다.
       if (abandoned) return;
 
@@ -1067,6 +1102,7 @@ export async function runGenerationJob(
             retries: 1,
           });
           if (retry.payload) {
+            reviewDropped += retry.reviewDropped ?? 0;
             result = retry;
             item.option = alt;
             substitutedFrom = requestedLabel;
@@ -1154,6 +1190,7 @@ export async function runGenerationJob(
       totalRequested,
       skipped,
       dropped,
+      reviewDropped,
     });
     return { more: false };
   } catch (e) {
