@@ -15,7 +15,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ExamItemRow } from "@/lib/exam-analysis/types";
 import { examTypeToOptionKey } from "@/lib/exam-analysis/blueprint";
 import { getWorkbookTypeMeta } from "@/lib/lesson-materials/workbook-types";
-import { findPassageAt, typesNear } from "@/lib/exam-analysis/uploaded-material";
+import { matchUploads } from "@/lib/exam-analysis/uploaded-material";
 import {
   askedSameSpot,
   examAskedWords,
@@ -330,31 +330,23 @@ export async function buildHitReport(
     }
 
     /*
-     * 올리신 자료 — 지문 자리를 찾고 그 가까이의 발문으로 유형을 확인한다.
-     * 발문 패턴이 잡힌 경우: 유형이 같으면 적중, 다르면 지문만 같음.
-     * 발문 패턴이 하나도 안 잡히는 경우: PDF 추출 오류일 수 있으므로
-     *   지문이 있으면 적중으로 본다(유형 확인 불가 fallback).
+     * 올리신 자료 — 지문이 나오는 자리마다 바로 앞 발문을 읽어, 문항표의 발문과 견준다.
+     * 발문을 못 읽으면 적중이 아니다(유형을 모르는데 맞췄다고 할 수 없다 — 2026-10-02).
+     * 자세한 잣대는 uploaded-material.ts 에 있다.
      */
-    if (excerpt.length > 40) {
-      const examName = it.type_name.split(" · ")[0]!.trim();
-      for (const u of uploads) {
-        const at = findPassageAt(u.text, excerpt);
-        if (at < 0) continue;
-        const near = typesNear(u.text, at);
-        if (near.length === 0) {
-          // PDF 발문 추출 실패 → 지문이 있으니 유형도 같다고 본다
-          rows.push({ from: "올린 자료", label: u.name, typeName: examName, sameType: true, sameSpot: null, before: true });
-          continue;
-        }
-        if (near.includes(examName)) {
-          rows.push({ from: "올린 자료", label: u.name, typeName: examName, sameType: true, sameSpot: null, before: true });
-        } else {
-          // 지문은 같지만 유형이 다른 자료
-          for (const t of near.slice(0, 2)) {
-            rows.push({ from: "올린 자료", label: u.name, typeName: t, sameType: false, sameSpot: null, before: true });
-          }
-        }
-      }
+    for (const m of matchUploads(
+      { passageExcerpt: it.passage_excerpt, stem: it.stem, typeName: it.type_name },
+      uploads
+    )) {
+      rows.push({
+        from: "올린 자료",
+        label: m.name,
+        typeName: m.typeName,
+        sameType: m.sameType,
+        sameSpot: null,
+        preview: m.stem ? m.stem.replace(/\s+/g, " ").slice(0, 60) : undefined,
+        before: true,
+      });
     }
 
     const rank = (r: HitRow) =>

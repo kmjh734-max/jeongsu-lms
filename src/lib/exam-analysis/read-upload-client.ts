@@ -11,12 +11,25 @@
 
 /** 글자가 이만큼은 나와야 「글자가 든 PDF」로 본다 */
 const TEXT_ENOUGH = 400;
+/**
+ * 쪽마다 이만큼은 나와야 글자가 든 PDF다.
+ *
+ * 스캔한 주간지(175쪽)가 쪽 번호 「- 2 -」만 뽑혀 1,500자가 나왔다(2026-10-02). 전체 글자
+ * 수만 보면 글자가 든 것으로 잘못 보고 읽기를 건너뛰어, 대조할 글이 하나도 없었다.
+ */
+const TEXT_PER_PAGE_ENOUGH = 80;
 /** 스캔본일 때 읽힐 쪽 수 — 너무 많으면 오래 걸리고 값이 든다 */
 const MAX_SCAN_PAGES = 6;
 
-export type UploadRead = { name: string; text: string; scanned: boolean };
+export type UploadRead = {
+  name: string;
+  text: string;
+  scanned: boolean;
+  /** 선생님께 알릴 것 — 스캔본이라 앞 몇 쪽만 읽었다 등 */
+  note?: string;
+};
 
-async function pdfText(file: File): Promise<string> {
+async function pdfText(file: File): Promise<{ text: string; pages: number }> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
   const pdf = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
@@ -31,7 +44,7 @@ async function pdfText(file: File): Promise<string> {
       .trim();
     if (line) out.push(line);
   }
-  return out.join("\n");
+  return { text: out.join("\n"), pages: pdf.numPages };
 }
 
 async function pdfPagesToText(file: File, analysisId: string): Promise<string> {
@@ -79,9 +92,17 @@ export async function readUploadedMaterial(file: File, analysisId: string): Prom
     return { name, text: await file.text(), scanned: false };
   }
   if (/\.pdf$/i.test(name) || file.type === "application/pdf") {
-    const text = await pdfText(file);
-    if (text.replace(/\s/g, "").length >= TEXT_ENOUGH) return { name, text, scanned: false };
-    return { name, text: await pdfPagesToText(file, analysisId), scanned: true };
+    const { text, pages } = await pdfText(file);
+    const chars = text.replace(/\s/g, "").length;
+    if (chars >= TEXT_ENOUGH && chars / Math.max(1, pages) >= TEXT_PER_PAGE_ENOUGH) {
+      return { name, text, scanned: false };
+    }
+    const read = await pdfPagesToText(file, analysisId);
+    const note =
+      pages > MAX_SCAN_PAGES
+        ? `${name}은 스캔본이라 앞 ${MAX_SCAN_PAGES}쪽만 읽었어요(전체 ${pages}쪽). 글자가 든 PDF로 올리시면 전부 읽어요.`
+        : undefined;
+    return { name, text: read, scanned: true, ...(note ? { note } : {}) };
   }
   if (file.type.startsWith("image/")) {
     const text = await readOnServer(analysisId, await readDataUrl(file), name);

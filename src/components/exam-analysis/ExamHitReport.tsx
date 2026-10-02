@@ -44,15 +44,19 @@ export function ExamHitReport({
     setMessage(null);
     try {
       const uploads: Array<{ name: string; text: string }> = [];
+      const notes: string[] = [];
       for (const [i, f] of files.entries()) {
         setStep(`올리신 자료를 읽는 중 (${i + 1}/${files.length}) — ${f.name}`);
         try {
           const read = await readUploadedMaterial(f, analysisId);
+          if (read.note) notes.push(read.note);
           if (read.text.trim().length > 40) uploads.push({ name: read.name, text: read.text });
+          else notes.push(`${f.name}에서 글을 읽지 못했어요.`);
         } catch (e) {
-          setMessage(e instanceof Error ? e.message : `${f.name}을 읽지 못했습니다.`);
+          notes.push(e instanceof Error ? e.message : `${f.name}을 읽지 못했습니다.`);
         }
       }
+      if (notes.length > 0) setMessage(notes.join(" "));
       setStep("업로드 데이터 압축 중…");
       const fd = new FormData();
       fd.append("id", analysisId);
