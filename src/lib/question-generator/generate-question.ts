@@ -1863,8 +1863,10 @@ export function assertBasicQuestionShape(
      * 정답의 낱말이 하나하나 맞아야 한다. 숫자를 낱말로 세지 않아 2018이 보기에서 빠진
      * 채로 나간 일이 있었다(2026-10-01 Jayden 선생님 지적). 여기서 세어 막는다.
      */
-    const bankWords = splitWordBank(bank).map((w) => lemmaEnglishToken(w).toLowerCase());
-    const answerWords = tokenizeAnswerPhrase(answer).map((w) => lemmaEnglishToken(w).toLowerCase());
+    // be·do·have 꼴(is/are/was…)은 보기의 원형과 같은 낱말로 센다 — 조건이 「어형을 바꿔 쓸 것」이다.
+    // 이것을 안 세어 「정답의 낱말 is가 보기에 없다」로 멀쩡한 문항을 버렸다(2026-10-03 254문항 작업 3개).
+    const bankWords = splitWordBank(bank).map((w) => lemmaEnglishToken(w, { auxiliaries: true }).toLowerCase());
+    const answerWords = tokenizeAnswerPhrase(answer).map((w) => lemmaEnglishToken(w, { auxiliaries: true }).toLowerCase());
     if (bankWords.length !== answerWords.length) {
       return `<보기> ${bankWords.length}낱말과 정답 ${answerWords.length}낱말이 맞지 않습니다.`;
     }
@@ -2348,8 +2350,14 @@ export async function generateOneQuestion(opts: {
    * 사본마다 근거 자리를 달리 잡으라는 한 줄을 넣어 프롬프트를 다르게 한다.
    */
   const copyIndex = opts.copyIndex ?? 0;
+  /*
+   * 순서추론은 「앞부분/뒷부분」 힌트가 듣지 않는다 — 자르는 자리가 같으면 사본이 똑같아진다
+   * (254문항 작업 #36·#37, #205·#206). 사본마다 주어진 글의 길이를 바꿔 경계가 달라지게 한다.
+   */
   const copyHint =
-    copyIndex > 0
+    copyIndex > 0 && option.type === "order"
+      ? `- SAME-TYPE COPY ${copyIndex + 1} for this passage: another 순서추론 item already exists. Split the passage DIFFERENTLY — the given text must be the first ${Math.min(copyIndex + 1, 3)} sentence(s) of the passage (or a paraphrase of exactly that span), so the (A)(B)(C) boundaries differ from the other copy.`
+      : copyIndex > 0
       ? `- SAME-TYPE COPY ${copyIndex + 1} for this passage: another item of this exact type already exists for this passage. Make this one DIFFERENT — anchor the answer/underline/blank/referent in the ${["LATER part", "MIDDLE part", "EARLIER part"][copyIndex % 3]} of the passage, pick a different target sentence or word than the most obvious one, and write different choices.`
       : "";
 
@@ -2522,12 +2530,16 @@ export async function generateOneQuestion(opts: {
         "what ~ 로 시작하는 절",
         "명사구 하나로 (절을 쓰지 않는다)",
       ],
+      /*
+       * 「비교로 (A is more ~ than B)」·「Only when ~」 모양은 뺐다. 254문항 대조(2026-10-03)에서
+       * 「Telescopes make distant objects more accessible ... than objects too remote ...」처럼
+       * 뜻이 안 서는 보기가 이 두 모양에서만 나왔다.
+       */
       content_true: [
         "주어를 사람·집단으로",
         "주어를 사물·현상으로",
         "시간 표현을 앞세워 (In the past ~ / Today ~)",
-        "비교로 (A is more ~ than B)",
-        "조건·범위로 (Only when ~ / In most cases ~)",
+        "원인·결과로 (because ~ / so ~ / as a result ~)",
       ],
     };
     SHAPES.content_false = SHAPES.content_true;
@@ -2536,7 +2548,8 @@ export async function generateOneQuestion(opts: {
     const turn = opts.typeTurn ?? opts.diversitySlot?.index ?? 0;
     return `
 
-CHOICE SHAPE: 이번 문항의 보기는 이 모양을 우선한다 — ${list[turn % list.length]}. 억지로 맞추지는 말되, 지난 문항과 같은 틀로 쓰지 않는다.`;
+CHOICE SHAPE: 이번 문항의 <b>정답 보기</b>는 이 모양을 우선한다 — ${list[turn % list.length]}. 억지로 맞추지는 말되, 지난 문항과 같은 틀로 쓰지 않는다.
+- 다섯 보기의 첫 낱말은 섞는다. 같은 낱말로 시작하는 보기는 셋까지만(넷 이상이면 버려진다).`;
   })();
 
   /*

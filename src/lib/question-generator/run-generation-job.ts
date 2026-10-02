@@ -1156,7 +1156,7 @@ export async function runGenerationJob(
          */
         substitutedReason = result.error ?? "까닭 없음";
         const level = item.slot?.level ?? (item.option.difficulty === "high" ? "상" : "하");
-        for (const alt of fallbackOptionsFor(item.option.key, level)) {
+        for (const alt of fallbackOptionsFor(item.option.key, level, item.typeTurn ?? item.copyIndex ?? 0)) {
           const retry = await generateWithValidation({
             passage: item.passageText,
             analysis: item.analysis,
@@ -1166,7 +1166,8 @@ export async function runGenerationJob(
             sourceDetail: item.sourceDetail,
             diversitySlot: item.diversitySlot,
             typeTurn: item.typeTurn,
-            copyIndex: item.copyIndex,
+            // 대체로 만든 문항은 그 유형의 원래 사본(0·1번)과 겹치기 쉽다 — 셋째 사본처럼 다르게 만들게 한다
+            copyIndex: (item.copyIndex ?? 0) + 2,
             targetLevel: item.slot?.level ?? null,
             paraphraseGrammarVocab: config.paraphraseGrammarVocab === true,
             levelBrief: config.levelBrief,
@@ -1320,16 +1321,29 @@ export async function runGenerationJob(
  * 배점을 다 채워야 100점이 되므로, 그 지문에 안 맞는 유형이면 다른 유형으로라도
  * 만들어 번호를 채운다. 어떤 지문에도 낼 수 있는 유형부터 차례로 시도한다.
  */
-function fallbackOptionsFor(optionKey: string, level: "상" | "중" | "하") {
+/*
+ * 대체 유형은 고른 유형과 같은 갈래에서 먼저 찾고, 객관식은 차례를 돌려 한 유형으로 몰리지 않게 한다.
+ * 254문항 작업(2026-10-03)은 대체 35개 가운데 27개가 제목추론으로 가, 한 지문에 제목추론이
+ * 20개나 됐다. 서술형·어법을 고른 선생님에게 제목추론이 쌓이면 시험지가 안 된다.
+ */
+function fallbackOptionsFor(optionKey: string, level: "상" | "중" | "하", turn = 0) {
   const tier = level === "상" ? "high" : "low";
-  const keys = /sentence_insertion|irrelevant_sentence/.test(optionKey)
-    ? [`order:na:${tier}:순서추론`, `topic:en:${tier}:주제추론`, `title:en:${tier}:제목추론`]
-    : [
-        `topic:en:${tier}:주제추론`,
-        `title:en:${tier}:제목추론`,
-        `summary_mcq:en:${tier}:요지추론`,
-        `order:na:${tier}:순서추론`,
-      ];
+  const rotate = (list: string[]) => {
+    const k = Math.abs(Math.floor(turn)) % list.length;
+    return [...list.slice(k), ...list.slice(0, k)];
+  };
+  const keys = /^grammar:/.test(optionKey)
+    ? ["grammar:na:default:어법추론", "grammar:na:default:어법개수"]
+    : /^(writing|summary_short):/.test(optionKey)
+      ? ["writing:na:default:제시어배열기본", "summary_short:na:default:요약문빈칸2단어", "writing:na:default:제시어배열어형변화"]
+      : /sentence_insertion|irrelevant_sentence/.test(optionKey)
+        ? [`order:na:${tier}:순서추론`, ...rotate([`topic:en:${tier}:주제추론`, `title:en:${tier}:제목추론`])]
+        : rotate([
+            `topic:en:${tier}:주제추론`,
+            `title:en:${tier}:제목추론`,
+            `summary_mcq:en:${tier}:요지추론`,
+            `order:na:${tier}:순서추론`,
+          ]);
   const out = [];
   for (const k of keys) {
     if (k === optionKey) continue;

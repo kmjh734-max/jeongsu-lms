@@ -22,6 +22,10 @@ function plainText(text: string): string {
     .replace(/_{3,}/g, " ")
     .replace(/[’‘]/g, "'")
     .replace(/[“”]/g, '"')
+    // 대시 꼴·띄어쓰기 통일(— – -). 모델이 「answers — regardless」를 「answers—regardless」로,
+    // 「5-10」을 「5–10」으로 바꿔 와 「원문을 고쳐 썼다」로 버려졌다(2026-10-03).
+    .replace(/[—–]/g, "-")
+    .replace(/\s*-\s*/g, "-")
     .replace(/\s+/g, " ")
     .trim();
 }
