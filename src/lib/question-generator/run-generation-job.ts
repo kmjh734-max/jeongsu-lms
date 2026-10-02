@@ -153,6 +153,8 @@ function toRow(
     substitutedFrom?: string | null;
     /** 그 유형으로 안 된 까닭 (어느 검수에 걸렸는지) */
     substitutedReason?: string | null;
+    /** 원래 고른 유형의 키 — 이어 받을 때 이 칸을 이미 채운 것으로 센다 */
+    substitutedFromKey?: string | null;
   }
 ) {
   const approved = opts.status === "approved";
@@ -192,6 +194,7 @@ function toRow(
           ...(payload.validation ?? {}),
           substitutedFrom: opts.substitutedFrom,
           substitutedReason: opts.substitutedReason ?? null,
+          substitutedFromKey: opts.substitutedFromKey ?? null,
         }
       : payload.validation ?? null,
     validation_score: opts.validationScore,
@@ -707,12 +710,19 @@ export async function runGenerationJob(
 
   const { data: existingRows } = await admin
     .from("generated_english_questions")
-    .select("passage_id, option_key, slot_index")
+    .select("passage_id, option_key, slot_index, validation_result")
     .eq("generation_job_id", jobId);
+  /*
+   * 다른 유형으로 바꿔 만든 문항은 「원래 고른 유형」 칸을 채운 것으로 센다.
+   * 전에는 바뀐 유형 키로만 세어, 다음 토막이 원래 칸을 비었다고 보고 한 번 더 만들었다.
+   * 249문항을 청했는데 254문항이 나온 까닭이다(2026-10-03).
+   */
+  const slotOptionKey = (r: { option_key?: unknown; validation_result?: unknown }) =>
+    String(
+      (r.validation_result as { substitutedFromKey?: string } | null)?.substitutedFromKey ?? r.option_key ?? ""
+    );
   const existingSlots = new Set(
-    (existingRows ?? []).map((r) =>
-      slotKey(String(r.passage_id), String(r.option_key ?? ""))
-    )
+    (existingRows ?? []).map((r) => slotKey(String(r.passage_id), slotOptionKey(r)))
   );
   /**
    * 지문·유형 조합마다 이미 저장된 수. 한 유형을 2개씩 청하면 조합 하나에 문항이 둘이다.
@@ -720,7 +730,7 @@ export async function runGenerationJob(
    */
   const existingCountBySlot = new Map<string, number>();
   for (const r of existingRows ?? []) {
-    const k = slotKey(String(r.passage_id), String(r.option_key ?? ""));
+    const k = slotKey(String(r.passage_id), slotOptionKey(r));
     existingCountBySlot.set(k, (existingCountBySlot.get(k) ?? 0) + 1);
   }
   /** 유형마다 이미 만들어 둔 문항 수 — 이어 받아도 조건 문법 차례가 처음으로 돌아가지 않게 */
@@ -1132,6 +1142,8 @@ export async function runGenerationJob(
        */
       let substitutedFrom: string | null = null;
       let substitutedReason: string | null = null;
+      let substitutedFromKey: string | null = null;
+      const requestedKey = item.option.key;
       if ((result.skipped || !result.payload) && item.option.type !== "vocabulary") {
         const requestedLabel = item.option.label || item.option.key.split(":").pop() || "";
         /*
@@ -1168,6 +1180,7 @@ export async function runGenerationJob(
             result = retry;
             item.option = alt;
             substitutedFrom = requestedLabel;
+            substitutedFromKey = requestedKey;
             dropped.push(`[${requestedLabel} → ${alt.label || alt.key.split(":").pop()}] ${substitutedReason}`);
             break;
           }
@@ -1197,6 +1210,7 @@ export async function runGenerationJob(
             slot: item.slot ?? null,
             substitutedFrom,
             substitutedReason,
+            substitutedFromKey,
           })
         );
         const tracked = Promise.resolve(insert).finally(() => inserts.delete(tracked));
