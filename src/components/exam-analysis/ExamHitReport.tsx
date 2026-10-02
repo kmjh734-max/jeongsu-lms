@@ -194,32 +194,39 @@ export function ExamHitReport({
                     {it.rows.map((r, i) => (
                       <li
                         key={`${it.itemId}-${i}`}
-                        className={`flex flex-wrap items-center gap-1.5 text-[12.5px] ${
+                        className={`flex flex-col gap-0.5 text-[12.5px] ${
                           r.sameType ? "text-slate-800" : "text-slate-500"
                         }`}
                       >
-                        <span
-                          className={
-                            r.sameSpot === true
-                              ? "text-emerald-700"
-                              : r.sameType
-                                ? "text-emerald-500"
-                                : "text-slate-300"
-                          }
-                        >
-                          {r.sameSpot === true ? "★" : r.sameType ? "●" : "○"}
-                        </span>
-                        {r.sameType && r.sameSpot === false ? (
-                          <span className="text-[11px] text-amber-600">묻는 자리 다름</span>
-                        ) : null}
-                        <span className="font-medium">{r.from}</span>
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px]">{r.typeName}</span>
-                        <span className="truncate">{r.label}</span>
-                        {r.madeAt ? (
-                          <span className={`text-[11px] ${r.before ? "text-slate-400" : "text-amber-600"}`}>
-                            {r.before ? "" : "시험 뒤 · "}
-                            {r.madeAt.slice(0, 10)}
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span
+                            className={
+                              r.sameSpot === true
+                                ? "text-emerald-700"
+                                : r.sameType
+                                  ? "text-emerald-500"
+                                  : "text-slate-300"
+                            }
+                          >
+                            {r.sameSpot === true ? "★" : r.sameType ? "●" : "○"}
                           </span>
+                          {r.sameType && r.sameSpot === false ? (
+                            <span className="text-[11px] text-amber-600">묻는 자리 다름</span>
+                          ) : null}
+                          <span className="font-medium">{r.from}</span>
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px]">{r.typeName}</span>
+                          <span className="truncate">{r.label}</span>
+                          {r.madeAt ? (
+                            <span className={`text-[11px] ${r.before ? "text-slate-400" : "text-amber-600"}`}>
+                              {r.before ? "" : "시험 뒤 · "}
+                              {r.madeAt.slice(0, 10)}
+                            </span>
+                          ) : null}
+                        </div>
+                        {r.preview ? (
+                          <div className="pl-[22px] text-[11.5px] text-slate-500 line-clamp-1 italic">
+                            "{r.preview}"
+                          </div>
                         ) : null}
                       </li>
                     ))}
