@@ -312,7 +312,7 @@ export async function buildHitReport(
             });
             continue;
           }
-          const examName = it.type_name.split(" · ")[0]!.trim();
+          const examName = it.type_name.split(" · ").pop()!.replace(" (한글)", "").trim();
           for (const k of kinds) {
             rows.push({
               from: "수업자료",
@@ -334,7 +334,7 @@ export async function buildHitReport(
      * 파일 전체에서 아무 발문이나 끌어오면 내지도 않은 유형을 맞췄다고 하게 된다.
      */
     if (excerpt.length > 40) {
-      const examName = it.type_name.split(" · ")[0]!.trim();
+      const examName = it.type_name.split(" · ").pop()!.replace(" (한글)", "").trim();
       for (const u of uploads) {
         const at = findPassageAt(u.text, excerpt);
         if (at < 0) continue;
