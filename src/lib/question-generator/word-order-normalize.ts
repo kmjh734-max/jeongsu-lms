@@ -660,35 +660,13 @@ export function normalizeWordOrderQuestionText(
     .filter(Boolean)
     .join("\n");
 
-  // add 모드: 보기에 없는데 정답에 필요한 단어를 계산해 조건에 명시
-  if (mode === "add" && answer) {
-    const ansTokens = tokenizeAnswerPhrase(answer);
-    const bankTokens = splitWordBank(scrubWordBankNoise(words)).map(lemmaEnglishToken);
-    const bankCount = new Map<string, number>();
-    for (const t of bankTokens) bankCount.set(t, (bankCount.get(t) ?? 0) + 1);
-    // 정답 토큰 중 보기에 없는 것
-    const usedCount = new Map<string, number>();
-    const extraWords: string[] = [];
-    for (const t of ansTokens) {
-      const lem = lemmaEnglishToken(t);
-      const have = bankCount.get(lem) ?? 0;
-      const used = usedCount.get(lem) ?? 0;
-      if (used >= have) {
-        extraWords.push(t.toLowerCase());
-      }
-      usedCount.set(lem, used + 1);
-    }
-    // 기존 "보기에 없는 단어 추가 가능" 줄 제거하고 명시적 조건으로 교체
-    const cleanedCond = condBlock
-      .split("\n")
-      .filter((l) => !/보기에\s*없는\s*단어\s*추가/.test(l))
-      .join("\n")
-      .trim();
-    const extraLine =
-      extraWords.length > 0
-        ? `○ 다음 단어를 추가하여 배열할 것: ${extraWords.join(", ")}`
-        : `○ 보기에 없는 단어(관사·전치사 등)를 추가하여 배열할 것`;
-    return `<조건>\n${cleanedCond}\n${extraLine}\n\n<보기>\n${words}\n\n<해석>\n${translation}`.trim();
+  // add 모드: 조건에 "단어 추가 가능" 이 반드시 있어야 한다
+  if (mode === "add") {
+    const hasDaneoAdd = /단어\s*추가\s*가능/.test(condBlock);
+    const finalCond = hasDaneoAdd
+      ? condBlock
+      : `${condBlock}\n○ 단어 추가 가능`.trim();
+    return `<조건>\n${finalCond}\n\n<보기>\n${words}\n\n<해석>\n${translation}`.trim();
   }
 
   return `<조건>\n${condBlock}\n\n<보기>\n${words}\n\n<해석>\n${translation}`.trim();
