@@ -11,7 +11,7 @@
  *  - fix : 본문·보기는 멀쩡하고 정답 번호나 해설만 틀린 것 — 그 둘만 고쳐 저장
  *  - drop: 버리고 다시 만든다
  *
- * 값: gpt-5.6-sol 기준 문항당 약 11원(입력 1,200·출력 150토큰). 생성 원가의 약 25%.
+ * 값: gpt-5.6-terra 기준 문항당 약 6원(입력 1,200·출력 150토큰). 생성 원가의 약 10%.
  * 끄려면 QG_AI_REVIEW=off.
  */
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
@@ -26,7 +26,12 @@ export type ReviewResult = {
   fixed: string[];
 };
 
-const REVIEW_MODEL = process.env.OPENAI_MODEL_QG_REVIEW?.trim() || "gpt-5.6-sol";
+/*
+ * 검수 모델은 gpt-5.6-terra(값 절반)로 둔다. 2026-10-03, 미리 판정해 둔 108문항에 두 모델을 나란히
+ * 돌려 보니 불량 4/4·조건부 6/10을 똑같이 잡았다. sol은 멀쩡한 문항 해설을 5개 괜히 고쳤고,
+ * terra는 0개였다. 문항당 11.8원 → 6.1원.
+ */
+const REVIEW_MODEL = process.env.OPENAI_MODEL_QG_REVIEW?.trim() || "gpt-5.6-terra";
 
 export function aiReviewEnabled(): boolean {
   return (process.env.QG_AI_REVIEW ?? "on").trim().toLowerCase() !== "off";
