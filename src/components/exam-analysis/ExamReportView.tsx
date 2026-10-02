@@ -711,22 +711,17 @@ export function ExamReportView({
             >
               {matchBusy ? (matchStep || "대조 중…") : matchOn ? "수업자료 대조 켜짐" : "수업자료 대조 끄기"}
             </button>
-            <label title="직접 만든 자료를 여러 개 올려서 같이 대조해요" className="cursor-pointer h-9 inline-flex items-center rounded-lg border border-slate-300 bg-white px-3.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+            <label title="직접 만든 자료를 여러 개 올려서 같이 대조해요" className="cursor-pointer h-9 inline-flex items-center rounded-lg border border-brand-200 bg-brand-50 px-3.5 text-sm font-semibold text-brand-700 hover:bg-brand-100 transition-colors">
               <Icon name="upload" size={16} className="mr-1.5" />
-              올린 자료 추가 {matchFiles.length > 0 ? `(${matchFiles.length})` : ""}
+              직접 만든 자료(PDF) 추가하기
               <input
                 type="file"
                 multiple
                 accept=".pdf,.txt,.md,.csv,image/*"
                 className="hidden"
-                onChange={(e) => setMatchFiles([...(e.target.files ?? [])].slice(0, 10))}
+                onChange={(e) => setMatchFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])])}
               />
             </label>
-            {matchFiles.length > 0 && (
-              <button type="button" onClick={() => setMatchFiles([])} className="text-xs text-slate-400 hover:text-slate-600 underline">
-                지우기
-              </button>
-            )}
           </div>
           <ExamDeleteButton id={analysis.id} label={title} redirectTo={listHref} variant="button" />
           <button
@@ -737,6 +732,40 @@ export function ExamReportView({
             <Icon name="print" size={15} /> 인쇄 / PDF
           </button>
         </div>
+        
+        {matchFiles.length > 0 && (
+          <div className="mt-3 flex flex-col gap-1.5 rounded-xl border border-brand-100 bg-white p-3 shadow-sm w-full max-w-2xl">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[13px] font-bold text-slate-700 flex items-center gap-1.5">
+                <Icon name="upload" size={14} className="text-brand-600" />
+                대조할 선생님 자체 제작 자료 목록 ({matchFiles.length}개)
+              </span>
+              <button type="button" onClick={() => setMatchFiles([])} className="text-[12px] font-medium text-slate-400 hover:text-red-500 underline underline-offset-2">
+                전체 지우기
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {matchFiles.map((f, i) => (
+                <div key={i} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-[13px] group hover:border-brand-300 transition-colors">
+                  <div className="flex items-center gap-2 truncate text-slate-700">
+                    <Icon name="file" size={14} className="text-slate-400 group-hover:text-brand-500 shrink-0" />
+                    <span className="truncate font-medium">{f.name}</span>
+                    <span className="text-[11px] text-slate-400 shrink-0">({Math.round(f.size / 1024)}KB)</span>
+                  </div>
+                  <button type="button" onClick={() => setMatchFiles(fs => fs.filter((_, idx) => idx !== i))} className="shrink-0 p-1 text-slate-400 hover:text-red-500 transition-colors bg-white rounded-md border border-slate-200 ml-2 shadow-sm">
+                    <Icon name="x" size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            {!matchOn && (
+              <div className="mt-1 flex items-center gap-2 text-[12.5px] text-brand-600 font-medium bg-brand-50 p-2 rounded-lg border border-brand-100">
+                <Icon name="info" size={14} />
+                파일을 올린 후 위의 <b className="text-brand-700">'수업자료 대조 끄기'</b> 버튼을 눌러 대조를 다시 켜주셔야 분석지에 반영됩니다.
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <ExamHitReport analysisId={analysis.id} report={hitReport} savedAt={hitReportAt} />
