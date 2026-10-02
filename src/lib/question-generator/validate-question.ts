@@ -336,6 +336,97 @@ export function validateGeneratedQuestion(opts: {
     }
   }
 
+  /*
+   * 202문항 대조(2026-10-02, 두 번째 새 작업)에서 나온 꼴.
+   */
+  // 어법 수정 2·3: 정답으로 적은 밑줄이 원문과 같다(#6은 원문의 in을 틀렸다 했고, #141은 원문의 takes를 정답에 넣었다)
+  if (!opts.allowParaphrase && (code === "어법오류수정2" || code === "어법오류수정3") && modifiedText && answerStr) {
+    const uls = [...modifiedText.matchAll(
+      /((?:[A-Za-z’'-]+[\s,;:]+){0,2})([ⓐ-ⓖ])\s*<u>([\s\S]*?)<\/u>((?:[\s,;:]+[A-Za-z’'-]+){0,2})/g
+    )];
+    const unchanged = new Set(
+      uls.filter((m) => originalPlain.includes(plainText(`${m[1] ?? ""}${m[3] ?? ""}${m[4] ?? ""}`))).map((m) => m[2]!)
+    );
+    const inside = new Map(uls.map((m) => [m[2]!, plainText(m[3] ?? "").toLowerCase()]));
+    for (const m of answerStr.matchAll(/([ⓐ-ⓖ])\s*[:：]\s*([^/]+)/g)) {
+      if (unchanged.has(m[1]!)) {
+        warnings.push(`정답 ${m[1]}의 밑줄이 원문과 같습니다. 틀린 곳이 아닙니다.`);
+        score -= 45;
+        break;
+      }
+      if (inside.get(m[1]!) === plainText(m[2] ?? "").toLowerCase()) {
+        warnings.push(`정답 ${m[1]}의 고친 꼴이 밑줄과 같습니다.`);
+        score -= 45;
+        break;
+      }
+    }
+  }
+
+  // 어법 문장 수정: 번호는 문장 앞에만 (#4 「② While painting these works, ③ Pollock …」)
+  if (code === "어법문장오류수정" && modifiedText) {
+    const body = modifiedText.replace(/<\/?[ub]>/gi, "");
+    const mid = [...body.matchAll(/[①②③④⑤]/g)].find((m) => {
+      const before = body.slice(0, m.index).replace(/\s+$/, "");
+      return before.length > 0 && !/[.!?]["'’”)]*$/.test(before);
+    });
+    if (mid) {
+      warnings.push(`번호 ${mid[0]}가 문장 중간에 있습니다. 번호는 문장 앞에만 둡니다.`);
+      score -= 45;
+    }
+  }
+
+  // 문장삽입(하): 주어진 문장을 정답 자리에 넣으면 원문이 되어야 한다 (#27은 ④인데 ⑤라 했다)
+  if (
+    option.type === "sentence_insertion" &&
+    !opts.allowParaphrase &&
+    option.difficulty === "low" &&
+    modifiedText &&
+    (q.questionText ?? "").trim()
+  ) {
+    const squash = (s: string) => plainText(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+    const target = squash(opts.passage);
+    const parts = modifiedText.replace(/<\/?[ub]>/gi, "").split(/[①②③④⑤]/);
+    if (parts.length === 6 && target.length > 0) {
+      const sentence = String(q.questionText);
+      const fits: number[] = [];
+      for (let k = 1; k <= 5; k++) {
+        const candidate = [...parts.slice(0, k), sentence, ...parts.slice(k)].join(" ");
+        if (squash(candidate) === target) fits.push(k);
+      }
+      const no = Number(q.correctAnswer);
+      if (fits.length === 1 && Number.isFinite(no) && fits[0] !== no) {
+        warnings.push(`주어진 문장을 원문 자리에 넣으면 ${"①②③④⑤"[fits[0]! - 1]}인데 정답이 ${no}번입니다.`);
+        score -= 45;
+      } else if (fits.length === 0) {
+        warnings.push("주어진 문장을 어느 자리에 넣어도 원문이 되지 않습니다. 하 난이도는 원문 문장을 그대로 빼야 합니다.");
+        score -= 45;
+      }
+    }
+  }
+
+  // 지칭·특정표현: 원문을 고쳐 쓰면 안 되고(#68 「and it appears」를 지어 넣음), 답이 대명사면 안 된다(#131 「this」)
+  if (/지칭대명사서술|특정표현의미서술/.test(code) && modifiedText) {
+    if (!opts.allowParaphrase && plainText(modifiedText) !== originalPlain) {
+      warnings.push("지칭·특정표현은 원문에 밑줄만 쳐야 합니다. 문장을 고쳐 쓰거나 넣었습니다.");
+      score -= 45;
+    }
+    if (/^(it|its|this|that|these|those|they|them|their|he|she|him|her|one)$/i.test(answerStr.replace(/^[ⓐ-ⓔ]\s*[:：]?\s*/, "").trim())) {
+      warnings.push(`지칭의 답이 대명사 "${answerStr}"입니다. 가리키는 명사를 써야 합니다.`);
+      score -= 45;
+    }
+  }
+
+  // 요약문 2·3단어: 구가 기능어·부사로 끝나면 요약문이 비문이 된다 (#95 「focus on what they actually」)
+  if (option.type === "summary_short" && /요약문빈칸[23]단어$/.test(code) && answerStr) {
+    const first = (answerStr.match(/ⓐ\s*[:：]?\s*([^/]+)/)?.[1] ?? answerStr.split("/")[0] ?? "").trim();
+    const words = plainText(first).toLowerCase().split(/\s+/).filter(Boolean);
+    const last = words[words.length - 1] ?? "";
+    if (/^(a|an|the|of|to|and|or|but|that|than|as|in|on|at|for|with|by|is|are|was|were|be|actually|very|so|not|only|just|even|also|still)$/.test(last) || /^(and|or|but)$/.test(words[0] ?? "")) {
+      warnings.push(`ⓐ "${first}"가 기능어로 끝나거나 접속사로 시작합니다. 요약문이 비문이 됩니다.`);
+      score -= 45;
+    }
+  }
+
   // 빈칸추론: 두 보기가 말만 바꾼 같은 뜻이면 정답이 둘이다 (#139 「limits … apparent」 vs 「shortcomings … clear」)
   if (option.type === "sentence_blank" && Array.isArray(q.choices) && q.choices.length >= 5) {
     const bag = (s: string) =>
@@ -443,7 +534,10 @@ export function validateGeneratedQuestion(opts: {
    *    (전수 5,696개에서 그 꼴 세 건이 모두 옳은 해설이었다). 「③이 알맞다」처럼
    *    번호를 정답으로 지목한 것만 본다.
    */
-  if (Array.isArray(q.choices) && q.choices.length >= 4) {
+  // 어법·어휘 추론은 보기가 본문 밑줄이라 choices가 없다 — 그래도 머리글 번호는 본다 (202문항 대조 #9·#77)
+  const markIndexType =
+    (option.type === "grammar" || option.type === "vocabulary") && /추론$/.test(option.aingkaCode ?? "");
+  if ((Array.isArray(q.choices) && q.choices.length >= 4) || markIndexType) {
     const no = Number(q.correctAnswer);
     if (Number.isFinite(no)) {
       const claimed = new Set<number>();
@@ -455,6 +549,8 @@ export function validateGeneratedQuestion(opts: {
         /([①-⑤])\s*(?:이|가|은|는|을|를|번)?\s*(?:정답|알맞|적절하다|적절한|맞다|들어가)/g
       )) push(m[1]!);
       for (const m of q.explanation.matchAll(/정답[^①-⑤가-힣]{0,4}([①-⑤])/g)) push(m[1]!);
+      // 「정답은 ③이다」처럼 조사가 붙은 꼴 (202문항 대조 2026-10-02: 어법추론 둘이 머리글만 다른 번호였다)
+      for (const m of q.explanation.matchAll(/정답\s*(?:은|는|이|가)\s*([①-⑤])/g)) push(m[1]!);
       if (claimed.size > 0 && !claimed.has(no)) {
         warnings.push(`정답은 ${no}번인데 해설은 ${[...claimed].join(",")}번을 정답이라고 합니다.`);
         score -= 40;

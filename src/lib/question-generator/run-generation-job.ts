@@ -220,6 +220,8 @@ async function generateWithValidation(opts: {
   targetLevel?: TargetLevel | null;
   /** 어법·어휘에서 지문을 바꿔 써도 되는지(기본은 원문 그대로) */
   paraphraseGrammarVocab?: boolean;
+  /** 같은 지문·같은 유형의 몇 번째 사본인가 */
+  copyIndex?: number;
   /** 다시 만들기 횟수(설계도 칸은 빈자리가 없게 더 시도한다) */
   retries?: number;
 }): Promise<{
@@ -285,6 +287,12 @@ type WorkItem = {
    * 번호가 나온다 — 조건 문법을 여럿 골라도 한두 개만 계속 나왔다(2026-10-01 지적).
    */
   typeTurn: number;
+  /**
+   * 같은 지문·같은 유형의 몇 번째 사본인가(0부터). 한 유형을 2개씩 청하면 둘의 프롬프트가
+   * 글자까지 같아 모델이 똑같은 문항을 둘 내놓았다(2026-10-02: 지칭·특정표현·내용일치).
+   * 사본마다 근거 자리를 달리 잡으라는 한 줄을 넣는 데 쓴다.
+   */
+  copyIndex?: number;
   /** 설계도(동형모의고사) 칸 */
   slot?: { index: number; itemNo: string; points: number | null; level: TargetLevel };
 };
@@ -810,6 +818,7 @@ export async function runGenerationJob(
         copyIndexByKey.set(key, copyIndex + 1);
         if (copyIndex < (existingCountBySlot.get(key) ?? 0)) continue;
         work.push({
+          copyIndex,
           passageId,
           passageText: passageRow.passage,
           analysis,
@@ -1001,6 +1010,7 @@ export async function runGenerationJob(
         sourceDetail: item.sourceDetail,
         diversitySlot: item.diversitySlot,
         typeTurn: item.typeTurn,
+        copyIndex: item.copyIndex,
         targetLevel: item.slot?.level ?? null,
         paraphraseGrammarVocab: config.paraphraseGrammarVocab === true,
         levelBrief: config.levelBrief,
@@ -1047,6 +1057,7 @@ export async function runGenerationJob(
             sourceDetail: item.sourceDetail,
             diversitySlot: item.diversitySlot,
             typeTurn: item.typeTurn,
+            copyIndex: item.copyIndex,
             targetLevel: item.slot?.level ?? null,
             paraphraseGrammarVocab: config.paraphraseGrammarVocab === true,
             levelBrief: config.levelBrief,

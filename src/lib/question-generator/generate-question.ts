@@ -2127,6 +2127,8 @@ export async function generateOneQuestion(opts: {
   targetLevel?: TargetLevel | null;
   /** 어법·어휘에서 지문을 바꿔 써도 되는지(기본은 원문 그대로) */
   paraphraseGrammarVocab?: boolean;
+  /** 같은 지문·같은 유형의 몇 번째 사본인가(0부터). 사본마다 근거 자리를 달리 잡게 한다 */
+  copyIndex?: number;
 }): Promise<GeneratedQuestionPayload> {
   const { option, analysis } = opts;
   // 시험지 흔적(정답 표기·문장 번호)을 걷어 낸 지문으로 만든다
@@ -2143,6 +2145,14 @@ export async function generateOneQuestion(opts: {
         `지문 문장이 ${n}개라 문장삽입·무관한문장을 생략합니다 (6개 이상 필요).`
       );
     }
+  }
+
+  // 지칭: 가리킬 대명사가 없는 지문이면 부르지 않는다 (만들다 버리는 값을 아낀다)
+  if (
+    option.aingkaCode === "지칭대명사서술" &&
+    !/\b(it|its|they|them|their|this|these|those|he|she|him|her|his|one)\b/i.test(passage)
+  ) {
+    throw new SkipQuestionError("가리킬 대명사가 없는 지문이라 지칭 문항을 생략합니다.");
   }
 
   // 도표 설명문: 제목·주제·빈칸처럼 그래프가 있어야 풀리거나 유형이 안 맞는 것은 만들지 않는다
@@ -2304,6 +2314,16 @@ export async function generateOneQuestion(opts: {
   const diversityHint =
     opts.diversitySlot && opts.diversitySlot.total > 1
       ? `- DIVERSITY SLOT ${opts.diversitySlot.index + 1}/${opts.diversitySlot.total} (${opts.diversitySlot.label}): same passage has many items. Use a DISTINCT synonym/near-synonym set and DISTINCT hardWords for THIS slot. Do not reuse the most obvious passage theme words that every slot would pick. Distractors may use subtle antonym/contrast shifts.`
+      : "";
+  /*
+   * 같은 지문·같은 유형을 둘 청하면 프롬프트가 글자까지 같아 똑같은 문항이 둘 나왔다
+   * (2026-10-02 작업: 지칭·특정표현 4쌍, 다음 작업: 내용일치 9쌍이 겹쳐 지워짐).
+   * 사본마다 근거 자리를 달리 잡으라는 한 줄을 넣어 프롬프트를 다르게 한다.
+   */
+  const copyIndex = opts.copyIndex ?? 0;
+  const copyHint =
+    copyIndex > 0
+      ? `- SAME-TYPE COPY ${copyIndex + 1} for this passage: another item of this exact type already exists for this passage. Make this one DIFFERENT — anchor the answer/underline/blank/referent in the ${["LATER part", "MIDDLE part", "EARLIER part"][copyIndex % 3]} of the passage, pick a different target sentence or word than the most obvious one, and write different choices.`
       : "";
 
   const allowSkip =
@@ -2501,7 +2521,7 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
           total: opts.diversitySlot.total,
           label: opts.diversitySlot.label,
         },
-      })}${diversityHint ? `\n${diversityHint}` : ""}`
+      })}${diversityHint ? `\n${diversityHint}` : ""}${copyHint ? `\n${copyHint}` : ""}`
     : "";
 
   /*
@@ -2736,6 +2756,20 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
     const swap = (t?: string | null) => (t ? t.replace(/[ⓐⓑⓒⓓⓔ]/g, (m) => toNum[m] ?? m) : t);
     payload.passageModified = swap(payload.passageModified) ?? payload.passageModified;
     payload.explanation = swap(payload.explanation) ?? payload.explanation;
+  }
+  /*
+   * 어법·어휘 추론의 해설 머리글 「정답은 ③이다」가 정답지와 다른 번호인 일이 있었다
+   * (202문항 대조 2026-10-02: 둘 다 「어색한 것은 ②」라는 본문은 맞고 머리글만 틀렸다).
+   * 번호 하나만 다르면 정답지에 맞춘다.
+   */
+  if (answerIsMarkIndex(option) && Number.isInteger(Number(payload.correctAnswer))) {
+    const mark = "①②③④⑤"[Number(payload.correctAnswer) - 1];
+    if (mark) {
+      payload.explanation = String(payload.explanation ?? "").replace(
+        /^(\s*정답은\s*)[①-⑤]/,
+        `$1${mark}`
+      );
+    }
   }
   return payload;
 }
