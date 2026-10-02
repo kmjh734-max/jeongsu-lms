@@ -16,6 +16,9 @@
 export function plannedWrongCount(code: string, turn: number): number {
   const t = Math.max(0, Math.floor(turn));
   if (code === "어휘개수") return [1, 2, 3, 4, 5][t % 5]!;
+  // 어법개수 줄이 처음부터 빠져 있어 프롬프트에 「틀린 곳 0개」가 들어갔다.
+  // 그래서 288문항 작업의 어법개수 6개가 모두 정답 「1개」였다(2026-10-03).
+  if (code === "어법개수") return [2, 1, 3, 2, 4][t % 5]!;
   if (code === "어법오류수정2") return [2, 1, 3, 2, 1][t % 5]!;
   if (code === "어법오류수정3") return [3, 2, 4, 3, 5][t % 5]!;
   if (code === "어법문장오류수정") return [2, 1, 3, 2, 1][t % 5]!;

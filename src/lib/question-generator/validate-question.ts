@@ -30,7 +30,7 @@ function plainText(text: string): string {
 function sentencesOf(text: string): string[] {
   return plainText(text)
     // 「U.S. who」처럼 약어 뒤에서 끊지 않는다 — 문장 하나를 둘로 세어 「2개 지웠다」고 잘못 걸렸다
-    .split(/(?<=[.!?])\s+(?=[A-Z"'“‘(])/)
+    .split(/(?<=[.!?]["'”’]?)\s+(?=[A-Z"'“‘(])/)
     .map((s) => s.trim())
     .filter((s) => s.length > 15);
 }
@@ -293,6 +293,25 @@ export function validateGeneratedQuestion(opts: {
     }
   }
 
+  /*
+   * 번호 하나가 문장 여럿을 묶을 때, 고친 곳이 번호 없는 뒤 문장에 들어가면 학생은
+   * 「① 문장」이 어느 것인지 알 수 없다. 288문항 작업 #27·#114가 이랬다(2026-10-03).
+   * 번호 뒤 첫 문장 말고는 원문 그대로여야 한다.
+   */
+  if (code === "어법문장오류수정" && !opts.allowParaphrase && modifiedText) {
+    const body = modifiedText.replace(/<\/?[ub]>/gi, "");
+    const parts = body.split(/([①②③④⑤])/);
+    for (let i = 1; i < parts.length; i += 2) {
+      const rest = sentencesOf(parts[i + 1] ?? "").slice(1);
+      const changed = rest.find((s) => !originalPlain.includes(s));
+      if (changed) {
+        warnings.push(`${parts[i]} 뒤 번호 없는 문장을 고쳤습니다("${changed.slice(0, 40)}…"). 틀린 곳은 번호가 붙은 문장에 둡니다.`);
+        score -= 45;
+        break;
+      }
+    }
+  }
+
   // 어법 수정 2·3: 밑줄 수가 발문(ⓐ~ⓔ / ⓐ~ⓖ)과 다름 (#220 7개, #221 5개)
   if (code === "어법오류수정2" || code === "어법오류수정3") {
     const n = (modifiedText.match(/<u>/gi) ?? []).length;
@@ -417,6 +436,22 @@ export function validateGeneratedQuestion(opts: {
     if (!opts.allowParaphrase && plainText(modifiedText) !== originalPlain) {
       warnings.push("지칭·특정표현은 원문에 밑줄만 쳐야 합니다. 문장을 고쳐 쓰거나 넣었습니다.");
       score -= 45;
+    }
+    /*
+     * 특정표현의 답은 밑줄과 같은 뜻의 다른 구여야 한다. 288문항 작업 #171은
+     * 「its own iron casting facility」의 답을 바로 뒤에 붙은 「where it made its metal plates」로
+     * 냈다. 밑줄 바로 뒤(세 낱말 안)에서 시작하는 구는 이어지는 말일 뿐이라 거른다.
+     */
+    if (/특정표현의미서술/.test(code) && answerStr) {
+      const ans = plainText(answerStr.replace(/^[ⓐ-ⓔ]\s*[:：]?\s*/, "")).toLowerCase().replace(/[.,;:!?]+$/, "").trim();
+      const u = modifiedText.match(/<u>([\s\S]*?)<\/u>([\s\S]{0,160})/i);
+      if (ans && u) {
+        const after = plainText(u[2] ?? "").toLowerCase().split(/\s+/).filter(Boolean).slice(0, 3 + ans.split(/\s+/).length).join(" ");
+        if (after.includes(ans)) {
+          warnings.push(`특정표현의 답 "${ans}"이 밑줄 바로 뒤에 이어지는 말입니다. 같은 뜻의 다른 구를 찾아야 합니다.`);
+          score -= 45;
+        }
+      }
     }
     if (/^(it|its|this|that|these|those|they|them|their|he|she|him|her|one)$/i.test(answerStr.replace(/^[ⓐ-ⓔ]\s*[:：]?\s*/, "").trim())) {
       warnings.push(`지칭의 답이 대명사 "${answerStr}"입니다. 가리키는 명사를 써야 합니다.`);

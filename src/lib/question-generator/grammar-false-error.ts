@@ -91,6 +91,22 @@ export function falseGrammarError(
         return `${inside} → ${toWord} (시제만 다른 것은 오류가 아니다)`;
       }
     }
+    /*
+     * 6) 「recording all answers <u>to consider</u>」를 to be considered로 고치라 한 것
+     *    (288문항 작업 #29). 명사 뒤에서 명사를 꾸미는 to부정사는 능동(a book to read)도
+     *    수동(a book to be read)도 맞다. 바로 앞이 명사이고 고친 말이 to be + 그 동사의
+     *    과거분사일 때만 거른다. 「are allowed to bring」처럼 앞이 동사면 그대로 둔다.
+     */
+    if (/^to\s+[a-z]+$/i.test(inside) && /^to\s+be\s+[a-z]+$/i.test(toWord)) {
+      const verb = inside.toLowerCase().replace(/^to\s+/, "");
+      const part = toWord.replace(/^to\s+be\s+/, "");
+      const sameVerb = part.startsWith(verb.replace(/e$/, "")) || part.startsWith(verb.slice(0, 3));
+      const verbish = /(ed|en)$/.test(prev1) || /^(is|are|was|were|be|been|being|am|not|to|will|would|can|could|should|must|may|might|want|wants|need|needs|ask|asked|allow|allowed|expect|expected|help|helps|seem|seems|seemed|appear|appears|tend|tends|try|tries)$/.test(prev1);
+      const nounish = /^[a-z]{3,}$/.test(prev1) && !verbish && !/ly$/.test(prev1);
+      if (sameVerb && nounish) {
+        return `${prev1} ${inside} (명사를 꾸미는 to부정사는 능동도 맞다)`;
+      }
+    }
     // 1) 밑줄은 to + 동사, 고친 말은 그 동사 하나
     if (!/^to\s+[a-z]+$/i.test(inside)) continue;
     if (stripTo(inside) !== p.to.trim().toLowerCase()) continue;

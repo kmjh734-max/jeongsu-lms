@@ -43,6 +43,7 @@ DROP when any of these holds:
 5. Summary/blank writing (요약문·서술형): the summary sentence is ungrammatical or meaningless once the answer is filled in; the answer does not satisfy the stated <조건> (word counts, "본문에서 찾아", "원형 제시", "모두 한 번씩"); the <보기> cannot produce the answer; or the answer to a 지칭 item is a pronoun/determiner rather than the noun referred to.
 6. Insertion/order/irrelevant items: the keyed position/order is not the only coherent one.
 7. Implied-meaning (함축) items: the keyed choice does not capture the contextual meaning, or another choice does equally well.
+8. Specific-expression items (특정표현의미서술): the keyed phrase must MEAN the same as the underlined expression (a true paraphrase you could substitute for it). DROP if it only names a related action, the clause that follows the underline, or something merely nearby (e.g., underline "brought to the forefront" keyed as "recording all answers to be considered"; underline "its own iron casting facility" keyed as "where it made its metal plates").
 
 FIX (not drop) only when the body and choices are fine and ONLY the answer key or the explanation is wrong, and you are certain of the correct value. Put the corrected value in fixedCorrectAnswer (same format as the given correctAnswer: integer 1-5 for MCQ, or the same string format for subjective) and/or fixedExplanation (Korean, 평서형 "~다", same shape as the original explanation).
 
