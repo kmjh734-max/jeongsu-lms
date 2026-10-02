@@ -111,12 +111,6 @@ export function ExamHitReport({
 
   const pct = Math.round((report.hit / Math.max(1, report.total)) * 100);
   const shown = report.items.filter((it) => it.rows.length > 0);
-  /*
-   * 못 맞춘 문항 가운데 지문 출처를 아는 것 — 다음에 그 지문으로 만들면 된다.
-   * 고등 시험지는 지문이 거의 모의고사·교과서에서 나온다(2026-10-01 실측).
-   */
-  const toMake = report.items.filter((it) => !it.hit && !it.passageOnly && it.source);
-
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -225,7 +219,7 @@ export function ExamHitReport({
                         </div>
                         {r.preview ? (
                           <div className="pl-[22px] text-[11.5px] text-slate-500 line-clamp-1 italic">
-                            "{r.preview}"
+                            &quot;{r.preview}&quot;
                           </div>
                         ) : null}
                       </li>
