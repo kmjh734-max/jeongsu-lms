@@ -242,26 +242,6 @@ export function ExamHitReport({
         </p>
       ) : null}
 
-      {toMake.length > 0 ? (
-        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-          <div className="text-xs font-bold text-slate-700">
-            이 지문으로 만들어 두면 다음에 맞습니다 ({toMake.length}문항)
-          </div>
-          <ul className="mt-1.5 flex flex-col gap-1 text-[12.5px] text-slate-600">
-            {toMake.slice(0, 12).map((it) => (
-              <li key={it.itemId} className="flex flex-wrap items-center gap-1.5">
-                <span className="font-semibold text-slate-800">{it.itemNo}번</span>
-                <span>{it.typeName}</span>
-                <span className="text-slate-400">·</span>
-                <span className="rounded bg-white px-1.5 py-0.5 text-[11px] text-slate-700">{it.source}</span>
-              </li>
-            ))}
-          </ul>
-          {toMake.length > 12 ? (
-            <p className="mt-1 text-[11px] text-slate-400">그 밖 {toMake.length - 12}문항</p>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   );
 }
