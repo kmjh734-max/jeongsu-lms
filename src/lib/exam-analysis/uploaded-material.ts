@@ -42,11 +42,11 @@ export function findPassageAt(materialText: string, examPassage: string): number
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ");
   const hay = norm(materialText);
   const need = norm(examPassage).split(" ").filter(Boolean);
-  if (need.length < 8 || hay.length < 40) return -1;
-  // 지문 앞쪽 여덟 낱말을 통째로 찾는다. 없으면 가운데 여덟 낱말로 한 번 더.
-  for (const start of [0, Math.max(0, Math.floor(need.length / 2) - 4)]) {
-    const key = need.slice(start, start + 8).join(" ");
-    if (key.length < 20) continue;
+  if (need.length < 5 || hay.length < 40) return -1;
+  
+  for (let i = 0; i <= need.length - 5; i++) {
+    const key = need.slice(i, i + 5).join(" ");
+    if (key.length < 25) continue;
     const at = hay.indexOf(key);
     if (at >= 0) return at;
   }
