@@ -18,8 +18,16 @@ const TEXT_ENOUGH = 400;
  * 수만 보면 글자가 든 것으로 잘못 보고 읽기를 건너뛰어, 대조할 글이 하나도 없었다.
  */
 const TEXT_PER_PAGE_ENOUGH = 80;
-/** 스캔본일 때 읽힐 쪽 수 — 너무 많으면 오래 걸리고 값이 든다 */
-const MAX_SCAN_PAGES = 6;
+/**
+ * 스캔본일 때 읽힐 쪽 수.
+ *
+ * 처음에는 6쪽이었다. 선생님이 11쪽짜리 시험지(스캔본)를 올리시니 앞 6쪽만 읽혀
+ * 19~30번은 글이 없어 적중이 아니었다(2026-10-02). 쪽당 원가가 약 32원이라 40쪽이면
+ * 1,300원 — 대조 값 1,500 안이다.
+ */
+const MAX_SCAN_PAGES = 40;
+/** 한꺼번에 읽힐 쪽 수 — 한 쪽에 30초쯤 걸려 차례로 읽으면 6쪽에 3분이 넘었다 */
+const SCAN_PARALLEL = 4;
 
 export type UploadRead = {
   name: string;
@@ -47,12 +55,18 @@ async function pdfText(file: File): Promise<{ text: string; pages: number }> {
   return { text: out.join("\n"), pages: pdf.numPages };
 }
 
-async function pdfPagesToText(file: File, analysisId: string): Promise<string> {
+async function pdfPagesToText(
+  file: File,
+  analysisId: string,
+  onProgress?: (done: number, total: number) => void
+): Promise<string> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
   const pdf = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
-  const out: string[] = [];
-  for (let n = 1; n <= Math.min(pdf.numPages, MAX_SCAN_PAGES); n++) {
+  const total = Math.min(pdf.numPages, MAX_SCAN_PAGES);
+  // 그림은 차례로 뜨고(캔버스 하나), 읽히는 것은 몇 쪽씩 한꺼번에 보낸다
+  const shots: Array<{ n: number; dataUrl: string }> = [];
+  for (let n = 1; n <= total; n++) {
     const page = await pdf.getPage(n);
     const viewport = page.getViewport({ scale: 2 });
     const canvas = document.createElement("canvas");
@@ -63,8 +77,24 @@ async function pdfPagesToText(file: File, analysisId: string): Promise<string> {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     await page.render({ canvasContext: ctx, viewport }).promise;
-    out.push(await readOnServer(analysisId, canvas.toDataURL("image/jpeg", 0.85), `${file.name} ${n}쪽`));
+    shots.push({ n, dataUrl: canvas.toDataURL("image/jpeg", 0.85) });
+    canvas.width = 0;
+    canvas.height = 0;
   }
+  const out: string[] = new Array<string>(shots.length).fill("");
+  let next = 0;
+  let done = 0;
+  const worker = async () => {
+    while (next < shots.length) {
+      const i = next;
+      next += 1;
+      const shot = shots[i]!;
+      out[i] = await readOnServer(analysisId, shot.dataUrl, `${file.name} ${shot.n}쪽`);
+      done += 1;
+      onProgress?.(done, shots.length);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(SCAN_PARALLEL, shots.length) }, worker));
   return out.filter(Boolean).join("\n");
 }
 
@@ -86,7 +116,12 @@ const readDataUrl = (file: Blob) =>
     fr.readAsDataURL(file);
   });
 
-export async function readUploadedMaterial(file: File, analysisId: string): Promise<UploadRead> {
+export async function readUploadedMaterial(
+  file: File,
+  analysisId: string,
+  /** 스캔본을 읽는 동안 몇 쪽째인지 알린다 */
+  onProgress?: (done: number, total: number) => void
+): Promise<UploadRead> {
   const name = file.name;
   if (/\.(txt|md|csv)$/i.test(name)) {
     return { name, text: await file.text(), scanned: false };
@@ -97,7 +132,7 @@ export async function readUploadedMaterial(file: File, analysisId: string): Prom
     if (chars >= TEXT_ENOUGH && chars / Math.max(1, pages) >= TEXT_PER_PAGE_ENOUGH) {
       return { name, text, scanned: false };
     }
-    const read = await pdfPagesToText(file, analysisId);
+    const read = await pdfPagesToText(file, analysisId, onProgress);
     const note =
       pages > MAX_SCAN_PAGES
         ? `${name}은 스캔본이라 앞 ${MAX_SCAN_PAGES}쪽만 읽었어요(전체 ${pages}쪽). 글자가 든 PDF로 올리시면 전부 읽어요.`

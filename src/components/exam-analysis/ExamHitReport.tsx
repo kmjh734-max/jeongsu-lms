@@ -48,7 +48,9 @@ export function ExamHitReport({
       for (const [i, f] of files.entries()) {
         setStep(`올리신 자료를 읽는 중 (${i + 1}/${files.length}) — ${f.name}`);
         try {
-          const read = await readUploadedMaterial(f, analysisId);
+          const read = await readUploadedMaterial(f, analysisId, (done, total) =>
+            setStep(`올리신 자료를 읽는 중 (${i + 1}/${files.length}) — ${f.name} · 스캔본 ${done}/${total}쪽`)
+          );
           if (read.note) notes.push(read.note);
           if (read.text.trim().length > 40) uploads.push({ name: read.name, text: read.text });
           else notes.push(`${f.name}에서 글을 읽지 못했어요.`);
