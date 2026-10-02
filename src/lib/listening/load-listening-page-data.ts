@@ -40,7 +40,9 @@ export async function loadListeningPageData(
       .select(columns)
       .order("order_index", { ascending: true })
       .order("created_at", { ascending: false })
-      .limit(200);
+      // 학년마다 50회를 넘기면 300세트를 넘는다. 200에서 끊으면 학년당 33회쯤에서
+      // 목록이 잘리므로 PostgREST 한 번에 주는 최대치까지 받는다.
+      .limit(1000);
     if (role === "teacher") {
       // 본인 세트 + 커리큘럼 잠금 세트(description 마커; is_locked 컬럼 있으면 RLS로도 허용)
       query = query.or(
