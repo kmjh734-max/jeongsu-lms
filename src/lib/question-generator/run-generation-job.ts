@@ -663,6 +663,15 @@ export async function runGenerationJob(
       slotKey(String(r.passage_id), String(r.option_key ?? ""))
     )
   );
+  /**
+   * 지문·유형 조합마다 이미 저장된 수. 한 유형을 2개씩 청하면 조합 하나에 문항이 둘이다.
+   * 조합이 있다/없다로만 보면, 토막 경계에서 하나만 저장된 조합의 둘째 문항을 안 만든다.
+   */
+  const existingCountBySlot = new Map<string, number>();
+  for (const r of existingRows ?? []) {
+    const k = slotKey(String(r.passage_id), String(r.option_key ?? ""));
+    existingCountBySlot.set(k, (existingCountBySlot.get(k) ?? 0) + 1);
+  }
   /** 유형마다 이미 만들어 둔 문항 수 — 이어 받아도 조건 문법 차례가 처음으로 돌아가지 않게 */
   const madeByType = new Map<string, number>();
   for (const r of existingRows ?? []) {
@@ -793,9 +802,13 @@ export async function runGenerationJob(
         passageRow.source_detail ||
         undefined;
 
+      /** 이 지문에서 유형마다 몇 번째 사본인가 — 이미 저장된 수만큼은 건너뛴다 */
+      const copyIndexByKey = new Map<string, number>();
       for (const option of options) {
         const key = slotKey(passageId, option.key);
-        if (existingSlots.has(key)) continue;
+        const copyIndex = copyIndexByKey.get(key) ?? 0;
+        copyIndexByKey.set(key, copyIndex + 1);
+        if (copyIndex < (existingCountBySlot.get(key) ?? 0)) continue;
         work.push({
           passageId,
           passageText: passageRow.passage,
@@ -816,7 +829,16 @@ export async function runGenerationJob(
       }
     }
 
-    const totalRequested = blueprint ? blueprint.length : existingSlots.size + work.length;
+    /*
+     * 요청 수는 처음 청한 그대로다(유형 수 × 지문 수).
+     *
+     * 선생님 지적(2026-10-02): 382문항을 만들었는데 「382/237」로 보였다. 두 번째 토막이
+     * 요청 수를 「이미 만든 지문·유형 조합 수 + 남은 수」로 다시 셈한 탓이다. 한 유형을
+     * 2개씩 청하면 조합 하나에 문항이 둘이라 조합 수는 문항 수보다 작다.
+     */
+    const totalRequested = blueprint
+      ? blueprint.length
+      : options.length * analyzed.filter(Boolean).length;
 
     // 지문별로 슬롯 번호 부여 (동의어·보기단어 다양화 힌트)
     const slotByPassage = new Map<string, number>();
@@ -855,7 +877,8 @@ export async function runGenerationJob(
       return { more: false };
     }
 
-    const initialCompleted = blueprint ? doneSlotIndexes.size : existingSlots.size;
+    // 이미 만든 수도 조합 수가 아니라 문항 수로 센다
+    const initialCompleted = blueprint ? doneSlotIndexes.size : (existingRows ?? []).length;
 
     await updateProgress(
       jobId,
