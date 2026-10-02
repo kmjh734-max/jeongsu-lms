@@ -48,6 +48,49 @@ export function falseGrammarError(
     const m = mod.match(new RegExp(`${p.mark}\\s*<u>([\\s\\S]*?)</u>`));
     if (!m || m.index === undefined) continue;
     const inside = m[1]!.trim();
+    const before = mod
+      .slice(0, m.index)
+      .replace(/<\/?[ub]>/g, "")
+      .replace(/[ⓐ-ⓖ①-⑤]/g, " ");
+    const beforeWords = before.trim().split(/\s+/);
+    const prev1 = (beforeWords[beforeWords.length - 1] ?? "").toLowerCase().replace(/[^a-z']/g, "");
+    const prev2 = (beforeWords[beforeWords.length - 2] ?? "").toLowerCase().replace(/[^a-z']/g, "");
+    const prev3 = (beforeWords[beforeWords.length - 3] ?? "").toLowerCase().replace(/[^a-z']/g, "");
+    const toWord = p.to.trim().toLowerCase();
+
+    /*
+     * 382문항 대조(2026-10-02)에서 나온 두 꼴. 둘 다 원래 문장이 문법상 맞다.
+     *
+     * 4) 「The objective is <u>completing</u> a grid」를 to complete로 고치라 한 것.
+     *    be동사 뒤 동명사 보어는 맞는 말이다. 주어가 objective·goal·aim·purpose·plan·job·task·
+     *    key·point·idea 같은 말이고 바로 앞이 be동사이면 거른다.
+     */
+    if (/^[a-z]+ing$/i.test(inside) && /^to\s+[a-z]+$/i.test(toWord)) {
+      const base = toWord.replace(/^to\s+/, "");
+      const ingOfBase = inside.toLowerCase();
+      const sameVerb =
+        ingOfBase === `${base}ing` || ingOfBase === `${base.replace(/e$/, "")}ing` || ingOfBase === `${base}${base.slice(-1)}ing`;
+      const isBe = /^(is|are|was|were|be|been|being|'s|'re)$/.test(prev1);
+      const subjectLike = /^(objective|goal|aim|purpose|plan|job|task|key|point|idea|secret|trick|answer|solution|challenge|problem|mission|role|duty|function|strategy)$/;
+      if (sameVerb && isBe && (subjectLike.test(prev2) || subjectLike.test(prev3))) {
+        return `${prev2} ${prev1} ${inside} (be동사 뒤 동명사 보어는 맞다)`;
+      }
+    }
+    /*
+     * 5) 「leaf-cutter ants <u>cultivated</u> their own food」를 cultivate로 고치라 한 것.
+     *    규칙동사 과거형 하나를 현재형으로 바꾸는 것뿐이고, 앞에 have·had·will·since·ago·
+     *    yesterday·last·연도 같은 시제 단서가 없으면 과거형도 맞는 문장이다. 시제만 다른
+     *    것은 오류로 치지 않는다.
+     */
+    if (/^[a-z]+ed$/i.test(inside) && /^[a-z]+$/i.test(toWord)) {
+      const past = inside.toLowerCase();
+      const regularPast = past === `${toWord}ed` || past === `${toWord}d` || past === `${toWord.replace(/y$/, "i")}ed` || past === `${toWord}${toWord.slice(-1)}ed`;
+      const tail = before.slice(-80).toLowerCase();
+      const anchored = /\b(have|has|had|will|would|shall|since|ago|yesterday|last|then|once|when|after|before|until|in \d{4}|\d{4})\b/.test(tail);
+      if (regularPast && !anchored) {
+        return `${inside} → ${toWord} (시제만 다른 것은 오류가 아니다)`;
+      }
+    }
     // 1) 밑줄은 to + 동사, 고친 말은 그 동사 하나
     if (!/^to\s+[a-z]+$/i.test(inside)) continue;
     if (stripTo(inside) !== p.to.trim().toLowerCase()) continue;
