@@ -288,8 +288,8 @@ async function generateWithValidation(opts: {
             { ...currentAiUsage(), featureKey: null, usedFor: "qg_solve" },
             () =>
               blindSolvable(payload)
-                ? blindSolveQuestion({ passage: opts.passage, payload })
-                : checkSubjectiveQuestion({ passage: opts.passage, payload })
+                ? blindSolveQuestion({ passage: cleanSourcePassage(opts.passage), payload })
+                : checkSubjectiveQuestion({ passage: cleanSourcePassage(opts.passage), payload })
           );
           validation.solve = solved;
           if (solved.verdict === "drop") {
@@ -304,7 +304,7 @@ async function generateWithValidation(opts: {
             { ...currentAiUsage(), featureKey: null, usedFor: "qg_review" },
             () =>
               reviewGeneratedQuestion({
-                passage: opts.passage,
+                passage: cleanSourcePassage(opts.passage),
                 option: opts.option,
                 payload,
                 allowParaphrase: opts.paraphraseGrammarVocab === true,
