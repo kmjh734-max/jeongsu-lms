@@ -770,6 +770,10 @@ word1 / word2 / … (6~10개, 정답 ⓐ+ⓑ를 섞은 핵심 단어. 원형만.
 (영어 요약 1~2문장. 지문 핵심을 지문 표현 그대로 또는 최소 변형. 빈칸 ⓐ__________ 와 ⓑ__________ 포함)
 
 - correctAnswer 형식: "ⓐ: … / ⓑ: …" (완성 영어 구)
+- 정답이 하나뿐이게(2026-10-04 시험에서 둘 다 맞는 답이 나왔다):
+  · ⓐ와 ⓑ는 요약문에서 맡는 역할이 달라야 한다(예: ⓐ 동사구, ⓑ 명사구). 두 칸의 답을 서로 바꿔 넣어도 말이 되면 안 된다.
+  · 보기의 낱말 하나하나가 한쪽 칸에만 들어갈 수 있게 고른다.
+  · 형태를 꼭 바꿔야 하는 낱말만 원형으로 주고, 바꾸지 않아도 되는 낱말은 정답 형태 그대로 준다(life/lives처럼 바꿔도 안 바꿔도 맞는 낱말을 두지 않는다).
 - 요약문은 지문 핵심 문장을 거의 그대로 활용. 새 단어 지어내기 금지.
 - choices 없음. explanation 한글: 정답 + 지문 어디에 근거하는지.
 - 금지: 조건 줄에 "<보기>의"처럼 태그 형태로 쓰기. "보기의"로 쓸 것.`;
@@ -2588,7 +2592,10 @@ export async function generateOneQuestion(opts: {
     const movable = (t: string) =>
       (t.match(/,/g) ?? []).length * 3 +
       (t.match(/\b(?!only\b|family\b|early\b|daily\b|likely\b|friendly\b)[a-z]{3,}ly\b/gi) ?? []).length +
-      (/^(?:in|on|at|for|with|by|from|during|after|before|despite|using|as|when|while|if|although|because|and|but|so)\b/i.test(t) ? 2 : 0);
+      (/^(?:in|on|at|for|with|by|from|during|after|before|despite|using|as|when|while|if|although|because|and|but|so)\b/i.test(t) ? 2 : 0) +
+      // 때를 나타내는 구는 문장 앞으로 옮겨도 맞다(3차 시험: 「… in the early 17th century」를 앞으로 뺀 답)
+      (/\b(?:in|on|at|during|after|before|since|by|until)\s+(?:the\s+)?(?:early|late|mid|\d{2,4}s?|\d+(?:st|nd|rd|th)|(?:\w+day)|morning|evening|night|summer|winter|spring|fall|autumn|past|future|end|beginning)\b/i.test(t) ? 2 : 0) +
+      (/\b(?:then|now|today|yesterday|tomorrow|later|recently|still|also|even|already|soon|again)\b/i.test(t) ? 1 : 0);
     const least = Math.min(...sents.map(movable));
     const pool = sents.filter((t) => movable(t) <= least + 1);
     // 다시 만들 때는 다음 문장으로 넘긴다. 같은 문장으로 세 번 시도하면 같은 까닭(다른 어순도 답)으로 또 버려졌다.
