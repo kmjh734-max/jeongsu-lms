@@ -1088,23 +1088,14 @@ export async function runGenerationJob(
         deferred += 1;
         return;
       }
-      // 문장삽입·무관한문장: 문장 5개 이하면 AI 호출 없이 생략
-      if (
-        (item.option.type === "sentence_insertion" ||
-          item.option.type === "irrelevant_sentence") &&
-        countEnglishSentences(item.passageText) <
-          MIN_SENTENCES_FOR_INSERTION_IRRELEVANT
-      ) {
-        skipped += 1;
-        await updateProgress(jobId, {
-          total_completed: completed,
-          total_failed: failed,
-          progress_message: `${completed + failed + skipped}/${totalRequested} 완료${
-            skipped > 0 ? ` (생략 ${skipped})` : ""
-          }${busyNote()}`,
-        });
-        return;
-      }
+      /*
+       * 문장삽입·무관한문장: 문장 5개 이하면 만들지 않고 아래에서 다른 유형으로 바꿔 만든다.
+       * 전에는 그냥 생략해 「150문항 중 142」가 됐다(정수학원 2026-10-03, 짧은 지문 8개의 문장삽입).
+       */
+      const sentenceCount = countEnglishSentences(item.passageText);
+      const tooShortForSlots =
+        (item.option.type === "sentence_insertion" || item.option.type === "irrelevant_sentence") &&
+        sentenceCount < MIN_SENTENCES_FOR_INSERTION_IRRELEVANT;
 
       /*
        * 이 문항이 어느 값으로 걷히는지 기록에도 그대로 적는다.
@@ -1124,7 +1115,9 @@ export async function runGenerationJob(
         usedFor: "question_generator",
       });
 
-      let result = await generateWithValidation(optsFor(item));
+      let result: Awaited<ReturnType<typeof generateWithValidation>> = tooShortForSlots
+        ? ({ payload: null, skipped: true, error: `지문이 ${sentenceCount}문장뿐이라 번호 자리를 만들 수 없음` } as unknown as Awaited<ReturnType<typeof generateWithValidation>>)
+        : await generateWithValidation(optsFor(item));
       reviewDropped += result.reviewDropped ?? 0;
       // 다음 실행이 이 문항을 다시 만든다. 여기서 저장하면 같은 칸이 두 번 생긴다.
       if (abandoned) return;
