@@ -75,6 +75,8 @@ export async function GET(
       .from("generated_english_questions")
       .select("*")
       .eq("generation_job_id", id)
+      // 숨긴 문항(같은 지문의 사실상 같은 문항 등)은 상세·문제지에 내지 않는다
+      .neq("status", "archived")
       // 동형모의고사(설계도)는 시험지 번호 순서, 나머지는 만든 순서
       .order("slot_index", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: true });
