@@ -2884,6 +2884,14 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
     .replace(/\s*\(?\bGP\s?\d{2}\b\)?\s*[:：·-]?\s*/g, " ")
     .replace(/[ \t]{2,}/g, " ")
     .trim();
+  /*
+   * 순서추론은 밑줄을 쓰지 않는다. 모델이 단서 문장(「(C) <u>This helped him…</u>」)에 밑줄을 쳐
+   * 학생에게 답의 힌트가 그대로 보였다(정수학원 99문항 중 2개, 2026-10-04).
+   */
+  if (option.type === "order") {
+    payload.passageModified = payload.passageModified?.replace(/<\/?u>/g, "") ?? payload.passageModified;
+    payload.questionText = payload.questionText?.replace(/<\/?u>/g, "") ?? payload.questionText;
+  }
   return payload;
 }
 

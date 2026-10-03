@@ -123,6 +123,21 @@ export function falseGrammarError(
         return `${inside} → ${toWord} (앞선 시점을 나타내는 말이 없으면 단순과거도 맞다)`;
       }
     }
+    /*
+     * 8) 「examining images to track fires and <u>to inform</u> people」를 informing으로 고치라 한 것
+     *    (정수학원 99문항 #31, 2026-10-04). 바로 앞이 and·or이고, 그 앞 마디(마지막 쉼표 뒤)에
+     *    to부정사가 있으면 그 to부정사와 나란히(목적) 읽혀 원래 문장도 맞다.
+     *    「by learning how to use …, getting …, and seeing …, and <u>to accept</u>」처럼 바로 앞 마디가
+     *    동명사 나열이면 거르지 않는다(how·what to 는 셈하지 않는다 — 저장 문항 975개 대조).
+     */
+    if (/^to\s+[a-z]+$/i.test(inside) && /^[a-z]+ing$/i.test(toWord) && (prev1 === "and" || prev1 === "or")) {
+      const sentenceStart = Math.max(before.lastIndexOf(". "), before.lastIndexOf("? "), before.lastIndexOf("! "));
+      const sentenceBefore = before.slice(sentenceStart + 1).toLowerCase().replace(/\s+(and|or)\s*$/, "");
+      const lastClause = sentenceBefore.slice(sentenceBefore.lastIndexOf(",") + 1);
+      if (/(?<!\b(?:how|what|where|when|whether|which|who)\s)\bto\s+[a-z]+\b/.test(lastClause)) {
+        return `${prev1} ${inside} (앞의 to부정사와 나란히 읽히면 맞다)`;
+      }
+    }
     // 1) 밑줄은 to + 동사, 고친 말은 그 동사 하나
     if (!/^to\s+[a-z]+$/i.test(inside)) continue;
     if (stripTo(inside) !== p.to.trim().toLowerCase()) continue;
