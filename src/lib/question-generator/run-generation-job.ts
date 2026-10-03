@@ -233,6 +233,8 @@ async function generateWithValidation(opts: {
   copyIndex?: number;
   /** 다시 만들기 횟수(설계도 칸은 빈자리가 없게 더 시도한다) */
   retries?: number;
+  /** 지금 어느 단계인지 알린다 — 진행 문구에 「검수 중」 등을 띄운다 */
+  onStage?: (stage: QgStage) => void;
 }): Promise<{
   payload: GeneratedQuestionPayload | null;
   status: "approved";
@@ -250,6 +252,7 @@ async function generateWithValidation(opts: {
   /** 앞 시도들이 버려진 까닭 — 다음 시도 프롬프트에 붙이고, 통과한 문항에 기록한다 */
   const issues: string[] = [];
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    opts.onStage?.(attempt === 1 ? "make" : "redo");
     try {
       const payload = await generateOneQuestion({
         ...opts,
@@ -273,6 +276,7 @@ async function generateWithValidation(opts: {
          * 정답을 가리고 직접 풀어 본다(선생님 결정 2026-10-04, 「조건부도 나오지 않게」).
          * 답이 다르거나 다른 답도 맞다고 하면 뜻 검수까지 가지 않고 다시 만든다.
          */
+        opts.onStage?.("check");
         if (blindSolveEnabled() && blindSolvable(payload)) {
           const solved = await withAiUsage(
             { ...currentAiUsage(), featureKey: null, usedFor: "qg_solve" },
@@ -322,6 +326,12 @@ async function generateWithValidation(opts: {
         };
       }
       lastError = e instanceof Error ? e.message : "생성 실패";
+      /*
+       * 형태 검수에서 던진 까닭도 다음 시도에 넘긴다. 전에는 검수 점수 미달만 넘겨서,
+       * 던진 오류(「계획한 정답은 4인데 생성 정답은 2」 등)는 다시 만들어도 같은 실수를 되풀이했다
+       * (정수학원 273문항 작업 2026-10-04: 어휘개수 6개가 세 번씩 같은 까닭으로 버려짐).
+       */
+      issues.push(lastError);
     }
   }
 
@@ -333,6 +343,9 @@ async function generateWithValidation(opts: {
     error: lastError ?? "생성 실패 — 문항 폐기",
   };
 }
+
+/** 문항 하나가 지금 있는 단계 — 진행 문구에 센다 */
+type QgStage = "make" | "check" | "redo" | "swap";
 
 type WorkItem = {
   passageId: string;
@@ -517,6 +530,53 @@ function dropReasons(said: string[] | undefined): string | null {
 }
 
 
+/** 못 만든 까닭을 선생님이 읽을 말로 바꾼다(검수 내부 문구를 그대로 보이지 않는다) */
+function friendlyDropReason(raw: string): string {
+  if (/직접 풀/.test(raw)) return "풀어 보니 답이 하나로 정해지지 않음";
+  if (/계획한 정답/.test(raw)) return "정해 둔 정답 개수에 맞게 만들지 못함";
+  if (/사실상 같음/.test(raw)) return "같은 지문의 다른 문항과 겹침";
+  if (/문장뿐|짧/.test(raw)) return "지문이 짧아 이 유형에 맞지 않음";
+  if (/^검수|검수:/.test(raw)) return "검수에서 문제가 발견됨";
+  if (/없음$|찾지 못/.test(raw)) return "지문에서 이 유형에 맞는 자리를 찾지 못함";
+  return "조건에 맞는 문항을 만들지 못함";
+}
+
+/**
+ * 끝난 작업에 선생님이 볼 안내를 만든다.
+ * 선생님 요청(2026-10-04): 왜 탈락했는지 보여 주고, 크레딧은 만든 문항에서만 나갔다고 알려 달라.
+ */
+function teacherSummary(opts: { completed: number; failed: number; credits: number; dropped: string[] }): string {
+  const parts: string[] = [];
+  if (opts.failed > 0) {
+    const byLabel = new Map<string, { n: number; reason: string }>();
+    for (const d of opts.dropped) {
+      const m = d.match(/^\[([^\]]+)\] 못 만듦: ([\s\S]*)$/);
+      if (!m) continue;
+      const row = byLabel.get(m[1]!) ?? { n: 0, reason: friendlyDropReason(m[2]!) };
+      row.n += 1;
+      byLabel.set(m[1]!, row);
+    }
+    const detail = [...byLabel.entries()].map(([label, r]) => `${label} ${r.n}개(${r.reason})`).join(" · ");
+    parts.push(
+      `못 만든 ${opts.failed}문항은 검수를 통과하지 못해 저장하지 않았고 크레딧도 받지 않았습니다${detail ? ` — ${detail}` : ""}.`
+    );
+  }
+  if (opts.credits > 0) {
+    parts.push(`크레딧은 만든 ${opts.completed}문항에만 ${opts.credits.toLocaleString("ko-KR")} 차감됐습니다.`);
+  }
+  return parts.join(" ");
+}
+
+/** 이 작업으로 차감된 크레딧(여러 토막에 나눠 받은 것까지) */
+async function creditsChargedForJob(jobId: string): Promise<number> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("credit_transactions")
+    .select("amount")
+    .eq("metadata->>job_id", jobId);
+  return (data ?? []).reduce((sum, r) => sum + Math.abs(Number((r as { amount?: number }).amount) || 0), 0);
+}
+
 async function finalizeGenerationJob(
   jobId: string,
   opts: {
@@ -540,6 +600,7 @@ async function finalizeGenerationJob(
   const swept: string[] = [];
   try {
     const admin = createAdminClient();
+    await updateJob(jobId, { progress_message: "마지막 점검 중 — 저장한 문항을 한 번 더 확인하고 있어요" });
     const { data: jobRow } = await admin
       .from("question_generation_jobs")
       .select("request_config")
@@ -572,19 +633,33 @@ async function finalizeGenerationJob(
     progressMessage = "생성 실패";
   }
 
+  // 값을 먼저 받아야 안내에 차감한 크레딧을 적을 수 있다
+  await billGeneratedQuestions(jobId, completed);
+  const credits = finalStatus === "completed" ? await creditsChargedForJob(jobId).catch(() => 0) : 0;
+  // 검수 내부 까닭은 선생님 화면 대신 작업 설정에 남긴다(어디를 다듬을지 찾을 때 본다)
+  const internal = dropReasons([...(opts.dropped ?? []), ...swept]);
+  if (internal) {
+    try {
+      const admin = createAdminClient();
+      const { data: row } = await admin.from("question_generation_jobs").select("request_config").eq("id", jobId).maybeSingle();
+      const rc = (row?.request_config ?? {}) as Record<string, unknown>;
+      await admin.from("question_generation_jobs").update({ request_config: { ...rc, _dropLog: internal } }).eq("id", jobId);
+    } catch (e) {
+      console.error("drop log save failed", e);
+    }
+  }
+
   await updateJob(jobId, {
     status: finalStatus,
     progress_message: progressMessage,
     error_message:
       finalStatus === "failed"
         ? opts.errorMessage ?? "선택한 유형 생성에 실패했습니다."
-        : dropReasons([...(opts.dropped ?? []), ...swept]),
+        : teacherSummary({ completed, failed, credits, dropped: opts.dropped ?? [] }) || null,
     completed_at: new Date().toISOString(),
     total_completed: completed,
     total_failed: failed,
   });
-
-  await billGeneratedQuestions(jobId, completed);
 
   if (completed > 0) {
     try {
@@ -1045,6 +1120,38 @@ export async function runGenerationJob(
       limit() < GENERATION_CONCURRENCY ? " · 이용자가 많아 조금 천천히 만드는 중" : "";
 
     /*
+     * 문항마다 지금 무엇을 하는지 센다. 선생님 지적(2026-10-04): 막바지에 「260/273 완료」에서
+     * 몇 분 서 있어 오류처럼 보였다. 실은 마지막 문항들이 검수에 걸려 다시 만들거나 다른 유형으로
+     * 바꿔 만드는 중이었다. 그걸 그대로 보여 준다.
+     */
+    const stages = new Map<object, QgStage>();
+    const stageNote = () => {
+      const n: Record<QgStage, number> = { make: 0, check: 0, redo: 0, swap: 0 };
+      for (const s of stages.values()) n[s] += 1;
+      const parts = [
+        n.make ? `만드는 중 ${n.make}` : "",
+        n.check ? `검수 중 ${n.check}` : "",
+        n.redo ? `검수에 걸려 다시 만드는 중 ${n.redo}` : "",
+        n.swap ? `다른 유형으로 바꿔 만드는 중 ${n.swap}` : "",
+      ].filter(Boolean);
+      return parts.length ? ` · ${parts.join(" · ")}` : "";
+    };
+    const progressText = () =>
+      `${completed + failed + skipped}/${totalRequested} 완료${skipped > 0 ? ` (생략 ${skipped})` : ""}${stageNote()}${busyNote()}`;
+    let lastStageText = "";
+    const pushStage = () => {
+      const text = progressText();
+      if (text === lastStageText || abandoned) return;
+      lastStageText = text;
+      void updateProgress(jobId, { progress_message: text }).catch(() => undefined);
+    };
+    // 줄여 쓰는 갱신(0.35초)에 마지막 바뀜이 묻히지 않게 몇 초마다 한 번 더 적는다
+    const stageTimer = setInterval(() => {
+      lastStageText = "";
+      pushStage();
+    }, 3000);
+
+    /*
      * 유형마다 첫 문항을 먼저 끝내고 나머지를 돌린다 — 값을 아끼려는 것이다.
      *
      * 실험(2026-09-30): 같은 지문·같은 앞머리로 차례로 부르면 두 번째부터 입력의
@@ -1155,7 +1262,13 @@ export async function runGenerationJob(
 
       let result: Awaited<ReturnType<typeof generateWithValidation>> = tooShortForSlots
         ? ({ payload: null, skipped: true, error: `지문이 ${sentenceCount}문장뿐이라 번호 자리를 만들 수 없음` } as unknown as Awaited<ReturnType<typeof generateWithValidation>>)
-        : await generateWithValidation(optsFor(item));
+        : await generateWithValidation({
+            ...optsFor(item),
+            onStage: (s) => {
+              stages.set(item, s);
+              pushStage();
+            },
+          });
       reviewDropped += result.reviewDropped ?? 0;
       // 다음 실행이 이 문항을 다시 만든다. 여기서 저장하면 같은 칸이 두 번 생긴다.
       if (abandoned) return;
@@ -1228,6 +1341,10 @@ export async function runGenerationJob(
             grammarWritingMode: config.grammarWritingMode,
             wordOrderMode: config.wordOrderMode ?? "passage",
             retries: 1,
+            onStage: () => {
+              stages.set(item, "swap");
+              pushStage();
+            },
           });
           if (retry.payload && !duplicates(retry.payload)) {
             reviewDropped += retry.reviewDropped ?? 0;
@@ -1247,7 +1364,8 @@ export async function runGenerationJob(
         dropped.push(`[${item.option.label || item.option.key.split(":").pop()}] 생략: ${result.error ?? ""}`);
       } else if (!result.payload) {
         failed += 1;
-        dropped.push(result.error ?? "까닭 없음");
+        // 선생님께 보일 「못 만든 문항」 안내가 유형별로 셀 수 있게 이름을 붙인다
+        dropped.push(`[${item.option.label || item.option.key.split(":").pop()}] 못 만듦: ${result.error ?? "까닭 없음"}`);
       } else {
         completed += 1;
         rememberDup(item.passageId, sigOf(result.payload));
@@ -1273,12 +1391,11 @@ export async function runGenerationJob(
         await tracked;
       }
 
+      stages.delete(item);
       await updateProgress(jobId, {
         total_completed: completed,
         total_failed: failed,
-        progress_message: `${completed + failed + skipped}/${totalRequested} 완료${
-          skipped > 0 ? ` (생략 ${skipped})` : ""
-        }${busyNote()}`,
+        progress_message: progressText(),
       });
     };
 
@@ -1302,6 +1419,7 @@ export async function runGenerationJob(
     } finally {
       clearTimeout(hardStop);
       clearInterval(shareTimer);
+      clearInterval(stageTimer);
     }
 
     if (!finishedInTime || deferred > 0) {

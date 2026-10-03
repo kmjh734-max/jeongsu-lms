@@ -329,7 +329,10 @@ export function GenerationDetailClient({
             )}
           </div>
           {job.error_message && (
-            <p className="mt-2 text-sm text-red-600">{job.error_message}</p>
+            // 완료된 작업은 「못 만든 문항·차감한 크레딧」 안내라 오류 색으로 띄우지 않는다
+            <p className={`mt-2 text-sm ${job.status === "completed" ? "text-slate-600" : "text-red-600"}`}>
+              {job.error_message}
+            </p>
           )}
         </div>
       )}

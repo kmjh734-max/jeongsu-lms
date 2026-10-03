@@ -1226,7 +1226,9 @@ export function assertBasicQuestionShape(
   /** 어법·어휘에서 지문을 그대로 두어야 하는지 (재진술을 껐으면 그대로) */
   keepPassage = true,
   /** 같은 유형이 작업 전체에서 몇 번째인가 — 만들 때 박아 준 개수와 맞춰 본다 */
-  turn = 0
+  turn = 0,
+  /** 박아 준 정답(개수·번호)과 맞춰 볼지. 다시 만들 때는 문항 자체만 맞으면 받는다 */
+  planAnswer = true
 ): string | null {
   if (!q.instruction.trim()) return "발문이 비어 있습니다.";
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
@@ -2081,9 +2083,11 @@ export function assertBasicQuestionShape(
       // 어휘추론: 하단 보기 없음, ①~⑤만
       q.choices = undefined;
     }
-    const expectedAnswer = option.aingkaCode === "어휘개수"
-      ? plannedWrongCount("어휘개수", turn)
-      : plannedAnswerNumber("어휘추론", turn);
+    const expectedAnswer = !planAnswer
+      ? null
+      : option.aingkaCode === "어휘개수"
+        ? plannedWrongCount("어휘개수", turn)
+        : plannedAnswerNumber("어휘추론", turn);
     const consistency = validateVocabularyConsistency({
       code: option.aingkaCode,
       passageModified: mod,
@@ -2778,9 +2782,17 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
     (option.aingkaCode === "어휘추론" || option.aingkaCode === "어휘개수")
   ) {
     const turn = opts.typeTurn ?? opts.diversitySlot?.index ?? 0;
-    const expectedAnswer = option.aingkaCode === "어휘개수"
-      ? plannedWrongCount("어휘개수", turn)
-      : plannedAnswerNumber("어휘추론", turn);
+    /*
+     * 정답(틀린 개수·번호)을 미리 박아 두는 것은 정답이 한쪽으로 몰리지 않게 하려는 것이다.
+     * 그런데 박아 둔 개수만 고집하면 다시 만들어도 계속 어긋나 끝내 못 만든다
+     * (정수학원 273문항 작업 2026-10-04: 어휘개수 13개 중 6개 미생성, 값은 세 번씩 냈다).
+     * 다시 만들 때는 문항 자체(본문·정답·판정)만 맞으면 받는다.
+     */
+    const expectedAnswer = opts.retryNote
+      ? null
+      : option.aingkaCode === "어휘개수"
+        ? plannedWrongCount("어휘개수", turn)
+        : plannedAnswerNumber("어휘추론", turn);
     /*
      * 기호가 ② ① ③…으로 뒤바뀌어 왔으면 대조하기 전에 차례대로 매긴다.
      * 판정(vocabularyJudgments)의 번호는 모델이 찍은 기호를 가리키므로 같은 짝으로 옮긴다.
@@ -2856,7 +2868,8 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
     opts.grammarWritingMode ?? "paraphrase",
     opts.wordOrderMode ?? "passage",
     !opts.paraphraseGrammarVocab,
-    opts.typeTurn ?? opts.diversitySlot?.index ?? 0
+    opts.typeTurn ?? opts.diversitySlot?.index ?? 0,
+    !opts.retryNote
   );
   if (shapeError) throw new Error(shapeError);
   // 어법 추론은 수능처럼 지문 속 ①~⑤로 (정답 번호와 같은 기호)
