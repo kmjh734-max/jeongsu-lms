@@ -25,6 +25,9 @@ function plainText(text: string): string {
     // 대시 꼴·띄어쓰기 통일(— – -). 모델이 「answers — regardless」를 「answers—regardless」로,
     // 「5-10」을 「5–10」으로 바꿔 와 「원문을 고쳐 썼다」로 버려졌다(2026-10-03).
     .replace(/[—–]/g, "-")
+    // 원문에 눈에 안 보이는 소프트 하이픈(too-cold)이 섞여 오면 문항의 보통 하이픈과 다른 글자로 세어
+    // 「원문 문장을 3개 지웠다」로 잘못 걸렸다(2026-10-04 저장 문항 수정 중).
+    .replace(/\u00AD/g, "-")
     .replace(/\s*-\s*/g, "-")
     .replace(/\s+/g, " ")
     .trim();

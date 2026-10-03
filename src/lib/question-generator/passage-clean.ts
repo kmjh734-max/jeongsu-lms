@@ -16,6 +16,13 @@ export function cleanSourcePassage(text: string): string {
   // 소제목 꺾쇠가 깨져 남은 「<The social criticism」의 홀로 선 < 를 뗀다(<u>·<b> 태그는 둔다).
   // 2026-10-03 전수 대조에서 학생 화면에 그대로 나왔다.
   out = out.replace(/<(?!\/?[ub]>)(?=[A-Za-z])/g, "");
+  // 눈에 안 보이는 소프트 하이픈(well-documented)은 화면에 「welldocumented」로 붙어 보인다.
+  // 저장 지문 3개에서 모두 진짜 하이픈 자리였다(too-cold, non-human 등, 2026-10-04).
+  out = out.replace(/\u00AD/g, "-");
+  // 붙여 넣을 때 딸려 온 한국어 머리말(「영어 원문 Our business…」, 「이미지 속 텍스트는 다음과 같습니다. I started…」)을 뗀다(2026-10-04).
+  out = out.replace(/^\s*(?:영어\s*원문|이미지 속 텍스트는 다음과 같습니다\.?)\s*[:：]?\s*/, "");
+  // 대화 지문의 문장 표지 「S1 Hi, … S2 Hello! …」가 학생 화면에 그대로 나왔다(불곡중2, 2026-10-04). 셋 이상이면 뗀다.
+  if ((out.match(/(?:^|\s)S\d{1,2}\s/g) ?? []).length >= 3) out = out.replace(/(^|\s)S\d{1,2}\s+/g, "$1");
   out = stripTrailingJunk(out);
   return out.replace(/[ \t]{2,}/g, " ").trim();
 }
