@@ -125,3 +125,64 @@ export async function blindSolveQuestion(opts: {
   if (raw.debatable === true) return { verdict: "drop", answer, reason: `읽기에 따라 답이 갈림 — ${reason}` };
   return { verdict: "pass", answer, reason };
 }
+
+/*
+ * 서술형 확인(2026-10-04). 정수학원 273문항 대조에서 조건부 23개 중 14개, 불량 2개가 모두
+ * 서술형이었다 — 다른 어순·다른 본문 표현도 답이 되거나, 맞는 자리를 틀렸다고 한 오류 수정.
+ * 선생님 지시: 허용답으로 살리지 말고 답이 하나뿐인 문항만 남긴다. 그래서 다른 답이 나오면 버린다.
+ * 답이 글이라 정답을 가리고 맞춰 볼 수 없어서, 정답을 보여 주고 「이 답이 맞는지, 다른 답도
+ * 되는지」를 묻는다.
+ */
+export function subjectiveCheckable(payload: GeneratedQuestionPayload): boolean {
+  if (hasChoices(payload) || isCountItem(payload)) return false;
+  const key = payload.correctAnswer;
+  return typeof key === "string" && key.trim().length > 0;
+}
+
+const SUBJECTIVE_SYSTEM = `You check one subjective (서술형) item of a Korean high-school English exam. You see the passage, the instruction with its <조건>, the question text, and the KEYED answer.
+1. Solve the item yourself first, following every condition.
+2. Decide whether the keyed answer is correct and satisfies every stated condition (word count, "본문에서 찾아", given words used exactly, 어형 변화 rule, the Korean translation). For error-correction items, check that every spot the key calls wrong is really ungrammatical under every reading and that every other spot is correct.
+3. Find any OTHER answer a fair teacher would have to mark correct: another phrase from the passage that fits the blank in grammar and meaning, another word order allowed by the given words and the translation, another valid correction of a marked error. Ignore differences only in punctuation or capitalization.
+Return ONE JSON object: {"keyWrong":<true|false>,"otherValid":[<other fully correct answers, or empty>],"reason":"<Korean, one or two sentences>"}
+Be strict and concrete: list an answer in otherValid only if you are sure it is fully correct under all conditions.`;
+
+export async function checkSubjectiveQuestion(opts: {
+  passage: string;
+  payload: GeneratedQuestionPayload;
+}): Promise<BlindSolveResult> {
+  const { payload } = opts;
+  const shown = payload.passageModified?.trim() ? payload.passageModified : opts.passage;
+  const user = [
+    `INSTRUCTION: ${compact(payload.instruction, 400)}`,
+    `\nPASSAGE (<u>…</u> = underline):\n${compact(shown)}`,
+    payload.questionText ? `\nQUESTION TEXT:\n${compact(payload.questionText, 1600)}` : "",
+    `\nKEYED ANSWER: ${compact(payload.correctAnswer, 600)}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  let raw: Record<string, unknown>;
+  try {
+    raw = (await questionGeneratorChatJsonWithRetry({
+      system: SUBJECTIVE_SYSTEM,
+      user,
+      temperature: 0,
+      maxTokens: 2000,
+      // 오류 수정은 자리마다 따져야 해서 깊이 생각하게 한다(개수 문항과 같은 까닭)
+      reasoningEffort:
+        (process.env.QG_SOLVE_EFFORT as "low" | "medium" | undefined) ||
+        (/어법|오류|수정/.test(String(payload.instruction ?? "")) ? "medium" : "low"),
+      preferredModels: [SOLVE_MODEL],
+      cacheKey: "qg-solve-subjective",
+    })) as Record<string, unknown>;
+  } catch {
+    return { verdict: "pass", answer: null, reason: "확인 호출 실패 — 통과로 둔다" };
+  }
+  const reason = compact(raw.reason, 300);
+  const others = (Array.isArray(raw.otherValid) ? raw.otherValid : [])
+    .map((x) => String(x).trim())
+    .filter((x) => x && x.toLowerCase().replace(/[^a-z0-9]/g, "") !== String(payload.correctAnswer).toLowerCase().replace(/[^a-z0-9]/g, ""));
+  if (raw.keyWrong === true) return { verdict: "drop", answer: null, reason: `정답이 맞지 않음 — ${reason}` };
+  if (others.length) return { verdict: "drop", answer: null, reason: `다른 답도 됨(${others.slice(0, 2).join(" / ")}) — ${reason}` };
+  return { verdict: "pass", answer: null, reason };
+}

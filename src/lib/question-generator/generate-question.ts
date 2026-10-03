@@ -2359,6 +2359,33 @@ export async function generateOneQuestion(opts: {
   const paraphraseSystemHint = paraphraseTypes.has(option.type)
     ? "- Choices/<보기> MUST paraphrase with ROTATING synonyms/near-synonyms (동의어·유의어). Do NOT copy passage phrases. Across same-passage items, avoid reusing the same theme-word set every time; vary wording and use antonyms mainly in distractors."
     : "";
+  /*
+   * 검수에 걸려 버려지는 까닭을 만들 때부터 막는다(정수학원 273문항 작업 2026-10-04 대조).
+   * 버린 생성이 원가의 38%였고, 대부분 같은 몇 가지가 되풀이됐다: 다르게 읽으면 맞는 「오류」,
+   * 요구한 개수와 다른 실제 오류 수, 다른 답도 되는 서술형, 밑줄 바로 뒤 말을 답으로 한 특정표현.
+   * 첫 메시지(유형마다 같은 글)에 넣어 캐시를 깨지 않는다.
+   */
+  const qualityRuleHint = [
+    option.type === "grammar"
+      ? `- GRAMMAR ERRORS MUST BE UNAMBIGUOUS. Every spot you call wrong must be ungrammatical under EVERY reading and have exactly ONE fix: the original word's form. Make an error only where a single form is required, e.g. a finite verb replaced by -ing/-ed/to-V in the main-verb slot, agreement with one clear subject, active/passive when the object is clearly present or absent, adjective/adverb modifying a verb or adjective, what/that or which/where where the clause is clearly complete or incomplete.
+- NEVER call these wrong (they are defensible and get the item thrown away): an -ing/-ed form that can be read as modifying a noun; -ing after a to that can be a preposition (look forward to, the way to, be used to); it/they when either antecedent fits; tense-only changes; adverb position; which↔that; who↔whom; a word whose wrong-ness depends on meaning rather than grammar.
+- COUNT before you answer: the spots whose text differs from the original passage must be exactly the spots you call wrong, and their number must equal the number this item asks for. Every other underlined spot keeps the original words.`
+      : "",
+    option.type === "vocabulary"
+      ? "- Underline ONE word (two at most) per spot, never a phrase of three or more words."
+      : "",
+    !option.isObjective
+      ? "- ONE ANSWER ONLY. The item must have exactly one correct answer; do not rely on acceptableAnswers to cover others. Before finishing, try to find a second answer a careful student could write: another phrase from the passage that fits the blank in grammar and meaning, another word order the given words and the Korean translation allow (a movable adverb or modifier), another valid correction. If one exists, change the item (pick a different blank, make the translation fix the order, choose an error with a single fix) until only one answer works."
+      : "",
+    option.aingkaCode === "특정표현의미서술"
+      ? "- The answer phrase must MEAN the same as the underlined expression so that it could replace it, and it must come from a DIFFERENT place in the passage. Never use the words right after the underline, a cause/result of it, or a related action."
+      : "",
+    option.type === "summary_short"
+      ? "- Each blank answer must be a complete phrase: it may not end with a function word (of, in, to, a, the, and…) or start with a conjunction."
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
   const craftSystemHint = option.isObjective
     ? "- 보기: 5개 모두 그럴듯하게. 정답만 눈에 띄지 않게. 강한 오답 ≥2. 황당 오답 금지. 정답 하나. 길이·구조 균형."
     : "";
@@ -2493,6 +2520,7 @@ export async function generateOneQuestion(opts: {
     paraphraseSystemHint,
     frameBanHint,
     craftSystemHint,
+    qualityRuleHint,
     difficultyRule(option, opts.targetLevel ?? targetLevelFromOverall(opts.overallDifficulty)),
     opts.levelBrief ? `\n[원래 시험지의 수준]\n${opts.levelBrief}` : "",
     typeRulesStatic,

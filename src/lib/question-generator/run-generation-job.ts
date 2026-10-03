@@ -1,7 +1,13 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sweepSavedQuestions } from "@/lib/question-generator/final-sweep";
 import { aiReviewEnabled, reviewGeneratedQuestion } from "@/lib/question-generator/ai-review";
-import { blindSolvable, blindSolveEnabled, blindSolveQuestion } from "@/lib/question-generator/blind-solve";
+import {
+  blindSolvable,
+  blindSolveEnabled,
+  blindSolveQuestion,
+  checkSubjectiveQuestion,
+  subjectiveCheckable,
+} from "@/lib/question-generator/blind-solve";
 import { dupSignature, isNearDuplicate, type DupSignature } from "@/lib/question-generator/near-duplicate";
 import { CHART_UNFIT_TYPES, cleanSourcePassage, isChartDescriptionPassage } from "@/lib/question-generator/passage-clean";
 import { withAiUsage } from "@/lib/ai-usage/context";
@@ -277,10 +283,13 @@ async function generateWithValidation(opts: {
          * 답이 다르거나 다른 답도 맞다고 하면 뜻 검수까지 가지 않고 다시 만든다.
          */
         opts.onStage?.("check");
-        if (blindSolveEnabled() && blindSolvable(payload)) {
+        if (blindSolveEnabled() && (blindSolvable(payload) || subjectiveCheckable(payload))) {
           const solved = await withAiUsage(
             { ...currentAiUsage(), featureKey: null, usedFor: "qg_solve" },
-            () => blindSolveQuestion({ passage: opts.passage, payload })
+            () =>
+              blindSolvable(payload)
+                ? blindSolveQuestion({ passage: opts.passage, payload })
+                : checkSubjectiveQuestion({ passage: opts.passage, payload })
           );
           validation.solve = solved;
           if (solved.verdict === "drop") {
