@@ -308,6 +308,7 @@ LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean
 - Pick a flow-critical sentence from the passage as the sentence to insert.
 - CRITICAL: questionText = PARAPHRASE of that sentence (ENGLISH), not a verbatim copy.
 - passageModified = remaining ENGLISH passage with five insertion slots marked ① ② ③ ④ ⑤ in the text.
+- NEVER add a sentence that is not in the original passage to make room for slots (no new closing or bridging sentences). If there are too few sentence boundaries, you may split ONE long original sentence at a clause boundary, keeping its words.
 - choices: omit or empty array — slots IN the passage are the options; do NOT invent separate choice texts.
 ${insertionChoiceCraft()}
 LANGUAGE: questionText + passageModified MUST be ENGLISH only.
@@ -319,6 +320,7 @@ ${slotRule}`;
 - Pick a flow-critical sentence from the passage as the sentence to insert.
 - questionText = that sentence in ORIGINAL ENGLISH wording (do not paraphrase).
 - passageModified = remaining ENGLISH passage with five insertion slots marked ① ② ③ ④ ⑤ in the text.
+- NEVER add a sentence that is not in the original passage to make room for slots (no new closing or bridging sentences). If there are too few sentence boundaries, you may split ONE long original sentence at a clause boundary, keeping its words.
 - choices: omit or empty array — slots IN the passage are the options; do NOT invent separate choice texts.
 ${insertionChoiceCraft()}
 LANGUAGE: questionText + passageModified MUST be ENGLISH only.

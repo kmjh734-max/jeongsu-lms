@@ -1156,7 +1156,15 @@ export async function runGenerationJob(
          */
         substitutedReason = result.error ?? "까닭 없음";
         const level = item.slot?.level ?? (item.option.difficulty === "high" ? "상" : "하");
-        for (const alt of fallbackOptionsFor(item.option.key, level, item.typeTurn ?? item.copyIndex ?? 0)) {
+        /*
+         * 그 지문에 이미 있는 유형은 뒤로 미룬다. 순서추론이 안 돼서 바꾼 것이 같은 지문의 다른
+         * 순서추론과 단락까지 똑같이 나온 일이 있었다(정수학원 193문항 중 3건, 2026-10-04).
+         */
+        const usedTypes = new Set(work.filter((w) => w !== item && w.passageId === item.passageId).map((w) => w.option.type));
+        const alternatives = fallbackOptionsFor(item.option.key, level, item.typeTurn ?? item.copyIndex ?? 0).sort(
+          (a, b) => Number(usedTypes.has(a.type)) - Number(usedTypes.has(b.type))
+        );
+        for (const alt of alternatives) {
           const retry = await generateWithValidation({
             passage: item.passageText,
             analysis: item.analysis,
