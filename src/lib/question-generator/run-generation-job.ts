@@ -263,6 +263,7 @@ async function generateWithValidation(opts: {
       const payload = await generateOneQuestion({
         ...opts,
         retryNote: issues.length ? issues[issues.length - 1] : undefined,
+        attempt,
       });
       const validation = validateGeneratedQuestion({
         passage: opts.passage,
@@ -283,7 +284,13 @@ async function generateWithValidation(opts: {
          * 답이 다르거나 다른 답도 맞다고 하면 뜻 검수까지 가지 않고 다시 만든다.
          */
         opts.onStage?.("check");
+        /*
+         * 서술형 확인은 정답·해설을 보며 뜻 검수가 보는 것(조건·비문·해설)까지 함께 본다. 그래서 서술형은
+         * 뜻 검수를 또 부르지 않는다 — 시험 50문항(2026-10-04)에서 검수비가 원가의 23%였다.
+         */
+        let reviewedBySolve = false;
         if (blindSolveEnabled() && (blindSolvable(payload) || subjectiveCheckable(payload))) {
+          reviewedBySolve = !blindSolvable(payload);
           const solved = await withAiUsage(
             { ...currentAiUsage(), featureKey: null, usedFor: "qg_solve" },
             () =>
@@ -299,7 +306,7 @@ async function generateWithValidation(opts: {
             continue;
           }
         }
-        if (aiReviewEnabled()) {
+        if (aiReviewEnabled() && !reviewedBySolve) {
           const review = await withAiUsage(
             { ...currentAiUsage(), featureKey: null, usedFor: "qg_review" },
             () =>
@@ -1339,7 +1346,8 @@ export async function runGenerationJob(
         const alternatives = fallbackOptionsFor(item.option.key, level, item.typeTurn ?? item.copyIndex ?? 0).sort(
           (a, b) => usedScore(a) - usedScore(b)
         );
-        for (const alt of alternatives) {
+        // 대체 후보는 앞의 셋까지만 — 다 실패하는 지문에서 후보마다 두 번씩 값만 쓰던 것을 막는다
+        for (const alt of alternatives.slice(0, 3)) {
           const retry = await generateWithValidation({
             passage: item.passageText,
             analysis: item.analysis,

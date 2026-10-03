@@ -2191,6 +2191,8 @@ export async function generateOneQuestion(opts: {
   copyIndex?: number;
   /** 앞 시도가 버려진 까닭. 다시 만들 때 같은 실수를 되풀이하지 않게 끝에 붙인다 */
   retryNote?: string;
+  /** 몇 번째 시도인가(1부터) — 다시 만들 때 같은 문장을 또 고르지 않게 한다 */
+  attempt?: number;
   /** 첫 메시지(유형 규칙)만 보내 캐시를 데우고 끝낸다 */
   primeOnly?: boolean;
 }): Promise<GeneratedQuestionPayload> {
@@ -2589,7 +2591,9 @@ export async function generateOneQuestion(opts: {
       (/^(?:in|on|at|for|with|by|from|during|after|before|despite|using|as|when|while|if|although|because|and|but|so)\b/i.test(t) ? 2 : 0);
     const least = Math.min(...sents.map(movable));
     const pool = sents.filter((t) => movable(t) <= least + 1);
-    const pick = pool[((opts.diversitySlot?.index ?? 0) + typeOffset + (opts.copyIndex ?? 0) * 3) % pool.length]!;
+    // 다시 만들 때는 다음 문장으로 넘긴다. 같은 문장으로 세 번 시도하면 같은 까닭(다른 어순도 답)으로 또 버려졌다.
+    const retryShift = Math.max(0, (opts.attempt ?? 1) - 1);
+    const pick = pool[((opts.diversitySlot?.index ?? 0) + typeOffset + (opts.copyIndex ?? 0) * 3 + retryShift) % pool.length]!;
     return `\n\nUSE THIS SENTENCE: 이번 문항은 이 문장을 빈칸으로 한다(글자 그대로, 한 자도 바꾸지 말 것).\n"${pick}"`;
   })();
 

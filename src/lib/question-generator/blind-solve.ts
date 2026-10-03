@@ -55,6 +55,8 @@ export type BlindSolveResult = {
   verdict: "pass" | "drop";
   answer: number | null;
   reason: string;
+  /** 서술형 확인이 고친 칸(해설) */
+  fixed?: string[];
 };
 
 export async function blindSolveQuestion(opts: {
@@ -143,7 +145,9 @@ const SUBJECTIVE_SYSTEM = `You check one subjective (서술형) item of a Korean
 1. Solve the item yourself first, following every condition.
 2. Decide whether the keyed answer is correct and satisfies every stated condition (word count, "본문에서 찾아", given words used exactly, 어형 변화 rule, the Korean translation). For error-correction items, check that every spot the key calls wrong is really ungrammatical under every reading and that every other spot is correct.
 3. Find any OTHER answer a fair teacher would have to mark correct: another phrase from the passage that fits the blank in grammar and meaning, another word order allowed by the given words and the translation, another valid correction of a marked error. Ignore differences only in punctuation or capitalization.
-Return ONE JSON object: {"keyWrong":<true|false>,"otherValid":[<other fully correct answers, or empty>],"reason":"<Korean, one or two sentences>"}
+4. Treat these as keyWrong too: the summary sentence is ungrammatical or meaningless once the answer is filled in; the <보기> words cannot produce the answer (missing or extra words, wrong forms for the stated 어형 rule); a 지칭 answer is a pronoun or determiner instead of the noun referred to; a 특정표현 answer does not MEAN the same as the underlined expression (only a related action, a cause/result, or the words right after it); the passage or question text is garbled, truncated, or leaks the answer; the item invents content the passage does not have.
+5. Check the EXPLANATION (Korean). If the key is right but the explanation is wrong (wrong grammar term, wrong referent, wrong reason, a step that contradicts the key), write a corrected one in "fixedExplanation" (Korean, 평서형 "~다", same shape and length as the original). Otherwise leave it out. Wording style alone is not wrong.
+Return ONE JSON object: {"keyWrong":<true|false>,"otherValid":[<other fully correct answers, or empty>],"fixedExplanation":<optional Korean string>,"reason":"<Korean, one or two sentences>"}
 Be strict and concrete: list an answer in otherValid only if you are sure it is fully correct under all conditions.`;
 
 export async function checkSubjectiveQuestion(opts: {
@@ -157,6 +161,7 @@ export async function checkSubjectiveQuestion(opts: {
     `\nPASSAGE (<u>…</u> = underline):\n${compact(shown)}`,
     payload.questionText ? `\nQUESTION TEXT:\n${compact(payload.questionText, 1600)}` : "",
     `\nKEYED ANSWER: ${compact(payload.correctAnswer, 600)}`,
+    `\nEXPLANATION (Korean):\n${compact(payload.explanation, 1600)}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -184,5 +189,11 @@ export async function checkSubjectiveQuestion(opts: {
     .filter((x) => x && x.toLowerCase().replace(/[^a-z0-9]/g, "") !== String(payload.correctAnswer).toLowerCase().replace(/[^a-z0-9]/g, ""));
   if (raw.keyWrong === true) return { verdict: "drop", answer: null, reason: `정답이 맞지 않음 — ${reason}` };
   if (others.length) return { verdict: "drop", answer: null, reason: `다른 답도 됨(${others.slice(0, 2).join(" / ")}) — ${reason}` };
+  // 해설만 틀렸으면 고쳐서 살린다(뜻 검수의 fix와 같은 잣대)
+  const fixedExplanation = typeof raw.fixedExplanation === "string" ? raw.fixedExplanation.trim() : "";
+  if (fixedExplanation.length >= 10 && !/[A-Za-z]{40,}/.test(fixedExplanation) && fixedExplanation !== payload.explanation) {
+    payload.explanation = fixedExplanation;
+    return { verdict: "pass", answer: null, reason: `해설을 고침 — ${reason}`, fixed: ["explanation"] };
+  }
   return { verdict: "pass", answer: null, reason };
 }
