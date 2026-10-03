@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sweepSavedQuestions } from "@/lib/question-generator/final-sweep";
 import { aiReviewEnabled, reviewGeneratedQuestion } from "@/lib/question-generator/ai-review";
+import { dupSignature, isNearDuplicate, type DupSignature } from "@/lib/question-generator/near-duplicate";
 import { CHART_UNFIT_TYPES, cleanSourcePassage, isChartDescriptionPassage } from "@/lib/question-generator/passage-clean";
 import { withAiUsage } from "@/lib/ai-usage/context";
 import { currentAiUsage } from "@/lib/ai-usage/record";
@@ -710,8 +711,27 @@ export async function runGenerationJob(
 
   const { data: existingRows } = await admin
     .from("generated_english_questions")
-    .select("passage_id, option_key, slot_index, validation_result")
+    .select("passage_id, option_key, slot_index, validation_result, question_type, passage_modified, choices, correct_answer")
     .eq("generation_job_id", jobId);
+  /** 지문마다 이미 만든 문항의 비교용 낱말 — 같은 지문·같은 유형의 사실상 같은 문항을 거른다 */
+  const dupSigs = new Map<string, DupSignature[]>();
+  const rememberDup = (passageId: string, sig: DupSignature | null) => {
+    if (!sig) return;
+    const list = dupSigs.get(passageId) ?? [];
+    list.push(sig);
+    dupSigs.set(passageId, list);
+  };
+  for (const r of existingRows ?? []) {
+    rememberDup(
+      String(r.passage_id),
+      dupSignature({
+        type: r.question_type as string | null,
+        passageModified: r.passage_modified as string | null,
+        choices: r.choices as GeneratedQuestionPayload["choices"],
+        correctAnswer: r.correct_answer,
+      })
+    );
+  }
   /*
    * 다른 유형으로 바꿔 만든 문항은 「원래 고른 유형」 칸을 채운 것으로 센다.
    * 전에는 바뀐 유형 키로만 세어, 다음 토막이 원래 칸을 비었다고 보고 한 번 더 만들었다.
@@ -1123,6 +1143,20 @@ export async function runGenerationJob(
       if (abandoned) return;
 
       /*
+       * 같은 지문의 같은 유형 문항과 사실상 같으면 버리고 아래에서 다른 유형으로 만든다.
+       * 정수학원 세 작업 조건부 25개 중 4개가 이 중복이었다(2026-10-04).
+       */
+      const sigOf = (p: GeneratedQuestionPayload) =>
+        dupSignature({ type: p.type, passageModified: p.passageModified, choices: p.choices, correctAnswer: p.correctAnswer });
+      const duplicates = (p: GeneratedQuestionPayload) => {
+        const sig = sigOf(p);
+        return !!sig && (dupSigs.get(item.passageId) ?? []).some((o) => isNearDuplicate(sig, o));
+      };
+      if (result.payload && duplicates(result.payload)) {
+        result = { ...result, payload: null, skipped: false, error: "같은 지문의 같은 유형 문항과 사실상 같음" } as typeof result;
+      }
+
+      /*
        * 빠지는 문항을 두지 않는다. 동형모의고사는 번호가 빠지면 1번부터 나오지 않고
        * 배점도 모자란다.
        *
@@ -1177,7 +1211,7 @@ export async function runGenerationJob(
             wordOrderMode: config.wordOrderMode ?? "passage",
             retries: 1,
           });
-          if (retry.payload) {
+          if (retry.payload && !duplicates(retry.payload)) {
             reviewDropped += retry.reviewDropped ?? 0;
             result = retry;
             item.option = alt;
@@ -1198,6 +1232,7 @@ export async function runGenerationJob(
         dropped.push(result.error ?? "까닭 없음");
       } else {
         completed += 1;
+        rememberDup(item.passageId, sigOf(result.payload));
         const insert = admin.from("generated_english_questions").insert(
           toRow(result.payload, {
             passageId: item.passageId,
