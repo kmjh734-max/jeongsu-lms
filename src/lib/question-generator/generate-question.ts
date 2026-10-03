@@ -183,6 +183,7 @@ Difficulty: ${
 - choices: omit or empty array. No ①~⑤ options.
 - Do NOT change the passage; omit passageModified.
 - explanation: list which numbers are false and why (Korean, brief).
+- Every statement must be clearly true or clearly false from the passage alone: no vague references ("the opposite direction" of what?), no comparisons the passage never makes, no paraphrase that could be read either way. A false statement changes one checkable fact.
 ${craft}
 ${contentFalseChoiceCraft(en)}
 ${paraphrase}
@@ -478,6 +479,7 @@ ${focusBlock}
 형식:
 - passageModified = 영어 지문. 밑줄 정확히 ${marks} → ⓐ<u>틀린형태또는맞는형태</u>
 - 틀린 곳 정확히 ${wrongN}개 — <u>안에는 틀린 형태</u>를 넣음. 위 ‘이번 문항’ 문법을 서로 다른 단원으로 하나씩.
+- 틀린 형태는 그 자리 **원문 낱말의 형태만** 바꿔 만든다(수·시제·태·품사·준동사). 다른 낱말로 바꾸거나 낱말을 끼워 넣지 말 것 — 바른 형태가 곧 원문이어야 고치는 답이 하나로 정해진다.
 ${spotLine}
 - 나머지 밑줄은 어법상 맞음 (함정처럼 보이되 옳음) — <u>안에는 이미 바른 형태</u>.
 - questionText:

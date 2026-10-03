@@ -49,10 +49,15 @@ DROP when any of these holds:
 6. Insertion/order/irrelevant items: the keyed position/order is not the only coherent one.
 7. Implied-meaning (함축) items: the keyed choice does not capture the contextual meaning, or another choice does equally well.
 8. Specific-expression items (특정표현의미서술): the keyed phrase must MEAN the same as the underlined expression (a true paraphrase you could substitute for it). DROP if it only names a related action, the clause that follows the underline, or something merely nearby (e.g., underline "brought to the forefront" keyed as "recording all answers to be considered"; underline "its own iron casting facility" keyed as "where it made its metal plates").
+9. Count items (일치개수·어법개수·어휘개수): any statement or spot whose truth is debatable, so the count could come out differently — a vague reference ("the opposite direction" of what?), a comparison the passage never states, a paraphrase that could be read as true or false, or a "wrong" grammar spot that is grammatical under another reading (possessive + gerund "after its exploding", parallel purpose "images to track fires and to inform people").
+10. Error-correction items (어법오류수정·어법문장오류수정): a marked error has more than one valid correction not covered by acceptableAnswers (e.g., "easily" → easy or easier, "much hands" → many or both), or the error was made by swapping in a different word instead of changing the original word's form.
+11. Topic/title/gist items: the keyed choice says something the passage does not say, or another choice covers the passage about as well.
 
 FIX (not drop) only when the body and choices are fine and ONLY the answer key or the explanation is wrong, and you are certain of the correct value. Put the corrected value in fixedCorrectAnswer (same format as the given correctAnswer: integer 1-5 for MCQ, or the same string format for subjective) and/or fixedExplanation (Korean, 평서형 "~다", same shape as the original explanation).
 
-PASS otherwise. Minor wording issues in the explanation are not defects. Do not drop because distractors are easy. Do not rewrite the passage or choices.`;
+An explanation that uses a wrong grammar term (calls a participle a gerund), names the wrong antecedent/referent, or gives a reason that is not true of this passage is wrong — FIX it.
+
+PASS otherwise. Wording style in the explanation is not a defect. Do not drop because distractors are easy. Do not rewrite the passage or choices.`;
 
 function compact(text: unknown, max = 2400): string {
   const s = String(text ?? "").replace(/\s+/g, " ").trim();

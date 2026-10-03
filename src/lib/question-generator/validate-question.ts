@@ -436,6 +436,21 @@ export function validateGeneratedQuestion(opts: {
         score -= 45;
         break;
       }
+      /*
+       * 고친 꼴을 제자리에 넣으면 원문이 돌아와야 한다. 원문 낱말을 다른 낱말로 바꿔 넣거나
+       * 없던 낱말을 끼우면(resilient → resiliently) 맞는 고침이 여럿 생긴다
+       * (정수학원 193문항 #B11, 2026-10-04 — 10/2 이후 문항 40개 중 이 하나만 걸렸다).
+       */
+      const ul = uls.find((u) => u[2] === m[1]);
+      const fix = String(m[2] ?? "").replace(/.*(?:→|->|⇒)\s*/, "").trim();
+      if (ul && fix) {
+        const restored = [`${ul[1] ?? ""}${fix}${ul[4] ?? ""}`, `${fix}${ul[4] ?? ""}`, `${ul[1] ?? ""}${fix}`].map(plainText);
+        if (!restored.some((r) => originalPlain.includes(r))) {
+          warnings.push(`정답 ${m[1]}을 「${fix}」로 고쳐도 원문이 되지 않습니다. 원문 낱말의 형태만 바꿔 오류를 만듭니다.`);
+          score -= 45;
+          break;
+        }
+      }
     }
   }
 
