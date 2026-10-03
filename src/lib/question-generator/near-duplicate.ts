@@ -64,6 +64,15 @@ function underlined(passageModified: string | null | undefined): Set<string> | u
   return set.size >= 2 ? set : undefined;
 }
 
+/*
+ * 선생님 결정(2026-10-04): 「어차피 랜덤으로 하니 중복 문항은 괜찮다, 틀린 문제만 거르면 된다」.
+ * 중복을 거르느라 다시 만드는 값이 들고, 끝내 못 만드는 문항까지 생겼다(3차 시험 2개). 기본은 끈다.
+ * 다시 켜려면 QG_DEDUP=on.
+ */
+export function dedupEnabled(): boolean {
+  return (process.env.QG_DEDUP ?? "off").trim().toLowerCase() === "on";
+}
+
 export function dupSignature(q: {
   type?: string | null;
   passageModified?: string | null;

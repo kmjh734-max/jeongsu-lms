@@ -8,7 +8,7 @@ import {
   checkSubjectiveQuestion,
   subjectiveCheckable,
 } from "@/lib/question-generator/blind-solve";
-import { dupSignature, isNearDuplicate, type DupSignature } from "@/lib/question-generator/near-duplicate";
+import { dedupEnabled, dupSignature, isNearDuplicate, type DupSignature } from "@/lib/question-generator/near-duplicate";
 import { CHART_UNFIT_TYPES, cleanSourcePassage, isChartDescriptionPassage } from "@/lib/question-generator/passage-clean";
 import { withAiUsage } from "@/lib/ai-usage/context";
 import { currentAiUsage } from "@/lib/ai-usage/record";
@@ -241,6 +241,8 @@ async function generateWithValidation(opts: {
   retries?: number;
   /** 지금 어느 단계인지 알린다 — 진행 문구에 「검수 중」 등을 띄운다 */
   onStage?: (stage: QgStage) => void;
+  /** 같은 지문의 다른 문항과 겹치면 까닭(다음 시도에 넘길 메모), 아니면 null */
+  duplicateNote?: (payload: GeneratedQuestionPayload) => string | null;
 }): Promise<{
   payload: GeneratedQuestionPayload | null;
   status: "approved";
@@ -283,6 +285,17 @@ async function generateWithValidation(opts: {
          * 정답을 가리고 직접 풀어 본다(선생님 결정 2026-10-04, 「조건부도 나오지 않게」).
          * 답이 다르거나 다른 답도 맞다고 하면 뜻 검수까지 가지 않고 다시 만든다.
          */
+        /*
+         * 중복은 검수(값이 드는 호출) 전에 거르고, 같은 유형으로 다시 만들게 메모를 남긴다.
+         * 3차 시험(2026-10-04)에서 다 만들고 풀어 본 뒤에야 중복으로 버려 곧장 다른 유형으로 넘겼고,
+         * 요약문빈칸 2개는 끝내 못 만들었다.
+         */
+        const dupNote = opts.duplicateNote?.(payload);
+        if (dupNote) {
+          lastError = dupNote;
+          issues.push(dupNote);
+          continue;
+        }
         opts.onStage?.("check");
         /*
          * 서술형 확인은 정답·해설을 보며 뜻 검수가 보는 것(조건·비문·해설)까지 함께 본다. 그래서 서술형은
@@ -1276,6 +1289,18 @@ export async function runGenerationJob(
         usedFor: "question_generator",
       });
 
+      const sigOf = (p: GeneratedQuestionPayload) =>
+        dupSignature({ type: p.type, passageModified: p.passageModified, choices: p.choices, correctAnswer: p.correctAnswer });
+      const duplicates = (p: GeneratedQuestionPayload) => {
+        if (!dedupEnabled()) return false;
+        const sig = sigOf(p);
+        return !!sig && (dupSigs.get(item.passageId) ?? []).some((o) => isNearDuplicate(sig, o));
+      };
+      const duplicateNote = (p: GeneratedQuestionPayload) =>
+        duplicates(p)
+          ? `같은 지문의 다른 문항과 겹친다(정답 「${String(p.correctAnswer ?? "").slice(0, 80)}」, 같은 밑줄·같은 문장·같은 표현). 이 지문의 다른 문장·다른 표현을 골라 만든다.`
+          : null;
+
       let result: Awaited<ReturnType<typeof generateWithValidation>> = tooShortForSlots
         ? ({ payload: null, skipped: true, error: `지문이 ${sentenceCount}문장뿐이라 번호 자리를 만들 수 없음` } as unknown as Awaited<ReturnType<typeof generateWithValidation>>)
         : await generateWithValidation({
@@ -1284,6 +1309,7 @@ export async function runGenerationJob(
               stages.set(item, s);
               pushStage();
             },
+            duplicateNote,
           });
       reviewDropped += result.reviewDropped ?? 0;
       // 다음 실행이 이 문항을 다시 만든다. 여기서 저장하면 같은 칸이 두 번 생긴다.
@@ -1293,12 +1319,7 @@ export async function runGenerationJob(
        * 같은 지문의 같은 유형 문항과 사실상 같으면 버리고 아래에서 다른 유형으로 만든다.
        * 정수학원 세 작업 조건부 25개 중 4개가 이 중복이었다(2026-10-04).
        */
-      const sigOf = (p: GeneratedQuestionPayload) =>
-        dupSignature({ type: p.type, passageModified: p.passageModified, choices: p.choices, correctAnswer: p.correctAnswer });
-      const duplicates = (p: GeneratedQuestionPayload) => {
-        const sig = sigOf(p);
-        return !!sig && (dupSigs.get(item.passageId) ?? []).some((o) => isNearDuplicate(sig, o));
-      };
+      // 시도 사이에 다른 문항이 먼저 저장됐을 수 있어 한 번 더 본다
       if (result.payload && duplicates(result.payload)) {
         result = { ...result, payload: null, skipped: false, error: "같은 지문의 같은 유형 문항과 사실상 같음" } as typeof result;
       }
@@ -1370,6 +1391,7 @@ export async function runGenerationJob(
               stages.set(item, "swap");
               pushStage();
             },
+            duplicateNote,
           });
           if (retry.payload && !duplicates(retry.payload)) {
             reviewDropped += retry.reviewDropped ?? 0;
