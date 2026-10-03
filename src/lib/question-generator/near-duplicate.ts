@@ -13,6 +13,8 @@ export type DupSignature = {
   paras?: Set<string>[];
   /** 객관식 정답 보기의 내용어 */
   keyed?: Set<string>;
+  /** 요약문 빈칸 정답 구(「ⓐ: … / ⓑ: …」을 칸마다 나눠 소문자로) */
+  answers?: string[];
 };
 
 const STOP = new Set(
@@ -50,6 +52,17 @@ export function dupSignature(q: {
 }): DupSignature | null {
   const type = String(q.type ?? "");
   if (!type || SKIP_TYPES.test(type)) return null;
+  /*
+   * 요약문 빈칸은 보기가 없어 정답 구로 비교한다. 2026-10-04 시험 50문항에서 같은 지문의 요약문
+   * 빈칸 둘이 정답까지 똑같았다(widespread objections / confirmed, successive moment / gust).
+   */
+  if (type === "summary_short") {
+    const answers = String(q.correctAnswer ?? "")
+      .split("/")
+      .map((s) => s.replace(/^\s*[ⓐ-ⓩ(][A-Za-z)]?\s*[:：]?\s*/, "").replace(/[^a-z' ]/gi, " ").replace(/\s+/g, " ").trim().toLowerCase())
+      .filter(Boolean);
+    return answers.length ? { type, answers } : null;
+  }
   if (type === "order") {
     const text = String(q.passageModified ?? "");
     const paras = [...text.matchAll(/\(([A-C])\)\s*([\s\S]*?)(?=\n\s*\([A-C]\)|$)/g)].map((m) => words(m[2]!));
@@ -73,5 +86,12 @@ export function isNearDuplicate(next: DupSignature, prev: DupSignature): boolean
     return same >= 2;
   }
   if (next.keyed && prev.keyed) return jaccard(next.keyed, prev.keyed) >= 0.6;
+  if (next.answers && prev.answers) {
+    // 두 낱말 이상인 정답 구가 같거나, 칸마다 정답이 모두 같으면 같은 문항이다
+    // 「despite widespread objections」와 「widespread objections」처럼 한쪽이 다른 쪽을 품어도 같은 자리다
+    const overlap = (a: string, b: string) => a === b || (a.includes(" ") && b.includes(" ") && (` ${a} `.includes(` ${b} `) || ` ${b} `.includes(` ${a} `)));
+    const same = next.answers.filter((a) => prev.answers!.some((b) => overlap(a, b)));
+    return same.some((a) => a.includes(" ")) || (same.length > 0 && same.length === next.answers.length);
+  }
   return false;
 }

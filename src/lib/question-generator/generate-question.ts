@@ -851,13 +851,14 @@ word1 / word2 / … (6~10개, 정답 ⓐ+ⓑ를 섞은 핵심 단어. 원형만.
 <조건>
 ○ 본문에서 찾아 쓸 것
 ○ ⓐ는 본문에 나오는 연속된 세 단어로 쓸 것
-○ 다른 빈칸이 있으면 본문 단어(1~2단어)로, 형태 변형 금지
+○ ⓑ(및 ⓒ가 있으면)는 본문의 한 단어로 쓸 것 (형태 변형 금지)
 ○ 본문에 제시된 단어의 형태를 변형하지 말 것
 
 <요약문>
-(영어 paraphrase 요약. 핵심 빈칸 ⓐ__________ = 연속 3단어)
+(영어 paraphrase 요약. 핵심 빈칸 ⓐ__________ = 연속 3단어, ⓑ__________ 는 1단어)
 
 - 정답 ⓐ 구는 원문에 연속 3단어로 존재해야 함.
+- ⓑ는 정확히 한 단어다. 「1~2단어」처럼 범위를 주면 한 단어로 줄여 써도 맞아 답이 둘이 된다(2026-10-04 시험: greater consistency / consistency, audible signals / signals).
 - correctAnswer: "ⓐ: … … … / ⓑ: …" 형식
 - choices 없음. explanation 한글.`;
       }
@@ -2036,6 +2037,17 @@ export function assertBasicQuestionShape(
   if (option.type === "order" && (!q.choices || q.choices.length < 5)) {
     return "객관식 선택지가 5개 미만입니다.";
   }
+  /*
+   * 한 문장을 쉼표 자리에서 쪼개 두 단락에 나눠 담으면 문장부호만 보고도 순서가 드러난다
+   * (2026-10-04 시험 #A24: (A)가 쉼표로 끝나고 (C)가 소문자 such as로 시작).
+   * 단락은 문장 경계에서만 나눈다.
+   */
+  if (option.type === "order") {
+    const paras = [...String(q.passageModified ?? "").matchAll(/\(([A-C])\)\s*([\s\S]*?)(?=\n\s*\([A-C]\)|$)/g)].map((m) => m[2]!.trim());
+    if (paras.some((p) => p && (/^[a-z]/.test(p) || /[,;:]$/.test(p)))) {
+      return "(A)(B)(C) 단락을 문장 중간에서 나눴습니다. 단락은 문장이 끝나는 자리에서만 나눕니다.";
+    }
+  }
 
   if (option.type === "grammar" && option.isObjective) {
     const mod = q.passageModified || "";
@@ -2565,7 +2577,19 @@ export async function generateOneQuestion(opts: {
      * 단어추가)도 자리에 더한다. 대체로 들어온 문항이 원래 문항과 똑같이 나왔다(2026-10-03 #91·#92).
      */
     const typeOffset = { 제시어배열기본: 0, 제시어배열어형변화: 1, 제시어배열단어추가: 2 }[option.aingkaCode as string] ?? 0;
-    const pick = sents[((opts.diversitySlot?.index ?? 0) + typeOffset + (opts.copyIndex ?? 0) * 3) % sents.length]!;
+    /*
+     * 자리를 옮겨도 맞는 말이 든 문장은 답이 둘 이상 나온다. 2026-10-04 시험 50문항에서 제시어배열
+     * 5개 중 4개가 「다른 어순도 답」으로 버려졌다 — 「Using a telescope, Galileo …」, 「As humans, we …」,
+     * 「Theoretically, our brain …」처럼 쉼표로 끊긴 구·-ly 부사·앞머리 전치사구가 있는 문장이었다.
+     * 그런 말이 적은 문장부터 고른다(없으면 원래대로 아무 문장).
+     */
+    const movable = (t: string) =>
+      (t.match(/,/g) ?? []).length * 3 +
+      (t.match(/\b(?!only\b|family\b|early\b|daily\b|likely\b|friendly\b)[a-z]{3,}ly\b/gi) ?? []).length +
+      (/^(?:in|on|at|for|with|by|from|during|after|before|despite|using|as|when|while|if|although|because|and|but|so)\b/i.test(t) ? 2 : 0);
+    const least = Math.min(...sents.map(movable));
+    const pool = sents.filter((t) => movable(t) <= least + 1);
+    const pick = pool[((opts.diversitySlot?.index ?? 0) + typeOffset + (opts.copyIndex ?? 0) * 3) % pool.length]!;
     return `\n\nUSE THIS SENTENCE: 이번 문항은 이 문장을 빈칸으로 한다(글자 그대로, 한 자도 바꾸지 말 것).\n"${pick}"`;
   })();
 

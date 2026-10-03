@@ -1327,9 +1327,17 @@ export async function runGenerationJob(
          * 그 지문에 이미 있는 유형은 뒤로 미룬다. 순서추론이 안 돼서 바꾼 것이 같은 지문의 다른
          * 순서추론과 단락까지 똑같이 나온 일이 있었다(정수학원 193문항 중 3건, 2026-10-04).
          */
-        const usedTypes = new Set(work.filter((w) => w !== item && w.passageId === item.passageId).map((w) => w.option.type));
+        const siblings = work.filter((w) => w !== item && w.passageId === item.passageId);
+        const usedTypes = new Set(siblings.map((w) => w.option.type));
+        /*
+         * 같은 갈래(서술형끼리)는 option.type이 둘뿐이라 갈래로만 보면 거르지 못한다. 시험 50문항
+         * (2026-10-04)에서 대체 5개가 모두 그 지문에 이미 있는 요약문빈칸2단어로 가서 답까지 겹쳤다.
+         * 똑같은 유형(키)이 있으면 가장 뒤로, 같은 갈래면 그다음으로 미룬다.
+         */
+        const usedKeys = new Set(siblings.map((w) => w.option.key));
+        const usedScore = (o: QuestionTypeOption) => (usedKeys.has(o.key) ? 2 : 0) + (usedTypes.has(o.type) ? 1 : 0);
         const alternatives = fallbackOptionsFor(item.option.key, level, item.typeTurn ?? item.copyIndex ?? 0).sort(
-          (a, b) => Number(usedTypes.has(a.type)) - Number(usedTypes.has(b.type))
+          (a, b) => usedScore(a) - usedScore(b)
         );
         for (const alt of alternatives) {
           const retry = await generateWithValidation({
@@ -1516,7 +1524,13 @@ function fallbackOptionsFor(optionKey: string, level: "상" | "중" | "하", tur
   const keys = /^grammar:/.test(optionKey)
     ? ["grammar:na:default:어법추론", "grammar:na:default:어법개수"]
     : /^(writing|summary_short):/.test(optionKey)
-      ? ["writing:na:default:제시어배열기본", "summary_short:na:default:요약문빈칸2단어", "writing:na:default:제시어배열어형변화"]
+      ? [
+          "writing:na:default:제시어배열기본",
+          "summary_short:na:default:요약문빈칸2단어",
+          "writing:na:default:제시어배열어형변화",
+          "summary_short:na:default:요약문빈칸3단어",
+          "summary_short:na:default:요약문빈칸영작",
+        ]
       : /sentence_insertion|irrelevant_sentence/.test(optionKey)
         ? [`order:na:${tier}:순서추론`, ...rotate([`topic:en:${tier}:주제추론`, `title:en:${tier}:제목추론`])]
         : rotate([
