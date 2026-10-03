@@ -56,6 +56,9 @@ export function LessonQuestionJobList({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [savingOrder, setSavingOrder] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [renaming, setRenaming] = useState(false);
   const lastClicked = useRef<string | null>(null);
   const pendingOrder = useRef<string[] | null>(null);
   const orderBusy = useRef(false);
@@ -133,6 +136,41 @@ export function LessonQuestionJobList({
     setDraggingId(null);
     setDragOverId(null);
     void persistOrder(next, before);
+  }
+
+  function startRename(job: LessonQuestionJobRow) {
+    setEditingId(job.id);
+    setEditValue(job.title);
+    setError(null);
+  }
+
+  async function saveRename(id: string) {
+    const title = editValue.replace(/s+/g, " ").trim();
+    const current = rows.find((r) => r.id === id);
+    if (!title || title === current?.title) {
+      setEditingId(null);
+      return;
+    }
+    setRenaming(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/question-generator/jobs", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, title }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string; title?: string };
+      if (!data.ok) {
+        setError(data.message ?? "이름을 바꾸지 못했습니다.");
+        return;
+      }
+      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, title: data.title ?? title } : r)));
+      setEditingId(null);
+    } catch {
+      setError("서버 응답이 늦어 이름을 바꾸지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setRenaming(false);
+    }
   }
 
   async function remove(ids: string[]) {
@@ -263,14 +301,35 @@ export function LessonQuestionJobList({
                     aria-label={`${job.title} 선택`}
                   />
                   <div className="flex min-w-0 flex-1 items-baseline gap-2">
-                    <button
-                      type="button"
-                      onClick={() => open(`${base}/generations/${job.id}`)}
-                      className="min-w-0 truncate text-left text-[13px] font-semibold text-slate-900 hover:text-violet-700 hover:underline"
-                      title="새 탭에서 열기"
-                    >
-                      {job.title}
-                    </button>
+                    {editingId === job.id ? (
+                      <input
+                        autoFocus
+                        value={editValue}
+                        maxLength={100}
+                        disabled={renaming}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void saveRename(job.id);
+                          } else if (e.key === "Escape") {
+                            setEditingId(null);
+                          }
+                        }}
+                        onBlur={() => void saveRename(job.id)}
+                        className="min-w-0 flex-1 rounded border border-violet-300 px-1.5 py-0.5 text-[13px] font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-violet-200"
+                        aria-label="변형문제 이름"
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => open(`${base}/generations/${job.id}`)}
+                        className="min-w-0 truncate text-left text-[13px] font-semibold text-slate-900 hover:text-violet-700 hover:underline"
+                        title="새 탭에서 열기"
+                      >
+                        {job.title}
+                      </button>
+                    )}
                     <span className="shrink-0 text-[11px] text-slate-400">
                       지문 {job.project_ids.length}개 · 문항 {job.total_completed ?? 0}
                       {job.total_requested ? `/${job.total_requested}` : ""} ·{" "}
@@ -293,6 +352,18 @@ export function LessonQuestionJobList({
                       className={link}
                     >
                       정답
+                    </button>
+                    <button
+                      type="button"
+                      disabled={renaming || editingId === job.id}
+                      onClick={() => startRename(job)}
+                      className="rounded-md p-1 text-slate-300 hover:bg-violet-50 hover:text-violet-600 disabled:opacity-40"
+                      title="이름 변경"
+                      aria-label={`${job.title} 이름 변경`}
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor" className="h-[13px] w-[13px]" aria-hidden>
+                        <path d="M13.586 3.586a2 2 0 1 1 2.828 2.828l-.793.793-2.828-2.828.793-.793ZM11.379 5.793 3 14.172V17h2.828l8.38-8.379-2.83-2.828Z" />
+                      </svg>
                     </button>
                     <button
                       type="button"

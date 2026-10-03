@@ -155,11 +155,39 @@ export async function POST(req: Request) {
   }
 }
 
-/** 자료함 변형문제 탭 순서 저장: orderedIds 순서대로 library_order를 매긴다. */
+/**
+ * 자료함 변형문제 탭 수정.
+ *  - { id, title }: 이름 바꾸기 (request_config.title)
+ *  - { orderedIds }: 순서 저장 — orderedIds 순서대로 library_order를 매긴다.
+ */
 export async function PATCH(req: Request) {
   try {
     const profile = await requireStaffProfile();
-    const body = (await req.json().catch(() => ({}))) as { orderedIds?: string[] };
+    const body = (await req.json().catch(() => ({}))) as { orderedIds?: string[]; id?: string; title?: string };
+
+    if (typeof body.id === "string" && typeof body.title === "string") {
+      const title = body.title.replace(/s+/g, " ").trim();
+      if (!title) return jsonError("이름을 입력해 주세요.");
+      if (title.length > 100) return jsonError("이름은 100자까지 쓸 수 있습니다.");
+      const admin = createAdminClient();
+      let jobQuery = admin
+        .from("question_generation_jobs")
+        .select("id, request_config")
+        .eq("id", body.id)
+        .eq("academy_id", profile.academy_id!);
+      if (profile.role === "teacher") jobQuery = jobQuery.eq("created_by", profile.id);
+      const { data: job, error: jobErr } = await jobQuery.maybeSingle();
+      if (jobErr) return jsonError(jobErr.message, 500);
+      if (!job) return jsonError("이름을 바꿀 수 있는 항목이 아닙니다.", 403);
+      const config = { ...((job.request_config ?? {}) as Record<string, unknown>), title };
+      const { error: upErr } = await admin
+        .from("question_generation_jobs")
+        .update({ request_config: config })
+        .eq("id", body.id);
+      if (upErr) return jsonError(upErr.message, 500);
+      return jsonOk({ id: body.id, title });
+    }
+
     const orderedIds = Array.isArray(body.orderedIds)
       ? body.orderedIds.filter((id) => typeof id === "string" && id.length > 0)
       : [];
