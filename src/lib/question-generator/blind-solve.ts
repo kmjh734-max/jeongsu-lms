@@ -1,0 +1,127 @@
+/**
+ * 정답을 가리고 직접 풀어 보는 검수.
+ *
+ * 선생님 결정(2026-10-04): 「조건부도 나오지 않게 완벽을 추구하자」.
+ * 정수학원 세 작업의 조건부·불량 가운데 풀어 봐야 아는 것(두 보기가 다 맞음, 개수가 읽기에 따라
+ * 갈림, 정답이 흐린 주제·제목)은 정답과 해설을 함께 보여 주는 검수가 자주 놓쳤다. 해설을 읽으면
+ * 그 풀이에 끌려간다. 그래서 학생이 받는 것(지문·발문·보기)만 주고 풀게 한 뒤, 고른 답이 정답과
+ * 다르거나 다른 답도 맞다고 하면 버리고 다시 만든다.
+ *
+ * 객관식(보기 4개 이상, 정답이 번호)과, 보기 없이 개수를 숫자로 쓰는 개수 문항(일치개수 등)을 본다.
+ * 다른 서술형은 답이 글이라 이 방식으로 비교할 수 없다.
+ * 끄려면 QG_BLIND_SOLVE=off. 호출이 실패하면 통과로 둔다.
+ */
+import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
+import type { GeneratedQuestionPayload } from "@/lib/question-generator/types";
+
+const SOLVE_MODEL =
+  process.env.OPENAI_MODEL_QG_SOLVE?.trim() || process.env.OPENAI_MODEL_QG_REVIEW?.trim() || "gpt-5.6-terra";
+
+export function blindSolveEnabled(): boolean {
+  return (process.env.QG_BLIND_SOLVE ?? "on").trim().toLowerCase() !== "off";
+}
+
+function hasChoices(payload: GeneratedQuestionPayload): boolean {
+  return Array.isArray(payload.choices) && payload.choices.length >= 4;
+}
+
+function isCountItem(payload: GeneratedQuestionPayload): boolean {
+  return (
+    !hasChoices(payload) &&
+    /개수/.test(String(payload.instruction ?? "")) &&
+    /^\s*\d+\s*(개)?\s*$/.test(String(payload.correctAnswer ?? ""))
+  );
+}
+
+export function blindSolvable(payload: GeneratedQuestionPayload): boolean {
+  if (isCountItem(payload)) return true;
+  const n = Number(payload.correctAnswer);
+  return hasChoices(payload) && Number.isInteger(n) && n >= 1;
+}
+
+const SOLVE_SYSTEM = `You are the strongest student in a Korean high-school English class, taking an exam. You see exactly what students see: the passage, the instruction, and the choices. Solve the item from the passage alone.
+Then think like a student filing a formal objection (이의제기): is there another answer a careful student could defend with evidence from the passage? For count items (개수), judge every statement/spot one by one and note any whose truth depends on how it is read.
+If the item has no choices and asks for a count, "answer" is the count and "alsoDefensible" lists other counts a careful student could defend.
+For count items (개수), also give "count": the number you actually counted, and list other defensible counts in "alsoDefensible" as counts.
+Return ONE JSON object: {"answer":<choice number, or the count>,"count":<count items only>,"alsoDefensible":[<other answers a careful student could defend, or empty>],"debatable":<true if your answer depends on a reading a reasonable student could make differently>,"reason":"<Korean, one or two sentences>"}
+Be honest, not generous: list an answer in alsoDefensible only if you could argue it in front of a teacher with passage evidence. Normal hard items with one clearly best answer are NOT debatable.`;
+
+function compact(text: unknown, max = 2600): string {
+  const s = String(text ?? "").replace(/\s+/g, " ").trim();
+  return s.length > max ? `${s.slice(0, max)} …` : s;
+}
+
+export type BlindSolveResult = {
+  verdict: "pass" | "drop";
+  answer: number | null;
+  reason: string;
+};
+
+export async function blindSolveQuestion(opts: {
+  passage: string;
+  payload: GeneratedQuestionPayload;
+}): Promise<BlindSolveResult> {
+  const { payload } = opts;
+  const mcq = hasChoices(payload);
+  const unit = mcq ? "번" : "개";
+  const key = Number(String(payload.correctAnswer ?? "").replace(/[^0-9]/g, ""));
+  const shown = payload.passageModified?.trim() ? payload.passageModified : opts.passage;
+  const choices = mcq
+    ? (payload.choices ?? []).map((c) => `${"①②③④⑤⑥⑦"[(c.number ?? 1) - 1] ?? c.number} ${c.text}`).join("\n")
+    : "";
+  const user = [
+    `INSTRUCTION: ${compact(payload.instruction, 400)}`,
+    `\nPASSAGE (<u>…</u> = underline, ___ = blank):\n${compact(shown)}`,
+    payload.questionText ? `\nQUESTION TEXT:\n${compact(payload.questionText, 1600)}` : "",
+    mcq ? `\nCHOICES:\n${choices}` : "\n(No choices: write the count as the answer.)",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  let raw: Record<string, unknown>;
+  try {
+    raw = (await questionGeneratorChatJsonWithRetry({
+      system: SOLVE_SYSTEM,
+      user,
+      temperature: 0,
+      maxTokens: 2000,
+      /*
+       * 개수 문항은 깊이 생각하게 한다. 2026-10-04 시험: low로는 같은 어법개수 문항을 풀 때마다
+       * 개수가 달라졌고(멀쩡한 것을 버리고 불량을 통과), medium은 개수 문항 불량·조건부 5개를
+       * 모두 잡았다. 다른 유형은 low로도 멀쩡한 18개를 하나도 버리지 않았다.
+       */
+      reasoningEffort:
+        (process.env.QG_SOLVE_EFFORT as "low" | "medium" | undefined) ||
+        (/개수/.test(String(payload.instruction ?? "")) ? "medium" : "low"),
+      preferredModels: [SOLVE_MODEL],
+      cacheKey: "qg-solve",
+    })) as Record<string, unknown>;
+  } catch {
+    return { verdict: "pass", answer: null, reason: "풀기 호출 실패 — 통과로 둔다" };
+  }
+
+  /*
+   * 보기가 「1개 … 5개」인 개수 문항은 모델이 보기 번호와 개수를 헷갈린다(시험에서 「틀린 것은
+   * 4개」라 쓰고 답은 3번). 센 개수를 따로 받아 그 개수의 보기 번호로 바꾼다.
+   */
+  const countChoice = new Map<number, number>();
+  if (mcq) {
+    for (const c of payload.choices ?? []) {
+      const m = String(c.text).match(/^\s*(\d+)\s*개/);
+      if (m) countChoice.set(Number(m[1]), Number(c.number));
+    }
+  }
+  const countMode = mcq && countChoice.size === (payload.choices?.length ?? 0) && Number.isInteger(Number(raw.count));
+  const toChoice = (n: number) => (countMode ? countChoice.get(n) ?? -1 : n);
+
+  const answer = countMode ? toChoice(Number(raw.count)) : Number(raw.answer);
+  const reason = compact(raw.reason, 300);
+  const also = (Array.isArray(raw.alsoDefensible) ? raw.alsoDefensible : [])
+    .map((n) => toChoice(Number(n)))
+    .filter((n) => Number.isInteger(n) && n > 0 && n !== key);
+  if (!Number.isInteger(answer)) return { verdict: "pass", answer: null, reason: reason || "답을 못 읽어 통과" };
+  if (answer !== key) return { verdict: "drop", answer, reason: `직접 풀면 ${answer}${unit} — ${reason}` };
+  if (also.length) return { verdict: "drop", answer, reason: `${also.join("·")}${unit}도 답이 될 수 있음 — ${reason}` };
+  if (raw.debatable === true) return { verdict: "drop", answer, reason: `읽기에 따라 답이 갈림 — ${reason}` };
+  return { verdict: "pass", answer, reason };
+}

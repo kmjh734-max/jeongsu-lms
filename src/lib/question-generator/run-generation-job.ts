@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sweepSavedQuestions } from "@/lib/question-generator/final-sweep";
 import { aiReviewEnabled, reviewGeneratedQuestion } from "@/lib/question-generator/ai-review";
+import { blindSolvable, blindSolveEnabled, blindSolveQuestion } from "@/lib/question-generator/blind-solve";
 import { dupSignature, isNearDuplicate, type DupSignature } from "@/lib/question-generator/near-duplicate";
 import { CHART_UNFIT_TYPES, cleanSourcePassage, isChartDescriptionPassage } from "@/lib/question-generator/passage-clean";
 import { withAiUsage } from "@/lib/ai-usage/context";
@@ -268,6 +269,23 @@ async function generateWithValidation(opts: {
          * drop이면 다시 만들고, fix면 정답 번호·해설만 고쳐 저장한다. 호출이 실패하면 pass다.
          * 사용량은 생성 값에 섞이지 않게 used_for를 따로 적는다(값은 받지 않는다).
          */
+        /*
+         * 정답을 가리고 직접 풀어 본다(선생님 결정 2026-10-04, 「조건부도 나오지 않게」).
+         * 답이 다르거나 다른 답도 맞다고 하면 뜻 검수까지 가지 않고 다시 만든다.
+         */
+        if (blindSolveEnabled() && blindSolvable(payload)) {
+          const solved = await withAiUsage(
+            { ...currentAiUsage(), featureKey: null, usedFor: "qg_solve" },
+            () => blindSolveQuestion({ passage: opts.passage, payload })
+          );
+          validation.solve = solved;
+          if (solved.verdict === "drop") {
+            reviewDropped += 1;
+            lastError = `직접 풀기: ${solved.reason}`;
+            issues.push(lastError);
+            continue;
+          }
+        }
         if (aiReviewEnabled()) {
           const review = await withAiUsage(
             { ...currentAiUsage(), featureKey: null, usedFor: "qg_review" },
