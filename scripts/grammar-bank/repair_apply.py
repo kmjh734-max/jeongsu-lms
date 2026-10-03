@@ -5,13 +5,16 @@ import json, re, sys, glob, subprocess
 D = {q['id']: q for q in json.load(open('tmp-grammar-bank/bank-all.json', encoding='utf-8'))}
 CIRC = '①②③④⑤⑥'
 want = set()
-for f in glob.glob('tmp-grammar-bank/repair/chunks/r*.json'):
+for f in glob.glob('tmp-grammar-bank/repair/chunks/[rx]*.json'):
     want |= {q['id'] for q in json.load(open(f, encoding='utf-8'))}
 ok, drop, bad, seen = [], [], [], set()
-for f in sorted(glob.glob('tmp-grammar-bank/repair/out_r*.json')):
+for f in sorted(glob.glob('tmp-grammar-bank/repair/out_[rx]*.json')):
     for e in json.load(open(f, encoding='utf-8')):
         i = e.get('id')
-        if i not in want or i in seen: bad.append((i, 'id')); continue
+        if i not in want: bad.append((i, 'id')); continue
+        if i in seen:
+            if 'out_x' not in f: bad.append((i, 'dup')); continue
+            drop = [x for x in drop if x['id'] != i]   # 다시 만든 것이 앞의 '고칠 수 없음'을 덮는다
         seen.add(i)
         if 'drop' in e: drop.append({'id': i, 'excluded_reason': ('고칠 수 없음: ' + e['drop'])[:120]}); continue
         need = ('prompt', 'body', 'choices', 'answer')
