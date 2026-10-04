@@ -71,8 +71,19 @@ export function difficultyRule(option: QuestionTypeOption, level: TargetLevel | 
     중: "Each choice checks one explicit fact, plainly reworded (roughly 12-16 words in English).",
     하: "SHORTER choices (roughly 8-13 words in English; Korean about 15-30 characters). One explicit fact from one sentence, wording close to the passage; who and what are obvious; a false choice has one clear change. A complete, grammatical sentence comes first — never drop articles or prepositions to make it short.",
   };
+  /*
+   * 순서추론의 상·하는 지시문(첫 문단)을 바꿔 쓰느냐뿐이다(선생님 말씀 2026-10-04). 유형 규칙에 이미 있으니
+   * 단서·자르는 자리는 상·하 같게 둔다 — 「단서를 덜 드러나게」는 순서가 둘이 되는 위험만 키운다.
+   */
+  byType.order = {
+    상: "Only difference from 하: the lead-in is paraphrased (see the type rules). Split points and cues are chosen exactly as at 하; exactly one order must work.",
+    중: "Keep the passage wording; exactly one order must work.",
+    하: "Keep the passage wording; exactly one order must work.",
+  };
   const group = !option.isObjective
     ? "subjective"
+    : t === "order"
+      ? "order"
     : t === "content_true" || t === "content_false"
       ? "fact"
     : t === "sentence_blank"
