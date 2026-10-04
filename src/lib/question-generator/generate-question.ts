@@ -1342,6 +1342,20 @@ export function assertBasicQuestionShape(
   if (!q.instruction.trim()) return "발문이 비어 있습니다.";
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
   /*
+   * 모델 출력이 깨진 경우를 거른다(12차 시험 2026-10-04: 해설에 「종이 아닌」이 수백 번 되풀이되고 말라얄람 문자가
+   * 섞임). 한글·영문·숫자·문장부호·번호 기호 밖의 문자(인도·아랍·태국 문자 등)나 같은 토막의 반복을 본다.
+   */
+  {
+    const allText = [q.explanation, q.questionText ?? "", ...(q.choices ?? []).map((c) => c.text)].join("\n");
+    if (/[֐-ࣿऀ-෿฀-໿Ⴀ-ჿͰ-ϿЀ-ӿ]/.test(allText)) {
+      return "해설·보기에 한글·영문 밖의 문자가 섞였습니다. 출력이 깨졌으니 다시 씁니다.";
+    }
+    const chunk = q.explanation.match(/([\s\S]{6,40}?)\1{4,}/);
+    if (chunk || q.explanation.length > 3000) {
+      return "해설에 같은 말이 되풀이됩니다. 출력이 깨졌으니 다시 씁니다.";
+    }
+  }
+  /*
    * 보기 낱말 수준을 우리 EngCore 단어장에 맞춘다(선생님 말 2026-10-04: 「우리 단어장이랑 레벨을 맞춰 봐도 좋을 듯」).
    * 단어장에도 지문에도 없는 낱말이 하는 3개, 상은 4개 이상이면 그 낱말을 알려 주고 다시 만든다.
    * 10차 시험에서 상 25문항 중 9문항이 4개 이상이었다(rapport, affinity, vulnerability, arable …).
