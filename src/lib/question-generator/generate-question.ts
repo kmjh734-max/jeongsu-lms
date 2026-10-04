@@ -908,6 +908,53 @@ word1 / word2 / … (6~10개, 정답 ⓐ+ⓑ를 섞은 핵심 단어. 원형만.
 }
 
 /** 지문 표지와 정답이 묶이거나 개수 보기가 고정인 유형은 셔플 금지 */
+/** 보기마다 근거 인용·참거짓을 먼저 계획하게 하는 유형 */
+const CONTENT_PLAN_TYPES = new Set(["content_true", "content_false", "content_count"]);
+/** 글의 핵심을 먼저 정리하고 오답마다 어긋난 점을 적게 하는 유형 */
+const GIST_PLAN_TYPES = new Set(["title", "topic"]);
+
+const planNorm = (s: string) =>
+  s.toLowerCase().replace(/[’‘]/g, "'").replace(/[“”]/g, '"').replace(/[^a-z0-9'\s]/g, " ").replace(/\s+/g, " ").trim();
+
+/**
+ * 생성이 내놓은 보기 계획(choicePlan)을 코드로 대조한다. 틀리면 그 까닭(다음 시도 메모)을 돌려준다.
+ *  - 근거 인용은 지문에 그대로 있어야 한다(지어낸 근거 금지).
+ *  - 참·거짓 수가 정답과 맞아야 한다(내용일치: 참 1, 내용불일치: 거짓 1, 일치개수: 거짓 수 = 정답).
+ *  - 제목·주제: 흠 없는(none) 보기가 정확히 하나이고 그것이 정답이어야 한다.
+ */
+function checkChoicePlan(raw: Record<string, unknown>, option: QuestionTypeOption, passage: string): string | null {
+  const plan = Array.isArray(raw.choicePlan) ? (raw.choicePlan as Array<Record<string, unknown>>) : null;
+  if (!plan || plan.length === 0) return "보기 계획(choicePlan)이 없습니다. 보기마다 근거를 먼저 적습니다.";
+  const key = Number(String(raw.correctAnswer ?? "").replace(/[^0-9]/g, ""));
+  if (CONTENT_PLAN_TYPES.has(option.type)) {
+    const p = planNorm(passage);
+    for (const row of plan) {
+      const q = planNorm(String(row.quote ?? ""));
+      if (q.split(" ").length < 4) return `보기 ${row.n}의 근거 인용이 너무 짧습니다. 지문 문장에서 그대로 옮깁니다.`;
+      if (!p.includes(q)) return `보기 ${row.n}의 근거 인용 「${String(row.quote).slice(0, 60)}」이 지문에 없습니다. 지문에서 글자 그대로 옮깁니다.`;
+    }
+    const verdicts = plan.map((r) => String(r.verdict ?? "").toLowerCase());
+    const falses = plan.filter((_, i) => verdicts[i]!.startsWith("f"));
+    const trues = plan.filter((_, i) => verdicts[i]!.startsWith("t"));
+    if (option.type === "content_true") {
+      if (trues.length !== 1) return `내용일치는 참인 보기가 하나여야 하는데 계획에서 참이 ${trues.length}개입니다.`;
+      if (Number(trues[0]!.n) !== key) return `계획에서 참인 보기는 ${trues[0]!.n}번인데 정답은 ${key}번입니다.`;
+    } else if (option.type === "content_false") {
+      if (falses.length !== 1) return `내용불일치는 거짓인 보기가 하나여야 하는데 계획에서 거짓이 ${falses.length}개입니다.`;
+      if (Number(falses[0]!.n) !== key) return `계획에서 거짓인 보기는 ${falses[0]!.n}번인데 정답은 ${key}번입니다.`;
+    } else if (falses.length !== key) {
+      return `계획에서 거짓인 진술은 ${falses.length}개인데 정답은 ${key}개입니다.`;
+    }
+    return null;
+  }
+  if (GIST_PLAN_TYPES.has(option.type)) {
+    const clean = plan.filter((r) => /^none/i.test(String(r.flaw ?? "").trim()));
+    if (clean.length !== 1) return `흠 없는 보기가 하나여야 하는데 계획에서 ${clean.length}개입니다. 오답마다 한 군데를 분명히 어긋나게 합니다.`;
+    if (Number(clean[0]!.n) !== key) return `계획에서 흠 없는 보기는 ${clean[0]!.n}번인데 정답은 ${key}번입니다.`;
+  }
+  return null;
+}
+
 const NO_SHUFFLE_TYPES = new Set([
   "vocabulary",
   "grammar",
@@ -2889,6 +2936,38 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
                     reason: "string optional",
                   }
                 : {
+                    /*
+                     * 보기를 쓰기 전에 근거부터 계획하게 한다(2026-10-04, ChatGPT 조언 반영 시험).
+                     * 지문에 없는 시점·전제를 붙이거나 느슨하게 바꿔 쓴 보기가 조건부의 절반이었다.
+                     * 근거 인용이 지문에 실제로 있는지, 참·거짓 수가 정답과 맞는지는 코드가 확인한다.
+                     */
+                    ...(CONTENT_PLAN_TYPES.has(option.type)
+                      ? {
+                          choicePlan: [
+                            {
+                              n: "integer — the choice number (or statement number for 일치개수)",
+                              quote: "EXACT words copied from ONE passage sentence that decides this choice (6-25 words)",
+                              passageSays: "what that sentence actually states (subject, action, quantity, scope, cause, time)",
+                              change: "none | subject | action | quantity | scope | relation reversed | negation — what you changed to make it false; keep everything else the same; never add a time frame, cause or premise the passage lacks",
+                              verdict: "true | false — must be decidable from the quote alone",
+                            },
+                          ],
+                        }
+                      : GIST_PLAN_TYPES.has(option.type)
+                        ? {
+                            gistPlan: {
+                              topic: "what the passage is about (a few words)",
+                              claim: "what the writer says about it",
+                              coreRelation: "the key relation or contrast",
+                            },
+                            choicePlan: [
+                              {
+                                n: "integer — the choice number",
+                                flaw: "none (the key) | stance changed | relation changed | conclusion changed | one detail over-represented | too broad — exactly ONE choice is none; a wrong choice must not also state the whole main point",
+                              },
+                            ],
+                          }
+                        : {}),
                     choices: [{ number: 1, text: "string" }],
                     correctAnswer: "integer 1-5 (vary; not always 1)",
                     ...(needsModified ? { passageModified: "string" } : {}),
@@ -2971,12 +3050,32 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
     );
   }
 
+  // 보기 계획 대조(보기를 섞기 전 원래 번호로) — 틀리면 까닭을 남기고 다시 만든다
+  const planTypes = CONTENT_PLAN_TYPES.has(option.type) || GIST_PLAN_TYPES.has(option.type);
+  if (planTypes && option.choiceLanguage !== "korean") {
+    const planError = checkChoicePlan(raw, option, passage);
+    if (planError) throw new Error(planError);
+  }
+
   const payload = normalizePayload(
     raw,
     option,
     passage,
     forcedInstruction
   );
+  // 보기 계획을 근거로 남긴다(해설·점검에서 쓴다). 보기를 섞어도 문장으로 찾을 수 있게 보기 글을 함께 적는다
+  if (planTypes && Array.isArray(raw.choicePlan)) {
+    const rawChoices = Array.isArray(raw.choices) ? (raw.choices as Array<{ number?: unknown; text?: unknown }>) : [];
+    payload.evidence = (raw.choicePlan as Array<Record<string, unknown>>).map((r) => {
+      const text = rawChoices.find((c) => Number(c.number) === Number(r.n))?.text;
+      return {
+        sentence: String(r.quote ?? ""),
+        description: [text ? `보기: ${String(text)}` : `보기 ${r.n}`, r.change ? `바꾼 것: ${r.change}` : "", r.verdict ? `판정: ${r.verdict}` : "", r.flaw ? `흠: ${r.flaw}` : ""]
+          .filter(Boolean)
+          .join(" · "),
+      };
+    });
+  }
 
   if (
     option.type === "vocabulary" &&

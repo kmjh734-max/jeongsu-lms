@@ -215,3 +215,98 @@ export async function checkSubjectiveQuestion(opts: {
   }
   return { verdict: "pass", answer: null, reason };
 }
+
+/*
+ * 보기별 독립 판정(2026-10-04, ChatGPT 조언 반영 시험). 「정답 하나 고르기」는 고르지 않은 보기가
+ * 애매하거나 어색한지를 잘 보지 않았다(11차: 검수가 조건부 10개 중 3개만 잡음). 보기마다 따로 판정하게 하고,
+ * 판정을 정답과 맞춰 보는 일은 코드가 한다. 정답·해설·출제 의도는 보여 주지 않는다.
+ *   내용일치·불일치·일치개수: supported / refuted / unverifiable / ambiguous
+ *   제목·주제: valid / not_representative / conflicts / unclear
+ */
+export const PER_CHOICE_TYPES = new Set(["content_true", "content_false", "content_count", "title", "topic"]);
+
+const PER_CHOICE_SYSTEM = `You verify ONE Korean high-school English exam item, choice by choice. You see the passage, the instruction and the choices (or numbered statements). You are NOT told the answer or why anything was written.
+Judge EACH choice/statement on its own, from the passage alone. Do not pass a choice just because another choice is better.
+For fact items (일치/불일치/개수), each verdict is one of:
+- "supported": the passage clearly supports it
+- "refuted": the passage clearly contradicts it (quote the contradicting words)
+- "unverifiable": the passage neither supports nor contradicts it (an added time frame, cause, premise, comparison or quantity the passage never states)
+- "ambiguous": its truth depends on how a word or reference is read (unclear "this/such/it", vague wording, a loose paraphrase that changes the object, quantity, scope, cause or time)
+For title/topic items, each verdict is one of:
+- "valid": a good title/topic for the whole passage
+- "not_representative": covers only part, or is too broad
+- "conflicts": states something the passage denies or does not claim
+- "unclear": wording is vague or could be read several ways
+Also set "natural": false if the choice is unnatural or ungrammatical English (or Korean). List in "rareWords" words not in the passage that a Korean 고등학생 would not know (specialist terms, GRE-style words, unusual senses); normal 수능 vocabulary is fine.
+Return ONE JSON object: {"choices":[{"n":<number>,"verdict":"...","evidence":"<short quote or empty>","natural":true|false}],"rareWords":[...],"reason":"<Korean, one or two sentences on any problem>"}`;
+
+export async function verifyChoicesIndependently(opts: {
+  passage: string;
+  payload: GeneratedQuestionPayload;
+  type: string;
+}): Promise<BlindSolveResult> {
+  const { payload, type } = opts;
+  const isCount = type === "content_count";
+  const isGist = type === "title" || type === "topic";
+  const shown = payload.passageModified?.trim() ? payload.passageModified : opts.passage;
+  const items = isCount
+    ? String(payload.questionText ?? "")
+    : (payload.choices ?? []).map((c) => `${"①②③④⑤⑥⑦"[(c.number ?? 1) - 1] ?? c.number} ${c.text}`).join("\n");
+  const user = [
+    `ITEM KIND: ${isGist ? "title/topic" : "fact (일치/불일치/개수)"}`,
+    `INSTRUCTION: ${compact(payload.instruction, 400)}`,
+    `\nPASSAGE:\n${compact(shown)}`,
+    `\n${isCount ? "STATEMENTS" : "CHOICES"}:\n${items}`,
+  ].join("\n");
+
+  let raw: Record<string, unknown>;
+  try {
+    raw = (await questionGeneratorChatJsonWithRetry({
+      system: PER_CHOICE_SYSTEM,
+      user,
+      temperature: 0,
+      maxTokens: 2600,
+      reasoningEffort: (process.env.QG_SOLVE_EFFORT as "low" | "medium" | undefined) || "medium",
+      preferredModels: [SOLVE_MODEL],
+      cacheKey: "qg-verify-choices",
+    })) as Record<string, unknown>;
+  } catch {
+    return { verdict: "pass", answer: null, reason: "보기별 판정 호출 실패 — 통과로 둔다" };
+  }
+  const reason = compact(raw.reason, 300);
+  const rows = (Array.isArray(raw.choices) ? raw.choices : []) as Array<Record<string, unknown>>;
+  if (rows.length === 0) return { verdict: "pass", answer: null, reason: reason || "판정을 못 읽어 통과" };
+  const v = (r: Record<string, unknown>) => String(r.verdict ?? "").toLowerCase();
+  const key = Number(String(payload.correctAnswer ?? "").replace(/[^0-9]/g, ""));
+
+  const unnatural = rows.filter((r) => r.natural === false).map((r) => r.n);
+  if (unnatural.length) return { verdict: "drop", answer: null, reason: `보기 ${unnatural.join("·")}이 어색함 — ${reason}` };
+  const passageLower = String(opts.passage ?? "").toLowerCase();
+  const rare = (Array.isArray(raw.rareWords) ? raw.rareWords : []).map((w) => String(w).trim()).filter((w) => w && !passageLower.includes(w.toLowerCase()));
+  if (rare.length) return { verdict: "drop", answer: null, reason: `낯선 낱말(${rare.slice(0, 5).join(", ")})을 고등학생이 아는 말로 바꿔 쓴다 — ${reason}` };
+
+  if (isGist) {
+    const valid = rows.filter((r) => v(r) === "valid").map((r) => Number(r.n));
+    const unclear = rows.filter((r) => v(r) === "unclear").map((r) => r.n);
+    if (unclear.length) return { verdict: "drop", answer: null, reason: `보기 ${unclear.join("·")}이 모호함 — ${reason}` };
+    if (valid.length !== 1 || valid[0] !== key) {
+      return { verdict: "drop", answer: null, reason: `제목·주제로 성립하는 보기가 ${valid.length ? valid.join("·") + "번" : "없음"}(정답 ${key}번) — ${reason}` };
+    }
+    return { verdict: "pass", answer: key, reason };
+  }
+
+  const bad = rows.filter((r) => v(r) === "unverifiable" || v(r) === "ambiguous").map((r) => `${r.n}(${v(r) === "ambiguous" ? "모호" : "판단 불가"})`);
+  if (bad.length) return { verdict: "drop", answer: null, reason: `보기 ${bad.join("·")} — 지문으로 참·거짓이 정해지지 않음 — ${reason}` };
+  const supported = rows.filter((r) => v(r) === "supported").map((r) => Number(r.n));
+  const refuted = rows.filter((r) => v(r) === "refuted").map((r) => Number(r.n));
+  if (type === "content_true" && (supported.length !== 1 || supported[0] !== key)) {
+    return { verdict: "drop", answer: null, reason: `일치하는 보기가 ${supported.join("·") || "없음"}(정답 ${key}번) — ${reason}` };
+  }
+  if (type === "content_false" && (refuted.length !== 1 || refuted[0] !== key)) {
+    return { verdict: "drop", answer: null, reason: `일치하지 않는 보기가 ${refuted.join("·") || "없음"}(정답 ${key}번) — ${reason}` };
+  }
+  if (isCount && refuted.length !== key) {
+    return { verdict: "drop", answer: null, reason: `틀린 진술이 ${refuted.length}개(정답 ${key}개) — ${reason}` };
+  }
+  return { verdict: "pass", answer: key, reason };
+}

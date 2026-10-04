@@ -6,6 +6,8 @@ import {
   blindSolveEnabled,
   blindSolveQuestion,
   checkSubjectiveQuestion,
+  PER_CHOICE_TYPES,
+  verifyChoicesIndependently,
   subjectiveCheckable,
 } from "@/lib/question-generator/blind-solve";
 import { fixCircledParticles } from "@/lib/question-generator/circled-particles";
@@ -309,7 +311,10 @@ async function generateWithValidation(opts: {
           const solved = await withAiUsage(
             { ...currentAiUsage(), featureKey: null, usedFor: "qg_solve" },
             () =>
-              blindSolvable(payload)
+              // 내용일치·불일치·일치개수·제목·주제는 보기마다 따로 판정한다(정답은 숨김, 대조는 코드)
+              PER_CHOICE_TYPES.has(opts.option.type)
+                ? verifyChoicesIndependently({ passage: cleanSourcePassage(opts.passage), payload, type: opts.option.type })
+                : blindSolvable(payload)
                 ? blindSolveQuestion({ passage: cleanSourcePassage(opts.passage), payload })
                 : checkSubjectiveQuestion({ passage: cleanSourcePassage(opts.passage), payload, code: opts.option.aingkaCode })
           );
@@ -1341,7 +1346,12 @@ export async function runGenerationJob(
       let substitutedReason: string | null = null;
       let substitutedFromKey: string | null = null;
       const requestedKey = item.option.key;
-      if ((result.skipped || !result.payload) && item.option.type !== "vocabulary") {
+      /*
+       * 다른 유형으로 바꿔 만들지 않을 유형(시험용 스위치 QG_NO_SUB_CODES, 쉼표로). 특정표현처럼 맞는 지문이 드문
+       * 유형을 「되는 지문에서만 만들기」로 할지 「다른 유형으로 대체」로 할지 비교한다(2026-10-04).
+       */
+      const noSub = new Set((process.env.QG_NO_SUB_CODES ?? "").split(",").map((s) => s.trim()).filter(Boolean));
+      if ((result.skipped || !result.payload) && item.option.type !== "vocabulary" && !noSub.has(item.option.aingkaCode ?? "")) {
         const requestedLabel = item.option.label || item.option.key.split(":").pop() || "";
         /*
          * 왜 고른 유형으로 안 됐는지 적어 둔다.
