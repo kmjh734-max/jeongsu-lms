@@ -235,7 +235,7 @@ Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하) — clearer correct answer, weaker distractors"
           : option.difficulty === "high"
-            ? "HIGH (상) — competitive distractors, nuanced"
+            ? "HIGH (상) — competitive distractors, but each wrong choice is clearly worse for one nameable reason (too narrow, too broad, adds a claim, reverses a relation); never two choices that both capture the whole main point"
             : "standard"
       }.`;
     case "title":
@@ -248,7 +248,7 @@ Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하) — clearer correct answer, weaker distractors"
           : option.difficulty === "high"
-            ? "HIGH (상) — competitive distractors, nuanced"
+            ? "HIGH (상) — competitive distractors, but each wrong choice is clearly worse for one nameable reason (too narrow, too broad, adds a claim, reverses a relation); never two choices that both capture the whole main point"
             : "standard"
       }.`;
     case "summary_mcq":
@@ -2487,7 +2487,7 @@ export async function generateOneQuestion(opts: {
       : "",
     // 9·10차 시험: 「This stance…」「Such restricted activity…」처럼 보기만 읽으면 가리키는 말이 없었다
     option.isObjective
-      ? "- Every choice must stand on its own: never begin with This/That/These/Those/Such/It/They referring to something outside the choice — name it (\"The objective view of science …\"). Keep cause-and-effect wording simple; one clear claim per choice."
+      ? "- Every choice must stand on its own: never begin with This/That/These/Those/Such/It/They referring to something outside the choice — name it (\"The objective view of science …\"). Keep cause-and-effect wording simple; one clear claim per choice. Never add a time frame (In the past, Today, Nowadays, In advance) or a cause the passage does not state."
       : "",
     !option.isObjective
       ? "- ONE ANSWER ONLY. The item must have exactly one correct answer; do not rely on acceptableAnswers to cover others. Before finishing, try to find a second answer a careful student could write: another phrase from the passage that fits the blank in grammar and meaning, another word order the given words and the Korean translation allow (a movable adverb or modifier), another valid correction. If one exists, change the item (pick a different blank, make the translation fix the order, choose an error with a single fix) until only one answer works.\n- A word-form change that is optional also makes two answers (life/lives both natural, Copernicus' / Copernicus's): only ask for a change the sentence forces. The <조건> must state rules only — never describe the answer's structure (where a colon goes, what a clause modifies)."
@@ -2758,11 +2758,16 @@ export async function generateOneQuestion(opts: {
        * 「Telescopes make distant objects more accessible ... than objects too remote ...」처럼
        * 뜻이 안 서는 보기가 이 두 모양에서만 나왔다.
        */
+      /*
+       * 「시간 표현을 앞세워 (In the past ~ / Today ~)」·「원인·결과로 (as a result ~)」는 뺐다.
+       * 지문에 없는 시점(In the past·Today·In advance)이 붙거나 인과가 엉킨 보기가 이 두 모양에서 나왔다
+       * (10·11차 시험 2026-10-04). 시점·인과는 지문에 그대로 있을 때만 쓴다.
+       */
       content_true: [
         "주어를 사람·집단으로",
         "주어를 사물·현상으로",
-        "시간 표현을 앞세워 (In the past ~ / Today ~)",
-        "원인·결과로 (because ~ / so ~ / as a result ~)",
+        "지문의 구체적 사실 하나를 그대로 진술 (수치·이름·장소 등, 지문에 있는 것만)",
+        "행동·변화를 나타내는 동사를 중심으로",
       ],
     };
     SHAPES.content_false = SHAPES.content_true;

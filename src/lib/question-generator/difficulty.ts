@@ -23,7 +23,7 @@ export function difficultyRule(option: QuestionTypeOption, level: TargetLevel | 
   };
   const byType: Record<string, Record<TargetLevel, string>> = {
     mcq: {
-      상: "Correct choice paraphrases abstractly (no shared key words with the passage). ≥3 distractors that are partly true or true-but-too-narrow/too-broad. Choice lengths balanced.",
+      상: "Correct choice paraphrases abstractly (no shared key words with the passage). ≥3 distractors that are partly true or true-but-too-narrow/too-broad — but each must be CLEARLY worse than the key for one nameable reason (covers only one part, too broad, adds a claim, reverses a relation). Never two choices that both state the whole main point. Choice lengths balanced.",
       중: "Correct choice paraphrased; 2 strong distractors that reuse passage words with a meaning shift.",
       하: "Correct choice close to the passage wording; distractors clearly contradict or are off-topic (but not absurd).",
     },
