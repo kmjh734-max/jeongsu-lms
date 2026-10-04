@@ -8,6 +8,7 @@ import {
   checkSubjectiveQuestion,
   subjectiveCheckable,
 } from "@/lib/question-generator/blind-solve";
+import { fixCircledParticles } from "@/lib/question-generator/circled-particles";
 import { dedupEnabled, dupSignature, isNearDuplicate, type DupSignature } from "@/lib/question-generator/near-duplicate";
 import { CHART_UNFIT_TYPES, cleanSourcePassage, isChartDescriptionPassage } from "@/lib/question-generator/passage-clean";
 import { withAiUsage } from "@/lib/ai-usage/context";
@@ -189,7 +190,8 @@ function toRow(
     choices: payload.choices ?? null,
     correct_answer: payload.correctAnswer,
     acceptable_answers: payload.acceptableAnswers ?? null,
-    explanation: payload.explanation,
+    // 번호 뒤 조사를 읽는 소리에 맞춘다(①는 → ①은)
+    explanation: fixCircledParticles(payload.explanation),
     hard_words: payload.hardWords ?? [],
     evidence: payload.evidence ?? [],
     scoring_guide: payload.scoringGuide ?? null,

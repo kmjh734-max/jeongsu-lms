@@ -99,21 +99,44 @@ export class SkipQuestionError extends Error {
 }
 
 /** 제목·주제·요지·일치/불일치/일치개수: 본문 표현을 그대로 베끼지 말고 paraphrase */
+/*
+ * 보기 낱말 수준을 난이도(상·하)에 맞춘다. 선생님과 함께 재 보니(2026-10-04) 상·하의 보기 낱말 수준이
+ * 같았고 하가 오히려 어려웠다 — 「하」 내용일치에 customary·adverse, 주제에 frigid, 제목에 catalyst.
+ * 바꿔 쓰기 지시가 난이도와 상관없이 「유의어로 많이, 더 어려운 대체어를」이라 시켰기 때문이다.
+ *   하: 중3~고1 교과서 수준 기본 어휘. 본문의 쉬운 낱말은 그대로 써도 된다.
+ *   중: 고1~고2 수준. 흔한 낱말로 바꿔 쓴다.
+ *   상: 수능 수준 어휘까지. 자연스러운 말만(희귀어·고어·전문어 금지).
+ */
+function vocabularyLevelRule(difficulty: string | null | undefined): string {
+  if (difficulty === "low") {
+    return "VOCABULARY 하: use basic words a 중3~고1 student knows from textbooks (the common core of English plus words that appear in the passage). Easy passage words may be reused as they are — never swap an easy word for a rarer synonym (not customary, frigid, adverse, catalyst, assortment).";
+  }
+  if (difficulty === "high") {
+    return "VOCABULARY 상: 수능-level vocabulary is expected in paraphrases (e.g. undermine, inherent, disproportionate, sustain), but every word must be natural in context — no rare, archaic or technical words a 수능 student would not know.";
+  }
+  return "VOCABULARY 중: 고1~고2 level; paraphrase with common words, not rare synonyms.";
+}
+
 function paraphraseChoiceRules(
-  lang: "english" | "korean" | null | undefined
+  lang: "english" | "korean" | null | undefined,
+  difficulty?: string | null
 ): string {
+  const easy = difficulty === "low";
   const langHint =
     lang === "korean"
       ? "Korean choices: translate the idea, then reword — never paste English phrases from the passage."
       : lang === "english"
-        ? "English choices: synonym/rephrase heavily; do not lift consecutive content words from the passage."
+        ? easy
+          ? "English choices: reword sentence structure; reusing single easy passage words is fine, but do not lift long chunks."
+          : "English choices: synonym/rephrase heavily; do not lift consecutive content words from the passage."
         : "Reword ideas; do not copy passage wording.";
   return `PARAPHRASE (필수 · 학력평가형 · 어휘 다양성):
 - Every choice/statement must paraphrase key content words (synonyms, different structure, reworded meaning).
 - Ban copying distinctive multi-word chunks or long phrases from the passage.
 - Correct items: same meaning via paraphrase; distractors: plausible but wrong via subtle meaning shifts.
-- Prefer vocabulary that tests understanding of paraphrased wording (동의어·유의어·우회 표현 많이).
-- Same passage → many items: DO NOT recycle the same 5–8 theme words across items. Rotate synonym sets (e.g. progress↔advance/improvement; consumer↔buyer/shopper only if needed — prefer harder alternates). Use antonyms mainly inside distractors (미세한 의미 반전).
+- ${easy ? "Paraphrase with COMMON words; the test is understanding the passage, not knowing rare synonyms." : "Prefer vocabulary that tests understanding of paraphrased wording (동의어·유의어·우회 표현 많이)."}
+- Same passage → many items: DO NOT recycle the same 5–8 theme words across items. Rotate synonym sets (e.g. progress↔advance/improvement)${easy ? "" : "; at 상 prefer the harder of two natural alternates"}. Use antonyms mainly inside distractors (미세한 의미 반전).
+- ${vocabularyLevelRule(difficulty)}
 - ${langHint}`;
 }
 
@@ -135,7 +158,7 @@ function typeRules(
 ): string {
   const code = option.aingkaCode || "";
   const en = option.choiceLanguage === "english";
-  const paraphrase = paraphraseChoiceRules(option.choiceLanguage);
+  const paraphrase = paraphraseChoiceRules(option.choiceLanguage, option.difficulty);
   const craft = choiceCraftCommonRules();
 
   switch (option.type) {
@@ -2421,7 +2444,9 @@ export async function generateOneQuestion(opts: {
     : "";
 
   const paraphraseSystemHint = paraphraseTypes.has(option.type)
-    ? "- Choices/<보기> MUST paraphrase with ROTATING synonyms/near-synonyms (동의어·유의어). Do NOT copy passage phrases. Across same-passage items, avoid reusing the same theme-word set every time; vary wording and use antonyms mainly in distractors."
+    ? option.difficulty === "low"
+      ? "- Choices/<보기> reword the passage with COMMON, easy words (하 level). Do NOT copy long passage phrases, but do not replace easy words with rare synonyms either. Use antonyms mainly in distractors."
+      : "- Choices/<보기> MUST paraphrase with ROTATING synonyms/near-synonyms (동의어·유의어). Do NOT copy passage phrases. Across same-passage items, avoid reusing the same theme-word set every time; vary wording and use antonyms mainly in distractors."
     : "";
   /*
    * 검수에 걸려 버려지는 까닭을 만들 때부터 막는다(정수학원 273문항 작업 2026-10-04 대조).
