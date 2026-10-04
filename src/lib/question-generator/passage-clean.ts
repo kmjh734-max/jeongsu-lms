@@ -23,6 +23,8 @@ export function cleanSourcePassage(text: string): string {
   out = out.replace(/^\s*(?:영어\s*원문|이미지 속 텍스트는 다음과 같습니다\.?)\s*[:：]?\s*/, "");
   // 대화 지문의 문장 표지 「S1 Hi, … S2 Hello! …」가 학생 화면에 그대로 나왔다(불곡중2, 2026-10-04). 셋 이상이면 뗀다.
   if ((out.match(/(?:^|\s)S\d{1,2}\s/g) ?? []).length >= 3) out = out.replace(/(^|\s)S\d{1,2}\s+/g, "$1");
+  // 붙여 넣을 때 딸려 온 마크다운 강조(**not**, *not*)는 별표만 뗀다. 학생 화면에 별표나 번호 없는 밑줄로 나왔다(6차 시험 2026-10-04).
+  out = out.replace(/\*{1,2}([^*\n]{1,60}?)\*{1,2}/g, "$1");
   out = stripTrailingJunk(out);
   return out.replace(/[ \t]{2,}/g, " ").trim();
 }
