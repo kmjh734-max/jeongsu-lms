@@ -88,7 +88,7 @@ export function difficultyRule(option: QuestionTypeOption, level: TargetLevel | 
       ? "fact"
     : t === "sentence_blank"
       ? "blank"
-      : t === "order" || t === "sentence_insertion" || t === "irrelevant_sentence"
+      : t === "sentence_insertion" || t === "irrelevant_sentence"
         ? "structure"
         : t === "grammar"
           ? "grammar"
