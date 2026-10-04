@@ -20,6 +20,11 @@ const IRREGULAR: Record<string, string> = {
   taught: "teach", sought: "seek", became: "become", stood: "stand", understood: "understand",
   children: "child", men: "man", women: "woman", people: "person", lives: "life", better: "good",
   best: "good", worse: "bad", worst: "bad", strongest: "strong", earth: "earth",
+  arose: "arise", arisen: "arise", drove: "drive", driven: "drive", feet: "foot", teeth: "tooth",
+  cannot: "can", shown: "show", drew: "draw", drawn: "draw", flew: "fly", flown: "fly", wore: "wear",
+  worn: "wear", hid: "hide", hidden: "hide", forgot: "forget", forgotten: "forget", lost: "lose",
+  paid: "pay", sold: "sell", won: "win", broke: "break", broken: "break", ate: "eat", eaten: "eat",
+  judgment: "judge", judgments: "judge", likelihood: "likely", humankind: "human", everyday: "every",
 };
 
 function direct(w: string): number | null {
@@ -41,6 +46,14 @@ function candidates(w: string): string[] {
   if (w.endsWith("ed")) { add(w.slice(0, -2)); add(w.slice(0, -1)); if (/([^aeiou])\1ed$/.test(w)) add(w.slice(0, -3)); }
   if (w.endsWith("ing")) { add(w.slice(0, -3)); add(w.slice(0, -3) + "e"); if (/([^aeiou])\1ing$/.test(w)) add(w.slice(0, -4)); }
   if (w.endsWith("est")) { add(w.slice(0, -3)); add(w.slice(0, -2)); }
+  // 비교급·최상급: easier/easiest → easy, redder/reddest → red, earlier → early
+  if (w.endsWith("ier")) add(w.slice(0, -3) + "y");
+  if (w.endsWith("iest")) add(w.slice(0, -4) + "y");
+  if (/([^aeiou])\1er$/.test(w)) add(w.slice(0, -3));
+  if (/([^aeiou])\1est$/.test(w)) add(w.slice(0, -4));
+  if (w.endsWith("er")) { add(w.slice(0, -2)); add(w.slice(0, -1)); }
+  if (w.endsWith("ish")) add(w.slice(0, -3));
+  if (w.endsWith("hood")) add(w.slice(0, -4));
   // 파생(흔한 접미사만)
   const SUF: Array<[string, string[]]> = [
     ["ness", [""]], ["ment", [""]], ["ers", ["", "e"]], ["er", ["", "e"]], ["ors", ["", "e"]], ["or", ["", "e"]],
@@ -72,6 +85,16 @@ export function engcoreLevelOf(raw: string): number | null {
   for (const c of candidates(w)) {
     const lv = direct(c);
     if (lv !== null) return lv;
+  }
+  // 접두사를 뗀 뒤 활용형까지 한 번 더 본다(unchanged → changed → change, unaffected → affect)
+  for (const pre of ["un", "in", "im", "dis", "re", "non", "mis", "over", "under"]) {
+    if (w.startsWith(pre) && w.length > pre.length + 3) {
+      const rest = w.slice(pre.length);
+      for (const c of candidates(rest)) {
+        const lv = direct(c);
+        if (lv !== null) return lv;
+      }
+    }
   }
   return null;
 }
