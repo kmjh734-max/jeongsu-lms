@@ -2657,7 +2657,9 @@ export async function generateOneQuestion(opts: {
       (/\b(?:in|on|at|during|after|before|since|by|until)\s+(?:the\s+)?(?:early|late|mid|\d{2,4}s?|\d+(?:st|nd|rd|th)|(?:\w+day)|morning|evening|night|summer|winter|spring|fall|autumn|past|future|end|beginning)\b/i.test(t) ? 2 : 0) +
       (/\b(?:then|now|today|yesterday|tomorrow|later|recently|still|also|even|already|soon|again)\b/i.test(t) ? 1 : 0) +
       // and/or로 이은 말은 앞뒤를 바꿔도 맞다(4차 시험: 「watched the stars and took measurements」 ↔ 반대 순서)
-      (t.match(/\b(?:and|or)\b/gi) ?? []).length * 2;
+      (t.match(/\b(?:and|or)\b/gi) ?? []).length * 2 +
+      // 대문자 낱말이 셋 이상이면 글 제목이 첫 문장에 붙은 것일 수 있다(8차 시험: 「From Ownership to Access Jiyun, …」)
+      ((t.split(/\s+/).slice(1).filter((w) => /^[A-Z]/.test(w)).length >= 3) ? 6 : 0);
     const least = Math.min(...sents.map(movable));
     // 가장 덜 옮겨지는 문장만 쓴다(그런 문장이 하나뿐이면 한 단계 위까지). 4차 시험: also가 든 문장이 끼어 답이 둘이 됐다
     const strict = sents.filter((t) => movable(t) === least);
