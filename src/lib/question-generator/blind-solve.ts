@@ -146,6 +146,7 @@ const SUBJECTIVE_SYSTEM = `You check one subjective (서술형) item of a Korean
 2. Decide whether the keyed answer is correct and satisfies every stated condition (word count, "본문에서 찾아", given words used exactly, 어형 변화 rule, the Korean translation). For error-correction items, check that every spot the key calls wrong is really ungrammatical under every reading and that every other spot is correct.
 3. Find any OTHER answer a fair teacher would have to mark correct: another phrase from the passage that fits the blank in grammar and meaning, another word order allowed by the given words and the translation, another valid correction of a marked error. Ignore differences only in punctuation or capitalization.
 4. Treat these as keyWrong too: the summary sentence is ungrammatical or meaningless once the answer is filled in; the <보기> words cannot produce the answer (missing or extra words, wrong forms for the stated 어형 rule); a 지칭 answer is a pronoun or determiner instead of the noun referred to; a 특정표현 answer does not MEAN the same as the underlined expression (only a related action, a cause/result, or the words right after it); the passage or question text is garbled, truncated, or leaks the answer; the item invents content the passage does not have.
+4-1. 특정표현 (the instruction asks what an underlined expression means, answered with a phrase from the passage): put the keyed phrase IN PLACE OF the underlined expression and reread that sentence. keyWrong = true unless the sentence keeps the same meaning and scope — not broader (covers more cases than the underline), not narrower, not a different subject or object (what "ones"/"them" refers to must match), not a cause, result, example or the words right after the underline. Be strict: when in doubt, keyWrong = true.
 5. Check the EXPLANATION (Korean). It is wrong if it claims a word changes form (A → B) when the <보기> already gives B, or names a change for a word that is not in <보기>; if it contains a generic sentence that is not about THIS passage; or if it uses a wrong grammar term, wrong referent, or wrong reason. If the key is right but the explanation is wrong, write a corrected one in "fixedExplanation" (Korean, 평서형 "~다", same shape and length as the original). Otherwise leave it out. Wording style alone is not wrong.
 Return ONE JSON object: {"keyWrong":<true|false>,"otherValid":[<other fully correct answers, or empty>],"fixedExplanation":<optional Korean string>,"reason":"<Korean, one or two sentences>"}
 Be strict and concrete: list an answer in otherValid only if you are sure it is fully correct under all conditions.`;
@@ -192,7 +193,8 @@ export async function checkSubjectiveQuestion(opts: {
       // 오류 수정은 자리마다 따져야 해서 깊이 생각하게 한다(개수 문항과 같은 까닭)
       reasoningEffort:
         (process.env.QG_SOLVE_EFFORT as "low" | "medium" | undefined) ||
-        (/어법|오류|수정/.test(String(payload.instruction ?? "")) ? "medium" : "low"),
+        // 특정표현의 「같은 뜻인가」도 미묘해 깊이 본다(선생님 결정 2026-10-04: 맞는 지문에서만 내고 아니면 다른 유형으로)
+        (/어법|오류|수정/.test(String(payload.instruction ?? "")) || opts.code === "특정표현의미서술" ? "medium" : "low"),
       preferredModels: [SOLVE_MODEL],
       cacheKey: "qg-solve-subjective",
     })) as Record<string, unknown>;
