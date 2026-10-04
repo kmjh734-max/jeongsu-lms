@@ -58,7 +58,7 @@ export function difficultyRule(option: QuestionTypeOption, level: TargetLevel | 
    * (2026-10-04 전수조사). 사실을 잇고 가려내는 것으로 어렵게 한다.
    */
   byType.fact = {
-    상: "Make it hard by WHAT the choices test, not by wording: facts that need two passage sentences linked, the right agent (who did/said/claimed it), or conditions, exceptions, comparison bases and time order the passage states. AT LEAST TWO choices must each need two passage sentences (give both quotes in choicePlan, separated by \" / \"). Every choice is still clearly true or clearly false from the passage. No abstract paraphrase, no rare words.",
+    상: "Make it hard by WHAT the choices test, not by wording: facts that need two passage sentences linked, the right agent (who did/said/claimed it), or conditions, exceptions, comparison bases and time order the passage states. Prefer two or more choices that each need two passage sentences (then give both quotes in choicePlan, separated by \" / \"). Every choice is still clearly true or clearly false from the passage. No abstract paraphrase, no rare words.",
     중: "Each choice checks one explicit fact, plainly reworded.",
     하: "Each choice checks one explicit fact from one sentence; who and what are obvious; wording close to the passage.",
   };

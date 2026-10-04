@@ -942,12 +942,9 @@ function checkChoicePlan(raw: Record<string, unknown>, option: QuestionTypeOptio
       }
     }
     /*
-     * 40문항 시험(2026-10-04): 상과 하가 똑같이 「낱말 하나 뒤집기」라 난이도 차이가 없었다.
-     * 상은 두 문장을 이어야 판단되는 보기가 적어도 하나 있어야 한다.
+     * 상은 두 문장을 잇는 보기를 권하기만 한다. 코드로 강제했더니(2차 40문항 시험 2026-10-04) 모델이 인용을
+     * 둘로 적지 않아 상 문항 대부분을 2~3번씩 다시 만들었고 원가가 문항당 101원(1.1배)이 됐다.
      */
-    if (option.difficulty === "high" && option.type !== "content_count" && !plan.some((r) => /\s\/\s/.test(String(r.quote ?? "")))) {
-      return "난이도 상인데 두 문장을 이어야 판단되는 보기가 없습니다. 적어도 두 보기는 지문의 두 문장을 이어야 참·거짓이 정해지게 하고, 계획에 두 인용을 「 / 」로 적습니다.";
-    }
     const verdicts = plan.map((r) => String(r.verdict ?? "").toLowerCase());
     const falses = plan.filter((_, i) => verdicts[i]!.startsWith("f"));
     const trues = plan.filter((_, i) => verdicts[i]!.startsWith("t"));
