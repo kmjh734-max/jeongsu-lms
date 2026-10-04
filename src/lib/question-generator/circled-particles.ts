@@ -10,7 +10,11 @@ const HAS_FINAL: Record<string, boolean> = {
 const RIEUL = new Set(["①", "⑦"]);
 
 export function fixCircledParticles(text: string | null | undefined): string {
-  const s = String(text ?? "");
+  // 받침 있는 번호 뒤 서술격 조사: 「③다」→「③이다」, 「①였다」→「①이었다」(10차 시험)
+  const s = String(text ?? "")
+    .replace(/([①③⑥⑦])(다|였다|며|고)(?=[\s,.)·;:」』]|$)/g, (_m, mark: string, tail: string) =>
+      mark + (tail === "였다" ? "이었다" : `이${tail}`)
+    );
   // 조사 뒤가 낱말의 일부(「이다」「이며」 등)가 아닌 경우만 고친다
   return s.replace(
     /([①-⑦ⓐ-ⓖ])(은|는|이|가|을|를|과|와|으로|로)(?=[\s,.)·;:」』]|$)/g,

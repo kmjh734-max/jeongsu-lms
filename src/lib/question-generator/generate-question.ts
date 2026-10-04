@@ -2463,6 +2463,10 @@ export async function generateOneQuestion(opts: {
     option.type === "vocabulary"
       ? "- Underline ONE word (two at most) per spot, never a phrase of three or more words."
       : "",
+    // 9·10차 시험: 「This stance…」「Such restricted activity…」처럼 보기만 읽으면 가리키는 말이 없었다
+    option.isObjective
+      ? "- Every choice must stand on its own: never begin with This/That/These/Those/Such/It/They referring to something outside the choice — name it (\"The objective view of science …\"). Keep cause-and-effect wording simple; one clear claim per choice."
+      : "",
     !option.isObjective
       ? "- ONE ANSWER ONLY. The item must have exactly one correct answer; do not rely on acceptableAnswers to cover others. Before finishing, try to find a second answer a careful student could write: another phrase from the passage that fits the blank in grammar and meaning, another word order the given words and the Korean translation allow (a movable adverb or modifier), another valid correction. If one exists, change the item (pick a different blank, make the translation fix the order, choose an error with a single fix) until only one answer works.\n- A word-form change that is optional also makes two answers (life/lives both natural, Copernicus' / Copernicus's): only ask for a change the sentence forces. The <조건> must state rules only — never describe the answer's structure (where a colon goes, what a clause modifies)."
       : "",
