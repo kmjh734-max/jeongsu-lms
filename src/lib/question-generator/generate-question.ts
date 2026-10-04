@@ -951,6 +951,31 @@ function checkChoicePlan(raw: Record<string, unknown>, option: QuestionTypeOptio
     const clean = plan.filter((r) => /^none/i.test(String(r.flaw ?? "").trim()));
     if (clean.length !== 1) return `흠 없는 보기가 하나여야 하는데 계획에서 ${clean.length}개입니다. 오답마다 한 군데를 분명히 어긋나게 합니다.`;
     if (Number(clean[0]!.n) !== key) return `계획에서 흠 없는 보기는 ${clean[0]!.n}번인데 정답은 ${key}번입니다.`;
+    if (option.type === "title") return checkTitleSubject(raw, key, passage);
+  }
+  return null;
+}
+
+/*
+ * 제목 정답에 글감 낱말이 들어 있는지(전수조사 2026-10-04: 제목 정답 17%가 무슨 글인지 안 드러남).
+ * 글감 낱말은 지문에 있는 말이어야 하고, 정답에 그 낱말(어형 변화 포함)이 있어야 한다.
+ * 어형은 앞부분으로 맞춘다(animation → Animated, saving → Savings, residency → Residence).
+ */
+const SUBJECT_STOP = new Set(["the", "and", "for", "with", "how", "why", "what", "its", "their", "about", "people", "thing", "things", "way", "ways", "role"]);
+function checkTitleSubject(raw: Record<string, unknown>, key: number, passage: string): string | null {
+  const gp = (raw.gistPlan ?? {}) as Record<string, unknown>;
+  const list = Array.isArray(gp.subjectWords) ? gp.subjectWords.map(String) : String(gp.subjectWords ?? "").split(/[,;/]/);
+  const tokens = [...new Set(list.flatMap((w) => planNorm(w).split(" ")))].filter((w) => w.length >= 3 && !SUBJECT_STOP.has(w));
+  if (tokens.length === 0) return "gistPlan.subjectWords(지문에서 옮긴 글감 낱말)가 없습니다.";
+  const stem = (w: string) => w.slice(0, Math.max(4, w.length - 3));
+  const passageWords = planNorm(passage).split(" ");
+  const inPassage = tokens.filter((t) => passageWords.some((p) => p.startsWith(stem(t))));
+  if (inPassage.length === 0) return `글감 낱말(${tokens.join(", ")})이 지문에 없습니다. 지문에 실제로 쓰인 글감 낱말을 고릅니다.`;
+  const choices = Array.isArray(raw.choices) ? (raw.choices as Array<{ number?: unknown; text?: unknown }>) : [];
+  const keyText = String(choices.find((c) => Number(c.number) === key)?.text ?? "");
+  const keyWords = planNorm(keyText).split(" ");
+  if (!inPassage.some((t) => keyWords.some((k) => k.startsWith(stem(t))))) {
+    return `정답 제목 「${keyText.slice(0, 80)}」에 글감(${inPassage.join(", ")})이 없어 무슨 글인지 드러나지 않습니다. 글감을 쉬운 말 그대로 넣고 필자의 말을 붙입니다(비유 금지).`;
   }
   return null;
 }
@@ -2529,7 +2554,7 @@ export async function generateOneQuestion(opts: {
   const paraphraseSystemHint = paraphraseTypes.has(option.type)
     ? option.difficulty === "low"
       ? "- Choices/<보기> reword the passage with COMMON, easy words (하 level). Do NOT copy long passage phrases, but do not replace easy words with rare synonyms either. Use antonyms mainly in distractors."
-      : "- Choices/<보기> MUST paraphrase with ROTATING synonyms/near-synonyms (동의어·유의어). Do NOT copy passage phrases. Across same-passage items, avoid reusing the same theme-word set every time; vary wording and use antonyms mainly in distractors."
+      : "- Choices/<보기> MUST paraphrase with ROTATING synonyms/near-synonyms (동의어·유의어). Do NOT copy passage phrases. Across same-passage items, avoid reusing the same theme-word set every time; vary wording and use antonyms mainly in distractors. Title/topic: keep the passage's subject noun itself; vary only the rest."
     : "";
   /*
    * 검수에 걸려 버려지는 까닭을 만들 때부터 막는다(정수학원 273문항 작업 2026-10-04 대조).
@@ -2549,6 +2574,13 @@ export async function generateOneQuestion(opts: {
     // 12차 시험: 「A And B」 나열형 제목은 관계가 드러나지 않아 정답과 다퉜다
     option.type === "title" || option.type === "topic"
       ? "- Never use a bare list form like \"Cultural Difference And Species Survival\" (two nouns joined by And/&) for any choice — it hides the relation, so a wrong choice can look as right as the key. Every choice must state a relation or claim (how, why, from A to B, A as B, A that B …)."
+      : "",
+    /*
+     * 전수조사(2026-10-04, 2,639문항): 제목 정답 17%가 글감을 감추거나 비유로 써서 무슨 글인지 안 드러났고,
+     * 그런 문항에서 더 분명한 오답이 정답처럼 보여 복수정답이 됐다. 글감을 쉬운 말로 밝히게 한다.
+     */
+    option.type === "title" || option.type === "topic"
+      ? "- BE EXPLICIT. Every choice — the key above all — names the passage's concrete subject in plain words (animation, the octopus, saving money, residency rules for school sports) and states what the passage says about it. A student who reads only the key must know what the passage is about. No metaphors, riddles or poetic labels (\"A Pledge Still Out of Reach\", \"When Planned Reserves Meet Present Lures\", \"Borrowed Shapes for Secret Feeding\"); never hide the subject behind a cover word (\"A Leaner Method\", \"Firm Guidance\", \"Small Ease\"). Repeating the passage's subject noun is allowed even though the rest is paraphrased. Wrong choices also name the subject; they differ in what they claim."
       : "",
     // 9·10차 시험: 「This stance…」「Such restricted activity…」처럼 보기만 읽으면 가리키는 말이 없었다
     option.isObjective
@@ -2804,12 +2836,16 @@ export async function generateOneQuestion(opts: {
    */
   const frameShapeLine = (() => {
     const SHAPES: Partial<Record<string, string[]>> = {
+      /*
+       * 「When A Meets B」·막연한 콜론 틀은 비유 제목을 불렀다(전수조사 2026-10-04, 제목 정답 17%가
+       * 무슨 글인지 안 드러남). 모양마다 글감을 넣을 자리를 못 박는다.
+       */
       title: [
-        "명사구 하나로 (콜론·대시 없이)",
-        "콜론으로 가른 두 토막 (A: B)",
-        "의문문 (Why/What/How 로 시작)",
-        "동명사로 시작 (Rethinking ~ / Making ~)",
-        "대조·이동 (From A to B / When A Meets B)",
+        "명사구 하나로 — 글감 + 그에 대한 말 (콜론·대시 없이)",
+        "콜론 앞에 글감을 쓰고 뒤에 필자의 말 (Limited Animation: ~)",
+        "의문문 — Why/What/How 뒤에 글감을 그대로",
+        "동명사로 시작하고 글감을 목적어로 (Rethinking ~ / Making ~)",
+        "From A to B — A와 B 모두 글의 구체적 대상",
       ],
       topic: [
         "how 로 시작하는 절",
@@ -2974,6 +3010,7 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
                       : GIST_PLAN_TYPES.has(option.type)
                         ? {
                             gistPlan: {
+                              subjectWords: "1-3 ENGLISH words copied from the passage that name what it is about (e.g. \"animation\", \"octopus\", \"subscription\") — the key must contain one of them",
                               topic: "what the passage is about (a few words)",
                               claim: "what the writer says about it",
                               coreRelation: "the key relation or contrast",

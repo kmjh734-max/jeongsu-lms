@@ -76,9 +76,10 @@ export function topicChoiceCraft(en: boolean): string {
 
 export function titleChoiceCraft(en: boolean): string {
   return `제목 보기:
-- 정답: 중심 주장·관점 함축. 원문 문장 복사 금지. ${en ? "Title Case" : "자연스러운 한국어"}.
-- 강한 오답: 키워드는 같되 메시지 빗나감 / 범위 오류.
-- 정답만 화려·은유적이지 않게. 오답과 톤 맞출 것.`;
+- 정답: 글감(무엇에 관한 글인지)을 쉬운 말로 밝히고 + 그에 대해 필자가 하는 말. 정답만 읽어도 무슨 글인지 알 수 있어야 한다. 원문 문장 복사 금지(글감 낱말은 그대로 써도 된다). ${en ? "Title Case" : "자연스러운 한국어"}.
+- 비유·수수께끼·시적 표현 금지, 글감을 막연한 말로 가리기 금지 (전수조사 2026-10-04: 제목 정답 17%가 무슨 글인지 드러나지 않았다 —
+  'A Pledge Still Out of Reach', 'When Planned Reserves Meet Present Lures', 'A Leaner Method That Opened New Visual Possibilities').
+- 강한 오답: 글감은 같되 메시지 빗나감 / 범위 오류. 오답도 직설적으로 쓴다(정답과 톤을 맞추되 모두 분명하게).`;
 }
 
 export function summaryChoiceCraft(en: boolean): string {
