@@ -2808,7 +2808,18 @@ export async function generateOneQuestion(opts: {
     frameBanHint,
     craftSystemHint,
     qualityRuleHint,
-    difficultyRule(option, opts.targetLevel ?? targetLevelFromOverall(opts.overallDifficulty)),
+    /*
+     * 내용일치·불일치는 유형 자체의 상·하(보기 길이·세부)를 따른다. 전에는 작업 난이도가 「기본」이면
+     * 난이도 규칙이 통째로 빠져 상·하 보기가 같은 길이로 나왔다(4차 40문항 시험 2026-10-04).
+     */
+    difficultyRule(
+      option,
+      isFactType && (option.difficulty === "high" || option.difficulty === "low")
+        ? option.difficulty === "high"
+          ? "상"
+          : "하"
+        : opts.targetLevel ?? targetLevelFromOverall(opts.overallDifficulty)
+    ),
     opts.levelBrief ? `\n[원래 시험지의 수준]\n${opts.levelBrief}` : "",
     typeRulesStatic,
   ]
@@ -3065,7 +3076,7 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
                           choicePlan: [
                             {
                               n: "integer — the choice number (or statement number for 일치개수)",
-                              quote: "EXACT words copied from the passage sentence that decides this choice (6-25 words). If the fact needs two sentences (상), give both, separated by \" / \"",
+                              quote: "EXACT words copied from the passage sentence that decides this choice (6-25 words)",
                               passageSays: "the proposition the passage states: who/what, action, object, condition, quantity, time, and who claims it",
                               change: "none (a true choice) | <element>: <before> → <after> — the ONE meaning element you changed to make it false (subject, action, object, quantity, condition, time, claimant, direction); never add a time frame, cause, comparison, person or premise the passage lacks",
                               refutedBy: "for a false choice: why it and the quoted words cannot both be true (empty for a true choice)",

@@ -58,9 +58,14 @@ export function difficultyRule(option: QuestionTypeOption, level: TargetLevel | 
    * (2026-10-04 전수조사). 사실을 잇고 가려내는 것으로 어렵게 한다.
    */
   byType.fact = {
-    상: "Make it hard by WHAT the choices test, not by wording: facts that need two passage sentences linked, the right agent (who did/said/claimed it), or conditions, exceptions, comparison bases and time order the passage states. Prefer two or more choices that each need two passage sentences (then give both quotes in choicePlan, separated by \" / \"). Every choice is still clearly true or clearly false from the passage. No abstract paraphrase, no rare words.",
-    중: "Each choice checks one explicit fact, plainly reworded.",
-    하: "Each choice checks one explicit fact from one sentence; who and what are obvious; wording close to the passage.",
+    /*
+     * 선생님 결정(2026-10-04): 상·하는 문장 길이와 담는 세부로 나눈다. 「두 문장 잇기·누가 말했나」로
+     * 어렵게 하려다 보니 애매한 보기가 나왔다. 상도 사실 하나만 담되, 그 문장의 조건·수치·이유·대상을
+     * 함께 담아 길게 쓰고 문장 구조를 더 바꾼다. 참·거짓은 하와 똑같이 분명해야 한다.
+     */
+    상: "LONGER choices (roughly 15-22 words in English; Korean about 30-50 characters). Still ONE fact from the passage, but carry that sentence's details with it (the condition, number, reason, place or person the same sentence states), and restructure the sentence somewhat (clause order, active/passive). When false, the one changed element may sit inside those details. Do not link separate sentences or add anything the passage lacks; every choice is as clearly true or false as at 하. A natural, grammatical sentence comes first — never pad, never translate word for word (Korean must read like a native exam sentence, with people or things — not sounds or lines — as the ones who perceive or act).",
+    중: "Each choice checks one explicit fact, plainly reworded (roughly 12-16 words in English).",
+    하: "SHORTER choices (roughly 8-13 words in English; Korean about 15-30 characters). One explicit fact from one sentence, wording close to the passage; who and what are obvious; a false choice has one clear change. A complete, grammatical sentence comes first — never drop articles or prepositions to make it short.",
   };
   const group = !option.isObjective
     ? "subjective"
