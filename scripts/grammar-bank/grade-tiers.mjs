@@ -20,6 +20,13 @@ const admin = createClient(
 
 const dry = process.argv.includes("--dry");
 
+/**
+ * 문항을 하나하나 풀어 보고 매긴 난도(2026-10-04 전수 확인). 규칙보다 먼저다.
+ * 교재 표시(상·중·하)가 문항 모양과 어긋나는 것(예: 다섯 문장 중 하나 고르기가 「상」)을 바로잡은 것이라,
+ * 규칙을 다시 돌려도 이 값이 지워지지 않게 한다.
+ */
+const OVERRIDES = JSON.parse(fs.readFileSync(new URL("./tier-overrides.json", import.meta.url), "utf8"));
+
 /** 여러 개를 고르게 하거나 개수를 세게 하는 발문 */
 const HARD_PROMPT = /(모두 고르|두 개|세 개|개수|두 군데|고난도|알맞지 않은 것을 모두)/;
 /** 조건을 달아 쓰게 하는 서술형 */
@@ -32,6 +39,7 @@ function markCount(answer) {
 }
 
 function tierOf(q) {
+  if (OVERRIDES[q.id] != null) return OVERRIDES[q.id];
   const badges = q.badges ?? [];
   const kind = q.question_kind ?? "";
   const prompt = String(q.prompt ?? "");

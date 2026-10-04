@@ -13,7 +13,7 @@ const client = new pg.Client({
   host: "aws-1-ap-southeast-1.pooler.supabase.com", port: 5432, database: "postgres",
   user: `postgres.${ref}`, password: process.env.SUPABASE_DB_PASSWORD, ssl: { rejectUnauthorized: false },
 });
-const ALLOWED = ["prompt", "body", "choices", "answer", "explanation", "excluded_reason", "tier", "unit", "chapter_no", "chapter"];
+const ALLOWED = ["prompt", "body", "choices", "answer", "explanation", "excluded_reason", "tier", "unit", "chapter_no", "chapter", "point_label"];
 const rows = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
 await client.connect();
 let n = 0;
