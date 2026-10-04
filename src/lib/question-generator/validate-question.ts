@@ -1,3 +1,4 @@
+import { grammarSwapSpots } from "@/lib/question-generator/grammar-swap";
 import { VALIDATION_PASS_SCORE } from "@/lib/question-generator/constants";
 import { cleanSourcePassage } from "@/lib/question-generator/passage-clean";
 import type {
@@ -402,6 +403,16 @@ export function validateGeneratedQuestion(opts: {
     } else if (/개수$/.test(code) && windows.length >= 4 && Number.isFinite(no) && changed.length !== no) {
       warnings.push(`원문과 다른 밑줄이 ${changed.length}개인데 정답은 ${no}개입니다.`);
       score -= 45;
+    }
+    // 어법 오류는 원문 낱말의 형태를 바꿔 만든다 — 다른 낱말로 갈아 끼우면 고쳐도 원문이 되지 않는다(7차 시험 without → tried)
+    if (option.type === "grammar") {
+      const swapped = grammarSwapSpots(String(opts.passage ?? ""), modifiedText);
+      if (swapped.length) {
+        warnings.push(
+          `원문 「${swapped[0]!.original}」을 다른 낱말 「${swapped[0]!.underlined}」로 바꿨습니다. 어법 오류는 원문 낱말의 형태만 바꿔 만듭니다.`
+        );
+        score -= 45;
+      }
     }
     // 어휘는 낱말 하나를 바꾸는 유형이다 — 「carry away from the nest」처럼 구를 통째로 바꾸면 어휘 문항이 아니다 (#86)
     if (option.type === "vocabulary") {
