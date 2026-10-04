@@ -2626,6 +2626,10 @@ export async function generateOneQuestion(opts: {
      * 전수조사(2026-10-04, 2,639문항): 제목 정답 17%가 글감을 감추거나 비유로 써서 무슨 글인지 안 드러났고,
      * 그런 문항에서 더 분명한 오답이 정답처럼 보여 복수정답이 됐다. 글감을 쉬운 말로 밝히게 한다.
      */
+    // 싼 모델이 보기 계획을 자주 빼먹는다(상·하 시험 2026-10-04) — 내용일치처럼 먼저 쓰게 한다
+    option.type === "title" || option.type === "topic"
+      ? "- REQUIRED OUTPUT ORDER: write \"gistPlan\" and \"choicePlan\" FIRST, then \"choices\" from that plan. An answer without choicePlan is rejected."
+      : "",
     option.type === "title" || option.type === "topic"
       ? "- BE EXPLICIT. Every choice — the key above all — names the passage's concrete subject in plain words (animation, the octopus, saving money, residency rules for school sports) and states what the passage says about it. A student who reads only the key must know what the passage is about. No metaphors, riddles or poetic labels (\"A Pledge Still Out of Reach\", \"When Planned Reserves Meet Present Lures\", \"Borrowed Shapes for Secret Feeding\"); never hide the subject behind a cover word (\"A Leaner Method\", \"Firm Guidance\", \"Small Ease\"). Repeating the passage's subject noun is allowed even though the rest is paraphrased. Wrong choices also name the subject; they differ in what they claim."
       : "",
@@ -2809,12 +2813,13 @@ export async function generateOneQuestion(opts: {
     craftSystemHint,
     qualityRuleHint,
     /*
-     * 내용일치·불일치는 유형 자체의 상·하(보기 길이·세부)를 따른다. 전에는 작업 난이도가 「기본」이면
-     * 난이도 규칙이 통째로 빠져 상·하 보기가 같은 길이로 나왔다(4차 40문항 시험 2026-10-04).
+     * 상·하를 고를 수 있는 객관식(제목·주제·요지·빈칸·순서·삽입·무관·내용일치류)은 문항의 상·하를 따른다.
+     * 전에는 작업 난이도(실제 작업은 거의 다 「내신」→중)가 덮어써서 상·하 문항이 같은 「중」 지시를 받았고,
+     * 「기본」이면 규칙이 통째로 빠졌다(4차 40문항 시험·작업 설정 대조 2026-10-04).
      */
     difficultyRule(
       option,
-      isFactType && (option.difficulty === "high" || option.difficulty === "low")
+      option.isObjective && (option.difficulty === "high" || option.difficulty === "low")
         ? option.difficulty === "high"
           ? "상"
           : "하"

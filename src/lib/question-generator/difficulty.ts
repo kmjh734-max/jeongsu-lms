@@ -22,18 +22,22 @@ export function difficultyRule(option: QuestionTypeOption, level: TargetLevel | 
     하: "TARGET DIFFICULTY 하 (most students should get it right, still not trivial).",
   };
   const byType: Record<string, Record<TargetLevel, string>> = {
+    /*
+     * 상을 「추상적으로·애매하게」가 아니라 「더 길고 세부가 많게」로 바꾼다(선생님 말씀 2026-10-04: 너무 어렵게 만들려다 애매해진다).
+     * 예전 상 문구 「abstract, no shared key words」는 제목 정답이 글감을 감추는 원인이었다(전수조사 17%).
+     */
     mcq: {
-      상: "Correct choice paraphrases abstractly (no shared key words with the passage). ≥3 distractors that are partly true or true-but-too-narrow/too-broad — but each must be CLEARLY worse than the key for one nameable reason (covers only one part, too broad, adds a claim, reverses a relation). Never two choices that both state the whole main point. Choice lengths balanced.",
+      상: "Key is reworded (not copied) but still names the passage's subject in plain words; choices are somewhat longer and carry more of the passage's detail than at 하. ≥3 distractors that are partly true, too narrow or too broad, or reverse a relation — each CLEARLY worse than the key for one nameable reason. Never two choices that both state the whole main point. No abstract or metaphorical wording, no rare words. Choice lengths balanced.",
       중: "Correct choice paraphrased; 2 strong distractors that reuse passage words with a meaning shift.",
       하: "Correct choice close to the passage wording; distractors clearly contradict or are off-topic (but not absurd).",
     },
     blank: {
-      상: "Blank the abstract core claim/concept that must be inferred from the whole passage; clues are indirect (not a repeated word). Distractors are near-miss paraphrases or the opposite claim.",
+      상: "Blank a key phrase tied to the passage's main point; its clues are elsewhere in the passage in different words (not a repeated word), so the student must read the whole passage. Exactly one choice fits; each distractor is clearly wrong for one nameable reason (opposite, only one part, unrelated detail). Longer choices are fine; no riddles or abstract wording that could fit two ways.",
       중: "Blank a key phrase supported by 1–2 clues elsewhere in the passage.",
       하: "Blank a phrase whose meaning is restated nearby; clue is direct.",
     },
     structure: {
-      상: "Choose a spot where connectors/pronoun cues are subtle; logical flow must be inferred from content. Avoid obvious 'However/For example' giveaways where possible.",
+      상: "Choose a spot where the decisive cue is the content flow (what is said before and after) rather than an obvious 'However/For example' giveaway — but exactly one position/order must remain coherent; a second plausible place makes the item defective. Never add a connector or phrase that is not in the passage (e.g. a new 'For that reason') to the given sentence or chunks.",
       중: "Use a normal spot with one clear cue (connector, pronoun, or article).",
       하: "Use a spot with clear cues (explicit connector + pronoun reference).",
     },
