@@ -44,7 +44,8 @@ Then think like a student filing a formal objection (이의제기): is there ano
 If the item has no choices and asks for a count, "answer" is the count and "alsoDefensible" lists other counts a careful student could defend.
 For count items (개수), also give "count": the number you actually counted, and list other defensible counts in "alsoDefensible" as counts.
 Also judge every CHOICE as written (선생님 기준: 객관식 보기가 어색하면 안 된다). List in "awkward" the number of any choice that is unnatural or ungrammatical English (or unnatural Korean), or that rewords the passage so loosely that a careful student cannot tell whether it is true or false (e.g. "quickly add up" turned into "brief paragraphs accumulate quickly"; "one evening" turned into "nightly"). Plain wrong distractors that are clearly wrong are fine.
-Return ONE JSON object: {"answer":<choice number, or the count>,"count":<count items only>,"alsoDefensible":[<other answers a careful student could defend, or empty>],"debatable":<true if your answer depends on a reading a reasonable student could make differently>,"awkward":[<choice numbers, or empty>],"reason":"<Korean, one or two sentences>"}
+Also list in "rareWords" any word in the choices (or count-item statements) that is NOT in the passage and that a typical Korean 고등학생 preparing for 수능 would not know: specialist or technical terms (pigmentation, hominid, locomotion, acreage), GRE-style words (rapport, affinity, substantive, toil), or a common word used in an unusual sense (stock meaning "cardboard"). Normal 수능 vocabulary (recognition, reliance, exposure, sustain, evolutionary) is fine — do not list it.
+Return ONE JSON object: {"answer":<choice number, or the count>,"count":<count items only>,"alsoDefensible":[<other answers a careful student could defend, or empty>],"debatable":<true if your answer depends on a reading a reasonable student could make differently>,"awkward":[<choice numbers, or empty>],"rareWords":[<words, or empty>],"reason":"<Korean, one or two sentences>"}
 Be honest, not generous: list an answer in alsoDefensible only if you could argue it in front of a teacher with passage evidence. Normal hard items with one clearly best answer are NOT debatable.`;
 
 function compact(text: unknown, max = 2600): string {
@@ -130,6 +131,15 @@ export async function blindSolveQuestion(opts: {
   // 보기가 어색하거나 참·거짓이 애매하게 바꿔 쓴 것이면 다시 만든다(선생님 기준: 객관식 보기가 어색하면 안 된다)
   const awkward = (Array.isArray(raw.awkward) ? raw.awkward : []).map(Number).filter((n) => Number.isInteger(n) && n >= 1);
   if (mcq && awkward.length) return { verdict: "drop", answer, reason: `보기 ${awkward.join("·")}번이 어색하거나 애매함 — ${reason}` };
+  /*
+   * 낯선 낱말(선생님 말 2026-10-04: 「너무 낯선 단어들이 포함되지 않도록」). 단어장 표는 수능 어휘보다 좁아
+   * 코드만으로는 정상 수능 단어까지 걸린다. 풀어 보는 모델이 고등학생에게 낯선 말만 골라낸다.
+   */
+  const passageLower = String(opts.passage ?? "").toLowerCase();
+  const rare = (Array.isArray(raw.rareWords) ? raw.rareWords : [])
+    .map((w) => String(w).trim())
+    .filter((w) => w && !passageLower.includes(w.toLowerCase()));
+  if (rare.length) return { verdict: "drop", answer, reason: `낯선 낱말(${rare.slice(0, 5).join(", ")})을 고등학생이 아는 말로 바꿔 쓴다 — ${reason}` };
   return { verdict: "pass", answer, reason };
 }
 
