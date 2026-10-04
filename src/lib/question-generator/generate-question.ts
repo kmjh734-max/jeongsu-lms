@@ -961,6 +961,23 @@ function checkChoicePlan(raw: Record<string, unknown>, option: QuestionTypeOptio
  * 글감 낱말은 지문에 있는 말이어야 하고, 정답에 그 낱말(어형 변화 포함)이 있어야 한다.
  * 어형은 앞부분으로 맞춘다(animation → Animated, saving → Savings, residency → Residence).
  */
+/*
+ * 정답에만 극단어가 있으면 지문 없이 골라진다(내용일치 전수조사 2026-10-04: 「정답 ④만 always」,
+ * 「정답에만 반드시」). 정답 혼자 극단어를 가지면 다시 만든다.
+ */
+const EXTREME_WORD = /\b(always|never|only|entirely|completely|invariably|solely|whenever)\b|항상|언제나|반드시|오직|전혀|결코|오로지|무조건/i;
+function extremeWordGiveaway(raw: Record<string, unknown>): string | null {
+  const key = Number(String(raw.correctAnswer ?? "").replace(/[^0-9]/g, ""));
+  const choices = Array.isArray(raw.choices) ? (raw.choices as Array<{ number?: unknown; text?: unknown }>) : [];
+  if (choices.length < 2) return null;
+  const hits = choices.filter((c) => EXTREME_WORD.test(String(c.text ?? "")));
+  if (hits.length === 1 && Number(hits[0]!.number) === key) {
+    const word = String(hits[0]!.text).match(EXTREME_WORD)?.[0];
+    return `정답 보기에만 극단어 「${word}」가 있어 지문 없이도 골라집니다. 정답에서 빼거나, 다른 보기에도 지문과 맞는 정도어를 고르게 씁니다.`;
+  }
+  return null;
+}
+
 const SUBJECT_STOP = new Set(["the", "and", "for", "with", "how", "why", "what", "its", "their", "about", "people", "thing", "things", "way", "ways", "role"]);
 function checkTitleSubject(raw: Record<string, unknown>, key: number, passage: string): string | null {
   const gp = (raw.gistPlan ?? {}) as Record<string, unknown>;
@@ -1068,7 +1085,16 @@ function shuffleObjectiveChoices(
      * 적은 문항이 84개였는데 그 가운데 65개(77%)가 정답 번호와 달랐다. 빈칸추론이
      * 79개 중 60개로 가장 심했다. 「정답: N」 꼴만 바꾸고 「N번」은 두었기 때문이다.
      */
-    nextExplanation = explanation.replace(
+    /*
+     * 「①~④는 일치」 같은 범위는 번호를 하나씩 바꾸면 「③~①」처럼 뜻이 없어진다(내용일치 전수조사
+     * 2026-10-04). 범위를 먼저 「①·②·③·④」로 풀고, 바꾼 뒤 나열을 번호 순으로 다시 놓는다.
+     */
+    const expanded = explanation.replace(/([①-⑤])\s*[~∼～\-–]\s*([①-⑤])/g, (whole, a: string, b: string) => {
+      const from = CIRCLED.indexOf(a);
+      const to = CIRCLED.indexOf(b);
+      return from < to ? CIRCLED.slice(from, to + 1).join("·") : whole;
+    });
+    nextExplanation = expanded.replace(
       /([①-⑤])|((?:정답\s*[:：]?|답\s*[:：])\s*)([1-5])(\s*번?)|(?<!\d)([1-5])(\s*번)/g,
       (
         whole,
@@ -1094,6 +1120,11 @@ function shuffleObjectiveChoices(
         return whole;
       }
     );
+    // 「③·①·⑤」처럼 섞인 나열은 번호 순으로
+    nextExplanation = nextExplanation.replace(/[①-⑤](?:\s*[·,]\s*[①-⑤])+/g, (run) => {
+      const sep = run.includes("·") ? "·" : ", ";
+      return [...run.matchAll(/[①-⑤]/g)].map((m) => m[0]).sort((a, b) => CIRCLED.indexOf(a) - CIRCLED.indexOf(b)).join(sep);
+    });
   }
 
   return {
@@ -2586,6 +2617,18 @@ export async function generateOneQuestion(opts: {
     option.isObjective
       ? "- Every choice must stand on its own: never begin with This/That/These/Those/Such/It/They referring to something outside the choice — name it (\"The objective view of science …\"). Keep cause-and-effect wording simple; one clear claim per choice. Never add a time frame (In the past, Today, Nowadays, In advance) or a cause the passage does not state."
       : "",
+    /*
+     * 내용일치·불일치 전수조사(1,248문항, 2026-10-04)에서 아직 막지 않은 것들.
+     */
+    option.type === "content_true" || option.type === "content_false" || option.type === "content_count"
+      ? `- FACT CHOICES — each states ONE passage fact plainly:
+  · Subjects are only people/things the passage names. Never invent an agent or a belief ("Workers …", "Gardeners found …", "사육자들은 ~을 알았다", "사람들은 ~라고 여긴다") unless the passage says exactly that.
+  · Never join two separate passage facts with since/because/which can/so/~해서 into a cause the passage does not state.
+  · Keep the passage's own names for concrete things and people (nest, friend, cheese, vaccine, Fahrenheit); never swap them for a cover word or a broader term (cradle, companion, melted dairy, formula, Celsius).
+  · A TRUE choice keeps the passage's degree exactly ("not one day below" ≠ "kept rising", "every penny" ≠ "nearly all").
+  · No choice may lean on another choice or on order words (that ideal, 그다음, 이후, 결국).
+  · No giveaways: the false statement must not be the only choice with an extreme word (always/never/only/entirely/반드시/전혀), must not simply reverse another choice, and the true statement must not be the passage's main idea while the others are small details.`
+      : "",
     !option.isObjective
       ? "- ONE ANSWER ONLY. The item must have exactly one correct answer; do not rely on acceptableAnswers to cover others. Before finishing, try to find a second answer a careful student could write: another phrase from the passage that fits the blank in grammar and meaning, another word order the given words and the Korean translation allow (a movable adverb or modifier), another valid correction. If one exists, change the item (pick a different blank, make the translation fix the order, choose an error with a single fix) until only one answer works.\n- A word-form change that is optional also makes two answers (life/lives both natural, Copernicus' / Copernicus's): only ask for a change the sentence forces. The <조건> must state rules only — never describe the answer's structure (where a colon goes, what a clause modifies)."
       : "",
@@ -2864,8 +2907,12 @@ export async function generateOneQuestion(opts: {
        * 지문에 없는 시점(In the past·Today·In advance)이 붙거나 인과가 엉킨 보기가 이 두 모양에서 나왔다
        * (10·11차 시험 2026-10-04). 시점·인과는 지문에 그대로 있을 때만 쓴다.
        */
+      /*
+       * 「주어를 사람·집단으로」는 지문에 없는 사람(Workers, Gardeners, 사육자들은 ~알았다)을 지어냈다
+       * (내용일치 전수조사 2026-10-04). 지문에 나온 사람만 주어로 쓰게 한다.
+       */
       content_true: [
-        "주어를 사람·집단으로",
+        "지문에 나온 사람·집단을 주어로 (지문에 없는 사람을 새로 세우지 않는다)",
         "주어를 사물·현상으로",
         "지문의 구체적 사실 하나를 그대로 진술 (수치·이름·장소 등, 지문에 있는 것만)",
         "행동·변화를 나타내는 동사를 중심으로",
@@ -3110,6 +3157,10 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
   if (planTypes && option.choiceLanguage !== "korean") {
     const planError = checkChoicePlan(raw, option, passage);
     if (planError) throw new Error(planError);
+  }
+  if (option.type === "content_true" || option.type === "content_false") {
+    const giveaway = extremeWordGiveaway(raw);
+    if (giveaway) throw new Error(giveaway);
   }
 
   const payload = normalizePayload(

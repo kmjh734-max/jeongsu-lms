@@ -232,7 +232,7 @@ Judge EACH choice/statement on its own, from the passage alone. Do not pass a ch
 For fact items (일치/불일치/개수), each verdict is one of:
 - "supported": the passage clearly supports it
 - "refuted": the passage clearly contradicts it (quote the contradicting words)
-- "unverifiable": the passage neither supports nor contradicts it (an added time frame, cause, premise, comparison or quantity the passage never states)
+- "unverifiable": the passage neither supports nor contradicts it (an added time frame, cause, premise, comparison or quantity the passage never states; a person or belief the passage never mentions; two separate facts joined into a cause)
 - "ambiguous": its truth depends on how a word or reference is read (unclear "this/such/it", vague wording, a loose paraphrase that changes the object, quantity, scope, cause or time)
 For title/topic items, each verdict is one of:
 - "valid": a good title/topic for the whole passage
