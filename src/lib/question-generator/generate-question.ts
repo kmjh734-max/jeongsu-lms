@@ -2546,6 +2546,10 @@ export async function generateOneQuestion(opts: {
     option.type === "vocabulary"
       ? "- Underline ONE word (two at most) per spot, never a phrase of three or more words."
       : "",
+    // 12차 시험: 「A And B」 나열형 제목은 관계가 드러나지 않아 정답과 다퉜다
+    option.type === "title" || option.type === "topic"
+      ? "- Never use a bare list form like \"Cultural Difference And Species Survival\" (two nouns joined by And/&) for any choice — it hides the relation, so a wrong choice can look as right as the key. Every choice must state a relation or claim (how, why, from A to B, A as B, A that B …)."
+      : "",
     // 9·10차 시험: 「This stance…」「Such restricted activity…」처럼 보기만 읽으면 가리키는 말이 없었다
     option.isObjective
       ? "- Every choice must stand on its own: never begin with This/That/These/Those/Such/It/They referring to something outside the choice — name it (\"The objective view of science …\"). Keep cause-and-effect wording simple; one clear claim per choice. Never add a time frame (In the past, Today, Nowadays, In advance) or a cause the passage does not state."

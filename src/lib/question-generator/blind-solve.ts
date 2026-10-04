@@ -59,6 +59,8 @@ export type BlindSolveResult = {
   reason: string;
   /** 서술형 확인이 고친 칸(해설) */
   fixed?: string[];
+  /** 낯선 낱말 때문에만 버릴 때 그 낱말들 — 문항 전체 대신 그 낱말만 바꿔 쓸 수 있다 */
+  rareWords?: string[];
 };
 
 export async function blindSolveQuestion(opts: {
@@ -139,7 +141,7 @@ export async function blindSolveQuestion(opts: {
   const rare = (Array.isArray(raw.rareWords) ? raw.rareWords : [])
     .map((w) => String(w).trim())
     .filter((w) => w && !passageLower.includes(w.toLowerCase()));
-  if (rare.length) return { verdict: "drop", answer, reason: `낯선 낱말(${rare.slice(0, 5).join(", ")})을 고등학생이 아는 말로 바꿔 쓴다 — ${reason}` };
+  if (rare.length) return { verdict: "drop", answer, reason: `낯선 낱말(${rare.slice(0, 5).join(", ")})을 고등학생이 아는 말로 바꿔 쓴다 — ${reason}`, rareWords: rare };
   return { verdict: "pass", answer, reason };
 }
 
@@ -283,7 +285,7 @@ export async function verifyChoicesIndependently(opts: {
   if (unnatural.length) return { verdict: "drop", answer: null, reason: `보기 ${unnatural.join("·")}이 어색함 — ${reason}` };
   const passageLower = String(opts.passage ?? "").toLowerCase();
   const rare = (Array.isArray(raw.rareWords) ? raw.rareWords : []).map((w) => String(w).trim()).filter((w) => w && !passageLower.includes(w.toLowerCase()));
-  if (rare.length) return { verdict: "drop", answer: null, reason: `낯선 낱말(${rare.slice(0, 5).join(", ")})을 고등학생이 아는 말로 바꿔 쓴다 — ${reason}` };
+  if (rare.length) return { verdict: "drop", answer: null, reason: `낯선 낱말(${rare.slice(0, 5).join(", ")})을 고등학생이 아는 말로 바꿔 쓴다 — ${reason}`, rareWords: rare };
 
   if (isGist) {
     const valid = rows.filter((r) => v(r) === "valid").map((r) => Number(r.n));
@@ -309,4 +311,51 @@ export async function verifyChoicesIndependently(opts: {
     return { verdict: "drop", answer: null, reason: `틀린 진술이 ${refuted.length}개(정답 ${key}개) — ${reason}` };
   }
   return { verdict: "pass", answer: key, reason };
+}
+
+/*
+ * 낯선 낱말만 쉬운 말로 바꾼다(2026-10-04, 12차 시험: 다시 만든 17번 가운데 절반 이상이 상 문항의 낯선 낱말 때문이었고,
+ * 그때마다 문항 전체를 다시 만들어 원가가 1.3배까지 떨어졌다). 보기·진술의 그 낱말만 바꾸고 뜻·참거짓·정답은 그대로 둔다.
+ * 바꾼 뒤에는 부른 쪽이 같은 검수를 한 번 더 돌린다.
+ */
+export async function rewriteRareWords(opts: { payload: GeneratedQuestionPayload; words: string[] }): Promise<boolean> {
+  const { payload, words } = opts;
+  const hasChoices = Array.isArray(payload.choices) && payload.choices.length > 0;
+  const user = [
+    `WORDS TO REPLACE: ${words.join(", ")}`,
+    hasChoices ? `\nCHOICES:\n${(payload.choices ?? []).map((c) => `${c.number}. ${c.text}`).join("\n")}` : "",
+    !hasChoices && payload.questionText ? `\nSTATEMENTS:\n${payload.questionText}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+  let raw: Record<string, unknown>;
+  try {
+    raw = (await questionGeneratorChatJsonWithRetry({
+      system: `You edit exam choices for Korean high-school students. Replace ONLY the listed words with common words a 고등학생 knows (고교 수준), keeping each sentence's meaning, truth value, grammar and length. Do not change anything else.
+Return ONE JSON object: ${hasChoices ? '{"choices":[{"number":1,"text":"..."}]}' : '{"statements":"the full statements block with the same numbering and line breaks"}'}`,
+      user,
+      temperature: 0,
+      maxTokens: 1500,
+      reasoningEffort: "low",
+      preferredModels: [SOLVE_MODEL],
+      cacheKey: "qg-rewrite-rare",
+    })) as Record<string, unknown>;
+  } catch {
+    return false;
+  }
+  if (hasChoices) {
+    const rows = Array.isArray(raw.choices) ? (raw.choices as Array<{ number?: unknown; text?: unknown }>) : [];
+    if (rows.length !== payload.choices!.length) return false;
+    payload.choices = payload.choices!.map((c) => {
+      const r = rows.find((x) => Number(x.number) === Number(c.number));
+      const text = typeof r?.text === "string" && r.text.trim() ? r.text.trim() : c.text;
+      return { ...c, text };
+    });
+    return true;
+  }
+  const st = typeof raw.statements === "string" ? raw.statements.trim() : "";
+  const before = (String(payload.questionText ?? "").match(/\(\d+\)/g) ?? []).length;
+  if (!st || (st.match(/\(\d+\)/g) ?? []).length !== before) return false;
+  payload.questionText = st;
+  return true;
 }

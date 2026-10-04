@@ -8,6 +8,7 @@ import {
   checkSubjectiveQuestion,
   PER_CHOICE_TYPES,
   verifyChoicesIndependently,
+  rewriteRareWords,
   subjectiveCheckable,
 } from "@/lib/question-generator/blind-solve";
 import { fixCircledParticles } from "@/lib/question-generator/circled-particles";
@@ -308,16 +309,26 @@ async function generateWithValidation(opts: {
         let reviewedBySolve = false;
         if (blindSolveEnabled() && (blindSolvable(payload) || subjectiveCheckable(payload))) {
           reviewedBySolve = !blindSolvable(payload);
-          const solved = await withAiUsage(
-            { ...currentAiUsage(), featureKey: null, usedFor: "qg_solve" },
-            () =>
+          const runSolve = () =>
+            withAiUsage({ ...currentAiUsage(), featureKey: null, usedFor: "qg_solve" }, () =>
               // 내용일치·불일치·일치개수·제목·주제는 보기마다 따로 판정한다(정답은 숨김, 대조는 코드)
               PER_CHOICE_TYPES.has(opts.option.type)
                 ? verifyChoicesIndependently({ passage: cleanSourcePassage(opts.passage), payload, type: opts.option.type })
                 : blindSolvable(payload)
                 ? blindSolveQuestion({ passage: cleanSourcePassage(opts.passage), payload })
                 : checkSubjectiveQuestion({ passage: cleanSourcePassage(opts.passage), payload, code: opts.option.aingkaCode })
-          );
+            );
+          let solved = await runSolve();
+          /*
+           * 낯선 낱말 때문에만 걸렸으면 문항 전체를 다시 만들지 않고 그 낱말만 쉬운 말로 바꾼 뒤 한 번 더 본다
+           * (12차 시험: 다시 만든 17번 중 절반 이상이 이 까닭이었고 원가가 1.3배까지 떨어졌다).
+           */
+          if (solved.verdict === "drop" && solved.rareWords?.length) {
+            const rewrote = await withAiUsage({ ...currentAiUsage(), featureKey: null, usedFor: "qg_solve" }, () =>
+              rewriteRareWords({ payload, words: solved.rareWords! })
+            );
+            if (rewrote) solved = await runSolve();
+          }
           validation.solve = solved;
           if (solved.verdict === "drop") {
             reviewDropped += 1;
