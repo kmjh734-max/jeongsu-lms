@@ -57,7 +57,7 @@ DROP when any of these holds:
 
 FIX (not drop) only when the body and choices are fine and ONLY the answer key or the explanation is wrong, and you are certain of the correct value. Put the corrected value in fixedCorrectAnswer (same format as the given correctAnswer: integer 1-5 for MCQ, or the same string format for subjective) and/or fixedExplanation (Korean, 평서형 "~다", same shape as the original explanation).
 
-An explanation that uses a wrong grammar term (calls a participle a gerund), names the wrong antecedent/referent, or gives a reason that is not true of this passage is wrong — FIX it.
+An explanation that uses a wrong grammar term (calls a participle a gerund), names the wrong antecedent/referent, gives a reason that is not true of this passage, or contains a generic template sentence that is not about this passage (e.g., "단순히 두 가지 기능을 했다는 일반론으로 이해해서는 안 된다" with nothing in the passage about it) is wrong — FIX it.
 
 PASS otherwise. Wording style in the explanation is not a defect. Do not drop because distractors are easy. Do not rewrite the passage or choices.`;
 

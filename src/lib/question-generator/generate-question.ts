@@ -1227,6 +1227,32 @@ function answerIsMarkIndex(option: QuestionTypeOption): boolean {
   );
 }
 
+/**
+ * 해설에서 「A를 B로 바꾼다」는 주장을 뽑는다(소문자 쌍).
+ *  - 화살표: confirm → confirmed
+ *  - 한 낱말: confirm은 과거의 일을 나타내도록 confirmed로 바뀐다
+ *  - 여러 낱말: instrument, signal, one을 각각 instruments, signals, ones로 바꾸어
+ */
+export function formChangeClaims(explanation: string): Array<[string, string]> {
+  const out: Array<[string, string]> = [];
+  const W = "[A-Za-z'’]+";
+  for (const m of explanation.matchAll(new RegExp(`(${W})\\s*(?:→|->|⇒)\\s*(${W})`, "g"))) out.push([m[1]!, m[2]!]);
+  for (const m of explanation.matchAll(
+    new RegExp(`((?:${W},\\s*)+${W})\\s*(?:을|를)\\s*각각\\s*((?:${W},\\s*)+${W})\\s*(?:으로|로)`, "g")
+  )) {
+    const a = m[1]!.split(/,\s*/);
+    const b = m[2]!.split(/,\s*/);
+    if (a.length === b.length) a.forEach((x, i) => out.push([x, b[i]!]));
+  }
+  for (const m of explanation.matchAll(
+    // 사이에 다른 영어 낱말이 끼면 다른 낱말 이야기다(「confirmed를 꾸미며, confirm은 … confirmed로」)
+    new RegExp(`(${W})(?:은|는|이|가|을|를)\\s+[^.。A-Za-z]{0,40}?(${W})\\s*(?:으로|로)\\s*(?:바뀌|바뀐|바뀝|바꾸|바꾼|바꿉|바꿔|고쳐|고친|변)`, "g")
+  )) {
+    out.push([m[1]!, m[2]!]);
+  }
+  return out.map(([a, b]) => [a.toLowerCase(), b.toLowerCase()]);
+}
+
 export function assertBasicQuestionShape(
   q: GeneratedQuestionPayload,
   option: QuestionTypeOption,
@@ -1532,6 +1558,16 @@ export function assertBasicQuestionShape(
     }
     if (leftOver.length > 0) {
       return `빈칸이 든 문장에 보기 낱말이 그대로 남아 있습니다: ${leftOver.join(", ")}`;
+    }
+    /*
+     * 해설이 「A → B로 바꾼다」고 하는데 <보기>에 이미 B로 주어졌으면 해설이 틀렸다
+     * (4·5차 시험 2026-10-04: confirmed·ones·kids가 보기에 그대로 있는데 「바꾼다」고 설명).
+     */
+    const bank = new Set(bankLine.toLowerCase().split(/[\/,\s]+/).map((w) => w.replace(/[^a-z'’]/g, "")).filter(Boolean));
+    for (const [from, to] of formChangeClaims(String(q.explanation ?? ""))) {
+      if (from !== to && bank.has(to) && !bank.has(from)) {
+        return `해설이 ${from}를 ${to}로 바꾼다고 했지만 <보기>에 이미 ${to}로 주어져 있습니다. 실제로 형태가 바뀌는 낱말만 설명합니다.`;
+      }
     }
   } else if (
     option.type === "writing" &&
@@ -2528,7 +2564,7 @@ export async function generateOneQuestion(opts: {
         ? '- 순서추론: 덩어리 사이를 잇는 단서(지시어·연결어·시간 흐름·앞 문단을 받는 말)가 없는 나열 지문(같은 꼴 문장의 반복, 항목 소개 나열)이면 순서가 하나로 정해지지 않는다. 그럴 때는 {"skip":true,"reason":"순서 단서 없음"}.'
         : isReferenceWriting
         ? '- 지칭 서술: 명확한 선행사/문맥 동의 구가 있을 때만. 없으면 {"skip":true,"reason":"..."}.'
-        : '- 함축의미: 문맥 의존 표현만. 정답은 사전 뜻이 아니라 지문 구체 paraphrase (do double duty ≠ "do two things"). 없으면 {"skip":true,"reason":"..."}. 본문은 (A)<u>…</u>.'
+        : '- 함축의미: 문맥 의존 표현만. 정답은 사전 뜻이 아니라 지문 구체 paraphrase (do double duty ≠ "do two things"). 없으면 {"skip":true,"reason":"..."}. 본문은 (A)<u>…</u>.\n- 함축의미 밑줄은 지문에 이미 있는 표현에 친다. 지문을 최대한 그대로 쓰고, 밑줄을 만들려고 새 문장을 지어 붙이지 않는다.'
       : "",
     option.type === "sentence_insertion"
       ? "- Do NOT return choices for 문장삽입; slots ①~⑤ in passageModified are the options."

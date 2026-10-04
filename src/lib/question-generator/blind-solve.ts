@@ -146,15 +146,31 @@ const SUBJECTIVE_SYSTEM = `You check one subjective (서술형) item of a Korean
 2. Decide whether the keyed answer is correct and satisfies every stated condition (word count, "본문에서 찾아", given words used exactly, 어형 변화 rule, the Korean translation). For error-correction items, check that every spot the key calls wrong is really ungrammatical under every reading and that every other spot is correct.
 3. Find any OTHER answer a fair teacher would have to mark correct: another phrase from the passage that fits the blank in grammar and meaning, another word order allowed by the given words and the translation, another valid correction of a marked error. Ignore differences only in punctuation or capitalization.
 4. Treat these as keyWrong too: the summary sentence is ungrammatical or meaningless once the answer is filled in; the <보기> words cannot produce the answer (missing or extra words, wrong forms for the stated 어형 rule); a 지칭 answer is a pronoun or determiner instead of the noun referred to; a 특정표현 answer does not MEAN the same as the underlined expression (only a related action, a cause/result, or the words right after it); the passage or question text is garbled, truncated, or leaks the answer; the item invents content the passage does not have.
-5. Check the EXPLANATION (Korean). If the key is right but the explanation is wrong (wrong grammar term, wrong referent, wrong reason, a step that contradicts the key), write a corrected one in "fixedExplanation" (Korean, 평서형 "~다", same shape and length as the original). Otherwise leave it out. Wording style alone is not wrong.
+5. Check the EXPLANATION (Korean). It is wrong if it claims a word changes form (A → B) when the <보기> already gives B, or names a change for a word that is not in <보기>; if it contains a generic sentence that is not about THIS passage; or if it uses a wrong grammar term, wrong referent, or wrong reason. If the key is right but the explanation is wrong, write a corrected one in "fixedExplanation" (Korean, 평서형 "~다", same shape and length as the original). Otherwise leave it out. Wording style alone is not wrong.
 Return ONE JSON object: {"keyWrong":<true|false>,"otherValid":[<other fully correct answers, or empty>],"fixedExplanation":<optional Korean string>,"reason":"<Korean, one or two sentences>"}
 Be strict and concrete: list an answer in otherValid only if you are sure it is fully correct under all conditions.`;
+
+/*
+ * 다른 답이 나왔을 때 유형마다 다르게 한다(선생님 결정 2026-10-04).
+ *  - 요약문 빈칸(본문에서 찾기): 본문의 비슷한 말도 들어가면 버리지 않고 정답지에 함께 적는다.
+ *  - 제시어 배열·요약문 영작: 어순·형태가 여럿 되는 것은 선생님이 확인할 일 — 원문 그대로를 정답으로 두고 넘어간다.
+ *  - 그 밖(특정표현·어법 오류 수정 등): 다른 답이 되면 버리고 다시 만든다.
+ */
+type OtherAnswerPolicy = "list" | "ignore" | "drop";
+function otherAnswerPolicy(code: string | null | undefined): OtherAnswerPolicy {
+  if (/요약문빈칸[23]단어/.test(code ?? "")) return "list";
+  if (/제시어배열|요약문빈칸영작/.test(code ?? "")) return "ignore";
+  return "drop";
+}
 
 export async function checkSubjectiveQuestion(opts: {
   passage: string;
   payload: GeneratedQuestionPayload;
+  /** 유형 코드(aingkaCode) — 다른 답을 어떻게 다룰지 정한다 */
+  code?: string | null;
 }): Promise<BlindSolveResult> {
   const { payload } = opts;
+  const policy = otherAnswerPolicy(opts.code);
   const shown = payload.passageModified?.trim() ? payload.passageModified : opts.passage;
   const user = [
     `INSTRUCTION: ${compact(payload.instruction, 400)}`,
@@ -188,12 +204,24 @@ export async function checkSubjectiveQuestion(opts: {
     .map((x) => String(x).trim())
     .filter((x) => x && x.toLowerCase().replace(/[^a-z0-9]/g, "") !== String(payload.correctAnswer).toLowerCase().replace(/[^a-z0-9]/g, ""));
   if (raw.keyWrong === true) return { verdict: "drop", answer: null, reason: `정답이 맞지 않음 — ${reason}` };
-  if (others.length) return { verdict: "drop", answer: null, reason: `다른 답도 됨(${others.slice(0, 2).join(" / ")}) — ${reason}` };
+  if (others.length && policy === "drop") {
+    return { verdict: "drop", answer: null, reason: `다른 답도 됨(${others.slice(0, 2).join(" / ")}) — ${reason}` };
+  }
+  const fixed: string[] = [];
   // 해설만 틀렸으면 고쳐서 살린다(뜻 검수의 fix와 같은 잣대)
   const fixedExplanation = typeof raw.fixedExplanation === "string" ? raw.fixedExplanation.trim() : "";
   if (fixedExplanation.length >= 10 && !/[A-Za-z]{40,}/.test(fixedExplanation) && fixedExplanation !== payload.explanation) {
     payload.explanation = fixedExplanation;
-    return { verdict: "pass", answer: null, reason: `해설을 고침 — ${reason}`, fixed: ["explanation"] };
+    fixed.push("explanation");
   }
-  return { verdict: "pass", answer: null, reason };
+  // 요약문 빈칸: 본문의 다른 말도 들어가면 정답지(해설 첫 줄)에 함께 적고 허용답에도 넣는다
+  if (others.length && policy === "list") {
+    const list = others.slice(0, 3);
+    payload.acceptableAnswers = [...new Set([...(payload.acceptableAnswers ?? []), ...list])];
+    payload.explanation = `다른 정답: ${list.join(" / ")}\n${payload.explanation}`;
+    fixed.push("acceptableAnswers");
+  }
+  return fixed.length
+    ? { verdict: "pass", answer: null, reason: `${fixed.includes("explanation") ? "해설을 고침 · " : ""}${fixed.includes("acceptableAnswers") ? "다른 정답을 적음 · " : ""}${reason}`, fixed }
+    : { verdict: "pass", answer: null, reason };
 }

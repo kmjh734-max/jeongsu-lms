@@ -309,7 +309,7 @@ async function generateWithValidation(opts: {
             () =>
               blindSolvable(payload)
                 ? blindSolveQuestion({ passage: cleanSourcePassage(opts.passage), payload })
-                : checkSubjectiveQuestion({ passage: cleanSourcePassage(opts.passage), payload })
+                : checkSubjectiveQuestion({ passage: cleanSourcePassage(opts.passage), payload, code: opts.option.aingkaCode })
           );
           validation.solve = solved;
           if (solved.verdict === "drop") {
