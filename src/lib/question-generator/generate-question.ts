@@ -1243,6 +1243,10 @@ export function assertBasicQuestionShape(
 ): string | null {
   if (!q.instruction.trim()) return "발문이 비어 있습니다.";
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
+  // 칸 제목이 두 번 나오면 학생에게 보기가 두 벌로 보인다(4차 시험 2026-10-04: <보기>·<해석>이 두 번, 조건 문구가 <해석>에 섞임)
+  for (const tag of ["<조건>", "<보기>", "<해석>", "<요약문>", "<지칭답란>", "<답안행>"]) {
+    if (String(q.questionText ?? "").split(tag).length - 1 > 1) return `문제 칸에 ${tag}가 두 번 들어갔습니다. 칸마다 한 번만 씁니다.`;
+  }
 
   /*
    * 맞는 것을 틀렸다고 한 어법 문항은 버린다.
@@ -2615,9 +2619,13 @@ export async function generateOneQuestion(opts: {
       (/^(?:in|on|at|for|with|by|from|during|after|before|despite|using|as|when|while|if|although|because|and|but|so)\b/i.test(t) ? 2 : 0) +
       // 때를 나타내는 구는 문장 앞으로 옮겨도 맞다(3차 시험: 「… in the early 17th century」를 앞으로 뺀 답)
       (/\b(?:in|on|at|during|after|before|since|by|until)\s+(?:the\s+)?(?:early|late|mid|\d{2,4}s?|\d+(?:st|nd|rd|th)|(?:\w+day)|morning|evening|night|summer|winter|spring|fall|autumn|past|future|end|beginning)\b/i.test(t) ? 2 : 0) +
-      (/\b(?:then|now|today|yesterday|tomorrow|later|recently|still|also|even|already|soon|again)\b/i.test(t) ? 1 : 0);
+      (/\b(?:then|now|today|yesterday|tomorrow|later|recently|still|also|even|already|soon|again)\b/i.test(t) ? 1 : 0) +
+      // and/or로 이은 말은 앞뒤를 바꿔도 맞다(4차 시험: 「watched the stars and took measurements」 ↔ 반대 순서)
+      (t.match(/\b(?:and|or)\b/gi) ?? []).length * 2;
     const least = Math.min(...sents.map(movable));
-    const pool = sents.filter((t) => movable(t) <= least + 1);
+    // 가장 덜 옮겨지는 문장만 쓴다(그런 문장이 하나뿐이면 한 단계 위까지). 4차 시험: also가 든 문장이 끼어 답이 둘이 됐다
+    const strict = sents.filter((t) => movable(t) === least);
+    const pool = strict.length >= 2 ? strict : sents.filter((t) => movable(t) <= least + 1);
     // 다시 만들 때는 다음 문장으로 넘긴다. 같은 문장으로 세 번 시도하면 같은 까닭(다른 어순도 답)으로 또 버려졌다.
     const retryShift = Math.max(0, (opts.attempt ?? 1) - 1);
     const pick = pool[((opts.diversitySlot?.index ?? 0) + typeOffset + (opts.copyIndex ?? 0) * 3 + retryShift) % pool.length]!;
