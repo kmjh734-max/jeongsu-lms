@@ -359,6 +359,8 @@ export function countEnglishWords(text: string): number {
     // well-being·long-term처럼 하이픈으로 이은 말은 한 낱말로 센다. 두 낱말로 세면 「9단어로 쓰시오」인데
     // 학생·검수는 8단어로 세어 문항이 버려졌다(시험 50문항 2026-10-04).
     .replace(/(\p{L})-(?=\p{L})/gu, "$1")
+    // U.S.·e.g. 같은 점 찍은 약어도 한 낱말이다(7차 시험: 「in the U.S.」를 두 낱말로 세어 문항이 버려짐)
+    .replace(/\b(?:\p{L}\.){2,}/gu, (m) => m.replace(/\./g, ""))
     .replace(/[^\p{L}\p{N}\s']/gu, " ")
     .trim()
     .split(/\s+/)
