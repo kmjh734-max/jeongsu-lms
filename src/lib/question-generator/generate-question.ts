@@ -2644,26 +2644,37 @@ export async function generateOneQuestion(opts: {
      */
     const typeOffset = { 제시어배열기본: 0, 제시어배열어형변화: 1, 제시어배열단어추가: 2 }[option.aingkaCode as string] ?? 0;
     /*
-     * 자리를 옮겨도 맞는 말이 든 문장은 답이 둘 이상 나온다. 2026-10-04 시험 50문항에서 제시어배열
-     * 5개 중 4개가 「다른 어순도 답」으로 버려졌다 — 「Using a telescope, Galileo …」, 「As humans, we …」,
-     * 「Theoretically, our brain …」처럼 쉼표로 끊긴 구·-ly 부사·앞머리 전치사구가 있는 문장이었다.
-     * 그런 말이 적은 문장부터 고른다(없으면 원래대로 아무 문장).
+     * 제시어 배열은 지문의 중요한 문장(주제문·결론·핵심 주장)으로 한다(선생님 말씀 2026-10-04).
+     * 한때 「다른 어순이 안 나오는 문장」을 앞세웠더니 짧고 덜 중요한 문장이 골라졌다. 다른 어순은
+     * 선생님이 확인할 일이라(같은 날 결정) 그 감점은 뺐고, 중요도 점수로 고른다.
+     * 글 제목이 첫 문장에 붙어 깨진 문장(대문자 낱말이 많은 것)만은 계속 피한다(8차 시험).
      */
-    const movable = (t: string) =>
-      (t.match(/,/g) ?? []).length * 3 +
-      (t.match(/\b(?!only\b|family\b|early\b|daily\b|likely\b|friendly\b)[a-z]{3,}ly\b/gi) ?? []).length +
-      (/^(?:in|on|at|for|with|by|from|during|after|before|despite|using|as|when|while|if|although|because|and|but|so)\b/i.test(t) ? 2 : 0) +
-      // 때를 나타내는 구는 문장 앞으로 옮겨도 맞다(3차 시험: 「… in the early 17th century」를 앞으로 뺀 답)
-      (/\b(?:in|on|at|during|after|before|since|by|until)\s+(?:the\s+)?(?:early|late|mid|\d{2,4}s?|\d+(?:st|nd|rd|th)|(?:\w+day)|morning|evening|night|summer|winter|spring|fall|autumn|past|future|end|beginning)\b/i.test(t) ? 2 : 0) +
-      (/\b(?:then|now|today|yesterday|tomorrow|later|recently|still|also|even|already|soon|again)\b/i.test(t) ? 1 : 0) +
-      // and/or로 이은 말은 앞뒤를 바꿔도 맞다(4차 시험: 「watched the stars and took measurements」 ↔ 반대 순서)
-      (t.match(/\b(?:and|or)\b/gi) ?? []).length * 2 +
-      // 대문자 낱말이 셋 이상이면 글 제목이 첫 문장에 붙은 것일 수 있다(8차 시험: 「From Ownership to Access Jiyun, …」)
-      ((t.split(/\s+/).slice(1).filter((w) => /^[A-Z]/.test(w)).length >= 3) ? 6 : 0);
-    const least = Math.min(...sents.map(movable));
-    // 가장 덜 옮겨지는 문장만 쓴다(그런 문장이 하나뿐이면 한 단계 위까지). 4차 시험: also가 든 문장이 끼어 답이 둘이 됐다
-    const strict = sents.filter((t) => movable(t) === least);
-    const pool = strict.length >= 2 ? strict : sents.filter((t) => movable(t) <= least + 1);
+    const titleMerged = (t: string) => t.split(/\s+/).slice(1).filter((w) => /^[A-Z]/.test(w)).length >= 3;
+    const importance = (t: string, i: number) => {
+      const n = t.split(/\s+/).length;
+      let s = 0;
+      // 결론·주장·요점을 알리는 말
+      if (/\b(?:therefore|thus|hence|in short|in sum|to sum up|in conclusion|as a result|consequently|this means|this shows|this suggests|in other words|the key|the point|the lesson|what matters|must|should|need to|have to|it is (?:important|essential|crucial|necessary))\b/i.test(t)) s += 3;
+      // 대조 뒤가 글쓴이의 주장인 경우가 많다
+      if (/^(?:however|but|yet|instead|rather|in fact|actually)\b/i.test(t)) s += 2;
+      // 주제문(첫 문장)·결론(마지막 문장)
+      if (i === sents.length - 1) s += 2;
+      if (i === 0) s += 1;
+      // 예시는 핵심이 아니다
+      if (/^(?:for example|for instance|such as|to illustrate|e\.g\.)\b/i.test(t)) s -= 3;
+      // 묻는 문장·따옴표 대화는 배열할 핵심 문장이 아니다
+      if (/\?\s*["”’]?$/.test(t)) s -= 4;
+      if (/["“”]/.test(t)) s -= 2;
+      if (n >= 10 && n <= 22) s += 1;
+      if (titleMerged(t)) s -= 10;
+      return s;
+    };
+    const scored = sents.map((t, i) => ({ t, s: importance(t, i) })).filter((x) => x.s > -10);
+    const ranked = scored.length ? scored : sents.map((t) => ({ t, s: 0 }));
+    const best = Math.max(...ranked.map((x) => x.s));
+    // 가장 중요한 쪽에서 고르되, 같은 지문에서 사본이 다른 문장을 쓰도록 두세 문장은 남긴다
+    const top = ranked.filter((x) => x.s >= best - 1).map((x) => x.t);
+    const pool = top.length >= 2 ? top : ranked.sort((a, b) => b.s - a.s).slice(0, 3).map((x) => x.t);
     // 다시 만들 때는 다음 문장으로 넘긴다. 같은 문장으로 세 번 시도하면 같은 까닭(다른 어순도 답)으로 또 버려졌다.
     const retryShift = Math.max(0, (opts.attempt ?? 1) - 1);
     const pick = pool[((opts.diversitySlot?.index ?? 0) + typeOffset + (opts.copyIndex ?? 0) * 3 + retryShift) % pool.length]!;
