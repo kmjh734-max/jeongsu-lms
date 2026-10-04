@@ -695,13 +695,13 @@ LANGUAGE: 지문·정답 영어만.`;
             : mode === "inflect"
               ? `- <조건>: 주어진 단어를 모두 한 번씩만 사용하되, 필요한 경우 어형 변화
 - <보기>: 반드시 원형·기본형만 (과거·과거분사·복수 금지). 생성 후 시스템이 무작위로 섞음
-- correctAnswer = 어형 변화를 적용한 완성 영어 (예: ${c.example})
+- correctAnswer = 어형 변화를 적용한 완성 영어 (예시는 맨 뒤 「이번 문항」)
 - CRITICAL: <보기> 다중집합 = correctAnswer 토큰의 원형(전치사·관사·중복 포함). 누락 금지.`
               : `- <조건>은 반드시 아래 두 줄만 (한 줄에 / 로 붙이지 말 것). 조건에 <보기> 태그 금지:
 ○ 단어 중복·어형 변화 가능
 ○ 보기에 없는 단어 추가 가능
 - <보기>: 핵심 어휘 원형 6~10개만 (과거형·복수형·한글·안내문 금지). 생성 후 시스템이 무작위로 섞음
-- correctAnswer = 관사·전치사·접속사 추가·어형 변화 포함한 완성문 (예: ${c.example})
+- correctAnswer = 관사·전치사·접속사 추가·어형 변화 포함한 완성문 (예시는 맨 뒤 「이번 문항」)
 - CRITICAL: 정답의 내용어(명사·동사·형용사·부사)는 모두 <보기>에 넣을 것. 관사·전치사만 보기 밖에서 추가 가능.
 - 금지: <보기> 본문에 '에 없는 단어'·한글 조사·문법 설명·중복 <보기> 태그`;
 
@@ -716,11 +716,14 @@ LANGUAGE: 지문·정답 영어만.`;
          * 학생이 해설을 믿지 못한다. POINT는 문장을 고르는 데만 쓰고, 해설은 그 문장
          * 자체를 풀이하게 한다.
          */
+        /*
+         * 문항마다 달라지는 것(이번 POINT·예시)만 맨 뒤 「이번 문항」으로 보낸다. 전에는 형식 규칙까지
+         * 「이번 문항」 아래라 첫 메시지가 1,024토큰에 못 미쳐 캐시가 한 번도 안 걸렸다(4차 시험 2026-10-04:
+         * 서술형 입력 2,275토큰 중 캐시 260).
+         */
         return `${catalog}
 
---- 이번 문항 ---
 서술형 · 제시어 배열 — 『고등영어 어법서술형』 반영
-${focusBlock}
 
 형식 (수특·내신·교재 서술형 연습 동형):
 - passageModified = 영어 지문. 위 CASE에 맞는 **중요 문장/절** 한 곳을 ⓐ__________ 빈칸으로.
@@ -745,7 +748,10 @@ ${modeRules}
 - acceptableAnswers: 구두점·대소문자만 다른 허용 답
 - choices 없음
 - explanation 한글: 정답 문장 + 왜 그 차례인지 (어떤 말이 주어·동사·목적어이고 무엇이 무엇을 꾸미는지). 지문에 없는 문법 이름이나 포인트 번호를 지어 붙이지 말 것.
-- 금지: 이번 POINT와 무관한 단순 SVO만 반복, 지문과 무관한 새 주제 문장`;
+- 금지: 이번 POINT와 무관한 단순 SVO만 반복, 지문과 무관한 새 주제 문장
+
+--- 이번 문항 ---
+${focusBlock}${mode === "basic" ? "" : `\n(정답 예: ${c.example})`}`;
       }
       return `Korean prompt + <조건> + given words in questionText. Model English answer in correctAnswer. passageModified optional.`;
     }
@@ -2395,6 +2401,20 @@ export async function generateOneQuestion(opts: {
     !option.isObjective
       ? "- ONE ANSWER ONLY. The item must have exactly one correct answer; do not rely on acceptableAnswers to cover others. Before finishing, try to find a second answer a careful student could write: another phrase from the passage that fits the blank in grammar and meaning, another word order the given words and the Korean translation allow (a movable adverb or modifier), another valid correction. If one exists, change the item (pick a different blank, make the translation fix the order, choose an error with a single fix) until only one answer works.\n- A word-form change that is optional also makes two answers (life/lives both natural, Copernicus' / Copernicus's): only ask for a change the sentence forces. The <조건> must state rules only — never describe the answer's structure (where a colon goes, what a clause modifies)."
       : "",
+    /*
+     * 서술형 공통 규칙. 내용도 필요하지만, 요약문·특정표현은 첫 메시지가 1,024토큰 언저리라 캐시가
+     * 안 걸렸다(4차 시험: 서술형 입력 캐시 11%). 이 덩어리로 넉넉히 넘긴다.
+     */
+    !option.isObjective
+      ? `- SUBJECTIVE ITEM CONVENTIONS (all 서술형):
+  · Word counting: a hyphenated word (well-being, long-term) is ONE word; a contraction (can't, it's) is ONE word; numbers written as digits count as one word. Any "N단어" in the instruction or <조건> must equal the answer's word count under this rule.
+  · <조건> lines state rules only (word count, use every given word once, change forms only where required, find it in the passage). Never describe the answer's structure, its first word, where punctuation goes, or what modifies what.
+  · <보기> and the blank must not leak the answer: no answer words left next to the blank, no word given twice unless the answer uses it twice, no Korean hints inside <보기>.
+  · The Korean <해석> (when present) must be a faithful, natural translation of exactly the answer sentence — no extra content, nothing missing.
+  · correctAnswer uses the exact format shown for this type ("ⓐ: … / ⓑ: …" for multi-blank items) and the exact spelling and capitalization the passage uses.
+  · explanation (Korean, 평서형 "~다"): state the answer, point to the passage sentence it comes from, and explain only what is true of THIS sentence (subject, verb, object, what modifies what). No invented grammar labels or point numbers.
+  · Before returning, re-read the item as a student: solve it from the instruction, <조건>, <보기> and passage alone. If you reach a different answer, or more than one, fix the item.`
+      : "",
     option.aingkaCode === "특정표현의미서술"
       ? "- The answer phrase must MEAN the same as the underlined expression so that it could replace it, and it must come from a DIFFERENT place in the passage. Never use the words right after the underline, a cause/result of it, or a related action."
       : "",
@@ -2815,6 +2835,11 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
     let nonAscii = 0;
     for (let i = 0; i < head.length; i++) if (head.charCodeAt(i) > 0x7f) nonAscii++;
     const approxTokens = (head.length - nonAscii) / 4 + nonAscii * 0.8;
+    // 점검용: 첫 메시지 길이만 재고 부르지 않는다(값 없음)
+    if (process.env.QG_PRIME_DRY === "1") {
+      console.log(`[prime-dry] ${option.aingkaCode ?? option.type} ≈${Math.round(approxTokens)} tokens`);
+      return null as unknown as GeneratedQuestionPayload;
+    }
     if (approxTokens < 1200) return null as unknown as GeneratedQuestionPayload;
     await primeQuestionGeneratorCache({ ...callBase, user: [userParts[0]!] });
     return null as unknown as GeneratedQuestionPayload;
