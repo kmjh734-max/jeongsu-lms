@@ -1,3 +1,5 @@
+import { engcoreLevelOf } from "@/lib/vocab/engcore-lemma";
+import { isFunctionWord } from "@/lib/vocab/function-words";
 import { renumberMarksInOrder } from "@/lib/question-generator/renumber-marks";
 import { difficultyRule, targetLevelFromOverall, type TargetLevel } from "@/lib/question-generator/difficulty";
 import { summaryBlankFitProblem } from "@/lib/question-generator/summary-blank-fit";
@@ -112,7 +114,7 @@ function vocabularyLevelRule(difficulty: string | null | undefined): string {
     return "VOCABULARY 하: use basic words a 중3~고1 student knows from textbooks (the common core of English plus words that appear in the passage). Easy passage words may be reused as they are — never swap an easy word for a rarer synonym (not customary, frigid, adverse, catalyst, assortment).";
   }
   if (difficulty === "high") {
-    return "VOCABULARY 상: 수능-level vocabulary is expected in paraphrases (e.g. undermine, inherent, disproportionate, sustain), but every word must be natural in context — no rare, archaic or technical words a 수능 student would not know.";
+    return "VOCABULARY 상: use words from a Korean high-school 고교필수~수능필수 wordbook (e.g. undermine, inherent, sustain, adverse, consequence). Do NOT go beyond that: no GRE-style or specialist words that are not in the passage (not rapport, affinity, vulnerability, receptivity, necessitate, substantive, remnants, toil, arable, acreage, autobiographical). Difficulty comes from subtle meaning, not rare words.";
   }
   return "VOCABULARY 중: 고1~고2 level; paraphrase with common words, not rare synonyms.";
 }
@@ -1292,6 +1294,26 @@ export function assertBasicQuestionShape(
 ): string | null {
   if (!q.instruction.trim()) return "발문이 비어 있습니다.";
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
+  /*
+   * 보기 낱말 수준을 우리 EngCore 단어장에 맞춘다(선생님 말 2026-10-04: 「우리 단어장이랑 레벨을 맞춰 봐도 좋을 듯」).
+   * 단어장에도 지문에도 없는 낱말이 하는 3개, 상은 4개 이상이면 그 낱말을 알려 주고 다시 만든다.
+   * 10차 시험에서 상 25문항 중 9문항이 4개 이상이었다(rapport, affinity, vulnerability, arable …).
+   */
+  const wordLevelTypes = /^(title|topic|content_true|content_false|content_count|summary_mcq)$/;
+  if (wordLevelTypes.test(option.type) && option.choiceLanguage !== "korean" && (option.difficulty === "low" || option.difficulty === "high")) {
+    const passageWords = new Set((String(q.passageOriginal ?? "").match(/[A-Za-z][A-Za-z'-]*/g) ?? []).map((w) => w.toLowerCase()));
+    const text = (q.choices ?? []).map((c) => c.text).join(" ") || String(q.questionText ?? "");
+    const hard = new Set<string>();
+    for (const w of text.match(/[A-Za-z][A-Za-z'-]*/g) ?? []) {
+      const l = w.toLowerCase();
+      if (l.length <= 3 || /^[A-Z]/.test(w) || passageWords.has(l) || isFunctionWord(l)) continue;
+      if (engcoreLevelOf(l) === null) hard.add(l);
+    }
+    const limit = option.difficulty === "low" ? 3 : 4;
+    if (hard.size >= limit) {
+      return `보기 낱말이 우리 단어장 수준을 넘습니다(${[...hard].slice(0, 6).join(", ")}). ${option.difficulty === "low" ? "하 난이도라 중학~고1 기본 어휘로" : "고교필수~수능필수 단어장 안의 낱말로"} 바꿔 씁니다.`;
+    }
+  }
   // 칸 제목이 두 번 나오면 학생에게 보기가 두 벌로 보인다(4차 시험 2026-10-04: <보기>·<해석>이 두 번, 조건 문구가 <해석>에 섞임)
   for (const tag of ["<조건>", "<보기>", "<해석>", "<요약문>", "<지칭답란>", "<답안행>"]) {
     if (String(q.questionText ?? "").split(tag).length - 1 > 1) return `문제 칸에 ${tag}가 두 번 들어갔습니다. 칸마다 한 번만 씁니다.`;
