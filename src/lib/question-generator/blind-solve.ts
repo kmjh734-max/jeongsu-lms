@@ -239,7 +239,7 @@ For title/topic items, each verdict is one of:
 - "not_representative": covers only part, or is too broad
 - "conflicts": states something the passage denies or does not claim
 - "unclear": wording is vague or could be read several ways, or it is so abstract or metaphorical that a student reading only this choice cannot tell what the passage is about (the subject is hidden behind a cover word or image)
-Also set "natural": false if the choice is unnatural or ungrammatical English (or Korean). List in "rareWords" words not in the passage that a Korean 고등학생 would not know (specialist terms, GRE-style words, unusual senses); normal 수능 vocabulary is fine.
+Also set "natural": false if the choice is unnatural or ungrammatical English (or Korean), or if it contradicts itself or is absurd on its own so a student could cross it out without reading the passage ("warmed the greenhouse below freezing", "acts in the direction of motion and slows it"). List in "rareWords" words not in the passage that a Korean 고등학생 would not know (specialist terms, GRE-style words, unusual senses); normal 수능 vocabulary is fine.
 Return ONE JSON object: {"choices":[{"n":<number>,"verdict":"...","evidence":"<short quote or empty>","natural":true|false}],"rareWords":[...],"reason":"<Korean, one or two sentences on any problem>"}`;
 
 export async function verifyChoicesIndependently(opts: {

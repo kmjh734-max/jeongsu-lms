@@ -134,8 +134,8 @@ export function factChoiceCraft(isFalseType: boolean, en: boolean): string {
 /** 내용일치·불일치 해설: 오답이 「왜 틀렸는지」가 아니라 보기마다 참·거짓과 근거 */
 export function factExplanationRules(): string {
   return `해설(explanation) 한글 형식:
-- 정답 번호와 그 보기의 참·거짓, 근거가 되는 지문 내용.
-- 나머지 보기도 각각 참인지 거짓인지와 근거를 짧게 적는다(거짓이면 무엇이 바뀌었는지).
+- 짧게(3~5문장): 정답 번호와 근거가 되는 지문 내용.
+- 거짓 보기는 번호마다 무엇이 바뀌었는지 한 구절씩(예: 「④는 늘었다를 줄었다로 바꿨다」). 참 보기는 「①·③은 지문과 맞다」처럼 묶어 한 번만.
 - 범위로 묶지 말고(「②~⑤는」 금지) 번호를 하나씩 적는다.`;
 }
 

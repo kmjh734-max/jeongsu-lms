@@ -2373,7 +2373,8 @@ const QG_MODEL_LIGHT = process.env.OPENAI_MODEL_QG_LIGHT?.trim() || "gpt-5.6-ter
 const QG_MODEL_MAIN = process.env.OPENAI_MODEL_QG_MAIN?.trim() || "gpt-5.6-sol";
 
 /** 싼 모델로 만들어도 차이가 없던 유형 */
-const LIGHT_TYPES = new Set(["title", "topic", "sentence_blank", "content_false"]);
+// 내용일치도 싼 모델로(2026-10-04: 내용불일치가 싼 모델로 두 차례 40문항 시험에서 불량 0, 내용일치는 비싼 모델 원가가 문항당 45원)
+const LIGHT_TYPES = new Set(["title", "topic", "sentence_blank", "content_false", "content_true"]);
 
 function modelForType(option: { type: string }): string {
   return LIGHT_TYPES.has(option.type) ? QG_MODEL_LIGHT : QG_MODEL_MAIN;
