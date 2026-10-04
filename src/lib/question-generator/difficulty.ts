@@ -53,8 +53,19 @@ export function difficultyRule(option: QuestionTypeOption, level: TargetLevel | 
       하: "Simple conditions; short target sentence taken almost directly from the passage.",
     },
   };
+  /*
+   * 내용일치·불일치는 「추상적으로 바꿔 쓰고 일부만 맞는 오답」(mcq 상)을 쓰면 판단 불가 보기가 나왔다
+   * (2026-10-04 전수조사). 사실을 잇고 가려내는 것으로 어렵게 한다.
+   */
+  byType.fact = {
+    상: "Make it hard by WHAT the choices test, not by wording: facts that need two passage sentences linked, the right agent (who did/said/claimed it), or conditions, exceptions, comparison bases and time order the passage states. AT LEAST TWO choices must each need two passage sentences (give both quotes in choicePlan, separated by \" / \"). Every choice is still clearly true or clearly false from the passage. No abstract paraphrase, no rare words.",
+    중: "Each choice checks one explicit fact, plainly reworded.",
+    하: "Each choice checks one explicit fact from one sentence; who and what are obvious; wording close to the passage.",
+  };
   const group = !option.isObjective
     ? "subjective"
+    : t === "content_true" || t === "content_false"
+      ? "fact"
     : t === "sentence_blank"
       ? "blank"
       : t === "order" || t === "sentence_insertion" || t === "irrelevant_sentence"

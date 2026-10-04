@@ -7,6 +7,8 @@ import {
   choiceCraftCommonRules,
   choiceExplanationRules,
   contentFalseChoiceCraft,
+  factChoiceCraft,
+  factExplanationRules,
   grammarChoiceCraftNote,
   impliedMeaningChoiceCraft,
   insertionChoiceCraft,
@@ -142,6 +144,17 @@ function paraphraseChoiceRules(
 - ${langHint}`;
 }
 
+/*
+ * 내용일치·불일치의 말 바꾸기(2026-10-04). 「동의어로 많이, 세트를 돌려 가며」는 이 유형에서
+ * 돌려 말하기·정도 바뀜·막연한 말을 낳았다. 사실은 그대로 두고 구조만 바꾸게 한다.
+ */
+function factWordingRule(lang: "english" | "korean" | null | undefined, difficulty?: string | null): string {
+  return `WORDING (사실 보기):
+- Reword sentence structure naturally so the item tests understanding, not word matching — but keep the passage's names, numbers, units and key nouns as they are. Do not hunt for synonyms or rotate synonym sets; do not lift long chunks either.
+- ${vocabularyLevelRule(difficulty)}
+- ${lang === "korean" ? "Korean choices: translate each fact faithfully into natural Korean (no English phrases)." : "English choices: plain exam English."}`;
+}
+
 /**
  * 조건 영작에 쓸 어법 범위. 목록은 writing-grammar.ts에 따로 둔다
  * (고르기 문항용 목록을 그대로 쓰면 「등위 병렬을 사용할 것」 같은 조건이 나온다).
@@ -165,35 +178,18 @@ function typeRules(
 
   switch (option.type) {
     case "content_false":
+    case "content_true": {
+      const isFalse = option.type === "content_false";
       return `${en ? "5 ENGLISH" : "5 Korean"} factual choices about the WHOLE passage.
-Ask which does NOT match. Exactly ONE false; the other four must be true.
-Style like Korean HS mock exams (효자/학력평가 내용불일치).
-${craft}
-${contentFalseChoiceCraft(en)}
-${paraphrase}
-${choiceExplanationRules()}
-Difficulty: ${
-        option.difficulty === "low"
-          ? "LOW (하) — clearer falsehood, weaker distractors"
-          : option.difficulty === "high"
-            ? "HIGH (상) — subtle falsehood, close distractors, longer choices OK"
-            : "standard"
-      }. questionText empty.`;
-    case "content_true":
-      return `${en ? "5 ENGLISH" : "5 Korean"} factual choices about the WHOLE passage.
-Ask which DOES match. Exactly ONE true; the other four must be false.
-Style like Korean HS mock exams (효자/학력평가 내용일치).
-${craft}
-${contentFalseChoiceCraft(en)}
-${paraphrase}
-${choiceExplanationRules()}
-Difficulty: ${
-        option.difficulty === "low"
-          ? "LOW (하) — clearer correct fact, weaker distractors"
-          : option.difficulty === "high"
-            ? "HIGH (상) — nuanced correct answer, competitive distractors"
-            : "standard"
-      }. questionText empty.`;
+Ask which ${isFalse ? "does NOT match. Exactly ONE false statement (the key); the other four are TRUE" : "DOES match. Exactly ONE true statement (the key); the other four are FALSE"}.
+Style like Korean HS mock exams (학력평가 내용${isFalse ? "불일치" : "일치"}).
+- REQUIRED OUTPUT ORDER: write "choicePlan" FIRST (one row per choice: quote, passageSays, change, refutedBy, verdict), then write "choices" from that plan. An answer without choicePlan is rejected.
+${factChoiceCraft(isFalse, en)}
+${factWordingRule(option.choiceLanguage, option.difficulty)}
+${factExplanationRules()}
+- SKIP: if the passage has fewer than 5 distinct, checkable facts (a very short or list-like passage), return {"skip":true,"reason":"사실 부족"} instead of forcing five choices.
+questionText empty.`;
+    }
     case "content_count": {
       // 보기 6개면 1~4개, 8개면 2~5개를 틀리게 — 개수가 한쪽으로 몰리지 않게 코드가 정한다
       const many = option.difficulty === "high";
@@ -924,14 +920,33 @@ const planNorm = (s: string) =>
  */
 function checkChoicePlan(raw: Record<string, unknown>, option: QuestionTypeOption, passage: string): string | null {
   const plan = Array.isArray(raw.choicePlan) ? (raw.choicePlan as Array<Record<string, unknown>>) : null;
-  if (!plan || plan.length === 0) return "보기 계획(choicePlan)이 없습니다. 보기마다 근거를 먼저 적습니다.";
+  if (!plan || plan.length === 0) {
+    if (process.env.QG_DEBUG_PLAN === "1") console.log("[plan-missing]", option.type, JSON.stringify(raw).slice(0, 600));
+    return "보기 계획(choicePlan)이 없습니다. 보기마다 근거를 먼저 적습니다.";
+  }
   const key = Number(String(raw.correctAnswer ?? "").replace(/[^0-9]/g, ""));
   if (CONTENT_PLAN_TYPES.has(option.type)) {
     const p = planNorm(passage);
     for (const row of plan) {
-      const q = planNorm(String(row.quote ?? ""));
-      if (q.split(" ").length < 4) return `보기 ${row.n}의 근거 인용이 너무 짧습니다. 지문 문장에서 그대로 옮깁니다.`;
-      if (!p.includes(q)) return `보기 ${row.n}의 근거 인용 「${String(row.quote).slice(0, 60)}」이 지문에 없습니다. 지문에서 글자 그대로 옮깁니다.`;
+      // 상은 두 문장을 잇는 사실도 낸다 — 「 / 」로 나눈 인용을 하나씩 대조한다
+      const parts = String(row.quote ?? "").split(/\s+\/\s+/).filter((s) => s.trim());
+      if (parts.length === 0) return `보기 ${row.n}의 근거 인용이 없습니다. 지문 문장에서 그대로 옮깁니다.`;
+      for (const part of parts) {
+        const q = planNorm(part);
+        if (q.split(" ").length < 4) return `보기 ${row.n}의 근거 인용이 너무 짧습니다. 지문 문장에서 그대로 옮깁니다.`;
+        if (!p.includes(q)) return `보기 ${row.n}의 근거 인용 「${part.slice(0, 60)}」이 지문에 없습니다. 지문에서 글자 그대로 옮깁니다.`;
+      }
+      // 거짓 보기는 바꾼 의미 요소가 있어야 한다(「언급 없음」·덧붙이기로 만든 거짓을 막는다)
+      if (String(row.verdict ?? "").toLowerCase().startsWith("f") && option.type !== "content_count") {
+        if (/^\s*none/i.test(String(row.change ?? ""))) return `보기 ${row.n}은 거짓이라면서 바꾼 의미 요소가 없습니다. 원문 사실에서 요소 하나를 바꿔 원문으로 반박되게 합니다.`;
+      }
+    }
+    /*
+     * 40문항 시험(2026-10-04): 상과 하가 똑같이 「낱말 하나 뒤집기」라 난이도 차이가 없었다.
+     * 상은 두 문장을 이어야 판단되는 보기가 적어도 하나 있어야 한다.
+     */
+    if (option.difficulty === "high" && option.type !== "content_count" && !plan.some((r) => /\s\/\s/.test(String(r.quote ?? "")))) {
+      return "난이도 상인데 두 문장을 이어야 판단되는 보기가 없습니다. 적어도 두 보기는 지문의 두 문장을 이어야 참·거짓이 정해지게 하고, 계획에 두 인용을 「 / 」로 적습니다.";
     }
     const verdicts = plan.map((r) => String(r.verdict ?? "").toLowerCase());
     const falses = plan.filter((_, i) => verdicts[i]!.startsWith("f"));
@@ -2582,7 +2597,10 @@ export async function generateOneQuestion(opts: {
     ? `- BANNED FRAMES (overused; never use these wordings): ${FRAME_BANS[option.type]}. Also: across the five choices, AT MOST TWO may start with the same word (never three), and use any one causal/hedge frame (because/so that/in order to/mainly/largely) at MOST once.`
     : "";
 
-  const paraphraseSystemHint = paraphraseTypes.has(option.type)
+  const isFactType = option.type === "content_true" || option.type === "content_false";
+  const paraphraseSystemHint = isFactType
+    ? ""
+    : paraphraseTypes.has(option.type)
     ? option.difficulty === "low"
       ? "- Choices/<보기> reword the passage with COMMON, easy words (하 level). Do NOT copy long passage phrases, but do not replace easy words with rare synonyms either. Use antonyms mainly in distractors."
       : "- Choices/<보기> MUST paraphrase with ROTATING synonyms/near-synonyms (동의어·유의어). Do NOT copy passage phrases. Across same-passage items, avoid reusing the same theme-word set every time; vary wording and use antonyms mainly in distractors. Title/topic: keep the passage's subject noun itself; vary only the rest."
@@ -2660,7 +2678,9 @@ export async function generateOneQuestion(opts: {
     : "";
 
   const diversityHint =
-    opts.diversitySlot && opts.diversitySlot.total > 1
+    opts.diversitySlot && opts.diversitySlot.total > 1 && isFactType
+      ? `- DIVERSITY SLOT ${opts.diversitySlot.index + 1}/${opts.diversitySlot.total}: same passage has many items. Test DIFFERENT facts than the most obvious ones (vary which sentences the choices come from), rather than swapping in synonyms.`
+      : opts.diversitySlot && opts.diversitySlot.total > 1
       ? `- DIVERSITY SLOT ${opts.diversitySlot.index + 1}/${opts.diversitySlot.total} (${opts.diversitySlot.label}): same passage has many items. Use a DISTINCT synonym/near-synonym set and DISTINCT hardWords for THIS slot. Do not reuse the most obvious passage theme words that every slot would pick. Distractors may use subtle antonym/contrast shifts.`
       : "";
   /*
@@ -3047,9 +3067,10 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
                           choicePlan: [
                             {
                               n: "integer — the choice number (or statement number for 일치개수)",
-                              quote: "EXACT words copied from ONE passage sentence that decides this choice (6-25 words)",
-                              passageSays: "what that sentence actually states (subject, action, quantity, scope, cause, time)",
-                              change: "none | subject | action | quantity | scope | relation reversed | negation — what you changed to make it false; keep everything else the same; never add a time frame, cause or premise the passage lacks",
+                              quote: "EXACT words copied from the passage sentence that decides this choice (6-25 words). If the fact needs two sentences (상), give both, separated by \" / \"",
+                              passageSays: "the proposition the passage states: who/what, action, object, condition, quantity, time, and who claims it",
+                              change: "none (a true choice) | <element>: <before> → <after> — the ONE meaning element you changed to make it false (subject, action, object, quantity, condition, time, claimant, direction); never add a time frame, cause, comparison, person or premise the passage lacks",
+                              refutedBy: "for a false choice: why it and the quoted words cannot both be true (empty for a true choice)",
                               verdict: "true | false — must be decidable from the quote alone",
                             },
                           ],
@@ -3146,7 +3167,7 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
       option.type === "grammar" || option.type === "vocabulary" ? 2800 : 1600,
   })) as Record<string, unknown>;
 
-  if (allowSkip && raw.skip === true) {
+  if ((allowSkip || isFactType) && raw.skip === true) {
     throw new SkipQuestionError(
       String(raw.reason || "적합한 함축 표현이 없어 문항을 생략합니다.")
     );
@@ -3154,7 +3175,8 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
 
   // 보기 계획 대조(보기를 섞기 전 원래 번호로) — 틀리면 까닭을 남기고 다시 만든다
   const planTypes = CONTENT_PLAN_TYPES.has(option.type) || GIST_PLAN_TYPES.has(option.type);
-  if (planTypes && option.choiceLanguage !== "korean") {
+  // 근거 인용은 한국어 보기여도 영어 원문이라 내용일치류는 언어와 상관없이 대조한다
+  if (planTypes && (option.choiceLanguage !== "korean" || CONTENT_PLAN_TYPES.has(option.type))) {
     const planError = checkChoicePlan(raw, option, passage);
     if (planError) throw new Error(planError);
   }
