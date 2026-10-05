@@ -18,6 +18,7 @@ export async function openAiFetch(
     const clone = res.clone();
     const body = (await clone.json()) as OpenAiBody;
     const u = body?.usage;
+    const reasoning = Number(u?.completion_tokens_details?.reasoning_tokens ?? u?.output_tokens_details?.reasoning_tokens ?? 0);
     if (u && body?.model) {
       recordAiUsage({
         model: String(body.model),
@@ -27,6 +28,11 @@ export async function openAiFetch(
         ),
         outputTokens: Number(u.completion_tokens ?? u.output_tokens ?? 0),
         requestId: res.headers.get("x-request-id"),
+        /*
+         * 추론 토큰은 출력 값에 들어가지만 응답에는 안 보인다. 변형문제 생성 출력 1,043토큰 중
+         * 보이는 것은 430토큰쯤이라(2026-10-05 시험) 나머지가 무엇인지 재려고 남긴다.
+         */
+        meta: reasoning > 0 ? { reasoningTokens: reasoning } : undefined,
       });
     }
   } catch {
@@ -44,5 +50,7 @@ type OpenAiBody = {
     output_tokens?: number;
     prompt_tokens_details?: { cached_tokens?: number };
     input_tokens_details?: { cached_tokens?: number };
+    completion_tokens_details?: { reasoning_tokens?: number };
+    output_tokens_details?: { reasoning_tokens?: number };
   };
 };
