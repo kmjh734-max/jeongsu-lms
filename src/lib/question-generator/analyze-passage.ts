@@ -57,6 +57,11 @@ export async function analyzePassage(opts: {
       }),
       temperature: 0.2,
       maxTokens: 600,
+      /*
+       * 모델을 안 정하면 기본 후보(gpt-5.5, 가장 비쌈)로 나갔다. 동형모의고사(지문 하나에 문항 하나)에서
+       * 원가의 12~16%가 이 요약이었다(2026-10-05 점검). 제목·주제 힌트로만 쓰므로 가벼운 모델로 충분하다.
+       */
+      preferredModels: [process.env.OPENAI_MODEL_QG_LIGHT?.trim() || "gpt-5.6-terra"],
     })) as Record<string, unknown>;
 
     return {
