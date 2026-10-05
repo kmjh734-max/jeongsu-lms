@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Icon } from "@/components/layout/NavIcon";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { Button } from "@/components/ui/Button";
+import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import {
   useEffect,
   useLayoutEffect,
@@ -385,6 +387,8 @@ export function ListeningExamPrintView({
 }: ListeningExamPrintViewProps) {
   const [examTitle, setExamTitle] = useState(title);
   const [studentName, setStudentName] = useState("");
+  /** PDF로 바로 저장(인쇄 창 없이) */
+  const pdf = usePdfSave();
   // 제목은 글자 수에 따라 머리글 높이가 바뀔 수 있어, 입력이 멈춘 뒤에만 쪽을 다시 나눈다
   const [layoutTitle, setLayoutTitle] = useState(title);
   useEffect(() => {
@@ -776,6 +780,34 @@ export function ListeningExamPrintView({
                 시험지+답지
               </Button>
             </div>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-slate-600">PDF로 저장</span>
+            {(
+              [
+                ["시험지", ".exam-print-exam .listening-exam-sheet"],
+                ["답지", ".exam-print-answers .listening-exam-sheet"],
+                ["시험지+답지", ":is(.exam-print-exam, .exam-print-answers) .listening-exam-sheet"],
+              ] as const
+            ).map(([label, selector]) => (
+              <Button
+                key={label}
+                variant="secondary"
+                disabled={!!pdf.busy || (!layoutReady && questions.length > 0)}
+                onClick={() =>
+                  void pdf.save(
+                    label,
+                    collectPrintPages(document.getElementById("listening-print-root"), selector),
+                    [studentName.trim() || null, meta.examTitle]
+                  )
+                }
+              >
+                {label}
+              </Button>
+            ))}
+            {pdf.status ? (
+              <span className={`text-xs font-semibold ${pdf.busy ? "text-brand-700" : "text-rose-600"}`}>{pdf.status}</span>
+            ) : null}
           </div>
 
           <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-4">

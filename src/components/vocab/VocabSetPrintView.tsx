@@ -17,6 +17,8 @@ import { VocabPrintCoverPage } from "@/components/vocab/VocabPrintCoverPage";
 import { splitPrintTitle, VocabPrintDHeader } from "@/components/vocab/VocabPrintDHeader";
 import { VocabPrintExamConfig } from "@/components/vocab/VocabPrintExamConfig";
 import { VocabWorkbookPrintPages } from "@/components/vocab/VocabWorkbookPrintPages";
+import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { A4, B5, collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { generatePrintExamQuestions } from "@/lib/vocab/generate-print-test-questions";
 import { highlightWordInSentence } from "@/lib/vocab/highlight-word-in-sentence";
@@ -245,6 +247,9 @@ export function VocabSetPrintView({
     withDefaultExamCounts(parseExamPrintSettings(searchParams), sections)
   );
   const [printing, setPrinting] = useState(false);
+  /** PDF로 바로 저장(인쇄 창 없이). 워크북은 화면에 보이는 쪽만 그리므로 저장하는 동안 모든 쪽을 그린다 */
+  const pdf = usePdfSave();
+  const [pdfRenderAll, setPdfRenderAll] = useState(false);
   const [printPreparing, setPrintPreparing] = useState(false);
 
   const pageDims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
@@ -663,6 +668,34 @@ export function VocabSetPrintView({
     };
   }, [printing, flatPages.length, ensurePrintPageStyle]);
 
+  /** PDF로 저장. part: 시험지(표지 포함)·정답지·전체 */
+  async function savePdf(label: string, part: "exam" | "answers" | "all") {
+    if (pdf.busy) return;
+    const needAll = mode !== "exam";
+    if (needAll) {
+      setPdfRenderAll(true);
+      // 모든 쪽이 그려질 때까지 기다린다
+      await new Promise((r) => window.setTimeout(r, flatPages.length > 80 ? 250 : 80));
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    }
+    try {
+      const selector =
+        part === "answers"
+          ? ".vocab-print-page--answer-key"
+          : part === "exam"
+            ? ".vocab-print-page:not(.vocab-print-page--answer-key)"
+            : ".vocab-print-page";
+      await pdf.save(
+        label,
+        collectPrintPages(document.getElementById("vocab-print-root"), selector),
+        [title],
+        size === "b5" ? B5 : A4
+      );
+    } finally {
+      if (needAll) setPdfRenderAll(false);
+    }
+  }
+
   const examPageStyle = {
     ["--vocab-exam-cols" as string]: examCols,
     ["--vocab-exam-row-gap" as string]: `${examRowGapPx}px`,
@@ -819,7 +852,7 @@ export function VocabSetPrintView({
         academyName={academyName}
         logoSrc={logoSrc}
         multiSection={sections.length > 1}
-        printing={printing}
+        printing={printing || pdfRenderAll}
         scrollParentRef={previewScrollRef}
         renderEntry={renderWorkbookEntry}
       />
@@ -1306,9 +1339,43 @@ export function VocabSetPrintView({
                   className="flex w-full items-center justify-center gap-1.5 rounded-md bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
                 >
                   <Icon name="print" size={16} strokeWidth={2} />
-                  {printPreparing ? "인쇄 준비 중…" : "인쇄 / PDF 저장"}
+                  {printPreparing ? "인쇄 준비 중…" : "인쇄"}
                 </button>
               )}
+              <p className="text-xs font-semibold text-slate-600">PDF로 저장</p>
+              {mode === "exam" ? (
+                <div className="grid grid-cols-3 gap-1.5">
+                  {(
+                    [
+                      ["시험지", "exam"],
+                      ["정답지", "answers"],
+                      ["전체", "all"],
+                    ] as const
+                  ).map(([label, part]) => (
+                    <button
+                      key={part}
+                      type="button"
+                      onClick={() => void savePdf(label, part)}
+                      disabled={!!pdf.busy || printPreparing || examGenerated.questions.length === 0}
+                      className="rounded-md border border-brand-300 bg-white px-2 py-2 text-[13px] font-semibold text-brand-800 hover:bg-brand-50 disabled:opacity-50"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => void savePdf("단어장", "all")}
+                  disabled={!!pdf.busy || printPreparing}
+                  className="w-full rounded-md border border-brand-300 bg-white px-3 py-2.5 text-[13px] font-semibold text-brand-800 hover:bg-brand-50 disabled:opacity-50"
+                >
+                  PDF로 저장
+                </button>
+              )}
+              {pdf.status ? (
+                <p className={`text-xs font-semibold ${pdf.busy ? "text-brand-700" : "text-rose-600"}`}>{pdf.status}</p>
+              ) : null}
               <p className="text-xs leading-snug text-slate-500">
                 PDF로 저장할 때는 용지를 따로 고르지 않아요. 위에서 고른{" "}
                 <strong className="font-semibold text-slate-700">
