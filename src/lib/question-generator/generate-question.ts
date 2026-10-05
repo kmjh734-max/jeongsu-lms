@@ -2330,11 +2330,10 @@ export function assertBasicQuestionShape(
       // 어휘추론: 하단 보기 없음, ①~⑤만
       q.choices = undefined;
     }
-    const expectedAnswer = !planAnswer
+    // 어휘개수는 박아 둔 개수를 대조하지 않는다(아래 생성 직후 대조와 같은 까닭)
+    const expectedAnswer = !planAnswer || option.aingkaCode === "어휘개수"
       ? null
-      : option.aingkaCode === "어휘개수"
-        ? plannedWrongCount("어휘개수", turn)
-        : plannedAnswerNumber("어휘추론", turn);
+      : plannedAnswerNumber("어휘추론", turn);
     const consistency = validateVocabularyConsistency({
       code: option.aingkaCode,
       passageModified: mod,
@@ -3189,8 +3188,13 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
   const raw = (await questionGeneratorChatJsonWithRetry({
     ...callBase,
     user: userParts,
+    /*
+     * 상한은 쓴 만큼만 값을 내므로 넉넉히 둔다. 1,600·2,800일 때 추론 토큰까지 합쳐 상한에 걸려 잘린
+     * 호출이 생성의 8~10%였고, 잘린 응답은 값을 다 내고 버린 뒤 상한을 올려 다시 불렀다
+     * (정수학원 발곡고1 2026-10-05: 34번·1,430원, 원가의 8%).
+     */
     maxTokens:
-      option.type === "grammar" || option.type === "vocabulary" ? 2800 : 1600,
+      option.type === "grammar" || option.type === "vocabulary" ? 4000 : 3000,
   })) as Record<string, unknown>;
 
   if ((allowSkip || isFactType) && raw.skip === true) {
@@ -3242,11 +3246,14 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
      * (정수학원 273문항 작업 2026-10-04: 어휘개수 13개 중 6개 미생성, 값은 세 번씩 냈다).
      * 다시 만들 때는 문항 자체(본문·정답·판정)만 맞으면 받는다.
      */
-    const expectedAnswer = opts.retryNote
+    /*
+     * 어휘개수는 첫 시도부터 박아 둔 개수를 대조하지 않는다. 지시문으로 개수는 계속 주되, 어긋나면
+     * 다시 만든 시도는 어차피 대조 없이 받으므로 정답 분포는 같고 버리는 호출만 늘었다
+     * (정수학원 발곡고1 272문항 2026-10-05: 어휘개수 17문항 중 13문항이 「계획한 정답은 N인데」로 한 번씩 버려짐).
+     */
+    const expectedAnswer = opts.retryNote || option.aingkaCode === "어휘개수"
       ? null
-      : option.aingkaCode === "어휘개수"
-        ? plannedWrongCount("어휘개수", turn)
-        : plannedAnswerNumber("어휘추론", turn);
+      : plannedAnswerNumber("어휘추론", turn);
     /*
      * 기호가 ② ① ③…으로 뒤바뀌어 왔으면 대조하기 전에 차례대로 매긴다.
      * 판정(vocabularyJudgments)의 번호는 모델이 찍은 기호를 가리키므로 같은 짝으로 옮긴다.
