@@ -725,7 +725,7 @@ LANGUAGE: 지문·정답 영어만.`;
 - CRITICAL: <보기> 다중집합 = correctAnswer의 모든 토큰(전치사 for/to/of, 관사 the/a, 중복 pleasure 등 포함). 정답에 쓰인 단어를 보기에서 빼지 말 것.`
             : mode === "inflect"
               ? `- <조건>: 주어진 단어를 모두 한 번씩만 사용하되, 필요한 경우 어형 변화
-- <보기>: 반드시 원형·기본형만 (과거·과거분사·복수 금지). 생성 후 시스템이 무작위로 섞음
+- <보기>: 동사·조동사·be동사는 반드시 원형으로 (과거·과거분사·3인칭 -s·-ing 금지). 명사의 복수형(clothes, customs, ideas)은 정답 꼴 그대로 둔다 — 어형 변화는 동사 꼴을 바꾸는 것이다. 생성 후 시스템이 무작위로 섞음
 - correctAnswer = 어형 변화를 적용한 완성 영어 (예시는 맨 뒤 「이번 문항」)
 - CRITICAL: <보기> 다중집합 = correctAnswer 토큰의 원형(전치사·관사·중복 포함). 누락 금지.`
               : `- <조건>은 반드시 아래 두 줄만 (한 줄에 / 로 붙이지 말 것). 조건에 <보기> 태그 금지:
@@ -2095,8 +2095,9 @@ export function assertBasicQuestionShape(
      * 거치지 않고 모델이 쓴 줄을 그대로 실었다. 여기서도 정답에서 보기를 다시 짜고 섞는다.
      * 조건이 「필요하면 어형을 바꿔 쓸 것」이므로 원형으로 낸다.
      */
+    // 원형 손질은 buildWordBankFromAnswer가 한다. 여기서 다시 원형으로 돌리면 명사 복수형까지 깎인다(clothes→clothe).
     const bank =
-      normalizeAndShuffleWordBank(
+      shuffleWordBankKeepForms(
         joinWordBank(buildWordBankFromAnswer(answer, "inflect", blocks.words))
       ) || normalizeAndShuffleWordBank(blocks.words);
 

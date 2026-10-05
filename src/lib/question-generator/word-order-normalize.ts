@@ -331,6 +331,26 @@ const S_KEEP = new Set(
     "unless",
     "whereas",
     "besides",
+    // 복수로만 쓰거나 복수일 때 뜻이 달라지는 명사(선생님 지적 2026-10-05: 보기에 clothe·custom이 나왔다)
+    "clothes",
+    "customs",
+    "goods",
+    "belongings",
+    "surroundings",
+    "savings",
+    "earnings",
+    "manners",
+    "outskirts",
+    "glasses",
+    "scissors",
+    "trousers",
+    "pants",
+    "jeans",
+    "headquarters",
+    "premises",
+    "congratulations",
+    "electronics",
+    "statistics",
   ].map((w) => w.toLowerCase())
 );
 
@@ -361,18 +381,24 @@ function stripDoubledConsonant(stem: string): string | null {
 
 export function lemmaEnglishToken(
   raw: string,
-  opts?: { auxiliaries?: boolean } | number
+  /**
+   * keepS: 끝의 -s·-es·-ies는 떼지 않는다. 동사 3인칭인지 명사 복수인지 낱말 하나로는 모르기 때문이다.
+   * 어형변화 보기·화면 표시에 쓴다 — 명사 복수형까지 깎아 clothe·custom이 나왔다(2026-10-05).
+   */
+  opts?: { auxiliaries?: boolean; keepS?: boolean } | number
 ): string {
   const trimmed = raw.trim();
   if (!trimmed) return trimmed;
   const lower = trimmed.toLowerCase().replace(/[’ʼ]/g, "'");
   // .map(lemmaEnglishToken)으로 불리면 둘째 인자가 index(숫자)다 — 그때는 옵션이 없다
   const auxiliaries = typeof opts === "object" && opts !== null && opts.auxiliaries === true;
+  const keepS = typeof opts === "object" && opts !== null && opts.keepS === true;
   if (auxiliaries && AUX_BASE[lower]) return AUX_BASE[lower];
   if (FUNCTION_KEEP.has(lower)) return lower;
   if (IRREGULAR[lower]) return IRREGULAR[lower];
   if (IRREGULAR_NOUN[lower]) return IRREGULAR_NOUN[lower];
   if (S_KEEP.has(lower)) return lower;
+  if (keepS && /s$/.test(lower)) return lower;
 
   // -ies → y (cities → city, studies → study)
   if (/^[a-z]+ies$/i.test(lower) && lower.length > 4) {
@@ -526,6 +552,12 @@ function sameMultiset(a: string[], b: string[]): boolean {
  * - add: 모델 보기 가운데 정답에 뿌리가 있는 낱말만 남기고, 정답의 내용어 누락분을 보강
  *   (zip-line·zip-lining 중복, 정답에 없는 sneaky·make가 보기에 남던 것을 막는다)
  */
+/** 바로 뒤의 -s 낱말을 3인칭 동사로 볼 주어 */
+const SUBJECT_BEFORE_VERB_S = new Set([
+  "he", "she", "it", "this", "that", "which", "who", "what", "one", "everyone", "everybody", "someone",
+  "somebody", "anyone", "anybody", "nobody", "no-one", "everything", "something", "anything", "nothing", "each",
+]);
+
 export function buildWordBankFromAnswer(
   correctAnswer: string,
   mode: WordOrderBankMode,
@@ -557,18 +589,43 @@ export function buildWordBankFromAnswer(
     return bank.filter(Boolean);
   }
 
+  /*
+   * 어형변화: 동사 꼴만 원형으로 돌린다. 끝의 -s는 바로 앞이 주어 대명사일 때(3인칭 동사)만 떼고
+   * 명사 복수형은 정답 꼴 그대로 둔다(선생님 지적 2026-10-05: customs→custom, clothes→clothe).
+   */
+  const lemVerb = (t: string) => lemmaEnglishToken(t, { auxiliaries: true, keepS: true });
+  // 모델 보기에 -s 없는 꼴(allow)이 있고 정답 꼴(allows)은 없으면 모델이 동사로 본 것이다
+  const givenLower = new Set(given.map((g) => g.toLowerCase()));
+  const inflectToken = (tokens: string[], i: number) => {
+    const t = tokens[i]!;
+    const prev = (tokens[i - 1] ?? "").toLowerCase();
+    if (/s$/i.test(t)) {
+      const base = lem(t);
+      if (SUBJECT_BEFORE_VERB_S.has(prev)) return base;
+      if (base !== t.toLowerCase() && givenLower.has(base) && !givenLower.has(t.toLowerCase())) return base;
+    }
+    // 규칙 과거·-ing는 철자를 짐작하지 않는다(destined→destine?). 모델 보기에 그 원형이 있으면 그것을 쓴다
+    const low = t.toLowerCase();
+    if (!givenLower.has(low)) {
+      const guesses = /ed$/.test(low) ? [low.slice(0, -2), low.slice(0, -1)] : /ing$/.test(low) ? [low.slice(0, -3), `${low.slice(0, -3)}e`] : [];
+      const hit = guesses.find((g) => g.length >= 2 && givenLower.has(g));
+      if (hit) return hit;
+    }
+    return lemVerb(t);
+  };
+
   if (given.length === answerTokens.length && sameMultiset(given.map(lem), answerTokens.map(lem))) {
     /*
      * 어형변화는 보기를 원형으로 둔다. 모델이 destined·doing·ideas처럼 바뀐 꼴을 보기에 넣고
      * 해설에는 「destine을 destined로 바꾼다」고 써서, 보기와 해설이 어긋났다(2026-10-03 #95·#86).
      * 기본·추가는 모델 보기를 그대로 둔다.
      */
-    return mode === "inflect" ? given.map((t, i) => keepProperCase(t, lem(t), i)).filter(Boolean) : given;
+    if (mode !== "inflect") return given;
   }
 
-  // basic: 형태 고정 → 정답 표면형 유지 / inflect: 원형
+  // basic: 형태 고정 → 정답 표면형 유지 / inflect: 동사 꼴만 원형
   return answerTokens
-    .map((t, i) => keepProperCase(t, mode === "inflect" ? lem(t) : t.toLowerCase(), i))
+    .map((t, i) => keepProperCase(t, mode === "inflect" ? inflectToken(answerTokens, i) : t.toLowerCase(), i))
     .filter(Boolean);
 }
 
@@ -625,10 +682,10 @@ export function shuffleWordBankKeepForms(raw: string): string {
   return joinWordBank(tokens);
 }
 
-/** 표시용: 원형만 (재섞기 없음 — 매 렌더마다 순서가 바뀌지 않게) */
+/** 표시용: 원형만 (재섞기 없음 — 매 렌더마다 순서가 바뀌지 않게). 끝의 -s는 떼지 않는다(명사 복수형 보존) */
 export function lemmaWordBankOnly(raw: string): string {
   const tokens = splitWordBank(scrubWordBankNoise(raw))
-    .map(lemmaEnglishToken)
+    .map((t) => lemmaEnglishToken(t, { keepS: true }))
     .filter(Boolean);
   if (tokens.length === 0) return "";
   return joinWordBank(tokens);
