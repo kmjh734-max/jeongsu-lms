@@ -185,6 +185,7 @@ export function FitSheet({
   label,
   isLast,
   variant,
+  maxScale = FIT_MAX,
   children,
 }: {
   baseFontPx: number;
@@ -193,6 +194,8 @@ export function FitSheet({
   isLast?: boolean;
   /** 모양 CSS(one-page-print-styles.css)가 요약·테스트를 가르는 데 쓴다. */
   variant?: "summary" | "test";
+  /** 키울 수 있는 한도. 쪽을 나눠 싣는 문장별 버전은 쪽마다 글자 크기가 달라지지 않게 1로 둔다. */
+  maxScale?: number;
   children: ReactNode;
 }) {
   const sheetRef = useRef<HTMLElement>(null);
@@ -210,15 +213,15 @@ export function FitSheet({
       body.style.fontSize = `${baseFontPx * s}px`;
       return body.scrollHeight <= avail;
     };
-    let scale = FIT_MAX;
+    let scale = maxScale;
     let grow = false;
-    if (!fits(FIT_MAX)) {
+    if (!fits(maxScale)) {
       if (!fits(FIT_MIN)) {
         scale = FIT_MIN;
         grow = true;
       } else {
         let lo = FIT_MIN;
-        let hi = FIT_MAX;
+        let hi = maxScale;
         for (let i = 0; i < 8; i++) {
           const mid = (lo + hi) / 2;
           if (fits(mid)) lo = mid;
@@ -229,7 +232,7 @@ export function FitSheet({
     }
     body.style.fontSize = `${baseFontPx * scale}px`;
     setFit((prev) => (prev.scale === scale && prev.grow === grow ? prev : { scale, grow }));
-  }, [baseFontPx]);
+  }, [baseFontPx, maxScale]);
 
   useLayoutEffect(() => {
     measure();
@@ -403,31 +406,49 @@ function SentenceLayout({
   project,
   ranges,
   legend,
+  from = 0,
+  to = project.sentences.length,
 }: {
   project: OnePageSummaryInput;
   ranges: OnePageFlowRange[] | null;
   legend: ReactNode;
+  /** 이 쪽에 싣는 문장(from 이상 to 미만). 둘째 쪽부터는 「원문 (이어서)」로 시작한다. */
+  from?: number;
+  to?: number;
 }) {
   const c = project.content;
   const references = c.references ?? [];
   const n = project.sentences.length;
-  // 제목 줄이 그리드 첫 줄이라 문장 si는 si + 2번째 줄
-  const row = (si: number) => si + 2;
+  // 제목 줄이 그리드 첫 줄이라 문장 si는 (si - from + 2)번째 줄
+  const row = (si: number) => si - from + 2;
+  /*
+   * 도식화 단계는 근거 문장이 시작하는 쪽에 싣고, 쪽을 넘어가는 범위는 그 쪽 끝에서 자른다.
+   * 범위를 못 찾으면(문장이 단계보다 적다) 위에서부터 한 줄씩 놓는다.
+   */
+  const flowHere = c.flow
+    .map((f, i) => {
+      const r = ranges?.[i];
+      const start = r ? r.from : Math.min(i, n - 1);
+      const end = r ? Math.min(r.to, to - 1) : start;
+      return { f, i, r, start, end };
+    })
+    .filter((x) => x.start >= from && x.start < to);
   return (
     <NumberedSection no={1}>
       <div className="op-sl">
         <h2 className="op-h" style={{ gridColumn: 1, gridRow: 1 }}>
-          원문
-          {legend}
+          {from > 0 ? "원문 (이어서)" : "원문"}
+          {from > 0 ? null : legend}
         </h2>
-        {c.flow.length > 0 ? <h2 className="op-h op-sl-fh">도식화</h2> : null}
-        {project.sentences.map((s, si) => {
+        {flowHere.length > 0 ? <h2 className="op-h op-sl-fh">도식화</h2> : null}
+        {project.sentences.slice(from, to).map((s, k) => {
+          const si = from + k;
           const grammar = c.grammar.map((g, i) => ({ g, i })).filter((x) => x.g.sentenceIndex === si);
           const paras = c.paraphrases.map((p, i) => ({ p, i })).filter((x) => x.p.sentenceIndex === si);
           const refs = references.map((r, i) => ({ r, i })).filter((x) => x.r.sentenceIndex === si);
           const has = grammar.length + paras.length + refs.length > 0;
           return (
-            <div key={si} className={`op-sl-s ${si === n - 1 ? "op-sl-s--last" : ""}`} style={{ gridRow: row(si) }}>
+            <div key={si} className={`op-sl-s ${si === to - 1 ? "op-sl-s--last" : ""}`} style={{ gridRow: row(si) }}>
               <p className="op-passage op-en">
                 <SummarySentence content={c} english={s.english} si={si} />
               </p>
@@ -469,12 +490,9 @@ function SentenceLayout({
             </div>
           );
         })}
-        {c.flow.map((f, i) => {
-          // 범위를 못 찾으면(문장이 단계보다 적다) 위에서부터 한 줄씩 놓는다
-          const r = ranges?.[i];
-          const style = r ? { gridRow: `${row(r.from)} / ${row(r.to) + 1}` } : { gridRow: row(Math.min(i, n - 1)) };
+        {flowHere.map(({ f, i, r, start, end }) => {
           return (
-            <div key={i} className="op-sl-f" style={style}>
+            <div key={i} className="op-sl-f" style={{ gridRow: `${row(start)} / ${row(end) + 1}` }}>
               {i > 0 ? <span className="op-farr">↓</span> : null}
               <div className={`op-fbox ${i === c.flow.length - 1 ? "op-fbox--end" : ""}`}>
                 <FlowNo index={i} range={r} />
@@ -486,6 +504,115 @@ function SentenceLayout({
         })}
       </div>
     </NumberedSection>
+  );
+}
+
+/** el의 위쪽이 root 위쪽에서 얼마나 떨어졌는지(px, 확대·축소 transform의 영향을 받지 않는다) */
+function offsetTopIn(el: HTMLElement, root: HTMLElement): number {
+  let y = 0;
+  let cur: HTMLElement | null = el;
+  while (cur && cur !== root) {
+    y += cur.offsetTop;
+    cur = cur.offsetParent as HTMLElement | null;
+  }
+  return y;
+}
+
+const SUMMARY_FONT_PX = 11.5;
+
+/**
+ * 문장별 버전의 쪽들. 문장마다 정리가 붙어 길어지므로 한 쪽에 몰아 넣지 않고 A4 쪽으로 나눈다
+ * (선생님 지적 2026-10-05: 미리보기가 A4를 넘고 인쇄가 이상하다). 보이지 않는 틀에 한 번
+ * 통째로 그려 문장 줄마다 높이를 재고, 쪽에 들어가는 만큼씩 문장을 나눠 싣는다.
+ * 첫 쪽에만 머리말·주제·요약문을 두고, 다음 쪽은 「원문 (이어서)」로 시작한다.
+ */
+function SentencePagedSheets({
+  project,
+  ranges,
+  top,
+  legend,
+  label,
+  isLast,
+  fitKey,
+}: {
+  project: OnePageSummaryInput;
+  ranges: OnePageFlowRange[] | null;
+  top: ReactNode;
+  legend: ReactNode;
+  label: string;
+  isLast?: boolean;
+  fitKey: string;
+}) {
+  const n = project.sentences.length;
+  const measureRef = useRef<HTMLElement>(null);
+  const [pages, setPages] = useState<Array<[number, number]>>(() => [[0, n]]);
+
+  const measure = useCallback(() => {
+    const sheet = measureRef.current;
+    if (!sheet || sheet.offsetWidth === 0) return;
+    const rows = Array.from(sheet.querySelectorAll<HTMLElement>(".op-sl-s"));
+    const grid = sheet.querySelector<HTMLElement>(".op-sl");
+    const section = grid?.closest<HTMLElement>(".op-s") ?? grid;
+    if (rows.length !== n || !grid || !section) return;
+    const pxPerMm = sheet.offsetWidth / A4_W_MM;
+    const pad = PAD_Y_MM * pxPerMm;
+    const avail = (A4_H_MM - PAD_Y_MM * 2) * pxPerMm * 0.97;
+    const tops = rows.map((el) => offsetTopIn(el, sheet) - pad);
+    const gridBottom = offsetTopIn(grid, sheet) + grid.offsetHeight - pad;
+    const bottoms = tops.map((_, i) => (i < n - 1 ? tops[i + 1]! : gridBottom));
+    // 이어지는 쪽 위에 붙는 것: 절 위 여백 + 「원문 (이어서)」 제목 줄
+    const sectionTop = offsetTopIn(section, sheet) - pad;
+    const overhead = tops[0]! - sectionTop + parseFloat(getComputedStyle(section).marginTop || "0");
+    const out: Array<[number, number]> = [];
+    let start = 0;
+    while (start < n) {
+      const base = out.length === 0 ? 0 : tops[start]! - overhead;
+      let end = start + 1;
+      while (end < n && bottoms[end]! - base <= avail) end++;
+      out.push([start, end]);
+      start = end;
+    }
+    setPages((prev) => (JSON.stringify(prev) === JSON.stringify(out) ? prev : out));
+  }, [n]);
+
+  useLayoutEffect(() => {
+    measure();
+  }, [measure, fitKey]);
+  useEffect(() => {
+    let alive = true;
+    void document.fonts?.ready.then(() => {
+      if (alive) measure();
+    });
+    return () => {
+      alive = false;
+    };
+  }, [measure, fitKey]);
+
+  return (
+    <>
+      {pages.map(([from, to], pi) => (
+        <FitSheet
+          key={pi}
+          baseFontPx={SUMMARY_FONT_PX}
+          maxScale={1}
+          fitKey={`${fitKey}|${from}-${to}`}
+          isLast={isLast && pi === pages.length - 1}
+          label={pages.length > 1 ? `${label} (${pi + 1}/${pages.length})` : label}
+          variant="summary"
+        >
+          {pi === 0 ? top : null}
+          <SentenceLayout project={project} ranges={ranges} legend={legend} from={from} to={to} />
+        </FitSheet>
+      ))}
+      <div className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden" aria-hidden>
+        <article ref={measureRef} className="op-sheet op-sheet--summary op-sheet--grow opacity-0">
+          <div className="op-body" style={{ fontSize: `${SUMMARY_FONT_PX}px` }}>
+            {top}
+            <SentenceLayout project={project} ranges={ranges} legend={legend} />
+          </div>
+        </article>
+      </div>
+    </>
   );
 }
 
@@ -537,14 +664,9 @@ export function OnePageSummarySheet({
       ) : null}
     </span>
   );
-  return (
-    <FitSheet
-      baseFontPx={11.5}
-      fitKey={`${project.id}|${c.createdAt}|${logoSrc ?? ""}|${designKey}|${layout}`}
-      isLast={isLast}
-      label={project.title}
-      variant="summary"
-    >
+  const fitKey = `${project.id}|${c.createdAt}|${logoSrc ?? ""}|${designKey}|${layout}`;
+  const top = (
+    <>
       <header className="op-head">
         <SheetNo index={index} />
         <div className="op-head-m">
@@ -586,6 +708,24 @@ export function OnePageSummarySheet({
           </p>
         </dd>
       </dl>
+    </>
+  );
+  if (layout === "sentence") {
+    return (
+      <SentencePagedSheets
+        project={project}
+        ranges={ranges}
+        top={top}
+        legend={legend}
+        label={project.title}
+        isLast={isLast}
+        fitKey={fitKey}
+      />
+    );
+  }
+  return (
+    <FitSheet baseFontPx={SUMMARY_FONT_PX} fitKey={fitKey} isLast={isLast} label={project.title} variant="summary">
+      {top}
 
       {layout === "classic" ? (
       <NumberedSection no={nextSec()}>
@@ -603,9 +743,6 @@ export function OnePageSummarySheet({
       </NumberedSection>
       ) : null}
 
-      {layout === "sentence" ? (
-        <SentenceLayout project={project} ranges={ranges} legend={legend} />
-      ) : null}
 
       {layout === "classic" && c.flow.length > 0 ? (
         <NumberedSection no={nextSec()}>
