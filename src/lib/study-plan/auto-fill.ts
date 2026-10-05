@@ -4,6 +4,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isStudyPlanEnabled } from "@/lib/study-plan/access";
+import { ensureStudentScheduleDailyTasks } from "@/lib/listening/schedule/today-summary";
 
 /** 일정표 회차 하나에 채워 넣을 한 줄 */
 export interface AutoFillCell {
@@ -311,8 +312,24 @@ export async function loadAssignedPlan(input: {
     return { ok: false, message: "우리 학원 학생이 아니에요." };
   }
 
+  /*
+   * 듣기 일일 과제는 학생이 듣기 화면을 열 때 앞으로 30일 치씩 만들어진다. 오늘 배정하고 학생이 아직
+   * 열지 않았으면 과제가 하나도 없어 「배정된 것이 없다」고 나왔다(2026-10-05 장하은: 오늘 배정, 과제 0).
+   * 일정표가 다루는 달 끝까지 과제를 먼저 만들어 둔다 — 학생 화면이 만들 것과 같은 과제다.
+   */
+  const lastDay = monthEnd(input.year, input.month);
+  const today = getTodayIsoKorea();
+  if (lastDay >= today) {
+    const days = Math.round((Date.parse(lastDay) - Date.parse(today)) / 86400000);
+    try {
+      await ensureStudentScheduleDailyTasks(admin, input.studentId, today, { futureDays: Math.max(30, days + 1) });
+    } catch {
+      /* 못 만들면 있는 과제만으로 채운다 */
+    }
+  }
+
   const rows: PlanFillRow[] = [];
-  const listening = await listeningPlanRow(admin, input.studentId, slots, monthEnd(input.year, input.month));
+  const listening = await listeningPlanRow(admin, input.studentId, slots, lastDay);
   if (listening) rows.push(listening);
   const vocab = await vocabPlanRow(admin, input.studentId, slots, input.vocabDaysPerSession);
   if (vocab) rows.push(vocab);
@@ -542,6 +559,17 @@ export async function loadPlanDoneStatus(input: {
     return at;
   };
 
+  // 배정된 단어장이 없으면 단어 칸은 「안 함」이 아니라 비워 둔다(선생님 말씀 2026-10-05)
+  const { data: members } = await admin.from("class_students").select("class_id").eq("student_id", input.studentId);
+  const classIds = [...new Set((members ?? []).map((m) => String(m.class_id)))];
+  const [vocabMine, vocabClass] = await Promise.all([
+    admin.from("vocab_assignments").select("id", { count: "exact", head: true }).eq("student_id", input.studentId),
+    classIds.length
+      ? admin.from("vocab_assignments").select("id", { count: "exact", head: true }).in("class_id", classIds)
+      : Promise.resolve({ count: 0 }),
+  ]);
+  const hasVocab = (vocabMine.count ?? 0) + (vocabClass.count ?? 0) > 0;
+
   const [listeningRows, vocabRows] = await Promise.all([
     admin
       .from("listening_daily_tasks")
@@ -616,7 +644,7 @@ export async function loadPlanDoneStatus(input: {
       week: s.week,
       index: s.index,
       area: "vocab",
-      state: upcoming ? "upcoming" : stages > 0 ? "done" : "missing",
+      state: !hasVocab && stages === 0 ? "none" : upcoming ? "upcoming" : stages > 0 ? "done" : "missing",
       label: stages > 0 ? `${stages}단계` : "",
     });
   });
