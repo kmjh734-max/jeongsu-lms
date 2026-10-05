@@ -23,6 +23,7 @@ import {
 import type { TargetLevel } from "@/lib/question-generator/difficulty";
 import { analyzePassage } from "@/lib/question-generator/analyze-passage";
 import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
+import { usageWon } from "@/lib/ai-usage/model-price";
 import {
   GENERATION_CONCURRENCY,
   MAX_REGENERATION_ATTEMPTS,
@@ -624,6 +625,49 @@ async function creditsChargedForJob(jobId: string): Promise<number> {
   return (data ?? []).reduce((sum, r) => sum + Math.abs(Number((r as { amount?: number }).amount) || 0), 0);
 }
 
+/**
+ * 이 작업의 실제 원가(모델 호출 값)와 받은 크레딧의 배수.
+ *
+ * 선생님 기준(2026-10-05): 변형문제는 무조건 원가의 2배 이상 받아야 한다. 전에는 시간대로 사용량을
+ * 잘라 재서 작업이 겹치면 나눌 수 없었고, 배수가 1.7배로 떨어진 것을 다음 날 점검에서야 알았다.
+ * 사용량 기록의 작업 번호(meta.qgJobId)로 모아 작업마다 남기고, 2배 아래면 경고한다.
+ */
+const QG_MIN_MARGIN = 2;
+async function recordJobCost(jobId: string, credits: number): Promise<void> {
+  const admin = createAdminClient();
+  let won = 0;
+  let calls = 0;
+  for (let from = 0; ; from += 1000) {
+    const { data } = await admin
+      .from("ai_usage_logs")
+      .select("model,input_tokens,cached_input_tokens,output_tokens")
+      .eq("meta->>qgJobId", jobId)
+      .range(from, from + 999);
+    for (const r of data ?? []) {
+      won += usageWon(r as Parameters<typeof usageWon>[0]) ?? 0;
+      calls += 1;
+    }
+    if (!data || data.length < 1000) break;
+  }
+  if (calls === 0) return;
+  const margin = won > 0 ? credits / won : null;
+  const below = margin !== null && credits > 0 && margin < QG_MIN_MARGIN;
+  if (below) {
+    console.error(`[qg-margin] 작업 ${jobId} 배수 ${margin!.toFixed(2)} — 목표 ${QG_MIN_MARGIN}배 미달 (원가 ${Math.round(won)}원, 크레딧 ${credits})`);
+  }
+  const { data: row } = await admin.from("question_generation_jobs").select("request_config").eq("id", jobId).maybeSingle();
+  const rc = (row?.request_config ?? {}) as Record<string, unknown>;
+  await admin
+    .from("question_generation_jobs")
+    .update({
+      request_config: {
+        ...rc,
+        _cost: { won: Math.round(won), credits, calls, margin: margin === null ? null : Number(margin.toFixed(2)), belowTarget: below, at: new Date().toISOString() },
+      },
+    })
+    .eq("id", jobId);
+}
+
 async function finalizeGenerationJob(
   jobId: string,
   opts: {
@@ -683,6 +727,11 @@ async function finalizeGenerationJob(
   // 값을 먼저 받아야 안내에 차감한 크레딧을 적을 수 있다
   await billGeneratedQuestions(jobId, completed);
   const credits = finalStatus === "completed" ? await creditsChargedForJob(jobId).catch(() => 0) : 0;
+  try {
+    await recordJobCost(jobId, credits);
+  } catch (e) {
+    console.error("job cost record failed", e);
+  }
   // 검수 내부 까닭은 선생님 화면 대신 작업 설정에 남긴다(어디를 다듬을지 찾을 때 본다)
   const internal = dropReasons([...(opts.dropped ?? []), ...swept]);
   if (internal) {
@@ -817,6 +866,8 @@ export async function runGenerationJob(
     actorId: (job.created_by as string | null) ?? null,
     featureKey: "qg_generate_job",
     usedFor: "question_generator",
+    // 작업 번호를 붙여 두면 동시에 돈 작업이 있어도 이 작업의 원가만 모을 수 있다(finalize의 원가 배수)
+    meta: { qgJobId: jobId },
   });
   if (!academyId) {
     throw new Error("생성 작업에 학원 정보가 없습니다.");
@@ -1270,6 +1321,7 @@ export async function runGenerationJob(
               ? "qg_generate_writing"
               : "qg_generate_job",
           usedFor: "question_generator",
+          meta: { qgJobId: jobId },
         });
         await generateOneQuestion({ ...optsFor(item), primeOnly: true }).catch(() => undefined);
       });
@@ -1305,6 +1357,7 @@ export async function runGenerationJob(
             ? "qg_generate_writing"
             : "qg_generate_job",
         usedFor: "question_generator",
+        meta: { qgJobId: jobId },
       });
 
       const sigOf = (p: GeneratedQuestionPayload) =>

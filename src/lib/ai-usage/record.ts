@@ -14,6 +14,8 @@ export type AiUsageContext = {
   /** 워크북 / 1장 테스트지처럼 어느 화면에서 썼는지 */
   usedFor?: string | null;
   projectId?: string | null;
+  /** 기록마다 붙일 꼬리표(변형문제 작업 번호 등) — 작업 하나의 원가를 정확히 모을 때 쓴다 */
+  meta?: Record<string, unknown>;
 };
 
 /** context.ts가 여기에 테두리 보관함을 걸어 둔다(서버에서만). */
@@ -68,7 +70,7 @@ export function recordAiUsage(usage: Usage): void {
     cached_input_tokens: Math.max(0, Math.floor(usage.cachedInputTokens || 0)),
     output_tokens: Math.max(0, Math.floor(usage.outputTokens || 0)),
     request_id: usage.requestId ?? null,
-    meta: usage.meta ?? {},
+    meta: { ...(ctx.meta ?? {}), ...(usage.meta ?? {}) },
   });
   if (pending.length >= 40) {
     void flush();
