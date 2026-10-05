@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isTextbookPassageOpen } from "@/lib/textbooks/shared-passages";
+import { isOutsidePassageOpen } from "@/lib/outside-passages/access";
 
 export const maxDuration = 120;
 
@@ -28,13 +29,18 @@ export default async function TeacherLessonMaterialsInputPage({
   }
   // 교과서 본문은 열어 준 학원에서만 불러올 수 있다.
   const profile = await getCurrentProfile();
-  const textbookOpen = await isTextbookPassageOpen(createAdminClient(), profile?.academy_id);
+  const admin = createAdminClient();
+  const [textbookOpen, outsideOpen] = await Promise.all([
+    isTextbookPassageOpen(admin, profile?.academy_id),
+    isOutsidePassageOpen(admin, profile?.academy_id),
+  ]);
   return (
     <LessonMaterialsInputWizard
       role="teacher"
       folderId={folderId}
       folderLabel={folderLabel}
       textbookOpen={textbookOpen}
+      outsideOpen={outsideOpen}
     />
   );
 }

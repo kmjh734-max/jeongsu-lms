@@ -15,7 +15,10 @@ export type PickedMockPassage = {
 
 type ExamSummary = { key: string; year: number; month: number; grade: number; kind: string; count: number };
 type BookSummary = { key: string; subject: string; publisher: string; count: number };
-type Source = "mock" | "textbook";
+type Source = "mock" | "textbook" | "outside";
+/** 교과서·외부지문은 교재 → 지문 고르기로 같은 모양이다 */
+type BookSource = Exclude<Source, "mock">;
+const BOOK_API: Record<BookSource, string> = { textbook: "/api/textbook-passages", outside: "/api/outside-passages" };
 type PassageRow = PickedMockPassage & { words: number };
 
 /** 모의고사 지문 모음에서 지문 불러오기: 학년 → 시험 → 번호 고르기 (여러 시험에서 섞어 골라도 된다) */
@@ -25,6 +28,7 @@ export function MockPassagePickerModal({
   onClose,
   initialSource = "mock",
   allowTextbook = false,
+  allowOutside = false,
 }: {
   /** 더 넣을 수 있는 지문 수 (없으면 제한 없음) */
   max?: number;
@@ -34,12 +38,23 @@ export function MockPassagePickerModal({
   initialSource?: Source;
   /** 교과서 본문을 열어 준 학원인지 — 아니면 교과서 갈래를 아예 안 보인다 */
   allowTextbook?: boolean;
+  /** 외부지문(수능특강 등)을 열어 준 학원인지 */
+  allowOutside?: boolean;
 }) {
   const [source, setSource] = useState<Source>(
-    initialSource === "textbook" && !allowTextbook ? "mock" : initialSource,
+    (initialSource === "textbook" && !allowTextbook) || (initialSource === "outside" && !allowOutside)
+      ? "mock"
+      : initialSource,
   );
-  const [books, setBooks] = useState<BookSummary[] | null>(null);
-  const [bookKey, setBookKey] = useState<string | null>(null);
+  const bookSource: BookSource | null = source === "mock" ? null : source;
+  const [booksBy, setBooksBy] = useState<Partial<Record<BookSource, BookSummary[]>>>({});
+  const [bookKeyBy, setBookKeyBy] = useState<Partial<Record<BookSource, string>>>({});
+  const books = bookSource ? (booksBy[bookSource] ?? null) : null;
+  const bookKey = bookSource ? (bookKeyBy[bookSource] ?? null) : null;
+  const setBookKey = (key: string) => {
+    if (bookSource) setBookKeyBy((p) => ({ ...p, [bookSource]: key }));
+  };
+  const bookNoun = source === "outside" ? "교재" : "교과서";
   /** 과목 접기·펼치기 (공통영어1·공통영어2·영어1…) */
   const [openSubjects, setOpenSubjects] = useState<Record<string, boolean>>({});
   const [exams, setExams] = useState<ExamSummary[] | null>(null);
@@ -60,31 +75,32 @@ export function MockPassagePickerModal({
   }, []);
 
   useEffect(() => {
-    if (source !== "textbook" || books) return;
-    fetch("/api/textbook-passages")
+    if (!bookSource || books) return;
+    const noun = bookSource === "outside" ? "교재" : "교과서";
+    fetch(BOOK_API[bookSource])
       .then((r) => r.json())
       .then((d: { ok?: boolean; books?: BookSummary[]; message?: string }) => {
-        if (d.ok) setBooks(d.books ?? []);
-        else setError(d.message ?? "교과서를 불러오지 못했어요.");
+        if (d.ok) setBooksBy((p) => ({ ...p, [bookSource]: d.books ?? [] }));
+        else setError(d.message ?? `${noun}를 불러오지 못했어요.`);
       })
-      .catch(() => setError("교과서를 불러오지 못했어요."));
-  }, [source, books]);
+      .catch(() => setError(`${noun}를 불러오지 못했어요.`));
+  }, [bookSource, books]);
 
-  // 교과서를 고르면 그 본문들을 읽는다
+  // 교과서·교재를 고르면 그 본문들을 읽는다
   useEffect(() => {
-    if (source !== "textbook") return;
+    if (!bookSource) return;
     const key = bookKey ?? books?.[0]?.key ?? null;
     if (!key) return;
-    if (!bookKey) setBookKey(key);
+    if (!bookKey) setBookKeyBy((p) => ({ ...p, [bookSource]: key }));
     if (cache[key]) return;
-    fetch(`/api/textbook-passages?book=${encodeURIComponent(key)}`)
+    fetch(`${BOOK_API[bookSource]}?book=${encodeURIComponent(key)}`)
       .then((r) => r.json())
       .then((d: { ok?: boolean; passages?: PassageRow[]; message?: string }) => {
         if (d.ok) setCache((c) => ({ ...c, [key]: d.passages ?? [] }));
         else setError(d.message ?? "본문을 불러오지 못했어요.");
       })
       .catch(() => setError("본문을 불러오지 못했어요."));
-  }, [source, books, bookKey, cache]);
+  }, [bookSource, books, bookKey, cache]);
 
   const gradeExams = useMemo(() => (exams ?? []).filter((e) => e.grade === grade), [exams, grade]);
   const years = useMemo(() => [...new Set(gradeExams.map((e) => e.year))], [gradeExams]);
@@ -143,12 +159,22 @@ export function MockPassagePickerModal({
             <p className="mt-0.5 text-sm text-slate-500">
               {source === "mock"
                 ? "학력평가·모의평가 영어 지문 원문을 번호로 골라 넣어요. 여러 시험에서 섞어 골라도 됩니다."
-                : "우리 학원 교과서 본문을 과·본문 단위로 골라 넣어요. 교재에 실린 해석도 함께 들어갑니다."}
+                : source === "outside"
+                  ? "수능특강 등 외부지문을 강·번호 단위로 골라 넣어요. 교재에 실린 해석도 함께 들어갑니다."
+                  : "우리 학원 교과서 본문을 과·본문 단위로 골라 넣어요. 교재에 실린 해석도 함께 들어갑니다."}
             </p>
             <div
-              className={`mt-2 inline-flex rounded-lg bg-slate-100 p-1 text-sm font-semibold ${allowTextbook ? "" : "hidden"}`}
+              className={`mt-2 inline-flex rounded-lg bg-slate-100 p-1 text-sm font-semibold ${allowTextbook || allowOutside ? "" : "hidden"}`}
             >
-              {([["mock", "모의고사"], ["textbook", "교과서"]] as const).map(([k, label]) => (
+              {(
+                [
+                  ["mock", "모의고사", true],
+                  ["textbook", "교과서", allowTextbook],
+                  ["outside", "외부지문", allowOutside],
+                ] as const
+              )
+                .filter(([, , on]) => on)
+                .map(([k, label]) => (
                 <button
                   key={k}
                   type="button"
@@ -170,7 +196,7 @@ export function MockPassagePickerModal({
         <div className="grid min-h-0 flex-1 grid-cols-1 sm:grid-cols-[240px_minmax(0,1fr)]">
           {/* 학년 · 시험 */}
           <div className="min-h-0 overflow-y-auto border-b border-slate-100 p-3 sm:border-b-0 sm:border-r">
-            {source === "textbook" ? (
+            {bookSource ? (
               <div className="space-y-2">
                 {!books ? <p className="py-6 text-center text-sm text-slate-500">불러오는 중…</p> : null}
                 {/* 과목(공통영어1·공통영어2·영어1…) 아래에 출판사를 편다 */}
@@ -221,7 +247,7 @@ export function MockPassagePickerModal({
                   );
                 })}
                 {books && books.length === 0 ? (
-                  <p className="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500">아직 올려 둔 교과서 본문이 없어요.</p>
+                  <p className="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500">아직 올려 둔 {bookNoun} 지문이 없어요.</p>
                 ) : null}
               </div>
             ) : (
@@ -277,7 +303,7 @@ export function MockPassagePickerModal({
             {rows ? (
               <label className="flex items-center gap-2 border-b border-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
                 <input type="checkbox" checked={allOn} onChange={toggleAll} className="h-4 w-4 accent-brand-600" />
-                {source === "mock" ? "이 시험 전체" : "이 교과서 전체"} ({rows.length}지문)
+                {source === "mock" ? "이 시험 전체" : `이 ${bookNoun} 전체`} ({rows.length}지문)
               </label>
             ) : null}
             <ul className="min-h-[240px] flex-1 overflow-y-auto px-2 py-1">

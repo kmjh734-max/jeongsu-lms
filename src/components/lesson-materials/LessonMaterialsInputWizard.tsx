@@ -92,6 +92,7 @@ export function LessonMaterialsInputWizard({
   folderId = null,
   folderLabel = null,
   textbookOpen = false,
+  outsideOpen = false,
 }: {
   role: "admin" | "teacher";
   /** 자료함에서 고른 폴더("unfiled"는 미분류). 없으면 미분류에 넣는다. */
@@ -100,6 +101,8 @@ export function LessonMaterialsInputWizard({
   folderLabel?: string | null;
   /** 교과서 본문을 열어 준 학원인지 — 아니면 교과서 단추를 아예 안 보인다 */
   textbookOpen?: boolean;
+  /** 외부지문(수능특강 등)을 열어 준 학원인지 */
+  outsideOpen?: boolean;
 }) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [passages, setPassages] = useState<PassageDraft[]>([
@@ -117,8 +120,8 @@ export function LessonMaterialsInputWizard({
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
   const [savedItemsCount, setSavedItemsCount] = useState<number>(0);
   const [savedProjectIds, setSavedProjectIds] = useState<string[]>([]);
-  /** 지문 불러오기 창: 모의고사·교과서 중 어느 쪽으로 열지 */
-  const [mockOpen, setMockOpen] = useState<null | "mock" | "textbook">(null);
+  /** 지문 불러오기 창: 모의고사·교과서·외부지문 중 어느 쪽으로 열지 */
+  const [mockOpen, setMockOpen] = useState<null | "mock" | "textbook" | "outside">(null);
 
   const saveAction =
     role === "admin"
@@ -767,6 +770,15 @@ export function LessonMaterialsInputWizard({
                 교과서 지문 불러오기
               </button>
             ) : null}
+            {outsideOpen ? (
+              <button
+                type="button"
+                onClick={() => setMockOpen("outside")}
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
+              >
+                외부지문 불러오기
+              </button>
+            ) : null}
 
             <div className="shrink-0">
               <Button
@@ -787,6 +799,7 @@ export function LessonMaterialsInputWizard({
         <MockPassagePickerModal
           initialSource={mockOpen}
           allowTextbook={textbookOpen}
+          allowOutside={outsideOpen}
           onPick={addMockPassages}
           onClose={() => setMockOpen(null)}
         />
