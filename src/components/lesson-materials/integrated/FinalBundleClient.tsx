@@ -9,6 +9,8 @@ import {
 import { WorkbookWorkbench } from "@/components/lesson-materials/WorkbookWorkbench";
 import { QuestionPrintView } from "@/components/question-generator/QuestionPrintView";
 import { closeTabOrGo } from "@/components/lesson-materials/open-new-document";
+import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { saveIntegratedDocument } from "@/lib/lesson-materials/document-actions";
 import {
   COVER_PRESETS,
@@ -116,6 +118,8 @@ export function FinalBundleClient({
     },
   }));
   const [zoom, setZoom] = useState(60);
+  /** PDF로 바로 저장(인쇄 창 없이) */
+  const pdf = usePdfSave();
   const [pageCounts, setPageCounts] = useState<Record<string, number>>({});
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const rootRef = useRef<HTMLDivElement>(null);
@@ -368,10 +372,30 @@ export function FinalBundleClient({
             onClick={() => window.print()}
             className="w-full rounded-xl bg-violet-600 py-3 text-sm font-bold text-white hover:bg-violet-700"
           >
-            ⤓ PDF 저장 / 인쇄 ({totalPages}쪽)
+            인쇄 ({totalPages}쪽)
           </button>
+          <button
+            type="button"
+            disabled={!!pdf.busy}
+            onClick={() =>
+              void pdf.save(
+                "통합자료",
+                collectPrintPages(
+                  document.getElementById("final-bundle-print-root"),
+                  ":is(.final-bundle-sheet, .lesson-pack-a4-sheet, .qg-print-page)"
+                ),
+                [payload.cover.title.replace(/\s+/g, " ") || name]
+              )
+            }
+            className="mt-2 w-full rounded-xl border border-violet-300 bg-white py-2.5 text-sm font-bold text-violet-800 hover:bg-violet-50 disabled:opacity-50"
+          >
+            ⤓ PDF로 저장
+          </button>
+          {pdf.status ? (
+            <p className={`mt-1 text-[11px] font-semibold ${pdf.busy ? "text-violet-700" : "text-rose-600"}`}>{pdf.status}</p>
+          ) : null}
           <p className="mt-2 text-[10px] leading-relaxed text-slate-400">
-            인쇄 대화상자에서 「PDF로 저장」을 고르세요. 쪽 번호는 자료를 모두 불러온 뒤 맞춰집니다.
+            쪽 번호는 자료를 모두 불러온 뒤 맞춰집니다. 모두 불러온 뒤 저장하세요.
           </p>
         </div>
       </aside>

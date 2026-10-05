@@ -11,6 +11,8 @@ import {
   type ReactNode,
 } from "react";
 import { Button } from "@/components/ui/Button";
+import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { Alert } from "@/components/ui/Alert";
 import {
   generateAndSaveAnalysisReportAction,
@@ -391,6 +393,8 @@ export function AnalysisReportWorkbench({
   const regenerateOnce = useRef(regenerate);
   const [projects, setProjects] = useState(initialProjects);
   const [active, setActive] = useState(0);
+  /** PDF로 바로 저장(인쇄 창 없이) — 인쇄처럼 모든 지문의 분석서를 담는다 */
+  const pdf = usePdfSave();
   /*
    * 해석 방식. 선생님 요청: 전체 해석과 직독직해 중 고를 수 있게. 고른 값은 이 브라우저에 기억한다.
    * 직독직해 조각이 없는 예전 분석서는 전체 해석으로 나간다.
@@ -1085,8 +1089,27 @@ export function AnalysisReportWorkbench({
           >
             {generating && pendingIds.size > 0
               ? `나머지 지문 만드는 중 (${prepTotal - pendingIds.size}/${prepTotal})`
-              : "인쇄 / PDF"}
+              : "인쇄"}
           </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            className="w-full"
+            disabled={generating || !!pdf.busy}
+            onClick={() =>
+              void pdf.save(
+                "분석서",
+                collectPrintPages(document.getElementById("analysis-report-print-root"), ".analysis-report-a4-sheet"),
+                [projects.length > 1 ? `${projects[0]?.title ?? ""} 외 ${projects.length - 1}개` : projects[0]?.title]
+              )
+            }
+          >
+            PDF로 저장
+          </Button>
+          {pdf.status ? (
+            <p className={`text-[11px] font-semibold ${pdf.busy ? "text-violet-700" : "text-rose-600"}`}>{pdf.status}</p>
+          ) : null}
         </div>
       </aside>
 

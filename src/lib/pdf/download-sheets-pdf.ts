@@ -5,47 +5,111 @@
  * 문제지·정답지를 바로 저장할 수 있게). 인쇄 창 없이 파일이 받아진다.
  *
  * 쪽마다 그림으로 담는다 — 화면에 보이는 모양(글꼴·밑줄·표) 그대로 나오지만, PDF 안의 글자를
- * 고르거나 찾을 수는 없다. 쪽 요소는 실제 A4 크기(210mm 폭)로 그려져 있어야 한다.
- * 미리보기 확대·축소(조상 transform)는 쪽 요소 자체의 크기에 영향을 주지 않는다.
+ * 고르거나 찾을 수는 없다. 쪽 요소는 실제 종이 크기(210mm 폭 등)로 그려져 있어야 한다.
+ *
+ * 화면마다 다른 점을 여기서 맞춘다(2026-10-05 일곱 화면 조사):
+ *  - 화면에서는 숨겨 두고 인쇄 때만 나오는 쪽(정답지, 다른 지문 탭)은 찍는 동안만 보이게 한다.
+ *  - 미리보기 확대·축소(조상의 CSS zoom)는 찍는 동안 1로 둔다. transform은 쪽 크기에 영향이 없다.
+ *  - 화면 전용 표시(print:hidden, no-print)는 빼고 찍는다.
+ *  - 내용이 길어 종이보다 긴 쪽은 여러 장으로 나눠 싣는다.
  */
+export type PdfPaper = { w: number; h: number };
+export const A4: PdfPaper = { w: 210, h: 297 };
+export const B5: PdfPaper = { w: 182, h: 257 };
+
 export async function downloadSheetsPdf(
   pages: HTMLElement[],
   fileName: string,
-  opts: { onProgress?: (done: number, total: number) => void; pixelRatio?: number } = {}
+  opts: { onProgress?: (done: number, total: number) => void; pixelRatio?: number; paper?: PdfPaper } = {}
 ): Promise<void> {
   if (pages.length === 0) throw new Error("저장할 쪽이 없습니다.");
   const [{ toJpeg, getFontEmbedCSS }, { jsPDF }] = await Promise.all([import("html-to-image"), import("jspdf")]);
   if (typeof document !== "undefined" && document.fonts) await document.fonts.ready;
 
-  // 글꼴은 한 번만 읽어 모든 쪽에 쓴다(쪽마다 다시 받으면 느리다)
-  let fontEmbedCSS: string | undefined;
+  const paper = opts.paper ?? A4;
+  const pdf = new jsPDF({ unit: "mm", format: [paper.w, paper.h], orientation: "portrait", compress: true });
+  let firstPage = true;
+  const restore = revealForCapture(pages);
   try {
-    fontEmbedCSS = (await usedFontEmbedCSS()) || (await getFontEmbedCSS(pages[0]!));
-  } catch {
-    fontEmbedCSS = undefined;
-  }
-
-  const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
-  const pageW = 210;
-  const pageH = 297;
-  for (let i = 0; i < pages.length; i++) {
-    const el = pages[i]!;
-    const url = await toJpeg(el, {
-      quality: 0.92,
-      pixelRatio: opts.pixelRatio ?? 2,
-      backgroundColor: "#ffffff",
-      cacheBust: false,
-      fontEmbedCSS,
-      // 미리보기 그림자는 종이에 없다
-      style: { boxShadow: "none", margin: "0" },
-    });
-    if (i > 0) pdf.addPage("a4", "portrait");
-    // 쪽 비율이 A4와 조금 달라도 폭에 맞추고 넘치는 높이는 자른다
-    const ratio = el.offsetHeight / Math.max(1, el.offsetWidth);
-    pdf.addImage(url, "JPEG", 0, 0, pageW, Math.min(pageH, pageW * ratio));
-    opts.onProgress?.(i + 1, pages.length);
+    // 글꼴은 한 번만 읽어 모든 쪽에 쓴다(쪽마다 다시 받으면 느리다)
+    let fontEmbedCSS: string | undefined;
+    try {
+      fontEmbedCSS = (await usedFontEmbedCSS()) || (await getFontEmbedCSS(pages[0]!));
+    } catch {
+      fontEmbedCSS = undefined;
+    }
+    for (let i = 0; i < pages.length; i++) {
+      const el = pages[i]!;
+      const url = await toJpeg(el, {
+        quality: 0.92,
+        pixelRatio: opts.pixelRatio ?? 2,
+        backgroundColor: "#ffffff",
+        cacheBust: false,
+        fontEmbedCSS,
+        // 미리보기 그림자는 종이에 없다
+        style: { boxShadow: "none", margin: "0", zoom: "1" },
+        filter: (node) => !(node instanceof HTMLElement && isScreenOnly(node)),
+      });
+      // 폭을 종이에 맞추고, 종이보다 길면 이어지는 장에 나눠 싣는다
+      const imgH = paper.w * (el.offsetHeight / Math.max(1, el.offsetWidth));
+      const sheets = Math.max(1, Math.ceil(imgH / paper.h - 0.02));
+      for (let k = 0; k < sheets; k++) {
+        if (!firstPage) pdf.addPage([paper.w, paper.h], "portrait");
+        firstPage = false;
+        pdf.addImage(url, "JPEG", 0, -k * paper.h, paper.w, imgH);
+      }
+      opts.onProgress?.(i + 1, pages.length);
+    }
+  } finally {
+    restore();
   }
   pdf.save(fileName.endsWith(".pdf") ? fileName : `${fileName}.pdf`);
+}
+
+/** 화면에만 보이는 표시(인쇄 때 숨는 것) */
+function isScreenOnly(el: HTMLElement): boolean {
+  return el.classList.contains("print:hidden") || el.classList.contains("no-print");
+}
+
+/**
+ * 인쇄할 쪽을 고른다. 인쇄 때 숨는 쪽(자신이나 root 안의 조상에 print:hidden·no-print)은 뺀다.
+ * 화면에서만 숨긴 쪽(hidden print:block 등)은 넣는다 — 찍을 때 잠시 보이게 한다.
+ */
+export function collectPrintPages(root: Element | null, selector: string): HTMLElement[] {
+  if (!root) return [];
+  return Array.from(root.querySelectorAll<HTMLElement>(selector)).filter((el) => {
+    for (let n: HTMLElement | null = el; n && n !== root; n = n.parentElement) if (isScreenOnly(n)) return false;
+    return true;
+  });
+}
+
+/** 숨은 쪽과 그 조상을 잠시 보이게 하고, 조상의 확대·축소(zoom)를 1로 둔다. 되돌리는 함수를 준다. */
+function revealForCapture(pages: HTMLElement[]): () => void {
+  const touched = new Map<HTMLElement, { display: string; zoom: string }>();
+  const touch = (n: HTMLElement) => {
+    if (!touched.has(n)) touched.set(n, { display: n.style.display, zoom: n.style.getPropertyValue("zoom") });
+  };
+  for (const el of pages) {
+    for (let n: HTMLElement | null = el; n && n !== document.body; n = n.parentElement) {
+      const cs = getComputedStyle(n);
+      if (cs.display === "none") {
+        touch(n);
+        n.style.display = "block";
+      }
+      const z = cs.getPropertyValue("zoom");
+      if (z && z !== "1" && z !== "normal") {
+        touch(n);
+        n.style.setProperty("zoom", "1");
+      }
+    }
+  }
+  return () => {
+    for (const [n, v] of touched) {
+      n.style.display = v.display;
+      if (v.zoom) n.style.setProperty("zoom", v.zoom);
+      else n.style.removeProperty("zoom");
+    }
+  };
 }
 
 /*

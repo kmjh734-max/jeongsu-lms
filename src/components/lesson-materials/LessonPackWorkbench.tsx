@@ -4,6 +4,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperti
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
+import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import {
   buildChoiceList,
   vocabNeedsAntonymRefresh,
@@ -204,6 +206,8 @@ export function LessonPackWorkbench({
   /** 새로 만들기는 첫 준비 한 번에만 적용한다(다시 시도는 못 끝난 지문만). */
   const regenerateOnce = useRef(regenerate);
   const [projects, setProjects] = useState(initialProjects);
+  /** PDF로 바로 저장(인쇄 창 없이) */
+  const pdf = usePdfSave();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -1555,8 +1559,25 @@ export function LessonPackWorkbench({
             className="w-full rounded-lg border border-slate-200 bg-white py-2 text-xs font-bold text-slate-700"
             onClick={() => window.print()}
           >
-            PDF / 인쇄
+            인쇄
           </button>
+          <button
+            type="button"
+            className="w-full rounded-lg border border-violet-300 bg-white py-2 text-xs font-bold text-violet-800 disabled:opacity-50"
+            disabled={!!pdf.busy}
+            onClick={() =>
+              void pdf.save(
+                "수업자료",
+                collectPrintPages(document.getElementById("lesson-pack-print-root"), ".lesson-pack-a4-sheet"),
+                [docTitle]
+              )
+            }
+          >
+            PDF로 저장
+          </button>
+          {pdf.status ? (
+            <p className={`text-[11px] font-semibold ${pdf.busy ? "text-violet-700" : "text-rose-600"}`}>{pdf.status}</p>
+          ) : null}
         </div>
       </aside>
 

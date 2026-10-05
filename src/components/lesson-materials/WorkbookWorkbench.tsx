@@ -14,6 +14,8 @@ import {
   type ReactNode,
 } from "react";
 import { Button } from "@/components/ui/Button";
+import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { Alert } from "@/components/ui/Alert";
 import {
   loadWorkbookFromSession,
@@ -339,7 +341,10 @@ function PageShell({
   columnCount,
   windowIndex,
   windowCount,
+  answers,
 }: {
+  /** 정답 쪽이면 true — PDF 저장에서 문제지·정답지를 가른다 */
+  answers?: boolean;
   children: ReactNode;
   pageNo: number;
   total: number;
@@ -370,6 +375,7 @@ function PageShell({
   const win = windowIndex != null && fixed;
   return (
     <article
+      data-wb-part={answers ? "answers" : "questions"}
       className={`workbook-a4-sheet lesson-pack-a4-sheet relative box-border bg-white shadow-xl print:shadow-none ${
         isLast ? "lesson-pack-a4-sheet--last" : ""
       }`}
@@ -1374,6 +1380,8 @@ export function WorkbookWorkbench({
   const [sourceNote, setSourceNote] = useState<"new" | "existing" | null>(null);
   /** 나머지 유형을 먼저 보여 준 뒤 어법 선택을 만드는 중인지. */
   const [grammarChoicePending, setGrammarChoicePending] = useState(false);
+  /** PDF로 바로 저장(인쇄 창 없이) */
+  const pdf = usePdfSave();
   const [zoom, setZoom] = useState(85);
   /** 한줄해석·영작 유형의 쪽 배치(재 둔 높이로 나눈 것). */
   const [flowPages, setFlowPages] = useState<Partial<Record<FlowKind, FlowPart[][]>>>({});
@@ -3316,6 +3324,7 @@ export function WorkbookWorkbench({
               return (
                 <PageShell
                   key={`answers-${pageI}`}
+                  answers
                   pageNo={pageNo}
                   total={total}
                   workbookTitle={title}
@@ -3763,12 +3772,41 @@ export function WorkbookWorkbench({
             disabled={grammarChoicePending}
             onClick={() => window.print()}
           >
-            {grammarChoicePending ? "어법 선택 완성 후 인쇄" : "인쇄 / PDF 저장"}
+            {grammarChoicePending ? "어법 선택 완성 후 인쇄" : "인쇄"}
           </Button>
-          <p className="text-[10px] leading-relaxed text-slate-400">
-            인쇄 대화상자에서 「PDF로 저장」을 선택하세요. 표지·빈 페이지 없이
-            문제 → 정답 순입니다.
-          </p>
+          <p className="text-[11px] font-bold text-slate-500">PDF로 저장</p>
+          <div className="grid grid-cols-3 gap-1.5">
+            {(
+              [
+                ["문제지", "questions"],
+                ["정답지", "answers"],
+                ["전체", "all"],
+              ] as const
+            ).map(([label, part]) => (
+              <Button
+                key={part}
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={grammarChoicePending || !!pdf.busy}
+                onClick={() =>
+                  void pdf.save(
+                    label,
+                    collectPrintPages(
+                      document.getElementById("workbook-print-root"),
+                      part === "all" ? ".workbook-a4-sheet" : `.workbook-a4-sheet[data-wb-part="${part}"]`
+                    ),
+                    [title]
+                  )
+                }
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+          {pdf.status ? (
+            <p className={`text-[11px] font-semibold ${pdf.busy ? "text-violet-700" : "text-rose-600"}`}>{pdf.status}</p>
+          ) : null}
         </div>
       </aside>
 

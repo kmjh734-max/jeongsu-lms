@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
+import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
 import {
   paginatePrintPieces,
@@ -701,6 +703,8 @@ export function QuestionPrintView({
   embedded?: boolean;
 }) {
   const [title, setTitle] = useState("영어 변형문제");
+  /** PDF로 바로 저장(인쇄 창 없이) */
+  const pdf = usePdfSave();
   const [grade, setGrade] = useState("");
   const [sourceDetail, setSourceDetail] = useState("");
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
@@ -1358,8 +1362,27 @@ export function QuestionPrintView({
               ← 뒤로
             </Link>
             <Button type="button" onClick={runPrint}>
-              PDF 저장 / 인쇄
+              인쇄
             </Button>
+          </div>
+          <div className="flex flex-col gap-1">
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!!pdf.busy}
+              onClick={() =>
+                void pdf.save(
+                  mode === "answers" ? "해설지" : "문제지",
+                  collectPrintPages(document.getElementById("qg-print-root"), ".qg-print-sheet"),
+                  [branding.headerTitle || title]
+                )
+              }
+            >
+              PDF로 저장 ({mode === "answers" ? "해설지" : "문제지"})
+            </Button>
+            {pdf.status ? (
+              <p className={`text-[11px] font-semibold ${pdf.busy ? "text-brand-700" : "text-rose-600"}`}>{pdf.status}</p>
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-1.5">
