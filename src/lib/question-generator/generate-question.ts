@@ -3314,8 +3314,15 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
     !opts.retryNote
   );
   if (shapeError) throw new Error(shapeError);
-  // 어법 추론은 수능처럼 지문 속 ①~⑤로 (정답 번호와 같은 기호)
-  if (option.type === "grammar" && (option.aingkaCode === "어법추론" || option.aingkaCode === "어법모두고르기")) {
+  /*
+   * 어법 추론은 수능처럼 지문 속 ①~⑤로 (정답 번호와 같은 기호).
+   * 무관한문장도 같다 — 지문은 ⓐ~ⓔ인데 정답지는 ②로 찍혀 학생이 맞춰 볼 수 없었다
+   * (정수학원 10월 5일 작업 3문항 모두, 해설도 「정답은 ②다. ⓑ는 …」로 섞임).
+   */
+  if (
+    option.type === "irrelevant_sentence" ||
+    (option.type === "grammar" && (option.aingkaCode === "어법추론" || option.aingkaCode === "어법모두고르기"))
+  ) {
     const toNum: Record<string, string> = { "ⓐ": "①", "ⓑ": "②", "ⓒ": "③", "ⓓ": "④", "ⓔ": "⑤" };
     const swap = (t?: string | null) => (t ? t.replace(/[ⓐⓑⓒⓓⓔ]/g, (m) => toNum[m] ?? m) : t);
     payload.passageModified = swap(payload.passageModified) ?? payload.passageModified;
