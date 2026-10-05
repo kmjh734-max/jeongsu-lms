@@ -27,8 +27,22 @@ const IRREGULAR: Record<string, string> = {
   judgment: "judge", judgments: "judge", likelihood: "likely", humankind: "human", everyday: "every",
 };
 
+/** 단어장 표에 빠진 아주 쉬운 말 */
+const BASIC = new Set(["well", "photograph", "photographs", "online", "website", "internet", "smartphone", "email"]);
+
 function direct(w: string): number | null {
   return WORDS[w] !== undefined ? WORDS[w]! : null;
+}
+
+/** 합성어 조각용: 원형 후보까지만 본다(조각을 다시 쪼개지 않는다) */
+function lookupSimple(w: string): number | null {
+  const hit = direct(w);
+  if (hit !== null) return hit;
+  for (const c of candidates(w)) {
+    const lv = direct(c);
+    if (lv !== null) return lv;
+  }
+  return null;
 }
 
 /** 원형 후보들(가까운 것부터) */
@@ -60,9 +74,12 @@ function candidates(w: string): string[] {
     ["ity", ["", "e"]], ["ive", ["", "e"]], ["ion", ["", "e"]], ["ation", ["e", ""]], ["ful", [""]], ["less", [""]],
     ["able", ["", "e"]], ["ible", ["", "e"]], ["al", [""]], ["ally", [""]], ["ly", [""]], ["ily", ["y"]], ["iness", ["y"]],
     ["ance", ["", "e"]], ["ence", ["", "e"]], ["ist", [""]], ["ism", [""]], ["ize", [""]], ["ise", [""]], ["ous", [""]],
+    ["ition", ["ize", "ise", ""]], ["ty", ["", "e"]], ["y", [""]],
+    // survival→survive, exposure→expose, widen→wide, remarkably→remarkable, youngster→young, prioritize→priority, competitor→compete
+    ["al", ["e"]], ["ure", ["e", ""]], ["en", ["", "e"]], ["ably", ["able"]], ["ibly", ["ible"]], ["ster", [""]], ["ize", ["y"]], ["itor", ["e"]],
   ];
   for (const [suf, reps] of SUF) {
-    if (w.endsWith(suf) && w.length > suf.length + 2) for (const r of reps) add(w.slice(0, -suf.length) + r);
+    if (w.endsWith(suf) && w.length - suf.length >= 2) for (const r of reps) add(w.slice(0, -suf.length) + r);
   }
   // 접두사
   for (const pre of ["un", "in", "im", "dis", "re", "non", "over", "under", "self-", "mis"]) {
@@ -85,6 +102,23 @@ export function engcoreLevelOf(raw: string): number | null {
   for (const c of candidates(w)) {
     const lv = direct(c);
     if (lv !== null) return lv;
+  }
+  /*
+   * 굴절을 뗀 꼴에 한 번 더 원형 찾기를 댄다. 전에는 한 단계만 돌아 users·specialists·coverings·
+   * uncertainty 같은 쉬운 말이 「단어장 밖」으로 걸려 문항을 다시 만들었다
+   * (정수학원 272문항 작업 2026-10-05: 일치개수 8문항이 이렇게 버려짐).
+   */
+  for (const c of candidates(w)) {
+    for (const c2 of candidates(c)) {
+      const lv = direct(c2);
+      if (lv !== null) return lv;
+    }
+  }
+  if (BASIC.has(w)) return 0;
+  // 합성어: 두 낱말이 모두 단어장에 있으면 어려운 쪽(wildfire = wild + fire, elsewhere, daybreak)
+  for (let i = 3; i <= w.length - 3; i++) {
+    const a = lookupSimple(w.slice(0, i)), b = lookupSimple(w.slice(i));
+    if (a !== null && b !== null) return Math.max(a, b);
   }
   // 접두사를 뗀 뒤 활용형까지 한 번 더 본다(unchanged → changed → change, unaffected → affect)
   for (const pre of ["un", "in", "im", "dis", "re", "non", "mis", "over", "under"]) {
