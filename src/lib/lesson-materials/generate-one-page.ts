@@ -173,6 +173,7 @@ const CORE_PROMPT = `${COMMON_HEADER}
   주어와 동사가 있는 문장 꼴로 쓰고, 누가 무엇을 하는지/무엇이 무엇을 낳는지가 드러나게 한다.
 - ko: 같은 내용의 한국어(20~45자). 영어를 그대로 옮기되 자연스럽게.
 - 마지막 단계는 결론·교훈이다.
+- from, to: 이 단계의 근거가 되는 문장 번호 범위(from ≤ to). 단계는 지문 순서대로 놓고, 앞 단계의 to보다 뒤 단계의 from이 커야 한다(범위가 겹치지 않게).
 [tf] 내용 일치 T/F 영어 문장 정확히 5개(각 12~25 words). 지문 문장을 그대로 베끼지 말고 내용 이해를 묻는다. {{TF_TRUE_COUNT}} F는 지문에 비추어 분명히 틀린 내용이어야 한다(애매하면 안 됨).
 [keySentences] 서술형·영작에 나올 핵심 문장 번호 4개(주제문·핵심 주장·중요 구문이 있는 문장, 가능하면 8~35 words). 문장이 4개보다 적으면 모두.
 `;
@@ -264,7 +265,7 @@ const CORE_SCHEMA = obj({
   topicKo: str,
   titleEn: str,
   summary: obj({ en: str, keywords: strList, ko: str }),
-  flow: { type: "array", items: obj({ en: str, ko: str }) },
+  flow: { type: "array", items: obj({ en: str, ko: str, from: int, to: int }) },
   tf: { type: "array", items: obj({ statement: str, answer: { type: "string", enum: ["T", "F"] } }) },
   keySentences: { type: "array", items: int },
 });
@@ -899,7 +900,13 @@ function checkCore(
   if (summaryKeywords.length < 3) problems.push("요약문 핵심 어구 부족(summary.en에 그대로 있어야 함)");
 
   const flow = rows(raw.flow)
-    .map((r) => ({ en: str1(r.en), ko: str1(r.ko) }))
+    .map((r): OnePageContent["flow"][number] => {
+      // 근거 문장 범위(1부터 받아 0부터로). 틀린 범위는 버리고, 그릴 때 낱말을 맞춰 찾는다.
+      const from = Math.floor(Number(r.from)) - 1;
+      const to = Math.floor(Number(r.to)) - 1;
+      const ok = from >= 0 && from <= to && to < n;
+      return { en: str1(r.en), ko: str1(r.ko), ...(ok ? { from, to } : {}) };
+    })
     .filter((f) => f.en)
     .slice(0, 5);
   if (flow.length < 3) problems.push("도식화 부족");

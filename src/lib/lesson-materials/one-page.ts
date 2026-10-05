@@ -30,7 +30,16 @@ const ORDER_ITEM_MAX = 5;
 /** 주요문장 영작 문항 수 */
 const WRITING_MAX = 4;
 
-export type OnePageFlowNode = { en: string; ko: string };
+export type OnePageFlowNode = {
+  en: string;
+  ko: string;
+  /**
+   * 이 단계의 근거 문장(0부터, from~to). 옛 재료에는 없어서 그릴 때 낱말을 맞춰 찾는다
+   * (flowSentenceRanges).
+   */
+  from?: number;
+  to?: number;
+};
 
 /** 본문 낱말 아래에 적는 동의어·반의어 */
 export type OnePageVocabNote = {
@@ -1108,4 +1117,114 @@ export function filterOnePageTestPassage(p: OnePageTestPassage, on: ReadonlySet<
     summary: on.has("summary") ? p.summary : null,
     tf: on.has("tf") ? p.tf : [],
   };
+}
+
+// ---------------------------------------------------------------- 도식화 근거 문장
+
+/** 도식화 한 단계가 기대는 문장(0부터). sure가 아니면 번호를 찍지 않는다(자리만 쓴다). */
+export type OnePageFlowRange = { from: number; to: number; sure: boolean };
+
+const FLOW_STOPWORDS = new Set(
+  (
+    "the a an and or but of to in on at for with by from as is are was were be been being it its this that these those " +
+    "they them their he she his her we our you your i my me not no so than then there here which who whom whose what when " +
+    "where how why can could will would should may might must do does did done have has had into about over more most " +
+    "such also only even just very much many some any each other one ones all both own same"
+  ).split(" ")
+);
+
+/** 영어 내용어 줄기(앞 다섯 글자) */
+function enStems(text: string): Set<string> {
+  const out = new Set<string>();
+  for (const w of text.toLowerCase().match(/[a-z]+/g) ?? []) {
+    if (w.length < 3 || FLOW_STOPWORDS.has(w)) continue;
+    out.add(w.slice(0, 5));
+  }
+  return out;
+}
+
+/** 한국어 두 글자 조각 */
+function koBigrams(text: string): Set<string> {
+  const out = new Set<string>();
+  for (const word of text.match(/[가-힣]+/g) ?? []) {
+    for (let i = 0; i + 1 < word.length; i++) out.add(word.slice(i, i + 2));
+  }
+  return out;
+}
+
+function overlap(a: Set<string>, b: Set<string>): number {
+  let n = 0;
+  for (const x of a) if (b.has(x)) n++;
+  return n;
+}
+
+/**
+ * 도식화 단계마다 근거 문장 범위. 재료에 범위가 있고 차례대로 겹치지 않으면 그것을 쓰고,
+ * 없으면(옛 재료) 단계 글과 문장의 낱말이 겹치는 만큼 점수를 매겨, 문장을 차례대로
+ * 단계 수만큼 나누는 가장 좋은 나눔을 고른다. 겹치는 낱말이 거의 없는 단계는 sure=false.
+ * 문장이 단계보다 적으면 null.
+ */
+export function flowSentenceRanges(
+  flow: OnePageFlowNode[],
+  sentences: Array<{ english: string; korean: string }>
+): OnePageFlowRange[] | null {
+  const n = sentences.length;
+  const k = flow.length;
+  if (k === 0 || n === 0) return null;
+
+  const given = flow.map((f) =>
+    Number.isInteger(f.from) && Number.isInteger(f.to) ? { from: f.from!, to: f.to! } : null
+  );
+  if (given.every((g) => g !== null)) {
+    let prevTo = -1;
+    const ok = given.every((g) => {
+      const good = g!.from > prevTo && g!.from <= g!.to && g!.to < n;
+      prevTo = g!.to;
+      return good;
+    });
+    if (ok) return given.map((g) => ({ ...g!, sure: true }));
+  }
+  if (n < k) return null;
+
+  const sEn = sentences.map((s) => enStems(s.english));
+  const sKo = sentences.map((s) => koBigrams(s.korean));
+  // "Claim: ..." 꼴의 라벨은 뗀다
+  const score = flow.map((f) => {
+    const en = enStems(f.en.replace(/^[^:]{1,30}:\s*/, ""));
+    const ko = koBigrams(f.ko.replace(/^[^:]{1,12}:\s*/, ""));
+    return sentences.map((_, i) => overlap(en, sEn[i]!) + 0.4 * overlap(ko, sKo[i]!));
+  });
+
+  // best[j][i]: 앞 j단계에 앞 i문장을 나눴을 때 가장 큰 점수
+  const NEG = -1e9;
+  const best = Array.from({ length: k + 1 }, () => new Array<number>(n + 1).fill(NEG));
+  const cut = Array.from({ length: k + 1 }, () => new Array<number>(n + 1).fill(0));
+  best[0]![0] = 0;
+  for (let j = 1; j <= k; j++) {
+    for (let i = j; i <= n - (k - j); i++) {
+      let sum = 0;
+      for (let p = i - 1; p >= j - 1; p--) {
+        sum += score[j - 1]![p]!;
+        const v = best[j - 1]![p]! + sum;
+        if (v > best[j]![i]!) {
+          best[j]![i] = v;
+          cut[j]![i] = p;
+        }
+      }
+    }
+  }
+  const out: OnePageFlowRange[] = new Array(k);
+  let i = n;
+  for (let j = k; j >= 1; j--) {
+    const p = cut[j]![i]!;
+    const seg = score[j - 1]!.slice(p, i);
+    out[j - 1] = { from: p, to: i - 1, sure: Math.max(...seg) >= 2 };
+    i = p;
+  }
+  return out;
+}
+
+/** 범위를 ③~④ 꼴로 */
+export function flowRangeLabel(r: OnePageFlowRange): string {
+  return r.from === r.to ? circledNumber(r.from) : `${circledNumber(r.from)}~${circledNumber(r.to)}`;
 }

@@ -37,6 +37,7 @@ import {
   OnePageAnswerSheets,
   OnePageSummarySheet,
   OnePageTestSheet,
+  type OnePageSummaryLayout,
 } from "@/components/lesson-materials/one-page/OnePageSheets";
 
 /** 고른 문항 유형을 기억해 두는 자리 */
@@ -67,6 +68,13 @@ const DESIGN_STYLES: Array<{ id: OnePageDesignStyle; label: string; hint: string
 /** A·B·C가 쓰는 글꼴. */
 const DESIGN_FONTS_HREF =
   "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,500&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=Gowun+Batang:wght@400;700&display=swap";
+
+/** 요약자료 짜임(기존 / 문장별). 문장별은 켠 학원(정수학원)에만 보인다. */
+const SUMMARY_LAYOUT_KEY = "one-page-summary-layout";
+const SUMMARY_LAYOUTS: Array<{ id: OnePageSummaryLayout; label: string; hint: string }> = [
+  { id: "classic", label: "기존", hint: "원문을 한 덩어리로 싣고 어법·표현·지칭은 아래에 모읍니다." },
+  { id: "sentence", label: "문장별", hint: "문장마다 바로 아래에 어법·표현·지칭을 적고, 도식화는 오른쪽에 둡니다." },
+];
 
 function designClass(style: OnePageDesignStyle): string {
   return `op-style op-style-${style}`;
@@ -106,6 +114,7 @@ export function OnePageSheetList({
   designKey: designKeyIn = "",
   placeholder,
   testTypes,
+  summaryLayout = "classic",
 }: {
   mode: Mode;
   projects: OnePageProjectInput[];
@@ -118,6 +127,8 @@ export function OnePageSheetList({
   placeholder?: (project: OnePageProjectInput, index: number) => ReactNode;
   /** 시험지에 실을 문항 유형(없으면 전부). 고르지 않은 유형은 시험지·정답지에서 뺀다. */
   testTypes?: OnePageTestTypeKey[];
+  /** 요약자료 짜임(기존 / 문장별) */
+  summaryLayout?: OnePageSummaryLayout;
 }) {
   const typesOn = new Set(testTypes ?? ALL_ONE_PAGE_TEST_TYPES);
   const tests: Record<string, OnePageTestPassage> = {};
@@ -150,6 +161,7 @@ export function OnePageSheetList({
                 logoSrc={logoSrc}
                 isLast={isLast}
                 designKey={designKey}
+                layout={summaryLayout}
               />
             ) : (
               <OnePageTestSheet index={i} passage={tests[p.id]!} isLast={isLast} designKey={designKey} />
@@ -178,6 +190,7 @@ export function OnePageWorkbench({
   logoSrc,
   docId,
   savedTest = null,
+  sentenceLayoutOpen = false,
 }: {
   role: "admin" | "teacher";
   mode: Mode;
@@ -187,6 +200,8 @@ export function OnePageWorkbench({
   docId: string | null;
   /** 1장 테스트 파일에 저장된 시험지 */
   savedTest?: OnePageTestPayload | null;
+  /** 요약자료 「문장별」 짜임을 쓸 수 있는 학원인지 */
+  sentenceLayoutOpen?: boolean;
 }) {
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const docIdRef = useRef<string | null>(docId);
@@ -244,6 +259,24 @@ export function OnePageWorkbench({
       /* 무시 */
     }
   };
+  const [layoutPick, setLayoutPick] = useState<OnePageSummaryLayout>("classic");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(SUMMARY_LAYOUT_KEY);
+      if (saved === "classic" || saved === "sentence") setLayoutPick(saved);
+    } catch {
+      /* 저장소를 못 쓰면 기존 */
+    }
+  }, []);
+  const chooseLayout = (layout: OnePageSummaryLayout) => {
+    setLayoutPick(layout);
+    try {
+      window.localStorage.setItem(SUMMARY_LAYOUT_KEY, layout);
+    } catch {
+      /* 무시 */
+    }
+  };
+  const summaryLayout: OnePageSummaryLayout = sentenceLayoutOpen ? layoutPick : "classic";
   /*
    * 모양 글꼴은 늦게 들어와 글자 폭이 달라진다. 한 쪽 맞추기는 잰 높이로 하므로 글꼴이 들어온 뒤
    * 한 번 더 잰다(안 그러면 쪽이 넘치거나 아래가 빈다).
@@ -538,6 +571,26 @@ export function OnePageWorkbench({
             </div>
             <p className="text-[11px] text-slate-400">{DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}</p>
           </div>
+          {mode === "summary" && sentenceLayoutOpen ? (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-bold text-slate-500">짜임</p>
+              <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+                {SUMMARY_LAYOUTS.map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => chooseLayout(l.id)}
+                    className={`rounded-md px-1 py-1.5 text-xs font-bold transition ${
+                      summaryLayout === l.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                    }`}
+                  >
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-slate-400">{SUMMARY_LAYOUTS.find((l) => l.id === summaryLayout)?.hint}</p>
+            </div>
+          ) : null}
           {mode === "test" ? (
             <div className="space-y-2 rounded-lg border border-violet-200 bg-violet-50/60 p-3">
               <div className="flex items-center justify-between">
@@ -700,6 +753,7 @@ export function OnePageWorkbench({
                 includeAnswers={includeAnswers}
                 designKey={`${designStyle}:${fontsTick}`}
                 testTypes={testTypes}
+                summaryLayout={summaryLayout}
                 placeholder={(p, i) => (
                   <div className="flex h-[60mm] w-[210mm] flex-col items-center justify-center rounded bg-white/70 text-sm text-slate-500 shadow">
                     <span className="font-bold text-slate-700">

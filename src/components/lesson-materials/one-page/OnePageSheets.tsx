@@ -14,11 +14,14 @@ import {
   circledHangul,
   circledLetter,
   circledNumber,
+  flowRangeLabel,
+  flowSentenceRanges,
   referenceMark,
   splitSentenceForSummary,
   splitSummaryByKeywords,
   stripMarkup,
   type OnePageContent,
+  type OnePageFlowRange,
   type OnePageRun,
   type OnePageTestPassage,
   type OnePageTestRow,
@@ -86,6 +89,20 @@ ruby.op-voc rt .op-vocw i{display:block;font-style:normal;white-space:nowrap}
 .op-fbox span{display:block;font-size:.7em;color:#5b6472;margin-top:.2em;line-height:1.3;text-align:left}
 .op-fbox--end{background:#f6f3fe;border-color:#c4b5fd}
 .op-farr{align-self:center;color:#a78bfa;font-size:.9em}
+/* .op-fbox span(작은 블록 글씨)보다 세게 걸어 단계 번호 옆에 같은 크기로 둔다 */
+.op-fbox span.op-fsn{display:inline;font-size:1em;font-weight:700;color:inherit;margin:0 0 0 .5em;white-space:nowrap;line-height:inherit}
+/* 문장별 정리(정수학원 새 모양): 왼쪽 문장 줄, 오른쪽 도식화 칸을 근거 문장과 같은 높이에 */
+.op-sl{display:grid;grid-template-columns:minmax(0,1fr) 12.5em;column-gap:1.1em}
+.op-sl-s{grid-column:1;padding:.2em 0 .35em;border-bottom:1px dashed #e5e7eb;min-width:0}
+.op-sl-s--last{border-bottom:0}
+.op-sl-s .op-passage{line-height:2.5}
+.op-sl-i{margin:.05em 0 0 1.2em}
+.op-sl-i li{margin:.12em 0;font-size:.88em;padding-left:2.9em;text-indent:-2.9em}
+.op-slt{display:inline-block;text-indent:0;width:2.5em;font-size:.82em;font-weight:700;color:#6b7280;font-family:ui-sans-serif,system-ui,sans-serif}
+.op-sl-f{grid-column:2;position:relative;display:flex;flex-direction:column;justify-content:center;padding:.45em 0;min-width:0}
+.op-sl-f .op-fbox{flex:none}
+.op-sl-f .op-farr{position:absolute;top:-.55em;left:50%;transform:translateX(-50%);line-height:1;font-size:.85em}
+.op-sl-fh{grid-column:2;grid-row:1}
 .op-grid2{display:grid;grid-template-columns:1fr 1fr;column-gap:1.3em}
 .op-list{margin:0;padding:0;list-style:none}
 .op-list li{margin:.25em 0;line-height:1.42;font-size:.94em;padding-left:1.3em;text-indent:-1.3em}
@@ -329,12 +346,156 @@ function vocabNote(v: OnePageContent["vocab"][number]): { syn: string; ant: stri
   };
 }
 
+export type OnePageSummaryLayout = "classic" | "sentence";
+
+/** 도식화 칸 위 번호: 단계 번호 · 근거 문장(확실할 때만) */
+function FlowNo({ index, range }: { index: number; range?: OnePageFlowRange }) {
+  return (
+    <span className="op-fno">
+      {index + 1}
+      {range?.sure ? <span className="op-fsn">문장 {flowRangeLabel(range)}</span> : null}
+    </span>
+  );
+}
+
+/** 원문 한 문장(번호·출제 표시·어법/표현/지칭 표시·낱말 아래 동·반의어) */
+function SummarySentence({ content: c, english, si }: { content: OnePageContent; english: string; si: number }) {
+  /*
+   * 문장 앞에 찍는 출제 표시. 선생님 요청(2026-09-17): 순서 배열은 빼고, 문장 삽입은
+   * 작은 기호 대신 [문장삽입 유력]이라고 문장 앞에 붙여 눈에 띄게 한다.
+   */
+  const inserts = (c.examPoints ?? []).filter((e) => e.kind === "insert" && e.sentenceIndex === si);
+  return (
+    <>
+      {inserts.map((_, k) => (
+        <span key={`e${k}`} className="op-ins">
+          [문장삽입 유력]
+        </span>
+      ))}
+      <span className="op-sn">{circledNumber(si)}</span>
+      {splitSentenceForSummary(english, si, c).map((seg, gi) => {
+        const runs = seg.runs.map((run, ri) => <RunText key={ri} run={run} />);
+        if (seg.vocab === null) return <Fragment key={gi}>{runs}</Fragment>;
+        const note = vocabNote(c.vocab[seg.vocab]!);
+        return (
+          <ruby key={gi} className="op-voc">
+            <span>{runs}</span>
+            {/* 동의어 한 줄, 반의어 한 줄 — 한 줄에 몰면 낱말 양옆이 벌어진다(선생님 요청) */}
+            <rt>
+              <span className="op-vocw">
+                {note.syn ? <i>{note.syn}</i> : null}
+                {note.ant ? <i>{note.ant}</i> : null}
+              </span>
+            </rt>
+          </ruby>
+        );
+      })}
+    </>
+  );
+}
+
+/**
+ * 문장별 정리(선생님 요청 2026-10-05, 정수학원 먼저). 문장마다 바로 아래에 그 문장의
+ * 어법 포인트·중요 표현 바꿔 쓰기·지칭을 적고, 도식화는 오른쪽 칸에 근거 문장과 같은 높이로 둔다.
+ * 문장 하나가 그리드 한 줄이고, 도식화 칸은 근거 문장 줄들에 걸친다.
+ */
+function SentenceLayout({
+  project,
+  ranges,
+  legend,
+}: {
+  project: OnePageSummaryInput;
+  ranges: OnePageFlowRange[] | null;
+  legend: ReactNode;
+}) {
+  const c = project.content;
+  const references = c.references ?? [];
+  const n = project.sentences.length;
+  // 제목 줄이 그리드 첫 줄이라 문장 si는 si + 2번째 줄
+  const row = (si: number) => si + 2;
+  return (
+    <NumberedSection no={1}>
+      <div className="op-sl">
+        <h2 className="op-h" style={{ gridColumn: 1, gridRow: 1 }}>
+          원문
+          {legend}
+        </h2>
+        {c.flow.length > 0 ? <h2 className="op-h op-sl-fh">도식화</h2> : null}
+        {project.sentences.map((s, si) => {
+          const grammar = c.grammar.map((g, i) => ({ g, i })).filter((x) => x.g.sentenceIndex === si);
+          const paras = c.paraphrases.map((p, i) => ({ p, i })).filter((x) => x.p.sentenceIndex === si);
+          const refs = references.map((r, i) => ({ r, i })).filter((x) => x.r.sentenceIndex === si);
+          const has = grammar.length + paras.length + refs.length > 0;
+          return (
+            <div key={si} className={`op-sl-s ${si === n - 1 ? "op-sl-s--last" : ""}`} style={{ gridRow: row(si) }}>
+              <p className="op-passage op-en">
+                <SummarySentence content={c} english={s.english} si={si} />
+              </p>
+              {has ? (
+                <ol className="op-list op-sl-i">
+                  {grammar.map(({ g, i }) => (
+                    <li key={`g${i}`}>
+                      <span className="op-slt">어법</span>
+                      <span className="op-gm op-mk">{circledLetter(i)}</span>{" "}
+                      <span className="op-en">
+                        [<b>{g.right || g.target}</b>
+                        {g.wrong ? <> / {g.wrong}</> : null}]
+                      </span>
+                      {g.point ? <span className="op-tag">{g.point}</span> : " "}
+                      {g.explanation}
+                    </li>
+                  ))}
+                  {paras.map(({ p, i }) => (
+                    <li key={`x${i}`}>
+                      <span className="op-slt">표현</span>
+                      <span className="op-xm op-mk">{circledHangul(i)}</span>{" "}
+                      <b className="op-en">{p.expression}</b>
+                      {p.meaningKo ? <span className="op-mean"> ({p.meaningKo})</span> : null}
+                      <span className="op-to"> → </span>
+                      <span className="op-en">{p.paraphrases.join(", ")}</span>
+                    </li>
+                  ))}
+                  {refs.map(({ r, i }) => (
+                    <li key={`r${i}`}>
+                      <span className="op-slt">지칭</span>
+                      <span className="op-rm op-mk">{referenceMark(i)}</span>{" "}
+                      <b className="op-en">{r.surface}</b>
+                      <span className="op-to"> → </span>
+                      <span className="op-en">{r.referent}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
+            </div>
+          );
+        })}
+        {c.flow.map((f, i) => {
+          // 범위를 못 찾으면(문장이 단계보다 적다) 위에서부터 한 줄씩 놓는다
+          const r = ranges?.[i];
+          const style = r ? { gridRow: `${row(r.from)} / ${row(r.to) + 1}` } : { gridRow: row(Math.min(i, n - 1)) };
+          return (
+            <div key={i} className="op-sl-f" style={style}>
+              {i > 0 ? <span className="op-farr">↓</span> : null}
+              <div className={`op-fbox ${i === c.flow.length - 1 ? "op-fbox--end" : ""}`}>
+                <FlowNo index={i} range={r} />
+                <b className="op-en">{f.en}</b>
+                <span className="op-fko">{f.ko}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </NumberedSection>
+  );
+}
+
 export function OnePageSummarySheet({
   index,
   project,
   logoSrc,
   isLast,
   designKey = "",
+  layout = "classic",
 }: {
   index: number;
   project: OnePageSummaryInput;
@@ -342,25 +503,44 @@ export function OnePageSummarySheet({
   isLast?: boolean;
   /** 모양·글꼴이 바뀌면 한 쪽 맞추기를 다시 한다. */
   designKey?: string;
+  /** classic: 원문 한 덩어리 + 아래 정리표. sentence: 문장마다 아래에 정리, 도식화는 오른쪽(정수학원). */
+  layout?: OnePageSummaryLayout;
 }) {
   const c = project.content;
+  const ranges = flowSentenceRanges(c.flow, project.sentences);
   const references = c.references ?? [];
   const examPoints = c.examPoints ?? [];
-  /*
-   * 문장 앞에 찍는 출제 표시. 선생님 요청(2026-09-17): 순서 배열은 빼고, 문장 삽입은
-   * 작은 기호 대신 [문장삽입 유력]이라고 문장 앞에 붙여 눈에 띄게 한다.
-   */
-  const aheadOf = (si: number) =>
-    examPoints.filter((e) => e.kind === "insert" && e.sentenceIndex === si);
   const title = (project.titleEn ?? "").trim() || c.titleEn || project.title;
   const summaryParts = splitSummaryByKeywords(c.summaryEn, c.summaryKeywords);
   let secNo = 0;
   const nextSec = () => ++secNo;
   const source = project.source?.trim();
+  const legend = (
+    <span className="op-legend">
+      <span className="op-gm op-mk">
+        ⓐ
+      </span>
+      어법 포인트 ·{" "}
+      <span className="op-xm op-mk">
+        ㉠
+      </span>
+      바꿔 쓰기 표현 ·{" "}
+      <span className="op-rm op-mk">
+        1
+      </span>
+      지칭어 · 낱말 아래 <span className="op-lg-v">≒ 동의어 ↔ 반의어</span>
+      {examPoints.length > 0 ? (
+        <>
+          {" · 출제 자리: "}
+          <span className="op-bk">형광</span> 빈칸 추론 · <b>[문장삽입 유력]</b> 문장 삽입
+        </>
+      ) : null}
+    </span>
+  );
   return (
     <FitSheet
       baseFontPx={11.5}
-      fitKey={`${project.id}|${c.createdAt}|${logoSrc ?? ""}|${designKey}`}
+      fitKey={`${project.id}|${c.createdAt}|${logoSrc ?? ""}|${designKey}|${layout}`}
       isLast={isLast}
       label={project.title}
       variant="summary"
@@ -407,62 +587,27 @@ export function OnePageSummarySheet({
         </dd>
       </dl>
 
+      {layout === "classic" ? (
       <NumberedSection no={nextSec()}>
         <h2 className="op-h">
           원문
-          <span className="op-legend">
-            <span className="op-gm op-mk">
-              ⓐ
-            </span>
-            어법 포인트 ·{" "}
-            <span className="op-xm op-mk">
-              ㉠
-            </span>
-            바꿔 쓰기 표현 ·{" "}
-            <span className="op-rm op-mk">
-              1
-            </span>
-            지칭어 · 낱말 아래 <span className="op-lg-v">≒ 동의어 ↔ 반의어</span>
-            {examPoints.length > 0 ? (
-              <>
-                {" · 출제 자리: "}
-                <span className="op-bk">형광</span> 빈칸 추론 · <b>[문장삽입 유력]</b> 문장 삽입
-              </>
-            ) : null}
-          </span>
+          {legend}
         </h2>
         <p className="op-passage op-en">
           {project.sentences.map((s, si) => (
             <Fragment key={si}>
-              {aheadOf(si).map((e, k) => (
-                <span key={`e${k}`} className="op-ins">
-                  [문장삽입 유력]
-                </span>
-              ))}
-              <span className="op-sn">{circledNumber(si)}</span>
-              {splitSentenceForSummary(s.english, si, c).map((seg, gi) => {
-                const runs = seg.runs.map((run, ri) => <RunText key={ri} run={run} />);
-                if (seg.vocab === null) return <Fragment key={gi}>{runs}</Fragment>;
-                const note = vocabNote(c.vocab[seg.vocab]!);
-                return (
-                  <ruby key={gi} className="op-voc">
-                    <span>{runs}</span>
-                    {/* 동의어 한 줄, 반의어 한 줄 — 한 줄에 몰면 낱말 양옆이 벌어진다(선생님 요청) */}
-                    <rt>
-                      <span className="op-vocw">
-                        {note.syn ? <i>{note.syn}</i> : null}
-                        {note.ant ? <i>{note.ant}</i> : null}
-                      </span>
-                    </rt>
-                  </ruby>
-                );
-              })}{" "}
+              <SummarySentence content={c} english={s.english} si={si} />{" "}
             </Fragment>
           ))}
         </p>
       </NumberedSection>
+      ) : null}
 
-      {c.flow.length > 0 ? (
+      {layout === "sentence" ? (
+        <SentenceLayout project={project} ranges={ranges} legend={legend} />
+      ) : null}
+
+      {layout === "classic" && c.flow.length > 0 ? (
         <NumberedSection no={nextSec()}>
           <h2 className="op-h">도식화</h2>
           <div className="op-flow">
@@ -470,7 +615,7 @@ export function OnePageSummarySheet({
               <Fragment key={i}>
                 {i > 0 ? <span className="op-farr">→</span> : null}
                 <div className={`op-fbox ${i === c.flow.length - 1 ? "op-fbox--end" : ""}`}>
-                  <span className="op-fno">{i + 1}</span>
+                  <FlowNo index={i} range={ranges?.[i]} />
                   <b className="op-en">{f.en}</b>
                   <span className="op-fko">{f.ko}</span>
                 </div>
@@ -480,6 +625,7 @@ export function OnePageSummarySheet({
         </NumberedSection>
       ) : null}
 
+      {layout === "classic" ? (
       <NumberedSection no={nextSec()}>
         <div className="op-grid2">
           <section>
@@ -519,8 +665,9 @@ export function OnePageSummarySheet({
           </section>
         </div>
       </NumberedSection>
+      ) : null}
 
-      {references.length > 0 ? (
+      {layout === "classic" && references.length > 0 ? (
         <NumberedSection no={nextSec()}>
           <h2 className="op-h">지칭 정리</h2>
           <p className="op-refs">
