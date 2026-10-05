@@ -24,13 +24,23 @@ export async function GET(req: Request) {
 
   const book = new URL(req.url).searchParams.get("book");
   if (!book) {
-    const { data } = await admin
-      .from("textbook_passages")
-      .select("subject, publisher")
-      .eq("academy_id", academyId)
-      .limit(3000);
+    /*
+     * DB가 한 번에 1,000행까지만 돌려준다(limit(3000)이어도). 본문이 1,737개로 늘자 뒤에 적재한
+     * 교과서(영어2 등)가 목록에서 빠졌다(2026-10-05). 1,000행씩 끝까지 읽는다.
+     */
+    const data: { subject: string; publisher: string }[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data: page } = await admin
+        .from("textbook_passages")
+        .select("subject, publisher")
+        .eq("academy_id", academyId)
+        .order("id")
+        .range(from, from + 999);
+      data.push(...((page ?? []) as typeof data));
+      if (!page || page.length < 1000) break;
+    }
     const map = new Map<string, { key: string; subject: string; publisher: string; count: number }>();
-    for (const r of data ?? []) {
+    for (const r of data) {
       const key = `${r.subject}|${r.publisher}`;
       const cur = map.get(key);
       if (cur) cur.count++;
