@@ -169,7 +169,9 @@ function typeRules(
   /** 제시어 배열을 지문 그대로 낼지 (기본: 지문 그대로) */
   wordOrderMode: "passage" | "paraphrase" = "passage",
   /** 같은 유형이 작업 전체에서 몇 번째인가 — 개수·자리·정답 번호를 돌리는 데 쓴다 */
-  turn = 0
+  turn = 0,
+  /** 작업 설정 「지문 바꿔 쓰기」를 켰는지 — 끄면 문장삽입 상도 주어진 문장을 원문 그대로 낸다 */
+  paraphraseOn = false
 ): string {
   const code = option.aingkaCode || "";
   const en = option.choiceLanguage === "english";
@@ -325,10 +327,18 @@ LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean
       const slot = plannedAnswerNumber("문장삽입", turn) ?? 3;
       const slotRule = `- correctAnswer = ${slot}. 반드시 ${CIRCLED[slot - 1]} 자리에서만 자연스럽게 이어지도록 지문을 끊어라.
 - 자리를 먼저 정해 두고 그 앞뒤 문장이 삽입문 없이는 이어지지 않게 배치한다. 다른 자리가 되면 처음부터 다시 잡아라.`;
+      /*
+       * 상은 주어진 문장을 바꿔 쓰게 했는데, 바꿔 쓰기를 끈 작업에서도 그렇게 나와
+       * 학생이 수업에서 읽은 문장과 달랐다(정수학원 10월 5일 점검 3건, 하나는 원문에 없는
+       * 연결어 「In doing so」를 덧붙임). 바꿔 쓰기를 켰을 때만 재진술하고, 그때도 뜻·연결어를 지킨다.
+       */
       if (option.difficulty === "high") {
+        const givenRule = paraphraseOn
+          ? "- CRITICAL: questionText = PARAPHRASE of that sentence (ENGLISH), not a verbatim copy. Keep its meaning and its original connective/reference words (However, This, Such …); never add a connective, reason or detail the original sentence does not have."
+          : "- questionText = that sentence in ORIGINAL ENGLISH wording (do not paraphrase). Make it 상 by choosing a sentence whose place depends on subtle clues (pronouns, contrast, cause), not by rewording.";
         return `문장삽입 HIGH (상) — 효자 기출동형 (PDF: 위치):
 - Pick a flow-critical sentence from the passage as the sentence to insert.
-- CRITICAL: questionText = PARAPHRASE of that sentence (ENGLISH), not a verbatim copy.
+${givenRule}
 - passageModified = remaining ENGLISH passage with five insertion slots marked ① ② ③ ④ ⑤ in the text.
 - NEVER add a sentence that is not in the original passage to make room for slots (no new closing or bridging sentences). If there are too few sentence boundaries, you may split ONE long original sentence at a clause boundary, keeping its words.
 - choices: omit or empty array — slots IN the passage are the options; do NOT invent separate choice texts.
@@ -751,7 +761,7 @@ LANGUAGE: 지문·정답 영어만.`;
   · 지문의 핵심 주장·결과·정의·조건 등 ‘중요 문장’을 대상으로 할 것 (사소한 연결 문장 금지).
   · ${wordOrderKeepPassage
     ? "그 문장을 **지문에 있는 그대로** 쓴다. 고쳐 쓰지 말 것 — correctAnswer가 지문에 그대로 있어야 한다."
-    : "필요하면 그 문장만 교재 구문에 맞게 다듬어 빈칸화 (나머지 지문은 유지)."}
+    : "필요하면 그 문장만 교재 구문에 맞게 다듬어 빈칸화 (나머지 지문은 유지). 다듬어도 **원래 문장의 자리에서 원래 문장을 대신**한다 — 새 문장을 끼워 넣지 말고, 원래 문장의 뜻·주어·시제를 지켜 앞뒤 문장과 그대로 이어지게 한다. 대명사(they·it·this)는 바로 앞 문장에 가리키는 말이 있을 때만 쓴다."}
   · CRITICAL: 정답 문장은 **통째로** 빈칸으로 지운다. 정답의 일부를 빈칸 옆에 남기지 말 것.
     남긴 말이 <보기>에도 있으면 같은 말이 두 번 보여 문항이 못 쓰게 된다
     (예: ⓐ__________ diverse viewpoints 인데 보기에도 diverse·viewpoints가 있는 경우).
@@ -2759,7 +2769,8 @@ export async function generateOneQuestion(opts: {
     option,
     opts.grammarWritingMode ?? "paraphrase",
     opts.wordOrderMode ?? "passage",
-    opts.typeTurn ?? opts.diversitySlot?.index ?? 0
+    opts.typeTurn ?? opts.diversitySlot?.index ?? 0,
+    opts.paraphraseGrammarVocab === true
   );
   const ITEM_MARK = "\n\n--- 이번 문항 ---\n";
   const markAt = typeRulesFull.indexOf(ITEM_MARK);

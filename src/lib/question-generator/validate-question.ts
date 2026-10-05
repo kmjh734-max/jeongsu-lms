@@ -798,6 +798,32 @@ export function validateGeneratedQuestion(opts: {
     }
   }
 
+  /*
+   * 정답 보기만 꼴이 다르면 내용을 안 읽고도 골라진다.
+   *
+   * 정수학원 10월 5일 점검: 한글 제목·주제의 정답에만 「겨울 온실(greenhouses)」「conceptual model」처럼
+   * 영어가 섞이거나, 정답만 「어떻게 ~할 수 있는가」 의문형이고 나머지는 명사구였다(4건).
+   */
+  if ((option.type === "title" || option.type === "topic") && Array.isArray(q.choices) && q.choices.length >= 5) {
+    const key = Number(q.correctAnswer);
+    const texts = q.choices.map((c) => String(c?.text ?? "").trim());
+    const answer = texts[key - 1];
+    if (answer) {
+      const others = texts.filter((_, i) => i !== key - 1);
+      const korean = texts.every((t) => /[가-힣]/.test(t));
+      // AI·DNA 같은 대문자 약어는 글감이라 셈하지 않는다
+      const hasLatin = (t: string) => /[a-z]{2,}/.test(t);
+      const isQuestion = (t: string) => /[?？]$|까$|(는가|인가|한가)$/.test(t) || /^(왜|어떻게|무엇|어떤|누가|언제)\s/.test(t);
+      if (korean && hasLatin(answer) && others.every((t) => !hasLatin(t))) {
+        warnings.push("정답 보기에만 영어가 섞여 있습니다. 다른 보기와 같은 꼴로 씁니다.");
+        score -= 35;
+      } else if (isQuestion(answer) && others.every((t) => !isQuestion(t))) {
+        warnings.push("정답 보기만 의문형입니다. 다섯 보기를 같은 꼴로 씁니다.");
+        score -= 35;
+      }
+    }
+  }
+
   return {
     singleCorrectAnswer: true,
     answerMatchesExplanation: Boolean(q.explanation.trim()),
