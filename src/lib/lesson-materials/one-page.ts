@@ -1045,3 +1045,67 @@ export function sameWords(a: string, b: string): boolean {
 export function referenceMark(i: number): string {
   return String(i + 1);
 }
+
+// ---------------------------------------------------------------- 실을 문항 고르기
+
+/**
+ * 1장 테스트에 실을 문항 유형(선생님 말씀 2026-10-05: 다 만든 뒤 왼쪽에서 골라 인쇄).
+ * 문항은 모두 만들어 두고, 고른 유형만 시험지·정답지에 싣는다 — 다시 만들지 않으니 값이 들지 않는다.
+ */
+export const ONE_PAGE_TEST_TYPES = [
+  { key: "choice", label: "어법·어휘 고르기" },
+  { key: "ref", label: "지칭어 쓰기" },
+  { key: "expr", label: "중요표현 뜻 쓰기" },
+  { key: "imp", label: "함축의미 쓰기" },
+  { key: "writing", label: "주요문장 영작" },
+  { key: "summary", label: "요약문 빈칸" },
+  { key: "tf", label: "T/F" },
+] as const;
+
+export type OnePageTestTypeKey = (typeof ONE_PAGE_TEST_TYPES)[number]["key"];
+
+export const ALL_ONE_PAGE_TEST_TYPES: OnePageTestTypeKey[] = ONE_PAGE_TEST_TYPES.map((t) => t.key);
+
+/** 지문 하나에 유형별로 몇 문항이 있는가 */
+export function countOnePageTestTypes(p: OnePageTestPassage): Record<OnePageTestTypeKey, number> {
+  return {
+    choice: p.choiceAnswers.length,
+    ref: p.rows.reduce((n, r) => n + r.refs.length, 0),
+    expr: p.expressions.length,
+    imp: p.rows.reduce((n, r) => n + r.imps.length, 0),
+    writing: p.rows.filter((r) => r.writing).length,
+    summary: p.summary ? 1 : 0,
+    tf: p.tf.length,
+  };
+}
+
+/**
+ * 고르지 않은 유형을 뺀 시험지. 본문 안의 표시(고르기 괄호·지칭 밑줄·중요표현·함축 점선)는
+ * 원래 낱말로 되돌리고, 딸린 문항과 정답도 함께 뺀다.
+ */
+export function filterOnePageTestPassage(p: OnePageTestPassage, on: ReadonlySet<OnePageTestTypeKey>): OnePageTestPassage {
+  if (ALL_ONE_PAGE_TEST_TYPES.every((k) => on.has(k))) return p;
+  const rows = p.rows.map((r) => ({
+    ...r,
+    segments: r.segments.map((seg): OnePageTestSegment => {
+      if (seg.type === "choice" && !on.has("choice")) {
+        return { type: "text", text: p.choiceAnswers[seg.number - 1] || seg.leftText };
+      }
+      if (seg.type === "ref" && !on.has("ref")) return { type: "text", text: seg.text };
+      if (seg.type === "expr" && !on.has("expr")) return { type: "text", text: seg.text };
+      if (seg.type === "imp" && !on.has("imp")) return { type: "text", text: seg.text };
+      return seg;
+    }),
+    refs: on.has("ref") ? r.refs : [],
+    imps: on.has("imp") ? r.imps : [],
+    writing: on.has("writing") ? r.writing : null,
+  }));
+  return {
+    ...p,
+    rows,
+    choiceAnswers: on.has("choice") ? p.choiceAnswers : [],
+    expressions: on.has("expr") ? p.expressions : [],
+    summary: on.has("summary") ? p.summary : null,
+    tf: on.has("tf") ? p.tf : [],
+  };
+}

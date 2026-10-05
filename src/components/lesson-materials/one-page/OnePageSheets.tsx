@@ -675,9 +675,33 @@ export function OnePageTestSheet({
       <NumberedSection no={next()} className="op-q">
         <SectionTitle>
           본문
+          {/* 실은 유형만 알린다(유형을 골라 뺄 수 있다) */}
           <span className="op-legend">
-            [ ] 안에서 알맞은 말 고르기 · <u>밑줄</u> 지칭어 · <span className="op-tx">표시</span> 중요표현 ·{" "}
-            <span className="op-ti">점선</span> 함축의미
+            {[
+              passage.choiceAnswers.length > 0 ? <Fragment key="c">[ ] 안에서 알맞은 말 고르기</Fragment> : null,
+              passage.rows.some((r) => r.refs.length) ? (
+                <Fragment key="r">
+                  <u>밑줄</u> 지칭어
+                </Fragment>
+              ) : null,
+              passage.expressions.length > 0 ? (
+                <Fragment key="e">
+                  <span className="op-tx">표시</span> 중요표현
+                </Fragment>
+              ) : null,
+              passage.rows.some((r) => r.imps.length) ? (
+                <Fragment key="i">
+                  <span className="op-ti">점선</span> 함축의미
+                </Fragment>
+              ) : null,
+            ]
+              .filter(Boolean)
+              .map((node, i) => (
+                <Fragment key={i}>
+                  {i > 0 ? " · " : ""}
+                  {node}
+                </Fragment>
+              ))}
           </span>
         </SectionTitle>
         {passage.rows.map((row) => (

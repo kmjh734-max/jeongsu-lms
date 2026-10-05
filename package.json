@@ -18,6 +18,8 @@
     "@tosspayments/tosspayments-sdk": "^2.7.1",
     "@vimeo/player": "^2.30.4",
     "exceljs": "^4.4.0",
+    "html-to-image": "^1.11.13",
+    "jspdf": "^3.0.4",
     "next": "^15.3.3",
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^4.10.38",

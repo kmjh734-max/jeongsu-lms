@@ -14,7 +14,12 @@ import type {
   generateVocabChoicePassageAction,
 } from "@/lib/lesson-materials/workbook-actions";
 import {
+  ALL_ONE_PAGE_TEST_TYPES,
+  ONE_PAGE_TEST_TYPES,
   buildOnePageTestPassage,
+  countOnePageTestTypes,
+  filterOnePageTestPassage,
+  type OnePageTestTypeKey,
   type OnePageChoiceSource,
   type OnePageContent,
   type OnePageProjectInput,
@@ -26,12 +31,16 @@ import {
   useCreateDocumentFromUrl,
 } from "@/components/lesson-materials/open-new-document";
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
+import { downloadSheetsPdf, pdfFileName } from "@/lib/pdf/download-sheets-pdf";
 import {
   ONE_PAGE_CSS,
   OnePageAnswerSheets,
   OnePageSummarySheet,
   OnePageTestSheet,
 } from "@/components/lesson-materials/one-page/OnePageSheets";
+
+/** 고른 문항 유형을 기억해 두는 자리 */
+const TEST_TYPES_KEY = "one-page-test-types";
 
 /** 동시에 준비하는 지문 수. 테스트는 지문마다 어법·어휘 선택까지 불러 조금 낮춘다. */
 const CONCURRENCY = { summary: 6, test: 4 } as const;
@@ -91,11 +100,12 @@ function initialTests(
 export function OnePageSheetList({
   mode,
   projects,
-  tests,
+  tests: testsIn,
   logoSrc,
   includeAnswers,
-  designKey = "",
+  designKey: designKeyIn = "",
   placeholder,
+  testTypes,
 }: {
   mode: Mode;
   projects: OnePageProjectInput[];
@@ -106,7 +116,14 @@ export function OnePageSheetList({
   designKey?: string;
   /** 아직 준비 중이거나 실패한 지문 자리에 넣을 것(화면 전용) */
   placeholder?: (project: OnePageProjectInput, index: number) => ReactNode;
+  /** 시험지에 실을 문항 유형(없으면 전부). 고르지 않은 유형은 시험지·정답지에서 뺀다. */
+  testTypes?: OnePageTestTypeKey[];
 }) {
+  const typesOn = new Set(testTypes ?? ALL_ONE_PAGE_TEST_TYPES);
+  const tests: Record<string, OnePageTestPassage> = {};
+  for (const [id, t] of Object.entries(testsIn)) tests[id] = filterOnePageTestPassage(t, typesOn);
+  // 유형을 바꾸면 한 쪽 맞추기·정답 쪽 나눔을 다시 잰다
+  const designKey = mode === "test" ? `${designKeyIn}|${[...typesOn].sort().join(",")}` : designKeyIn;
   const ready = projects.filter((p) => (mode === "summary" ? !!p.content : !!tests[p.id]));
   const lastReadyId = ready[ready.length - 1]?.id;
   const testPassages = ready.map((p) => tests[p.id]!).filter(Boolean);
@@ -181,6 +198,31 @@ export function OnePageWorkbench({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [active, setActive] = useState<string | null>(initialProjects[0]?.id ?? null);
   const [includeAnswers, setIncludeAnswers] = useState(true);
+  /** 시험지에 실을 문항 유형(왼쪽에서 고른다). 다음에 열어도 같은 유형으로 시작한다. */
+  const [testTypes, setTestTypes] = useState<OnePageTestTypeKey[]>(ALL_ONE_PAGE_TEST_TYPES);
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(TEST_TYPES_KEY);
+      if (!raw) return;
+      const keys = (JSON.parse(raw) as string[]).filter((k): k is OnePageTestTypeKey =>
+        (ALL_ONE_PAGE_TEST_TYPES as string[]).includes(k)
+      );
+      setTestTypes(keys);
+    } catch {
+      /* 저장소를 못 쓰면 전부 */
+    }
+  }, []);
+  const chooseTestTypes = (keys: OnePageTestTypeKey[]) => {
+    setTestTypes(keys);
+    try {
+      window.localStorage.setItem(TEST_TYPES_KEY, JSON.stringify(keys));
+    } catch {
+      /* 무시 */
+    }
+  };
+  /** PDF로 저장하는 중이면 그 이름(문제지·정답지…) */
+  const [pdfBusy, setPdfBusy] = useState<string | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
   const [zoom, setZoom] = useState(85);
   const [started, setStarted] = useState(false);
   const scaled = useScaledHeight<HTMLDivElement>(zoom / 100);
@@ -400,6 +442,38 @@ export function OnePageWorkbench({
     document.getElementById(`op-p-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  /** 화면의 쪽들을 PDF로 내려받는다. part: 문제지(요약자료)·정답지·둘 다 */
+  async function savePdf(part: "sheets" | "answers" | "both") {
+    const root = document.getElementById("one-page-print-root");
+    if (!root) return;
+    const sheets = Array.from(root.querySelectorAll<HTMLElement>('[id^="op-p-"] .one-page-a4-sheet'));
+    const answers = Array.from(root.querySelectorAll<HTMLElement>("#op-answers .one-page-a4-sheet"));
+    const pages = part === "sheets" ? sheets : part === "answers" ? answers : [...sheets, ...answers];
+    const partLabel =
+      mode === "summary" ? "요약자료" : part === "sheets" ? "문제지" : part === "answers" ? "정답지" : "문제지+정답지";
+    const first = projects[0]?.title ?? "";
+    const name = pdfFileName(MODE_LABEL[mode], projects.length > 1 ? `${first} 외 ${projects.length - 1}개` : first, partLabel);
+    setPdfError(null);
+    setPdfBusy(`${partLabel} 0/${pages.length}`);
+    try {
+      await downloadSheetsPdf(pages, name, {
+        onProgress: (done, total) => setPdfBusy(`${partLabel} ${done}/${total}`),
+      });
+    } catch (e) {
+      setPdfError(e instanceof Error ? e.message : "PDF를 만들지 못했습니다.");
+    } finally {
+      setPdfBusy(null);
+    }
+  }
+  const typeCounts: Record<OnePageTestTypeKey, number> = {
+    choice: 0, ref: 0, expr: 0, imp: 0, writing: 0, summary: 0, tf: 0,
+  };
+  for (const t of Object.values(tests)) {
+    const c = countOnePageTestTypes(t);
+    for (const k of ALL_ONE_PAGE_TEST_TYPES) typeCounts[k] += c[k];
+  }
+  const typesOn = new Set(testTypes);
+
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[260px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
@@ -465,14 +539,59 @@ export function OnePageWorkbench({
             <p className="text-[11px] text-slate-400">{DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}</p>
           </div>
           {mode === "test" ? (
-            <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-              <input
-                type="checkbox"
-                checked={includeAnswers}
-                onChange={(e) => setIncludeAnswers(e.target.checked)}
-              />
-              정답지 함께 인쇄
-            </label>
+            <div className="space-y-2 rounded-lg border border-violet-200 bg-violet-50/60 p-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-violet-900">시험지에 실을 문항</p>
+                <span className="text-[11px] font-semibold text-violet-700">
+                  {testTypes.length}/{ONE_PAGE_TEST_TYPES.length}
+                </span>
+              </div>
+              <div className="space-y-0.5">
+                {ONE_PAGE_TEST_TYPES.map((t) => (
+                  <label key={t.key} className="flex min-h-[28px] cursor-pointer items-center gap-2 text-[13px] text-slate-800">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-violet-600"
+                      checked={typesOn.has(t.key)}
+                      onChange={() =>
+                        chooseTestTypes(
+                          ALL_ONE_PAGE_TEST_TYPES.filter((k) => (k === t.key ? !typesOn.has(k) : typesOn.has(k)))
+                        )
+                      }
+                    />
+                    <span className="flex-1">{t.label}</span>
+                    <span className="text-[11px] text-slate-400">{typeCounts[t.key]}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => chooseTestTypes(ALL_ONE_PAGE_TEST_TYPES)}
+                  className="h-8 flex-1 rounded-md border border-violet-300 bg-white text-xs font-semibold text-violet-800"
+                >
+                  전체 선택
+                </button>
+                <button
+                  type="button"
+                  onClick={() => chooseTestTypes([])}
+                  className="h-8 flex-1 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600"
+                >
+                  전체 해제
+                </button>
+              </div>
+              <p className="text-[11px] leading-relaxed text-slate-500">
+                문항은 모두 만들어 두었어요. 고른 것만 시험지·정답지에 실립니다(다시 만들지 않아 크레딧이 들지 않아요).
+              </p>
+              <label className="flex items-center gap-2 border-t border-violet-100 pt-2 text-xs font-semibold text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={includeAnswers}
+                  onChange={(e) => setIncludeAnswers(e.target.checked)}
+                />
+                정답지 함께 인쇄
+              </label>
+            </div>
           ) : null}
           {errorList.length > 0 ? (
             <Alert variant="error">
@@ -513,8 +632,30 @@ export function OnePageWorkbench({
               못 만든 지문 다시 시도 ({errorList.length})
             </Button>
           ) : null}
+          <p className="text-[11px] font-bold text-slate-500">PDF로 저장</p>
+          {mode === "test" ? (
+            <>
+              <div className="grid grid-cols-2 gap-1.5">
+                <Button type="button" size="sm" variant="secondary" disabled={busy || !!pdfBusy || readyCount === 0} onClick={() => void savePdf("sheets")}>
+                  문제지
+                </Button>
+                <Button type="button" size="sm" variant="secondary" disabled={busy || !!pdfBusy || readyCount === 0} onClick={() => void savePdf("answers")}>
+                  정답지
+                </Button>
+              </div>
+              <Button type="button" size="sm" variant="secondary" className="w-full" disabled={busy || !!pdfBusy || readyCount === 0} onClick={() => void savePdf("both")}>
+                문제지 + 정답지 (한 파일)
+              </Button>
+            </>
+          ) : (
+            <Button type="button" size="sm" variant="secondary" className="w-full" disabled={busy || !!pdfBusy || readyCount === 0} onClick={() => void savePdf("sheets")}>
+              요약자료 PDF
+            </Button>
+          )}
+          {pdfBusy ? <p className="text-[11px] font-semibold text-violet-700">PDF 만드는 중… {pdfBusy}</p> : null}
+          {pdfError ? <p className="text-[11px] font-semibold text-rose-600">{pdfError}</p> : null}
           <Button type="button" size="sm" className="w-full" disabled={busy} onClick={() => window.print()}>
-            {busy ? `나머지 지문 만드는 중 (${readyCount}/${total})` : "인쇄 / PDF"}
+            {busy ? `나머지 지문 만드는 중 (${readyCount}/${total})` : "인쇄"}
           </Button>
         </div>
       </aside>
@@ -558,6 +699,7 @@ export function OnePageWorkbench({
                 logoSrc={logoSrc}
                 includeAnswers={includeAnswers}
                 designKey={`${designStyle}:${fontsTick}`}
+                testTypes={testTypes}
                 placeholder={(p, i) => (
                   <div className="flex h-[60mm] w-[210mm] flex-col items-center justify-center rounded bg-white/70 text-sm text-slate-500 shadow">
                     <span className="font-bold text-slate-700">
