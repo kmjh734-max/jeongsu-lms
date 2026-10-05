@@ -173,13 +173,24 @@ export async function loadLessonMaterialsLibraryData(
   const active = projects.filter((p) => !p.deleted_at);
   const trashed = projects.filter((p) => !!p.deleted_at);
 
+  /*
+   * 지문이 모두 휴지통에 간(또는 사라진) 파일은 목록에서 감춘다(선생님 말씀 2026-10-05).
+   * 지문을 휴지통에 보낸 뒤에도 1장 테스트 파일이 남아 있었고, 열면 「선택된 자료가 없습니다」만 떴다.
+   * 파일을 지우지 않고 감추기만 하므로 지문을 복원하면 파일도 다시 보인다. 지문이 없는 파일은 그대로 둔다.
+   */
+  const activeIds = new Set(active.map((p) => p.id));
+  const visibleDocuments = documents.filter((d) => {
+    const ids = Array.isArray(d.project_ids) ? d.project_ids : [];
+    return ids.length === 0 || ids.some((id) => activeIds.has(id));
+  });
+
   return {
     folders,
     projects: active.filter((p) => p.folder_id !== null),
     unfiledProjects: active.filter((p) => p.folder_id === null),
     trashedProjects: trashed,
     itemCountByProjectId,
-    documents,
+    documents: visibleDocuments,
     questionJobs: (questionJobsRes.error ? [] : (questionJobsRes.data ?? [])).map((j) => {
       const row = j as Record<string, unknown>;
       return {
