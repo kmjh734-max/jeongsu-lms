@@ -18,12 +18,6 @@ export const ACADEMY_FEATURES = [
     label: "중학 문법 문제 은행",
     hint: "레벨·단원별로 문법 문항을 골라 시험지와 정답지로 뽑을 수 있습니다.",
   },
-  {
-    /* 선생님 결정(2026-10-05): 1장 요약직보자료 새 짜임은 정수학원에서 먼저 써 본다. */
-    key: "one_page_sentence_layout",
-    label: "1장 요약자료 문장별 짜임",
-    hint: "1장 요약직보자료에서 문장마다 아래에 어법·표현·지칭을 적고 도식화를 오른쪽에 두는 짜임을 고를 수 있습니다.",
-  },
 ] as const;
 
 export type AcademyFeatureKey = (typeof ACADEMY_FEATURES)[number]["key"];

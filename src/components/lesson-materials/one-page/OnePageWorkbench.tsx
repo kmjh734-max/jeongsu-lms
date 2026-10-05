@@ -69,7 +69,7 @@ const DESIGN_STYLES: Array<{ id: OnePageDesignStyle; label: string; hint: string
 const DESIGN_FONTS_HREF =
   "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,500&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=Gowun+Batang:wght@400;700&display=swap";
 
-/** 요약자료 버전(A 포괄형 / B 문장별). B는 켠 학원(정수학원)에만 보인다. */
+/** 요약자료 버전(A 포괄형 / B 문장별). 모든 학원에서 고른다(선생님 결정 2026-10-05). */
 const SUMMARY_LAYOUT_KEY = "one-page-summary-layout";
 const SUMMARY_LAYOUTS: Array<{ id: OnePageSummaryLayout; label: string; hint: string }> = [
   { id: "classic", label: "A (포괄형)", hint: "원문을 한 덩어리로 싣고 어법·표현·지칭은 아래에 모읍니다." },
@@ -190,7 +190,6 @@ export function OnePageWorkbench({
   logoSrc,
   docId,
   savedTest = null,
-  sentenceLayoutOpen = false,
 }: {
   role: "admin" | "teacher";
   mode: Mode;
@@ -200,8 +199,6 @@ export function OnePageWorkbench({
   docId: string | null;
   /** 1장 테스트 파일에 저장된 시험지 */
   savedTest?: OnePageTestPayload | null;
-  /** 요약자료 「문장별」 짜임을 쓸 수 있는 학원인지 */
-  sentenceLayoutOpen?: boolean;
 }) {
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const docIdRef = useRef<string | null>(docId);
@@ -276,7 +273,7 @@ export function OnePageWorkbench({
       /* 무시 */
     }
   };
-  const summaryLayout: OnePageSummaryLayout = sentenceLayoutOpen ? layoutPick : "classic";
+  const summaryLayout = layoutPick;
   /*
    * 모양 글꼴은 늦게 들어와 글자 폭이 달라진다. 한 쪽 맞추기는 잰 높이로 하므로 글꼴이 들어온 뒤
    * 한 번 더 잰다(안 그러면 쪽이 넘치거나 아래가 빈다).
@@ -571,7 +568,7 @@ export function OnePageWorkbench({
             </div>
             <p className="text-[11px] text-slate-400">{DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}</p>
           </div>
-          {mode === "summary" && sentenceLayoutOpen ? (
+          {mode === "summary" ? (
             <div className="space-y-1.5">
               <p className="text-[11px] font-bold text-slate-500">버전</p>
               <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">

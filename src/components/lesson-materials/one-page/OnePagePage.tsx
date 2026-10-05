@@ -4,9 +4,6 @@ import { resolveDocumentProjectIds } from "@/lib/lesson-materials/document-page"
 import { loadOnePageProjects } from "@/lib/lesson-materials/load-material-payloads";
 import { normalizeOnePageTestPayload } from "@/lib/lesson-materials/one-page";
 import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
-import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { isAcademyFeatureOn } from "@/lib/academies/features";
 import { OnePageWorkbench } from "@/components/lesson-materials/one-page/OnePageWorkbench";
 
 /**
@@ -37,7 +34,7 @@ export async function OnePagePage({
 
   const supabase = await createClient();
   const docId = params.doc?.trim() || null;
-  const [projects, doc, branding, sentenceLayoutOpen] = await Promise.all([
+  const [projects, doc, branding] = await Promise.all([
     loadOnePageProjects(supabase, ids),
     mode === "test" && docId
       ? supabase
@@ -49,12 +46,6 @@ export async function OnePagePage({
           .then((r) => r.data)
       : Promise.resolve(null),
     getAcademyBrandingForCurrentUser(),
-    // 요약자료 「문장별」 짜임은 켠 학원만(선생님 결정 2026-10-05: 정수학원 먼저)
-    mode === "summary"
-      ? getCurrentProfile().then((p) =>
-          isAcademyFeatureOn(createAdminClient(), p?.academy_id, "one_page_sentence_layout")
-        )
-      : Promise.resolve(false),
   ]);
 
   return (
@@ -65,7 +56,6 @@ export async function OnePagePage({
       logoSrc={branding.logoUrl || null}
       docId={docId}
       savedTest={doc?.kind === kind ? normalizeOnePageTestPayload(doc.payload) : null}
-      sentenceLayoutOpen={sentenceLayoutOpen}
     />
   );
 }
