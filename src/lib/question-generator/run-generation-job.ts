@@ -339,6 +339,7 @@ async function generateWithValidation(opts: {
           }
         }
         if (aiReviewEnabled() && !reviewedBySolve) {
+          const beforeReview = { correctAnswer: payload.correctAnswer, explanation: payload.explanation };
           const review = await withAiUsage(
             { ...currentAiUsage(), featureKey: null, usedFor: "qg_review" },
             () =>
@@ -350,6 +351,31 @@ async function generateWithValidation(opts: {
               })
           );
           validation.review = { verdict: review.verdict, reason: review.reason, fixed: review.fixed };
+          /*
+           * 뜻 검수가 고친 정답·해설은 규칙 검수를 다시 거친다.
+           *
+           * 선생님 지적(2026-10-06): 발곡고1 동형모의고사가 24문항을 다 만든 뒤 22문항으로 줄었다.
+           * 뜻 검수가 문장삽입 정답을 원문 자리(②)와 다른 ①로, 어휘추론 해설을 표지 순서와 어긋나게
+           * 고쳐 저장했고, 마지막 그물(final-sweep)이 그 둘을 지워 번호가 비었다. 고치기 전 것은 규칙
+           * 검수와 직접 풀기를 이미 지났으므로, 고친 것이 규칙에 걸리면 고치기 전으로 되돌린다.
+           */
+          if (review.verdict === "fix") {
+            const recheck = validateGeneratedQuestion({
+              passage: opts.passage,
+              option: opts.option,
+              question: payload,
+              allowParaphrase: opts.paraphraseGrammarVocab === true,
+            });
+            if (shouldRegenerate(recheck)) {
+              payload.correctAnswer = beforeReview.correctAnswer;
+              payload.explanation = beforeReview.explanation;
+              validation.review = {
+                verdict: "pass",
+                reason: `고친 값이 규칙 검수에 걸려 되돌림(${recheck.warnings[0] ?? "형태 검수 미달"}) — ${review.reason}`,
+                fixed: [],
+              };
+            }
+          }
           if (review.verdict === "drop") {
             reviewDropped += 1;
             lastError = `검수: ${review.reason}`;
