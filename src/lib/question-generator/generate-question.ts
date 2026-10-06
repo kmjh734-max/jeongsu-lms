@@ -304,6 +304,10 @@ ${choiceExplanationRules()}
 LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean in passage or choices.`;
     }
     case "order":
+      /*
+       * 상은 지시문을 바꿔 쓰는 것이 하와 다른 점이다(선생님 말씀 2026-10-04). 바꿔 쓰기를 끈 작업도
+       * 상의 지시문만은 바꿔 쓴다(선생님 결정 2026-10-06) — (A)(B)(C)는 원문 그대로.
+       */
       if (option.difficulty === "high") {
         return `순서추론 HIGH (상) — 효자 기출동형:
 - Format: lead-in paragraph (지시문) + paragraphs (A)(B)(C) + 5 order choices like (A)-(C)-(B).
@@ -375,9 +379,17 @@ ${slotRule}`;
 - The irrelevant sentence MUST reuse similar words / related content from the passage (same domain, overlapping vocabulary) so it LOOKS related at a glance.
 - But it must break cohesion: different topic focus OR a different point that does not connect to the surrounding sentences.
 ${irrelevantChoiceCraft()}`;
+      /*
+       * 바꿔 쓰기를 끈 작업은 원문 문장을 하나도 고치거나 지우지 않고 무관한 문장 하나만 끼워 넣는다.
+       * 상은 지문 전체를, 하도 군데군데 바꿔 썼다(10-06 작업: 「Just like how」→「Just as」, 구절 삭제,
+       * 두 문장을 because로 합침, 「to death」 삭제). 켠 작업은 예전 그대로다.
+       */
+      const keepRule = paraphraseOn
+        ? ""
+        : "- KEEP THE PASSAGE VERBATIM: copy every original sentence word for word and in order. INSERT the one irrelevant sentence between two original sentences; do not replace, delete, shorten, merge or reword any original sentence.";
       if (option.difficulty === "high") {
         return `무관한문장 HIGH (상) — 효자 기출동형:
-- CRITICAL: PARAPHRASE the ENTIRE passage in passageModified (ENGLISH synonyms/rewording throughout).
+${paraphraseOn ? "- CRITICAL: PARAPHRASE the ENTIRE passage in passageModified (ENGLISH synonyms/rewording throughout)." : keepRule}
 - Mark five candidate sentences with ⓐ ⓑ ⓒ ⓓ ⓔ (circled letters before each).
 - Exactly ONE of ⓐ~ⓔ is the irrelevant sentence.
 ${irrelevantQuality}
@@ -390,8 +402,12 @@ LANGUAGE: passageModified MUST be ENGLISH only.
 ${markRule}`;
       }
       return `무관한문장 LOW (하) — 효자 기출동형:
-- Keep most of the passage ORIGINAL ENGLISH in passageModified.
-- Replace ONE sentence with an irrelevant ENGLISH sentence (or insert one among five marked sentences).
+${
+        paraphraseOn
+          ? `- Keep most of the passage ORIGINAL ENGLISH in passageModified.
+- Replace ONE sentence with an irrelevant ENGLISH sentence (or insert one among five marked sentences).`
+          : keepRule
+      }
 - Mark five candidate sentences with ⓐ ⓑ ⓒ ⓓ ⓔ in the passage.
 - Exactly ONE of ⓐ~ⓔ is the irrelevant sentence.
 ${irrelevantQuality}
@@ -2707,7 +2723,7 @@ export async function generateOneQuestion(opts: {
    */
   const copyHint =
     copyIndex > 0 && option.type === "order"
-      ? `- SAME-TYPE COPY ${copyIndex + 1} for this passage: another 순서추론 item already exists. Split the passage DIFFERENTLY — the given text must be the first ${Math.min(copyIndex + 1, 3)} sentence(s) of the passage (or a paraphrase of exactly that span), so the (A)(B)(C) boundaries differ from the other copy.`
+      ? `- SAME-TYPE COPY ${copyIndex + 1} for this passage: another 순서추론 item already exists. Split the passage DIFFERENTLY — the given text must be the first ${Math.min(copyIndex + 1, 3)} sentence(s) of the passage${opts.paraphraseGrammarVocab || option.difficulty === "high" ? " (or a paraphrase of exactly that span)" : ""}, so the (A)(B)(C) boundaries differ from the other copy.`
       : copyIndex > 0
       ? `- SAME-TYPE COPY ${copyIndex + 1} for this passage: another item of this exact type already exists for this passage. Make this one DIFFERENT — anchor the answer/underline/blank/referent in the ${["LATER part", "MIDDLE part", "EARLIER part"][copyIndex % 3]} of the passage, pick a different target sentence or word than the most obvious one, and write different choices.`
       : "";
@@ -2818,6 +2834,28 @@ export async function generateOneQuestion(opts: {
       : "",
     (option.type === "grammar" || option.type === "vocabulary") && opts.paraphraseGrammarVocab
       ? "- 지문 재진술 켜짐: 밑줄 자리를 만들기 위해 문장을 바꿔 써도 된다(원문 뜻은 지킬 것)."
+      : "",
+    /*
+     * 바꿔 쓰기를 끈 작업은 어느 유형이든 지문을 원문 그대로 둔다(선생님 승인 2026-10-06).
+     * 위 줄이 어법·어휘에만 있어서 무관한문장·순서추론·빈칸추론이 지문을 고쳐 썼다(10-06 작업).
+     * 유형마다 바꿔도 되는 자리만 적어 준다. 검사는 validate-question.ts의 passageRewriteProblem.
+     */
+    needsModified && option.type !== "grammar" && option.type !== "vocabulary" && !opts.paraphraseGrammarVocab
+      ? `- KEEP THE PASSAGE VERBATIM (지문 바꿔 쓰기 꺼짐): outside the parts this type changes, passageModified copies the original passage word for word — never reword, shorten, merge, split or drop any sentence or phrase. The ONLY allowed change: ${
+          option.aingkaCode === "연결어빈칸"
+            ? "the connective words replaced by (A)/(B). Use connectives that already start a clause in the passage; the rest of each sentence stays as it is"
+            : option.type === "sentence_blank" || isWordOrder
+              ? "the blank that replaces the target sentence or phrase. If only part of a sentence is blanked, the rest of that sentence stays word for word"
+              : option.type === "order"
+                ? option.difficulty === "high"
+                  ? "cutting the passage into the lead-in and (A)(B)(C) at sentence boundaries and adding the labels, and paraphrasing the lead-in as the type rules say. (A)(B)(C) stay word for word"
+                  : "cutting the passage into the lead-in and (A)(B)(C) at sentence boundaries and adding the labels"
+                : option.type === "sentence_insertion"
+                  ? "taking out the given sentence (questionText, copied word for word) and putting ①~⑤ between sentences"
+                  : option.type === "irrelevant_sentence"
+                    ? "the ONE inserted irrelevant sentence and the marks ⓐ~ⓔ"
+                    : "the marks and <u>underline</u> tags this type needs"
+        }.`
       : "",
     paraphraseSystemHint,
     frameBanHint,

@@ -83,6 +83,102 @@ export function passageKeptRatio(original: string, modified: string): number {
 /** 어법·어휘에서 지문을 그대로 두었다고 볼 최저선(밑줄 6곳이 바뀌어도 넘는 값) */
 export const PASSAGE_KEEP_MIN = 0.9;
 
+/** 낱말·숫자만 남겨 붙인다 — 문장부호·따옴표·대소문자·띄어쓰기 차이는 고친 것으로 치지 않는다 */
+function squashText(text: string): string {
+  return plainText(text).toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+/**
+ * 「지문 바꿔 쓰기」를 끈 작업은 어느 유형이든 지문이 원문 그대로여야 한다(선생님 승인 2026-10-06).
+ *
+ * 원문 대조가 어법·어휘·문장삽입에만 걸려 있어서, 끈 작업에서도 무관한문장이 「Just like how」를
+ * 「Just as」로 바꾸고 두 문장을 because로 합쳤고, 순서추론은 주어진 글 첫 문장을 바꿔 쓰고,
+ * 빈칸추론은 「and in drawings」를 「and drawings」로 고쳤다(10-06 작업 대조).
+ *
+ * 유형이 정당하게 바꾸는 자리 — 빈칸, (A)(B)(C) 이름표, 번호 ①~⑤·ⓐ~ⓔ, 밑줄, 빼낸 삽입 문장,
+ * 끼워 넣은 무관한 문장 — 에서 지문을 끊고, 끊긴 조각 하나하나가 원문에 글자 그대로 있는지 본다.
+ * 빈칸 문장도 빈칸 밖 낱말은 원문 그대로여야 한다. 원문 문장이 통째로 빠졌는지도 센다(빈칸이 비운 문장,
+ * 무관한 문장과 바꿔 낸 한 문장만 빠질 수 있다).
+ * 어법·어휘와 지칭·특정표현은 위·아래에 따로 대조가 있어 여기서 보지 않는다.
+ */
+export function passageRewriteProblem(opts: {
+  passage: string;
+  option: QuestionTypeOption;
+  question: GeneratedQuestionPayload;
+}): string | null {
+  const { option, question: q } = opts;
+  const code = option.aingkaCode ?? "";
+  if (option.type === "grammar" || option.type === "vocabulary") return null;
+  if (/지칭대명사서술|특정표현의미서술/.test(code)) return null;
+  const modified = String(q.passageModified ?? "");
+  if (!modified.trim()) return null;
+
+  const CUT = "\u0000";
+  let body = modified.replace(/<\/?[ub]>/gi, "").replace(/\*\*/g, "");
+  // 무관한문장: 정답 번호 뒤 한 문장은 새로 넣은 문장이라 대조에서 뺀다
+  if (option.type === "irrelevant_sentence") {
+    const no = Number(q.correctAnswer);
+    const at = Number.isInteger(no) && no >= 1 && no <= 5
+      ? [...body.matchAll(/[①-⑤ⓐ-ⓔ]/g)].find((m) => "①②③④⑤".indexOf(m[0]) + 1 === no || "ⓐⓑⓒⓓⓔ".indexOf(m[0]) + 1 === no)
+      : undefined;
+    if (!at) return null;
+    const start = at.index! + 1;
+    const rest = body.slice(start);
+    const nextMark = rest.search(/[①-⑤ⓐ-ⓔ]/);
+    const span = nextMark >= 0 ? rest.slice(0, nextMark) : rest;
+    const end = span.match(/^[\s\S]*?[.!?]["'”’)]*(?=\s|$)/)?.[0].length ?? span.length;
+    body = body.slice(0, start) + CUT + body.slice(start + end);
+  }
+  // 순서추론 상은 지시문을 바꿔 쓴다(선생님 결정 2026-10-06) — (A) 앞 지시문은 대조에서 뺀다
+  const leadInParaphrased = option.type === "order" && option.difficulty === "high";
+  if (leadInParaphrased) {
+    const first = body.search(/\(\s*A\s*\)/);
+    if (first > 0) body = body.slice(first);
+  }
+  // 빈칸 수 — 연결어빈칸은 밑줄 없이 (A)(B) 이름표만 연결어 자리에 둔다
+  const blanks =
+    (body.match(/_{3,}/g) ?? []).length +
+    (option.type === "sentence_blank" && !/_{3,}/.test(body) ? (body.match(/\(\s*[A-E]\s*\)/g) ?? []).length : 0);
+  const pieces = body
+    .replace(/_{3,}/g, CUT)
+    .replace(/[ⓐ-ⓩ①-⑳]/g, CUT)
+    .replace(/\(\s*[A-E]\s*\)/g, CUT)
+    .split(CUT)
+    .filter((p) => squashText(p).length > 0);
+  const original = squashText(opts.passage);
+  if (!original) return null;
+
+  for (const piece of pieces) {
+    if (original.includes(squashText(piece))) continue;
+    // 어느 문장이 바뀌었는지 보여 준다(조각 안 문장들은 원문에 있는데 이어 붙인 것이 다르면 조각 머리)
+    const sentence =
+      piece
+        .split(/(?<=[.!?]["'”’)]?)\s+/)
+        .find((s) => squashText(s) && !original.includes(squashText(s))) ?? piece;
+    return `지문을 고쳐 썼습니다: "${plainText(sentence).slice(0, 50)}…". 지문 바꿔 쓰기를 끈 작업은 원문 그대로 둡니다.`;
+  }
+  const given = option.type === "sentence_insertion" ? String(q.questionText ?? "") : "";
+  if (given.trim() && !original.includes(squashText(given))) {
+    return "주어진 문장을 원문과 다르게 고쳐 썼습니다. 지문 바꿔 쓰기를 끈 작업은 원문 문장을 그대로 뺍니다.";
+  }
+
+  // 원문 문장이 빠졌는지 — 조각 하나에 있거나, 번호로 끊긴 문장이면 조각을 차례로 이은 데 있으면 된다
+  const hay = [...pieces.map(squashText), pieces.map(squashText).join(""), squashText(given)].filter(Boolean);
+  let missing = sentencesOf(opts.passage).filter((s) => !hay.some((h) => h.includes(squashText(s))));
+  // 순서추론 상: 바꿔 쓴 지시문 자리(원문 첫머리에 이어진 문장들)는 빠진 것으로 치지 않는다
+  if (leadInParaphrased) {
+    const all = sentencesOf(opts.passage);
+    let lead = 0;
+    while (lead < all.length && missing.includes(all[lead]!)) lead++;
+    missing = missing.filter((s) => !all.slice(0, lead).includes(s));
+  }
+  const allowed = blanks + (option.type === "irrelevant_sentence" ? 1 : 0);
+  if (missing.length > allowed) {
+    return `원문 문장을 ${missing.length - allowed}개 지웠습니다("${missing[0]!.slice(0, 40)}…"). 지문 바꿔 쓰기를 끈 작업은 원문 문장을 지우거나 합치지 않습니다.`;
+  }
+  return null;
+}
+
 /** 로컬 형태 검수만 (AI 검수 호출 없음 — 속도 우선) */
 export function validateGeneratedQuestion(opts: {
   passage: string;
@@ -188,6 +284,15 @@ export function validateGeneratedQuestion(opts: {
         warnings.push("원문에 없는 문장을 지문에 넣었습니다. 원문 문장 안에서만 밑줄을 쳐야 합니다.");
         score -= 45;
       }
+    }
+  }
+
+  // 나머지 유형: 바꿔 쓰기를 끈 작업은 유형이 바꾸는 자리 말고 지문을 원문 그대로 둔다
+  if (!opts.allowParaphrase) {
+    const rewritten = passageRewriteProblem(opts);
+    if (rewritten) {
+      warnings.push(rewritten);
+      score -= 45;
     }
   }
 
@@ -478,11 +583,13 @@ export function validateGeneratedQuestion(opts: {
     }
   }
 
-  // 문장삽입(하): 주어진 문장을 정답 자리에 넣으면 원문이 되어야 한다 (#27은 ④인데 ⑤라 했다)
+  /*
+   * 문장삽입: 주어진 문장을 정답 자리에 넣으면 원문이 되어야 한다 (#27은 ④인데 ⑤라 했다).
+   * 처음엔 하만 봤다. 바꿔 쓰기를 끈 작업은 상도 원문 문장을 그대로 빼므로(2026-10-06) 상도 본다.
+   */
   if (
     option.type === "sentence_insertion" &&
     !opts.allowParaphrase &&
-    option.difficulty === "low" &&
     modifiedText &&
     (q.questionText ?? "").trim()
   ) {
@@ -501,7 +608,7 @@ export function validateGeneratedQuestion(opts: {
         warnings.push(`주어진 문장을 원문 자리에 넣으면 ${"①②③④⑤"[fits[0]! - 1]}인데 정답이 ${no}번입니다.`);
         score -= 45;
       } else if (fits.length === 0) {
-        warnings.push("주어진 문장을 어느 자리에 넣어도 원문이 되지 않습니다. 하 난이도는 원문 문장을 그대로 빼야 합니다.");
+        warnings.push("주어진 문장을 어느 자리에 넣어도 원문이 되지 않습니다. 원문 문장을 그대로 빼야 합니다.");
         score -= 45;
       }
     }
