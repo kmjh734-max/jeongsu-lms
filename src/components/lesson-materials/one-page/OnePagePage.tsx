@@ -8,7 +8,7 @@ import { OnePageWorkbench } from "@/components/lesson-materials/one-page/OnePage
 
 /**
  * 1장 요약직보자료·1장 테스트 화면(서버). ?doc=면 저장된 파일의 지문을, 아니면 ?ids=를 쓴다.
- * 테스트 파일은 조립해 저장한 시험지(payload)도 함께 넘긴다. 조회는 사용자 세션이라 RLS가 가린다.
+ * 파일 이름(제목)도 넘겨 화면에서 고칠 수 있게 한다. 테스트 파일은 조립해 저장한 시험지(payload)도 함께 넘긴다. 조회는 사용자 세션이라 RLS가 가린다.
  */
 export async function OnePagePage({
   role,
@@ -36,10 +36,10 @@ export async function OnePagePage({
   const docId = params.doc?.trim() || null;
   const [projects, doc, branding] = await Promise.all([
     loadOnePageProjects(supabase, ids),
-    mode === "test" && docId
+    docId
       ? supabase
           .from("lesson_material_documents")
-          .select("payload,kind")
+          .select("payload,kind,name")
           .eq("id", docId)
           .is("deleted_at", null)
           .maybeSingle()
@@ -55,7 +55,8 @@ export async function OnePagePage({
       projects={projects}
       logoSrc={branding.logoUrl || null}
       docId={docId}
-      savedTest={doc?.kind === kind ? normalizeOnePageTestPayload(doc.payload) : null}
+      docName={doc?.kind === kind ? ((doc.name as string | null) ?? null) : null}
+      savedTest={mode === "test" && doc?.kind === kind ? normalizeOnePageTestPayload(doc.payload) : null}
     />
   );
 }

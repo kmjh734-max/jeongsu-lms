@@ -56,8 +56,8 @@ export function useCreateDocumentFromUrl(
   role: "admin" | "teacher",
   kind: LessonMaterialDocumentKind,
   projectIds: string[],
-  /** 파일을 만든 뒤 id를 받는다(1장 테스트는 조립한 시험지를 이 파일에 저장한다). */
-  onCreated?: (id: string) => void
+  /** 파일을 만든 뒤 id·이름을 받는다(1장 테스트는 조립한 시험지를 이 파일에 저장한다). */
+  onCreated?: (id: string, name: string) => void
 ) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -78,7 +78,7 @@ export function useCreateDocumentFromUrl(
       params.delete("docName");
       params.set("doc", res.id);
       window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
-      onCreated?.(res.id);
+      onCreated?.(res.id, res.name);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

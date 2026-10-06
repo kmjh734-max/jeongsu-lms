@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import type { renameLessonMaterialDocument } from "@/lib/lesson-materials/document-actions";
+import { defaultDocumentName } from "@/lib/lesson-materials/documents";
 import type {
   prepareOnePageContentAction,
   saveOnePageTestAction,
@@ -189,6 +191,7 @@ export function OnePageWorkbench({
   projects: initialProjects,
   logoSrc,
   docId,
+  docName = null,
   savedTest = null,
 }: {
   role: "admin" | "teacher";
@@ -197,11 +200,52 @@ export function OnePageWorkbench({
   logoSrc?: string | null;
   /** 열린 파일 id(?doc=). 제작 버튼으로 연 경우 파일을 만든 뒤 채워진다. */
   docId: string | null;
+  /** 열린 파일의 이름(제목). 자료함 목록·PDF 이름에 쓴다. */
+  docName?: string | null;
   /** 1장 테스트 파일에 저장된 시험지 */
   savedTest?: OnePageTestPayload | null;
 }) {
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const docIdRef = useRef<string | null>(docId);
+  const docKind = mode === "summary" ? "one_page_summary" : "one_page_test";
+  /** 자료 제목(= 파일 이름). 제작 창에서 적은 이름으로 시작하고, 여기서 고치면 파일 이름도 바뀐다. */
+  const [title, setTitleValue] = useState(docName ?? "");
+  /** 파일을 만든 뒤 부르는 콜백이 첫 렌더 것이라, 지금 제목은 ref로 읽는다. */
+  const titleRef = useRef(docName ?? "");
+  const setTitle = (v: string) => {
+    titleRef.current = v;
+    setTitleValue(v);
+  };
+  const savedTitle = useRef(docName ?? "");
+  /** 제작 창에서 적은(또는 기본) 이름. 파일을 만든 뒤 고쳤는지 가르는 데 쓴다. */
+  const startTitle = useRef(docName ?? "");
+  const [titleState, setTitleState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  useEffect(() => {
+    if (docName) return;
+    const fromUrl = new URLSearchParams(window.location.search).get("docName")?.trim();
+    startTitle.current = fromUrl || defaultDocumentName(docKind);
+    setTitle(startTitle.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  async function commitTitle() {
+    const id = docIdRef.current;
+    const name = titleRef.current.replace(/\s+/g, " ").trim();
+    if (!name) {
+      setTitle(savedTitle.current);
+      return;
+    }
+    if (!id || name === savedTitle.current) return;
+    setTitleState("saving");
+    const res = await postJson<Awaited<ReturnType<typeof renameLessonMaterialDocument>>>(
+      "/api/lesson-materials/documents/open",
+      { op: "rename", role, id, name }
+    );
+    if (res.ok) {
+      savedTitle.current = res.name;
+      setTitle(res.name);
+    }
+    setTitleState(res.ok ? "saved" : "error");
+  }
   const [projects, setProjects] = useState(initialProjects);
   const [tests, setTests] = useState<Record<string, OnePageTestPassage>>(() =>
     initialTests(initialProjects, savedTest)
@@ -318,8 +362,13 @@ export function OnePageWorkbench({
     role,
     mode === "summary" ? "one_page_summary" : "one_page_test",
     initialProjects.map((p) => p.id),
-    (id) => {
+    (id, name) => {
       docIdRef.current = id;
+      savedTitle.current = name;
+      // 겹치는 이름이면 -2가 붙는다. 만드는 사이에 제목을 고쳤으면 고친 이름으로 바꿔 둔다.
+      const typed = titleRef.current.trim();
+      if (!typed || typed === startTitle.current) setTitle(name);
+      else void commitTitle();
       void saveTests();
     }
   );
@@ -482,7 +531,9 @@ export function OnePageWorkbench({
     const partLabel =
       mode === "summary" ? "요약자료" : part === "sheets" ? "문제지" : part === "answers" ? "정답지" : "문제지+정답지";
     const first = projects[0]?.title ?? "";
-    const name = pdfFileName(MODE_LABEL[mode], projects.length > 1 ? `${first} 외 ${projects.length - 1}개` : first, partLabel);
+    const name = title.trim()
+      ? pdfFileName(title, partLabel)
+      : pdfFileName(MODE_LABEL[mode], projects.length > 1 ? `${first} 외 ${projects.length - 1}개` : first, partLabel);
     setPdfError(null);
     setPdfBusy(`${partLabel} 0/${pages.length}`);
     try {
@@ -516,6 +567,32 @@ export function OnePageWorkbench({
             ← 자료함
           </button>
           <h1 className="text-base font-bold text-slate-900">{MODE_LABEL[mode]}</h1>
+          <label className="block space-y-1">
+            <span className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+              자료 제목
+              {titleState === "saving" ? (
+                <span className="font-semibold text-slate-400">저장 중…</span>
+              ) : titleState === "saved" ? (
+                <span className="font-semibold text-emerald-600">저장됨</span>
+              ) : titleState === "error" ? (
+                <span className="font-semibold text-rose-600">저장 못 함</span>
+              ) : null}
+            </span>
+            <input
+              className="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-900 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
+              value={title}
+              maxLength={80}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setTitleState("idle");
+              }}
+              onBlur={() => void commitTitle()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+              }}
+              aria-label="자료 제목"
+            />
+          </label>
           <p className="text-[11px] text-slate-500">
             지문 {total}개 · {busy ? `${readyCount}/${total} 준비됨` : "지문마다 A4 한 쪽"}
           </p>
@@ -668,6 +745,27 @@ export function OnePageWorkbench({
               }}
             >
               {pendingIds.has(activeProject.id) ? "만드는 중…" : "이 지문 다시 만들기"}
+            </Button>
+          ) : null}
+          {total > 1 ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="w-full"
+              disabled={busy}
+              onClick={() => {
+                if (
+                  !window.confirm(
+                    `지문 ${total}개 전체의 1장 자료를 새로 만들까요?
+지문마다 크레딧이 차감됩니다.`
+                  )
+                )
+                  return;
+                void runPrepare(projects, true);
+              }}
+            >
+              {busy ? `만드는 중 (${total - pendingIds.size}/${total})` : `전체 다시 만들기 (${total})`}
             </Button>
           ) : null}
           {errorList.length > 0 ? (

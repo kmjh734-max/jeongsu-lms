@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import {
   createLessonMaterialDocument,
   getWorkbookDocument,
+  renameLessonMaterialDocument,
 } from "@/lib/lesson-materials/document-actions";
 import type { LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
 
 export const runtime = "nodejs";
 
 /**
- * 제작 버튼으로 연 페이지가 자료 파일을 만들거나(create) 워크북 파일을 연다(getWorkbook).
+ * 제작 버튼으로 연 페이지가 자료 파일을 만들거나(create) 워크북 파일을 열거나(getWorkbook)
+ * 자료 화면에서 파일 이름(제목)을 바꾼다(rename).
  *
  * 서버 액션을 페이지가 열리자마자 부르면, 운영에서 응답이 돌아오지 않아 "새로 만들고
  * 있습니다…"에서 멈췄다(2026-09-13: 파일은 만들어졌는데 생성이 시작되지 않았다). 서버
@@ -39,6 +41,11 @@ export async function POST(request: Request) {
     }
     if (body.op === "getWorkbook") {
       return NextResponse.json(await getWorkbookDocument(role, { id: String(body.id ?? "") }));
+    }
+    if (body.op === "rename") {
+      return NextResponse.json(
+        await renameLessonMaterialDocument(role, { id: String(body.id ?? ""), name: String(body.name ?? "") })
+      );
     }
     return NextResponse.json({ ok: false, message: "알 수 없는 요청입니다." });
   } catch (e) {
