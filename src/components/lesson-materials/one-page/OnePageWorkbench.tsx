@@ -738,7 +738,7 @@ export function OnePageWorkbench({
               size="sm"
               variant="secondary"
               className="w-full"
-              disabled={busy}
+              disabled={pendingIds.has(activeProject.id)}
               onClick={() => {
                 if (!window.confirm(`${activeProject.title}\n이 지문의 1장 자료를 새로 만들까요? 크레딧이 차감됩니다.`)) return;
                 void runPrepare([activeProject], true);
