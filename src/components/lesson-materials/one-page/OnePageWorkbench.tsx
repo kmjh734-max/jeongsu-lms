@@ -490,6 +490,8 @@ export function OnePageWorkbench({
   const busy = pendingIds.size > 0;
   const activeProject = projects.find((p) => p.id === active) ?? projects[0];
   const errorList = projects.filter((p) => errors[p.id]);
+  /** 지금 만드는 중이 아닌 지문(전체 다시 만들기 대상) */
+  const idleProjects = projects.filter((p) => !pendingIds.has(p.id));
 
   if (projects.length === 0) {
     return (
@@ -753,19 +755,16 @@ export function OnePageWorkbench({
               size="sm"
               variant="secondary"
               className="w-full"
-              disabled={busy}
+              disabled={idleProjects.length === 0}
               onClick={() => {
-                if (
-                  !window.confirm(
-                    `지문 ${total}개 전체의 1장 자료를 새로 만들까요?
-지문마다 크레딧이 차감됩니다.`
-                  )
-                )
-                  return;
-                void runPrepare(projects, true);
+                // 이미 만드는 중인 지문은 그대로 두고 나머지만 새로 만든다(같은 지문을 두 번 만들어 크레딧이 두 번 나가지 않게).
+                const what = busy ? `만드는 중인 지문을 뺀 ${idleProjects.length}개` : `지문 ${total}개 전체`;
+                if (!window.confirm(`${what}의 1장 자료를 새로 만들까요?
+지문마다 크레딧이 차감됩니다.`)) return;
+                void runPrepare(idleProjects, true);
               }}
             >
-              {busy ? `만드는 중 (${total - pendingIds.size}/${total})` : `전체 다시 만들기 (${total})`}
+              전체 다시 만들기 ({idleProjects.length})
             </Button>
           ) : null}
           {errorList.length > 0 ? (
@@ -774,8 +773,7 @@ export function OnePageWorkbench({
               size="sm"
               variant="secondary"
               className="w-full"
-              disabled={busy}
-              onClick={() => void runPrepare(errorList, false)}
+              onClick={() => void runPrepare(errorList.filter((p) => !pendingIds.has(p.id)), false)}
             >
               못 만든 지문 다시 시도 ({errorList.length})
             </Button>
