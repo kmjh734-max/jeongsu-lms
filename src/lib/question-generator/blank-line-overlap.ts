@@ -106,6 +106,29 @@ export function closeBlankSentence(passageModified: string): string {
 }
 
 /**
+ * 대화문에서 정답이 화자 표시(「Ray: The echo chamber …」)까지 삼켰으면 표시를 빈칸 앞으로 돌려준다.
+ *
+ * 2026-10-07 권승현 전용문제: 지문에 「Dr. ⓐ____」만 남고 보기에 「Ray:」가 들어갔다.
+ * 원문에 「표시:」가 그대로 있을 때만 옮긴다.
+ */
+export function moveSpeakerLabelOutOfBlank(
+  passageModified: string,
+  passageOriginal: string,
+  answer: string
+): { passageModified: string; answer: string } {
+  const lab = String(answer ?? "").match(/^\s*([A-Z][A-Za-z.]*(?:\s+[A-Z][A-Za-z.]*){0,2}):\s+(\S[\s\S]*)$/);
+  const src = String(passageModified ?? "");
+  const m = src.match(/[ⓐ-ⓔ㉮-㉲]\s*_{3,}|_{5,}/);
+  if (!lab || !m || m.index === undefined || !String(passageOriginal ?? "").includes(`${lab[1]}:`)) {
+    return { passageModified: src, answer };
+  }
+  return {
+    passageModified: `${src.slice(0, m.index)}${lab[1]}: ${src.slice(m.index)}`,
+    answer: lab[2]!,
+  };
+}
+
+/**
  * 빈칸이 문장 가운데(「By contrast, ⓐ____」·「But ⓐ____」)인데 정답이 대문자로 시작하면 낮춘다.
  *
  * 2026-10-07 점검: 「In the end, The many lives …」처럼 빈칸에 넣으면 표기가 어긋났다.

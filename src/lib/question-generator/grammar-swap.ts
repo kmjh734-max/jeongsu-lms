@@ -20,6 +20,8 @@ const CLASSES: string[][] = [
   ["as", "like", "alike", "than"],
   // 흔히 내는 혼동 짝(2026-10-07 저장 문항 대조에서 걸린 것)
   ["so", "such"],
+  // 비교급 강조(much/far/even ↔ very)
+  ["very", "much", "far", "even", "still", "a", "lot"],
   // 대동사 — 앞 동사가 be면 be, 일반동사면 do로 받는다
   ["do", "does", "did", "am", "is", "are", "was", "were"],
   ["good", "well"],
@@ -42,9 +44,9 @@ const IRREG: Record<string, string> = {
 };
 
 // don't·doesn't·can't는 n't를 떼고 견준다(don't → doesn't가 「don」·「doe」로 갈렸다)
-const CONTRACTED: Record<string, string> = { ca: "can", wo: "will", sha: "shall" };
+const CONTRACTED: Record<string, string> = { ca: "can", wo: "will", sha: "shall", d: "had", ve: "have", ll: "will", re: "are", m: "am" };
 const clean = (w: string) => {
-  const x = w.toLowerCase().replace(/n['’]t$/, "").replace(/[^a-z]/g, "");
+  const x = w.toLowerCase().replace(/n['’]t$/, "").replace(/^['’]/, "").replace(/[^a-z]/g, "");
   return CONTRACTED[x] ?? x;
 };
 // 앞 세 글자로 견준다(became/becoming, take/taking이 네 글자에서 갈렸다).
@@ -52,14 +54,27 @@ const clean = (w: string) => {
 const forms = (w: string): string[] => {
   const base = IRREG[w] ?? w;
   const cut = base.replace(/(?:ing|ed|es|s|ly)$/, "");
-  return [base, cut, cut.replace(/e$/, "")].filter(Boolean);
+  return [base, cut, cut.replace(/e$/, ""), cut.replace(/i$/, "y")].filter(Boolean);
 };
 const sameStem = (x: string, y: string) =>
   forms(x).some((a) => forms(y).some((b) => a === b || (a.length >= 3 && b.length >= 3 && a.slice(0, 3) === b.slice(0, 3))));
 
 function related(original: string, underlined: string): boolean {
-  const wa = original.split(/\s+/).map(clean).filter(Boolean);
-  const wb = underlined.split(/\s+/).map(clean).filter(Boolean);
+  let wa = original.split(/\s+/).map(clean).filter(Boolean);
+  let wb = underlined.split(/\s+/).map(clean).filter(Boolean);
+  /*
+   * 양쪽에 같이 있는 낱말은 빼고 바뀐 낱말끼리만 견준다. 「all average temperatures」 →
+   * 「much average temperatures」가 average끼리 같다고 넘어갔다(2026-10-07 권승현 전용문제).
+   * be를 빼서 만든 태 오류(has been shared → has shared)는 한쪽이 비므로 그대로 통과한다.
+   */
+  const rest = [...wb];
+  wa = wa.filter((w) => {
+    const i = rest.indexOf(w);
+    if (i < 0) return true;
+    rest.splice(i, 1);
+    return false;
+  });
+  wb = rest;
   if (wa.length === 0 || wb.length === 0) return true;
   for (const x of wa) {
     for (const y of wb) {
@@ -92,7 +107,8 @@ export function grammarSwapSpots(passageOriginal: string, passageModified: strin
     const found = orig.match(new RegExp(`${esc(before)}\\s*(.{1,60}?)\\s*${esc(after)}`));
     if (!found) continue;
     const original = found[1]!.trim();
-    if (original.split(/s+/).length > 3) continue; // 문장 경계를 넘어 잡은 것
+    // /s+/로 나눠 「slightly more sensitive」가 넷으로 세어져 빠졌다(2026-10-07)
+    if (original.split(/\s+/).length > 4) continue; // 문장 경계를 넘어 잡은 것
     if (!related(original, under)) out.push({ original, underlined: under });
   }
   return out;

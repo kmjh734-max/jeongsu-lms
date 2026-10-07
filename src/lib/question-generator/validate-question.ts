@@ -526,7 +526,14 @@ export function validateGeneratedQuestion(opts: {
    * 바꿔 쓴 지문에서도 엉뚱한 자리를 잡지 않는다.
    */
   if (option.type === "grammar" && modifiedText) {
-    const swapped = grammarSwapSpots(String(opts.passage ?? ""), modifiedText);
+    /*
+     * 바꿔 쓰기를 켜면 모델이 구를 고쳐 「find difficult to」·「look forward to give」 같은 정식 어법 자리를
+     * 만든다. 그때는 낱말 하나를 다른 낱말로 바꾼 것(whom → it, fiercely → hardly)만 본다.
+     */
+    const one = (t: string) => t.trim().split(/\s+/).length === 1;
+    const swapped = grammarSwapSpots(String(opts.passage ?? ""), modifiedText).filter(
+      (x) => !opts.allowParaphrase || (one(x.original) && one(x.underlined))
+    );
     if (swapped.length) {
       warnings.push(
         `원문 「${swapped[0]!.original}」을 다른 낱말 「${swapped[0]!.underlined}」로 바꿨습니다. 어법 오류는 원문 낱말의 형태만 바꿔 만듭니다.`
@@ -932,6 +939,10 @@ export function validateGeneratedQuestion(opts: {
         score -= 35;
       } else if (isQuestion(answer) && others.every((t) => !isQuestion(t))) {
         warnings.push("정답 보기만 의문형입니다. 다섯 보기를 같은 꼴로 씁니다.");
+        score -= 35;
+      } else if (/[:：]/.test(answer) && others.every((t) => !/[:：]/.test(t))) {
+        // 정답만 「What …: …」 제목 꼴이었다(2026-10-07 권승현 전용문제, 저장 1,703개 중 11개)
+        warnings.push("정답 보기만 「…: …」 꼴입니다. 다섯 보기를 같은 꼴로 씁니다.");
         score -= 35;
       }
     }

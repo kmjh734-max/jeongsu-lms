@@ -79,6 +79,7 @@ import {
   widenBlankToSentence,
   closeBlankSentence,
   lowercaseAnswerAfterMidBlank,
+  moveSpeakerLabelOutOfBlank,
 } from "@/lib/question-generator/blank-line-overlap";
 import {
   findWritingGrammar,
@@ -1702,7 +1703,9 @@ export function assertBasicQuestionShape(
       return "제시어 배열은 questionText에 <조건>·<보기>·<해석>이 필요합니다.";
     }
     // 빈칸이 문장 끝 마침표까지 삼켰으면 돌려준다 — 버리지 말고 고쳐 쓴다
-    const mod = closeBlankSentence(q.passageModified || "");
+    const moved = moveSpeakerLabelOutOfBlank(q.passageModified || "", q.passageOriginal || "", String(q.correctAnswer ?? ""));
+    q.correctAnswer = moved.answer;
+    const mod = closeBlankSentence(moved.passageModified);
     q.passageModified = mod;
     // 보기 낱말은 정답에서 뽑으므로 그 전에 맞춘다
     q.correctAnswer = lowercaseAnswerAfterMidBlank(mod, q.passageOriginal || "", String(q.correctAnswer ?? ""));
