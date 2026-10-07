@@ -128,6 +128,7 @@ const WORKBOOK_TO_EXAM: Record<string, string[]> = {
   vocab_fix: ["어휘 판단"],
   sentence_order: ["순서 배열"],
   word_order_writing: ["조건 영작(배열)", "우리말 조건 영작"],
+  key_word_order: ["조건 영작(배열)", "우리말 조건 영작"],
   full_en_writing: ["조건 영작(배열)"],
   blank_fill: ["빈칸 영작", "본문 찾아 쓰기"],
   tf: ["내용 일치", "내용 불일치", "일치 개수"],

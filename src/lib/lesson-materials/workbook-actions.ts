@@ -1,5 +1,6 @@
 "use server";
 
+import { pickKeySentenceIds } from "@/lib/lesson-materials/key-sentences";
 import {
   LESSON_CREDIT_FEATURES,
   refundLessonCredits,
@@ -133,7 +134,10 @@ export async function generateWorkbookAction(
   const wantSentenceOrder = types.includes("sentence_order");
   const wantLineKo = types.includes("one_line_ko");
   const wantFullEn = types.includes("full_en_writing");
-  const wantWordOrder = types.includes("word_order_writing");
+  const wantFullWordOrder = types.includes("word_order_writing");
+  // 중요문장 어순배열: 같은 어순배열 흐름을 주제문·핵심 문장에만 돌린다(2026-10-07)
+  const wantKeyWordOrder = types.includes("key_word_order");
+  const wantWordOrder = wantFullWordOrder || wantKeyWordOrder;
   const wantBilingual = wantLineKo || wantFullEn || wantWordOrder;
   const lineTranslationExcludeIds = [
     ...new Set(
@@ -281,6 +285,7 @@ export async function generateWorkbookAction(
     fullEnWritingSkipped: [],
     wordOrderWritingSections: [],
     wordOrderWritingSkipped: [],
+    keyWordOrderSections: [],
   };
   const workbookId = `${workbook.metadata.title}|${workbook.metadata.createdAt}`;
 
@@ -493,6 +498,23 @@ export async function generateWorkbookAction(
           })
         )
       : null;
+    // 중요 문장: 분석서 「주제문」 → 빈칸 후보 핵심 문장 → 규칙 점수(새 모델 호출 없음)
+    const keyIdsByProject = new Map(
+      passages.map((p) => [
+        p.projectId,
+        new Set(
+          pickKeySentenceIds({
+            sentences: p.sentences,
+            analysisSentences: p.analysisReport?.sentences ?? null,
+            coreSentenceIds: (p.packJson.blankCandidatePool as StoredBlankCandidatePool | undefined)?.coreSentenceIds ?? null,
+          })
+        ),
+      ])
+    );
+    const onlyKeySentences = <T extends { projectId: string; items: Array<{ sentenceId: string }> }>(sections: T[]): T[] =>
+      sections
+        .map((sec) => ({ ...sec, items: sec.items.filter((it) => keyIdsByProject.get(sec.projectId)?.has(it.sentenceId)) }))
+        .filter((sec) => sec.items.length > 0);
     const wordOrderTask =
       wantWordOrder && bilingualEarly && bilingualEarly.blocking.length === 0
         ? settle(
@@ -507,7 +529,10 @@ export async function generateWorkbookAction(
                   packJson: p.packJson,
                   wordOrderChunkCache: p.wordOrderChunkCache,
                 })),
-                prebuiltLineSections: bilingualEarly.sections,
+                // 어순배열 영작을 함께 고르지 않았으면 중요 문장만 만든다(청크 호출도 그만큼만)
+                prebuiltLineSections: wantFullWordOrder
+                  ? bilingualEarly.sections
+                  : onlyKeySentences(bilingualEarly.sections),
                 prebuiltSkipped: bilingualEarly.skipped,
                 prebuiltBlocking: [],
             })
@@ -634,8 +659,17 @@ export async function generateWorkbookAction(
       }
       if (wantWordOrder) {
         const wo = unwrap(await wordOrderTask!);
-        workbook.wordOrderWritingSections = wo.sections;
-        workbook.wordOrderWritingSkipped = skipped;
+        if (wantFullWordOrder) {
+          workbook.wordOrderWritingSections = wo.sections;
+          workbook.wordOrderWritingSkipped = skipped;
+        }
+        // 중요 문장은 지문마다 1번부터 다시 번호를 붙인다(원문 문장 번호가 듬성듬성 찍히지 않게)
+        if (wantKeyWordOrder) {
+          workbook.keyWordOrderSections = onlyKeySentences(wo.sections).map((sec) => ({
+            ...sec,
+            items: sec.items.map((it, i) => ({ ...it, orderIndex: i + 1 })),
+          }));
+        }
 
         for (const { projectId, cache } of wo.cachesToSave) {
           const prev = (byId.get(projectId)?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
@@ -722,7 +756,17 @@ export async function generateWorkbookAction(
       };
     }
     if (
-      wantWordOrder &&
+      wantKeyWordOrder &&
+      (workbook.keyWordOrderSections?.length ?? 0) === 0
+    ) {
+      return {
+        ok: false,
+        message:
+          "중요문장 어순배열 결과를 만들지 못했습니다. 해석이 있는 지문을 선택해 주세요.",
+      };
+    }
+    if (
+      wantFullWordOrder &&
       (workbook.wordOrderWritingSections?.length ?? 0) === 0
     ) {
       return {

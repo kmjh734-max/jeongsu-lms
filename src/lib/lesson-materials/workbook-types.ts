@@ -13,7 +13,9 @@ export type WorkbookTypeId =
   | "vocab_example"
   | "one_line_ko"
   | "full_en_writing"
-  | "word_order_writing";
+  | "word_order_writing"
+  /** 주제문·핵심 문장만 골라 어순배열(2026-10-07) */
+  | "key_word_order";
 
 export type WorkbookTypeMeta = {
   id: WorkbookTypeId;
@@ -28,6 +30,7 @@ export type WorkbookTypeMeta = {
  * 워크북 유형 순서. 만들기 화면의 목록, 실제 워크북, 인쇄, 정답이 모두 이 순서를 따른다.
  * 2026-09-11 선생님 지정: 한줄해석, T/F, 빈칸 채우기, 어법 선택, 어법 수정, 어휘 선택,
  * 어휘 수정, 문장 순서 배열, 어순배열 영작, 통문장 영작.
+ * 2026-10-07 「중요문장 어순배열」(주제문·핵심 문장만)을 어순배열 영작 뒤에 더했다.
  */
 export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
   {
@@ -103,12 +106,20 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     printOrder: 9,
   },
   {
+    id: "key_word_order",
+    title: "중요문장 어순배열",
+    subtitle: "주제문·핵심 문장만 골라 어순 배열하기(외울 문장)",
+    ready: true,
+    displayOrder: 10,
+    printOrder: 10,
+  },
+  {
     id: "full_en_writing",
     title: "통문장 영작",
     subtitle: "한글 해석을 보고 영어 통문장 쓰기",
     ready: true,
-    displayOrder: 10,
-    printOrder: 10,
+    displayOrder: 11,
+    printOrder: 11,
   },
 ];
 
@@ -616,6 +627,8 @@ export type WorkbookData = {
   /** Word-order writing (Korean + scrambled tokens → English) */
   wordOrderWritingSections?: WorkbookWordOrderWritingSection[];
   wordOrderWritingSkipped?: WorkbookLineTranslationSkip[];
+  /** 중요문장 어순배열 — 어순배열 영작과 같은 꼴, 주제문·핵심 문장만 */
+  keyWordOrderSections?: WorkbookWordOrderWritingSection[];
   /** 어법 수정: 어법 선택에서 검수한 자리 중 몇 곳에 틀린 형태를 넣은 지문 */
   grammarFixSections?: WorkbookGrammarFixSection[];
   grammarFixSkipped?: WorkbookGrammarChoiceSkip[];

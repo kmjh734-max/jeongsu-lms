@@ -224,6 +224,7 @@ function withWorkbookDefaults(w: WorkbookData): WorkbookData {
     fullEnWritingSkipped: w.fullEnWritingSkipped ?? [],
     wordOrderWritingSections: w.wordOrderWritingSections ?? [],
     wordOrderWritingSkipped: w.wordOrderWritingSkipped ?? [],
+    keyWordOrderSections: w.keyWordOrderSections ?? [],
     grammarFixSections: w.grammarFixSections ?? [],
     grammarFixSkipped: w.grammarFixSkipped ?? [],
     vocabChoiceSections: w.vocabChoiceSections ?? [],
@@ -1232,9 +1233,12 @@ function WordOrderAnswerBody({
   typeOrder,
   itemIndices,
   showHeader = true,
+  label = "어순배열 영작",
 }: {
   section: WorkbookWordOrderWritingSection;
   typeOrder: number;
+  /** 유형 이름(중요문장 어순배열도 같은 꼴로 그린다) */
+  label?: string;
   /** 정답지 쪽 나눔: 이 문장들만 그린다(없으면 전부). */
   itemIndices?: number[];
   /** 유형 제목·지문 제목을 그린다. 쪽을 넘겨 이어지는 문장이면 false. */
@@ -1249,7 +1253,7 @@ function WordOrderAnswerBody({
       {showHeader ? (
       <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
-        <TitleNo no={typeOrder} /> 어순배열 영작
+        <TitleNo no={typeOrder} /> {label}
         <AnswerTag projectId={section.projectId} source={section.source} />
       </h3>
       </>
@@ -1297,18 +1301,20 @@ type ColumnPage = {
 };
 
 /** 한줄해석·통문장 영작·어순배열 영작: 문항 단위로 쪽을 나누고 지문을 이어 싣는다. */
-type FlowKind = "line_ko" | "full_en" | "word_order";
+type FlowKind = "line_ko" | "full_en" | "word_order" | "key_word_order";
 type FlowPart = { sectionIndex: number; itemIndices: number[]; continued: boolean };
 
 const FLOW_KIND_BY_TYPE: Partial<Record<WorkbookTypeId, FlowKind>> = {
   one_line_ko: "line_ko",
   full_en_writing: "full_en",
   word_order_writing: "word_order",
+  key_word_order: "key_word_order",
 };
 const FLOW_TITLE: Record<FlowKind, string> = {
   line_ko: "한줄해석",
   full_en: "통문장 영작",
   word_order: "어순배열 영작",
+  key_word_order: "중요문장 어순배열",
 };
 /** 한 쪽에서 앞 지문과 다음 지문 사이 간격(.workbook-flow-part 여백·선과 같게). */
 const FLOW_PART_GAP_PX = 34;
@@ -1546,6 +1552,7 @@ export function WorkbookWorkbench({
       lineTranslationSections: apply(w.lineTranslationSections),
       fullEnWritingSections: apply(w.fullEnWritingSections),
       wordOrderWritingSections: apply(w.wordOrderWritingSections),
+      keyWordOrderSections: apply(w.keyWordOrderSections),
       sentenceOrderQuestions: w.sentenceOrderQuestions?.map((q) =>
         q.passageId === projectId ? { ...q, ...patch } : q
       ),
@@ -1600,6 +1607,7 @@ export function WorkbookWorkbench({
       workbook.lineTranslationSections ?? [],
       workbook.fullEnWritingSections ?? [],
       workbook.wordOrderWritingSections ?? [],
+      workbook.keyWordOrderSections ?? [],
     ]) {
       for (const s of list) add(s.projectId, s.title, s.source);
     }
@@ -1778,6 +1786,7 @@ export function WorkbookWorkbench({
             (cached.lineTranslationSections?.length ?? 0) > 0 ||
             (cached.fullEnWritingSections?.length ?? 0) > 0 ||
             (cached.wordOrderWritingSections?.length ?? 0) > 0 ||
+            (cached.keyWordOrderSections?.length ?? 0) > 0 ||
             (cached.grammarFixSections?.length ?? 0) > 0 ||
             (cached.vocabChoiceSections?.length ?? 0) > 0 ||
             (cached.vocabFixSections?.length ?? 0) > 0)
@@ -1822,7 +1831,7 @@ export function WorkbookWorkbench({
       const wantSentenceOrder = types.includes("sentence_order");
       const wantLineKo = types.includes("one_line_ko");
       const wantFullEn = types.includes("full_en_writing");
-      const wantWordOrder = types.includes("word_order_writing");
+      const wantWordOrder = types.includes("word_order_writing") || types.includes("key_word_order");
       const ltExclude = (searchParams.get("ltExclude") ?? "")
         .split(",")
         .map((s) => s.trim())
@@ -2452,6 +2461,7 @@ export function WorkbookWorkbench({
     const ltSections = workbook.lineTranslationSections ?? [];
     const feSections = workbook.fullEnWritingSections ?? [];
     const woSections = workbook.wordOrderWritingSections ?? [];
+    const kwSections = workbook.keyWordOrderSections ?? [];
     const gcSections = workbook.grammarChoiceSections ?? [];
     const gfSections = workbook.grammarFixSections ?? [];
     const columnCounts: Record<WorkbookColumnTypeId, number> = {
@@ -2467,6 +2477,7 @@ export function WorkbookWorkbench({
       line_ko: ltSections,
       full_en: feSections,
       word_order: woSections,
+      key_word_order: kwSections,
     };
     for (const t of types) {
       const order = typeOrders.get(t) ?? 1;
@@ -2633,6 +2644,8 @@ export function WorkbookWorkbench({
     if (lt.length) next.line_ko = packFlow("lt", lt);
     if (fe.length) next.full_en = packFlow("fe", fe);
     if (wo.length) next.word_order = packFlow("wo", wo);
+    const kw = workbook.keyWordOrderSections ?? [];
+    if (kw.length) next.key_word_order = packFlow("kw", kw);
     setFlowPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
   }, [workbook, designStyle, fontsTick]);
 
@@ -2928,6 +2941,7 @@ export function WorkbookWorkbench({
   const feSkipped = workbook.fullEnWritingSkipped ?? [];
   const woSections = workbook.wordOrderWritingSections ?? [];
   const woSkipped = workbook.wordOrderWritingSkipped ?? [];
+  const kwSections = workbook.keyWordOrderSections ?? [];
   const gcSections = workbook.grammarChoiceSections ?? [];
   const gfSections = workbook.grammarFixSections ?? [];
   const gfSkipped = workbook.grammarFixSkipped ?? [];
@@ -3133,6 +3147,18 @@ export function WorkbookWorkbench({
       ));
       addSkipped("wos", owo, woSkipped);
     }
+    const okw = typeOrders.get("key_word_order");
+    if (okw != null) {
+      addSentenceBlocks("kwa", okw, "중요문장 어순배열", kwSections, 2, (section, ii, showHeader) => (
+        <WordOrderAnswerBody
+          section={section}
+          typeOrder={okw}
+          label="중요문장 어순배열"
+          itemIndices={[ii]}
+          showHeader={showHeader}
+        />
+      ));
+    }
   }
   answerBlocks.sort((a, b) => a.order - b.order);
   const answerBlockByKey = new Map(answerBlocks.map((b) => [b.key, b] as const));
@@ -3304,7 +3330,7 @@ export function WorkbookWorkbench({
                           />
                         ) : (
                           <WordOrderQuestionBody
-                            section={woSections[part.sectionIndex]!}
+                            section={(page.flow === "key_word_order" ? kwSections : woSections)[part.sectionIndex]!}
                             itemIndices={part.itemIndices}
                             continued={part.continued}
                           />
@@ -3506,9 +3532,9 @@ export function WorkbookWorkbench({
               ))}
             </div>
           ))}
-          {woSections.map((section, si) => (
-            <div key={`m-wo-${section.projectId}`}>
-              <div data-wb-measure={`wo-intro-${si}`}>
+          {([["wo", woSections], ["kw", kwSections]] as const).map(([pfx, list]) => list.map((section, si) => (
+            <div key={`m-${pfx}-${section.projectId}`}>
+              <div data-wb-measure={`${pfx}-intro-${si}`}>
                 <PassageMeta
                   projectId={section.projectId}
                   source={section.source}
@@ -3520,7 +3546,7 @@ export function WorkbookWorkbench({
                   완전한 문장을 쓰세요.
                 </p>
               </div>
-              <div data-wb-measure={`wo-cont-${si}`}>
+              <div data-wb-measure={`${pfx}-cont-${si}`}>
                 <PassageMeta
                   projectId={section.projectId}
                   source={section.source}
@@ -3531,9 +3557,9 @@ export function WorkbookWorkbench({
               </div>
               {section.items.map((it, ii) => (
                 <section
-                  key={`m-wo-item-${it.questionId}`}
+                  key={`m-${pfx}-item-${it.questionId}`}
                   className="word-order-item"
-                  data-wb-measure={`wo-item-${si}-${ii}`}
+                  data-wb-measure={`${pfx}-item-${si}-${ii}`}
                 >
                   <div className="word-order-prompt">
                     <span className="word-order-number">{it.orderIndex}.</span>
@@ -3555,7 +3581,7 @@ export function WorkbookWorkbench({
                   <div className="word-order-answer-area">
                     {Array.from({ length: it.answerLineCount }, (_, i) => (
                       <div
-                        key={`m-woal-${it.questionId}-${i}`}
+                        key={`m-${pfx}al-${it.questionId}-${i}`}
                         className="word-order-answer-line"
                       />
                     ))}
@@ -3563,7 +3589,7 @@ export function WorkbookWorkbench({
                 </section>
               ))}
             </div>
-          ))}
+          )))}
         </div>
         </div>
     </>

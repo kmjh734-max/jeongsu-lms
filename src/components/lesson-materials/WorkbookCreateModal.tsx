@@ -154,6 +154,7 @@ export function WorkbookCreateModal({
   const wantLineKo = selected.has("one_line_ko");
   const wantFullEn = selected.has("full_en_writing");
   const wantWordOrder = selected.has("word_order_writing");
+  const wantKeyWordOrder = selected.has("key_word_order");
 
   if (!open || asking) return null;
 
@@ -217,10 +218,12 @@ export function WorkbookCreateModal({
     if (
       readySelected.includes("one_line_ko") ||
       readySelected.includes("full_en_writing") ||
-      readySelected.includes("word_order_writing")
+      readySelected.includes("word_order_writing") ||
+      readySelected.includes("key_word_order")
     )
       paid.push({ feature: "lesson_workbook_line_translation", quantity: n });
-    if (readySelected.includes("word_order_writing"))
+    // 중요문장 어순배열은 어순배열과 같은 값(둘 다 골라도 한 번)
+    if (readySelected.includes("word_order_writing") || readySelected.includes("key_word_order"))
       paid.push({ feature: "lesson_workbook_word_order", quantity: n });
     setAsking(true);
     const go = await askCreditConfirm({
@@ -587,6 +590,20 @@ export function WorkbookCreateModal({
                   <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
                     저장된 한글 해석과 의미 단위(구·절)로 묶인 영어 청크를 보고
                     완전한 영어 문장을 씁니다.
+                  </p>
+                </div>
+              ) : null}
+
+              {wantKeyWordOrder ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                  <p className="text-sm font-bold text-slate-900">
+                    중요문장 어순배열
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
+                    지문마다 외울 만한 문장만 골라 어순배열로 냅니다. 주제문·핵심
+                    주장 3개까지, 가목적어·가주어·강조구문·도치처럼 구조가 복잡한
+                    문장 2개까지(지문당 최대 5문장). 분석서를 만든 지문은 분석서의
+                    「주제문」·「서술형 대비」 표시를 먼저 따릅니다.
                   </p>
                 </div>
               ) : null}
