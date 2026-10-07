@@ -355,6 +355,7 @@ const SEGMENT_ICON: Record<string, string> = {
   teachers: "badge",
   admins: "shield",
   credits: "coins",
+  "vocab-diagnostic": "send",
 };
 
 export function navIconName(href: string): string {

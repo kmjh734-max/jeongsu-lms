@@ -40,6 +40,9 @@ const PUBLIC_PREFIXES = [
   "/api/nelt/share",
   "/exam-vocab",
   "/api/exam-vocab",
+  // 마케팅 어휘 진단: 외부 응시자가 개인 링크로 로그인 없이 응시·결과 확인(토큰을 서버에서 확인)
+  "/diag",
+  "/api/diag",
   // 토스페이먼츠가 결제 상태를 알려 오는 곳. 라우트에서 토스에 결제를 다시 조회해 확인한다.
   "/api/payments/toss/webhook",
   // 서버끼리 부르는 변형문제 생성 이어 받기. 라우트에서 서명으로 확인한다.

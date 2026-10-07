@@ -18,6 +18,12 @@ export const ACADEMY_FEATURES = [
     label: "중학 문법 문제 은행",
     hint: "레벨·단원별로 문법 문항을 골라 시험지와 정답지로 뽑을 수 있습니다.",
   },
+  {
+    /* 선생님 결정(2026-10-07): 마케팅 탭의 예비고1·예비중1 어휘 진단은 정수학원만 쓴다. */
+    key: "vocab_diagnostic",
+    label: "마케팅: 어휘 진단",
+    hint: "예비고1·예비중1 학생에게 개인 링크로 어휘 진단을 보내고 결과 링크를 줍니다.",
+  },
 ] as const;
 
 export type AcademyFeatureKey = (typeof ACADEMY_FEATURES)[number]["key"];
