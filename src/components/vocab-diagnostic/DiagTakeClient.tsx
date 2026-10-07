@@ -8,26 +8,19 @@ type Answers = Record<string, Answer>;
 
 type Props = {
   token: string;
-  initialState: "ready" | "in_progress" | "submitted";
   academyName: string;
   candidateName: string;
-  candidateGrade: string;
-  targetLabel: string;
   title: string;
-  questionCount: number;
-  minutes: number;
-  intro: string;
 };
 
 /**
  * 어휘 진단 응시 화면(모바일 우선, 한 화면에 한 문항).
- * 답은 고를 때마다 서버에 저장하고(새로고침해도 서버 답으로 이어 감), 채점은 서버가 한다.
+ * 공용 링크에서 정보를 적으면 이 개인 주소로 온다. 답은 고를 때마다 서버에 저장하고(새로고침·창을 닫았다 열어도
+ * 서버 답으로 이어 감), 채점은 서버가 한다.
  */
 export function DiagTakeClient(props: Props) {
   const api = `/api/diag/${props.token}`;
-  const [phase, setPhase] = useState<"intro" | "loading" | "quiz" | "review" | "done" | "error">(
-    props.initialState === "ready" ? "intro" : "loading",
-  );
+  const [phase, setPhase] = useState<"loading" | "quiz" | "review" | "done" | "error">("loading");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Answers>({});
   const [index, setIndex] = useState(0);
@@ -43,9 +36,8 @@ export function DiagTakeClient(props: Props) {
     setPhase("error");
   };
 
-  // 이어 풀기·제출 완료: 서버에 있는 기록을 받아 온다
+  // 서버에 있는 응시 기록(문항·고른 답)을 받아 온다 — 처음이든 이어 풀기든 같다
   useEffect(() => {
-    if (props.initialState === "ready") return;
     let cancelled = false;
     (async () => {
       try {
@@ -64,7 +56,7 @@ export function DiagTakeClient(props: Props) {
           const firstBlank = data.attempt.questions.findIndex((_: Question, i: number) => data.attempt.answers?.[String(i)] === undefined);
           setIndex(firstBlank >= 0 ? firstBlank : 0);
           setPhase("quiz");
-        } else setPhase("intro");
+        } else fail("시험을 불러오지 못했습니다.");
       } catch {
         if (!cancelled) fail("인터넷 연결을 확인한 뒤 새로고침해 주세요.");
       }
@@ -72,7 +64,7 @@ export function DiagTakeClient(props: Props) {
     return () => {
       cancelled = true;
     };
-  }, [api, props.initialState]);
+  }, [api]);
 
   /** 마지막으로 고른 답 묶음을 서버에 보낸다. 보내는 중에 또 고르면 끝난 뒤 한 번 더 보낸다. */
   const flush = useCallback(async () => {
@@ -108,24 +100,6 @@ export function DiagTakeClient(props: Props) {
     void flush();
   };
 
-  const start = async () => {
-    setPhase("loading");
-    try {
-      const res = await fetch(api, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "start" }) });
-      const data = await res.json();
-      if (!data.ok) {
-        if (data.kind === "submitted") return setPhase("done");
-        return fail(data.message ?? "시험을 시작하지 못했습니다.");
-      }
-      setQuestions(data.attempt.questions);
-      setAnswers(data.attempt.answers ?? {});
-      setIndex(0);
-      setPhase("quiz");
-    } catch {
-      fail("인터넷 연결을 확인한 뒤 다시 눌러 주세요.");
-    }
-  };
-
   const submit = async () => {
     if (submitting) return;
     setSubmitting(true);
@@ -151,33 +125,8 @@ export function DiagTakeClient(props: Props) {
       <header className="mb-4">
         <p className="text-xs font-semibold text-brand-700">{props.academyName}</p>
         <h1 className="mt-0.5 text-lg font-bold leading-snug">{props.title}</h1>
+        <p className="mt-0.5 text-xs text-slate-500">{props.candidateName} · 이 주소를 다시 열면 이어서 풀 수 있어요</p>
       </header>
-
-      {phase === "intro" && (
-        <section className="space-y-4">
-          <dl className="grid grid-cols-[5.5rem_1fr] gap-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
-            <dt className="text-slate-500">응시자</dt>
-            <dd className="font-semibold">{props.candidateName}{props.candidateGrade ? ` (${props.candidateGrade})` : ""}</dd>
-            <dt className="text-slate-500">진단 대상</dt>
-            <dd>{props.targetLabel}</dd>
-            <dt className="text-slate-500">문항 수</dt>
-            <dd>{props.questionCount}문항</dd>
-            <dt className="text-slate-500">권장 시간</dt>
-            <dd>{props.minutes}분 (시간이 지나도 계속 풀 수 있어요)</dd>
-          </dl>
-          {props.intro && <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">{props.intro}</p>}
-          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-600">
-            <li>영어 단어를 보고 알맞은 우리말 뜻을 고릅니다.</li>
-            <li>모르는 단어는 「모르겠어요」를 누르세요.</li>
-            <li>답은 바로 저장되어, 창을 닫았다 열어도 이어서 풀 수 있어요.</li>
-            <li>제출한 뒤에는 답을 바꿀 수 없습니다.</li>
-          </ul>
-          <p className="text-xs text-slate-500">응시자 정보가 다르면 시작하지 말고 학원에 알려 주세요.</p>
-          <button type="button" onClick={start} className="h-14 w-full rounded-xl bg-brand-600 text-base font-bold text-white active:bg-brand-700">
-            시험 시작
-          </button>
-        </section>
-      )}
 
       {phase === "loading" && <p className="py-16 text-center text-sm text-slate-500">불러오는 중…</p>}
 

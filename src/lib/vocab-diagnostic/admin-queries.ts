@@ -1,79 +1,27 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAllRows } from "@/lib/supabase/fetch-all-rows";
-import { diagToken, invitePath, resultPath } from "./tokens";
+import { diagToken, openPath, resultPath } from "./tokens";
 import { rateText } from "./scoring";
 import type { DiagTarget, DiagTestRow } from "./types";
 
 /** 관리자 화면용 읽기. 부르는 쪽에서 requireDiagStaff/getDiagStaff 로 학원을 확인한 뒤 academyId 를 넘긴다. */
 
-export async function listTests(academyId: string): Promise<DiagTestRow[]> {
-  const { data, error } = await createAdminClient()
-    .from("vocab_diag_tests")
-    .select("*")
-    .eq("academy_id", academyId)
-    .order("target")
-    .order("version", { ascending: false });
-  if (error) throw new Error(error.message);
-  return (data ?? []) as DiagTestRow[];
-}
-
-export async function getTest(academyId: string, id: string): Promise<DiagTestRow | null> {
-  const { data } = await createAdminClient().from("vocab_diag_tests").select("*").eq("academy_id", academyId).eq("id", id).maybeSingle();
-  return (data as DiagTestRow | null) ?? null;
-}
-
-export type InviteListRow = {
-  id: string;
-  testId: string;
-  testTitle: string;
-  target: DiagTarget;
-  version: number;
-  candidateName: string;
-  grade: string;
-  school: string;
-  createdAt: string;
-  expiresAt: string;
-  link: string;
-  linkState: "active" | "expired" | "revoked";
-  status: "not_started" | "in_progress" | "submitted";
-  attemptId: string | null;
+export type DiagSetup = {
+  link: { path: string; isActive: boolean } | null;
+  tests: DiagTestRow[];
 };
 
-export async function listInvites(academyId: string): Promise<InviteListRow[]> {
+export async function loadSetup(academyId: string): Promise<DiagSetup> {
   const admin = createAdminClient();
-  const invites = await fetchAllRows<{ id: string; test_id: string; candidate_id: string; token_nonce: string; expires_at: string; revoked_at: string | null; created_at: string }>(
-    (from, to) => admin.from("vocab_diag_invites").select("id, test_id, candidate_id, token_nonce, expires_at, revoked_at, created_at").eq("academy_id", academyId).order("created_at", { ascending: false }).range(from, to),
-  );
-  const [tests, cands, attempts] = await Promise.all([
-    listTests(academyId),
-    fetchAllRows<{ id: string; name: string; grade: string; school: string }>((from, to) => admin.from("vocab_diag_candidates").select("id, name, grade, school").eq("academy_id", academyId).range(from, to)),
-    fetchAllRows<{ id: string; invite_id: string; submitted_at: string | null }>((from, to) => admin.from("vocab_diag_attempts").select("id, invite_id, submitted_at").eq("academy_id", academyId).range(from, to)),
+  const [{ data: link }, { data: tests, error }] = await Promise.all([
+    admin.from("vocab_diag_links").select("public_nonce, is_active").eq("academy_id", academyId).maybeSingle(),
+    admin.from("vocab_diag_tests").select("*").eq("academy_id", academyId),
   ]);
-  const t = new Map(tests.map((x) => [x.id, x]));
-  const c = new Map(cands.map((x) => [x.id, x]));
-  const a = new Map(attempts.map((x) => [x.invite_id, x]));
-  const now = Date.now();
-  return invites.map((i) => {
-    const test = t.get(i.test_id);
-    const cand = c.get(i.candidate_id);
-    const att = a.get(i.id);
-    return {
-      id: i.id,
-      testId: i.test_id,
-      testTitle: test?.title ?? "",
-      target: (test?.target ?? "pre_high1") as DiagTarget,
-      version: test?.version ?? 1,
-      candidateName: cand?.name ?? "",
-      grade: cand?.grade ?? "",
-      school: cand?.school ?? "",
-      createdAt: i.created_at,
-      expiresAt: i.expires_at,
-      link: invitePath(diagToken("invite", i.id, i.token_nonce)),
-      linkState: i.revoked_at ? "revoked" : new Date(i.expires_at).getTime() < now ? "expired" : "active",
-      status: att?.submitted_at ? "submitted" : att ? "in_progress" : "not_started",
-      attemptId: att?.id ?? null,
-    };
-  });
+  if (error) throw new Error(error.message);
+  return {
+    link: link ? { path: openPath(diagToken("open", academyId, link.public_nonce)), isActive: link.is_active } : null,
+    tests: ((tests ?? []) as DiagTestRow[]).sort((a, b) => (a.target === "pre_high1" ? 0 : 1) - (b.target === "pre_high1" ? 0 : 1)),
+  };
 }
 
 export type ResultListRow = {
@@ -82,68 +30,53 @@ export type ResultListRow = {
   grade: string;
   school: string;
   target: DiagTarget;
-  testTitle: string;
-  version: number;
+  status: "in_progress" | "submitted";
+  answered: number;
   startedAt: string;
-  submittedAt: string;
+  submittedAt: string | null;
   correct: number;
   total: number;
   rateText: string;
-  minutes: number;
+  minutes: number | null;
   resultLink: string | null;
 };
 
+/** 응시 목록(응시 중 포함), 최근 것부터 */
 export async function listResults(academyId: string): Promise<ResultListRow[]> {
   const admin = createAdminClient();
-  const rows = await fetchAllRows<{ id: string; invite_id: string; test_id: string; target: string; started_at: string; submitted_at: string; correct_count: number; total_count: number; result_nonce: string | null; result_revoked_at: string | null }>(
-    (from, to) =>
-      admin
-        .from("vocab_diag_attempts")
-        .select("id, invite_id, test_id, target, started_at, submitted_at, correct_count, total_count, result_nonce, result_revoked_at")
-        .eq("academy_id", academyId)
-        .not("submitted_at", "is", null)
-        .order("submitted_at", { ascending: false })
-        .range(from, to),
-  );
-  const invites = await listInvites(academyId);
-  const inv = new Map(invites.map((i) => [i.id, i]));
+  const [rows, invites, cands] = await Promise.all([
+    fetchAllRows<{ id: string; invite_id: string; target: string; questions: unknown[]; answers: Record<string, unknown> | null; started_at: string; submitted_at: string | null; correct_count: number | null; total_count: number | null; result_nonce: string | null; result_revoked_at: string | null }>(
+      (from, to) =>
+        admin
+          .from("vocab_diag_attempts")
+          .select("id, invite_id, target, questions, answers, started_at, submitted_at, correct_count, total_count, result_nonce, result_revoked_at")
+          .eq("academy_id", academyId)
+          .order("started_at", { ascending: false })
+          .range(from, to),
+    ),
+    fetchAllRows<{ id: string; candidate_id: string }>((from, to) => admin.from("vocab_diag_invites").select("id, candidate_id").eq("academy_id", academyId).range(from, to)),
+    fetchAllRows<{ id: string; name: string; grade: string; school: string }>((from, to) => admin.from("vocab_diag_candidates").select("id, name, grade, school").eq("academy_id", academyId).range(from, to)),
+  ]);
+  const candOfInvite = new Map(invites.map((i) => [i.id, i.candidate_id]));
+  const cand = new Map(cands.map((c) => [c.id, c]));
   return rows.map((r) => {
-    const i = inv.get(r.invite_id);
+    const c = cand.get(candOfInvite.get(r.invite_id) ?? "");
+    const total = r.total_count ?? r.questions.length;
     return {
       attemptId: r.id,
-      candidateName: i?.candidateName ?? "",
-      grade: i?.grade ?? "",
-      school: i?.school ?? "",
+      candidateName: c?.name ?? "",
+      grade: c?.grade ?? "",
+      school: c?.school ?? "",
       target: r.target as DiagTarget,
-      testTitle: i?.testTitle ?? "",
-      version: i?.version ?? 1,
+      status: r.submitted_at ? "submitted" : "in_progress",
+      answered: Object.keys(r.answers ?? {}).length,
       startedAt: r.started_at,
       submittedAt: r.submitted_at,
       correct: r.correct_count ?? 0,
-      total: r.total_count ?? 0,
-      rateText: rateText(r.correct_count ?? 0, r.total_count ?? 0),
-      minutes: Math.max(0, Math.round((new Date(r.submitted_at).getTime() - new Date(r.started_at).getTime()) / 60000)),
-      resultLink: r.result_nonce && !r.result_revoked_at ? resultPath(diagToken("result", r.id, r.result_nonce)) : null,
+      total,
+      rateText: rateText(r.correct_count ?? 0, total),
+      minutes: r.submitted_at ? Math.max(0, Math.round((new Date(r.submitted_at).getTime() - new Date(r.started_at).getTime()) / 60000)) : null,
+      resultLink: r.submitted_at && r.result_nonce && !r.result_revoked_at ? resultPath(diagToken("result", r.id, r.result_nonce)) : null,
     };
   });
-}
-
-/** 기존 응시자와 재원생(학생 계정) — 같은 사람을 거듭 등록하지 않게 고를 수 있게 한다 */
-export async function listPeople(academyId: string): Promise<{
-  candidates: { id: string; name: string; grade: string; school: string; studentId: string | null }[];
-  students: { id: string; name: string }[];
-}> {
-  const admin = createAdminClient();
-  const [cands, students] = await Promise.all([
-    fetchAllRows<{ id: string; name: string; grade: string; school: string; student_id: string | null }>((from, to) =>
-      admin.from("vocab_diag_candidates").select("id, name, grade, school, student_id").eq("academy_id", academyId).order("created_at", { ascending: false }).range(from, to),
-    ),
-    fetchAllRows<{ id: string; name: string | null; full_name?: string | null }>((from, to) =>
-      admin.from("profiles").select("id, name").eq("academy_id", academyId).eq("role", "student").order("name").range(from, to),
-    ),
-  ]);
-  return {
-    candidates: cands.map((x) => ({ id: x.id, name: x.name, grade: x.grade, school: x.school, studentId: x.student_id })),
-    students: students.map((s) => ({ id: s.id, name: s.name ?? "" })).filter((s) => s.name),
-  };
 }

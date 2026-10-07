@@ -6,7 +6,6 @@ type Props = {
   candidateName: string;
   targetLabel: string;
   title: string;
-  version: number;
   submittedAt: string;
   summary: DiagSummary;
   /** 관리자 상세에서는 모든 문항(맞은 것 포함)을 보여 준다 */
@@ -32,7 +31,7 @@ export function DiagResultView(p: Props) {
         <p className="text-xs font-semibold text-brand-700">{p.academyName}</p>
         <h1 className="mt-0.5 text-lg font-bold leading-snug text-slate-900">{p.title} 결과</h1>
         <p className="mt-1 text-sm text-slate-600">
-          {p.candidateName} · {p.targetLabel} · {p.version}판 · {dateText(p.submittedAt)} 제출
+          {p.candidateName} · {p.targetLabel} · {dateText(p.submittedAt)} 제출
         </p>
       </header>
 

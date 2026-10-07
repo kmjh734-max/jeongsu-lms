@@ -23,7 +23,7 @@ export default async function DiagResultDetailPage({ params }: { params: Promise
   if (!a || !a.submitted_at) notFound();
   const [{ data: inv }, { data: test }, { data: academy }] = await Promise.all([
     admin.from("vocab_diag_invites").select("candidate_id").eq("id", a.invite_id).single(),
-    admin.from("vocab_diag_tests").select("title, version").eq("id", a.test_id).single(),
+    admin.from("vocab_diag_tests").select("title").eq("id", a.test_id).single(),
     admin.from("academies").select("name").eq("id", staff.academyId).single(),
   ]);
   const { data: cand } = await admin.from("vocab_diag_candidates").select("name, grade, school").eq("id", inv?.candidate_id ?? "").maybeSingle();
@@ -40,7 +40,6 @@ export default async function DiagResultDetailPage({ params }: { params: Promise
             candidateName={cand?.name ?? ""}
             targetLabel={DIAG_TARGETS[target].label}
             title={test?.title ?? ""}
-            version={test?.version ?? 1}
             submittedAt={a.submitted_at}
             summary={summarize(a.questions as DiagQuestion[], (a.answers ?? {}) as DiagAnswers)}
             showAll
@@ -50,7 +49,7 @@ export default async function DiagResultDetailPage({ params }: { params: Promise
           <dl className="grid grid-cols-[5rem_1fr] gap-y-1.5 rounded-xl border border-slate-200 bg-white p-4">
             <dt className="text-slate-500">응시자</dt>
             <dd className="font-semibold">{cand?.name}</dd>
-            <dt className="text-slate-500">학년</dt>
+            <dt className="text-slate-500">대상</dt>
             <dd>{cand?.grade || "-"}</dd>
             <dt className="text-slate-500">학교</dt>
             <dd>{cand?.school || "-"}</dd>

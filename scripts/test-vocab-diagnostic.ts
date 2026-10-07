@@ -6,6 +6,7 @@ import { allSenses, buildChoices, displayMeaning, personalOrder, sensesOverlap, 
 import { cleanAnswer, rateText, summarize } from "../src/lib/vocab-diagnostic/scoring";
 import { cleanToken, diagToken, hashDiagToken } from "../src/lib/vocab-diagnostic/tokens";
 import type { DiagAnswers, DiagQuestion } from "../src/lib/vocab-diagnostic/types";
+import { pickQuestions, type BookWord } from "../src/lib/vocab-diagnostic/server";
 
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "test-secret";
 
@@ -84,5 +85,26 @@ assert.notEqual(hashDiagToken("invite", t1), hashDiagToken("result", t1));
 assert.equal(cleanToken(t1), t1);
 assert.equal(cleanToken("short"), null);
 assert.equal(cleanToken("../../etc"), null);
+
+// 무작위 출제: 응시자마다 단어가 다르고, Day 구간이 고르게 들어가며, 한 시험 안에 같은 단어가 없다
+const MEANINGS = ["사과", "책상", "의자", "연필", "바다", "하늘", "구름", "나무", "강", "산", "꽃", "별", "달", "해", "비", "눈", "바람", "돌", "불", "물"];
+const book: { words: BookWord[]; days: number[] } = { words: [], days: [] };
+for (let d = 1; d <= 50; d++) {
+  book.days.push(d);
+  for (let k = 0; k < 20; k++) book.words.push({ itemId: `${d}-${k}`, setId: `s${d}`, day: d, word: `w${d}x${k}`.replace(/[0-9]/g, (n) => "abcdefghij"[Number(n)]!), meaning: `${MEANINGS[k]}${d}` });
+}
+const p1 = pickQuestions(book, 40, "p1");
+const p2 = pickQuestions(book, 40, "p2");
+assert.equal(p1.length, 40);
+assert.equal(new Set(p1.map((x) => x.word)).size, 40);
+assert.notDeepEqual(new Set(p1.map((x) => x.itemId)), new Set(p2.map((x) => x.itemId)));
+const days = p1.map((x) => x.day).sort((a, b) => a - b);
+assert.ok(days[0]! <= 2 && days[days.length - 1]! >= 49, "처음과 끝 Day 구간이 다 들어가야 한다");
+for (let i = 0; i < 40; i++) {
+  const lo = Math.floor((i * 50) / 40) + 1;
+  const hi = Math.floor(((i + 1) * 50) / 40);
+  assert.equal(days.filter((d) => d >= lo && d <= hi).length >= 1, true, `구간 ${lo}~${hi}`);
+}
+for (const q of p1) assert.equal(q.choices[q.answerIndex], q.answer);
 
 console.log("vocab-diagnostic: ok");

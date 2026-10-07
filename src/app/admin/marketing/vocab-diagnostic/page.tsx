@@ -2,41 +2,31 @@ import { notFound } from "next/navigation";
 import { DiagAdminClient } from "@/components/vocab-diagnostic/DiagAdminClient";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getDiagStaff } from "@/lib/vocab-diagnostic/access";
-import { listInvites, listPeople, listResults, listTests } from "@/lib/vocab-diagnostic/admin-queries";
+import { listResults, loadSetup } from "@/lib/vocab-diagnostic/admin-queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function VocabDiagnosticPage() {
   const staff = await getDiagStaff();
   if (!staff) notFound();
-  const [tests, invites, results, people] = await Promise.all([
-    listTests(staff.academyId),
-    listInvites(staff.academyId),
-    listResults(staff.academyId),
-    listPeople(staff.academyId),
-  ]);
+  const [setup, results] = await Promise.all([loadSetup(staff.academyId), listResults(staff.academyId)]);
   return (
     <div className="p-4 sm:p-6">
       <PageHeader
         title="예비고1·예비중1 어휘 진단"
-        description="정수학원 단어장으로 진단 시험을 확정하고, 학생마다 응시 링크를 보내 결과를 상담과 복습 안내에 씁니다."
+        description="링크 하나를 알리면, 학생이 예비고1·예비중1을 고르고 이름을 적어 바로 응시합니다. 단어는 응시할 때마다 단어장에서 고르게 뽑힙니다."
       />
       <DiagAdminClient
-        tests={tests.map((t) => ({
-          id: t.id,
+        link={setup.link}
+        tests={setup.tests.map((t) => ({
           target: t.target,
           title: t.title,
-          version: t.version,
-          status: t.status,
           isActive: t.is_active,
           questionCount: t.question_count,
           minutes: t.recommended_minutes,
-          confirmedAt: t.confirmed_at,
-          updatedAt: t.updated_at,
+          intro: t.intro_text,
         }))}
-        invites={invites}
         results={results}
-        people={people}
       />
     </div>
   );

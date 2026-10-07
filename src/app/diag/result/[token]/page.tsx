@@ -31,7 +31,6 @@ export default async function DiagResultPage({ params }: { params: Promise<{ tok
         candidateName={r.candidateName}
         targetLabel={DIAG_TARGETS[r.target].label}
         title={r.title}
-        version={r.version}
         submittedAt={r.submittedAt}
         summary={r.summary}
       />
