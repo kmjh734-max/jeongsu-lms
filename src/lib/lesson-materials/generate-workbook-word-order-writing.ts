@@ -4,7 +4,7 @@ import {
   type WorkbookLineTranslationSection,
 } from "@/lib/lesson-materials/generate-workbook-line-translation";
 import type { StoredSentenceTranslation } from "@/lib/lesson-materials/translation-meta";
-import { WORD_ORDER_WRITING_ALGORITHM_VERSION } from "@/lib/lesson-materials/word-order-writing-constants";
+import { WORD_ORDER_TARGET_CHUNK_WORDS, WORD_ORDER_WRITING_ALGORITHM_VERSION } from "@/lib/lesson-materials/word-order-writing-constants";
 import {
   buildFallbackWordOrderChunks,
   extractStoredChunksFromPack,
@@ -79,6 +79,15 @@ function finalizeChunks(
   return refined;
 }
 
+/**
+ * 덩어리가 너무 큰지. 선생님 지적(2026-10-07): "구 별로 조금 더 쪼개져야… 너무 덩어리가 크다."
+ * 저장된 직독직해 끊기·예전 캐시는 한 덩어리 6~10낱말이 흔했다. 이런 문장은 더 잘게 나누도록
+ * 다시 청크를 받는다(한 번 받으면 캐시에 남아 다음부터는 부르지 않는다).
+ */
+function tooCoarse(chunks: WordOrderChunk[]): boolean {
+  return chunks.some((c) => c.endTokenIndex - c.startTokenIndex + 1 > WORD_ORDER_TARGET_CHUNK_WORDS);
+}
+
 function resolveChunks(input: {
   passageId: string;
   sentenceId: string;
@@ -97,9 +106,12 @@ function resolveChunks(input: {
     input.sentenceId,
     input.english
   );
+  // 잘게 나뉜 것만 먼저 쓴다. 덩어리가 큰 것은 새로 받은 청크가 없을 때만 쓴다(아래).
+  let coarse: { chunks: WordOrderChunk[]; source: WordOrderChunkSource } | null = null;
   if (stored) {
     const finalized = finalizeChunks(input.english, stored);
-    if (finalized) return { chunks: finalized, source: "stored-syntax" };
+    if (finalized && !tooCoarse(finalized)) return { chunks: finalized, source: "stored-syntax" };
+    if (finalized) coarse = { chunks: finalized, source: "stored-syntax" };
   }
 
   const cached = getCachedSentenceChunks(
@@ -119,7 +131,8 @@ function resolveChunks(input: {
       } else {
         // v4 cache already refined; still run refine (idempotent merges)
         const finalized = finalizeChunks(input.english, cached);
-        if (finalized) return { chunks: finalized, source: "cached-ai" };
+        if (finalized && !tooCoarse(finalized)) return { chunks: finalized, source: "cached-ai" };
+        if (finalized && (!coarse || finalized.length > coarse.chunks.length)) coarse = { chunks: finalized, source: "cached-ai" };
       }
     }
   }
@@ -128,6 +141,7 @@ function resolveChunks(input: {
     const finalized = finalizeChunks(input.english, input.aiChunks);
     if (finalized) return { chunks: finalized, source: "new-ai" };
   }
+  if (coarse) return coarse;
 
   const fallback = buildFallbackWordOrderChunks(
     input.sentenceId,
@@ -314,11 +328,12 @@ export async function generateWorkbookWordOrderWriting(input: {
         it.sourceHash
       );
       const storedOk = stored
-        ? validateWordOrderChunksDetailed(it.english, stored).ok
+        ? validateWordOrderChunksDetailed(it.english, stored).ok && !tooCoarse(stored)
         : false;
       const cachedOk = cached
         ? validateWordOrderChunksDetailed(it.english, cached).ok &&
-          !looksLikeFixedWidthSplit(cached)
+          !looksLikeFixedWidthSplit(cached) &&
+          !tooCoarse(cached)
         : false;
       if (!storedOk && !cachedOk) {
         needAi.push({ sentenceId: it.sentenceId, english: it.english });

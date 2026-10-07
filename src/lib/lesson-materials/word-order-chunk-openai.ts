@@ -10,6 +10,7 @@ import {
   type WordOrderToken,
 } from "@/lib/lesson-materials/word-order-tokenize";
 import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
+import { isGpt5FamilyModel } from "@/lib/listening/openai-listening-model";
 
 const SYSTEM = `너는 고등학교 영어 구문 교재의 문장을 학생이 의미 단위로 끊어 읽을 수 있도록 나누는 전문가다.
 
@@ -26,10 +27,11 @@ const SYSTEM = `너는 고등학교 영어 구문 교재의 문장을 학생이 
 - 조동사·수동태·완료형의 중간에서 끊지 않는다 (예: are being / held 금지 → are being held captive).
 - 강하게 결합된 형용사+명사를 나누지 않는다 (physical cues, same square footage).
 - 쉼표·세미콜론 뒤의 새 절 경계를 가로질러 묶지 않는다 (made, yet we 금지).
-- 고정 단어 수(3단어/4단어)로 자르지 않는다.
+- 낱말 수를 맞추려고 의미 단위(구동사·고유명사·관용 표현)를 깨지 않는다.
 - 전체 문장을 한 청크로 만들지 않는다.
 - 모든 단어를 한 단어씩 분리하지 않는다.
-- 한 청크는 여섯 낱말을 넘지 않는다. 넘으면 의미 단위를 지키면서 더 나눈다.
+- 한 청크는 네 낱말을 넘지 않게 구 단위로 잘게 나눈다(전치사구·부정사구·관계절 앞에서 끊는다).
+  넘으면 의미 단위를 지키면서 더 나눈다(선생님 지적 2026-10-07: 덩어리가 너무 크다).
 - 여덟 낱말이 넘는 문장은 적어도 세 청크로 나눈다. (두 청크뿐이면 차례가 둘밖에
   없어 학생이 찍어도 절반은 맞는다. 선생님과 함께 워크북을 훑어 보니 제시어 배열
   358문항 가운데 예순 개가 그랬다 — 2026-09-29.)
@@ -75,7 +77,11 @@ export async function callWordOrderChunkOpenAI(input: {
   }
 
   const configured = process.env.OPENAI_MODEL_WORKBOOK_WORD_ORDER?.trim();
-  const models = configured ? [configured] : ["gpt-4o-mini", "gpt-4o"];
+  /*
+   * 선생님 지적(2026-10-07) 뒤 덩어리를 4낱말 이하로 조이자 gpt-4o-mini는 「disappears under a / spreadsheet」처럼
+   * 관사에서 끊어 검사에서 셋 중 하나가 버려졌다. 빈칸·T/F와 같은 gpt-5.6-luna를 먼저 쓴다.
+   */
+  const models = configured ? [configured] : ["gpt-5.6-luna", "gpt-4o-mini"];
 
   const userContent = JSON.stringify({
     sentences: input.sentences.map((s) => ({
@@ -101,14 +107,17 @@ export async function callWordOrderChunkOpenAI(input: {
         signal: controller.signal,
         body: JSON.stringify({
           model,
-          temperature: 0.1,
-          max_tokens: 4_096,
+          ...(isGpt5FamilyModel(model)
+            ? { max_completion_tokens: 6_144 }
+            : { temperature: 0.1, max_tokens: 4_096 }),
           response_format: { type: "json_object" },
           messages: [
             { role: "system", content: SYSTEM },
             {
               role: "user",
-              content: `Split each sentence into semantic chunks with types. Return {"sentences":[{"sentenceId":"...","chunks":[{"chunkId":"...","text":"...","startTokenIndex":0,"endTokenIndex":2,"type":"verb-phrase"}]}]}.\n\n${userContent}`,
+              content: `Split each sentence into SMALL phrase-level chunks: every chunk has at most 4 words (hard limit; only a phrasal verb, proper noun or fixed expression that cannot be broken may reach 5). Cut before prepositions, to-infinitives, relative pronouns and conjunctions, and between subject and verb. Never leave a lone conjunction or pronoun (and, but, as, when, because, that, it, they) as its own chunk — attach it to the phrase that follows ("as it is tricky", "when it matches").
+Example: "Confirmation bias affects your ability to separate truth from lies, as it is tricky to identify false information." → "Confirmation bias / affects your ability / to separate truth / from lies, / as it is tricky / to identify / false information."
+Return {"sentences":[{"sentenceId":"...","chunks":[{"chunkId":"...","text":"...","startTokenIndex":0,"endTokenIndex":2,"type":"verb-phrase"}]}]}.\n\n${userContent}`,
             },
           ],
           // 앞부분이 그대로라 다시 읽힐 까닭이 없다 — 같은 자리로 모이게 이름표를 준다
