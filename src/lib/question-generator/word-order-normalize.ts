@@ -871,3 +871,26 @@ function sameLexeme(a: string, b: string): boolean {
   if (Math.min(x.length, y.length) <= 2 && (y.startsWith(x) || x.startsWith(y))) return true;
   return IRREGULAR_FAMILIES.some((f) => f.includes(x) && f.includes(y));
 }
+
+/**
+ * 정답 첫 낱말이 고유명사면 <보기>에서도 대문자로 둔다.
+ *
+ * keepProperCase는 첫 자리를 늘 소문자로 내린다(문장 첫 대문자와 구별이 안 된다). 그래서
+ * 「Kool Herc’s style …」의 Kool이 보기에 「kool」로 나갔다(2026-10-07 대공황·힙합 작업).
+ * 지문 문장 가운데서도 대문자로 쓰인 낱말이면 고유명사로 보고 되살린다.
+ */
+export function restoreLeadingProperNoun(questionText: string, correctAnswer: string, passage: string): string {
+  const w = String(correctAnswer ?? "").trim().match(/^[A-Z][a-z]+/)?.[0];
+  if (!w) return questionText;
+  const p = String(passage ?? "");
+  if (!new RegExp(`[A-Za-z0-9][,;]?\\s+${w}\\b`).test(p)) return questionText;
+  // the·with처럼 지문에 소문자로도 나오면 고유명사가 아니다(제목 속 「The Saturday Evening Post」에 걸렸다)
+  if (new RegExp(`\\b${w.toLowerCase()}\\b`).test(p)) return questionText;
+  const m = questionText.match(/(<보기>\s*\n)([^\n]+)/);
+  if (!m) return questionText;
+  const tokens = m[2]!.split(" / ");
+  const i = tokens.findIndex((t) => t.trim() === w.toLowerCase());
+  if (i < 0) return questionText;
+  tokens[i] = w;
+  return questionText.replace(m[0], `${m[1]}${tokens.join(" / ")}`);
+}

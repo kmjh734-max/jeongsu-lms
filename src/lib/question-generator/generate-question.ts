@@ -64,6 +64,7 @@ import {
   alignInflectBankToExplanation,
   lemmaEnglishToken,
   normalizeWordOrderQuestionText,
+  restoreLeadingProperNoun,
   splitWordBank,
 } from "@/lib/question-generator/word-order-normalize";
 import {
@@ -1729,6 +1730,7 @@ export function assertBasicQuestionShape(
       correctAnswer: String(q.correctAnswer ?? ""),
       mode: woMode,
     });
+    q.questionText = restoreLeadingProperNoun(q.questionText, String(q.correctAnswer ?? ""), q.passageOriginal || "");
     if (woMode === "inflect") {
       q.questionText = alignInflectBankToExplanation(q.questionText, q.explanation || "");
     }
