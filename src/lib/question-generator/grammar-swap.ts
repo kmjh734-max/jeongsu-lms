@@ -7,8 +7,9 @@
  */
 
 const CLASSES: string[][] = [
-  ["what", "which", "that", "where", "when", "who", "whom", "whose", "how", "why", "whether", "if", "whatever", "whoever", "whichever"],
-  ["it", "its", "they", "them", "their", "this", "these", "those", "that", "one", "ones", "itself", "themselves", "he", "him", "his", "she", "her"],
+  ["what", "which", "that", "where", "when", "who", "whom", "whose", "how", "why", "whether", "if", "whatever", "whoever", "whichever", "wherever", "whenever", "however"],
+  ["it", "its", "they", "them", "their", "this", "these", "those", "that", "one", "ones", "itself", "themselves", "he", "him", "his", "she", "her",
+    "myself", "yourself", "yourselves", "himself", "herself", "ourselves"],
   ["a", "an", "the"],
   ["much", "many", "few", "little", "less", "fewer", "more", "most"],
   ["be", "am", "is", "are", "was", "were", "been", "being"],
@@ -16,7 +17,12 @@ const CLASSES: string[][] = [
   ["do", "does", "did", "done", "doing"],
   ["to", "for", "of", "with", "in", "on", "at", "by", "from", "into"],
   ["and", "or", "but", "nor", "so", "yet"],
-  ["as", "like", "than"],
+  ["as", "like", "alike", "than"],
+  // 흔히 내는 혼동 짝(2026-10-07 저장 문항 대조에서 걸린 것)
+  ["so", "such"],
+  // 대동사 — 앞 동사가 be면 be, 일반동사면 do로 받는다
+  ["do", "does", "did", "am", "is", "are", "was", "were"],
+  ["good", "well"],
   ["although", "though", "despite", "because", "while", "whereas", "unless", "during", "since", "after", "before", "until"],
   ["can", "could", "will", "would", "shall", "should", "may", "might", "must"],
 ];
@@ -31,12 +37,25 @@ const IRREG: Record<string, string> = {
   spoken: "speak", chose: "choose", chosen: "choose", better: "good", best: "good",
   worse: "bad", worst: "bad", children: "child", men: "man", women: "woman", people: "person",
   bore: "bear", born: "bear", borne: "bear", led: "lead", meant: "mean", sent: "send",
-  spent: "spend", became: "become", built: "build", caught: "catch", taught: "teach", sought: "seek",
+  spent: "spend", became: "become", stood: "stand", got: "get", gotten: "get", froze: "freeze",
+  frozen: "freeze", built: "build", caught: "catch", taught: "teach", sought: "seek",
 };
 
-const clean = (w: string) => w.toLowerCase().replace(/[^a-z]/g, "");
-// 앞 세 글자로 견준다(became/becoming, take/taking이 네 글자에서 갈렸다)
-const stem = (w: string) => (IRREG[w] ?? w).slice(0, 3);
+// don't·doesn't·can't는 n't를 떼고 견준다(don't → doesn't가 「don」·「doe」로 갈렸다)
+const CONTRACTED: Record<string, string> = { ca: "can", wo: "will", sha: "shall" };
+const clean = (w: string) => {
+  const x = w.toLowerCase().replace(/n['’]t$/, "").replace(/[^a-z]/g, "");
+  return CONTRACTED[x] ?? x;
+};
+// 앞 세 글자로 견준다(became/becoming, take/taking이 네 글자에서 갈렸다).
+// 꼬리를 뗀 꼴도 같이 본다 — used/using이 「use」·「usi」로, need/needing이 갈려 다른 낱말로 잡혔다(2026-10-07).
+const forms = (w: string): string[] => {
+  const base = IRREG[w] ?? w;
+  const cut = base.replace(/(?:ing|ed|es|s|ly)$/, "");
+  return [base, cut, cut.replace(/e$/, "")].filter(Boolean);
+};
+const sameStem = (x: string, y: string) =>
+  forms(x).some((a) => forms(y).some((b) => a === b || (a.length >= 3 && b.length >= 3 && a.slice(0, 3) === b.slice(0, 3))));
 
 function related(original: string, underlined: string): boolean {
   const wa = original.split(/\s+/).map(clean).filter(Boolean);
@@ -44,7 +63,7 @@ function related(original: string, underlined: string): boolean {
   if (wa.length === 0 || wb.length === 0) return true;
   for (const x of wa) {
     for (const y of wb) {
-      if (stem(x) === stem(y)) return true;
+      if (sameStem(x, y)) return true;
       if ((x.length <= 3 && y.startsWith(x)) || (y.length <= 3 && x.startsWith(y))) return true;
       if (CLASSES.some((c) => c.includes(x) && c.includes(y))) return true;
     }

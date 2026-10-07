@@ -78,6 +78,7 @@ import {
   bankWordsLeftInBlankLine,
   widenBlankToSentence,
   closeBlankSentence,
+  lowercaseAnswerAfterMidBlank,
 } from "@/lib/question-generator/blank-line-overlap";
 import {
   findWritingGrammar,
@@ -1703,6 +1704,8 @@ export function assertBasicQuestionShape(
     // 빈칸이 문장 끝 마침표까지 삼켰으면 돌려준다 — 버리지 말고 고쳐 쓴다
     const mod = closeBlankSentence(q.passageModified || "");
     q.passageModified = mod;
+    // 보기 낱말은 정답에서 뽑으므로 그 전에 맞춘다
+    q.correctAnswer = lowercaseAnswerAfterMidBlank(mod, q.passageOriginal || "", String(q.correctAnswer ?? ""));
     if (!/ⓐ/.test(mod) || !/_{3,}/.test(mod)) {
       return "제시어 배열 본문에 ⓐ__________ 빈칸 표시가 필요합니다.";
     }

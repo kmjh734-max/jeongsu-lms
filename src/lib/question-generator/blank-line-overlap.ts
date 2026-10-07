@@ -104,3 +104,31 @@ export function closeBlankSentence(passageModified: string): string {
   if (!/^[ \t]+[A-Z]/.test(after)) return src;
   return `${src.slice(0, end)}.${after}`;
 }
+
+/**
+ * 빈칸이 문장 가운데(「By contrast, ⓐ____」·「But ⓐ____」)인데 정답이 대문자로 시작하면 낮춘다.
+ *
+ * 2026-10-07 점검: 「In the end, The many lives …」처럼 빈칸에 넣으면 표기가 어긋났다.
+ * 저장된 제시어배열 583문항 가운데 30개가 이랬다. 콜론·여는 따옴표 뒤, I·AI 같은 대문자 낱말,
+ * 원문 문장 가운데서도 대문자로 쓰이는 낱말(고유명사)은 그대로 둔다.
+ */
+export function lowercaseAnswerAfterMidBlank(
+  passageModified: string,
+  passageOriginal: string,
+  answer: string
+): string {
+  const src = String(passageModified ?? "");
+  const m = src.match(/[ⓐ-ⓔ㉮-㉲]\s*_{3,}|_{5,}/);
+  if (!m || m.index === undefined) return answer;
+  const before = src.slice(0, m.index).replace(/\s+$/, "");
+  if (before === "" || /[.!?:;"“”'‘’)\]]$/.test(before)) return answer;
+  const lead = String(answer ?? "").match(/^\s*([A-Z][A-Za-z'’]*)/);
+  if (!lead) return answer;
+  const w = lead[1]!;
+  // I·I'm, AI·DNA·McDonald 같은 낱말 안 대문자는 그대로
+  if (/^I(?:['’][a-z]+)?$/.test(w) || /[A-Z]/.test(w.slice(1))) return answer;
+  // 원문 문장 가운데서 대문자로 쓰였으면 고유명사로 본다
+  const esc = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if (new RegExp(`[a-z,;]\\s+${esc}\\b`).test(String(passageOriginal ?? ""))) return answer;
+  return answer.replace(w, w[0]!.toLowerCase() + w.slice(1));
+}
