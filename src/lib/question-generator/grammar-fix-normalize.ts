@@ -250,13 +250,18 @@ export function reconcileGrammarFixQuestion(opts: {
    * 셋을 요구했는데 둘만 만들어 왔다고 통째로 버리면 그 호출 값이 그대로 날아간다.
    * 「모두 고르기」 문항이라 둘이어도 문항으로 성립하고, 답칸 수는 정답에서 세므로
    * 저절로 맞는다. 하나뿐이면 「모두」라는 발문과 어긋나니 그때만 버린다.
+   *
+   * 다만 처음부터 하나를 심으라고 한 문항(item-variety가 2·1·3·2·1로 돌린다)은
+   * 하나면 된다. 2026-10-07 987484f9에서 「1개」 차례 7문항이 모두 이 줄에 걸려
+   * 비싼 모델로 네 번씩 다시 만들다 버려졌다(작업 배수 1.52배).
    */
-  if (pairs.length < 2) {
+  const minPairs = Math.min(2, Math.max(1, opts.wrongN));
+  if (pairs.length < minPairs) {
     return {
       correctAnswer: opts.correctAnswer,
       explanation: opts.explanation,
       ok: false,
-      reason: `어법 수정: 실제 오류가 ${pairs.length}개뿐 (적어도 둘은 있어야 함). 본문·정답·해설이 어긋남${declaredOk.size ? ` (해설이 ${[...declaredOk].join(" ")}를 맞다고 함)` : ""}.`,
+      reason: `어법 수정: 실제 오류가 ${pairs.length}개뿐 (적어도 ${minPairs === 2 ? "둘은" : "하나는"} 있어야 함). 본문·정답·해설이 어긋남${declaredOk.size ? ` (해설이 ${[...declaredOk].join(" ")}를 맞다고 함)` : ""}.`,
     };
   }
 
