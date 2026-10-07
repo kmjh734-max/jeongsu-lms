@@ -530,6 +530,9 @@ export type WordOrderBankMode = "basic" | "inflect" | "add";
 function keepProperCase(original: string, lemma: string, index: number): string {
   if (/^[A-Z][A-Z0-9-]+$/.test(original)) return original; // OED, AI, U.S.
   if (original === "I") return "I";
+  // DJing·MCing처럼 앞 대문자가 둘 이상이면 그 머리를 살린다(Djing으로 나가던 것, 10-07 발곡고2)
+  const caps = original.match(/^[A-Z]{2,}/)?.[0];
+  if (caps && lemma.toLowerCase().startsWith(caps.toLowerCase())) return caps + lemma.slice(caps.length);
   if (index > 0 && /^[A-Z]/.test(original) && lemma) {
     return lemma.charAt(0).toUpperCase() + lemma.slice(1);
   }

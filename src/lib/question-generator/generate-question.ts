@@ -1158,8 +1158,11 @@ function shuffleObjectiveChoices(
         return whole;
       }
     );
-    // 「③·①·⑤」처럼 섞인 나열은 번호 순으로
-    nextExplanation = nextExplanation.replace(/[①-⑤](?:\s*[·,]\s*[①-⑤])+/g, (run) => {
+    /*
+     * 「③·①·⑤」처럼 섞인 나열은 번호 순으로. 다만 「①·②·④·⑤는 각각 A, B, C, D」처럼 뒤 설명과
+     * 차례로 짝지은 나열은 정렬하면 짝이 어긋난다(10-07 발곡고1 내용불일치 3문항) — 그대로 둔다.
+     */
+    nextExplanation = nextExplanation.replace(/[①-⑤](?:\s*[·,]\s*[①-⑤])+(?!\s*[·,]\s*[①-⑤])(?!\s*(?:은|는|이|가|도)?\s*각각)/g, (run) => {
       const sep = run.includes("·") ? "·" : ", ";
       return [...run.matchAll(/[①-⑤]/g)].map((m) => m[0]).sort((a, b) => CIRCLED.indexOf(a) - CIRCLED.indexOf(b)).join(sep);
     });
