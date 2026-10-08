@@ -4,7 +4,7 @@ import { ExamHitReport } from "@/components/exam-analysis/ExamHitReport";
 import type { HitReport } from "@/lib/exam-analysis/hit-report";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 import { Icon } from "@/components/layout/NavIcon";
 import { ExamDeleteButton } from "@/components/exam-analysis/ExamDeleteButton";
 import { readUploadedMaterial } from "@/lib/exam-analysis/read-upload-client";
@@ -239,10 +239,11 @@ function SourcePicker({
 function A4Page({ children, footer }: { children: ReactNode; footer: string }) {
   return (
     <section
-      className="exam-a4 relative flex min-h-[1123px] w-[794px] shrink-0 flex-col gap-[18px] px-[50px] pb-[52px] pt-[48px] text-[12.5px] leading-normal text-[#1f2937] shadow-[0_8px_26px_rgb(15_25_40/0.16)]"
+      className="exam-a4 relative flex min-h-[1123px] w-[794px] shrink-0 flex-col px-[50px] pb-[52px] pt-[48px] text-[12.5px] leading-normal text-[#1f2937] shadow-[0_8px_26px_rgb(15_25_40/0.16)]"
       style={{ background: CREAM }}
     >
-      {children}
+      {/* 인쇄할 때 넘치면 이 틀만 줄여 A4 안에 넣는다(--exam-fit, 아래 맞춤 효과가 잰다) */}
+      <div className="exam-a4-body flex flex-1 flex-col gap-[18px]">{children}</div>
       <div
         className="absolute bottom-[22px] left-[50px] right-[50px] flex justify-between border-t pt-1.5 text-[10px]"
         style={{ borderColor: LINE, color: SOFT }}
@@ -262,11 +263,14 @@ export function ExamReportView({
   generationsHref,
   hitReport = null,
   hitReportAt = null,
+  materialMatchOn = false,
 }: {
   analysis: ExamAnalysisRow;
   items: ExamItemRow[];
   academyName: string;
   listHref: string;
+  /** 수업자료 대조(켜기·끄기, 자료 올리기, 적중표)가 이 학원에 열려 있는지 — 정수학원만 */
+  materialMatchOn?: boolean;
   /** 내가 만든 자료와 대조한 적중표 (선생님 지시 2026-10-01). 눌러서 돌린 결과를 담아 둔다 */
   hitReport?: HitReport | null;
   /** 언제 대조했는가 */
@@ -279,7 +283,7 @@ export function ExamReportView({
   const [items, setItems] = useState(initialItems);
   // 수업자료 대조를 켜고 끄면 서버가 적중 칸을 다시 채운다 → 새 문항표로 바꾼다
   useEffect(() => setItems(initialItems), [initialItems]);
-  const [matchOn, setMatchOn] = useState(analysis.match_materials);
+  const [matchOn, setMatchOn] = useState(materialMatchOn && analysis.match_materials);
   const [matchBusy, setMatchBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editMeta, setEditMeta] = useState(false);
@@ -624,12 +628,58 @@ export function ExamReportView({
   const footer = `${academyName} · 내신 시험 분석 · ${title}`;
   const showMatched = matchOn && s.matched.length > 0;
 
+  /*
+   * 선생님 지적(2026-10-08): 보고서를 인쇄하면 A4 아래가 잘렸다. 문항 줄 높이를 글자 수로
+   * 어림해 쪽을 나눴는데, 실제로 더 길게 그려지면 화면에선 쪽이 늘어나 보여도 인쇄는 297mm에서
+   * 자른다. 그려진 줄 높이를 재서 다시 나누고, 그래도 넘치는 쪽은 인쇄 때 줄여 맞춘다.
+   */
+  /*
+   * 진짜 원인: 용지가 정해지지 않아 브라우저 기본 용지(레터 216x279mm)로 인쇄됐다. A4(297mm)
+   * 한 쪽이 279mm에 안 들어가 아래가 다음 장으로 밀리며 잘렸다. 이름 붙은 @page(app-print-a4)는
+   * 절대 위치 틀에서는 먹지 않으므로, 다른 A4 화면처럼 기본 용지를 A4로 정하는 규칙을 문서 맨
+   * 끝에 넣어 둔다(화면을 떠나면 뺀다).
+   */
+  useEffect(() => {
+    const el = document.createElement("style");
+    el.id = "exam-report-print-page";
+    el.textContent = "@media print { @page { size: 210mm 297mm; margin: 0; } }";
+    document.body.appendChild(el);
+    return () => el.remove();
+  }, []);
+
+  const [rowHeights, setRowHeights] = useState<Record<string, number>>({});
+  useLayoutEffect(() => {
+    const root = document.getElementById("exam-report-print-root");
+    if (!root) return;
+    const next: Record<string, number> = {};
+    root.querySelectorAll<HTMLElement>("tr[data-row-id]").forEach((tr) => {
+      next[tr.dataset.rowId!] = Math.ceil(tr.getBoundingClientRect().height);
+    });
+    setRowHeights((prev) => {
+      const keys = Object.keys(next);
+      const same = keys.length === Object.keys(prev).length && keys.every((k) => prev[k] === next[k]);
+      return same ? prev : next;
+    });
+  });
+  useLayoutEffect(() => {
+    const root = document.getElementById("exam-report-print-root");
+    if (!root) return;
+    const ROOM_PX = 1123 - 48 - 52; // 위아래 여백을 뺀 자리(쪽 번호 줄은 아래 여백 안)
+    root.querySelectorAll<HTMLElement>(".exam-a4-body").forEach((body) => {
+      // 틀 자체는 쪽 높이만큼 늘어나 있으니, 마지막 내용의 아래 끝까지를 잰다
+      const last = body.lastElementChild as HTMLElement | null;
+      const h = last ? last.getBoundingClientRect().bottom - body.getBoundingClientRect().top : 0;
+      body.style.setProperty("--exam-fit", h > ROOM_PX ? (ROOM_PX / h).toFixed(4) : "1");
+    });
+  });
+
   const itemPages = useMemo(() => {
     const ROOM = 900;
     const ROW = 27;
     const LINE = 14;
     const PER_LINE = 88;
     const heightOf = (i: (typeof items)[number]) => {
+      if (rowHeights[i.id]) return rowHeights[i.id]!;
       const notes = [
         i.conditions && `조건: ${i.conditions}`,
         i.grammar_point && `문법: ${i.grammar_point}`,
@@ -670,7 +720,7 @@ export function ExamReportView({
     });
     if (cur.length) out.push(cur);
     return out.length ? out : [[]];
-  }, [items, strategy]);
+  }, [items, strategy, rowHeights]);
 
   const pageTotal = 1 + itemPages.length + (showMatched ? 1 : 0);
   const h3 = "mb-[7px] text-[13.5px] font-bold";
@@ -703,6 +753,7 @@ export function ExamReportView({
           >
             {editing ? "✓ 편집 완료" : "보고서 내용 고치기"}
           </button>
+          {materialMatchOn ? (
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -725,6 +776,7 @@ export function ExamReportView({
               />
             </label>
           </div>
+          ) : null}
           <ExamDeleteButton id={analysis.id} label={title} redirectTo={listHref} variant="button" />
           <button
             type="button"
@@ -735,7 +787,7 @@ export function ExamReportView({
           </button>
         </div>
         
-        {matchFiles.length > 0 && (
+        {materialMatchOn && matchFiles.length > 0 && (
           <div className="mt-3 flex flex-col gap-1.5 rounded-xl border border-brand-100 bg-white p-3 shadow-sm w-full max-w-2xl">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[13px] font-bold text-slate-700 flex items-center gap-1.5">
@@ -774,13 +826,15 @@ export function ExamReportView({
         )}
       </div>
 
-      <ExamHitReport
-        analysisId={analysis.id}
-        report={hitReport}
-        savedAt={hitReportAt}
-        files={matchFiles}
-        excerpts={items.map((i) => String(i.passage_excerpt ?? "")).filter((t) => t.trim().length > 40)}
-      />
+      {materialMatchOn ? (
+        <ExamHitReport
+          analysisId={analysis.id}
+          report={hitReport}
+          savedAt={hitReportAt}
+          files={matchFiles}
+          excerpts={items.map((i) => String(i.passage_excerpt ?? "")).filter((t) => t.trim().length > 40)}
+        />
+      ) : null}
 
       {mocks.length ? (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm print:hidden">
@@ -1185,7 +1239,7 @@ export function ExamReportView({
                   </thead>
                   <tbody>
                     {pageItems.map((i) => (
-                      <tr key={i.id} className="border-t align-middle" style={{ borderColor: "#f1ead9" }}>
+                      <tr key={i.id} data-row-id={i.id} className="border-t align-middle" style={{ borderColor: "#f1ead9" }}>
                         <td className="whitespace-nowrap px-1 py-[3.5px] font-bold">
                           <div className="flex items-center gap-1">
                             <span>{i.item_no}</span>

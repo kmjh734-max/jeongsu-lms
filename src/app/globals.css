@@ -4754,6 +4754,13 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     break-after: auto;
     page-break-after: auto;
   }
+  /* 그래도 넘치는 쪽은 잘리지 않게 그 쪽만 줄인다(--exam-fit은 화면에서 잰 값) */
+  #exam-report-print-root .exam-a4-body {
+    transform: scale(var(--exam-fit, 1));
+    transform-origin: top left;
+    width: calc(100% / var(--exam-fit, 1));
+    flex: none;
+  }
 }
 
 @media print {
