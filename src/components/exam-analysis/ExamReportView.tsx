@@ -263,14 +263,11 @@ export function ExamReportView({
   generationsHref,
   hitReport = null,
   hitReportAt = null,
-  materialMatchOn = false,
 }: {
   analysis: ExamAnalysisRow;
   items: ExamItemRow[];
   academyName: string;
   listHref: string;
-  /** 수업자료 대조(켜기·끄기, 자료 올리기, 적중표)가 이 학원에 열려 있는지 — 정수학원만 */
-  materialMatchOn?: boolean;
   /** 내가 만든 자료와 대조한 적중표 (선생님 지시 2026-10-01). 눌러서 돌린 결과를 담아 둔다 */
   hitReport?: HitReport | null;
   /** 언제 대조했는가 */
@@ -283,7 +280,7 @@ export function ExamReportView({
   const [items, setItems] = useState(initialItems);
   // 수업자료 대조를 켜고 끄면 서버가 적중 칸을 다시 채운다 → 새 문항표로 바꾼다
   useEffect(() => setItems(initialItems), [initialItems]);
-  const [matchOn, setMatchOn] = useState(materialMatchOn && analysis.match_materials);
+  const [matchOn, setMatchOn] = useState(analysis.match_materials);
   const [matchBusy, setMatchBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editMeta, setEditMeta] = useState(false);
@@ -753,7 +750,6 @@ export function ExamReportView({
           >
             {editing ? "✓ 편집 완료" : "보고서 내용 고치기"}
           </button>
-          {materialMatchOn ? (
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -776,7 +772,6 @@ export function ExamReportView({
               />
             </label>
           </div>
-          ) : null}
           <ExamDeleteButton id={analysis.id} label={title} redirectTo={listHref} variant="button" />
           <button
             type="button"
@@ -787,7 +782,7 @@ export function ExamReportView({
           </button>
         </div>
         
-        {materialMatchOn && matchFiles.length > 0 && (
+        {matchFiles.length > 0 && (
           <div className="mt-3 flex flex-col gap-1.5 rounded-xl border border-brand-100 bg-white p-3 shadow-sm w-full max-w-2xl">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[13px] font-bold text-slate-700 flex items-center gap-1.5">
@@ -826,15 +821,13 @@ export function ExamReportView({
         )}
       </div>
 
-      {materialMatchOn ? (
-        <ExamHitReport
-          analysisId={analysis.id}
-          report={hitReport}
-          savedAt={hitReportAt}
-          files={matchFiles}
-          excerpts={items.map((i) => String(i.passage_excerpt ?? "")).filter((t) => t.trim().length > 40)}
-        />
-      ) : null}
+      <ExamHitReport
+        analysisId={analysis.id}
+        report={hitReport}
+        savedAt={hitReportAt}
+        files={matchFiles}
+        excerpts={items.map((i) => String(i.passage_excerpt ?? "")).filter((t) => t.trim().length > 40)}
+      />
 
       {mocks.length ? (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm print:hidden">
