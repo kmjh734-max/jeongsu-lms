@@ -931,7 +931,9 @@ export function QuestionGeneratorClient({
 
       <div className="grid gap-4 lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] lg:items-start">
         {/* 왼쪽: 유형별 세트 */}
-        <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
+        {/* 화면에 붙어 따라오는 칸이라, 세트 구성을 여럿 넣어 화면보다 길어지면 아래가 안 보였다 — 칸 안에서 스크롤한다 */}
+        <aside className="space-y-2 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
+
           <div className="rounded-2xl border border-slate-200 bg-white p-2 shadow-card">
             <p className="px-1 pb-1.5 text-[11px] font-semibold text-slate-500">문항 만드는 방식</p>
             <div className="grid grid-cols-2 gap-1" role="group" aria-label="문항 만드는 방식">
