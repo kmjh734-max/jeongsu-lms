@@ -580,6 +580,19 @@ export function validateGeneratedQuestion(opts: {
       warnings.push(`원문과 다른 밑줄이 ${changed.length}개인데 정답은 ${no}개입니다.`);
       score -= 45;
     }
+    /*
+     * 밑줄 둘이 붙어 있으면(사이 0~1낱말) 어느 쪽을 고쳐도 말이 돼 답이 둘로 읽힌다 —
+     * 2026-10-11 점검 「②enhance the ③unreliability」(정답 ③, ②를 reduce로 고쳐도 통함). 저장 374개 중 11개.
+     */
+    if (option.type === "vocabulary") {
+      const gaps = [...modifiedText.replace(/[ⓐ-ⓩ①-⑳]/g, "").matchAll(/<\/u>([^<]*)<u>/g)].map(
+        (g) => (g[1] ?? "").split(/\s+/).filter((w) => /[A-Za-z]/.test(w)).length
+      );
+      if (gaps.some((n) => n <= 1)) {
+        warnings.push("어휘 밑줄 둘이 붙어 있습니다(사이 한 낱말 이하). 어느 쪽이 틀렸는지 갈리지 않게 두 낱말 이상 띄웁니다.");
+        score -= 45;
+      }
+    }
     // 어휘는 낱말 하나를 바꾸는 유형이다 — 「carry away from the nest」처럼 구를 통째로 바꾸면 어휘 문항이 아니다 (#86)
     if (option.type === "vocabulary") {
       const long = windows.find((m) => wordCount(m[2] ?? "") > 2);
