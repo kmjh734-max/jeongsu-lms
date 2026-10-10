@@ -2850,7 +2850,14 @@ export async function generateOneQuestion(opts: {
 - Pick the marked spots from structures the passage ALREADY has (수일치·관계사·준동사·병렬·태·시제·비교 등 원문에 있는 것). If a target grammar point does not exist in this passage, choose another point that does — never rewrite a sentence to plant one.`
       : "",
     (option.type === "grammar" || option.type === "vocabulary") && opts.paraphraseGrammarVocab
-      ? "- 지문 재진술 켜짐: 밑줄 자리를 만들기 위해 문장을 바꿔 써도 된다(원문 뜻은 지킬 것)."
+      ? /*
+         * 2026-10-10 점검(737문항): 바꿔 쓰기 켠 어법 조건부 15개가 모두 문장 단위로 지문을 흔든 것이었다 —
+         * 첫 문장을 빼 지시어가 떠 버림, 문장 순서를 섞음, 원문에 없는 문장을 지어 붙여 같은 말이 되풀이됨,
+         * 어휘추론에 단서 문장을 넣어 오답이 맞는 말이 됨.
+         */
+        `- 지문 재진술 켜짐: 밑줄 자리를 만들기 위해 문장 안의 낱말·구조는 바꿔 써도 된다(원문 뜻은 지킬 것).
+- 바꿔 쓰더라도 문장 단위는 원문 그대로: 원문 문장을 하나도 빼지 않고, 순서를 바꾸지 않고, 원문에 없는 문장을 새로 지어 넣지 않는다. 문장 수와 차례가 원문과 같아야 한다.
+- 바꿔 쓴 문장이 다른 밑줄·보기의 판단을 바꾸면 안 된다(맞는 보기를 틀리게, 틀린 보기를 맞게 만드는 단서 금지). 밑줄 밖의 낱말을 지우거나 덧붙여 원문 뜻을 바꾸지 않는다.`
       : "",
     /*
      * 바꿔 쓰기를 끈 작업은 어느 유형이든 지문을 원문 그대로 둔다(선생님 승인 2026-10-06).
