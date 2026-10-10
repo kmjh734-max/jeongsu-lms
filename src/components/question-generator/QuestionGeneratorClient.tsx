@@ -294,11 +294,14 @@ export function QuestionGeneratorClient({
   role,
   basePath,
   textbookOpen = false,
+  outsideOpen = false,
 }: {
   role: Role;
   basePath: string;
   /** 교과서 본문을 열어 준 학원인지 — 아니면 교과서 갈래를 아예 안 보인다 */
   textbookOpen?: boolean;
+  /** 외부지문(수능특강 등)을 열어 준 학원인지 */
+  outsideOpen?: boolean;
 }) {
   const [title, setTitle] = useState("");
   const [schoolName, setSchoolName] = useState("");
@@ -322,7 +325,8 @@ export function QuestionGeneratorClient({
   });
   const [presets, setPresets] = useState<PresetRow[]>([]);
   const [passageId, setPassageId] = useState<string | null>(null);
-  const [mockOpen, setMockOpen] = useState(false);
+  /** 지문 불러오기 창: 모의고사·교과서·외부지문 중 어느 쪽으로 열지 */
+  const [mockOpen, setMockOpen] = useState<null | "mock" | "textbook" | "outside">(null);
   /** 어법·어휘에서 지문을 바꿔 쓸지(기본은 원문 그대로) */
   const [paraphraseGV, setParaphraseGV] = useState(false);
   /**
@@ -722,7 +726,7 @@ export function QuestionGeneratorClient({
       }
       return next.length ? next : [emptyPassageInput()];
     });
-    setMockOpen(false);
+    setMockOpen(null);
   }
 
   async function savePreset() {
@@ -1568,10 +1572,30 @@ export function QuestionGeneratorClient({
                     type="button"
                     variant="secondary"
                     disabled={filledPassages.length >= MAX_PASSAGES}
-                    onClick={() => setMockOpen(true)}
+                    onClick={() => setMockOpen("mock")}
                   >
                     모의고사 지문 불러오기
                   </Button>
+                  {textbookOpen ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={filledPassages.length >= MAX_PASSAGES}
+                      onClick={() => setMockOpen("textbook")}
+                    >
+                      교과서 지문 불러오기
+                    </Button>
+                  ) : null}
+                  {outsideOpen ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={filledPassages.length >= MAX_PASSAGES}
+                      onClick={() => setMockOpen("outside")}
+                    >
+                      외부지문 불러오기
+                    </Button>
+                  ) : null}
                   <span className="text-xs text-slate-500">
                     {passages.length >= MAX_PASSAGES ? `최대 ${MAX_PASSAGES}개입니다.` : "아래에 새 행이 추가됩니다."}
                   </span>
@@ -1647,9 +1671,11 @@ export function QuestionGeneratorClient({
           {mockOpen ? (
             <MockPassagePickerModal
               max={MAX_PASSAGES - filledPassages.length}
+              initialSource={mockOpen}
               allowTextbook={textbookOpen}
+              allowOutside={outsideOpen}
               onPick={addMockPassages}
-              onClose={() => setMockOpen(false)}
+              onClose={() => setMockOpen(null)}
             />
           ) : null}
 
