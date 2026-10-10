@@ -12,7 +12,7 @@ import {
   MAX_TOTAL_QUESTIONS,
 } from "@/lib/question-generator/constants";
 import { emptyPassageInput } from "@/lib/question-generator/passages";
-import { QG_SET_FEATURE, billingFeatureFor } from "@/lib/question-generator/billing-buckets";
+import { billingFeatureFor } from "@/lib/question-generator/billing-buckets";
 import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
 import { PassageSheet } from "@/components/passages/PassageSheet";
 import { sampleLevelFor, typeSampleFor, type SampleLevel, type TypeSample } from "@/lib/question-generator/type-samples";
@@ -440,11 +440,11 @@ export function QuestionGeneratorClient({
     for (const [key, n] of Object.entries(effectiveCounts)) {
       const q = Number(n ?? 0);
       if (q <= 0) continue;
-      const feature = setMode ? QG_SET_FEATURE : billingFeatureFor(key);
+      const feature = billingFeatureFor(key);
       sum[feature] = (sum[feature] ?? 0) + q * per;
     }
     return sum;
-  }, [effectiveCounts, filledPassages.length, setMode]);
+  }, [effectiveCounts, filledPassages.length]);
 
   /** 고른 유형으로 이번에 나갈 크레딧. 값을 아직 못 읽었으면 null(문항 수만 보인다) */
   const creditTotal = useMemo(() => {
