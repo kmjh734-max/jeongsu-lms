@@ -1625,7 +1625,13 @@ export async function runGenerationJob(
     const makeSet = async (list: typeof work) => {
       if (!setCfg) return;
       const original = cleanSourcePassage(list[0]!.passageText);
+      /*
+       * 표시형·읽기형은 만들기 전에 갈라 둔다. 표시형(함축·빈칸 상)이 안 돼 읽기형(제목·주제)으로 바뀌면
+       * makeOne이 it.option을 바꾸는데, 그 뒤에 갈랐더니 같은 문항을 읽기형으로 한 번 더 만들었다
+       * (2026-10-11 72문항 작업이 75문항 — 대체가 난 지문 셋에서 하나씩 더).
+       */
       const markers = list.filter((it) => isSetMarkKey(it.option.key));
+      const readers = list.filter((it) => !isSetMarkKey(it.option.key));
       const avoidNote = (done: (typeof work)[number][]) => {
         const used = done.flatMap((d) =>
           d.saved ? markedSentences(d.saved.payload.passageOriginal || original, d.saved.payload.passageModified ?? "") : []
@@ -1657,8 +1663,7 @@ export async function runGenerationJob(
       }
       const shared = merged(done);
       await Promise.all(
-        list
-          .filter((it) => !isSetMarkKey(it.option.key))
+        readers
           .map((it) => {
             it.setNote = setNoteFor({ size: setCfg.size, position: it.setPos ?? 0, sharedPassage: shared });
             return makeOne(it);
