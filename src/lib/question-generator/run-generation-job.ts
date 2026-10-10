@@ -47,8 +47,12 @@ import {
   validateGeneratedQuestion,
 } from "@/lib/question-generator/validate-question";
 import { countEnglishSentences } from "@/lib/question-generator/text-utils";
-import { isSetMarkKey, setFallbackAllowed, setKeysForPassage } from "@/lib/question-generator/passage-set";
-import { checkPassageSetLeaks, setNoteFor, sharedPassageOf } from "@/lib/question-generator/passage-set-check";
+import {
+  isSetMarkKey,
+  setFallbackPreferred,
+  setKeysForPassage,
+} from "@/lib/question-generator/passage-set";
+import { setNoteFor, sharedPassageOf } from "@/lib/question-generator/passage-set-check";
 import type {
   GenerationRequestConfig,
   GeneratedQuestionPayload,
@@ -1507,9 +1511,14 @@ export async function runGenerationJob(
         const usedKeys = new Set(siblings.map((w) => w.option.key));
         const usedScore = (o: QuestionTypeOption) => (usedKeys.has(o.key) ? 2 : 0) + (usedTypes.has(o.type) ? 1 : 0);
         const alternatives = fallbackOptionsFor(item.option.key, level, item.typeTurn ?? item.copyIndex ?? 0)
-          // 1지문 다문항: 세트에 넣을 수 있는 유형만, 표시형은 세트에 하나만
-          .filter((alt) => !setCfg || setFallbackAllowed(alt.key, siblings.map((w) => w.option.key)))
-          .sort((a, b) => usedScore(a) - usedScore(b));
+          .sort((a, b) => usedScore(a) - usedScore(b))
+          // 1지문 다문항: 공용 지문을 흔들지 않는 유형을 앞으로(막지는 않는다)
+          .sort((a, b) =>
+            setCfg
+              ? Number(!setFallbackPreferred(a.key, siblings.map((w) => w.option.key))) -
+                Number(!setFallbackPreferred(b.key, siblings.map((w) => w.option.key)))
+              : 0
+          );
         // 대체 후보는 앞의 셋까지만 — 다 실패하는 지문에서 후보마다 두 번씩 값만 쓰던 것을 막는다
         for (const alt of alternatives.slice(0, 3)) {
           const retry = await generateWithValidation({
@@ -1598,72 +1607,33 @@ export async function runGenerationJob(
     };
 
     /*
-     * 1지문 다문항: 지문마다 표시형(빈칸·어법·어휘) 문항을 먼저 만들고, 그 지문 모양과 정답을 알려 주며
-     * 나머지를 만든다. 다 만들면 세트를 한꺼번에 놓고 한 문항이 다른 문항의 답을 알려 주는지 보고,
-     * 걸린 문항만 한 번 다시 만든다.
+     * 1지문 다문항: 지문마다 표시형(빈칸·어법·어휘) 문항을 먼저 만들고, 학생이 보는 그 지문 모양을 알려 주며
+     * 나머지를 만든다. 문항끼리 답이 겹쳐도 둔다(연습용, 선생님 2026-10-11) — 세트 검수는 하지 않는다.
      */
     const makeSet = async (list: typeof work) => {
       if (!setCfg) return;
       const original = cleanSourcePassage(list[0]!.passageText);
-      for (const m of list.filter((it) => isSetMarkKey(it.option.key))) await makeOne(m);
-      const markerPayload = list.find((it) => isSetMarkKey(it.option.key) && it.saved)?.saved?.payload ?? null;
+      /*
+       * 표시형(빈칸·어법·어휘·함축)이 하나면 그 지문이 세트 공용 지문이다 — 먼저 만들고 나머지에 알려 준다.
+       * 둘 이상이거나 없으면 공용 지문은 원문이고, 지문을 바꾼 문항은 시험지에 자기 지문을 따로 찍는다.
+       */
+      const markers = list.filter((it) => isSetMarkKey(it.option.key));
+      const marker = markers.length === 1 ? markers[0]! : null;
+      if (marker) await makeOne(marker);
+      const markerPayload = marker?.saved?.payload ?? null;
       const shared = markerPayload ? sharedPassageOf(markerPayload, original) : null;
       await Promise.all(
         list
-          .filter((it) => !isSetMarkKey(it.option.key))
+          .filter((it) => it !== marker)
           .map((it) => {
             it.setNote = setNoteFor({
               size: setCfg.size,
               position: it.setPos ?? 0,
-              sharedPassage: shared,
-              made: markerPayload ? [markerPayload] : [],
+              sharedPassage: isSetMarkKey(it.option.key) ? null : shared,
             });
             return makeOne(it);
           })
       );
-      const saved = list.filter((it) => it.saved);
-      if (saved.length < 2 || abandoned || Date.now() > dispatchUntil) return;
-      const usage = { academyId, actorId: userId, featureKey: null, usedFor: "qg_solve", meta: { qgJobId: jobId } };
-      const leaks = await withAiUsage(usage, () =>
-        checkPassageSetLeaks({
-          sharedPassage: shared ?? original,
-          items: saved.map((it) => ({ n: (it.setPos ?? 0) + 1, payload: it.saved!.payload })),
-        })
-      );
-      for (const leak of leaks) {
-        const it = saved.find((x) => (x.setPos ?? 0) + 1 === leak.n);
-        // 공용 지문을 만든 표시형 문항은 그대로 두고, 답을 흘린 읽기형 문항을 다시 만든다
-        if (!it || isSetMarkKey(it.option.key) || abandoned) continue;
-        const others = saved.filter((x) => x !== it).map((x) => x.saved!.payload);
-        const redo = await withAiUsage(
-          {
-            ...usage,
-            featureKey: isWritingType(it.option.key) ? "qg_generate_writing" : "qg_generate_job",
-            usedFor: "question_generator",
-          },
-          () =>
-            generateWithValidation({
-              ...optsFor(it),
-              retries: 1,
-              setNote: `${setNoteFor({ size: setCfg.size, position: it.setPos ?? 0, sharedPassage: shared, made: others })}\nAn earlier version of this item was rejected because it gave away another item's answer: ${leak.reason}`,
-            })
-        );
-        if (!redo.payload) continue;
-        const row = toRow(redo.payload, {
-          passageId: it.passageId,
-          jobId,
-          option: it.option,
-          userId,
-          academyId,
-          attempt: redo.attempt,
-          status: "approved",
-          validationScore: redo.payload.validation?.overallScore ?? null,
-          errorMessage: null,
-          setSlotIndex: (it.setBase ?? 0) + (it.setPos ?? 0),
-        });
-        const { error } = await admin.from("generated_english_questions").update(row).eq("id", it.saved!.id);
-        if (!error) it.saved = { id: it.saved!.id, payload: redo.payload };
-      }
     };
 
     const pool = (async () => {

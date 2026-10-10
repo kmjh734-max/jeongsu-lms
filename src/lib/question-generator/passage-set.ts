@@ -2,11 +2,12 @@
  * 1지문 다문항(세트) — 지문 하나에 문항 2~3개를 붙이고 시험지에는 지문을 한 번만 찍는다.
  *
  * 다른 학원 요청(2026-10-10), 선생님 결정: 지문당 2문항·3문항을 고를 수 있게, 모든 학원에 연다.
- * 한 지문을 함께 쓰려면 지문 모양이 하나여야 한다.
- *  - 원문 그대로 푸는 유형(주제·제목·요지·일치·불일치·일치개수·요약문)은 몇 개든 함께 쓴다.
- *  - 지문에 빈칸·밑줄을 치는 유형(빈칸·어법·어휘·함축)은 세트에 하나만 — 둘이면 한 지문에 표시가 겹친다.
- *    그 문항의 지문이 세트 공용 지문이 된다(수능 41~42번: 제목 + 어휘 밑줄).
- *  - 지문을 자르거나 문장을 빼는 유형(삽입·순서·무관·제시어배열·어법 수정형)은 세트에 넣지 않는다.
+ * 유형은 무엇이든 넣을 수 있다(2026-10-11 완화). 지문을 함께 쓰는 방식:
+ *  - 원문 그대로 푸는 유형(주제·제목·요지·일치·불일치·일치개수·요약문)은 공용 지문을 함께 쓴다.
+ *  - 지문에 빈칸·밑줄을 치는 유형(빈칸·어법·어휘·함축)이 하나면 그 문항의 지문이 세트 공용 지문이 된다
+ *    (수능 41~42번: 제목 + 어휘 밑줄).
+ *  - 표시형이 둘 이상이거나, 지문을 자르거나 문장을 빼는 유형(삽입·순서·무관·제시어배열·어법 수정형)은
+ *    시험지에서 그 문항만 자기 지문을 따로 찍는다.
  */
 
 /** 원문 그대로 푸는 유형 */
@@ -22,18 +23,8 @@ const READ_CODES = new Set([
   "요약문빈칸영작",
 ]);
 
-/** 지문에 빈칸·밑줄을 치는 유형 — 세트에 하나만 */
+/** 지문에 빈칸·밑줄을 치는 유형 — 하나면 그 지문이 세트 공용 지문 */
 const MARK_CODES = new Set(["빈칸추론", "어법추론", "어법개수", "어휘추론", "어휘개수", "함축의미추론"]);
-
-/*
- * 빈칸·함축은 글의 핵심 문장에 치는 일이 많아, 주제·제목·요지·요약문의 정답이 그 답을 그대로 풀어 말하게 된다
- * (시험 2026-10-10: 빈칸 정답 「craving additional wealth had obscured the worth of being satisfied」와
- * 주제 정답 「craving for greater territory obscures the worth of what he owns」). 수능 41~42번도 제목은 어휘와 묶는다.
- */
-const KEY_SENTENCE_CODES = new Set(["빈칸추론", "함축의미추론"]);
-const GIST_CODES = new Set(["주제추론", "제목추론", "요지추론", "요약문빈칸2단어", "요약문빈칸3단어", "요약문빈칸영작"]);
-const clashes = (keys: string[]) =>
-  keys.some((k) => KEY_SENTENCE_CODES.has(codeOf(k))) && keys.some((k) => GIST_CODES.has(codeOf(k)));
 
 export const PASSAGE_SET_SIZES = [2, 3] as const;
 export type PassageSetSize = (typeof PASSAGE_SET_SIZES)[number];
@@ -68,21 +59,25 @@ export function setKeysForPassage(set: PassageSetConfig, pi: number): string[] {
   return list[pi % list.length]!;
 }
 
-/** 구성 하나가 맞는지 */
+/**
+ * 구성 하나가 맞는지 — 문항 수만 본다.
+ *
+ * 선생님 결정(2026-10-11): 「문제가 안 만들어지는 게 아니면 겹치는 유형을 완화하라, 너무 타이트하다」.
+ * 처음에는 표시형 하나만·지문을 바꾸는 유형 금지·빈칸과 주제 금지로 막았지만, 어느 것도 못 만드는 것은 아니다.
+ *  - 지문 모양이 다른 문항(두 번째 표시형, 삽입·순서·무관·제시어배열)은 시험지에서 자기 지문을 따로 찍는다(인쇄 bySet).
+ *  - 빈칸 정답과 주제·제목 정답이 겹쳐도 둔다 — 연습용이라 괜찮다(선생님, 같은 날).
+ *    그래서 문항끼리 답이 새는지 보던 세트 검수(passage-set-check)도 뺐다.
+ */
 function variantProblem(size: number, keys: string[]): string | null {
   if (!Array.isArray(keys) || keys.length !== size || keys.some((k) => !k)) {
     return `세트의 문항 ${size}개 유형을 모두 골라 주세요.`;
   }
-  if (keys.some((k) => !isSetAllowedKey(k))) {
-    return "문장삽입·순서·무관한문장·제시어배열·어법 수정형은 지문을 바꿔서 세트에 넣을 수 없습니다.";
-  }
-  if (keys.filter(isSetMarkKey).length > 1) {
-    return "지문에 표시하는 유형(빈칸·어법·어휘·함축)은 세트에 하나만 넣을 수 있습니다.";
-  }
-  if (clashes(keys)) {
-    return "빈칸·함축은 주제·제목·요지·요약문과 같은 세트에 넣을 수 없습니다. 빈칸 정답이 곧 글의 요지라 서로 답을 알려 줍니다.";
-  }
   return null;
+}
+
+/** 세트 안 지문이 한 모양으로 모이지 않는 구성인가(지문을 따로 찍는 문항이 생긴다) — 안내용 */
+export function setPrintsExtraPassage(keys: string[]): boolean {
+  return keys.filter(isSetMarkKey).length > 1 || keys.some((k) => !isSetAllowedKey(k));
 }
 
 /** 세트 구성이 맞는지. 틀리면 선생님께 보일 까닭, 맞으면 null */
@@ -105,10 +100,8 @@ export function passageSetCounts(set: PassageSetConfig): Record<string, number> 
   return counts;
 }
 
-/** 세트에서 다른 유형으로 바꿔 만들 때 쓸 수 있는 후보인가 — 표시형이 이미 있으면 읽기형만 */
-export function setFallbackAllowed(candidateKey: string, otherKeys: string[]): boolean {
+/** 세트에서 다른 유형으로 바꿔 만들 때 먼저 고를 후보인가 — 공용 지문을 흔들지 않는 유형을 앞에 둔다 */
+export function setFallbackPreferred(candidateKey: string, otherKeys: string[]): boolean {
   if (!isSetAllowedKey(candidateKey)) return false;
-  if (isSetMarkKey(candidateKey) && otherKeys.some(isSetMarkKey)) return false;
-  if (clashes([candidateKey, ...otherKeys])) return false;
-  return true;
+  return !(isSetMarkKey(candidateKey) && otherKeys.some(isSetMarkKey));
 }

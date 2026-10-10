@@ -8,6 +8,7 @@ import {
   isSetAllowedKey,
   isSetMarkKey,
   passageSetProblem,
+  setPrintsExtraPassage,
   type PassageSetSize,
 } from "@/lib/question-generator/passage-set";
 
@@ -30,8 +31,10 @@ const DEFAULT_CODES: Record<PassageSetSize, string[][]> = {
   ],
 };
 
+/** 세트에 넣을 수 있는 유형 — 무엇이든(2026-10-11 완화). 지문을 바꾸지 않는 유형을 앞에 둔다 */
 export function passageSetOptions() {
-  return QUESTION_TYPE_GROUPS.flatMap((g) => g.options).filter((o) => isSetAllowedKey(o.key));
+  const all = QUESTION_TYPE_GROUPS.flatMap((g) => g.options);
+  return [...all.filter((o) => isSetAllowedKey(o.key)), ...all.filter((o) => !isSetAllowedKey(o.key))];
 }
 
 /** 구성 n번째(0부터)의 기본값 — 구성을 더할 때마다 다른 조합을 채워 둔다 */
@@ -122,12 +125,17 @@ export function PassageSetPicker({
                   <option key={o.key} value={o.key}>
                     {/* 유형 목록에서는 묶음 이름이 따로 보이지만 여기서는 「(영) 하」만으로는 무슨 유형인지 모른다 */}
                     {o.label.includes(codeOf(o.key)) ? o.label : `${codeOf(o.key)} · ${o.label}`}
-                    {isSetMarkKey(o.key) ? " · 지문에 표시" : ""}
+                    {isSetMarkKey(o.key) ? " · 지문에 표시" : !isSetAllowedKey(o.key) ? " · 지문 따로" : ""}
                   </option>
                 ))}
               </select>
             </label>
           ))}
+          {setPrintsExtraPassage(keys) ? (
+            <p className="text-[11px] leading-relaxed text-slate-500">
+              지문 모양이 다른 문항이 있어, 그 문항은 시험지에 지문을 한 번 더 찍습니다.
+            </p>
+          ) : null}
         </div>
       ))}
 
@@ -147,9 +155,8 @@ export function PassageSetPicker({
 
       <p className="text-[11px] leading-relaxed text-slate-500">
         구성을 여럿 넣으면 지문 차례대로 A·B·A·B… 번갈아 붙입니다(지문 10개에 구성 둘이면 5개씩).
-        빈칸·어법·어휘·함축처럼 지문에 표시하는 유형은 세트에 하나만 넣을 수 있고, 그 문항의 지문을 세트가 함께 씁니다.
-        빈칸·함축은 주제·제목·요지·요약문과 함께 넣을 수 없습니다(빈칸 정답이 곧 글의 요지라 답이 겹칩니다).
-        문장삽입·순서·무관한문장·제시어배열은 지문을 바꿔서 세트에 넣을 수 없습니다.
+        빈칸·어법·어휘·함축처럼 지문에 표시하는 유형이 하나면 그 문항의 지문을 세트가 함께 씁니다.
+        표시하는 유형이 둘 이상이거나 문장삽입·순서·무관한문장·제시어배열처럼 지문을 바꾸는 유형은 그 문항만 지문을 따로 찍습니다.
       </p>
     </section>
   );
