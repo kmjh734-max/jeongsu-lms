@@ -1,3 +1,4 @@
+import { joinBrokenWords } from "@/lib/question-generator/text-utils";
 import { grammarSwapSpots } from "@/lib/question-generator/grammar-swap";
 import { VALIDATION_PASS_SCORE } from "@/lib/question-generator/constants";
 import { cleanSourcePassage } from "@/lib/question-generator/passage-clean";
@@ -82,6 +83,70 @@ export function passageKeptRatio(original: string, modified: string): number {
 
 /** 어법·어휘에서 지문을 그대로 두었다고 볼 최저선(밑줄 6곳이 바뀌어도 넘는 값) */
 export const PASSAGE_KEEP_MIN = 0.9;
+
+/**
+ * 어법·어휘: 밑줄 밖 원문이 빠졌거나 바뀌었는지.
+ *
+ * 2026-10-11 점검(72문항)에서 어법개수 하나가 「Rooms have their own "sound" because they impose
+ * their own characteristics」의 가운데 일곱 낱말을 지우고 「Rooms have ⓐtheirs characteristics」로 냈다.
+ * 낱말 주머니(90%)·밑줄 속 대조·문장 수 어느 것으로도 안 잡혔다. 밑줄 바깥 낱말 덩어리가 원문에
+ * 차례대로 이어 나오는지 보고, 밑줄 자리에서만 (밑줄 낱말 수 + 3)까지 건너뛰게 한다.
+ * 걸리면 빠진·바뀐 자리 앞 낱말을 돌려준다.
+ */
+export function underlineOutsideProblem(original: string, modified: string): string | null {
+  // 원문의 깨진 낱말(「t he」)은 문항에서 붙여 낸다 — 같은 손질을 한 뒤 견준다
+  const words = (t: string) =>
+    joinBrokenWords(plainText(t))
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .split(" ")
+      .filter(Boolean)
+      // 어휘에서 낱말을 바꾸면 앞 관사도 맞춰 바꾼다(a below → an above) — 같은 것으로 본다
+      .map((w) => (w === "an" ? "a" : w));
+  const src = words(original);
+  if (src.length < 20 || !/<u>/i.test(modified)) return null;
+  // 밑줄 밖 덩어리와 밑줄(낱말 수)을 번갈아 늘어놓는다
+  const parts = String(modified).split(/<u>([\s\S]*?)<\/u>/i);
+  let pos = 0;
+  // 지문 첫머리: 원문 앞에 붙은 단원 제목(「Dark Patterns: Deception or …」)은 문항이 빼고 낸다
+  let skip = 20;
+  for (let k = 0; k < parts.length; k++) {
+    if (k % 2 === 1) {
+      skip = words(parts[k] ?? "").length + 3;
+      pos = Math.min(pos, src.length);
+      continue;
+    }
+    const run = words(parts[k] ?? "");
+    if (!run.length) continue;
+    let found = -1;
+    for (let j = pos; j <= Math.min(pos + skip, src.length - run.length); j++) {
+      let ok = true;
+      for (let t = 0; t < run.length; t++) {
+        if (src[j + t] !== run[t]) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        found = j;
+        break;
+      }
+    }
+    if (found < 0) {
+      // 가장 길게 맞는 자리에서 어긋나기 시작한 낱말을 보여 준다
+      let best = 0;
+      for (let j = pos; j <= Math.min(pos + skip, src.length - 1); j++) {
+        let t = 0;
+        while (t < run.length && src[j + t] === run[t]) t++;
+        best = Math.max(best, t);
+      }
+      return run.slice(Math.max(0, best - 2), best + 4).join(" ");
+    }
+    pos = found + run.length;
+    skip = 0;
+  }
+  return null;
+}
 
 /** 낱말·숫자만 남겨 붙인다 — 문장부호·따옴표·대소문자·띄어쓰기 차이는 고친 것으로 치지 않는다 */
 function squashText(text: string): string {
@@ -283,6 +348,12 @@ export function validateGeneratedQuestion(opts: {
       } else if (sentencesOf(q.passageModified ?? "").length > sentencesOf(opts.passage).length) {
         warnings.push("원문에 없는 문장을 지문에 넣었습니다. 원문 문장 안에서만 밑줄을 쳐야 합니다.");
         score -= 45;
+      } else {
+        const at = underlineOutsideProblem(opts.passage, q.passageModified ?? "");
+        if (at) {
+          warnings.push(`밑줄 밖 원문이 빠졌거나 바뀌었습니다(「${at}」 근처). 밑줄 자리 말고는 원문 그대로 둡니다.`);
+          score -= 45;
+        }
       }
     }
   }
