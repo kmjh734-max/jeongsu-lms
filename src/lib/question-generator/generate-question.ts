@@ -207,6 +207,7 @@ questionText empty.`;
         option.difficulty === "high" ? "exactly 8" : "exactly 6"
       }.
 - choices: omit or empty array. No ①~⑤ options.
+- REQUIRED OUTPUT ORDER: write "choicePlan" FIRST (one row per statement: n, quote, passageSays, change, refutedBy, verdict), then write questionText from that plan. An answer without choicePlan is rejected.
 - Do NOT change the passage; omit passageModified.
 - explanation: list which numbers are false and why (Korean, brief).
 - Every statement must be clearly true or clearly false from the passage alone: no vague references ("the opposite direction" of what?), no comparisons the passage never makes, no paraphrase that could be read either way. A false statement changes one checkable fact.
@@ -2284,6 +2285,8 @@ export function assertBasicQuestionShape(
   }
 
   if (option.type === "content_count") {
+    // 진술 앞에 칸 이름 「<보기>」를 또 적어 오는 일이 있다 — 화면이 이미 <보기> 상자로 감싼다
+    if (q.questionText) q.questionText = q.questionText.replace(/^\s*<보기>\s*/, "");
     const qt = (q.questionText || "").trim();
     if (!qt || !/\(1\)/.test(qt)) {
       return "일치개수 문항은 <보기> (1)(2)… 진술이 필요합니다.";
@@ -2412,7 +2415,9 @@ const QG_MODEL_MAIN = process.env.OPENAI_MODEL_QG_MAIN?.trim() || "gpt-5.6-sol";
 
 /** 싼 모델로 만들어도 차이가 없던 유형 */
 // 내용일치도 싼 모델로(2026-10-04: 내용불일치가 싼 모델로 두 차례 40문항 시험에서 불량 0, 내용일치는 비싼 모델 원가가 문항당 45원)
-const LIGHT_TYPES = new Set(["title", "topic", "sentence_blank", "content_false", "content_true"]);
+// 일치개수도 싼 모델로(2026-10-10: 비싼 모델은 문항당 약 95원이라 110크레딧에서 1.25~1.6배였다. 싼 모델 20문항 시험에서
+// 정답 20/20, 평균 시도 1.1번, 문항당 약 54원. 처음 시험은 보기 계획을 빼먹어 25%가 실패했다 — 아래 일치개수 규칙에 계획 줄을 넣었다)
+const LIGHT_TYPES = new Set(["title", "topic", "sentence_blank", "content_false", "content_true", "content_count"]);
 
 function modelForType(option: { type: string }): string {
   return LIGHT_TYPES.has(option.type) ? QG_MODEL_LIGHT : QG_MODEL_MAIN;
