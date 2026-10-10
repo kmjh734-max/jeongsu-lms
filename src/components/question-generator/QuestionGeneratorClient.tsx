@@ -334,7 +334,9 @@ export function QuestionGeneratorClient({
   /** 1지문 다문항(세트) — 켜면 유형별 개수 대신 지문당 2·3문항 구성을 고른다 */
   const [setMode, setSetMode] = useState(false);
   const [setSize, setSetSize] = useState<PassageSetSize>(3);
-  const [setKeys, setSetKeys] = useState<string[]>(() => defaultPassageSetKeys(3));
+  /** 세트 구성 A·B… — 지문 차례대로 번갈아 붙인다 */
+  const [setVariantList, setSetVariantList] = useState<string[][]>(() => [defaultPassageSetKeys(3)]);
+  const setKeys = setVariantList[0] ?? [];
   /**
    * 조건 영작에 쓸 어법 범위. 비워 두면 지문에 있는 것 가운데 알아서 고른다.
    * 선생님 요청(2026-09-28): 무작위로 해도 되고 정해 둔 범위로 해도 되게.
@@ -396,6 +398,7 @@ export function QuestionGeneratorClient({
   const effectiveCounts = useMemo(
     () => (setMode ? passageSetCounts({ size: setSize, keys: setKeys }) : counts),
     [setMode, setSize, setKeys, counts]
+    // 구성마다 문항 수가 같아 첫 구성으로 세면 문항 수·크레딧이 맞는다
   );
   const perPassageTotals = useMemo(() => sumCounts(effectiveCounts), [effectiveCounts]);
   const grandTotal = perPassageTotals.total * Math.max(1, filledPassages.length);
@@ -466,7 +469,15 @@ export function QuestionGeneratorClient({
       mode: modeTab === "custom" ? "custom" : "preset",
       presetId: modeTab.startsWith("preset:") ? modeTab.slice(7) : null,
       counts: effectiveCounts,
-      ...(setMode ? { passageSet: { size: setSize, keys: setKeys } } : {}),
+      ...(setMode
+        ? {
+            passageSet: {
+              size: setSize,
+              keys: setKeys,
+              ...(setVariantList.length > 1 ? { variants: setVariantList } : {}),
+            },
+          }
+        : {}),
       ...(paraphraseGV ? { paraphraseGrammarVocab: true } : {}),
       ...(grammarScope.length ? { grammarScope } : {}),
       ...((counts["writing:na:default:문법조건영작"] ?? 0) > 0 ? { grammarWritingMode } : {}),
@@ -499,6 +510,7 @@ export function QuestionGeneratorClient({
       setMode,
       setSize,
       setKeys,
+      setVariantList,
     ]
   );
 
@@ -604,7 +616,11 @@ export function QuestionGeneratorClient({
         if (cfg.passageSet && !passageSetProblem(cfg.passageSet)) {
           setSetMode(true);
           setSetSize(cfg.passageSet.size);
-          setSetKeys(cfg.passageSet.keys);
+          setSetVariantList(
+            Array.isArray(cfg.passageSet.variants) && cfg.passageSet.variants.length > 0
+              ? cfg.passageSet.variants
+              : [cfg.passageSet.keys]
+          );
         }
         setLessonProjectIds(Array.isArray(cfg.lessonProjectIds) ? cfg.lessonProjectIds : []);
         if (cfg.presetId) setModeTab(`preset:${cfg.presetId}`);
@@ -782,7 +798,9 @@ export function QuestionGeneratorClient({
     setError(null);
     setMessage(null);
     try {
-      const setProblem = setMode ? passageSetProblem({ size: setSize, keys: setKeys }) : null;
+      const setProblem = setMode
+        ? passageSetProblem({ size: setSize, keys: setKeys, variants: setVariantList })
+        : null;
       if (setProblem) {
         setError(setProblem);
         return;
@@ -938,10 +956,11 @@ export function QuestionGeneratorClient({
           {setMode ? (
             <PassageSetPicker
               size={setSize}
-              keys={setKeys}
+              variants={setVariantList}
+              passageCount={filledPassages.length}
               onChange={(n, keys) => {
                 setSetSize(n);
-                setSetKeys(keys);
+                setSetVariantList(keys);
               }}
             />
           ) : null}

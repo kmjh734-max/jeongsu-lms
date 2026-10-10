@@ -40,30 +40,60 @@ export type PassageSetSize = (typeof PASSAGE_SET_SIZES)[number];
 
 export interface PassageSetConfig {
   size: PassageSetSize;
-  /** 세트 안 문항 차례대로 유형 키(option key). 길이 = size */
+  /** 세트 안 문항 차례대로 유형 키(option key). 길이 = size. 구성이 여럿이면 첫 구성 */
   keys: string[];
+  /**
+   * 세트 구성 여럿(구성 A·B…). 지문 차례대로 A·B·A·B… 번갈아 붙인다(선생님 결정 2026-10-10: 「절반씩」).
+   * 없으면 keys 하나만 쓴다.
+   */
+  variants?: string[][];
 }
+
+/** 세트 구성은 4개까지 */
+export const MAX_SET_VARIANTS = 4;
 
 const codeOf = (key: string) => String(key ?? "").split(":").pop() ?? "";
 
 export const isSetMarkKey = (key: string) => MARK_CODES.has(codeOf(key));
 export const isSetAllowedKey = (key: string) => READ_CODES.has(codeOf(key)) || MARK_CODES.has(codeOf(key));
 
+/** 이 세트 설정의 구성 목록 */
+export function setVariants(set: PassageSetConfig): string[][] {
+  return Array.isArray(set.variants) && set.variants.length > 0 ? set.variants : [set.keys];
+}
+
+/** pi번째 지문(0부터)에 붙일 구성 — 번갈아 붙인다 */
+export function setKeysForPassage(set: PassageSetConfig, pi: number): string[] {
+  const list = setVariants(set);
+  return list[pi % list.length]!;
+}
+
+/** 구성 하나가 맞는지 */
+function variantProblem(size: number, keys: string[]): string | null {
+  if (!Array.isArray(keys) || keys.length !== size || keys.some((k) => !k)) {
+    return `세트의 문항 ${size}개 유형을 모두 골라 주세요.`;
+  }
+  if (keys.some((k) => !isSetAllowedKey(k))) {
+    return "문장삽입·순서·무관한문장·제시어배열·어법 수정형은 지문을 바꿔서 세트에 넣을 수 없습니다.";
+  }
+  if (keys.filter(isSetMarkKey).length > 1) {
+    return "지문에 표시하는 유형(빈칸·어법·어휘·함축)은 세트에 하나만 넣을 수 있습니다.";
+  }
+  if (clashes(keys)) {
+    return "빈칸·함축은 주제·제목·요지·요약문과 같은 세트에 넣을 수 없습니다. 빈칸 정답이 곧 글의 요지라 서로 답을 알려 줍니다.";
+  }
+  return null;
+}
+
 /** 세트 구성이 맞는지. 틀리면 선생님께 보일 까닭, 맞으면 null */
 export function passageSetProblem(set: PassageSetConfig | null | undefined): string | null {
   if (!set) return null;
   if (!PASSAGE_SET_SIZES.includes(set.size as PassageSetSize)) return "지문당 문항 수는 2문항이나 3문항입니다.";
-  if (!Array.isArray(set.keys) || set.keys.length !== set.size || set.keys.some((k) => !k)) {
-    return `세트의 문항 ${set.size}개 유형을 모두 골라 주세요.`;
-  }
-  if (set.keys.some((k) => !isSetAllowedKey(k))) {
-    return "문장삽입·순서·무관한문장·제시어배열·어법 수정형은 지문을 바꿔서 세트에 넣을 수 없습니다.";
-  }
-  if (set.keys.filter(isSetMarkKey).length > 1) {
-    return "지문에 표시하는 유형(빈칸·어법·어휘·함축)은 세트에 하나만 넣을 수 있습니다.";
-  }
-  if (clashes(set.keys)) {
-    return "빈칸·함축은 주제·제목·요지·요약문과 같은 세트에 넣을 수 없습니다. 빈칸 정답이 곧 글의 요지라 서로 답을 알려 줍니다.";
+  const list = setVariants(set);
+  if (list.length > MAX_SET_VARIANTS) return `세트 구성은 ${MAX_SET_VARIANTS}개까지 넣을 수 있습니다.`;
+  for (const [i, keys] of list.entries()) {
+    const problem = variantProblem(set.size, keys);
+    if (problem) return list.length > 1 ? `구성 ${"ABCD"[i]}: ${problem}` : problem;
   }
   return null;
 }

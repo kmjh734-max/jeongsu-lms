@@ -47,7 +47,7 @@ import {
   validateGeneratedQuestion,
 } from "@/lib/question-generator/validate-question";
 import { countEnglishSentences } from "@/lib/question-generator/text-utils";
-import { isSetMarkKey, setFallbackAllowed } from "@/lib/question-generator/passage-set";
+import { isSetMarkKey, setFallbackAllowed, setKeysForPassage } from "@/lib/question-generator/passage-set";
 import { checkPassageSetLeaks, setNoteFor, sharedPassageOf } from "@/lib/question-generator/passage-set-check";
 import type {
   GenerationRequestConfig,
@@ -1046,9 +1046,12 @@ export async function runGenerationJob(
      * 1지문 다문항이면 세트 차례대로 한 문항씩. 개수 칸(counts)도 같은 구성이라 요청 수·크레딧은 그대로 맞는다.
      */
     const setCfg = config.passageSet && !blueprint ? config.passageSet : null;
-    const options = setCfg
-      ? setCfg.keys.map((k) => findOptionByKey(k)).filter((o): o is QuestionTypeOption => !!o)
-      : expandCountRequests(config.counts ?? {});
+    /** 세트 구성이 여럿이면 지문 차례대로 번갈아 붙인다. 구성마다 문항 수는 같다 */
+    const setOptionsFor = (pi: number) =>
+      setKeysForPassage(setCfg!, pi)
+        .map((k) => findOptionByKey(k))
+        .filter((o): o is QuestionTypeOption => !!o);
+    const options = setCfg ? setOptionsFor(0) : expandCountRequests(config.counts ?? {});
     const work: WorkItem[] = [];
 
     const passageRows = await Promise.all(
@@ -1145,7 +1148,7 @@ export async function runGenerationJob(
        * (2026-10-03: 도표 지문 하나로 39개가 생략됐다).
        */
       const chartPassage = isChartDescriptionPassage(cleanSourcePassage(String(passageRow.passage ?? "")));
-      for (const [pos, option] of options.entries()) {
+      for (const [pos, option] of (setCfg ? setOptionsFor(pi) : options).entries()) {
         if (chartPassage && CHART_UNFIT_TYPES.has(option.type)) {
           chartSkipped += 1;
           chartSkippedTypes.add(option.label || option.type);
