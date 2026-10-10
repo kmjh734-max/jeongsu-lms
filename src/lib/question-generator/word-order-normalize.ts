@@ -295,6 +295,18 @@ const ING_KEEP = new Set([
 const S_KEEP = new Set(
   [
     "always",
+    // -s로 끝나는 부사(2026-10-10 점검: 보기에 nowaday가 나왔다)
+    "nowadays",
+    "sometimes",
+    "indoors",
+    "outdoors",
+    "upstairs",
+    "downstairs",
+    "overseas",
+    "backwards",
+    "forwards",
+    "upwards",
+    "downwards",
     "news",
     "means",
     "series",
@@ -880,17 +892,28 @@ function sameLexeme(a: string, b: string): boolean {
  * 지문 문장 가운데서도 대문자로 쓰인 낱말이면 고유명사로 보고 되살린다.
  */
 export function restoreLeadingProperNoun(questionText: string, correctAnswer: string, passage: string): string {
-  const w = String(correctAnswer ?? "").trim().match(/^[A-Z][a-z]+/)?.[0];
-  if (!w) return questionText;
-  const p = String(passage ?? "");
-  if (!new RegExp(`[A-Za-z0-9][,;]?\\s+${w}\\b`).test(p)) return questionText;
-  // the·with처럼 지문에 소문자로도 나오면 고유명사가 아니다(제목 속 「The Saturday Evening Post」에 걸렸다)
-  if (new RegExp(`\\b${w.toLowerCase()}\\b`).test(p)) return questionText;
   const m = questionText.match(/(<보기>\s*\n)([^\n]+)/);
   if (!m) return questionText;
   const tokens = m[2]!.split(" / ");
-  const i = tokens.findIndex((t) => t.trim() === w.toLowerCase());
-  if (i < 0) return questionText;
-  tokens[i] = w;
-  return questionText.replace(m[0], `${m[1]}${tokens.join(" / ")}`);
+  const p = String(passage ?? "");
+  const words = String(correctAnswer ?? "").trim().match(/[A-Za-z][A-Za-z'-]*/g) ?? [];
+  let changed = false;
+  words.forEach((w, k) => {
+    if (!/[A-Z]/.test(w) || w === w.toLowerCase()) return;
+    if (k === 0 && !/[A-Z]/.test(w.slice(1))) {
+      // 첫 낱말이 대문자로 시작하기만 하면 문장 첫머리라서일 수 있다 — 지문 문장 가운데에 대문자로 나오고 소문자로는 안 나와야 고유명사다
+      if (!new RegExp(`[A-Za-z0-9][,;]?\\s+${w}\\b`).test(p)) return;
+      // the·with처럼 지문에 소문자로도 나오면 고유명사가 아니다(제목 속 「The Saturday Evening Post」에 걸렸다)
+      if (new RegExp(`\\b${w.toLowerCase()}\\b`).test(p)) return;
+    }
+    /*
+     * 문장 가운데 대문자 낱말(the Bronx, Kuo)과 안에 대문자가 든 낱말(DJing)은 고유명사·약어다.
+     * 보기를 원형으로 만들며 소문자가 된 것을 되돌린다(2026-10-10 점검: bronx·kuo·djing).
+     */
+    const i = tokens.findIndex((t) => t.trim() === w.toLowerCase());
+    if (i < 0) return;
+    tokens[i] = w;
+    changed = true;
+  });
+  return changed ? questionText.replace(m[0], `${m[1]}${tokens.join(" / ")}`) : questionText;
 }
