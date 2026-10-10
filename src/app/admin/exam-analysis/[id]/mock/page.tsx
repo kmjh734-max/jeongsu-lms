@@ -3,7 +3,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getFeatureCost } from "@/lib/credits";
 import { buildMockSlots } from "@/lib/exam-analysis/blueprint";
-import { loadExamAnalysis, loadExamMocks, loadMaterialPassages } from "@/lib/exam-analysis/load";
+import { countExamMocks, loadExamAnalysis, loadMaterialPassages } from "@/lib/exam-analysis/load";
 import { ExamMockBuilder } from "@/components/exam-analysis/ExamMockBuilder";
 import { isTextbookPassageOpen } from "@/lib/textbooks/shared-passages";
 
@@ -23,7 +23,7 @@ export default async function ExamMockPage({
     loadExamAnalysis(id, academyId),
     loadMaterialPassages(academyId),
     getFeatureCost(admin, "qg_generate_job"),
-    loadExamMocks(id, academyId),
+    countExamMocks(id, academyId),
     isTextbookPassageOpen(admin, academyId),
   ]);
   if (!data) notFound();
@@ -39,7 +39,7 @@ export default async function ExamMockPage({
       backHref={`/admin/exam-analysis/${id}`}
       generationsHref="/admin/question-generator/generations"
       pricePerQuestion={price?.cost ?? 80}
-      round={mocks.length + 1}
+      round={mocks + 1}
       examVocabLevel={a.vocab_level}
       initialPassageIds={(passages ?? "").split(",").filter(Boolean)}
       textbookOpen={textbookOpen}

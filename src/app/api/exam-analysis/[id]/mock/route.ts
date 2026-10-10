@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { loadOwnAnalysis, requireExamStaff } from "@/lib/exam-analysis/access";
 import { buildMockSlots } from "@/lib/exam-analysis/blueprint";
 import { levelBriefFor } from "@/lib/exam-analysis/reading-level";
-import { loadExamAnalysis, loadExamMocks } from "@/lib/exam-analysis/load";
+import { countExamMocks, loadExamAnalysis } from "@/lib/exam-analysis/load";
 import { loadAcademyMaterialPassages } from "@/lib/exam-analysis/material-passages";
 import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { billingFeatureFor } from "@/lib/question-generator/billing-buckets";
@@ -43,6 +43,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     grammarWritingMode?: "passage" | "paraphrase";
     /** 문항 번호마다 바꾼 유형·난이도 */
     slotEdit?: Record<string, { optionKey?: string; level?: "상" | "중" | "하" }>;
+    /** 한 번에 만들 회차 수 (선생님 요청 2026-10-10) */
+    rounds?: number;
   };
   const inputs = (body.passages ?? []).slice(0, 30);
   if (inputs.length === 0) {
@@ -77,8 +79,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     return NextResponse.json({ ok: false, message: "분석한 문항이 없어요." }, { status: 400 });
   }
   const { slots, groupCount } = buildMockSlots(data.items);
-  const round = (await loadExamMocks(id, profile.academy_id)).length + 1;
-  const assignment = Array.isArray(body.assignment) ? body.assignment : [];
+  const firstRound = (await countExamMocks(id, profile.academy_id)) + 1;
+  const rounds = Math.min(10, Math.max(1, Math.floor(Number(body.rounds) || 1)));
   // 문장 삽입·무관한 문장은 6문장 이상 지문이 있어야 만들 수 있다. 짧으면 긴 지문으로 옮기고,
   // 긴 지문이 하나도 없으면 같은 난이도의 순서 배열로 바꾼다(빈 번호가 생기지 않게).
   const longEnough = passages.map((p) => countEnglishSentences(p.text) >= MIN_SENTENCES_FOR_INSERTION_IRRELEVANT);
@@ -96,36 +98,85 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const spread = passages.length > groupCount;
   // 화면이 문항마다 정해 보내면 그 차례로 읽는다 (묶음을 푼 경우)
   const perSlot = body.perSlot === true;
-  const blueprint = slots.map((s, slotIdx) => {
-    const want = assignment[perSlot ? slotIdx : s.group];
-    let passageIndex =
-      Number.isInteger(want) && want! >= 0 && want! < passages.length
-        ? want!
-        : ((spread ? slotIdx : s.group) + round - 1) % passages.length;
-    // 선생님이 그 번호의 유형·난이도를 바꿨으면 그것을 쓴다
-    const edit = body.slotEdit?.[s.no] ?? {};
-    const level = edit.level ?? s.level;
-    let optionKey = edit.optionKey && findOptionByKey(edit.optionKey) ? edit.optionKey : s.optionKey;
-    if (/^(sentence_insertion|irrelevant_sentence):/.test(optionKey) && !longEnough[passageIndex]) {
-      const alt = longEnough.findIndex(Boolean);
-      if (alt >= 0) passageIndex = alt;
-      else optionKey = `order:na:${level === "상" ? "high" : "low"}:순서추론`;
+  const unitOf = (s: (typeof slots)[number], slotIdx: number) => (perSlot || spread ? slotIdx : s.group);
+  const unitCount = perSlot || spread ? slots.length : groupCount;
+
+  function buildBlueprint(assignment: number[], round: number) {
+    return slots.map((s, slotIdx) => {
+      const want = assignment[unitOf(s, slotIdx)];
+      let passageIndex =
+        Number.isInteger(want) && want! >= 0 && want! < passages.length
+          ? want!
+          : (unitOf(s, slotIdx) + round - 1) % passages.length;
+      // 선생님이 그 번호의 유형·난이도를 바꿨으면 그것을 쓴다
+      const edit = body.slotEdit?.[s.no] ?? {};
+      const level = edit.level ?? s.level;
+      let optionKey = edit.optionKey && findOptionByKey(edit.optionKey) ? edit.optionKey : s.optionKey;
+      if (/^(sentence_insertion|irrelevant_sentence):/.test(optionKey) && !longEnough[passageIndex]) {
+        const alt = longEnough.findIndex(Boolean);
+        if (alt >= 0) passageIndex = alt;
+        else optionKey = `order:na:${level === "상" ? "high" : "low"}:순서추론`;
+      }
+      return { no: s.no, passageIndex, optionKey, level, points: s.points ?? null };
+    });
+  }
+
+  /*
+   * 여러 회차를 한 번에 만든다 — 선생님 요청(2026-10-10).
+   * 첫 회차는 화면에서 보신 배정 그대로, 다음 회차부터는 지문을 새로 섞는다.
+   * 같은 지문이 앞 회차와 같은 유형으로 다시 나오지 않도록, 여러 번 섞어 보고
+   * 지문·유형 짝이 가장 적게 겹치는 배정을 고른다.
+   */
+  const typeBase = (key: string) => key.split(":")[0]!;
+  const seenPairs = new Set<string>();
+  const remember = (bp: ReturnType<typeof buildBlueprint>) => {
+    for (const b of bp) seenPairs.add(`${b.passageIndex}|${typeBase(b.optionKey)}`);
+  };
+  function randomAssignment(): number[] {
+    const order = passages.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j]!, order[i]!];
     }
-    return { no: s.no, passageIndex, optionKey, level, points: s.points ?? null };
-  });
+    return Array.from({ length: unitCount }, (_, u) => order[u % order.length]!);
+  }
+  const blueprints: { round: number; blueprint: ReturnType<typeof buildBlueprint> }[] = [];
+  for (let r = 0; r < rounds; r++) {
+    const round = firstRound + r;
+    let blueprint: ReturnType<typeof buildBlueprint>;
+    if (r === 0) {
+      blueprint = buildBlueprint(Array.isArray(body.assignment) ? body.assignment : [], round);
+    } else {
+      let best: ReturnType<typeof buildBlueprint> | null = null;
+      let bestRepeats = Infinity;
+      for (let t = 0; t < 40 && bestRepeats > 0; t++) {
+        const bp = buildBlueprint(randomAssignment(), round);
+        const repeats = bp.filter((b) => seenPairs.has(`${b.passageIndex}|${typeBase(b.optionKey)}`)).length;
+        if (repeats < bestRepeats) {
+          best = bp;
+          bestRepeats = repeats;
+        }
+      }
+      blueprint = best!;
+    }
+    remember(blueprint);
+    blueprints.push({ round, blueprint });
+  }
 
   /*
    * 만들기 전에 크레딧이 모자라지 않은지 본다.
    *
    * 선생님 요청(2026-09-29): 크레딧이 마이너스가 될 것 같으면 모자란다고 알리고 멈춰 달라.
    * 값은 만든 뒤에 받으므로(후불) 여기서 막지 않으면 잔액이 마이너스가 된다.
-   * 어법 유형은 값이 달라서 갈라 센다.
+   * 어법 유형은 값이 달라서 갈라 센다. 여러 회차면 모든 회차를 합쳐 센다.
    */
   // 갈래는 billing-buckets 한곳에서 정한다(만들 때 차감하는 기준과 같아야 한다)
   const billSlots = new Map<string, number>();
-  for (const b of blueprint) {
-    const feature = billingFeatureFor(b.optionKey);
-    billSlots.set(feature, (billSlots.get(feature) ?? 0) + 1);
+  for (const { blueprint } of blueprints) {
+    for (const b of blueprint) {
+      const feature = billingFeatureFor(b.optionKey);
+      billSlots.set(feature, (billSlots.get(feature) ?? 0) + 1);
+    }
   }
   for (const [featureKey, quantity] of billSlots) {
     if (quantity <= 0) continue;
@@ -134,11 +185,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   }
 
   const a = data.analysis;
-  const title =
-    body.title?.trim().slice(0, 80) ||
+  const baseTitle =
+    body.title?.trim().slice(0, 70) ||
     [a.school_name, a.grade ? `${a.grade}학년` : "", a.subject, "동형모의고사"].filter(Boolean).join(" ");
-  const config: GenerationRequestConfig = {
-    title,
+  const baseConfig: Omit<GenerationRequestConfig, "title" | "blueprint"> = {
     schoolName: a.school_name ?? "",
     grade: a.grade ? `고${String(a.grade).replace(/\D/g, "") || "1"}` : "고1",
     sourceType: "자체 지문",
@@ -149,7 +199,6 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     mode: "custom",
     presetId: null,
     counts: {},
-    blueprint,
     examAnalysisId: id,
     ...(body.paraphraseGrammarVocab ? { paraphraseGrammarVocab: true } : {}),
     ...(body.wordOrderMode ? { wordOrderMode: body.wordOrderMode } : {}),
@@ -173,23 +222,35 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
    * (2026-09-29까지 네 학원 1,383문항).
    */
   const supabase = await createClient();
-  const result = await createJobFromConfig(supabase, profile.id, profile.academy_id, {
-    ...config,
-    _billing: { mode: "post", billed: 0, billedAt: new Date(0).toISOString() },
-  } as typeof config);
-  if ("error" in result) return NextResponse.json({ ok: false, message: result.error }, { status: result.status ?? 400 });
-
   const origin = new URL(request.url).origin;
-  after(() => runGenerationChunkAndChain(result.jobId, origin));
+  const jobIds: string[] = [];
+  for (const { round, blueprint } of blueprints) {
+    // 회차 이름은 자동으로 「1차」「2차」… — 이 시험으로 만든 동형모의고사 차례대로
+    const config: GenerationRequestConfig = { ...baseConfig, title: `${baseTitle} ${round}차`, blueprint };
+    const result = await createJobFromConfig(supabase, profile.id, profile.academy_id, {
+      ...config,
+      _billing: { mode: "post", billed: 0, billedAt: new Date(0).toISOString() },
+    } as typeof config);
+    if ("error" in result) {
+      if (jobIds.length === 0) {
+        return NextResponse.json({ ok: false, message: result.error }, { status: result.status ?? 400 });
+      }
+      break;
+    }
+    jobIds.push(result.jobId);
+    after(() => runGenerationChunkAndChain(result.jobId, origin));
+  }
   /*
    * 그래도 남는 지문이 있으면(고른 지문이 문항 수보다 많을 때) 몇 개가 남는지 알린다.
    * 말없이 빼 버리면 선생님은 다 들어간 줄 안다.
    */
-  const used = new Set(blueprint.map((b) => b.passageIndex));
+  const used = new Set(blueprints[0]!.blueprint.map((b) => b.passageIndex));
   const unused = passages.length - used.size;
   return NextResponse.json({
     ok: true,
-    jobId: result.jobId,
+    jobId: jobIds[0],
+    jobIds,
+    requestedRounds: rounds,
     passageCount: passages.length,
     usedPassageCount: used.size,
     unusedPassageCount: unused,

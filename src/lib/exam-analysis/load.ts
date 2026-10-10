@@ -73,6 +73,16 @@ export async function loadMaterialPassages(academyId: string): Promise<MaterialP
 }
 
 /** 이 시험 분석으로 만든 동형모의고사(변형문제 작업) — 최근 것부터 */
+/** 이 시험으로 만든 동형모의고사 수 — 다음 회차 번호(「N차」)를 정할 때 쓴다. 목록은 20개까지만 읽어서 따로 센다 */
+export async function countExamMocks(analysisId: string, academyId: string): Promise<number> {
+  const { count } = await createAdminClient()
+    .from("question_generation_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("academy_id", academyId)
+    .eq("request_config->>examAnalysisId", analysisId);
+  return count ?? 0;
+}
+
 export async function loadExamMocks(analysisId: string, academyId: string) {
   const { data } = await createAdminClient()
     .from("question_generation_jobs")

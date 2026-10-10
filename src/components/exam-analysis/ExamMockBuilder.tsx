@@ -74,6 +74,8 @@ export function ExamMockBuilder({
   );
   const [draft, setDraft] = useState({ title: "", text: "" });
   const [override, setOverride] = useState<Record<number, number>>({});
+  /** 한 번에 만들 회차 수 — 선생님 요청(2026-10-10). 2회차부터는 지문·유형 짝을 새로 섞는다 */
+  const [rounds, setRounds] = useState(1);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -226,14 +228,17 @@ export function ExamMockBuilder({
     if (!(await askCreditConfirm({
       title: "동형모의고사",
       description: "분석해 둔 학교 시험과 같은 번호·유형·난이도·배점으로 새 시험지를 만듭니다.",
-      subject: `고른 지문 ${chosen.length}개 · 문항 ${slots.length}개`,
+      subject:
+        rounds > 1
+          ? `고른 지문 ${chosen.length}개 · ${round}차~${round + rounds - 1}차 ${rounds}회 · 문항 ${slots.length * rounds}개`
+          : `고른 지문 ${chosen.length}개 · 문항 ${slots.length}개`,
       /*
        * 갈래마다 값이 다른데 지문 수로 한 갈래만 세고 있었다 — 보신 금액과 빠져나간
        * 금액이 달랐다(2026-10-01 선생님 지적). 서버가 차감할 때와 같은 잣대로 센다.
        */
       items: Object.entries(mockBilling)
         .filter(([, q]) => q > 0)
-        .map(([feature, quantity]) => ({ feature, quantity })),
+        .map(([feature, quantity]) => ({ feature, quantity: quantity * rounds })),
       sample: "exam_mock",
     }))) return;
     setBusy(true);
@@ -252,11 +257,13 @@ export function ExamMockBuilder({
           wordOrderMode,
           grammarWritingMode,
           round,
+          rounds,
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string; jobId?: string };
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string; jobId?: string; jobIds?: string[] };
       if (!res.ok || !data.ok || !data.jobId) throw new Error(data.message ?? "만들지 못했어요.");
-      router.push(`${generationsHref}/${data.jobId}`);
+      // 여러 회차면 만든 문제 목록으로, 한 회차면 그 시험지로 간다
+      router.push((data.jobIds?.length ?? 1) > 1 ? generationsHref : `${generationsHref}/${data.jobId}`);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "만들지 못했어요.");
       setBusy(false);
@@ -623,8 +630,26 @@ export function ExamMockBuilder({
 
       <div className="sticky bottom-3 flex flex-wrap items-center justify-end gap-3 rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur">
         {message ? <span className="text-sm text-red-600">{message}</span> : null}
+        <label className="flex items-center gap-1.5 text-sm text-slate-700">
+          <span className="font-semibold">회차</span>
+          <select
+            aria-label="한 번에 만들 회차 수"
+            value={rounds}
+            onChange={(e) => setRounds(Number(e.target.value))}
+            className="ui-input h-9 w-auto py-0 text-sm"
+          >
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {n === 1 ? `${round}차 1회` : `${round}차~${round + n - 1}차 ${n}회`}
+              </option>
+            ))}
+          </select>
+        </label>
+        {rounds > 1 ? (
+          <span className="text-xs text-slate-500">2회차부터는 지문마다 유형을 새로 섞어요</span>
+        ) : null}
         <span className="text-sm text-slate-500">
-          {slots.length}문항 · 약 {(slots.length * pricePerQuestion).toLocaleString("ko-KR")}크레딧 (만든 문항 수만큼)
+          {slots.length * rounds}문항 · 약 {(slots.length * rounds * pricePerQuestion).toLocaleString("ko-KR")}크레딧 (만든 문항 수만큼)
         </span>
         <button
           type="button"
@@ -632,7 +657,7 @@ export function ExamMockBuilder({
           disabled={busy || chosen.length === 0}
           className="h-10 rounded-lg bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
         >
-          {busy ? "만드는 중…" : "동형모의고사 만들기"}
+          {busy ? "만드는 중…" : rounds > 1 ? `동형모의고사 ${rounds}회 만들기` : "동형모의고사 만들기"}
         </button>
       </div>
       {mockOpen ? (
