@@ -35,6 +35,7 @@ import {
   reflowPassageForPrint,
   withBlankRules,
 } from "@/lib/question-generator/text-utils";
+import { isSetMarkKey } from "@/lib/question-generator/passage-set";
 import "./question-print-styles.css";
 
 type QuestionRow = {
@@ -57,14 +58,25 @@ type QuestionRow = {
   choice_language?: string | null;
 };
 
-type PrintLayoutMode = "mixed" | "byType" | "byPassage";
+type PrintLayoutMode = "mixed" | "byType" | "byPassage" | "bySet";
 
-type DisplayItem = {
-  kind: "q";
-  id: string;
-  q: QuestionRow;
-  num: number;
-};
+type DisplayItem =
+  | {
+      kind: "q";
+      id: string;
+      q: QuestionRow;
+      num: number;
+      /** 지문별 묶음: 지문은 묶음 머리에 한 번 찍었으니 문항에서는 뺀다 */
+      hidePassage?: boolean;
+    }
+  | {
+      /** 지문별 묶음 머리: 「[1~3] 다음 글을 읽고, 물음에 답하시오.」와 함께 쓰는 지문 */
+      kind: "set";
+      id: string;
+      head: string;
+      passage: string;
+      source?: string;
+    };
 
 type SheetPage = PrintPiecePage & {
   /** 유형별 출력: 이 페이지가 새 유형의 첫 장일 때 소제목 */
@@ -437,14 +449,48 @@ function ContinuedLabel({ index }: { index: number }) {
   );
 }
 
+/** 지문별 묶음 머리 — 여러 문항이 함께 쓰는 지문을 한 번 찍는다 */
+function SetPassageBlock({
+  head,
+  passage,
+  source,
+  part,
+}: {
+  head: string;
+  passage: string;
+  source?: string;
+  part?: PrintPiecePart;
+}) {
+  const { cardClass, range, head: isHead } = pieceProps(part);
+  const units = splitPrintUnits(reflowPassageForPrint(passage));
+  return (
+    <section className={`qg-print-card qg-print-set-card${cardClass}`}>
+      {isHead ? (
+        <div data-qg-head="">
+          {source ? <p className="qg-print-q-source">{source}</p> : null}
+          <p className="qg-print-q-head qg-print-set-head">{head}</p>
+        </div>
+      ) : (
+        <p className="qg-print-cont-label" data-qg-cont="">
+          지문 이어서
+        </p>
+      )}
+      <PassageParas units={units} range={range} />
+    </section>
+  );
+}
+
 function QuestionBlock({
   q,
   index,
   part,
   passageSource,
+  hidePassage,
 }: {
   q: QuestionRow;
   index: number;
+  /** 지문별 묶음: 지문은 묶음 머리에 찍었다 */
+  hidePassage?: boolean;
   /** 문항 번호 위에 작게 다는 지문 출처(없거나 감추면 안 단다) */
   passageSource?: string;
   /** 한 단보다 긴 문항을 나눠 실을 때 이 부분(없으면 문항 전체). */
@@ -472,7 +518,7 @@ function QuestionBlock({
     summaryTable || summaryWriting || wordOrder || referenceAnswer || grammarFix
       ? ""
       : cleanQuestionText(q.question_text);
-  const passage = questionPassage(q);
+  const passage = hidePassage ? "" : questionPassage(q);
   const bogiLines = isCount ? parseBogiLines(q.question_text) : [];
   const showChoices =
     !isCount &&
@@ -795,6 +841,8 @@ export function QuestionPrintView({
     setGrade(nextGrade);
     setSourceDetail(nextDetail);
     setQuestions(data.questions ?? []);
+    // 1지문 다문항으로 만든 작업은 지문별 묶음으로 연다(주소에 배치를 따로 적었으면 그것을 따른다)
+    if (job?.request_config?.passageSet && layoutProp === "mixed") setPrintLayout("bySet");
     // 문항 위에는 출처만 단다. 제목은 그 자체가 답이 되는 문항이 많아 싣지 않는다.
     setPassageSources(
       Object.fromEntries(
@@ -930,6 +978,49 @@ export function QuestionPrintView({
       }
       return items;
     }
+    /*
+     * 지문별 묶음(1지문 다문항): 같은 지문 문항을 모아 「[1~3] 다음 글을 읽고…」 아래에 지문을 한 번 찍는다.
+     * 원문 그대로 푸는 문항은 그 지문을 함께 쓰고, 빈칸·밑줄을 친 문항이 하나뿐이면 그 지문을 함께 쓴다(41~42번 꼴).
+     * 지문을 자르거나 문장을 뺀 문항(삽입·순서 등)과, 표시형이 둘 이상일 때의 표시형 문항은 자기 지문을 따로 찍는다.
+     * 해설지는 번호만 묶음 차례를 따른다.
+     */
+    if (printLayout === "bySet") {
+      const order: string[] = [];
+      const byPassage = new Map<string, QuestionRow[]>();
+      for (const q of shown) {
+        const key = q.passage_id ?? q.id;
+        if (!byPassage.has(key)) {
+          byPassage.set(key, []);
+          order.push(key);
+        }
+        byPassage.get(key)!.push(q);
+      }
+      const marked = (q: QuestionRow) =>
+        normalizePassage(questionPassage(q)) !== normalizePassage((q.passage_original || "").trim());
+      const items: DisplayItem[] = [];
+      let num = 1;
+      for (const key of order) {
+        const list = byPassage.get(key)!;
+        if (mode !== "exam" || list.length < 2) {
+          for (const q of list) items.push({ kind: "q", id: q.id, q, num: num++ });
+          continue;
+        }
+        const shareable = list.filter((q) => marked(q) && isSetMarkKey(q.option_key ?? ""));
+        const sharedFrom = shareable.length === 1 ? shareable[0]! : null;
+        const sharedPassage = sharedFrom ? questionPassage(sharedFrom) : (list[0]!.passage_original || questionPassage(list[0]!));
+        items.push({
+          kind: "set",
+          id: `set:${key}`,
+          head: `[${num}~${num + list.length - 1}] 다음 글을 읽고, 물음에 답하시오.`,
+          passage: sharedPassage,
+          source: branding.hideOrigin ? undefined : passageSources[list[0]!.passage_id ?? ""],
+        });
+        for (const q of list) {
+          items.push({ kind: "q", id: q.id, q, num: num++, hidePassage: !marked(q) || q === sharedFrom });
+        }
+      }
+      return items;
+    }
     if (printLayout !== "byType") {
       return shown.map((q, i) => ({
         kind: "q" as const,
@@ -948,7 +1039,7 @@ export function QuestionPrintView({
       }
     }
     return items;
-  }, [shown, printLayout]);
+  }, [shown, printLayout, mode, passageSources, branding.hideOrigin]);
 
   /** 유형별: 각 유형 구간 [start, end) — 새 페이지 강제용 */
   const typeRanges = useMemo(() => {
@@ -1274,12 +1365,18 @@ export function QuestionPrintView({
 
   function renderDisplayItem(item: DisplayItem | undefined, part?: PrintPiecePart) {
     if (!item) return null;
+    if (item.kind === "set") {
+      return <SetPassageBlock head={item.head} passage={item.passage} source={item.source} part={part} />;
+    }
     return mode === "exam" ? (
       <QuestionBlock
         q={item.q}
         index={item.num}
         part={part}
-        passageSource={branding.hideOrigin ? undefined : passageSources[item.q.passage_id ?? ""]}
+        hidePassage={item.hidePassage}
+        passageSource={
+          branding.hideOrigin || item.hidePassage ? undefined : passageSources[item.q.passage_id ?? ""]
+        }
       />
     ) : (
       <AnswerBlock q={item.q} index={item.num} part={part} />
@@ -1448,6 +1545,17 @@ export function QuestionPrintView({
                 onClick={() => setPrintLayout("byPassage")}
               >
                 지문 순서로 한 바퀴
+              </button>
+              <button
+                type="button"
+                className={`rounded-lg px-3 py-2 text-left text-xs font-semibold ${
+                  printLayout === "bySet"
+                    ? "bg-brand-700 text-white"
+                    : "border border-slate-200 bg-white text-slate-700"
+                }`}
+                onClick={() => setPrintLayout("bySet")}
+              >
+                지문별 묶음 (지문 한 번 + 여러 문항)
               </button>
             </div>
           )}

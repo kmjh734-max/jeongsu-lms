@@ -2459,6 +2459,8 @@ export async function generateOneQuestion(opts: {
   copyIndex?: number;
   /** 앞 시도가 버려진 까닭. 다시 만들 때 같은 실수를 되풀이하지 않게 끝에 붙인다 */
   retryNote?: string;
+  /** 1지문 다문항: 같은 지문을 함께 쓰는 다른 문항 이야기(공용 지문 모양, 피할 정답·근거) */
+  setNote?: string;
   /** 몇 번째 시도인가(1부터) — 다시 만들 때 같은 문장을 또 고르지 않게 한다 */
   attempt?: number;
   /** 첫 메시지(유형 규칙)만 보내 캐시를 데우고 끝낸다 */
@@ -3211,6 +3213,9 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
      * 그대로 다시 보내 같은 실수를 되풀이했다. 셋째 메시지로 따로 보내야 앞 두 메시지를
      * 캐시로 읽는다.
      */
+    // 세트 메모도 따로 보낸다 — 앞 두 메시지를 캐시로 읽게
+    ...(opts.setNote ? [`SAME-PASSAGE SET (every rule above still applies):
+${opts.setNote.slice(0, 1800)}`] : []),
     ...(opts.retryNote
       ? [`PREVIOUS ATTEMPT REJECTED (do not repeat this problem; every rule above still applies):\n${opts.retryNote.slice(0, 400)}`]
       : []),

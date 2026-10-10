@@ -23,6 +23,8 @@ import {
   sumCounts,
 } from "@/lib/question-generator/question-types";
 import { QgJobProgressBar } from "@/components/question-generator/QgJobProgressBar";
+import { PassageSetPicker, defaultPassageSetKeys } from "@/components/question-generator/PassageSetPicker";
+import { passageSetCounts, passageSetProblem, type PassageSetSize } from "@/lib/question-generator/passage-set";
 import { useQgJobProgress } from "@/components/question-generator/useQgJobProgress";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import type {
@@ -329,6 +331,10 @@ export function QuestionGeneratorClient({
   const [mockOpen, setMockOpen] = useState<null | "mock" | "textbook" | "outside">(null);
   /** 어법·어휘에서 지문을 바꿔 쓸지(기본은 원문 그대로) */
   const [paraphraseGV, setParaphraseGV] = useState(false);
+  /** 1지문 다문항(세트) — 켜면 유형별 개수 대신 지문당 2·3문항 구성을 고른다 */
+  const [setMode, setSetMode] = useState(false);
+  const [setSize, setSetSize] = useState<PassageSetSize>(3);
+  const [setKeys, setSetKeys] = useState<string[]>(() => defaultPassageSetKeys(3));
   /**
    * 조건 영작에 쓸 어법 범위. 비워 두면 지문에 있는 것 가운데 알아서 고른다.
    * 선생님 요청(2026-09-28): 무작위로 해도 되고 정해 둔 범위로 해도 되게.
@@ -386,7 +392,12 @@ export function QuestionGeneratorClient({
     () => passages.filter((p) => p.text.trim()),
     [passages]
   );
-  const perPassageTotals = useMemo(() => sumCounts(counts), [counts]);
+  /** 세트로 만들면 세트 구성이 곧 유형별 개수다 */
+  const effectiveCounts = useMemo(
+    () => (setMode ? passageSetCounts({ size: setSize, keys: setKeys }) : counts),
+    [setMode, setSize, setKeys, counts]
+  );
+  const perPassageTotals = useMemo(() => sumCounts(effectiveCounts), [effectiveCounts]);
   const grandTotal = perPassageTotals.total * Math.max(1, filledPassages.length);
   /*
    * 값은 세 갈래로 받는다(일반·어법추론과 어법개수·서술형). 확인 창이 두 갈래만 세어
@@ -423,14 +434,14 @@ export function QuestionGeneratorClient({
   const billingTotals = useMemo(() => {
     const per = Math.max(1, filledPassages.length);
     const sum: Record<string, number> = {};
-    for (const [key, n] of Object.entries(counts)) {
+    for (const [key, n] of Object.entries(effectiveCounts)) {
       const q = Number(n ?? 0);
       if (q <= 0) continue;
       const feature = billingFeatureFor(key);
       sum[feature] = (sum[feature] ?? 0) + q * per;
     }
     return sum;
-  }, [counts, filledPassages.length]);
+  }, [effectiveCounts, filledPassages.length]);
 
   /** 고른 유형으로 이번에 나갈 크레딧. 값을 아직 못 읽었으면 null(문항 수만 보인다) */
   const creditTotal = useMemo(() => {
@@ -454,7 +465,8 @@ export function QuestionGeneratorClient({
       passages,
       mode: modeTab === "custom" ? "custom" : "preset",
       presetId: modeTab.startsWith("preset:") ? modeTab.slice(7) : null,
-      counts,
+      counts: effectiveCounts,
+      ...(setMode ? { passageSet: { size: setSize, keys: setKeys } } : {}),
       ...(paraphraseGV ? { paraphraseGrammarVocab: true } : {}),
       ...(grammarScope.length ? { grammarScope } : {}),
       ...((counts["writing:na:default:문법조건영작"] ?? 0) > 0 ? { grammarWritingMode } : {}),
@@ -483,6 +495,10 @@ export function QuestionGeneratorClient({
       filledPassages,
       modeTab,
       counts,
+      effectiveCounts,
+      setMode,
+      setSize,
+      setKeys,
     ]
   );
 
@@ -585,6 +601,11 @@ export function QuestionGeneratorClient({
         setSourceDetail(cfg.sourceDetail ?? "");
         setOverallDifficulty(cfg.overallDifficulty || "내신");
         setCounts(sanitizeCounts(cfg.counts, MAX_SETS_PER_TYPE));
+        if (cfg.passageSet && !passageSetProblem(cfg.passageSet)) {
+          setSetMode(true);
+          setSetSize(cfg.passageSet.size);
+          setSetKeys(cfg.passageSet.keys);
+        }
         setLessonProjectIds(Array.isArray(cfg.lessonProjectIds) ? cfg.lessonProjectIds : []);
         if (cfg.presetId) setModeTab(`preset:${cfg.presetId}`);
         else setModeTab("custom");
@@ -761,6 +782,11 @@ export function QuestionGeneratorClient({
     setError(null);
     setMessage(null);
     try {
+      const setProblem = setMode ? passageSetProblem({ size: setSize, keys: setKeys }) : null;
+      if (setProblem) {
+        setError(setProblem);
+        return;
+      }
       if (perPassageTotals.total <= 0) {
         setError("생성할 문항을 1개 이상 선택해 주세요.");
         return;
@@ -888,7 +914,39 @@ export function QuestionGeneratorClient({
       <div className="grid gap-4 lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] lg:items-start">
         {/* 왼쪽: 유형별 세트 */}
         <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
+          <div className="rounded-2xl border border-slate-200 bg-white p-2 shadow-card">
+            <p className="px-1 pb-1.5 text-[11px] font-semibold text-slate-500">문항 만드는 방식</p>
+            <div className="grid grid-cols-2 gap-1" role="group" aria-label="문항 만드는 방식">
+              {[
+                { on: false, label: "유형별로" },
+                { on: true, label: "1지문 다문항" },
+              ].map((m) => (
+                <button
+                  key={m.label}
+                  type="button"
+                  aria-pressed={setMode === m.on}
+                  className={`rounded-lg px-2 py-1.5 text-xs font-semibold ${
+                    setMode === m.on ? "bg-brand-700 text-white" : "border border-slate-200 bg-white text-slate-700"
+                  }`}
+                  onClick={() => setSetMode(m.on)}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {setMode ? (
+            <PassageSetPicker
+              size={setSize}
+              keys={setKeys}
+              onChange={(n, keys) => {
+                setSetSize(n);
+                setSetKeys(keys);
+              }}
+            />
+          ) : null}
           <section
+            hidden={setMode}
             className="space-y-1.5"
             onMouseOver={(e) => {
               const row = (e.target as HTMLElement).closest?.("[data-qtype]") as HTMLElement | null;

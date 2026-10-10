@@ -6,6 +6,7 @@ import {
 } from "@/lib/question-generator/constants";
 import { resolvePassages, wordCount } from "@/lib/question-generator/passages";
 import { findOptionByKey, sanitizeCounts, sumCounts } from "@/lib/question-generator/question-types";
+import { passageSetCounts, passageSetProblem } from "@/lib/question-generator/passage-set";
 import type { GenerationRequestConfig } from "@/lib/question-generator/types";
 import type { createClient } from "@/lib/supabase/server";
 
@@ -27,6 +28,13 @@ export async function createJobFromConfig(
   config: GenerationRequestConfig,
   reuse?: { reuseJobId: string; role: string }
 ): Promise<CreateJobOk | CreateJobErr> {
+  // 1지문 다문항: 세트 구성이 곧 유형별 개수다(크레딧·요청 수 계산이 그대로 맞는다)
+  if (config.passageSet) {
+    const problem = passageSetProblem(config.passageSet);
+    if (problem) return { error: problem, status: 400 };
+    config.counts = passageSetCounts(config.passageSet);
+    config.blueprint = undefined;
+  }
   config.counts = sanitizeCounts(config.counts, MAX_SETS_PER_TYPE);
 
   const passages = resolvePassages(config);

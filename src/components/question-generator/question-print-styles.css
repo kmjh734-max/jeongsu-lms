@@ -591,3 +591,11 @@
   letter-spacing: -0.01em;
   color: #8a8f98;
 }
+
+/* 지문별 묶음 머리(1지문 다문항): 번호가 없으니 내어쓰기를 풀고 굵게 */
+.qg-style .qg-print-set-head,
+.qg-print-set-head {
+  padding-left: 0;
+  text-indent: 0;
+  font-weight: 700;
+}

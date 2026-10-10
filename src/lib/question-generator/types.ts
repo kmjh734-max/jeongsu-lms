@@ -1,3 +1,4 @@
+import type { PassageSetConfig } from "./passage-set";
 export type QuestionTypeCode =
   | "title"
   | "topic"
@@ -114,6 +115,8 @@ export interface GenerationRequestConfig {
   counts: GenerationRequestCounts;
   /** 있으면 counts 대신 이 순서대로 한 문항씩 만든다(동형모의고사) */
   blueprint?: BlueprintSlot[];
+  /** 1지문 다문항: 지문마다 이 차례로 문항 2~3개를 만들고 시험지에는 지문을 한 번만 찍는다 */
+  passageSet?: PassageSetConfig;
   /** 동형모의고사를 만든 시험 분석 id */
   examAnalysisId?: string;
   /**
