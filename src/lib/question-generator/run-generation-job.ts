@@ -17,6 +17,7 @@ import { CHART_UNFIT_TYPES, cleanSourcePassage, isChartDescriptionPassage } from
 import { withAiUsage } from "@/lib/ai-usage/context";
 import { currentAiUsage } from "@/lib/ai-usage/record";
 import {
+  QG_SET_FEATURE,
   isGrammarBillingType,
   isWritingBillingType,
 } from "@/lib/question-generator/billing-buckets";
@@ -530,11 +531,13 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
    * 어법 유형은 원가가 다른 유형의 두 배쯤이다(실측: 어법추론 77원 · 어법개수 72원,
    * 빈칸추론 32원). 지문 전체를 다시 읽고 다섯 자리를 한꺼번에 봐야 해서다.
    */
-  const grammarCount = rowsToBill.filter((r) => isGrammarType(r.option_key)).length;
-  const writingCount = rowsToBill.filter(
-    (r) => !isGrammarType(r.option_key) && isWritingType(r.option_key)
-  ).length;
-  const plainCount = toBill - grammarCount - writingCount;
+  // 1지문 다문항은 유형과 상관없이 세트 문항 값 하나로 받는다
+  const setCount = rc.passageSet ? toBill : 0;
+  const grammarCount = setCount ? 0 : rowsToBill.filter((r) => isGrammarType(r.option_key)).length;
+  const writingCount = setCount
+    ? 0
+    : rowsToBill.filter((r) => !isGrammarType(r.option_key) && isWritingType(r.option_key)).length;
+  const plainCount = toBill - setCount - grammarCount - writingCount;
 
   /*
    * 내역에 무엇을 만들었는지 적는다.
@@ -567,6 +570,18 @@ async function billGeneratedQuestions(jobId: string, completed: number): Promise
         idempotencyKey: `qg_generate_writing:${jobId}:upto-${latest}`,
         metadata: { job_id: jobId, used_for: "question_generator", made_by: madeBy },
         note: `${madeBy} 서술형 ${writingCount}문항`,
+      })) && ok;
+  }
+  if (setCount > 0) {
+    ok =
+      (await debitLessonCredits({
+        academyId: job.academy_id as string,
+        actorId: job.created_by as string,
+        featureKey: QG_SET_FEATURE,
+        quantity: setCount,
+        idempotencyKey: `${QG_SET_FEATURE}:${jobId}:upto-${latest}`,
+        metadata: { job_id: jobId, used_for: "question_generator", made_by: madeBy },
+        note: `${madeBy} 1지문 다문항 ${setCount}문항`,
       })) && ok;
   }
   if (grammarCount > 0) {

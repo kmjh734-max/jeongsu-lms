@@ -20,6 +20,12 @@ export const isWritingBillingType = (key: string | null) =>
     String(key ?? "")
   );
 
+/**
+ * 1지문 다문항(세트)으로 만든 문항은 유형과 상관없이 이 갈래 하나로 받는다(150, 선생님 결정 2026-10-10).
+ * 세트마다 검수가 한 번 더 돌고 앞 문항 이야기를 붙여 만들어 원가가 더 든다(시험 문항당 약 67원).
+ */
+export const QG_SET_FEATURE = "qg_generate_set";
+
 /** 유형 하나가 어느 갈래로 값을 받는지 */
 export function billingFeatureFor(optionKey: string | null): string {
   if (isGrammarBillingType(optionKey)) return "qg_generate_grammar";

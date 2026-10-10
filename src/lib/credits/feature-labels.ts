@@ -19,6 +19,7 @@ const FEATURES: Record<string, FeatureInfo> = {
    */
   qg_generate_grammar: { label: "변형문제 어법추론·어법개수", group: "변형문제", unit: "문항" },
   qg_generate_writing: { label: "변형문제 서술형", group: "변형문제", unit: "문항" },
+  qg_generate_set: { label: "변형문제 1지문 다문항", group: "변형문제", unit: "문항" },
   lesson_analysis_report: { label: "지문 분석서", group: "지문 분석서", unit: "지문" },
   lesson_pack: { label: "수업용 자료", group: "수업자료", unit: "지문" },
   lesson_illustration: { label: "지문 삽화", group: "수업자료", unit: "장" },
