@@ -191,7 +191,7 @@ Style like Korean HS mock exams (학력평가 내용${isFalse ? "불일치" : "�
 - REQUIRED OUTPUT ORDER: write "choicePlan" FIRST (one row per choice: quote, passageSays, change, refutedBy, verdict), then write "choices" from that plan. An answer without choicePlan is rejected.
 ${factChoiceCraft(isFalse, en)}
 ${factWordingRule(option.choiceLanguage, option.difficulty)}
-- Each choice must stand alone: name what it is about with a noun. Do NOT open a choice with This/These/It/Its pointing back to a passage sentence ("This bias comes from…", "Its y-axis ranges…") — write "Our bias about melting comes from…", "The upper graph's y-axis ranges…". He/She/His/Her for the one person the passage is about is fine.
+- Each choice must stand alone: name what it is about with a noun. Do NOT open a choice with This/These/It/Its pointing back to a passage sentence ("This bias comes from…", "Its y-axis ranges…") — write "Our bias about melting comes from…", "The upper graph's y-axis ranges…". The same for words that need a missing partner: "Other instruments…" (other than what?), "두 현상의 상관관계…" (which two?), "…은 예외가 된다" (an exception to what?) — name them inside the choice. He/She/His/Her for the one person the passage is about is fine.
 ${factExplanationRules()}
 - SKIP: if the passage has fewer than 5 distinct, checkable facts (a very short or list-like passage), return {"skip":true,"reason":"사실 부족"} instead of forcing five choices.
 questionText empty.`;
