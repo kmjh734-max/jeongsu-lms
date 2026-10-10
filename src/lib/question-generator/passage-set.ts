@@ -2,29 +2,38 @@
  * 1지문 다문항(세트) — 지문 하나에 문항 2~3개를 붙이고 시험지에는 지문을 한 번만 찍는다.
  *
  * 다른 학원 요청(2026-10-10), 선생님 결정: 지문당 2문항·3문항을 고를 수 있게, 모든 학원에 연다.
- * 유형은 무엇이든 넣을 수 있다(2026-10-11 완화). 지문을 함께 쓰는 방식:
- *  - 원문 그대로 푸는 유형(주제·제목·요지·일치·불일치·일치개수·요약문)은 공용 지문을 함께 쓴다.
- *  - 지문에 빈칸·밑줄을 치는 유형(빈칸·어법·어휘·함축)이 하나면 그 문항의 지문이 세트 공용 지문이 된다
- *    (수능 41~42번: 제목 + 어휘 밑줄).
- *  - 표시형이 둘 이상이거나, 지문을 자르거나 문장을 빼는 유형(삽입·순서·무관·제시어배열·어법 수정형)은
- *    시험지에서 그 문항만 자기 지문을 따로 찍는다.
+ * 선생님 결정(2026-10-11): 「무조건 한 지문 안에 다 만들어지게, 그게 어려운 유형은 경고를 띄워 다른 유형을 고르게」.
+ *  - 원문 그대로 푸는 유형(주제·제목·요지·일치·요약문 등)은 공용 지문을 함께 쓴다.
+ *  - 지문에 빈칸·밑줄을 치는 유형(빈칸·어법·어휘·함축·제시어배열·지칭 등)은 문항마다 원문 위에서 만들고,
+ *    바꾼 자리만 떼어 한 지문에 겹친다(passage-set-merge). 뒤에 만드는 문항은 앞 문항이 쓴 문장을 피한다.
+ *  - 같은 표시(①~⑤, ⓐ~, (A)·(B), 빈칸)를 쓰는 유형 둘은 한 지문에서 번호가 겹쳐 함께 넣지 못한다.
+ *  - 문장을 빼거나 지문을 자르는 유형(무관한문장·문장삽입·순서·어법 문장 수정)은 한 지문에 합칠 수 없어 뺀다.
+ *  - 빈칸 정답과 주제·제목 정답이 겹쳐도 둔다 — 연습용이라 괜찮다(같은 날). 세트끼리 답이 새는지 보는 검수는 없다.
  */
 
-/** 원문 그대로 푸는 유형 */
-const READ_CODES = new Set([
-  "주제추론",
-  "제목추론",
-  "요지추론",
-  "내용일치",
-  "내용불일치",
-  "일치개수",
-  "요약문빈칸2단어",
-  "요약문빈칸3단어",
-  "요약문빈칸영작",
-]);
+/** 한 지문에 합칠 수 없는 유형 — 고르면 경고하고 다른 유형을 고르게 한다 */
+const EXCLUDED_CODES = new Set(["무관한문장", "문장삽입", "순서추론", "어법문장오류수정"]);
 
-/** 지문에 빈칸·밑줄을 치는 유형 — 하나면 그 지문이 세트 공용 지문 */
-const MARK_CODES = new Set(["빈칸추론", "어법추론", "어법개수", "어휘추론", "어휘개수", "함축의미추론"]);
+/**
+ * 지문에 표시하는 유형과 그 표시 갈래. 같은 갈래 둘은 한 지문에서 번호가 겹친다.
+ *  ①~⑤ 밑줄 / ⓐ~ 밑줄·빈칸 / (A)·(B) / 번호 없는 빈칸 / 번호 없는 밑줄
+ */
+const MARK_FAMILY: Record<string, string> = {
+  어휘추론: "①~⑤",
+  어법추론: "①~⑤",
+  어법개수: "ⓐ~",
+  어휘개수: "ⓐ~",
+  어법오류수정2: "ⓐ~",
+  어법오류수정3: "ⓐ~",
+  제시어배열기본: "ⓐ~",
+  제시어배열어형변화: "ⓐ~",
+  제시어배열단어추가: "ⓐ~",
+  지칭대명사서술: "ⓐ~",
+  함축의미추론: "(A)",
+  연결어빈칸: "(A)",
+  빈칸추론: "빈칸",
+  특정표현의미서술: "밑줄",
+};
 
 export const PASSAGE_SET_SIZES = [2, 3] as const;
 export type PassageSetSize = (typeof PASSAGE_SET_SIZES)[number];
@@ -45,8 +54,12 @@ export const MAX_SET_VARIANTS = 4;
 
 const codeOf = (key: string) => String(key ?? "").split(":").pop() ?? "";
 
-export const isSetMarkKey = (key: string) => MARK_CODES.has(codeOf(key));
-export const isSetAllowedKey = (key: string) => READ_CODES.has(codeOf(key)) || MARK_CODES.has(codeOf(key));
+/** 지문에 빈칸·밑줄을 치는 유형인가 */
+export const isSetMarkKey = (key: string) => codeOf(key) in MARK_FAMILY;
+/** 세트에 넣을 수 있는 유형인가(한 지문에 합칠 수 있는가) */
+export const isSetAllowedKey = (key: string) => !EXCLUDED_CODES.has(codeOf(key));
+/** 이 유형이 지문에 쓰는 표시 갈래(표시형이 아니면 null) */
+export const setMarkFamily = (key: string) => MARK_FAMILY[codeOf(key)] ?? null;
 
 /** 이 세트 설정의 구성 목록 */
 export function setVariants(set: PassageSetConfig): string[][] {
@@ -59,25 +72,26 @@ export function setKeysForPassage(set: PassageSetConfig, pi: number): string[] {
   return list[pi % list.length]!;
 }
 
-/**
- * 구성 하나가 맞는지 — 문항 수만 본다.
- *
- * 선생님 결정(2026-10-11): 「문제가 안 만들어지는 게 아니면 겹치는 유형을 완화하라, 너무 타이트하다」.
- * 처음에는 표시형 하나만·지문을 바꾸는 유형 금지·빈칸과 주제 금지로 막았지만, 어느 것도 못 만드는 것은 아니다.
- *  - 지문 모양이 다른 문항(두 번째 표시형, 삽입·순서·무관·제시어배열)은 시험지에서 자기 지문을 따로 찍는다(인쇄 bySet).
- *  - 빈칸 정답과 주제·제목 정답이 겹쳐도 둔다 — 연습용이라 괜찮다(선생님, 같은 날).
- *    그래서 문항끼리 답이 새는지 보던 세트 검수(passage-set-check)도 뺐다.
- */
-function variantProblem(size: number, keys: string[]): string | null {
+/** 구성 하나에서 한 지문에 합칠 수 없는 까닭(없으면 null) */
+export function setVariantProblem(size: number, keys: string[]): string | null {
   if (!Array.isArray(keys) || keys.length !== size || keys.some((k) => !k)) {
     return `세트의 문항 ${size}개 유형을 모두 골라 주세요.`;
   }
+  const excluded = keys.filter((k) => !isSetAllowedKey(k)).map(codeOf);
+  if (excluded.length) {
+    return `${[...new Set(excluded)].join("·")}은(는) 문장을 빼거나 지문을 잘라서 한 지문에 다른 문항과 함께 만들 수 없습니다. 다른 유형을 골라 주세요.`;
+  }
+  const seen = new Map<string, string>();
+  for (const k of keys) {
+    const fam = setMarkFamily(k);
+    if (!fam) continue;
+    const other = seen.get(fam);
+    if (other) {
+      return `${other}와(과) ${codeOf(k)}은(는) 지문에 같은 표시(${fam})를 써서 한 지문에 함께 넣으면 번호가 겹칩니다. 둘 중 하나를 다른 유형으로 골라 주세요.`;
+    }
+    seen.set(fam, codeOf(k));
+  }
   return null;
-}
-
-/** 세트 안 지문이 한 모양으로 모이지 않는 구성인가(지문을 따로 찍는 문항이 생긴다) — 안내용 */
-export function setPrintsExtraPassage(keys: string[]): boolean {
-  return keys.filter(isSetMarkKey).length > 1 || keys.some((k) => !isSetAllowedKey(k));
 }
 
 /** 세트 구성이 맞는지. 틀리면 선생님께 보일 까닭, 맞으면 null */
@@ -87,7 +101,7 @@ export function passageSetProblem(set: PassageSetConfig | null | undefined): str
   const list = setVariants(set);
   if (list.length > MAX_SET_VARIANTS) return `세트 구성은 ${MAX_SET_VARIANTS}개까지 넣을 수 있습니다.`;
   for (const [i, keys] of list.entries()) {
-    const problem = variantProblem(set.size, keys);
+    const problem = setVariantProblem(set.size, keys);
     if (problem) return list.length > 1 ? `구성 ${"ABCD"[i]}: ${problem}` : problem;
   }
   return null;
@@ -100,8 +114,9 @@ export function passageSetCounts(set: PassageSetConfig): Record<string, number> 
   return counts;
 }
 
-/** 세트에서 다른 유형으로 바꿔 만들 때 먼저 고를 후보인가 — 공용 지문을 흔들지 않는 유형을 앞에 둔다 */
-export function setFallbackPreferred(candidateKey: string, otherKeys: string[]): boolean {
+/** 세트에서 다른 유형으로 바꿔 만들 때 쓸 수 있는 후보인가 — 한 지문에 합칠 수 있어야 한다 */
+export function setFallbackAllowed(candidateKey: string, otherKeys: string[]): boolean {
   if (!isSetAllowedKey(candidateKey)) return false;
-  return !(isSetMarkKey(candidateKey) && otherKeys.some(isSetMarkKey));
+  const fam = setMarkFamily(candidateKey);
+  return !fam || !otherKeys.some((k) => setMarkFamily(k) === fam);
 }

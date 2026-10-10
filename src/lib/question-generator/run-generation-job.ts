@@ -46,12 +46,9 @@ import {
   validateGeneratedQuestion,
 } from "@/lib/question-generator/validate-question";
 import { countEnglishSentences } from "@/lib/question-generator/text-utils";
-import {
-  isSetMarkKey,
-  setFallbackPreferred,
-  setKeysForPassage,
-} from "@/lib/question-generator/passage-set";
+import { isSetMarkKey, setFallbackAllowed, setKeysForPassage } from "@/lib/question-generator/passage-set";
 import { setNoteFor, sharedPassageOf } from "@/lib/question-generator/passage-set-check";
+import { markedSentences, mergeMarkedPassages } from "@/lib/question-generator/passage-set-merge";
 import type {
   GenerationRequestConfig,
   GeneratedQuestionPayload,
@@ -1496,14 +1493,9 @@ export async function runGenerationJob(
         const usedKeys = new Set(siblings.map((w) => w.option.key));
         const usedScore = (o: QuestionTypeOption) => (usedKeys.has(o.key) ? 2 : 0) + (usedTypes.has(o.type) ? 1 : 0);
         const alternatives = fallbackOptionsFor(item.option.key, level, item.typeTurn ?? item.copyIndex ?? 0)
-          .sort((a, b) => usedScore(a) - usedScore(b))
-          // 1지문 다문항: 공용 지문을 흔들지 않는 유형을 앞으로(막지는 않는다)
-          .sort((a, b) =>
-            setCfg
-              ? Number(!setFallbackPreferred(a.key, siblings.map((w) => w.option.key))) -
-                Number(!setFallbackPreferred(b.key, siblings.map((w) => w.option.key)))
-              : 0
-          );
+          // 1지문 다문항: 한 지문에 합칠 수 있는 유형만(같은 표시를 쓰는 유형·지문을 자르는 유형은 뺀다)
+          .filter((alt) => !setCfg || setFallbackAllowed(alt.key, siblings.map((w) => w.option.key)))
+          .sort((a, b) => usedScore(a) - usedScore(b));
         // 대체 후보는 앞의 셋까지만 — 다 실패하는 지문에서 후보마다 두 번씩 값만 쓰던 것을 막는다
         for (const alt of alternatives.slice(0, 3)) {
           const retry = await generateWithValidation({
@@ -1592,30 +1584,83 @@ export async function runGenerationJob(
     };
 
     /*
-     * 1지문 다문항: 지문마다 표시형(빈칸·어법·어휘) 문항을 먼저 만들고, 학생이 보는 그 지문 모양을 알려 주며
-     * 나머지를 만든다. 문항끼리 답이 겹쳐도 둔다(연습용, 선생님 2026-10-11) — 세트 검수는 하지 않는다.
+     * 1지문 다문항: 시험지에는 지문을 무조건 한 번만 찍는다(선생님 2026-10-11).
+     * 표시형(빈칸·어법·어휘·함축·제시어배열…) 문항은 원문 위에서 하나씩 차례로 만들고, 뒤 문항은 앞 문항이
+     * 빈칸·밑줄을 친 문장을 피하게 한다. 바꾼 자리를 원문 위에 겹쳐(mergeMarkedPassages) 공용 지문을 만들고,
+     * 겹쳐지지 않으면 뒤 문항을 한 번 다시 만든다. 그다음 읽기형 문항에 공용 지문을 알려 주며 만든다.
+     * 문항끼리 답이 겹쳐도 둔다(연습용) — 세트 검수는 하지 않는다.
      */
+    const redoSaved = async (it: (typeof work)[number], note: string) => {
+      const redo = await withAiUsage(
+        {
+          academyId,
+          actorId: userId,
+          featureKey: isGrammarType(it.option.key)
+            ? "qg_generate_grammar"
+            : isWritingType(it.option.key)
+              ? "qg_generate_writing"
+              : "qg_generate_job",
+          usedFor: "question_generator",
+          meta: { qgJobId: jobId },
+        },
+        () => generateWithValidation({ ...optsFor(it), retries: 1, setNote: note })
+      );
+      if (!redo.payload || !it.saved) return;
+      const row = toRow(redo.payload, {
+        passageId: it.passageId,
+        jobId,
+        option: it.option,
+        userId,
+        academyId,
+        attempt: redo.attempt,
+        status: "approved",
+        validationScore: redo.payload.validation?.overallScore ?? null,
+        errorMessage: null,
+        setSlotIndex: (it.setBase ?? 0) + (it.setPos ?? 0),
+      });
+      const { error } = await admin.from("generated_english_questions").update(row).eq("id", it.saved.id);
+      if (!error) it.saved = { id: it.saved.id, payload: redo.payload };
+    };
+
     const makeSet = async (list: typeof work) => {
       if (!setCfg) return;
       const original = cleanSourcePassage(list[0]!.passageText);
-      /*
-       * 표시형(빈칸·어법·어휘·함축)이 하나면 그 지문이 세트 공용 지문이다 — 먼저 만들고 나머지에 알려 준다.
-       * 둘 이상이거나 없으면 공용 지문은 원문이고, 지문을 바꾼 문항은 시험지에 자기 지문을 따로 찍는다.
-       */
       const markers = list.filter((it) => isSetMarkKey(it.option.key));
-      const marker = markers.length === 1 ? markers[0]! : null;
-      if (marker) await makeOne(marker);
-      const markerPayload = marker?.saved?.payload ?? null;
-      const shared = markerPayload ? sharedPassageOf(markerPayload, original) : null;
+      const avoidNote = (done: (typeof work)[number][]) => {
+        const used = done.flatMap((d) =>
+          d.saved ? markedSentences(d.saved.payload.passageOriginal || original, d.saved.payload.passageModified ?? "") : []
+        );
+        if (used.length === 0) return undefined;
+        return [
+          `Another item in this set already puts a blank or underlines in these sentences of the same printed passage. Do NOT put any blank, underline or change in them — choose your spots only in the other sentences, and keep every other word of the passage exactly as it is:`,
+          ...used.map((t) => `- ${t}`),
+        ].join("\n");
+      };
+      const merged = (done: (typeof work)[number][]) => {
+        const saved = done.filter((d) => d.saved);
+        if (saved.length === 0) return null;
+        const base = saved[0]!.saved!.payload.passageOriginal || original;
+        return mergeMarkedPassages(
+          base,
+          saved.map((d) => sharedPassageOf(d.saved!.payload, base))
+        );
+      };
+      const done: (typeof work)[number][] = [];
+      for (const m of markers) {
+        m.setNote = avoidNote(done);
+        await makeOne(m);
+        if (m.saved && done.some((d) => d.saved) && merged([...done, m]) === null && !abandoned) {
+          // 앞 문항이 쓴 문장을 건드려 한 지문에 겹쳐지지 않았다 — 한 번 다시 만든다
+          await redoSaved(m, `${avoidNote(done) ?? ""}\nYour previous version touched one of those sentences, so the marks could not share one printed passage.`);
+        }
+        done.push(m);
+      }
+      const shared = merged(done);
       await Promise.all(
         list
-          .filter((it) => it !== marker)
+          .filter((it) => !isSetMarkKey(it.option.key))
           .map((it) => {
-            it.setNote = setNoteFor({
-              size: setCfg.size,
-              position: it.setPos ?? 0,
-              sharedPassage: isSetMarkKey(it.option.key) ? null : shared,
-            });
+            it.setNote = setNoteFor({ size: setCfg.size, position: it.setPos ?? 0, sharedPassage: shared });
             return makeOne(it);
           })
       );

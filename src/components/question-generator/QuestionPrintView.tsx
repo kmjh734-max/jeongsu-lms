@@ -36,6 +36,7 @@ import {
   withBlankRules,
 } from "@/lib/question-generator/text-utils";
 import { isSetMarkKey } from "@/lib/question-generator/passage-set";
+import { mergeMarkedPassages } from "@/lib/question-generator/passage-set-merge";
 import "./question-print-styles.css";
 
 type QuestionRow = {
@@ -1005,9 +1006,17 @@ export function QuestionPrintView({
           for (const q of list) items.push({ kind: "q", id: q.id, q, num: num++ });
           continue;
         }
+        /*
+         * 빈칸·밑줄을 친 문항들의 표시를 원문 위에 겹쳐 지문 하나로 찍는다(1지문 다문항은 만들 때 서로 다른 문장에
+         * 표시하게 했다). 겹쳐지지 않으면(유형별로 만든 작업 등) 원문을 함께 쓰고 그 문항들만 자기 지문을 찍는다.
+         */
+        const original = list[0]!.passage_original || questionPassage(list[0]!);
         const shareable = list.filter((q) => marked(q) && isSetMarkKey(q.option_key ?? ""));
-        const sharedFrom = shareable.length === 1 ? shareable[0]! : null;
-        const sharedPassage = sharedFrom ? questionPassage(sharedFrom) : (list[0]!.passage_original || questionPassage(list[0]!));
+        const mergedPassage = shareable.length
+          ? mergeMarkedPassages(original, shareable.map((q) => questionPassage(q)))
+          : null;
+        const shared = new Set(mergedPassage ? shareable : []);
+        const sharedPassage = mergedPassage ?? original;
         items.push({
           kind: "set",
           id: `set:${key}`,
@@ -1016,7 +1025,7 @@ export function QuestionPrintView({
           source: branding.hideOrigin ? undefined : passageSources[list[0]!.passage_id ?? ""],
         });
         for (const q of list) {
-          items.push({ kind: "q", id: q.id, q, num: num++, hidePassage: !marked(q) || q === sharedFrom });
+          items.push({ kind: "q", id: q.id, q, num: num++, hidePassage: !marked(q) || shared.has(q) });
         }
       }
       return items;
