@@ -1630,7 +1630,15 @@ export async function runGenerationJob(
        * makeOne이 it.option을 바꾸는데, 그 뒤에 갈랐더니 같은 문항을 읽기형으로 한 번 더 만들었다
        * (2026-10-11 72문항 작업이 75문항 — 대체가 난 지문 셋에서 하나씩 더).
        */
-      const markers = list.filter((it) => isSetMarkKey(it.option.key));
+      /*
+       * 문장 하나를 통째로 쓰는 표시형(제시어배열·빈칸·함축·지칭…)을 먼저, 밑줄을 여러 군데 흩어 치는
+       * 어휘·어법을 나중에 만든다. 어휘추론이 먼저 세 문장짜리 지문 전부에 밑줄을 치자 뒤의 제시어배열이
+       * 비울 문장이 없어, 다시 만들어도 겹친 채 저장됐다(2026-10-11 75문항 작업 두 지문).
+       */
+      const SPREAD = /(어휘추론|어법추론|어법개수|어휘개수|어법오류수정2|어법오류수정3)$/;
+      const markers = list
+        .filter((it) => isSetMarkKey(it.option.key))
+        .sort((x, y) => Number(SPREAD.test(x.option.key)) - Number(SPREAD.test(y.option.key)));
       const readers = list.filter((it) => !isSetMarkKey(it.option.key));
       const avoidNote = (done: (typeof work)[number][]) => {
         const used = done.flatMap((d) =>
@@ -1655,8 +1663,8 @@ export async function runGenerationJob(
       for (const m of markers) {
         m.setNote = avoidNote(done);
         await makeOne(m);
-        if (m.saved && done.some((d) => d.saved) && merged([...done, m]) === null && !abandoned) {
-          // 앞 문항이 쓴 문장을 건드려 한 지문에 겹쳐지지 않았다 — 한 번 다시 만든다
+        // 앞 문항이 쓴 문장을 건드려 한 지문에 겹쳐지지 않았다 — 두 번까지 다시 만든다
+        for (let t = 0; t < 2 && m.saved && done.some((d) => d.saved) && merged([...done, m]) === null && !abandoned; t++) {
           await redoSaved(m, `${avoidNote(done) ?? ""}\nYour previous version touched one of those sentences, so the marks could not share one printed passage.`);
         }
         done.push(m);
