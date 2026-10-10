@@ -23,6 +23,7 @@ import {
 } from "@/lib/lesson-materials/split-sentences";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
+import { PassageSheet } from "@/components/passages/PassageSheet";
 
 /**
  * 삽화 일괄 생성 때 동시에 보내는 요청 수. 이미지 생성은 분당 장수 제한이 낮아서
@@ -59,10 +60,6 @@ type PassageWorkbench = {
 };
 
 const EN_MAX = 2320;
-
-function clampTextCount(text: string, max: number) {
-  return Math.min(text.length, max);
-}
 
 function emptyWorkbench(english = "", korean = ""): PassageWorkbench {
   return {
@@ -141,14 +138,6 @@ export function LessonMaterialsInputWizard({
   const wb = workbenches[activePassage] ?? null;
   const multi = workbenches.length > 1;
 
-  function updatePassage(index: number, patch: Partial<PassageDraft>) {
-    setPassages((prev) => {
-      const next = [...prev];
-      next[index] = { ...next[index], ...patch };
-      return next;
-    });
-  }
-
   function patchWorkbench(index: number, patch: Partial<PassageWorkbench>) {
     setWorkbenches((prev) => {
       const next = [...prev];
@@ -195,10 +184,6 @@ export function LessonMaterialsInputWizard({
     }
   }
 
-  function addPassage() {
-    setPassages((prev) => [...prev, { english: "", korean: "", source: "" }]);
-  }
-
   /** 모의고사 지문 모음에서 고른 지문: 빈 칸을 지우고 뒤에 붙인다 */
   function addMockPassages(list: PickedMockPassage[]) {
     setPassages((prev) => {
@@ -208,11 +193,6 @@ export function LessonMaterialsInputWizard({
       return [...kept, ...added];
     });
     setMockOpen(null);
-  }
-
-  function removeLastPassage() {
-    if (passages.length <= 1) return;
-    setPassages((prev) => prev.slice(0, -1));
   }
 
   function canGoNext() {
@@ -672,126 +652,85 @@ export function LessonMaterialsInputWizard({
 
           {error ? <Alert variant="error">{error}</Alert> : null}
 
-          {passages.map((p, idx) => {
-            const enCount = clampTextCount(p.english ?? "", EN_MAX);
-            return (
-              <section
-                key={idx}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-              >
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <h2 className="text-sm font-bold text-slate-700">
-                    Passage {idx + 1}
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    {passages.length > 1 && idx === passages.length - 1 ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeLastPassage()}
-                      >
-                        마지막 제거
-                      </Button>
-                    ) : null}
-                  </div>
+          <PassageSheet
+            rows={passages}
+            onChange={setPassages}
+            makeRow={() => ({ english: "", korean: "", source: "" })}
+            footer={(addRow) => (
+              <div className="flex w-full items-center justify-between gap-4">
+                <button
+                  type="button"
+                  onClick={addRow}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-white py-3 text-sm font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-700"
+                >
+                  <span aria-hidden>+</span> 지문 추가하기
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMockOpen("mock")}
+                  className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
+                >
+                  모의고사 지문 불러오기
+                </button>
+                {textbookOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => setMockOpen("textbook")}
+                    className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
+                  >
+                    교과서 지문 불러오기
+                  </button>
+                ) : null}
+                {outsideOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => setMockOpen("outside")}
+                    className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
+                  >
+                    외부지문 불러오기
+                  </button>
+                ) : null}
+
+                <div className="shrink-0">
+                  <Button
+                    type="button"
+                    size="md"
+                    variant="secondary"
+                    onClick={() => void handleNext()}
+                    disabled={!canGoNext() || prepLoading}
+                  >
+                    {prepLoading ? "준비 중…" : "다음 단계로 →"}
+                  </Button>
                 </div>
+              </div>
+            )}
+            columns={[
+              {
+                key: "english",
+                label: "영어 지문",
+                english: true,
+                width: "54%",
+                maxLength: EN_MAX,
+                placeholder: "영어 지문을 붙여 넣으세요. 엑셀에서 여러 행을 복사해 붙여도 돼요.",
+                help: "지문 한 편을 한 행에 넣어요. 지문이 여러 개면 행을 늘리세요.",
+              },
+              {
+                key: "korean",
+                label: "한국어 해석 (선택)",
+                width: "28%",
+                placeholder: "없으면 비워 두세요",
+                help: "비워 두면 다음 단계에서 문장마다 해석을 채워요.",
+              },
+              {
+                key: "source",
+                label: "지문 출처 (선택)",
+                singleLine: true,
+                placeholder: "예: H1_2503_31",
+                help: "자료함에서 지문 이름 앞에 보여요.",
+              },
+            ]}
+          />
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <div className="mb-2 text-xs font-semibold text-slate-600">
-                      영어 지문
-                    </div>
-                    <textarea
-                      className="min-h-[240px] w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-800"
-                      placeholder="영어 텍스트를 입력하세요. (이미지 파일 및 PDF 드래그앤드롭 가능)"
-                      value={p.english}
-                      onChange={(e) =>
-                        updatePassage(idx, {
-                          english: e.target.value.slice(0, EN_MAX),
-                        })
-                      }
-                    />
-                    <div className="mt-2 text-right text-xs text-slate-400">
-                      {enCount} / {EN_MAX}자
-                    </div>
-                  </label>
-
-                  <div className="block">
-                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-semibold text-slate-600">
-                        한글 해석 (선택)
-                      </span>
-                      <input
-                        className="w-full max-w-[220px] rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-violet-300 focus:ring-2 focus:ring-violet-100 sm:w-auto"
-                        value={p.source}
-                        onChange={(e) =>
-                          updatePassage(idx, { source: e.target.value })
-                        }
-                        placeholder="출처 입력 (예: H1_2503_31)"
-                        aria-label="출처"
-                      />
-                    </div>
-                    <textarea
-                      className="min-h-[240px] w-full resize-y rounded-xl border border-violet-100 bg-violet-50/40 px-4 py-3 text-sm leading-relaxed text-slate-800"
-                      placeholder="한글 해석본을 넣어주세요. 없다면 비워주셔도 괜찮습니다."
-                      value={p.korean}
-                      onChange={(e) =>
-                        updatePassage(idx, { korean: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-              </section>
-            );
-          })}
-
-          <div className="flex items-center justify-between gap-4">
-            <button
-              type="button"
-              onClick={addPassage}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-white py-3 text-sm font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-700"
-            >
-              <span aria-hidden>+</span> 지문 추가하기
-            </button>
-            <button
-              type="button"
-              onClick={() => setMockOpen("mock")}
-              className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
-            >
-              모의고사 지문 불러오기
-            </button>
-            {textbookOpen ? (
-              <button
-                type="button"
-                onClick={() => setMockOpen("textbook")}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
-              >
-                교과서 지문 불러오기
-              </button>
-            ) : null}
-            {outsideOpen ? (
-              <button
-                type="button"
-                onClick={() => setMockOpen("outside")}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-700 hover:border-violet-300 hover:bg-violet-50/50"
-              >
-                외부지문 불러오기
-              </button>
-            ) : null}
-
-            <div className="shrink-0">
-              <Button
-                type="button"
-                size="md"
-                variant="secondary"
-                onClick={() => void handleNext()}
-                disabled={!canGoNext() || prepLoading}
-              >
-                {prepLoading ? "준비 중…" : "다음 단계로 →"}
-              </Button>
-            </div>
-          </div>
         </div>
       ) : null}
 

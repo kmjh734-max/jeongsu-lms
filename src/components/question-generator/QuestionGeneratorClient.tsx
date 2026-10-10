@@ -14,6 +14,7 @@ import {
 import { emptyPassageInput } from "@/lib/question-generator/passages";
 import { billingFeatureFor } from "@/lib/question-generator/billing-buckets";
 import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
+import { PassageSheet } from "@/components/passages/PassageSheet";
 import { sampleLevelFor, typeSampleFor, type SampleLevel, type TypeSample } from "@/lib/question-generator/type-samples";
 import {
   emptyCounts,
@@ -711,20 +712,6 @@ export function QuestionGeneratorClient({
     setModeTab("custom");
   }
 
-  function updatePassage(index: number, patch: Partial<PassageInput>) {
-    setPassages((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, ...patch } : p))
-    );
-  }
-
-  function addPassage() {
-    if (passages.length >= MAX_PASSAGES) {
-      setError(`지문은 최대 ${MAX_PASSAGES}개까지 넣을 수 있습니다.`);
-      return;
-    }
-    setPassages((prev) => [...prev, emptyPassageInput()]);
-  }
-
   /** 모의고사 지문 모음에서 고른 지문: 빈 행부터 채우고 모자라면 행을 늘린다 */
   function addMockPassages(list: PickedMockPassage[]) {
     setPassages((prev) => {
@@ -736,11 +723,6 @@ export function QuestionGeneratorClient({
       return next.length ? next : [emptyPassageInput()];
     });
     setMockOpen(false);
-  }
-
-  function removePassage(index: number) {
-    if (passages.length <= 1) return;
-    setPassages((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function savePreset() {
@@ -1569,123 +1551,57 @@ export function QuestionGeneratorClient({
             </p>
           </section>
 
-          <section className="space-y-2">
-            <div className="flex flex-wrap items-end justify-between gap-2">
-              <div>
-                <h2 className="text-sm font-semibold text-slate-900">
-                  영어 지문
-                  <span className="ml-2 text-xs font-normal text-slate-500">
-                    {filledPassages.length}/{passages.length}개 입력 · 최대{" "}
-                    {MAX_PASSAGES}개
+          <section className="space-y-1">
+            <PassageSheet
+              title="영어 지문"
+              subtitle={`${filledPassages.length}/${passages.length}개 입력 · 최대 ${MAX_PASSAGES}개`}
+              rows={passages.map((p) => ({ ...p, title: p.title ?? "", sourceDetail: p.sourceDetail ?? "" }))}
+              onChange={setPassages}
+              makeRow={() => ({ ...emptyPassageInput(), title: "", sourceDetail: "" })}
+              maxRows={MAX_PASSAGES}
+              footer={(addRow) => (
+                <>
+                  <Button type="button" variant="secondary" disabled={passages.length >= MAX_PASSAGES} onClick={addRow}>
+                    + 지문 추가
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={filledPassages.length >= MAX_PASSAGES}
+                    onClick={() => setMockOpen(true)}
+                  >
+                    모의고사 지문 불러오기
+                  </Button>
+                  <span className="text-xs text-slate-500">
+                    {passages.length >= MAX_PASSAGES ? `최대 ${MAX_PASSAGES}개입니다.` : "아래에 새 행이 추가됩니다."}
                   </span>
-                </h2>
-                <p className="mt-0.5 text-xs text-slate-500">
-                  엑셀처럼 행 단위로 입력합니다. 셀을 클릭해 바로 수정하세요.
-                </p>
-              </div>
-            </div>
-
-            <div className="overflow-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-              <table className="w-full min-w-[760px] border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-bold text-slate-600">
-                    <th className="w-14 px-2 py-2.5 text-center">#</th>
-                    <th className="w-36 px-2 py-2.5">제목</th>
-                    <th className="w-36 px-2 py-2.5">출처</th>
-                    <th className="px-2 py-2.5">본문 (영어 지문)</th>
-                    <th className="w-12 px-1 py-2.5 text-center" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {passages.map((p, index) => (
-                    <tr
-                      key={p.clientId ?? index}
-                      className="border-b border-slate-100 align-top hover:bg-slate-50/60"
-                    >
-                      <td className="bg-slate-50/80 px-2 py-2 text-center text-xs font-bold text-slate-500">
-                        {index + 1}
-                      </td>
-                      <td className="p-1">
-                        <input
-                          className="w-full rounded-md border border-transparent bg-transparent px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-300 focus:bg-white focus:ring-1 focus:ring-brand-200"
-                          value={p.title ?? ""}
-                          onChange={(e) =>
-                            updatePassage(index, { title: e.target.value })
-                          }
-                          placeholder={`${title || "자료"} · ${index + 1}`}
-                          aria-label={`지문 ${index + 1} 제목`}
-                        />
-                      </td>
-                      <td className="p-1">
-                        <input
-                          className="w-full rounded-md border border-transparent bg-transparent px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-300 focus:bg-white focus:ring-1 focus:ring-brand-200"
-                          value={p.sourceDetail ?? ""}
-                          onChange={(e) =>
-                            updatePassage(index, {
-                              sourceDetail: e.target.value,
-                            })
-                          }
-                          placeholder={sourceDetail || "출처"}
-                          aria-label={`지문 ${index + 1} 출처`}
-                        />
-                      </td>
-                      <td className="p-1">
-                        <textarea
-                          rows={4}
-                          className="w-full resize-y rounded-md border border-transparent bg-transparent px-2 py-1.5 font-serif text-[13px] leading-relaxed text-slate-800 outline-none focus:border-brand-300 focus:bg-white focus:ring-1 focus:ring-brand-200"
-                          value={p.text}
-                          onChange={(e) =>
-                            updatePassage(index, { text: e.target.value })
-                          }
-                          placeholder="영어 지문을 그대로 붙여넣으세요."
-                          spellCheck={false}
-                          aria-label={`지문 ${index + 1} 본문`}
-                        />
-                      </td>
-                      <td className="p-1 text-center">
-                        {passages.length > 1 ? (
-                          <button
-                            type="button"
-                            className="rounded px-1.5 py-1 text-xs text-slate-400 hover:bg-red-50 hover:text-red-600"
-                            onClick={() => removePassage(index)}
-                            title="행 삭제"
-                            aria-label={`지문 ${index + 1} 삭제`}
-                          >
-                            ✕
-                          </button>
-                        ) : (
-                          <span className="text-xs text-slate-300">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={passages.length >= MAX_PASSAGES}
-                onClick={addPassage}
-              >
-                + 지문 추가
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={filledPassages.length >= MAX_PASSAGES}
-                onClick={() => setMockOpen(true)}
-              >
-                모의고사 지문 불러오기
-              </Button>
-              <span className="text-xs text-slate-500">
-                {passages.length >= MAX_PASSAGES
-                  ? `최대 ${MAX_PASSAGES}개입니다.`
-                  : "아래에 새 행이 추가됩니다."}
-              </span>
-            </div>
+                </>
+              )}
+              columns={[
+                {
+                  key: "text",
+                  label: "영어 지문",
+                  english: true,
+                  width: "62%",
+                  placeholder: "영어 지문을 그대로 붙여 넣으세요. 엑셀에서 여러 행을 복사해 붙여도 돼요.",
+                  help: "지문 한 편을 한 행에 넣어요. 지문이 여러 개면 행을 늘리세요.",
+                },
+                {
+                  key: "title",
+                  label: "제목 (선택)",
+                  singleLine: true,
+                  placeholder: `${title || "자료"} · 1`,
+                  help: "비우면 자료 제목 + 번호로 붙어요.",
+                },
+                {
+                  key: "sourceDetail",
+                  label: "지문 출처 (선택)",
+                  singleLine: true,
+                  placeholder: sourceDetail || "출처",
+                  help: "비우면 위 「출처」를 써요.",
+                },
+              ]}
+            />
           </section>
 
           {sample ? (
