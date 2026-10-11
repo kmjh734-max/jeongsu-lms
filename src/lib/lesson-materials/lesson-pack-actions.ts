@@ -116,6 +116,11 @@ export async function generateAndSaveLessonPackVocabAction(
     const en = String(it.english_text ?? "");
     const meta = metaMap.get(id);
     if (meta?.translationSource === "teacher") return false;
+    // 저장된 해석이 옛 영어 문장의 것이면(문장을 고친 뒤) 다시 번역한다 — 그대로 두면
+    // 워크북이 「저장된 해석이 현재 영어 원문과 일치하지 않습니다」로 막힌다.
+    if (meta?.sourceHash && meta.sourceHash !== computeSentenceSourceHash(en)) {
+      return true;
+    }
     if (meta?.translationSource === "generated") {
       const hash = computeSentenceSourceHash(en);
       if (meta.sourceHash === hash && String(it.korean_text ?? "").trim()) {
@@ -180,16 +185,25 @@ export async function generateAndSaveLessonPackVocabAction(
     const en = String(it.english_text ?? "");
     const ko = String(it.korean_text ?? "").trim();
     if (!en || !ko) continue;
-    if (sentenceTranslations.some((t) => t.sentenceId === id)) continue;
-    sentenceTranslations.push(
+    const existing = sentenceTranslations.find((t) => t.sentenceId === id);
+    // 교사가 고친 해석은 다시 번역하지 않으므로, 영어가 바뀌었으면 지금 해석으로 영어만 맞춘다.
+    if (
+      existing &&
+      (existing.translationSource !== "teacher" ||
+        existing.sourceHash === computeSentenceSourceHash(en))
+    ) {
+      continue;
+    }
+    sentenceTranslations = [
+      ...sentenceTranslations.filter((t) => t.sentenceId !== id),
       buildStoredTranslation({
         sentenceId: id,
         order: Number(it.order_index ?? 0) + 1,
         english: en,
         koreanTranslation: ko,
-        translationSource: "legacy",
-      })
-    );
+        translationSource: existing?.translationSource ?? "legacy",
+      }),
+    ];
   }
 
   const english = (items ?? []).map((it) => it.english_text).join("\n");

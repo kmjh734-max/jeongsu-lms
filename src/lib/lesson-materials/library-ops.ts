@@ -517,7 +517,13 @@ export async function saveLessonMaterialProjectWorkspace(
       if (itemErr) return actionError(itemErr.message);
 
       const before = prevKo.get(row.id) ?? "";
-      if (nextKo && nextKo !== before) {
+      const prevMeta = sentenceTranslations.find((t) => t.sentenceId === row.id);
+      // 영어만 고치고 해석은 그대로 두면 저장된 해석의 영어가 옛 문장으로 남아
+      // 워크북이 「현재 영어 원문과 일치하지 않습니다」로 막힌다 — 영어도 같이 맞춘다.
+      const englishChanged =
+        !!prevMeta &&
+        prevMeta.sourceHash !== computeSentenceSourceHash(row.english.trim());
+      if (nextKo && (nextKo !== before || englishChanged)) {
         // Manual edit relative to last saved value → teacher lock
         const stored = {
           sentenceId: row.id,
@@ -525,7 +531,10 @@ export async function saveLessonMaterialProjectWorkspace(
           english: row.english.trim(),
           koreanTranslation: nextKo,
           sourceHash: computeSentenceSourceHash(row.english.trim()),
-          translationSource: "teacher" as const,
+          translationSource:
+            nextKo !== before
+              ? ("teacher" as const)
+              : (prevMeta?.translationSource ?? "legacy"),
           updatedAt: new Date().toISOString(),
         };
         sentenceTranslations = [
