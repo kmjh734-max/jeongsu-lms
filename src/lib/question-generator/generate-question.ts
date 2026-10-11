@@ -1313,7 +1313,7 @@ function normalizePayload(
       if (!/\(A\)\s*<u>/i.test(passageModified)) {
         passageModified = passageModified.replace(/<u>/i, "(A)<u>");
       }
-      instructionOut = `다음 글의 밑줄 친 (A)${phrase}가 의미하는 바로 가장 적절한 것은?`;
+      instructionOut = `다음 글의 밑줄 친 (A) ${phrase}가 의미하는 바로 가장 적절한 것은?`;
     }
   }
   if (
@@ -1693,7 +1693,7 @@ export function assertBasicQuestionShape(
     const um = (q.passageModified || "").match(/<u>([\s\S]*?)<\/u>/i);
     const phrase = (um?.[1] || "").replace(/\s+/g, " ").trim();
     if (phrase && !q.instruction.includes(phrase)) {
-      q.instruction = `다음 글의 밑줄 친 (A)${phrase}가 의미하는 바로 가장 적절한 것은?`;
+      q.instruction = `다음 글의 밑줄 친 (A) ${phrase}가 의미하는 바로 가장 적절한 것은?`;
     }
   } else if (
     option.type === "writing" &&
