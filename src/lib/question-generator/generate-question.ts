@@ -4,6 +4,7 @@ import { renumberMarksInOrder } from "@/lib/question-generator/renumber-marks";
 import { difficultyRule, targetLevelFromOverall, type TargetLevel } from "@/lib/question-generator/difficulty";
 import { summaryBlankFitProblem } from "@/lib/question-generator/summary-blank-fit";
 import {
+  balancedGistRule,
   choiceCraftCommonRules,
   choiceExplanationRules,
   contentFalseChoiceCraft,
@@ -212,6 +213,7 @@ questionText empty.`;
 - Do NOT change the passage; omit passageModified.
 - explanation: list which numbers are false and why (Korean, brief).
 - Every statement must be clearly true or clearly false from the passage alone: no vague references ("the opposite direction" of what?), no comparisons the passage never makes, no paraphrase that could be read either way. A false statement changes one checkable fact.
+- A TRUE statement must stay true against the WHOLE passage: do not drop a limit the passage adds later (원문 "keeps increasing … but both begin to fall after a peak" → 「계속 늘어난다」는 거짓으로도 읽힌다 — 「늘어나는 동안 …도 함께 늘어난다」). Keep the exact relation word: "is offset by" = 상쇄된다(not 줄인다), "may" ≠ 「한다」, "some" ≠ 「모두」.
 ${craft}
 ${contentFalseChoiceCraft(en)}
 ${paraphrase}
@@ -232,6 +234,7 @@ Difficulty: ${
       return `${en ? "5 ENGLISH" : "5 Korean"} topic phrases. Exactly one correct.
 ${craft}
 ${topicChoiceCraft(en)}
+${balancedGistRule()}
 ${paraphrase}
 ${choiceExplanationRules()}
 Difficulty: ${
@@ -245,6 +248,7 @@ Difficulty: ${
       return `${en ? "5 ENGLISH Title Case titles" : "5 Korean titles"}. Exactly one correct.
 ${craft}
 ${titleChoiceCraft(en)}
+${balancedGistRule()}
 ${paraphrase}
 ${choiceExplanationRules()}
 Difficulty: ${
@@ -263,6 +267,7 @@ Difficulty: ${
 - questionText must be empty.
 ${craft}
 ${summaryChoiceCraft(en)}
+${balancedGistRule()}
 ${paraphrase}
 ${choiceExplanationRules()}
 - Exactly one correct. Difficulty: ${
@@ -1018,6 +1023,28 @@ function extremeWordGiveaway(raw: Record<string, unknown>): string | null {
   if (hits.length === 1 && Number(hits[0]!.number) === key) {
     const word = String(hits[0]!.text).match(EXTREME_WORD)?.[0];
     return `정답 보기에만 극단어 「${word}」가 있어 지문 없이도 골라집니다. 정답에서 빼거나, 다른 보기에도 지문과 맞는 정도어를 고르게 씁니다.`;
+  }
+  return null;
+}
+
+/**
+ * 2026-10-11 90문항 점검: 「Just-noticeable difference (JND)」를 풀어 쓴 문장이 빈칸이 되고 보기는 「the JND」만 써서
+ * 학생 지문 어디에도 약어 뜻이 없었다. 약어를 풀어 쓴 곳이 빈칸에 들어갔는데 지문·보기에 약어가 남으면 다시 만든다.
+ */
+export function blankedAbbreviation(raw: Record<string, unknown>, passage: string): string | null {
+  const modified = String(raw.passageModified ?? "");
+  if (!modified) return null;
+  const choices = Array.isArray(raw.choices) ? (raw.choices as Array<{ text?: unknown }>).map((c) => String(c.text ?? "")) : [];
+  for (const m of passage.matchAll(/\(([A-Z]{2,6})s?\)/g)) {
+    const ab = m[1]!;
+    if (modified.includes(`(${ab})`) || modified.includes(`(${ab}s)`)) continue;
+    const used = new RegExp(`\\b${ab}s?\\b`);
+    const inChoices = choices.filter((c) => used.test(c));
+    // 보기마다 풀어 쓴 말을 함께 적었으면 뜻이 드러난다
+    if (inChoices.length > 0 && inChoices.every((c) => c.includes(`(${ab}`))) continue;
+    if (used.test(modified) || inChoices.length > 0) {
+      return `약어 ${ab}를 풀어 쓴 문장이 빈칸에 들어가 학생 지문 어디에도 ${ab}의 뜻이 없습니다. 그 문장 말고 다른 문장을 빈칸으로 하거나, 보기에 풀어 쓴 말을 함께 씁니다.`;
+    }
   }
   return null;
 }
@@ -3277,6 +3304,10 @@ ${opts.setNote.slice(0, 1800)}`] : []),
   if (planTypes && (option.choiceLanguage !== "korean" || CONTENT_PLAN_TYPES.has(option.type))) {
     const planError = checkChoicePlan(raw, option, passage);
     if (planError) throw new Error(planError);
+  }
+  if (option.type === "sentence_blank") {
+    const abbr = blankedAbbreviation(raw, passage);
+    if (abbr) throw new Error(abbr);
   }
   if (option.type === "content_true" || option.type === "content_false") {
     const giveaway = extremeWordGiveaway(raw);
