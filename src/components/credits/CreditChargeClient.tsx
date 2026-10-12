@@ -32,6 +32,12 @@ export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: bo
   // Toss widgets instance (SDK typings are large; keep local ref loosely typed)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const widgetsRef = useRef<any>(null);
+  /*
+   * 키 종류에 따라 결제 방식이 갈린다. 결제위젯 키(…_gck_)면 화면 안에 위젯을 그리고,
+   * API 개별 연동 키(…_ck_)면 결제하기를 누를 때 토스 결제창을 띄운다.
+   */
+  const usesWidget = /^(test|live)_gck_/.test(process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim() ?? "");
+  const [payMethod, setPayMethod] = useState<"CARD" | "TRANSFER">("CARD");
   const customerKeyRef = useRef(`engcore_${crypto.randomUUID().replace(/-/g, "")}`);
 
   const selected = useMemo(
@@ -80,6 +86,10 @@ export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: bo
         return;
       }
       setInfo(null);
+      if (!usesWidget) {
+        setWidgetsReady(true);
+        return;
+      }
 
       try {
         const toss = await loadTossPayments(clientKey);
@@ -113,7 +123,7 @@ export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: bo
     return () => {
       cancelled = true;
     };
-  }, [selected?.id, selected?.payment_amount, checkoutOpen]);
+  }, [selected?.id, selected?.payment_amount, checkoutOpen, usesWidget]);
 
   async function startPayment() {
     if (!selected) return;
@@ -135,6 +145,22 @@ export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: bo
         return;
       }
 
+      const origin = window.location.origin;
+      if (!usesWidget) {
+        const toss = await loadTossPayments(orderData.clientKey);
+        const payment = toss.payment({ customerKey: customerKeyRef.current || ANONYMOUS });
+        const common = {
+          amount: { currency: "KRW", value: Number(orderData.amount) },
+          orderId: orderData.orderId as string,
+          orderName: orderData.orderName as string,
+          successUrl: `${origin}/admin/credits/payment/success`,
+          failUrl: `${origin}/admin/credits/payment/fail`,
+        };
+        if (payMethod === "TRANSFER") await payment.requestPayment({ method: "TRANSFER", ...common });
+        else await payment.requestPayment({ method: "CARD", ...common });
+        return;
+      }
+
       const widgets = widgetsRef.current;
       if (!widgets) {
         setError("결제 창이 아직 준비되지 않았어요. 잠시 후 다시 눌러 주세요.");
@@ -146,7 +172,6 @@ export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: bo
         value: Number(orderData.amount),
       });
 
-      const origin = window.location.origin;
       await widgets.requestPayment({
         orderId: orderData.orderId,
         orderName: orderData.orderName,
@@ -185,7 +210,7 @@ export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: bo
           ) : null}
         </div>
         <p className="mt-1 text-sm text-slate-500">
-          상품을 고르고 카드로 결제해요. 큰 상품일수록 보너스 크레딧이 더 붙어요.
+          상품을 고르고 카드나 계좌이체로 결제해요. 큰 상품일수록 보너스 크레딧이 더 붙어요.
         </p>
       </div>
 
@@ -254,8 +279,38 @@ export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: bo
             </span>
           ) : null}
         </div>
-        <div id="toss-payment-methods" className="mt-3 min-h-[120px]" />
-        <div id="toss-agreement" className="mt-3" />
+        {usesWidget ? (
+          <>
+            <div id="toss-payment-methods" className="mt-3 min-h-[120px]" />
+            <div id="toss-agreement" className="mt-3" />
+          </>
+        ) : (
+          <div role="radiogroup" aria-label="결제 수단" className="mt-3 grid gap-2 sm:grid-cols-2">
+            {(
+              [
+                ["CARD", "신용·체크카드", "카드사 선택, 토스페이 등 간편결제"],
+                ["TRANSFER", "계좌이체", "은행 계좌에서 바로 결제"],
+              ] as const
+            ).map(([value, label, desc]) => {
+              const on = payMethod === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  onClick={() => setPayMethod(value)}
+                  className={`flex flex-col gap-0.5 rounded-lg border px-4 py-3 text-left transition ${
+                    on ? "border-brand-600 ring-1 ring-brand-600" : "border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <span className="text-sm font-semibold text-slate-900">{label}</span>
+                  <span className="text-[12.5px] text-slate-500">{desc}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
         <div className="mt-4">
           <Button
             type="button"
