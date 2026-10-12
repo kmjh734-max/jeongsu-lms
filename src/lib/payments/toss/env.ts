@@ -46,3 +46,19 @@ export function assertTossServerConfigured(): {
   }
   return { secretKey, mode: getTossEnvMode() };
 }
+
+/**
+ * 테스트 키로 도는 동안에는 결제가 실제로 일어나지 않는데도 크레딧이 들어간다.
+ * 그래서 테스트 결제창은 카드사 심사용 학원(TOSS_TEST_ACADEMIES, 쉼표로 여럿)에만 연다.
+ * 실제 키(live)로 바꾸면 모든 학원에 열린다.
+ */
+export function isCheckoutOpenForAcademySlug(slug: string | null | undefined): boolean {
+  const mode = getTossEnvMode();
+  if (mode === "live") return true;
+  if (mode !== "test" || !slug) return false;
+  const allowed = (process.env.TOSS_TEST_ACADEMIES ?? "tosstest")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return allowed.includes(slug);
+}

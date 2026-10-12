@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/require-admin-api";
 import { getAdminClientSafe } from "@/lib/admin/api-json";
 import { createReadyOrder } from "@/lib/payments/credit-orders";
-import { getTossClientKey, getTossEnvMode } from "@/lib/payments/toss/env";
+import { getTossClientKey, getTossEnvMode, isCheckoutOpenForAcademySlug } from "@/lib/payments/toss/env";
 
 export const runtime = "nodejs";
 
@@ -38,6 +38,15 @@ export async function POST(request: Request) {
         { ok: false, message: "package_id가 필요합니다." },
         { status: 400 }
       );
+    }
+
+    const { data: academy } = await client.admin
+      .from("academies")
+      .select("slug")
+      .eq("id", auth.profile.academy_id)
+      .maybeSingle();
+    if (!isCheckoutOpenForAcademySlug(academy?.slug as string | undefined)) {
+      return NextResponse.json({ ok: true, configured: false });
     }
 
     const order = await createReadyOrder(client.admin, {

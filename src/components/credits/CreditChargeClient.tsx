@@ -21,7 +21,7 @@ function formatWon(n: number) {
   return `${n.toLocaleString("ko-KR")}원`;
 }
 
-export function CreditChargeClient() {
+export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: boolean }) {
   const [packages, setPackages] = useState<Pkg[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +71,7 @@ export function CreditChargeClient() {
       if (!selected) return;
 
       const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim();
-      if (!clientKey) {
+      if (!clientKey || !checkoutOpen) {
         /*
          * 결제 열쇠를 아직 안 넣은 상태다. 「잠시 후 다시」라고 하면 몇 번이고
          * 다시 누르게 되는데, 기다린다고 열리지 않는다. 있는 그대로 적는다.
@@ -113,7 +113,7 @@ export function CreditChargeClient() {
     return () => {
       cancelled = true;
     };
-  }, [selected?.id, selected?.payment_amount]);
+  }, [selected?.id, selected?.payment_amount, checkoutOpen]);
 
   async function startPayment() {
     if (!selected) return;
