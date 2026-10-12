@@ -59,6 +59,8 @@ FIX (not drop) only when the body and choices are fine and ONLY the answer key o
 
 An explanation that uses a wrong grammar term (calls a participle a gerund), names the wrong antecedent/referent, gives a reason that is not true of this passage, or contains a generic template sentence that is not about this passage (e.g., "단순히 두 가지 기능을 했다는 일반론으로 이해해서는 안 된다" with nothing in the passage about it) is wrong — FIX it.
 
+CHECK THE EXPLANATION CHOICE BY CHOICE: for every circled number the explanation mentions (①~⑤), reread that choice's text and confirm the reason given is about what THAT choice actually says and is true of the passage. FIX if the explanation gives a choice a reason about content the choice does not contain (e.g., "④는 부상 가능성만 중심으로 삼았다" when ④ never mentions injury), swaps which choice says what, or restates the passage's point wrongly (e.g., says the passage is about people distinguishing themselves from family when it says taste comes from family and friends). Write fixedExplanation in the same shape, keeping every correct part as it was.
+
 PASS otherwise. Wording style in the explanation is not a defect. Do not drop because distractors are easy. Do not rewrite the passage or choices.`;
 
 function compact(text: unknown, max = 2400): string {
