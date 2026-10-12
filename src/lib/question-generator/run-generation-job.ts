@@ -1467,7 +1467,9 @@ export async function runGenerationJob(
        * 유형을 「되는 지문에서만 만들기」로 할지 「다른 유형으로 대체」로 할지 비교한다(2026-10-04).
        */
       const noSub = new Set((process.env.QG_NO_SUB_CODES ?? "").split(",").map((s) => s.trim()).filter(Boolean));
-      if ((result.skipped || !result.payload) && item.option.type !== "vocabulary" && !noSub.has(item.option.aingkaCode ?? "")) {
+      // 어휘는 다른 유형으로 바꾸지 않는다 — 다만 도표 지문이면 어휘 자체를 안 만들어 번호가 비므로 바꾼다
+      const chart = isChartDescriptionPassage(cleanSourcePassage(String(item.passageText ?? "")));
+      if ((result.skipped || !result.payload) && (item.option.type !== "vocabulary" || chart) && !noSub.has(item.option.aingkaCode ?? "")) {
         const requestedLabel = item.option.label || item.option.key.split(":").pop() || "";
         /*
          * 왜 고른 유형으로 안 됐는지 적어 둔다.
@@ -1492,7 +1494,7 @@ export async function runGenerationJob(
          */
         const usedKeys = new Set(siblings.map((w) => w.option.key));
         const usedScore = (o: QuestionTypeOption) => (usedKeys.has(o.key) ? 2 : 0) + (usedTypes.has(o.type) ? 1 : 0);
-        const alternatives = fallbackOptionsFor(item.option.key, level, item.typeTurn ?? item.copyIndex ?? 0)
+        const alternatives = fallbackOptionsFor(item.option.key, level, item.typeTurn ?? item.copyIndex ?? 0, chart)
           // 1지문 다문항: 한 지문에 합칠 수 있는 유형만(같은 표시를 쓰는 유형·지문을 자르는 유형은 뺀다)
           .filter((alt) => !setCfg || setFallbackAllowed(alt.key, siblings.map((w) => w.option.key)))
           .sort((a, b) => usedScore(a) - usedScore(b));
@@ -1785,7 +1787,11 @@ export async function runGenerationJob(
  * 254문항 작업(2026-10-03)은 대체 35개 가운데 27개가 제목추론으로 가, 한 지문에 제목추론이
  * 20개나 됐다. 서술형·어법을 고른 선생님에게 제목추론이 쌓이면 시험지가 안 된다.
  */
-function fallbackOptionsFor(optionKey: string, level: "상" | "중" | "하", turn = 0) {
+/**
+ * chart: 도표 설명 지문이면 주제·제목·요지·순서가 모두 「도표에 안 맞는 유형」이라 후보 셋이 다 생략돼 동형모의고사
+ * 번호가 비었다(2026-10-12 호원고2 9·10차 26문항 중 25). 그때는 내용일치·불일치로 바꿔 만든다.
+ */
+function fallbackOptionsFor(optionKey: string, level: "상" | "중" | "하", turn = 0, chart = false) {
   const tier = level === "상" ? "high" : "low";
   const rotate = (list: string[]) => {
     const k = Math.abs(Math.floor(turn)) % list.length;
@@ -1813,7 +1819,13 @@ function fallbackOptionsFor(optionKey: string, level: "상" | "중" | "하", tur
   for (const k of keys) {
     if (k === optionKey) continue;
     const got = findOptionByKey(k);
-    if (got) out.push(got);
+    if (got && !(chart && CHART_UNFIT_TYPES.has(got.type))) out.push(got);
+  }
+  if (chart && out.length === 0) {
+    for (const k of rotate([`content_true:en:${tier}:내용일치`, `content_false:en:${tier}:내용불일치`])) {
+      const got = k === optionKey ? null : findOptionByKey(k);
+      if (got) out.push(got);
+    }
   }
   return out;
 }
