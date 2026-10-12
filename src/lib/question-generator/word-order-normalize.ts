@@ -630,6 +630,11 @@ export function buildWordBankFromAnswer(
     // is·was·has·does는 명사가 아니다(what is important is)
     if (/^(?:is|was|has|does)$/i.test(tokens[i]!)) return false;
     if (NOUN_SLOT_BEFORE.has(prev)) return true;
+    /*
+     * 뒤에 관계사·조동사·복수 be가 오면 명사다 — 「not only places where」「cheap things can」「also spaces where」를
+     * 앞말로는 못 가려 place·thing·space로 깎았다(2026-10-12 의고2 직전보충문제).
+     */
+    if (/^(?:where|which|who|whom|whose|can|could|will|would|may|might|must|should|are|were)$/.test((tokens[i + 1] ?? "").toLowerCase())) return true;
     if (/[’']s$/.test(prev)) return true; // people’s needs
     if (/(?:ive|ous|ful|less|able|ible)$/.test(prev) && prev.length > 4) return true;
     if ((prev === "and" || prev === "or") && i >= 2) {
