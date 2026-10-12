@@ -7,7 +7,7 @@ export const BUSINESS_INFO: Record<
   string
 > = {
   /** 상호 */
-  name: "잉코어(EngCore)",
+  name: "잉코어",
   /** 대표자 */
   representative: "최정민",
   /** 사업자등록번호 */
@@ -15,7 +15,7 @@ export const BUSINESS_INFO: Record<
   /** 통신판매업 신고번호 (신고 후 채운다) */
   mailOrderNumber: "",
   /** 사업장 주소 */
-  address: "서울특별시 중랑구 봉우재로 109-15",
+  address: "서울특별시 중랑구 봉우재로 109-15(상봉동)",
   /** 환불·결제 문의 이메일 */
   email: "",
   /** 환불·결제 문의 전화 */

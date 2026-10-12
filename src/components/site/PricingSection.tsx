@@ -41,7 +41,7 @@ export function PricingSection({
         </h2>
         <p className="mt-2 text-[15px] leading-7 text-slate-600">
           월 고정 요금 없이 크레딧을 충전해 두고, 자료를 만들 때마다 필요한 만큼 차감됩니다. 1크레딧은 1원(부가세
-          별도)이며 유효기간이 없습니다.
+          별도)이며 유효기간은 결제일로부터 12개월입니다.
         </p>
       </div>
 
