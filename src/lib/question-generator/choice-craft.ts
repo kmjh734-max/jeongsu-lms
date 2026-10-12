@@ -71,8 +71,13 @@ export function choiceExplanationRules(): string {
  * 2026-10-11 90문항 점검: 맞서는 두 견해를 소개하는 글에서 주제 정답이 한쪽만 담아
  * 반대쪽 한쪽을 담은 오답과 맞섰다(정답 근거가 마지막 사례 하나).
  */
+/*
+ * 2026-10-12 점검(3a3e5a41 A13): 첫 문장이 「flexibility and convenience」라 글이 두 축을 나란히 다루는데,
+ * 정답은 유연성만, 오답 ⑤는 편리성만 담아 둘 다 같은 정도로 부분적이었다. 맞서는 견해뿐 아니라 나란한 두 축도 같게 다룬다.
+ */
 export function balancedGistRule(): string {
-  return `- 글이 맞서는 두 견해·두 면을 함께 소개하고 어느 한쪽으로 결론 내리지 않으면, 정답은 두 쪽을 모두 담는다. 한쪽만 담은 보기는 「범위가 좁은 오답」으로만 쓴다.`;
+  return `- 글이 맞서는 두 견해·두 면을 함께 소개하고 어느 한쪽으로 결론 내리지 않으면, 정답은 두 쪽을 모두 담는다. 한쪽만 담은 보기는 「범위가 좁은 오답」으로만 쓴다.
+- 글이 A와 B 두 축(두 장점·두 원인·두 단계 등)을 나란히 다루면(첫 문장이 「A and B」로 묶는 경우 등) 정답은 두 축을 모두 담는다. 한 축만 담은 보기를 오답으로 쓸 때는, 다른 축만 담은 보기도 같은 정도로 부분적이므로 둘 중 하나만 정답처럼 보이게 두지 않는다(한 축짜리 보기는 하나만 두고, 정답은 반드시 두 축을 다 담는다).`;
 }
 
 export function topicChoiceCraft(en: boolean): string {
@@ -106,7 +111,7 @@ export function impliedMeaningChoiceCraft(): string {
 - 강한 오답: 문자 그대로 / 지나치게 넓음 / 원인·결과 바꿈 / 주변 문맥만 반영.
 - 오답도 밑줄 표현의 일부 의미를 포함해 매력적으로.
 - 예) arrow…reverse → ○ behaviors can shape beliefs as much as beliefs shape behavior
-  × "do two things"류 일반론.`;
+  × 밑줄 낱말을 직역한 일반론.`;
 }
 
 export function contentFalseChoiceCraft(en: boolean): string {

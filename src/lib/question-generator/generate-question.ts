@@ -156,7 +156,8 @@ function factWordingRule(lang: "english" | "korean" | null | undefined, difficul
   return `WORDING (사실 보기):
 - Reword sentence structure naturally so the item tests understanding, not word matching — but keep the passage's names, numbers, units and key nouns as they are. Do not hunt for synonyms or rotate synonym sets; do not lift long chunks either.
 - ${vocabularyLevelRule(difficulty)}
-- ${lang === "korean" ? "Korean choices: translate each fact faithfully into natural Korean (no English phrases)." : "English choices: plain exam English."}`;
+- ${lang === "korean" ? "Korean choices: translate each fact faithfully into natural Korean (no English phrases)." : "English choices: plain exam English."}
+- Keep the passage's hedges: if the passage says think/believe/may/can/might/seem (「~라고 생각할 수 있다」「~일 수 있다」), the choice keeps them — dropping them turns an opinion or possibility into a flat fact and can flip true/false (× 「A라고 생각할 수 있다」 → 「A이다」).`;
 }
 
 /**
@@ -292,7 +293,8 @@ LANGUAGE: passageModified + choices MUST be ENGLISH only (no Korean).`;
       // 「길이를 비슷하게」라는 말은 이미 공통 규칙에 있었는데도 지켜지지 않았다.
       // 개수 유형과 같이 숫자로 못박는다.
       const blankLengthRule = `- 다섯 선택지의 낱말 수를 맞춘다: 가장 긴 것과 가장 짧은 것의 차이가 <b>3낱말 이내</b>.
-- 정답이 가장 긴 선택지가 되지 않게 한다. 쓰고 나서 다섯 개의 낱말 수를 세어 보고, 정답이 제일 길면 오답을 늘리거나 정답을 줄여 다시 맞춘다.`;
+- 정답이 가장 긴 선택지가 되지 않게 한다. 쓰고 나서 다섯 개의 낱말 수를 세어 보고, 정답이 제일 길면 오답을 늘리거나 정답을 줄여 다시 맞춘다.
+- 빈칸으로 지운 문장에만 나오는 고유명사(사람·곳 이름)·연도는 바꿔 쓴 정답에 넣지 않는다. 학생 지문에 없는 정보다 — 그 문장이 글의 흐름에서 하는 말로 쓴다.`;
       if (option.difficulty === "high") {
         return `문장빈칸 HIGH (상) — 효자 기출동형:
 - In passageModified, blank ONE important sentence (or key clause) with ____________________________________.
@@ -837,6 +839,7 @@ word1 / word2 / … (6~10개, 정답 ⓐ+ⓑ를 섞은 핵심 단어. 원형만.
 - 정답이 하나뿐이게(2026-10-04 시험에서 둘 다 맞는 답이 나왔다):
   · ⓐ와 ⓑ는 요약문에서 맡는 역할이 달라야 한다(예: ⓐ 동사구, ⓑ 명사구). 두 칸의 답을 서로 바꿔 넣어도 말이 되면 안 된다.
   · 보기의 낱말 하나하나가 한쪽 칸에만 들어갈 수 있게 고른다.
+  · 빈칸 안의 동사는 그 목적어·보어까지 같은 빈칸에 담는다. 타동사로 끝나 목적어가 빠지거나 다른 빈칸으로 떨어지면 안 된다(× ⓐ가 「how X serve」로 끝나고 serve의 목적어는 ⓑ 뒤에 따로 있음). 두 칸을 채운 요약문이 그대로 완전한 문장이어야 한다.
   · 형태를 꼭 바꿔야 하는 낱말만 원형으로 주고, 바꾸지 않아도 되는 낱말은 정답 형태 그대로 준다(life/lives처럼 바꿔도 안 바꿔도 맞는 낱말을 두지 않는다).
 - 요약문은 지문 핵심 문장을 거의 그대로 활용. 새 단어 지어내기 금지.
 - choices 없음. explanation 한글: 정답 + 지문 어디에 근거하는지.
@@ -1047,6 +1050,49 @@ export function blankedAbbreviation(raw: Record<string, unknown>, passage: strin
     }
   }
   return null;
+}
+
+/**
+ * 2026-10-12 점검(a27935eb A18): 「This is the Bronx in the New York of the early 1970s, …」를 빈칸으로 지웠는데
+ * 정답 보기가 「among diverse Bronx residents」였다 — Bronx는 학생 지문 어디에도 없다.
+ * 정답 보기의 고유명사(문장 가운데 대문자 낱말)·연도가 원문에는 있고 빈칸 뚫린 지문에는 없으면 다시 만든다.
+ */
+export function blankedOnlyNameInKey(raw: Record<string, unknown>, passage: string): string | null {
+  const modified = String(raw.passageModified ?? "");
+  if (!modified) return null;
+  const key = Number(String(raw.correctAnswer ?? "").replace(/[^0-9]/g, ""));
+  const choices = Array.isArray(raw.choices) ? (raw.choices as Array<{ number?: unknown; text?: unknown }>) : [];
+  const keyText = String(choices.find((c) => Number(c.number) === key)?.text ?? "");
+  if (!keyText) return null;
+  // 정답이 지운 원문 문장 그대로면(하 난이도의 원문 정답) 따지지 않는다
+  const flat = (t: string) => t.toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9']+/g, " ").trim();
+  if (flat(keyText).length > 20 && flat(passage).includes(flat(keyText))) return null;
+  // 연결어 빈칸(「However …… For example」)·여러 문장 보기는 조각마다 첫 낱말을 문장 머리로 본다
+  const names = keyText.split(/……|…|\.\.\.|[.!?;:]\s+/).flatMap((seg) => {
+    const words = seg.match(/[A-Za-z][A-Za-z’'-]*|\d{4}s?/g) ?? [];
+    return words.filter((w, i) => (i > 0 && /^[A-Z][a-z]/.test(w) && w !== "I") || /^(?:1[5-9]|20)\d\ds?$/.test(w));
+  });
+  for (const w of names) {
+    const base = w.replace(/[’']s$/, "");
+    // base는 영문자·숫자·붙임표·홑따옴표뿐이라 정규식 특수문자가 없다
+    const re = new RegExp(`(?<![A-Za-z0-9])${base}(?![A-Za-z0-9])`);
+    if (re.test(passage) && !re.test(modified)) {
+      return `정답 보기의 「${base}」는 빈칸으로 지운 문장에만 있어 학생 지문에서 찾을 수 없습니다. 보이는 지문에 있는 말로 정답을 쓰거나, 다른 문장을 빈칸으로 합니다.`;
+    }
+  }
+  return null;
+}
+
+/**
+ * 2026-10-12 점검: 함축의미 해설에 지문과 상관없는 「두 가지 기능을 하는 발언이라는 사전적 풀이가 아니다」가 들어갔다
+ * (해설 지시의 예시가 새어 나옴). 지문에 two·both·dual·double이 없는데 해설이 「두 가지 기능」류를 말하면 다시 만든다.
+ */
+const DUAL_FUNCTION_EXPLANATION = /두\s*가지\s*(?:기능|역할|일|목적)|두\s*기능|이중\s*(?:기능|역할)|일석이조|일거양득/;
+export function dualFunctionLeak(raw: Record<string, unknown>, passage: string): string | null {
+  const m = String(raw.explanation ?? "").match(DUAL_FUNCTION_EXPLANATION);
+  if (!m) return null;
+  if (/\b(?:two|both|dual|double|twofold|twice)\b/i.test(passage)) return null;
+  return `해설의 「${m[0]}」는 이 지문에 없는 말입니다. 밑줄의 뜻은 이 지문의 내용으로만 풀이합니다.`;
 }
 
 const SUBJECT_STOP = new Set(["the", "and", "for", "with", "how", "why", "what", "its", "their", "about", "people", "thing", "things", "way", "ways", "role"]);
@@ -2817,7 +2863,7 @@ export async function generateOneQuestion(opts: {
           ? "학생용 한글 답지(정답 번호 + 틀린형→바른형 + 쉬운 이유). 영어 은어·코드 금지."
           : option.type === "underlined_inference" &&
               option.aingkaCode === "함축의미추론"
-            ? "학생용 한글: 정답 번호 + 밑줄의 문맥 의미 + 왜 사전적 풀이(두 가지 기능을 한다 등)가 아닌지."
+            ? "학생용 한글: 정답 번호 + 밑줄의 문맥 의미(이 지문의 말로) + 왜 밑줄 낱말의 사전 뜻 그대로가 아닌지. 지문에 없는 일반론 문장은 쓰지 않는다."
             : "1-2 Korean sentences.";
 
   // 유형·문항별 규칙 (예전 system 중간에 있던 가변 부분 — 문구 그대로, 순서만 뒤로)
@@ -2851,7 +2897,7 @@ export async function generateOneQuestion(opts: {
         ? '- 순서추론: 덩어리 사이를 잇는 단서(지시어·연결어·시간 흐름·앞 문단을 받는 말)가 없는 나열 지문(같은 꼴 문장의 반복, 항목 소개 나열)이면 순서가 하나로 정해지지 않는다. 그럴 때는 {"skip":true,"reason":"순서 단서 없음"}.'
         : isReferenceWriting
         ? '- 지칭 서술: 명확한 선행사/문맥 동의 구가 있을 때만. 없으면 {"skip":true,"reason":"..."}.'
-        : '- 함축의미: 문맥 의존 표현만. 정답은 사전 뜻이 아니라 지문 구체 paraphrase (do double duty ≠ "do two things"). 없으면 {"skip":true,"reason":"..."}. 본문은 (A)<u>…</u>.\n- 함축의미 밑줄은 지문에 이미 있는 표현에 친다. 지문을 최대한 그대로 쓰고, 밑줄을 만들려고 새 문장을 지어 붙이지 않는다.'
+        : '- 함축의미: 문맥 의존 표현만. 정답은 사전 뜻이 아니라 지문 구체 paraphrase(밑줄 낱말을 직역한 일반론 X). 없으면 {"skip":true,"reason":"..."}. 본문은 (A)<u>…</u>.\n- 함축의미 밑줄은 지문에 이미 있는 표현에 친다. 지문을 최대한 그대로 쓰고, 밑줄을 만들려고 새 문장을 지어 붙이지 않는다.'
       : "",
     option.type === "sentence_insertion"
       ? "- Do NOT return choices for 문장삽입; slots ①~⑤ in passageModified are the options."
@@ -3308,6 +3354,12 @@ ${opts.setNote.slice(0, 1800)}`] : []),
   if (option.type === "sentence_blank") {
     const abbr = blankedAbbreviation(raw, passage);
     if (abbr) throw new Error(abbr);
+    const blankedName = blankedOnlyNameInKey(raw, passage);
+    if (blankedName) throw new Error(blankedName);
+  }
+  if (option.aingkaCode === "함축의미추론") {
+    const dual = dualFunctionLeak(raw, passage);
+    if (dual) throw new Error(dual);
   }
   if (option.type === "content_true" || option.type === "content_false") {
     const giveaway = extremeWordGiveaway(raw);

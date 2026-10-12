@@ -573,6 +573,14 @@ const SUBJECT_BEFORE_VERB_S = new Set([
   "somebody", "anyone", "anybody", "nobody", "no-one", "everything", "something", "anything", "nothing", "each",
 ]);
 
+/** 바로 뒤의 -s 낱말을 명사 복수형으로 볼 자리(한정사·수사·전치사) */
+const NOUN_SLOT_BEFORE = new Set([
+  "the", "a", "an", "my", "your", "his", "her", "our", "their", "its", "these", "those", "many", "some", "any", "all",
+  "several", "few", "both", "such", "various", "other", "more", "most", "no", "two", "three", "four", "five",
+  "ten", "hundreds", "thousands", "millions", "first", "last", "next", "diverse", "different", "emotional", "of", "during", "for", "with", "in", "on", "at", "by", "from", "into",
+  "about", "among", "between", "through", "without", "within", "under", "over", "after", "before", "to",
+]);
+
 export function buildWordBankFromAnswer(
   correctAnswer: string,
   mode: WordOrderBankMode,
@@ -611,13 +619,32 @@ export function buildWordBankFromAnswer(
   const lemVerb = (t: string) => lemmaEnglishToken(t, { auxiliaries: true, keepS: true });
   // 모델 보기에 -s 없는 꼴(allow)이 있고 정답 꼴(allows)은 없으면 모델이 동사로 본 것이다
   const givenLower = new Set(given.map((g) => g.toLowerCase()));
-  const inflectToken = (tokens: string[], i: number) => {
+  /*
+   * 2026-10-12 점검: 모델이 보기에 educator·librarian·weekend처럼 명사 단수형을 넣으면 위 규칙이
+   * 동사로 믿어 그대로 깎았다(Progressive educators and librarians, During weekends).
+   * 바로 앞이 한정사·수사·전치사·형용사 꼴이거나, and/or 앞 낱말이 복수형으로 남았으면 명사 자리로 보고 정답 꼴을 둔다.
+   */
+  const nounSlot = (tokens: string[], i: number): boolean => {
+    const prev = (tokens[i - 1] ?? "").toLowerCase();
+    if (!prev) return false;
+    // is·was·has·does는 명사가 아니다(what is important is)
+    if (/^(?:is|was|has|does)$/i.test(tokens[i]!)) return false;
+    if (NOUN_SLOT_BEFORE.has(prev)) return true;
+    if (/[’']s$/.test(prev)) return true; // people’s needs
+    if (/(?:ive|ous|ful|less|able|ible)$/.test(prev) && prev.length > 4) return true;
+    if ((prev === "and" || prev === "or") && i >= 2) {
+      const left = inflectToken(tokens, i - 2);
+      return /s$/i.test(tokens[i - 2]!) && left.toLowerCase() === tokens[i - 2]!.toLowerCase();
+    }
+    return false;
+  };
+  const inflectToken = (tokens: string[], i: number): string => {
     const t = tokens[i]!;
     const prev = (tokens[i - 1] ?? "").toLowerCase();
     if (/s$/i.test(t)) {
       const base = lem(t);
       if (SUBJECT_BEFORE_VERB_S.has(prev)) return base;
-      if (base !== t.toLowerCase() && givenLower.has(base) && !givenLower.has(t.toLowerCase())) return base;
+      if (base !== t.toLowerCase() && givenLower.has(base) && !givenLower.has(t.toLowerCase()) && !nounSlot(tokens, i)) return base;
     }
     // 규칙 과거·-ing는 철자를 짐작하지 않는다(destined→destine?). 모델 보기에 그 원형이 있으면 그것을 쓴다
     const low = t.toLowerCase();

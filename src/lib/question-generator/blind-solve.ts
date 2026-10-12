@@ -236,7 +236,7 @@ For fact items (일치/불일치/개수), each verdict is one of:
 - "ambiguous": its truth depends on how a word or reference is read (unclear "this/such/it", vague wording, a loose paraphrase that changes the object, quantity, scope, cause or time)
 For title/topic items, each verdict is one of:
 - "valid": a good title/topic for the whole passage
-- "not_representative": covers only part, or is too broad
+- "not_representative": covers only part, or is too broad (if the passage treats two parallel aspects or two views — e.g. it opens with "A and B" — a choice that covers only one of them covers only part)
 - "conflicts": states something the passage denies or does not claim
 - "unclear": wording is vague or could be read several ways, or it is so abstract or metaphorical that a student reading only this choice cannot tell what the passage is about (the subject is hidden behind a cover word or image)
 Also set "natural": false if the choice is unnatural or ungrammatical English (or Korean), or if it contradicts itself or is absurd on its own so a student could cross it out without reading the passage ("warmed the greenhouse below freezing", "acts in the direction of motion and slows it"). List in "rareWords" words not in the passage that a Korean 고등학생 would not know (specialist terms, GRE-style words, unusual senses); normal 수능 vocabulary is fine.
