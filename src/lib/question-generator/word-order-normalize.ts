@@ -770,10 +770,15 @@ export function stripExtraWordHint(conditions: string): {
     .filter((l) => l && !/^○\s*$/.test(l) && !/^·\s*$/.test(l))
     .join("\n")
     .trim();
-  // 한 줄에 여러 조건이 / 로 이어진 경우 줄바꿈
-  if (!/\n/.test(next) && /\s\/\s/.test(next)) {
+  /*
+   * 한 줄에 여러 조건이 / 로 이어진 경우 줄바꿈.
+   * 조건 끝말(「~할 것」) 뒤의 / 만 나눈다 — 「cannot ~ too / enough를 사용할 것」처럼
+   * 어법 이름 속 / 까지 잘라 조건 영작이 늘 버려졌다(2026-10-13 호원고1 47/48 대체).
+   */
+  const CONDITION_SPLIT = /(?<=(?:것|오|라|함)\.?)\s\/\s/;
+  if (!/\n/.test(next) && CONDITION_SPLIT.test(next)) {
     next = next
-      .split(/\s\/\s/)
+      .split(CONDITION_SPLIT)
       .map((s) => s.trim())
       .filter(Boolean)
       .map((s) => (s.startsWith("○") || s.startsWith("·") ? s : `○ ${s}`))
