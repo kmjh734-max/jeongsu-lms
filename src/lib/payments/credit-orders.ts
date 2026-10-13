@@ -49,6 +49,9 @@ export function generatePaymentOrderId(): string {
   return `ord_${ts}_${rand}`;
 }
 
+/** 1회 충전 상한(부가세 포함) */
+export const MAX_CHARGE_WON = 100_000;
+
 export async function loadActivePackage(
   admin: SupabaseClient,
   packageId: string
@@ -75,6 +78,10 @@ export async function createReadyOrder(
   const pkg = await loadActivePackage(admin, params.packageId);
   if (!pkg) {
     throw new Error("유효하지 않거나 비활성인 충전 상품입니다.");
+  }
+  // 충전업종 심사 조건: 1회 충전 10만 원 이하(토스 2026-10-12). 관리자 화면에서 값을 올려도 결제는 막는다.
+  if (Number(pkg.payment_amount) > MAX_CHARGE_WON) {
+    throw new Error("1회 충전 금액은 10만 원을 넘을 수 없습니다.");
   }
 
   const orderId = generatePaymentOrderId();

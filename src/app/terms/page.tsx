@@ -53,7 +53,10 @@ export default function TermsPage() {
         <ol className="list-decimal space-y-1 pl-5">
           <li>학원 회원은 회사가 정한 충전 상품을 결제하여 크레딧을 충전하고, 유료 기능을 쓸 때 서비스 화면에 표시된 크레딧이 차감됩니다.</li>
           <li>충전 상품과 기능별 크레딧은 <Link className="underline" href="/pricing">요금 안내</Link>에 게시합니다. 회사가 요금을 바꿀 때에는 미리 알리며, 이미 충전한 크레딧의 가치는 바뀌지 않습니다.</li>
-          <li>결제는 회사가 정한 결제대행사를 통해 처리합니다.</li>
+          <li>결제는 회사가 정한 결제대행사를 통해 신용·체크카드로 처리합니다. 1회 충전 금액은 10만 원 이하입니다.</li>
+          <li>충전된 크레딧의 이용기간과 환불가능기간은 결제시점으로부터 1년 이내로 제한됩니다.</li>
+          <li>충전된 크레딧은 회원 간 양도가 불가합니다.</li>
+          <li>크레딧의 환불은 결제가 되었던 수단으로 진행합니다.</li>
           <li>청약철회와 환불은 <Link className="underline" href="/refund-policy">환불 기준</Link>에 따릅니다.</li>
         </ol>
       </Clause>

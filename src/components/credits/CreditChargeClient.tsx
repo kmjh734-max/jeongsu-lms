@@ -37,7 +37,8 @@ export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: bo
    * API 개별 연동 키(…_ck_)면 결제하기를 누를 때 토스 결제창을 띄운다.
    */
   const usesWidget = /^(test|live)_gck_/.test(process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim() ?? "");
-  const [payMethod, setPayMethod] = useState<"CARD" | "TRANSFER">("CARD");
+  // 충전 상품은 카드만 받는다 — 환금성 업종이라 계좌이체·가상계좌 불가(토스 심사 2026-10-12)
+  const [payMethod, setPayMethod] = useState<"CARD">("CARD");
   const customerKeyRef = useRef(`engcore_${crypto.randomUUID().replace(/-/g, "")}`);
 
   const selected = useMemo(
@@ -156,8 +157,7 @@ export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: bo
           successUrl: `${origin}/admin/credits/payment/success`,
           failUrl: `${origin}/admin/credits/payment/fail`,
         };
-        if (payMethod === "TRANSFER") await payment.requestPayment({ method: "TRANSFER", ...common });
-        else await payment.requestPayment({ method: "CARD", ...common });
+        await payment.requestPayment({ method: "CARD", ...common });
         return;
       }
 
@@ -210,7 +210,7 @@ export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: bo
           ) : null}
         </div>
         <p className="mt-1 text-sm text-slate-500">
-          상품을 고르고 카드나 계좌이체로 결제해요. 큰 상품일수록 보너스 크레딧이 더 붙어요.
+          상품을 고르고 카드로 결제해요. 큰 상품일수록 보너스 크레딧이 더 붙어요.
         </p>
       </div>
 
@@ -289,7 +289,6 @@ export function CreditChargeClient({ checkoutOpen = false }: { checkoutOpen?: bo
             {(
               [
                 ["CARD", "신용·체크카드", "카드사 선택, 토스페이 등 간편결제"],
-                ["TRANSFER", "계좌이체", "은행 계좌에서 바로 결제"],
               ] as const
             ).map(([value, label, desc]) => {
               const on = payMethod === value;

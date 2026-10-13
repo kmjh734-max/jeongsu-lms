@@ -24,7 +24,7 @@ export const CREDIT_PACKS: CreditPack[] = [
   { label: "스타터", credits: 10_000, priceWon: 10_000, discountPct: 0 },
   { label: "스탠다드", credits: 32_000, priceWon: 30_000, discountPct: 6 },
   { label: "프로", credits: 55_000, priceWon: 50_000, discountPct: 9 },
-  { label: "맥스", credits: 115_000, priceWon: 100_000, discountPct: 13 },
+  { label: "맥스", credits: 103_500, priceWon: 90_000, discountPct: 13 },
 ];
 
 export function creditsToWon(credits: number, wonPer = CREDIT_WON_PER_UNIT): number {
