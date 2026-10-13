@@ -123,6 +123,20 @@ export async function getFeatureCost(
 }
 
 /**
+ * 결제시점으로부터 1년 지난 크레딧을 소멸시킨다(마이그레이션 187, 토스 충전업종 조건 2026-10-13).
+ * 먼저 들어온 크레딧부터 쓴 것으로 계산하고, 같은 날 여러 번 불려도 한 번만 남는다.
+ * 크레딧 화면을 열 때와 차감 전에 부른다. 실패해도(함수 없음 등) 본 작업은 막지 않는다.
+ */
+export async function expireAcademyCredits(admin: SupabaseClient, academyId: string): Promise<number> {
+  const { data, error } = await admin.rpc("expire_academy_credits", { p_academy_id: academyId });
+  if (error) {
+    console.warn("[credits] expire_academy_credits", error.message);
+    return 0;
+  }
+  return Number(data ?? 0);
+}
+
+/**
  * 기능 단가로 차감. cost=0 또는 비활성(0)이면 스킵.
  * quantity>1 이면 단가×수 (변형문제 문항 수 등).
  * idempotency_key로 중복 차감 방지.
@@ -156,6 +170,8 @@ export async function debitFeatureCredits(
   if (!pricing.active || pricing.cost <= 0) {
     return { skipped: true, transaction: null };
   }
+
+  await expireAcademyCredits(admin, params.academyId);
 
   const quantity = Math.max(1, Math.floor(params.quantity ?? 1));
   const meta = {

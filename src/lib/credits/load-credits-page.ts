@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getKoreaYearMonth, parseKoreaMonthParam } from "@/lib/date/korea-today";
 import { fetchPagesParallel } from "@/lib/fetch-pages";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { expireAcademyCredits } from "@/lib/credits";
 import {
   cleanCreditText,
   featureGroup,
@@ -128,6 +130,9 @@ export async function loadCreditsPageData(
   const now = getKoreaYearMonth();
   const selected = parseKoreaMonthParam(opts.monthParam, now);
   const isCurrent = selected.year === now.year && selected.month === now.month;
+
+  // 1년 지난 크레딧은 잔액을 읽기 전에 소멸시켜 화면과 내역이 맞게 한다
+  await expireAcademyCredits(createAdminClient(), opts.academyId);
 
   const [walletRes, currentTxns, selectedTxns, pricingRes, ordersRes] = await Promise.all([
     supabase
