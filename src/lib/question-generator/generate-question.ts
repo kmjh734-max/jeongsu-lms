@@ -2188,13 +2188,28 @@ export function assertBasicQuestionShape(
     };
 
     let modified = String(q.passageModified ?? "").trim();
+    /*
+     * 빈칸 말고 원문 문장을 하나 더 지운 지문도 원문에서 다시 뚫는다. 검수가 「원문 문장을 2개 지웠습니다」로
+     * 버려 다른 유형으로 바뀌던 것(10-08~13 대체 119문항 중 13문항) — 원문은 우리가 가지고 있다.
+     */
+    const removedOriginalSentences = (mod: string): number => {
+      const plain = mod.replace(/<[^>]+>/g, "").replace(/\s+/g, " ");
+      return String(q.passageOriginal ?? "")
+        .replace(/<[^>]+>/g, "")
+        .split(/(?<=[.!?]["'”’]?)\s+(?=[A-Z"'“‘(])/)
+        .map((s) => s.trim().replace(/\s+/g, " "))
+        .filter((s) => s.length > 15 && !plain.includes(s)).length;
+    };
     const needsBlank =
       !modified ||
       !/ⓐ/.test(modified) ||
       !/_{3,}/.test(modified) ||
-      passageHasConsecutiveWords(modified, answer);
+      passageHasConsecutiveWords(modified, answer) ||
+      removedOriginalSentences(modified) >= 2;
     if (needsBlank) {
-      const fixed = blankOut(modified || q.passageOriginal || "") ?? blankOut(q.passageOriginal || "");
+      // 모델 지문이 원문 문장을 잃었으면 그 지문은 버리고 원문에서 뚫는다
+      const fromModel = modified && removedOriginalSentences(modified) < 2 ? blankOut(modified) : null;
+      const fixed = fromModel ?? blankOut(q.passageOriginal || "");
       if (!fixed) {
         return "조건 영작은 정답 문장을 빈칸으로 뚫은 지문(passageModified)이 필요합니다.";
       }
