@@ -167,6 +167,19 @@ function factWordingRule(lang: "english" | "korean" | null | undefined, difficul
  */
 const GRAMMAR_FOR_WRITING = WRITING_GRAMMAR_LIST;
 
+/** aren't → are not, doesn't → does not, can't → cannot, won't → will not (보기에서 not이 사라지지 않게) */
+function expandNegativeContractions(text: string): string {
+  // 의문문은 풀면 어색하다(Won't you? → Will not you?)
+  if (/\?\s*$/.test(text)) return text;
+  return text.replace(/\b([A-Za-z]+)n[’']t\b/g, (whole: string, base: string) => {
+    const lower = base.toLowerCase();
+    if (lower === "ca") return base[0] === "C" ? "Cannot" : "cannot";
+    if (lower === "wo") return base[0] === "W" ? "Will not" : "will not";
+    if (lower === "sha") return base[0] === "S" ? "Shall not" : "shall not";
+    return `${base} not`;
+  });
+}
+
 function typeRules(
   option: QuestionTypeOption,
   /** 지정 문법을 지문에서 찾을지, 고쳐 써서 만들지 (선생님 요청 2026-09-29) */
@@ -583,7 +596,8 @@ ${explainRules}`;
          * 「5개 틀리게」는 여섯 자리에 억지스러워 모델이 따르지 않은 것이다.
          * 자리를 wrongN+3개로 두면 1개든 5개든 자연스러워진다.
          */
-        const spots = wrongN + 3;
+        // 보기가 늘 1개~5개라 밑줄이 다섯보다 적으면 「5개」가 답이 될 수 없는 보기가 된다(2026-10-13 점검 4문항)
+        const spots = Math.max(5, wrongN + 3);
         const marks = "①②③④⑤⑥⑦⑧".slice(0, spots).split("").join(" ");
         return `
 
@@ -1801,8 +1815,16 @@ export function assertBasicQuestionShape(
         : option.aingkaCode === "제시어배열어형변화"
           ? ("inflect" as const)
           : ("basic" as const);
+    /*
+     * 어형변화 보기는 원형으로 내는데 aren't·doesn't를 be·do로만 줄여 not이 보기에서 사라졌다
+     * (2026-10-13 점검 「emotions aren't just」「doesn't mean … don't know」). 보기는 풀어 쓴 정답
+     * (are not)으로 만들고, 저장 정답은 아래 「지문 그대로」 대조가 끝난 뒤 풀어 쓴다.
+     */
     q.questionText = normalizeWordOrderQuestionText(q.questionText || "", {
-      correctAnswer: String(q.correctAnswer ?? ""),
+      correctAnswer:
+        woMode === "inflect"
+          ? expandNegativeContractions(String(q.correctAnswer ?? ""))
+          : String(q.correctAnswer ?? ""),
       mode: woMode,
     });
     q.questionText = restoreLeadingProperNoun(q.questionText, String(q.correctAnswer ?? ""), q.passageOriginal || "");
@@ -1832,6 +1854,9 @@ export function assertBasicQuestionShape(
       if (filled.length && Math.abs(filled.length - orig.length) > 2) {
         return `정답을 빈칸에 넣어도 원문이 되지 않습니다(낱말 ${filled.length} / 원문 ${orig.length}). 빈칸은 정답 문장만 비워야 합니다.`;
       }
+    }
+    if (woMode === "inflect") {
+      q.correctAnswer = expandNegativeContractions(String(q.correctAnswer ?? ""));
     }
     const bankLine = (q.questionText.match(/<보기>\s*\n([^\n]+)/) ?? [])[1] ?? "";
     let leftOver = bankWordsLeftInBlankLine(mod, bankLine);
