@@ -2230,13 +2230,22 @@ export function assertBasicQuestionShape(
     if (bankWords.length !== answerWords.length) {
       return `<보기> ${bankWords.length}낱말과 정답 ${answerWords.length}낱말이 맞지 않습니다.`;
     }
-    const spare = [...bankWords];
-    for (const w of answerWords) {
-      const at = spare.indexOf(w);
-      if (at < 0) {
-        return `정답의 낱말 「${w}」이 <보기>에 없습니다.`;
+    /*
+     * 보기는 정답에서 원형으로 만든 것이라, 같은 방식으로 다시 만든 것과 같으면 맞다.
+     * 낱말마다 원형을 따로 견주면 used·feeding·surrounding을 use·feed·surround와 못 맞춰
+     * 멀쩡한 문항을 버렸다(2026-10-13 호원고1 단원문법 서술형 9문항).
+     */
+    const sortedLower = (ws: string[]) => ws.map((w) => w.toLowerCase()).sort().join(" ");
+    const rebuilt = buildWordBankFromAnswer(answer, "inflect", blocks.words);
+    if (sortedLower(splitWordBank(bank)) !== sortedLower(rebuilt)) {
+      const spare = [...bankWords];
+      for (const w of answerWords) {
+        const at = spare.indexOf(w);
+        if (at < 0) {
+          return `정답의 낱말 「${w}」이 <보기>에 없습니다.`;
+        }
+        spare.splice(at, 1);
       }
-      spare.splice(at, 1);
     }
 
     q.questionText = [

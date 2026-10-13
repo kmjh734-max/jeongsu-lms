@@ -266,7 +266,8 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
     label: "with + 명사 + 분사",
     form: "with + 명사 + V-ing/p.p.",
     hint: "~한 채로. 곁따르는 상황을 덧붙인다.",
-    check: /\bwith\s+\w+(\s+\w+)?\s+\w+(ing|ed|en)\b/i,
+    // 명사구가 길거나(time and weather) 부사가 끼어도(also evoking) 알아본다 — 쉼표·마침표는 넘지 않는다
+    check: /\bwith\s+[^,.;:!?]{1,60}?\b\w+(ing|ed|en)\b/i,
     textbookBooks: 4,
   },
   {
@@ -418,7 +419,12 @@ export function objectParticle(word: string): "을" | "를" {
  * 이름이 겹치는 것들이 있어(관계대명사 ↔ 관계대명사 what) 긴 이름부터 맞춰 본다.
  */
 export function findWritingGrammar(conditionLine: string): WritingGrammar | null {
-  const line = conditionLine || "";
+  /*
+   * 띄어쓰기·물결표(～〜)가 조금만 달라도 못 찾아 멀쩡한 문항을 버렸다 — 단원문법 서술형 48문항 중
+   * 19문항이 「어법 이름이 필요합니다」로 버려짐(2026-10-13 호원고1, cannot ~ too / enough).
+   */
+  const norm = (t: string) => t.replace(/[～〜∼]/g, "~").replace(/\s+/g, "").toLowerCase();
+  const line = norm(conditionLine || "");
   const byLength = [...WRITING_GRAMMARS].sort((a, b) => b.label.length - a.label.length);
-  return byLength.find((g) => line.includes(g.label)) ?? null;
+  return byLength.find((g) => line.includes(norm(g.label))) ?? null;
 }
