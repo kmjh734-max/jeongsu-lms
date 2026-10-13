@@ -324,7 +324,7 @@ export const WRITING_GRAMMARS: WritingGrammar[] = [
     form: "cannot + 동사 + too",
     hint: "아무리 ~해도 지나치지 않다.",
     // 교과서 예문 꼴까지: can never thank you enough, cannot be overstated(2026-10-13 대체 2문항)
-    check: /\b(?:cannot|can[’']t|can\s+never|could\s+not|couldn[’']t|could\s+never)\b(?:[\s\S]{0,40}?\b(?:too|enough)\b|\s+(?:be\s+)?over[a-z]{4,})/i,
+    check: /\b(?:cannot|can[’']t|can\s+never|could\s+not|couldn[’']t|could\s+never)\b(?:[\s\S]{0,70}?\b(?:too|enough)\b|\s+(?:be\s+)?over[a-z]{4,})/i,
     textbookBooks: 2,
   },
   {

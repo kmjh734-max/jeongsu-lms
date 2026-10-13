@@ -2644,6 +2644,11 @@ export async function generateOneQuestion(opts: {
   const isWordOrder =
     option.type === "writing" &&
     wordOrderCodes.has(option.aingkaCode || meta?.aingkaCode || "");
+  /*
+   * 지정 문법 조건 영작도 <조건>·<보기>·<해석>을 쓰고 빈칸을 뚫는다. 여기서 빠져 있어 공통 규칙이
+   * 「questionText는 비운다」「passageModified는 빼라」로 나가 유형 규칙과 부딪혔다(2026-10-13).
+   */
+  const isGrammarWriting = option.type === "writing" && (option.aingkaCode || meta?.aingkaCode) === "문법조건영작";
 
   const referenceCodes = new Set(["지칭대명사서술", "특정표현의미서술"]);
   const isReferenceWriting =
@@ -2699,12 +2704,14 @@ export async function generateOneQuestion(opts: {
       "underlined_inference",
     ].includes(option.type) ||
     isWordOrder ||
+    isGrammarWriting ||
     isReferenceWriting;
 
   const needsQuestionText =
     option.type === "content_count" ||
     option.type === "sentence_insertion" ||
     isWordOrder ||
+    isGrammarWriting ||
     isSummaryBlank ||
     isReferenceWriting ||
     isGrammarFix ||
@@ -2894,6 +2901,8 @@ export async function generateOneQuestion(opts: {
   const questionTextRule = needsQuestionText
     ? option.type === "sentence_insertion"
       ? "Fill questionText with the ENGLISH given sentence to insert."
+      : isGrammarWriting
+        ? "Fill questionText with <조건>, <보기>, <해석> exactly as the ITEM RULES show (each tag on its own line)."
       : isWordOrder
         ? "Fill questionText with <조건>, <보기>, <해석>. Blank = IMPORTANT passage sentence reflecting the sampled GRAMMAR POINT (not a trivial SVO)."
         : isSummaryBlank
@@ -2908,7 +2917,7 @@ export async function generateOneQuestion(opts: {
     : 'questionText usually "".';
 
   const passageModifiedRule = needsModified
-    ? isWordOrder
+    ? isWordOrder || isGrammarWriting
       ? "passageModified MUST include blank ⓐ__________ in the ENGLISH passage."
       : isReferenceWriting
         ? "passageModified MUST underline the pronoun/expression with <u>…</u> (대명사는 ⓐ<u>it</u>)."
@@ -3006,7 +3015,7 @@ export async function generateOneQuestion(opts: {
       ? `- KEEP THE PASSAGE VERBATIM (지문 바꿔 쓰기 꺼짐): outside the parts this type changes, passageModified copies the original passage word for word — never reword, shorten, merge, split or drop any sentence or phrase. The ONLY allowed change: ${
           option.aingkaCode === "연결어빈칸"
             ? "the connective words replaced by (A)/(B). Use connectives that already start a clause in the passage; the rest of each sentence stays as it is"
-            : option.type === "sentence_blank" || isWordOrder
+            : option.type === "sentence_blank" || isWordOrder || isGrammarWriting
               ? "the blank that replaces the target sentence or phrase. If only part of a sentence is blanked, the rest of that sentence stays word for word"
               : option.type === "order"
                 ? option.difficulty === "high"
@@ -3271,6 +3280,18 @@ ANSWER SPOT: 이번 문항의 정답은 <b>${no}번</b>이다. ${how}`;
                       }
                     : {}),
                 }
+              : option.aingkaCode === "문법조건영작"
+                ? {
+                    /*
+                     * 지정 문법 조건 영작은 이 틀이 없어 아래 객관식 틀(choices·정답 1-5)을 받았다 — questionText·passageModified
+                     * 칸이 없으니 모델이 자주 비워 보내 「<조건>·<보기>·<해석>이 필요합니다」로 버려졌다
+                     * (2026-10-13 호원고1 다시 만든 두 작업: 앞 시도 27번이 이 까닭, 4문항 대체, 원가 1.7배).
+                     */
+                    passageModified: "ENGLISH passage, the chosen sentence replaced by ⓐ__________ (everything else unchanged)",
+                    questionText: "<조건>\n○ [어법 이름]을 사용할 것\n\n<보기>\nword / word / …\n\n<해석>\n(정답 문장의 우리말 뜻 한 줄)",
+                    correctAnswer: "ENGLISH answer sentence",
+                    choices: [],
+                  }
               : allowSkip
                 ? {
                     passageModified: "ENGLISH passage with <u>target</u>",
