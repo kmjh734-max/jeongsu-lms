@@ -2681,14 +2681,27 @@ export async function generateOneQuestion(opts: {
     const scope = (opts.grammarScope ?? [])
       .map((label) => WRITING_GRAMMARS.find((g) => g.label === label))
       .filter((g): g is WritingGrammar => Boolean(g));
-    if (scope.length === 0) return null;
     /*
      * 지문 안 차례만 보면 지문마다 유형 차례가 똑같아 늘 같은 어법이 나왔다.
      * 고른 어법이 여럿인데 한두 개만 계속 나온다는 지적(2026-10-01). 작업 전체
      * 차례로 돌리면 지문이 바뀌어도 다음 어법으로 넘어간다.
      */
     const turn = opts.typeTurn ?? opts.diversitySlot?.index ?? 0;
-    return scope[turn % scope.length]!;
+    const inPassage = (pool: WritingGrammar[]) => pool.filter((g) => g.check?.test(passage));
+    const byPassage = (opts.grammarWritingMode ?? "paraphrase") === "passage";
+    if (scope.length === 0) {
+      /*
+       * 범위를 비우면 모델이 골랐는데, 저장된 47문항 중 수동태 16·It-that 강조구문 10으로
+       * 쏠렸다(2026-10-13 지정 문법이 한쪽으로 몰린다는 의견). 지문에 실제로 쓰인 어법을
+       * 코드가 찾아 작업 차례로 돌린다. 하나도 못 찾으면 예전처럼 모델에게 맡긴다.
+       */
+      const found = inPassage(WRITING_GRAMMARS);
+      return found.length > 0 ? found[turn % found.length]! : null;
+    }
+    // 「지문 그대로」는 지문에 없는 어법이면 건너뛰게 되므로, 고른 범위 중 지문에 있는 것부터 돌린다
+    const found = byPassage ? inPassage(scope) : [];
+    const pool = found.length > 0 ? found : scope;
+    return pool[turn % pool.length]!;
   })();
 
   /*
