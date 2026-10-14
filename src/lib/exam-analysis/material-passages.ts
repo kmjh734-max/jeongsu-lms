@@ -31,17 +31,24 @@ export async function loadAcademyMaterialPassages(
   const list = projects ?? [];
   if (list.length === 0) return [];
 
-  // 문장 조각은 많을 수 있어 여러 번에 나눠 읽는다
+  /*
+   * 문장 조각은 많을 수 있어 여러 번에 나눠 읽는다.
+   * 서버는 한 번에 1,000줄까지만 돌려준다 — 200지문씩 읽으면 뒤쪽 문장이 잘려 지문이 짧아졌다
+   * (10-14: 7문장 본문이 4문장으로 읽힘). 1,000줄씩 끊어 끝까지 읽는다.
+   */
   const ids = list.map((p) => p.id as string);
   const items: { id: string; project_id: string; english_text: string; order_index: number }[] = [];
   for (let i = 0; i < ids.length; i += 200) {
-    const { data } = await admin
-      .from("lesson_material_items")
-      .select("id, project_id, english_text, order_index")
-      .in("project_id", ids.slice(i, i + 200))
-      .order("order_index")
-      .limit(20000);
-    items.push(...((data ?? []) as typeof items));
+    for (let from = 0; ; from += 1000) {
+      const { data } = await admin
+        .from("lesson_material_items")
+        .select("id, project_id, english_text, order_index")
+        .in("project_id", ids.slice(i, i + 200))
+        .order("id")
+        .range(from, from + 999);
+      items.push(...((data ?? []) as typeof items));
+      if (!data || data.length < 1000) break;
+    }
   }
   const byProject = new Map<string, typeof items>();
   for (const it of items) byProject.set(it.project_id, [...(byProject.get(it.project_id) ?? []), it]);
@@ -61,4 +68,74 @@ export async function loadAcademyMaterialPassages(
       };
     })
     .filter((p) => p.firstItemId && p.text);
+}
+
+/** 「공통영어2 NE능률(오선영) 2과 본문7」 → 「공통영어2 NE능률(오선영) 2과」. 본문 번호가 없으면 빈 글 */
+function unitOfSource(source: string): string {
+  const m = source.match(/^(.*?)\s*본문\s*\d+\s*$/);
+  return m ? m[1]!.trim() : "";
+}
+
+/**
+ * 짧은 본문은 같은 과의 앞 본문을 붙여 쓴다(동형 만들기용, 수업자료는 그대로 둔다).
+ *
+ * 10-14 점검: 교과서 한 과를 본문1~8로 나눠 둔 수업자료에서 2~4문장짜리 본문이 그대로 동형 지문이 됐다.
+ * 「These two examples…」「In the end, …」가 가리키는 앞 내용이 지문에 없어 주제·제목·요지가 흔들렸고,
+ * 하 문장삽입·내용일치는 「5문장뿐」「사실 부족」으로 다른 유형으로 바뀌었다(경민고1 4~8차).
+ * 앞 본문을 붙이는 까닭은 지시어·연결어가 앞을 가리키기 때문이다. 과의 첫 본문이면 뒤 본문을 붙인다.
+ */
+export async function extendShortMaterialPassages(
+  admin: SupabaseClient,
+  academyId: string,
+  passages: MaterialPassageFull[],
+  countSentences: (text: string) => number,
+  minSentences = 5
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const short = passages.filter((p) => unitOfSource(p.source) && countSentences(p.text) < minSentences);
+  if (short.length === 0) return out;
+
+  const sources = await sourcesOfUnits(admin, academyId, short);
+  const { data: projects } = await admin
+    .from("lesson_material_projects")
+    .select("id, folder_id, source, order_index, deleted_at")
+    .eq("academy_id", academyId)
+    .in("source", sources)
+    .limit(2000);
+  const live = (projects ?? []).filter((p) => !p.deleted_at);
+  const byId = new Map(live.map((p) => [p.id as string, p]));
+  const siblings = await loadAcademyMaterialPassages(admin, academyId, live.map((p) => p.id as string));
+  const textOf = new Map(siblings.map((s) => [s.projectId, s.text]));
+
+  for (const p of short) {
+    const me = byId.get(p.projectId);
+    if (!me) continue;
+    const unit = unitOfSource(p.source);
+    const chain = live
+      .filter((x) => x.folder_id === me.folder_id && unitOfSource(String(x.source ?? "")) === unit && textOf.get(x.id as string))
+      .sort((a, b) => Number(a.order_index) - Number(b.order_index));
+    const at = chain.findIndex((x) => x.id === p.projectId);
+    if (at < 0) continue;
+    let lo = at;
+    let hi = at;
+    const joined = () => chain.slice(lo, hi + 1).map((x) => textOf.get(x.id as string)!).join(" ");
+    while (countSentences(joined()) < minSentences && (lo > 0 || hi < chain.length - 1)) {
+      if (lo > 0) lo -= 1;
+      else hi += 1;
+    }
+    if (lo !== at || hi !== at) out.set(p.projectId, joined());
+  }
+  return out;
+}
+
+/** 짧은 본문들이 속한 과의 모든 본문 출처 이름 */
+async function sourcesOfUnits(admin: SupabaseClient, academyId: string, short: MaterialPassageFull[]): Promise<string[]> {
+  const units = new Set(short.map((p) => unitOfSource(p.source)));
+  const { data } = await admin
+    .from("lesson_material_projects")
+    .select("source")
+    .eq("academy_id", academyId)
+    .like("source", "%본문%")
+    .limit(5000);
+  return [...new Set((data ?? []).map((r) => String(r.source ?? "")).filter((s) => units.has(unitOfSource(s))))];
 }

@@ -6,7 +6,7 @@ import { loadOwnAnalysis, requireExamStaff } from "@/lib/exam-analysis/access";
 import { buildMockSlots } from "@/lib/exam-analysis/blueprint";
 import { levelBriefFor } from "@/lib/exam-analysis/reading-level";
 import { countExamMocks, loadExamAnalysis } from "@/lib/exam-analysis/load";
-import { loadAcademyMaterialPassages } from "@/lib/exam-analysis/material-passages";
+import { extendShortMaterialPassages, loadAcademyMaterialPassages } from "@/lib/exam-analysis/material-passages";
 import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { billingFeatureFor } from "@/lib/question-generator/billing-buckets";
 import { createJobFromConfig } from "@/lib/question-generator/create-job";
@@ -56,8 +56,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const materialIds = inputs.map((p) => p.materialItemId).filter((x): x is string => Boolean(x));
   const materials = new Map<string, { title: string; text: string }>();
   if (materialIds.length) {
-    for (const m of await loadAcademyMaterialPassages(admin, profile.academy_id, materialIds)) {
-      materials.set(m.projectId, { title: `${m.folder} · ${m.title}`, text: m.text });
+    const loaded = await loadAcademyMaterialPassages(admin, profile.academy_id, materialIds);
+    // 2~4문장짜리 본문은 같은 과의 앞 본문을 붙여 쓴다(material-passages.ts에 까닭)
+    const extended = await extendShortMaterialPassages(admin, profile.academy_id, loaded, countEnglishSentences);
+    for (const m of loaded) {
+      materials.set(m.projectId, { title: `${m.folder} · ${m.title}`, text: extended.get(m.projectId) ?? m.text });
     }
   }
   const passages = inputs.map((p, i) => {
