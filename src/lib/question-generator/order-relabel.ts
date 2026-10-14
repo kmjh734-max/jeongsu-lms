@@ -54,6 +54,22 @@ function remap(text: string, map: Record<Label, Label>): string {
   });
 }
 
+/**
+ * 보기를 "(A)-(B)-(C)" 꼴로 맞춘다. 바꿔 쓰기를 켜면 보기까지 영어 문장으로 풀어 써서
+ * "Paragraph order: (A), then (B), and finally (C)." "Paragraph C, then Paragraph A, …" 같은
+ * 꼴이 나왔다(10-14 점검 3문항). 괄호가 없는 꼴은 아래 라벨 돌리기도 못 잡아 정답이
+ * (A)-(B)-(C)로 남았다. 라벨 셋을 차례대로 못 뽑으면 손대지 않는다.
+ */
+export function normalizeOrderChoiceText(text: string): string {
+  let seq = [...text.matchAll(/\(([ABC])\)/g)].map((m) => m[1]!);
+  if (seq.length !== 3) {
+    // 괄호 없는 꼴: 낱자 A·B·C. 관사 "A day"처럼 뒤에 소문자 낱말이 오는 A는 뺀다.
+    seq = [...text.matchAll(/\b([ABC])\b(?!\s+[a-z])/g)].map((m) => m[1]!);
+  }
+  if (seq.length !== 3 || new Set(seq).size !== 3) return text;
+  return seq.map((l) => `(${l})`).join("-");
+}
+
 export function relabelOrderQuestion(input: {
   passageModified: string;
   choices: Array<{ number: number; text: string }>;
@@ -67,18 +83,20 @@ export function relabelOrderQuestion(input: {
   explanation: string;
   changed: boolean;
 } {
-  const { passageModified, choices, correctAnswer, explanation } = input;
+  const { passageModified, correctAnswer, explanation } = input;
+  const choices = input.choices.map((c) => ({ ...c, text: normalizeOrderChoiceText(c.text) }));
+  const reshaped = choices.some((c, i) => c.text !== input.choices[i]!.text);
   const answer = choices[correctAnswer - 1];
-  if (!answer) return { passageModified, choices, explanation, changed: false };
+  if (!answer) return { passageModified, choices: input.choices, explanation, changed: false };
 
   const seq = [...answer.text.matchAll(/\(([ABC])\)/g)].map((m) => m[1] as Label);
   // 정답이 원문 차례 그대로일 때만 손본다
   if (seq.length !== 3 || seq.join("") !== "ABC") {
-    return { passageModified, choices, explanation, changed: false };
+    return { passageModified, choices, explanation, changed: reshaped };
   }
 
   const parts = splitChunks(passageModified);
-  if (!parts) return { passageModified, choices, explanation, changed: false };
+  if (!parts) return { passageModified, choices, explanation, changed: reshaped };
 
   const pick = input.pickTarget ?? ((n: number) => Math.floor(Math.random() * n));
   const target = TARGETS[pick(TARGETS.length)] ?? TARGETS[0]!;

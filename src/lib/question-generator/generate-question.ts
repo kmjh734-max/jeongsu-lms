@@ -31,6 +31,7 @@ import {
   cleanQuestionText,
   countEnglishSentences,
   countEnglishWords,
+  ENGLISH_SENTENCE_GAP,
   passageHasConsecutiveWords,
   parseSummaryTableBlocks,
   parseSummaryWritingBlocks,
@@ -856,6 +857,7 @@ word1 / word2 / … (6~10개, 정답 ⓐ+ⓑ를 섞은 핵심 단어. 원형만.
   · 빈칸 안의 동사는 그 목적어·보어까지 같은 빈칸에 담는다. 타동사로 끝나 목적어가 빠지거나 다른 빈칸으로 떨어지면 안 된다(× ⓐ가 「how X serve」로 끝나고 serve의 목적어는 ⓑ 뒤에 따로 있음). 두 칸을 채운 요약문이 그대로 완전한 문장이어야 한다.
   · 형태를 꼭 바꿔야 하는 낱말만 원형으로 주고, 바꾸지 않아도 되는 낱말은 정답 형태 그대로 준다(life/lives처럼 바꿔도 안 바꿔도 맞는 낱말을 두지 않는다).
 - 요약문은 지문 핵심 문장을 거의 그대로 활용. 새 단어 지어내기 금지.
+- 요약문의 주체·인과는 지문에 있는 그대로(10-14 점검: 기록을 남긴 쪽을 바꿈, 지문에 없는 원인을 붙임, 특정 집단을 사람 전체로 넓힘). 요약문만 읽어도 뜻이 통해야 한다 — this·such 같은 지시어가 가리킬 말을 요약문 안에 둔다. "The ⓐ in the passage are ⓑ"처럼 내용 없는 틀 금지.
 - choices 없음. explanation 한글: 정답 + 지문 어디에 근거하는지.
 - 금지: 조건 줄에 "<보기>의"처럼 태그 형태로 쓰기. "보기의"로 쓸 것.`;
       }
@@ -2399,6 +2401,8 @@ export function assertBasicQuestionShape(
         "<요약문>",
         blocks.summary.trim(),
       ].join("\n");
+      // 보기를 다시 짜며 소문자가 된 고유명사·약어(oed·korean)를 되살린다(10-14 점검)
+      q.questionText = restoreLeadingProperNoun(q.questionText, answerText.trim(), passage);
     }
     q.choices = undefined;
   } else if (option.isObjective && option.choiceLanguage) {
@@ -2800,7 +2804,8 @@ export async function generateOneQuestion(opts: {
   const qualityRuleHint = [
     option.type === "grammar"
       ? `- GRAMMAR ERRORS MUST BE UNAMBIGUOUS. Every spot you call wrong must be ungrammatical under EVERY reading and have exactly ONE fix: the original word's form. Make an error only where a single form is required, e.g. a finite verb replaced by -ing/-ed/to-V in the main-verb slot, agreement with one clear subject, active/passive when the object is clearly present or absent, adjective/adverb modifying a verb or adjective, what/that or which/where where the clause is clearly complete or incomplete.
-- NEVER call these wrong (they are defensible and get the item thrown away): an -ing/-ed form that can be read as modifying a noun; -ing after a to that can be a preposition (look forward to, the way to, be used to); it/they when either antecedent fits; tense-only changes; adverb position; which↔that; who↔whom; a word whose wrong-ness depends on meaning rather than grammar.
+- NEVER call these wrong (they are defensible and get the item thrown away): an -ing/-ed form that can be read as modifying a noun; -ing after a to that can be a preposition (look forward to, the way to, be used to); it/they when either antecedent fits; her/his/him → their/them for one person (singular they is correct); tense-only changes; adverb position; which↔that; who↔whom; a word whose wrong-ness depends on meaning rather than grammar.
+- Do NOT underline as a correct spot an original phrase that Korean school grammar marks wrong (e.g. "one of the things that makes" — schools teach make). Underline a different spot instead.
 - COUNT before you answer: the spots whose text differs from the original passage must be exactly the spots you call wrong, and their number must equal the number this item asks for. Every other underlined spot keeps the original words.`
       : "",
     option.type === "vocabulary"
@@ -3076,7 +3081,7 @@ export async function generateOneQuestion(opts: {
     if ((opts.wordOrderMode ?? "passage") === "paraphrase") return "";
     if (!/제시어배열/.test(option.aingkaCode ?? "")) return "";
     const sents = String(passage ?? "")
-      .split(/(?<=[.!?])\s+(?=[A-Z"'“‘(])/)
+      .split(ENGLISH_SENTENCE_GAP)
       .map((t) => t.trim())
       .filter((t) => {
         const n = t.split(/\s+/).length;

@@ -84,12 +84,19 @@ export function normalizePassage(text: string): string {
   return (text || "").replace(/\s+/g, " ").trim();
 }
 
+/**
+ * 문장 끝 뒤 공백 — 「Dr. Kim」「Mr. Lee」처럼 호칭 뒤의 마침표는 빼고 찾는다.
+ * 「Thanks, Dr.」에서 끊어 제시어 배열 빈칸이 문장 중간에서 시작하고 Kim이 보기로 들어갔다(10-14 점검).
+ */
+export const ENGLISH_SENTENCE_GAP =
+  /(?<!\b(?:Mr|Mrs|Ms|Dr|Prof|St|Mt|Jr|Sr|vs|etc|e\.g|i\.e)\.)(?<=[.!?]["'”’]?)\s+(?=[A-Z"'“‘(])/;
+
 /** 영어 지문 문장 수 추정 (.?! 기준) */
 export function countEnglishSentences(text: string): number {
   const cleaned = normalizePassage(text);
   if (!cleaned) return 0;
   const parts = cleaned
-    .split(/(?<=[.!?])(?:\s+|$)/)
+    .split(/(?<!\b(?:Mr|Mrs|Ms|Dr|Prof|St|Mt|Jr|Sr)\.)(?<=[.!?])(?:\s+|$)/)
     .map((s) => s.trim())
     .filter((s) => {
       const letters = (s.match(/[A-Za-z]/g) ?? []).length;

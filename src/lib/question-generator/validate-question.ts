@@ -1,4 +1,4 @@
-import { joinBrokenWords } from "@/lib/question-generator/text-utils";
+import { ENGLISH_SENTENCE_GAP, joinBrokenWords } from "@/lib/question-generator/text-utils";
 import { grammarSwapSpots } from "@/lib/question-generator/grammar-swap";
 import { VALIDATION_PASS_SCORE } from "@/lib/question-generator/constants";
 import { cleanSourcePassage } from "@/lib/question-generator/passage-clean";
@@ -36,10 +36,10 @@ function plainText(text: string): string {
 }
 
 /** 영어 문장 단위(짧은 조각은 뺀다) */
-function sentencesOf(text: string): string[] {
+export function sentencesOf(text: string): string[] {
   return plainText(text)
     // 「U.S. who」처럼 약어 뒤에서 끊지 않는다 — 문장 하나를 둘로 세어 「2개 지웠다」고 잘못 걸렸다
-    .split(/(?<=[.!?]["'”’]?)\s+(?=[A-Z"'“‘(])/)
+    .split(ENGLISH_SENTENCE_GAP)
     .map((s) => s.trim())
     .filter((s) => s.length > 15);
 }
@@ -355,6 +355,26 @@ export function validateGeneratedQuestion(opts: {
           score -= 45;
         }
       }
+    }
+  }
+
+  /*
+   * 어법·어휘 바꿔 쓰기 켬: 문장 안은 바꿔 써도 문장 수는 원문과 같아야 한다.
+   * 프롬프트로만 막았더니 어휘추론에서 「You gradually slow down.」이 빠져
+   * 「What happens?」 뒤 흐름이 끊겼다(10-14 점검).
+   */
+  if (
+    opts.allowParaphrase &&
+    (option.type === "grammar" || option.type === "vocabulary") &&
+    // 어법문장오류수정은 문장 다섯을 골라 내는 유형이라 원래 줄어든다
+    option.aingkaCode !== "어법문장오류수정" &&
+    (q.passageModified ?? "").trim()
+  ) {
+    const origN = sentencesOf(opts.passage).length;
+    const modN = sentencesOf(q.passageModified ?? "").length;
+    if (modN < origN) {
+      warnings.push(`원문 문장 ${origN - modN}개가 빠졌거나 합쳐졌습니다. 바꿔 쓰더라도 문장 수와 차례는 원문 그대로 둡니다.`);
+      score -= 45;
     }
   }
 
