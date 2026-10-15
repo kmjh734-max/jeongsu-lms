@@ -3,14 +3,16 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 import { loadExamAnalysis, loadExamMocks } from "@/lib/exam-analysis/load";
 import { ExamReportView } from "@/components/exam-analysis/ExamReportView";
+import { materialMatchOpen } from "@/lib/exam-analysis/access";
 
 export default async function ExamAnalysisDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const profile = await getCurrentProfile();
-  const [data, branding, mocks] = await Promise.all([
+  const [data, branding, mocks, materialMatchOn] = await Promise.all([
     loadExamAnalysis(id, profile!.academy_id!),
     getAcademyBrandingForCurrentUser(),
     loadExamMocks(id, profile!.academy_id!),
+    materialMatchOpen(profile!.academy_id),
   ]);
   if (!data) notFound();
   /*
@@ -32,6 +34,7 @@ export default async function ExamAnalysisDetailPage({ params }: { params: Promi
       mocks={mocks}
       hitReport={hitReport}
       hitReportAt={hitReportAt}
+      materialMatchOn={materialMatchOn}
       generationsHref="/admin/question-generator/generations"
     />
   );

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { loadOwnAnalysis, requireExamStaff } from "@/lib/exam-analysis/access";
+import { loadOwnAnalysis, requireExamStaff, requireMaterialMatch } from "@/lib/exam-analysis/access";
 import { refreshMaterialMatches } from "@/lib/exam-analysis/match-materials";
 
 export const runtime = "nodejs";
@@ -9,6 +9,8 @@ export const runtime = "nodejs";
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   const auth = await requireExamStaff();
   if ("error" in auth) return auth.error;
+  const closed = await requireMaterialMatch(auth.profile.academy_id);
+  if (closed) return closed;
   const { id } = await context.params;
   if (!(await loadOwnAnalysis(id, auth.profile.academy_id))) {
     return NextResponse.json({ ok: false, message: "분석을 찾을 수 없어요." }, { status: 404 });

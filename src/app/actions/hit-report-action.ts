@@ -5,6 +5,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { buildHitReport } from "@/lib/exam-analysis/hit-report";
 import type { ExamItemRow } from "@/lib/exam-analysis/types";
+import { assertMaterialMatch } from "@/lib/exam-analysis/access";
 
 const FEATURE = "exam_hit_report";
 
@@ -16,6 +17,8 @@ export async function hitReportActionCompressed(formData: FormData) {
   if (!profile?.academy_id || (profile.role !== "admin" && profile.role !== "teacher")) {
     throw new Error("권한이 없습니다.");
   }
+
+  await assertMaterialMatch(profile.academy_id);
 
   const admin = createAdminClient();
   const { data: analysis } = await admin

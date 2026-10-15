@@ -1,7 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { loadOwnAnalysis, requireExamStaff } from "@/lib/exam-analysis/access";
+import { assertMaterialMatch, loadOwnAnalysis, requireExamStaff } from "@/lib/exam-analysis/access";
 import { refreshMaterialMatches } from "@/lib/exam-analysis/match-materials";
 
 export async function matchActionCompressed(formData: FormData) {
@@ -12,6 +12,7 @@ export async function matchActionCompressed(formData: FormData) {
   if ("error" in auth) {
     throw new Error("Unauthorized");
   }
+  await assertMaterialMatch(auth.profile.academy_id);
   if (!(await loadOwnAnalysis(id, auth.profile.academy_id))) {
     throw new Error(`분석을 찾을 수 없어요. (요청 ID: ${id}, 학원 ID: ${auth.profile.academy_id})`);
   }

@@ -5,6 +5,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { buildHitReport } from "@/lib/exam-analysis/hit-report";
 import type { ExamItemRow } from "@/lib/exam-analysis/types";
+import { requireMaterialMatch } from "@/lib/exam-analysis/access";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -23,6 +24,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!profile?.academy_id || (profile.role !== "admin" && profile.role !== "teacher")) {
     return NextResponse.json({ ok: false, message: "권한이 없습니다." }, { status: 403 });
   }
+  const closed = await requireMaterialMatch(profile.academy_id);
+  if (closed) return closed;
   const supabase = await createClient();
   const { data: analysis } = await supabase
     .from("school_exam_analyses")

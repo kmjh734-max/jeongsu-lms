@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireMaterialMatch } from "@/lib/exam-analysis/access";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,8 @@ async function guard(id: string) {
   if (!profile?.academy_id || (profile.role !== "admin" && profile.role !== "teacher")) {
     return { error: NextResponse.json({ ok: false, message: "권한이 없습니다." }, { status: 403 }) };
   }
+  const closed = await requireMaterialMatch(profile.academy_id);
+  if (closed) return { error: closed };
   const admin = createAdminClient();
   const { data: analysis } = await admin
     .from("school_exam_analyses")

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ALL_QUESTION_OPTIONS } from "@/lib/question-generator/question-types";
 import { examChat } from "@/lib/exam-analysis/openai";
+import { isAcademyFeatureOn } from "@/lib/academies/features";
 import {
   matchLessonMaterials,
   matchMockPassages,
@@ -113,8 +114,10 @@ export async function analyzeExam(admin: SupabaseClient, analysisId: string, aca
   if (items.length === 0) throw new Error("문항을 찾지 못했습니다. 시험지 쪽이 모두 올라왔는지 확인해 주세요.");
 
   const { data: opt } = await admin.from("school_exam_analyses").select("match_materials").eq("id", analysisId).maybeSingle();
+  // 수업자료 대조가 닫힌 학원(정수학원 말고 전부 — 선생님 결정 2026-10-02)은 대조하지 않는다
+  const matchOpen = await isAcademyFeatureOn(admin, academyId, "exam_material_match");
   const matches =
-    opt?.match_materials === false
+    !matchOpen || opt?.match_materials === false
       ? new Map<string, { itemId: string; label: string }>()
       : await matchLessonMaterials(
           admin,
