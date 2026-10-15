@@ -1718,6 +1718,7 @@ export function assembleHitBook(analysis: ExamAnalysisRow, out: BookItem[], cuto
  * DB(jsonb)가 받지 못하는 글자를 지운다 — 제어 문자(\u0000 등)와 짝 없는 유니코드 반쪽.
  * 선생님 화면에서 「unsupported Unicode escape sequence」로 저장이 막혔다(2026-10-15, 한글 자료 23개를 올린 상우고1).
  */
+// eslint-disable-next-line no-control-regex -- DB(jsonb)가 받지 못하는 제어 문자를 일부러 찾는다
 const PG_BAD = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
 export function pgSafe<T>(value: T): T {
   if (typeof value === "string") return value.replace(PG_BAD, "") as T;

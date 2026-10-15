@@ -238,6 +238,7 @@ export async function hwpToText(input: ArrayBuffer | Uint8Array, name = ""): Pro
     .replace(/\r/g, "")
     // 짝 없는 유니코드 반쪽·제어 문자는 DB가 받지 못한다(압축 풀이가 도중에 끊기면 생긴다)
     .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "")
+    // eslint-disable-next-line no-control-regex -- DB(jsonb)가 받지 못하는 제어 문자를 일부러 찾는다
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
