@@ -212,6 +212,7 @@ color:var(--ink);font-family:var(--body);display:grid;justify-content:center;gap
 .hb .sheet .pm{max-height:64mm;overflow:hidden;-webkit-mask-image:linear-gradient(#000 82%,transparent);mask-image:linear-gradient(#000 82%,transparent)}
 .hb .cards.one .sheet .pm{max-height:84mm}
 .hb .f4 .sheet .pm{max-height:52mm}.hb .f6 .sheet .pm{max-height:40mm}
+.hb .leadbox.nocard{min-height:0;flex:0 0 auto}.hb .nocard-note{font-size:8.4pt;line-height:1.6;color:var(--ink)}
 .hb-tools{display:flex;justify-content:center;gap:8px;padding:10px 0 0}
 .hb .hb-recheck{position:absolute;top:4mm;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:2mm;z-index:2}
 .hb .hb-recheck button{font:inherit;font-size:8pt;font-weight:700;color:#1b2232;background:#fff;border:1px solid #cfd5df;border-radius:99px;padding:1mm 3.4mm;cursor:pointer}
@@ -405,7 +406,14 @@ function ItemPage({ it, book, academyName }: { it: BookItem; book: HitBook; acad
             ))}
           </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="leadbox nocard">
+          <div className="ltag">▼ 시험 전에 학생들이 실제로 푼 정수학원 자료</div>
+          <p className="nocard-note">
+            이 문항은 시험과 같은 유형의 우리 문제 대신, 위 도식의 자료(워크북 · 1장 자료 · 다른 유형 문항)로 같은 내용을 미리 다뤘습니다.
+          </p>
+        </div>
+      )}
       <div className="pf">
         {it.no}번 · 시험 문제 일부를 흐리게 가렸습니다. 시험 문제의 저작권은 해당 학교에 있습니다.
       </div>

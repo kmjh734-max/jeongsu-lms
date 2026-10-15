@@ -1113,6 +1113,7 @@ function uploadHits(
       const stemLine = stems[0] ? `<span class="nt">${esc(stems[0].replace(/\s+/g, " ").slice(0, 60))}</span>` : "";
       out.push({
         level: spot && sameType ? "same" : "similar",
+        typeSame: sameType,
         source: `올린 자료 「${u.name}」`,
         date: "",
         lineHtml: spot ? `${stemLine}<br>${spot.line}` : `${stemLine}<br>${esc(win.slice(200, 360).replace(/\s+/g, " "))} …`,
@@ -1141,6 +1142,30 @@ export function otherSchool(title: string, school: string): boolean {
  * 선생님 자료는 밑줄이 글자로 남지 않아 규칙이 같은 자리를 못 잡는 일이 많다 — 상우고1에 학평 변형 23개를 올렸는데
  * 7~28번 지문이 문항마다 3~14개 자료에 나오는데도 하나도 근거가 되지 못했다(2026-10-15). 읽고 가리는 것은 모델이 한다.
  */
+/**
+ * 올린 자료의 저작권 문구 · 카페/웹 주소 · 일련번호 · 쪽 표시를 지운다 — 자료집 카드에 「본 콘텐츠는 … 저작권」,
+ * 「유별난! 영어 공부 cafe.naver.com/…」, 「I410-141-25-99-091285986 - 2 -」가 그대로 찍혔다(선생님 지적 2026-10-15).
+ */
+export function cleanUploadText(t: string): string {
+  return String(t ?? "")
+    .split("\n")
+    .filter((line) => !/저작권|무단\s*(복제|전재|배포)|라이[센선]스를?\s*획득|All rights reserved|Copyright|ⓒ|©/i.test(line))
+    .join("\n")
+    .replace(/https?:\/\/\S+|www\.\S+|cafe\.naver\.com\/\S*|blog\.naver\.com\/\S*/gi, " ")
+    .replace(/유별난!?\s*영어\s*공부/g, " ")
+    .replace(/\bI\d{3}-\d{3}-\d{2}-\d{2}-\d{6,}\b/g, " ")
+    .replace(/(^|\s)-\s?\d{1,3}\s?-(?=\s|$)/g, " ")
+    .replace(/[ \t]{2,}/g, " ");
+}
+
+/** 올린 자료에서 그 문항 하나만 — 발문부터 다음 문항 번호 전까지 */
+function oneQuestionWindow(text: string, start: number, at: number): string {
+  const tail = text.slice(at + 40, at + 2600);
+  const next = tail.search(/\n\s*\[?\d{1,3}\s*[.)\]]\s|\n\s*※|\n\s*■|\n\s*\[\d{4,}/);
+  const end = next >= 0 ? at + 40 + next : at + 1800;
+  return text.slice(start, end).replace(/\n{2,}/g, "\n").slice(0, 1800);
+}
+
 function uploadWindows(ctx: MatCtx & { stem: string | null; typeName: string }, uploads: HitUpload[]): MatHit[] {
   const out: MatHit[] = [];
   for (const u of uploads) {
@@ -1152,8 +1177,8 @@ function uploadWindows(ctx: MatCtx & { stem: string | null; typeName: string }, 
       if (seen.has(key)) continue;
       seen.add(key);
       const stemAt = stems[0] ? u.text.lastIndexOf(stems[0].slice(0, 24), at) : -1;
-      const start = stemAt >= 0 && at - stemAt < 1500 ? stemAt : Math.max(0, at - 150);
-      const win = u.text.slice(start, at + 2200).replace(/\n{2,}/g, "\n").slice(0, 2000);
+      const start = stemAt >= 0 && at - stemAt < 1500 ? stemAt : Math.max(0, at - 60);
+      const win = oneQuestionWindow(u.text, start, at);
       out.push({
         level: "cand",
         source: `올린 자료 「${u.name}」`,
@@ -1250,7 +1275,8 @@ function sameFamily(examType: string, subjective: boolean, q: Made): boolean {
  * 손으로 만든 자료집과 같은 잣대로 ①/②/아님을 가리고 원문 인용과 까닭을 받는다. 모델이 실패하면 규칙 판정을 쓴다.
  */
 /** key: q 같은 유형 우리 문항 · o 다른 유형 우리 문항 · m 규칙이 자리를 찾은 자료 · p 자료 묶음 · u 올린 자료 */
-type AiCand = { key: string; brief: string; card: BookCard; source: string; date: string; fallbackCompare?: BookCompare; ruleSame?: boolean };
+/** sameType: 시험과 같은 유형인가 — 아래 「우리 학원 문제」 카드는 같은 유형만 붙인다(2026-10-15 선생님 지적) */
+type AiCand = { key: string; brief: string; card: BookCard; source: string; date: string; fallbackCompare?: BookCompare; ruleSame?: boolean; sameType?: boolean; exactType?: boolean };
 type AiResult = {
   verdict: BookVerdict;
   matched: Array<{ key: string; level: "same" | "similar" }>;
@@ -1377,6 +1403,7 @@ export async function buildHitBook(
   opts: { ai?: boolean; only?: string } = {}
 ): Promise<HitBook> {
   const cutoffMs = cutoff ? new Date(cutoff).getTime() : Number.POSITIVE_INFINITY;
+  uploads = uploads.map((u) => ({ ...u, text: cleanUploadText(u.text) }));
   const before = (at: string | null | undefined) => {
     const t = at ? new Date(at).getTime() : NaN;
     return Number.isFinite(t) ? t < cutoffMs : true;
@@ -1563,6 +1590,8 @@ export async function buildHitBook(
           const code = String(j.q.option_key ?? "").split(":").pop() ?? "";
           return {
             key: `q${i + 1}`,
+            // 주제·제목·요지는 한 갈래로 후보를 모으지만, 카드는 유형 이름까지 같은 것만(요지 시험에 주제 문항 X)
+            exactType: exact(j.q) || !/주제|제목|요지|주장/.test(it.type_name),
             source: label(j.q),
             date: dateLabel(j.q.created_at),
             card: qCard(j.q, j.marks, j.same),
@@ -1582,6 +1611,7 @@ export async function buildHitBook(
         ...[...mats.slice(0, 6), ...upCands, ...packs].map((m, i): AiCand => ({
           key: m.level === "cand" ? (m.source.startsWith("올린 자료") ? `u${i + 1}` : `p${i + 1}`) : `m${i + 1}`,
           ruleSame: m.level === "same",
+          sameType: m.level === "same" || !!m.typeSame,
           source: m.source,
           date: m.date,
           card: { kind: "line", source: m.source, date: m.date, linesHtml: [m.lineHtml] },
@@ -1601,7 +1631,9 @@ export async function buildHitBook(
         const cards: BookCard[] = [];
         for (const k of evKeys) {
           const c = byKey.get(k);
-          if (!c || cards.some((x) => x.source === c.source && x.kind === c.card.kind)) continue;
+          // 같은 유형 우리 문항(q)과 같은 유형 발문이 붙은 자료만 카드로 — 다른 유형은 도식의 근거로만 둔다
+          const sameKind = (k.startsWith("q") && !!c?.exactType) || (!k.startsWith("q") && !k.startsWith("o") && !!c?.sameType);
+          if (!c || !sameKind || cards.some((x) => x.source === c.source && x.kind === c.card.kind)) continue;
           const quote = r.evidence.find((e) => e.key === k)?.ours_quote ?? "";
           /*
            * 인용에 ⑥·[ ]·⟦ ⟧ 가 섞이면 지문 글자와 그대로 맞지 않아 빨간 표시가 안 붙었다 — 표지를 뗀 글과
@@ -1647,7 +1679,7 @@ export async function buildHitBook(
 
     const cardOf = (j: (typeof judged)[number]): BookCard => qCard(j.q, j.marks, j.same);
     // 카드는 두 장 — 같은 자리를 물은 것이 앞
-    const matCards: BookCard[] = [...new Set(mats.map((m) => m.source))].map((src) => {
+    const matCards: BookCard[] = [...new Set(mats.filter((m) => m.level === "same" || m.typeSame).map((m) => m.source))].map((src) => {
       const ms = mats.filter((m) => m.source === src);
       return { kind: "line", source: src, date: ms[0]!.date, linesHtml: ms.slice(0, 3).map((m) => m.lineHtml) };
     });
