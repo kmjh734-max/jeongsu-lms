@@ -324,6 +324,8 @@ type Made = {
   instruction: string | null;
   question_text: string | null;
   passage_modified: string | null;
+  /** 지문을 바꾸지 않는 유형(내용 일치 등)은 passage_modified 가 비어 원문만 있다 */
+  passage_original?: string | null;
   choices: unknown;
   correct_answer: unknown;
   created_at: string | null;
@@ -727,6 +729,19 @@ async function materialHits(admin: SupabaseClient, academyId: string, ctx: MatCt
   };
   const ofThis = (text: string, projectId?: unknown) =>
     (!!projectId && pids.includes(String(projectId))) || (text.length > 40 && within(text, ctx.body) >= 0.3);
+  /*
+   * 자료 묶음 — 규칙이 같은 자리를 못 잡아도 모델이 읽고 가리도록, 이 지문을 다룬 자료의 내용(괄호 자리 · T/F ·
+   * 영작 · 해석 · 어법/어휘 포인트 · 출제 자리)을 자료마다 한 덩어리로 모은다(2026-10-15 손 판정과 차이 줄이기).
+   */
+  const pack = new Map<string, { date: string; lines: string[] }>();
+  const put = (source: string, date: string, line: string) => {
+    const l = line.replace(/\s+/g, " ").trim();
+    if (l.length < 4) return;
+    const p = pack.get(source) ?? { date, lines: [] };
+    if (!p.lines.includes(l)) p.lines.push(l);
+    pack.set(source, p);
+  };
+  const near = (en: string) => en.length > 15 && within(en, ctx.body) >= 0.5;
 
   /** 괄호·틀린 자리 줄에서 시험 자리와 같은 곳을 찾는다 */
   const spotRows = (rows: SegRow[], source: string, date: string, what: string) => {
@@ -789,6 +804,11 @@ async function materialHits(admin: SupabaseClient, academyId: string, ctx: MatCt
       for (const ps of (p.passages ?? []) as TestPassage[]) {
         const rows = ps.rows ?? [];
         if (!ofThis(rows.map((r) => plainOfSegs(r.segments ?? [])).join(" "))) continue;
+        for (const r of rows) {
+          for (const sr of segRows(r.segments ?? [])) if (sr.spots.length) put(source, date, untag(sr.html));
+          if (r.writing?.answer) put(source, date, `영작: ${r.writing.answer}`);
+        }
+        for (const t of ps.tf ?? []) put(source, date, `T/F: ${t.statement ?? ""}`);
         if (ctx.fam === "underline" || ctx.fam === "blank") {
           spotRows(rows.flatMap((r) => segRows(r.segments ?? [])), source, date, "1장 테스트지가 같은 자리를 괄호로 물음");
         }
@@ -798,6 +818,36 @@ async function materialHits(admin: SupabaseClient, academyId: string, ctx: MatCt
         if (ctx.fam === "content") for (const t of ps.tf ?? []) tfRow(String(t.statement ?? ""), source, date);
       }
       continue;
+    }
+    {
+      const src = `워크북 「${name}」`;
+      for (const [key, label] of WB_SPOT) {
+        for (const sct of (p[key] ?? []) as Array<{ segments?: Seg[]; projectId?: string }>) {
+          if (!ofThis(plainOfSegs(sct.segments ?? []), sct.projectId)) continue;
+          for (const sr of segRows(sct.segments ?? [])) if (sr.spots.length) put(src, date, `${label}: ${untag(sr.html)}`);
+        }
+      }
+      type BTok = { type?: string; text?: string; answerText?: string };
+      for (const sct of (p.blankSections ?? []) as Array<{ passageTokens?: BTok[]; projectId?: string }>) {
+        const segs: Seg[] = (sct.passageTokens ?? []).map((t) => (t.type === "blank" ? { type: "spot", text: t.answerText ?? "" } : { type: "text", text: t.text ?? "" }));
+        if (!ofThis(plainOfSegs(segs), sct.projectId)) continue;
+        for (const sr of segRows(segs)) if (sr.spots.length) put(src, date, `빈칸 쓰기: ${untag(sr.html)}`);
+      }
+      for (const sct of (p.sections ?? []) as Array<{ passage?: string; items?: Array<{ statement?: string; answer?: string }> }>) {
+        if (!ofThis(String(sct.passage ?? ""))) continue;
+        for (const it of sct.items ?? []) put(src, date, `T/F(${it.answer ?? ""}): ${it.statement ?? ""}`);
+      }
+      for (const [key, label] of WB_WRITE) {
+        for (const sct of (p[key] ?? []) as Array<{ items?: Array<{ english?: string; englishDisplay?: string }> }>) {
+          for (const it of sct.items ?? []) {
+            const en = String(it.english ?? it.englishDisplay ?? "");
+            if (near(en)) put(src, date, `${label}: ${en}`);
+          }
+        }
+      }
+      for (const sct of (p.lineTranslationSections ?? []) as Array<{ items?: Array<{ english?: string; korean?: string }> }>) {
+        for (const it of sct.items ?? []) if (near(String(it.english ?? ""))) put(src, date, `한 줄 해석: ${it.english} (${it.korean ?? ""})`);
+      }
     }
     if (ctx.fam === "underline" || ctx.fam === "blank") {
       for (const [key, label] of WB_SPOT) {
@@ -873,6 +923,12 @@ async function materialHits(admin: SupabaseClient, academyId: string, ctx: MatCt
     const source = `1장 요약자료 「${String(pr.title ?? "")}」`;
     const date = dateLabel(c.createdAt);
     const ss = onePageSentences((sents ?? []).filter((s) => String(s.project_id) === String(pr.id))).map((s) => s.english);
+    put(source, date, `주제: ${c.topicKo ?? ""} / 제목: ${c.titleEn ?? ""}`);
+    put(source, date, `요약문: ${c.summaryEn ?? ""}`);
+    for (const g of c.grammar ?? []) put(source, date, `어법 포인트: ${g.target} — [${g.right} / ${g.wrong}] ${g.point}`);
+    for (const v of c.vocab ?? []) put(source, date, `어휘: ${v.surface} ≒ ${(v.synonyms ?? []).join(", ")} ↔ ${(v.antonyms ?? []).join(", ")}`);
+    for (const e of c.examPoints ?? []) put(source, date, `출제 자리(${e.kind}): ${e.insertSentence ?? e.target}`);
+    for (const t of c.tf ?? []) put(source, date, `T/F(${t.answer}): ${t.statement}`);
     const hitSpot = (sentenceIndex: number, surface: string, shown: string, note: string, what: string, from = 0) => {
       const sen = ss[sentenceIndex];
       if (!sen) return;
@@ -935,6 +991,15 @@ async function materialHits(admin: SupabaseClient, academyId: string, ctx: MatCt
       }
     }
     if (ctx.fam === "content") for (const t of c.tf ?? []) tfRow(String(t.statement ?? ""), source, date);
+  }
+  for (const [source, v] of pack) {
+    out.push({
+      level: "cand",
+      source,
+      date: v.date,
+      lineHtml: esc(v.lines.join("\n").slice(0, 1800)).replace(/\n/g, "<br>"),
+      compare: { exam: "", ours: "", same: "" },
+    });
   }
   return out;
 }
@@ -1144,7 +1209,7 @@ async function ourQuestions(
   for (let i = 0; i < list.length; i += 100) {
     const { data } = await admin
       .from("generated_english_questions")
-      .select("id, option_key, instruction, question_text, passage_modified, choices, correct_answer, created_at, item_no, generation_job_id")
+      .select("id, option_key, instruction, question_text, passage_modified, passage_original, choices, correct_answer, created_at, item_no, generation_job_id")
       .eq("academy_id", academyId)
       .in("passage_id", list.slice(i, i + 100))
       .limit(3000);
@@ -1160,12 +1225,13 @@ async function ourQuestions(
 function sameFamily(examType: string, subjective: boolean, q: Made): boolean {
   const code = String(q.option_key ?? "").split(":").pop() ?? "";
   const t = examType.replace(/\s/g, "");
-  const mc = choiceTexts(q.choices).length >= 4;
+  // 문장삽입·무관한 문장은 보기 없이 정답 번호만 담겨 있다 — 보기로 객관식을 가리면 통째로 빠진다(발곡고1 7번, 2026-10-15)
+  if (!subjective && t.includes("삽입")) return code.includes("삽입");
+  if (!subjective && t.includes("순서")) return code.includes("순서");
+  if (!subjective && t.includes("무관")) return code.includes("무관");
+  const mc = choiceTexts(q.choices).length >= 4 || /삽입|무관|순서/.test(code);
   if (subjective || t.includes("영작")) return !mc;
   if (!mc) return false;
-  if (t.includes("삽입")) return code.includes("삽입");
-  if (t.includes("순서")) return code.includes("순서");
-  if (t.includes("무관")) return code.includes("무관");
   if (t.includes("요약")) return code.includes("요약");
   if (t.includes("빈칸")) return code.includes("빈칸");
   if (t.includes("어법")) return code.includes("어법");
@@ -1183,7 +1249,8 @@ function sameFamily(examType: string, subjective: boolean, q: Made): boolean {
  * 끝까지 가려내지 못했다(호원고1·상우고1에서 확인). 그래서 시험 문항과 후보 원문을 모두 모델에 보여 주고,
  * 손으로 만든 자료집과 같은 잣대로 ①/②/아님을 가리고 원문 인용과 까닭을 받는다. 모델이 실패하면 규칙 판정을 쓴다.
  */
-type AiCand = { key: string; brief: string; card: BookCard; source: string; date: string; fallbackCompare?: BookCompare };
+/** key: q 같은 유형 우리 문항 · o 다른 유형 우리 문항 · m 규칙이 자리를 찾은 자료 · p 자료 묶음 · u 올린 자료 */
+type AiCand = { key: string; brief: string; card: BookCard; source: string; date: string; fallbackCompare?: BookCompare; ruleSame?: boolean };
 type AiResult = {
   verdict: BookVerdict;
   matched: Array<{ key: string; level: "same" | "similar" }>;
@@ -1195,25 +1262,32 @@ const JUDGE_MODEL = () => process.env.OPENAI_MODEL_HIT_BOOK?.trim() || "gpt-5.6-
 
 const JUDGE_SYSTEM = `너는 영어 내신 시험의 「적중」을 가리는 판정관이다. 학원이 시험 전에 학생들에게 준 자료가 실제 시험 문항을 얼마나 그대로 다뤘는지를, 학부모에게 보여 줄 자료집에 쓸 수 있을 만큼 정확하고 보수적으로 가린다.
 
-판정 기준 (애매하면 낮춘다):
+판정 기준 (①인지 ②인지 애매하면 ②로 낮춘다. ②인지 아닌지 애매하면, 같은 지문·같은 유형에서 시험이 묻는 것과 관련된 내용을 다뤘는지로 가린다):
 ① same — 「동일 유형 + 동일 포인트」: 우리 자료가 시험과 같은 형식으로, 시험이 물은 「바로 그 자리」를 물었다.
-  - 어휘·어법 판단(밑줄 하나 고르기): 시험 정답 자리(학교가 바꾼 낱말)와 같은 낱말 자리를 물었어야 한다. 다른 밑줄 자리는 ①이 아니다.
+  - 어휘·어법 판단(밑줄 하나 고르기): 시험 정답 자리(학교가 바꾼 낱말)와 같은 낱말 자리를 물었어야 한다. 같은 자리면 우리가 바꿔 넣은 낱말이 시험과 달라도 ①이다. 다른 밑줄 자리는 ①이 아니다.
   - 어법·어휘 개수: 시험이 틀리게 바꾼 자리들 가운데 하나 이상을 같은 자리로 물었어야 한다.
+  - 어휘 판단과 어휘 개수, 어법 판단과 어법 개수·어법 수정은 같은 유형으로 본다 — 같은 자리를 물었으면 ①이다.
   - 빈칸: 같은 문장을 비웠거나, 정답이 같은 뜻이어야 한다.
   - 주제·제목·요지: 정답 표현이 실제로 같은 뜻이어야 한다. 지문 주제어만 겹치는 것은 아니다.
-  - 내용 일치·불일치: 시험 정답 진술과 같은 사실을 보기로 다뤘어야 한다. 고유명사만 겹치는 것은 아니다.
+  - 내용 일치·불일치·일치 개수: 시험 정답 진술이 묻는 바로 그 사실을 우리 보기로 다뤘으면 ①이다(참 버전으로 다뤘든 틀린 버전으로 다뤘든). 같은 도표·같은 문장을 보기로 다룬 것도 그 사실이면 ①. 고유명사만 겹치는 것은 아니다.
   - 문장 삽입: 주어진 문장이 같아야 한다(지문 속 문장이라 어디에나 들어 있는 것은 근거가 아니다).
   - 순서: 덩어리를 나눈 자리와 정답 순서가 같아야 한다. 무관한 문장: 그 문장이 같아야 한다.
   - 서술형·영작: 모범 답과 같은 문장·표현을 미리 써 봤어야 한다.
-② similar — 「유사 유형」: 형식은 달라도 이 자료를 풀었으면 시험 문제를 바로 풀 수 있다. 예: 같은 자리를 괄호 고르기·빈칸 쓰기·T/F·요약자료로 다뤘다, 정답과 비슷한 뜻을 다뤘다, 같은 지문의 삽입·순서·무관한 문장을 같은 유형으로 풀었다.
+② similar — 「유사 유형」: 이 자료를 풀었으면 시험 문제를 바로 풀 수 있다. 예: 같은 지문을 시험과 같은 유형으로 풀며 시험이 묻는 정보(같은 문장·같은 도표 항목·같은 수치·같은 사실)를 이미 다뤘다, 같은 자리를 괄호 고르기·빈칸 쓰기·T/F·요약자료로 다뤘다, 정답과 비슷한 뜻을 다뤘다, 같은 지문의 삽입·순서·무관한 문장을 같은 유형으로 풀었다.
+  같은 지문을 같은 유형으로 푼 우리 문항이 있으면 적어도 ②가 되는지 먼저 따진다(같은 정보를 다뤘으면 ②).
+  예: 도표 내용 불일치에서 시험이 비교한 항목들을 우리 보기가 각각 다뤘다면, 정확히 같은 비교가 아니어도 ②다. 같은 지문의 내용 일치 문항이 시험 정답 문장 둘레의 사실을 다뤘다면 ②다.
 none — 지문만 같거나, 다른 자리를 물었거나, 근거가 약하다.
 
 후보마다 [키]가 붙어 있다. ⟦ ⟧ 는 그 자료가 물은 자리(밑줄·괄호·빈칸)다.
+- [q] 시험과 같은 유형의 우리 문항, [u] 선생님이 올린 자료(앞 발문으로 유형을 보고, 같은 유형·같은 자리면 ①).
+- [o] 같은 지문의 다른 유형 우리 문항, [m]·[p] 수업자료(1장 테스트지·워크북·1장 요약자료 — 괄호·T/F·빈칸 쓰기·해석·어법/어휘 포인트·출제 자리)는 형식이 달라 ②까지다. 시험이 물은 그 자리·그 사실·그 문장을 다뤘으면 ②로 넣는다.
+- 손으로 확인한 판정과 맞추어야 한다: 같은 지문이라도 그 자리를 다룬 근거가 있으면 빠뜨리지 말고 찾아 넣는다. 근거가 없으면 넣지 않는다.
 JSON 하나만 답한다:
 {"verdict":"same|similar|none",
  "matched":[{"key":"q1","level":"same|similar"}],
  "evidence":[{"key":"q1","exam_quote":"시험 원문에서 그 자리를 짧게 그대로","ours_quote":"우리 자료 원문에서 그 자리를 짧게 그대로","why":"무엇이 같은지 한 줄"}],
- "reason":"학부모가 읽을 한두 문장. 시험 정답이 무엇이었고, 우리 자료 어디에서 그 자리를 다뤘는지 구체적으로."}
+ "reason":"학부모가 읽을 한두 문장. 시험 정답이 무엇이었고, 우리 자료 어디에서 그 자리를 다뤘는지 구체적으로.",
+ "note":"판정 근거를 한 줄로(내부 기록용). none 이면 왜 근거가 없는지."}
 - matched: 근거가 되는 후보 전부(같은 자리를 다룬 수). 근거가 아닌 후보는 넣지 않는다.
 - evidence: 가장 강한 근거부터 최대 3개. 인용은 반드시 주어진 원문에서 글자 그대로 옮긴다.
 - verdict 가 none 이면 matched·evidence 는 빈 배열, reason 은 빈 글.
@@ -1244,6 +1318,7 @@ const dropKeys = (t: string) =>
 async function aiJudge(examBrief: string, cands: AiCand[]): Promise<AiResult | null> {
   if (cands.length === 0) return null;
   const user = `[시험 문항]\n${examBrief}\n\n[시험 전 우리 자료 후보]\n${cands.map((c) => c.brief).join("\n\n")}`;
+  if (process.env.HITBOOK_DEBUG) console.log(`\n##### PROMPT (${cands.length})\n${user.slice(0, 9000)}\n#####`);
   try {
     const { text } = await examChat(
       {
@@ -1257,6 +1332,9 @@ async function aiJudge(examBrief: string, cands: AiCand[]): Promise<AiResult | n
       },
       2
     );
+    if (process.env.HITBOOK_DEBUG) console.log(`##### ANSWER
+${text}
+#####`);
     const raw = JSON.parse(text) as Partial<AiResult>;
     const keys = new Set(cands.map((c) => c.key));
     const verdict: BookVerdict = raw.verdict === "same" || raw.verdict === "similar" ? raw.verdict : "none";
@@ -1405,7 +1483,9 @@ export async function buildHitBook(
       school: String(analysis.school_name ?? ""),
     };
     const upCtx = { ...matCtx, stem: block.stem || it.stem, typeName: it.type_name };
-    const mats = [...(await materialHits(admin, analysis.academy_id, matCtx)), ...uploadHits(upCtx, uploads)];
+    const allMats = await materialHits(admin, analysis.academy_id, matCtx);
+    const mats = [...allMats.filter((m) => m.level !== "cand"), ...uploadHits(upCtx, uploads)];
+    const packs = allMats.filter((m) => m.level === "cand" && !mats.some((x) => x.source === m.source)).slice(0, 6);
     // 모델 판정에만 쓰는 후보 — 규칙이 이미 잡은 자료는 빼고 자료마다 한 곳
     const upCands = opts.ai
       ? uploadWindows(upCtx, uploads)
@@ -1425,7 +1505,7 @@ export async function buildHitBook(
         date: dateLabel(q.created_at),
         instruction: String(q.instruction ?? ""),
         questionText: String(q.question_text ?? ""),
-        passageHtml: markHtml(keepU(String(q.passage_modified ?? "")), marks),
+        passageHtml: markHtml(keepU(String(q.passage_modified || q.passage_original || "")), marks),
         choices: choiceTexts(q.choices),
         answerNo: a.no,
         answerText: a.no ? "" : a.text,
@@ -1446,9 +1526,39 @@ export async function buildHitBook(
 
     if (opts.ai) {
       // 후보: 우리 문항(규칙으로 같음 → 가까움 → 나머지 같은 유형) 여덟, 수업자료·올린 자료 여섯
-      const order = [...judged.filter((j) => j.same), ...judged.filter((j) => !j.same && j.near), ...judged.filter((j) => !j.same && !j.near)];
+      // 같은 유형 이름(요지면 요지)을 앞에 — 주제·제목 문항에 밀려 요지 문항이 빠지던 것(발곡고1 12번)
+      const exact = (q: Made) => {
+        const code = String(q.option_key ?? "").split(":").pop() ?? "";
+        const t = it.type_name.replace(/\s/g, "");
+        return ["요지", "주제", "제목", "주장", "어법", "어휘", "빈칸", "요약", "일치", "불일치"].some((w) => t.includes(w) && code.includes(w));
+      };
+      const rank = (j: (typeof judged)[number]) => (j.same ? 0 : j.near ? 1 : exact(j.q) ? 2 : 3);
+      const order = [...judged].sort((x, y) => rank(x) - rank(y));
+      // 다른 유형이지만 같은 지문의 우리 문항 — 같은 문장·사실을 다뤘으면 ②가 될 수 있다(발곡고1 6·11번)
+      const others = found
+        .filter(
+          (q) =>
+            !cands.includes(q) &&
+            !/^\s*\[시험\]/.test(jobTitle.get(String(q.generation_job_id)) ?? "") &&
+            !otherSchool(jobTitle.get(String(q.generation_job_id)) ?? "", String(analysis.school_name ?? ""))
+        )
+        .slice(0, 4);
+      const qBrief = (key: string, q: Made, note: string) => {
+        const a = answerOf(q);
+        const code = String(q.option_key ?? "").split(":").pop() ?? "";
+        return [
+          `[${key}] ${label(q)} (${dateLabel(q.created_at)}) · 유형 ${code}${note}`,
+          `발문: ${String(q.instruction ?? "")}`,
+          q.question_text ? `문제 글: ${briefMark(String(q.question_text))}` : "",
+          `지문: ${briefMark(String(q.passage_modified || q.passage_original || "")).slice(0, 1800)}`,
+          choiceTexts(q.choices).length ? `보기: ${choiceTexts(q.choices).map((c, k) => `${CIRCLED[k]} ${c}`).join("  ")}` : "",
+          `정답: ${a.no ? `${CIRCLED[a.no - 1]} ${a.text}` : a.text}`,
+        ]
+          .filter(Boolean)
+          .join("\n");
+      };
       const pool: AiCand[] = [
-        ...order.slice(0, 8).map((j, i): AiCand => {
+        ...order.slice(0, 12).map((j, i): AiCand => {
           const a = answerOf(j.q);
           const code = String(j.q.option_key ?? "").split(":").pop() ?? "";
           return {
@@ -1457,30 +1567,36 @@ export async function buildHitBook(
             date: dateLabel(j.q.created_at),
             card: qCard(j.q, j.marks, j.same),
             fallbackCompare: j.compare,
-            brief: [
-              `[q${i + 1}] ${label(j.q)} (${dateLabel(j.q.created_at)}) · 유형 ${code}`,
-              `발문: ${String(j.q.instruction ?? "")}`,
-              j.q.question_text ? `문제 글: ${briefMark(String(j.q.question_text))}` : "",
-              `지문: ${briefMark(String(j.q.passage_modified ?? "")).slice(0, 1800)}`,
-              choiceTexts(j.q.choices).length ? `보기: ${choiceTexts(j.q.choices).map((c, k) => `${CIRCLED[k]} ${c}`).join("  ")}` : "",
-              `정답: ${a.no ? `${CIRCLED[a.no - 1]} ${a.text}` : a.text}`,
-            ]
-              .filter(Boolean)
-              .join("\n"),
+            brief: qBrief(`q${i + 1}`, j.q, ""),
           };
         }),
-        ...[...mats.slice(0, 6), ...upCands].map((m, i): AiCand => ({
-          key: `m${i + 1}`,
+        ...others.map(
+          (q, i): AiCand => ({
+            key: `o${i + 1}`,
+            source: label(q),
+            date: dateLabel(q.created_at),
+            card: qCard(q, [], false),
+            brief: qBrief(`o${i + 1}`, q, " (시험과 다른 유형)"),
+          })
+        ),
+        ...[...mats.slice(0, 6), ...upCands, ...packs].map((m, i): AiCand => ({
+          key: m.level === "cand" ? (m.source.startsWith("올린 자료") ? `u${i + 1}` : `p${i + 1}`) : `m${i + 1}`,
+          ruleSame: m.level === "same",
           source: m.source,
           date: m.date,
           card: { kind: "line", source: m.source, date: m.date, linesHtml: [m.lineHtml] },
           fallbackCompare: m.compare,
-          brief: `[m${i + 1}] ${m.source}${m.date ? ` (${m.date})` : ""}\n${briefMark(m.lineHtml)}`,
+          // 모델에 보이는 이름표와 키가 같아야 한다 — [m1]로 보이고 키는 p1 이라 근거가 버려지던 것(발곡고1 5·8번)
+          brief: `[${m.level === "cand" ? (m.source.startsWith("올린 자료") ? `u${i + 1}` : `p${i + 1}`) : `m${i + 1}`}] ${m.source}${m.date ? ` (${m.date})` : ""}\n${briefMark(m.lineHtml)}`,
         })),
       ];
       const r = pool.length ? await aiJudge(examBriefOf(it, block, markedBody, answer), pool) : null;
       if (r) {
         const byKey = new Map(pool.map((c) => [c.key, c]));
+        // 다른 유형 문항(o)·자료 묶음(p)·규칙이 같은 형식이라 하지 않은 자료(m)는 ②까지 — 한 줄 해석에 같은 문장이 있다고 ①이 되던 것(발곡고1 1·3번)
+        const cap = (k: string) => k.startsWith("q") || k.startsWith("u") || (k.startsWith("m") && byKey.get(k)?.ruleSame);
+        r.matched = r.matched.map((m) => (m.level === "same" && !cap(m.key) ? { ...m, level: "similar" as const } : m));
+        if (r.verdict === "same" && !r.matched.some((m) => m.level === "same")) r.verdict = r.matched.length ? "similar" : "none";
         const evKeys = [...new Set([...r.evidence.map((e) => e.key), ...r.matched.map((m) => m.key)])];
         const cards: BookCard[] = [];
         for (const k of evKeys) {
