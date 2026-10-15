@@ -161,6 +161,8 @@ const itemKey = (no: string) => {
 export function isPageChrome(line: string): boolean {
   const t = line.replace(/[\s\u3000]+/g, " ").trim();
   if (!t) return false;
+  // 시험지 끝 안내문(「※ 확인사항」, 「이 시험문제의 저작권은 …」)은 문제가 아니다(상우고1 28번에 섞임, 2026-10-15)
+  if (/저작권|확인\s*사항|전재와\s*복제|무단\s*(복제|전재)|처벌될\s*수/.test(t)) return true;
   if (/^[-–(]?\s*\d+\s*[/)]?\s*\d*\s*[-–)]?$/.test(t)) return true; // 7/8 · - 3 - · (3)
   if (/[A-Za-z]{3}/.test(t.replace(/공통영어|영어/g, ""))) return false;
   if (t.length > 60 || /^[①②③④⑤]/.test(t)) return false;

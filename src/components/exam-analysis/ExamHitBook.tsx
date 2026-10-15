@@ -348,7 +348,7 @@ function ItemPage({ it, book, academyName }: { it: BookItem; book: HitBook; acad
           <div className="etag">
             학교 시험 {it.no}번 <span className="ans-chip">정답 {ansNo >= 0 ? CIRCLED[ansNo] : "✎"}</span>
           </div>
-          <p className="stem">{it.stem}</p>
+          <p className="stem">{it.stem.replace(/<\/?u>/g, "")}</p>
           <div className="ebody" dangerouslySetInnerHTML={{ __html: it.examHtml }} />
           {it.choices.length ? (
             <ol className="echo">
@@ -415,7 +415,7 @@ function ItemPage({ it, book, academyName }: { it: BookItem; book: HitBook; acad
         </div>
       )}
       <div className="pf">
-        {it.no}번 · 시험 문제 일부를 흐리게 가렸습니다. 시험 문제의 저작권은 해당 학교에 있습니다.
+        {it.no}번 · 시험 문제 일부를 흐리게 가렸습니다.
       </div>
     </section>
   );
