@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { HitBookSummary } from "@/lib/exam-analysis/hit-book";
 import { readUploadedMaterial } from "@/lib/exam-analysis/read-upload-client";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
+import { hwpToText } from "@/lib/exam-analysis/hwp-text";
 
 type SavedUpload = { name: string; chars: number };
 
@@ -61,27 +62,23 @@ export function ExamHitBookPanel({
   }, [busy]);
 
   /*
-   * 파일 고르기 — 한글(HWP·HWPX)도 서버에서 글자를 뽑아 읽는다(선생님 지시 2026-10-15 「hwp도 가능하게」).
-   * 서버가 받을 수 있는 크기(약 4MB)를 넘는 한글 파일만 PDF로 올려 달라고 알린다.
+   * 파일 고르기 — 한글(HWP·HWPX)도 이 브라우저에서 바로 글자를 뽑아 읽는다(선생님 지시 2026-10-15 「hwp도 가능하게」).
+   * 그림을 품은 한글 파일은 4~18MB라 서버로 보내면 받을 수 없어 브라우저에서 읽는다 — 크기 제한이 없다.
    */
-  const HWP_MAX = 4 * 1024 * 1024;
   function pick(list: FileList | null) {
     const all = Array.from(list ?? []);
-    const big = all.filter((f) => /\.(hwp|hwpx)$/i.test(f.name) && f.size > HWP_MAX);
-    setHwpWarn(big.map((f) => f.name));
-    const ok = all.filter((f) => !big.includes(f));
-    setFiles((prev) => [...prev.filter((p) => !ok.some((f) => f.name === p.name)), ...ok]);
+    setHwpWarn([]);
+    setFiles((prev) => [...prev.filter((p) => !all.some((f) => f.name === p.name)), ...all]);
   }
 
   async function readHwp(f: File): Promise<{ name: string; text: string }> {
-    const r = await fetch(`/api/exam-analysis/${analysisId}/read-hwp`, {
-      method: "POST",
-      headers: { "content-type": "application/octet-stream", "x-filename": encodeURIComponent(f.name) },
-      body: await f.arrayBuffer(),
-    });
-    const j = (await r.json()) as { ok: boolean; name?: string; text?: string; message?: string };
-    if (!j.ok || !j.text) throw new Error(j.message ?? `${f.name}을 읽지 못했어요. PDF로 저장해 올려 주세요.`);
-    return { name: f.name, text: j.text };
+    try {
+      return { name: f.name, text: await hwpToText(await f.arrayBuffer(), f.name) };
+    } catch (e) {
+      const why = e instanceof Error ? e.message : "읽지 못했어요.";
+      setHwpWarn((xs) => [...xs, f.name]);
+      throw new Error(`${f.name}: ${why} 한글에서 「파일 → PDF로 저장」 한 뒤 PDF로 올려 주세요.`);
+    }
   }
 
   async function make() {
@@ -228,7 +225,7 @@ export function ExamHitBookPanel({
         </div>
         {hwpWarn.length ? (
           <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800">
-            {hwpWarn.join(", ")} — 한글 파일이 너무 커서(4MB 넘음) 받을 수 없어요. 한글에서 「파일 → PDF로 저장」 한 뒤 PDF로 올려 주세요.
+            {hwpWarn.join(", ")} — 배포용·암호가 걸린 한글 문서라 글자를 읽지 못했어요. 한글에서 「파일 → PDF로 저장」 한 뒤 PDF로 올려 주세요.
           </p>
         ) : null}
         {files.length || saved.length ? (
