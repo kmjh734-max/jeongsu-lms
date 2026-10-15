@@ -73,7 +73,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const fresh = (body.uploads ?? [])
       .filter((u) => u && typeof u.name === "string" && typeof u.text === "string" && u.text.trim().length > 40)
       .map((u) => pgSafe({ name: u.name.slice(0, 200), text: u.text.slice(0, 400000) }));
-    const uploads = [...saved.filter((u) => keep.has(u.name) && !fresh.some((f) => f.name === u.name)), ...fresh].slice(0, 30);
+    /*
+     * 올린 자료는 100개까지 — 30개로 막아 두었더니 선생님이 올린 45개 가운데 뒤 15개(학평 예상문제·아잉카)가
+     * 말없이 빠져 그 지문들이 적중에서 빠졌다(상우고1, 2026-10-15). 넘치면 알린다.
+     */
+    const all = [...saved.filter((u) => keep.has(u.name) && !fresh.some((f) => f.name === u.name)), ...fresh];
+    if (all.length > 100) {
+      return NextResponse.json({ ok: false, message: `올린 자료가 ${all.length}개예요. 한 번에 100개까지 대조할 수 있어요. 덜 중요한 자료를 빼고 다시 눌러 주세요.` }, { status: 400 });
+    }
+    const uploads = all;
 
     setAiUsage({
       academyId: g.profile.academy_id,
