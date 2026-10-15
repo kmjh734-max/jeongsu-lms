@@ -144,6 +144,74 @@ color:var(--ink);font-family:var(--body);display:grid;justify-content:center;gap
 .hb .f4{gap:2.4mm}.hb .f4 .ebody{font-size:6.4pt;line-height:1.36}.hb .f4 .echo{font-size:6.8pt;gap:0}.hb .f4 .ihead .ino{font-size:28pt}.hb .f4 .leadbox{min-height:18mm}
 .hb .f5 .leadbox{display:none}.hb .f5 .cmp tr:nth-child(n+3){display:none}
 .hb .f6 .ebody{font-size:5.9pt;line-height:1.3}.hb .f6 .echo{font-size:6.3pt}.hb .f6 .arow{grid-template-columns:1fr 1.6fr}
+/* 2026-10-15 선생님 지시: 학교 문제는 작게, 우리 문제는 실제 시험지처럼 크게, 둘을 도식으로 잇는다 */
+.hb .top2{display:grid;grid-template-columns:0.92fr 1.08fr;gap:3mm;align-items:start}
+.hb .exam.mini{padding:2.4mm 3mm;font-size:7.4pt;max-height:96mm;overflow:hidden}
+.hb .exam.mini .etag{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8mm}
+.hb .exam.mini .ans-chip{background:var(--ink);color:#fff;border-radius:99px;padding:.2mm 2.2mm;font-size:7pt;letter-spacing:0}
+.hb .exam.mini .stem{font-size:7.6pt;min-height:0;padding-right:0;margin-bottom:1mm}
+.hb .exam.mini .ebody{font-size:6.9pt;line-height:1.42}
+.hb .exam.mini .echo{font-size:6.8pt;gap:.2mm;margin-top:1mm}
+.hb .exam.mini .echo li{grid-template-columns:4mm 1fr}
+.hb .flow{display:flex;flex-direction:column;gap:1.8mm}
+.hb .ftag{font-size:8pt;font-weight:700;color:var(--red)}
+.hb .v-similar .ftag{color:var(--blue)}
+.hb .fpair{display:grid;grid-template-columns:1fr 13mm 1fr;align-items:stretch;gap:0}
+.hb .fbox{border-radius:2mm;padding:1.4mm 2mm;font-size:7.3pt;line-height:1.4;overflow-wrap:anywhere}
+.hb .fbox p{font-family:Georgia,"Times New Roman",serif}
+.hb .fl{display:block;font-size:6.4pt;font-weight:700;letter-spacing:.02em;margin-bottom:.4mm}
+.hb .fx{background:#f1f3f6;border:.5pt solid #c5ccd6}
+.hb .fx .fl{color:var(--muted)}
+.hb .fo{background:#fff3f1;border:1pt solid var(--red)}
+.hb .fo .fl{color:var(--red)}
+.hb .v-similar .fo{background:#eef3fb;border-color:var(--blue)}
+.hb .v-similar .fo .fl{color:var(--blue)}
+.hb .farrow{position:relative;display:flex;align-items:center;justify-content:center}
+.hb .farrow::before{content:"";position:absolute;left:1mm;right:2.4mm;top:50%;border-top:1.2pt solid var(--red)}
+.hb .farrow::after{content:"";position:absolute;right:.6mm;top:calc(50% - 1.6mm);border:1.6mm solid transparent;border-left:2.2mm solid var(--red)}
+.hb .v-similar .farrow::before{border-top-color:var(--blue)}.hb .v-similar .farrow::after{border-left-color:var(--blue)}
+.hb .farrow span{position:relative;z-index:1;background:#fff;font-size:5.8pt;line-height:1.2;font-weight:700;color:var(--ink);text-align:center;padding:.4mm .4mm;max-width:12mm}
+.hb .fnone{font-size:7.6pt;color:var(--muted)}
+.hb .fwhy{background:var(--red-soft);border-radius:2mm;padding:1.8mm 2.4mm;font-size:7.6pt;line-height:1.5}
+.hb .v-similar .fwhy{background:var(--blue-soft)}
+.hb .fans{display:block;font-size:8pt;margin-bottom:.4mm}
+/* 우리 시험지 — 크게 */
+.hb .leadbox{min-height:110mm}
+.hb .ltag{font-size:8.6pt}
+.hb .sheet{position:relative;background:#fff;border:.8mm solid var(--red);border-radius:1.6mm;padding:3mm 3.4mm 3.4mm;display:grid;gap:1.6mm;font-size:8.4pt;line-height:1.55;min-width:0;max-height:100%;overflow:hidden;align-self:start;box-shadow:0 1.2mm 0 rgba(20,26,42,.06)}
+.hb .v-similar .sheet{border-color:var(--blue)}
+.hb .sheet header{display:flex;align-items:baseline;gap:2mm;font-size:7.2pt;border-bottom:1pt solid var(--ink);padding-bottom:1.2mm}
+.hb .sheet .sbrand{font-weight:900;letter-spacing:.06em}
+.hb .sheet .src{font-weight:700;color:var(--red);flex:1}
+.hb .v-similar .sheet .src{color:var(--blue)}
+.hb .sheet .dt{color:var(--muted)}
+.hb .sheet .ins{font-weight:700;font-size:8.6pt}
+.hb .sheet .qno{font-family:var(--display);font-size:10pt;margin-right:.6mm}
+.hb .sheet .qt{border:.6pt solid #9aa3b2;padding:1.6mm 2.4mm;font-family:Georgia,serif}
+.hb .sheet .pm{border:.6pt solid #9aa3b2;padding:2mm 2.6mm;font-family:Georgia,"Times New Roman",serif;font-size:8.3pt;line-height:1.6;overflow-wrap:anywhere;white-space:pre-line;text-align:justify}
+.hb .sheet u{text-decoration:underline 1px;text-underline-offset:2px;font-weight:700}
+.hb .sheet .ch{list-style:none;margin:0;padding:0;display:grid;gap:.5mm;font-size:8.2pt}
+.hb .sheet .ch li{display:grid;grid-template-columns:5mm 1fr;gap:1mm}
+.hb .sheet .ch li.ans{background:#ffe3df;font-weight:700}
+.hb .sheet .sans{position:absolute;right:3mm;bottom:2.4mm;border:.7mm solid var(--red);color:var(--red);border-radius:2mm;padding:.4mm 2.4mm;font-weight:900;font-size:8pt;transform:rotate(-6deg);background:rgba(255,255,255,.9)}
+.hb .v-similar .sheet .sans{border-color:var(--blue);color:var(--blue)}
+.hb .sheet .br{font-weight:700}.hb .sheet .br.hit{color:#b4231b;background:#ffe9e6;padding:0 1px;border-radius:1px;box-shadow:0 0 0 1.4px var(--red)}
+.hb .sheet.wb ul{margin:0;padding-left:4.4mm;display:grid;gap:1.4mm;font-family:Georgia,serif;font-size:8.6pt;line-height:1.6}
+.hb .cards.one .sheet{font-size:8.8pt}.hb .cards.one .sheet .pm{font-size:8.7pt}
+/* 넘치면: 학교 문제 · 도식부터 줄이고, 우리 시험지는 끝까지 남긴다 */
+.hb .f1 .exam.mini .ebody{font-size:6.4pt}.hb .f1 .exam.mini{max-height:84mm}
+.hb .f2 .fbox{font-size:6.8pt}.hb .f2 .fwhy{font-size:7pt}.hb .f2 .exam.mini{max-height:74mm}
+.hb .f3 .fpair:nth-of-type(n+4){display:none}.hb .f3 .leadbox{min-height:96mm}
+.hb .f4 .ihead .ino{font-size:28pt}.hb .f4 .leadbox{min-height:84mm}.hb .f4 .exam.mini{max-height:64mm}
+.hb .f5 .fpair:nth-of-type(n+3){display:none}.hb .f5 .leadbox{min-height:70mm;display:flex}
+.hb .f6 .sheet{font-size:7.6pt}.hb .f6 .sheet .pm{font-size:7.5pt}.hb .f6 .leadbox{min-height:56mm}
+.hb .fpair{grid-template-columns:1fr 11mm 1fr;row-gap:.6mm}
+.hb .farrow span{font-size:6.2pt;max-width:10mm}
+.hb .fsame{grid-column:1/-1;margin:0;font-size:7pt;font-weight:700;color:var(--ink);line-height:1.35;padding-left:1mm}
+.hb .sheet .sans{position:static;transform:none;margin-left:1mm;padding:.1mm 2mm;font-size:7.4pt;border-width:.5mm;white-space:nowrap;max-width:40mm;overflow:hidden;text-overflow:ellipsis}
+.hb .sheet .pm{max-height:64mm;overflow:hidden;-webkit-mask-image:linear-gradient(#000 82%,transparent);mask-image:linear-gradient(#000 82%,transparent)}
+.hb .cards.one .sheet .pm{max-height:84mm}
+.hb .f4 .sheet .pm{max-height:52mm}.hb .f6 .sheet .pm{max-height:40mm}
 .hb-tools{display:flex;justify-content:center;gap:8px;padding:10px 0 0}
 .hb .hb-recheck{position:absolute;top:4mm;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:2mm;z-index:2}
 .hb .hb-recheck button{font:inherit;font-size:8pt;font-weight:700;color:#1b2232;background:#fff;border:1px solid #cfd5df;border-radius:99px;padding:1mm 3.4mm;cursor:pointer}
@@ -167,31 +235,64 @@ html,body{margin:0;background:#e8ebf0}
 
 const pct = (n: number) => (Math.round(n * 10) / 10).toFixed(1);
 
-function Card({ card }: { card: BookCard }) {
+/**
+ * 빨간 표시(같은 자리)가 지문 뒤쪽이면 접힌 아래로 숨는다 — 표시 앞 몇 문장부터 보여 준다(2026-10-15 발곡고1 14번).
+ * 태그(<u>·<mark>) 한가운데서 자르지 않도록 열린 <u> 가 있으면 그 앞에서 자른다.
+ */
+function aroundMark(html: string): string {
+  const at = html.indexOf("<mark");
+  if (at < 420) return html;
+  let from = html.lastIndexOf(". ", at - 260);
+  if (from < 0) return html;
+  from += 2;
+  const head = html.slice(0, from);
+  const openU = head.lastIndexOf("<u>");
+  if (openU > head.lastIndexOf("</u>")) from = openU;
+  return `… ${html.slice(from)}`;
+}
+
+/** 줄 묶음 자료는 표시된 줄과 그 앞뒤만 — 없으면 앞 여덟 줄 */
+function markedLines(linesHtml: string[]): string[] {
+  const all = linesHtml.flatMap((h) => h.split(/<br\s*\/?>/));
+  const hits = all.map((l, i) => (/<mark|class="br hit"/.test(l) ? i : -1)).filter((i) => i >= 0);
+  if (hits.length === 0) return all.slice(0, 8);
+  const keep = new Set<number>();
+  for (const i of hits) for (const k of [i - 1, i, i + 1]) if (k >= 0 && k < all.length) keep.add(k);
+  return [...keep].sort((a, b) => a - b).slice(0, 9).map((i) => all[i]!);
+}
+
+/** 우리 자료 — 실제 시험지처럼(문항 번호 · 발문 · 지문 상자 · 보기 · 정답 도장) */
+function Card({ card, n, academyName }: { card: BookCard; n: number; academyName: string }) {
   if (card.kind === "line") {
     return (
-      <article className="qcard wb">
+      <article className="sheet wb">
         <header>
+          <span className="sbrand">{academyName}</span>
           <span className="src">{card.source}</span>
-          <span className="dt">{card.date}</span>
+          <span className="dt">{card.date ? `${card.date} 수업` : ""}</span>
         </header>
         <ul>
-          {card.linesHtml.map((h, i) => (
+          {markedLines(card.linesHtml).map((h, i) => (
             <li key={i} dangerouslySetInnerHTML={{ __html: h }} />
           ))}
         </ul>
       </article>
     );
   }
+  const no = card.source.match(/(\d+)번$/)?.[1] ?? String(n);
   return (
-    <article className="qcard">
+    <article className="sheet">
       <header>
-        <span className="src">{card.source}</span>
-        <span className="dt">{card.date}</span>
+        <span className="sbrand">{academyName}</span>
+        <span className="src">{card.source.replace(/\s*\d+번$/, "")}</span>
+        <span className="dt">{card.date ? `${card.date} 수업` : ""}</span>
+        <span className="sans">정답 {card.answerNo ? CIRCLED[card.answerNo - 1] : card.answerText}</span>
       </header>
-      {card.instruction ? <p className="ins">{card.instruction}</p> : null}
+      <p className="ins">
+        <b className="qno">{no}.</b> {card.instruction}
+      </p>
       {card.questionText ? <div className="qt">{card.questionText}</div> : null}
-      {card.passageHtml ? <div className="pm" dangerouslySetInnerHTML={{ __html: card.passageHtml }} /> : null}
+      {card.passageHtml ? <div className="pm" dangerouslySetInnerHTML={{ __html: aroundMark(card.passageHtml) }} /> : null}
       {card.choices.length ? (
         <ol className="ch">
           {card.choices.map((c, i) => (
@@ -202,7 +303,6 @@ function Card({ card }: { card: BookCard }) {
           ))}
         </ol>
       ) : null}
-      <p className="ans">정답 {card.answerNo ? CIRCLED[card.answerNo - 1] : card.answerText}</p>
     </article>
   );
 }
@@ -240,69 +340,68 @@ function ItemPage({ it, book, academyName }: { it: BookItem; book: HitBook; acad
           </div>
         </div>
       </div>
-      <div className="exam">
-        <div className="etag">학교 시험 {it.no}번</div>
-        <p className="stem">{it.stem}</p>
-        <div className="stamp">
-          <b>{same ? "적중" : "유사 유형"}</b>
-          <span>{same ? "동일 유형 · 동일 포인트" : "풀었으면 바로 풀리는 문제"}</span>
-        </div>
-        <div className="ebody" dangerouslySetInnerHTML={{ __html: it.examHtml }} />
-        {it.choices.length ? (
-          <ol className="echo">
-            {it.choices.map((c, i) => (
-              <li key={i} className={c.answer ? "ans" : undefined}>
-                <span className="cn">{CIRCLED[i]}</span>
-                <span>{c.text}</span>
-              </li>
-            ))}
-          </ol>
-        ) : null}
-      </div>
-      <div className="arow">
-        <div className="abox">
-          <div className="atag">학교 시험 정답</div>
-          <p className="ano">{ansNo >= 0 ? CIRCLED[ansNo] : "✎"}</p>
-          <p>{ansNo >= 0 ? it.answer.slice(1).trim() : it.answer}</p>
-        </div>
-        <div className="lbox">
-          <div className="atag">{academyName} 자료로 맞출 수 있었던 까닭</div>
-          <p>{it.reason}</p>
-        </div>
-      </div>
-      {it.compare.length ? (
-        <div className="cmp">
-          <div className="ctag">무엇이 같은가 — 원문 그대로</div>
-          <table>
-            <thead>
-              <tr>
-                <th>학교 시험</th>
-                <th />
-                <th>{academyName} 자료 (시험 전)</th>
-                <th>같은 점</th>
-              </tr>
-            </thead>
-            <tbody>
-              {it.compare.map((c, i) => (
-                <tr key={i}>
-                  <td className="cx">{c.exam}</td>
-                  <td className="ca">=</td>
-                  <td className="co">{c.ours}</td>
-                  <td className="cs">{c.same}</td>
-                </tr>
+
+      <div className="top2">
+        {/* 학교 시험 — 작게 */}
+        <div className="exam mini">
+          <div className="etag">
+            학교 시험 {it.no}번 <span className="ans-chip">정답 {ansNo >= 0 ? CIRCLED[ansNo] : "✎"}</span>
+          </div>
+          <p className="stem">{it.stem}</p>
+          <div className="ebody" dangerouslySetInnerHTML={{ __html: it.examHtml }} />
+          {it.choices.length ? (
+            <ol className="echo">
+              {it.choices.map((c, i) => (
+                <li key={i} className={c.answer ? "ans" : undefined}>
+                  <span className="cn">{CIRCLED[i]}</span>
+                  <span>{c.text}</span>
+                </li>
               ))}
-            </tbody>
-          </table>
+            </ol>
+          ) : null}
         </div>
-      ) : null}
+
+        {/* 적중 도식 — 학교 시험 그 자리 → 우리 자료 그 자리 */}
+        <div className="flow">
+          <div className="ftag">적중 도식 — 어디가 같은가</div>
+          {it.compare.length ? (
+            it.compare.slice(0, 3).map((c, i) => (
+              <div className="fpair" key={i}>
+                <div className="fbox fx">
+                  <span className="fl">학교 시험</span>
+                  <p>{c.exam}</p>
+                </div>
+                <div className="farrow">
+                  <span>{same ? "같은 자리" : "같은 내용"}</span>
+                </div>
+                <div className="fbox fo">
+                  <span className="fl">{academyName} 자료 (시험 전)</span>
+                  <p>{c.ours}</p>
+                </div>
+                <p className="fsame">✔ {c.same}</p>
+              </div>
+            ))
+          ) : (
+            <p className="fnone">같은 지문 · 같은 유형으로 미리 풀어 본 문항입니다.</p>
+          )}
+          <div className="fwhy">
+            <div className="atag">학교 시험 정답 · 맞출 수 있었던 까닭</div>
+            <p>
+              <b className="fans">{ansNo >= 0 ? `${CIRCLED[ansNo]} ${it.answer.slice(1).trim()}` : it.answer}</b>
+              {it.reason}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {it.cards.length ? (
         <div className="leadbox">
           <div className="ltag">
-            {same ? "시험과 거의 똑같은 우리 자료" : "이 문제를 풀었으면 바로 풀리는 우리 자료"} · 시험 전 {academyName} 자료
+            {same ? "▼ 시험 전에 학생들이 실제로 푼 정수학원 문제 — 같은 자리를 빨간 상자로" : "▼ 시험 전에 학생들이 실제로 푼 정수학원 자료"}
           </div>
           <div className={`cards ${it.cards.length === 1 ? "one" : ""}`}>
             {it.cards.map((c, i) => (
-              <Card key={i} card={c} />
+              <Card key={i} card={c} n={i + 1} academyName={academyName} />
             ))}
           </div>
         </div>

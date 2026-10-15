@@ -1603,10 +1603,24 @@ export async function buildHitBook(
           const c = byKey.get(k);
           if (!c || cards.some((x) => x.source === c.source && x.kind === c.card.kind)) continue;
           const quote = r.evidence.find((e) => e.key === k)?.ours_quote ?? "";
+          /*
+           * 인용에 ⑥·[ ]·⟦ ⟧ 가 섞이면 지문 글자와 그대로 맞지 않아 빨간 표시가 안 붙었다 — 표지를 뗀 글과
+           * 괄호 안 낱말로도 표시한다(2026-10-15 발곡고1 14번 「build back our ⑥ [hostility]」).
+           */
+          const inner = [...quote.matchAll(/[[⟦]([^\]⟧]{2,40})[\]⟧]/g)].map((m) => m[1]!.split("/")[0]!.trim());
+          const plainQuote = quote.replace(/[①-⑳ⓐ-ⓩ]|[[\]⟦⟧]/g, " ").replace(/\s+/g, " ").trim();
+          const marks = [quote, plainQuote, ...inner].filter((x) => x.length > 2);
+          const mark = (h: string) => {
+            for (const m of marks) {
+              const out = markHtml(h, [m]);
+              if (out !== h) return out;
+            }
+            return h;
+          };
           cards.push(
             c.card.kind === "question"
-              ? { ...c.card, passageHtml: quote ? markHtml(c.card.passageHtml, [quote]) : c.card.passageHtml }
-              : { ...c.card, linesHtml: c.card.linesHtml.map((h) => (quote ? markHtml(h, [quote]) : h)) }
+              ? { ...c.card, passageHtml: quote ? mark(c.card.passageHtml) : c.card.passageHtml }
+              : { ...c.card, linesHtml: c.card.linesHtml.map((h) => (quote ? mark(h) : h)) }
           );
           if (cards.length >= 2) break;
         }

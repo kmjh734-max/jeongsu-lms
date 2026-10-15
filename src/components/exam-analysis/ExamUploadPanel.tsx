@@ -216,7 +216,7 @@ export function ExamUploadPanel({ basePath }: { basePath: string }) {
           disabled={busy || files.length === 0}
           className="inline-flex h-10 items-center rounded-lg bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
         >
-          {busy ? "분석 중…" : "분석하기 · 1,500크레딧"}
+          {busy ? "분석 중…" : "분석하기 · 3,000크레딧"}
         </button>
         {step === "preparing" ? (
           <span className="text-sm text-slate-600">
