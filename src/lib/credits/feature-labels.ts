@@ -38,6 +38,8 @@ const FEATURES: Record<string, FeatureInfo> = {
   lesson_one_page_test: { label: "1장 테스트지", group: "1장 자료", unit: "지문" },
   lesson_one_page: { label: "1장 자료", group: "1장 자료", unit: "지문" },
   school_exam_analysis: { label: "내신 시험지 분석", group: "내신 시험 분석", unit: "회" },
+  exam_hit_book: { label: "적중 자료집 만들기", group: "내신 시험 분석", unit: "회" },
+  exam_hit_book_recheck: { label: "적중 자료집 문항 재검토", group: "내신 시험 분석", unit: "문항" },
   vocab_student_monthly: { label: "단어학습 학생 이용", group: "단어·듣기 학생 이용" },
   listening_student_monthly: { label: "듣기학습 학생 이용", group: "단어·듣기 학생 이용" },
   listening_generate_questions: { label: "듣기 문항 만들기", group: "듣기 자료", unit: "문항" },

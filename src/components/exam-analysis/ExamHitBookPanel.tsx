@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { HitBookSummary } from "@/lib/exam-analysis/hit-book";
 import { readUploadedMaterial } from "@/lib/exam-analysis/read-upload-client";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 
 type SavedUpload = { name: string; chars: number };
 
@@ -30,6 +31,8 @@ export function ExamHitBookPanel({
   const [files, setFiles] = useState<File[]>([]);
   const [saved, setSaved] = useState<SavedUpload[]>([]);
   const [hwpWarn, setHwpWarn] = useState<string[]>([]);
+  // 문항 재검토 중인 문항
+  const [rechecking, setRechecking] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -57,16 +60,41 @@ export function ExamHitBookPanel({
     return () => clearInterval(t);
   }, [busy]);
 
-  /** 파일 고르기 — HWP는 읽지 않고 PDF로 올려 달라고 알린다(선생님 지시 2026-10-15) */
+  /*
+   * 파일 고르기 — 한글(HWP·HWPX)도 서버에서 글자를 뽑아 읽는다(선생님 지시 2026-10-15 「hwp도 가능하게」).
+   * 서버가 받을 수 있는 크기(약 4MB)를 넘는 한글 파일만 PDF로 올려 달라고 알린다.
+   */
+  const HWP_MAX = 4 * 1024 * 1024;
   function pick(list: FileList | null) {
     const all = Array.from(list ?? []);
-    const hwp = all.filter((f) => /\.(hwp|hwpx)$/i.test(f.name));
-    setHwpWarn(hwp.map((f) => f.name));
-    const ok = all.filter((f) => !/\.(hwp|hwpx)$/i.test(f.name));
+    const big = all.filter((f) => /\.(hwp|hwpx)$/i.test(f.name) && f.size > HWP_MAX);
+    setHwpWarn(big.map((f) => f.name));
+    const ok = all.filter((f) => !big.includes(f));
     setFiles((prev) => [...prev.filter((p) => !ok.some((f) => f.name === p.name)), ...ok]);
   }
 
+  async function readHwp(f: File): Promise<{ name: string; text: string }> {
+    const r = await fetch(`/api/exam-analysis/${analysisId}/read-hwp`, {
+      method: "POST",
+      headers: { "content-type": "application/octet-stream", "x-filename": encodeURIComponent(f.name) },
+      body: await f.arrayBuffer(),
+    });
+    const j = (await r.json()) as { ok: boolean; name?: string; text?: string; message?: string };
+    if (!j.ok || !j.text) throw new Error(j.message ?? `${f.name}을 읽지 못했어요. PDF로 저장해 올려 주세요.`);
+    return { name: f.name, text: j.text };
+  }
+
   async function make() {
+    if (
+      !(await askCreditConfirm({
+        title: summary ? "적중 자료집 다시 만들기" : "적중 자료집 만들기",
+        description:
+          "시험지 문항마다 시험 전에 만든 변형문제 · 동형모의고사 · 워크북 · 1장 자료 · 올린 자료에서 같은 자리를 찾아 하나하나 판정하고, 원문 근거와 맞출 수 있었던 까닭을 정리합니다.",
+        subject: "이 시험지 한 회",
+        items: [{ feature: "exam_hit_book", quantity: 1 }],
+      }))
+    )
+      return;
     setBusy(true);
     setMessage(null);
     try {
@@ -75,13 +103,15 @@ export function ExamHitBookPanel({
       for (const [i, f] of files.entries()) {
         setStep(`올린 자료 읽는 중 (${i + 1}/${files.length}) — ${f.name}`);
         try {
-          const read = await readUploadedMaterial(
-            f,
-            analysisId,
-            (m) => setStep(`올린 자료 읽는 중 (${i + 1}/${files.length}) — ${m}`),
-            excerpts
-          );
-          if (read.note) notes.push(read.note);
+          const read = /\.(hwp|hwpx)$/i.test(f.name)
+            ? await readHwp(f)
+            : await readUploadedMaterial(
+                f,
+                analysisId,
+                (m) => setStep(`올린 자료 읽는 중 (${i + 1}/${files.length}) — ${m}`),
+                excerpts
+              );
+          if ("note" in read && typeof read.note === "string" && read.note) notes.push(read.note);
           if (read.text.trim().length > 40) uploads.push({ name: read.name, text: read.text });
           else notes.push(`${f.name}에서 글을 읽지 못했어요.`);
         } catch (e) {
@@ -107,6 +137,36 @@ export function ExamHitBookPanel({
     } finally {
       setBusy(false);
       setStep(null);
+    }
+  }
+
+  /** 한 문항만 다시 찾고 다시 판정 */
+  async function recheck(itemId: string, no: string) {
+    if (busy || rechecking) return;
+    if (
+      !(await askCreditConfirm({
+        title: `${no}번 재검토`,
+        description: "이 문항만 다시 찾고 다시 판정해 자료집에 바꿔 넣습니다. 그사이 새로 만든 자료도 찾습니다.",
+        subject: `${no}번 한 문항`,
+        items: [{ feature: "exam_hit_book_recheck", quantity: 1 }],
+      }))
+    )
+      return;
+    setRechecking(itemId);
+    setMessage(null);
+    try {
+      const r = await fetch(`/api/exam-analysis/${analysisId}/hit-book/item`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ itemId }),
+      });
+      const j = (await r.json()) as { ok: boolean; summary?: HitBookSummary; message?: string };
+      if (!j.ok || !j.summary) throw new Error(j.message ?? "재검토하지 못했어요.");
+      setSummary(j.summary);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "재검토하지 못했어요.");
+    } finally {
+      setRechecking(null);
     }
   }
 
@@ -147,12 +207,12 @@ export function ExamHitBookPanel({
       <div className="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50/60 p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="text-xs text-slate-600">
-            <b className="text-slate-800">직접 만든 자료도 함께 대조</b> — 시험 전에 학생들에게 준 PDF를 올리면 같은 자리를 찾아 넣습니다.
-            한글(HWP)은 「파일 → PDF로 저장」 한 뒤 올려 주세요. 글자가 든 PDF는 바로 읽고, 스캔·그림 PDF는 쪽마다 읽어 몇 분 걸립니다.
+            <b className="text-slate-800">직접 만든 자료도 함께 대조</b> — 시험 전에 학생들에게 준 한글(HWP)·PDF 파일을 올리면 같은 자리를 찾아 넣습니다.
+            한글 파일과 글자가 든 PDF는 바로 읽고, 스캔·그림 PDF는 쪽마다 읽어 몇 분 걸립니다.
             EngCore에서 만든 자료는 올리지 않아도 이미 대조합니다.
           </div>
           <label className="inline-flex h-8 cursor-pointer items-center rounded-lg border border-brand-200 bg-white px-3 text-xs font-semibold text-brand-700 hover:bg-brand-50">
-            PDF 자료 추가
+            자료 추가 (HWP·PDF)
             <input
               type="file"
               multiple
@@ -168,8 +228,7 @@ export function ExamHitBookPanel({
         </div>
         {hwpWarn.length ? (
           <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800">
-            {hwpWarn.join(", ")} — 한글(HWP) 파일은 밑줄·괄호 같은 문제 표시를 제대로 읽을 수 없어요. 한글에서 「파일 → PDF로 저장」 한 뒤 PDF로 올려
-            주세요.
+            {hwpWarn.join(", ")} — 한글 파일이 너무 커서(4MB 넘음) 받을 수 없어요. 한글에서 「파일 → PDF로 저장」 한 뒤 PDF로 올려 주세요.
           </p>
         ) : null}
         {files.length || saved.length ? (
@@ -249,12 +308,17 @@ export function ExamHitBookPanel({
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             {summary.items.map((x) => (
-              <span
-                key={x.no}
+              <button
+                type="button"
+                key={x.id ?? x.no}
+                disabled={busy || !!rechecking || !x.id}
+                onClick={() => x.id && void recheck(x.id, x.no)}
                 title={`${x.typeName} · ${
                   x.verdict === "same" ? "동일 유형 · 동일 포인트" : x.verdict === "similar" ? "유사 유형" : "다루지 않음"
-                }${x.verdict !== "none" ? ` · 자료 ${x.count}개` : ""}`}
-                className={`inline-flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 text-xs font-bold tabular-nums ${
+                }${x.verdict !== "none" ? ` · 자료 ${x.count}개` : ""} — 눌러서 이 문항만 재검토`}
+                className={`inline-flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 text-xs font-bold tabular-nums hover:ring-2 hover:ring-brand-300 disabled:cursor-default ${
+                  rechecking === x.id ? "animate-pulse ring-2 ring-brand-400 " : ""
+                }${
                   x.verdict === "same"
                     ? "bg-red-600 text-white"
                     : x.verdict === "similar"
@@ -263,9 +327,11 @@ export function ExamHitBookPanel({
                 }`}
               >
                 {x.no}
-              </span>
+              </button>
             ))}
-            <span className="ml-1 text-[11px] text-slate-500">빨강 ① · 파랑 ② · 회색 다루지 않음</span>
+            <span className="ml-1 text-[11px] text-slate-500">
+              빨강 ① · 파랑 ② · 회색 다루지 않음 · 번호를 누르면 그 문항만 재검토
+            </span>
           </div>
         </>
       ) : loaded && !busy ? (

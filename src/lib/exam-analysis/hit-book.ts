@@ -19,6 +19,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ExamAnalysisRow, ExamItemRow } from "@/lib/exam-analysis/types";
 import { onePageSentences, type OnePageContent } from "@/lib/lesson-materials/one-page";
 import { findPassageAll, sameStem, stemsFor } from "@/lib/exam-analysis/uploaded-material";
+import { examChat } from "@/lib/exam-analysis/openai";
 
 export type BookVerdict = "same" | "similar" | "none";
 
@@ -61,6 +62,8 @@ export type BookItem = {
 };
 
 export type HitBook = {
+  /** 시험지 분석 id — 문항 재검토 단추가 쓴다 */
+  analysisId?: string;
   title: string;
   subtitle: string;
   examLabel: string;
@@ -1141,6 +1144,115 @@ function sameFamily(examType: string, subjective: boolean, q: Made): boolean {
   return false;
 }
 
+// ── 모델 판정 — 선생님 지시(2026-10-15): 「판정이 제대로인지가 중요해」
+/*
+ * 글자 규칙은 후보를 모으는 데까지만 쓴다. 규칙만으로는 「주제어만 겹친 것」, 「지문 속 문장이라 어디에나 있는 것」을
+ * 끝까지 가려내지 못했다(호원고1·상우고1에서 확인). 그래서 시험 문항과 후보 원문을 모두 모델에 보여 주고,
+ * 손으로 만든 자료집과 같은 잣대로 ①/②/아님을 가리고 원문 인용과 까닭을 받는다. 모델이 실패하면 규칙 판정을 쓴다.
+ */
+type AiCand = { key: string; brief: string; card: BookCard; source: string; date: string; fallbackCompare?: BookCompare };
+type AiResult = {
+  verdict: BookVerdict;
+  matched: Array<{ key: string; level: "same" | "similar" }>;
+  evidence: Array<{ key: string; exam_quote: string; ours_quote: string; why: string }>;
+  reason: string;
+};
+
+const JUDGE_MODEL = () => process.env.OPENAI_MODEL_HIT_BOOK?.trim() || "gpt-5.6-sol";
+
+const JUDGE_SYSTEM = `너는 영어 내신 시험의 「적중」을 가리는 판정관이다. 학원이 시험 전에 학생들에게 준 자료가 실제 시험 문항을 얼마나 그대로 다뤘는지를, 학부모에게 보여 줄 자료집에 쓸 수 있을 만큼 정확하고 보수적으로 가린다.
+
+판정 기준 (애매하면 낮춘다):
+① same — 「동일 유형 + 동일 포인트」: 우리 자료가 시험과 같은 형식으로, 시험이 물은 「바로 그 자리」를 물었다.
+  - 어휘·어법 판단(밑줄 하나 고르기): 시험 정답 자리(학교가 바꾼 낱말)와 같은 낱말 자리를 물었어야 한다. 다른 밑줄 자리는 ①이 아니다.
+  - 어법·어휘 개수: 시험이 틀리게 바꾼 자리들 가운데 하나 이상을 같은 자리로 물었어야 한다.
+  - 빈칸: 같은 문장을 비웠거나, 정답이 같은 뜻이어야 한다.
+  - 주제·제목·요지: 정답 표현이 실제로 같은 뜻이어야 한다. 지문 주제어만 겹치는 것은 아니다.
+  - 내용 일치·불일치: 시험 정답 진술과 같은 사실을 보기로 다뤘어야 한다. 고유명사만 겹치는 것은 아니다.
+  - 문장 삽입: 주어진 문장이 같아야 한다(지문 속 문장이라 어디에나 들어 있는 것은 근거가 아니다).
+  - 순서: 덩어리를 나눈 자리와 정답 순서가 같아야 한다. 무관한 문장: 그 문장이 같아야 한다.
+  - 서술형·영작: 모범 답과 같은 문장·표현을 미리 써 봤어야 한다.
+② similar — 「유사 유형」: 형식은 달라도 이 자료를 풀었으면 시험 문제를 바로 풀 수 있다. 예: 같은 자리를 괄호 고르기·빈칸 쓰기·T/F·요약자료로 다뤘다, 정답과 비슷한 뜻을 다뤘다, 같은 지문의 삽입·순서·무관한 문장을 같은 유형으로 풀었다.
+none — 지문만 같거나, 다른 자리를 물었거나, 근거가 약하다.
+
+후보마다 [키]가 붙어 있다. ⟦ ⟧ 는 그 자료가 물은 자리(밑줄·괄호·빈칸)다.
+JSON 하나만 답한다:
+{"verdict":"same|similar|none",
+ "matched":[{"key":"q1","level":"same|similar"}],
+ "evidence":[{"key":"q1","exam_quote":"시험 원문에서 그 자리를 짧게 그대로","ours_quote":"우리 자료 원문에서 그 자리를 짧게 그대로","why":"무엇이 같은지 한 줄"}],
+ "reason":"학부모가 읽을 한두 문장. 시험 정답이 무엇이었고, 우리 자료 어디에서 그 자리를 다뤘는지 구체적으로."}
+- matched: 근거가 되는 후보 전부(같은 자리를 다룬 수). 근거가 아닌 후보는 넣지 않는다.
+- evidence: 가장 강한 근거부터 최대 3개. 인용은 반드시 주어진 원문에서 글자 그대로 옮긴다.
+- verdict 가 none 이면 matched·evidence 는 빈 배열, reason 은 빈 글.
+- reason·why 에는 [q1]·[m2] 같은 키를 쓰지 말고 자료 이름(예: 「동형모의고사 9번」, 「워크북 빈칸 쓰기」)으로 쓴다.
+- 「AI」, 「모델」, 「판정관」 같은 말을 쓰지 않는다. 한국어로 쓴다.`;
+
+/** ⟦ ⟧ 로 묻는 자리를 보이게 */
+const briefMark = (html: string) =>
+  untag(
+    String(html ?? "")
+      .replace(/<u>([\s\S]*?)<\/u>/g, "⟦$1⟧")
+      .replace(/<b class="br hit">([\s\S]*?)<\/b>/g, "⟦$1⟧")
+      .replace(/<br\s*\/?>/g, " / ")
+  );
+
+/** 혹시 남은 [q1]·m2~m6 같은 키를 지운다 */
+const dropKeys = (t: string) =>
+  String(t ?? "")
+    .replace(/\[?\b[qm]\d+\b\]?(?:\s*(?:[~·,와과및]|그리고)\s*\[?\b[qm]?\d+\b\]?)*(?:에서|에서도|이|가|은|는|와|과|도|의)?/g, "우리 자료$&")
+    .replace(/우리 자료\[?\b[qm]\d+\b\]?(?:\s*(?:[~·,와과및]|그리고)\s*\[?\b[qm]?\d+\b\]?)*/g, "우리 자료")
+    .replace(/(우리 자료\s*){2,}/g, "우리 자료 ")
+    .replace(/우리 자료은/g, "우리 자료는")
+    .replace(/우리 자료이(?=\s)/g, "우리 자료가")
+    .replace(/우리 자료과/g, "우리 자료와")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+async function aiJudge(examBrief: string, cands: AiCand[]): Promise<AiResult | null> {
+  if (cands.length === 0) return null;
+  const user = `[시험 문항]\n${examBrief}\n\n[시험 전 우리 자료 후보]\n${cands.map((c) => c.brief).join("\n\n")}`;
+  try {
+    const { text } = await examChat(
+      {
+        model: JUDGE_MODEL(),
+        reasoning_effort: "medium",
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: JUDGE_SYSTEM },
+          { role: "user", content: user },
+        ],
+      },
+      2
+    );
+    const raw = JSON.parse(text) as Partial<AiResult>;
+    const keys = new Set(cands.map((c) => c.key));
+    const verdict: BookVerdict = raw.verdict === "same" || raw.verdict === "similar" ? raw.verdict : "none";
+    const matched = (raw.matched ?? []).filter((m) => m && keys.has(m.key) && (m.level === "same" || m.level === "similar"));
+    const evidence = (raw.evidence ?? [])
+      .filter((e) => e && keys.has(e.key))
+      .slice(0, 3)
+      .map((e) => ({ ...e, why: dropKeys(e.why) }));
+    if (verdict !== "none" && matched.length === 0) return { verdict: "none", matched: [], evidence: [], reason: "" };
+    return { verdict, matched, evidence, reason: dropKeys(String(raw.reason ?? "")) };
+  } catch (e) {
+    console.error("[hit-book/aiJudge]", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
+/** 시험 문항을 모델에 보일 글로 */
+function examBriefOf(it: ExamItemRow, block: ExamBlock, markedBody: string, answer: string): string {
+  return [
+    `유형: ${it.type_name}${it.is_subjective ? " (서술형)" : ""}`,
+    `발문: ${block.stem || it.stem || ""}`,
+    `지문: ${briefMark(markedBody).slice(0, 3500)}`,
+    block.choices.length ? `보기: ${block.choices.map((c, i) => `${CIRCLED[i]} ${c}`).join("  ")}` : "",
+    `정답: ${String(it.answer_guess ?? "")}${answer && !String(it.answer_guess ?? "").includes(answer) ? ` (${answer})` : ""}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 // ── 묶기
 export async function buildHitBook(
   admin: SupabaseClient,
@@ -1149,7 +1261,9 @@ export async function buildHitBook(
   /** 이 시험지를 올린 때 — 그보다 앞서 만든 자료만 센다 */
   cutoff: string | null,
   /** 선생님이 올린 자료 — 시험 전에 학생에게 준 것이라고 보고 그대로 센다 */
-  uploads: HitUpload[] = []
+  uploads: HitUpload[] = [],
+  /** ai: 모델로 판정 · only: 이 문항만(재검토) */
+  opts: { ai?: boolean; only?: string } = {}
 ): Promise<HitBook> {
   const cutoffMs = cutoff ? new Date(cutoff).getTime() : Number.POSITIVE_INFINITY;
   const before = (at: string | null | undefined) => {
@@ -1264,27 +1378,105 @@ export async function buildHitBook(
     const sameMats = mats.filter((m) => m.level === "same");
     const matSources = new Set(mats.map((m) => m.source)).size;
 
+    const label = (q: Made) =>
+      `${jobTitle.get(String(q.generation_job_id)) ?? "변형문제"}${q.item_no ? ` ${q.item_no}번` : ""}`;
+    const qCard = (q: Made, marks: string[], same: boolean): BookCard => {
+      const a = answerOf(q);
+      return {
+        kind: "question",
+        source: label(q),
+        date: dateLabel(q.created_at),
+        instruction: String(q.instruction ?? ""),
+        questionText: String(q.question_text ?? ""),
+        passageHtml: markHtml(keepU(String(q.passage_modified ?? "")), marks),
+        choices: choiceTexts(q.choices),
+        answerNo: a.no,
+        answerText: a.no ? "" : a.text,
+        same,
+      };
+    };
+    const base = {
+      id: it.id,
+      no: it.item_no,
+      typeName: it.type_name.split(" · ")[0]!,
+      points: it.points,
+      level: it.level,
+      stem: block.stem || String(it.stem ?? ""),
+      examHtml: examHtml(fam, { ...block, body: markedBody }),
+      choices: block.choices.map((text, i) => ({ text, answer: answerNo === i + 1 })),
+      answer: String(it.answer_guess ?? ""),
+    };
+
+    if (opts.ai) {
+      // 후보: 우리 문항(규칙으로 같음 → 가까움 → 나머지 같은 유형) 여덟, 수업자료·올린 자료 여섯
+      const order = [...judged.filter((j) => j.same), ...judged.filter((j) => !j.same && j.near), ...judged.filter((j) => !j.same && !j.near)];
+      const pool: AiCand[] = [
+        ...order.slice(0, 8).map((j, i): AiCand => {
+          const a = answerOf(j.q);
+          const code = String(j.q.option_key ?? "").split(":").pop() ?? "";
+          return {
+            key: `q${i + 1}`,
+            source: label(j.q),
+            date: dateLabel(j.q.created_at),
+            card: qCard(j.q, j.marks, j.same),
+            fallbackCompare: j.compare,
+            brief: [
+              `[q${i + 1}] ${label(j.q)} (${dateLabel(j.q.created_at)}) · 유형 ${code}`,
+              `발문: ${String(j.q.instruction ?? "")}`,
+              j.q.question_text ? `문제 글: ${briefMark(String(j.q.question_text))}` : "",
+              `지문: ${briefMark(String(j.q.passage_modified ?? "")).slice(0, 1800)}`,
+              choiceTexts(j.q.choices).length ? `보기: ${choiceTexts(j.q.choices).map((c, k) => `${CIRCLED[k]} ${c}`).join("  ")}` : "",
+              `정답: ${a.no ? `${CIRCLED[a.no - 1]} ${a.text}` : a.text}`,
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          };
+        }),
+        ...mats.slice(0, 6).map((m, i): AiCand => ({
+          key: `m${i + 1}`,
+          source: m.source,
+          date: m.date,
+          card: { kind: "line", source: m.source, date: m.date, linesHtml: [m.lineHtml] },
+          fallbackCompare: m.compare,
+          brief: `[m${i + 1}] ${m.source}${m.date ? ` (${m.date})` : ""}\n${briefMark(m.lineHtml)}`,
+        })),
+      ];
+      const r = pool.length ? await aiJudge(examBriefOf(it, block, markedBody, answer), pool) : null;
+      if (r) {
+        const byKey = new Map(pool.map((c) => [c.key, c]));
+        const evKeys = [...new Set([...r.evidence.map((e) => e.key), ...r.matched.map((m) => m.key)])];
+        const cards: BookCard[] = [];
+        for (const k of evKeys) {
+          const c = byKey.get(k);
+          if (!c || cards.some((x) => x.source === c.source && x.kind === c.card.kind)) continue;
+          const quote = r.evidence.find((e) => e.key === k)?.ours_quote ?? "";
+          cards.push(
+            c.card.kind === "question" ? { ...c.card, passageHtml: quote ? markHtml(c.card.passageHtml, [quote]) : c.card.passageHtml } : c.card
+          );
+          if (cards.length >= 2) break;
+        }
+        const compare: BookCompare[] = r.evidence.map((e) => ({
+          exam: e.exam_quote,
+          ours: `${e.ours_quote}  (${byKey.get(e.key)?.source ?? ""})`,
+          same: e.why,
+        }));
+        const counted = r.matched.filter((m) => (r.verdict === "same" ? m.level === "same" : true));
+        return {
+          ...base,
+          verdict: r.verdict,
+          count: new Set(counted.map((m) => m.key)).size,
+          reason: r.reason,
+          compare,
+          cards,
+        };
+      }
+    }
+
     const verdict: BookVerdict =
       sameQs.length > 0 || sameMats.length > 0 ? "same" : nearQs.length > 0 || mats.length > 0 ? "similar" : "none";
     const count = (verdict === "same" ? sameQs.length : nearQs.length) + matSources;
 
-    const label = (q: Made) =>
-      `${jobTitle.get(String(q.generation_job_id)) ?? "변형문제"}${q.item_no ? ` ${q.item_no}번` : ""}`;
-    const cardOf = (j: (typeof judged)[number]): BookCard => {
-      const a = answerOf(j.q);
-      return {
-        kind: "question",
-        source: label(j.q),
-        date: dateLabel(j.q.created_at),
-        instruction: String(j.q.instruction ?? ""),
-        questionText: String(j.q.question_text ?? ""),
-        passageHtml: markHtml(keepU(String(j.q.passage_modified ?? "")), j.marks),
-        choices: choiceTexts(j.q.choices),
-        answerNo: a.no,
-        answerText: a.no ? "" : a.text,
-        same: j.same,
-      };
-    };
+    const cardOf = (j: (typeof judged)[number]): BookCard => qCard(j.q, j.marks, j.same);
     // 카드는 두 장 — 같은 자리를 물은 것이 앞
     const matCards: BookCard[] = [...new Set(mats.map((m) => m.source))].map((src) => {
       const ms = mats.filter((m) => m.source === src);
@@ -1326,34 +1518,25 @@ export async function buildHitBook(
             : `${firstM!.source}(${firstM!.date}) — ${firstM!.compare.same}. 시험과 같은 형식의 문항은 없어 유사 유형으로 셉니다.`
           : "";
 
-    return {
-      id: it.id,
-      no: it.item_no,
-      typeName: it.type_name.split(" · ")[0]!,
-      points: it.points,
-      level: it.level,
-      verdict,
-      count,
-      stem: block.stem || String(it.stem ?? ""),
-      examHtml: examHtml(fam, { ...block, body: markedBody }),
-      choices: block.choices.map((text, i) => ({ text, answer: answerNo === i + 1 })),
-      answer: String(it.answer_guess ?? ""),
-      reason,
-      compare,
-      cards,
-    };
+    return { ...base, verdict, count, reason, compare, cards };
   };
-  const out: BookItem[] = new Array(items.length);
+  const todo = opts.only ? items.filter((x) => x.id === opts.only) : items;
+  const out: BookItem[] = new Array(todo.length);
   let next = 0;
+  // 모델 판정은 문항마다 수십 초라 열 개씩 같이 돌린다(5분 안에 끝나게)
   await Promise.all(
-    Array.from({ length: Math.min(4, items.length) }, async () => {
-      while (next < items.length) {
+    Array.from({ length: Math.min(opts.ai ? 10 : 4, todo.length) }, async () => {
+      while (next < todo.length) {
         const k = next++;
-        out[k] = await one(items[k]!);
+        out[k] = await one(todo[k]!);
       }
     })
   );
+  return assembleHitBook(analysis, out, cutoff);
+}
 
+/** 문항들로 자료집 합계를 낸다 — 재검토로 한 문항만 바꿀 때도 쓴다 */
+export function assembleHitBook(analysis: ExamAnalysisRow, out: BookItem[], cutoff: string | null): HitBook {
   const pts = (x: BookItem) => Number(x.points ?? 0);
   const totalPts = Number(analysis.total_points ?? 0) || out.reduce((s, x) => s + pts(x), 0) || 1;
   const same = out.filter((x) => x.verdict === "same");
@@ -1361,6 +1544,7 @@ export async function buildHitBook(
   const school = String(analysis.school_name ?? "").replace(/등학교$/, "");
   const grade = String(analysis.grade ?? "").replace(/학년/, "");
   return {
+    analysisId: analysis.id,
     title: `${school}${grade}`,
     subtitle: [analysis.school_name, analysis.grade ? `${grade}학년` : "", analysis.subject].filter(Boolean).join(" · "),
     examLabel: String(analysis.exam_label ?? ""),
@@ -1384,7 +1568,7 @@ export type HitBookSummary = {
   similarCount: number;
   total: number;
   materials: number;
-  items: Array<{ no: string; typeName: string; verdict: BookVerdict; count: number }>;
+  items: Array<{ id: string; no: string; typeName: string; verdict: BookVerdict; count: number }>;
 };
 
 export function summarizeHitBook(book: HitBook, at: string): HitBookSummary {
@@ -1396,6 +1580,6 @@ export function summarizeHitBook(book: HitBook, at: string): HitBookSummary {
     similarCount: book.similarCount,
     total: book.total,
     materials: book.materials,
-    items: book.items.map((x) => ({ no: x.no, typeName: x.typeName, verdict: x.verdict, count: x.count })),
+    items: book.items.map((x) => ({ id: x.id, no: x.no, typeName: x.typeName, verdict: x.verdict, count: x.count })),
   };
 }

@@ -1,5 +1,6 @@
 import type { BookCard, BookItem, HitBook } from "@/lib/exam-analysis/hit-book";
 import { HitBookTools } from "@/components/exam-analysis/HitBookTools";
+import { HitBookRecheck } from "@/components/exam-analysis/HitBookRecheck";
 
 /**
  * 적중 자료집 — A4 한 장씩. 표지 · 일람 · 문항마다 한 장.
@@ -144,6 +145,10 @@ color:var(--ink);font-family:var(--body);display:grid;justify-content:center;gap
 .hb .f5 .leadbox{display:none}.hb .f5 .cmp tr:nth-child(n+3){display:none}
 .hb .f6 .ebody{font-size:5.9pt;line-height:1.3}.hb .f6 .echo{font-size:6.3pt}.hb .f6 .arow{grid-template-columns:1fr 1.6fr}
 .hb-tools{display:flex;justify-content:center;gap:8px;padding:10px 0 0}
+.hb .hb-recheck{position:absolute;top:4mm;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:2mm;z-index:2}
+.hb .hb-recheck button{font:inherit;font-size:8pt;font-weight:700;color:#1b2232;background:#fff;border:1px solid #cfd5df;border-radius:99px;padding:1mm 3.4mm;cursor:pointer}
+.hb .hb-recheck button:disabled{opacity:.6;cursor:default}
+.hb .hb-recheck em{font-style:normal;font-size:7.5pt;color:#c8322b;background:#fff;padding:0 2mm}
 html,body{margin:0;background:#e8ebf0}
 /*
  * 인쇄 — 앱 틀 없는 쪽(/hit-book/[id])이라 자료집만 찍힌다. 선생님 지적(2026-10-15): 인쇄하면 A4가 조금 잘린다.
@@ -156,7 +161,7 @@ html,body{margin:0;background:#e8ebf0}
   .hb{padding:0;gap:0;display:block}
   .hb .pg{box-shadow:none;page-break-after:always;break-after:page}
   .hb .pg:last-child{page-break-after:auto;break-after:auto}
-  .hb-tools{display:none}
+  .hb-tools,.hb .hb-recheck{display:none}
 }
 `;
 
@@ -207,6 +212,7 @@ function ItemPage({ it, book, academyName }: { it: BookItem; book: HitBook; acad
   const ansNo = CIRCLED.indexOf(it.answer.trim().charAt(0));
   return (
     <section className={`pg item v-${it.verdict}`}>
+      {book.analysisId ? <HitBookRecheck analysisId={book.analysisId} itemId={it.id} no={it.no} /> : null}
       <div className="ph">
         <span className="brand">{academyName} 적중 자료집</span>
         <span>

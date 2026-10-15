@@ -5,13 +5,15 @@ import { isAcademyFeatureOn } from "@/lib/academies/features";
 import { requireExamStaff } from "@/lib/exam-analysis/access";
 import { loadExamAnalysis } from "@/lib/exam-analysis/load";
 import { buildHitBook, summarizeHitBook, type HitBook, type HitUpload } from "@/lib/exam-analysis/hit-book";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
 /**
  * 적중 자료집 (선생님 지시 2026-10-15) — 「만들기」를 누르면 대조해 담고, 화면에는 요약을 돌려준다.
- * 보기·인쇄 쪽은 담아 둔 것을 그대로 연다. 모델을 부르지 않아 값은 받지 않는다.
+ * 보기·인쇄 쪽은 담아 둔 것을 그대로 연다. 문항마다 모델이 후보를 판정해 원문 근거와 까닭을 쓴다 — 회당 3,000(190).
  * 선생님이 올린 개인 자료(PDF에서 뽑은 글)도 함께 대조하고, 다시 만들 때 쓰도록 담아 둔다.
  */
 async function guard(id: string) {
@@ -23,7 +25,7 @@ async function guard(id: string) {
   }
   const data = await loadExamAnalysis(id, staff.profile.academy_id);
   if (!data) return { error: NextResponse.json({ ok: false, message: "시험지를 찾을 수 없어요." }, { status: 404 }) };
-  return { admin, data };
+  return { admin, data, profile: staff.profile };
 }
 
 const listOf = (u: HitUpload[]) => u.map((x) => ({ name: x.name, chars: x.text.length }));
@@ -52,6 +54,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (g.data.items.length === 0) {
     return NextResponse.json({ ok: false, message: "문항표가 비어 있어요. 시험지 분석이 끝난 뒤 만들어 주세요." }, { status: 400 });
   }
+  const shortfall = await lessonCreditShortfall(g.profile.academy_id, "exam_hit_book");
+  if (shortfall) return NextResponse.json({ ok: false, message: shortfall }, { status: 402 });
   let body: { uploads?: HitUpload[]; keep?: string[] } = {};
   try {
     const buf = Buffer.from(await req.arrayBuffer());
@@ -71,13 +75,28 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       .map((u) => ({ name: u.name.slice(0, 200), text: u.text.slice(0, 400000) }));
     const uploads = [...saved.filter((u) => keep.has(u.name) && !fresh.some((f) => f.name === u.name)), ...fresh].slice(0, 30);
 
-    const book = await buildHitBook(g.admin, g.data.analysis, g.data.items, g.data.analysis.created_at, uploads);
+    setAiUsage({
+      academyId: g.profile.academy_id,
+      actorId: g.profile.id,
+      featureKey: "exam_hit_book",
+      usedFor: "exam_hit_book_judge",
+    });
+    const book = await buildHitBook(g.admin, g.data.analysis, g.data.items, g.data.analysis.created_at, uploads, { ai: true });
     const at = new Date().toISOString();
     const { error } = await g.admin
       .from("school_exam_analyses")
       .update({ hit_book: book, hit_book_at: at, hit_book_uploads: uploads })
       .eq("id", id);
     if (error) throw new Error(error.message);
+    await flushAiUsage();
+    await debitLessonCredits({
+      academyId: g.profile.academy_id,
+      actorId: g.profile.id,
+      featureKey: "exam_hit_book",
+      idempotencyKey: `exam_hit_book:${id}:${at}`,
+      metadata: { analysis_id: id, items: book.items.length, uploads: uploads.length },
+      note: "적중 자료집 만들기",
+    });
     return NextResponse.json({ ok: true, summary: summarizeHitBook(book, at), uploads: listOf(uploads) });
   } catch (e) {
     return NextResponse.json(

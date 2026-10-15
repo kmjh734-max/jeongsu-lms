@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAcademyFeatureOn } from "@/lib/academies/features";
 import type { HitBook } from "@/lib/exam-analysis/hit-book";
 import { ExamHitBook } from "@/components/exam-analysis/ExamHitBook";
+import { CreditConfirmHost } from "@/components/credits/CreditConfirmHost";
 
 /** 적중 자료집 쪽 — 앱 틀 없이 연다(/hit-book/[id]). 인쇄하면 A4만 찍힌다 */
 export async function HitBookPage({ id }: { id: string }) {
@@ -36,5 +37,11 @@ export async function HitBookPage({ id }: { id: string }) {
       </div>
     );
   }
-  return <ExamHitBook book={book} academyName={branding.name} backHref={backHref} />;
+  return (
+    <>
+      {/* 앱 틀 밖이라 크레딧 확인 창을 여기 따로 붙인다(문항 재검토) */}
+      <CreditConfirmHost chargeHref="/admin/credits/charge" />
+      <ExamHitBook book={{ ...book, analysisId: id }} academyName={branding.name} backHref={backHref} />
+    </>
+  );
 }
