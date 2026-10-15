@@ -915,8 +915,10 @@ export async function buildHitBook(
     }
   };
 
-  const out: BookItem[] = [];
-  for (const it of items) {
+  /*
+   * 문항마다 지문을 찾고 자료를 읽어 대조한다 — 넷씩 같이 돌린다(24문항 1분 → 20초 남짓).
+   */
+  const one = async (it: ExamItemRow): Promise<BookItem> => {
     const block = blocks.get(itemKey(it.item_no)) ?? {
       stem: it.stem ?? "",
       body: it.passage_excerpt ?? "",
@@ -1035,7 +1037,7 @@ export async function buildHitBook(
             : `${firstM!.source}(${firstM!.date}) — ${firstM!.compare.same}. 시험과 같은 형식의 문항은 없어 유사 유형으로 셉니다.`
           : "";
 
-    out.push({
+    return {
       id: it.id,
       no: it.item_no,
       typeName: it.type_name.split(" · ")[0]!,
@@ -1050,8 +1052,18 @@ export async function buildHitBook(
       reason,
       compare,
       cards,
-    });
-  }
+    };
+  };
+  const out: BookItem[] = new Array(items.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(4, items.length) }, async () => {
+      while (next < items.length) {
+        const k = next++;
+        out[k] = await one(items[k]!);
+      }
+    })
+  );
 
   const pts = (x: BookItem) => Number(x.points ?? 0);
   const totalPts = Number(analysis.total_points ?? 0) || out.reduce((s, x) => s + pts(x), 0) || 1;
@@ -1071,5 +1083,30 @@ export async function buildHitBook(
     similarPct: Math.round((similar.reduce((s, x) => s + pts(x), 0) / totalPts) * 1000) / 10,
     total: out.length,
     materials: out.filter((x) => x.verdict !== "none").reduce((s, x) => s + x.count, 0),
+  };
+}
+
+/** 보고서 화면에 띄우는 요약 — 담아 둔 자료집에서 뽑는다 */
+export type HitBookSummary = {
+  at: string;
+  samePct: number;
+  similarPct: number;
+  sameCount: number;
+  similarCount: number;
+  total: number;
+  materials: number;
+  items: Array<{ no: string; typeName: string; verdict: BookVerdict; count: number }>;
+};
+
+export function summarizeHitBook(book: HitBook, at: string): HitBookSummary {
+  return {
+    at,
+    samePct: book.samePct,
+    similarPct: book.similarPct,
+    sameCount: book.sameCount,
+    similarCount: book.similarCount,
+    total: book.total,
+    materials: book.materials,
+    items: book.items.map((x) => ({ no: x.no, typeName: x.typeName, verdict: x.verdict, count: x.count })),
   };
 }

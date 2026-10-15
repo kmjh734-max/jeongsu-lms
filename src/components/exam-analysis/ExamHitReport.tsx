@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { hitBookOpenAction } from "@/app/actions/hit-book-action";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { readUploadedMaterial } from "@/lib/exam-analysis/read-upload-client";
 import type { HitReport } from "@/lib/exam-analysis/hit-report";
@@ -36,20 +35,6 @@ export function ExamHitReport({
   const [at, setAt] = useState<string | null>(savedAt);
   const [message, setMessage] = useState<string | null>(null);
   const [step, setStep] = useState<string | null>(null);
-  // 적중 자료집(A4) — 그 기능을 연 학원만 단추가 보인다 (정수학원 먼저, 2026-10-15)
-  const pathname = usePathname();
-  const [bookOpen, setBookOpen] = useState(false);
-  useEffect(() => {
-    void hitBookOpenAction()
-      .then(setBookOpen)
-      .catch(() => setBookOpen(false));
-  }, []);
-  const bookHref = bookOpen ? `${pathname.replace(/\/$/, "")}/hit-book` : null;
-  const bookLink = bookHref ? (
-    <a href={bookHref} className="h-7 rounded-lg bg-brand-600 px-2.5 text-xs font-semibold leading-7 text-white print:hidden">
-      적중 자료집 보기
-    </a>
-  ) : null;
 
   async function run() {
     if (!(await askCreditConfirm({
@@ -119,17 +104,14 @@ export function ExamHitReport({
               이 시험지의 지문을 변형문제·수업자료와 맞춰 봅니다. 무엇을 맞췄고 무엇을 더 만들어야 하는지 보입니다.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            {bookLink}
-            <button
-              type="button"
-              onClick={() => void run()}
-              disabled={busy}
-              className="h-9 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white disabled:opacity-50"
-            >
-              {busy ? "대조하는 중…" : "대조하기"}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => void run()}
+            disabled={busy}
+            className="h-9 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {busy ? "대조하는 중…" : "대조하기"}
+          </button>
         </div>
         {step ? <p className="mt-2 text-xs text-slate-500">{step}</p> : null}
         {message ? <p className="mt-2 text-xs text-red-600">{message}</p> : null}
@@ -157,7 +139,6 @@ export function ExamHitReport({
           <span className="text-sm font-bold text-brand-700">
             적중 {report.hit}/{report.total}문항 · {pct}%
           </span>
-          {bookLink}
           <button
             type="button"
             onClick={() => void run()}
