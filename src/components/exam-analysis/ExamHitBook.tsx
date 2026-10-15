@@ -14,7 +14,7 @@ color:var(--ink);font-family:var(--body);display:grid;justify-content:center;gap
 .hb *{box-sizing:border-box}
 .hb h1,.hb h2,.hb h3{font-family:var(--display);margin:0;line-height:1.25}
 .hb p{margin:0}
-.hb .pg{width:210mm;height:297mm;padding:13mm 13mm 11mm;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:4.2mm;background:#fff;box-shadow:0 2px 14px rgba(20,26,42,.14)}
+.hb .pg{width:210mm;height:296mm;padding:13mm 13mm 11mm;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:4.2mm;background:#fff;box-shadow:0 2px 14px rgba(20,26,42,.14)}
 .hb .brand{font-weight:900;letter-spacing:.06em}
 .hb .ph{display:flex;justify-content:space-between;font-size:8.5pt;color:var(--muted);border-bottom:1.2pt solid var(--ink);padding-bottom:2mm}
 .hb .ph .brand{color:var(--red)}
@@ -114,13 +114,13 @@ color:var(--ink);font-family:var(--body);display:grid;justify-content:center;gap
 .hb .v-similar .cx,.hb .v-similar .co{background:#eef3fb}
 .hb .ca{width:3mm;color:var(--red);font-weight:900;text-align:center;font-size:11pt}
 .hb .cs{font-weight:700}
-.hb .leadbox{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;gap:2mm;background:var(--red-soft);border-radius:3mm;padding:3mm;overflow:hidden}
+.hb .leadbox{flex:1 1 0;min-height:26mm;display:flex;flex-direction:column;gap:2mm;background:var(--red-soft);border-radius:3mm;padding:3mm;overflow:hidden;margin-bottom:4mm}
 .hb .v-similar .leadbox{background:var(--blue-soft)}
 .hb .ltag{font-size:8pt;font-weight:700;letter-spacing:.04em;color:var(--red)}
 .hb .v-similar .ltag{color:var(--blue)}
-.hb .cards{display:grid;grid-template-columns:1fr 1fr;gap:3mm;align-items:start;min-height:0}
+.hb .cards{display:grid;grid-template-columns:1fr 1fr;gap:3mm;align-items:stretch;min-height:0;flex:1 1 0;overflow:hidden}
 .hb .cards.one{grid-template-columns:1fr}
-.hb .qcard{background:#fff;border:.8mm solid var(--red);border-radius:2mm;padding:2.6mm 3mm;display:grid;gap:1.4mm;font-size:7.6pt;line-height:1.5;min-width:0;max-height:96mm;overflow:hidden}
+.hb .qcard{background:#fff;border:.8mm solid var(--red);border-radius:2mm;padding:2.6mm 3mm;display:grid;gap:1.4mm;font-size:7.6pt;line-height:1.5;min-width:0;max-height:100%;overflow:hidden;align-self:start}
 .hb .v-similar .qcard{border-color:var(--blue)}
 .hb .qcard header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:1mm 3mm;font-size:7pt;border-bottom:.4pt solid #e6e9ee;padding-bottom:1mm}
 .hb .qcard .src{font-weight:700;color:var(--red)}
@@ -137,16 +137,23 @@ color:var(--ink);font-family:var(--body);display:grid;justify-content:center;gap
 .hb .qcard .ans{color:var(--muted)}
 .hb .qcard .br{font-weight:700}.hb .qcard .br.hit{color:#b4231b;background:#ffe9e6;padding:0 1px;border-radius:1px;box-shadow:0 0 0 1.4px var(--red)}
 .hb .qcard.wb ul{margin:0;padding-left:4mm;display:grid;gap:1mm;font-family:Georgia,serif;font-size:8pt}
-.hb .f1 .ebody{font-size:8pt}.hb .f1 .qcard{max-height:80mm}
-.hb .f2 .ebody{font-size:7.2pt;line-height:1.45}.hb .f2 .qcard{max-height:66mm}.hb .f2 .echo{font-size:7.6pt}
-.hb .f3{gap:3mm}.hb .f3 .ebody{font-size:6.6pt;line-height:1.4}.hb .f3 .qcard{max-height:54mm}.hb .f3 .cmp table{font-size:7.2pt}
-.hb .f4 .qcard{max-height:42mm}.hb .f4 .abox,.hb .f4 .lbox{font-size:7.6pt}
+.hb .f1 .ebody{font-size:8.2pt;line-height:1.5}.hb .f1 .echo{font-size:7.8pt}
+.hb .f2 .ebody{font-size:7.5pt;line-height:1.45}.hb .f2 .echo{font-size:7.3pt}.hb .f2 .stem{min-height:0}
+.hb .f3{gap:3mm}.hb .f3 .ebody{font-size:6.9pt;line-height:1.4}.hb .f3 .cmp table{font-size:7.2pt}.hb .f3 .abox,.hb .f3 .lbox{font-size:7.6pt;padding:2mm 2.6mm}
+.hb .f4{gap:2.4mm}.hb .f4 .ebody{font-size:6.4pt;line-height:1.36}.hb .f4 .echo{font-size:6.8pt;gap:0}.hb .f4 .ihead .ino{font-size:28pt}.hb .f4 .leadbox{min-height:18mm}
+.hb .f5 .leadbox{display:none}.hb .f5 .cmp tr:nth-child(n+3){display:none}
+.hb .f6 .ebody{font-size:5.9pt;line-height:1.3}.hb .f6 .echo{font-size:6.3pt}.hb .f6 .arow{grid-template-columns:1fr 1.6fr}
 .hb-tools{display:flex;justify-content:center;gap:8px;padding:10px 0 0}
+html,body{margin:0;background:#e8ebf0}
+/*
+ * 인쇄 — 앱 틀 없는 쪽(/hit-book/[id])이라 자료집만 찍힌다. 선생님 지적(2026-10-15): 인쇄하면 A4가 조금 잘린다.
+ * 틀을 숨겨도 자리는 남아 브라우저가 쪽을 밀었고, 297mm를 꽉 채우면 반올림으로 다음 장으로 넘쳤다.
+ * 그래서 앱 틀 밖에서 열고, 한 장은 296mm로 둔다.
+ */
 @media print{
   @page{size:A4;margin:0}
-  body *{visibility:hidden}
-  .hb,.hb *{visibility:visible}
-  .hb{position:absolute;left:0;top:0;padding:0;gap:0;display:block}
+  html,body{background:#fff}
+  .hb{padding:0;gap:0;display:block}
   .hb .pg{box-shadow:none;page-break-after:always;break-after:page}
   .hb .pg:last-child{page-break-after:auto;break-after:auto}
   .hb-tools{display:none}

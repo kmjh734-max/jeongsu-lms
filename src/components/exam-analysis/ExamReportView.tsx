@@ -839,7 +839,10 @@ export function ExamReportView({
       </div>
 
       {bookOn ? (
-        <ExamHitBookPanel analysisId={analysis.id} />
+        <ExamHitBookPanel
+          analysisId={analysis.id}
+          excerpts={items.map((i) => String(i.passage_excerpt ?? "")).filter((t) => t.trim().length > 40)}
+        />
       ) : materialMatchOn ? (
         <ExamHitReport
           analysisId={analysis.id}

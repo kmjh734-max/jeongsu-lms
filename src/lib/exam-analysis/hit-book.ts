@@ -18,6 +18,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ExamAnalysisRow, ExamItemRow } from "@/lib/exam-analysis/types";
 import { onePageSentences, type OnePageContent } from "@/lib/lesson-materials/one-page";
+import { findPassageAll, sameStem, stemsFor } from "@/lib/exam-analysis/uploaded-material";
 
 export type BookVerdict = "same" | "similar" | "none";
 
@@ -103,6 +104,13 @@ function within(a: string, b: string): number {
   for (const g of ga) if (gb.has(g)) hit += 1;
   return hit / ga.size;
 }
+/** 지문에 세 번 넘게 나오는 낱말 — 주제어라 보기마다 들어 있어 「같은 사실」의 근거가 못 된다 */
+function topicWords(body: string): Set<string> {
+  const n = new Map<string, number>();
+  for (const w of contentWords(body)) n.set(w, (n.get(w) ?? 0) + 1);
+  return new Set([...n].filter(([, k]) => k >= 3).map(([w]) => w));
+}
+
 function sharedContent(a: string, b: string): string[] {
   const set = new Set(contentWords(b));
   return [...new Set(contentWords(a).filter((w) => set.has(w)))];
@@ -142,8 +150,26 @@ const itemKey = (no: string) => {
   return /서|논|답/.test(String(no)) ? `서${d}` : d;
 };
 
+/**
+ * 쪽 머리말·꼬리말인가 — 「1학년 공통영어2 1교시」, 「1학년 공통영어2　6/8」, 「7/8」, 「성명 (   )」 같은 줄.
+ * 선생님 지적(2026-10-15 호원고1): 이런 줄이 문제 본문에 끼어 들어갔다. 쪽마다 띄어쓰기·오타(공동영어2)가 달라
+ * 글자로 같은지 보지 않고 꼴로 가린다 — 영어 낱말이 없고 학년·교시·과목·쪽 번호로 된 짧은 줄.
+ */
+export function isPageChrome(line: string): boolean {
+  const t = line.replace(/[\s\u3000]+/g, " ").trim();
+  if (!t) return false;
+  if (/^[-–(]?\s*\d+\s*[/)]?\s*\d*\s*[-–)]?$/.test(t)) return true; // 7/8 · - 3 - · (3)
+  if (/[A-Za-z]{3}/.test(t.replace(/공통영어|영어/g, ""))) return false;
+  if (t.length > 60 || /^[①②③④⑤]/.test(t)) return false;
+  // 학년·교시·과목·반·쪽 번호 말고 다른 글이 없는 줄만 — 「1학년 때 나는 …」 같은 우리말 문장은 남긴다
+  const rest = t.replace(/\d+\s*\/\s*\d+|\d|학년도|학년|학기|교시|반|번|공통영어|공동영어|영어|과목|[()\[\]/·.,:-]|\s/g, "");
+  return rest.length === 0 || /교시|학년도|정기시험|지필평가|성명|학번|수험번호|답안지|문제지|감독/.test(t);
+}
+
 export function splitExamBlocks(pageText: string): Map<string, ExamBlock> {
-  const lines = String(pageText ?? "").split(/\r?\n/);
+  const lines = String(pageText ?? "")
+    .split(/\r?\n/)
+    .filter((l) => !isPageChrome(l));
   const raw = new Map<string, string[]>();
   const shared = new Map<string, string[]>();
   let cur: string | null = null;
@@ -200,7 +226,7 @@ function spotsOf(text: string): Spot[] {
   });
   for (const m of t.matchAll(/<u>([\s\S]*?)<\/u>/g)) {
     if (m.index === undefined) continue;
-    const mark = t.slice(Math.max(0, m.index - 5), m.index).match(/[①②③④⑤]|\([a-eA-E]\)/)?.[0]?.toLowerCase();
+    const mark = t.slice(Math.max(0, m.index - 5), m.index).match(/[①②③④⑤ⓐ-ⓗ]|\([a-eA-E]\)/)?.[0]?.toLowerCase();
     out.push({ inner: m[1] ?? "", ...ctx(m.index, m.index + m[0].length), mark });
   }
   for (const m of t.matchAll(/_{3,}|\(\s*[A-E]\s*\)\s*_{2,}|_{2,}\s*\(\s*[A-E]\s*\)\s*_{2,}/g)) {
@@ -313,6 +339,13 @@ function answerOf(q: Made): { no: number | null; text: string } {
   return { no: null, text: raw };
 }
 
+/** 서술형 모범 답을 조각으로 — 「1-1 … / 1-2 …」, 「(A) … / (B) …」 */
+const answerParts = (a: string) =>
+  String(a ?? "")
+    .split(/\s*\/\s*|\n|(?=\(\w\)\s)|(?=\d-\d\s)/)
+    .map((x) => x.replace(/^\(?\w\)?\s*|^\d-\d\s*/, "").trim())
+    .filter(Boolean);
+
 /** 지문 속 ①~⑤ 표지 뒤 문장 */
 const afterMarker = (t: string, n: number | null) => (n ? (t.split(/[①②③④⑤]/)[n] ?? "").trim() : "");
 
@@ -393,11 +426,12 @@ function judge(
       return { same: false, marks: [] };
     }
     const stmt = /[a-z]{3}/i.test(exam.answer) && !/[가-힣]/.test(exam.answer) ? exam.answer : afterMarker(exam.block.body, exam.answerNo);
-    const base = contentWords(stmt).length;
-    if (base < 4) return { same: false, marks: [] };
+    const topic = topicWords(exam.block.body);
+    const base = contentWords(stmt).filter((w) => !topic.has(w)).length;
+    if (base < 3) return { same: false, marks: [] };
     for (const c of choiceTexts(q.choices)) {
-      const sh = sharedContent(stmt, c);
-      if (sh.length >= 4 && sh.length / base >= 0.6) {
+      const sh = sharedContent(stmt, c).filter((w) => !topic.has(w));
+      if (sh.length >= 3 && sh.length / base >= 0.6) {
         return { same: true, marks: [c], compare: { exam: stmt, ours: c, same: "같은 사실을 보기로 다룸" } };
       }
     }
@@ -439,10 +473,100 @@ function judge(
     if (exam.answer.length > 15 && ans.text.length > 15 && within(exam.answer, ans.text) >= 0.5) {
       return { same: true, marks: [ans.text], compare: { exam: exam.answer, ours: ans.text, same: "모범 답과 같은 문장을 미리 씀" } };
     }
+    // 모범 답이 조각(1-1 · 1-2, (A) · (B))이면 한 조각이라도 통째로 같으면 같은 자리다
+    for (const part of answerParts(exam.answer)) {
+      if (plainWords(part).length >= 4 && within(part, String(ans.text ?? "")) >= 0.85) {
+        return { same: true, marks: [part], compare: { exam: part, ours: ans.text, same: "모범 답 조각과 같은 답을 미리 씀" } };
+      }
+    }
     return { same: false, marks: [] };
   }
   return { same: false, marks: [] };
 }
+
+/**
+ * 같은 자리는 아니어도 「이 문제를 풀었으면 바로 풀리는가」 — ② 유사의 근거.
+ *
+ * 선생님 지적(2026-10-15 호원고1): 같은 지문에 같은 유형이 있기만 하면 ②로 세어 「같은 유형 50번」처럼 부풀고
+ * 근거가 엉뚱했다. 손으로 만들 때처럼 ②에도 겹치는 것을 요구한다. 삽입·순서·무관한 문장만 지문 + 유형으로 충분하다.
+ */
+function judgeNear(
+  fam: Family,
+  exam: { block: ExamBlock; answer: string; allSpots: Spot[]; answerNo: number | null },
+  q: Made
+): { near: boolean; marks: string[]; compare?: BookCompare } {
+  const mod = String(q.passage_modified ?? "");
+  const ans = answerOf(q);
+  const ins = String(q.instruction ?? "").replace(/\s+/g, " ").slice(0, 60);
+  if (fam === "insertion" || fam === "order" || fam === "irrelevant") {
+    const ord = (x: string) => (x.match(/\(([A-C])\)/g) ?? []).join("-");
+    const sameOrder = fam === "order" && ord(exam.answer) !== "" && ord(exam.answer) === ord(ans.text);
+    return {
+      near: true,
+      marks: [],
+      compare: {
+        exam: exam.block.stem || exam.answer,
+        ours: ins,
+        same: sameOrder ? "같은 지문 순서 배열 · 정답 순서도 같음" : "같은 지문을 같은 유형으로 풀었음",
+      },
+    };
+  }
+  if (fam === "underline" || fam === "blank") {
+    const mine = spotsOf(mod);
+    for (const s of exam.allSpots) {
+      const m = mine.find((x) => sameSpot(s, x));
+      if (!m) continue;
+      const inner = untagU(m.inner) || ans.text;
+      return {
+        near: true,
+        marks: [inner].filter((x) => x.trim().length > 1),
+        compare: { exam: examSideOf(s), ours: `… ${m.left} [${inner || "_____"}] ${m.right} …`, same: "정답은 아니지만 시험이 물은 다른 자리를 같이 물음" },
+      };
+    }
+    if (fam === "blank" && exam.answer && ans.text) {
+      const sh = sharedContent(exam.answer, ans.text);
+      if (sh.length >= 2) return { near: true, marks: sh, compare: { exam: exam.answer, ours: ans.text, same: `정답 표현 일부가 겹침: ${sh.join(" · ")}` } };
+    }
+    return { near: false, marks: [] };
+  }
+  if (fam === "idea") {
+    // 지문 주제어(The Connoisseur 등)만 겹친 것은 근거가 못 된다
+    const topic = topicWords(exam.block.body);
+    const sh = sharedContent(exam.answer, ans.text).filter((w) => !topic.has(w));
+    if (sh.length >= 2) return { near: true, marks: sh, compare: { exam: exam.answer, ours: ans.text, same: `정답 표현 일부가 겹침: ${sh.join(" · ")}` } };
+    return { near: false, marks: [] };
+  }
+  if (fam === "content") {
+    const ko = /[가-힣]{4}/.test(exam.answer);
+    const stmt = ko ? exam.answer : /[a-z]{3}/i.test(exam.answer) ? exam.answer : afterMarker(exam.block.body, exam.answerNo);
+    for (const c of choiceTexts(q.choices)) {
+      const ok = ko
+        ? /[가-힣]{4}/.test(c) && koWithin(stmt, c) >= 0.45
+        : (() => {
+            const topic = topicWords(exam.block.body);
+            const sh = sharedContent(stmt, c).filter((w) => !topic.has(w));
+            const base = contentWords(stmt).filter((w) => !topic.has(w)).length || 1;
+            return sh.length >= 3 && sh.length / base >= 0.5;
+          })();
+      if (ok) return { near: true, marks: [c], compare: { exam: stmt, ours: c, same: "비슷한 사실을 보기로 다룸" } };
+    }
+    return { near: false, marks: [] };
+  }
+  if (fam === "writing") {
+    // 모범 답이 여러 조각(1-1, 1-2, (A)·(B))이면 조각마다 견준다
+    const parts = answerParts(exam.answer).filter((x) => x.length > 12);
+    const theirs = String(ans.text ?? "");
+    for (const part of parts) {
+      if (theirs.length > 12 && (within(part, theirs) >= 0.5 || within(theirs, part) >= 0.6)) {
+        return { near: true, marks: [theirs], compare: { exam: part, ours: theirs, same: "모범 답 일부를 미리 써 봄" } };
+      }
+    }
+    return { near: false, marks: [] };
+  }
+  return { near: false, marks: [] };
+}
+
+const untagU = (x: string) => x.replace(/<\/?u>/g, "");
 
 /** <mark> 를 HTML 글자 위에 덧칠한다(태그 안은 건드리지 않는다) */
 function markHtml(html: string, marks: string[]): string {
@@ -557,6 +681,8 @@ type MatCtx = {
   /** 문장삽입: 주어진 문장 */
   given: string;
   cutoffMs: number;
+  /** 이 시험지 학교 — 다른 학교 이름이 붙은 자료는 뺀다 */
+  school: string;
 };
 
 const WB_SPOT: Array<[string, string]> = [
@@ -646,7 +772,7 @@ async function materialHits(admin: SupabaseClient, academyId: string, ctx: MatCt
     .overlaps("project_ids", pids)
     .limit(200);
   for (const d of docs ?? []) {
-    if (!before(d.created_at)) continue;
+    if (!before(d.created_at) || otherSchool(String(d.name ?? ""), ctx.school)) continue;
     const p = (d.payload ?? {}) as Record<string, unknown>;
     const date = dateLabel(String(d.created_at ?? ""));
     const name = String(d.name ?? "");
@@ -809,6 +935,138 @@ async function materialHits(admin: SupabaseClient, academyId: string, ctx: MatCt
   return out;
 }
 
+// ── 선생님이 올린 자료(PDF) — 선생님 지시(2026-10-15): 개인 자료도 올려 같이 대조
+/*
+ * 올린 PDF에서 뽑은 글에는 밑줄이 없다. 대신 [왼 / 오른] 괄호, ①~⑤ 표지 뒤 낱말, 빈칸 줄은 남는다.
+ * 그 셋을 「묻는 자리」로 삼고, 지문 자리 바로 앞 발문으로 유형을 가린다(uploaded-material.ts).
+ * 같은 유형 + 같은 자리 = ①, 둘 중 하나만 = ②. 발문도 자리도 못 읽으면 넣지 않는다.
+ */
+export type HitUpload = { name: string; text: string };
+
+function uploadSpots(win: string): Spot[] {
+  const marked = win
+    .replace(/\[\s*([^\[\]\/\n]{1,40}?)\s*\/\s*([^\[\]\n]{1,40}?)\s*\]/g, "<u>$1 / $2</u>")
+    .replace(/[①②③④⑤]\s*([A-Za-z][A-Za-z'’-]*(?:\s+[a-z][A-Za-z'’-]*){0,2})/g, (_m, w: string) => `<u>${w}</u>`);
+  return spotsOf(marked);
+}
+
+function uploadHits(
+  ctx: MatCtx & { stem: string | null; typeName: string },
+  uploads: HitUpload[]
+): MatHit[] {
+  const out: MatHit[] = [];
+  for (const u of uploads) {
+    const seen = new Set<string>();
+    for (const at of findPassageAll(u.text, ctx.body).slice(0, 8)) {
+      const stems = stemsFor(u.text, at);
+      const typeSame = stems.some((s) => sameStem(ctx.stem, ctx.typeName, s));
+      const win = u.text.slice(Math.max(0, at - 200), at + 2600);
+      let spot: { line: string; exam: string; ours: string; what: string } | null = null;
+      // 근거 문장 바로 앞 발문이 같은 유형인가(주어진 문장은 지문과 떨어져 앞에 나오기도 한다)
+      let spotTypeSame = false;
+
+      if (ctx.fam === "underline" || ctx.fam === "blank") {
+        const mine = uploadSpots(win);
+        const s = ctx.spots.find((e) => mine.some((x) => sameSpot(e, x)));
+        const m = s ? mine.find((x) => sameSpot(s, x))! : null;
+        if (s && m) {
+          const inner = untag(m.inner);
+          spot = {
+            line: `… ${esc(m.left)} <b class="br hit">${esc(inner || "_____")}</b> ${esc(m.right)} …`,
+            exam: examSideOf(s),
+            ours: `… ${m.left} [${inner || "_____"}] ${m.right} …`,
+            what: "올린 자료가 같은 자리를 물음",
+          };
+        }
+      }
+      if (!spot && ctx.fam === "blank") {
+        const sent = (t: string) =>
+          (t.split(/(?<=[.!?]["”’]?)\s+/).find((x) => /_{3,}/.test(x)) ?? "").replace(/_{2,}|\(\s*[A-E]\s*\)/g, " ");
+        const es = sent(ctx.body.replace(/<\/?u>/g, ""));
+        const ms = sent(win);
+        if (plainWords(es).length >= 6 && plainWords(ms).length >= 6 && within(es, ms) >= 0.5) {
+          spot = { line: esc(ms.trim()), exam: es.trim(), ours: ms.trim(), what: "올린 자료가 같은 문장을 비움" };
+        }
+      }
+      if (!spot && ctx.fam === "insertion" && ctx.given.length > 20) {
+        /*
+         * 주어진 문장은 지문 속 문장이라 지문을 실은 자료엔 다 들어 있다. 문장 삽입 발문 바로 뒤
+         * (주어진 문장 자리)에 나올 때만 근거로 본다(2026-10-15 상우고1 2·4번에서 걸림).
+         */
+        for (const m of u.text.matchAll(/주\s*어\s*진\s*문\s*장|들\s*어\s*가\s*기\s*에/g)) {
+          if (m.index === undefined) continue;
+          const after = u.text.slice(m.index, m.index + 450);
+          const sen = after.split(/(?<=[.!?]["”’]?)\s+|\n/).find((x) => x.length > 15 && within(ctx.given, x) >= 0.8);
+          if (sen) {
+            spotTypeSame = true;
+            spot = { line: `<b class="br hit">${esc(sen.trim())}</b>`, exam: ctx.given, ours: sen.trim(), what: "올린 자료가 같은 문장을 주어진 문장으로 냄" };
+            break;
+          }
+        }
+      }
+      if (!spot && ctx.fam === "writing") {
+        const want = ctx.answer;
+        const sen = win.split(/(?<=[.!?]["”’]?)\s+|\n/).find((x) => x.length > 15 && want.length > 15 && within(want, x) >= 0.8);
+        if (sen) {
+          spotTypeSame = stemsFor(u.text, u.text.indexOf(sen)).some((x) => sameStem(ctx.stem, ctx.typeName, x));
+          spot = {
+            line: `<b class="br hit">${esc(sen.trim())}</b>`,
+            exam: want,
+            ours: sen.trim(),
+            what: "올린 자료에 같은 문장",
+          };
+        }
+      }
+      if (!spot && (ctx.fam === "idea" || ctx.fam === "content")) {
+        const ko = /[가-힣]{4}/.test(ctx.answer);
+        for (const line of win.split(/\n|(?=[①②③④⑤])/)) {
+          const l = line.replace(/^[①②③④⑤]\s*/, "").trim();
+          if (l.length < 10) continue;
+          const ok = ko
+            ? /[가-힣]{4}/.test(l) && koWithin(ctx.answer, l) >= 0.6
+            : (() => {
+                const sh = sharedContent(ctx.fam === "content" ? ctx.stmt : ctx.answer, l);
+                const base = contentWords(ctx.fam === "content" ? ctx.stmt : ctx.answer).length || 1;
+                return ctx.fam === "content" ? sh.length >= 4 && sh.length / base >= 0.6 : sh.length >= 2 && sh.length / base >= 0.4;
+              })();
+          if (ok) {
+            spot = { line: `<b class="br hit">${esc(l)}</b>`, exam: ctx.fam === "content" && !ko ? ctx.stmt : ctx.answer, ours: l, what: "올린 자료가 같은 내용을 보기로 다룸" };
+            break;
+          }
+        }
+      }
+      const sameType = typeSame || spotTypeSame;
+      // 지문 + 유형만 같은 것은 삽입·순서·무관한 문장일 때만 근거가 된다(우리 문항과 같은 잣대)
+      if (!spot && !(sameType && (ctx.fam === "insertion" || ctx.fam === "order" || ctx.fam === "irrelevant"))) continue;
+      const key = spot ? spot.ours : `type:${stems[0] ?? ""}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const stemLine = stems[0] ? `<span class="nt">${esc(stems[0].replace(/\s+/g, " ").slice(0, 60))}</span>` : "";
+      out.push({
+        level: spot && sameType ? "same" : "similar",
+        source: `올린 자료 「${u.name}」`,
+        date: "",
+        lineHtml: spot ? `${stemLine}<br>${spot.line}` : `${stemLine}<br>${esc(win.slice(200, 360).replace(/\s+/g, " "))} …`,
+        compare: spot
+          ? { exam: spot.exam, ours: spot.ours, same: sameType ? `${spot.what} · 같은 유형` : spot.what }
+          : { exam: ctx.typeName, ours: stems[0] ?? "", same: "올린 자료에 같은 지문 · 같은 유형" },
+      });
+    }
+  }
+  return out;
+}
+
+// ── 다른 학교 자료 — 이름에 다른 학교가 적혀 있으면 이 학교 학생에게 준 자료가 아니다(2026-10-15 호원고1에 경민고 자료가 섞임)
+function schoolsIn(title: string): string[] {
+  return [...String(title ?? "").matchAll(/([가-힣]{1,4})(?:여자고등학교|고등학교|여고|고)(?=\s?\d|\s?[([]|\s|$|_|-)/g)].map((m) => m[1]!);
+}
+export function otherSchool(title: string, school: string): boolean {
+  const mine = String(school ?? "").replace(/(여자)?고등학교$|여고$|고$/, "");
+  const names = schoolsIn(title);
+  if (!mine || names.length === 0) return false;
+  return !names.some((n) => n === mine || mine.startsWith(n) || n.startsWith(mine));
+}
+
 // ── 같은 지문으로 만든 우리 문항
 /** 시험 지문에서 낱말 여섯 개가 이어진 구절을 고루 뽑는다 — 밑줄·빈칸 자리는 학교가 바꾸므로 피한다 */
 function probes(body: string): string[] {
@@ -889,7 +1147,9 @@ export async function buildHitBook(
   analysis: ExamAnalysisRow,
   items: ExamItemRow[],
   /** 이 시험지를 올린 때 — 그보다 앞서 만든 자료만 센다 */
-  cutoff: string | null
+  cutoff: string | null,
+  /** 선생님이 올린 자료 — 시험 전에 학생에게 준 것이라고 보고 그대로 센다 */
+  uploads: HitUpload[] = []
 ): Promise<HitBook> {
   const cutoffMs = cutoff ? new Date(cutoff).getTime() : Number.POSITIVE_INFINITY;
   const before = (at: string | null | undefined) => {
@@ -918,12 +1178,20 @@ export async function buildHitBook(
   /*
    * 문항마다 지문을 찾고 자료를 읽어 대조한다 — 넷씩 같이 돌린다(24문항 1분 → 20초 남짓).
    */
+  /*
+   * 「윗글의 …」 문항은 지문이 앞 문항에 붙어 있다(호원고1 10번 — 본문이 비어 있었다). 앞 문항의 지문을 빌린다.
+   */
+  const itemBlocks = new Map<string, ExamBlock>();
+  let lastBody = "";
+  for (const it of items) {
+    const b = blocks.get(itemKey(it.item_no)) ?? { stem: it.stem ?? "", body: it.passage_excerpt ?? "", choices: [] };
+    const long = b.body.replace(/\s/g, "").length >= 120;
+    itemBlocks.set(it.id, !long && lastBody && /윗글|위 글|위의 글/.test(`${b.stem} ${it.stem ?? ""}`) ? { ...b, body: lastBody } : b);
+    if (long) lastBody = b.body;
+  }
+
   const one = async (it: ExamItemRow): Promise<BookItem> => {
-    const block = blocks.get(itemKey(it.item_no)) ?? {
-      stem: it.stem ?? "",
-      body: it.passage_excerpt ?? "",
-      choices: [],
-    };
+    const block = itemBlocks.get(it.id)!;
     const fam = familyOf(it.type_name, it.is_subjective);
     const answerNo = circledNo(it.answer_guess);
     const answer =
@@ -934,10 +1202,16 @@ export async function buildHitBook(
      * 밑줄 하나를 고르는 문제(어휘·어법 판단)는 정답 자리 — 학교가 바꾼 낱말 — 만 견준다.
      * 다른 밑줄 자리를 다룬 것은 같은 자리가 아니다(선생님 지시 2026-10-14 「바꾼 어휘가 나왔는지」).
      */
-    const allSpots = spotsOf(block.body);
+    // 밑줄 대신 ⓐ~ⓗ 표지만 있는 시험지(호원고1)는 표지 뒤 한두 낱말을 묻는 자리로 읽는다
+    const markedBody = /<u>/.test(block.body)
+      ? block.body
+      : block.body.replace(/([ⓐ-ⓗ])\s*([A-Za-z][A-Za-z'’-]*(?:\s+[a-z][A-Za-z'’-]*)?)/g, (_m, k: string, w: string) => `${k}<u>${w}</u>`);
+    const allSpots = spotsOf(markedBody);
     // 정답 표지 — 「③ (c): …」처럼 (a)~(e)가 있으면 그것, 아니면 ①~⑤
-    const ansMark = String(it.answer_guess ?? "").match(/\(([a-eA-E])\)/)?.[0]?.toLowerCase() ?? (answerNo ? CIRCLED[answerNo - 1] : undefined);
-    const ansSpot = fam === "underline" && ansMark ? allSpots.find((x) => x.mark === ansMark) : undefined;
+    const ansMark =
+      String(it.answer_guess ?? "").match(/\(([a-eA-E])\)|[ⓐ-ⓗ]/)?.[0]?.toLowerCase() ?? (answerNo ? CIRCLED[answerNo - 1] : undefined);
+    // 개수 문항(「4개: ⓑ, ⓒ, ⓕ, ⓗ」)은 정답이 여럿이라 좁히지 않는다
+    const ansSpot = fam === "underline" && ansMark && !it.type_name.includes("개수") ? allSpots.find((x) => x.mark === ansMark) : undefined;
     const spots = ansSpot ? [ansSpot] : allSpots;
     const exam = { block, answer, spots, answerNo };
 
@@ -958,13 +1232,22 @@ export async function buildHitBook(
     }
     await loadJobs(found);
     const cands = found.filter(
-      (q) => sameFamily(it.type_name, it.is_subjective, q) && !/^\s*\[시험\]/.test(jobTitle.get(String(q.generation_job_id)) ?? "")
+      (q) =>
+        sameFamily(it.type_name, it.is_subjective, q) &&
+        !/^\s*\[시험\]/.test(jobTitle.get(String(q.generation_job_id)) ?? "") &&
+        !otherSchool(jobTitle.get(String(q.generation_job_id)) ?? "", String(analysis.school_name ?? ""))
     );
-    const judged = cands.map((q) => ({ q, ...judge(fam, exam, q) }));
+    const judged = cands.map((q) => {
+      const j = judge(fam, exam, q);
+      if (j.same) return { q, ...j, near: true };
+      const n = judgeNear(fam, { block, answer, allSpots, answerNo }, q);
+      return { q, same: false, near: n.near, marks: n.marks, compare: n.compare };
+    });
     const sameQs = judged.filter((j) => j.same);
+    const nearQs = judged.filter((j) => !j.same && j.near);
 
     // 수업자료(워크북 · 1장 테스트지 · 1장 요약자료)에서 같은 자리
-    const mats = await materialHits(admin, analysis.academy_id, {
+    const matCtx: MatCtx = {
       body: block.body,
       fam,
       spots,
@@ -972,13 +1255,18 @@ export async function buildHitBook(
       stmt: /[a-z]{3}/i.test(answer) && !/[가-힣]/.test(answer) ? answer : afterMarker(block.body, answerNo),
       given: fam === "insertion" ? (block.body.split("\n")[0] ?? "") : "",
       cutoffMs,
-    });
+      school: String(analysis.school_name ?? ""),
+    };
+    const mats = [
+      ...(await materialHits(admin, analysis.academy_id, matCtx)),
+      ...uploadHits({ ...matCtx, stem: block.stem || it.stem, typeName: it.type_name }, uploads),
+    ];
     const sameMats = mats.filter((m) => m.level === "same");
     const matSources = new Set(mats.map((m) => m.source)).size;
 
     const verdict: BookVerdict =
-      sameQs.length > 0 || sameMats.length > 0 ? "same" : cands.length > 0 || mats.length > 0 ? "similar" : "none";
-    const count = (verdict === "same" ? sameQs.length : cands.length) + matSources;
+      sameQs.length > 0 || sameMats.length > 0 ? "same" : nearQs.length > 0 || mats.length > 0 ? "similar" : "none";
+    const count = (verdict === "same" ? sameQs.length : nearQs.length) + matSources;
 
     const label = (q: Made) =>
       `${jobTitle.get(String(q.generation_job_id)) ?? "변형문제"}${q.item_no ? ` ${q.item_no}번` : ""}`;
@@ -1002,7 +1290,7 @@ export async function buildHitBook(
       const ms = mats.filter((m) => m.source === src);
       return { kind: "line", source: src, date: ms[0]!.date, linesHtml: ms.slice(0, 3).map((m) => m.lineHtml) };
     });
-    const qCards = (sameQs.length ? sameQs : judged).map(cardOf);
+    const qCards = (sameQs.length ? sameQs : nearQs).map(cardOf);
     const matFirst = sameQs.length === 0 && sameMats.length > 0;
     const cards: BookCard[] = matFirst
       ? matCards.slice(0, 2)
@@ -1014,6 +1302,7 @@ export async function buildHitBook(
     const cmpAll = [
       ...sameQs.map((j) => j.compare),
       ...sameMats.map((m) => m.compare),
+      ...nearQs.map((j) => j.compare),
       ...mats.filter((m) => m.level === "similar").map((m) => m.compare),
     ];
     for (const c of cmpAll) {
@@ -1032,8 +1321,8 @@ export async function buildHitBook(
             }.${matNote} 시험 전에 같은 자리를 다룬 우리 자료가 모두 ${count}개입니다.`
           : `${firstM!.source}(${firstM!.date}) — ${firstM!.compare.same}. 시험 전에 같은 자리를 다룬 우리 자료가 모두 ${count}개입니다.`
         : verdict === "similar"
-          ? cands.length > 0
-            ? `같은 지문으로 같은 유형을 ${cands.length}번 풀었습니다.${matNote} 묻는 자리까지 같은 문항은 없어 유사 유형으로 셉니다.`
+          ? nearQs.length > 0
+            ? `${label(nearQs[0]!.q)}(${dateLabel(nearQs[0]!.q.created_at)}) — ${nearQs[0]!.compare?.same ?? "같은 지문 · 같은 유형"}.${nearQs.length > 1 ? ` 이렇게 가까운 우리 문항이 ${nearQs.length}개입니다.` : ""}${matNote} 묻는 자리까지 같지는 않아 유사 유형으로 셉니다.`
             : `${firstM!.source}(${firstM!.date}) — ${firstM!.compare.same}. 시험과 같은 형식의 문항은 없어 유사 유형으로 셉니다.`
           : "";
 
@@ -1046,7 +1335,7 @@ export async function buildHitBook(
       verdict,
       count,
       stem: block.stem || String(it.stem ?? ""),
-      examHtml: examHtml(fam, block),
+      examHtml: examHtml(fam, { ...block, body: markedBody }),
       choices: block.choices.map((text, i) => ({ text, answer: answerNo === i + 1 })),
       answer: String(it.answer_guess ?? ""),
       reason,

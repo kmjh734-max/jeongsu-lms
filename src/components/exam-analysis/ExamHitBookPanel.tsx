@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import type { HitBookSummary } from "@/lib/exam-analysis/hit-book";
+import { readUploadedMaterial } from "@/lib/exam-analysis/read-upload-client";
+
+type SavedUpload = { name: string; chars: number };
 
 /**
  * 적중 자료집 — 보고서 화면의 상자 하나.
@@ -10,20 +12,34 @@ import type { HitBookSummary } from "@/lib/exam-analysis/hit-book";
  * 선생님 지시(2026-10-15): 「대조하기」와 「적중 자료집 보기」가 따로 놀고, 보기를 눌러야 일을 하는 것 같다.
  * 그래서 하나로 묶는다 — 「만들기」를 누르면 대조해 담고, 여기 요약을 띄우고, 「보기 · 인쇄」는 담아 둔 것을 연다.
  */
-export function ExamHitBookPanel({ analysisId }: { analysisId: string }) {
-  const pathname = usePathname();
+export function ExamHitBookPanel({
+  analysisId,
+  excerpts = [],
+}: {
+  analysisId: string;
+  /** 시험지 문항들의 지문 앞부분 — 스캔본 PDF에서 읽을 쪽을 고르는 데 쓴다 */
+  excerpts?: string[];
+}) {
   const [summary, setSummary] = useState<HitBookSummary | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
+  const [step, setStep] = useState<string | null>(null);
+  // 선생님 개인 자료 — 새로 고른 파일, 예전에 올려 담아 둔 것, HWP 경고
+  const [files, setFiles] = useState<File[]>([]);
+  const [saved, setSaved] = useState<SavedUpload[]>([]);
+  const [hwpWarn, setHwpWarn] = useState<string[]>([]);
 
   useEffect(() => {
     let alive = true;
     fetch(`/api/exam-analysis/${analysisId}/hit-book`)
       .then((r) => r.json())
-      .then((j: { ok: boolean; summary?: HitBookSummary | null }) => {
-        if (alive && j.ok) setSummary(j.summary ?? null);
+      .then((j: { ok: boolean; summary?: HitBookSummary | null; uploads?: SavedUpload[] }) => {
+        if (alive && j.ok) {
+          setSummary(j.summary ?? null);
+          setSaved(j.uploads ?? []);
+        }
       })
       .catch(() => {})
       .finally(() => {
@@ -41,22 +57,60 @@ export function ExamHitBookPanel({ analysisId }: { analysisId: string }) {
     return () => clearInterval(t);
   }, [busy]);
 
+  /** 파일 고르기 — HWP는 읽지 않고 PDF로 올려 달라고 알린다(선생님 지시 2026-10-15) */
+  function pick(list: FileList | null) {
+    const all = Array.from(list ?? []);
+    const hwp = all.filter((f) => /\.(hwp|hwpx)$/i.test(f.name));
+    setHwpWarn(hwp.map((f) => f.name));
+    const ok = all.filter((f) => !/\.(hwp|hwpx)$/i.test(f.name));
+    setFiles((prev) => [...prev.filter((p) => !ok.some((f) => f.name === p.name)), ...ok]);
+  }
+
   async function make() {
     setBusy(true);
     setMessage(null);
     try {
-      const r = await fetch(`/api/exam-analysis/${analysisId}/hit-book`, { method: "POST" });
-      const j = (await r.json()) as { ok: boolean; summary?: HitBookSummary; message?: string };
+      const uploads: Array<{ name: string; text: string }> = [];
+      const notes: string[] = [];
+      for (const [i, f] of files.entries()) {
+        setStep(`올린 자료 읽는 중 (${i + 1}/${files.length}) — ${f.name}`);
+        try {
+          const read = await readUploadedMaterial(
+            f,
+            analysisId,
+            (m) => setStep(`올린 자료 읽는 중 (${i + 1}/${files.length}) — ${m}`),
+            excerpts
+          );
+          if (read.note) notes.push(read.note);
+          if (read.text.trim().length > 40) uploads.push({ name: read.name, text: read.text });
+          else notes.push(`${f.name}에서 글을 읽지 못했어요.`);
+        } catch (e) {
+          notes.push(e instanceof Error ? e.message : `${f.name}을 읽지 못했어요.`);
+        }
+      }
+      setStep("대조하는 중…");
+      const json = JSON.stringify({ uploads, keep: saved.map((u) => u.name) });
+      const gz = await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer();
+      const r = await fetch(`/api/exam-analysis/${analysisId}/hit-book`, {
+        method: "POST",
+        headers: { "content-type": "application/octet-stream", "x-hitbook-gzip": "1" },
+        body: gz,
+      });
+      const j = (await r.json()) as { ok: boolean; summary?: HitBookSummary; uploads?: SavedUpload[]; message?: string };
       if (!j.ok || !j.summary) throw new Error(j.message ?? "적중 자료집을 만들지 못했어요.");
       setSummary(j.summary);
+      setSaved(j.uploads ?? []);
+      setFiles([]);
+      if (notes.length) setMessage(notes.join(" "));
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "적중 자료집을 만들지 못했어요.");
     } finally {
       setBusy(false);
+      setStep(null);
     }
   }
 
-  const bookHref = `${pathname.replace(/\/$/, "")}/hit-book`;
+  const bookHref = `/hit-book/${analysisId}`;
   const total = summary ? Math.round(summary.samePct + summary.similarPct) : 0;
 
   return (
@@ -89,8 +143,78 @@ export function ExamHitBookPanel({ analysisId }: { analysisId: string }) {
         </div>
       </div>
 
+      {/* 선생님 개인 자료 */}
+      <div className="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50/60 p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-xs text-slate-600">
+            <b className="text-slate-800">직접 만든 자료도 함께 대조</b> — 시험 전에 학생들에게 준 PDF를 올리면 같은 자리를 찾아 넣습니다.
+            한글(HWP)은 「파일 → PDF로 저장」 한 뒤 올려 주세요. 글자가 든 PDF는 바로 읽고, 스캔·그림 PDF는 쪽마다 읽어 몇 분 걸립니다.
+            EngCore에서 만든 자료는 올리지 않아도 이미 대조합니다.
+          </div>
+          <label className="inline-flex h-8 cursor-pointer items-center rounded-lg border border-brand-200 bg-white px-3 text-xs font-semibold text-brand-700 hover:bg-brand-50">
+            PDF 자료 추가
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.txt,image/*,.hwp,.hwpx"
+              className="hidden"
+              disabled={busy}
+              onChange={(e) => {
+                pick(e.target.files);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        </div>
+        {hwpWarn.length ? (
+          <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800">
+            {hwpWarn.join(", ")} — 한글(HWP) 파일은 밑줄·괄호 같은 문제 표시를 제대로 읽을 수 없어요. 한글에서 「파일 → PDF로 저장」 한 뒤 PDF로 올려
+            주세요.
+          </p>
+        ) : null}
+        {files.length || saved.length ? (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {saved.map((u) => (
+              <span key={`s-${u.name}`} className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[11.5px] text-slate-700">
+                {u.name}
+                <span className="text-slate-400">· 담아 둠</span>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setSaved((xs) => xs.filter((x) => x.name !== u.name))}
+                  className="ml-0.5 text-slate-400 hover:text-red-500"
+                  aria-label={`${u.name} 빼기`}
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+            {files.map((f) => (
+              <span key={`f-${f.name}`} className="inline-flex items-center gap-1 rounded-md border border-brand-200 bg-brand-50 px-2 py-1 text-[11.5px] text-brand-800">
+                {f.name}
+                <span className="text-brand-500">· 새로 올림</span>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setFiles((xs) => xs.filter((x) => x.name !== f.name))}
+                  className="ml-0.5 text-brand-400 hover:text-red-500"
+                  aria-label={`${f.name} 빼기`}
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+            {files.length || (summary && saved.length === 0) ? (
+              <span className="self-center text-[11px] text-slate-500">「{summary ? "다시 만들기" : "적중 자료집 만들기"}」를 누르면 반영됩니다.</span>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
       {busy ? (
-        <p className="mt-2 text-xs text-slate-500">문항마다 같은 지문의 우리 자료를 찾아 대조하고 있어요. 30초 안팎 걸립니다.</p>
+        <p className="mt-2 text-xs text-slate-500">
+          {step ?? "문항마다 같은 지문의 우리 자료를 찾아 대조하고 있어요."} 30초 안팎 걸립니다.
+        </p>
       ) : null}
       {message ? <p className="mt-2 text-xs text-red-600">{message}</p> : null}
 
