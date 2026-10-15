@@ -621,7 +621,8 @@ function examHtml(fam: Family, block: ExamBlock): string {
  */
 type Seg = { type?: string; text?: string; leftText?: string; rightText?: string };
 type SegRow = { html: string; spots: Spot[] };
-type MatHit = { level: "same" | "similar"; source: string; date: string; lineHtml: string; compare: BookCompare };
+/** level cand: 규칙으로는 자리를 못 찾았지만 지문이 나오는 곳 — 모델 판정에만 후보로 넘긴다 */
+type MatHit = { level: "same" | "similar" | "cand"; source: string; date: string; lineHtml: string; compare: BookCompare; typeSame?: boolean };
 
 /** 괄호·틀린 자리 조각을 문장 단위 줄로 */
 function segRows(segs: Seg[]): SegRow[] {
@@ -1070,6 +1071,38 @@ export function otherSchool(title: string, school: string): boolean {
   return !names.some((n) => n === mine || mine.startsWith(n) || n.startsWith(mine));
 }
 
+/*
+ * 올린 자료에서 시험 지문이 나오는 곳(바로 앞 발문 + 지문 + 보기)을 통째로 모델 판정 후보로 넘긴다.
+ * 선생님 자료는 밑줄이 글자로 남지 않아 규칙이 같은 자리를 못 잡는 일이 많다 — 상우고1에 학평 변형 23개를 올렸는데
+ * 7~28번 지문이 문항마다 3~14개 자료에 나오는데도 하나도 근거가 되지 못했다(2026-10-15). 읽고 가리는 것은 모델이 한다.
+ */
+function uploadWindows(ctx: MatCtx & { stem: string | null; typeName: string }, uploads: HitUpload[]): MatHit[] {
+  const out: MatHit[] = [];
+  for (const u of uploads) {
+    const seen = new Set<string>();
+    for (const at of findPassageAll(u.text, ctx.body).slice(0, 6)) {
+      const stems = stemsFor(u.text, at);
+      const typeSame = stems.some((x) => sameStem(ctx.stem, ctx.typeName, x));
+      const key = stems[0] ?? String(at);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const stemAt = stems[0] ? u.text.lastIndexOf(stems[0].slice(0, 24), at) : -1;
+      const start = stemAt >= 0 && at - stemAt < 1500 ? stemAt : Math.max(0, at - 150);
+      const win = u.text.slice(start, at + 2200).replace(/\n{2,}/g, "\n").slice(0, 2000);
+      out.push({
+        level: "cand",
+        source: `올린 자료 「${u.name}」`,
+        date: "",
+        lineHtml: esc(win).replace(/\n/g, "<br>"),
+        compare: { exam: "", ours: "", same: "" },
+        typeSame,
+      });
+    }
+  }
+  // 같은 유형 발문이 붙은 곳을 앞에
+  return out.sort((a, b) => Number(!!b.typeSame) - Number(!!a.typeSame));
+}
+
 // ── 같은 지문으로 만든 우리 문항
 /** 시험 지문에서 낱말 여섯 개가 이어진 구절을 고루 뽑는다 — 밑줄·빈칸 자리는 학교가 바꾸므로 피한다 */
 function probes(body: string): string[] {
@@ -1371,10 +1404,14 @@ export async function buildHitBook(
       cutoffMs,
       school: String(analysis.school_name ?? ""),
     };
-    const mats = [
-      ...(await materialHits(admin, analysis.academy_id, matCtx)),
-      ...uploadHits({ ...matCtx, stem: block.stem || it.stem, typeName: it.type_name }, uploads),
-    ];
+    const upCtx = { ...matCtx, stem: block.stem || it.stem, typeName: it.type_name };
+    const mats = [...(await materialHits(admin, analysis.academy_id, matCtx)), ...uploadHits(upCtx, uploads)];
+    // 모델 판정에만 쓰는 후보 — 규칙이 이미 잡은 자료는 빼고 자료마다 한 곳
+    const upCands = opts.ai
+      ? uploadWindows(upCtx, uploads)
+          .filter((w, i, xs) => !mats.some((m) => m.source === w.source) && xs.findIndex((x) => x.source === w.source) === i)
+          .slice(0, 6)
+      : [];
     const sameMats = mats.filter((m) => m.level === "same");
     const matSources = new Set(mats.map((m) => m.source)).size;
 
@@ -1432,7 +1469,7 @@ export async function buildHitBook(
               .join("\n"),
           };
         }),
-        ...mats.slice(0, 6).map((m, i): AiCand => ({
+        ...[...mats.slice(0, 6), ...upCands].map((m, i): AiCand => ({
           key: `m${i + 1}`,
           source: m.source,
           date: m.date,
@@ -1451,7 +1488,9 @@ export async function buildHitBook(
           if (!c || cards.some((x) => x.source === c.source && x.kind === c.card.kind)) continue;
           const quote = r.evidence.find((e) => e.key === k)?.ours_quote ?? "";
           cards.push(
-            c.card.kind === "question" ? { ...c.card, passageHtml: quote ? markHtml(c.card.passageHtml, [quote]) : c.card.passageHtml } : c.card
+            c.card.kind === "question"
+              ? { ...c.card, passageHtml: quote ? markHtml(c.card.passageHtml, [quote]) : c.card.passageHtml }
+              : { ...c.card, linesHtml: c.card.linesHtml.map((h) => (quote ? markHtml(h, [quote]) : h)) }
           );
           if (cards.length >= 2) break;
         }
@@ -1557,6 +1596,20 @@ export function assembleHitBook(analysis: ExamAnalysisRow, out: BookItem[], cuto
     total: out.length,
     materials: out.filter((x) => x.verdict !== "none").reduce((s, x) => s + x.count, 0),
   };
+}
+
+/**
+ * DB(jsonb)가 받지 못하는 글자를 지운다 — 제어 문자(\u0000 등)와 짝 없는 유니코드 반쪽.
+ * 선생님 화면에서 「unsupported Unicode escape sequence」로 저장이 막혔다(2026-10-15, 한글 자료 23개를 올린 상우고1).
+ */
+const PG_BAD = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+export function pgSafe<T>(value: T): T {
+  if (typeof value === "string") return value.replace(PG_BAD, "") as T;
+  if (Array.isArray(value)) return value.map((x) => pgSafe(x)) as T;
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([k, x]) => [k, pgSafe(x)])) as T;
+  }
+  return value;
 }
 
 /** 보고서 화면에 띄우는 요약 — 담아 둔 자료집에서 뽑는다 */

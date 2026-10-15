@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAcademyFeatureOn } from "@/lib/academies/features";
 import { requireExamStaff } from "@/lib/exam-analysis/access";
 import { loadExamAnalysis } from "@/lib/exam-analysis/load";
-import { buildHitBook, summarizeHitBook, type HitBook, type HitUpload } from "@/lib/exam-analysis/hit-book";
+import { buildHitBook, pgSafe, summarizeHitBook, type HitBook, type HitUpload } from "@/lib/exam-analysis/hit-book";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 
@@ -72,7 +72,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const keep = new Set(body.keep ?? saved.map((u) => u.name));
     const fresh = (body.uploads ?? [])
       .filter((u) => u && typeof u.name === "string" && typeof u.text === "string" && u.text.trim().length > 40)
-      .map((u) => ({ name: u.name.slice(0, 200), text: u.text.slice(0, 400000) }));
+      .map((u) => pgSafe({ name: u.name.slice(0, 200), text: u.text.slice(0, 400000) }));
     const uploads = [...saved.filter((u) => keep.has(u.name) && !fresh.some((f) => f.name === u.name)), ...fresh].slice(0, 30);
 
     setAiUsage({
@@ -85,7 +85,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const at = new Date().toISOString();
     const { error } = await g.admin
       .from("school_exam_analyses")
-      .update({ hit_book: book, hit_book_at: at, hit_book_uploads: uploads })
+      .update({ hit_book: pgSafe(book), hit_book_at: at, hit_book_uploads: pgSafe(uploads) })
       .eq("id", id);
     if (error) throw new Error(error.message);
     await flushAiUsage();

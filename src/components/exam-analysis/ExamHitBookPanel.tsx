@@ -28,6 +28,15 @@ export function ExamHitBookPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
   const [step, setStep] = useState<string | null>(null);
+  /*
+   * 진행 막대(선생님 지시 2026-10-15 「위에 바 같은 걸로 진행과정을, 글자는 위로 올려 바와 함께」).
+   * 단계: 자료 읽기(0~25%) → 문항마다 찾아 판정(25~95%, 문항 수로 어림한 시간에 맞춰 차오름) → 저장(95~100%).
+   */
+  const [phase, setPhase] = useState<"read" | "judge" | "save" | "done" | null>(null);
+  const [readDone, setReadDone] = useState(0);
+  const [readTotal, setReadTotal] = useState(0);
+  const [phaseAt, setPhaseAt] = useState(0);
+  const [now, setNow] = useState(0);
   // 선생님 개인 자료 — 새로 고른 파일, 예전에 올려 담아 둔 것, HWP 경고
   const [files, setFiles] = useState<File[]>([]);
   const [saved, setSaved] = useState<SavedUpload[]>([]);
@@ -55,11 +64,33 @@ export function ExamHitBookPanel({
   }, [analysisId]);
 
   useEffect(() => {
-    if (!busy) return;
+    if (!busy && !rechecking) return;
     setSeconds(0);
-    const t = setInterval(() => setSeconds((s) => s + 1), 1000);
+    const t = setInterval(() => {
+      setSeconds((s) => s + 1);
+      setNow(Date.now());
+    }, 500);
     return () => clearInterval(t);
-  }, [busy]);
+  }, [busy, rechecking]);
+
+  const go = (p: typeof phase) => {
+    setPhase(p);
+    setPhaseAt(Date.now());
+    setNow(Date.now());
+  };
+  // 판정에 걸릴 어림 시간 — 문항 열 개씩 같이 판정하고 하나에 20~30초
+  const expectSec = rechecking ? 15 : Math.max(25, Math.ceil(Math.max(1, excerpts.length) / 10) * 28);
+  const elapsed = Math.max(0, (now - phaseAt) / 1000);
+  const pct =
+    phase === "read"
+      ? 3 + (readTotal ? (readDone / readTotal) * 22 : 22)
+      : phase === "judge"
+        ? (rechecking ? 5 : 25) + (rechecking ? 90 : 70) * (1 - Math.exp(-elapsed / (expectSec * 0.6)))
+        : phase === "save"
+          ? 97
+          : phase === "done"
+            ? 100
+            : 0;
 
   /*
    * 파일 고르기 — 한글(HWP·HWPX)도 이 브라우저에서 바로 글자를 뽑아 읽는다(선생님 지시 2026-10-15 「hwp도 가능하게」).
@@ -94,6 +125,9 @@ export function ExamHitBookPanel({
       return;
     setBusy(true);
     setMessage(null);
+    setReadDone(0);
+    setReadTotal(files.length);
+    go(files.length ? "read" : "judge");
     try {
       const uploads: Array<{ name: string; text: string }> = [];
       const notes: string[] = [];
@@ -114,8 +148,10 @@ export function ExamHitBookPanel({
         } catch (e) {
           notes.push(e instanceof Error ? e.message : `${f.name}을 읽지 못했어요.`);
         }
+        setReadDone(i + 1);
       }
-      setStep("대조하는 중…");
+      setStep(null);
+      go("judge");
       const json = JSON.stringify({ uploads, keep: saved.map((u) => u.name) });
       const gz = await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer();
       const r = await fetch(`/api/exam-analysis/${analysisId}/hit-book`, {
@@ -125,6 +161,7 @@ export function ExamHitBookPanel({
       });
       const j = (await r.json()) as { ok: boolean; summary?: HitBookSummary; uploads?: SavedUpload[]; message?: string };
       if (!j.ok || !j.summary) throw new Error(j.message ?? "적중 자료집을 만들지 못했어요.");
+      go("done");
       setSummary(j.summary);
       setSaved(j.uploads ?? []);
       setFiles([]);
@@ -134,6 +171,7 @@ export function ExamHitBookPanel({
     } finally {
       setBusy(false);
       setStep(null);
+      setTimeout(() => setPhase(null), 1200);
     }
   }
 
@@ -151,6 +189,7 @@ export function ExamHitBookPanel({
       return;
     setRechecking(itemId);
     setMessage(null);
+    go("judge");
     try {
       const r = await fetch(`/api/exam-analysis/${analysisId}/hit-book/item`, {
         method: "POST",
@@ -159,11 +198,13 @@ export function ExamHitBookPanel({
       });
       const j = (await r.json()) as { ok: boolean; summary?: HitBookSummary; message?: string };
       if (!j.ok || !j.summary) throw new Error(j.message ?? "재검토하지 못했어요.");
+      go("done");
       setSummary(j.summary);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "재검토하지 못했어요.");
     } finally {
       setRechecking(null);
+      setTimeout(() => setPhase(null), 1200);
     }
   }
 
@@ -195,10 +236,45 @@ export function ExamHitBookPanel({
               summary ? "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50" : "bg-brand-600 text-white hover:bg-brand-700"
             }`}
           >
-            {busy ? `만드는 중… ${seconds}초` : summary ? "다시 만들기" : "적중 자료집 만들기"}
+            {busy ? "만드는 중…" : summary ? "다시 만들기" : "적중 자료집 만들기"}
           </button>
         </div>
       </div>
+
+      {phase ? (
+        <div className="mt-3 rounded-lg border border-brand-100 bg-brand-50/60 p-3" role="status" aria-live="polite">
+          <div className="flex items-baseline justify-between gap-3 text-xs">
+            <span className="font-semibold text-brand-800">
+              {rechecking
+                ? `${summary?.items.find((x) => x.id === rechecking)?.no ?? ""}번 다시 찾고 판정하는 중`
+                : phase === "read"
+                  ? `1/3 올린 자료 읽는 중 (${Math.min(readDone + 1, readTotal)}/${readTotal})`
+                  : phase === "judge"
+                    ? `${files.length || readTotal ? "2/3" : "1/2"} 문항마다 같은 지문의 우리 자료를 찾아 하나하나 판정하는 중`
+                    : phase === "save"
+                      ? "저장하는 중"
+                      : "다 됐어요"}
+            </span>
+            <span className="shrink-0 tabular-nums text-brand-700">
+              {phase === "done" ? "100%" : `${Math.round(pct)}% · ${seconds}초`}
+            </span>
+          </div>
+          <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-white ring-1 ring-brand-100">
+            <div className="h-full rounded-full bg-brand-600 transition-[width] duration-500 ease-out" style={{ width: `${Math.min(100, pct)}%` }} />
+          </div>
+          <p className="mt-1.5 text-[11px] text-slate-500">
+            {phase === "read"
+              ? step ?? "한글·PDF에서 글자를 뽑고 있어요. 스캔·그림 PDF는 쪽마다 읽어 오래 걸릴 수 있어요."
+              : phase === "judge"
+                ? rechecking
+                  ? "이 문항만 다시 찾고 판정해 자료집에 바꿔 넣습니다. 15초 안팎 걸립니다."
+                  : `변형문제 · 동형모의고사 · 워크북 · 1장 자료 · 올린 자료를 시험 문항과 하나씩 맞대어 보고 있어요. ${expectSec}초 안팎 걸립니다.`
+                : phase === "done"
+                  ? "아래 결과를 확인하고 「보기 · 인쇄」를 눌러 주세요."
+                  : ""}
+          </p>
+        </div>
+      ) : null}
 
       {/* 선생님 개인 자료 */}
       <div className="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50/60 p-3">
@@ -267,11 +343,7 @@ export function ExamHitBookPanel({
         ) : null}
       </div>
 
-      {busy ? (
-        <p className="mt-2 text-xs text-slate-500">
-          {step ?? "문항마다 같은 지문의 우리 자료를 찾아 대조하고 있어요."} 30초 안팎 걸립니다.
-        </p>
-      ) : null}
+
       {message ? <p className="mt-2 text-xs text-red-600">{message}</p> : null}
 
       {summary ? (

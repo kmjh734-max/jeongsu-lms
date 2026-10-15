@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAcademyFeatureOn } from "@/lib/academies/features";
 import { requireExamStaff } from "@/lib/exam-analysis/access";
 import { loadExamAnalysis } from "@/lib/exam-analysis/load";
-import { assembleHitBook, buildHitBook, summarizeHitBook, type HitBook, type HitUpload } from "@/lib/exam-analysis/hit-book";
+import { assembleHitBook, buildHitBook, pgSafe, summarizeHitBook, type HitBook, type HitUpload } from "@/lib/exam-analysis/hit-book";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
 
@@ -46,7 +46,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       : [...saved.items, fresh];
     const book = assembleHitBook(data.analysis, items, saved.cutoff);
     const at = new Date().toISOString();
-    const { error } = await admin.from("school_exam_analyses").update({ hit_book: book, hit_book_at: at }).eq("id", id);
+    const { error } = await admin.from("school_exam_analyses").update({ hit_book: pgSafe(book), hit_book_at: at }).eq("id", id);
     if (error) throw new Error(error.message);
     await flushAiUsage();
     await debitLessonCredits({

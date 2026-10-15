@@ -234,7 +234,14 @@ export async function hwpToText(input: ArrayBuffer | Uint8Array, name = ""): Pro
   const buf = input instanceof Uint8Array ? input : new Uint8Array(input);
   const isZip = buf.length > 4 && u32(buf, 0) === 0x04034b50;
   const text = isZip || /\.hwpx$/i.test(name) ? await hwpxText(buf) : await hwp5Text(buf);
-  const clean = text.replace(/\r/g, "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  const clean = text
+    .replace(/\r/g, "")
+    // 짝 없는 유니코드 반쪽·제어 문자는 DB가 받지 못한다(압축 풀이가 도중에 끊기면 생긴다)
+    .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   if (clean.replace(/\s/g, "").length < 20) throw new HwpReadError("글자를 거의 찾지 못했어요.");
   return clean;
 }
