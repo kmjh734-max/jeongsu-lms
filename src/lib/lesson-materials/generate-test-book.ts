@@ -1,0 +1,145 @@
+/**
+ * 테스트 교재 단어 정리(서버). 수업용 자료 단어 목록에 품사·지문 속 뜻·파생어를 붙이고,
+ * 동의어·반의어는 핵심어에만 남긴다(선생님 요청 2026-10-19: 동반의어는 내용상 중요하거나
+ * 바꿔 쓰기로 나올 만한 단어에만).
+ */
+import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
+import { findPhrase } from "@/lib/lesson-materials/one-page";
+import type { LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
+import type { TestBookVocabRow } from "@/lib/lesson-materials/test-book";
+
+const MODEL = "gpt-4o-mini";
+const MAX_ROWS = 18;
+
+const SYSTEM = `너는 한국 고등학교 영어 내신 교재의 단어장 편집자다. JSON만 출력한다.
+지문과 단어 목록을 받아 단어마다 아래를 채운다.
+- word: 받은 그대로(목록이 없으면 지문에서 고1~고3 수준 핵심 어휘 12~16개를 골라 원형으로).
+- pos: n. v. a. ad. prep. conj. 구 가운데 하나(두 낱말 이상 어구는 "구").
+- meaning: 이 지문에서 쓰인 뜻만 한국어로 짧게(쉼표로 두 개까지). 사전 첫 뜻이 아니라 문맥 뜻.
+- key: 지문의 주제·흐름에 중요한 말이거나, 시험에서 동의어·반의어로 바꿔 나올 만한 말이면 true. 쉬운 기능어·고유명사·흔한 말은 false. 전체의 40~60%만 true.
+- synonyms, antonyms: key가 true일 때만 이 문맥 뜻과 맞는 것 1~2개(한 낱말이나 짧은 구, 영어). 딱 맞는 것이 없으면 빈 배열 — 억지로 만들지 않는다. key가 false면 둘 다 빈 배열.
+- forms: 품사가 다른 파생어 0~2개(실제로 쓰이는 낱말만, 철자 정확히). 예: ambitious → [{"word":"ambition","pos":"n."}], expand → [{"word":"expansion","pos":"n."}]. pos는 n. v. a. ad. 가운데 하나. 없으면 [].
+- phrase: 시험에 나올 어구 하나를 "habit formation 습관 형성"처럼. 없으면 "".
+출력: {"vocab":[{"word":"","pos":"","meaning":"","key":true,"synonyms":[],"antonyms":[],"forms":[],"phrase":""}]}`;
+
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const a = text.indexOf("{");
+    const b = text.lastIndexOf("}");
+    if (a >= 0 && b > a) {
+      try {
+        return JSON.parse(text.slice(a, b + 1));
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+}
+
+const list = (v: unknown): string[] =>
+  (Array.isArray(v) ? v : typeof v === "string" ? v.split(/[,/;]/) : [])
+    .map((s) => String(s ?? "").trim())
+    .filter(Boolean)
+    .slice(0, 2);
+
+const POS = new Set(["n.", "v.", "a.", "ad.", "prep.", "conj.", "구"]);
+
+/** 지문에 처음 나오는 자리(없으면 맨 뒤). 원형이 다르면 앞 네 글자로 한 번 더 찾는다. */
+function firstAt(passage: string, word: string): number {
+  const hit = findPhrase(passage, word);
+  if (hit) return hit.start;
+  const stem = word.split(/\s+/)[0]!.slice(0, 4);
+  if (stem.length >= 4) {
+    const m = passage.toLowerCase().search(new RegExp(`\\b${stem.toLowerCase().replace(/[^a-z]/g, "")}`));
+    if (m >= 0) return m;
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
+
+export async function refineTestBookVocab(input: {
+  title: string;
+  sentences: Array<{ english: string; korean: string }>;
+  packVocab: LessonPackVocabItem[];
+  /** 1장 자료 재료가 고른 핵심어(동반의어 포함) — 같은 지문에서 말이 엇갈리지 않게 참고로 준다 */
+  keyHints: Array<{ surface: string; synonyms: string[]; antonyms: string[] }>;
+}): Promise<TestBookVocabRow[]> {
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  if (!apiKey) throw new Error("OPENAI_API_KEY가 설정되어 있지 않습니다.");
+  const passage = input.sentences.map((s) => s.english).join(" ");
+  const korean = input.sentences.map((s) => s.korean).filter(Boolean).join(" ");
+  const words = input.packVocab.map((v) => `${v.word} — ${v.meaning}`).join("\n");
+  const hints = input.keyHints
+    .map((h) => `${h.surface}: = ${h.synonyms.join(", ") || "-"} / ↔ ${h.antonyms.join(", ") || "-"}`)
+    .join("\n");
+  const user = `제목: ${input.title}\n\nEN:\n${passage.slice(0, 6000)}\n\nKR:\n${korean.slice(0, 3000) || "(없음)"}\n\n단어 목록:\n${words || "(없음)"}\n\n참고(이 지문 핵심어로 이미 고른 말):\n${hints || "(없음)"}`;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 90_000);
+  try {
+    const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: MODEL,
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM },
+          { role: "user", content: user },
+        ],
+      }),
+    });
+    const body = await res.text();
+    if (!res.ok) throw new Error(`단어 정리를 만들지 못했습니다 (HTTP ${res.status})`);
+    const envelope = parseJson(body) as { choices?: Array<{ message?: { content?: string } }> } | null;
+    const parsed = parseJson(envelope?.choices?.[0]?.message?.content ?? "") as { vocab?: unknown[] } | null;
+    const hintWords = new Set(input.keyHints.map((h) => h.surface.toLowerCase()));
+    const rows: TestBookVocabRow[] = (Array.isArray(parsed?.vocab) ? parsed!.vocab : [])
+      .map((raw) => {
+        const r = raw as Record<string, unknown>;
+        const word = String(r.word ?? "").trim();
+        const pos = String(r.pos ?? "").trim();
+        const key = r.key === true || hintWords.has(word.toLowerCase());
+        return {
+          word,
+          pos: POS.has(pos) ? pos : word.includes(" ") ? "구" : pos.slice(0, 5),
+          meaning: String(r.meaning ?? "").trim(),
+          synonyms: key ? list(r.synonyms) : [],
+          antonyms: key ? list(r.antonyms) : [],
+          forms: (Array.isArray(r.forms) ? r.forms : [])
+            .map((f) => {
+              const x = (f ?? {}) as Record<string, unknown>;
+              return { word: String(x.word ?? "").trim(), pos: String(x.pos ?? "").trim() };
+            })
+            .filter((f) => /^[A-Za-z][A-Za-z-]*$/.test(f.word) && ["n.", "v.", "a.", "ad."].includes(f.pos))
+            .slice(0, 2),
+          phrase: String(r.phrase ?? "").trim().slice(0, 40),
+          key,
+        };
+      })
+      .filter((r) => r.word && r.meaning);
+    // 같은 낱말은 하나만, 지문에 나온 차례로
+    const seen = new Set<string>();
+    const unique = rows.filter((r) => {
+      const k = r.word.toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+    if (unique.length < 3) throw new Error("단어 정리를 충분히 만들지 못했습니다. 다시 시도해 주세요.");
+    return unique
+      .map((r, i) => ({ r, i, at: firstAt(passage, r.word) }))
+      .sort((a, b) => a.at - b.at || a.i - b.i)
+      .map((x) => x.r)
+      .slice(0, MAX_ROWS);
+  } catch (e) {
+    if (e instanceof Error && e.name === "AbortError") throw new Error("단어 정리 시간이 초과되었습니다.");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}

@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { LessonMaterialDocumentRow } from "@/lib/lesson-materials/documents";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isAcademyFeatureOn } from "@/lib/academies/features";
 
 /** 자료함에서 지문을 골라 만든 AI 변형문제 작업(자료함 변형문제 탭). */
 export interface LessonQuestionJobRow {
@@ -52,6 +54,8 @@ export interface LessonMaterialLibraryData {
   documents: LessonMaterialDocumentRow[];
   /** 자료함 지문으로 만든 변형문제, 최신순 */
   questionJobs: LessonQuestionJobRow[];
+  /** 테스트 교재(수업자료 NEW)를 켠 학원인지 — 정수학원 */
+  testBookOpen?: boolean;
 }
 
 function analysisSnippet(analysis_json: unknown): string {
@@ -184,7 +188,10 @@ export async function loadLessonMaterialsLibraryData(
     return ids.length === 0 || ids.some((id) => activeIds.has(id));
   });
 
+  const testBookOpen = await isAcademyFeatureOn(createAdminClient(), academyId, "test_book");
+
   return {
+    testBookOpen,
     folders,
     projects: active.filter((p) => p.folder_id !== null),
     unfiledProjects: active.filter((p) => p.folder_id === null),

@@ -19,6 +19,7 @@ const KINDS = new Set<LessonMaterialDocumentKind>([
   "integrated",
   "one_page_summary",
   "one_page_test",
+  "test_book",
 ]);
 const NAME_MAX = 80;
 

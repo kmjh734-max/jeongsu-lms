@@ -37,6 +37,7 @@ const FEATURES: Record<string, FeatureInfo> = {
   lesson_one_page_summary: { label: "1장 요약자료", group: "1장 자료", unit: "지문" },
   lesson_one_page_test: { label: "1장 테스트지", group: "1장 자료", unit: "지문" },
   lesson_one_page: { label: "1장 자료", group: "1장 자료", unit: "지문" },
+  lesson_test_book: { label: "테스트 교재", group: "수업자료", unit: "지문" },
   school_exam_analysis: { label: "내신 시험지 분석", group: "내신 시험 분석", unit: "회" },
   exam_hit_book: { label: "적중 자료집 만들기", group: "내신 시험 분석", unit: "회" },
   exam_hit_book_recheck: { label: "적중 자료집 문항 재검토", group: "내신 시험 분석", unit: "문항" },
@@ -61,6 +62,7 @@ const USED_FOR: Record<string, string> = {
   workbook: "워크북",
   one_page_test: "1장 테스트지",
   one_page_summary: "1장 요약자료",
+  test_book: "테스트 교재",
 };
 
 /** 내역에 적을 「어디서 썼나」 (모르면 빈 문자열) */

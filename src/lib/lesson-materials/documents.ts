@@ -9,7 +9,8 @@ export type LessonMaterialDocumentKind =
   | "workbook"
   | "integrated"
   | "one_page_summary"
-  | "one_page_test";
+  | "one_page_test"
+  | "test_book";
 
 export type LessonMaterialDocumentRow = {
   id: string;
@@ -27,6 +28,7 @@ export const DOCUMENT_NAME_PREFIX: Record<LessonMaterialDocumentKind, string> = 
   integrated: "통합자료",
   one_page_summary: "1장요약직보자료",
   one_page_test: "1장테스트",
+  test_book: "테스트교재",
 };
 
 /** 한국 시간 기준 MMDD. 서버(UTC)에서 불러도 날짜가 하루 밀리지 않는다. */
@@ -67,5 +69,6 @@ export function documentPagePath(
   if (kind === "integrated") return `${base}/final`;
   if (kind === "one_page_summary") return `${base}/one-page-summary`;
   if (kind === "one_page_test") return `${base}/one-page-test`;
+  if (kind === "test_book") return `${base}/test-book`;
   return `${base}/workbook`;
 }

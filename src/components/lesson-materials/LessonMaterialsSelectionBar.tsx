@@ -5,7 +5,7 @@ import { useState } from "react";
 import { WorkbookCreateModal } from "@/components/lesson-materials/WorkbookCreateModal";
 import { PickExamForMockModal } from "@/components/exam-analysis/PickExamForMockModal";
 import { openNewDocument } from "@/components/lesson-materials/open-new-document";
-import { defaultDocumentName, type LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
+import { defaultDocumentName, documentPagePath, type LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { materialConfirm } from "@/lib/credits/material-confirm";
 
@@ -17,6 +17,7 @@ export function LessonMaterialsSelectionBar({
   selectedIds,
   onEdit,
   onIntegrated,
+  testBookOpen = false,
 }: {
   role: "admin" | "teacher";
   selectedCount: number;
@@ -24,13 +25,15 @@ export function LessonMaterialsSelectionBar({
   onEdit?: () => void;
   /** 최종통합자료 제작: 고른 지문으로 만든 파일을 골라 둔 생성 창을 연다. */
   onIntegrated?: () => void;
+  /** 수업자료 NEW(테스트 교재)를 켠 학원만 NEW 구역을 보인다 — 정수학원 */
+  testBookOpen?: boolean;
 }) {
   const [workbookOpen, setWorkbookOpen] = useState(false);
   const [mockOpen, setMockOpen] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
   const [opening, setOpening] = useState(false);
   /** 1장 자료는 만들기 전에 제목(파일 이름)을 먼저 적는다. */
-  const [naming, setNaming] = useState<{ kind: "one_page_summary" | "one_page_test"; name: string } | null>(null);
+  const [naming, setNaming] = useState<{ kind: "one_page_summary" | "one_page_test" | "test_book"; name: string } | null>(null);
   if (selectedCount <= 0) return null;
 
   async function make(kind: LessonMaterialDocumentKind, name?: string) {
@@ -149,6 +152,35 @@ export function LessonMaterialsSelectionBar({
             >
               📝 1장 테스트 제작
             </button>
+            {testBookOpen ? (
+              <div className="flex flex-wrap items-center gap-2 border-l border-white/30 pl-3">
+                <span className="rounded bg-amber-300 px-1.5 py-0.5 text-[10px] font-black tracking-wide text-violet-900">NEW</span>
+                <button
+                  type="button"
+                  className={btn}
+                  disabled={opening}
+                  title="단어 정리·동반의어 테스트·수업용 자료·테스트 견본·백지노트를 한 권으로"
+                  onClick={() => setNaming({ kind: "test_book", name: defaultDocumentName("test_book") })}
+                >
+                  🧪 테스트 교재 제작
+                </button>
+                <button
+                  type="button"
+                  className={btn}
+                  title="고른 지문으로 오늘 볼 테스트지를 무작위로 뽑습니다(만든 재료를 쓰므로 값이 들지 않습니다)"
+                  onClick={() =>
+                    // 뽑기는 파일을 만들지 않고, 만들어 둔 재료로만 조립한다(값이 들지 않는다)
+                    window.open(
+                      `${documentPagePath(role, "test_book")}?mode=draw&ids=${encodeURIComponent(selectedIds.join(","))}&t=${Date.now().toString(36)}`,
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
+                  }
+                >
+                  🎲 테스트지 뽑기
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -166,7 +198,11 @@ export function LessonMaterialsSelectionBar({
           >
             <header className="flex items-center justify-between bg-violet-600 px-5 py-4 text-white">
               <h2 className="text-base font-bold">
-                {naming.kind === "one_page_summary" ? "📃 1장 요약직보자료 만들기" : "📝 1장 테스트 만들기"}
+                {naming.kind === "one_page_summary"
+                  ? "📃 1장 요약직보자료 만들기"
+                  : naming.kind === "test_book"
+                    ? "🧪 테스트 교재 만들기"
+                    : "📝 1장 테스트 만들기"}
               </h2>
               <button
                 type="button"

@@ -46,6 +46,14 @@ const BY_KIND: Record<
     features: ["lesson_one_page_test"],
     sample: "one_page_test",
   },
+  test_book: {
+    title: "테스트 교재",
+    description:
+      "지문마다 단어 정리·동반의어 테스트·수업용 자료·테스트 견본·백지노트를 싣고, 맨 앞에 학습 계획표, 맨 뒤에 정답지를 붙입니다. 학원에서는 같은 재료로 테스트지를 무작위로 뽑습니다(뽑기는 값이 들지 않습니다).",
+    contents: ["학습 계획표·이수표", "단어 정리", "동반의어·품사 테스트", "수업용 자료", "테스트 견본", "백지노트", "정답지"],
+    features: ["lesson_test_book"],
+    sample: "one_page_test",
+  },
   integrated: {
     title: "최종통합자료",
     description: "이미 만들어 둔 자료를 표지와 차례를 붙여 한 권으로 묶습니다.",

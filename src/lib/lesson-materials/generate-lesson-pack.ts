@@ -33,6 +33,8 @@ export type LessonPackData = {
   vocabChoiceCache?: import("@/lib/lesson-materials/vocab-choice").StoredVocabChoiceCache | null;
   /** 1장 요약직보자료·1장 테스트 재료(주제·요약문·도식화·동반의어·어법 포인트·바꿔 쓰기·T/F·주요문장) */
   onePageContent?: import("@/lib/lesson-materials/one-page").OnePageContent | null;
+  /** 테스트 교재 재료(단어 정리·중요문장·어순 덩어리) */
+  testBookMaterial?: import("@/lib/lesson-materials/test-book").TestBookMaterial | null;
   /**
    * 반의어가 적은 단어장을 한 번 다시 만들었거나 선생님이 저장했다. 그 뒤로는 반의어가
    * 적어도 열 때마다 다시 만들지 않는다(예전에는 열 때마다 다시 만들어 고친 내용을 덮었다).

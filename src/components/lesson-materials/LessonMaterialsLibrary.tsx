@@ -39,6 +39,7 @@ type LibraryTab =
   | "workbook"
   | "onePageSummary"
   | "onePageTest"
+  | "testBook"
   | "questions"
   | "integrated";
 
@@ -49,6 +50,7 @@ const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
   { id: "workbook", label: "워크북" },
   { id: "onePageSummary", label: "1장 요약직보자료" },
   { id: "onePageTest", label: "1장 테스트" },
+  { id: "testBook", label: "테스트 교재" },
   { id: "questions", label: "변형문제" },
   { id: "integrated", label: "최종통합자료" },
 ];
@@ -281,6 +283,8 @@ export function LessonMaterialsLibrary({
             ? "one_page_summary"
             : libraryTab === "onePageTest"
               ? "one_page_test"
+              : libraryTab === "testBook"
+                ? "test_book"
               : libraryTab === "integrated"
                 ? "integrated"
                 : null;
@@ -746,7 +750,7 @@ export function LessonMaterialsLibrary({
           className="flex flex-wrap gap-1 border-b border-slate-200 bg-white px-1"
           aria-label="자료 종류"
         >
-          {LIBRARY_TABS.map((tab) => {
+          {LIBRARY_TABS.filter((tab) => tab.id !== "testBook" || data.testBookOpen).map((tab) => {
             const active = libraryTab === tab.id;
             return (
               <button
@@ -1220,6 +1224,7 @@ export function LessonMaterialsLibrary({
           role={role}
           selectedCount={selectedCount}
           selectedIds={selectedInInputOrder}
+          testBookOpen={data.testBookOpen === true}
           onIntegrated={() => setIntegratedOpen({ preselected: selectedInInputOrder })}
         />
       ) : null}

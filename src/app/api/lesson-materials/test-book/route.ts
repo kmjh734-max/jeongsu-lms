@@ -1,0 +1,41 @@
+import { NextResponse } from "next/server";
+import {
+  prepareTestBookPassageAction,
+  saveTestBookOptionsAction,
+} from "@/lib/lesson-materials/test-book-actions";
+
+export const runtime = "nodejs";
+export const maxDuration = 300;
+
+/**
+ * 테스트 교재: 지문 하나의 재료를 준비하거나(prepare, 기본) 교재 설정을 파일에 저장한다
+ * (saveOptions). 1장 자료 라우트와 같은 이유로 서버 액션을 fetch로 부른다(post-json.ts).
+ * 권한·학원 기능은 액션 안에서 확인한다.
+ */
+export async function POST(request: Request) {
+  try {
+    const body = (await request.json()) as {
+      op?: string;
+      role?: string;
+      projectId?: string;
+      forceRegenerate?: boolean;
+      id?: string;
+      options?: unknown;
+    };
+    const role = body.role === "admin" ? "admin" : "teacher";
+    if (body.op === "saveOptions") {
+      return NextResponse.json(await saveTestBookOptionsAction(role, { id: String(body.id ?? ""), options: body.options }));
+    }
+    return NextResponse.json(
+      await prepareTestBookPassageAction(role, {
+        projectId: String(body.projectId ?? ""),
+        forceRegenerate: body.forceRegenerate === true,
+      })
+    );
+  } catch (e) {
+    return NextResponse.json({
+      ok: false as const,
+      message: e instanceof Error ? e.message : "테스트 교재를 만들지 못했습니다.",
+    });
+  }
+}
