@@ -32,7 +32,6 @@ export const TEST_BOOK_FONTS_HREF =
 
 export const TEST_BOOK_CSS = `
 .tb-sheet{position:relative;box-sizing:border-box;width:210mm;height:${PAGE_H_MM}mm;padding:${PAD_Y_MM}mm ${PAD_X_MM}mm;background:#fff;color:#15171c;overflow:hidden;font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;font-size:10pt;line-height:1.5;word-break:keep-all;overflow-wrap:break-word;-webkit-print-color-adjust:exact;print-color-adjust:exact;break-after:page;page-break-after:always}
-.tb-sheet:last-child{break-after:auto;page-break-after:auto}
 .tb-en{font-family:"Source Serif 4","Times New Roman",Georgia,serif}
 .tb-measure{position:absolute;left:-10000px;top:0;visibility:hidden;pointer-events:none}
 .tb-measure .tb-sheet{height:auto;overflow:visible}
@@ -52,8 +51,8 @@ export const TEST_BOOK_CSS = `
 .tb-row > div{padding:1.1mm 1.4mm;min-width:0}
 .tb-row.tb-th{border-top:1.2pt solid #15171c;border-bottom:1.2pt solid #15171c;font-size:8pt;color:#6a707c;font-weight:500}
 .tb-row.tb-th > div{padding:1mm 1.4mm}
-.tb-vrow{grid-template-columns:6mm 30mm 9mm 38mm 1fr 1fr 32mm;font-size:8.8pt;line-height:1.35}
-.tb-vrow .tb-w{font-weight:700}
+.tb-vrow{grid-template-columns:6mm 36mm 9mm 34mm 1fr 1fr 30mm;font-size:8.8pt;line-height:1.35}
+.tb-vrow .tb-w{font-weight:700;overflow-wrap:anywhere}
 .tb-vrow .tb-pos{color:#6a707c;font-style:italic}
 .tb-vrow .tb-nil{color:#c9cdd4}
 .tb-vrow .tb-n{color:#8a909b;font-size:7.5pt;padding-top:1.5mm}
@@ -131,7 +130,14 @@ export const TEST_BOOK_CSS = `
 .tb-arow dd{margin:0;min-width:0}
 .tb-arow dd b{color:#6a707c;font-weight:500;margin-right:1mm}
 .tb-arow dd > span{display:inline-block;margin-right:4mm}
-@media print{.tb-sheet{box-shadow:none !important}.tb-measure{display:none !important}}
+/* 인쇄: 전역 규칙(globals.css)이 body 안을 모두 숨기고 등록된 인쇄 루트만 보인다. 여기서 직접 보이게 하고
+   A4 용지(app-print-a4)를 지정한다 — 빠뜨리면 빈 종이나 레터 용지로 나온다. */
+@media print{
+#tb-print-root,#tb-print-root *{visibility:visible}
+#tb-print-root{page:app-print-a4;position:absolute;left:0;top:0;width:210mm !important;max-width:210mm !important;margin:0 !important;padding:0 !important;transform:none !important;gap:0 !important}
+.tb-sheet{box-shadow:none !important}
+.tb-measure{display:none !important}
+}
 `;
 
 // ---------------------------------------------------------------- 쪽 나누기
@@ -181,7 +187,7 @@ export function PagedSheet({
   }, [blockKeys, measureKey]);
   return (
     <>
-      <div className="tb-measure" aria-hidden>
+      <div ref={measureRef} className="tb-measure" aria-hidden>
         <div className="tb-sheet">
           <div data-tb-head="0">{head(0)}</div>
           <div data-tb-head="1">{head(1)}</div>

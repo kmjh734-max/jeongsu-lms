@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { postJson } from "@/lib/lesson-materials/post-json";
@@ -549,13 +549,13 @@ export function TestBookWorkbench({
                       );
                     }
                     return (
-                      <div key={p.id} className="contents">
+                      <Fragment key={p.id}>
                         <VocabSheets index={i} project={entry.project} measureKey={measureKey} />
                         <WordTestSheets index={i} project={entry.project} test={entry.word} measureKey={measureKey} />
                         <LessonSheets index={i} project={entry.project} translation={options.translation} measureKey={measureKey} />
                         <TestSheets index={i} project={entry.project} sheet={entry.sheet} title="테스트 견본" measureKey={measureKey} />
                         {options.blankNote ? <BlankNoteSheets index={i} project={entry.project} /> : null}
-                      </div>
+                      </Fragment>
                     );
                   })}
                   {options.translation === "back" && ready.length ? <TranslationBackSheets projects={ready} measureKey={measureKey} /> : null}

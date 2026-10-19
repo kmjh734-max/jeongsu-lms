@@ -347,14 +347,19 @@ function buildLine(p: Ready, seed: string, avoid: Set<number>): TestSection | nu
   };
 }
 
-function buildBlank(p: Ready, seed: string, mode: BlankMode): TestSection | null {
+/** 빈칸에 쓸 자리(빈칸은 해석을 함께 주므로 같은 시험지의 한줄해석이 이 문장을 피한다) */
+function blankPicks(p: Ready, seed: string, mode: BlankMode): Array<Cand & { phrase: string }> {
   const pool = blankCandidates(p);
-  if (!pool.length) return null;
+  if (!pool.length) return [];
   // 교재 견본 자리는 늘 같은 열쇠로 고른다. 「다른 자리」는 그 자리를 빼고 고른다.
   const bookPick = new Set(pickN(pool, 4, `book|${p.id}|blank`).map((c) => c.key));
   const src = mode === "same" ? pool.filter((c) => bookPick.has(c.key)) : pool.filter((c) => !bookPick.has(c.key));
   const use = (src.length ? src : pool).filter((c, i, arr) => arr.findIndex((x) => x.si === c.si) === i);
-  const chosen = bySentence(mode === "same" ? use : pickN(use, 4, `${seed}|blank`));
+  return bySentence(mode === "same" ? use : pickN(use, 4, `${seed}|blank`));
+}
+
+function buildBlank(p: Ready, seed: string, mode: BlankMode): TestSection | null {
+  const chosen = blankPicks(p, seed, mode);
   if (!chosen.length) return null;
   return {
     type: "blank",
@@ -695,7 +700,8 @@ export function buildTestSheet(
   // 한 시험지 안에서 정답이 다른 문항에 드러나지 않게: 어순배열 → 영작 → 한줄해석 차례로 문장을 피한다
   const orderSi = on.has("order") ? orderPicks(p, seed).map((x) => x.si) : [];
   const writingSi = on.has("writing") ? writingPicks(p, seed, new Set(orderSi)) : [];
-  const shown = new Set([...orderSi, ...writingSi]);
+  const blankSi = on.has("blank") ? blankPicks(p, seed, opts.blankMode ?? "same").map((c) => c.si) : [];
+  const shown = new Set([...orderSi, ...writingSi, ...blankSi]);
   for (const key of ALL_TEST_BOOK_TYPES) {
     if (!on.has(key)) continue;
     const sec =
