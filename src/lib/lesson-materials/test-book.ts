@@ -331,41 +331,66 @@ function blankCandidates(p: Ready): Array<Cand & { phrase: string }> {
   return out;
 }
 
-function buildLine(p: Ready, seed: string, avoid: Set<number>): TestSection | null {
-  const all = p.sentences
-    .map((s, si) => ({ si, s }))
-    .filter(({ s }) => s.korean.trim() && words(s.english) >= 8 && words(s.english) <= 45);
-  // 같은 시험지의 어순배열·영작 문장은 해석이 거기 나오므로 피한다(모자라면 그대로 쓴다)
-  const rest = all.filter(({ si }) => !avoid.has(si));
-  const pool = rest.length >= 2 ? rest : all;
-  const chosen = bySentence(pickN(pool, 3, `${seed}|line`));
-  if (!chosen.length) return null;
+/** 교재 견본(열쇠가 book)은 지문 차례, 뽑기는 문장 차례를 섞는다 */
+function arrange<T>(items: T[], seed: string): T[] {
+  return seed.startsWith("book|") ? items : fisherYatesShuffle(items, createSeededRng(`${seed}|arrange`));
+}
+
+/*
+ * 선생님 요청(2026-10-19): 중요문장 어순배열만 중요문장으로 하고, 나머지 유형은 지문 전체를 다룬다
+ * (한줄해석·빈칸·영작은 모든 문장, 어법·어휘·T/F·연결어는 만들어 둔 것을 모두).
+ */
+function buildLine(p: Ready, seed: string): TestSection | null {
+  const all = p.sentences.map((s, si) => ({ si, s })).filter(({ s }) => s.korean.trim() && words(s.english) >= 3);
+  if (!all.length) return null;
   return {
     type: "line",
     title: "한줄해석",
-    items: chosen.map(({ s }, i) => ({ no: no(i), text: [clean(s.english)], lines: words(s.english) > 22 ? 2 : 1, answer: s.korean })),
+    items: arrange(all, seed).map(({ s }, i) => ({
+      no: no(i),
+      text: [clean(s.english)],
+      lines: words(s.english) > 22 ? 2 : 1,
+      answer: s.korean,
+    })),
   };
 }
 
-/** 빈칸에 쓸 자리(빈칸은 해석을 함께 주므로 같은 시험지의 한줄해석이 이 문장을 피한다) */
-function blankPicks(p: Ready, seed: string, mode: BlankMode): Array<Cand & { phrase: string }> {
-  const pool = blankCandidates(p);
-  if (!pool.length) return [];
-  // 교재 견본 자리는 늘 같은 열쇠로 고른다. 「다른 자리」는 그 자리를 빼고 고른다.
-  const bookPick = new Set(pickN(pool, 4, `book|${p.id}|blank`).map((c) => c.key));
-  const src = mode === "same" ? pool.filter((c) => bookPick.has(c.key)) : pool.filter((c) => !bookPick.has(c.key));
-  const use = (src.length ? src : pool).filter((c, i, arr) => arr.findIndex((x) => x.si === c.si) === i);
-  return bySentence(mode === "same" ? use : pickN(use, 4, `${seed}|blank`));
+const STOP = new Set(
+  "about above after again against because before being below between could during every their there these those through under until where which while would should other another however therefore people".split(" ")
+);
+
+/** 후보가 없는 문장의 빈칸: 문장에서 가장 긴 내용어(고유명사·기능어 빼고) */
+function fallbackBlank(sentence: string): string | null {
+  const ws = sentence.match(/[A-Za-z][a-z]+(?:-[a-z]+)*/g) ?? [];
+  const firstWord = sentence.match(/[A-Za-z]+/)?.[0];
+  const cands = ws.filter((w) => w.length >= 5 && !STOP.has(w.toLowerCase()) && (/^[a-z]/.test(w) || w === firstWord));
+  if (!cands.length) return null;
+  return [...cands].sort((x, y) => y.length - x.length)[0]!;
 }
 
+/** 문장마다 빈칸 하나. 「같은 자리」는 교재 견본과 같은 낱말, 「다른 자리」는 그 문장의 다른 후보. */
 function buildBlank(p: Ready, seed: string, mode: BlankMode): TestSection | null {
-  const chosen = blankPicks(p, seed, mode);
-  if (!chosen.length) return null;
+  const pool = blankCandidates(p);
+  const items: Array<{ si: number; phrase: string }> = [];
+  p.sentences.forEach((s, si) => {
+    if (!s.korean.trim()) return;
+    const mine = pool.filter((c) => c.si === si);
+    if (!mine.length) {
+      const f = fallbackBlank(clean(s.english));
+      if (f) items.push({ si, phrase: f });
+      return;
+    }
+    const bookOne = pickN(mine, 1, `book|${p.id}|blank|${si}`)[0]!;
+    const others = mine.filter((c) => c.key !== bookOne.key);
+    const pick = mode === "diff" && others.length ? pickN(others, 1, `${seed}|blank|${si}`)[0]! : bookOne;
+    items.push({ si, phrase: pick.phrase });
+  });
+  if (!items.length) return null;
   return {
     type: "blank",
     title: "빈칸",
     hint: "해석을 보고 빈칸 채우기",
-    items: chosen.map((c, i) => {
+    items: arrange(items, seed).map((c, i) => {
       const s = p.sentences[c.si]!;
       const part = splitAt(clean(s.english), c.phrase)!;
       return { no: no(i), text: [part.before, { blank: "" }, part.after], ko: s.korean, answer: part.hit };
@@ -409,6 +434,7 @@ function vocabCandidates(p: Ready): PickCand[] {
     if (!ant || !s) return;
     const part = splitAt(clean(s.english), v.surface);
     if (!part) return;
+    if (out.some((o) => o.right.toLowerCase() === part.hit.toLowerCase())) return;
     out.push({ si: v.sentenceIndex, at: part.before.length, key: `v${vi}`, before: part.before, right: part.hit, wrong: matchCase(part.hit, ant), after: part.after });
   });
   return out;
@@ -419,22 +445,37 @@ function pickSection(
   title: string,
   hint: string,
   pool: PickCand[],
-  seed: string,
-  max: number
+  seed: string
 ): TestSection | null {
-  const chosen = bySentence(pickN(pool, max, `${seed}|${type}`));
+  const chosen = bySentence(pool);
   if (!chosen.length) return null;
+  // 한 문장에 고르기 자리가 여럿이면 문장을 한 번만 싣고 괄호를 여러 개 넣는다(겹치는 자리는 앞의 것만)
+  const bySi = new Map<number, PickCand[]>();
+  for (const c of chosen) {
+    const list = bySi.get(c.si) ?? [];
+    const end = (x: PickCand) => (x.at ?? 0) + x.right.length;
+    if (!list.some((x) => (c.at ?? 0) < end(x) && (x.at ?? 0) < end(c))) list.push(c);
+    bySi.set(c.si, list);
+  }
+  const rows = [...bySi.entries()].sort((x, y) => x[0] - y[0]);
   return {
     type,
     title,
     hint,
-    items: chosen.map((c, i) => {
-      const left = hashSeedToUint32(`${seed}|${c.key}|side`) % 2 === 0;
-      return {
-        no: no(i),
-        text: [c.before, { pick: left ? [c.right, c.wrong] : [c.wrong, c.right] }, c.after],
-        answer: c.right,
-      };
+    items: arrange(rows, seed).map(([, cands], i) => {
+      const sorted = [...cands].sort((x, y) => (x.at ?? 0) - (y.at ?? 0));
+      const sentence = sorted[0]!.before + sorted[0]!.right + sorted[0]!.after;
+      const text: TestSeg[] = [];
+      let cursor = 0;
+      for (const c of sorted) {
+        const at = c.at ?? c.before.length;
+        text.push(sentence.slice(cursor, at));
+        const left = hashSeedToUint32(`${seed}|${c.key}|side`) % 2 === 0;
+        text.push({ pick: left ? [c.right, c.wrong] : [c.wrong, c.right] });
+        cursor = at + c.right.length;
+      }
+      text.push(sentence.slice(cursor));
+      return { no: no(i), text, answer: sorted.map((c) => c.right).join(" / ") };
     }),
   };
 }
@@ -492,15 +533,7 @@ function buildOrder(p: Ready, seed: string): TestSection | null {
 function buildTf(p: Ready, seed: string): TestSection | null {
   const all = p.content.tf.filter((t) => t.statement.trim());
   if (!all.length) return null;
-  // 참·거짓이 한쪽으로 쏠리지 않게 번갈아 고른다
-  const t = pickN(all.filter((x) => x.answer === "T"), 4, `${seed}|tfT`);
-  const f = pickN(all.filter((x) => x.answer === "F"), 4, `${seed}|tfF`);
-  const mixed: typeof all = [];
-  for (let i = 0; mixed.length < 4 && (i < t.length || i < f.length); i++) {
-    if (t[i]) mixed.push(t[i]!);
-    if (f[i] && mixed.length < 4) mixed.push(f[i]!);
-  }
-  const order = fisherYatesShuffle(mixed, createSeededRng(`${seed}|tf`));
+  const order = fisherYatesShuffle(all, createSeededRng(`${seed}|tf`));
   return {
     type: "tf",
     title: "T/F",
@@ -509,34 +542,16 @@ function buildTf(p: Ready, seed: string): TestSection | null {
   };
 }
 
-function writingPicks(p: Ready, seed: string, avoid: Set<number>): number[] {
-  const fits = (si: number) => {
-    const s = p.sentences[si];
-    return !!s && !!s.korean.trim() && words(s.english) >= 6 && words(s.english) <= 30 && !avoid.has(si);
-  };
-  // 중요문장 가운데 어순배열에 안 쓴 것 → 모자라면 외울 만한 길이의 다른 문장(긴 것부터)
-  let pool = p.material.keyIndexes.filter(fits);
-  if (pool.length < 2) {
-    const more = p.sentences
-      .map((_, si) => si)
-      .filter((si) => fits(si) && !pool.includes(si) && words(p.sentences[si]!.english) >= 10 && !/\?\s*["”’]?$/.test(p.sentences[si]!.english))
-      .sort((a, b) => words(p.sentences[b]!.english) - words(p.sentences[a]!.english))
-      .slice(0, 2 - pool.length);
-    pool = [...pool, ...more];
-  }
-  return [...pickN(pool, 2, `${seed}|writing`)].sort((a, b) => a - b);
-}
-
-function buildWriting(p: Ready, seed: string, avoid: Set<number>): TestSection | null {
-  const chosen = writingPicks(p, seed, avoid);
-  if (!chosen.length) return null;
+function buildWriting(p: Ready, seed: string): TestSection | null {
+  const all = p.sentences.map((s, si) => ({ si, s })).filter(({ s }) => s.korean.trim() && words(s.english) >= 3);
+  if (!all.length) return null;
   return {
     type: "writing",
     title: "통문장 영작",
     hint: "해석만 보고 영어로 쓰기",
-    items: chosen.map((si, i) => {
-      const answer = answerSentence(p.sentences[si]!.english);
-      return { no: no(i), text: [], ko: p.sentences[si]!.korean, hint: `${words(answer)}단어`, lines: words(answer) > 16 ? 2 : 1, answer };
+    items: arrange(all, seed).map(({ s }, i) => {
+      const answer = answerSentence(s.english);
+      return { no: no(i), text: [], ko: s.korean, hint: `${words(answer)}단어`, lines: words(answer) > 16 ? 2 : 1, answer };
     }),
   };
 }
@@ -551,8 +566,8 @@ function buildLink(p: Ready, seed: string): TestSection | null {
     hits.push({ si, word, rest: text.slice(m[0].length).trimStart() });
   });
   if (!hits.length) return null;
-  const chosen = bySentence(pickN(hits, 4, `${seed}|link`));
-  const labels = "ABCD";
+  const chosen = hits;
+  const labels = "ABCDEFGHIJ";
   const used = new Set(chosen.map((h) => h.si));
   const passage: TestSeg[] = [];
   let k = 0;
@@ -568,7 +583,7 @@ function buildLink(p: Ready, seed: string): TestSection | null {
   const answers = chosen.map((h) => h.word);
   const distractors = pickN(
     LINK_WORDS.filter((w) => !answers.some((a) => a.toLowerCase() === w.toLowerCase())),
-    Math.max(2, 5 - answers.length),
+    Math.max(2, Math.min(4, 6 - answers.length)),
     `${seed}|linkbox`
   );
   return {
@@ -652,8 +667,8 @@ function buildSummary(p: Ready): TestSection | null {
 }
 
 function buildGrammarFix(p: Ready, seed: string, skip: Set<string>): TestSection | null {
-  const pool = grammarCandidates(p).filter((c) => !skip.has(c.key));
-  const chosen = bySentence(pickN(pool, 3, `${seed}|gfix`));
+  void seed;
+  const chosen = bySentence(grammarCandidates(p).filter((c) => !skip.has(c.key)));
   if (!chosen.length) return null;
   return {
     type: "grammarFix",
@@ -665,7 +680,7 @@ function buildGrammarFix(p: Ready, seed: string, skip: Set<string>): TestSection
 
 function buildWords(p: Ready, seed: string): TestSection | null {
   const rows = p.material.vocab.filter((r) => r.word && r.meaning);
-  const chosen = pickN(rows, 8, `${seed}|words`);
+  const chosen = arrange(rows, seed);
   if (!chosen.length) return null;
   return {
     type: "words",
@@ -690,28 +705,21 @@ export function buildTestSheet(
   const seed = `${opts.seed}|${p.id}`;
   const on = new Set(types);
   const sections: TestSection[] = [];
+  // 어법선택·어법 서술형을 함께 고르면 어법 자리를 번갈아 나눈다(같은 자리를 두 번 묻지 않게)
   const grammarPool = grammarCandidates(p);
-  const grammarSec = on.has("grammar")
-    ? pickSection("grammar", "어법선택", "알맞은 것에 ○", grammarPool, seed, 4)
-    : null;
-  const usedGrammar = new Set(
-    grammarSec ? bySentence(pickN(grammarPool, 4, `${seed}|grammar`)).map((c) => c.key) : []
-  );
-  // 한 시험지 안에서 정답이 다른 문항에 드러나지 않게: 어순배열 → 영작 → 한줄해석 차례로 문장을 피한다
-  const orderSi = on.has("order") ? orderPicks(p, seed).map((x) => x.si) : [];
-  const writingSi = on.has("writing") ? writingPicks(p, seed, new Set(orderSi)) : [];
-  const blankSi = on.has("blank") ? blankPicks(p, seed, opts.blankMode ?? "same").map((c) => c.si) : [];
-  const shown = new Set([...orderSi, ...writingSi, ...blankSi]);
+  const both = on.has("grammar") && on.has("grammarFix");
+  const forPick = both ? grammarPool.filter((_, i) => i % 2 === 0) : grammarPool;
+  const usedGrammar = new Set(on.has("grammar") ? forPick.map((c) => c.key) : []);
   for (const key of ALL_TEST_BOOK_TYPES) {
     if (!on.has(key)) continue;
     const sec =
-      key === "line" ? buildLine(p, seed, shown)
+      key === "line" ? buildLine(p, seed)
       : key === "blank" ? buildBlank(p, seed, opts.blankMode ?? "same")
-      : key === "grammar" ? grammarSec
-      : key === "vocab" ? pickSection("vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed, 4)
+      : key === "grammar" ? pickSection("grammar", "어법선택", "알맞은 것에 ○", forPick, seed)
+      : key === "vocab" ? pickSection("vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed)
       : key === "order" ? buildOrder(p, seed)
       : key === "tf" ? buildTf(p, seed)
-      : key === "writing" ? buildWriting(p, seed, new Set(orderSi))
+      : key === "writing" ? buildWriting(p, seed)
       : key === "link" ? buildLink(p, seed)
       : key === "sequence" ? buildSequence(p, seed)
       : key === "insert" ? buildInsert(p, seed)

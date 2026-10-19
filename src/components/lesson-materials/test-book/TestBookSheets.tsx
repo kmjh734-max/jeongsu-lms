@@ -94,6 +94,8 @@ export const TEST_BOOK_CSS = `
 .tb-prow > div{border-left:.5pt solid #d3d7de;display:flex;align-items:center}
 .tb-prow > div:first-child{border-left:0;justify-content:center}
 .tb-date{color:#9aa0aa;letter-spacing:.02em}
+.tb-prow > div.tb-psrc{flex-direction:column;align-items:flex-start;justify-content:center;line-height:1.3}
+.tb-psrc b{font-size:7.8pt;color:#4b515c;font-weight:700}
 .tb-todo{display:flex;flex-wrap:wrap;gap:.6mm 2.4mm;font-size:8pt;color:#4b515c}
 .tb-todo span::before{content:"";display:inline-block;width:2.6mm;height:2.6mm;border:.6pt solid #4b515c;margin-right:.8mm;vertical-align:-.4mm}
 .tb-crow{font-size:8pt;min-height:8.5mm}
@@ -331,7 +333,10 @@ export function PlanSheets({
         <div className="tb-row tb-prow">
           <div>{i + 1}</div>
           <div className="tb-date">&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;일 (&nbsp;&nbsp;&nbsp;)</div>
-          <div>{passageLabel(i, p)}</div>
+          <div className="tb-psrc">
+            {p.source?.trim() ? <b>{p.source}</b> : null}
+            <span>{p.title}</span>
+          </div>
           <div>
             <span className="tb-todo">
               <span>단어</span>
@@ -490,7 +495,7 @@ export function VocabSheets({
       measureKey={measureKey}
       head={(page) => (
         <>
-          <DocHead title="단어 정리" sub={page > 0 ? "(이어서)" : undefined} label={passageLabel(index, project)} right="VOCABULARY" />
+          <DocHead title="단어 정리" sub={page > 0 ? "(이어서)" : undefined} label={passageLabel(index, project)} right={project.source?.trim() || "VOCABULARY"} />
           {head}
         </>
       )}
@@ -594,7 +599,7 @@ export function WordTestSheets({
       blocks={blocks}
       measureKey={measureKey}
       head={(page) => (
-        <DocHead title="동반의어 TEST" sub={page > 0 ? "(이어서)" : undefined} label={passageLabel(index, project)} right="WORD TEST" />
+        <DocHead title="동반의어 TEST" sub={page > 0 ? "(이어서)" : undefined} label={passageLabel(index, project)} right={project.source?.trim() || "WORD TEST"} />
       )}
     />
   );
@@ -638,7 +643,7 @@ export function LessonSheets({
       blocks={blocks}
       measureKey={measureKey}
       head={(page) => (
-        <DocHead title="Sentence by Sentence" sub={page > 0 ? "(이어서)" : sub} label={passageLabel(index, project)} right="수업용 자료" />
+        <DocHead title="Sentence by Sentence" sub={page > 0 ? "(이어서)" : sub} label={passageLabel(index, project)} right={project.source?.trim() || "수업용 자료"} />
       )}
     />
   );
@@ -830,7 +835,7 @@ export function TestSheets({
     <PagedSheet
       blocks={blocks}
       measureKey={measureKey}
-      head={(page) => <DocHead title={title} sub={page > 0 ? "(이어서)" : undefined} label={passageLabel(index, project)} right="TEST" />}
+      head={(page) => <DocHead title={title} sub={page > 0 ? "(이어서)" : undefined} label={passageLabel(index, project)} right={project.source?.trim() || "TEST"} />}
       foot={(page, total) => (
         <>
           <span>{project.title}</span>
@@ -851,7 +856,7 @@ export function BlankNoteSheets({ index, project }: { index: number; project: Te
     <>
       <div className="tb-sheet">
         <div className="tb-note">
-          <DocHead title="백지노트" sub="1/2" label={label} right="BLANK NOTE" />
+          <DocHead title="백지노트" sub="1/2" label={label} right={project.source?.trim() || "BLANK NOTE"} />
           <div className="tb-psgbox">
             <div className="tb-lb">
               <span>원문</span>
@@ -876,7 +881,7 @@ export function BlankNoteSheets({ index, project }: { index: number; project: Te
       </div>
       <div className="tb-sheet">
         <div className="tb-note">
-          <DocHead title="백지노트" sub="2/2" label={label} right="BLANK NOTE" />
+          <DocHead title="백지노트" sub="2/2" label={label} right={project.source?.trim() || "BLANK NOTE"} />
           <div className="tb-fill" style={{ flex: 1.1 }}>
             <div className="tb-lb">
               <b>중요 내용 정리</b>
@@ -923,11 +928,12 @@ export function AnswerSheets({
   measureKey: string;
   title?: string;
 }) {
-  const blocks: Block[] = entries.map((e, k) => ({
-    key: `a${k}-${e.project.id}`,
-    node: (
-      <div className="tb-b">
-        <div className="tb-ans">
+  // 지문 머리 + 단어 정답은 한 덩어리, 유형 정답은 문항마다 덩어리 — 길어지면 쪽을 넘긴다
+  const blocks: Block[] = entries.flatMap((e, k) => {
+    const head: Block = {
+      key: `a${k}-${e.project.id}`,
+      node: (
+        <div className="tb-ans" style={{ marginTop: k ? "2.6mm" : 0 }}>
           <h3>
             <span>{String(e.index + 1).padStart(2, "0")}</span>
             {e.project.title}
@@ -952,10 +958,10 @@ export function AnswerSheets({
                 <dl className="tb-arow">
                   <dt>단어 B</dt>
                   <dd>
-                    {e.word.synonym.map((s) => (
-                      <span key={s.no}>
-                        <b>{s.no}</b>
-                        {circled(s.answer)}
+                    {e.word.synonym.map((x) => (
+                      <span key={x.no}>
+                        <b>{x.no}</b>
+                        {circled(x.answer)}
                       </span>
                     ))}
                   </dd>
@@ -976,18 +982,41 @@ export function AnswerSheets({
               ) : null}
             </>
           ) : null}
-          {e.sheet?.sections.map((sec, i) => (
-            <dl key={sec.type} className="tb-arow">
-              <dt>
-                {i + 1} {testBookTypeLabel(sec.type)}
-              </dt>
-              <dd>{sectionAnswer(sec)}</dd>
-            </dl>
-          ))}
         </div>
-      </div>
-    ),
-  }));
+      ),
+    };
+    const rows: Block[] = (e.sheet?.sections ?? []).flatMap((sec, i) => {
+      const label = `${i + 1} ${testBookTypeLabel(sec.type)}`;
+      // 긴 답(해석·영작 문장)은 문항마다 한 줄, 짧은 답은 한 줄에 모은다
+      const long = !sec.answer && sec.items.some((it) => it.answer.length > 24);
+      if (!long) {
+        return [
+          {
+            key: `a${k}-${sec.type}`,
+            node: (
+              <dl className="tb-arow">
+                <dt>{label}</dt>
+                <dd>{sectionAnswer(sec)}</dd>
+              </dl>
+            ),
+          },
+        ];
+      }
+      return sec.items.map((it, j) => ({
+        key: `a${k}-${sec.type}-${j}`,
+        node: (
+          <dl className="tb-arow">
+            <dt>{j === 0 ? label : ""}</dt>
+            <dd>
+              <b>{it.no}</b>
+              {it.answer}
+            </dd>
+          </dl>
+        ),
+      }));
+    });
+    return [head, ...rows];
+  });
   return (
     <PagedSheet
       blocks={blocks}
