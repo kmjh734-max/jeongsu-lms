@@ -70,6 +70,7 @@ export const TEST_BOOK_CSS = `
 .tb-chunks{display:flex;flex-wrap:wrap;gap:1.5mm;margin:1mm 0}
 .tb-chunks span{border:.7pt solid #15171c;padding:.3mm 2mm;font-size:9.5pt}
 .tb-lead{font-weight:600}
+.tb-tag{display:inline-block;font-size:7.8pt;font-weight:700;color:#1d4ed8;border:.6pt solid #1d4ed8;padding:0 1.6mm;margin-bottom:.6mm}
 .tb-tf{display:grid;grid-template-columns:7mm minmax(0,1fr) 16mm;column-gap:1mm;align-items:baseline;border-bottom:.5pt solid #d3d7de;padding:1mm 0}
 .tb-tf .tb-tfbox{text-align:right;color:#6a707c;font-size:9pt}
 .tb-box{border:.7pt solid #15171c;padding:1.2mm 3mm;display:flex;flex-wrap:wrap;gap:1mm 6mm;font-size:9.5pt;margin-bottom:2mm}
@@ -503,6 +504,157 @@ export function VocabSheets({
   );
 }
 
+// ---------------------------------------------------------------- 전체 단어장
+
+/*
+ * 선생님 요청(2026-10-19): 지문별 단어 정리와 별도로, 계획표 다음에 모든 지문 단어를 한데 모아
+ * 전체 시험을 보기 편하게. 같은 낱말이 여러 지문에 나오면 처음 지문에만 싣는다.
+ */
+type AllRow = { no: number; passage: number; row: NonNullable<TestBookProjectInput["material"]>["vocab"][number] };
+
+export function allVocabRows(projects: TestBookProjectInput[], indexOf: (id: string) => number): AllRow[] {
+  const seen = new Set<string>();
+  const out: AllRow[] = [];
+  for (const p of projects) {
+    for (const row of p.material?.vocab ?? []) {
+      const k = row.word.toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push({ no: out.length + 1, passage: indexOf(p.id) + 1, row });
+    }
+  }
+  return out;
+}
+
+const ALL_GRID = "8mm 9mm 34mm 9mm 38mm 1fr 1fr";
+
+export function AllVocabSheets({
+  projects,
+  indexOf,
+  measureKey,
+}: {
+  projects: TestBookProjectInput[];
+  indexOf: (id: string) => number;
+  measureKey: string;
+}) {
+  const rows = allVocabRows(projects, indexOf);
+  const head = (
+    <div className="tb-row tb-th tb-vrow" style={{ gridTemplateColumns: ALL_GRID }}>
+      <div />
+      <div>지문</div>
+      <div>단어</div>
+      <div />
+      <div>지문 속 뜻</div>
+      <div>= 동의어</div>
+      <div>↔ 반의어</div>
+    </div>
+  );
+  const blocks: Block[] = rows.map((r) => ({
+    key: `all${r.no}`,
+    node: (
+      <div className="tb-row tb-vrow" style={{ gridTemplateColumns: ALL_GRID }}>
+        <div className="tb-n">{r.no}</div>
+        <div className="tb-n">{String(r.passage).padStart(2, "0")}</div>
+        <div className="tb-w tb-en">
+          {r.row.key ? <span className="tb-star">★ </span> : null}
+          {r.row.word}
+        </div>
+        <div className="tb-pos">{r.row.pos}</div>
+        <div>{r.row.meaning}</div>
+        <div className={r.row.synonyms.length ? "tb-en" : "tb-nil"}>{r.row.synonyms.join(", ") || "—"}</div>
+        <div className={r.row.antonyms.length ? "tb-en" : "tb-nil"}>{r.row.antonyms.join(", ") || "—"}</div>
+      </div>
+    ),
+  }));
+  return (
+    <PagedSheet
+      blocks={blocks}
+      measureKey={measureKey}
+      head={(page) => (
+        <>
+          <DocHead title="전체 단어장" sub={page > 0 ? "(이어서)" : `지문 ${projects.length}개 · ${rows.length}단어`} label="ALL WORDS" right="지문 번호는 계획표 차례" />
+          {head}
+        </>
+      )}
+    />
+  );
+}
+
+/** 전체 단어 TEST: 뜻 쓰기(모든 단어, 두 단) */
+export function AllWordTestSheets({
+  projects,
+  indexOf,
+  measureKey,
+}: {
+  projects: TestBookProjectInput[];
+  indexOf: (id: string) => number;
+  measureKey: string;
+}) {
+  const rows = allVocabRows(projects, indexOf);
+  const pairs: AllRow[][] = [];
+  for (let i = 0; i < rows.length; i += 2) pairs.push(rows.slice(i, i + 2));
+  const blocks: Block[] = [
+    { key: "who", node: <Who total={rows.length} /> },
+    ...pairs.map((pair, i) => ({
+      key: `p${i}`,
+      node: (
+        <div className="tb-words">
+          {pair.map((r) => (
+            <div key={r.no} className="tb-wq">
+              <span className="tb-i">{r.no}</span>
+              <span className="tb-en">{r.row.word}</span>
+            </div>
+          ))}
+        </div>
+      ),
+    })),
+  ];
+  return (
+    <PagedSheet
+      blocks={blocks}
+      measureKey={measureKey}
+      head={(page) => <DocHead title="전체 단어 TEST" sub={page > 0 ? "(이어서)" : "지문 속 뜻 쓰기"} label="ALL WORDS TEST" />}
+    />
+  );
+}
+
+export function AllWordAnswerSheets({
+  projects,
+  indexOf,
+  measureKey,
+}: {
+  projects: TestBookProjectInput[];
+  indexOf: (id: string) => number;
+  measureKey: string;
+}) {
+  const rows = allVocabRows(projects, indexOf);
+  const chunks: AllRow[][] = [];
+  for (let i = 0; i < rows.length; i += 6) chunks.push(rows.slice(i, i + 6));
+  const blocks: Block[] = chunks.map((c, i) => ({
+    key: `wa${i}`,
+    node: (
+      <dl className="tb-arow">
+        <dt>{i === 0 ? "전체 단어" : ""}</dt>
+        <dd>
+          {c.map((r) => (
+            <span key={r.no}>
+              <b>{r.no}</b>
+              {r.row.meaning}
+            </span>
+          ))}
+        </dd>
+      </dl>
+    ),
+  }));
+  return (
+    <PagedSheet
+      blocks={blocks}
+      measureKey={measureKey}
+      head={(page) => <DocHead title="정답 · 전체 단어 TEST" sub={page > 0 ? "(이어서)" : undefined} label="ANSWERS" right="정답만 싣습니다" />}
+    />
+  );
+}
+
 // ---------------------------------------------------------------- 동반의어·품사 테스트
 
 export function wordTestTotal(t: WordTest): number {
@@ -694,6 +846,7 @@ function ItemNode({ item }: { item: TestItem }) {
     <div className="tb-it">
       <span className="tb-i">{item.no}</span>
       <div>
+        {item.tag ? <div className="tb-tag">{item.tag}</div> : null}
         {item.ko && (item.chunks || !item.text.length) ? <div className="tb-ko" style={{ marginTop: 0 }}>{item.ko}</div> : null}
         {item.hint ? <div className="tb-tip">조건: {item.hint}</div> : null}
         {item.chunks ? (

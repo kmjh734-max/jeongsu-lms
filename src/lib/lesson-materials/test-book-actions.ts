@@ -1,6 +1,10 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { persistVocabItems, type VocabItemSaveInput } from "@/lib/vocab/save-items";
+import { nextVocabSetOrderIndex } from "@/lib/vocab/reorder-sets";
+import { loadTestBookProjects } from "@/lib/lesson-materials/load-material-payloads";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isAcademyFeatureOn } from "@/lib/academies/features";
@@ -10,7 +14,7 @@ import { generateOnePageContent } from "@/lib/lesson-materials/generate-one-page
 import type { LessonPackData } from "@/lib/lesson-materials/generate-lesson-pack";
 import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
 import { generateAndSaveLessonPackVocabAction } from "@/lib/lesson-materials/lesson-pack-actions";
-import { isOnePageContentFresh, onePageSentences, type OnePageContent } from "@/lib/lesson-materials/one-page";
+import { findPhrase, isOnePageContentFresh, onePageSentences, type OnePageContent } from "@/lib/lesson-materials/one-page";
 import { patchLessonPack } from "@/lib/lesson-materials/patch-lesson-pack";
 import { pickKeySentenceIds } from "@/lib/lesson-materials/key-sentences";
 import { generateWorkbookLineTranslation } from "@/lib/lesson-materials/generate-workbook-line-translation";
@@ -18,6 +22,7 @@ import { generateWorkbookWordOrderWriting } from "@/lib/lesson-materials/generat
 import type { StoredWordOrderChunkCache } from "@/lib/lesson-materials/word-order-chunk-cache";
 import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
 import { refineTestBookVocab } from "@/lib/lesson-materials/generate-test-book";
+import { detectUnitGrammar, textbookUnitKey, unitGrammarFor } from "@/lib/grammar/textbook-unit-grammar";
 import {
   TEST_BOOK_MATERIAL_VERSION,
   isTestBookMaterialFresh,
@@ -145,7 +150,19 @@ export async function prepareTestBookPassageAction(
         analysisSentences: report?.sentences ?? null,
         coreSentenceIds: (pack.blankCandidatePool as StoredBlankCandidatePool | undefined)?.coreSentenceIds ?? null,
       });
-      const keyIndexes = keyIds.map((id) => ids.indexOf(id)).filter((i) => i >= 0);
+      // 교과서 지문이면 그 과 단원문법이 든 문장을 중요문장 맨 앞에(어순배열에 먼저 나온다)
+      const unitKey = textbookUnitKey(project.source as string | null);
+      const unitPoints = unitGrammarFor(unitKey);
+      const unitHits = sentences
+        .map((s, si) => ({ si, grammar: detectUnitGrammar(s.english, unitPoints), words: s.english.split(/\s+/).length }))
+        .filter((h) => h.grammar.length && h.words >= 6 && h.words <= 40 && sentences[h.si]!.korean.trim())
+        .sort((a, b) => b.grammar.length - a.grammar.length || b.words - a.words)
+        .slice(0, 4)
+        .map(({ si, grammar }) => ({ si, grammar }));
+      const keyIndexes = [
+        ...new Set([...unitHits.map((h) => h.si), ...keyIds.map((id) => ids.indexOf(id)).filter((i) => i >= 0)]),
+      ].sort((a, b) => a - b);
+      const chunkKeySet = new Set(keyIndexes.map((i) => ids[i]!));
 
       // 어순 덩어리: 워크북과 같은 캐시를 쓰고, 없으면 같은 방법으로 만들어 캐시에 넣는다(워크북도 같은 덩어리를 쓴다)
       const chunks: Array<string[] | null> = sentences.map(() => null);
@@ -163,8 +180,8 @@ export async function prepareTestBookPassageAction(
         wordOrderChunkCache: (pack.wordOrderChunkCache as StoredWordOrderChunkCache | undefined) ?? null,
       };
       const bilingual = generateWorkbookLineTranslation({ passages: [passageInput] });
-      if (bilingual.blocking.length === 0 && keyIds.length) {
-        const keySet = new Set(keyIds);
+      if (bilingual.blocking.length === 0 && keyIndexes.length) {
+        const keySet = chunkKeySet;
         const wo = await withAiUsage(usage, () =>
           generateWorkbookWordOrderWriting({
             workbookId: `test-book-${projectId}`,
@@ -193,6 +210,8 @@ export async function prepareTestBookPassageAction(
         vocab,
         keyIndexes,
         chunks,
+        unitKey,
+        unitHits: unitHits.sort((a, b) => a.si - b.si),
         createdAt: new Date().toISOString(),
       };
       await patchLessonPack(supabase, projectId, pack, { testBookMaterial: material });
@@ -224,9 +243,11 @@ export async function saveTestBookOptionsAction(
   if (!id) return { ok: false, message: "파일을 찾을 수 없습니다." };
   const options = normalizeTestBookOptions(input.options);
   const supabase = await createClient();
+  const { data: cur } = await supabase.from("lesson_material_documents").select("payload").eq("id", id).maybeSingle();
+  const prev = (cur?.payload as Record<string, unknown> | null) ?? {};
   const { data, error: upErr } = await supabase
     .from("lesson_material_documents")
-    .update({ payload: { version: 1, options }, updated_at: new Date().toISOString() })
+    .update({ payload: { ...prev, version: 1, options }, updated_at: new Date().toISOString() })
     .eq("id", id)
     .eq("kind", "test_book")
     .eq("academy_id", profile!.academy_id!)
@@ -235,4 +256,108 @@ export async function saveTestBookOptionsAction(
   if (upErr) return { ok: false, message: upErr.message };
   if (!data) return { ok: false, message: "파일을 찾을 수 없습니다." };
   return { ok: true, options };
+}
+
+/**
+ * 교재의 전체 단어(지문마다 단어 정리, 같은 낱말은 처음 지문 것)를 단어학습 단어장으로 등록한다.
+ * 단어학습 「테스트 교재」 폴더에 교재 이름으로 만들고, 다시 누르면 같은 단어장을 새 내용으로 맞춘다
+ * (파일 payload.vocabSetId). 예문은 그 단어가 나온 지문 문장과 해석이다. 값은 들지 않는다.
+ */
+export async function registerTestBookVocabAction(
+  role: Role,
+  input: { docId: string | null; title: string; projectIds: string[] }
+): Promise<{ ok: true; setId: string; count: number; created: boolean } | Fail> {
+  const { profile, error } = await requireTestBook(role);
+  if (error) return { ok: false, message: error };
+  const projectIds = [...new Set((input.projectIds ?? []).map((s) => String(s).trim()).filter(Boolean))];
+  if (!projectIds.length) return { ok: false, message: "선택된 지문이 없습니다." };
+  const supabase = await createClient();
+  const projects = await loadTestBookProjects(supabase, projectIds);
+
+  const seen = new Set<string>();
+  const items: VocabItemSaveInput[] = [];
+  for (const p of projects) {
+    for (const row of p.material?.vocab ?? []) {
+      const k = row.word.toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k);
+      const s = p.sentences.find((x) => findPhrase(x.english, row.word));
+      items.push({
+        word: row.word,
+        meaning: row.meaning,
+        part_of_speech: row.pos || null,
+        synonyms: row.synonyms.join(", ") || undefined,
+        antonyms: row.antonyms.join(", ") || undefined,
+        example_sentence: s?.english,
+        example_meaning: s?.korean || undefined,
+        order_index: items.length,
+      });
+    }
+  }
+  if (!items.length) return { ok: false, message: "단어 정리가 아직 없습니다. 교재를 먼저 만들어 주세요." };
+
+  const title = `${String(input.title ?? "").trim() || "테스트 교재"} · 전체 단어`;
+  const docId = input.docId?.trim() || null;
+  let payload: Record<string, unknown> = {};
+  if (docId) {
+    const { data } = await supabase.from("lesson_material_documents").select("payload").eq("id", docId).eq("kind", "test_book").maybeSingle();
+    payload = (data?.payload as Record<string, unknown> | null) ?? {};
+  }
+
+  // 지난번 등록한 단어장이 아직 있으면 그것을 고친다
+  let setId = typeof payload.vocabSetId === "string" ? payload.vocabSetId : null;
+  if (setId) {
+    const { data } = await supabase.from("vocab_sets").select("id").eq("id", setId).maybeSingle();
+    if (!data) setId = null;
+  }
+  const created = !setId;
+  if (!setId) {
+    const { data: folder } = await supabase
+      .from("vocab_folders")
+      .select("id")
+      .eq("academy_id", profile!.academy_id!)
+      .eq("name", "테스트 교재")
+      .limit(1)
+      .maybeSingle();
+    let folderId = (folder?.id as string | undefined) ?? null;
+    if (!folderId) {
+      const { data: made, error: fErr } = await supabase
+        .from("vocab_folders")
+        .insert({ name: "테스트 교재", teacher_id: role === "teacher" ? profile!.id : null, created_by: profile!.id, academy_id: profile!.academy_id })
+        .select("id")
+        .single();
+      if (fErr) return { ok: false, message: fErr.message };
+      folderId = made.id as string;
+    }
+    const { data: set, error: sErr } = await supabase
+      .from("vocab_sets")
+      .insert({
+        title,
+        description: "테스트 교재에서 등록한 단어장",
+        folder_id: folderId,
+        order_index: await nextVocabSetOrderIndex(supabase, folderId),
+        teacher_id: profile!.id,
+        created_by: profile!.id,
+        is_published: true,
+        academy_id: profile!.academy_id,
+      })
+      .select("id")
+      .single();
+    if (sErr) return { ok: false, message: sErr.message };
+    setId = set.id as string;
+  } else {
+    await supabase.from("vocab_sets").update({ title }).eq("id", setId);
+  }
+
+  const saved = await persistVocabItems(supabase, setId, items);
+  if (!saved.ok) return { ok: false, message: saved.message };
+  if (docId) {
+    await supabase
+      .from("lesson_material_documents")
+      .update({ payload: { ...payload, vocabSetId: setId } })
+      .eq("id", docId)
+      .eq("kind", "test_book");
+  }
+  revalidatePath(`/${role}/vocab`);
+  return { ok: true, setId, count: items.length, created };
 }

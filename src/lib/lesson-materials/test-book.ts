@@ -26,7 +26,7 @@ import {
 } from "@/lib/lesson-materials/one-page";
 
 /** 재료 형식이 바뀌면 올린다. 옛 재료는 열 때 한 번 새로 만든다. */
-export const TEST_BOOK_MATERIAL_VERSION = "tb-1";
+export const TEST_BOOK_MATERIAL_VERSION = "tb-2";
 
 // ---------------------------------------------------------------- 유형
 
@@ -102,6 +102,9 @@ export type TestBookMaterial = {
   keyIndexes: number[];
   /** 문장마다 어순 덩어리(원래 차례). 워크북과 같은 캐시에서 온다. 못 나눈 문장은 null. */
   chunks: Array<string[] | null>;
+  /** 교과서 지문이면 그 과(「공통영어1|NE능률(민병천)|1」)와 단원문법이 든 문장(0부터) */
+  unitKey?: string | null;
+  unitHits?: Array<{ si: number; grammar: string[] }>;
   createdAt: string;
 };
 
@@ -159,6 +162,8 @@ export type TestBookOptions = {
   translation: TestBookTranslationMode;
   /** 표지 다음 학습 계획표·이수표 */
   plan: boolean;
+  /** 계획표 다음 전체 단어장(지문 단어를 한데 모음) + 전체 단어 테스트 */
+  allVocab: boolean;
   /** 지문마다 백지노트 2쪽 */
   blankNote: boolean;
   /** 맨 뒤 정답지 */
@@ -169,6 +174,7 @@ export const DEFAULT_TEST_BOOK_OPTIONS: TestBookOptions = {
   types: BASIC_TEST_BOOK_TYPES,
   translation: "hide",
   plan: true,
+  allVocab: true,
   blankNote: true,
   answers: true,
 };
@@ -180,6 +186,7 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
     types: normalizeTestBookTypes(r.types),
     translation: t === "show" || t === "hide" || t === "back" ? t : DEFAULT_TEST_BOOK_OPTIONS.translation,
     plan: r.plan !== false,
+    allVocab: r.allVocab !== false,
     blankNote: r.blankNote !== false,
     answers: r.answers !== false,
   };
@@ -202,6 +209,8 @@ export type TestItem = {
   lead?: string;
   /** 영작 조건 */
   hint?: string;
+  /** 문항 위 작은 꼬리표(단원문법) */
+  tag?: string;
   /** 쓸 줄 수 */
   lines?: number;
   /** T/F 칸 */
@@ -505,7 +514,12 @@ function orderPicks(p: Ready, seed: string): Array<{ si: number; chunks: string[
   const pool = p.material.keyIndexes
     .map((si) => ({ si, chunks: p.material.chunks[si] }))
     .filter((x): x is { si: number; chunks: string[] } => !!x.chunks && x.chunks.length >= 3 && !!p.sentences[x.si]?.korean.trim());
-  return bySentence(pickN(pool, 2, `${seed}|order`));
+  // 교과서 지문: 단원문법이 든 문장을 모두(4개까지) 먼저, 모자라면 다른 중요문장으로 2개까지 채운다
+  const unit = new Set((p.material.unitHits ?? []).map((h) => h.si));
+  const withUnit = pool.filter((x) => unit.has(x.si)).slice(0, 4);
+  const rest = pool.filter((x) => !unit.has(x.si));
+  const fill = pickN(rest, Math.max(0, 2 - withUnit.length), `${seed}|order`);
+  return bySentence([...withUnit, ...fill]);
 }
 
 function buildOrder(p: Ready, seed: string): TestSection | null {
@@ -517,9 +531,11 @@ function buildOrder(p: Ready, seed: string): TestSection | null {
     hint: "해석에 맞게 배열하기",
     items: chosen.map((c, i) => {
       const { lead, rest } = splitLead(c.chunks);
+      const grammar = p.material.unitHits?.find((h) => h.si === c.si)?.grammar ?? [];
       return {
         no: no(i),
         text: [],
+        tag: grammar.length ? `단원문법 · ${grammar.join(" · ")}` : undefined,
         ko: p.sentences[c.si]!.korean,
         lead: lead || undefined,
         chunks: shuffleChunks(rest, `${seed}|order|${c.si}`),

@@ -1,0 +1,1737 @@
+{
+ "공통영어1|NE능률(민병천)|1": [
+  {
+   "title": "주격 관계대명사 that[who]",
+   "label": "관계대명사",
+   "writing": "관계대명사"
+  },
+  {
+   "title": "it ~ to-v 구문",
+   "label": "가주어 it, 진주어 to부정사",
+   "writing": "가주어 it, 진주어 to부정사"
+  }
+ ],
+ "공통영어1|NE능률(민병천)|2": [
+  {
+   "title": "전치사+동명사 구문",
+   "label": "전치사 + 동명사",
+   "writing": "전치사 + 동명사"
+  },
+  {
+   "title": "목적격 보어로 쓰인 to부정사",
+   "label": "목적격보어 to부정사",
+   "writing": "목적격보어 to부정사"
+  }
+ ],
+ "공통영어1|NE능률(민병천)|3": [
+  {
+   "title": "목적어 역할을 하는 that절의 「(should+)동사원형」",
+   "label": "제안·요구 동사의 that절",
+   "writing": "제안·요구 동사의 that절"
+  },
+  {
+   "title": "간접 의문문",
+   "label": "간접의문문",
+   "writing": null
+  }
+ ],
+ "공통영어1|NE능률(민병천)|4": [
+  {
+   "title": "「not only A but also B」",
+   "label": "상관접속사",
+   "writing": "상관접속사"
+  },
+  {
+   "title": "동격의 접속사 that",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  }
+ ],
+ "공통영어1|NE능률(오선영)|1": [
+  {
+   "title": "동명사의 역할",
+   "label": "동명사",
+   "writing": null
+  },
+  {
+   "title": "사역동사의 목적격보어",
+   "label": "사역동사 목적격보어",
+   "writing": null
+  }
+ ],
+ "공통영어1|NE능률(오선영)|2": [
+  {
+   "title": "to부정사의 형용사적 용법",
+   "label": "to부정사의 형용사적 용법",
+   "writing": null
+  },
+  {
+   "title": "가주어 it",
+   "label": "가주어 it, 진주어 to부정사",
+   "writing": "가주어 it, 진주어 to부정사"
+  }
+ ],
+ "공통영어1|NE능률(오선영)|3": [
+  {
+   "title": "Without 가정법",
+   "label": "without/but for 가정법",
+   "writing": "without/but for 가정법"
+  },
+  {
+   "title": "명사절을 이끄는 접속사 that",
+   "label": "명사절 접속사 that",
+   "writing": null
+  }
+ ],
+ "공통영어1|NE능률(오선영)|4": [
+  {
+   "title": "명사를 뒤에서 수식하는 현재분사",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  },
+  {
+   "title": "관계대명사의 계속적 용법",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  }
+ ],
+ "공통영어1|YBM(김은형)|1": [
+  {
+   "title": "전치사 + -ing",
+   "label": "전치사 + 동명사",
+   "writing": "전치사 + 동명사"
+  },
+  {
+   "title": "동격의 that",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  }
+ ],
+ "공통영어1|YBM(김은형)|2": [
+  {
+   "title": "분사의 후치 수식",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  },
+  {
+   "title": "현재완료 수동태",
+   "label": "현재완료 수동태",
+   "writing": "현재완료 수동태"
+  }
+ ],
+ "공통영어1|YBM(김은형)|3": [
+  {
+   "title": "관계대명사 what",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  },
+  {
+   "title": "조건 부사절에서의 시제",
+   "label": "시간·조건 부사절의 현재시제",
+   "writing": null
+  }
+ ],
+ "공통영어1|YBM(김은형)|4": [
+  {
+   "title": "간접의문문",
+   "label": "간접의문문",
+   "writing": null
+  },
+  {
+   "title": "가정법 과거완료",
+   "label": "가정법 과거완료",
+   "writing": "가정법 과거완료"
+  }
+ ],
+ "공통영어1|YBM(박준언)|1": [
+  {
+   "title": "It ~ for … to부정사(구)",
+   "label": "가주어 it, 진주어 to부정사",
+   "writing": "가주어 it, 진주어 to부정사"
+  },
+  {
+   "title": "동명사",
+   "label": "동명사",
+   "writing": null
+  }
+ ],
+ "공통영어1|YBM(박준언)|2": [
+  {
+   "title": "one of the 최상급+복수명사",
+   "label": "one of the + 최상급 + 복수명사",
+   "writing": "one of the + 최상급 + 복수명사"
+  },
+  {
+   "title": "명사를 수식하는 과거분사구",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  }
+ ],
+ "공통영어1|YBM(박준언)|3": [
+  {
+   "title": "분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  },
+  {
+   "title": "현재완료 수동태",
+   "label": "현재완료 수동태",
+   "writing": "현재완료 수동태"
+  }
+ ],
+ "공통영어1|YBM(박준언)|4": [
+  {
+   "title": "목적격 보어로 쓰인 to부정사",
+   "label": "목적격보어 to부정사",
+   "writing": "목적격보어 to부정사"
+  },
+  {
+   "title": "계속적 용법의 관계대명사 which",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  }
+ ],
+ "공통영어1|동아(이병민)|1": [
+  {
+   "title": "지각동사의 목적격 보어",
+   "label": "지각동사 목적격보어",
+   "writing": "지각동사"
+  },
+  {
+   "title": "명사를 수식하는 과거분사",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  }
+ ],
+ "공통영어1|동아(이병민)|2": [
+  {
+   "title": "관계부사 where",
+   "label": "관계부사",
+   "writing": "관계부사"
+  },
+  {
+   "title": "접속사 as long as",
+   "label": "접속사 as / as long as",
+   "writing": null
+  }
+ ],
+ "공통영어1|동아(이병민)|3": [
+  {
+   "title": "동격의 접속사 that",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  },
+  {
+   "title": "명사절 접속사 whether (or not)",
+   "label": "명사절 whether/if",
+   "writing": "명사절 whether/if"
+  }
+ ],
+ "공통영어1|동아(이병민)|4": [
+  {
+   "title": "관계대명사 what",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  },
+  {
+   "title": "가주어 it과 to부정사의 의미상 주어",
+   "label": "가주어 it, 진주어 to부정사",
+   "writing": "가주어 it, 진주어 to부정사"
+  }
+ ],
+ "공통영어1|미래엔(김성연)|1": [
+  {
+   "title": "관계대명사",
+   "label": "관계대명사",
+   "writing": "관계대명사"
+  },
+  {
+   "title": "분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  }
+ ],
+ "공통영어1|미래엔(김성연)|2": [
+  {
+   "title": "how+형용사/부사+주어+동사",
+   "label": "wh- 명사절",
+   "writing": "wh- 명사절"
+  },
+  {
+   "title": "as if+가정법 과거",
+   "label": "as if 가정법",
+   "writing": "as if 가정법"
+  }
+ ],
+ "공통영어1|미래엔(김성연)|3": [
+  {
+   "title": "도치 구문",
+   "label": "부정어 도치",
+   "writing": "부정어 도치"
+  },
+  {
+   "title": "가주어-진주어 구문",
+   "label": "가주어 it, 진주어 to부정사",
+   "writing": "가주어 it, 진주어 to부정사"
+  }
+ ],
+ "공통영어1|미래엔(김성연)|4": [
+  {
+   "title": "with+(대)명사+분사",
+   "label": "with + 명사 + 분사",
+   "writing": "with + 명사 + 분사"
+  },
+  {
+   "title": "병렬 구조",
+   "label": "병렬구조",
+   "writing": null
+  }
+ ],
+ "공통영어1|비상(홍민표)|1": [
+  {
+   "title": "주어/목적어/보어로 쓰이는 wh-명사절",
+   "label": "wh- 명사절",
+   "writing": "wh- 명사절"
+  },
+  {
+   "title": "동격의 of + -ing",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  }
+ ],
+ "공통영어1|비상(홍민표)|2": [
+  {
+   "title": "접속사 while, whereas",
+   "label": "접속사 while / whereas",
+   "writing": null
+  },
+  {
+   "title": "부정어 도치",
+   "label": "부정어 도치",
+   "writing": "부정어 도치"
+  }
+ ],
+ "공통영어1|비상(홍민표)|3": [
+  {
+   "title": "과거완료 시제",
+   "label": "과거완료",
+   "writing": "과거완료"
+  },
+  {
+   "title": "to one’s+감정명사",
+   "label": "to one's + 감정명사",
+   "writing": "to one's + 감정명사"
+  }
+ ],
+ "공통영어1|비상(홍민표)|4": [
+  {
+   "title": "부사절의 「주어+be동사」 생략",
+   "label": "부사절의 「주어+be동사」 생략",
+   "writing": "부사절의 「주어+be동사」 생략"
+  },
+  {
+   "title": "관계부사 where",
+   "label": "관계부사",
+   "writing": "관계부사"
+  }
+ ],
+ "공통영어1|지학사(신상근)|1": [
+  {
+   "title": "one of the+최상급+복수명사",
+   "label": "one of the + 최상급 + 복수명사",
+   "writing": "one of the + 최상급 + 복수명사"
+  },
+  {
+   "title": "to부정사를 목적격 보어로 가지는 동사",
+   "label": "목적격보어 to부정사",
+   "writing": "목적격보어 to부정사"
+  }
+ ],
+ "공통영어1|지학사(신상근)|2": [
+  {
+   "title": "관계부사 where의 계속적 용법",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  },
+  {
+   "title": "so ~ that ...",
+   "label": "so/such ~ that",
+   "writing": null
+  }
+ ],
+ "공통영어1|지학사(신상근)|3": [
+  {
+   "title": "사역동사+목적어+목적격 보어(동사원형)",
+   "label": "사역동사 목적격보어",
+   "writing": null
+  },
+  {
+   "title": "관계대명사 which의 계속적 용법",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  }
+ ],
+ "공통영어1|지학사(신상근)|4": [
+  {
+   "title": "관계대명사 what",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  },
+  {
+   "title": "분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  }
+ ],
+ "공통영어1|천재(강상구)|1": [
+  {
+   "title": "관계대명사",
+   "label": "관계대명사",
+   "writing": "관계대명사"
+  },
+  {
+   "title": "조동사+have+과거분사",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  }
+ ],
+ "공통영어1|천재(강상구)|2": [
+  {
+   "title": "관계부사",
+   "label": "관계부사",
+   "writing": "관계부사"
+  },
+  {
+   "title": "사역동사와 목적격 보어",
+   "label": "사역동사 목적격보어",
+   "writing": null
+  }
+ ],
+ "공통영어1|천재(강상구)|3": [
+  {
+   "title": "관계대명사의 계속적 용법",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  },
+  {
+   "title": "one of the+최상급 형용사+복수명사",
+   "label": "one of the + 최상급 + 복수명사",
+   "writing": "one of the + 최상급 + 복수명사"
+  }
+ ],
+ "공통영어1|천재(강상구)|4": [
+  {
+   "title": "가목적어 it",
+   "label": "가목적어 it",
+   "writing": "가목적어 it"
+  },
+  {
+   "title": "동명사",
+   "label": "동명사",
+   "writing": null
+  }
+ ],
+ "공통영어1|천재(조수경)|1": [
+  {
+   "title": "동사구를 대신하는 do so",
+   "label": "do so",
+   "writing": null
+  },
+  {
+   "title": "목적격 보어로 쓰이는 to부정사",
+   "label": "목적격보어 to부정사",
+   "writing": "목적격보어 to부정사"
+  }
+ ],
+ "공통영어1|천재(조수경)|2": [
+  {
+   "title": "동격의 that",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  },
+  {
+   "title": "관계대명사의 계속적 용법",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  }
+ ],
+ "공통영어1|천재(조수경)|3": [
+  {
+   "title": "과거분사의 후치 수식",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  },
+  {
+   "title": "one of the+최상급+복수명사",
+   "label": "one of the + 최상급 + 복수명사",
+   "writing": "one of the + 최상급 + 복수명사"
+  }
+ ],
+ "공통영어1|천재(조수경)|4": [
+  {
+   "title": "선행사가 생략된 관계부사",
+   "label": "관계부사",
+   "writing": "관계부사"
+  },
+  {
+   "title": "현재완료 수동태",
+   "label": "현재완료 수동태",
+   "writing": "현재완료 수동태"
+  }
+ ],
+ "공통영어2|NE능률(민병천)|1": [
+  {
+   "title": "계속적 용법의 관계대명사 which",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  },
+  {
+   "title": "명사를 뒤에서 수식하는 과거분사구",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  }
+ ],
+ "공통영어2|NE능률(민병천)|2": [
+  {
+   "title": "「one of the 최상급+복수명사」",
+   "label": "one of the + 최상급 + 복수명사",
+   "writing": "one of the + 최상급 + 복수명사"
+  },
+  {
+   "title": "「it is[was] … that」 강조 구문",
+   "label": "It - that 강조구문",
+   "writing": "It - that 강조구문"
+  }
+ ],
+ "공통영어2|NE능률(민병천)|3": [
+  {
+   "title": "「so ~ that」 구문",
+   "label": "so/such ~ that",
+   "writing": null
+  },
+  {
+   "title": "「조동사＋have p.p.」 구문",
+   "label": "조동사 + have p.p.",
+   "writing": "조동사 + have p.p."
+  }
+ ],
+ "공통영어2|NE능률(민병천)|4": [
+  {
+   "title": "「with+명사+분사」",
+   "label": "with + 명사 + 분사",
+   "writing": "with + 명사 + 분사"
+  },
+  {
+   "title": "관계부사",
+   "label": "관계부사",
+   "writing": "관계부사"
+  }
+ ],
+ "공통영어2|NE능률(오선영)|1": [
+  {
+   "title": "부정어(구)에 의한 도치",
+   "label": "부정어 도치",
+   "writing": "부정어 도치"
+  },
+  {
+   "title": "관계대명사 what",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  }
+ ],
+ "공통영어2|NE능률(오선영)|2": [
+  {
+   "title": "분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  },
+  {
+   "title": "「one of the 최상급+복수명사」",
+   "label": "one of the + 최상급 + 복수명사",
+   "writing": "one of the + 최상급 + 복수명사"
+  }
+ ],
+ "공통영어2|NE능률(오선영)|3": [
+  {
+   "title": "목적격보어로 쓰이는 to부정사",
+   "label": "목적격보어 to부정사",
+   "writing": "목적격보어 to부정사"
+  },
+  {
+   "title": "조동사+have p.p.",
+   "label": "조동사 + have p.p.",
+   "writing": "조동사 + have p.p."
+  }
+ ],
+ "공통영어2|NE능률(오선영)|4": [
+  {
+   "title": "관계부사",
+   "label": "관계부사",
+   "writing": "관계부사"
+  },
+  {
+   "title": "가목적어 it",
+   "label": "가목적어 it",
+   "writing": "가목적어 it"
+  }
+ ],
+ "공통영어2|YBM(김은형)|1": [
+  {
+   "title": "관계부사 when, where",
+   "label": "관계부사",
+   "writing": "관계부사"
+  },
+  {
+   "title": "분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  }
+ ],
+ "공통영어2|YBM(김은형)|2": [
+  {
+   "title": "「It is/was ... that」 강조",
+   "label": "It - that 강조구문",
+   "writing": "It - that 강조구문"
+  },
+  {
+   "title": "「so+형용사/부사+that ...」",
+   "label": "so/such ~ that",
+   "writing": null
+  }
+ ],
+ "공통영어2|YBM(김은형)|3": [
+  {
+   "title": "목적격 보어로 쓰이는 to부정사",
+   "label": "목적격보어 to부정사",
+   "writing": "목적격보어 to부정사"
+  },
+  {
+   "title": "관계대명사의 계속적 용법",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  }
+ ],
+ "공통영어2|YBM(김은형)|4": [
+  {
+   "title": "복합관계부사 however",
+   "label": "복합관계사",
+   "writing": "복합관계사"
+  },
+  {
+   "title": "「주어+request that+주어+(should) 동사원형」",
+   "label": "제안·요구 동사의 that절",
+   "writing": "제안·요구 동사의 that절"
+  }
+ ],
+ "공통영어2|YBM(박준언)|1": [
+  {
+   "title": "동격의 that",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  },
+  {
+   "title": "so ~ that ...",
+   "label": "so/such ~ that",
+   "writing": null
+  }
+ ],
+ "공통영어2|YBM(박준언)|2": [
+  {
+   "title": "관계대명사 what",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  },
+  {
+   "title": "조건의 부사절 접속사",
+   "label": "조건의 접속사",
+   "writing": "조건의 접속사"
+  }
+ ],
+ "공통영어2|YBM(박준언)|3": [
+  {
+   "title": "관계부사",
+   "label": "관계부사",
+   "writing": "관계부사"
+  },
+  {
+   "title": "상관접속사",
+   "label": "상관접속사",
+   "writing": "상관접속사"
+  }
+ ],
+ "공통영어2|YBM(박준언)|4": [
+  {
+   "title": "가정법 과거완료",
+   "label": "가정법 과거완료",
+   "writing": "가정법 과거완료"
+  },
+  {
+   "title": "It ~ that 강조 구문",
+   "label": "It - that 강조구문",
+   "writing": "It - that 강조구문"
+  }
+ ],
+ "공통영어2|동아(이병민)|1": [
+  {
+   "title": "부정어 도치",
+   "label": "부정어 도치",
+   "writing": "부정어 도치"
+  },
+  {
+   "title": "분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  }
+ ],
+ "공통영어2|동아(이병민)|2": [
+  {
+   "title": "최상급 구문 「one of the+최상급+복수명사」",
+   "label": "one of the + 최상급 + 복수명사",
+   "writing": "one of the + 최상급 + 복수명사"
+  },
+  {
+   "title": "현재완료 수동태",
+   "label": "현재완료 수동태",
+   "writing": "현재완료 수동태"
+  }
+ ],
+ "공통영어2|동아(이병민)|3": [
+  {
+   "title": "계속적 용법의 관계대명사",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  },
+  {
+   "title": "가정법 과거",
+   "label": "가정법 과거",
+   "writing": "가정법 과거"
+  }
+ ],
+ "공통영어2|동아(이병민)|4": [
+  {
+   "title": "조동사+have+p.p.",
+   "label": "조동사 + have p.p.",
+   "writing": "조동사 + have p.p."
+  },
+  {
+   "title": "「It ~ that ...」 강조 구문",
+   "label": "It - that 강조구문",
+   "writing": "It - that 강조구문"
+  }
+ ],
+ "공통영어2|미래엔(김성연)|1": [
+  {
+   "title": "5형식 동사+목적어+to부정사",
+   "label": "5형식 목적격보어 to부정사",
+   "writing": null
+  },
+  {
+   "title": "과거완료",
+   "label": "과거완료",
+   "writing": "과거완료"
+  }
+ ],
+ "공통영어2|미래엔(김성연)|2": [
+  {
+   "title": "조동사+have p.p.",
+   "label": "조동사 + have p.p.",
+   "writing": "조동사 + have p.p."
+  },
+  {
+   "title": "suggest that+주어+(should) 동사원형",
+   "label": "제안·요구 동사의 that절",
+   "writing": "제안·요구 동사의 that절"
+  }
+ ],
+ "공통영어2|미래엔(김성연)|3": [
+  {
+   "title": "접속사 vs. 전치사",
+   "label": "접속사와 전치사 구별",
+   "writing": null
+  },
+  {
+   "title": "관계사의 계속적 용법",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  }
+ ],
+ "공통영어2|미래엔(김성연)|4": [
+  {
+   "title": "가목적어 - 진목적어 구문",
+   "label": "가목적어 it",
+   "writing": "가목적어 it"
+  },
+  {
+   "title": "동격의 that",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  }
+ ],
+ "공통영어2|비상(홍민표)|1": [
+  {
+   "title": "분사의 후치 수식",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  },
+  {
+   "title": "as+many[much] 명사+as",
+   "label": "as many[much] + 명사 + as",
+   "writing": "as many[much] + 명사 + as"
+  }
+ ],
+ "공통영어2|비상(홍민표)|2": [
+  {
+   "title": "조건절을 이끄는 unless",
+   "label": "조건의 접속사",
+   "writing": "조건의 접속사"
+  },
+  {
+   "title": "with+명사+현재분사[과거분사]",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  }
+ ],
+ "공통영어2|비상(홍민표)|3": [
+  {
+   "title": "앞 문장 전체를 받는 관계대명사 which",
+   "label": "관계대명사",
+   "writing": "관계대명사"
+  },
+  {
+   "title": "동사+목적어+to부정사",
+   "label": "5형식 목적격보어 to부정사",
+   "writing": null
+  }
+ ],
+ "공통영어2|비상(홍민표)|4": [
+  {
+   "title": "without ~, 주어+would ...",
+   "label": "without/but for 가정법",
+   "writing": "without/but for 가정법"
+  },
+  {
+   "title": "seem to＋완료부정사",
+   "label": "완료부정사",
+   "writing": "완료부정사"
+  }
+ ],
+ "공통영어2|지학사(신상근)|1": [
+  {
+   "title": "재귀대명사의 강조 용법",
+   "label": "재귀대명사",
+   "writing": "재귀대명사"
+  },
+  {
+   "title": "현재완료진행 시제",
+   "label": "현재완료",
+   "writing": null
+  }
+ ],
+ "공통영어2|지학사(신상근)|2": [
+  {
+   "title": "「조동사+have p.p.」",
+   "label": "조동사 + have p.p.",
+   "writing": "조동사 + have p.p."
+  },
+  {
+   "title": "상관 접속사 「not only A but also B」",
+   "label": "상관접속사",
+   "writing": "상관접속사"
+  }
+ ],
+ "공통영어2|지학사(신상근)|3": [
+  {
+   "title": "비교급 강조 표현",
+   "label": "비교급",
+   "writing": null
+  },
+  {
+   "title": "미래완료 시제 「will have p.p.」",
+   "label": "조동사 + have p.p.",
+   "writing": "조동사 + have p.p."
+  }
+ ],
+ "공통영어2|지학사(신상근)|4": [
+  {
+   "title": "「주격 관계대명사+be동사」 생략",
+   "label": "관계대명사",
+   "writing": "관계대명사"
+  },
+  {
+   "title": "「with+명사+분사」 분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  }
+ ],
+ "공통영어2|천재(강상구)|1": [
+  {
+   "title": "가정법 과거/ 가정법 과거완료",
+   "label": "가정법 과거완료",
+   "writing": "가정법 과거완료"
+  },
+  {
+   "title": "It ~ that 강조 구문",
+   "label": "It - that 강조구문",
+   "writing": "It - that 강조구문"
+  }
+ ],
+ "공통영어2|천재(강상구)|2": [
+  {
+   "title": "명사 뒤에서 명사를 꾸미는 분사",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  },
+  {
+   "title": "관계대명사 what",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  }
+ ],
+ "공통영어2|천재(강상구)|3": [
+  {
+   "title": "분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  },
+  {
+   "title": "동격을 나타내는 that절",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  }
+ ],
+ "공통영어2|천재(강상구)|4": [
+  {
+   "title": "「with+목적어+현재분사/과거분사」",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  },
+  {
+   "title": "현재완료 수동태",
+   "label": "현재완료 수동태",
+   "writing": "현재완료 수동태"
+  }
+ ],
+ "공통영어2|천재(조수경)|1": [
+  {
+   "title": "cannot … enough",
+   "label": "cannot ~ too / enough",
+   "writing": "cannot ~ too / enough"
+  },
+  {
+   "title": "with 분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  }
+ ],
+ "공통영어2|천재(조수경)|2": [
+  {
+   "title": "「부사구+동사+주어」의 도치 구문",
+   "label": "부정어 도치",
+   "writing": "부정어 도치"
+  },
+  {
+   "title": "동명사를 이용한 관용적 표현",
+   "label": "동명사",
+   "writing": null
+  }
+ ],
+ "공통영어2|천재(조수경)|3": [
+  {
+   "title": "복합관계대명사",
+   "label": "복합관계사",
+   "writing": "복합관계사"
+  },
+  {
+   "title": "not A but B",
+   "label": "not A but B",
+   "writing": "not A but B"
+  }
+ ],
+ "공통영어2|천재(조수경)|4": [
+  {
+   "title": "may have+과거분사",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  },
+  {
+   "title": "부사절의 「주어+be동사」 생략",
+   "label": "부사절의 「주어+be동사」 생략",
+   "writing": "부사절의 「주어+be동사」 생략"
+  }
+ ],
+ "영어II|NE능률(오선영)|1": [
+  {
+   "title": "과거완료 수동태",
+   "label": "수동태",
+   "writing": "수동태"
+  },
+  {
+   "title": "재귀대명사의 강조용법",
+   "label": "재귀대명사",
+   "writing": "재귀대명사"
+  }
+ ],
+ "영어II|NE능률(오선영)|2": [
+  {
+   "title": "「It is[was] ~ that」 강조 구문",
+   "label": "It - that 강조구문",
+   "writing": "It - that 강조구문"
+  },
+  {
+   "title": "가정법을 포함하는 구문",
+   "label": "가정법 과거",
+   "writing": "가정법 과거"
+  }
+ ],
+ "영어II|NE능률(오선영)|3": [
+  {
+   "title": "상관접속사 not A but B",
+   "label": "상관접속사",
+   "writing": "상관접속사"
+  },
+  {
+   "title": "복합관계대명사",
+   "label": "복합관계사",
+   "writing": "복합관계사"
+  }
+ ],
+ "영어II|YBM(박준언)|1": [
+  {
+   "title": "부정어 강조 도치",
+   "label": "부정어 도치",
+   "writing": "부정어 도치"
+  },
+  {
+   "title": "cannot ~ too much",
+   "label": "cannot ~ too / enough",
+   "writing": "cannot ~ too / enough"
+  }
+ ],
+ "영어II|YBM(박준언)|2": [
+  {
+   "title": "복합관계대명사",
+   "label": "복합관계사",
+   "writing": "복합관계사"
+  },
+  {
+   "title": "독립부정사",
+   "label": "독립부정사",
+   "writing": "독립부정사"
+  }
+ ],
+ "영어II|YBM(박준언)|3": [
+  {
+   "title": "완료부정사",
+   "label": "완료부정사",
+   "writing": "완료부정사"
+  },
+  {
+   "title": "강조의 what",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  }
+ ],
+ "영어II|동아(박용예)|1": [
+  {
+   "title": "가목적어 it",
+   "label": "가목적어 it",
+   "writing": "가목적어 it"
+  },
+  {
+   "title": "관계대명사 what",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  }
+ ],
+ "영어II|동아(박용예)|2": [
+  {
+   "title": "It ~ that 강조 구문",
+   "label": "It - that 강조구문",
+   "writing": "It - that 강조구문"
+  },
+  {
+   "title": "지각동사",
+   "label": "지각동사 목적격보어",
+   "writing": "지각동사"
+  }
+ ],
+ "영어II|동아(박용예)|3": [
+  {
+   "title": "도치",
+   "label": "부정어 도치",
+   "writing": "부정어 도치"
+  },
+  {
+   "title": "one of the+최상급+복수명사",
+   "label": "one of the + 최상급 + 복수명사",
+   "writing": "one of the + 최상급 + 복수명사"
+  }
+ ],
+ "영어II|미래엔(김성연)|1": [
+  {
+   "title": "관계부사",
+   "label": "관계부사",
+   "writing": "관계부사"
+  },
+  {
+   "title": "결과를 나타내는 so ~ that",
+   "label": "so/such ~ that",
+   "writing": null
+  }
+ ],
+ "영어II|미래엔(김성연)|2": [
+  {
+   "title": "Without 가정법",
+   "label": "without/but for 가정법",
+   "writing": "without/but for 가정법"
+  },
+  {
+   "title": "수의 일치",
+   "label": "수일치",
+   "writing": null
+  }
+ ],
+ "영어II|미래엔(김성연)|3": [
+  {
+   "title": "간접의문문",
+   "label": "간접의문문",
+   "writing": null
+  },
+  {
+   "title": "재귀대명사",
+   "label": "재귀대명사",
+   "writing": "재귀대명사"
+  }
+ ],
+ "영어II|비상(홍민표)|1": [
+  {
+   "title": "조동사+have+과거분사",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  },
+  {
+   "title": "강조의 it ... that",
+   "label": "It - that 강조구문",
+   "writing": "It - that 강조구문"
+  }
+ ],
+ "영어II|비상(홍민표)|2": [
+  {
+   "title": "조건을 나타내는 접속사",
+   "label": "조건의 접속사",
+   "writing": "조건의 접속사"
+  }
+ ],
+ "영어II|비상(홍민표)|3": [
+  {
+   "title": "관계대명사 what",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  },
+  {
+   "title": "대동사 do+so",
+   "label": "대동사 do",
+   "writing": null
+  }
+ ],
+ "영어II|지학사(신상근)|1": [
+  {
+   "title": "가목적어 it",
+   "label": "가목적어 it",
+   "writing": "가목적어 it"
+  },
+  {
+   "title": "without 가정법 과거",
+   "label": "without/but for 가정법",
+   "writing": "without/but for 가정법"
+  }
+ ],
+ "영어II|지학사(신상근)|2": [
+  {
+   "title": "대동사 do",
+   "label": "대동사 do",
+   "writing": null
+  },
+  {
+   "title": "동격의 of",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  }
+ ],
+ "영어II|지학사(신상근)|3": [
+  {
+   "title": "동명사의 의미상 주어",
+   "label": "to부정사 의미상 주어",
+   "writing": "to부정사 의미상 주어"
+  },
+  {
+   "title": "현재완료 수동태",
+   "label": "현재완료 수동태",
+   "writing": "현재완료 수동태"
+  }
+ ],
+ "영어II|천재(강상구)|1": [
+  {
+   "title": "「of+동명사」",
+   "label": "동명사",
+   "writing": null
+  },
+  {
+   "title": "형용사로 시작하는 분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  }
+ ],
+ "영어II|천재(강상구)|2": [
+  {
+   "title": "완료분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  },
+  {
+   "title": "「be being+형용사/명사」",
+   "label": "be being + 형용사",
+   "writing": null
+  }
+ ],
+ "영어II|천재(강상구)|3": [
+  {
+   "title": "「to one’s+감정 명사」",
+   "label": "to one's + 감정명사",
+   "writing": "to one's + 감정명사"
+  },
+  {
+   "title": "5형식 문장의 수동태",
+   "label": "수동태",
+   "writing": "수동태"
+  }
+ ],
+ "영어II|천재(조수경)|1": [
+  {
+   "title": "분사구문 being 생략",
+   "label": "분사구문",
+   "writing": "분사구문"
+  },
+  {
+   "title": "if/whether 간접의문문",
+   "label": "명사절 whether/if",
+   "writing": "명사절 whether/if"
+  }
+ ],
+ "영어II|천재(조수경)|2": [
+  {
+   "title": "부정어 도치",
+   "label": "부정어 도치",
+   "writing": "부정어 도치"
+  },
+  {
+   "title": "조건을 나타내는 접속사 in case",
+   "label": "조건의 접속사",
+   "writing": "조건의 접속사"
+  }
+ ],
+ "영어II|천재(조수경)|3": [
+  {
+   "title": "as if 가정법 과거",
+   "label": "as if 가정법",
+   "writing": "as if 가정법"
+  },
+  {
+   "title": "조건을 나타내는 접속사 provided that",
+   "label": "조건의 접속사",
+   "writing": "조건의 접속사"
+  }
+ ],
+ "영어I|NE능률(오선영)|1": [
+  {
+   "title": "to부정사를 목적격 보어로 취하는 동사",
+   "label": "목적격보어 to부정사",
+   "writing": "목적격보어 to부정사"
+  },
+  {
+   "title": "so ~ that … 구문",
+   "label": "so/such ~ that",
+   "writing": null
+  }
+ ],
+ "영어I|NE능률(오선영)|2": [
+  {
+   "title": "단순 조건문 (if 조건문)",
+   "label": "조건의 접속사",
+   "writing": "조건의 접속사"
+  },
+  {
+   "title": "동격을 나타내는 전치사 of",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  }
+ ],
+ "영어I|NE능률(오선영)|3": [
+  {
+   "title": "분사의 후치수식",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  },
+  {
+   "title": "의문사+to부정사",
+   "label": "wh- 명사절",
+   "writing": "wh- 명사절"
+  }
+ ],
+ "영어I|NE능률(오선영)|4": [
+  {
+   "title": "부사절의 「주어+be동사」 생략",
+   "label": "부사절의 「주어+be동사」 생략",
+   "writing": "부사절의 「주어+be동사」 생략"
+  },
+  {
+   "title": "대동사 do를 이용한 표현",
+   "label": "대동사 do",
+   "writing": null
+  }
+ ],
+ "영어I|NE능률(오선영)|5": [
+  {
+   "title": "help+목적어+동사원형",
+   "label": "help + 목적어 + 동사원형",
+   "writing": "help + 목적어 + 동사원형"
+  },
+  {
+   "title": "의문문의 화법 전환 (ask if)",
+   "label": "화법 전환",
+   "writing": null
+  }
+ ],
+ "영어I|YBM(박준언)|1": [
+  {
+   "title": "전치사+관계대명사",
+   "label": "전치사 + 관계대명사",
+   "writing": "전치사 + 관계대명사"
+  },
+  {
+   "title": "가목적어 it ~ 진목적어",
+   "label": "가목적어 it",
+   "writing": "가목적어 it"
+  }
+ ],
+ "영어I|YBM(박준언)|2": [
+  {
+   "title": "현재완료진행 시제",
+   "label": "현재완료",
+   "writing": null
+  },
+  {
+   "title": "재귀대명사",
+   "label": "재귀대명사",
+   "writing": "재귀대명사"
+  }
+ ],
+ "영어I|YBM(박준언)|3": [
+  {
+   "title": "과거완료 시제",
+   "label": "과거완료",
+   "writing": "과거완료"
+  },
+  {
+   "title": "당위성을 나타내는 동사의 활용",
+   "label": "제안·요구 동사의 that절",
+   "writing": "제안·요구 동사의 that절"
+  }
+ ],
+ "영어I|YBM(박준언)|4": [
+  {
+   "title": "「with+명사+분사」 구문",
+   "label": "with + 명사 + 분사",
+   "writing": "with + 명사 + 분사"
+  },
+  {
+   "title": "부사구 강조 도치",
+   "label": "부정어 도치",
+   "writing": "부정어 도치"
+  }
+ ],
+ "영어I|YBM(박준언)|5": [
+  {
+   "title": "as if 가정법",
+   "label": "as if 가정법",
+   "writing": "as if 가정법"
+  },
+  {
+   "title": "대동사 do",
+   "label": "대동사 do",
+   "writing": null
+  }
+ ],
+ "영어I|동아(박용예)|1": [
+  {
+   "title": "간접의문문",
+   "label": "간접의문문",
+   "writing": null
+  },
+  {
+   "title": "대동사 do",
+   "label": "대동사 do",
+   "writing": null
+  }
+ ],
+ "영어I|동아(박용예)|2": [
+  {
+   "title": "관계부사",
+   "label": "관계부사",
+   "writing": "관계부사"
+  },
+  {
+   "title": "suggest (that)+주어+(should+)동사원형",
+   "label": "제안·요구 동사의 that절",
+   "writing": "제안·요구 동사의 that절"
+  }
+ ],
+ "영어I|동아(박용예)|3": [
+  {
+   "title": "계속적 용법의 which",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  },
+  {
+   "title": "접속사+분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  }
+ ],
+ "영어I|동아(박용예)|4": [
+  {
+   "title": "가정법 과거완료",
+   "label": "가정법 과거완료",
+   "writing": "가정법 과거완료"
+  },
+  {
+   "title": "복합관계부사",
+   "label": "복합관계사",
+   "writing": "복합관계사"
+  }
+ ],
+ "영어I|동아(박용예)|5": [
+  {
+   "title": "「with+명사+분사」구문",
+   "label": "with + 명사 + 분사",
+   "writing": "with + 명사 + 분사"
+  },
+  {
+   "title": "to부정사 목적격 보어",
+   "label": "목적격보어 to부정사",
+   "writing": "목적격보어 to부정사"
+  }
+ ],
+ "영어I|동아(박용예)|6": [
+  {
+   "title": "분사구 후치 수식",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  },
+  {
+   "title": "so that ~ can ...",
+   "label": "목적의 so that",
+   "writing": "목적의 so that"
+  }
+ ],
+ "영어I|미래엔(김성연)|1": [
+  {
+   "title": "관계대명사 which의 계속적 용법",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  },
+  {
+   "title": "부정어 도치",
+   "label": "부정어 도치",
+   "writing": "부정어 도치"
+  }
+ ],
+ "영어I|미래엔(김성연)|2": [
+  {
+   "title": "형용사의 명사 후치 수식",
+   "label": "명사 수식 분사",
+   "writing": "명사 수식 분사"
+  },
+  {
+   "title": "접속사 as의 쓰임",
+   "label": "접속사 as / as long as",
+   "writing": null
+  }
+ ],
+ "영어I|미래엔(김성연)|3": [
+  {
+   "title": "병렬 구조",
+   "label": "병렬구조",
+   "writing": null
+  },
+  {
+   "title": "명사절을 이끄는 접속사 if",
+   "label": "명사절 whether/if",
+   "writing": "명사절 whether/if"
+  }
+ ],
+ "영어I|미래엔(김성연)|4": [
+  {
+   "title": "접속사가 남아 있는 분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  },
+  {
+   "title": "부사절을 이끄는 복합관계대명사 whatever",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  }
+ ],
+ "영어I|미래엔(김성연)|5": [
+  {
+   "title": "it 가주어 that절 진주어 구문",
+   "label": "가주어 it, 진주어 to부정사",
+   "writing": "가주어 it, 진주어 to부정사"
+  },
+  {
+   "title": "현재완료 수동태",
+   "label": "현재완료 수동태",
+   "writing": "현재완료 수동태"
+  }
+ ],
+ "영어I|비상(홍민표)|1": [
+  {
+   "title": "간접화법에 쓰이는 whether[if]",
+   "label": "명사절 whether/if",
+   "writing": "명사절 whether/if"
+  },
+  {
+   "title": "상관접속사 not A but B",
+   "label": "상관접속사",
+   "writing": "상관접속사"
+  }
+ ],
+ "영어I|비상(홍민표)|2": [
+  {
+   "title": "현재완료 수동태",
+   "label": "현재완료 수동태",
+   "writing": "현재완료 수동태"
+  },
+  {
+   "title": "전치사+관계대명사",
+   "label": "전치사 + 관계대명사",
+   "writing": "전치사 + 관계대명사"
+  }
+ ],
+ "영어I|비상(홍민표)|3": [
+  {
+   "title": "반복되는 문장 성분의 생략",
+   "label": "부사절의 「주어+be동사」 생략",
+   "writing": "부사절의 「주어+be동사」 생략"
+  },
+  {
+   "title": "동격의 that",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  }
+ ],
+ "영어I|비상(홍민표)|4": [
+  {
+   "title": "관계부사",
+   "label": "관계부사",
+   "writing": "관계부사"
+  },
+  {
+   "title": "one of the+최상급+복수 명사",
+   "label": "one of the + 최상급 + 복수명사",
+   "writing": "one of the + 최상급 + 복수명사"
+  }
+ ],
+ "영어I|지학사(신상근)|1": [
+  {
+   "title": "복합관계대명사 whatever",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  },
+  {
+   "title": "「the+비교급~, the+비교급 ...」구문",
+   "label": "the + 비교급, the + 비교급",
+   "writing": "the + 비교급, the + 비교급"
+  }
+ ],
+ "영어I|지학사(신상근)|2": [
+  {
+   "title": "should의 특별용법",
+   "label": "제안·요구 동사의 that절",
+   "writing": "제안·요구 동사의 that절"
+  },
+  {
+   "title": "목적의 접속사 so (that)",
+   "label": "목적의 so that",
+   "writing": "목적의 so that"
+  }
+ ],
+ "영어I|지학사(신상근)|3": [
+  {
+   "title": "could have p.p.",
+   "label": "조동사 + have p.p.",
+   "writing": "조동사 + have p.p."
+  },
+  {
+   "title": "부사절에서 「주어+be동사」의 생략",
+   "label": "부사절의 「주어+be동사」 생략",
+   "writing": "부사절의 「주어+be동사」 생략"
+  }
+ ],
+ "영어I|지학사(신상근)|4": [
+  {
+   "title": "수동태 분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  },
+  {
+   "title": "동격의 that",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  }
+ ],
+ "영어I|지학사(신상근)|5": [
+  {
+   "title": "명사절을 이끄는 접속사 if",
+   "label": "명사절 whether/if",
+   "writing": "명사절 whether/if"
+  },
+  {
+   "title": "either A or B",
+   "label": "상관접속사",
+   "writing": "상관접속사"
+  }
+ ],
+ "영어I|천재(강상구)|1": [
+  {
+   "title": "계속적 용법의 「전치사+관계대명사」",
+   "label": "관계대명사 계속적 용법",
+   "writing": "관계대명사 계속적 용법"
+  },
+  {
+   "title": "「접속사+분사구문」",
+   "label": "분사구문",
+   "writing": "분사구문"
+  }
+ ],
+ "영어I|천재(강상구)|2": [
+  {
+   "title": "복합관계대명사 whatever, whoever",
+   "label": "관계대명사 what",
+   "writing": "관계대명사 what"
+  },
+  {
+   "title": "「all+주어+동사+is+~」",
+   "label": "「all + 주어 + 동사 + is ~」",
+   "writing": null
+  }
+ ],
+ "영어I|천재(강상구)|3": [
+  {
+   "title": "재귀대명사의 강조 용법",
+   "label": "재귀대명사",
+   "writing": "재귀대명사"
+  },
+  {
+   "title": "독립부정사",
+   "label": "독립부정사",
+   "writing": "독립부정사"
+  }
+ ],
+ "영어I|천재(강상구)|4": [
+  {
+   "title": "이유를 나타내는 관계부사 why",
+   "label": "관계부사",
+   "writing": "관계부사"
+  },
+  {
+   "title": "반복되는 동사(구)의 생략",
+   "label": "부사절의 「주어+be동사」 생략",
+   "writing": "부사절의 「주어+be동사」 생략"
+  }
+ ],
+ "영어I|천재(강상구)|5": [
+  {
+   "title": "부정어(구) 도치",
+   "label": "부정어 도치",
+   "writing": "부정어 도치"
+  },
+  {
+   "title": "「as if」 가정법",
+   "label": "as if 가정법",
+   "writing": "as if 가정법"
+  }
+ ],
+ "영어I|천재(조수경)|1": [
+  {
+   "title": "주장·제안의 동사 (that)+주어+(should+)동사원형",
+   "label": "제안·요구 동사의 that절",
+   "writing": "제안·요구 동사의 that절"
+  },
+  {
+   "title": "재귀대명사의 강조 용법",
+   "label": "재귀대명사",
+   "writing": "재귀대명사"
+  }
+ ],
+ "영어I|천재(조수경)|2": [
+  {
+   "title": "「as many+복수 명사+as」",
+   "label": "as many[much] + 명사 + as",
+   "writing": "as many[much] + 명사 + as"
+  },
+  {
+   "title": "It ~ that 강조 구문",
+   "label": "It - that 강조구문",
+   "writing": "It - that 강조구문"
+  }
+ ],
+ "영어I|천재(조수경)|3": [
+  {
+   "title": "관계부사 where",
+   "label": "관계부사",
+   "writing": "관계부사"
+  },
+  {
+   "title": "조건의 부사절을 이끄는 종속접속사 unless",
+   "label": "조건의 접속사",
+   "writing": "조건의 접속사"
+  }
+ ],
+ "영어I|천재(조수경)|4": [
+  {
+   "title": "should have p.p.",
+   "label": "조동사 + have p.p.",
+   "writing": "조동사 + have p.p."
+  },
+  {
+   "title": "동명사의 의미상의 주어",
+   "label": "동명사",
+   "writing": null
+  }
+ ],
+ "영어I|천재(조수경)|5": [
+  {
+   "title": "독립분사구문",
+   "label": "분사구문",
+   "writing": "분사구문"
+  },
+  {
+   "title": "사역동사의 수동태",
+   "label": "사역동사 목적격보어",
+   "writing": null
+  }
+ ],
+ "영어I|천재(조수경)|6": [
+  {
+   "title": "동격의 of",
+   "label": "동격의 that",
+   "writing": "동격의 that"
+  },
+  {
+   "title": "전치사+관계대명사",
+   "label": "전치사 + 관계대명사",
+   "writing": "전치사 + 관계대명사"
+  }
+ ]
+}

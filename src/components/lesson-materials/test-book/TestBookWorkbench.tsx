@@ -9,6 +9,7 @@ import type { renameLessonMaterialDocument } from "@/lib/lesson-materials/docume
 import { defaultDocumentName } from "@/lib/lesson-materials/documents";
 import type {
   prepareTestBookPassageAction,
+  registerTestBookVocabAction,
   saveTestBookOptionsAction,
 } from "@/lib/lesson-materials/test-book-actions";
 import {
@@ -27,6 +28,9 @@ import { closeTabOrGo, useCreateDocumentFromUrl } from "@/components/lesson-mate
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 import { downloadSheetsPdf, pdfFileName } from "@/lib/pdf/download-sheets-pdf";
 import {
+  AllVocabSheets,
+  AllWordAnswerSheets,
+  AllWordTestSheets,
   AnswerSheets,
   BlankNoteSheets,
   LessonSheets,
@@ -41,6 +45,7 @@ import {
 
 type Mode = "book" | "draw";
 type PrepareResult = Awaited<ReturnType<typeof prepareTestBookPassageAction>>;
+type RegisterResult = Awaited<ReturnType<typeof registerTestBookVocabAction>>;
 
 const CONCURRENCY = 3;
 const BOOK_SEED = "book";
@@ -272,6 +277,25 @@ export function TestBookWorkbench({
     document.head.appendChild(el);
     return () => el.remove();
   }, []);
+  /** 단어학습 등록 */
+  const [vocabReg, setVocabReg] = useState<{ busy: boolean; msg?: string; href?: string; error?: boolean }>({ busy: false });
+  async function registerVocab() {
+    setVocabReg({ busy: true });
+    const res = await postJson<RegisterResult>("/api/lesson-materials/test-book", {
+      op: "registerVocab",
+      role,
+      id: docIdRef.current,
+      title: titleRef.current,
+      projectIds: projects.map((p) => p.id),
+    });
+    if (res.ok) {
+      setVocabReg({
+        busy: false,
+        msg: `${res.created ? "등록했습니다" : "새 내용으로 맞췄습니다"} · ${res.count}단어`,
+        href: `/${role}/vocab/set/${res.setId}`,
+      });
+    } else setVocabReg({ busy: false, msg: res.message, error: true });
+  }
   const [pdfBusy, setPdfBusy] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
   async function savePdf() {
@@ -385,6 +409,7 @@ export function TestBookWorkbench({
                 {(
                   [
                     ["plan", "학습 계획표·이수표 (맨 앞)"],
+                    ["allVocab", "전체 단어장·전체 단어 TEST (계획표 다음)"],
                     ["blankNote", "백지노트 2쪽 (지문마다)"],
                     ["answers", "정답지 (맨 뒤)"],
                   ] as const
@@ -399,6 +424,28 @@ export function TestBookWorkbench({
                     {label}
                   </label>
                 ))}
+              </div>
+              <div className="space-y-1.5 rounded-lg border border-emerald-200 bg-emerald-50/60 p-3">
+                <p className="text-xs font-bold text-emerald-900">단어학습 단어장</p>
+                <p className="text-[11px] leading-relaxed text-slate-600">
+                  전체 단어(뜻·품사·동의어·반의어·지문 예문)를 단어학습 「테스트 교재」 폴더에 단어장으로 넣습니다. 다시 누르면 같은 단어장을 고칩니다.
+                </p>
+                <Button type="button" size="sm" variant="secondary" className="w-full" disabled={vocabReg.busy || busy || !ready.length} onClick={() => void registerVocab()}>
+                  {vocabReg.busy ? "등록 중…" : "단어학습에 등록"}
+                </Button>
+                {vocabReg.msg ? (
+                  <p className={`text-[11px] font-semibold ${vocabReg.error ? "text-rose-600" : "text-emerald-700"}`}>
+                    {vocabReg.msg}
+                    {vocabReg.href ? (
+                      <>
+                        {" · "}
+                        <a href={vocabReg.href} target="_blank" rel="noreferrer" className="underline">
+                          단어장 열기
+                        </a>
+                      </>
+                    ) : null}
+                  </p>
+                ) : null}
               </div>
               <div className="space-y-2 rounded-lg border border-violet-200 bg-violet-50/60 p-3">
                 <p className="text-xs font-bold text-violet-900">테스트 견본에 실을 유형</p>
@@ -534,6 +581,12 @@ export function TestBookWorkbench({
               {mode === "book" ? (
                 <>
                   {options.plan && ready.length ? <PlanSheets projects={ready} types={options.types} measureKey={measureKey} /> : null}
+                  {options.allVocab && ready.length ? (
+                    <>
+                      <AllVocabSheets projects={ready} indexOf={indexOf} measureKey={measureKey} />
+                      <AllWordTestSheets projects={ready} indexOf={indexOf} measureKey={measureKey} />
+                    </>
+                  ) : null}
                   {projects.map((p, i) => {
                     const entry = book.find((b) => b.project.id === p.id);
                     if (!entry) {
@@ -559,6 +612,9 @@ export function TestBookWorkbench({
                     );
                   })}
                   {options.translation === "back" && ready.length ? <TranslationBackSheets projects={ready} measureKey={measureKey} /> : null}
+                  {options.answers && options.allVocab && ready.length ? (
+                    <AllWordAnswerSheets projects={ready} indexOf={indexOf} measureKey={measureKey} />
+                  ) : null}
                   {options.answers && book.length ? (
                     <AnswerSheets
                       entries={book.map((b) => ({ index: indexOf(b.project.id), project: b.project, word: b.word, sheet: b.sheet }))}

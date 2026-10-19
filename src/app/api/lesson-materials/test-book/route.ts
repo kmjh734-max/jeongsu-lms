@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   prepareTestBookPassageAction,
+  registerTestBookVocabAction,
   saveTestBookOptionsAction,
 } from "@/lib/lesson-materials/test-book-actions";
 
@@ -21,8 +22,19 @@ export async function POST(request: Request) {
       forceRegenerate?: boolean;
       id?: string;
       options?: unknown;
+      title?: string;
+      projectIds?: string[];
     };
     const role = body.role === "admin" ? "admin" : "teacher";
+    if (body.op === "registerVocab") {
+      return NextResponse.json(
+        await registerTestBookVocabAction(role, {
+          docId: body.id ? String(body.id) : null,
+          title: String(body.title ?? ""),
+          projectIds: Array.isArray(body.projectIds) ? body.projectIds.map(String) : [],
+        })
+      );
+    }
     if (body.op === "saveOptions") {
       return NextResponse.json(await saveTestBookOptionsAction(role, { id: String(body.id ?? ""), options: body.options }));
     }
