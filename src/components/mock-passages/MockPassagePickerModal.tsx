@@ -145,6 +145,28 @@ export function MockPassagePickerModal({
     });
   }
 
+  /**
+   * 고른 지문을 넘길 때 클릭한 순서가 아니라 지문 순서로 — 같은 시험·교과서 안에서는 목록 차례대로,
+   * 여러 시험·교과서에서 골랐으면 먼저 고른 시험·교과서부터.
+   */
+  function pickedInOrder(): PassageRow[] {
+    const where = new Map<string, { group: string; index: number }>();
+    for (const [key, list] of Object.entries(cache)) list.forEach((r, index) => {
+        if (picked.get(r.id) === r) where.set(r.id, { group: key, index });
+      });
+    const groupRank = new Map<string, number>();
+    for (const r of picked.values()) {
+      const g = where.get(r.id)?.group ?? "";
+      if (!groupRank.has(g)) groupRank.set(g, groupRank.size);
+    }
+    const pos = (r: PassageRow) => where.get(r.id);
+    return [...picked.values()].sort(
+      (a, b) =>
+        (groupRank.get(pos(a)?.group ?? "") ?? 0) - (groupRank.get(pos(b)?.group ?? "") ?? 0) ||
+        (pos(a)?.index ?? 0) - (pos(b)?.index ?? 0),
+    );
+  }
+
   const pickedIn = (key: string) => {
     const list = cache[key];
     return list ? list.filter((r) => picked.has(r.id)).length : 0;
@@ -342,7 +364,7 @@ export function MockPassagePickerModal({
             <button
               type="button"
               disabled={picked.size === 0}
-              onClick={() => onPick([...picked.values()].map(({ id, itemNo, label, shortLabel, text, korean }) => ({ id, itemNo, label, shortLabel, text, korean })))}
+              onClick={() => onPick(pickedInOrder().map(({ id, itemNo, label, shortLabel, text, korean }) => ({ id, itemNo, label, shortLabel, text, korean })))}
               className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-40"
             >
               {picked.size ? `${picked.size}개 불러오기` : "불러오기"}
