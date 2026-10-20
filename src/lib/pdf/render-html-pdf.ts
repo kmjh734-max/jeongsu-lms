@@ -7,6 +7,11 @@ import puppeteer, { type Browser } from "puppeteer-core";
  */
 const WINDOWS_CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 let browserPromise: Promise<Browser> | null = null;
+/** 한글 글꼴을 깔았는지(자가 시험에서 본다) */
+let fontNote = "";
+export function pdfServerDiagnostics() {
+  return { fontNote, home: process.env.HOME, fontconfig: process.env.FONTCONFIG_PATH, ld: process.env.LD_LIBRARY_PATH };
+}
 
 async function getBrowser(origin: string): Promise<Browser> {
   if (browserPromise) {
@@ -26,7 +31,10 @@ async function getBrowser(origin: string): Promise<Browser> {
       if (!/2[02]\.x/.test(env)) process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
       const chromium = (await import("@sparticuz/chromium")).default;
       // 서버리스 Chrome에는 한글 시스템 글꼴이 없다. 웹 글꼴이 빠진 글자가 네모로 나오지 않게 깔아 둔다.
-      await chromium.font(`${origin}/fonts/NotoSansKR-Regular.otf`).catch(() => undefined);
+      fontNote = await chromium
+        .font(`${origin}/fonts/NotoSansKR-Regular.otf`)
+        .then((n) => `ok ${n}`)
+        .catch((e: unknown) => `fail ${String(e)}`);
       return puppeteer.launch({
         args: chromium.args,
         executablePath: await chromium.executablePath(),

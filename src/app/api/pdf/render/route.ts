@@ -1,6 +1,6 @@
 import { gunzipSync } from "node:zlib";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { renderHtmlToPdf } from "@/lib/pdf/render-html-pdf";
+import { pdfServerDiagnostics, renderHtmlToPdf } from "@/lib/pdf/render-html-pdf";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -30,7 +30,15 @@ export async function GET(request: Request) {
     if (request.headers.get("x-pdf-return") === "1") {
       return new Response(Buffer.from(pdf), { headers: { "Content-Type": "application/pdf" } });
     }
-    return Response.json({ ok: true, bytes: pdf.length, ms: Date.now() - t0 });
+    const { readdirSync } = await import("node:fs");
+    const diag = pdfServerDiagnostics();
+    let files: string[] = [];
+    try {
+      files = readdirSync(`${diag.home ?? "/tmp"}/.fonts`);
+    } catch {
+      files = [];
+    }
+    return Response.json({ ok: true, bytes: pdf.length, ms: Date.now() - t0, ...diag, files });
   } catch (e) {
     return Response.json({
       ok: false,
