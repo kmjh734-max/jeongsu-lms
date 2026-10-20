@@ -157,7 +157,12 @@ export function isTestBookMaterialFresh(
   material: TestBookMaterial | null | undefined,
   englishLines: string[]
 ): material is TestBookMaterial {
-  return material?.version === TEST_BOOK_MATERIAL_VERSION && isTestBookMaterialSameSource(material, englishLines);
+  // 단어 정리 판도 본다 — 판만 올리고 이것을 빼 두어, 파생어 뜻(tv-4)이 열어도 들어가지 않았다(2026-10-20)
+  return (
+    material?.version === TEST_BOOK_MATERIAL_VERSION &&
+    material.vocabVersion === TEST_BOOK_VOCAB_VERSION &&
+    isTestBookMaterialSameSource(material, englishLines)
+  );
 }
 
 /**
