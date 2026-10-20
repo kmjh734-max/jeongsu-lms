@@ -34,7 +34,7 @@ import type { WorkbookGrammarChoiceSection } from "@/lib/lesson-materials/workbo
  */
 export const TEST_BOOK_MATERIAL_VERSION = "tb-3";
 /** 단어 정리(모델이 만드는 부분) 규칙이 바뀌면 올린다 — 이것만 다르면 단어 정리만 다시 만든다 */
-export const TEST_BOOK_VOCAB_VERSION = "tv-2";
+export const TEST_BOOK_VOCAB_VERSION = "tv-3";
 
 // ---------------------------------------------------------------- 유형
 

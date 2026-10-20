@@ -18,7 +18,7 @@ const SYSTEM = `너는 한국 고등학교 영어 내신 교재의 단어장 편
 - meaning: 이 지문에서 쓰인 뜻만 한국어로 짧게(쉼표로 두 개까지). 사전 첫 뜻이 아니라 문맥 뜻.
 - key: 지문의 주제·흐름에 중요한 말이거나, 시험에서 동의어·반의어로 바꿔 나올 만한 말이면 true. 쉬운 기능어·고유명사·흔한 말은 false. 전체의 40~60%만 true.
 - synonyms, antonyms: key가 true일 때만, 이 문맥 뜻과 맞는 것을 있는 만큼 최대 3개(한 낱말이나 짧은 구, 영어). 시험에 바꿔 나올 만한 말이 여럿이면 하나로 줄이지 말고 다 쓴다. 딱 맞는 것이 없으면 빈 배열 — 억지로 만들지 않는다. key가 false면 둘 다 빈 배열.
-- forms: 품사가 다른 파생어를 있으면 빠짐없이 최대 3개(실제로 쓰이는 낱말만, 철자 정확히 — 시험에 「명사형은?」으로 나온다). 예: ambitious → [{"word":"ambition","pos":"n."}], restore → [{"word":"restoration","pos":"n."}], durable → [{"word":"durability","pos":"n."}], attract → [{"word":"attraction","pos":"n."},{"word":"attractive","pos":"a."}]. pos는 n. v. a. ad. 가운데 하나. 정말 없을 때만 [].
+- forms: 이 낱말과 품사가 다른 형태를 품사마다(n. v. a. ad.) 하나씩, 실제로 쓰이는 것은 모두(최대 4개, 철자 정확히 — 시험에 「명사형은? 형용사형은? 부사형은?」으로 나온다). 명사형만 쓰고 끝내지 말고 동사형·형용사형·부사형이 있으면 다 쓴다. 원래 품사와 같은 형태는 쓰지 않는다. 예: attract → [{"word":"attraction","pos":"n."},{"word":"attractive","pos":"a."},{"word":"attractively","pos":"ad."}], durable → [{"word":"durability","pos":"n."},{"word":"durably","pos":"ad."}], creation → [{"word":"create","pos":"v."},{"word":"creative","pos":"a."},{"word":"creatively","pos":"ad."}], decide → [{"word":"decision","pos":"n."},{"word":"decisive","pos":"a."},{"word":"decisively","pos":"ad."}]. 정말 없을 때만 [].
 - phrase: 시험에 나올 어구 하나를 "habit formation 습관 형성"처럼. 없으면 "".
 출력: {"vocab":[{"word":"","pos":"","meaning":"","key":true,"synonyms":[],"antonyms":[],"forms":[],"phrase":""}]}`;
 
@@ -114,19 +114,27 @@ export async function refineTestBookVocab(input: {
         const word = String(r.word ?? "").trim();
         const pos = String(r.pos ?? "").trim();
         const key = r.key === true || hintWords.has(word.toLowerCase());
+        const rowPos = POS.has(pos) ? pos : word.includes(" ") ? "구" : pos.slice(0, 5);
+        // 동반의어에 같은 낱말의 다른 꼴(experiment = experimenting)은 넣지 않는다
+        const stem = word.toLowerCase().slice(0, 5);
+        const notSame = (w: string) => !(stem.length >= 5 && w.toLowerCase().startsWith(stem));
         return {
           word,
-          pos: POS.has(pos) ? pos : word.includes(" ") ? "구" : pos.slice(0, 5),
+          pos: rowPos,
           meaning: String(r.meaning ?? "").trim(),
-          synonyms: key ? list(r.synonyms) : [],
-          antonyms: key ? list(r.antonyms) : [],
+          synonyms: key ? list(r.synonyms).filter(notSame) : [],
+          antonyms: key ? list(r.antonyms).filter(notSame) : [],
           forms: (Array.isArray(r.forms) ? r.forms : [])
             .map((f) => {
               const x = (f ?? {}) as Record<string, unknown>;
               return { word: String(x.word ?? "").trim(), pos: formPos(String(x.pos ?? "")) };
             })
             .filter((f) => /^[A-Za-z][A-Za-z-]*$/.test(f.word) && f.word.toLowerCase() !== word.toLowerCase() && f.pos)
-            .slice(0, 3),
+            // 원래 품사와 같은 것(maintain → maintaining v.)·-ing를 동사형이라 한 것은 뺀다
+            .filter((f) => f.pos !== rowPos && !(f.pos === "v." && /ing$/i.test(f.word)))
+            // 품사마다 하나씩
+            .filter((f, i, all) => all.findIndex((x) => x.pos === f.pos) === i)
+            .slice(0, 4),
           phrase: String(r.phrase ?? "").trim().slice(0, 40),
           key,
         };
