@@ -4,6 +4,7 @@ import { Fragment, createContext, useContext, useLayoutEffect, useRef, useState,
 import {
   POS_NAME,
   TEST_BOOK_BLEED_COVER,
+  TEST_BOOK_DEFAULT_HEADLINE,
   circled,
   testBookTypeLabel,
   type TestBookOptions,
@@ -1342,7 +1343,15 @@ export function AnswerSheets({
  * 표지. 시안 01(색 번짐)은 여기서 그리고, 나머지는 최종통합자료 표지(FrontCover)를 그대로 쓴다.
  * 비어 있는 칸은 교재 이름(제목)·범위(라벨)로 채운다. 선생님 2026-10-20: 표지가 하나뿐이고 고칠 수 없었다.
  */
-export function CoverSheet({ cover, range, logoSrc }: { cover: IntegratedCover; range: string; logoSrc?: string | null }) {
+export function CoverSheet({
+  cover,
+  range,
+  logoSrc,
+}: {
+  cover: IntegratedCover & { headline?: string };
+  range: string;
+  logoSrc?: string | null;
+}) {
   if (cover.presetId !== TEST_BOOK_BLEED_COVER) {
     return (
       <div className="tb-sheet" style={{ padding: 0 }}>
@@ -1354,6 +1363,10 @@ export function CoverSheet({ cover, range, logoSrc }: { cover: IntegratedCover; 
   const season = `${now.getFullYear()} ${now.getMonth() >= 7 ? "FALL" : now.getMonth() >= 2 ? "SPRING" : "WINTER"}`;
   const title = cover.title.split(/\n/).map((l) => l.trim()).filter(Boolean).join(" ");
   const progress = cover.progress.split(/\n/).map((l) => l.trim()).filter(Boolean);
+  // 큰 글자: 선생님이 고친다(비우면 read. test. note.). 가장 긴 줄·줄 수에 맞춰 크기를 줄여 표지 안에 들게 한다.
+  const headline = (cover.headline?.trim() || TEST_BOOK_DEFAULT_HEADLINE).split(/\n/).map((l) => l.trim()).filter(Boolean).slice(0, 5);
+  const units = Math.max(1, ...headline.map((l) => [...l].reduce((n, ch) => n + (/[ㄱ-ㅎ가-힣一-龥]/.test(ch) ? 1 : /[A-Z]/.test(ch) ? 0.68 : 0.55), 0)));
+  const headSizeMm = Math.min(34, 180 / units, 150 / (headline.length * 0.92));
   return (
     <div className="tb-sheet tb-cover">
       <div className="tb-glow" />
@@ -1363,12 +1376,10 @@ export function CoverSheet({ cover, range, logoSrc }: { cover: IntegratedCover; 
           <span>{cover.academy.trim() || "TEST BOOK"}</span>
           <span>{season}</span>
         </div>
-        <div className="tb-ct">
-          read.
-          <br />
-          test.
-          <br />
-          note.
+        <div className="tb-ct" style={{ fontSize: `${headSizeMm.toFixed(1)}mm` }}>
+          {headline.map((l, i) => (
+            <div key={i}>{l}</div>
+          ))}
         </div>
         <div className="tb-crows">
           <div>

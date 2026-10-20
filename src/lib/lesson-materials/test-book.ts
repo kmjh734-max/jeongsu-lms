@@ -225,7 +225,12 @@ export type TestBookCover = {
   /** 제목 아래·꼬릿말(줄바꿈 가능) */
   progress: string;
   academy: string;
+  /** 색 번짐 표지의 큰 글자(줄바꿈 가능). 비우면 「read. / test. / note.」 */
+  headline: string;
 };
+
+/** 색 번짐 표지 큰 글자 기본값 */
+export const TEST_BOOK_DEFAULT_HEADLINE = "read.\ntest.\nnote.";
 
 export type TestBookOptions = {
   /** 테스트지 자료 · 테스트 견본에 싣는 유형 */
@@ -273,7 +278,7 @@ export const DEFAULT_TEST_BOOK_OPTIONS: TestBookOptions = {
   translation: "hide",
   writing: "all",
   cover: true,
-  coverInfo: { presetId: TEST_BOOK_BLEED_COVER, label: "", title: "", progress: "", academy: "" },
+  coverInfo: { presetId: TEST_BOOK_BLEED_COVER, label: "", title: "", progress: "", academy: "", headline: "" },
   toc: true,
   dividers: true,
   passageDividers: true,
@@ -307,6 +312,7 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
         title: str(c.title),
         progress: str(c.progress),
         academy: str(c.academy),
+        headline: str(c.headline),
       };
     })(),
     toc: r.toc !== false,

@@ -20,6 +20,7 @@ import {
   buildWordTest,
   isTestBookProjectReady,
   TEST_BOOK_BLEED_COVER,
+  TEST_BOOK_DEFAULT_HEADLINE,
   testBookTypeLabel,
   type BlankMode,
   type WritingScope,
@@ -157,14 +158,19 @@ function CoverInput({
 }) {
   const [text, setText] = useState(value);
   useEffect(() => setText(value), [value]);
+  /** 다 지우면 기본 글(교재 이름 등)로 돌아간다 */
+  const blur = () => {
+    if (text !== value) onCommit(text);
+    if (!text.trim()) setText(value);
+  };
   const cls = "w-full rounded-md border border-slate-200 px-2 py-1 text-[12px] text-slate-900 outline-none focus:border-violet-300";
   return (
     <label className="block space-y-0.5">
       <span className="text-[10.5px] font-semibold text-slate-500">{label}</span>
       {rows ? (
-        <textarea className={cls} rows={rows} value={text} placeholder={placeholder} onChange={(e) => setText(e.target.value)} onBlur={() => text !== value && onCommit(text)} />
+        <textarea className={cls} rows={rows} value={text} placeholder={placeholder} onChange={(e) => setText(e.target.value)} onBlur={blur} />
       ) : (
-        <input className={cls} value={text} placeholder={placeholder} onChange={(e) => setText(e.target.value)} onBlur={() => text !== value && onCommit(text)} />
+        <input className={cls} value={text} placeholder={placeholder} onChange={(e) => setText(e.target.value)} onBlur={blur} />
       )}
     </label>
   );
@@ -366,7 +372,12 @@ export function TestBookWorkbench({
     if (started) return;
     setStarted(true);
     if (drawOnly) return;
-    void runPrepare(initialProjects.filter((p) => !isTestBookProjectReady(p)), false);
+    // 새로 만드는 교재(확인 창에서 어법선택 값까지 보고 만든 것)는 재료에 이어 어법선택도 만든다.
+    // 이미 있는 교재를 다시 열 때는 값이 몰래 나가지 않게 만들지 않는다(「어법선택 만들기」로).
+    const autoGrammar = !docId && initialMode === "book";
+    void runPrepare(initialProjects.filter((p) => !isTestBookProjectReady(p)), false).then(() => {
+      if (autoGrammar) void runGrammar(initialProjects.filter((p) => !p.grammarChoice?.items?.length));
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -583,7 +594,12 @@ export function TestBookWorkbench({
   async function makeGrammar() {
     const targets = ready.filter((p) => !(p.grammarChoice?.items?.length));
     if (!targets.length) return;
-    if (!window.confirm(`워크북 어법 선택이 없는 지문 ${targets.length}개를 만듭니다. 워크북 어법 선택과 같은 값이 지문마다 듭니다. 지문마다 1~3분 걸릴 수 있습니다. 만들까요?`)) return;
+    if (!window.confirm(`어법선택이 없는 지문 ${targets.length}개를 만듭니다. 어법선택 값이 지문마다 듭니다. 지문마다 1~3분 걸릴 수 있습니다. 만들까요?`)) return;
+    await runGrammar(targets);
+  }
+  /** 어법선택(워크북과 같은 엔진)을 지문마다 만든다. 이미 만든 지문은 값을 돌려받는다. */
+  async function runGrammar(targets: Array<{ id: string; title: string }>) {
+    if (!targets.length) return;
     setGrammarError(null);
     let done = 0;
     setGrammarBusy(`0/${targets.length}`);
@@ -706,10 +722,18 @@ export function TestBookWorkbench({
                       );
                     })}
                   </div>
-                  <CoverInput label="범위 라벨 (비우면 지문 출처로)" value={options.coverInfo.label} placeholder={rangeLabel} onCommit={(label) => setOptions({ coverInfo: { ...options.coverInfo, label } })} />
-                  <CoverInput label="제목 (엔터로 줄 구분, 비우면 교재 이름)" value={options.coverInfo.title} placeholder={bookTitle} rows={2} onCommit={(t) => setOptions({ coverInfo: { ...options.coverInfo, title: t } })} />
+                  {options.coverInfo.presetId === TEST_BOOK_BLEED_COVER ? (
+                    <CoverInput
+                      label="큰 글자 (엔터로 줄 구분)"
+                      value={options.coverInfo.headline || TEST_BOOK_DEFAULT_HEADLINE}
+                      rows={3}
+                      onCommit={(headline) => setOptions({ coverInfo: { ...options.coverInfo, headline } })}
+                    />
+                  ) : null}
+                  <CoverInput label="범위 라벨 (다 지우면 지문 출처로)" value={options.coverInfo.label || rangeLabel} onCommit={(label) => setOptions({ coverInfo: { ...options.coverInfo, label } })} />
+                  <CoverInput label="제목 (엔터로 줄 구분, 다 지우면 교재 이름)" value={options.coverInfo.title || bookTitle} rows={2} onCommit={(t) => setOptions({ coverInfo: { ...options.coverInfo, title: t } })} />
                   <CoverInput label="제목 아래 · 진도 (엔터로 줄 구분)" value={options.coverInfo.progress} rows={2} onCommit={(progress) => setOptions({ coverInfo: { ...options.coverInfo, progress } })} />
-                  <CoverInput label="학원명" value={options.coverInfo.academy} placeholder={academyName} onCommit={(academy) => setOptions({ coverInfo: { ...options.coverInfo, academy } })} />
+                  <CoverInput label="학원명" value={options.coverInfo.academy || academyName} onCommit={(academy) => setOptions({ coverInfo: { ...options.coverInfo, academy } })} />
                 </PartRow>
                 <PartRow checked={options.toc} onChange={(v) => setOptions({ toc: v })} n={2} label="목차" hint="쪽 번호 자동">
                   <SubRow checked={options.dividers} onChange={(v) => setOptions({ dividers: v })} label="묶음마다 간지(지문별 시작 쪽)" />
@@ -786,15 +810,15 @@ export function TestBookWorkbench({
                     {options.types.includes("grammar") ? (
                       <div className="space-y-1">
                         <p className="text-[11px] font-bold text-slate-500">
-                          어법선택 · 워크북 문항 {withGrammar.length}/{ready.length}지문
+                          어법선택 {withGrammar.length}/{ready.length}지문
                         </p>
                         {ready.length > withGrammar.length ? (
                           <>
                             <p className="text-[10.5px] leading-snug text-slate-500">
-                              워크북 어법 선택이 없는 지문은 간단한 어법 자리로 냅니다. 만들면 워크북과 같은 값이 지문마다 듭니다(이미 만든 지문은 값 없음).
+                              어법선택이 아직 없는 지문은 간단한 어법 자리로 냅니다. 만들면 어법선택 값이 지문마다 듭니다(이미 만든 지문은 값 없음).
                             </p>
                             <Button type="button" size="sm" variant="secondary" className="w-full" disabled={!!grammarBusy || busy} onClick={() => void makeGrammar()}>
-                              {grammarBusy ? `어법 선택 만드는 중… ${grammarBusy}` : `워크북 어법 선택 만들기 (${ready.length - withGrammar.length}지문)`}
+                              {grammarBusy ? `어법선택 만드는 중… ${grammarBusy}` : `어법선택 만들기 (${ready.length - withGrammar.length}지문)`}
                             </Button>
                           </>
                         ) : null}
