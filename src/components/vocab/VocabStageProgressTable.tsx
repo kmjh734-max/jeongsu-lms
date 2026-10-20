@@ -9,13 +9,15 @@ export interface VocabStageProgressRow {
   stage1Completed: boolean;
   stage2Completed: boolean;
   stage3Completed: boolean;
+  /** 4단계 동반의어 통과·건너뜀 */
+  synDone?: boolean;
   stage4Passed: boolean;
   stage4LastScore: number;
   stage4BestScore: number;
   stage4AttemptCount: number;
 }
 
-/** 단어장 한 개의 학생별 진행 — 1·2·3·4단계 점, 최근·최고 점수, 응시 횟수 */
+/** 단어장 한 개의 학생별 진행 — 1~5단계 점, 최근·최고 점수, 응시 횟수 */
 export function VocabStageProgressTable({ rows }: { rows: VocabStageProgressRow[] }) {
   if (rows.length === 0) {
     return (
@@ -38,7 +40,7 @@ export function VocabStageProgressTable({ rows }: { rows: VocabStageProgressRow[
             <tr>
               <th>학생</th>
               <th>
-                1·2·3·4단계
+                1~5단계
                 <span className="ml-1.5 font-normal text-slate-400">카드 · 철자 · 예문 · 최종 시험</span>
               </th>
               <th className="text-right">최근</th>
@@ -54,6 +56,7 @@ export function VocabStageProgressTable({ rows }: { rows: VocabStageProgressRow[
                 stage1: row.stage1Completed,
                 stage2: row.stage2Completed,
                 stage3: row.stage3Completed,
+                syn: row.synDone,
                 passed: row.stage4Passed,
                 attempts: row.stage4AttemptCount,
                 bestScore: row.stage4BestScore,

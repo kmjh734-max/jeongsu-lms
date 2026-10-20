@@ -7,6 +7,7 @@ import {
   type VocabSetWord,
 } from "@/components/vocab/VocabSetWordList";
 import { STAGE4_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
+import { SYNONYM_PASS_SCORE, finalTestUnlocked } from "@/lib/vocab/synonym-test";
 import {
   stage3Completed,
   stage4AttemptCount,
@@ -188,17 +189,29 @@ export function VocabSetStageHub({
   const hasAttempt = attemptCount > 0;
   const stage4Fail = hasAttempt && !stage4Pass;
 
+  /*
+   * 4단계 동반의어 객관식(2026-10-20). 일반 단어장만. 동의어·반의어가 없는 단어장은 건너뛴 것으로 본다.
+   * 예전에 종합테스트를 이미 본 학생은 동반의어를 안 했어도 종합테스트를 막지 않는다.
+   */
+  const synPassed = Boolean(progress.stage_syn_passed);
+  const synSkipped = Boolean(progress.stage_syn_skipped);
+  const synAttempts = progress.stage_syn_attempt_count ?? 0;
+  const synBest = progress.stage_syn_best_score ?? 0;
+  const synLast = progress.stage_syn_last_score ?? 0;
+  const finalOpen = examCompact ? stage3Done : finalTestUnlocked({ ...progress, stage3_completed: stage3Done });
+
   const s1: CardState = stage1Done ? "done" : "current";
   const s2: CardState = !stage1Done ? "locked" : stage2Done ? "done" : "current";
   const s3: CardState = !stage2Done ? "locked" : stage3Done ? "done" : "current";
-  const s4: CardState = !stage3Done ? "locked" : stage4Pass ? "done" : "current";
+  const sSyn: CardState = !stage3Done ? "locked" : synPassed || synSkipped ? "done" : "current";
+  const s4: CardState = !finalOpen ? "locked" : stage4Pass ? "done" : "current";
 
-  const testNo = examCompact ? 3 : 4;
-  const totalStages = examCompact ? 3 : 4;
+  const testNo = examCompact ? 3 : 5;
+  const totalStages = examCompact ? 3 : 5;
   const doneStages = [
     stage1Done,
     stage2Done,
-    ...(examCompact ? [] : [stage3Done]),
+    ...(examCompact ? [] : [stage3Done, synPassed || synSkipped]),
     stage4Pass,
   ].filter(Boolean).length;
 
@@ -262,7 +275,7 @@ export function VocabSetStageHub({
         <>
           <div
             className={`grid gap-4 sm:grid-cols-2 ${
-              examCompact ? "lg:grid-cols-3" : "xl:grid-cols-4"
+              examCompact ? "lg:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-5"
             }`}
           >
             <StageCard
@@ -318,6 +331,51 @@ export function VocabSetStageHub({
                     className={BTN}
                   >
                     {stage3Done ? "다시 하기" : "시작하기"}
+                  </ButtonLink>
+                )}
+              </StageCard>
+            )}
+
+            {!examCompact && (
+              <StageCard
+                n={4}
+                title="동반의어"
+                desc={
+                  synSkipped
+                    ? "이 단어장은 동의어·반의어가 있는 단어가 없어 건너뛰었어요."
+                    : `동의어·반의어를 객관식으로 골라요. ${SYNONYM_PASS_SCORE}점 이상이면 통과예요.`
+                }
+                state={sSyn}
+                pill={
+                  sSyn === "locked" ? (
+                    statePill(sSyn)
+                  ) : synPassed ? (
+                    <Pill tone="good" icon="check">
+                      통과
+                    </Pill>
+                  ) : synSkipped ? (
+                    <Pill tone="neutral">건너뜀</Pill>
+                  ) : synAttempts > 0 ? (
+                    <Pill tone="bad">다시 도전</Pill>
+                  ) : (
+                    statePill(sSyn)
+                  )
+                }
+              >
+                {synAttempts > 0 && sSyn !== "locked" && (
+                  <p className="text-xs tabular-nums text-slate-500">
+                    최근 {synLast}점 · 최고 {synBest}점 · 응시 {synAttempts}회
+                  </p>
+                )}
+                {sSyn === "locked" ? (
+                  <LockedButton label="3단계를 먼저 끝내세요" />
+                ) : synSkipped ? null : (
+                  <ButtonLink
+                    href={`${base}/synonym`}
+                    variant={sSyn === "current" ? "primary" : "secondary"}
+                    className={BTN}
+                  >
+                    {synPassed ? "한 번 더 풀기" : synAttempts > 0 ? "다시 도전하기" : "시작하기"}
                   </ButtonLink>
                 )}
               </StageCard>

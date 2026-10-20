@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { VocabStageProgress } from "@/types/database";
 
 const HUB_PROGRESS_COLUMNS =
-  "id, student_id, set_id, stage1_completed, stage2_completed, stage3_completed, stage4_passed, stage4_last_score, stage4_best_score, stage4_attempt_count, stage3_passed, stage3_last_score, stage3_best_score, stage3_attempt_count";
+  "id, student_id, set_id, stage1_completed, stage2_completed, stage3_completed, stage4_passed, stage4_last_score, stage4_best_score, stage4_attempt_count, stage3_passed, stage3_last_score, stage3_best_score, stage3_attempt_count, stage_syn_passed, stage_syn_best_score, stage_syn_last_score, stage_syn_attempt_count, stage_syn_skipped";
 
 const STAGE1_PROGRESS_COLUMNS =
   "id, student_id, set_id, stage1_completed, stage1_seen_item_ids, stage2_completed, stage3_completed";
@@ -32,6 +32,12 @@ export function emptyStageProgress(
     stage4_last_score: 0,
     stage4_attempt_count: 0,
     stage4_passed_at: null,
+    stage_syn_passed: false,
+    stage_syn_best_score: 0,
+    stage_syn_last_score: 0,
+    stage_syn_attempt_count: 0,
+    stage_syn_passed_at: null,
+    stage_syn_skipped: false,
     created_at: "",
     updated_at: "",
   };

@@ -253,6 +253,14 @@ export interface VocabStageProgress {
   stage4_last_score: number;
   stage4_attempt_count: number;
   stage4_passed_at: string | null;
+  /** 4단계 동반의어 객관식(2026-10-20). 종합테스트는 stage4_* 그대로이고 화면에서 5단계로 보인다. */
+  stage_syn_passed?: boolean;
+  stage_syn_best_score?: number;
+  stage_syn_last_score?: number;
+  stage_syn_attempt_count?: number;
+  stage_syn_passed_at?: string | null;
+  /** 동의어·반의어가 있는 단어가 없어 건너뛴 단어장 */
+  stage_syn_skipped?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -290,6 +298,8 @@ export interface StudentVocabSetSummary {
   stage1Completed: boolean;
   stage2Completed: boolean;
   stage3Completed: boolean;
+  /** 4단계 동반의어 통과·건너뜀(2026-10-20) */
+  synDone?: boolean;
   stage4Passed: boolean;
   stage4LastScore: number;
   stage4BestScore: number;

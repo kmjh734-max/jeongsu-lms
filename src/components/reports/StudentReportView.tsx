@@ -97,7 +97,7 @@ function Empty({ children }: { children: ReactNode }) {
   return <p className="text-sm text-slate-400">{children}</p>;
 }
 
-const STAGE_NAMES = ["1단계 뜻 익히기", "2단계 스펠링", "3단계 예문 빈칸", "4단계 종합테스트"];
+const STAGE_NAMES = ["1단계 뜻 익히기", "2단계 스펠링", "3단계 예문 빈칸", "종합테스트"];
 
 function StageDots({ set }: { set: VocabReportSection }) {
   const done = [set.stage1Completed, set.stage2Completed, set.stage3Completed];

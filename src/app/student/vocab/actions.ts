@@ -40,6 +40,13 @@ import {
 import { ensureExamCompactStageSkip } from "@/lib/question-generator/exam-vocab";
 import type { VocabItem } from "@/types/database";
 import { recordVocabWrong } from "@/lib/vocab/review";
+import {
+  buildSynonymQuestions,
+  finalTestUnlocked,
+  scoreSynonymTest,
+  synonymQuestionSeed,
+  type SynonymItem,
+} from "@/lib/vocab/synonym-test";
 
 /*
  * 학생 단어학습 쓰기는 모두 서버에서만 한다.
@@ -262,7 +269,92 @@ export async function completeStage3(
     .eq("stage3_completed", false);
 
   revalidateSet(setId);
-  return actionSuccess("3단계를 완료했어요. 종합테스트를 시작할 수 있어요.");
+  return actionSuccess("3단계를 완료했어요. 4단계 동반의어를 시작할 수 있어요.");
+}
+
+/* ------------------------------------------------------------------------ */
+/* 4단계 · 동반의어 객관식 (2026-10-20)                                        */
+/* ------------------------------------------------------------------------ */
+
+export type SubmitSynonymResult = ActionResult & {
+  score?: number;
+  passed?: boolean;
+  /** 문항마다 맞았는지와 정답 위치(화면에 바로 보여 준다) */
+  results?: Array<{ itemId: string; correct: boolean; answerIndex: number }>;
+};
+
+/**
+ * 동반의어 객관식 제출. 문항은 서버가 (단어장 · 학생 · 응시 회차) 시드로 다시 만든다.
+ * 80점 이상이면 통과하고 5단계 종합테스트가 열린다. 응시 횟수는 "지금 값일 때만" 올린다(중복 제출 방지).
+ */
+export async function submitSynonymTest(
+  setId: string,
+  answers: { itemId: string; choice: number }[],
+  attemptNumber: number
+): Promise<SubmitSynonymResult> {
+  const { ctx, error } = await studentSetContext(setId);
+  if (error) return error;
+  const { admin, studentId, examCompact } = ctx;
+  if (examCompact) return actionError("이 단어장은 동반의어 단계가 없어요.");
+
+  const [progress, items] = await Promise.all([
+    loadStageProgress(admin, studentId, setId, { createIfMissing: false, fields: "full" }),
+    loadSetItems<SynonymItem>(admin, setId, "id, word, meaning, synonyms, antonyms"),
+  ]);
+  if (!progress.id || !progress.stage3_completed) return actionError("3단계를 먼저 끝내 주세요.");
+
+  const currentCount = progress.stage_syn_attempt_count ?? 0;
+  if (attemptNumber !== currentCount) {
+    return actionError("시험 화면이 오래되었어요. 새로고침한 뒤 다시 풀어 주세요.");
+  }
+  const questions = buildSynonymQuestions(items, synonymQuestionSeed(setId, studentId, currentCount));
+  if (questions.length === 0) return actionError("동반의어 문항이 없어요.");
+
+  const choiceByItem = new Map<string, number>();
+  for (const a of Array.isArray(answers) ? answers.slice(0, MAX_LIST_LENGTH) : []) {
+    if (!a || typeof a.itemId !== "string" || choiceByItem.has(a.itemId)) continue;
+    choiceByItem.set(a.itemId, Number(a.choice));
+  }
+  const results = questions.map((q) => ({
+    itemId: q.itemId,
+    correct: choiceByItem.get(q.itemId) === q.answerIndex,
+    answerIndex: q.answerIndex,
+  }));
+  const correctCount = results.filter((r) => r.correct).length;
+  const { score, passed } = scoreSynonymTest(correctCount, questions.length);
+  const now = new Date().toISOString();
+
+  const { data: claimed } = await admin
+    .from("vocab_stage_progress")
+    .update({
+      stage_syn_last_score: score,
+      stage_syn_best_score: Math.max(progress.stage_syn_best_score ?? 0, score),
+      stage_syn_attempt_count: currentCount + 1,
+      stage_syn_passed: passed || Boolean(progress.stage_syn_passed),
+      stage_syn_passed_at: passed && !progress.stage_syn_passed_at ? now : (progress.stage_syn_passed_at ?? null),
+      updated_at: now,
+    })
+    .eq("id", progress.id)
+    .eq("stage_syn_attempt_count", currentCount)
+    .select("id");
+  if (!claimed || claimed.length === 0) {
+    return actionError("이미 제출한 시험이에요. 새로고침해 주세요.");
+  }
+
+  // 틀린 단어는 복습 목록으로
+  await recordVocabWrong(
+    admin,
+    studentId,
+    results.filter((r) => !r.correct).map((r) => ({ itemId: r.itemId, setId, stage: "meaning" as const }))
+  );
+
+  revalidateSet(setId);
+  return {
+    ...actionSuccess(passed ? "4단계를 통과했어요. 5단계 종합테스트를 시작할 수 있어요." : `${score}점이에요. 80점 이상이면 통과예요.`),
+    score,
+    passed,
+    results,
+  };
 }
 
 /* ------------------------------------------------------------------------ */
@@ -333,6 +425,9 @@ export async function submitStage4(
     return actionError(
       examCompact ? "2단계를 먼저 끝내 주세요." : "3단계를 먼저 끝내 주세요."
     );
+  }
+  if (!examCompact && !finalTestUnlocked(progress)) {
+    return actionError("4단계 동반의어를 먼저 통과해 주세요.");
   }
   if (items.length < 1) return actionError("단어가 없어요.");
 

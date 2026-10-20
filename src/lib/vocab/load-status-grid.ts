@@ -91,6 +91,8 @@ type ProgressRow = Pick<
   | "stage4_passed"
   | "stage4_best_score"
   | "stage4_attempt_count"
+  | "stage_syn_passed"
+  | "stage_syn_skipped"
 >;
 
 export async function loadVocabStatusGrid(
@@ -164,7 +166,7 @@ export async function loadVocabStatusGrid(
           let q = supabase
             .from("vocab_stage_progress")
             .select(
-              "student_id, set_id, stage1_completed, stage2_completed, stage3_completed, stage3_passed, stage3_best_score, stage3_attempt_count, stage4_passed, stage4_best_score, stage4_attempt_count"
+              "student_id, set_id, stage1_completed, stage2_completed, stage3_completed, stage3_passed, stage3_best_score, stage3_attempt_count, stage4_passed, stage4_best_score, stage4_attempt_count, stage_syn_passed, stage_syn_skipped"
             )
             .in("set_id", chunk);
           if (filterStudents) {
@@ -201,6 +203,7 @@ export async function loadVocabStatusGrid(
         stage1: Boolean(p?.stage1_completed),
         stage2: Boolean(p?.stage2_completed),
         stage3: p ? stage3Completed(p) : false,
+        syn: Boolean(p?.stage_syn_passed || p?.stage_syn_skipped),
         passed: p ? stage4Passed(p) : false,
         attempts: p ? stage4AttemptCount(p) : 0,
         bestScore: p ? stage4BestScore(p) : 0,

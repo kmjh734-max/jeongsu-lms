@@ -15,7 +15,7 @@ export const REVIEW_WORD_LIMIT = 15;
 /** 단어장 한 줄에 함께 보여 줄 4단계 점수 — 없으면 빈 문자열 */
 export function vocabScoreLine(set: StudentReport["vocabSets"][number]): string {
   const parts: string[] = [];
-  if (set.stage4AttemptCount > 0) parts.push(`4단계 ${set.stage4LastScore}점`);
+  if (set.stage4AttemptCount > 0) parts.push(`종합테스트 ${set.stage4LastScore}점`);
   if (set.stage4BestScore > 0) parts.push(`최고 ${set.stage4BestScore}점`);
   return parts.join(" · ");
 }

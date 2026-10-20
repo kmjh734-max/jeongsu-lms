@@ -10,6 +10,7 @@ import {
 import { ensureExamCompactStageSkip } from "@/lib/question-generator/exam-vocab";
 import { loadStageProgress } from "@/lib/vocab/load-stage-progress";
 import { loadStudentVocabSetContext } from "@/lib/vocab/load-student-vocab-set";
+import { finalTestUnlocked } from "@/lib/vocab/synonym-test";
 
 interface PageProps {
   params: Promise<{ setId: string }>;
@@ -41,6 +42,8 @@ export default async function StudentVocabStage4Page({ params }: PageProps) {
     ? progress.stage2_completed
     : progress.stage3_completed;
   if (!unlocked) redirect(`/student/vocab/${setId}`);
+  // 일반 단어장은 4단계 동반의어를 통과(또는 건너뜀)해야 5단계 종합테스트가 열린다
+  if (!ctx.set.exam_compact && !finalTestUnlocked(progress)) redirect(`/student/vocab/${setId}/synonym`);
   if (ctx.itemCount < 1) redirect(`/student/vocab/${setId}`);
 
   // 서버 채점과 같은 시드로 문항을 만들고, 정답은 빼고 보낸다
@@ -58,7 +61,7 @@ export default async function StudentVocabStage4Page({ params }: PageProps) {
       setTitle={ctx.set.title}
       questions={questions}
       attemptNumber={attemptNumber}
-      stageNumber={ctx.set.exam_compact ? 3 : 4}
+      stageNumber={ctx.set.exam_compact ? 3 : 5}
     />
   );
 }

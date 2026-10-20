@@ -55,9 +55,9 @@ export default async function StudentVocabStage3Page({ params }: PageProps) {
       excludedCount={excludedCount}
       initialCorrectIds={initialCorrectIds}
       nextHref={
-        ctx.progress.stage4_passed ? undefined : `/student/vocab/${setId}/stage4`
+        ctx.progress.stage4_passed ? undefined : `/student/vocab/${setId}/synonym`
       }
-      nextLabel="4단계 종합테스트 시작"
+      nextLabel="4단계 동반의어 시작"
     />
   );
 }

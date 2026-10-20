@@ -2,7 +2,7 @@ import type { VocabStageProgress } from "@/types/database";
 
 /**
  * 학생에게 보이는 단계 목록 — 화면마다 같은 규칙을 쓴다.
- * - 일반 단어장: 뜻 익히기 → 스펠링 → 예문 빈칸 → 종합테스트 (4단계)
+ * - 일반 단어장: 뜻 익히기 → 스펠링 → 예문 빈칸 → 동반의어 → 종합테스트 (5단계, 2026-10-20부터)
  * - 시험 연계 단어장(exam_compact): 뜻 익히기 → 스펠링 → 종합테스트 (3단계)
  */
 export interface StudentStageStep {
@@ -18,6 +18,8 @@ export function studentStageSteps(s: {
   stage2Completed: boolean;
   stage3Completed: boolean;
   stage4Passed: boolean;
+  /** 4단계 동반의어를 통과·건너뛰었는지(종합테스트에 합격했으면 끝난 것으로 본다) */
+  synDone?: boolean;
 }): StudentStageStep[] {
   const steps: StudentStageStep[] = [
     { name: "뜻 익히기", done: s.stage1Completed, isTest: false },
@@ -25,6 +27,7 @@ export function studentStageSteps(s: {
   ];
   if (!s.examCompact) {
     steps.push({ name: "예문 빈칸", done: s.stage3Completed, isTest: false });
+    steps.push({ name: "동반의어", done: Boolean(s.synDone) || s.stage4Passed, isTest: false });
   }
   steps.push({ name: "종합테스트", done: s.stage4Passed, isTest: true });
   return steps;

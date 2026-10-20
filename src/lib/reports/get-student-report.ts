@@ -440,7 +440,7 @@ export async function getStudentReport(
   }
 
   for (const row of finalWrongAnswers) {
-    addReview(row.item_id, "4단계 종합테스트", row.created_at);
+    addReview(row.item_id, "종합테스트", row.created_at);
   }
 
   const reviewWords: ReviewWordRow[] = [...reviewMap.entries()]

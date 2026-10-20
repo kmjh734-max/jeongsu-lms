@@ -1,4 +1,4 @@
-/** 학생 한 명 × 단어장 하나의 단계 진행을 점(일반 4개 · 시험 연계 3개)과 짧은 글로 바꾼다. */
+/** 학생 한 명 × 단어장 하나의 단계 진행을 점(일반 5개 · 시험 연계 3개)과 짧은 글로 바꾼다. */
 
 export type StageDot = "done" | "current" | "failed" | "none";
 
@@ -8,7 +8,9 @@ export interface StageCellInput {
   stage1: boolean;
   stage2: boolean;
   stage3: boolean;
-  /** 4단계(최종 시험) 합격 */
+  /** 4단계 동반의어 통과·건너뜀(2026-10-20) */
+  syn?: boolean;
+  /** 마지막 단계(종합테스트) 합격 */
   passed: boolean;
   attempts: number;
   bestScore: number;
@@ -31,7 +33,12 @@ export function buildStageCell(input: StageCellInput): StageCell {
   const dots: StageDot[] = [
     input.stage1 ? "done" : "none",
     input.stage2 ? "done" : "none",
-    ...(input.examCompact ? [] : [input.stage3 ? ("done" as const) : ("none" as const)]),
+    ...(input.examCompact
+      ? []
+      : [
+          input.stage3 ? ("done" as const) : ("none" as const),
+          input.syn || input.passed ? ("done" as const) : ("none" as const),
+        ]),
     input.passed ? "done" : failed ? "failed" : "none",
   ];
 

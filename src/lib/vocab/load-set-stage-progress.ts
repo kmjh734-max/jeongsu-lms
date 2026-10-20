@@ -88,6 +88,7 @@ export async function loadSetStageProgressRows(
       stage4LastScore: stage4LastScore(progress),
       stage4BestScore: stage4BestScore(progress),
       stage4AttemptCount: stage4AttemptCount(progress),
+      synDone: Boolean(progress.stage_syn_passed || progress.stage_syn_skipped),
     };
   });
 }
