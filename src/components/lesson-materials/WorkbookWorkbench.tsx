@@ -1433,6 +1433,9 @@ export function WorkbookWorkbench({
   }, []);
   /** 쪽번호 — 인쇄물 오른쪽 아래에 1부터 찍는다. 최종통합자료에 끼울 때는 통합자료가 센다. */
   const [pageNumbers, setPageNumbers] = useState(false);
+  /** 어휘 수준을 바꾸는 중 / 바꾼 결과 한 줄 */
+  const [vocabLevelBusy, setVocabLevelBusy] = useState(false);
+  const [vocabLevelNote, setVocabLevelNote] = useState<string | null>(null);
   /** 문항 고치기 창에 연 지문(어법 선택·어휘 선택의 몇 번째 지문) */
   const [choiceEditing, setChoiceEditing] = useState<{ kind: "grammar" | "vocab"; index: number } | null>(null);
   useEffect(() => {
@@ -1620,6 +1623,52 @@ export function WorkbookWorkbench({
       }
       return out;
     });
+  }
+
+  /**
+   * 만든 워크북의 어휘 수준(일반 / 난이도 UP)을 바꾼다. 지문마다 저장된 짝으로만 다시 고르므로
+   * 크레딧이 들지 않는다. 직접 고친 문항은 새로 고른 문항으로 바뀐다.
+   * 선생님 요청(2026-10-20): 워크북 어휘 선택도 일반 / 난이도 UP을 고를 수 있게.
+   */
+  async function changeVocabLevel(level: "normal" | "hard") {
+    if (!workbook || vocabLevelBusy) return;
+    const list = workbook.vocabChoiceSections ?? [];
+    if (list.length === 0) return;
+    setVocabLevelBusy(true);
+    setVocabLevelNote(null);
+    const next = [...list];
+    let kept = 0;
+    await Promise.all(
+      list.map(async (sec, i) => {
+        const res = await postJson<{
+          ok: boolean;
+          section?: WorkbookVocabChoiceSection | null;
+        }>("/api/lesson-materials/vocab-choice", {
+          role,
+          projectId: sec.projectId,
+          usedIn: "workbook",
+          wordLevel: level,
+          cacheOnly: true,
+        });
+        if (res.ok && res.section) next[i] = { ...res.section, title: sec.title, source: sec.source };
+        else kept++;
+      })
+    );
+    editWorkbook((w) => {
+      const out: WorkbookData = { ...w, vocabChoiceSections: next, vocabWordLevel: level };
+      if (w.selectedTypes.includes("vocab_fix")) {
+        const fix = buildVocabFixSections(next, w.vocabFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS);
+        out.vocabFixSections = fix.sections;
+        out.vocabFixSkipped = fix.skipped;
+      }
+      return out;
+    });
+    setVocabLevelNote(
+      kept > 0
+        ? `지문 ${kept}개는 이 수준에 맞는 저장된 짝이 없어 그대로 두었습니다. 그 지문은 「다시 만들기」로 새로 만들 수 있습니다.`
+        : null
+    );
+    setVocabLevelBusy(false);
   }
 
   function columnsFor(type: WorkbookColumnTypeId): 1 | 2 {
@@ -3871,6 +3920,40 @@ export function WorkbookWorkbench({
             g.list.length > 0 ? (
               <div key={g.kind} className="space-y-1.5">
                 <p className="text-[11px] font-bold text-slate-500">{g.label}</p>
+                {g.kind === "vocab" ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-slate-700">어휘 난이도</span>
+                      <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
+                        {(
+                          [
+                            { id: "normal", label: "일반" },
+                            { id: "hard", label: "난이도 UP" },
+                          ] as const
+                        ).map((opt) => (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            disabled={vocabLevelBusy}
+                            onClick={() => void changeVocabLevel(opt.id)}
+                            className={`rounded-md px-2.5 py-0.5 text-xs font-semibold disabled:opacity-50 ${
+                              (workbook.vocabWordLevel ?? "hard") === opt.id
+                                ? "bg-violet-600 text-white"
+                                : "text-slate-500 hover:bg-slate-50"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {vocabLevelBusy ? (
+                      <p className="text-[11px] text-slate-500">어휘 문항을 다시 고르고 있습니다…</p>
+                    ) : vocabLevelNote ? (
+                      <p className="text-[11px] leading-snug text-amber-700">{vocabLevelNote}</p>
+                    ) : null}
+                  </div>
+                ) : null}
                 {g.list.map((sec, i) => (
                   <button
                     key={`${sec.projectId}-${i}`}
@@ -3897,6 +3980,7 @@ export function WorkbookWorkbench({
                   <ChoiceItemEditor
                     kind={choiceEditing.kind}
                     section={sec}
+                    wordLevel={workbook.vocabWordLevel ?? "normal"}
                     onApply={(next) => applyChoiceEdit(choiceEditing.kind, choiceEditing.index, next)}
                     onClose={() => setChoiceEditing(null)}
                   />

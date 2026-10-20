@@ -17,6 +17,7 @@ export async function POST(request: Request) {
       /** 워크북에서 불렀는지, 1장 테스트지에서 불렀는지 */
       usedIn?: "workbook" | "one_page_test";
       wordLevel?: "normal" | "hard";
+      cacheOnly?: boolean;
     };
     const role = body.role === "admin" ? "admin" : "teacher";
     const result = await generateVocabChoicePassageAction(role, {
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
       forceRegenerate: body.forceRegenerate === true,
       usedIn: body.usedIn === "one_page_test" ? "one_page_test" : "workbook",
       wordLevel: body.wordLevel === "normal" || body.wordLevel === "hard" ? body.wordLevel : undefined,
+      cacheOnly: body.cacheOnly === true,
     });
     return NextResponse.json(result);
   } catch (e) {

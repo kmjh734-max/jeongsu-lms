@@ -146,6 +146,13 @@ function phraseLevel(text: string): number | null {
   return max;
 }
 
+/** 틀린 낱말이 이 수준에 맞는지(선생님이 문항을 직접 더할 때 추천을 거른다). 자리는 선생님이 골랐으니 보지 않는다. */
+export function wrongFitsWordLevel(wrong: string, level: VocabWordLevel): boolean {
+  if (level === "hard") return true;
+  const w = phraseLevel(wrong);
+  return w !== null && w <= NORMAL_WRONG_MAX_LEVEL;
+}
+
 function fitsWordLevel(p: { targetText: string; wrongText: string }, level: VocabWordLevel): boolean {
   if (level === "hard") return true;
   const t = phraseLevel(p.targetText);
@@ -548,6 +555,8 @@ export async function generateVocabChoiceForPassage(input: {
   forceRegenerate?: boolean;
   /** 없으면 hard(예전 방식). 워크북은 일반이 기본이다. */
   wordLevel?: VocabWordLevel;
+  /** 저장된 짝으로만 다시 고른다(모델을 부르지 않는다). 만든 워크북의 수준을 바꿀 때 쓴다. */
+  cacheOnly?: boolean;
 }): Promise<{
   section: WorkbookVocabChoiceSection | null;
   cacheToSave: StoredVocabChoiceCache | null;
@@ -580,6 +589,11 @@ export async function generateVocabChoiceForPassage(input: {
   if (!input.forceRegenerate && sameSource && (cachedLevels.includes(level) || enoughFromCache)) {
     const section = buildSection({ ...input, passage, pairs: selectFinal(cachedLocated, level) });
     return { section, cacheToSave: null, reason: section ? undefined : "어휘 문항 자리가 없습니다." };
+  }
+  if (input.cacheOnly) {
+    // 이 수준에 맞는 저장된 짝이 모자라도 있는 만큼으로 만든다. 하나도 없으면 바꾸지 않는다.
+    const section = sameSource ? buildSection({ ...input, passage, pairs: selectFinal(cachedLocated, level) }) : null;
+    return { section, cacheToSave: null, reason: section ? undefined : "이 수준에 맞는 저장된 어휘 짝이 없습니다." };
   }
 
   const apiKey = process.env.OPENAI_API_KEY?.trim();

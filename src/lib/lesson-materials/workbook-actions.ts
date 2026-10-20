@@ -973,6 +973,8 @@ export async function generateVocabChoicePassageAction(
     usedIn?: "workbook" | "one_page_test";
     /** 낱말 수준. 없으면 예전 방식(난이도 UP과 같다). */
     wordLevel?: "normal" | "hard";
+    /** 저장된 짝으로만 다시 고른다 — 모델을 부르지 않으므로 크레딧을 잡지 않는다. */
+    cacheOnly?: boolean;
   }
 ): Promise<
   | {
@@ -1027,6 +1029,26 @@ export async function generateVocabChoicePassageAction(
       antonyms: v.antonyms ?? [],
     })),
   ];
+
+  if (input.cacheOnly) {
+    const result = await generateVocabChoiceForPassage({
+      projectId: project.id,
+      title: project.title,
+      source: (project.source as string | null) ?? null,
+      sentences,
+      hints,
+      cache: (pack.vocabChoiceCache as StoredVocabChoiceCache | null | undefined) ?? null,
+      wordLevel: input.wordLevel,
+      cacheOnly: true,
+    });
+    return {
+      ok: true,
+      section: result.section,
+      skipped: result.section
+        ? null
+        : { projectId: project.id, title: project.title, reason: result.reason ?? "어휘 문항을 만들지 못했습니다." },
+    };
+  }
 
   const usedFor = input.usedIn === "one_page_test" ? "one_page_test" : "workbook";
   const hold = await reserveLessonCredits({

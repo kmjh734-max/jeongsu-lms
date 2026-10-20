@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   addChoiceItem,
   overlapsChoice,
@@ -28,10 +28,13 @@ function circled(n: number) {
 export function ChoiceItemEditor<S extends ChoiceSection>({
   kind,
   section,
+  wordLevel = "normal",
   onApply,
   onClose,
 }: {
   kind: "grammar" | "vocab";
+  /** 어휘 추천 수준(이 워크북의 일반 / 난이도 UP) */
+  wordLevel?: "normal" | "hard";
   section: S;
   onApply: (next: S) => void;
   onClose: () => void;
@@ -53,41 +56,84 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
    * 선생님 요청(2026-10-20): 사용자가 입력하는 게 아니라 자동으로 추천하도록.
    * 규칙·저장된 짝으로 못 찾으면 서버가 지문 문맥을 보고 만든다.
    */
+  /** 늦게 온 옛 응답을 버리려고 요청마다 번호를 단다 */
+  const requestNo = useRef(0);
+
+  /**
+   * 자리(start~end)에 넣을 틀린 말을 서버에 묻는다. fresh면 지금까지 보인 말(avoid)을 빼고
+   * 지문 문맥을 보고 새로 고른다(「새로 추천받기」).
+   * 선생님 요청(2026-10-20): 수업 준비하다가도 새로 제안받는 버튼이 있으면 좋겠다.
+   */
+  const fetchSuggestions = useCallback(
+    (start: number, end: number, opts: { fresh: boolean; avoid: string[]; local: string[] }) => {
+      const no = ++requestNo.current;
+      setFinding(true);
+      const text = passage.slice(start, end);
+      // 고른 자리가 든 문장(앞뒤 마침표까지)
+      const before = passage.slice(0, start);
+      const sStart = Math.max(before.lastIndexOf(". "), before.lastIndexOf("? "), before.lastIndexOf("! ")) + 1;
+      const rest = passage.slice(end).search(/[.!?](\s|$)/);
+      const sentence = passage.slice(sStart, rest < 0 ? passage.length : end + rest + 1).trim();
+      void fetch("/api/lesson-materials/vocab-choice/suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: section.projectId,
+          word: text,
+          kind,
+          sentence,
+          passage,
+          wordLevel,
+          fresh: opts.fresh,
+          avoid: opts.avoid,
+        }),
+      })
+        .then((r) => r.json())
+        .then((d: { ok?: boolean; suggestions?: string[] }) => {
+          if (no !== requestNo.current) return;
+          if (!d.ok || !d.suggestions?.length) {
+            if (opts.fresh) setError("새 추천을 찾지 못했습니다. 다시 눌러 보거나 직접 적어 주세요.");
+            return;
+          }
+          // 새로 받은 추천을 앞에, 그 전 추천은 뒤에 둔다.
+          const merged = [...new Set([...d.suggestions, ...opts.local])].slice(0, 6);
+          setSuggestions(merged);
+          setDraft((cur) => (!opts.fresh && cur && !opts.local.includes(cur) ? cur : merged[0]!));
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (no === requestNo.current) setFinding(false);
+        });
+    },
+    [passage, section.projectId, kind, wordLevel]
+  );
+
   useEffect(() => {
-    if (picked?.type !== "word") return;
+    if (picked?.type !== "word") {
+      requestNo.current++;
+      setFinding(false);
+      return;
+    }
     const text = passage.slice(picked.start, picked.end);
     const local = kind === "grammar" ? suggestGrammarWrong(text) : suggestVocabOpposite(text);
     setSuggestions(local);
     setDraft(local[0] ?? "");
-    setFinding(true);
-    // 고른 자리가 든 문장(앞뒤 마침표까지)
-    const before = passage.slice(0, picked.start);
-    const sStart = Math.max(before.lastIndexOf(". "), before.lastIndexOf("? "), before.lastIndexOf("! ")) + 1;
-    const rest = passage.slice(picked.end).search(/[.!?](\s|$)/);
-    const sentence = passage.slice(sStart, rest < 0 ? passage.length : picked.end + rest + 1).trim();
-    let alive = true;
-    void fetch("/api/lesson-materials/vocab-choice/suggest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectId: section.projectId, word: text, kind, sentence, passage }),
-    })
-      .then((r) => r.json())
-      .then((d: { ok?: boolean; suggestions?: string[] }) => {
-        if (!alive || !d.ok || !d.suggestions?.length) return;
-        const merged = [...new Set([...d.suggestions, ...local])].slice(0, 6);
-        // 어휘는 저장된 짝(검수를 거친 것)을, 어법은 품사로 거른 제안을 먼저 권한다.
-        setSuggestions(merged);
-        // 선생님이 이미 고쳐 쓴 말은 그대로 둔다.
-        setDraft((cur) => (cur && !local.includes(cur) ? cur : merged[0]!));
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (alive) setFinding(false);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [picked, passage, kind, section.projectId]);
+    fetchSuggestions(picked.start, picked.end, { fresh: false, avoid: [], local });
+  }, [picked, passage, kind, fetchSuggestions]);
+
+  /** 「새로 추천받기」: 고른 자리(새 낱말이든 이미 있는 문항이든)에 다른 틀린 말을 받는다. */
+  const freshSuggest = () => {
+    setError(null);
+    const span =
+      picked?.type === "word"
+        ? { start: picked.start, end: picked.end }
+        : pickedItem
+          ? { start: pickedItem.startCharIndex, end: pickedItem.endCharIndex }
+          : null;
+    if (!span) return;
+    const avoid = [...new Set([...suggestions, draft, pickedItem?.incorrectText ?? ""].filter(Boolean))];
+    fetchSuggestions(span.start, span.end, { fresh: true, avoid, local: suggestions });
+  };
 
   /** 지문을 [글 조각 / 문항] 차례로, 글 조각은 원문 위치와 함께 */
   const pieces = useMemo(() => {
@@ -176,6 +222,7 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
                     setPicked({ type: "choice", choiceId: p.choiceId });
                     const it = items.find((x) => x.choiceId === p.choiceId);
                     setDraft(it?.incorrectText ?? "");
+                    setSuggestions([]);
                   }}
                   className={`mx-0.5 rounded-md border px-1 font-semibold ${
                     picked?.type === "choice" && picked.choiceId === p.choiceId
@@ -244,26 +291,29 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
                   placeholder={finding ? "추천을 찾고 있습니다…" : "추천이 없으면 직접 적어 주세요"}
                 />
               </div>
-              {picked.type === "word" && finding && suggestions.length === 0 ? (
-                <p className="text-[11px] text-slate-500">지문 문맥을 보고 틀린 말을 고르고 있습니다…</p>
-              ) : null}
-              {picked.type === "word" && suggestions.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-1 text-[11px]">
-                  <span className="text-slate-500">추천</span>
-                  {suggestions.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setDraft(s)}
-                      className={`rounded-md border px-2 py-0.5 font-semibold ${
-                        draft === s ? "border-violet-500 bg-violet-100 text-violet-800" : "border-slate-200 bg-white text-slate-600"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-1 text-[11px]">
+                {suggestions.length > 0 ? <span className="text-slate-500">추천</span> : null}
+                {suggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setDraft(s)}
+                    className={`rounded-md border px-2 py-0.5 font-semibold ${
+                      draft === s ? "border-violet-500 bg-violet-100 text-violet-800" : "border-slate-200 bg-white text-slate-600"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  disabled={finding}
+                  onClick={freshSuggest}
+                  className="rounded-md border border-dashed border-violet-300 bg-white px-2 py-0.5 font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-50"
+                >
+                  {finding ? "추천을 찾고 있습니다…" : "↻ 새로 추천받기"}
+                </button>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {pickedItem ? (
                   <>
