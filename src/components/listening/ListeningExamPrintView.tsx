@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Icon } from "@/components/layout/NavIcon";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { Button } from "@/components/ui/Button";
-import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import {
   useEffect,
@@ -389,6 +389,12 @@ export function ListeningExamPrintView({
   const [studentName, setStudentName] = useState("");
   /** PDF로 바로 저장(인쇄 창 없이) */
   const pdf = usePdfSave();
+  // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다
+  usePdfPrefetch("listening-print-root", [
+    ":is(.exam-print-exam, .exam-print-answers) .listening-exam-sheet",
+    ".exam-print-exam .listening-exam-sheet",
+    ".exam-print-answers .listening-exam-sheet",
+  ]);
   // 제목은 글자 수에 따라 머리글 높이가 바뀔 수 있어, 입력이 멈춘 뒤에만 쪽을 다시 나눈다
   const [layoutTitle, setLayoutTitle] = useState(title);
   useEffect(() => {

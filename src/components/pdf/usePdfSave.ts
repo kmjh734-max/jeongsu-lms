@@ -1,7 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { downloadSheetsPdf, pdfFileName, type PdfPaper } from "@/lib/pdf/download-sheets-pdf";
+import { useEffect, useRef, useState } from "react";
+import {
+  A4,
+  collectPrintPages,
+  downloadSheetsPdf,
+  pdfFileName,
+  type PdfPaper,
+} from "@/lib/pdf/download-sheets-pdf";
+
+/** 이만큼 걸리기 전에는 「PDF 만드는 중」을 띄우지 않는다(미리 만들어 두었으면 바로 받아진다). */
+const SHOW_BUSY_AFTER_MS = 700;
 
 /**
  * 「PDF로 저장」 버튼이 쓰는 상태. 화면마다 쪽을 골라 save에 넘기면 된다.
@@ -10,26 +19,98 @@ import { downloadSheetsPdf, pdfFileName, type PdfPaper } from "@/lib/pdf/downloa
 export function usePdfSave() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const running = useRef(false);
   async function save(label: string, pages: HTMLElement[], nameParts: Array<string | null | undefined>, paper?: PdfPaper) {
-    if (busy) return;
+    if (running.current) return;
     setError(null);
     if (pages.length === 0) {
       setError("저장할 쪽이 아직 없습니다.");
       return;
     }
-    setBusy(`${label} 0/${pages.length}`);
+    running.current = true;
+    let progress = `${label} 0/${pages.length}`;
+    const show = setTimeout(() => setBusy(progress), SHOW_BUSY_AFTER_MS);
     try {
       await downloadSheetsPdf(pages, pdfFileName(...nameParts, label), {
         paper,
-        onProgress: (done, total) => setBusy(`${label} ${done}/${total}`),
+        onProgress: (done, total) => {
+          progress = `${label} ${done}/${total}`;
+          setBusy((b) => (b ? progress : b));
+        },
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "PDF를 만들지 못했습니다.");
     } finally {
+      clearTimeout(show);
+      running.current = false;
       setBusy(null);
     }
   }
   /** 버튼 아래에 띄울 한 줄 */
   const status = busy ? `PDF 만드는 중… ${busy}` : error;
   return { busy, error, save, status };
+}
+
+/**
+ * 인쇄 영역의 쪽을 미리 PDF로 만들어 둔다. 화면이 바뀌면 멈춘 뒤 다시(고친 쪽만) 만든다.
+ * 그래서 「PDF로 저장」을 누르면 기다리지 않고 바로 받아진다.
+ *
+ * 선생님 말씀(2026-10-20): 저장할 때 「PDF 만드는 중」 없이 문제지 누르면 바로 받게.
+ */
+export function usePdfPrefetch(
+  rootId: string,
+  /** 버튼마다 고르는 쪽(문제지·정답지·전체 등). 쪽은 서로 나눠 쓰므로 여러 개여도 서버 일은 한 번이다. */
+  selectors: string | string[],
+  opts: { paper?: PdfPaper; enabled?: boolean } = {}
+) {
+  const enabled = opts.enabled ?? true;
+  const selectorKey = (Array.isArray(selectors) ? selectors : [selectors]).join("|||");
+  const paper = opts.paper ?? A4;
+  const paperKey = `${paper.w}x${paper.h}`;
+  useEffect(() => {
+    if (!enabled || typeof window === "undefined") return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let retry: ReturnType<typeof setTimeout> | null = null;
+    let observer: MutationObserver | null = null;
+    let alive = true;
+    const run = async () => {
+      if (!alive || document.hidden) return;
+      if (document.fonts) await document.fonts.ready;
+      const { prefetchPagesPdf } = await import("@/lib/pdf/server-pdf");
+      // 가장 많은 쪽(전체)부터 만들어 두면 나머지는 기억해 둔 쪽을 합치기만 한다
+      const sets = selectorKey
+        .split("|||")
+        .map((sel) => collectPrintPages(document.getElementById(rootId), sel))
+        .filter((pages) => pages.length > 0 && pages.length <= 300)
+        .sort((a, b) => b.length - a.length);
+      for (const pages of sets) {
+        if (!alive) return;
+        await prefetchPagesPdf(pages, paper).catch(() => undefined);
+      }
+    };
+    const schedule = () => {
+      if (timer) clearTimeout(timer);
+      // 쪽 나눔 측정·글꼴이 자리 잡을 때까지 기다린다
+      timer = setTimeout(() => void run(), 2500);
+    };
+    const attach = () => {
+      const root = document.getElementById(rootId);
+      if (!root) {
+        retry = setTimeout(attach, 1000);
+        return;
+      }
+      observer = new MutationObserver(schedule);
+      observer.observe(root, { childList: true, subtree: true, characterData: true, attributes: true });
+      schedule();
+    };
+    attach();
+    return () => {
+      alive = false;
+      if (timer) clearTimeout(timer);
+      if (retry) clearTimeout(retry);
+      observer?.disconnect();
+    };
+    // paper는 paperKey로 비교한다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rootId, selectorKey, enabled, paperKey]);
 }

@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { Button } from "@/components/ui/Button";
-import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { Alert } from "@/components/ui/Alert";
 import {
@@ -390,6 +390,8 @@ export function AnalysisReportWorkbench({
   const [active, setActive] = useState(0);
   /** PDF로 바로 저장(인쇄 창 없이) — 인쇄처럼 모든 지문의 분석서를 담는다 */
   const pdf = usePdfSave();
+  // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다
+  usePdfPrefetch("analysis-report-print-root", ".analysis-report-a4-sheet");
   /*
    * 해석 방식. 선생님 요청: 전체 해석과 직독직해 중 고를 수 있게. 고른 값은 이 브라우저에 기억한다.
    * 직독직해 조각이 없는 예전 분석서는 전체 해석으로 나간다.

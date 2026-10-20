@@ -9,7 +9,7 @@ import {
 import { WorkbookWorkbench } from "@/components/lesson-materials/WorkbookWorkbench";
 import { QuestionPrintView } from "@/components/question-generator/QuestionPrintView";
 import { closeTabOrGo } from "@/components/lesson-materials/open-new-document";
-import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { saveIntegratedDocument } from "@/lib/lesson-materials/document-actions";
 import {
@@ -120,6 +120,8 @@ export function FinalBundleClient({
   const [zoom, setZoom] = useState(60);
   /** PDF로 바로 저장(인쇄 창 없이) */
   const pdf = usePdfSave();
+  // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다
+  usePdfPrefetch("final-bundle-print-root", ":is(.final-bundle-sheet, .lesson-pack-a4-sheet, .qg-print-page)");
   const [pageCounts, setPageCounts] = useState<Record<string, number>>({});
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const rootRef = useRef<HTMLDivElement>(null);

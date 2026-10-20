@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperti
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
-import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import {
   buildChoiceList,
@@ -208,6 +208,8 @@ export function LessonPackWorkbench({
   const [projects, setProjects] = useState(initialProjects);
   /** PDF로 바로 저장(인쇄 창 없이) */
   const pdf = usePdfSave();
+  // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다
+  usePdfPrefetch("lesson-pack-print-root", ".lesson-pack-a4-sheet");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);

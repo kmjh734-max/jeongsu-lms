@@ -17,7 +17,7 @@ import { VocabPrintCoverPage } from "@/components/vocab/VocabPrintCoverPage";
 import { splitPrintTitle, VocabPrintDHeader } from "@/components/vocab/VocabPrintDHeader";
 import { VocabPrintExamConfig } from "@/components/vocab/VocabPrintExamConfig";
 import { VocabWorkbookPrintPages } from "@/components/vocab/VocabWorkbookPrintPages";
-import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { A4, B5, collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { generatePrintExamQuestions } from "@/lib/vocab/generate-print-test-questions";
@@ -249,6 +249,12 @@ export function VocabSetPrintView({
   const [printing, setPrinting] = useState(false);
   /** PDF로 바로 저장(인쇄 창 없이). 워크북은 화면에 보이는 쪽만 그리므로 저장하는 동안 모든 쪽을 그린다 */
   const pdf = usePdfSave();
+  // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다(지금 그려진 쪽만)
+  usePdfPrefetch(
+    "vocab-print-root",
+    [".vocab-print-page", ".vocab-print-page:not(.vocab-print-page--answer-key)", ".vocab-print-page--answer-key"],
+    { paper: size === "b5" ? B5 : A4 }
+  );
   const [pdfRenderAll, setPdfRenderAll] = useState(false);
   const [printPreparing, setPrintPreparing] = useState(false);
 

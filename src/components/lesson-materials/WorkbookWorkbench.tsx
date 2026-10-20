@@ -15,7 +15,7 @@ import {
   type ReactNode,
 } from "react";
 import { Button } from "@/components/ui/Button";
-import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { Alert } from "@/components/ui/Alert";
 import {
@@ -1390,6 +1390,12 @@ export function WorkbookWorkbench({
   const [grammarChoicePending, setGrammarChoicePending] = useState(false);
   /** PDF로 바로 저장(인쇄 창 없이) */
   const pdf = usePdfSave();
+  // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다
+  usePdfPrefetch(
+    "workbook-print-root",
+    [".workbook-a4-sheet", '.workbook-a4-sheet[data-wb-part="questions"]', '.workbook-a4-sheet[data-wb-part="answers"]'],
+    { enabled: !embeddedDocId }
+  );
   const [zoom, setZoom] = useState(85);
   /** 한줄해석·영작 유형의 쪽 배치(재 둔 높이로 나눈 것). */
   const [flowPages, setFlowPages] = useState<Partial<Record<FlowKind, FlowPart[][]>>>({});

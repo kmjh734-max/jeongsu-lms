@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
-import { usePdfSave } from "@/components/pdf/usePdfSave";
+import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
 import {
@@ -753,6 +753,8 @@ export function QuestionPrintView({
   const [title, setTitle] = useState("영어 변형문제");
   /** PDF로 바로 저장(인쇄 창 없이) */
   const pdf = usePdfSave();
+  // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다
+  usePdfPrefetch("qg-print-root", ".qg-print-sheet", { enabled: !embedded });
   const [grade, setGrade] = useState("");
   const [sourceDetail, setSourceDetail] = useState("");
   const [questions, setQuestions] = useState<QuestionRow[]>([]);

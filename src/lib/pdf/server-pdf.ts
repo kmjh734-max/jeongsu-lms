@@ -124,20 +124,30 @@ function collectCss(): string {
   return `${links.join("")}<style>${styles.join("\n").replace(/<\/style/gi, "<\\/style")}</style>`;
 }
 
+/**
+ * 쪽 하나를 보낼 HTML 조각(조상 껍데기로 감싼 쪽)과 긴 쪽인지.
+ * 조각은 쪽 내용만으로 정해져 같은 쪽이면 늘 같다 — 쪽마다 만든 PDF를 기억해 두는 열쇠가 된다.
+ */
+type PagePiece = { html: string; tall: boolean };
+
+function pieceOf(page: HTMLElement, paper: PdfPaper): PagePiece {
+  const shell = wrapWithAncestors(page, clonePage(page));
+  const pxPerMm = (page.offsetWidth || 1) / paper.w;
+  const tall = page.offsetHeight > paper.h * pxPerMm * 1.02;
+  // 종이 한 장짜리 쪽은 종이 크기로 자른다(소수점 차이로 빈 장이 끼지 않게). 긴 쪽은 이어지는 장으로 흘린다.
+  if (!tall) {
+    shell.style.setProperty("height", `${paper.h}mm`, "important");
+    shell.style.setProperty("overflow", "hidden", "important");
+  }
+  return { html: shell.outerHTML, tall };
+}
+
+function documentHtml(head: string, pieces: string[], paper: PdfPaper): string {
+  return `<!doctype html><html${attrs(document.documentElement)}><head><meta charset="utf-8"><base href="${location.href.replace(/"/g, "&quot;")}">${head}<style>@page{size:${paper.w}mm ${paper.h}mm;margin:0}html,body{margin:0!important;padding:0!important;background:#fff!important;overflow:visible!important;height:auto!important;min-height:0!important}body>*:not(:last-child){break-after:page!important}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}</style></head><body${attrs(document.body)}>${pieces.join("")}</body></html>`;
+}
+
 export function buildHtml(pages: HTMLElement[], paper: PdfPaper): string {
-  const parts = pages.map((page, i) => {
-    const shell = wrapWithAncestors(page, clonePage(page));
-    const pxPerMm = (page.offsetWidth || 1) / paper.w;
-    const tall = page.offsetHeight > paper.h * pxPerMm * 1.02;
-    // 종이 한 장짜리 쪽은 종이 크기로 자른다(소수점 차이로 빈 장이 끼지 않게). 긴 쪽은 이어지는 장으로 흘린다.
-    if (!tall) {
-      shell.style.setProperty("height", `${paper.h}mm`, "important");
-      shell.style.setProperty("overflow", "hidden", "important");
-    }
-    if (i < pages.length - 1) shell.style.setProperty("break-after", "page", "important");
-    return shell.outerHTML;
-  });
-  return `<!doctype html><html${attrs(document.documentElement)}><head><meta charset="utf-8"><base href="${location.href.replace(/"/g, "&quot;")}">${collectCss()}<style>@page{size:${paper.w}mm ${paper.h}mm;margin:0}html,body{margin:0!important;padding:0!important;background:#fff!important;overflow:visible!important;height:auto!important;min-height:0!important}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}</style></head><body${attrs(document.body)}>${parts.join("")}</body></html>`;
+  return documentHtml(collectCss(), pages.map((p) => pieceOf(p, paper).html), paper);
 }
 
 async function gzip(text: string): Promise<{ body: BodyInit; encoding: string }> {
@@ -159,37 +169,155 @@ async function renderChunk(html: string, paper: PdfPaper): Promise<ArrayBuffer> 
   return res.arrayBuffer();
 }
 
-/** 쪽들을 서버에서 글자 PDF로 만들어 한 파일(Blob)로 돌려준다. */
+function hash(text: string): string {
+  let h1 = 0x811c9dc5;
+  let h2 = 0x9e3779b9;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 16777619);
+    h2 = Math.imul(h2 ^ c, 2246822519);
+  }
+  return `${(h1 >>> 0).toString(36)}${(h2 >>> 0).toString(36)}${text.length.toString(36)}`;
+}
+
+/*
+ * 쪽마다 만든 PDF를 기억해 둔다(선생님 말씀 2026-10-20: 누르면 바로 받을 수 있게).
+ * 화면을 열면 미리 만들어 두고(prefetchPagesPdf), 버튼을 누르면 기억해 둔 쪽을 합치기만 한다.
+ * 문제지·정답지·전체는 같은 쪽을 나눠 쓰고, 고친 쪽만 다시 만든다.
+ * 값: 그 쪽이 든 묶음 PDF와 그 안의 몇째 장부터 몇 장인지(긴 쪽은 여러 장).
+ */
+type PageResult = { bytes: ArrayBuffer; from: number; count: number };
+const pageCache = new Map<string, Promise<PageResult>>();
+const CACHE_LIMIT = 600;
+
+let active = 0;
+const waiting: Array<() => void> = [];
+async function limited<T>(run: () => Promise<T>): Promise<T> {
+  if (active >= CONCURRENCY) await new Promise<void>((r) => waiting.push(r));
+  active++;
+  try {
+    return await run();
+  } finally {
+    active--;
+    waiting.shift()?.();
+  }
+}
+
+/** 다 합친 파일도 쪽 목록마다 기억해 둔다(버튼을 누르면 합치는 시간 없이 바로 받게) */
+const mergedCache = new Map<string, Promise<Blob>>();
+
+/** 쪽들의 PDF를 (기억해 둔 것은 그대로, 없는 것만 만들어) 쪽 차례대로 돌려준다. */
+function ensurePages(pages: HTMLElement[], paper: PdfPaper): { entries: Array<Promise<PageResult>>; listKey: string } {
+  const head = collectCss();
+  const pieces = pages.map((p) => pieceOf(p, paper));
+  const keys = pieces.map((p) => hash(`${paper.w}x${paper.h}|${head}|${p.html}`));
+  const missing: number[] = [];
+  keys.forEach((k, i) => {
+    if (!pageCache.has(k) && !missing.some((j) => keys[j] === k)) missing.push(i);
+  });
+  // 없는 쪽을 묶음으로 만든다. 긴 쪽은 장 수를 미리 알 수 없어 혼자 보낸다.
+  const batches: number[][] = [];
+  let cur: number[] = [];
+  for (const i of missing) {
+    if (pieces[i]!.tall) {
+      batches.push([i]);
+      continue;
+    }
+    cur.push(i);
+    if (cur.length >= CHUNK_PAGES) {
+      batches.push(cur);
+      cur = [];
+    }
+  }
+  if (cur.length) batches.push(cur);
+  for (const batch of batches) {
+    const html = documentHtml(head, batch.map((i) => pieces[i]!.html), paper);
+    const job = limited(() => renderChunk(html, paper));
+    batch.forEach((i, pos) => {
+      const key = keys[i]!;
+      const entry = job.then((bytes) =>
+        pieces[i]!.tall ? { bytes, from: 0, count: -1 } : { bytes, from: pos, count: 1 }
+      );
+      // 실패한 쪽은 잊어 다음에 다시 만든다
+      entry.catch(() => pageCache.delete(key));
+      pageCache.set(key, entry);
+    });
+  }
+  while (pageCache.size > CACHE_LIMIT) pageCache.delete(pageCache.keys().next().value!);
+  return { entries: keys.map((k) => pageCache.get(k)!), listKey: keys.join(",") };
+}
+
+/** 화면을 열거나 고친 뒤 미리 만들어(합쳐) 둔다. 실패해도 조용히 넘어간다(누를 때 다시 만든다). */
+export async function prefetchPagesPdf(pages: HTMLElement[], paper: PdfPaper): Promise<void> {
+  if (pages.length === 0) return;
+  await renderPagesToPdf(pages, paper).catch(() => undefined);
+}
+
+/** 쪽들을 서버에서 글자 PDF로 만들어 한 파일(Blob)로 돌려준다. 미리 만든 쪽은 바로 쓴다. */
 export async function renderPagesToPdf(
   pages: HTMLElement[],
   paper: PdfPaper,
   onProgress?: (done: number, total: number) => void
 ): Promise<Blob> {
-  const chunks: HTMLElement[][] = [];
-  for (let i = 0; i < pages.length; i += CHUNK_PAGES) chunks.push(pages.slice(i, i + CHUNK_PAGES));
-  // HTML은 화면이 바뀌기 전에 한꺼번에 뜬다(만드는 동안 선생님이 화면을 고쳐도 섞이지 않게)
-  const htmls = chunks.map((c) => buildHtml(c, paper));
-  const results: ArrayBuffer[] = new Array(chunks.length);
-  let next = 0;
-  let donePages = 0;
-  const worker = async () => {
-    while (next < chunks.length) {
-      const k = next++;
-      results[k] = await renderChunk(htmls[k]!, paper);
-      donePages += chunks[k]!.length;
-      onProgress?.(donePages, pages.length);
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, chunks.length) }, worker));
-  if (results.length === 1) return new Blob([results[0]!], { type: "application/pdf" });
-  const { PDFDocument } = await import("pdf-lib");
-  const merged = await PDFDocument.create();
-  for (const buf of results) {
-    const doc = await PDFDocument.load(buf);
-    const copied = await merged.copyPages(doc, doc.getPageIndices());
-    copied.forEach((p) => merged.addPage(p));
+  const { entries, listKey } = ensurePages(pages, paper);
+  const ready = mergedCache.get(listKey);
+  if (ready) {
+    const blob = await ready.catch(() => null);
+    if (blob) return blob;
   }
-  const bytes = await merged.save();
-  return new Blob([bytes as BlobPart], { type: "application/pdf" });
+  const job = mergeEntries(entries, pages.length, onProgress);
+  mergedCache.set(listKey, job);
+  job.catch(() => mergedCache.delete(listKey));
+  while (mergedCache.size > 12) mergedCache.delete(mergedCache.keys().next().value!);
+  return job;
 }
 
+async function mergeEntries(
+  entries: Array<Promise<PageResult>>,
+  total: number,
+  onProgress?: (done: number, total: number) => void
+): Promise<Blob> {
+  let done = 0;
+  entries.forEach((e) =>
+    void e.then(
+      () => onProgress?.(++done, total),
+      () => undefined
+    )
+  );
+  const results = await Promise.all(entries);
+  // 쪽이 모두 한 묶음에서 차례대로 나왔으면 그 PDF를 그대로 준다
+  const first = results[0]!;
+  if (
+    results.every((r, i) => r.bytes === first.bytes && r.count === 1 && r.from === i) &&
+    first.count === 1
+  ) {
+    const { PDFDocument } = await import("pdf-lib");
+    const doc = await PDFDocument.load(first.bytes);
+    if (doc.getPageCount() === results.length) return new Blob([first.bytes], { type: "application/pdf" });
+  }
+  const { PDFDocument } = await import("pdf-lib");
+  const merged = await PDFDocument.create();
+  const loaded = new Map<ArrayBuffer, Awaited<ReturnType<typeof PDFDocument.load>>>();
+  /*
+   * 같은 묶음에서 이어 나오는 쪽은 한 번에 옮긴다. 쪽마다 따로 옮기면 글꼴을 쪽마다 다시 복사해
+   * 57쪽이 9MB·5초가 되었다(2026-10-20 잰 값).
+   */
+  const groups: Array<{ bytes: ArrayBuffer; indices: number[] }> = [];
+  for (const r of results) {
+    let doc = loaded.get(r.bytes);
+    if (!doc) {
+      doc = await PDFDocument.load(r.bytes);
+      loaded.set(r.bytes, doc);
+    }
+    const indices = r.count < 0 ? doc.getPageIndices() : [r.from];
+    const last = groups[groups.length - 1];
+    if (last && last.bytes === r.bytes) last.indices.push(...indices);
+    else groups.push({ bytes: r.bytes, indices });
+  }
+  for (const g of groups) {
+    const copied = await merged.copyPages(loaded.get(g.bytes)!, g.indices);
+    copied.forEach((p) => merged.addPage(p));
+  }
+  const bytes = await merged.save({ useObjectStreams: true });
+  return new Blob([bytes as BlobPart], { type: "application/pdf" });
+}
