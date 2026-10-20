@@ -76,6 +76,14 @@ export const TEST_BOOK_CSS = `
 .tb-line{height:7.5mm;border-bottom:.6pt solid #c9cdd4}
 .tb-blank{display:inline-block;min-width:24mm;border-bottom:.8pt solid #15171c;margin:0 1mm;text-align:center;font-family:"Noto Sans KR",sans-serif;font-size:7.6pt;font-weight:700;color:#6a707c;vertical-align:-.3mm}
 .tb-pick{white-space:nowrap;font-weight:600}
+.tb-u u{text-decoration:underline;text-decoration-thickness:.9pt;text-underline-offset:1.2pt}
+/* 도식화: 흐름 칸을 화살표로 잇고 아래에 보기 */
+.tb-flow{display:flex;flex-direction:column;gap:1mm;margin:1mm 0 2mm}
+.tb-flow > div{display:grid;grid-template-columns:22mm 1fr;align-items:center;gap:2mm}
+.tb-flow b{display:inline-grid;place-items:center;height:8mm;background:var(--tb-accent,#15171c);color:#fff;font-size:8.5pt;font-weight:800;border-radius:1.2mm}
+.tb-flow span{height:8mm;border:.8pt solid #9aa0aa;border-radius:1.2mm}
+.tb-flow i{font-style:normal;text-align:center;color:#9aa0aa;font-size:8pt;line-height:1;padding-left:9mm}
+.tb-flowbox{border:.8pt solid #15171c;padding:1.6mm 2.4mm;display:grid;gap:.8mm;font-size:9pt}
 /* 직독직해: 덩어리 아래에 뜻 쓸 칸 */
 .tb-gloss{display:flex;flex-wrap:wrap;gap:1.6mm 1.2mm;margin-top:.4mm}
 .tb-gloss > span{display:inline-flex;flex-direction:column;min-width:14mm}
@@ -198,6 +206,8 @@ export const TEST_BOOK_CSS = `
 .tb-an-topic{border-left:3pt solid #15171c;padding:1mm 0 1mm 3mm;margin-bottom:2mm;font-size:9.5pt}
 .tb-an-topic b{font-size:8pt;color:#6a707c;margin-right:2mm;letter-spacing:.06em}
 .tb-an-s{padding:2mm 0;border-bottom:.5pt solid #e1e4e9}
+.tb-ansum{display:grid;grid-template-columns:17mm minmax(0,1fr) minmax(0,1.3fr);gap:2.5mm;align-items:baseline;border-bottom:.5pt solid #e1e4e9;padding:1.4mm 0;font-size:9pt}
+.tb-ankind{font-size:7.5pt;font-weight:800;color:var(--tb-accent,#15171c);letter-spacing:.04em}
 .tb-an-s .tb-ko{font-size:9pt}
 .tb-note .tb-psgbox{border-top:.8pt solid #15171c;padding-top:1.6mm;margin-bottom:3mm}
 .tb-note .tb-lb{display:flex;justify-content:space-between;align-items:baseline;font-size:8pt;color:#6a707c;margin-bottom:1mm}
@@ -326,6 +336,14 @@ function BookFoot({ children }: { children?: ReactNode }) {
 
 function Seg({ seg }: { seg: TestSeg }) {
   if (typeof seg === "string") return <>{seg}</>;
+  if ("u" in seg) {
+    return (
+      <span className="tb-u">
+        {seg.n ? <b className="tb-pn">{seg.n}</b> : null}
+        <u>{seg.u}</u>
+      </span>
+    );
+  }
   if ("blank" in seg) {
     return (
       // 번호는 빈칸 안 왼쪽에 둔다 — 밖에 두면 번호만 줄 끝에 남았다(nowrap으로 감싸면 쪽 나누기 측정이 흐트러졌다)
@@ -401,6 +419,10 @@ const TYPE_SHORT: Record<TestBookTypeKey, string> = {
   summary: "요약",
   grammarFix: "어법서술",
   words: "단어",
+  reference: "지칭",
+  implication: "함축",
+  paraphrase: "바꿔말",
+  flow: "도식",
 };
 
 /**
@@ -1065,6 +1087,26 @@ function sectionBlocks(sec: TestSection, n: number, prefix: string): Block[] {
           <Segs segs={sec.passage} />
         </p>
       ) : null}
+      {sec.diagram ? (
+        <>
+          <div className="tb-flow">
+            {sec.diagram.steps.map((st, i) => (
+              <Fragment key={i}>
+                {i > 0 ? <i>▼</i> : null}
+                <div>
+                  <b>{st}</b>
+                  <span />
+                </div>
+              </Fragment>
+            ))}
+          </div>
+          <div className="tb-flowbox">
+            {sec.diagram.choices.map((c) => (
+              <div key={c}>{c}</div>
+            ))}
+          </div>
+        </>
+      ) : null}
       {sec.passageKo ? (
         <>
           <div className="tb-kol">[해석]</div>
@@ -1160,7 +1202,15 @@ export function TestSheets({
     <PagedSheet
       blocks={blocks}
       measureKey={measureKey}
-      head={(page) => <DocHead title={title} sub={page > 0 ? "(이어서)" : undefined} label={passageLabel(index, project)} right={project.source?.trim() || "TEST"} />}
+      head={(page) => (
+        // 뽑기에서도 지문 제목·출처가 늘 보이게(선생님 2026-10-20): 큰 제목이 지문, 오른쪽 위가 출처
+        <DocHead
+          title={passageLabel(index, project)}
+          sub={page > 0 ? `${title} (이어서)` : title}
+          label={project.source?.trim() || title}
+          right={project.titleEn?.trim() || undefined}
+        />
+      )}
       foot={(page, total) => (
         <>
           <span>{project.title}</span>
@@ -1576,6 +1626,28 @@ export function AnalysisSheets({
       ),
     });
   });
+  // 핵심 정리(선생님 2026-10-20: 분석지에도 지칭·함축의미·바꿔 말할 문장) — 1장 자료 재료라 값이 들지 않는다
+  const c = project.content;
+  const refs = (c?.references ?? []).filter((r) => r.surface.trim() && r.referent.trim());
+  const imps = (c?.implications ?? []).filter((m) => m.expression.trim());
+  const paras = (c?.paraphrases ?? []).filter((x) => x.expression.trim() && x.paraphrases.length);
+  if (refs.length || imps.length || paras.length) {
+    blocks.push({ key: "sum-h", node: <div className="tb-q" style={{ marginTop: "3mm" }}>핵심 정리 <small>시험에 바꿔 나올 자리</small></div> });
+    const row = (key: string, kind: string, left: ReactNode, right: ReactNode) =>
+      blocks.push({
+        key,
+        node: (
+          <div className="tb-ansum">
+            <span className="tb-ankind">{kind}</span>
+            <span className="tb-en">{left}</span>
+            <span>{right}</span>
+          </div>
+        ),
+      });
+    refs.forEach((r, i) => row(`ref${i}`, "지칭", r.surface, <><b className="tb-en">{r.referent}</b>{r.meaningKo ? ` · ${r.meaningKo}` : ""}</>));
+    imps.forEach((m, i) => row(`imp${i}`, "함축", m.expression, <>{m.meaningKo}{m.meaningEn ? <div className="tb-en tb-tip">{m.meaningEn}</div> : null}</>));
+    paras.forEach((x, i) => row(`par${i}`, "바꿔 말하기", x.expression, <span className="tb-en">= {x.paraphrases.join(" / ")}</span>));
+  }
   return (
     <PagedSheet
       blocks={blocks}

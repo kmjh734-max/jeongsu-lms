@@ -21,6 +21,7 @@ import {
   answerSentence,
   buildOnePageSentenceOrder,
   findPhrase,
+  findPhraseAt,
   splitSummaryByKeywords,
   type OnePageContent,
 } from "@/lib/lesson-materials/one-page";
@@ -51,7 +52,11 @@ export type TestBookTypeKey =
   | "insert"
   | "summary"
   | "grammarFix"
-  | "words";
+  | "words"
+  | "reference"
+  | "implication"
+  | "paraphrase"
+  | "flow";
 
 export const TEST_BOOK_TYPES: Array<{ key: TestBookTypeKey; label: string; basic: boolean; hint: string }> = [
   { key: "line", label: "한줄해석", basic: true, hint: "문장을 보고 해석 쓰기" },
@@ -67,6 +72,10 @@ export const TEST_BOOK_TYPES: Array<{ key: TestBookTypeKey; label: string; basic
   { key: "summary", label: "요약문 완성", basic: false, hint: "요약 한 문장의 핵심어 채우기" },
   { key: "grammarFix", label: "어법 서술형", basic: false, hint: "틀린 곳 찾아 고쳐 쓰기" },
   { key: "words", label: "단어 영↔한", basic: false, hint: "단어 정리 범위에서 뜻·철자 쓰기" },
+  { key: "reference", label: "지칭추론", basic: false, hint: "밑줄 친 말이 가리키는 것을 본문에서 찾아 쓰기" },
+  { key: "implication", label: "함축의미", basic: false, hint: "밑줄 친 표현이 이 글에서 뜻하는 바 쓰기" },
+  { key: "paraphrase", label: "바꿔 말하기", basic: false, hint: "본문 표현과 같은 뜻 문장의 빈칸 채우기" },
+  { key: "flow", label: "도식화", basic: false, hint: "글의 흐름 칸에 알맞은 내용 고르기" },
 ];
 
 export const ALL_TEST_BOOK_TYPES: TestBookTypeKey[] = TEST_BOOK_TYPES.map((t) => t.key);
@@ -343,7 +352,7 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
 
 /** 한 줄 안의 조각: 글자 · 빈칸(번호) · 고르기 [왼쪽 / 오른쪽] */
 /** 빈칸·고르기의 n은 지문 안 번호(워크북 모양: 빈칸 ¹____, 고르기 ①[A / B]) */
-export type TestSeg = string | { blank: string; n?: string } | { pick: [string, string]; n?: string };
+export type TestSeg = string | { blank: string; n?: string } | { pick: [string, string]; n?: string } | { u: string; n?: string };
 
 export type TestItem = {
   /** (1) (2) … 또는 A B */
@@ -386,6 +395,8 @@ export type TestSection = {
   items: TestItem[];
   /** 지문형 유형의 정답(문항이 하나로 묶인 경우) */
   answer?: string;
+  /** 도식화: 흐름 칸(이름)과 섞은 보기 */
+  diagram?: { steps: string[]; choices: string[] };
 };
 
 export type TestSheet = {
@@ -898,6 +909,126 @@ function buildSummary(p: Ready): TestSection | null {
   };
 }
 
+/**
+ * 지문에 밑줄 칠 자리(문장 번호·표현·몇 번째)를 지문 조각으로. 같은 문장에 여럿이면 앞에서부터.
+ * 찾지 못한 표현은 뺀다(그 번호는 쓰지 않는다).
+ */
+function underlinePassage(
+  p: Ready,
+  marks: Array<{ si: number; phrase: string; occurrence?: number }>
+): { passage: TestSeg[]; placed: number[] } {
+  const bySi = new Map<number, Array<{ k: number; start: number; end: number }>>();
+  marks.forEach((m, k) => {
+    const s = p.sentences[m.si];
+    if (!s) return;
+    const sentence = clean(s.english);
+    const hit = (m.occurrence ? findPhraseAt(sentence, m.phrase, m.occurrence) : null) ?? findPhrase(sentence, m.phrase);
+    if (!hit) return;
+    const list = bySi.get(m.si) ?? [];
+    if (list.some((x) => hit.start < x.end && x.start < hit.end)) return;
+    list.push({ k, start: hit.start, end: hit.end });
+    bySi.set(m.si, list);
+  });
+  const order = [...bySi.values()].flat().sort((a, b) => a.k - b.k);
+  const numberOf = new Map(order.map((x, i) => [x.k, circled(i)] as const));
+  const passage: TestSeg[] = [];
+  p.sentences.forEach((s, si) => {
+    const sentence = clean(s.english);
+    if (!sentence) return;
+    if (passage.length) passage.push(" ");
+    let cursor = 0;
+    for (const m of (bySi.get(si) ?? []).sort((a, b) => a.start - b.start)) {
+      passage.push(sentence.slice(cursor, m.start), { u: sentence.slice(m.start, m.end), n: numberOf.get(m.k) });
+      cursor = m.end;
+    }
+    passage.push(sentence.slice(cursor));
+  });
+  return { passage, placed: order.map((x) => x.k) };
+}
+
+/** 지칭추론(1장 테스트지처럼): 밑줄 친 지칭어가 가리키는 말을 본문에서 찾아 쓴다 */
+function buildReference(p: Ready): TestSection | null {
+  const refs = (p.content.references ?? []).filter((r) => r.surface.trim() && r.referent.trim()).slice(0, 6);
+  if (!refs.length) return null;
+  const { passage, placed } = underlinePassage(p, refs.map((r) => ({ si: r.sentenceIndex, phrase: r.surface, occurrence: r.occurrence })));
+  if (!placed.length) return null;
+  return {
+    type: "reference",
+    title: "지칭추론",
+    hint: "밑줄 친 말이 가리키는 것을 본문에서 찾아 쓰기",
+    passage,
+    items: placed.map((k, i) => ({ no: circled(i), text: [refs[k]!.surface, " → ", { blank: "" }], answer: refs[k]!.referent })),
+  };
+}
+
+/** 함축의미: 밑줄 친 표현이 이 글에서 뜻하는 바를 우리말로 */
+function buildImplication(p: Ready): TestSection | null {
+  const imps = (p.content.implications ?? []).filter((m) => m.expression.trim() && (m.meaningKo.trim() || m.meaningEn.trim())).slice(0, 4);
+  if (!imps.length) return null;
+  const { passage, placed } = underlinePassage(p, imps.map((m) => ({ si: m.sentenceIndex, phrase: m.expression })));
+  if (!placed.length) return null;
+  return {
+    type: "implication",
+    title: "함축의미",
+    hint: "밑줄 친 표현이 이 글에서 뜻하는 바를 우리말로",
+    passage,
+    items: placed.map((k, i) => ({
+      no: circled(i),
+      text: [imps[k]!.expression],
+      lines: 2,
+      answer: [imps[k]!.meaningKo, imps[k]!.meaningEn].filter((x) => x.trim()).join(" — "),
+    })),
+  };
+}
+
+/** 바꿔 말하기: 본문 표현과 같은 뜻 문장(패러프레이징)의 핵심 낱말을 첫 글자만 주고 채운다 */
+function buildParaphrase(p: Ready, seed: string): TestSection | null {
+  const items: TestItem[] = [];
+  for (const x of p.content.paraphrases ?? []) {
+    const options = x.paraphrases.filter((t) => t.trim());
+    if (!x.expression.trim() || !options.length) continue;
+    const para = pickN(options, 1, `${seed}|para|${x.sentenceIndex}`)[0]!;
+    const own = new Set(x.expression.toLowerCase().match(/[a-z]+/g) ?? []);
+    // 본문에 없는 내용어 가운데 가장 긴 것(바꿔 쓴 핵심 낱말)
+    const word = (para.match(/[A-Za-z][a-z]+(?:-[a-z]+)*/g) ?? [])
+      .filter((w) => w.length >= 4 && !STOP.has(w.toLowerCase()) && !own.has(w.toLowerCase()))
+      .sort((a, b) => b.length - a.length)[0];
+    const part = word ? splitAt(para, word) : null;
+    if (!part) continue;
+    items.push({
+      no: no(items.length),
+      text: ["= ", part.before, { blank: part.hit[0]! }, part.after],
+      tag: x.expression,
+      ko: x.meaningKo || undefined,
+      answer: part.hit,
+    });
+  }
+  if (!items.length) return null;
+  return { type: "paraphrase", title: "바꿔 말하기", hint: "본문 표현(위)과 같은 뜻이 되도록 빈칸 채우기 · 첫 글자 줌", items: items.slice(0, 6) };
+}
+
+/** 도식화: 글의 흐름 칸(배경·전환·예시…)에 섞은 보기에서 알맞은 내용을 골라 넣는다 */
+function buildFlow(p: Ready, seed: string): TestSection | null {
+  const nodes = (p.content.flow ?? []).filter((n) => n.ko.trim()).slice(0, 6);
+  if (nodes.length < 3) return null;
+  const split = (t: string) => {
+    const m = t.match(/^\s*([^:：]{1,12})[:：]\s*(.+)$/);
+    return m ? { label: m[1]!.trim(), body: m[2]!.trim() } : { label: "", body: t.trim() };
+  };
+  const parts = nodes.map((n) => split(n.ko));
+  const letters = "ⓐⓑⓒⓓⓔⓕ";
+  const order = fisherYatesShuffle(parts.map((_, i) => i), createSeededRng(`${seed}|flow`));
+  const letterOf = new Map(order.map((orig, pos) => [orig, letters[pos]!] as const));
+  return {
+    type: "flow",
+    title: "도식화",
+    hint: "글의 흐름에 맞게 칸에 알맞은 내용을 보기에서 골라 쓰기",
+    diagram: { steps: parts.map((x, i) => x.label || `${i + 1}단계`), choices: order.map((orig, pos) => `${letters[pos]} ${parts[orig]!.body}`) },
+    items: parts.map((x, i) => ({ no: x.label || `${i + 1}단계`, text: [], answer: letterOf.get(i)! })),
+    inline: true,
+  };
+}
+
 function buildGrammarFix(p: Ready, seed: string, skip: Set<string>): TestSection | null {
   void seed;
   const chosen = bySentence(grammarCandidates(p).filter((c) => !skip.has(c.key)));
@@ -956,6 +1087,10 @@ export function buildTestSheet(
       : key === "sequence" ? buildSequence(p, seed)
       : key === "insert" ? buildInsert(p, seed)
       : key === "summary" ? buildSummary(p)
+      : key === "reference" ? buildReference(p)
+      : key === "implication" ? buildImplication(p)
+      : key === "paraphrase" ? buildParaphrase(p, seed)
+      : key === "flow" ? buildFlow(p, seed)
       : key === "grammarFix" ? buildGrammarFix(p, seed, usedGrammar)
       : buildWords(p, seed);
     if (sec) sections.push(sec);
