@@ -39,6 +39,8 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
   const [picked, setPicked] = useState<Picked>(null);
   const [draft, setDraft] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  /** 틀린 말 추천을 찾는 중 */
+  const [finding, setFinding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const passage = section.sourcePassage;
@@ -46,18 +48,28 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
   const pickedItem = picked?.type === "choice" ? items.find((it) => it.choiceId === picked.choiceId) : undefined;
   const pickedText = picked?.type === "word" ? passage.slice(picked.start, picked.end) : "";
 
-  // 낱말을 고르면 틀린 말 후보를 채운다.
+  /*
+   * 낱말을 고르면 틀린 말을 자동으로 추천해 칸에 채운다(선생님은 「더하기」만 누르면 된다).
+   * 선생님 요청(2026-10-20): 사용자가 입력하는 게 아니라 자동으로 추천하도록.
+   * 규칙·저장된 짝으로 못 찾으면 서버가 지문 문맥을 보고 만든다.
+   */
   useEffect(() => {
     if (picked?.type !== "word") return;
     const text = passage.slice(picked.start, picked.end);
     const local = kind === "grammar" ? suggestGrammarWrong(text) : suggestVocabOpposite(text);
     setSuggestions(local);
     setDraft(local[0] ?? "");
+    setFinding(true);
+    // 고른 자리가 든 문장(앞뒤 마침표까지)
+    const before = passage.slice(0, picked.start);
+    const sStart = Math.max(before.lastIndexOf(". "), before.lastIndexOf("? "), before.lastIndexOf("! ")) + 1;
+    const rest = passage.slice(picked.end).search(/[.!?](\s|$)/);
+    const sentence = passage.slice(sStart, rest < 0 ? passage.length : picked.end + rest + 1).trim();
     let alive = true;
     void fetch("/api/lesson-materials/vocab-choice/suggest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectId: section.projectId, word: text, kind }),
+      body: JSON.stringify({ projectId: section.projectId, word: text, kind, sentence, passage }),
     })
       .then((r) => r.json())
       .then((d: { ok?: boolean; suggestions?: string[] }) => {
@@ -68,7 +80,10 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
         // 선생님이 이미 고쳐 쓴 말은 그대로 둔다.
         setDraft((cur) => (cur && !local.includes(cur) ? cur : merged[0]!));
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (alive) setFinding(false);
+      });
     return () => {
       alive = false;
     };
@@ -146,7 +161,7 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
           </button>
         </div>
         <p className="border-b border-slate-100 bg-slate-50 px-5 py-2 text-[11px] leading-relaxed text-slate-600">
-          문항을 누르면 틀린 말을 바꾸거나 지울 수 있습니다. 지문의 낱말을 누르면 그 자리에 문항을 더합니다.
+          문항을 누르면 틀린 말을 바꾸거나 지울 수 있습니다. 지문의 낱말을 누르면 틀린 말을 자동으로 추천해 그 자리에 문항을 더합니다.
           두세 낱말을 묶으려면 Shift를 누른 채 끝 낱말을 누르세요.
         </p>
         <div className="min-h-0 flex-1 overflow-auto px-5 py-4">
@@ -226,12 +241,15 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   className="w-44 rounded-lg border border-slate-200 px-2 py-1 text-xs outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
-                  placeholder="직접 적어도 됩니다"
+                  placeholder={finding ? "추천을 찾고 있습니다…" : "추천이 없으면 직접 적어 주세요"}
                 />
               </div>
+              {picked.type === "word" && finding && suggestions.length === 0 ? (
+                <p className="text-[11px] text-slate-500">지문 문맥을 보고 틀린 말을 고르고 있습니다…</p>
+              ) : null}
               {picked.type === "word" && suggestions.length > 0 ? (
                 <div className="flex flex-wrap items-center gap-1 text-[11px]">
-                  <span className="text-slate-500">제안</span>
+                  <span className="text-slate-500">추천</span>
                   {suggestions.map((s) => (
                     <button
                       key={s}
@@ -267,12 +285,13 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
                 ) : picked.type === "word" ? (
                   <button
                     type="button"
+                    disabled={!draft.trim()}
                     onClick={() =>
                       apply(() =>
                         addChoiceItem(section, { start: picked.start, end: picked.end, incorrectText: draft, kind })
                       )
                     }
-                    className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white"
+                    className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
                   >
                     이 자리에 문항 더하기
                   </button>
