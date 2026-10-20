@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
     "sharp",
     "pdf-parse",
     "pdfjs-dist",
+    // PDF 저장(/api/pdf/render): 서버리스 Chrome
+    "@sparticuz/chromium",
+    "puppeteer-core",
   ],
   outputFileTracingIncludes: {
     "/api/student-records/extract": pdfTracePaths,
@@ -39,6 +42,7 @@ const nextConfig: NextConfig = {
     "/teacher/lesson-materials/input": comicTracePaths,
     "/admin/lesson-materials/project/[projectId]": comicTracePaths,
     "/teacher/lesson-materials/project/[projectId]": comicTracePaths,
+    "/api/pdf/render": ["./node_modules/@sparticuz/chromium/bin/**/*"],
   },
   images: {
     remotePatterns: [

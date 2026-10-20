@@ -13,6 +13,7 @@
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@napi-rs/canvas": "^0.1.80",
+    "@sparticuz/chromium": "^131.0.1",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.8",
     "@tosspayments/tosspayments-sdk": "^2.7.1",
@@ -21,6 +22,7 @@
     "html-to-image": "^1.11.13",
     "jspdf": "^3.0.4",
     "next": "^15.3.3",
+    "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^4.10.38",
     "qrcode": "^1.5.4",

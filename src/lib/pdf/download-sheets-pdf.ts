@@ -4,8 +4,9 @@
  * 화면의 A4 쪽들을 그대로 찍어 PDF 파일로 내려받는다(선생님 말씀 2026-10-05: 인쇄 말고도
  * 문제지·정답지를 바로 저장할 수 있게). 인쇄 창 없이 파일이 받아진다.
  *
- * 쪽마다 그림으로 담는다 — 화면에 보이는 모양(글꼴·밑줄·표) 그대로 나오지만, PDF 안의 글자를
- * 고르거나 찾을 수는 없다. 쪽 요소는 실제 종이 크기(210mm 폭 등)로 그려져 있어야 한다.
+ * 2026-10-20부터는 서버 Chrome으로 글자 PDF를 만든다(server-pdf.ts). 그림으로 찍어 붙이는 아래 방식은
+ * 서버가 실패했을 때만 쓴다 — 그림 PDF는 글자를 고르거나 찾을 수 없고 인쇄가 흐리다.
+ * 쪽 요소는 실제 종이 크기(210mm 폭 등)로 그려져 있어야 한다.
  *
  * 화면마다 다른 점을 여기서 맞춘다(2026-10-05 일곱 화면 조사):
  *  - 화면에서는 숨겨 두고 인쇄 때만 나오는 쪽(정답지, 다른 지문 탭)은 찍는 동안만 보이게 한다.
@@ -23,6 +24,36 @@ export async function downloadSheetsPdf(
   opts: { onProgress?: (done: number, total: number) => void; pixelRatio?: number; paper?: PdfPaper } = {}
 ): Promise<void> {
   if (pages.length === 0) throw new Error("저장할 쪽이 없습니다.");
+  const name = fileName.endsWith(".pdf") ? fileName : `${fileName}.pdf`;
+  /*
+   * 먼저 서버 Chrome으로 글자 PDF를 만든다(server-pdf.ts, 2026-10-20 선생님: 빠르게, 그림 말고 글자로).
+   * 서버가 실패하면 아래의 그림 방식으로 만든다 — 저장이 아예 안 되는 일은 없게.
+   */
+  try {
+    if (typeof document !== "undefined" && document.fonts) await document.fonts.ready;
+    const { renderPagesToPdf } = await import("@/lib/pdf/server-pdf");
+    const blob = await renderPagesToPdf(pages, opts.paper ?? A4, opts.onProgress);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return;
+  } catch (e) {
+    console.warn("글자 PDF를 만들지 못해 그림 PDF로 저장합니다.", e);
+  }
+  await downloadSheetsPdfAsImages(pages, name, opts);
+}
+
+/** 예전 방식: 쪽마다 그림(JPEG)으로 찍어 붙인다. 서버 PDF가 실패했을 때만 쓴다. */
+async function downloadSheetsPdfAsImages(
+  pages: HTMLElement[],
+  fileName: string,
+  opts: { onProgress?: (done: number, total: number) => void; pixelRatio?: number; paper?: PdfPaper }
+): Promise<void> {
   const [{ toJpeg, getFontEmbedCSS }, { jsPDF }] = await Promise.all([import("html-to-image"), import("jspdf")]);
   if (typeof document !== "undefined" && document.fonts) await document.fonts.ready;
 
