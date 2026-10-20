@@ -35,7 +35,7 @@ import type { WorkbookGrammarChoiceSection } from "@/lib/lesson-materials/workbo
  */
 export const TEST_BOOK_MATERIAL_VERSION = "tb-4";
 /** 단어 정리(모델이 만드는 부분) 규칙이 바뀌면 올린다 — 이것만 다르면 단어 정리만 다시 만든다 */
-export const TEST_BOOK_VOCAB_VERSION = "tv-3";
+export const TEST_BOOK_VOCAB_VERSION = "tv-4";
 
 // ---------------------------------------------------------------- 유형
 
@@ -104,7 +104,7 @@ export type TestBookVocabRow = {
   synonyms: string[];
   antonyms: string[];
   /** 품사가 다른 형태(파생어) — 「명사형은?」 시험에 쓴다 */
-  forms: Array<{ word: string; pos: string }>;
+  forms: Array<{ word: string; pos: string; ko?: string }>;
   /** 시험에 나올 어구(없으면 빈 문자열) */
   phrase: string;
   /** 내용상 핵심어이거나 바꿔 쓰기로 나올 만한 단어 */

@@ -95,7 +95,8 @@ export function CreditConfirmHost({ chargeHref }: { chargeHref: string }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/55 p-4"
+      // 전체 화면 작업판(테스트 교재 등 fixed z-50) 위에 떠야 한다 — 같은 z-50이면 뒤에 숨어 뽑기가 멈춘 것처럼 보였다
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/55 p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="credit-confirm-title"

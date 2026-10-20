@@ -18,6 +18,7 @@ import {
 } from "@/lib/lesson-materials/test-book";
 import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
 import { readAnalysisMarkup } from "@/lib/lesson-materials/analysis-markup";
+import { findPhrase } from "@/lib/lesson-materials/one-page";
 import { FrontCover } from "@/components/lesson-materials/integrated/BundleSheets";
 import { coverPreset, type IntegratedCover } from "@/lib/lesson-materials/integrated";
 
@@ -76,6 +77,8 @@ export const TEST_BOOK_CSS = `
 .tb-line{height:7.5mm;border-bottom:.6pt solid #c9cdd4}
 .tb-blank{display:inline-block;min-width:24mm;border-bottom:.8pt solid #15171c;margin:0 1mm;text-align:center;font-family:"Noto Sans KR",sans-serif;font-size:7.6pt;font-weight:700;color:#6a707c;vertical-align:-.3mm}
 .tb-pick{white-space:nowrap;font-weight:600}
+.tb-form i{font-style:italic;color:#6a707c}
+.tb-form small{font-family:"Noto Sans KR",sans-serif;font-size:.78em;color:#6a707c;margin-left:.6mm}
 .tb-u u{text-decoration:underline;text-decoration-thickness:.9pt;text-underline-offset:1.2pt}
 /* 도식화: 흐름 칸을 화살표로 잇고 아래에 보기 */
 .tb-flow{display:flex;flex-direction:column;gap:1mm;margin:1mm 0 2mm}
@@ -206,7 +209,8 @@ export const TEST_BOOK_CSS = `
 .tb-an-topic{border-left:3pt solid #15171c;padding:1mm 0 1mm 3mm;margin-bottom:2mm;font-size:9.5pt}
 .tb-an-topic b{font-size:8pt;color:#6a707c;margin-right:2mm;letter-spacing:.06em}
 .tb-an-s{padding:2mm 0;border-bottom:.5pt solid #e1e4e9}
-.tb-ansum{display:grid;grid-template-columns:17mm minmax(0,1fr) minmax(0,1.3fr);gap:2.5mm;align-items:baseline;border-bottom:.5pt solid #e1e4e9;padding:1.4mm 0;font-size:9pt}
+.tb-annotes{margin:-1mm 0 2.4mm 9mm;border-left:2pt solid var(--tb-accent,#15171c);padding:1mm 0 1mm 2.6mm;display:grid;gap:.8mm;background:#f7f7fb}
+.tb-annote{display:grid;grid-template-columns:15mm minmax(0,1fr);gap:2mm;align-items:baseline;font-size:8.6pt;line-height:1.45}
 .tb-ankind{font-size:7.5pt;font-weight:800;color:var(--tb-accent,#15171c);letter-spacing:.04em}
 .tb-an-s .tb-ko{font-size:9pt}
 .tb-note .tb-psgbox{border-top:.8pt solid #15171c;padding-top:1.6mm;margin-bottom:3mm}
@@ -396,6 +400,21 @@ function Who({ total }: { total?: number }) {
         <span>점수 {total ? <>&nbsp;&nbsp;&nbsp;&nbsp;/ {total}</> : null}</span>
       </div>
     </div>
+  );
+}
+
+/** 파생어: 낱말 품사 뜻(뜻은 작게 — 선생님 2026-10-20) */
+function FormList({ forms }: { forms: Array<{ word: string; pos: string; ko?: string }> }) {
+  return (
+    <>
+      {forms.map((f, i) => (
+        <span key={f.word} className="tb-form">
+          {i > 0 ? ", " : ""}
+          {f.word} <i>{f.pos}</i>
+          {f.ko ? <small>{f.ko}</small> : null}
+        </span>
+      ))}
+    </>
   );
 }
 
@@ -657,7 +676,7 @@ export function VocabSheets({
           <div className={r.synonyms.length ? "tb-en" : "tb-nil"}>{r.synonyms.join(", ") || "—"}</div>
           <div className={r.antonyms.length ? "tb-en" : "tb-nil"}>{r.antonyms.join(", ") || "—"}</div>
           <div className="tb-en">
-            {r.forms.map((f) => `${f.word} ${f.pos}`).join(", ")}
+            <FormList forms={r.forms} />
             {r.forms.length && r.phrase ? <br /> : null}
             {r.phrase}
           </div>
@@ -739,7 +758,7 @@ export function AllVocabSheets({
         <div>{r.row.meaning}</div>
         <div className={r.row.synonyms.length ? "tb-en" : "tb-nil"}>{r.row.synonyms.join(", ") || "—"}</div>
         <div className={r.row.antonyms.length ? "tb-en" : "tb-nil"}>{r.row.antonyms.join(", ") || "—"}</div>
-        <div className={r.row.forms.length ? "tb-en" : "tb-nil"}>{r.row.forms.map((f) => `${f.word} ${f.pos}`).join(", ") || "—"}</div>
+        <div className={r.row.forms.length ? "tb-en" : "tb-nil"}>{r.row.forms.length ? <FormList forms={r.row.forms} /> : "—"}</div>
       </div>
     ),
   }));
@@ -1610,50 +1629,91 @@ export function AnalysisSheets({
       ),
     });
   }
+  // 지칭·함축의미·바꿔 말하기는 그 문장 바로 아래 주석으로(선생님 2026-10-20: 끝에 모으지 말고 문장 밑에).
+  // 1장 자료 재료라 값이 들지 않는다. 분석서 문장 나눔이 다를 수 있어, 표현이 실제로 든 문장 가운데
+  // 재료의 문장 번호에 가장 가까운 문장에 붙인다.
+  const plains = report.sentences.map((s) => s.enChunks.map((c) => c.text).join(" ").trim());
+  const notesAt = new Map<number, ReactNode[]>();
+  const attach = (si: number, phrase: string, node: ReactNode) => {
+    const hits = plains.map((t, i) => (findPhrase(t, phrase) ? i : -1)).filter((i) => i >= 0);
+    if (!hits.length) return;
+    const at = hits.sort((x, y) => Math.abs(x - si) - Math.abs(y - si))[0]!;
+    notesAt.set(at, [...(notesAt.get(at) ?? []), node]);
+  };
+  const c = project.content;
+  (c?.references ?? [])
+    .filter((r) => r.surface.trim() && r.referent.trim())
+    .forEach((r, i) =>
+      attach(
+        r.sentenceIndex,
+        r.surface,
+        <div key={`r${i}`} className="tb-annote">
+          <span className="tb-ankind">지칭</span>
+          <span>
+            <b className="tb-en">{r.surface}</b> → <span className="tb-en">{r.referent}</span>
+            {r.meaningKo ? ` · ${r.meaningKo}` : ""}
+          </span>
+        </div>
+      )
+    );
+  (c?.implications ?? [])
+    .filter((m) => m.expression.trim())
+    .forEach((m, i) =>
+      attach(
+        m.sentenceIndex,
+        m.expression,
+        <div key={`m${i}`} className="tb-annote">
+          <span className="tb-ankind">함축</span>
+          <span>
+            <b className="tb-en">{m.expression}</b> → {m.meaningKo}
+            {m.meaningEn ? <span className="tb-en tb-tip"> ({m.meaningEn})</span> : null}
+          </span>
+        </div>
+      )
+    );
+  (c?.paraphrases ?? [])
+    .filter((x) => x.expression.trim() && x.paraphrases.length)
+    .forEach((x, i) =>
+      attach(
+        x.sentenceIndex,
+        x.expression,
+        <div key={`p${i}`} className="tb-annote">
+          <span className="tb-ankind">바꿔 말하기</span>
+          <span>
+            <b className="tb-en">{x.expression}</b> = <span className="tb-en">{x.paraphrases.join(" / ")}</span>
+          </span>
+        </div>
+      )
+    );
+
   report.sentences.forEach((s, i) => {
-    const plain = s.enChunks.map((c) => c.text).join(" ").trim();
+    const plain = plains[i]!;
     const markup = readAnalysisMarkup(s.markup, plain);
     const extra = (s.contextNote ?? "").trim() || (s.easyUnderstanding ?? "").trim();
+    const notes = notesAt.get(i);
     blocks.push({
       key: `s${i}`,
-      node: markup ? (
-        <AnalysisMarkupSentence markup={markup} index={i} extraNote={extra || undefined} translationMode={translation} />
-      ) : (
-        <div className="tb-an-s">
-          <div className="tb-ss">
-            <span className="tb-i">{String(i + 1).padStart(2, "0")}</span>
-            <div>
-              <div className="tb-en">{plain}</div>
-              <div className="tb-ko">{s.koChunks.join(" ")}</div>
-              {extra ? <div className="tb-tip">{extra}</div> : null}
+      node: (
+        <>
+          {markup ? (
+            <AnalysisMarkupSentence markup={markup} index={i} extraNote={extra || undefined} translationMode={translation} />
+          ) : (
+            <div className="tb-an-s">
+              <div className="tb-ss">
+                <span className="tb-i">{String(i + 1).padStart(2, "0")}</span>
+                <div>
+                  <div className="tb-en">{plain}</div>
+                  <div className="tb-ko">{s.koChunks.join(" ")}</div>
+                  {extra ? <div className="tb-tip">{extra}</div> : null}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
+          {notes?.length ? <div className="tb-annotes">{notes}</div> : null}
+        </>
       ),
     });
   });
-  // 핵심 정리(선생님 2026-10-20: 분석지에도 지칭·함축의미·바꿔 말할 문장) — 1장 자료 재료라 값이 들지 않는다
-  const c = project.content;
-  const refs = (c?.references ?? []).filter((r) => r.surface.trim() && r.referent.trim());
-  const imps = (c?.implications ?? []).filter((m) => m.expression.trim());
-  const paras = (c?.paraphrases ?? []).filter((x) => x.expression.trim() && x.paraphrases.length);
-  if (refs.length || imps.length || paras.length) {
-    blocks.push({ key: "sum-h", node: <div className="tb-q" style={{ marginTop: "3mm" }}>핵심 정리 <small>시험에 바꿔 나올 자리</small></div> });
-    const row = (key: string, kind: string, left: ReactNode, right: ReactNode) =>
-      blocks.push({
-        key,
-        node: (
-          <div className="tb-ansum">
-            <span className="tb-ankind">{kind}</span>
-            <span className="tb-en">{left}</span>
-            <span>{right}</span>
-          </div>
-        ),
-      });
-    refs.forEach((r, i) => row(`ref${i}`, "지칭", r.surface, <><b className="tb-en">{r.referent}</b>{r.meaningKo ? ` · ${r.meaningKo}` : ""}</>));
-    imps.forEach((m, i) => row(`imp${i}`, "함축", m.expression, <>{m.meaningKo}{m.meaningEn ? <div className="tb-en tb-tip">{m.meaningEn}</div> : null}</>));
-    paras.forEach((x, i) => row(`par${i}`, "바꿔 말하기", x.expression, <span className="tb-en">= {x.paraphrases.join(" / ")}</span>));
-  }
   return (
     <PagedSheet
       blocks={blocks}
