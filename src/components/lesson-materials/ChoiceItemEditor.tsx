@@ -58,6 +58,9 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
    */
   /** 늦게 온 옛 응답을 버리려고 요청마다 번호를 단다 */
   const requestNo = useRef(0);
+  /** 낱말을 누른 채 끌어 여러 낱말을 고르는 중인지, 끌기 시작한 낱말 */
+  const dragging = useRef(false);
+  const dragAnchor = useRef<{ start: number; end: number } | null>(null);
 
   /**
    * 자리(start~end)에 넣을 틀린 말을 서버에 묻는다. fresh면 지금까지 보인 말(avoid)을 빼고
@@ -118,7 +121,12 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
     const local = kind === "grammar" ? suggestGrammarWrong(text) : suggestVocabOpposite(text);
     setSuggestions(local);
     setDraft(local[0] ?? "");
-    fetchSuggestions(picked.start, picked.end, { fresh: false, avoid: [], local });
+    // 끌어서 여러 낱말을 고르는 동안에는 묻지 않는다 — 고르기가 멈추면 한 번만 묻는다
+    const timer = setTimeout(
+      () => fetchSuggestions(picked.start, picked.end, { fresh: false, avoid: [], local }),
+      dragging.current ? 600 : 250
+    );
+    return () => clearTimeout(timer);
   }, [picked, passage, kind, fetchSuggestions]);
 
   /** 「새로 추천받기」: 고른 자리(새 낱말이든 이미 있는 문항이든)에 다른 틀린 말을 받는다. */
@@ -172,6 +180,54 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
     }
   };
 
+  /*
+   * 여러 낱말을 한 문항으로(has been developed). 선생님 말씀(2026-10-20): 어법은 여러 낱말을 고를 수도 있다.
+   * 낱말을 누른 채 끌거나, 고른 뒤 「◀ 앞 낱말」「뒤 낱말 ▶」로 넓힌다(Shift+누르기도 된다).
+   */
+  useEffect(() => {
+    const stop = () => {
+      dragging.current = false;
+      dragAnchor.current = null;
+    };
+    window.addEventListener("mouseup", stop);
+    return () => window.removeEventListener("mouseup", stop);
+  }, []);
+
+  /** 두 낱말 자리를 잇는 범위. 문항을 건너뛰거나 문장을 넘으면 null */
+  const joinSpan = (a: { start: number; end: number }, b: { start: number; end: number }) => {
+    const start = Math.min(a.start, b.start);
+    const end = Math.max(a.end, b.end);
+    if (overlapsChoice(section, start, end) || /[.!?]/.test(passage.slice(start, end))) return null;
+    return { start, end };
+  };
+
+  /** 고른 범위를 앞(-1)이나 뒤(+1) 낱말까지 넓힌다 */
+  const extendPicked = (dir: -1 | 1) => {
+    if (picked?.type !== "word") return;
+    let i = dir < 0 ? picked.start - 1 : picked.end;
+    while (i >= 0 && i < passage.length && !/[A-Za-z0-9'’-]/.test(passage[i]!)) i += dir;
+    const next = wordSpanAt(passage, i);
+    if (!next) return;
+    const joined = joinSpan(picked, next);
+    if (joined) setPicked({ type: "word", ...joined });
+  };
+
+  const startDrag = (index: number) => {
+    const span = wordSpanAt(passage, index);
+    if (!span || overlapsChoice(section, span.start, span.end)) return;
+    dragging.current = true;
+    dragAnchor.current = span;
+    setError(null);
+    setPicked({ type: "word", ...span });
+  };
+  const dragOver = (index: number) => {
+    if (!dragging.current || !dragAnchor.current) return;
+    const span = wordSpanAt(passage, index);
+    if (!span) return;
+    const joined = joinSpan(dragAnchor.current, span);
+    if (joined) setPicked({ type: "word", ...joined });
+  };
+
   const pickWord = (index: number, extend: boolean) => {
     const span = wordSpanAt(passage, index);
     if (!span) return;
@@ -189,7 +245,8 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 print:hidden">
+    // 위에 붙여 둔다 — 가운데 두면 아래 칸이 생길 때 지문이 위로 밀려 끌어 고르던 낱말이 바뀐다
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 p-4 pt-[6vh] print:hidden">
       <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
           <div className="min-w-0">
@@ -208,7 +265,7 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
         </div>
         <p className="border-b border-slate-100 bg-slate-50 px-5 py-2 text-[11px] leading-relaxed text-slate-600">
           문항을 누르면 틀린 말을 바꾸거나 지울 수 있습니다. 지문의 낱말을 누르면 틀린 말을 자동으로 추천해 그 자리에 문항을 더합니다.
-          두세 낱말을 묶으려면 Shift를 누른 채 끝 낱말을 누르세요.
+          여러 낱말(has been developed)을 한 문항으로 하려면 낱말을 누른 채 끌거나, 고른 뒤 「◀ 앞 낱말」「뒤 낱말 ▶」을 누르세요.
         </p>
         <div className="min-h-0 flex-1 overflow-auto px-5 py-4">
           <p className="text-[14px] leading-[2.1] text-slate-900">
@@ -249,7 +306,13 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
                             key={k}
                             role="button"
                             tabIndex={0}
-                            onClick={(e) => pickWord(start, e.shiftKey)}
+                            onMouseDown={(e) => {
+                              if (e.button !== 0) return;
+                              e.preventDefault(); // 글자 선택(파란 칠)이 생기지 않게
+                              if (e.shiftKey) pickWord(start, true);
+                              else startDrag(start);
+                            }}
+                            onMouseEnter={() => dragOver(start)}
                             onKeyDown={(e) => {
                               if (e.key === "Enter") pickWord(start, e.shiftKey);
                             }}
@@ -283,6 +346,24 @@ export function ChoiceItemEditor<S extends ChoiceSection>({
                 <span className="rounded bg-white px-2 py-0.5 font-semibold text-slate-900 ring-1 ring-slate-200">
                   {pickedItem ? pickedItem.correctText : pickedText}
                 </span>
+                {picked.type === "word" ? (
+                  <span className="inline-flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => extendPicked(-1)}
+                      className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-100"
+                    >
+                      ◀ 앞 낱말
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => extendPicked(1)}
+                      className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-100"
+                    >
+                      뒤 낱말 ▶
+                    </button>
+                  </span>
+                ) : null}
                 <span className="ml-2 font-bold text-slate-500">틀린 말</span>
                 <input
                   value={draft}
