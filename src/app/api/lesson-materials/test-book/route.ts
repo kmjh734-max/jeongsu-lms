@@ -28,6 +28,7 @@ export async function POST(request: Request) {
       projectIds?: string[];
       seed?: string;
       typeCount?: number;
+      snapshot?: unknown;
     };
     const role = body.role === "admin" ? "admin" : "teacher";
     if (body.op === "registerVocab") {
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
           seed: String(body.seed ?? ""),
           projectIds: Array.isArray(body.projectIds) ? body.projectIds.map(String) : [],
           typeCount: Number(body.typeCount ?? 0),
+          snapshot: body.snapshot,
         })
       );
     }

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { defaultDocumentName, uniqueDocumentName } from "@/lib/lesson-materials/documents";
 import { createClient } from "@/lib/supabase/server";
 import { persistVocabItems, type VocabItemSaveInput } from "@/lib/vocab/save-items";
 import { nextVocabSetOrderIndex } from "@/lib/vocab/reorder-sets";
@@ -320,8 +321,8 @@ const TEST_DRAW_FEATURE = "lesson_test_draw";
  */
 export async function chargeTestDrawAction(
   role: Role,
-  input: { seed: string; projectIds: string[]; typeCount: number }
-): Promise<{ ok: true } | Fail> {
+  input: { seed: string; projectIds: string[]; typeCount: number; snapshot?: unknown }
+): Promise<{ ok: true; docId: string | null; name: string | null } | Fail> {
   const { profile, error } = await requireTestBook(role);
   if (error) return { ok: false, message: error };
   const seed = String(input.seed ?? "").trim().slice(0, 80);
@@ -339,7 +340,36 @@ export async function chargeTestDrawAction(
     idempotencyKey: `${TEST_DRAW_FEATURE}:${seed}`,
     note: `테스트지 뽑기 · 지문 ${passages}개 × 유형 ${types}개`,
   });
-  return ok ? { ok: true } : { ok: false, message: "크레딧을 차감하지 못했습니다. 잠시 뒤 다시 눌러 주세요." };
+  if (!ok) return { ok: false, message: "크레딧을 차감하지 못했습니다. 잠시 뒤 다시 눌러 주세요." };
+
+  // 뽑은 그대로 파일로 남긴다(다시 열어 인쇄 — 값 없음). 저장이 안 돼도 뽑기는 그대로 보여 준다.
+  const snap = input.snapshot as { sheets?: unknown[]; vocabExam?: unknown } | null | undefined;
+  if (!snap || !Array.isArray(snap.sheets)) return { ok: true, docId: null, name: null };
+  const supabase = await createClient();
+  const base = defaultDocumentName("test_draw");
+  const { data: same } = await supabase
+    .from("lesson_material_documents")
+    .select("name")
+    .eq("academy_id", profile!.academy_id!)
+    .eq("kind", "test_draw")
+    .is("deleted_at", null)
+    .like("name", `${base}%`);
+  const name = uniqueDocumentName(base, (same ?? []).map((r) => r.name as string));
+  const { data: doc } = await supabase
+    .from("lesson_material_documents")
+    .insert({
+      kind: "test_draw",
+      name,
+      project_ids: [...new Set((input.projectIds ?? []).map(String).filter(Boolean))],
+      payload: { version: 1, createdAt: new Date().toISOString(), sheets: snap.sheets, vocabExam: snap.vocabExam ?? null },
+      teacher_id: role === "teacher" ? profile!.id : null,
+      created_by: profile!.id,
+      academy_id: profile!.academy_id,
+    })
+    .select("id")
+    .maybeSingle();
+  revalidatePath(`/${role}/lesson-materials`);
+  return { ok: true, docId: (doc?.id as string | undefined) ?? null, name: doc ? name : null };
 }
 
 /** 교재 설정(유형·해석 보기·계획표 등)을 파일에 저장한다. */

@@ -8,6 +8,7 @@ import { resolveDocumentProjectIds } from "@/lib/lesson-materials/document-page"
 import { loadTestBookProjects } from "@/lib/lesson-materials/load-material-payloads";
 import { normalizeTestBookOptions } from "@/lib/lesson-materials/test-book";
 import { TestBookWorkbench } from "@/components/lesson-materials/test-book/TestBookWorkbench";
+import { TestDrawView, type TestDrawPayload } from "@/components/lesson-materials/test-book/TestDrawView";
 import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 
 /**
@@ -24,6 +25,29 @@ export async function TestBookPage({
   const profile = await getCurrentProfile();
   if (!(await isAcademyFeatureOn(createAdminClient(), profile?.academy_id, "test_book"))) notFound();
 
+  // 뽑은 테스트지 파일이면 저장해 둔 그대로 보여 준다(값 없음)
+  const openDoc = params.doc?.trim();
+  if (openDoc) {
+    const sb = await createClient();
+    const { data: drawDoc } = await sb
+      .from("lesson_material_documents")
+      .select("kind,name,payload")
+      .eq("id", openDoc)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (drawDoc?.kind === "test_draw") {
+      const brand = await getAcademyBrandingForCurrentUser();
+      return (
+        <TestDrawView
+          role={role}
+          name={(drawDoc.name as string) ?? "테스트지"}
+          payload={drawDoc.payload as TestDrawPayload}
+          logoSrc={brand.logoUrl}
+          academyName={brand.name || ""}
+        />
+      );
+    }
+  }
   const ids = await resolveDocumentProjectIds(params, "test_book");
   if (ids.length === 0) {
     return (

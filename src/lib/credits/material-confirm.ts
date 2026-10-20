@@ -54,6 +54,13 @@ const BY_KIND: Record<
     features: ["lesson_test_book", "lesson_workbook_grammar_choice"],
     sample: "one_page_test",
   },
+  test_draw: {
+    title: "테스트지 뽑기",
+    description: "테스트 교재 재료로 테스트지를 뽑습니다.",
+    contents: [],
+    features: ["lesson_test_draw"],
+    sample: "one_page_test",
+  },
   integrated: {
     title: "최종통합자료",
     description: "이미 만들어 둔 자료를 표지와 차례를 붙여 한 권으로 묶습니다.",

@@ -19,6 +19,7 @@ const KIND_LABEL: Record<LessonMaterialDocumentKind, string> = {
   one_page_summary: "1장 요약직보자료",
   one_page_test: "1장 테스트",
   test_book: "테스트 교재",
+  test_draw: "뽑은 테스트지",
 };
 
 const KIND_ICON: Record<LessonMaterialDocumentKind, string> = {
@@ -29,6 +30,7 @@ const KIND_ICON: Record<LessonMaterialDocumentKind, string> = {
   one_page_summary: "📃",
   one_page_test: "📝",
   test_book: "🧪",
+  test_draw: "📑",
 };
 
 function formatWhen(iso: string): string {

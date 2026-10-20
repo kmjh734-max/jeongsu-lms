@@ -998,6 +998,17 @@ export function LessonMaterialsLibrary({
             documents={tabDocuments}
           />
         ) : null}
+        {documentKind === "test_book" && !inTrash ? (
+          // 뽑은 테스트지(선생님 2026-10-20: 만들고 나면 어디에 저장돼야) — 뽑은 그대로 다시 열어 인쇄
+          <div className="mt-4">
+            <LessonMaterialDocumentList
+              key="test_draw"
+              role={role}
+              kind="test_draw"
+              documents={(data.documents ?? []).filter((d) => d.kind === "test_draw")}
+            />
+          </div>
+        ) : null}
         {documentKind && showProjectList && !inTrash ? (
           <h2 className="mt-4 text-sm font-bold text-slate-800">지문별 자료</h2>
         ) : null}

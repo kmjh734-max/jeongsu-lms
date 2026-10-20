@@ -560,6 +560,8 @@ export function TestBookWorkbench({
   /** 뽑을 때마다 값(지문 수 × 유형 수)을 받는다 — 확인 창을 띄우고, 서버에서 차감된 뒤에만 보여 준다 */
   const [drawBusy, setDrawBusy] = useState(false);
   const [drawError, setDrawError] = useState<string | null>(null);
+  /** 방금 뽑은 테스트지를 저장한 파일 */
+  const [drawSaved, setDrawSaved] = useState<{ id: string; name: string } | null>(null);
   async function runDraw() {
     const picks: Record<string, TestBookTypeKey[]> = {};
     for (const p of ready) if (drawIds.has(p.id)) picks[p.id] = drawTypes;
@@ -577,16 +579,38 @@ export function TestBookWorkbench({
     const seed = newSeed();
     setDrawBusy(true);
     setDrawError(null);
+    setDrawSaved(null);
+    // 뽑은 그대로 저장한다(화면에 그릴 것과 같은 열쇠로 미리 만든다)
+    const snapshot = {
+      sheets: edited
+        .filter((p) => picks[p.id])
+        .map((p) => ({
+          project: { id: p.id, index: indexOf(p.id), title: p.title, titleEn: p.titleEn, source: p.source },
+          sheet: buildTestSheet(p, picks[p.id]!, { seed, blankMode, writing: drawWriting, lineMode: drawLineMode, level: drawLevel }),
+        })),
+      vocabExam: drawVocabOn
+        ? buildVocabExam(
+            ready.filter((p) => picks[p.id]).map((p) => ({ passage: indexOf(p.id) + 1, vocab: p.material.vocab })),
+            { ...drawVocab, seed: `${seed}|vocab` }
+          )
+        : null,
+    };
     try {
-      const res = await postJson<{ ok: true } | { ok: false; message: string }>("/api/lesson-materials/test-book", {
-        op: "chargeDraw",
-        role,
-        seed,
-        projectIds,
-        typeCount: drawTypes.length + (drawVocabOn ? 1 : 0),
-      });
-      if (res.ok) setDraw({ seed, picks, vocab: drawVocabOn ? drawVocab : null });
-      else setDrawError(res.message);
+      const res = await postJson<{ ok: true; docId: string | null; name: string | null } | { ok: false; message: string }>(
+        "/api/lesson-materials/test-book",
+        {
+          op: "chargeDraw",
+          role,
+          seed,
+          projectIds,
+          typeCount: drawTypes.length + (drawVocabOn ? 1 : 0),
+          snapshot,
+        }
+      );
+      if (res.ok) {
+        setDraw({ seed, picks, vocab: drawVocabOn ? drawVocab : null });
+        if (res.docId) setDrawSaved({ id: res.docId, name: res.name ?? "테스트지" });
+      } else setDrawError(res.message);
     } catch (e) {
       setDrawError(e instanceof Error ? e.message : "뽑지 못했습니다.");
     } finally {
@@ -1239,6 +1263,14 @@ export function TestBookWorkbench({
                 {drawBusy ? "뽑는 중…" : draw ? "다시 뽑기" : "뽑기"}
               </Button>
               {drawError ? <p className="text-[11px] font-semibold text-rose-600">{drawError}</p> : null}
+              {drawSaved ? (
+                <p className="text-[11px] font-semibold text-emerald-700">
+                  「{drawSaved.name}」로 저장했습니다 · 자료함 테스트 교재 탭의 「뽑은 테스트지」에서 다시 열 수 있습니다.{" "}
+                  <a href={`${base}/test-book?doc=${encodeURIComponent(drawSaved.id)}`} target="_blank" rel="noreferrer" className="underline">
+                    열기
+                  </a>
+                </p>
+              ) : null}
               <p className="text-[11px] leading-relaxed text-slate-500">
                 누를 때마다 문항·보기 순서가 새로 나옵니다. 중요문장은 교재와 같고, 어순배열은 같은 덩어리를 새로 섞습니다. 뽑을 때마다 지문·유형마다 값이 듭니다.
               </p>
