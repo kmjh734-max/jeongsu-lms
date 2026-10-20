@@ -8,6 +8,7 @@ import { resolveDocumentProjectIds } from "@/lib/lesson-materials/document-page"
 import { loadTestBookProjects } from "@/lib/lesson-materials/load-material-payloads";
 import { normalizeTestBookOptions } from "@/lib/lesson-materials/test-book";
 import { TestBookWorkbench } from "@/components/lesson-materials/test-book/TestBookWorkbench";
+import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 
 /**
  * 테스트 교재 화면(서버). 학원 기능 「테스트 교재」를 켠 학원만 열린다(정수학원).
@@ -49,6 +50,7 @@ export async function TestBookPage({
       : Promise.resolve(null),
   ]);
   const ours = doc?.kind === "test_book";
+  const branding = await getAcademyBrandingForCurrentUser();
   return (
     <TestBookWorkbench
       role={role}
@@ -57,6 +59,8 @@ export async function TestBookPage({
       docName={ours ? ((doc!.name as string | null) ?? null) : null}
       savedOptions={normalizeTestBookOptions(ours ? (doc!.payload as { options?: unknown } | null)?.options : null)}
       initialMode={params.mode === "draw" ? "draw" : "book"}
+      logoSrc={branding.logoUrl}
+      academyName={branding.name || ""}
     />
   );
 }

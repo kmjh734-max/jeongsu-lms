@@ -25,6 +25,7 @@ import {
   type OnePageContent,
 } from "@/lib/lesson-materials/one-page";
 import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
+import type { WorkbookGrammarChoiceSection } from "@/lib/lesson-materials/workbook-types";
 
 /**
  * 재료 형식이 바뀌면 올린다. 원문이 그대로인 옛 재료는 열 때 단어 정리(모델 호출)는 그대로 두고
@@ -193,6 +194,8 @@ export type TestBookProjectInput = {
   material: TestBookMaterial | null;
   /** 수업자료 분석서(있으면 「분석 자료」에 싣는다) */
   analysis?: AnalysisReportData | null;
+  /** 워크북 어법 선택(저장된 것). 있으면 어법선택을 워크북과 같은 문항으로 싣는다. */
+  grammarChoice?: WorkbookGrammarChoiceSection | null;
 };
 
 export function isTestBookProjectReady(
@@ -209,6 +212,21 @@ export type TestBookTranslationMode = "show" | "hide" | "back";
  * 교재 차례(선생님 2026-10-20): 표지 → 목차 → 학습 계획표·이수표 → 수업용 자료 → 백지노트 →
  * 분석 자료 → 테스트지 자료 → 정답지. 묶음마다 넣고 뺄 수 있고, 테스트지 자료는 안에서 다시 고른다.
  */
+/** 테스트 교재 시안 01(색 번짐) 표지 id. 나머지는 최종통합자료 표지(COVER_PRESETS)를 그대로 쓴다. */
+export const TEST_BOOK_BLEED_COVER = "tb-bleed";
+
+/** 표지 글자(최종통합자료 표지와 같은 칸). 비어 있으면 교재 이름·범위·학원명으로 채운다. */
+export type TestBookCover = {
+  presetId: string;
+  /** 위 라벨(시험 범위 등) */
+  label: string;
+  /** 큰 제목(줄바꿈 가능) */
+  title: string;
+  /** 제목 아래·꼬릿말(줄바꿈 가능) */
+  progress: string;
+  academy: string;
+};
+
 export type TestBookOptions = {
   /** 테스트지 자료 · 테스트 견본에 싣는 유형 */
   types: TestBookTypeKey[];
@@ -218,6 +236,8 @@ export type TestBookOptions = {
   writing: WritingScope;
   /** 표지 */
   cover: boolean;
+  /** 표지 모양·글자 */
+  coverInfo: TestBookCover;
   /** 목차(묶음마다 쪽 범위) */
   toc: boolean;
   /** 묶음마다 간지(지문별 시작 쪽) — 목차를 켰을 때 */
@@ -253,6 +273,7 @@ export const DEFAULT_TEST_BOOK_OPTIONS: TestBookOptions = {
   translation: "hide",
   writing: "all",
   cover: true,
+  coverInfo: { presetId: TEST_BOOK_BLEED_COVER, label: "", title: "", progress: "", academy: "" },
   toc: true,
   dividers: true,
   passageDividers: true,
@@ -277,6 +298,17 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
     translation: t === "show" || t === "hide" || t === "back" ? t : DEFAULT_TEST_BOOK_OPTIONS.translation,
     writing: r.writing === "key" ? "key" : "all",
     cover: r.cover !== false,
+    coverInfo: (() => {
+      const c = (r.coverInfo ?? {}) as Partial<Record<keyof TestBookCover, unknown>>;
+      const str = (v: unknown) => (typeof v === "string" ? v.slice(0, 300) : "");
+      return {
+        presetId: str(c.presetId) || TEST_BOOK_BLEED_COVER,
+        label: str(c.label),
+        title: str(c.title),
+        progress: str(c.progress),
+        academy: str(c.academy),
+      };
+    })(),
     toc: r.toc !== false,
     dividers: r.dividers !== false,
     passageDividers: r.passageDividers !== false,
@@ -617,6 +649,31 @@ function pickSection(
   return { type, title, hint, passage, inline: true, items };
 }
 
+/**
+ * 어법선택을 워크북 어법 선택 문항 그대로(선생님 2026-10-20: 퀄리티가 안 나온다, 워크북 참고).
+ * 지문·고르기 자리·바른 말은 워크북과 같고, 뽑기는 열쇠에 따라 [A / B] 좌우만 바꾼다.
+ */
+function workbookGrammarSection(p: Ready, seed: string): TestSection | null {
+  const gc = p.grammarChoice;
+  if (!gc?.segments?.length || !gc.items?.length) return null;
+  const byNo = new Map(gc.items.map((it) => [it.number, it] as const));
+  const book = seed.startsWith("book|");
+  const passage: TestSeg[] = [];
+  const items: TestItem[] = [];
+  for (const seg of gc.segments) {
+    if (seg.type === "text") {
+      passage.push(seg.text);
+      continue;
+    }
+    const it = byNo.get(seg.number);
+    const n = circled(seg.number - 1);
+    const swap = !book && hashSeedToUint32(`${seed}|wgc|${seg.number}`) % 2 === 1;
+    passage.push({ pick: swap ? [seg.rightText, seg.leftText] : [seg.leftText, seg.rightText], n });
+    items.push({ no: n, text: [], answer: it?.correctText ?? "" });
+  }
+  return { type: "grammar", title: "어법선택", hint: "알맞은 것에 ○", passage, inline: true, items };
+}
+
 /** 어순배열: 같은 덩어리를 섞는다. 원래 차례·뒤집은 차례와 같으면 다시 섞는다. */
 function shuffleChunks(chunks: string[], seed: string): string[] {
   for (let attempt = 0; attempt < 12; attempt++) {
@@ -862,7 +919,7 @@ export function buildTestSheet(
   const sections: TestSection[] = [];
   // 어법선택·어법 서술형을 함께 고르면 어법 자리를 번갈아 나눈다(같은 자리를 두 번 묻지 않게)
   const grammarPool = grammarCandidates(p);
-  const both = on.has("grammar") && on.has("grammarFix");
+  const both = on.has("grammar") && on.has("grammarFix") && !p.grammarChoice?.items?.length;
   const forPick = both ? grammarPool.filter((_, i) => i % 2 === 0) : grammarPool;
   const usedGrammar = new Set(on.has("grammar") ? forPick.map((c) => c.key) : []);
   for (const key of ALL_TEST_BOOK_TYPES) {
@@ -870,7 +927,7 @@ export function buildTestSheet(
     const sec =
       key === "line" ? buildLine(p, seed)
       : key === "blank" ? buildBlank(p, seed, opts.blankMode ?? "same")
-      : key === "grammar" ? pickSection(p, "grammar", "어법선택", "알맞은 것에 ○", forPick, seed)
+      : key === "grammar" ? (workbookGrammarSection(p, seed) ?? pickSection(p, "grammar", "어법선택", "알맞은 것에 ○", forPick, seed))
       : key === "vocab" ? pickSection(p, "vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed)
       : key === "order" ? buildOrder(p, seed)
       : key === "tf" ? buildTf(p, seed)

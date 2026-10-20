@@ -16,13 +16,13 @@ export async function POST(request: Request) {
       projectId?: string;
       forceRegenerate?: boolean;
       /** 워크북에서 불렀는지, 1장 테스트지에서 불렀는지 */
-      usedIn?: "workbook" | "one_page_test";
+      usedIn?: "workbook" | "one_page_test" | "test_book";
     };
     const role = body.role === "admin" ? "admin" : "teacher";
     const result = await generateGrammarChoicePassageAction(role, {
       projectId: String(body.projectId ?? ""),
       forceRegenerate: body.forceRegenerate === true,
-      usedIn: body.usedIn === "one_page_test" ? "one_page_test" : "workbook",
+      usedIn: body.usedIn === "one_page_test" || body.usedIn === "test_book" ? body.usedIn : "workbook",
     });
     return NextResponse.json(result);
   } catch (e) {

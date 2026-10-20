@@ -1,8 +1,9 @@
 "use client";
 
-import { Fragment, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, createContext, useContext, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   POS_NAME,
+  TEST_BOOK_BLEED_COVER,
   circled,
   testBookTypeLabel,
   type TestBookOptions,
@@ -16,6 +17,8 @@ import {
 } from "@/lib/lesson-materials/test-book";
 import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
 import { readAnalysisMarkup } from "@/lib/lesson-materials/analysis-markup";
+import { FrontCover } from "@/components/lesson-materials/integrated/BundleSheets";
+import { coverPreset, type IntegratedCover } from "@/lib/lesson-materials/integrated";
 
 /*
  * 테스트 교재 인쇄 쪽. 모든 쪽은 A4(210×297mm)이고, 내용 덩어리(block)의 높이를 재서
@@ -37,7 +40,11 @@ export const TEST_BOOK_CSS = `
 .tb-en{font-family:"Source Serif 4","Times New Roman",Georgia,serif}
 .tb-measure{position:absolute;left:-10000px;top:0;visibility:hidden;pointer-events:none}
 .tb-measure .tb-sheet{height:auto;overflow:visible}
-.tb-foot{position:absolute;left:${PAD_X_MM}mm;right:${PAD_X_MM}mm;bottom:6mm;display:flex;justify-content:space-between;font-size:7.2pt;color:#8a909b}
+.tb-foot{position:absolute;left:${PAD_X_MM}mm;right:${PAD_X_MM}mm;bottom:5.5mm;display:flex;align-items:center;gap:4mm;font-size:7.2pt;color:#8a909b;border-top:.4pt solid #e1e4e9;padding-top:1.4mm}
+.tb-foot .tb-brand{display:flex;align-items:center;gap:1.6mm;color:#4b515c;font-weight:700;white-space:nowrap}
+.tb-foot .tb-brand img{height:4.6mm;width:auto;max-width:16mm;object-fit:contain}
+.tb-foot .tb-fmid{flex:1;min-width:0;display:flex;justify-content:center;gap:4mm;overflow:hidden;white-space:nowrap}
+.tb-foot .tb-pgno{font-weight:700;color:#4b515c;white-space:nowrap}
 .tb-b{display:flow-root;padding-bottom:2.6mm}
 .tb-dh{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.6pt solid #15171c;padding-bottom:2mm;margin-bottom:3mm}
 .tb-dh h2{margin:0;font-size:16pt;font-weight:900;letter-spacing:-.02em;line-height:1.15}
@@ -279,7 +286,7 @@ export function PagedSheet({
         <div key={p} className="tb-sheet tb-part">
           {head(p)}
           {idx.map((i) => (blocks[i] ? <Fragment key={blocks[i]!.key}>{blocks[i]!.node}</Fragment> : null))}
-          {foot ? <div className="tb-foot">{foot(p, pages.length)}</div> : null}
+          <BookFoot>{foot ? foot(p, pages.length) : null}</BookFoot>
         </div>
       ))}
     </>
@@ -287,6 +294,28 @@ export function PagedSheet({
 }
 
 // ---------------------------------------------------------------- 공용 조각
+
+/** 학원 로고·이름(바닥줄). 교재 화면이 넣어 준다. */
+export const TestBookBrand = createContext<{ logoSrc: string | null; academy: string }>({ logoSrc: null, academy: "" });
+
+/** 쪽 바닥줄 — 변형문제 인쇄물처럼 왼쪽에 로고·학원명, 오른쪽에 교재 전체 쪽 번호 */
+function BookFoot({ children }: { children?: ReactNode }) {
+  const brand = useContext(TestBookBrand);
+  return (
+    <div className="tb-foot">
+      <span className="tb-brand">
+        {brand.logoSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={brand.logoSrc} alt="" />
+        ) : null}
+        {brand.academy}
+      </span>
+      <span className="tb-fmid">{children}</span>
+      {/* 교재 전체 쪽 번호는 화면이 그린 뒤 적어 넣는다(PDF를 쪽마다 따로 찍어도 맞게) */}
+      <span className="tb-pgno" />
+    </div>
+  );
+}
 
 function Seg({ seg }: { seg: TestSeg }) {
   if (typeof seg === "string") return <>{seg}</>;
@@ -1157,6 +1186,7 @@ export function BlankNoteSheets({ index, project }: { index: number; project: Te
             <div className="tb-gridlines tb-syn" />
           </div>
         </div>
+        <BookFoot />
       </div>
       <div className="tb-sheet tb-part">
         <div className="tb-note">
@@ -1181,6 +1211,7 @@ export function BlankNoteSheets({ index, project }: { index: number; project: Te
             <div className="tb-gridlines tb-num" />
           </div>
         </div>
+        <BookFoot />
       </div>
     </>
   );
@@ -1307,17 +1338,29 @@ export function AnswerSheets({
 
 // ---------------------------------------------------------------- 표지·목차·분석 자료
 
-/** 표지(시안 01 색 번짐). 교재 이름·범위를 싣고 이름 칸은 비운다. */
-export function CoverSheet({ title, range }: { title: string; range: string }) {
+/**
+ * 표지. 시안 01(색 번짐)은 여기서 그리고, 나머지는 최종통합자료 표지(FrontCover)를 그대로 쓴다.
+ * 비어 있는 칸은 교재 이름(제목)·범위(라벨)로 채운다. 선생님 2026-10-20: 표지가 하나뿐이고 고칠 수 없었다.
+ */
+export function CoverSheet({ cover, range, logoSrc }: { cover: IntegratedCover; range: string; logoSrc?: string | null }) {
+  if (cover.presetId !== TEST_BOOK_BLEED_COVER) {
+    return (
+      <div className="tb-sheet" style={{ padding: 0 }}>
+        <FrontCover preset={coverPreset(cover.presetId)} cover={{ ...cover, label: cover.label || range }} logoSrc={logoSrc} />
+      </div>
+    );
+  }
   const now = new Date();
   const season = `${now.getFullYear()} ${now.getMonth() >= 7 ? "FALL" : now.getMonth() >= 2 ? "SPRING" : "WINTER"}`;
+  const title = cover.title.split(/\n/).map((l) => l.trim()).filter(Boolean).join(" ");
+  const progress = cover.progress.split(/\n/).map((l) => l.trim()).filter(Boolean);
   return (
     <div className="tb-sheet tb-cover">
       <div className="tb-glow" />
       <div className="tb-grain" />
       <div className="tb-in">
         <div className="tb-ctop">
-          <span>TEST BOOK</span>
+          <span>{cover.academy.trim() || "TEST BOOK"}</span>
           <span>{season}</span>
         </div>
         <div className="tb-ct">
@@ -1334,8 +1377,14 @@ export function CoverSheet({ title, range }: { title: string; range: string }) {
           </div>
           <div>
             <span>범위</span>
-            <b>{range}</b>
+            <b>{cover.label.trim() || range}</b>
           </div>
+          {progress.length ? (
+            <div>
+              <span>진도</span>
+              <b>{progress.join(" · ")}</b>
+            </div>
+          ) : null}
           <div>
             <span>이름</span>
             <b>&nbsp;</b>

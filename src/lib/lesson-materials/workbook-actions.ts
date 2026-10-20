@@ -810,7 +810,7 @@ export async function generateGrammarChoicePassageAction(
     projectId: string;
     forceRegenerate?: boolean;
     /** 어느 화면에서 부른 것인지 — 크레딧 내역에 그대로 적는다 */
-    usedIn?: "workbook" | "one_page_test";
+    usedIn?: "workbook" | "one_page_test" | "test_book";
   }
 ): Promise<
   | {
@@ -867,14 +867,14 @@ export async function generateGrammarChoicePassageAction(
    * 새로 만들 때만 크레딧을 쓴다(저장된 문항을 다시 쓰면 0).
    * 값을 먼저 잡아 두고 만든다 — 모자라면 여기서 멈춘다. 만들다 실패하면 되돌린다.
    */
-  const usedFor = input.usedIn === "one_page_test" ? "one_page_test" : "workbook";
+  const usedFor = input.usedIn === "one_page_test" || input.usedIn === "test_book" ? input.usedIn : "workbook";
   const hold = await reserveLessonCredits({
     academyId: profile!.academy_id!,
     actorId: profile!.id,
     featureKey: LESSON_CREDIT_FEATURES.workbookGrammarChoice,
     projectId: project.id,
     metadata: { used_for: usedFor },
-    note: `${usedFor === "one_page_test" ? "1장 테스트지" : "워크북"} 어법 선택 · ${project.title}`,
+    note: `${usedFor === "one_page_test" ? "1장 테스트지" : usedFor === "test_book" ? "테스트 교재" : "워크북"} 어법 선택 · ${project.title}`,
   });
   if (!hold.ok) return { ok: false, message: hold.message };
   const giveBack = (why: string) =>

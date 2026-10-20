@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { postJson } from "@/lib/lesson-materials/post-json";
@@ -19,6 +19,7 @@ import {
   buildTestSheet,
   buildWordTest,
   isTestBookProjectReady,
+  TEST_BOOK_BLEED_COVER,
   testBookTypeLabel,
   type BlankMode,
   type WritingScope,
@@ -30,7 +31,9 @@ import { closeTabOrGo, useCreateDocumentFromUrl } from "@/components/lesson-mate
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 import { downloadSheetsPdf, pdfFileName } from "@/lib/pdf/download-sheets-pdf";
 import type { generateAndSaveAnalysisReportAction } from "@/lib/lesson-materials/analysis-report-actions";
+import type { generateGrammarChoicePassageAction } from "@/lib/lesson-materials/workbook-actions";
 import { DESIGN_FONTS_HREF, DESIGN_STYLES, designClass } from "@/lib/lesson-materials/analysis-design";
+import { COVER_PRESETS, coverPreset, type IntegratedCover } from "@/lib/lesson-materials/integrated";
 import {
   AllVocabSheets,
   AnalysisSheets,
@@ -47,6 +50,7 @@ import {
   LessonSheets,
   PlanSheets,
   TEST_BOOK_CSS,
+  TestBookBrand,
   TEST_BOOK_FONTS_HREF,
   TestSheets,
   TranslationBackSheets,
@@ -56,10 +60,7 @@ import {
 
 type Mode = "book" | "draw";
 type AnalysisResult = Awaited<ReturnType<typeof generateAndSaveAnalysisReportAction>>;
-/** 교재 차례 묶음(켜고 끄기) */
-type PartKey = "cover" | "toc" | "plan" | "lesson" | "blankNote" | "analysis" | "tests" | "answers";
-/** 묶음 안 세부(켜고 끄기) */
-type SubKey = "allVocab" | "allWordTest" | "wordTest" | "dividers" | "passageDividers";
+type GrammarChoiceResult = Awaited<ReturnType<typeof generateGrammarChoicePassageAction>>;
 type PrepareResult = Awaited<ReturnType<typeof prepareTestBookPassageAction>>;
 type RegisterResult = Awaited<ReturnType<typeof registerTestBookVocabAction>>;
 
@@ -74,6 +75,99 @@ const TRANSLATION_MODES: Array<{ id: TestBookOptions["translation"]; label: stri
 
 function newSeed(): string {
   return `draw-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/** 표지 고르기 썸네일 — A4 표지를 썸네일 폭에 맞춰 줄인다 */
+function CoverThumbAny({
+  presetId,
+  cover,
+  range,
+  logoSrc,
+  widthPx,
+}: {
+  presetId: string;
+  cover: IntegratedCover;
+  range: string;
+  logoSrc?: string | null;
+  widthPx: number;
+}) {
+  const scale = widthPx / 793.7;
+  return (
+    <div className="pointer-events-none relative overflow-hidden" style={{ width: widthPx, height: widthPx * (297 / 210) }}>
+      <link rel="stylesheet" href={TEST_BOOK_FONTS_HREF} />
+      <style>{TEST_BOOK_CSS}</style>
+      <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: "210mm" }}>
+        <CoverSheet cover={{ ...cover, presetId }} range={range} logoSrc={logoSrc} />
+      </div>
+    </div>
+  );
+}
+
+/** 왼쪽 「교재 차례」 한 줄(켜면 아래 세부 설정이 열린다) */
+function PartRow({
+  checked,
+  onChange,
+  n,
+  label,
+  hint,
+  children,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  n: number;
+  label: string;
+  hint?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className={`rounded-lg border ${checked ? "border-slate-200 bg-white" : "border-transparent bg-slate-50"} px-2 py-1`}>
+      <label className="flex min-h-[26px] cursor-pointer items-center gap-2 text-[13px] text-slate-800">
+        <input type="checkbox" className="h-4 w-4 accent-violet-600" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+        <span className="w-4 text-[10px] font-bold text-slate-400">{n}</span>
+        <span className={`flex-1 font-semibold ${checked ? "" : "text-slate-400"}`}>{label}</span>
+        {hint ? <span className="text-[10.5px] text-slate-400">{hint}</span> : null}
+      </label>
+      {checked && children ? <div className="space-y-1.5 pb-1.5 pl-[42px] pt-0.5">{children}</div> : null}
+    </div>
+  );
+}
+
+function SubRow({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <label className="flex min-h-[22px] cursor-pointer items-center gap-2 text-[12px] text-slate-700">
+      <input type="checkbox" className="h-3.5 w-3.5 accent-violet-600" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      {label}
+    </label>
+  );
+}
+
+/** 표지 글자 칸: 칠 때는 칸 안에만 두고, 칸을 벗어날 때 저장한다(교재 전체를 글자마다 다시 그리지 않게) */
+function CoverInput({
+  label,
+  value,
+  placeholder,
+  rows,
+  onCommit,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  rows?: number;
+  onCommit: (v: string) => void;
+}) {
+  const [text, setText] = useState(value);
+  useEffect(() => setText(value), [value]);
+  const cls = "w-full rounded-md border border-slate-200 px-2 py-1 text-[12px] text-slate-900 outline-none focus:border-violet-300";
+  return (
+    <label className="block space-y-0.5">
+      <span className="text-[10.5px] font-semibold text-slate-500">{label}</span>
+      {rows ? (
+        <textarea className={cls} rows={rows} value={text} placeholder={placeholder} onChange={(e) => setText(e.target.value)} onBlur={() => text !== value && onCommit(text)} />
+      ) : (
+        <input className={cls} value={text} placeholder={placeholder} onChange={(e) => setText(e.target.value)} onBlur={() => text !== value && onCommit(text)} />
+      )}
+    </label>
+  );
 }
 
 /** 통문장 영작 범위 고르기 */
@@ -144,6 +238,8 @@ export function TestBookWorkbench({
   docName = null,
   savedOptions,
   initialMode,
+  logoSrc = null,
+  academyName = "",
 }: {
   role: "admin" | "teacher";
   projects: TestBookProjectInput[];
@@ -151,6 +247,8 @@ export function TestBookWorkbench({
   docName?: string | null;
   savedOptions: TestBookOptions;
   initialMode: Mode;
+  logoSrc?: string | null;
+  academyName?: string;
 }) {
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const docIdRef = useRef<string | null>(docId);
@@ -417,6 +515,14 @@ export function TestBookWorkbench({
     .map((x, i) => ({ ...x, no: String(i + 1).padStart(2, "0") }));
   const partOf = (id: string) => bookParts.find((x) => x.id === id);
   const bookTitle = title.trim() || "테스트 교재";
+  /** 바닥줄 로고·학원명 */
+  const brand = useMemo(() => ({ logoSrc: logoSrc || null, academy: academyName }), [logoSrc, academyName]);
+  /** 표지에 찍을 글자(빈 칸은 교재 이름·학원명으로) */
+  const coverShown = {
+    ...options.coverInfo,
+    title: options.coverInfo.title.trim() || bookTitle,
+    academy: options.coverInfo.academy.trim() || academyName,
+  };
   /** 지문 간지(묶음 안에서 지문마다 첫 쪽) — 이 묶음에서 그 지문에 이어질 쪽 이름을 싣는다 */
   const passageDivider = (id: string, p: TestBookProjectInput, next: string[]) => {
     const part = partOf(id);
@@ -437,18 +543,69 @@ export function TestBookWorkbench({
   };
   /** 목차 쪽 번호: 그린 쪽을 차례로 세어 묶음·지문의 첫 쪽을 찾는다(바뀔 때만 다시 그린다) */
   const [tocPages, setTocPages] = useState<Record<string, number>>({});
-  useLayoutEffect(() => {
+  useEffect(() => {
     const root = document.getElementById("tb-print-root");
-    if (!root || mode !== "book") return;
-    const sheets = Array.from(root.querySelectorAll<HTMLElement>(".tb-sheet")).filter((el) => !el.closest(".tb-measure"));
-    const next: Record<string, number> = {};
-    root.querySelectorAll<HTMLElement>("[data-toc]").forEach((w) => {
-      const first = Array.from(w.querySelectorAll<HTMLElement>(".tb-sheet")).find((el) => !el.closest(".tb-measure"));
-      if (first && w.dataset.toc) next[w.dataset.toc] = sheets.indexOf(first) + 1;
+    if (!root) return;
+    /** 쪽이 바뀔 때마다(묶음마다 쪽 나누기가 따로 끝난다) 다시 센다. 같은 값이면 아무것도 바꾸지 않는다. */
+    const count = () => {
+      const sheets = Array.from(root.querySelectorAll<HTMLElement>(".tb-sheet")).filter((el) => !el.closest(".tb-measure"));
+      // 바닥줄 쪽 번호(표지가 1쪽 — 목차 쪽 번호와 같다)
+      sheets.forEach((el, i) => {
+        const no = el.querySelector<HTMLElement>(":scope > .tb-foot .tb-pgno");
+        if (no && no.textContent !== `- ${i + 1} -`) no.textContent = `- ${i + 1} -`;
+      });
+      if (mode !== "book") return;
+      const next: Record<string, number> = {};
+      root.querySelectorAll<HTMLElement>("[data-toc]").forEach((w) => {
+        const first = Array.from(w.querySelectorAll<HTMLElement>(".tb-sheet")).find((el) => !el.closest(".tb-measure"));
+        if (first && w.dataset.toc) next[w.dataset.toc] = sheets.indexOf(first) + 1;
+      });
+      next.__total = sheets.length;
+      setTocPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+    };
+    count();
+    let frame = 0;
+    const observer = new MutationObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(count);
     });
-    next.__total = sheets.length;
-    setTocPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
-  });
+    observer.observe(root, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [mode]);
+
+  // ---------------------------------------------------------------- 워크북 어법 선택 만들기(어법선택)
+  const withGrammar = ready.filter((p) => (p.grammarChoice?.items?.length ?? 0) > 0);
+  const [grammarBusy, setGrammarBusy] = useState<string | null>(null);
+  const [grammarError, setGrammarError] = useState<string | null>(null);
+  async function makeGrammar() {
+    const targets = ready.filter((p) => !(p.grammarChoice?.items?.length));
+    if (!targets.length) return;
+    if (!window.confirm(`워크북 어법 선택이 없는 지문 ${targets.length}개를 만듭니다. 워크북 어법 선택과 같은 값이 지문마다 듭니다. 지문마다 1~3분 걸릴 수 있습니다. 만들까요?`)) return;
+    setGrammarError(null);
+    let done = 0;
+    setGrammarBusy(`0/${targets.length}`);
+    const failed: string[] = [];
+    await runWithConcurrency(targets, CONCURRENCY, async (p) => {
+      try {
+        const res = await postJson<GrammarChoiceResult>("/api/lesson-materials/grammar-choice", {
+          role,
+          projectId: p.id,
+          usedIn: "test_book",
+        });
+        if (res.ok && res.section) setProjects((prev) => prev.map((x) => (x.id === p.id ? { ...x, grammarChoice: res.section } : x)));
+        else failed.push(`${p.title}: ${res.ok ? "어법 선택 자리를 찾지 못했습니다." : res.message}`);
+      } catch (e) {
+        failed.push(`${p.title}: ${e instanceof Error ? e.message : "만들지 못했습니다."}`);
+      }
+      done++;
+      setGrammarBusy(`${done}/${targets.length}`);
+    });
+    setGrammarBusy(null);
+    if (failed.length) setGrammarError(failed.join(" · "));
+  }
 
   // ---------------------------------------------------------------- 분석서 만들기(분석 자료)
   const [analysisBusy, setAnalysisBusy] = useState<string | null>(null);
@@ -480,24 +637,6 @@ export function TestBookWorkbench({
     if (failed.length) setAnalysisError(failed.join(" · "));
   }
 
-  /** 왼쪽 「교재 차례」 한 줄(켜면 아래 세부 설정이 열린다) */
-  const Part = ({ k, n, label, hint, children }: { k: PartKey; n: number; label: string; hint?: string; children?: ReactNode }) => (
-    <div className={`rounded-lg border ${options[k] ? "border-slate-200 bg-white" : "border-transparent bg-slate-50"} px-2 py-1`}>
-      <label className="flex min-h-[26px] cursor-pointer items-center gap-2 text-[13px] text-slate-800">
-        <input type="checkbox" className="h-4 w-4 accent-violet-600" checked={options[k]} onChange={(e) => setOptions({ [k]: e.target.checked } as Partial<TestBookOptions>)} />
-        <span className="w-4 text-[10px] font-bold text-slate-400">{n}</span>
-        <span className={`flex-1 font-semibold ${options[k] ? "" : "text-slate-400"}`}>{label}</span>
-        {hint ? <span className="text-[10.5px] text-slate-400">{hint}</span> : null}
-      </label>
-      {options[k] && children ? <div className="space-y-1.5 pb-1.5 pl-[42px] pt-0.5">{children}</div> : null}
-    </div>
-  );
-  const Sub = ({ k, label }: { k: SubKey; label: string }) => (
-    <label className="flex min-h-[22px] cursor-pointer items-center gap-2 text-[12px] text-slate-700">
-      <input type="checkbox" className="h-3.5 w-3.5 accent-violet-600" checked={options[k]} onChange={(e) => setOptions({ [k]: e.target.checked } as Partial<TestBookOptions>)} />
-      {label}
-    </label>
-  );
 
   if (projects.length === 0) {
     return (
@@ -550,13 +689,34 @@ export function TestBookWorkbench({
             <>
               <div className="space-y-1">
                 <p className="text-[11px] font-bold text-slate-500">교재 차례 · 넣을 것</p>
-                <Part k="cover" n={1} label="표지" />
-                <Part k="toc" n={2} label="목차" hint="쪽 번호 자동">
-                  <Sub k="dividers" label="묶음마다 간지(지문별 시작 쪽)" />
-                  <Sub k="passageDividers" label="지문마다 간지" />
-                </Part>
-                <Part k="plan" n={3} label="학습 계획표·이수표" />
-                <Part k="lesson" n={4} label="수업용 자료" hint="단어·해석">
+                <PartRow checked={options.cover} onChange={(v) => setOptions({ cover: v })} n={1} label="표지">
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[TEST_BOOK_BLEED_COVER, ...COVER_PRESETS.map((x) => x.id)].map((id) => {
+                      const on = options.coverInfo.presetId === id;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          title={id === TEST_BOOK_BLEED_COVER ? "색 번짐" : coverPreset(id).name}
+                          onClick={() => setOptions({ coverInfo: { ...options.coverInfo, presetId: id } })}
+                          className={`overflow-hidden rounded-md border-2 ${on ? "border-violet-600" : "border-slate-200 hover:border-slate-300"}`}
+                        >
+                          <CoverThumbAny presetId={id} cover={coverShown} range={rangeLabel} logoSrc={logoSrc} widthPx={58} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <CoverInput label="범위 라벨 (비우면 지문 출처로)" value={options.coverInfo.label} placeholder={rangeLabel} onCommit={(label) => setOptions({ coverInfo: { ...options.coverInfo, label } })} />
+                  <CoverInput label="제목 (엔터로 줄 구분, 비우면 교재 이름)" value={options.coverInfo.title} placeholder={bookTitle} rows={2} onCommit={(t) => setOptions({ coverInfo: { ...options.coverInfo, title: t } })} />
+                  <CoverInput label="제목 아래 · 진도 (엔터로 줄 구분)" value={options.coverInfo.progress} rows={2} onCommit={(progress) => setOptions({ coverInfo: { ...options.coverInfo, progress } })} />
+                  <CoverInput label="학원명" value={options.coverInfo.academy} placeholder={academyName} onCommit={(academy) => setOptions({ coverInfo: { ...options.coverInfo, academy } })} />
+                </PartRow>
+                <PartRow checked={options.toc} onChange={(v) => setOptions({ toc: v })} n={2} label="목차" hint="쪽 번호 자동">
+                  <SubRow checked={options.dividers} onChange={(v) => setOptions({ dividers: v })} label="묶음마다 간지(지문별 시작 쪽)" />
+                  <SubRow checked={options.passageDividers} onChange={(v) => setOptions({ passageDividers: v })} label="지문마다 간지" />
+                </PartRow>
+                <PartRow checked={options.plan} onChange={(v) => setOptions({ plan: v })} n={3} label="학습 계획표·이수표" />
+                <PartRow checked={options.lesson} onChange={(v) => setOptions({ lesson: v })} n={4} label="수업용 자료" hint="단어·해석">
                   <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
                     {TRANSLATION_MODES.map((t) => (
                       <button
@@ -569,10 +729,10 @@ export function TestBookWorkbench({
                       </button>
                     ))}
                   </div>
-                  <Sub k="allVocab" label="맨 앞 전체 단어장" />
-                </Part>
-                <Part k="blankNote" n={5} label="백지노트" hint="지문마다 2쪽" />
-                <Part k="analysis" n={6} label="분석 자료" hint={`분석서 ${withAnalysis.length}/${ready.length}지문`}>
+                  <SubRow checked={options.allVocab} onChange={(v) => setOptions({ allVocab: v })} label="맨 앞 전체 단어장" />
+                </PartRow>
+                <PartRow checked={options.blankNote} onChange={(v) => setOptions({ blankNote: v })} n={5} label="백지노트" hint="지문마다 2쪽" />
+                <PartRow checked={options.analysis} onChange={(v) => setOptions({ analysis: v })} n={6} label="분석 자료" hint={`분석서 ${withAnalysis.length}/${ready.length}지문`}>
                   <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
                     {DESIGN_STYLES.map((d) => (
                       <button
@@ -615,17 +775,35 @@ export function TestBookWorkbench({
                       {analysisError ? <p className="text-[11px] font-semibold text-rose-600">{analysisError}</p> : null}
                     </div>
                   ) : null}
-                </Part>
-                <Part k="tests" n={7} label="테스트지 자료">
-                  <Sub k="allWordTest" label="맨 앞 전체 단어 TEST" />
-                  <Sub k="wordTest" label="지문마다 동반의어·품사 TEST" />
+                </PartRow>
+                <PartRow checked={options.tests} onChange={(v) => setOptions({ tests: v })} n={7} label="테스트지 자료">
+                  <SubRow checked={options.allWordTest} onChange={(v) => setOptions({ allWordTest: v })} label="맨 앞 전체 단어 TEST" />
+                  <SubRow checked={options.wordTest} onChange={(v) => setOptions({ wordTest: v })} label="지문마다 동반의어·품사 TEST" />
                   <div className="space-y-2 rounded-lg border border-violet-200 bg-violet-50/60 p-2.5">
                     <p className="text-[11px] font-bold text-violet-900">테스트 견본 유형</p>
                     <TypeChecks value={options.types} onChange={(types) => setOptions({ types })} />
                     {options.types.includes("writing") ? <WritingScopeSwitch value={options.writing} onChange={(writing) => setOptions({ writing })} /> : null}
+                    {options.types.includes("grammar") ? (
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-bold text-slate-500">
+                          어법선택 · 워크북 문항 {withGrammar.length}/{ready.length}지문
+                        </p>
+                        {ready.length > withGrammar.length ? (
+                          <>
+                            <p className="text-[10.5px] leading-snug text-slate-500">
+                              워크북 어법 선택이 없는 지문은 간단한 어법 자리로 냅니다. 만들면 워크북과 같은 값이 지문마다 듭니다(이미 만든 지문은 값 없음).
+                            </p>
+                            <Button type="button" size="sm" variant="secondary" className="w-full" disabled={!!grammarBusy || busy} onClick={() => void makeGrammar()}>
+                              {grammarBusy ? `어법 선택 만드는 중… ${grammarBusy}` : `워크북 어법 선택 만들기 (${ready.length - withGrammar.length}지문)`}
+                            </Button>
+                          </>
+                        ) : null}
+                        {grammarError ? <p className="text-[11px] font-semibold text-rose-600">{grammarError}</p> : null}
+                      </div>
+                    ) : null}
                   </div>
-                </Part>
-                <Part k="answers" n={8} label="정답지" hint="맨 뒤 · 정답만" />
+                </PartRow>
+                <PartRow checked={options.answers} onChange={(v) => setOptions({ answers: v })} n={8} label="정답지" hint="맨 뒤 · 정답만" />
                 <p className="pt-1 text-[11px] leading-relaxed text-slate-500">
                   넣고 빼도 다시 만들지 않아 크레딧이 들지 않습니다. 학원 테스트지는 「테스트지 뽑기」에서 새로 뽑습니다.
                 </p>
@@ -761,6 +939,7 @@ export function TestBookWorkbench({
         <style>{TEST_BOOK_CSS}</style>
         <div className="flex flex-col items-center p-6 print:block print:p-0">
           <div style={scaled.frameStyle} className="print:!h-auto print:!overflow-visible">
+            <TestBookBrand.Provider value={brand}>
             <div ref={scaled.ref} id="tb-print-root" className="relative flex origin-top flex-col gap-6 print:gap-0 print:!transform-none [&_.tb-sheet]:shadow" style={previewStyle}>
               {mode === "book" ? (
                 <>
@@ -778,7 +957,7 @@ export function TestBookWorkbench({
                   )}
                   {/* 교재 차례(선생님 2026-10-20): 표지 → 목차 → 계획표 → 수업용 자료 → 백지노트 → 분석 자료 → 테스트지 자료 → 정답지.
                       data-toc 묶음의 첫 쪽을 세어 목차 쪽 번호를 넣는다. */}
-                  {options.cover && ready.length ? <CoverSheet title={bookTitle} range={rangeLabel} /> : null}
+                  {options.cover && ready.length ? <CoverSheet cover={coverShown} range={rangeLabel} logoSrc={logoSrc} /> : null}
                   {options.toc && ready.length ? (
                     <ContentsSheet parts={bookParts} pages={tocPages} total={tocPages.__total ?? 0} title={bookTitle} range={rangeLabel} />
                   ) : null}
@@ -883,6 +1062,7 @@ export function TestBookWorkbench({
                 </div>
               )}
             </div>
+            </TestBookBrand.Provider>
           </div>
         </div>
       </main>

@@ -10,6 +10,8 @@ import {
   onePageSourceHash,
   type OnePageProjectInput,
 } from "@/lib/lesson-materials/one-page";
+import { readCachedGrammarChoiceV2 } from "@/lib/lesson-materials/grammar-choice-v2/read-cached";
+import type { StoredGrammarChoiceV2Cache } from "@/lib/lesson-materials/grammar-choice-v2/cache";
 import { isTestBookMaterialFresh, mergeTestBookVocabHints, type TestBookProjectInput } from "@/lib/lesson-materials/test-book";
 
 /**
@@ -196,6 +198,12 @@ export async function loadTestBookProjects(
         sentences,
         content,
         analysis: (p.analysis_report_json as AnalysisReportData | null) ?? null,
+        // 워크북 어법 선택이 저장돼 있으면 테스트 교재 어법선택도 그것을 쓴다(값 없음)
+        grammarChoice: readCachedGrammarChoiceV2(
+          pack.grammarChoiceV2Cache as StoredGrammarChoiceV2Cache | null | undefined,
+          p.id as string,
+          (itemsByProject.get(p.id as string) ?? []).map((it) => String(it.english_text ?? ""))
+        ),
         material: isTestBookMaterialFresh(pack.testBookMaterial, english)
           ? mergeTestBookVocabHints(pack.testBookMaterial, content)
           : null,
