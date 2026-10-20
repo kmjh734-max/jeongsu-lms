@@ -1,5 +1,4 @@
 import { existsSync } from "node:fs";
-import chromium from "@sparticuz/chromium";
 import puppeteer, { type Browser } from "puppeteer-core";
 
 /**
@@ -18,6 +17,14 @@ async function getBrowser(origin: string): Promise<Browser> {
   browserPromise = (async () => {
     const local = process.env.CHROME_PATH || (existsSync(WINDOWS_CHROME) ? WINDOWS_CHROME : "");
     if (process.platform === "linux" && !process.env.CHROME_PATH) {
+      /*
+       * @sparticuz/chromium은 실행 환경 이름이 Node 20·22일 때만 Chrome이 쓰는 시스템 라이브러리(al2023:
+       * libnss3 등)를 풀어 놓는다. Vercel은 더 새 Node라 이름이 맞지 않아 「libnss3.so 없음」으로 Chrome이
+       * 뜨지 않았다(2026-10-20, 그래서 늘 그림 PDF로 되돌아갔다). 불러오기 전에 Node 22로 알려 준다.
+       */
+      const env = process.env.AWS_EXECUTION_ENV ?? "";
+      if (!/2[02]\.x/.test(env)) process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
+      const chromium = (await import("@sparticuz/chromium")).default;
       // 서버리스 Chrome에는 한글 시스템 글꼴이 없다. 웹 글꼴이 빠진 글자가 네모로 나오지 않게 깔아 둔다.
       await chromium.font(`${origin}/fonts/NotoSansKR-Regular.otf`).catch(() => undefined);
       return puppeteer.launch({
