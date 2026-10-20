@@ -15,6 +15,8 @@ import {
   type TestSeg,
   type TestSheet,
   type WordTest,
+  type VocabExam,
+  type VocabExamItem,
 } from "@/lib/lesson-materials/test-book";
 import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
 import { readAnalysisMarkup } from "@/lib/lesson-materials/analysis-markup";
@@ -1775,5 +1777,105 @@ export function PassageDividerSheet({
         </span>
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------- 단어 시험지
+
+/** 단어 시험지(지문을 합친 한 장 묶음). 쓰기는 두 단, 객관식은 보기 넷을 한 줄에. */
+export function VocabExamSheets({ exam, title = "단어 시험", measureKey }: { exam: VocabExam; title?: string; measureKey: string }) {
+  if (!exam.total) return null;
+  const blocks: Block[] = [{ key: "who", node: <Who total={exam.total} /> }];
+  exam.sections.forEach((sec, si) => {
+    const head = (
+      <div className="tb-q">
+        <span className="tb-qn">{si + 1}</span>
+        {sec.title}
+        <small>{sec.hint}</small>
+      </div>
+    );
+    if (sec.items[0]?.choices) {
+      sec.items.forEach((it, i) =>
+        blocks.push({
+          key: `${sec.kind}-${it.no}`,
+          node: (
+            <div className={i === sec.items.length - 1 ? "tb-b" : undefined}>
+              {i === 0 ? head : null}
+              <div className="tb-mc">
+                <span className="tb-i">{it.no}</span>
+                <div>
+                  <b className="tb-en">{it.prompt}</b>
+                  <div className="tb-ch tb-en">
+                    {it.choices!.map((c, ci) => (
+                      <span key={ci}>
+                        {"①②③④"[ci]} {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ),
+        })
+      );
+      return;
+    }
+    const pairs: VocabExamItem[][] = [];
+    for (let i = 0; i < sec.items.length; i += 2) pairs.push(sec.items.slice(i, i + 2));
+    pairs.forEach((pair, i) =>
+      blocks.push({
+        key: `${sec.kind}-p${i}`,
+        node: (
+          <div className={i === pairs.length - 1 ? "tb-b" : undefined}>
+            {i === 0 ? head : null}
+            <div className="tb-words">
+              {pair.map((it) => (
+                <div key={it.no} className="tb-wq">
+                  <span className="tb-i">{it.no}</span>
+                  <span className={sec.kind === "spelling" ? undefined : "tb-en"}>
+                    {it.prompt}
+                    {it.hint ? <span className="tb-tip"> ({it.hint}…)</span> : null}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ),
+      })
+    );
+  });
+  return (
+    <PagedSheet
+      blocks={blocks}
+      measureKey={measureKey}
+      head={(page) => <DocHead title={title} sub={page > 0 ? "(이어서)" : `${exam.total}문항`} label="VOCABULARY TEST" />}
+    />
+  );
+}
+
+export function VocabExamAnswerSheets({ exam, title = "정답 · 단어 시험", measureKey }: { exam: VocabExam; title?: string; measureKey: string }) {
+  if (!exam.total) return null;
+  const blocks: Block[] = exam.sections.map((sec) => ({
+    key: `va-${sec.kind}`,
+    node: (
+      <dl className="tb-arow">
+        <dt>{sec.title}</dt>
+        <dd>
+          {sec.items.map((it) => (
+            <span key={it.no}>
+              <b>{it.no}</b>
+              {it.answer}
+            </span>
+          ))}
+        </dd>
+      </dl>
+    ),
+  }));
+  return (
+    <PagedSheet
+      blocks={blocks}
+      measureKey={measureKey}
+      head={(page) => <DocHead title={title} sub={page > 0 ? "(이어서)" : undefined} label="ANSWERS" right="정답만 싣습니다" />}
+    />
   );
 }

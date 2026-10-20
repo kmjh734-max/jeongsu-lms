@@ -27,6 +27,11 @@ import {
   type WritingScope,
   type LineMode,
   type TestLevel,
+  type VocabExamOptions,
+  DEFAULT_VOCAB_EXAM,
+  VOCAB_EXAM_COUNTS,
+  VOCAB_EXAM_KINDS,
+  buildVocabExam,
   type TestBookOptions,
   type TestBookProjectInput,
   type TestBookTypeKey,
@@ -41,6 +46,8 @@ import { COVER_PRESETS, coverPreset, type IntegratedCover } from "@/lib/lesson-m
 import {
   AllVocabSheets,
   AnalysisSheets,
+  VocabExamAnswerSheets,
+  VocabExamSheets,
   CoverSheet,
   ContentsSheet,
   DividerSheet,
@@ -176,6 +183,43 @@ function CoverInput({
         <input className={cls} value={text} placeholder={placeholder} onChange={(e) => setText(e.target.value)} onBlur={blur} />
       )}
     </label>
+  );
+}
+
+/** 단어 시험지 문항 수·유형 */
+function VocabExamControls({ value, onChange }: { value: VocabExamOptions; onChange: (v: VocabExamOptions) => void }) {
+  const on = new Set(value.kinds);
+  return (
+    <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-2">
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-bold text-slate-500">문항 수</span>
+        <select
+          value={value.count}
+          onChange={(e) => onChange({ ...value, count: Number(e.target.value) })}
+          className="rounded-md border border-slate-200 px-1.5 py-0.5 text-[12px]"
+        >
+          {VOCAB_EXAM_COUNTS.map((n) => (
+            <option key={n} value={n}>
+              {n}문항
+            </option>
+          ))}
+        </select>
+      </div>
+      {VOCAB_EXAM_KINDS.map((k) => (
+        <label key={k.key} className="flex items-center gap-2 text-[12px] text-slate-700" title={k.hint}>
+          <input
+            type="checkbox"
+            className="h-3.5 w-3.5 accent-violet-600"
+            checked={on.has(k.key)}
+            onChange={() => {
+              const kinds = VOCAB_EXAM_KINDS.map((x) => x.key).filter((x) => (x === k.key ? !on.has(x) : on.has(x)));
+              if (kinds.length) onChange({ ...value, kinds });
+            }}
+          />
+          {k.label}
+        </label>
+      ))}
+    </div>
   );
 }
 
@@ -449,8 +493,10 @@ export function TestBookWorkbench({
   const [drawWriting, setDrawWriting] = useState<WritingScope>("all");
   const [drawLineMode, setDrawLineMode] = useState<LineMode>("full");
   const [drawLevel, setDrawLevel] = useState<TestLevel>("basic");
+  const [drawVocabOn, setDrawVocabOn] = useState(true);
+  const [drawVocab, setDrawVocab] = useState<VocabExamOptions>(DEFAULT_VOCAB_EXAM);
   const [drawAnswers, setDrawAnswers] = useState(true);
-  const [draw, setDraw] = useState<{ seed: string; picks: Record<string, TestBookTypeKey[]> } | null>(null);
+  const [draw, setDraw] = useState<{ seed: string; picks: Record<string, TestBookTypeKey[]>; vocab?: VocabExamOptions | null } | null>(null);
   /** 뽑을 때마다 값(지문 수 × 유형 수)을 받는다 — 확인 창을 띄우고, 서버에서 차감된 뒤에만 보여 준다 */
   const [drawBusy, setDrawBusy] = useState(false);
   const [drawError, setDrawError] = useState<string | null>(null);
@@ -464,7 +510,7 @@ export function TestBookWorkbench({
       description: "고른 지문과 유형으로 테스트지를 새로 뽑습니다. 누를 때마다 문항·보기 순서가 새로 나옵니다.",
       subject: `지문 ${projectIds.length}개 × 유형 ${drawTypes.length}개`,
       contents: drawTypes.map((t) => testBookTypeLabel(t)),
-      items: [{ feature: "lesson_test_draw", quantity: projectIds.length * drawTypes.length }],
+      items: [{ feature: "lesson_test_draw", quantity: projectIds.length * (drawTypes.length + (drawVocabOn ? 1 : 0)) }],
       sample: "one_page_test",
     });
     if (!ok) return;
@@ -477,9 +523,9 @@ export function TestBookWorkbench({
         role,
         seed,
         projectIds,
-        typeCount: drawTypes.length,
+        typeCount: drawTypes.length + (drawVocabOn ? 1 : 0),
       });
-      if (res.ok) setDraw({ seed, picks });
+      if (res.ok) setDraw({ seed, picks, vocab: drawVocabOn ? drawVocab : null });
       else setDrawError(res.message);
     } catch (e) {
       setDrawError(e instanceof Error ? e.message : "뽑지 못했습니다.");
@@ -570,6 +616,24 @@ export function TestBookWorkbench({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [ready.map((p) => p.id).join(","), projects, options.types, options.writing, options.lineMode, options.level]
   );
+  /** 단어 시험지: 교재는 늘 같은 열쇠, 뽑기는 그때의 열쇠 */
+  const bookVocabExam = useMemo(
+    () =>
+      buildVocabExam(
+        ready.map((p) => ({ passage: indexOf(p.id) + 1, vocab: p.material.vocab })),
+        { ...options.vocabExam, seed: `${BOOK_SEED}|vocab` }
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ready.map((p) => p.id).join(","), projects, options.vocabExam]
+  );
+  const drawVocabExam = useMemo(() => {
+    if (!draw?.vocab) return null;
+    return buildVocabExam(
+      ready.filter((p) => draw.picks[p.id]).map((p) => ({ passage: indexOf(p.id) + 1, vocab: p.material.vocab })),
+      { ...draw.vocab, seed: `${draw.seed}|vocab` }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draw, projects]);
   const drawn = useMemo(() => {
     if (!draw) return [];
     return ready
@@ -900,7 +964,8 @@ export function TestBookWorkbench({
                   ) : null}
                 </PartRow>
                 <PartRow checked={options.tests} onChange={(v) => setOptions({ tests: v })} n={7} label="테스트지 자료">
-                  <SubRow checked={options.allWordTest} onChange={(v) => setOptions({ allWordTest: v })} label="맨 앞 전체 단어 TEST" />
+                  <SubRow checked={options.allWordTest} onChange={(v) => setOptions({ allWordTest: v })} label="맨 앞 단어 시험지(지문 합침)" />
+                  {options.allWordTest ? <VocabExamControls value={options.vocabExam} onChange={(vocabExam) => setOptions({ vocabExam })} /> : null}
                   <SubRow checked={options.wordTest} onChange={(v) => setOptions({ wordTest: v })} label="지문마다 동반의어·품사 TEST" />
                   <div className="space-y-2 rounded-lg border border-violet-200 bg-violet-50/60 p-2.5">
                     <p className="text-[11px] font-bold text-violet-900">테스트 견본 유형</p>
@@ -1010,6 +1075,11 @@ export function TestBookWorkbench({
                 </div>
               </div>
               <LevelSwitch value={drawLevel} onChange={setDrawLevel} />
+              <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                <input type="checkbox" checked={drawVocabOn} onChange={(e) => setDrawVocabOn(e.target.checked)} />
+                단어 시험지 함께(고른 지문 합침)
+              </label>
+              {drawVocabOn ? <VocabExamControls value={drawVocab} onChange={setDrawVocab} /> : null}
               {drawTypes.includes("line") ? <LineModeSwitch value={drawLineMode} onChange={setDrawLineMode} /> : null}
               {drawTypes.includes("writing") ? <WritingScopeSwitch value={drawWriting} onChange={setDrawWriting} /> : null}
               <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
@@ -1139,7 +1209,7 @@ export function TestBookWorkbench({
                   {testsOn ? (
                     <div data-toc="tests" className="contents" style={partStyle(partOf("tests"))}>
                       {dividerFor("tests", ready)}
-                      {options.allWordTest ? <AllWordTestSheets projects={ready} indexOf={indexOf} measureKey={measureKey} /> : null}
+                      {options.allWordTest ? <VocabExamSheets exam={bookVocabExam} measureKey={measureKey} /> : null}
                       {book.map((b) => (
                         <div key={b.project.id} data-toc={`tests:${b.project.id}`} className="contents">
                           {passageDivider("tests", b.project, [
@@ -1156,7 +1226,7 @@ export function TestBookWorkbench({
                   ) : null}
                   {options.answers && testsOn ? (
                     <div data-toc="answers" className="contents" style={partStyle(partOf("answers"))}>
-                      {options.allWordTest ? <AllWordAnswerSheets projects={ready} indexOf={indexOf} measureKey={measureKey} /> : null}
+                      {options.allWordTest ? <VocabExamAnswerSheets exam={bookVocabExam} measureKey={measureKey} /> : null}
                       {options.wordTest || options.types.length ? (
                         <AnswerSheets
                           entries={book.map((b) => ({
@@ -1173,9 +1243,11 @@ export function TestBookWorkbench({
                 </>
               ) : drawn.length ? (
                 <>
+                  {drawVocabExam ? <VocabExamSheets exam={drawVocabExam} measureKey={measureKey} /> : null}
                   {drawn.map((d) => (
                     <TestSheets key={d.project.id} index={indexOf(d.project.id)} project={d.project} sheet={d.sheet} title="테스트" measureKey={measureKey} />
                   ))}
+                  {drawAnswers && drawVocabExam ? <VocabExamAnswerSheets exam={drawVocabExam} measureKey={measureKey} /> : null}
                   {drawAnswers ? (
                     <AnswerSheets
                       title="테스트 정답"

@@ -280,8 +280,10 @@ export type TestBookOptions = {
   analysisTranslation: "full" | "chunk";
   /** 테스트지 자료 */
   tests: boolean;
-  /** 테스트지 자료 · 맨 앞 전체 단어 TEST */
+  /** 테스트지 자료 · 맨 앞 단어 시험지(지문을 합친 한 묶음) */
   allWordTest: boolean;
+  /** 단어 시험지 문항 수·유형 */
+  vocabExam: VocabExamOptions;
   /** 테스트지 자료 · 지문마다 동반의어·품사 TEST */
   wordTest: boolean;
   /** 맨 뒤 정답지 */
@@ -308,6 +310,7 @@ export const DEFAULT_TEST_BOOK_OPTIONS: TestBookOptions = {
   analysisTranslation: "full",
   tests: true,
   allWordTest: true,
+  vocabExam: { count: 40, kinds: ["meaning", "spelling", "synonym", "antonym", "form", "formChoice"] },
   wordTest: true,
   answers: true,
 };
@@ -347,6 +350,7 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
     tests: r.tests !== false,
     // 예전 파일은 전체 단어장과 TEST를 한 칸(allVocab)으로 켜고 껐다
     allWordTest: r.allWordTest === undefined ? r.allVocab !== false : r.allWordTest !== false,
+    vocabExam: normalizeVocabExam(r.vocabExam),
     wordTest: r.wordTest !== false,
     answers: r.answers !== false,
   };
@@ -1205,4 +1209,138 @@ export function buildWordTest(p: Ready, seed: string): WordTest {
 
 export function circled(i: number): string {
   return CIRCLED[i] ?? `(${i + 1})`;
+}
+
+// ---------------------------------------------------------------- 단어 시험지
+
+/*
+ * 단어 시험은 따로 한 장(선생님 2026-10-20: 영↔한만이 아니라 파생어·동반의어 객관식도, 문항 수를 정해서).
+ * 고른 지문들의 단어를 합쳐(같은 낱말은 처음 지문 것) 고른 유형에 문항 수를 고르게 나눈다.
+ */
+export type VocabExamKind = "meaning" | "spelling" | "synonym" | "antonym" | "form" | "formChoice";
+
+export const VOCAB_EXAM_KINDS: Array<{ key: VocabExamKind; label: string; hint: string }> = [
+  { key: "meaning", label: "뜻 쓰기 (영→한)", hint: "단어를 보고 지문 속 뜻 쓰기" },
+  { key: "spelling", label: "철자 쓰기 (한→영)", hint: "뜻을 보고 영어 쓰기 · 첫 글자 줌" },
+  { key: "synonym", label: "동의어 고르기", hint: "4지선다" },
+  { key: "antonym", label: "반의어 고르기", hint: "4지선다" },
+  { key: "form", label: "파생어 쓰기", hint: "품사를 바꿔 쓰기" },
+  { key: "formChoice", label: "파생어 고르기", hint: "4지선다" },
+];
+
+export const VOCAB_EXAM_COUNTS = [20, 30, 40, 50, 60];
+
+export type VocabExamOptions = { count: number; kinds: VocabExamKind[] };
+
+export const DEFAULT_VOCAB_EXAM: VocabExamOptions = { count: 40, kinds: ["meaning", "spelling", "synonym", "antonym", "form", "formChoice"] };
+
+export function normalizeVocabExam(raw: unknown): VocabExamOptions {
+  const r = (raw ?? {}) as { count?: unknown; kinds?: unknown };
+  const count = VOCAB_EXAM_COUNTS.includes(Number(r.count)) ? Number(r.count) : DEFAULT_VOCAB_EXAM.count;
+  const all = VOCAB_EXAM_KINDS.map((k) => k.key);
+  const on = new Set(Array.isArray(r.kinds) ? r.kinds.map(String) : DEFAULT_VOCAB_EXAM.kinds);
+  const kinds = all.filter((k) => on.has(k));
+  return { count, kinds: kinds.length ? kinds : DEFAULT_VOCAB_EXAM.kinds };
+}
+
+export type VocabExamItem = {
+  no: number;
+  /** 문항에 보이는 말(단어·뜻·「restore (v.) → n.」) */
+  prompt: string;
+  /** 철자 쓰기 첫 글자 */
+  hint?: string;
+  /** 객관식 보기 */
+  choices?: string[];
+  /** 정답(객관식은 보기 번호 ①…, 쓰기는 낱말·뜻) */
+  answer: string;
+  /** 지문 번호(1부터) */
+  passage: number;
+};
+
+export type VocabExamSection = { kind: VocabExamKind; title: string; hint: string; items: VocabExamItem[] };
+
+export type VocabExam = { total: number; sections: VocabExamSection[] };
+
+const CHOICE_NO = "①②③④";
+
+export function buildVocabExam(
+  projects: Array<{ passage: number; vocab: TestBookVocabRow[] }>,
+  opts: VocabExamOptions & { seed: string }
+): VocabExam {
+  const seen = new Set<string>();
+  const rows: Array<TestBookVocabRow & { passage: number }> = [];
+  for (const p of projects) {
+    for (const r of p.vocab) {
+      const k = r.word.toLowerCase();
+      if (!r.word || !r.meaning || seen.has(k)) continue;
+      seen.add(k);
+      rows.push({ ...r, passage: p.passage });
+    }
+  }
+  const stem = (w: string) => w.toLowerCase().replace(/[^a-z]/g, "").slice(0, 5);
+  const fillers = [...new Set(rows.flatMap((r) => [r.word, ...r.synonyms, ...r.antonyms]).map((w) => w.trim()).filter(Boolean))];
+  const mcq = (correct: string, avoid: string[], key: string) => {
+    const banned = new Set(avoid.map((w) => w.toLowerCase()));
+    const bannedStems = new Set(avoid.map(stem).filter((s) => s.length >= 4));
+    const wrong = pickN(fillers.filter((w) => !banned.has(w.toLowerCase()) && !bannedStems.has(stem(w))), 3, `${opts.seed}|vx|${key}`);
+    if (wrong.length < 3) return null;
+    const choices = fisherYatesShuffle([correct, ...wrong], createSeededRng(`${opts.seed}|vxo|${key}`));
+    return { choices, answer: CHOICE_NO[choices.indexOf(correct)]! };
+  };
+  // 유형마다 만들 수 있는 문항(후보)
+  const cands: Record<VocabExamKind, Array<Omit<VocabExamItem, "no">>> = {
+    meaning: rows.map((r) => ({ prompt: r.word, answer: r.meaning, passage: r.passage })),
+    spelling: rows
+      .filter((r) => /^[A-Za-z]/.test(r.word))
+      .map((r) => ({ prompt: r.meaning, hint: r.word[0]!, answer: r.word, passage: r.passage })),
+    synonym: rows.flatMap((r) => {
+      const c = r.synonyms[0];
+      const m = c ? mcq(c, [r.word, ...r.synonyms, ...r.antonyms], `s|${r.word}`) : null;
+      return m ? [{ prompt: r.word, ...m, passage: r.passage }] : [];
+    }),
+    antonym: rows.flatMap((r) => {
+      const c = r.antonyms[0];
+      const m = c ? mcq(c, [r.word, ...r.synonyms, ...r.antonyms], `a|${r.word}`) : null;
+      return m ? [{ prompt: r.word, ...m, passage: r.passage }] : [];
+    }),
+    form: rows.flatMap((r) => {
+      const f = r.forms.find((x) => x.word && POS_NAME[x.pos] && x.pos !== r.pos);
+      return f ? [{ prompt: `${r.word} (${r.pos}) → ${f.pos}`, answer: f.word, passage: r.passage }] : [];
+    }),
+    formChoice: rows.flatMap((r) => {
+      const f = r.forms.find((x) => x.word && POS_NAME[x.pos] && x.pos !== r.pos);
+      if (!f) return [];
+      // 오답: 같은 뿌리의 다른 품사 꼴 + 다른 단어의 같은 품사 꼴
+      const own = r.forms.filter((x) => x.word !== f.word).map((x) => x.word);
+      const others = rows.flatMap((o) => (o.word === r.word ? [] : o.forms.filter((x) => x.pos === f.pos).map((x) => x.word)));
+      const wrong = [...own, ...pickN(others, 3, `${opts.seed}|fc|${r.word}`), r.word].filter((w, i, a) => w && w !== f.word && a.indexOf(w) === i).slice(0, 3);
+      if (wrong.length < 3) return [];
+      const choices = fisherYatesShuffle([f.word, ...wrong], createSeededRng(`${opts.seed}|fco|${r.word}`));
+      return [{ prompt: `${r.word} 의 ${POS_NAME[f.pos]}`, choices, answer: CHOICE_NO[choices.indexOf(f.word)]!, passage: r.passage }];
+    }),
+  };
+  const kinds = opts.kinds.filter((k) => cands[k].length);
+  if (!kinds.length) return { total: 0, sections: [] };
+  // 문항 수를 유형에 고르게(모자란 유형의 몫은 다른 유형으로)
+  const want: Record<string, number> = {};
+  let left = opts.count;
+  const avail = (k: VocabExamKind) => cands[k].length - (want[k] ?? 0);
+  while (left > 0 && kinds.some((k) => avail(k) > 0)) {
+    for (const k of kinds) {
+      if (left <= 0) break;
+      if (avail(k) <= 0) continue;
+      want[k] = (want[k] ?? 0) + 1;
+      left--;
+    }
+  }
+  let no = 0;
+  const sections: VocabExamSection[] = [];
+  for (const k of kinds) {
+    const n = want[k] ?? 0;
+    if (!n) continue;
+    const meta = VOCAB_EXAM_KINDS.find((x) => x.key === k)!;
+    const items = pickN(cands[k], n, `${opts.seed}|vxk|${k}`).map((it) => ({ ...it, no: ++no }));
+    sections.push({ kind: k, title: meta.label, hint: meta.hint, items });
+  }
+  return { total: no, sections };
 }
