@@ -371,7 +371,12 @@ function useMarkupLayout(
       if (Math.abs(shiftPx) >= 1 || liftPx !== 0) {
         el.style.transform = `translate(${shiftPx}px, ${liftPx}px)`;
       }
-      if (best.level > maxLevel) maxLevel = best.level;
+      /*
+       * 긴 이름표가 두 줄로 꺾이면 그만큼 위로 더 올라간다. 층 하나로만 쳐서 줄 사이를 넓히면
+       * 두 번째 줄이 위 글줄을 덮었다(선생님 지적 2026-10-20: 분석지 주석이 겹친다). 꺾인 줄 수만큼 층을 더 친다.
+       */
+      const rows = Math.max(1, Math.round(unscale(height) / NOTE_ROW));
+      if (best.level + rows - 1 > maxLevel) maxLevel = best.level + rows - 1;
 
       /*
        * 제자리를 벗어난 이름표에는 가리키는 선을 내린다.
@@ -497,9 +502,35 @@ function useMarkupLayout(
     const mq = typeof window !== "undefined" ? window.matchMedia?.("print") : null;
     mq?.addEventListener?.("change", onPrint);
     window.addEventListener("beforeprint", onPrint);
+    /*
+     * 글꼴이 늦게 들어오거나 문장 칸 폭이 바뀌면(쪽 나누기·확대) 줄바꿈이 밀려 잰 자리가 엉뚱한
+     * 낱말 위로 갔다. 그때도 한 번 더 잰다(같은 프레임에 여러 번 와도 한 번만).
+     */
+    let frame = 0;
+    const again = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(layOut);
+    };
+    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
+    void fonts?.ready.then(again);
+    fonts?.addEventListener?.("loadingdone", again);
+    let lastWidth = box.offsetWidth;
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            if (box.offsetWidth !== lastWidth) {
+              lastWidth = box.offsetWidth;
+              again();
+            }
+          })
+        : null;
+    ro?.observe(box);
     return () => {
       mq?.removeEventListener?.("change", onPrint);
       window.removeEventListener("beforeprint", onPrint);
+      fonts?.removeEventListener?.("loadingdone", again);
+      ro?.disconnect();
+      cancelAnimationFrame(frame);
     };
   });
 }

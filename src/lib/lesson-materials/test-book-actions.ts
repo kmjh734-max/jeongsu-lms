@@ -114,7 +114,15 @@ async function loadProject(role: Role, profile: { id: string; academy_id: string
  */
 export async function prepareTestBookPassageAction(
   role: Role,
-  input: { projectId: string; forceRegenerate?: boolean }
+  input: {
+    projectId: string;
+    forceRegenerate?: boolean;
+    /**
+     * 기능마다 다시 만들기(선생님 2026-10-20): 단어 정리·직독직해·1장 자료 재료(동반의어·T/F·지칭 등) 가운데
+     * 고른 것만 새로 만든다. 같은 지문의 테스트 교재 값은 다시 받지 않는다.
+     */
+    regenerate?: Array<"vocab" | "gloss" | "content">;
+  }
 ): Promise<
   | {
       ok: true;
@@ -160,7 +168,8 @@ export async function prepareTestBookPassageAction(
   try {
     // 2. 1장 자료 재료
     let content = pack.onePageContent;
-    if (input.forceRegenerate || !isOnePageContentFresh(content, english)) {
+    const again = new Set(input.forceRegenerate ? ["vocab", "gloss", "content"] : (input.regenerate ?? []));
+    if (again.has("content") || !isOnePageContentFresh(content, english)) {
       content = (
         await withAiUsage(usage, () => generateOnePageContent({ title: project.title as string, sentences: english }))
       ).content;
@@ -169,10 +178,10 @@ export async function prepareTestBookPassageAction(
 
     // 3. 테스트 교재 재료
     let material = pack.testBookMaterial;
-    if (input.forceRegenerate || !isTestBookMaterialFresh(material, english)) {
+    if (again.size || !isTestBookMaterialFresh(material, english)) {
       // 원문이 그대로면(재료 버전만 바뀌었으면) 단어 정리는 다시 쓰고 규칙으로 만드는 것만 새로
       const vocab =
-        !input.forceRegenerate &&
+        !again.has("vocab") &&
         isTestBookMaterialSameSource(material, english) &&
         material.vocabVersion === TEST_BOOK_VOCAB_VERSION
           ? material.vocab
@@ -266,7 +275,7 @@ export async function prepareTestBookPassageAction(
       }
 
       // 직독직해 덩어리: 원문이 같고 이미 있으면 다시 쓰고, 없으면 만든다(gpt-4o-mini, 1원 아래)
-      const oldGloss = material && isTestBookMaterialSameSource(material, english) && !input.forceRegenerate ? material.chunkGloss : undefined;
+      const oldGloss = material && isTestBookMaterialSameSource(material, english) && !again.has("gloss") ? material.chunkGloss : undefined;
       const chunkGloss = oldGloss?.length
         ? oldGloss
         : await withAiUsage(usage, () => glossTestBookChunks({ title: project.title as string, sentences })).catch(() => undefined);

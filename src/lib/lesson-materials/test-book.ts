@@ -26,7 +26,8 @@ import {
   type OnePageContent,
 } from "@/lib/lesson-materials/one-page";
 import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
-import type { WorkbookGrammarChoiceSection } from "@/lib/lesson-materials/workbook-types";
+import type { WorkbookGrammarChoiceSection, WorkbookVocabChoiceSection } from "@/lib/lesson-materials/workbook-types";
+import { addChoiceItem, type ChoiceSection } from "@/lib/lesson-materials/choice-edit";
 
 /**
  * 재료 형식이 바뀌면 올린다. 원문이 그대로인 옛 재료는 열 때 단어 정리(모델 호출)는 그대로 두고
@@ -207,6 +208,8 @@ export type TestBookProjectInput = {
   analysis?: AnalysisReportData | null;
   /** 워크북 어법 선택(저장된 것). 있으면 어법선택을 워크북과 같은 문항으로 싣는다. */
   grammarChoice?: WorkbookGrammarChoiceSection | null;
+  /** 선생님이 고친 어휘 선택(교재 파일에 저장). 있으면 어휘선택을 이 문항으로 싣는다. */
+  vocabChoice?: WorkbookVocabChoiceSection | null;
 };
 
 export function isTestBookProjectReady(
@@ -288,6 +291,11 @@ export type TestBookOptions = {
   wordTest: boolean;
   /** 맨 뒤 정답지 */
   answers: boolean;
+  /** 선생님이 고친 어법·어휘 선택(지문 id → 문항, 원문 해시). 원문이 바뀌면 쓰지 않는다. */
+  choiceEdits: {
+    grammar: Record<string, { hash: string; section: WorkbookGrammarChoiceSection }>;
+    vocab: Record<string, { hash: string; section: WorkbookVocabChoiceSection }>;
+  };
 };
 
 export const DEFAULT_TEST_BOOK_OPTIONS: TestBookOptions = {
@@ -310,9 +318,10 @@ export const DEFAULT_TEST_BOOK_OPTIONS: TestBookOptions = {
   analysisTranslation: "full",
   tests: true,
   allWordTest: true,
-  vocabExam: { count: 40, kinds: ["meaning", "spelling", "synonym", "antonym", "form", "formChoice"] },
+  vocabExam: { counts: { meaning: 10, spelling: 10, synonym: 5, antonym: 5, form: 5, formChoice: 5 } },
   wordTest: true,
   answers: true,
+  choiceEdits: { grammar: {}, vocab: {} },
 };
 
 export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
@@ -353,6 +362,11 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
     vocabExam: normalizeVocabExam(r.vocabExam),
     wordTest: r.wordTest !== false,
     answers: r.answers !== false,
+    choiceEdits: (() => {
+      const c = (r.choiceEdits ?? {}) as { grammar?: unknown; vocab?: unknown };
+      const pick = (v: unknown) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
+      return { grammar: pick(c.grammar), vocab: pick(c.vocab) } as TestBookOptions["choiceEdits"];
+    })(),
   };
 }
 
@@ -715,7 +729,17 @@ function pickSection(
  * 지문·고르기 자리·바른 말은 워크북과 같고, 뽑기는 열쇠에 따라 [A / B] 좌우만 바꾼다.
  */
 function workbookGrammarSection(p: Ready, seed: string): TestSection | null {
-  const gc = p.grammarChoice;
+  return choiceSectionTest(p.grammarChoice, "grammar", "어법선택", "알맞은 것에 ○", seed);
+}
+
+/** 어법·어휘 선택 문항(워크북 형태)을 테스트 견본으로. 뽑기는 열쇠에 따라 [A / B] 좌우만 바꾼다. */
+function choiceSectionTest(
+  gc: ChoiceSection | null | undefined,
+  type: "grammar" | "vocab",
+  title: string,
+  hint: string,
+  seed: string
+): TestSection | null {
   if (!gc?.segments?.length || !gc.items?.length) return null;
   const byNo = new Map(gc.items.map((it) => [it.number, it] as const));
   const book = seed.startsWith("book|");
@@ -732,7 +756,55 @@ function workbookGrammarSection(p: Ready, seed: string): TestSection | null {
     passage.push({ pick: swap ? [seg.rightText, seg.leftText] : [seg.leftText, seg.rightText], n });
     items.push({ no: n, text: [], answer: it?.correctText ?? "" });
   }
-  return { type: "grammar", title: "어법선택", hint: "알맞은 것에 ○", passage, inline: true, items };
+  return { type, title, hint, passage, inline: true, items };
+}
+
+/**
+ * 고치기 창에 넘길 문항(워크북 형태). 어법은 워크북 어법 선택이 있으면 그것, 없으면 지금 문항을
+ * 같은 형태로 바꾼다. 어휘는 지금 문항(1장 자료 핵심어의 반의어)을 바꾼다.
+ */
+export function testBookChoiceSection(
+  p: TestBookProjectInput & { content: OnePageContent; material: TestBookMaterial },
+  kind: "grammar" | "vocab"
+): ChoiceSection {
+  if (kind === "grammar" && p.grammarChoice?.items?.length) return p.grammarChoice;
+  if (kind === "vocab" && p.vocabChoice?.items?.length) return p.vocabChoice;
+  const sents = p.sentences.map((s) => clean(s.english));
+  const starts: number[] = [];
+  let at = 0;
+  const parts: string[] = [];
+  sents.forEach((t) => {
+    if (!t) {
+      starts.push(-1);
+      return;
+    }
+    if (parts.length) at += 1;
+    starts.push(at);
+    parts.push(t);
+    at += t.length;
+  });
+  const sourcePassage = parts.join(" ");
+  let section = {
+    projectId: p.id,
+    title: p.title,
+    source: p.source,
+    sourcePassage,
+    segments: [{ type: "text" as const, text: sourcePassage }],
+    items: [],
+    algorithmVersion: "test-book",
+  } as unknown as ChoiceSection;
+  const cands = kind === "grammar" ? grammarCandidates(p) : vocabCandidates(p);
+  for (const c of bySentence(cands)) {
+    const base = starts[c.si];
+    if (base == null || base < 0) continue;
+    const start = base + (c.at ?? c.before.length);
+    try {
+      section = addChoiceItem(section, { start, end: start + c.right.length, incorrectText: c.wrong, kind });
+    } catch {
+      // 겹치는 자리 등은 뺀다
+    }
+  }
+  return section;
 }
 
 /** 어순배열: 같은 덩어리를 섞는다. 원래 차례·뒤집은 차례와 같으면 다시 섞는다. */
@@ -1127,7 +1199,9 @@ export function buildTestSheet(
       key === "line" ? buildLine(p, seed, opts.lineMode ?? "full")
       : key === "blank" ? buildBlank(p, seed, opts.blankMode ?? "same", up)
       : key === "grammar" ? (workbookGrammarSection(p, seed) ?? pickSection(p, "grammar", "어법선택", "알맞은 것에 ○", forPick, seed))
-      : key === "vocab" ? pickSection(p, "vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed)
+      : key === "vocab"
+        ? (choiceSectionTest(p.vocabChoice, "vocab", "어휘선택", "문맥에 맞는 것에 ○", seed) ??
+          pickSection(p, "vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed))
       : key === "order" ? buildOrder(p, seed, up)
       : key === "tf" ? buildTf(p, seed, up)
       : key === "writing" ? buildWriting(p, seed, opts.writing ?? "all", up)
@@ -1228,19 +1302,25 @@ export const VOCAB_EXAM_KINDS: Array<{ key: VocabExamKind; label: string; hint: 
   { key: "formChoice", label: "파생어 고르기", hint: "4지선다" },
 ];
 
-export const VOCAB_EXAM_COUNTS = [20, 30, 40, 50, 60];
+/** 유형마다 문항 수(선생님 2026-10-20: 단어 시험은 유형별로 문항 수를 정하게) */
+export const VOCAB_EXAM_KIND_COUNTS = [0, 5, 10, 15, 20, 25, 30];
 
-export type VocabExamOptions = { count: number; kinds: VocabExamKind[] };
+export type VocabExamOptions = { counts: Record<VocabExamKind, number> };
 
-export const DEFAULT_VOCAB_EXAM: VocabExamOptions = { count: 40, kinds: ["meaning", "spelling", "synonym", "antonym", "form", "formChoice"] };
+export const DEFAULT_VOCAB_EXAM: VocabExamOptions = {
+  counts: { meaning: 10, spelling: 10, synonym: 5, antonym: 5, form: 5, formChoice: 5 },
+};
 
 export function normalizeVocabExam(raw: unknown): VocabExamOptions {
-  const r = (raw ?? {}) as { count?: unknown; kinds?: unknown };
-  const count = VOCAB_EXAM_COUNTS.includes(Number(r.count)) ? Number(r.count) : DEFAULT_VOCAB_EXAM.count;
-  const all = VOCAB_EXAM_KINDS.map((k) => k.key);
-  const on = new Set(Array.isArray(r.kinds) ? r.kinds.map(String) : DEFAULT_VOCAB_EXAM.kinds);
-  const kinds = all.filter((k) => on.has(k));
-  return { count, kinds: kinds.length ? kinds : DEFAULT_VOCAB_EXAM.kinds };
+  const r = (raw ?? {}) as { counts?: Record<string, unknown> };
+  const counts = { ...DEFAULT_VOCAB_EXAM.counts };
+  if (r.counts && typeof r.counts === "object") {
+    for (const k of VOCAB_EXAM_KINDS.map((x) => x.key)) {
+      const n = Math.floor(Number(r.counts[k]));
+      if (Number.isFinite(n) && n >= 0) counts[k] = Math.min(60, n);
+    }
+  }
+  return { counts };
 }
 
 export type VocabExamItem = {
@@ -1319,20 +1399,10 @@ export function buildVocabExam(
       return [{ prompt: `${r.word} 의 ${POS_NAME[f.pos]}`, choices, answer: CHOICE_NO[choices.indexOf(f.word)]!, passage: r.passage }];
     }),
   };
-  const kinds = opts.kinds.filter((k) => cands[k].length);
-  if (!kinds.length) return { total: 0, sections: [] };
-  // 문항 수를 유형에 고르게(모자란 유형의 몫은 다른 유형으로)
   const want: Record<string, number> = {};
-  let left = opts.count;
-  const avail = (k: VocabExamKind) => cands[k].length - (want[k] ?? 0);
-  while (left > 0 && kinds.some((k) => avail(k) > 0)) {
-    for (const k of kinds) {
-      if (left <= 0) break;
-      if (avail(k) <= 0) continue;
-      want[k] = (want[k] ?? 0) + 1;
-      left--;
-    }
-  }
+  for (const k of VOCAB_EXAM_KINDS.map((x) => x.key)) want[k] = Math.min(opts.counts[k] ?? 0, cands[k].length);
+  const kinds = VOCAB_EXAM_KINDS.map((x) => x.key).filter((k) => want[k]! > 0);
+  if (!kinds.length) return { total: 0, sections: [] };
   let no = 0;
   const sections: VocabExamSection[] = [];
   for (const k of kinds) {

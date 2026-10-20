@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
+import { ChoiceItemEditor } from "@/components/lesson-materials/ChoiceItemEditor";
+import type { ChoiceSection } from "@/lib/lesson-materials/choice-edit";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import type { renameLessonMaterialDocument } from "@/lib/lesson-materials/document-actions";
 import { defaultDocumentName } from "@/lib/lesson-materials/documents";
@@ -21,6 +23,8 @@ import {
   buildWordTest,
   isTestBookProjectReady,
   TEST_BOOK_BLEED_COVER,
+  testBookChoiceSection,
+  testBookSourceHash,
   TEST_BOOK_DEFAULT_HEADLINE,
   testBookTypeLabel,
   type BlankMode,
@@ -29,7 +33,7 @@ import {
   type TestLevel,
   type VocabExamOptions,
   DEFAULT_VOCAB_EXAM,
-  VOCAB_EXAM_COUNTS,
+  VOCAB_EXAM_KIND_COUNTS,
   VOCAB_EXAM_KINDS,
   buildVocabExam,
   type TestBookOptions,
@@ -186,37 +190,92 @@ function CoverInput({
   );
 }
 
-/** 단어 시험지 문항 수·유형 */
-function VocabExamControls({ value, onChange }: { value: VocabExamOptions; onChange: (v: VocabExamOptions) => void }) {
-  const on = new Set(value.kinds);
+type RegenPart = "vocab" | "gloss" | "content" | "grammar" | "analysis";
+
+const REGEN_PARTS: Array<{ key: RegenPart; label: string; paid?: boolean }> = [
+  { key: "vocab", label: "단어 정리(뜻·동반의어·파생어)" },
+  { key: "gloss", label: "직독직해" },
+  { key: "content", label: "1장 자료 재료(동반의어·T/F·지칭·함축·흐름)" },
+  { key: "grammar", label: "어법선택 · 지문당 400", paid: true },
+  { key: "analysis", label: "분석서 · 분석서 값", paid: true },
+];
+
+/** 기능마다 다시 만들기(선생님 2026-10-20) — 지문 하나 또는 전체, 고른 것만 */
+function RegenBox({
+  passages,
+  busy,
+  onRun,
+}: {
+  passages: Array<{ id: string; label: string }>;
+  busy: boolean;
+  onRun: (ids: string[], parts: RegenPart[]) => void;
+}) {
+  const [target, setTarget] = useState("all");
+  const [parts, setParts] = useState<Set<RegenPart>>(() => new Set());
   return (
-    <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-2">
-      <div className="flex items-center gap-2">
-        <span className="text-[11px] font-bold text-slate-500">문항 수</span>
-        <select
-          value={value.count}
-          onChange={(e) => onChange({ ...value, count: Number(e.target.value) })}
-          className="rounded-md border border-slate-200 px-1.5 py-0.5 text-[12px]"
-        >
-          {VOCAB_EXAM_COUNTS.map((n) => (
-            <option key={n} value={n}>
-              {n}문항
-            </option>
-          ))}
-        </select>
-      </div>
-      {VOCAB_EXAM_KINDS.map((k) => (
-        <label key={k.key} className="flex items-center gap-2 text-[12px] text-slate-700" title={k.hint}>
+    <div className="space-y-1.5 rounded-lg border border-slate-200 bg-slate-50 p-2">
+      <p className="text-[11px] font-bold text-slate-500">다시 만들기</p>
+      <select value={target} onChange={(e) => setTarget(e.target.value)} className="w-full rounded-md border border-slate-200 bg-white px-1.5 py-1 text-[12px]">
+        <option value="all">지문 전체</option>
+        {passages.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.label}
+          </option>
+        ))}
+      </select>
+      {REGEN_PARTS.map((x) => (
+        <label key={x.key} className="flex items-center gap-2 text-[12px] text-slate-700">
           <input
             type="checkbox"
             className="h-3.5 w-3.5 accent-violet-600"
-            checked={on.has(k.key)}
-            onChange={() => {
-              const kinds = VOCAB_EXAM_KINDS.map((x) => x.key).filter((x) => (x === k.key ? !on.has(x) : on.has(x)));
-              if (kinds.length) onChange({ ...value, kinds });
-            }}
+            checked={parts.has(x.key)}
+            onChange={() =>
+              setParts((prev) => {
+                const next = new Set(prev);
+                if (next.has(x.key)) next.delete(x.key);
+                else next.add(x.key);
+                return next;
+              })
+            }
           />
-          {k.label}
+          <span className={x.paid ? "text-amber-700" : undefined}>{x.label}</span>
+        </label>
+      ))}
+      <Button
+        type="button"
+        size="sm"
+        variant="secondary"
+        className="w-full"
+        disabled={busy || !parts.size}
+        onClick={() => onRun(target === "all" ? passages.map((p) => p.id) : [target], REGEN_PARTS.map((x) => x.key).filter((k) => parts.has(k)))}
+      >
+        {busy ? "만드는 중…" : "고른 것 다시 만들기"}
+      </Button>
+      <p className="text-[10.5px] leading-snug text-slate-400">값 표시가 없는 것은 다시 만들어도 값이 들지 않습니다.</p>
+    </div>
+  );
+}
+
+/** 단어 시험지: 유형마다 문항 수(0이면 빼기) */
+function VocabExamControls({ value, onChange }: { value: VocabExamOptions; onChange: (v: VocabExamOptions) => void }) {
+  const total = VOCAB_EXAM_KINDS.reduce((n, k) => n + (value.counts[k.key] ?? 0), 0);
+  return (
+    <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-2">
+      <p className="text-[11px] font-bold text-slate-500">유형별 문항 수 · 모두 {total}문항</p>
+      {VOCAB_EXAM_KINDS.map((k) => (
+        <label key={k.key} className="flex items-center justify-between gap-2 text-[12px] text-slate-700" title={k.hint}>
+          <span className={value.counts[k.key] ? "" : "text-slate-400"}>{k.label}</span>
+          <select
+            value={value.counts[k.key] ?? 0}
+            onChange={(e) => onChange({ counts: { ...value.counts, [k.key]: Number(e.target.value) } })}
+            className="rounded-md border border-slate-200 bg-white px-1 py-0.5 text-[12px]"
+          >
+            {VOCAB_EXAM_KIND_COUNTS.map((n) => (
+              <option key={n} value={n}>
+                {n ? `${n}문항` : "빼기"}
+              </option>
+            ))}
+          </select>
         </label>
       ))}
     </div>
@@ -435,7 +494,7 @@ export function TestBookWorkbench({
   const [started, setStarted] = useState(false);
 
   const runPrepare = useCallback(
-    async (targets: TestBookProjectInput[], forceRegenerate: boolean) => {
+    async (targets: TestBookProjectInput[], forceRegenerate: boolean, regenerate?: RegenPart[]) => {
       if (!targets.length) return;
       setPendingIds((prev) => new Set([...prev, ...targets.map((p) => p.id)]));
       setErrors((prev) => {
@@ -450,6 +509,7 @@ export function TestBookWorkbench({
             role,
             projectId: p.id,
             forceRegenerate,
+            regenerate,
           });
           if (res.ok) {
             setProjects((prev) =>
@@ -600,9 +660,40 @@ export function TestBookWorkbench({
   const busy = pendingIds.size > 0;
   const errorList = projects.filter((p) => errors[p.id]);
 
+  /**
+   * 고친 어법·어휘 문항(교재 파일)을 지문에 입힌다. 원문이 바뀌었으면(해시가 다르면) 버린다.
+   * 지문에 저장된 워크북 원본은 그대로 둔다 — 같은 지문의 워크북에는 영향이 없다.
+   */
+  const edited = useMemo(
+    () =>
+      ready.map((p) => {
+        const hash = testBookSourceHash(p.sentences.map((s) => s.english));
+        const g = options.choiceEdits.grammar[p.id];
+        const v = options.choiceEdits.vocab[p.id];
+        return {
+          ...p,
+          grammarChoice: g?.hash === hash ? g.section : p.grammarChoice,
+          vocabChoice: v?.hash === hash ? v.section : null,
+        };
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ready.map((p) => p.id).join(","), projects, options.choiceEdits]
+  );
+  /** 문항 고치기 창 */
+  const [choiceEditing, setChoiceEditing] = useState<{ kind: "grammar" | "vocab"; projectId: string } | null>(null);
+  function applyChoiceEdit(kind: "grammar" | "vocab", projectId: string, section: ChoiceSection | null) {
+    const p = ready.find((x) => x.id === projectId);
+    if (!p) return;
+    const hash = testBookSourceHash(p.sentences.map((s) => s.english));
+    const next = { ...options.choiceEdits[kind] } as Record<string, { hash: string; section: ChoiceSection }>;
+    if (section) next[projectId] = { hash, section };
+    else delete next[projectId];
+    setOptions({ choiceEdits: { ...options.choiceEdits, [kind]: next } as TestBookOptions["choiceEdits"] });
+  }
+
   const book = useMemo(
     () =>
-      ready.map((p) => ({
+      edited.map((p) => ({
         project: p,
         word: buildWordTest(p, BOOK_SEED),
         sheet: buildTestSheet(p, options.types, {
@@ -614,7 +705,7 @@ export function TestBookWorkbench({
         }),
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ready.map((p) => p.id).join(","), projects, options.types, options.writing, options.lineMode, options.level]
+    [edited, options.types, options.writing, options.lineMode, options.level]
   );
   /** 단어 시험지: 교재는 늘 같은 열쇠, 뽑기는 그때의 열쇠 */
   const bookVocabExam = useMemo(
@@ -636,11 +727,11 @@ export function TestBookWorkbench({
   }, [draw, projects]);
   const drawn = useMemo(() => {
     if (!draw) return [];
-    return ready
+    return edited
       .filter((p) => draw.picks[p.id])
       .map((p) => ({ project: p, sheet: buildTestSheet(p, draw.picks[p.id]!, { seed: draw.seed, blankMode, writing: drawWriting, lineMode: drawLineMode, level: drawLevel }) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draw, blankMode, drawWriting, drawLineMode, drawLevel, projects]);
+  }, [draw, blankMode, drawWriting, drawLineMode, drawLevel, edited]);
 
   // ---------------------------------------------------------------- 교재 차례·목차
   const testsOn = options.tests && book.length > 0 && (options.allWordTest || options.wordTest || options.types.length > 0);
@@ -761,7 +852,7 @@ export function TestBookWorkbench({
     await runGrammar(targets);
   }
   /** 어법선택(워크북과 같은 엔진)을 지문마다 만든다. 이미 만든 지문은 값을 돌려받는다. */
-  async function runGrammar(targets: Array<{ id: string; title: string }>) {
+  async function runGrammar(targets: Array<{ id: string; title: string }>, force = false) {
     if (!targets.length) return;
     setGrammarError(null);
     let done = 0;
@@ -773,6 +864,7 @@ export function TestBookWorkbench({
           role,
           projectId: p.id,
           usedIn: "test_book",
+          forceRegenerate: force,
         });
         if (res.ok && res.section) setProjects((prev) => prev.map((x) => (x.id === p.id ? { ...x, grammarChoice: res.section } : x)));
         else failed.push(`${p.title}: ${res.ok ? "어법 선택 자리를 찾지 못했습니다." : res.message}`);
@@ -786,13 +878,32 @@ export function TestBookWorkbench({
     if (failed.length) setGrammarError(failed.join(" · "));
   }
 
+  // ---------------------------------------------------------------- 기능마다 다시 만들기
+  /** 고른 지문·기능만 다시 만든다. 값이 드는 어법선택·분석서는 한 번 더 묻는다. */
+  async function regenerate(ids: string[], parts: RegenPart[]) {
+    const targets = ready.filter((p) => ids.includes(p.id));
+    if (!targets.length || !parts.length) return;
+    const paid = parts.filter((x) => x === "grammar" || x === "analysis");
+    if (
+      paid.length &&
+      !window.confirm(
+        `지문 ${targets.length}개의 ${paid.map((x) => (x === "grammar" ? "어법선택(지문당 400)" : "분석서(분석서 값)")).join(" · ")}을 새로 만듭니다. 값이 다시 듭니다. 만들까요?`
+      )
+    )
+      return;
+    const free = parts.filter((x): x is "vocab" | "gloss" | "content" => x === "vocab" || x === "gloss" || x === "content");
+    if (free.length) await runPrepare(targets, false, free);
+    if (parts.includes("grammar")) await runGrammar(targets, true);
+    if (parts.includes("analysis")) await makeAnalysis(targets);
+  }
+
   // ---------------------------------------------------------------- 분석서 만들기(분석 자료)
   const [analysisBusy, setAnalysisBusy] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  async function makeAnalysis() {
-    const targets = ready.filter((p) => !(p.analysis?.sentences?.length));
+  async function makeAnalysis(force?: TestBookProjectInput[]) {
+    const targets = force ?? ready.filter((p) => !(p.analysis?.sentences?.length));
     if (!targets.length) return;
-    if (!window.confirm(`분석서가 없는 지문 ${targets.length}개의 분석서를 만듭니다. 수업자료 분석서와 같은 값이 지문마다 듭니다. 만들까요?`)) return;
+    if (!force && !window.confirm(`분석서가 없는 지문 ${targets.length}개의 분석서를 만듭니다. 수업자료 분석서와 같은 값이 지문마다 듭니다. 만들까요?`)) return;
     setAnalysisError(null);
     let done = 0;
     setAnalysisBusy(`0/${targets.length}`);
@@ -802,7 +913,8 @@ export function TestBookWorkbench({
         const res = await postJson<AnalysisResult>("/api/lesson-materials/analysis-report", {
           role,
           projectId: p.id,
-          onlyIfChanged: true,
+          // 다시 만들기는 저장된 분석서가 있어도 새로 만든다
+          onlyIfChanged: !force,
         });
         if (res.ok) setProjects((prev) => prev.map((x) => (x.id === p.id ? { ...x, analysis: res.report } : x)));
         else failed.push(`${p.title}: ${res.message}`);
@@ -971,6 +1083,38 @@ export function TestBookWorkbench({
                     <p className="text-[11px] font-bold text-violet-900">테스트 견본 유형</p>
                     <TypeChecks value={options.types} onChange={(types) => setOptions({ types })} />
                     <LevelSwitch value={options.level} onChange={(level) => setOptions({ level })} />
+                    {(["grammar", "vocab"] as const)
+                      .filter((k) => options.types.includes(k))
+                      .map((k) => (
+                        <div key={k} className="space-y-1">
+                          <p className="text-[11px] font-bold text-slate-500">{k === "grammar" ? "어법 문항 고치기" : "어휘 문항 고치기"}</p>
+                          {edited.map((p) => {
+                            const changed = !!options.choiceEdits[k][p.id];
+                            return (
+                              <div key={p.id} className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setChoiceEditing({ kind: k, projectId: p.id })}
+                                  className="min-w-0 flex-1 truncate rounded-md border border-slate-200 bg-white px-2 py-0.5 text-left text-[11.5px] text-slate-700 hover:border-violet-300"
+                                >
+                                  {String(indexOf(p.id) + 1).padStart(2, "0")} · {p.title}
+                                  {changed ? <span className="ml-1 font-bold text-violet-600">고침</span> : null}
+                                </button>
+                                {changed ? (
+                                  <button
+                                    type="button"
+                                    title="고친 것을 버리고 처음 문항으로"
+                                    onClick={() => applyChoiceEdit(k, p.id, null)}
+                                    className="shrink-0 rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold text-slate-500 hover:bg-slate-100"
+                                  >
+                                    원래대로
+                                  </button>
+                                ) : null}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
                     {options.types.includes("line") ? <LineModeSwitch value={options.lineMode} onChange={(lineMode) => setOptions({ lineMode })} /> : null}
                     {options.types.includes("writing") ? <WritingScopeSwitch value={options.writing} onChange={(writing) => setOptions({ writing })} /> : null}
                     {options.types.includes("grammar") ? (
@@ -994,6 +1138,11 @@ export function TestBookWorkbench({
                   </div>
                 </PartRow>
                 <PartRow checked={options.answers} onChange={(v) => setOptions({ answers: v })} n={8} label="정답지" hint="맨 뒤 · 정답만" />
+                <RegenBox
+                  passages={ready.map((p) => ({ id: p.id, label: `${String(indexOf(p.id) + 1).padStart(2, "0")} · ${p.title}` }))}
+                  busy={busy || !!grammarBusy || !!analysisBusy}
+                  onRun={(ids, parts) => void regenerate(ids, parts)}
+                />
                 <p className="pt-1 text-[11px] leading-relaxed text-slate-500">
                   넣고 빼도 다시 만들지 않아 크레딧이 들지 않습니다. 학원 테스트지는 「테스트지 뽑기」에서 새로 뽑습니다.
                 </p>
@@ -1133,6 +1282,20 @@ export function TestBookWorkbench({
             +
           </button>
         </div>
+        {choiceEditing
+          ? (() => {
+              const p = edited.find((x) => x.id === choiceEditing.projectId);
+              if (!p) return null;
+              return (
+                <ChoiceItemEditor
+                  kind={choiceEditing.kind}
+                  section={testBookChoiceSection(p, choiceEditing.kind)}
+                  onApply={(next) => applyChoiceEdit(choiceEditing.kind, p.id, next)}
+                  onClose={() => setChoiceEditing(null)}
+                />
+              );
+            })()
+          : null}
         <link rel="stylesheet" href={TEST_BOOK_FONTS_HREF} />
         <style>{TEST_BOOK_CSS}</style>
         <div className="flex flex-col items-center p-6 print:block print:p-0">

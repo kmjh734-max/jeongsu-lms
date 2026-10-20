@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       role?: string;
       projectId?: string;
       forceRegenerate?: boolean;
+      regenerate?: string[];
       id?: string;
       options?: unknown;
       title?: string;
@@ -54,6 +55,9 @@ export async function POST(request: Request) {
       await prepareTestBookPassageAction(role, {
         projectId: String(body.projectId ?? ""),
         forceRegenerate: body.forceRegenerate === true,
+        regenerate: Array.isArray(body.regenerate)
+          ? (body.regenerate.filter((x) => x === "vocab" || x === "gloss" || x === "content") as Array<"vocab" | "gloss" | "content">)
+          : undefined,
       })
     );
   } catch (e) {
