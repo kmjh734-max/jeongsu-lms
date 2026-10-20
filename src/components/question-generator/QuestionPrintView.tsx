@@ -960,14 +960,19 @@ export function QuestionPrintView({
     [questions, typeOrder]
   );
   /** 유형 하나를 위·아래로 옮긴다. 이 묶음에 없는 유형은 뒤에 그대로 둔다. */
-  const moveType = (code: string, dir: -1 | 1) => {
+  const moveTypeTo = (from: number, to: number) => {
     const codes = typeGroups.map((t) => t.code);
-    const i = codes.indexOf(code);
-    const j = i + dir;
-    if (i < 0 || j < 0 || j >= codes.length) return;
-    [codes[i], codes[j]] = [codes[j]!, codes[i]!];
+    if (from === to || from < 0 || to < 0 || from >= codes.length || to >= codes.length) return;
+    const [code] = codes.splice(from, 1);
+    codes.splice(to, 0, code!);
     chooseTypeOrder([...codes, ...typeOrder.filter((c) => !codes.includes(c))]);
   };
+  /*
+   * 끌어서 원하는 자리에 놓기. 선생님 요청(2026-10-20): 한 칸씩 옮기는 게 아니라 원하는 곳에 넣게.
+   * dragFrom = 끌고 있는 줄, dragOver = 놓일 줄(그 줄 자리로 들어간다).
+   */
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
   /** 끈 유형을 뺀 문항 */
   const shown = useMemo(() => {
     if (offTypes.size === 0) return questions;
@@ -1634,10 +1639,34 @@ export function QuestionPrintView({
                   return (
                     <label
                       key={t.code}
-                      className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${
-                        on ? "border-slate-200 bg-white" : "border-slate-200 bg-slate-100 text-slate-400"
-                      }`}
+                      draggable
+                      onDragStart={(e) => {
+                        setDragFrom(ti);
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragOver={(e) => {
+                        if (dragFrom === null) return;
+                        e.preventDefault();
+                        if (dragOver !== ti) setDragOver(ti);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (dragFrom !== null) moveTypeTo(dragFrom, ti);
+                        setDragFrom(null);
+                        setDragOver(null);
+                      }}
+                      onDragEnd={() => {
+                        setDragFrom(null);
+                        setDragOver(null);
+                      }}
+                      title="끌어서 원하는 자리에 놓을 수 있습니다"
+                      className={`flex cursor-grab items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${
+                        dragOver === ti && dragFrom !== ti
+                          ? "border-brand-500 ring-2 ring-brand-200"
+                          : "border-slate-200"
+                      } ${dragFrom === ti ? "opacity-40" : ""} ${on ? "bg-white" : "bg-slate-100 text-slate-400"}`}
                     >
+                      <span aria-hidden className="shrink-0 select-none text-slate-300">⋮⋮</span>
                       <input
                         type="checkbox"
                         checked={on}
@@ -1660,7 +1689,7 @@ export function QuestionPrintView({
                           disabled={ti === 0}
                           onClick={(e) => {
                             e.preventDefault();
-                            moveType(t.code, -1);
+                            moveTypeTo(ti, ti - 1);
                           }}
                           className="rounded px-1 text-[10px] text-slate-500 hover:bg-slate-100 disabled:opacity-30"
                         >
@@ -1672,7 +1701,7 @@ export function QuestionPrintView({
                           disabled={ti === typeGroups.length - 1}
                           onClick={(e) => {
                             e.preventDefault();
-                            moveType(t.code, 1);
+                            moveTypeTo(ti, ti + 1);
                           }}
                           className="rounded px-1 text-[10px] text-slate-500 hover:bg-slate-100 disabled:opacity-30"
                         >

@@ -1433,6 +1433,12 @@ export function WorkbookWorkbench({
   }, []);
   /** 쪽번호 — 인쇄물 오른쪽 아래에 1부터 찍는다. 최종통합자료에 끼울 때는 통합자료가 센다. */
   const [pageNumbers, setPageNumbers] = useState(false);
+  /*
+   * 끌어서 원하는 자리에 놓기. 선생님 요청(2026-10-20): 한 칸씩 옮기는 게 아니라 원하는 곳에 넣게.
+   * dragFrom = 끌고 있는 줄, dragOver = 놓일 줄(그 줄 자리로 들어간다).
+   */
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
   /** 어휘 수준을 바꾸는 중 / 바꾼 결과 한 줄 */
   const [vocabLevelBusy, setVocabLevelBusy] = useState(false);
   const [vocabLevelNote, setVocabLevelNote] = useState<string | null>(null);
@@ -3797,19 +3803,47 @@ export function WorkbookWorkbench({
             </div>
             {(() => {
               const ordered = orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder);
-              const move = (i: number, dir: -1 | 1) =>
+              const moveTo = (from: number, to: number) =>
                 editWorkbook((w) => {
                   const next = orderWorkbookTypes(w.selectedTypes, w.typeOrder);
-                  const j = i + dir;
-                  if (j < 0 || j >= next.length) return w;
-                  [next[i], next[j]] = [next[j]!, next[i]!];
+                  if (from === to || to < 0 || to >= next.length) return w;
+                  const [t] = next.splice(from, 1);
+                  next.splice(to, 0, t!);
                   return { ...w, typeOrder: next };
                 });
+              const move = (i: number, dir: -1 | 1) => moveTo(i, i + dir);
               return ordered.map((t, i) => {
                 const separate = workbook.passageBreak?.[t] === "page";
                 return (
-                  <div key={t} className="rounded-lg border border-slate-200 px-2 py-1.5">
+                  <div
+                    key={t}
+                    draggable
+                    onDragStart={(e) => {
+                      setDragFrom(i);
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
+                    onDragOver={(e) => {
+                      if (dragFrom === null) return;
+                      e.preventDefault();
+                      if (dragOver !== i) setDragOver(i);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (dragFrom !== null) moveTo(dragFrom, i);
+                      setDragFrom(null);
+                      setDragOver(null);
+                    }}
+                    onDragEnd={() => {
+                      setDragFrom(null);
+                      setDragOver(null);
+                    }}
+                    title="끌어서 원하는 자리에 놓을 수 있습니다"
+                    className={`cursor-grab rounded-lg border px-2 py-1.5 ${
+                      dragOver === i && dragFrom !== i ? "border-violet-500 ring-2 ring-violet-200" : "border-slate-200"
+                    } ${dragFrom === i ? "opacity-40" : ""}`}
+                  >
                     <div className="flex items-center gap-1">
+                      <span aria-hidden className="shrink-0 select-none text-[11px] text-slate-300">⋮⋮</span>
                       <span className="w-4 shrink-0 text-[11px] font-bold tabular-nums text-slate-400">
                         {i + 1}
                       </span>
