@@ -24,6 +24,7 @@ import {
   splitSummaryByKeywords,
   type OnePageContent,
 } from "@/lib/lesson-materials/one-page";
+import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
 
 /**
  * 재료 형식이 바뀌면 올린다. 원문이 그대로인 옛 재료는 열 때 단어 정리(모델 호출)는 그대로 두고
@@ -190,6 +191,8 @@ export type TestBookProjectInput = {
   content: OnePageContent | null;
   /** 테스트 교재 재료(지금 원문으로 만든 것만) */
   material: TestBookMaterial | null;
+  /** 수업자료 분석서(있으면 「분석 자료」에 싣는다) */
+  analysis?: AnalysisReportData | null;
 };
 
 export function isTestBookProjectReady(
@@ -202,17 +205,45 @@ export function isTestBookProjectReady(
 
 export type TestBookTranslationMode = "show" | "hide" | "back";
 
+/*
+ * 교재 차례(선생님 2026-10-20): 표지 → 목차 → 학습 계획표·이수표 → 수업용 자료 → 백지노트 →
+ * 분석 자료 → 테스트지 자료 → 정답지. 묶음마다 넣고 뺄 수 있고, 테스트지 자료는 안에서 다시 고른다.
+ */
 export type TestBookOptions = {
-  /** 테스트 견본에 싣는 유형 */
+  /** 테스트지 자료 · 테스트 견본에 싣는 유형 */
   types: TestBookTypeKey[];
   /** 수업용 자료 해석: 있음 · 지움(쓸 줄) · 뒤쪽에 모음 */
   translation: TestBookTranslationMode;
-  /** 표지 다음 학습 계획표·이수표 */
+  /** 통문장 영작: 모든 문장 · 중요문장만 */
+  writing: WritingScope;
+  /** 표지 */
+  cover: boolean;
+  /** 목차(묶음마다 쪽 범위) */
+  toc: boolean;
+  /** 묶음마다 간지(지문별 시작 쪽) — 목차를 켰을 때 */
+  dividers: boolean;
+  /** 묶음 안에서 지문마다 간지 */
+  passageDividers: boolean;
+  /** 학습 계획표·이수표 */
   plan: boolean;
-  /** 계획표 다음 전체 단어장(지문 단어를 한데 모음) + 전체 단어 테스트 */
+  /** 수업용 자료: 지문마다 단어 정리 + 문장별 해석 */
+  lesson: boolean;
+  /** 수업용 자료 앞 전체 단어장(지문 단어를 한데 모음) */
   allVocab: boolean;
   /** 지문마다 백지노트 2쪽 */
   blankNote: boolean;
+  /** 분석 자료: 지문마다 분석서(분석서가 있는 지문만) */
+  analysis: boolean;
+  /** 분석 자료 모양 — 분석서 화면의 A(교재 세리프)·B(산세리프)·C(클래식 인쇄) */
+  analysisStyle: "a" | "b" | "c";
+  /** 분석 자료 해석 — 전체 해석 · 직독직해 */
+  analysisTranslation: "full" | "chunk";
+  /** 테스트지 자료 */
+  tests: boolean;
+  /** 테스트지 자료 · 맨 앞 전체 단어 TEST */
+  allWordTest: boolean;
+  /** 테스트지 자료 · 지문마다 동반의어·품사 TEST */
+  wordTest: boolean;
   /** 맨 뒤 정답지 */
   answers: boolean;
 };
@@ -220,9 +251,21 @@ export type TestBookOptions = {
 export const DEFAULT_TEST_BOOK_OPTIONS: TestBookOptions = {
   types: BASIC_TEST_BOOK_TYPES,
   translation: "hide",
+  writing: "all",
+  cover: true,
+  toc: true,
+  dividers: true,
+  passageDividers: true,
   plan: true,
+  lesson: true,
   allVocab: true,
   blankNote: true,
+  analysis: true,
+  analysisStyle: "a",
+  analysisTranslation: "full",
+  tests: true,
+  allWordTest: true,
+  wordTest: true,
   answers: true,
 };
 
@@ -232,9 +275,22 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
   return {
     types: normalizeTestBookTypes(r.types),
     translation: t === "show" || t === "hide" || t === "back" ? t : DEFAULT_TEST_BOOK_OPTIONS.translation,
+    writing: r.writing === "key" ? "key" : "all",
+    cover: r.cover !== false,
+    toc: r.toc !== false,
+    dividers: r.dividers !== false,
+    passageDividers: r.passageDividers !== false,
     plan: r.plan !== false,
+    lesson: r.lesson !== false,
     allVocab: r.allVocab !== false,
     blankNote: r.blankNote !== false,
+    analysis: r.analysis !== false,
+    analysisStyle: r.analysisStyle === "b" || r.analysisStyle === "c" ? r.analysisStyle : "a",
+    analysisTranslation: r.analysisTranslation === "chunk" ? "chunk" : "full",
+    tests: r.tests !== false,
+    // 예전 파일은 전체 단어장과 TEST를 한 칸(allVocab)으로 켜고 껐다
+    allWordTest: r.allWordTest === undefined ? r.allVocab !== false : r.allWordTest !== false,
+    wordTest: r.wordTest !== false,
     answers: r.answers !== false,
   };
 }
@@ -299,6 +355,8 @@ const no = (i: number) => `(${i + 1})`;
 // ---------------------------------------------------------------- 조립
 
 export type BlankMode = "same" | "diff";
+/** 통문장 영작 범위: 모든 문장 · 중요문장(단원문법·어려운 구문·핵심 문장)만 */
+export type WritingScope = "all" | "key";
 
 type Ready = TestBookProjectInput & { content: OnePageContent; material: TestBookMaterial };
 
@@ -635,8 +693,12 @@ function buildTf(p: Ready, seed: string): TestSection | null {
   };
 }
 
-function buildWriting(p: Ready, seed: string): TestSection | null {
-  const all = p.sentences.map((s, si) => ({ si, s })).filter(({ s }) => s.korean.trim() && words(s.english) >= 3);
+/** 통문장 영작: 모든 문장 또는 중요문장만(선생님 2026-10-20 — 고르게) */
+function buildWriting(p: Ready, seed: string, scope: WritingScope): TestSection | null {
+  const key = new Set(p.material.keyIndexes);
+  const all = p.sentences
+    .map((s, si) => ({ si, s }))
+    .filter(({ s, si }) => s.korean.trim() && words(s.english) >= 3 && (scope === "all" || key.has(si)));
   if (!all.length) return null;
   return {
     type: "writing",
@@ -793,7 +855,7 @@ function buildWords(p: Ready, seed: string): TestSection | null {
 export function buildTestSheet(
   p: Ready,
   types: TestBookTypeKey[],
-  opts: { seed: string; blankMode?: BlankMode }
+  opts: { seed: string; blankMode?: BlankMode; writing?: WritingScope }
 ): TestSheet {
   const seed = `${opts.seed}|${p.id}`;
   const on = new Set(types);
@@ -812,7 +874,7 @@ export function buildTestSheet(
       : key === "vocab" ? pickSection(p, "vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed)
       : key === "order" ? buildOrder(p, seed)
       : key === "tf" ? buildTf(p, seed)
-      : key === "writing" ? buildWriting(p, seed)
+      : key === "writing" ? buildWriting(p, seed, opts.writing ?? "all")
       : key === "link" ? buildLink(p, seed)
       : key === "sequence" ? buildSequence(p, seed)
       : key === "insert" ? buildInsert(p, seed)

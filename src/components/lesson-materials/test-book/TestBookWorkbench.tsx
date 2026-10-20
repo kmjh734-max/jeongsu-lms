@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { postJson } from "@/lib/lesson-materials/post-json";
@@ -19,7 +19,9 @@ import {
   buildTestSheet,
   buildWordTest,
   isTestBookProjectReady,
+  testBookTypeLabel,
   type BlankMode,
+  type WritingScope,
   type TestBookOptions,
   type TestBookProjectInput,
   type TestBookTypeKey,
@@ -27,8 +29,17 @@ import {
 import { closeTabOrGo, useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 import { downloadSheetsPdf, pdfFileName } from "@/lib/pdf/download-sheets-pdf";
+import type { generateAndSaveAnalysisReportAction } from "@/lib/lesson-materials/analysis-report-actions";
+import { DESIGN_FONTS_HREF, DESIGN_STYLES, designClass } from "@/lib/lesson-materials/analysis-design";
 import {
   AllVocabSheets,
+  AnalysisSheets,
+  CoverSheet,
+  ContentsSheet,
+  DividerSheet,
+  PassageDividerSheet,
+  partStyle,
+  type BookPart,
   AllWordAnswerSheets,
   AllWordTestSheets,
   AnswerSheets,
@@ -44,6 +55,11 @@ import {
 } from "@/components/lesson-materials/test-book/TestBookSheets";
 
 type Mode = "book" | "draw";
+type AnalysisResult = Awaited<ReturnType<typeof generateAndSaveAnalysisReportAction>>;
+/** 교재 차례 묶음(켜고 끄기) */
+type PartKey = "cover" | "toc" | "plan" | "lesson" | "blankNote" | "analysis" | "tests" | "answers";
+/** 묶음 안 세부(켜고 끄기) */
+type SubKey = "allVocab" | "allWordTest" | "wordTest" | "dividers" | "passageDividers";
 type PrepareResult = Awaited<ReturnType<typeof prepareTestBookPassageAction>>;
 type RegisterResult = Awaited<ReturnType<typeof registerTestBookVocabAction>>;
 
@@ -58,6 +74,32 @@ const TRANSLATION_MODES: Array<{ id: TestBookOptions["translation"]; label: stri
 
 function newSeed(): string {
   return `draw-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/** 통문장 영작 범위 고르기 */
+function WritingScopeSwitch({ value, onChange }: { value: WritingScope; onChange: (v: WritingScope) => void }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] font-bold text-slate-500">통문장 영작</p>
+      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+        {(
+          [
+            ["all", "모든 문장"],
+            ["key", "중요문장만"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onChange(id)}
+            className={`rounded-md px-1 py-1 text-[11px] font-bold ${value === id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function TypeChecks({
@@ -235,6 +277,7 @@ export function TestBookWorkbench({
   const [drawIds, setDrawIds] = useState<Set<string>>(() => new Set(initialProjects.map((p) => p.id)));
   const [drawTypes, setDrawTypes] = useState<TestBookTypeKey[]>(BASIC_TEST_BOOK_TYPES);
   const [blankMode, setBlankMode] = useState<BlankMode>("same");
+  const [drawWriting, setDrawWriting] = useState<WritingScope>("all");
   const [drawAnswers, setDrawAnswers] = useState(true);
   const [draw, setDraw] = useState<{ seed: string; picks: Record<string, TestBookTypeKey[]> } | null>(null);
   function runDraw() {
@@ -314,18 +357,147 @@ export function TestBookWorkbench({
       ready.map((p) => ({
         project: p,
         word: buildWordTest(p, BOOK_SEED),
-        sheet: buildTestSheet(p, options.types, { seed: BOOK_SEED, blankMode: "same" }),
+        sheet: buildTestSheet(p, options.types, { seed: BOOK_SEED, blankMode: "same", writing: options.writing }),
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ready.map((p) => p.id).join(","), projects, options.types]
+    [ready.map((p) => p.id).join(","), projects, options.types, options.writing]
   );
   const drawn = useMemo(() => {
     if (!draw) return [];
     return ready
       .filter((p) => draw.picks[p.id])
-      .map((p) => ({ project: p, sheet: buildTestSheet(p, draw.picks[p.id]!, { seed: draw.seed, blankMode }) }));
+      .map((p) => ({ project: p, sheet: buildTestSheet(p, draw.picks[p.id]!, { seed: draw.seed, blankMode, writing: drawWriting }) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draw, blankMode, projects]);
+  }, [draw, blankMode, drawWriting, projects]);
+
+  // ---------------------------------------------------------------- 교재 차례·목차
+  const testsOn = options.tests && book.length > 0 && (options.allWordTest || options.wordTest || options.types.length > 0);
+  const withAnalysis = ready.filter((p) => (p.analysis?.sentences?.length ?? 0) > 0);
+  /** 표지 「범위」: 같은 교과서는 과를 모아(「공통영어2 천재(조수경) 3·4과」), 나머지는 출처 그대로 */
+  const rangeLabel = useMemo(() => {
+    const books = new Map<string, Set<string>>();
+    const others: string[] = [];
+    for (const p of ready) {
+      const src = (p.source ?? "").trim();
+      const m = src.match(/^(.*?)\s*(\d+)\s*과/);
+      if (m) {
+        const set = books.get(m[1]!.trim()) ?? new Set<string>();
+        set.add(m[2]!);
+        books.set(m[1]!.trim(), set);
+      } else if (src && !others.includes(src)) others.push(src);
+    }
+    const parts = [
+      ...[...books.entries()].map(([b, ls]) => `${b} ${[...ls].sort((x, y) => Number(x) - Number(y)).join("·")}과`),
+      ...others,
+    ];
+    return parts.length > 3 ? `${parts.slice(0, 3).join(" · ")} 외 ${parts.length - 3}` : parts.join(" · ") || `지문 ${ready.length}개`;
+  }, [ready]);
+  /** 교재 묶음(목차·간지·쪽 색). 켠 것만 차례대로 번호를 매긴다. */
+  const bookParts: BookPart[] = (
+    [
+    options.plan ? { id: "plan", en: "Study Plan", ko: "학습 계획표 · 이수표", sub: "날짜 · 점수 · 통과 확인", color: "#2b2f38" } : null,
+    options.lesson
+      ? { id: "lesson", en: "Lesson Materials", ko: "수업용 자료", sub: options.allVocab ? "전체 단어장 · 단어 정리 · 문장별 해석" : "단어 정리 · 문장별 해석", color: "#1d2a8f" }
+      : null,
+    options.blankNote ? { id: "note", en: "Blank Note", ko: "백지노트", sub: "원문 · 동반의어 · 중요 내용 · 오답 다시 쓰기", color: "#0f8a7e" } : null,
+    options.analysis && withAnalysis.length ? { id: "analysis", en: "Analysis", ko: "분석 자료", sub: `문장 분석 · ${withAnalysis.length}지문`, color: "#6a4bd8" } : null,
+    testsOn
+      ? {
+          id: "tests",
+          en: "Tests",
+          ko: "테스트지 자료",
+          sub: [options.allWordTest ? "전체 단어 TEST" : "", options.wordTest ? "동반의어 TEST" : "", options.types.length ? "테스트 견본" : ""].filter(Boolean).join(" · "),
+          color: "#e8552e",
+        }
+      : null,
+    options.answers && testsOn ? { id: "answers", en: "Answer Key", ko: "정답지", sub: "정답만 싣습니다", color: "#475066" } : null,
+    ] as Array<Omit<BookPart, "no"> | null>
+  )
+    .filter((x): x is Omit<BookPart, "no"> => !!x)
+    .map((x, i) => ({ ...x, no: String(i + 1).padStart(2, "0") }));
+  const partOf = (id: string) => bookParts.find((x) => x.id === id);
+  const bookTitle = title.trim() || "테스트 교재";
+  /** 지문 간지(묶음 안에서 지문마다 첫 쪽) — 이 묶음에서 그 지문에 이어질 쪽 이름을 싣는다 */
+  const passageDivider = (id: string, p: TestBookProjectInput, next: string[]) => {
+    const part = partOf(id);
+    if (!part || !options.toc || !options.passageDividers) return null;
+    return <PassageDividerSheet part={part} index={indexOf(p.id)} project={p} next={next.filter(Boolean)} title={bookTitle} />;
+  };
+  /** 묶음 간지(지문마다 이 묶음에서 시작하는 쪽) — 목차를 켰을 때만 */
+  const dividerFor = (id: string, items: TestBookProjectInput[]) => {
+    const part = partOf(id);
+    if (!part || !options.toc || !options.dividers) return null;
+    return (
+      <DividerSheet
+        part={part}
+        title={bookTitle}
+        items={items.map((x) => ({ id: x.id, index: indexOf(x.id), title: x.title, source: x.source, page: tocPages[`${id}:${x.id}`] }))}
+      />
+    );
+  };
+  /** 목차 쪽 번호: 그린 쪽을 차례로 세어 묶음·지문의 첫 쪽을 찾는다(바뀔 때만 다시 그린다) */
+  const [tocPages, setTocPages] = useState<Record<string, number>>({});
+  useLayoutEffect(() => {
+    const root = document.getElementById("tb-print-root");
+    if (!root || mode !== "book") return;
+    const sheets = Array.from(root.querySelectorAll<HTMLElement>(".tb-sheet")).filter((el) => !el.closest(".tb-measure"));
+    const next: Record<string, number> = {};
+    root.querySelectorAll<HTMLElement>("[data-toc]").forEach((w) => {
+      const first = Array.from(w.querySelectorAll<HTMLElement>(".tb-sheet")).find((el) => !el.closest(".tb-measure"));
+      if (first && w.dataset.toc) next[w.dataset.toc] = sheets.indexOf(first) + 1;
+    });
+    next.__total = sheets.length;
+    setTocPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+  });
+
+  // ---------------------------------------------------------------- 분석서 만들기(분석 자료)
+  const [analysisBusy, setAnalysisBusy] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  async function makeAnalysis() {
+    const targets = ready.filter((p) => !(p.analysis?.sentences?.length));
+    if (!targets.length) return;
+    if (!window.confirm(`분석서가 없는 지문 ${targets.length}개의 분석서를 만듭니다. 수업자료 분석서와 같은 값이 지문마다 듭니다. 만들까요?`)) return;
+    setAnalysisError(null);
+    let done = 0;
+    setAnalysisBusy(`0/${targets.length}`);
+    const failed: string[] = [];
+    await runWithConcurrency(targets, CONCURRENCY, async (p) => {
+      try {
+        const res = await postJson<AnalysisResult>("/api/lesson-materials/analysis-report", {
+          role,
+          projectId: p.id,
+          onlyIfChanged: true,
+        });
+        if (res.ok) setProjects((prev) => prev.map((x) => (x.id === p.id ? { ...x, analysis: res.report } : x)));
+        else failed.push(`${p.title}: ${res.message}`);
+      } catch (e) {
+        failed.push(`${p.title}: ${e instanceof Error ? e.message : "만들지 못했습니다."}`);
+      }
+      done++;
+      setAnalysisBusy(`${done}/${targets.length}`);
+    });
+    setAnalysisBusy(null);
+    if (failed.length) setAnalysisError(failed.join(" · "));
+  }
+
+  /** 왼쪽 「교재 차례」 한 줄(켜면 아래 세부 설정이 열린다) */
+  const Part = ({ k, n, label, hint, children }: { k: PartKey; n: number; label: string; hint?: string; children?: ReactNode }) => (
+    <div className={`rounded-lg border ${options[k] ? "border-slate-200 bg-white" : "border-transparent bg-slate-50"} px-2 py-1`}>
+      <label className="flex min-h-[26px] cursor-pointer items-center gap-2 text-[13px] text-slate-800">
+        <input type="checkbox" className="h-4 w-4 accent-violet-600" checked={options[k]} onChange={(e) => setOptions({ [k]: e.target.checked } as Partial<TestBookOptions>)} />
+        <span className="w-4 text-[10px] font-bold text-slate-400">{n}</span>
+        <span className={`flex-1 font-semibold ${options[k] ? "" : "text-slate-400"}`}>{label}</span>
+        {hint ? <span className="text-[10.5px] text-slate-400">{hint}</span> : null}
+      </label>
+      {options[k] && children ? <div className="space-y-1.5 pb-1.5 pl-[42px] pt-0.5">{children}</div> : null}
+    </div>
+  );
+  const Sub = ({ k, label }: { k: SubKey; label: string }) => (
+    <label className="flex min-h-[22px] cursor-pointer items-center gap-2 text-[12px] text-slate-700">
+      <input type="checkbox" className="h-3.5 w-3.5 accent-violet-600" checked={options[k]} onChange={(e) => setOptions({ [k]: e.target.checked } as Partial<TestBookOptions>)} />
+      {label}
+    </label>
+  );
 
   if (projects.length === 0) {
     return (
@@ -376,41 +548,87 @@ export function TestBookWorkbench({
         <div className="flex-1 space-y-4 overflow-auto p-4">
           {mode === "book" ? (
             <>
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-bold text-slate-500">수업용 자료 해석</p>
-                <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
-                  {TRANSLATION_MODES.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setOptions({ translation: t.id })}
-                      className={`rounded-md px-1 py-1.5 text-[11px] font-bold ${options.translation === t.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
               <div className="space-y-1">
-                <p className="text-[11px] font-bold text-slate-500">넣을 쪽</p>
-                {(
-                  [
-                    ["plan", "학습 계획표·이수표 (맨 앞)"],
-                    ["allVocab", "전체 단어장·전체 단어 TEST (계획표 다음)"],
-                    ["blankNote", "백지노트 2쪽 (지문마다)"],
-                    ["answers", "정답지 (맨 뒤)"],
-                  ] as const
-                ).map(([k, label]) => (
-                  <label key={k} className="flex min-h-[26px] items-center gap-2 text-[13px] text-slate-800">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 accent-violet-600"
-                      checked={options[k]}
-                      onChange={(e) => setOptions({ [k]: e.target.checked } as Partial<TestBookOptions>)}
-                    />
-                    {label}
-                  </label>
-                ))}
+                <p className="text-[11px] font-bold text-slate-500">교재 차례 · 넣을 것</p>
+                <Part k="cover" n={1} label="표지" />
+                <Part k="toc" n={2} label="목차" hint="쪽 번호 자동">
+                  <Sub k="dividers" label="묶음마다 간지(지문별 시작 쪽)" />
+                  <Sub k="passageDividers" label="지문마다 간지" />
+                </Part>
+                <Part k="plan" n={3} label="학습 계획표·이수표" />
+                <Part k="lesson" n={4} label="수업용 자료" hint="단어·해석">
+                  <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
+                    {TRANSLATION_MODES.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setOptions({ translation: t.id })}
+                        className={`rounded-md px-1 py-1 text-[11px] font-bold ${options.translation === t.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                  <Sub k="allVocab" label="맨 앞 전체 단어장" />
+                </Part>
+                <Part k="blankNote" n={5} label="백지노트" hint="지문마다 2쪽" />
+                <Part k="analysis" n={6} label="분석 자료" hint={`분석서 ${withAnalysis.length}/${ready.length}지문`}>
+                  <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
+                    {DESIGN_STYLES.map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        title={d.hint}
+                        onClick={() => setOptions({ analysisStyle: d.id as TestBookOptions["analysisStyle"] })}
+                        className={`rounded-md px-1 py-1 text-[11px] font-bold ${options.analysisStyle === d.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10.5px] text-slate-400">{DESIGN_STYLES.map((d) => `${d.label} ${d.hint}`).join(" · ")}</p>
+                  <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+                    {(
+                      [
+                        ["full", "전체 해석"],
+                        ["chunk", "직독직해"],
+                      ] as const
+                    ).map(([id, label]) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setOptions({ analysisTranslation: id })}
+                        className={`rounded-md px-1 py-1 text-[11px] font-bold ${options.analysisTranslation === id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {ready.length > withAnalysis.length ? (
+                    <div className="space-y-1">
+                      <p className="text-[11px] leading-snug text-slate-500">
+                        분석서가 없는 지문 {ready.length - withAnalysis.length}개는 빠집니다. 만들면 수업자료 분석서와 같은 값이 지문마다 듭니다.
+                      </p>
+                      <Button type="button" size="sm" variant="secondary" className="w-full" disabled={!!analysisBusy || busy} onClick={() => void makeAnalysis()}>
+                        {analysisBusy ? `분석서 만드는 중… ${analysisBusy}` : `분석서 만들기 (${ready.length - withAnalysis.length}지문)`}
+                      </Button>
+                      {analysisError ? <p className="text-[11px] font-semibold text-rose-600">{analysisError}</p> : null}
+                    </div>
+                  ) : null}
+                </Part>
+                <Part k="tests" n={7} label="테스트지 자료">
+                  <Sub k="allWordTest" label="맨 앞 전체 단어 TEST" />
+                  <Sub k="wordTest" label="지문마다 동반의어·품사 TEST" />
+                  <div className="space-y-2 rounded-lg border border-violet-200 bg-violet-50/60 p-2.5">
+                    <p className="text-[11px] font-bold text-violet-900">테스트 견본 유형</p>
+                    <TypeChecks value={options.types} onChange={(types) => setOptions({ types })} />
+                    {options.types.includes("writing") ? <WritingScopeSwitch value={options.writing} onChange={(writing) => setOptions({ writing })} /> : null}
+                  </div>
+                </Part>
+                <Part k="answers" n={8} label="정답지" hint="맨 뒤 · 정답만" />
+                <p className="pt-1 text-[11px] leading-relaxed text-slate-500">
+                  넣고 빼도 다시 만들지 않아 크레딧이 들지 않습니다. 학원 테스트지는 「테스트지 뽑기」에서 새로 뽑습니다.
+                </p>
               </div>
               <div className="space-y-1.5 rounded-lg border border-emerald-200 bg-emerald-50/60 p-3">
                 <p className="text-xs font-bold text-emerald-900">단어학습 단어장</p>
@@ -433,13 +651,6 @@ export function TestBookWorkbench({
                     ) : null}
                   </p>
                 ) : null}
-              </div>
-              <div className="space-y-2 rounded-lg border border-violet-200 bg-violet-50/60 p-3">
-                <p className="text-xs font-bold text-violet-900">테스트 견본에 실을 유형</p>
-                <TypeChecks value={options.types} onChange={(types) => setOptions({ types })} />
-                <p className="text-[11px] leading-relaxed text-slate-500">
-                  유형을 바꿔도 다시 만들지 않아 크레딧이 들지 않습니다. 학원 테스트지는 「테스트지 뽑기」에서 새로 뽑습니다.
-                </p>
               </div>
             </>
           ) : (
@@ -495,6 +706,7 @@ export function TestBookWorkbench({
                   ))}
                 </div>
               </div>
+              {drawTypes.includes("writing") ? <WritingScopeSwitch value={drawWriting} onChange={setDrawWriting} /> : null}
               <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                 <input type="checkbox" checked={drawAnswers} onChange={(e) => setDrawAnswers(e.target.checked)} />
                 정답지 함께
@@ -552,46 +764,104 @@ export function TestBookWorkbench({
             <div ref={scaled.ref} id="tb-print-root" className="relative flex origin-top flex-col gap-6 print:gap-0 print:!transform-none [&_.tb-sheet]:shadow" style={previewStyle}>
               {mode === "book" ? (
                 <>
-                  {options.plan && ready.length ? <PlanSheets projects={ready} types={options.types} measureKey={measureKey} /> : null}
-                  {options.allVocab && ready.length ? (
-                    <>
-                      <AllVocabSheets projects={ready} indexOf={indexOf} measureKey={measureKey} />
-                      <AllWordTestSheets projects={ready} indexOf={indexOf} measureKey={measureKey} />
-                    </>
+                  {projects.map((p, i) =>
+                    isTestBookProjectReady(p) ? null : (
+                      <div key={p.id} className="flex h-[50mm] w-[210mm] flex-col items-center justify-center rounded bg-white/70 text-sm text-slate-500 shadow print:hidden">
+                        <span className="font-bold text-slate-700">
+                          {String(i + 1).padStart(2, "0")} · {p.title}
+                        </span>
+                        <span className="mt-1 text-xs">
+                          {pendingIds.has(p.id) ? "단어 정리·테스트 재료를 만들고 있습니다…" : (errors[p.id] ?? "준비되지 않았습니다.")}
+                        </span>
+                      </div>
+                    )
+                  )}
+                  {/* 교재 차례(선생님 2026-10-20): 표지 → 목차 → 계획표 → 수업용 자료 → 백지노트 → 분석 자료 → 테스트지 자료 → 정답지.
+                      data-toc 묶음의 첫 쪽을 세어 목차 쪽 번호를 넣는다. */}
+                  {options.cover && ready.length ? <CoverSheet title={bookTitle} range={rangeLabel} /> : null}
+                  {options.toc && ready.length ? (
+                    <ContentsSheet parts={bookParts} pages={tocPages} total={tocPages.__total ?? 0} title={bookTitle} range={rangeLabel} />
                   ) : null}
-                  {projects.map((p, i) => {
-                    const entry = book.find((b) => b.project.id === p.id);
-                    if (!entry) {
-                      return (
-                        <div key={p.id} className="flex h-[50mm] w-[210mm] flex-col items-center justify-center rounded bg-white/70 text-sm text-slate-500 shadow print:hidden">
-                          <span className="font-bold text-slate-700">
-                            {String(i + 1).padStart(2, "0")} · {p.title}
-                          </span>
-                          <span className="mt-1 text-xs">
-                            {pendingIds.has(p.id) ? "단어 정리·테스트 재료를 만들고 있습니다…" : (errors[p.id] ?? "준비되지 않았습니다.")}
-                          </span>
+                  {options.plan && ready.length ? (
+                    <div data-toc="plan" className="contents" style={partStyle(partOf("plan"))}>
+                      <PlanSheets projects={ready} options={options} measureKey={measureKey} />
+                    </div>
+                  ) : null}
+                  {options.lesson && book.length ? (
+                    <div data-toc="lesson" className="contents" style={partStyle(partOf("lesson"))}>
+                      {dividerFor("lesson", ready)}
+                      {options.allVocab ? <AllVocabSheets projects={ready} indexOf={indexOf} measureKey={measureKey} /> : null}
+                      {book.map((b) => (
+                        <div key={b.project.id} data-toc={`lesson:${b.project.id}`} className="contents">
+                          {passageDivider("lesson", b.project, ["단어 정리", "수업용 자료 · 문장별 해석"])}
+                          <VocabSheets index={indexOf(b.project.id)} project={b.project} measureKey={measureKey} />
+                          <LessonSheets index={indexOf(b.project.id)} project={b.project} translation={options.translation} measureKey={measureKey} />
                         </div>
-                      );
-                    }
-                    return (
-                      <Fragment key={p.id}>
-                        <VocabSheets index={i} project={entry.project} measureKey={measureKey} />
-                        <WordTestSheets index={i} project={entry.project} test={entry.word} measureKey={measureKey} />
-                        <LessonSheets index={i} project={entry.project} translation={options.translation} measureKey={measureKey} />
-                        <TestSheets index={i} project={entry.project} sheet={entry.sheet} title="테스트 견본" measureKey={measureKey} />
-                        {options.blankNote ? <BlankNoteSheets index={i} project={entry.project} /> : null}
-                      </Fragment>
-                    );
-                  })}
-                  {options.translation === "back" && ready.length ? <TranslationBackSheets projects={ready} measureKey={measureKey} /> : null}
-                  {options.answers && options.allVocab && ready.length ? (
-                    <AllWordAnswerSheets projects={ready} indexOf={indexOf} measureKey={measureKey} />
+                      ))}
+                      {options.translation === "back" ? <TranslationBackSheets projects={ready} measureKey={measureKey} /> : null}
+                    </div>
                   ) : null}
-                  {options.answers && book.length ? (
-                    <AnswerSheets
-                      entries={book.map((b) => ({ index: indexOf(b.project.id), project: b.project, word: b.word, sheet: b.sheet }))}
-                      measureKey={measureKey}
-                    />
+                  {options.blankNote && book.length ? (
+                    <div data-toc="note" className="contents" style={partStyle(partOf("note"))}>
+                      {dividerFor("note", ready)}
+                      {book.map((b) => (
+                        <div key={b.project.id} data-toc={`note:${b.project.id}`} className="contents">
+                          {passageDivider("note", b.project, ["백지노트 1 · 원문 · 동반의어 정리", "백지노트 2 · 중요 내용 · 오답 다시 쓰기"])}
+                          <BlankNoteSheets index={indexOf(b.project.id)} project={b.project} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  {options.analysis && withAnalysis.length ? (
+                    <div data-toc="analysis" className={`contents ${designClass(options.analysisStyle)}`} style={partStyle(partOf("analysis"))}>
+                      <link rel="stylesheet" href={DESIGN_FONTS_HREF} />
+                      {dividerFor("analysis", withAnalysis)}
+                      {withAnalysis.map((p) => (
+                        <div key={p.id} data-toc={`analysis:${p.id}`} className="contents">
+                          {passageDivider("analysis", p, ["문장 분석"])}
+                          <AnalysisSheets
+                            index={indexOf(p.id)}
+                            project={p}
+                            translation={options.analysisTranslation}
+                            measureKey={`${measureKey}|${options.analysisStyle}|${options.analysisTranslation}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  {testsOn ? (
+                    <div data-toc="tests" className="contents" style={partStyle(partOf("tests"))}>
+                      {dividerFor("tests", ready)}
+                      {options.allWordTest ? <AllWordTestSheets projects={ready} indexOf={indexOf} measureKey={measureKey} /> : null}
+                      {book.map((b) => (
+                        <div key={b.project.id} data-toc={`tests:${b.project.id}`} className="contents">
+                          {passageDivider("tests", b.project, [
+                            options.wordTest ? "동반의어 · 품사 TEST" : "",
+                            options.types.length ? `테스트 견본 · ${options.types.map((t) => testBookTypeLabel(t)).join(" · ")}` : "",
+                          ])}
+                          {options.wordTest ? <WordTestSheets index={indexOf(b.project.id)} project={b.project} test={b.word} measureKey={measureKey} /> : null}
+                          {options.types.length ? (
+                            <TestSheets index={indexOf(b.project.id)} project={b.project} sheet={b.sheet} title="테스트 견본" measureKey={measureKey} />
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  {options.answers && testsOn ? (
+                    <div data-toc="answers" className="contents" style={partStyle(partOf("answers"))}>
+                      {options.allWordTest ? <AllWordAnswerSheets projects={ready} indexOf={indexOf} measureKey={measureKey} /> : null}
+                      {options.wordTest || options.types.length ? (
+                        <AnswerSheets
+                          entries={book.map((b) => ({
+                            index: indexOf(b.project.id),
+                            project: b.project,
+                            word: options.wordTest ? b.word : undefined,
+                            sheet: options.types.length ? b.sheet : { ...b.sheet, sections: [] },
+                          }))}
+                          measureKey={measureKey}
+                        />
+                      ) : null}
+                    </div>
                   ) : null}
                 </>
               ) : drawn.length ? (

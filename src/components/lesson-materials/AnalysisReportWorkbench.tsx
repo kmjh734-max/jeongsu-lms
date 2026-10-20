@@ -34,6 +34,14 @@ import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height
 import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
 import { readAnalysisMarkup } from "@/lib/lesson-materials/analysis-markup";
 import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
+import {
+  DESIGN_FONTS_HREF,
+  DESIGN_STYLES,
+  designClass,
+  type AnalysisDesignStyle,
+} from "@/lib/lesson-materials/analysis-design";
+
+export type { AnalysisDesignStyle };
 
 /** 분석서를 동시에 만드는 지문 수. 지문 하나가 모델 호출 하나라 8개도 부담이 작다. */
 const ANALYSIS_REPORT_CONCURRENCY = 8;
@@ -141,22 +149,9 @@ const TRANSLATION_MODE_KEY = "analysis-report-translation-mode";
  * 처음 여는 사람과 예전에 기본을 골라 둔 사람은 A로 본다.
  * 글꼴과 색만 바꾸고 표시(성분·괄호·이름표·번호 설명) 구성은 같다 — globals.css의 .ar-style-*.
  */
-export type AnalysisDesignStyle = "base" | "a" | "b" | "c";
 const DESIGN_STYLE_KEY = "analysis-report-design-style";
 /** 쪽번호를 넣을지 (선생님이 자료마다 고른다) */
 const PAGE_NUMBER_KEY = "analysis-report-page-numbers";
-const DESIGN_STYLES: Array<{ id: AnalysisDesignStyle; label: string; hint: string }> = [
-  { id: "a", label: "A", hint: "교재 세리프" },
-  { id: "b", label: "B", hint: "깔끔한 산세리프" },
-  { id: "c", label: "C", hint: "클래식 인쇄" },
-];
-/** A·B·C가 쓰는 글꼴. 기본 모양에서는 불러오지 않는다. */
-const DESIGN_FONTS_HREF =
-  "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,500;0,8..60,600;1,8..60,500&family=Literata:opsz,wght@7..72,500;7..72,600&family=Gowun+Batang:wght@400;700&display=swap";
-
-function designClass(style: AnalysisDesignStyle): string {
-  return style === "base" ? "" : `ar-style ar-style-${style}`;
-}
 
 function SentenceBlock({
   sentence,

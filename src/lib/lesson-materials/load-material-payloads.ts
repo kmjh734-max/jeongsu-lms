@@ -162,7 +162,7 @@ export async function loadTestBookProjects(
   const [{ data: projects }, { data: items }] = await Promise.all([
     supabase
       .from("lesson_material_projects")
-      .select("id,title,title_en,source,lesson_pack_json,deleted_at")
+      .select("id,title,title_en,source,lesson_pack_json,analysis_report_json,deleted_at")
       .in("id", ids)
       .is("deleted_at", null),
     supabase
@@ -195,6 +195,7 @@ export async function loadTestBookProjects(
         source: (p.source as string | null) ?? null,
         sentences,
         content,
+        analysis: (p.analysis_report_json as AnalysisReportData | null) ?? null,
         material: isTestBookMaterialFresh(pack.testBookMaterial, english)
           ? mergeTestBookVocabHints(pack.testBookMaterial, content)
           : null,

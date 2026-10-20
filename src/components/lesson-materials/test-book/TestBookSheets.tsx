@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   POS_NAME,
   circled,
@@ -14,6 +14,8 @@ import {
   type TestSheet,
   type WordTest,
 } from "@/lib/lesson-materials/test-book";
+import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
+import { readAnalysisMarkup } from "@/lib/lesson-materials/analysis-markup";
 
 /*
  * 테스트 교재 인쇄 쪽. 모든 쪽은 A4(210×297mm)이고, 내용 덩어리(block)의 높이를 재서
@@ -28,92 +30,161 @@ const PAD_X_MM = 14;
 const FOOT_MM = 6;
 
 export const TEST_BOOK_FONTS_HREF =
-  "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap";
+  "https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Noto+Sans+KR:wght@400;500;700;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap";
 
 export const TEST_BOOK_CSS = `
-.tb-sheet{position:relative;box-sizing:border-box;width:210mm;height:${PAGE_H_MM}mm;padding:${PAD_Y_MM}mm ${PAD_X_MM}mm;background:#fff;color:#15171c;overflow:hidden;font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;font-size:10pt;line-height:1.5;word-break:keep-all;overflow-wrap:break-word;-webkit-print-color-adjust:exact;print-color-adjust:exact;break-after:page;page-break-after:always}
+.tb-sheet{position:relative;box-sizing:border-box;width:210mm;height:${PAGE_H_MM}mm;padding:${PAD_Y_MM}mm ${PAD_X_MM}mm;background:#fff;color:#15171c;overflow:hidden;font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;font-size:9.5pt;line-height:1.5;word-break:keep-all;overflow-wrap:break-word;-webkit-print-color-adjust:exact;print-color-adjust:exact;break-after:page;page-break-after:always}
 .tb-en{font-family:"Source Serif 4","Times New Roman",Georgia,serif}
 .tb-measure{position:absolute;left:-10000px;top:0;visibility:hidden;pointer-events:none}
 .tb-measure .tb-sheet{height:auto;overflow:visible}
-.tb-foot{position:absolute;left:${PAD_X_MM}mm;right:${PAD_X_MM}mm;bottom:6mm;display:flex;justify-content:space-between;font-size:7.5pt;color:#8a909b}
+.tb-foot{position:absolute;left:${PAD_X_MM}mm;right:${PAD_X_MM}mm;bottom:6mm;display:flex;justify-content:space-between;font-size:7.2pt;color:#8a909b}
 .tb-b{display:flow-root;padding-bottom:2.6mm}
 .tb-dh{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.6pt solid #15171c;padding-bottom:2mm;margin-bottom:3mm}
-.tb-dh h2{margin:0;font-size:17pt;font-weight:900;letter-spacing:-.02em;line-height:1.15}
-.tb-dh h2 small{font-size:9pt;font-weight:500;color:#6a707c;margin-left:2mm;letter-spacing:0}
-.tb-dh .tb-k{text-align:right;font-size:8pt;color:#6a707c;line-height:1.35}
-.tb-dh .tb-k b{display:block;color:#15171c;font-size:9.5pt}
-.tb-who{display:grid;grid-template-columns:1.3fr 1fr .9fr;gap:5mm;font-size:9pt;color:#6a707c}
+.tb-dh h2{margin:0;font-size:16pt;font-weight:900;letter-spacing:-.02em;line-height:1.15}
+.tb-dh h2 small{font-size:8.5pt;font-weight:500;color:#6a707c;margin-left:2mm;letter-spacing:0}
+.tb-dh .tb-k{text-align:right;font-size:7.6pt;color:#6a707c;line-height:1.35}
+.tb-dh .tb-k b{display:block;color:#15171c;font-size:9pt}
+.tb-who{display:grid;grid-template-columns:1.3fr 1fr .9fr;gap:5mm;font-size:8.5pt;color:#6a707c}
 .tb-who span{border-bottom:.6pt solid #c9cdd4;padding-bottom:1mm}
-.tb-tip{font-size:8.5pt;color:#6a707c}
+.tb-tip{font-size:8pt;color:#6a707c}
 .tb-star{color:#e8492b;font-weight:900}
 /* 표를 줄마다 덩어리로 두려고 grid 줄을 쓴다 */
 .tb-row{display:grid;border-bottom:.5pt solid #d3d7de;align-items:stretch}
 .tb-row > div{padding:1.1mm 1.4mm;min-width:0}
-.tb-row.tb-th{border-top:1.2pt solid #15171c;border-bottom:1.2pt solid #15171c;font-size:8pt;color:#6a707c;font-weight:500}
+.tb-row.tb-th{border-top:1.2pt solid #15171c;border-bottom:1.2pt solid #15171c;font-size:7.6pt;color:#6a707c;font-weight:500}
 .tb-row.tb-th > div{padding:1mm 1.4mm}
-.tb-vrow{grid-template-columns:6mm 36mm 9mm 34mm 1fr 1fr 30mm;font-size:8.8pt;line-height:1.35}
+.tb-vrow{grid-template-columns:6mm 36mm 9mm 34mm 1fr 1fr 30mm;font-size:8.3pt;line-height:1.35}
 .tb-vrow .tb-w{font-weight:700;overflow-wrap:anywhere}
 .tb-vrow .tb-pos{color:#6a707c;font-style:italic}
 .tb-vrow .tb-nil{color:#c9cdd4}
-.tb-vrow .tb-n{color:#8a909b;font-size:7.5pt;padding-top:1.5mm}
-.tb-q{display:flex;align-items:center;gap:2.2mm;border-top:1.2pt solid #15171c;padding-top:1.6mm;margin-bottom:1.6mm;font-size:10.5pt;font-weight:700}
-.tb-q .tb-qn{display:inline-grid;place-items:center;min-width:6mm;height:6mm;padding:0 1mm;background:#15171c;color:#fff;font-size:8.5pt;font-weight:700}
-.tb-q small{font-weight:400;color:#6a707c;font-size:8.5pt}
+.tb-vrow .tb-n{color:#8a909b;font-size:7.2pt;padding-top:1.5mm;white-space:nowrap}
+.tb-q{display:flex;align-items:center;gap:2.2mm;border-top:1.2pt solid #15171c;padding-top:1.6mm;margin-bottom:1.6mm;font-size:10pt;font-weight:700}
+.tb-q .tb-qn{display:inline-grid;place-items:center;min-width:6mm;height:6mm;padding:0 1mm;background:#15171c;color:#fff;font-size:8pt;font-weight:700}
+.tb-q small{font-weight:400;color:#6a707c;font-size:8pt}
 .tb-it{display:grid;grid-template-columns:7mm minmax(0,1fr);column-gap:1mm;margin-bottom:1.6mm}
-.tb-it > .tb-i{color:#6a707c;font-size:8.5pt;padding-top:.6mm}
-.tb-it .tb-txt{font-size:10.5pt;line-height:1.6}
-.tb-ko{color:#5b616c;font-size:9pt;margin-top:.4mm}
+.tb-it > .tb-i{color:#6a707c;font-size:8pt;padding-top:.6mm}
+.tb-it .tb-txt{font-size:10pt;line-height:1.6}
+.tb-ko{color:#5b616c;font-size:8.5pt;margin-top:.4mm}
 .tb-line{height:7.5mm;border-bottom:.6pt solid #c9cdd4}
-.tb-blank{display:inline-block;min-width:24mm;border-bottom:.8pt solid #15171c;margin:0 1mm;text-align:center;font-family:"Noto Sans KR",sans-serif;font-size:8pt;font-weight:700;color:#6a707c;vertical-align:-.3mm}
+.tb-blank{display:inline-block;min-width:24mm;border-bottom:.8pt solid #15171c;margin:0 1mm;text-align:center;font-family:"Noto Sans KR",sans-serif;font-size:7.6pt;font-weight:700;color:#6a707c;vertical-align:-.3mm}
 .tb-pick{white-space:nowrap;font-weight:600}
 .tb-pn{font-weight:700;margin-right:.6mm}
 .tb-sup{font-family:"Noto Sans KR",sans-serif;font-size:6.5pt;font-weight:700;margin-left:.6mm;color:#15171c}
-.tb-kol{font-family:"Noto Sans KR",sans-serif;font-size:9pt;font-weight:800;margin:2.5mm 0 1mm}
+.tb-kol{font-family:"Noto Sans KR",sans-serif;font-size:8.5pt;font-weight:800;margin:2.5mm 0 1mm}
 .tb-pick i{font-style:normal;font-weight:400;color:#8a909b;margin:0 .6mm}
 .tb-chunks{display:flex;flex-wrap:wrap;gap:1.5mm;margin:1mm 0}
-.tb-chunks span{border:.7pt solid #15171c;padding:.3mm 2mm;font-size:9.5pt}
+.tb-chunks span{border:.7pt solid #15171c;padding:.3mm 2mm;font-size:9pt}
 .tb-lead{font-weight:600}
-.tb-tag{display:inline-block;font-size:7.8pt;font-weight:700;color:#1d4ed8;border:.6pt solid #1d4ed8;padding:0 1.6mm;margin-bottom:.6mm}
+.tb-tag{display:inline-block;font-size:7.4pt;font-weight:700;color:#1d4ed8;border:.6pt solid #1d4ed8;padding:0 1.6mm;margin-bottom:.6mm}
 .tb-tf{display:grid;grid-template-columns:7mm minmax(0,1fr) 16mm;column-gap:1mm;align-items:baseline;border-bottom:.5pt solid #d3d7de;padding:1mm 0}
-.tb-tf .tb-tfbox{text-align:right;color:#6a707c;font-size:9pt}
-.tb-box{border:.7pt solid #15171c;padding:1.2mm 3mm;display:flex;flex-wrap:wrap;gap:1mm 6mm;font-size:9.5pt;margin-bottom:2mm}
-.tb-given{border:.7pt solid #15171c;background:#f4f5f7;padding:1.6mm 3mm;margin-bottom:2mm;font-size:10.5pt;line-height:1.6}
-.tb-psg{font-size:10.5pt;line-height:1.85;text-align:justify;margin:0 0 1.5mm}
+.tb-tf .tb-tfbox{text-align:right;color:#6a707c;font-size:8.5pt}
+.tb-box{border:.7pt solid #15171c;padding:1.2mm 3mm;display:flex;flex-wrap:wrap;gap:1mm 6mm;font-size:9pt;margin-bottom:2mm}
+.tb-given{border:.7pt solid #15171c;background:#f4f5f7;padding:1.6mm 3mm;margin-bottom:2mm;font-size:10pt;line-height:1.6}
+.tb-psg{font-size:10pt;line-height:1.85;text-align:justify;margin:0 0 1.5mm}
 .tb-words{display:grid;grid-template-columns:1fr 1fr;column-gap:8mm}
-.tb-wq{display:grid;grid-template-columns:6mm 1fr;column-gap:1mm;align-items:end;border-bottom:.6pt solid #c9cdd4;height:8.2mm;font-size:10pt}
-.tb-wq .tb-i{color:#6a707c;font-size:8.5pt}
+.tb-wq{display:grid;grid-template-columns:7.5mm 1fr;column-gap:1mm;align-items:end;border-bottom:.6pt solid #c9cdd4;height:8.2mm;font-size:9.5pt}
+.tb-wq .tb-i{color:#6a707c;font-size:8pt;white-space:nowrap}
 .tb-mc{display:grid;grid-template-columns:6mm minmax(0,1fr);column-gap:1mm;margin-bottom:2mm}
-.tb-mc .tb-ch{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5mm 3mm;font-size:9.5pt;margin-top:.5mm}
-.tb-rel{display:inline-block;border:.6pt solid #6a707c;color:#6a707c;font-size:8pt;padding:0 1.2mm;margin-left:1.5mm}
+.tb-mc .tb-ch{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5mm 3mm;font-size:9pt;margin-top:.5mm}
+.tb-rel{display:inline-block;border:.6pt solid #6a707c;color:#6a707c;font-size:7.6pt;padding:0 1.2mm;margin-left:1.5mm}
 .tb-ss{display:grid;grid-template-columns:7mm minmax(0,1fr);column-gap:1mm;margin-bottom:2.2mm}
-.tb-ss .tb-i{color:#8a909b;font-size:8pt;padding-top:.8mm}
-.tb-ss .tb-en{font-size:11pt;line-height:1.62}
-.tb-ss .tb-ko{font-size:9.5pt;color:#4b515c}
+.tb-ss .tb-i{color:#8a909b;font-size:7.6pt;padding-top:.8mm}
+.tb-ss .tb-en{font-size:10.5pt;line-height:1.62}
+.tb-ss .tb-ko{font-size:9pt;color:#4b515c}
 /* 계획표·이수표 */
-.tb-fields{display:grid;grid-template-columns:1fr .8fr 1.8fr 1fr;gap:4mm;font-size:9pt;color:#6a707c;margin-bottom:1mm}
+.tb-fields{display:grid;grid-template-columns:1fr .8fr 1.8fr 1fr;gap:4mm;font-size:8.5pt;color:#6a707c;margin-bottom:1mm}
 .tb-fields span{border-bottom:.6pt solid #c9cdd4;padding-bottom:1mm}
-.tb-sub{display:flex;align-items:baseline;gap:2mm;font-size:11pt;font-weight:900;margin:2mm 0 1.4mm}
-.tb-sub small{font-weight:400;font-size:8.5pt;color:#6a707c}
-.tb-prow{grid-template-columns:9mm 25mm minmax(0,1fr) 54mm 25mm 15mm;font-size:8.6pt;min-height:9mm}
+.tb-sub{display:flex;align-items:baseline;gap:2mm;font-size:10.5pt;font-weight:900;margin:2mm 0 1.4mm}
+.tb-sub small{font-weight:400;font-size:8pt;color:#6a707c}
+.tb-prow{grid-template-columns:9mm 25mm minmax(0,1fr) 54mm 25mm 15mm;font-size:8.1pt;min-height:9mm}
 .tb-prow > div{border-left:.5pt solid #d3d7de;display:flex;align-items:center}
 .tb-prow > div:first-child{border-left:0;justify-content:center}
 .tb-date{color:#9aa0aa;letter-spacing:.02em}
 .tb-prow > div.tb-psrc{flex-direction:column;align-items:flex-start;justify-content:center;line-height:1.3}
-.tb-psrc b{font-size:7.8pt;color:#4b515c;font-weight:700}
-.tb-todo{display:flex;flex-wrap:wrap;gap:.6mm 2.4mm;font-size:8pt;color:#4b515c}
+.tb-psrc b{font-size:7.4pt;color:#4b515c;font-weight:700}
+.tb-todo{display:flex;flex-wrap:wrap;gap:.6mm 2.4mm;font-size:7.6pt;color:#4b515c}
 .tb-todo span::before{content:"";display:inline-block;width:2.6mm;height:2.6mm;border:.6pt solid #4b515c;margin-right:.8mm;vertical-align:-.4mm}
-.tb-crow{font-size:8pt;min-height:8.5mm}
+.tb-crow{font-size:7.6pt;min-height:8.5mm}
 .tb-crow > div{border-left:.5pt solid #d3d7de;display:flex;align-items:flex-end;justify-content:flex-end;color:#c9cdd4}
 .tb-crow > div:first-child{border-left:0;justify-content:flex-start;align-items:center;color:#15171c}
 .tb-crow.tb-th > div{justify-content:center;align-items:center;color:#6a707c}
 .tb-crow.tb-th > div:first-child{justify-content:flex-start}
-.tb-rrow{grid-template-columns:24mm 30mm 25mm 18mm 1fr 1fr;font-size:8.6pt;min-height:8.5mm}
+.tb-rrow{grid-template-columns:24mm 30mm 25mm 18mm 1fr 1fr;font-size:8.1pt;min-height:8.5mm}
 .tb-rrow > div{border-left:.5pt solid #d3d7de;display:flex;align-items:center}
 .tb-rrow > div:first-child{border-left:0}
-.tb-sign{display:flex;gap:8mm;font-size:9pt;color:#6a707c;margin-top:3mm}
+.tb-sign{display:flex;gap:8mm;font-size:8.5pt;color:#6a707c;margin-top:3mm}
 .tb-sign span{flex:1;border-bottom:.6pt solid #c9cdd4;padding-bottom:1mm}
 /* 백지노트 */
 .tb-note{display:flex;flex-direction:column;height:100%}
+/* 표지 01 색 번짐(시안 10-19 채택): 남색 위 주황·보라·청록 번짐, 낟알 */
+.tb-cover{padding:0;background:#1d2a8f;color:#fff}
+.tb-cover .tb-glow{position:absolute;inset:-10%;background:radial-gradient(60% 45% at 78% 22%,#ff7a45 0%,transparent 60%),radial-gradient(55% 50% at 18% 70%,#7b5cff 0%,transparent 62%),radial-gradient(50% 40% at 70% 88%,#2fd0c0 0%,transparent 60%),#1d2a8f}
+.tb-cover .tb-grain{position:absolute;inset:0;opacity:.28;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.tb-cover .tb-in{position:absolute;inset:12.6mm;display:flex;flex-direction:column;justify-content:space-between}
+.tb-cover .tb-ctop{display:flex;justify-content:space-between;font-size:8pt;letter-spacing:.1em;font-weight:500}
+.tb-cover .tb-ct{font-family:Archivo,"Arial Black",sans-serif;font-weight:600;font-size:96pt;line-height:.9;letter-spacing:-.045em}
+.tb-cover .tb-crows{display:grid;font-size:11pt}
+.tb-cover .tb-crows div{display:flex;justify-content:space-between;gap:6mm;border-top:.6pt solid rgba(255,255,255,.45);padding:2.4mm 0}
+.tb-cover .tb-crows b{font-weight:700;text-align:right}
+/* 목차(통합자료 목차와 같은 꼴: 큰 세리프 CONTENTS, 색 번호, 묶음별 쪽 범위) */
+.tb-contents{padding:22mm 20mm}
+.tb-contents h2{margin:0;font-family:Georgia,"Times New Roman",serif;font-size:40pt;font-weight:900;line-height:1;letter-spacing:-.02em;color:#15171c}
+.tb-contents .tb-cbar{margin-top:4mm;height:1.6mm;width:22mm;background:#15171c}
+.tb-contents ol{list-style:none;margin:14mm 0 0;padding:0;display:grid;gap:6.5mm}
+.tb-contents li{display:flex;align-items:flex-start;gap:6mm}
+.tb-contents .tb-cno{width:14mm;font-family:Georgia,serif;font-size:22pt;font-weight:900;line-height:1}
+.tb-contents .tb-cbody{flex:1;min-width:0;border-bottom:.5pt solid #d3d7de;padding-bottom:3.6mm}
+.tb-contents .tb-crow{display:flex;justify-content:space-between;align-items:baseline;gap:4mm}
+.tb-contents .tb-cen{font-family:Georgia,serif;font-size:13pt;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.tb-contents .tb-cpg{font-size:9.5pt;color:#6a707c;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tb-contents .tb-cko{margin-top:1mm;font-size:9.5pt;color:#6a707c}
+.tb-contents .tb-cko b{color:#15171c;font-weight:700;margin-right:2mm}
+.tb-contents .tb-cfoot{position:absolute;left:20mm;right:20mm;bottom:16mm;border-top:.5pt solid #c9cdd4;padding-top:3mm;text-align:right}
+.tb-contents .tb-cfoot b{display:block;font-family:Georgia,serif;font-size:10pt}
+.tb-contents .tb-cfoot span{font-size:8.5pt;color:#6a707c}
+/* 간지: 왼쪽 색 띠, PART 번호, 영어·한글 제목, 지문별 시작 쪽 */
+.tb-divider{padding:0}
+.tb-divider .tb-dstrip{position:absolute;top:0;bottom:0;left:0;width:14mm;background:var(--tb-accent,#15171c)}
+.tb-divider .tb-din{position:absolute;left:30mm;right:20mm;top:62mm}
+.tb-divider .tb-dpart{font-size:13pt;font-weight:900;letter-spacing:.3em;color:var(--tb-accent,#15171c)}
+.tb-divider h2{margin:4mm 0 0;font-family:Georgia,"Times New Roman",serif;font-size:32pt;font-weight:900;line-height:1.1;text-transform:uppercase;color:#15171c}
+.tb-divider .tb-dbar{margin-top:6mm;height:1.2mm;width:30mm;background:var(--tb-accent,#15171c)}
+.tb-divider .tb-dko{margin-top:6mm;font-size:19pt;font-weight:900;color:#2b2f38}
+.tb-divider .tb-dsub{margin-top:2mm;font-size:10pt;color:#6a707c}
+.tb-divider .tb-dlist{margin-top:12mm;display:grid;grid-template-columns:1fr 1fr;column-gap:8mm}
+.tb-divider .tb-dlist div{display:grid;grid-template-columns:7mm 1fr 9mm;gap:1mm;align-items:baseline;border-bottom:.5pt solid #e1e4e9;padding:1.3mm 0;font-size:8.5pt}
+.tb-divider .tb-dlist i{font-style:normal;color:var(--tb-accent,#15171c);font-weight:800;font-size:7.5pt}
+.tb-divider .tb-dlist em{font-style:normal;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.tb-divider .tb-dlist small{display:block;color:#8a909b;font-size:7pt}
+.tb-divider .tb-dfoot{position:absolute;left:30mm;right:20mm;bottom:16mm;border-top:.5pt solid #e1e4e9;padding-top:3mm;text-align:right;font-size:8.5pt;color:#6a707c}
+.tb-divider .tb-dfoot b{display:block;color:#2b2f38;font-size:9.5pt}
+/* 지문 간지: 위쪽 색 면에 큰 지문 번호, 아래에 제목·출처·이 묶음에서 이어질 쪽 */
+.tb-pdiv{padding:0}
+.tb-pdiv .tb-ptop{position:absolute;left:0;right:0;top:0;height:118mm;background:var(--tb-accent,#15171c);color:#fff;overflow:hidden}
+.tb-pdiv .tb-ptop::after{content:"";position:absolute;right:-30mm;bottom:-46mm;width:120mm;height:120mm;border-radius:50%;background:rgba(255,255,255,.08)}
+.tb-pdiv .tb-ppart{position:absolute;left:24mm;top:22mm;font-size:9pt;font-weight:800;letter-spacing:.28em;opacity:.85}
+.tb-pdiv .tb-pno{position:absolute;left:20mm;bottom:8mm;font-family:Georgia,"Times New Roman",serif;font-size:120pt;font-weight:900;line-height:.8;letter-spacing:-.04em}
+.tb-pdiv .tb-pno small{display:block;font-family:"Noto Sans KR",sans-serif;font-size:9pt;font-weight:700;letter-spacing:.3em;margin:0 0 4mm 2mm;opacity:.8}
+.tb-pdiv .tb-pin{position:absolute;left:24mm;right:22mm;top:136mm}
+.tb-pdiv .tb-psrc{font-size:9.5pt;font-weight:700;color:var(--tb-accent,#15171c);letter-spacing:.04em}
+.tb-pdiv h2{margin:3mm 0 0;font-size:24pt;font-weight:900;line-height:1.25;letter-spacing:-.02em;color:#15171c}
+.tb-pdiv .tb-pen{margin-top:2mm;font-family:Georgia,serif;font-size:12pt;color:#4b515c}
+.tb-pdiv .tb-pbar{margin-top:8mm;height:1mm;width:24mm;background:var(--tb-accent,#15171c)}
+.tb-pdiv .tb-pnext{margin-top:7mm;display:grid;gap:2mm;font-size:10pt;color:#2b2f38}
+.tb-pdiv .tb-pnext div{display:flex;align-items:center;gap:3mm;border-bottom:.5pt solid #e1e4e9;padding-bottom:2mm}
+.tb-pdiv .tb-pnext i{font-style:normal;display:inline-grid;place-items:center;width:5.5mm;height:5.5mm;background:var(--tb-accent,#15171c);color:#fff;font-size:7.5pt;font-weight:800}
+.tb-pdiv .tb-pfoot{position:absolute;left:24mm;right:22mm;bottom:16mm;border-top:.5pt solid #e1e4e9;padding-top:3mm;display:flex;justify-content:space-between;font-size:8.5pt;color:#6a707c}
+/* 묶음 색: 바깥 가장자리 띠 + 쪽 머리 꼬리표 + 문항 번호 칸 */
+.tb-sheet.tb-part::before{content:"";position:absolute;top:0;bottom:0;left:0;width:2.4mm;background:var(--tb-accent,#15171c)}
+.tb-part .tb-dh{border-bottom-color:var(--tb-accent,#15171c)}
+.tb-part .tb-dh h2::before{content:var(--tb-part,"");display:block;font-size:6.8pt;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--tb-accent,#15171c);margin-bottom:1mm}
+.tb-part .tb-q .tb-qn{background:var(--tb-accent,#15171c)}
+.tb-part .tb-q{border-top-color:var(--tb-accent,#15171c)}
+/* 분석 자료(분석서 문장 분석 부품을 그대로 쓴다) */
+.tb-an-topic{border-left:3pt solid #15171c;padding:1mm 0 1mm 3mm;margin-bottom:2mm;font-size:9.5pt}
+.tb-an-topic b{font-size:8pt;color:#6a707c;margin-right:2mm;letter-spacing:.06em}
+.tb-an-s{padding:2mm 0;border-bottom:.5pt solid #e1e4e9}
+.tb-an-s .tb-ko{font-size:9pt}
 .tb-note .tb-psgbox{border-top:.8pt solid #15171c;padding-top:1.6mm;margin-bottom:3mm}
 .tb-note .tb-lb{display:flex;justify-content:space-between;align-items:baseline;font-size:8pt;color:#6a707c;margin-bottom:1mm}
 .tb-note .tb-lb b{color:#15171c;font-size:10pt}
@@ -194,7 +265,7 @@ export function PagedSheet({
   return (
     <>
       <div ref={measureRef} className="tb-measure" aria-hidden>
-        <div className="tb-sheet">
+        <div className="tb-sheet tb-part">
           <div data-tb-head="0">{head(0)}</div>
           <div data-tb-head="1">{head(1)}</div>
           {blocks.map((b) => (
@@ -205,7 +276,7 @@ export function PagedSheet({
         </div>
       </div>
       {pages.map((idx, p) => (
-        <div key={p} className="tb-sheet">
+        <div key={p} className="tb-sheet tb-part">
           {head(p)}
           {idx.map((i) => (blocks[i] ? <Fragment key={blocks[i]!.key}>{blocks[i]!.node}</Fragment> : null))}
           {foot ? <div className="tb-foot">{foot(p, pages.length)}</div> : null}
@@ -296,17 +367,33 @@ const TYPE_SHORT: Record<TestBookTypeKey, string> = {
   words: "단어",
 };
 
+/**
+ * 계획표의 「해 올 것」과 이수표 칸은 교재에 넣기로 고른 묶음·테스트 유형을 그대로 따른다
+ * (선생님 2026-10-20: 고른 테스트 종류대로 자동으로).
+ */
 export function PlanSheets({
   projects,
-  types,
+  options,
   measureKey,
 }: {
   projects: TestBookProjectInput[];
-  types: TestBookTypeKey[];
+  options: TestBookOptions;
   measureKey: string;
 }) {
-  const cols = ["단어TEST", ...types.map((t) => TYPE_SHORT[t])];
+  const tests = options.tests;
+  const cols = [
+    ...(tests && options.wordTest ? ["단어TEST"] : []),
+    ...(tests ? options.types.map((t) => TYPE_SHORT[t]) : []),
+  ];
+  const todo = [
+    ...(options.lesson ? ["단어", "해석"] : []),
+    ...(tests && options.types.length ? ["견본 풀기"] : []),
+    ...(options.blankNote ? ["백지노트"] : []),
+    ...(options.analysis ? ["분석 자료"] : []),
+  ];
   const checkGrid = `24mm repeat(${cols.length}, minmax(0,1fr)) 12mm 15mm`;
+  const allWordTestOn = tests && options.allWordTest;
+  const checkOn = cols.length > 0 || allWordTestOn;
   const blocks: Block[] = [
     {
       key: "fields",
@@ -351,10 +438,9 @@ export function PlanSheets({
           </div>
           <div>
             <span className="tb-todo">
-              <span>단어</span>
-              <span>해석</span>
-              <span>견본 풀기</span>
-              <span>백지노트</span>
+              {todo.map((t) => (
+                <span key={t}>{t}</span>
+              ))}
             </span>
           </div>
           <div className="tb-date">&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;일</div>
@@ -362,68 +448,88 @@ export function PlanSheets({
         </div>
       ),
     })),
-    {
-      key: "check-h",
-      node: (
-        <div style={{ paddingTop: "3mm" }}>
-          <div className="tb-sub">
-            테스트 이수 <small>칸에 점수를 쓰고, 다 통과하면 결과에 ○ · 다시 보면 「재」</small>
-          </div>
-          <div className="tb-row tb-th tb-crow" style={{ gridTemplateColumns: checkGrid }}>
-            <div>지문</div>
-            {cols.map((c) => (
-              <div key={c}>{c}</div>
-            ))}
-            <div>결과</div>
-            <div>선생님</div>
-          </div>
-        </div>
-      ),
-    },
-    ...projects.map((p, i) => ({
-      key: `check-${p.id}`,
-      node: (
-        <div className="tb-row tb-crow" style={{ gridTemplateColumns: checkGrid }}>
-          <div>{String(i + 1).padStart(2, "0")}</div>
-          {cols.map((c) => (
-            <div key={c}>/</div>
-          ))}
-          <div />
-          <div />
-        </div>
-      ),
-    })),
-    {
-      key: "re-h",
-      node: (
-        <div style={{ paddingTop: "3mm" }}>
-          <div className="tb-sub">
-            재시험 <small>통과하지 못한 것만 · 날짜를 적고 다시 본다</small>
-          </div>
-          <div className="tb-row tb-th tb-rrow">
-            <div>지문</div>
-            <div>유형</div>
-            <div>날짜</div>
-            <div>점수</div>
-            <div>선생님 서명</div>
-            <div>학생 서명</div>
-          </div>
-        </div>
-      ),
-    },
-    ...[0, 1, 2, 3, 4].map((n) => ({
-      key: `re-${n}`,
-      node: (
-        <div className="tb-row tb-rrow">
-          <div />
-          <div />
-          <div className="tb-date">&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;일</div>
-          <div />
-          <div />
-          <div />
-        </div>
-      ),
-    })),
+    ...(checkOn
+      ? [
+          {
+            key: "check-h",
+            node: (
+              <div style={{ paddingTop: "3mm" }}>
+                <div className="tb-sub">
+                  테스트 이수 <small>칸에 점수를 쓰고, 다 통과하면 결과에 ○ · 다시 보면 「재」</small>
+                </div>
+                {allWordTestOn ? (
+                  <div className="tb-fields" style={{ marginBottom: "2mm" }}>
+                    <span>전체 단어 TEST &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/</span>
+                    <span>결과</span>
+                    <span>날짜 &nbsp;&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;일</span>
+                    <span>선생님</span>
+                  </div>
+                ) : null}
+                {cols.length ? (
+                  <div className="tb-row tb-th tb-crow" style={{ gridTemplateColumns: checkGrid }}>
+                    <div>지문</div>
+                    {cols.map((c) => (
+                      <div key={c}>{c}</div>
+                    ))}
+                    <div>결과</div>
+                    <div>선생님</div>
+                  </div>
+                ) : null}
+              </div>
+            ),
+          },
+          ...(cols.length
+            ? projects.map((p, i) => ({
+                key: `check-${p.id}`,
+                node: (
+                  <div className="tb-row tb-crow" style={{ gridTemplateColumns: checkGrid }}>
+                    <div>{String(i + 1).padStart(2, "0")}</div>
+                    {cols.map((c) => (
+                      <div key={c}>/</div>
+                    ))}
+                    <div />
+                    <div />
+                  </div>
+                ),
+              }))
+            : []),
+        ]
+      : []),
+    ...(checkOn
+      ? [
+          {
+            key: "re-h",
+            node: (
+              <div style={{ paddingTop: "3mm" }}>
+                <div className="tb-sub">
+                  재시험 <small>통과하지 못한 것만 · 날짜를 적고 다시 본다</small>
+                </div>
+                <div className="tb-row tb-th tb-rrow">
+                  <div>지문</div>
+                  <div>유형</div>
+                  <div>날짜</div>
+                  <div>점수</div>
+                  <div>선생님 서명</div>
+                  <div>학생 서명</div>
+                </div>
+              </div>
+            ),
+          },
+          ...[0, 1, 2, 3, 4].map((n) => ({
+            key: `re-${n}`,
+            node: (
+              <div className="tb-row tb-rrow">
+                <div />
+                <div />
+                <div className="tb-date">&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;일</div>
+                <div />
+                <div />
+                <div />
+              </div>
+            ),
+          })),
+        ]
+      : []),
     {
       key: "sign",
       node: (
@@ -537,7 +643,7 @@ export function allVocabRows(projects: TestBookProjectInput[], indexOf: (id: str
   return out;
 }
 
-const ALL_GRID = "7mm 8mm 30mm 8mm 34mm 1fr 1fr 1fr";
+const ALL_GRID = "9mm 8mm 29mm 8mm 33mm 1fr 1fr 1fr";
 
 export function AllVocabSheets({
   projects,
@@ -1027,7 +1133,7 @@ export function BlankNoteSheets({ index, project }: { index: number; project: Te
   const label = passageLabel(index, project);
   return (
     <>
-      <div className="tb-sheet">
+      <div className="tb-sheet tb-part">
         <div className="tb-note">
           <DocHead title="백지노트" sub="1/2" label={label} right={project.source?.trim() || "BLANK NOTE"} />
           <div className="tb-psgbox">
@@ -1052,7 +1158,7 @@ export function BlankNoteSheets({ index, project }: { index: number; project: Te
           </div>
         </div>
       </div>
-      <div className="tb-sheet">
+      <div className="tb-sheet tb-part">
         <div className="tb-note">
           <DocHead title="백지노트" sub="2/2" label={label} right={project.source?.trim() || "BLANK NOTE"} />
           <div className="tb-fill" style={{ flex: 1.1 }}>
@@ -1196,5 +1302,264 @@ export function AnswerSheets({
       measureKey={measureKey}
       head={(page) => <DocHead title={title} sub={page > 0 ? "(이어서)" : undefined} label="ANSWERS" right="정답만 싣습니다" />}
     />
+  );
+}
+
+// ---------------------------------------------------------------- 표지·목차·분석 자료
+
+/** 표지(시안 01 색 번짐). 교재 이름·범위를 싣고 이름 칸은 비운다. */
+export function CoverSheet({ title, range }: { title: string; range: string }) {
+  const now = new Date();
+  const season = `${now.getFullYear()} ${now.getMonth() >= 7 ? "FALL" : now.getMonth() >= 2 ? "SPRING" : "WINTER"}`;
+  return (
+    <div className="tb-sheet tb-cover">
+      <div className="tb-glow" />
+      <div className="tb-grain" />
+      <div className="tb-in">
+        <div className="tb-ctop">
+          <span>TEST BOOK</span>
+          <span>{season}</span>
+        </div>
+        <div className="tb-ct">
+          read.
+          <br />
+          test.
+          <br />
+          note.
+        </div>
+        <div className="tb-crows">
+          <div>
+            <span>교재</span>
+            <b>{title}</b>
+          </div>
+          <div>
+            <span>범위</span>
+            <b>{range}</b>
+          </div>
+          <div>
+            <span>이름</span>
+            <b>&nbsp;</b>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** 교재 묶음(목차·간지·쪽 색). no는 목차 번호, color는 그 묶음 색. */
+export type BookPart = { id: string; no: string; en: string; ko: string; sub?: string; color: string };
+
+/** 묶음 안 쪽에 색·꼬리표를 넘긴다(감싸개는 display:contents라 CSS 변수만 내려간다) */
+export function partStyle(part: BookPart | undefined): CSSProperties | undefined {
+  if (!part) return undefined;
+  return { ["--tb-accent" as string]: part.color, ["--tb-part" as string]: `"PART ${part.no} · ${part.en}"` } as CSSProperties;
+}
+
+/**
+ * 목차(통합자료 목차와 같은 꼴). 쪽 번호는 화면이 그린 쪽을 세어 넣는다
+ * (pages: 묶음 id → 첫 쪽, total: 전체 쪽 수, 표지가 1쪽).
+ */
+export function ContentsSheet({
+  parts,
+  pages,
+  total,
+  title,
+  range,
+}: {
+  parts: BookPart[];
+  pages: Record<string, number>;
+  total: number;
+  title: string;
+  range: string;
+}) {
+  return (
+    <div className="tb-sheet tb-contents">
+      <h2>CONTENTS</h2>
+      <div className="tb-cbar" />
+      <ol>
+        {parts.map((p, i) => {
+          const from = pages[p.id];
+          const next = parts.slice(i + 1).map((x) => pages[x.id]).find((n) => !!n);
+          const to = from ? (next ? next - 1 : total) : undefined;
+          return (
+            <li key={p.id}>
+              <span className="tb-cno" style={{ color: p.color }}>
+                {p.no}
+              </span>
+              <div className="tb-cbody">
+                <div className="tb-crow">
+                  <span className="tb-cen">{p.en}</span>
+                  <span className="tb-cpg">{from ? (to && to > from ? `p. ${from} ~ ${to}` : `p. ${from}`) : ""}</span>
+                </div>
+                <div className="tb-cko">
+                  <b>{p.ko}</b>
+                  {p.sub}
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      <div className="tb-cfoot">
+        <b>{title}</b>
+        <span>{range}</span>
+      </div>
+    </div>
+  );
+}
+
+/** 간지: 묶음 첫 쪽. 지문마다 이 묶음에서 시작하는 쪽을 싣는다. */
+export function DividerSheet({
+  part,
+  items,
+  title,
+}: {
+  part: BookPart;
+  items: Array<{ id: string; index: number; title: string; source: string | null; page?: number }>;
+  title: string;
+}) {
+  return (
+    <div className="tb-sheet tb-divider">
+      <div className="tb-dstrip" />
+      <div className="tb-din">
+        <div className="tb-dpart">PART {part.no}</div>
+        <h2>{part.en}</h2>
+        <div className="tb-dbar" />
+        <div className="tb-dko">{part.ko}</div>
+        {part.sub ? <div className="tb-dsub">{part.sub}</div> : null}
+        {items.length ? (
+          <div className="tb-dlist">
+            {items.map((it) => (
+              <div key={it.id}>
+                <i>{String(it.index + 1).padStart(2, "0")}</i>
+                <span>
+                  {it.title}
+                  {it.source?.trim() ? <small>{it.source.trim()}</small> : null}
+                </span>
+                <em>{it.page ?? ""}</em>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+      <div className="tb-dfoot">
+        <b>{title}</b>
+        PART {part.no} · {part.ko}
+      </div>
+    </div>
+  );
+}
+
+/** 분석 자료: 분석서의 주제·문장 분석을 테스트 교재 쪽에 싣는다(분석서가 있는 지문만). */
+export function AnalysisSheets({
+  index,
+  project,
+  translation = "full",
+  measureKey,
+}: {
+  index: number;
+  project: TestBookProjectInput;
+  /** 전체 해석 · 직독직해(분석서 화면과 같은 선택) */
+  translation?: "full" | "chunk";
+  measureKey: string;
+}) {
+  const report = project.analysis;
+  if (!report?.sentences?.length) return null;
+  const blocks: Block[] = [];
+  if (report.topicEn?.trim() || report.topicKo?.trim()) {
+    blocks.push({
+      key: "topic",
+      node: (
+        <div className="tb-an-topic">
+          <b>TOPIC</b>
+          <span className="tb-en">{report.topicEn?.trim()}</span>
+          {report.topicKo?.trim() ? <div className="tb-ko">{report.topicKo.trim()}</div> : null}
+        </div>
+      ),
+    });
+  }
+  report.sentences.forEach((s, i) => {
+    const plain = s.enChunks.map((c) => c.text).join(" ").trim();
+    const markup = readAnalysisMarkup(s.markup, plain);
+    const extra = (s.contextNote ?? "").trim() || (s.easyUnderstanding ?? "").trim();
+    blocks.push({
+      key: `s${i}`,
+      node: markup ? (
+        <AnalysisMarkupSentence markup={markup} index={i} extraNote={extra || undefined} translationMode={translation} />
+      ) : (
+        <div className="tb-an-s">
+          <div className="tb-ss">
+            <span className="tb-i">{String(i + 1).padStart(2, "0")}</span>
+            <div>
+              <div className="tb-en">{plain}</div>
+              <div className="tb-ko">{s.koChunks.join(" ")}</div>
+              {extra ? <div className="tb-tip">{extra}</div> : null}
+            </div>
+          </div>
+        </div>
+      ),
+    });
+  });
+  return (
+    <PagedSheet
+      blocks={blocks}
+      measureKey={measureKey}
+      head={(page) => (
+        <DocHead title="분석 자료" sub={page > 0 ? "(이어서)" : undefined} label={passageLabel(index, project)} right={project.source?.trim() || "ANALYSIS"} />
+      )}
+    />
+  );
+}
+
+/** 지문 간지: 묶음 안에서 지문이 시작하는 쪽. 지문 번호를 크게, 이 묶음에서 이어질 쪽을 차례로 싣는다. */
+export function PassageDividerSheet({
+  part,
+  index,
+  project,
+  next,
+  title,
+}: {
+  part: BookPart;
+  index: number;
+  project: { title: string; titleEn: string | null; source: string | null };
+  /** 이 지문에서 이어지는 쪽 이름(단어 정리 · 문장별 해석 …) */
+  next: string[];
+  title: string;
+}) {
+  const no = String(index + 1).padStart(2, "0");
+  return (
+    <div className="tb-sheet tb-pdiv">
+      <div className="tb-ptop">
+        <div className="tb-ppart">
+          PART {part.no} · {part.en.toUpperCase()}
+        </div>
+        <div className="tb-pno">
+          <small>PASSAGE</small>
+          {no}
+        </div>
+      </div>
+      <div className="tb-pin">
+        {project.source?.trim() ? <div className="tb-psrc">{project.source.trim()}</div> : null}
+        <h2>{project.title}</h2>
+        {project.titleEn?.trim() ? <div className="tb-pen">{project.titleEn.trim()}</div> : null}
+        <div className="tb-pbar" />
+        {next.length ? (
+          <div className="tb-pnext">
+            {next.map((n, i) => (
+              <div key={n}>
+                <i>{i + 1}</i>
+                {n}
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+      <div className="tb-pfoot">
+        <span>{title}</span>
+        <span>
+          PART {part.no} · {part.ko} · 지문 {no}
+        </span>
+      </div>
+    </div>
   );
 }
