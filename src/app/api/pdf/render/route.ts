@@ -27,6 +27,9 @@ export async function GET(request: Request) {
       { w: 210, h: 297 },
       new URL(request.url).origin
     );
+    if (request.headers.get("x-pdf-return") === "1") {
+      return new Response(Buffer.from(pdf), { headers: { "Content-Type": "application/pdf" } });
+    }
     return Response.json({ ok: true, bytes: pdf.length, ms: Date.now() - t0 });
   } catch (e) {
     return Response.json({
