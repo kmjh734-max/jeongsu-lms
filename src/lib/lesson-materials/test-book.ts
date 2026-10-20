@@ -25,8 +25,14 @@ import {
   type OnePageContent,
 } from "@/lib/lesson-materials/one-page";
 
-/** 재료 형식이 바뀌면 올린다. 옛 재료는 열 때 한 번 새로 만든다. */
-export const TEST_BOOK_MATERIAL_VERSION = "tb-2";
+/**
+ * 재료 형식이 바뀌면 올린다. 원문이 그대로인 옛 재료는 열 때 단어 정리(모델 호출)는 그대로 두고
+ * 중요문장·어순 덩어리처럼 규칙으로 만드는 것만 다시 계산한다(선생님 2026-10-20: 들어갈 때마다
+ * 새로 만드는 것 같고 너무 오래 걸린다 — 버전을 올리면 지문마다 단어 정리를 처음부터 다시 만들었다).
+ */
+export const TEST_BOOK_MATERIAL_VERSION = "tb-3";
+/** 단어 정리(모델이 만드는 부분) 규칙이 바뀌면 올린다 — 이것만 다르면 단어 정리만 다시 만든다 */
+export const TEST_BOOK_VOCAB_VERSION = "tv-2";
 
 // ---------------------------------------------------------------- 유형
 
@@ -98,6 +104,8 @@ export type TestBookMaterial = {
   version: string;
   sourceHash: string;
   vocab: TestBookVocabRow[];
+  /** 단어 정리 규칙 버전(없으면 tv-1: 파생어 품사 표기가 다르면 버리던 때) */
+  vocabVersion?: string;
   /** 워크북 「중요문장 어순배열」과 같은 규칙으로 고른 문장(0부터, 지문 차례) */
   keyIndexes: number[];
   /** 문장마다 어순 덩어리(원래 차례). 워크북과 같은 캐시에서 온다. 못 나눈 문장은 null. */
@@ -105,31 +113,70 @@ export type TestBookMaterial = {
   /** 교과서 지문이면 그 과(「공통영어1|NE능률(민병천)|1」)와 단원문법이 든 문장(0부터) */
   unitKey?: string | null;
   unitHits?: Array<{ si: number; grammar: string[] }>;
+  /** 구문·구조가 어려운 문장(0부터, 단원문법 문장 빼고 2개까지) — key-sentence-analysis */
+  hardHits?: Array<{ si: number; structures: string[] }>;
   createdAt: string;
 };
 
-/** 영어 원문 해시(재료가 옛 원문으로 만든 것인지 가린다). */
-export function testBookSourceHash(englishLines: string[]): string {
+/** 영어 원문 해시(재료가 옛 원문으로 만든 것인지 가린다). 해시에는 그 재료의 버전이 섞인다. */
+export function testBookSourceHash(englishLines: string[], version: string = TEST_BOOK_MATERIAL_VERSION): string {
   const joined = englishLines
     .map((t) => formatWorkbookPassage(t).toLowerCase())
     .filter(Boolean)
     .join("\n");
   let out = "";
   for (let i = 0; i < 3; i++) {
-    out += hashSeedToUint32(`${joined}#tb#${TEST_BOOK_MATERIAL_VERSION}#${i}`).toString(16).padStart(8, "0");
+    out += hashSeedToUint32(`${joined}#tb#${version}#${i}`).toString(16).padStart(8, "0");
   }
   return out;
+}
+
+/** 지금 원문으로 만든 재료인가(버전은 따지지 않는다) — 단어 정리를 다시 쓸 수 있는지 */
+export function isTestBookMaterialSameSource(
+  material: TestBookMaterial | null | undefined,
+  englishLines: string[]
+): material is TestBookMaterial {
+  return !!material?.version && material.sourceHash === testBookSourceHash(englishLines, material.version);
 }
 
 export function isTestBookMaterialFresh(
   material: TestBookMaterial | null | undefined,
   englishLines: string[]
 ): material is TestBookMaterial {
-  return (
-    !!material &&
-    material.version === TEST_BOOK_MATERIAL_VERSION &&
-    material.sourceHash === testBookSourceHash(englishLines)
-  );
+  return material?.version === TEST_BOOK_MATERIAL_VERSION && isTestBookMaterialSameSource(material, englishLines);
+}
+
+/**
+ * 단어 정리 핵심어의 동의어·반의어에 1장 자료 핵심어의 것(같은 낱말일 때만)을 더한다. 모델은 부르지 않는다.
+ * 단어 정리 모델이 하나만 고르는 일이 많았다(선생님 2026-10-20: 여러 개일 수 있는데 한 개만 — 억지로는 말고).
+ * 핵심어가 아닌 줄이나 1장 자료에 없는 낱말은 그대로 둔다.
+ */
+export function mergeTestBookVocabHints(
+  material: TestBookMaterial,
+  content: OnePageContent | null | undefined
+): TestBookMaterial {
+  if (!content?.vocab?.length) return material;
+  const hints = new Map(content.vocab.map((v) => [v.surface.trim().toLowerCase(), v] as const));
+  const merge = (own: string[], more: string[], word: string) => {
+    const seen = new Set([word.trim().toLowerCase()]);
+    return [...own, ...more]
+      .map((w) => w.trim())
+      .filter((w) => {
+        const k = w.toLowerCase();
+        if (!w || seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      })
+      .slice(0, 3);
+  };
+  return {
+    ...material,
+    vocab: material.vocab.map((r) => {
+      const h = r.key ? hints.get(r.word.trim().toLowerCase()) : undefined;
+      if (!h) return r;
+      return { ...r, synonyms: merge(r.synonyms, h.synonyms, r.word), antonyms: merge(r.antonyms, h.antonyms, r.word) };
+    }),
+  };
 }
 
 /** 화면에 넘기는 지문 하나 */
@@ -195,7 +242,8 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
 // ---------------------------------------------------------------- 문항 모양
 
 /** 한 줄 안의 조각: 글자 · 빈칸(번호) · 고르기 [왼쪽 / 오른쪽] */
-export type TestSeg = string | { blank: string } | { pick: [string, string] };
+/** 빈칸·고르기의 n은 지문 안 번호(워크북 모양: 빈칸 ¹____, 고르기 ①[A / B]) */
+export type TestSeg = string | { blank: string; n?: string } | { pick: [string, string]; n?: string };
 
 export type TestItem = {
   /** (1) (2) … 또는 A B */
@@ -227,8 +275,12 @@ export type TestSection = {
   box?: string[];
   /** 문항 앞에 놓는 글(문장 순서의 주어진 글, 문장 삽입의 주어진 문장) */
   given?: string;
-  /** 지문을 통째로 싣는 유형(연결어·삽입·요약문) */
+  /** 지문을 통째로 싣는 유형(연결어·삽입·요약문, 빈칸·어법선택·어휘선택) */
   passage?: TestSeg[];
+  /** 지문 아래 [해석](빈칸) */
+  passageKo?: string;
+  /** 문항이 지문 안에 번호로 들어 있다 — 문항 줄을 따로 그리지 않는다(정답·점수는 items로) */
+  inline?: boolean;
   items: TestItem[];
   /** 지문형 유형의 정답(문항이 하나로 묶인 경우) */
   answer?: string;
@@ -241,7 +293,7 @@ export type TestSheet = {
   sections: TestSection[];
 };
 
-const CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩";
+const CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳";
 const no = (i: number) => `(${i + 1})`;
 
 // ---------------------------------------------------------------- 조립
@@ -377,33 +429,46 @@ function fallbackBlank(sentence: string): string | null {
   return [...cands].sort((x, y) => y.length - x.length)[0]!;
 }
 
-/** 문장마다 빈칸 하나. 「같은 자리」는 교재 견본과 같은 낱말, 「다른 자리」는 그 문장의 다른 후보. */
+/**
+ * 문장마다 빈칸 하나. 「같은 자리」는 교재 견본과 같은 낱말, 「다른 자리」는 그 문장의 다른 후보.
+ * 워크북 빈칸과 같은 모양으로 지문을 통째로 싣고 아래에 [해석]을 둔다(선생님 2026-10-20).
+ */
 function buildBlank(p: Ready, seed: string, mode: BlankMode): TestSection | null {
   const pool = blankCandidates(p);
-  const items: Array<{ si: number; phrase: string }> = [];
+  const passage: TestSeg[] = [];
+  const items: TestItem[] = [];
   p.sentences.forEach((s, si) => {
-    if (!s.korean.trim()) return;
-    const mine = pool.filter((c) => c.si === si);
-    if (!mine.length) {
-      const f = fallbackBlank(clean(s.english));
-      if (f) items.push({ si, phrase: f });
+    const sentence = clean(s.english);
+    if (!sentence) return;
+    if (passage.length) passage.push(" ");
+    let phrase: string | null = null;
+    if (s.korean.trim()) {
+      const mine = pool.filter((c) => c.si === si);
+      if (!mine.length) phrase = fallbackBlank(sentence);
+      else {
+        const bookOne = pickN(mine, 1, `book|${p.id}|blank|${si}`)[0]!;
+        const others = mine.filter((c) => c.key !== bookOne.key);
+        phrase = (mode === "diff" && others.length ? pickN(others, 1, `${seed}|blank|${si}`)[0]! : bookOne).phrase;
+      }
+    }
+    const part = phrase ? splitAt(sentence, phrase) : null;
+    if (!part) {
+      passage.push(sentence);
       return;
     }
-    const bookOne = pickN(mine, 1, `book|${p.id}|blank|${si}`)[0]!;
-    const others = mine.filter((c) => c.key !== bookOne.key);
-    const pick = mode === "diff" && others.length ? pickN(others, 1, `${seed}|blank|${si}`)[0]! : bookOne;
-    items.push({ si, phrase: pick.phrase });
+    const n = String(items.length + 1);
+    passage.push(part.before, { blank: "", n }, part.after);
+    items.push({ no: `${n}.`, text: [], answer: part.hit });
   });
   if (!items.length) return null;
   return {
     type: "blank",
     title: "빈칸",
     hint: "해석을 보고 빈칸 채우기",
-    items: arrange(items, seed).map((c, i) => {
-      const s = p.sentences[c.si]!;
-      const part = splitAt(clean(s.english), c.phrase)!;
-      return { no: no(i), text: [part.before, { blank: "" }, part.after], ko: s.korean, answer: part.hit };
-    }),
+    passage,
+    passageKo: p.sentences.map((s) => s.korean.trim()).filter(Boolean).join(" "),
+    inline: true,
+    items,
   };
 }
 
@@ -450,6 +515,7 @@ function vocabCandidates(p: Ready): PickCand[] {
 }
 
 function pickSection(
+  p: Ready,
   type: "grammar" | "vocab",
   title: string,
   hint: string,
@@ -466,27 +532,31 @@ function pickSection(
     if (!list.some((x) => (c.at ?? 0) < end(x) && (x.at ?? 0) < end(c))) list.push(c);
     bySi.set(c.si, list);
   }
-  const rows = [...bySi.entries()].sort((x, y) => x[0] - y[0]);
-  return {
-    type,
-    title,
-    hint,
-    items: arrange(rows, seed).map(([, cands], i) => {
-      const sorted = [...cands].sort((x, y) => (x.at ?? 0) - (y.at ?? 0));
-      const sentence = sorted[0]!.before + sorted[0]!.right + sorted[0]!.after;
-      const text: TestSeg[] = [];
-      let cursor = 0;
-      for (const c of sorted) {
-        const at = c.at ?? c.before.length;
-        text.push(sentence.slice(cursor, at));
-        const left = hashSeedToUint32(`${seed}|${c.key}|side`) % 2 === 0;
-        text.push({ pick: left ? [c.right, c.wrong] : [c.wrong, c.right] });
-        cursor = at + c.right.length;
-      }
-      text.push(sentence.slice(cursor));
-      return { no: no(i), text, answer: sorted.map((c) => c.right).join(" / ") };
-    }),
-  };
+  // 워크북 어법·어휘 선택과 같은 모양: 지문을 통째로 싣고 고르기 자리에 ①[A / B](선생님 2026-10-20)
+  const passage: TestSeg[] = [];
+  const items: TestItem[] = [];
+  p.sentences.forEach((s, si) => {
+    const cands = bySi.get(si);
+    const sentence = cands ? cands[0]!.before + cands[0]!.right + cands[0]!.after : clean(s.english);
+    if (!sentence) return;
+    if (passage.length) passage.push(" ");
+    if (!cands) {
+      passage.push(sentence);
+      return;
+    }
+    let cursor = 0;
+    for (const c of [...cands].sort((x, y) => (x.at ?? 0) - (y.at ?? 0))) {
+      const at = c.at ?? c.before.length;
+      passage.push(sentence.slice(cursor, at));
+      const n = circled(items.length);
+      const left = hashSeedToUint32(`${seed}|${c.key}|side`) % 2 === 0;
+      passage.push({ pick: left ? [c.right, c.wrong] : [c.wrong, c.right], n });
+      items.push({ no: n, text: [], answer: c.right });
+      cursor = at + c.right.length;
+    }
+    passage.push(sentence.slice(cursor));
+  });
+  return { type, title, hint, passage, inline: true, items };
 }
 
 /** 어순배열: 같은 덩어리를 섞는다. 원래 차례·뒤집은 차례와 같으면 다시 섞는다. */
@@ -514,12 +584,14 @@ function orderPicks(p: Ready, seed: string): Array<{ si: number; chunks: string[
   const pool = p.material.keyIndexes
     .map((si) => ({ si, chunks: p.material.chunks[si] }))
     .filter((x): x is { si: number; chunks: string[] } => !!x.chunks && x.chunks.length >= 3 && !!p.sentences[x.si]?.korean.trim());
-  // 교과서 지문: 단원문법이 든 문장을 모두(4개까지) 먼저, 모자라면 다른 중요문장으로 2개까지 채운다
+  // 선생님 2026-10-20: 단원문법이 든 문장은 꼭(5개까지), 구문·구조가 어려운 문장도(2개까지).
+  // 둘 다 없는 지문만 다른 중요문장으로 2개.
   const unit = new Set((p.material.unitHits ?? []).map((h) => h.si));
-  const withUnit = pool.filter((x) => unit.has(x.si)).slice(0, 4);
-  const rest = pool.filter((x) => !unit.has(x.si));
-  const fill = pickN(rest, Math.max(0, 2 - withUnit.length), `${seed}|order`);
-  return bySentence([...withUnit, ...fill]);
+  const hard = new Set((p.material.hardHits ?? []).map((h) => h.si));
+  const withUnit = pool.filter((x) => unit.has(x.si)).slice(0, 5);
+  const withHard = pool.filter((x) => hard.has(x.si) && !unit.has(x.si)).slice(0, 2);
+  if (withUnit.length || withHard.length) return bySentence([...withUnit, ...withHard]);
+  return bySentence(pickN(pool, 2, `${seed}|order`));
 }
 
 function buildOrder(p: Ready, seed: string): TestSection | null {
@@ -532,10 +604,15 @@ function buildOrder(p: Ready, seed: string): TestSection | null {
     items: chosen.map((c, i) => {
       const { lead, rest } = splitLead(c.chunks);
       const grammar = p.material.unitHits?.find((h) => h.si === c.si)?.grammar ?? [];
+      const structures = p.material.hardHits?.find((h) => h.si === c.si)?.structures ?? [];
       return {
         no: no(i),
         text: [],
-        tag: grammar.length ? `단원문법 · ${grammar.join(" · ")}` : undefined,
+        tag: grammar.length
+          ? `단원문법 · ${grammar.join(" · ")}`
+          : structures.length
+            ? `어려운 구문 · ${structures.slice(0, 3).join(" · ")}`
+            : undefined,
         ko: p.sentences[c.si]!.korean,
         lead: lead || undefined,
         chunks: shuffleChunks(rest, `${seed}|order|${c.si}`),
@@ -731,8 +808,8 @@ export function buildTestSheet(
     const sec =
       key === "line" ? buildLine(p, seed)
       : key === "blank" ? buildBlank(p, seed, opts.blankMode ?? "same")
-      : key === "grammar" ? pickSection("grammar", "어법선택", "알맞은 것에 ○", forPick, seed)
-      : key === "vocab" ? pickSection("vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed)
+      : key === "grammar" ? pickSection(p, "grammar", "어법선택", "알맞은 것에 ○", forPick, seed)
+      : key === "vocab" ? pickSection(p, "vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed)
       : key === "order" ? buildOrder(p, seed)
       : key === "tf" ? buildTf(p, seed)
       : key === "writing" ? buildWriting(p, seed)

@@ -32,9 +32,27 @@ const EXTRA_CHECKS: Record<string, RegExp> = {
   "be being + 형용사": /\b(?:is|are|was|were)\s+being\s+[a-z]+/i,
 };
 
-const CHECK_BY_LABEL = new Map<string, RegExp>(
-  WRITING_GRAMMARS.filter((g) => g.check).map((g) => [g.label, g.check!] as const)
-);
+/**
+ * 지정 문법 검사보다 좁게 보는 것. 복합관계사는 문장 앞 연결어 「However,」를 빼고(쉼표가 바로 오면
+ * 연결어), 조동사 + have p.p.는 사이에 not이 낀 「may not have realized」도 잡는다.
+ */
+const UNIT_CHECKS: Record<string, RegExp> = {
+  복합관계사: /\b(?:whatever|whoever|whomever|whichever|whenever|wherever)\b|\bhowever\s+[a-z]/i,
+  // 관계부사는 선행사(곳·때·이유) 뒤나 「, where」만(의문사 how·when은 빼고)
+  관계부사:
+    /\b(?:place|area|city|town|country|world|room|house|home|time|day|year|moment|period|era|age|reason|point|situation|case|spot|region|land|village|school|island|site|street|museum|market|office|park|station)s?\s+(?:where|when|why)\b|,\s*(?:where|when)\s+[a-z]+\s+[a-z]+/i,
+  // 「while in space」「when asked」처럼 V-ing가 아닌 꼴도(접속사 바로 뒤 전치사·과거분사)
+  "부사절의 「주어+be동사」 생략":
+    /\b(?:when|while|if|though|although|unless|once|until)\s+(?:\w+ing|in|on|at|under|asked|given|done|finished|compared|used|needed|possible|necessary)\b/i,
+  "with + 명사 + 분사":
+    /\bwith\s+(?:(?:a|an|the|his|her|their|its|my|our|your|one's)\s+)?(?:[a-z]+\s+){0,2}[a-z]+\s+(?:[a-z]{2,}ing|[a-z]{3,}ed|done|gone|known|shown|broken|hidden|spread|shut|held|left|kept)\b(?=\s*[,.;!?”"]|\s*$|\s+(?:in|on|at|by|to|from|over|up|down|out|behind|around|and)\b)/i,
+  "조동사 + have p.p.": /\b(?:must|should|could|would|might|may)\s+(?:not\s+|never\s+)?have\s+(?:been\s+)?[a-z]+(?:ed|en|wn|ne|ght|t|de)\b/i,
+};
+
+const CHECK_BY_LABEL = new Map<string, RegExp>([
+  ...WRITING_GRAMMARS.filter((g) => g.check).map((g) => [g.label, g.check!] as const),
+  ...Object.entries(UNIT_CHECKS),
+]);
 
 const SUBJECTS: Array<[RegExp, string]> = [
   [/공통\s*영어\s*1|공통영어I\b/, "공통영어1"],

@@ -17,8 +17,8 @@ const SYSTEM = `너는 한국 고등학교 영어 내신 교재의 단어장 편
 - pos: n. v. a. ad. prep. conj. 구 가운데 하나(두 낱말 이상 어구는 "구").
 - meaning: 이 지문에서 쓰인 뜻만 한국어로 짧게(쉼표로 두 개까지). 사전 첫 뜻이 아니라 문맥 뜻.
 - key: 지문의 주제·흐름에 중요한 말이거나, 시험에서 동의어·반의어로 바꿔 나올 만한 말이면 true. 쉬운 기능어·고유명사·흔한 말은 false. 전체의 40~60%만 true.
-- synonyms, antonyms: key가 true일 때만 이 문맥 뜻과 맞는 것 1~2개(한 낱말이나 짧은 구, 영어). 딱 맞는 것이 없으면 빈 배열 — 억지로 만들지 않는다. key가 false면 둘 다 빈 배열.
-- forms: 품사가 다른 파생어 0~2개(실제로 쓰이는 낱말만, 철자 정확히). 예: ambitious → [{"word":"ambition","pos":"n."}], expand → [{"word":"expansion","pos":"n."}]. pos는 n. v. a. ad. 가운데 하나. 없으면 [].
+- synonyms, antonyms: key가 true일 때만, 이 문맥 뜻과 맞는 것을 있는 만큼 최대 3개(한 낱말이나 짧은 구, 영어). 시험에 바꿔 나올 만한 말이 여럿이면 하나로 줄이지 말고 다 쓴다. 딱 맞는 것이 없으면 빈 배열 — 억지로 만들지 않는다. key가 false면 둘 다 빈 배열.
+- forms: 품사가 다른 파생어를 있으면 빠짐없이 최대 3개(실제로 쓰이는 낱말만, 철자 정확히 — 시험에 「명사형은?」으로 나온다). 예: ambitious → [{"word":"ambition","pos":"n."}], restore → [{"word":"restoration","pos":"n."}], durable → [{"word":"durability","pos":"n."}], attract → [{"word":"attraction","pos":"n."},{"word":"attractive","pos":"a."}]. pos는 n. v. a. ad. 가운데 하나. 정말 없을 때만 [].
 - phrase: 시험에 나올 어구 하나를 "habit formation 습관 형성"처럼. 없으면 "".
 출력: {"vocab":[{"word":"","pos":"","meaning":"","key":true,"synonyms":[],"antonyms":[],"forms":[],"phrase":""}]}`;
 
@@ -43,9 +43,19 @@ const list = (v: unknown): string[] =>
   (Array.isArray(v) ? v : typeof v === "string" ? v.split(/[,/;]/) : [])
     .map((s) => String(s ?? "").trim())
     .filter(Boolean)
-    .slice(0, 2);
+    .slice(0, 3);
 
 const POS = new Set(["n.", "v.", "a.", "ad.", "prep.", "conj.", "구"]);
+
+/** 파생어 품사 표기를 맞춘다(모델이 adj.·noun·adv 로 주면 예전에는 버렸다) */
+function formPos(raw: string): string {
+  const p = raw.trim().toLowerCase().replace(/\.$/, "");
+  if (["n", "noun", "명사"].includes(p)) return "n.";
+  if (["v", "verb", "동사"].includes(p)) return "v.";
+  if (["a", "adj", "adjective", "형용사"].includes(p)) return "a.";
+  if (["ad", "adv", "adverb", "부사"].includes(p)) return "ad.";
+  return "";
+}
 
 /** 지문에 처음 나오는 자리(없으면 맨 뒤). 원형이 다르면 앞 네 글자로 한 번 더 찾는다. */
 function firstAt(passage: string, word: string): number {
@@ -113,10 +123,10 @@ export async function refineTestBookVocab(input: {
           forms: (Array.isArray(r.forms) ? r.forms : [])
             .map((f) => {
               const x = (f ?? {}) as Record<string, unknown>;
-              return { word: String(x.word ?? "").trim(), pos: String(x.pos ?? "").trim() };
+              return { word: String(x.word ?? "").trim(), pos: formPos(String(x.pos ?? "")) };
             })
-            .filter((f) => /^[A-Za-z][A-Za-z-]*$/.test(f.word) && ["n.", "v.", "a.", "ad."].includes(f.pos))
-            .slice(0, 2),
+            .filter((f) => /^[A-Za-z][A-Za-z-]*$/.test(f.word) && f.word.toLowerCase() !== word.toLowerCase() && f.pos)
+            .slice(0, 3),
           phrase: String(r.phrase ?? "").trim().slice(0, 40),
           key,
         };

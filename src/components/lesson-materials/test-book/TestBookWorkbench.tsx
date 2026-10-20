@@ -60,18 +60,6 @@ function newSeed(): string {
   return `draw-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-/** 고른 유형 가운데 n개를 무작위로(전부면 그대로) */
-function pickTypes(types: TestBookTypeKey[], n: number): TestBookTypeKey[] {
-  if (n <= 0 || n >= types.length) return types;
-  const a = [...types];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j]!, a[i]!];
-  }
-  const on = new Set(a.slice(0, n));
-  return ALL_TEST_BOOK_TYPES.filter((k) => on.has(k));
-}
-
 function TypeChecks({
   value,
   onChange,
@@ -246,13 +234,12 @@ export function TestBookWorkbench({
   const ready = projects.filter(isTestBookProjectReady);
   const [drawIds, setDrawIds] = useState<Set<string>>(() => new Set(initialProjects.map((p) => p.id)));
   const [drawTypes, setDrawTypes] = useState<TestBookTypeKey[]>(BASIC_TEST_BOOK_TYPES);
-  const [drawCount, setDrawCount] = useState(3);
   const [blankMode, setBlankMode] = useState<BlankMode>("same");
   const [drawAnswers, setDrawAnswers] = useState(true);
   const [draw, setDraw] = useState<{ seed: string; picks: Record<string, TestBookTypeKey[]> } | null>(null);
   function runDraw() {
     const picks: Record<string, TestBookTypeKey[]> = {};
-    for (const p of ready) if (drawIds.has(p.id)) picks[p.id] = pickTypes(drawTypes, drawCount);
+    for (const p of ready) if (drawIds.has(p.id)) picks[p.id] = drawTypes;
     setDraw({ seed: newSeed(), picks });
   }
 
@@ -485,23 +472,8 @@ export function TestBookWorkbench({
                 ))}
               </div>
               <div className="space-y-2 rounded-lg border border-violet-200 bg-violet-50/60 p-3">
-                <p className="text-xs font-bold text-violet-900">유형 (고른 것 중에서 무작위)</p>
+                <p className="text-xs font-bold text-violet-900">유형 (고른 유형을 모두 싣고, 문항은 누를 때마다 새로 섞음)</p>
                 <TypeChecks value={drawTypes} onChange={setDrawTypes} />
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-bold text-slate-500">한 지문에 넣을 유형 수</p>
-                <select
-                  value={drawCount}
-                  onChange={(e) => setDrawCount(Number(e.target.value))}
-                  className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
-                >
-                  {[2, 3, 4, 5].map((n) => (
-                    <option key={n} value={n}>
-                      {n}개
-                    </option>
-                  ))}
-                  <option value={0}>고른 유형 전부</option>
-                </select>
               </div>
               <div className="space-y-1.5">
                 <p className="text-[11px] font-bold text-slate-500">빈칸 자리</p>

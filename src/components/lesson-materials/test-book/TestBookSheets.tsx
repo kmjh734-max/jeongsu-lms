@@ -66,6 +66,9 @@ export const TEST_BOOK_CSS = `
 .tb-line{height:7.5mm;border-bottom:.6pt solid #c9cdd4}
 .tb-blank{display:inline-block;min-width:24mm;border-bottom:.8pt solid #15171c;margin:0 1mm;text-align:center;font-family:"Noto Sans KR",sans-serif;font-size:8pt;font-weight:700;color:#6a707c;vertical-align:-.3mm}
 .tb-pick{white-space:nowrap;font-weight:600}
+.tb-pn{font-weight:700;margin-right:.6mm}
+.tb-sup{font-family:"Noto Sans KR",sans-serif;font-size:6.5pt;font-weight:700;margin-left:.6mm;color:#15171c}
+.tb-kol{font-family:"Noto Sans KR",sans-serif;font-size:9pt;font-weight:800;margin:2.5mm 0 1mm}
 .tb-pick i{font-style:normal;font-weight:400;color:#8a909b;margin:0 .6mm}
 .tb-chunks{display:flex;flex-wrap:wrap;gap:1.5mm;margin:1mm 0}
 .tb-chunks span{border:.7pt solid #15171c;padding:.3mm 2mm;font-size:9.5pt}
@@ -216,10 +219,18 @@ export function PagedSheet({
 
 function Seg({ seg }: { seg: TestSeg }) {
   if (typeof seg === "string") return <>{seg}</>;
-  if ("blank" in seg) return <span className="tb-blank">{seg.blank}</span>;
+  if ("blank" in seg) {
+    return (
+      // 번호는 빈칸 안 왼쪽에 둔다 — 밖에 두면 번호만 줄 끝에 남았다(nowrap으로 감싸면 쪽 나누기 측정이 흐트러졌다)
+      <span className="tb-blank" style={seg.n ? { textAlign: "left" } : undefined}>
+        {seg.n ? <sup className="tb-sup">{seg.n}</sup> : null}
+        {seg.blank}
+      </span>
+    );
+  }
   return (
     <span className="tb-pick">
-      [ {seg.pick[0]} <i>/</i> {seg.pick[1]} ]
+      {seg.n ? <b className="tb-pn">{seg.n}</b> : null}[ {seg.pick[0]} <i>/</i> {seg.pick[1]} ]
     </span>
   );
 }
@@ -526,7 +537,7 @@ export function allVocabRows(projects: TestBookProjectInput[], indexOf: (id: str
   return out;
 }
 
-const ALL_GRID = "8mm 9mm 34mm 9mm 38mm 1fr 1fr";
+const ALL_GRID = "7mm 8mm 30mm 8mm 34mm 1fr 1fr 1fr";
 
 export function AllVocabSheets({
   projects,
@@ -547,6 +558,7 @@ export function AllVocabSheets({
       <div>지문 속 뜻</div>
       <div>= 동의어</div>
       <div>↔ 반의어</div>
+      <div>파생어</div>
     </div>
   );
   const blocks: Block[] = rows.map((r) => ({
@@ -563,6 +575,7 @@ export function AllVocabSheets({
         <div>{r.row.meaning}</div>
         <div className={r.row.synonyms.length ? "tb-en" : "tb-nil"}>{r.row.synonyms.join(", ") || "—"}</div>
         <div className={r.row.antonyms.length ? "tb-en" : "tb-nil"}>{r.row.antonyms.join(", ") || "—"}</div>
+        <div className={r.row.forms.length ? "tb-en" : "tb-nil"}>{r.row.forms.map((f) => `${f.word} ${f.pos}`).join(", ") || "—"}</div>
       </div>
     ),
   }));
@@ -795,7 +808,7 @@ export function LessonSheets({
       blocks={blocks}
       measureKey={measureKey}
       head={(page) => (
-        <DocHead title="Sentence by Sentence" sub={page > 0 ? "(이어서)" : sub} label={passageLabel(index, project)} right={project.source?.trim() || "수업용 자료"} />
+        <DocHead title="수업용 자료 · 문장별 해석" sub={page > 0 ? "(이어서)" : sub} label={passageLabel(index, project)} right={project.source?.trim() || "수업용 자료"} />
       )}
     />
   );
@@ -900,8 +913,15 @@ function sectionBlocks(sec: TestSection, n: number, prefix: string): Block[] {
           <Segs segs={sec.passage} />
         </p>
       ) : null}
+      {sec.passageKo ? (
+        <>
+          <div className="tb-kol">[해석]</div>
+          <p className="tb-psg tb-ko">{sec.passageKo}</p>
+        </>
+      ) : null}
     </>
   );
+  if (sec.inline) return [{ key: `${prefix}-${sec.type}`, node: <div className="tb-b">{top}</div> }];
   if (sec.type === "words") {
     return [
       {

@@ -10,7 +10,7 @@ import {
   onePageSourceHash,
   type OnePageProjectInput,
 } from "@/lib/lesson-materials/one-page";
-import { isTestBookMaterialFresh, type TestBookProjectInput } from "@/lib/lesson-materials/test-book";
+import { isTestBookMaterialFresh, mergeTestBookVocabHints, type TestBookProjectInput } from "@/lib/lesson-materials/test-book";
 
 /**
  * 수업용 자료·분석서 화면에 넘길 지문 데이터(최종통합자료가 여러 파일을 한꺼번에 불러올 때 쓴다).
@@ -187,14 +187,17 @@ export async function loadTestBookProjects(
         (itemsByProject.get(p.id as string) ?? []) as Array<{ english_text?: string | null; korean_text?: string | null }>
       );
       const english = sentences.map((s) => s.english);
+      const content = isOnePageContentFresh(pack.onePageContent, english) ? pack.onePageContent : null;
       return {
         id: p.id as string,
         title: p.title as string,
         titleEn: (p.title_en as string | null) ?? null,
         source: (p.source as string | null) ?? null,
         sentences,
-        content: isOnePageContentFresh(pack.onePageContent, english) ? pack.onePageContent : null,
-        material: isTestBookMaterialFresh(pack.testBookMaterial, english) ? pack.testBookMaterial : null,
+        content,
+        material: isTestBookMaterialFresh(pack.testBookMaterial, english)
+          ? mergeTestBookVocabHints(pack.testBookMaterial, content)
+          : null,
       };
     });
 }

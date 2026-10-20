@@ -350,8 +350,8 @@
  "공통영어1|지학사(신상근)|2": [
   {
    "title": "관계부사 where의 계속적 용법",
-   "label": "관계대명사 계속적 용법",
-   "writing": "관계대명사 계속적 용법"
+   "label": null,
+   "writing": null
   },
   {
    "title": "so ~ that ...",
@@ -391,8 +391,8 @@
   },
   {
    "title": "조동사+have+과거분사",
-   "label": "명사 수식 분사",
-   "writing": "명사 수식 분사"
+   "label": "조동사 + have p.p.",
+   "writing": "조동사 + have p.p."
   }
  ],
  "공통영어1|천재(강상구)|2": [
@@ -787,8 +787,8 @@
   },
   {
    "title": "with+명사+현재분사[과거분사]",
-   "label": "명사 수식 분사",
-   "writing": "명사 수식 분사"
+   "label": "with + 명사 + 분사",
+   "writing": "with + 명사 + 분사"
   }
  ],
  "공통영어2|비상(홍민표)|3": [
@@ -854,13 +854,13 @@
  "공통영어2|지학사(신상근)|4": [
   {
    "title": "「주격 관계대명사+be동사」 생략",
-   "label": "관계대명사",
-   "writing": "관계대명사"
+   "label": null,
+   "writing": null
   },
   {
    "title": "「with+명사+분사」 분사구문",
-   "label": "분사구문",
-   "writing": "분사구문"
+   "label": "with + 명사 + 분사",
+   "writing": "with + 명사 + 분사"
   }
  ],
  "공통영어2|천재(강상구)|1": [
@@ -902,8 +902,8 @@
  "공통영어2|천재(강상구)|4": [
   {
    "title": "「with+목적어+현재분사/과거분사」",
-   "label": "명사 수식 분사",
-   "writing": "명사 수식 분사"
+   "label": "with + 명사 + 분사",
+   "writing": "with + 명사 + 분사"
   },
   {
    "title": "현재완료 수동태",
@@ -919,8 +919,8 @@
   },
   {
    "title": "with 분사구문",
-   "label": "분사구문",
-   "writing": "분사구문"
+   "label": "with + 명사 + 분사",
+   "writing": "with + 명사 + 분사"
   }
  ],
  "공통영어2|천재(조수경)|2": [
@@ -950,8 +950,8 @@
  "공통영어2|천재(조수경)|4": [
   {
    "title": "may have+과거분사",
-   "label": "명사 수식 분사",
-   "writing": "명사 수식 분사"
+   "label": "조동사 + have p.p.",
+   "writing": "조동사 + have p.p."
   },
   {
    "title": "부사절의 「주어+be동사」 생략",
@@ -1106,8 +1106,8 @@
  "영어II|비상(홍민표)|1": [
   {
    "title": "조동사+have+과거분사",
-   "label": "명사 수식 분사",
-   "writing": "명사 수식 분사"
+   "label": "조동사 + have p.p.",
+   "writing": "조동사 + have p.p."
   },
   {
    "title": "강조의 it ... that",
@@ -1161,8 +1161,8 @@
  "영어II|지학사(신상근)|3": [
   {
    "title": "동명사의 의미상 주어",
-   "label": "to부정사 의미상 주어",
-   "writing": "to부정사 의미상 주어"
+   "label": null,
+   "writing": null
   },
   {
    "title": "현재완료 수동태",
@@ -1449,8 +1449,8 @@
  "영어I|미래엔(김성연)|2": [
   {
    "title": "형용사의 명사 후치 수식",
-   "label": "명사 수식 분사",
-   "writing": "명사 수식 분사"
+   "label": null,
+   "writing": null
   },
   {
    "title": "접속사 as의 쓰임",
@@ -1478,15 +1478,15 @@
   },
   {
    "title": "부사절을 이끄는 복합관계대명사 whatever",
-   "label": "관계대명사 what",
-   "writing": "관계대명사 what"
+   "label": "복합관계사",
+   "writing": "복합관계사"
   }
  ],
  "영어I|미래엔(김성연)|5": [
   {
    "title": "it 가주어 that절 진주어 구문",
-   "label": "가주어 it, 진주어 to부정사",
-   "writing": "가주어 it, 진주어 to부정사"
+   "label": null,
+   "writing": null
   },
   {
    "title": "현재완료 수동태",
@@ -1521,8 +1521,8 @@
  "영어I|비상(홍민표)|3": [
   {
    "title": "반복되는 문장 성분의 생략",
-   "label": "부사절의 「주어+be동사」 생략",
-   "writing": "부사절의 「주어+be동사」 생략"
+   "label": null,
+   "writing": null
   },
   {
    "title": "동격의 that",
@@ -1545,8 +1545,8 @@
  "영어I|지학사(신상근)|1": [
   {
    "title": "복합관계대명사 whatever",
-   "label": "관계대명사 what",
-   "writing": "관계대명사 what"
+   "label": "복합관계사",
+   "writing": "복합관계사"
   },
   {
    "title": "「the+비교급~, the+비교급 ...」구문",
@@ -1617,8 +1617,8 @@
  "영어I|천재(강상구)|2": [
   {
    "title": "복합관계대명사 whatever, whoever",
-   "label": "관계대명사 what",
-   "writing": "관계대명사 what"
+   "label": "복합관계사",
+   "writing": "복합관계사"
   },
   {
    "title": "「all+주어+동사+is+~」",
@@ -1646,8 +1646,8 @@
   },
   {
    "title": "반복되는 동사(구)의 생략",
-   "label": "부사절의 「주어+be동사」 생략",
-   "writing": "부사절의 「주어+be동사」 생략"
+   "label": null,
+   "writing": null
   }
  ],
  "영어I|천재(강상구)|5": [
@@ -1706,7 +1706,7 @@
   },
   {
    "title": "동명사의 의미상의 주어",
-   "label": "동명사",
+   "label": null,
    "writing": null
   }
  ],

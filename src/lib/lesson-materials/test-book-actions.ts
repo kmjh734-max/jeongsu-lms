@@ -22,10 +22,19 @@ import { generateWorkbookWordOrderWriting } from "@/lib/lesson-materials/generat
 import type { StoredWordOrderChunkCache } from "@/lib/lesson-materials/word-order-chunk-cache";
 import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
 import { refineTestBookVocab } from "@/lib/lesson-materials/generate-test-book";
-import { detectUnitGrammar, textbookUnitKey, unitGrammarFor } from "@/lib/grammar/textbook-unit-grammar";
+import {
+  KEY_SENTENCE_VERSION,
+  analyzeKeySentences,
+  keySentenceNorm,
+  type KeySentence,
+  type KeySentenceAnalysis,
+} from "@/lib/grammar/key-sentence-analysis";
 import {
   TEST_BOOK_MATERIAL_VERSION,
+  TEST_BOOK_VOCAB_VERSION,
   isTestBookMaterialFresh,
+  isTestBookMaterialSameSource,
+  mergeTestBookVocabHints,
   normalizeTestBookOptions,
   testBookSourceHash,
   type TestBookMaterial,
@@ -47,6 +56,34 @@ async function requireTestBook(role: Role) {
     return { profile: null, error: "이 학원에서는 테스트 교재를 쓸 수 없습니다." };
   }
   return { profile, error: null as null };
+}
+
+/**
+ * 지문 문장 분석. 출처가 교과서 본문 이름과 같고 저장해 둔 분석이 지금 규칙이면 그것을(문장은 글자로 맞춘다),
+ * 아니면 같은 규칙으로 계산한다. 돌려주는 sentences는 지문 문장 차례(못 맞춘 문장은 계산한 값).
+ */
+async function loadKeySentenceAnalysis(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  academyId: string,
+  source: string | null,
+  english: string[]
+): Promise<KeySentenceAnalysis> {
+  const live = analyzeKeySentences(english, source);
+  if (!source?.trim()) return live;
+  const { data } = await supabase
+    .from("textbook_passages")
+    .select("key_sentences")
+    .eq("academy_id", academyId)
+    .eq("label", source.trim())
+    .limit(1)
+    .maybeSingle();
+  const stored = data?.key_sentences as KeySentenceAnalysis | null | undefined;
+  if (!stored || stored.version !== KEY_SENTENCE_VERSION || !Array.isArray(stored.sentences)) return live;
+  const byText = new Map<string, KeySentence>(stored.sentences.map((s) => [keySentenceNorm(s.english), s] as const));
+  return {
+    ...stored,
+    sentences: english.map((e, i) => byText.get(keySentenceNorm(e)) ?? live.sentences[i]!),
+  };
 }
 
 async function loadProject(role: Role, profile: { id: string; academy_id: string | null }, projectId: string) {
@@ -133,14 +170,20 @@ export async function prepareTestBookPassageAction(
     // 3. 테스트 교재 재료
     let material = pack.testBookMaterial;
     if (input.forceRegenerate || !isTestBookMaterialFresh(material, english)) {
-      const vocab = await withAiUsage(usage, () =>
-        refineTestBookVocab({
-          title: project.title as string,
-          sentences,
-          packVocab: pack.vocab ?? [],
-          keyHints: content!.vocab.map((v) => ({ surface: v.surface, synonyms: v.synonyms, antonyms: v.antonyms })),
-        })
-      );
+      // 원문이 그대로면(재료 버전만 바뀌었으면) 단어 정리는 다시 쓰고 규칙으로 만드는 것만 새로
+      const vocab =
+        !input.forceRegenerate &&
+        isTestBookMaterialSameSource(material, english) &&
+        material.vocabVersion === TEST_BOOK_VOCAB_VERSION
+          ? material.vocab
+          : await withAiUsage(usage, () =>
+              refineTestBookVocab({
+                title: project.title as string,
+                sentences,
+                packVocab: pack.vocab ?? [],
+                keyHints: content!.vocab.map((v) => ({ surface: v.surface, synonyms: v.synonyms, antonyms: v.antonyms })),
+              })
+            );
 
       // 중요문장: 워크북 「중요문장 어순배열」과 같은 규칙(분석서 주제문 → 빈칸 후보 핵심 문장 → 규칙)
       const report = (project.analysis_report_json ?? null) as AnalysisReportData | null;
@@ -150,17 +193,35 @@ export async function prepareTestBookPassageAction(
         analysisSentences: report?.sentences ?? null,
         coreSentenceIds: (pack.blankCandidatePool as StoredBlankCandidatePool | undefined)?.coreSentenceIds ?? null,
       });
-      // 교과서 지문이면 그 과 단원문법이 든 문장을 중요문장 맨 앞에(어순배열에 먼저 나온다)
-      const unitKey = textbookUnitKey(project.source as string | null);
-      const unitPoints = unitGrammarFor(unitKey);
-      const unitHits = sentences
-        .map((s, si) => ({ si, grammar: detectUnitGrammar(s.english, unitPoints), words: s.english.split(/\s+/).length }))
-        .filter((h) => h.grammar.length && h.words >= 6 && h.words <= 40 && sentences[h.si]!.korean.trim())
-        .sort((a, b) => b.grammar.length - a.grammar.length || b.words - a.words)
-        .slice(0, 4)
-        .map(({ si, grammar }) => ({ si, grammar }));
+      // 어순배열 문장: 그 과 단원문법이 든 문장(꼭)과 구문이 어려운 문장. 교과서 본문은 저장해 둔
+      // 분석(textbook_passages.key_sentences)을 쓰고, 없거나 옛 규칙이면 같은 규칙으로 바로 계산한다.
+      const analysis = await loadKeySentenceAnalysis(
+        supabase,
+        profile!.academy_id!,
+        (project.source as string | null) ?? null,
+        sentences.map((s) => s.english)
+      );
+      const unitKey = analysis.unitKey;
+      const usableAt = (si: number) => {
+        const w = sentences[si]!.english.split(/\s+/).length;
+        return w >= 6 && w <= 40 && !!sentences[si]!.korean.trim();
+      };
+      const unitHits = analysis.sentences
+        .map((s, si) => ({ si, grammar: s?.unitGrammar ?? [] }))
+        .filter((h) => h.grammar.length && usableAt(h.si))
+        .slice(0, 5);
+      const hardHits = analysis.sentences
+        .map((s, si) => ({ si, structures: s?.structures ?? [], score: s?.score ?? 0, hard: !!s?.hard }))
+        .filter((h) => h.hard && usableAt(h.si) && !unitHits.some((u) => u.si === h.si))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 2)
+        .map(({ si, structures }) => ({ si, structures }));
       const keyIndexes = [
-        ...new Set([...unitHits.map((h) => h.si), ...keyIds.map((id) => ids.indexOf(id)).filter((i) => i >= 0)]),
+        ...new Set([
+          ...unitHits.map((h) => h.si),
+          ...hardHits.map((h) => h.si),
+          ...keyIds.map((id) => ids.indexOf(id)).filter((i) => i >= 0),
+        ]),
       ].sort((a, b) => a - b);
       const chunkKeySet = new Set(keyIndexes.map((i) => ids[i]!));
 
@@ -206,12 +267,14 @@ export async function prepareTestBookPassageAction(
 
       material = {
         version: TEST_BOOK_MATERIAL_VERSION,
+        vocabVersion: TEST_BOOK_VOCAB_VERSION,
         sourceHash: testBookSourceHash(english),
         vocab,
         keyIndexes,
         chunks,
         unitKey,
         unitHits: unitHits.sort((a, b) => a.si - b.si),
+        hardHits: hardHits.sort((a, b) => a.si - b.si),
         createdAt: new Date().toISOString(),
       };
       await patchLessonPack(supabase, projectId, pack, { testBookMaterial: material });
@@ -226,7 +289,7 @@ export async function prepareTestBookPassageAction(
       idempotencyKey: `${TEST_BOOK_FEATURE}:${projectId}`,
       note: `테스트 교재 · ${project.title}`,
     });
-    return { ok: true, content: content!, material: material!, sentences };
+    return { ok: true, content: content!, material: mergeTestBookVocabHints(material!, content), sentences };
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : "테스트 교재 재료를 만들지 못했습니다." };
   }
