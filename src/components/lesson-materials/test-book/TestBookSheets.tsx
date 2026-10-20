@@ -1010,13 +1010,19 @@ export function TranslationBackSheets({ projects, measureKey }: { projects: Test
 function ItemNode({ item }: { item: TestItem }) {
   if (item.tf) {
     return (
-      <div className="tb-tf">
-        <span className="tb-tip">{item.no}</span>
-        <span className="tb-en">
-          <Segs segs={item.text} />
-        </span>
-        <span className="tb-tfbox">T · F</span>
-      </div>
+      <>
+        <div className="tb-tf">
+          <span className="tb-tip">{item.no}</span>
+          <span className="tb-en">
+            <Segs segs={item.text} />
+          </span>
+          <span className="tb-tfbox">T · F</span>
+        </div>
+        {/* 난이도 UP: F면 바르게 고쳐 쓰는 줄 */}
+        {Array.from({ length: item.lines ?? 0 }).map((_, i) => (
+          <div key={i} className="tb-line" style={{ marginLeft: "7mm" }} />
+        ))}
+      </>
     );
   }
   return (

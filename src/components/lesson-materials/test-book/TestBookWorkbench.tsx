@@ -26,6 +26,7 @@ import {
   type BlankMode,
   type WritingScope,
   type LineMode,
+  type TestLevel,
   type TestBookOptions,
   type TestBookProjectInput,
   type TestBookTypeKey,
@@ -175,6 +176,37 @@ function CoverInput({
         <input className={cls} value={text} placeholder={placeholder} onChange={(e) => setText(e.target.value)} onBlur={blur} />
       )}
     </label>
+  );
+}
+
+/** 난이도: 기본 · UP — 다시 만들지 않고 문항 내는 방식만 바꾼다(값 없음) */
+function LevelSwitch({ value, onChange }: { value: TestLevel; onChange: (v: TestLevel) => void }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] font-bold text-slate-500">난이도</p>
+      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+        {(
+          [
+            ["basic", "기본"],
+            ["up", "난이도 UP"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onChange(id)}
+            className={`rounded-md px-1 py-1 text-[11px] font-bold ${value === id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {value === "up" ? (
+        <p className="text-[10.5px] leading-snug text-slate-500">
+          빈칸 문장마다 둘 · 어순배열 덩어리 잘게(앞말 없음) · 영작 단어 수 숨김 · 바꿔 말하기 힌트 숨김 · T/F는 F를 고쳐 쓰기
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -416,6 +448,7 @@ export function TestBookWorkbench({
   const [blankMode, setBlankMode] = useState<BlankMode>("same");
   const [drawWriting, setDrawWriting] = useState<WritingScope>("all");
   const [drawLineMode, setDrawLineMode] = useState<LineMode>("full");
+  const [drawLevel, setDrawLevel] = useState<TestLevel>("basic");
   const [drawAnswers, setDrawAnswers] = useState(true);
   const [draw, setDraw] = useState<{ seed: string; picks: Record<string, TestBookTypeKey[]> } | null>(null);
   /** 뽑을 때마다 값(지문 수 × 유형 수)을 받는다 — 확인 창을 띄우고, 서버에서 차감된 뒤에만 보여 준다 */
@@ -526,18 +559,24 @@ export function TestBookWorkbench({
       ready.map((p) => ({
         project: p,
         word: buildWordTest(p, BOOK_SEED),
-        sheet: buildTestSheet(p, options.types, { seed: BOOK_SEED, blankMode: "same", writing: options.writing, lineMode: options.lineMode }),
+        sheet: buildTestSheet(p, options.types, {
+          seed: BOOK_SEED,
+          blankMode: "same",
+          writing: options.writing,
+          lineMode: options.lineMode,
+          level: options.level,
+        }),
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ready.map((p) => p.id).join(","), projects, options.types, options.writing, options.lineMode]
+    [ready.map((p) => p.id).join(","), projects, options.types, options.writing, options.lineMode, options.level]
   );
   const drawn = useMemo(() => {
     if (!draw) return [];
     return ready
       .filter((p) => draw.picks[p.id])
-      .map((p) => ({ project: p, sheet: buildTestSheet(p, draw.picks[p.id]!, { seed: draw.seed, blankMode, writing: drawWriting, lineMode: drawLineMode }) }));
+      .map((p) => ({ project: p, sheet: buildTestSheet(p, draw.picks[p.id]!, { seed: draw.seed, blankMode, writing: drawWriting, lineMode: drawLineMode, level: drawLevel }) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draw, blankMode, drawWriting, drawLineMode, projects]);
+  }, [draw, blankMode, drawWriting, drawLineMode, drawLevel, projects]);
 
   // ---------------------------------------------------------------- 교재 차례·목차
   const testsOn = options.tests && book.length > 0 && (options.allWordTest || options.wordTest || options.types.length > 0);
@@ -866,6 +905,7 @@ export function TestBookWorkbench({
                   <div className="space-y-2 rounded-lg border border-violet-200 bg-violet-50/60 p-2.5">
                     <p className="text-[11px] font-bold text-violet-900">테스트 견본 유형</p>
                     <TypeChecks value={options.types} onChange={(types) => setOptions({ types })} />
+                    <LevelSwitch value={options.level} onChange={(level) => setOptions({ level })} />
                     {options.types.includes("line") ? <LineModeSwitch value={options.lineMode} onChange={(lineMode) => setOptions({ lineMode })} /> : null}
                     {options.types.includes("writing") ? <WritingScopeSwitch value={options.writing} onChange={(writing) => setOptions({ writing })} /> : null}
                     {options.types.includes("grammar") ? (
@@ -969,6 +1009,7 @@ export function TestBookWorkbench({
                   ))}
                 </div>
               </div>
+              <LevelSwitch value={drawLevel} onChange={setDrawLevel} />
               {drawTypes.includes("line") ? <LineModeSwitch value={drawLineMode} onChange={setDrawLineMode} /> : null}
               {drawTypes.includes("writing") ? <WritingScopeSwitch value={drawWriting} onChange={setDrawWriting} /> : null}
               <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">

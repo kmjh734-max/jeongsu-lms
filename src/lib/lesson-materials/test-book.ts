@@ -252,6 +252,8 @@ export type TestBookOptions = {
   writing: WritingScope;
   /** 한줄해석: 전체 해석 · 직독직해 */
   lineMode: LineMode;
+  /** 테스트 견본 난이도 */
+  level: TestLevel;
   /** 표지 */
   cover: boolean;
   /** 표지 모양·글자 */
@@ -291,6 +293,7 @@ export const DEFAULT_TEST_BOOK_OPTIONS: TestBookOptions = {
   translation: "hide",
   writing: "all",
   lineMode: "full",
+  level: "basic",
   cover: true,
   coverInfo: { presetId: TEST_BOOK_BLEED_COVER, label: "", title: "", progress: "", academy: "", headline: "" },
   toc: true,
@@ -317,6 +320,7 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
     translation: t === "show" || t === "hide" || t === "back" ? t : DEFAULT_TEST_BOOK_OPTIONS.translation,
     writing: r.writing === "key" ? "key" : "all",
     lineMode: r.lineMode === "chunk" ? "chunk" : "full",
+    level: r.level === "up" ? "up" : "basic",
     cover: r.cover !== false,
     coverInfo: (() => {
       const c = (r.coverInfo ?? {}) as Partial<Record<keyof TestBookCover, unknown>>;
@@ -412,6 +416,11 @@ const no = (i: number) => `(${i + 1})`;
 // ---------------------------------------------------------------- 조립
 
 export type BlankMode = "same" | "diff";
+/**
+ * 난이도: 기본 · UP(선생님 2026-10-20: 워크북처럼). 다시 만들지 않고 문항 내는 방식만 바꾼다 —
+ * 빈칸 문장마다 둘, 어순배열 덩어리 잘게·앞말 없음, 영작 단어 수 숨김, 바꿔 말하기 힌트 숨김, T/F 고쳐 쓰기.
+ */
+export type TestLevel = "basic" | "up";
 /** 한줄해석: 문장 전체를 해석 · 덩어리마다 직독직해 */
 export type LineMode = "full" | "chunk";
 /** 통문장 영작 범위: 모든 문장 · 중요문장(단원문법·어려운 구문·핵심 문장)만 */
@@ -554,7 +563,7 @@ function fallbackBlank(sentence: string): string | null {
  * 문장마다 빈칸 하나. 「같은 자리」는 교재 견본과 같은 낱말, 「다른 자리」는 그 문장의 다른 후보.
  * 워크북 빈칸과 같은 모양으로 지문을 통째로 싣고 아래에 [해석]을 둔다(선생님 2026-10-20).
  */
-function buildBlank(p: Ready, seed: string, mode: BlankMode): TestSection | null {
+function buildBlank(p: Ready, seed: string, mode: BlankMode, up = false): TestSection | null {
   const pool = blankCandidates(p);
   const passage: TestSeg[] = [];
   const items: TestItem[] = [];
@@ -562,30 +571,47 @@ function buildBlank(p: Ready, seed: string, mode: BlankMode): TestSection | null
     const sentence = clean(s.english);
     if (!sentence) return;
     if (passage.length) passage.push(" ");
-    let phrase: string | null = null;
+    const phrases: string[] = [];
     if (s.korean.trim()) {
       const mine = pool.filter((c) => c.si === si);
-      if (!mine.length) phrase = fallbackBlank(sentence);
-      else {
+      if (!mine.length) {
+        const f = fallbackBlank(sentence);
+        if (f) phrases.push(f);
+      } else {
         const bookOne = pickN(mine, 1, `book|${p.id}|blank|${si}`)[0]!;
         const others = mine.filter((c) => c.key !== bookOne.key);
-        phrase = (mode === "diff" && others.length ? pickN(others, 1, `${seed}|blank|${si}`)[0]! : bookOne).phrase;
+        phrases.push((mode === "diff" && others.length ? pickN(others, 1, `${seed}|blank|${si}`)[0]! : bookOne).phrase);
+        // 난이도 UP: 문장마다 빈칸 하나 더(자리가 있는 문장만)
+        if (up) {
+          const extra = pickN(others.filter((c) => c.phrase !== phrases[0]), 1, `${seed}|blank2|${si}`)[0];
+          if (extra) phrases.push(extra.phrase);
+        }
       }
     }
-    const part = phrase ? splitAt(sentence, phrase) : null;
-    if (!part) {
+    // 겹치지 않는 자리만, 문장 앞에서부터
+    const hits = phrases
+      .map((ph) => findPhrase(sentence, ph))
+      .filter((h): h is NonNullable<typeof h> => !!h)
+      .sort((x, y) => x.start - y.start)
+      .filter((h, i, all) => i === 0 || h.start >= all[i - 1]!.end);
+    if (!hits.length) {
       passage.push(sentence);
       return;
     }
-    const n = String(items.length + 1);
-    passage.push(part.before, { blank: "", n }, part.after);
-    items.push({ no: `${n}.`, text: [], answer: part.hit });
+    let cursor = 0;
+    for (const h of hits) {
+      const n = String(items.length + 1);
+      passage.push(sentence.slice(cursor, h.start), { blank: "", n });
+      items.push({ no: `${n}.`, text: [], answer: sentence.slice(h.start, h.end) });
+      cursor = h.end;
+    }
+    passage.push(sentence.slice(cursor));
   });
   if (!items.length) return null;
   return {
     type: "blank",
     title: "빈칸",
-    hint: "해석을 보고 빈칸 채우기",
+    hint: up ? "해석을 보고 빈칸 채우기 · 문장마다 빈칸 둘" : "해석을 보고 빈칸 채우기",
     passage,
     passageKo: p.sentences.map((s) => s.korean.trim()).filter(Boolean).join(" "),
     inline: true,
@@ -740,15 +766,27 @@ function orderPicks(p: Ready, seed: string): Array<{ si: number; chunks: string[
   return bySentence(pickN(pool, 2, `${seed}|order`));
 }
 
-function buildOrder(p: Ready, seed: string): TestSection | null {
+/** 난이도 UP 어순배열: 네 낱말 이상 덩어리를 반으로 나눈다 */
+function finerChunks(chunks: string[]): string[] {
+  return chunks.flatMap((c) => {
+    const w = c.split(/\s+/);
+    if (w.length < 4) return [c];
+    const mid = Math.ceil(w.length / 2);
+    return [w.slice(0, mid).join(" "), w.slice(mid).join(" ")];
+  });
+}
+
+function buildOrder(p: Ready, seed: string, up = false): TestSection | null {
   const chosen = orderPicks(p, seed);
   if (!chosen.length) return null;
   return {
     type: "order",
     title: "중요문장 어순배열",
-    hint: "해석에 맞게 배열하기",
+    hint: up ? "해석에 맞게 배열하기 · 덩어리 잘게, 앞말 없음" : "해석에 맞게 배열하기",
     items: chosen.map((c, i) => {
-      const { lead, rest } = splitLead(c.chunks);
+      const split = splitLead(c.chunks);
+      const lead = up ? "" : split.lead;
+      const rest = up ? finerChunks(c.chunks) : split.rest;
       const grammar = p.material.unitHits?.find((h) => h.si === c.si)?.grammar ?? [];
       const structures = p.material.hardHits?.find((h) => h.si === c.si)?.structures ?? [];
       return {
@@ -769,20 +807,20 @@ function buildOrder(p: Ready, seed: string): TestSection | null {
   };
 }
 
-function buildTf(p: Ready, seed: string): TestSection | null {
+function buildTf(p: Ready, seed: string, up = false): TestSection | null {
   const all = p.content.tf.filter((t) => t.statement.trim());
   if (!all.length) return null;
   const order = fisherYatesShuffle(all, createSeededRng(`${seed}|tf`));
   return {
     type: "tf",
     title: "T/F",
-    hint: "지문 내용과 맞으면 T, 틀리면 F",
-    items: order.map((x, i) => ({ no: no(i), text: [x.statement], tf: true, answer: x.answer })),
+    hint: up ? "맞으면 T, 틀리면 F — F는 아래 줄에 바르게 고쳐 쓰기" : "지문 내용과 맞으면 T, 틀리면 F",
+    items: order.map((x, i) => ({ no: no(i), text: [x.statement], tf: true, lines: up ? 1 : undefined, answer: x.answer })),
   };
 }
 
 /** 통문장 영작: 모든 문장 또는 중요문장만(선생님 2026-10-20 — 고르게) */
-function buildWriting(p: Ready, seed: string, scope: WritingScope): TestSection | null {
+function buildWriting(p: Ready, seed: string, scope: WritingScope, up = false): TestSection | null {
   const key = new Set(p.material.keyIndexes);
   const all = p.sentences
     .map((s, si) => ({ si, s }))
@@ -794,7 +832,7 @@ function buildWriting(p: Ready, seed: string, scope: WritingScope): TestSection 
     hint: "해석만 보고 영어로 쓰기",
     items: arrange(all, seed).map(({ s }, i) => {
       const answer = answerSentence(s.english);
-      return { no: no(i), text: [], ko: s.korean, hint: `${words(answer)}단어`, lines: words(answer) > 16 ? 2 : 1, answer };
+      return { no: no(i), text: [], ko: s.korean, hint: up ? undefined : `${words(answer)}단어`, lines: words(answer) > 16 ? 2 : 1, answer };
     }),
   };
 }
@@ -982,7 +1020,7 @@ function buildImplication(p: Ready): TestSection | null {
 }
 
 /** 바꿔 말하기: 본문 표현과 같은 뜻 문장(패러프레이징)의 핵심 낱말을 첫 글자만 주고 채운다 */
-function buildParaphrase(p: Ready, seed: string): TestSection | null {
+function buildParaphrase(p: Ready, seed: string, up = false): TestSection | null {
   const items: TestItem[] = [];
   for (const x of p.content.paraphrases ?? []) {
     const options = x.paraphrases.filter((t) => t.trim());
@@ -997,14 +1035,19 @@ function buildParaphrase(p: Ready, seed: string): TestSection | null {
     if (!part) continue;
     items.push({
       no: no(items.length),
-      text: ["= ", part.before, { blank: part.hit[0]! }, part.after],
+      text: ["= ", part.before, { blank: up ? "" : part.hit[0]! }, part.after],
       tag: x.expression,
-      ko: x.meaningKo || undefined,
+      ko: up ? undefined : x.meaningKo || undefined,
       answer: part.hit,
     });
   }
   if (!items.length) return null;
-  return { type: "paraphrase", title: "바꿔 말하기", hint: "본문 표현(위)과 같은 뜻이 되도록 빈칸 채우기 · 첫 글자 줌", items: items.slice(0, 6) };
+  return {
+    type: "paraphrase",
+    title: "바꿔 말하기",
+    hint: up ? "본문 표현(위)과 같은 뜻이 되도록 빈칸 채우기" : "본문 표현(위)과 같은 뜻이 되도록 빈칸 채우기 · 첫 글자 줌",
+    items: items.slice(0, 6),
+  };
 }
 
 /** 도식화: 글의 흐름 칸(배경·전환·예시…)에 섞은 보기에서 알맞은 내용을 골라 넣는다 */
@@ -1063,9 +1106,10 @@ function buildWords(p: Ready, seed: string): TestSection | null {
 export function buildTestSheet(
   p: Ready,
   types: TestBookTypeKey[],
-  opts: { seed: string; blankMode?: BlankMode; writing?: WritingScope; lineMode?: LineMode }
+  opts: { seed: string; blankMode?: BlankMode; writing?: WritingScope; lineMode?: LineMode; level?: TestLevel }
 ): TestSheet {
   const seed = `${opts.seed}|${p.id}`;
+  const up = opts.level === "up";
   const on = new Set(types);
   const sections: TestSection[] = [];
   // 어법선택·어법 서술형을 함께 고르면 어법 자리를 번갈아 나눈다(같은 자리를 두 번 묻지 않게)
@@ -1077,19 +1121,19 @@ export function buildTestSheet(
     if (!on.has(key)) continue;
     const sec =
       key === "line" ? buildLine(p, seed, opts.lineMode ?? "full")
-      : key === "blank" ? buildBlank(p, seed, opts.blankMode ?? "same")
+      : key === "blank" ? buildBlank(p, seed, opts.blankMode ?? "same", up)
       : key === "grammar" ? (workbookGrammarSection(p, seed) ?? pickSection(p, "grammar", "어법선택", "알맞은 것에 ○", forPick, seed))
       : key === "vocab" ? pickSection(p, "vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed)
-      : key === "order" ? buildOrder(p, seed)
-      : key === "tf" ? buildTf(p, seed)
-      : key === "writing" ? buildWriting(p, seed, opts.writing ?? "all")
+      : key === "order" ? buildOrder(p, seed, up)
+      : key === "tf" ? buildTf(p, seed, up)
+      : key === "writing" ? buildWriting(p, seed, opts.writing ?? "all", up)
       : key === "link" ? buildLink(p, seed)
       : key === "sequence" ? buildSequence(p, seed)
       : key === "insert" ? buildInsert(p, seed)
       : key === "summary" ? buildSummary(p)
       : key === "reference" ? buildReference(p)
       : key === "implication" ? buildImplication(p)
-      : key === "paraphrase" ? buildParaphrase(p, seed)
+      : key === "paraphrase" ? buildParaphrase(p, seed, up)
       : key === "flow" ? buildFlow(p, seed)
       : key === "grammarFix" ? buildGrammarFix(p, seed, usedGrammar)
       : buildWords(p, seed);
