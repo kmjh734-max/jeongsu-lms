@@ -13,6 +13,30 @@ export const maxDuration = 60;
  * 여기서는 Chrome이 인쇄하듯 PDF를 만들어 글자가 글자로 남는다(고르기·찾기 되고, 인쇄가 선명하다).
  * 브라우저가 쪽을 나눠 여러 번 부르고(server-pdf.ts), 받은 PDF들을 한 파일로 합친다.
  */
+/**
+ * 배포 서버에서 Chrome이 뜨는지 확인한다(로그인 없이 부를 수 있지만 서비스 키를 아는 쪽만).
+ * 그림 PDF로 되돌아가는 까닭을 찾으려고 둔다.
+ */
+export async function GET(request: Request) {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key || request.headers.get("x-pdf-selftest") !== key) return new Response("Not found", { status: 404 });
+  const t0 = Date.now();
+  try {
+    const pdf = await renderHtmlToPdf(
+      `<!doctype html><html><body style="font-family:sans-serif"><h1>PDF 시험 Test 가나다</h1></body></html>`,
+      { w: 210, h: 297 },
+      new URL(request.url).origin
+    );
+    return Response.json({ ok: true, bytes: pdf.length, ms: Date.now() - t0 });
+  } catch (e) {
+    return Response.json({
+      ok: false,
+      ms: Date.now() - t0,
+      error: e instanceof Error ? `${e.message}\n${e.stack ?? ""}`.slice(0, 2000) : String(e),
+    });
+  }
+}
+
 export async function POST(request: Request) {
   const profile = await getCurrentProfile();
   if (!profile) return new Response("로그인이 필요합니다.", { status: 401 });
