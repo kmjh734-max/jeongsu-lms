@@ -5,6 +5,7 @@ import {
   resolveV2AuditorModel,
 } from "@/lib/lesson-materials/grammar-choice-v2/generate";
 import { isDerivedFromCorrect } from "@/lib/lesson-materials/grammar-choice-v2/local-validators";
+import { engcoreWordLevel } from "@/lib/vocab/engcore-level";
 import {
   formatWorkbookPassage,
   joinWorkbookPassageLines,
@@ -47,8 +48,21 @@ export type StoredVocabChoiceCache = {
   sourceHash: string;
   algorithmVersion: string;
   pairs: StoredVocabChoicePair[];
+  /** 어느 수준으로 만든 쌍이 들었는지. 없으면 예전 것(= 난이도 UP과 같은 기준). */
+  wordLevels?: VocabWordLevel[];
   createdAt: string;
 };
+
+/**
+ * 어휘 선택 낱말 수준.
+ * 선생님 말(2026-10-20): "지금 단어 구분할 때 어휘가 너무 어려워. 일반 / 난이도 UP으로 하자.
+ * 단어 수준을 가지고." 그래서 수준은 우리 EngCore 단어장 레벨로 잰다.
+ *  - normal(일반): 지문 낱말은 고교기본까지, 바꾼 낱말은 중학고난도까지만 쓴다.
+ *  - hard(난이도 UP): 수준을 막지 않고, 단어장 레벨이 높은 자리를 앞세운다(예전 방식).
+ */
+export type VocabWordLevel = "normal" | "hard";
+const NORMAL_TARGET_MAX_LEVEL = 7; // EngCore 고교기본
+const NORMAL_WRONG_MAX_LEVEL = 6; // EngCore 중학고난도
 
 type Sentence = { id: string; english: string };
 
@@ -116,6 +130,28 @@ const FUNCTION_WORDS = new Set(
     "not no yes very too also just only even still"
   ).split(" ")
 );
+
+const PARTICLES = new Set("up down out off away back around along over in on".split(" "));
+
+/** 자리에 든 낱말들 가운데 가장 높은 단어장 레벨. 단어장에 없는 낱말이 있으면 null. */
+function phraseLevel(text: string): number | null {
+  let max = 0;
+  for (const w of words(text)) {
+    // 구동사의 부사(jumps out, turns down)는 따로 재지 않는다.
+    if (FUNCTION_WORDS.has(w.toLowerCase()) || PARTICLES.has(w.toLowerCase())) continue;
+    const lv = engcoreWordLevel(w);
+    if (lv === null) return null;
+    max = Math.max(max, lv);
+  }
+  return max;
+}
+
+function fitsWordLevel(p: { targetText: string; wrongText: string }, level: VocabWordLevel): boolean {
+  if (level === "hard") return true;
+  const t = phraseLevel(p.targetText);
+  const w = phraseLevel(p.wrongText);
+  return t !== null && t <= NORMAL_TARGET_MAX_LEVEL && w !== null && w <= NORMAL_WRONG_MAX_LEVEL;
+}
 
 function words(text: string): string[] {
   return text.trim().split(/\s+/).filter(Boolean);
@@ -216,7 +252,11 @@ const GENERATOR_SYSTEM = `당신은 대한민국 고등학교 영어 내신·수
   대표적으로 반의어나 논리를 뒤집는 말(increase↔decrease, accept↔reject, rare↔common, benefit↔harm).
 - 금지: 동의어·유사어, 넣어도 해석에 따라 말이 되는 낱말, 철자만 비슷한 혼동어, 실재하지 않는 낱말.
 - 바로 앞에 a/an이 있으면 그 관사와 맞는 낱말을 쓴다. 문장 첫 낱말이면 첫 글자를 대문자로 쓴다.
-- 고등학생이 알 만한 수준의 낱말을 쓴다.
+
+# 낱말 수준(wordLevel)
+- "normal": 중학생~고1이 아는 쉬운 낱말로 묻는다. 자리는 쉬운 내용어(교과서 기본 어휘)를 고르고, 어려운 낱말 자리는 고르지 않는다.
+  틀린 낱말은 중학 필수 수준의 쉬운 반대말로 쓴다(increase↔decrease, safe↔dangerous, easy↔difficult). 문장마다 쉬운 자리를 빠짐없이 찾는다.
+- "hard": 고2~수능 수준 낱말도 쓴다. 어려운 내용어 자리를 앞세우고, 틀린 낱말도 그 수준에 맞춘다.
 
 # 개수
 - 후보를 넉넉히 만든다: 문장마다 물을 만한 자리가 있으면 모두 낸다(문장당 최대 3곳). 검수에서 절반쯤 빠지므로, 최종에 필요한 수의 두 배를 낸다고 생각하고 아끼지 않는다.
@@ -322,6 +362,7 @@ async function generatePairs(input: {
   hints: VocabHint[];
   /** 이미 뽑은 자리(같은 낱말을 또 내지 않게) */
   avoidTargets?: string[];
+  wordLevel: VocabWordLevel;
 }): Promise<StoredVocabChoicePair[]> {
   const called = await callGrammarChoiceV2Json({
     stage: "GENERATOR",
@@ -335,6 +376,7 @@ async function generatePairs(input: {
       title: input.title,
       sentences: input.sentences.map((s) => ({ sentenceId: s.id, text: formatWorkbookPassage(s.english) })),
       hints: input.hints.slice(0, 24),
+      wordLevel: input.wordLevel,
       ...(input.avoidTargets?.length ? { alreadyUsedTargets: input.avoidTargets.slice(0, 40) } : {}),
     }),
     schemaName: "vocab_choice_generate",
@@ -410,11 +452,18 @@ async function auditPairs(input: {
  * 선생님 기준(2026-09-20): "반의어만 존재하면 여기저기 만들어도 된다." 그래서 반대말이
  * 뚜렷한 자리(antonym·reversal)를 앞세우고, 그 다음 학습 가치 순으로 고른다.
  */
-function selectFinal(pairs: Located[]): Located[] {
+function selectFinal(pairs: Located[], level: VocabWordLevel): Located[] {
   const rank = (r: string) => (r === "antonym" ? 0 : r === "reversal" ? 1 : 2);
-  const ordered = [...pairs].sort(
-    (a, b) => rank(a.relation) - rank(b.relation) || b.learningValue - a.learningValue
-  );
+  // 난이도 UP은 같은 짝 종류 안에서 단어장 레벨이 높은(단어장 밖 포함) 자리를 먼저 고른다.
+  const hardness = (p: Located) => (level === "hard" ? (phraseLevel(p.targetText) ?? 10) : 0);
+  const ordered = [...pairs]
+    .filter((p) => fitsWordLevel(p, level))
+    .sort(
+      (a, b) =>
+        rank(a.relation) - rank(b.relation) ||
+        hardness(b) - hardness(a) ||
+        b.learningValue - a.learningValue
+    );
   const chosen: Located[] = [];
   const perSentence = new Map<string, number>();
   const usedTargets = new Set<string>();
@@ -497,6 +546,8 @@ export async function generateVocabChoiceForPassage(input: {
   hints: VocabHint[];
   cache: StoredVocabChoiceCache | null;
   forceRegenerate?: boolean;
+  /** 없으면 hard(예전 방식). 워크북은 일반이 기본이다. */
+  wordLevel?: VocabWordLevel;
 }): Promise<{
   section: WorkbookVocabChoiceSection | null;
   cacheToSave: StoredVocabChoiceCache | null;
@@ -510,27 +561,38 @@ export async function generateVocabChoiceForPassage(input: {
   const spans = locateSentences(passage, sentences);
   const sourceHash = vocabChoiceSourceHash(sentences);
 
-  const fromCache =
-    !input.forceRegenerate &&
-    input.cache &&
+  const level: VocabWordLevel = input.wordLevel ?? "hard";
+  const target = Math.min(MAX_FINAL_ITEMS, Math.max(8, Math.round(sentences.length * 1.2)));
+  const sameSource =
+    !!input.cache &&
     input.cache.sourceHash === sourceHash &&
     input.cache.algorithmVersion === VOCAB_CHOICE_ALGORITHM_VERSION;
-  if (fromCache) {
-    const located = input.cache!.pairs
-      .map((p) => checkPair(passage, spans, p))
-      .flatMap((r) => (r.ok ? [r.located] : []));
-    const section = buildSection({ ...input, passage, pairs: selectFinal(located) });
+  const cachedLocated = sameSource
+    ? input.cache!.pairs.map((p) => checkPair(passage, spans, p)).flatMap((r) => (r.ok ? [r.located] : []))
+    : [];
+  /*
+   * 저장된 쌍을 그대로 쓰는 경우: 이 수준으로 만든 적이 있거나, 다른 수준으로 만든 쌍 가운데
+   * 이 수준에 맞는 것만으로도 충분할 때. 일반·난이도 UP을 오가도 매번 새로 만들지 않는다.
+   */
+  const cachedLevels: VocabWordLevel[] = input.cache?.wordLevels ?? ["hard"];
+  const enoughFromCache =
+    cachedLocated.filter((p) => fitsWordLevel(p, level)).length >= Math.ceil(target * 0.7);
+  if (!input.forceRegenerate && sameSource && (cachedLevels.includes(level) || enoughFromCache)) {
+    const section = buildSection({ ...input, passage, pairs: selectFinal(cachedLocated, level) });
     return { section, cacheToSave: null, reason: section ? undefined : "어휘 문항 자리가 없습니다." };
   }
 
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) throw new Error("OPENAI_API_KEY가 설정되어 있지 않습니다.");
 
-  const raw = await generatePairs({ apiKey, title: input.title, sentences, hints: input.hints });
+  const raw = await generatePairs({ apiKey, title: input.title, sentences, hints: input.hints, wordLevel: level });
   const located: Located[] = [];
   for (const pair of raw) {
     const r = checkPair(passage, spans, pair);
-    if (r.ok && !located.some((l) => l.start === r.located.start)) located.push(r.located);
+    // 수준에 안 맞는 쌍은 검수에 보내지 않는다(검수 값을 아낀다).
+    if (r.ok && fitsWordLevel(r.located, level) && !located.some((l) => l.start === r.located.start)) {
+      located.push(r.located);
+    }
   }
   let kept = await auditPairs({ apiKey, passage, spans, pairs: located });
 
@@ -539,14 +601,20 @@ export async function generateVocabChoiceForPassage(input: {
    * 검수 기준은 그대로 두고 — 어색한 문항이 들어가면 안 되므로 — 모자랄 때만 다른 자리로
    * 한 번 더 뽑아 같은 검수를 다시 받는다.
    */
-  const target = Math.min(MAX_FINAL_ITEMS, Math.max(8, Math.round(sentences.length * 1.2)));
   if (kept.length < target) {
     const used = located.map((l) => l.targetText);
-    const more = await generatePairs({ apiKey, title: input.title, sentences, hints: input.hints, avoidTargets: used });
+    const more = await generatePairs({
+      apiKey,
+      title: input.title,
+      sentences,
+      hints: input.hints,
+      avoidTargets: used,
+      wordLevel: level,
+    });
     const moreLocated: Located[] = [];
     for (const pair of more) {
       const r = checkPair(passage, spans, pair);
-      if (!r.ok) continue;
+      if (!r.ok || !fitsWordLevel(r.located, level)) continue;
       if (located.some((l) => l.start === r.located.start) || moreLocated.some((l) => l.start === r.located.start)) continue;
       moreLocated.push(r.located);
     }
@@ -555,13 +623,21 @@ export async function generateVocabChoiceForPassage(input: {
       kept = [...kept, ...extra];
     }
   }
+  // 다른 수준으로 만들어 둔 쌍도 남긴다(수준을 다시 바꿀 때 새로 만들지 않게).
+  const strip = ({ start: _s, end: _e, shownWrong: _w, ...pair }: Located): StoredVocabChoicePair => pair;
+  const keyOf = (p: StoredVocabChoicePair) => `${p.sentenceId}|${p.occurrence}|${p.targetText}|${p.wrongText}`;
+  const newPairs = kept.map(strip);
+  const newKeys = new Set(newPairs.map(keyOf));
+  const keepOld = sameSource && !input.forceRegenerate;
+  const oldLocated = keepOld ? cachedLocated.filter((c) => !newKeys.has(keyOf(strip(c)))) : [];
   const cacheToSave: StoredVocabChoiceCache = {
     sourceHash,
     algorithmVersion: VOCAB_CHOICE_ALGORITHM_VERSION,
-    pairs: kept.map(({ start: _s, end: _e, shownWrong: _w, ...pair }) => pair),
+    pairs: [...newPairs, ...oldLocated.map(strip)],
+    wordLevels: [...new Set([...(keepOld ? cachedLevels : []), level])],
     createdAt: new Date().toISOString(),
   };
-  const final = selectFinal(kept);
+  const final = selectFinal([...kept, ...oldLocated], level);
   const section = buildSection({ ...input, passage, pairs: final });
   return {
     section,

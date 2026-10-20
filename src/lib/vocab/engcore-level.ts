@@ -14,6 +14,8 @@ import { isFunctionWord } from "@/lib/vocab/function-words";
 
 const LEVELS: string[] = (table as { levels: string[] }).levels;
 const WORDS: Record<string, number> = (table as { words: Record<string, number> }).words;
+/** 낱말 → 품사 묶음(1=동사, 2=형용사, 4=명사·그 밖). 단어장 뜻풀이로 어림한 값이다. */
+const POS: Record<string, number> = (table as { pos?: Record<string, number> }).pos ?? {};
 
 /** 화면에 쓰는 짧은 이름 */
 export const LEVEL_LABELS = LEVELS.map((n) => n.replace(/^EngCore\s*/, ""));
@@ -46,6 +48,63 @@ function lookup(raw: string): number | null {
     if (WORDS[t] !== undefined) return WORDS[t];
   }
   return null;
+}
+
+/** 단어장 표에 굴절형이 없는 불규칙 과거·과거분사·비교급 → 원형 */
+const IRREGULAR: Record<string, string> = {
+  had: "have", has: "have", was: "be", were: "be", been: "be", went: "go", gone: "go",
+  did: "do", done: "do", made: "make", took: "take", taken: "take", came: "come",
+  gave: "give", given: "give", got: "get", gotten: "get", saw: "see", seen: "see",
+  knew: "know", known: "know", thought: "think", brought: "bring", bought: "buy",
+  found: "find", left: "leave", lost: "lose", kept: "keep", held: "hold", told: "tell",
+  said: "say", felt: "feel", grew: "grow", grown: "grow", rose: "rise", risen: "rise",
+  fell: "fall", fallen: "fall", began: "begin", begun: "begin", won: "win", built: "build",
+  sent: "send", spent: "spend", taught: "teach", caught: "catch", fought: "fight",
+  sought: "seek", led: "lead", met: "meet", paid: "pay", sold: "sell", stood: "stand",
+  understood: "understand", wrote: "write", written: "write", spoke: "speak", spoken: "speak",
+  chose: "choose", chosen: "choose", broke: "break", broken: "break", drove: "drive",
+  driven: "drive", ate: "eat", eaten: "eat", ran: "run", forgot: "forget", forgotten: "forget",
+  hid: "hide", hidden: "hide", shook: "shake", shaken: "shake", froze: "freeze", frozen: "freeze",
+  better: "good", best: "good", worse: "bad", worst: "bad", less: "little", least: "little",
+  more: "many", most: "many", fewer: "few", children: "child", men: "man", women: "woman",
+  people: "person", feet: "foot", teeth: "tooth", mice: "mouse",
+};
+
+/**
+ * 낱말 하나의 단어장 레벨(0=초등 Level 1 … 9=수능필수). 단어장에 없으면 null.
+ * 불규칙 활용형은 원형으로, un-·in-·dis- 따위를 붙인 반대말은 바탕 낱말로 잰다.
+ * -ness·-less·-ful·-ment로 만든 낱말은 바탕 낱말보다 한 단계 높게 친다.
+ */
+export function engcoreWordLevel(raw: string): number | null {
+  const w = raw.toLowerCase().replace(/’/g, "'").replace(/n't$/, "").replace(/[^a-z'-]/g, "");
+  if (!w) return null;
+  if (w === "ca" || w === "wo") return 0; // can't, won't
+  const direct = lookup(w);
+  if (direct !== null) return direct;
+  if (IRREGULAR[w]) return lookup(IRREGULAR[w]!);
+  // easier·dirtier·happiest: 표에는 -y 꼴만 있다.
+  const ier = w.match(/^(.{3,})i(er|est)$/);
+  if (ier) {
+    const lv = lookup(`${ier[1]}y`);
+    if (lv !== null) return lv;
+  }
+  const neg = w.match(/^(un|in|im|il|ir|dis|non-?)(.{4,})$/);
+  if (neg) {
+    const lv = engcoreWordLevel(neg[2]!);
+    if (lv !== null) return lv;
+  }
+  const derived = w.match(/^(.{3,}?)(ness|less|ful|ment)$/);
+  if (derived) {
+    const lv = engcoreWordLevel(derived[1]!.replace(/i$/, "y"));
+    if (lv !== null) return Math.min(9, lv + 1);
+  }
+  return null;
+}
+
+/** 원형 낱말의 품사 묶음(1=동사, 2=형용사, 4=명사·그 밖). 단어장에 없으면 null. */
+export function engcoreWordPos(base: string): number | null {
+  const w = base.toLowerCase().replace(/[^a-z'-]/g, "");
+  return POS[w] ?? null;
 }
 
 export type VocabLevelResult = {

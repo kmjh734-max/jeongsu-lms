@@ -971,6 +971,8 @@ export async function generateVocabChoicePassageAction(
     forceRegenerate?: boolean;
     /** 어느 화면에서 부른 것인지 — 크레딧 내역에 그대로 적는다 */
     usedIn?: "workbook" | "one_page_test";
+    /** 낱말 수준. 없으면 예전 방식(난이도 UP과 같다). */
+    wordLevel?: "normal" | "hard";
   }
 ): Promise<
   | {
@@ -1062,6 +1064,7 @@ export async function generateVocabChoicePassageAction(
       hints,
       cache: (pack.vocabChoiceCache as StoredVocabChoiceCache | null | undefined) ?? null,
           forceRegenerate: input.forceRegenerate === true,
+          wordLevel: input.wordLevel,
         })
     );
     await flushAiUsage();

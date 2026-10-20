@@ -56,6 +56,8 @@ export function buildWorkbookHref(
     blankOptions: WorkbookBlankFillOptions;
     grammarFixOptions?: WorkbookGrammarFixOptions;
     vocabFixOptions?: WorkbookGrammarFixOptions;
+    /** 어휘 선택·수정 낱말 수준 */
+    vocabWordLevel?: "normal" | "hard";
     title: string;
     /** 저장된 결과(어법·어휘·빈칸·어순)가 있어도 새 문항으로 만든다. */
     regenerate?: boolean;
@@ -85,6 +87,9 @@ export function buildWorkbookHref(
     const vf = opts.vocabFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS;
     params.set("vfMode", vf.mode);
     params.set("vfErrors", String(clampGrammarFixErrors(vf.errorCount)));
+  }
+  if (types.includes("vocab_choice") || types.includes("vocab_fix")) {
+    params.set("vcLevel", opts.vocabWordLevel ?? "normal");
   }
   params.set("title", opts.title.trim() || defaultWorkbookTitle());
   params.set("fresh", "1");
@@ -126,6 +131,7 @@ export function WorkbookCreateModal({
   const [vocabFixOptions, setVocabFixOptions] = useState<WorkbookGrammarFixOptions>(
     DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS
   );
+  const [vocabWordLevel, setVocabWordLevel] = useState<"normal" | "hard">("normal");
   const [title, setTitle] = useState(() => defaultWorkbookTitle());
   const [regenerate, setRegenerate] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -151,6 +157,7 @@ export function WorkbookCreateModal({
   const wantSentenceOrder = selected.has("sentence_order");
   const wantGrammarFix = selected.has("grammar_fix");
   const wantVocabFix = selected.has("vocab_fix");
+  const wantVocabChoice = selected.has("vocab_choice");
   const wantLineKo = selected.has("one_line_ko");
   const wantFullEn = selected.has("full_en_writing");
   const wantWordOrder = selected.has("word_order_writing");
@@ -203,6 +210,7 @@ export function WorkbookCreateModal({
       blankOptions,
       grammarFixOptions,
       vocabFixOptions,
+      vocabWordLevel,
       title: title.trim() || defaultWorkbookTitle(),
       regenerate,
     });
@@ -537,6 +545,30 @@ export function WorkbookCreateModal({
                   options={grammarFixOptions}
                   onChange={setGrammarFixOptions}
                 />
+              ) : null}
+
+              {wantVocabChoice || wantVocabFix ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-bold text-slate-900">어휘 선택 · 수정 옵션</p>
+                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                    <OptionRow tone="violet" label="어휘 난이도">
+                      <div className="space-y-2">
+                        <TogglePair
+                          tone="violet"
+                          left={{ id: "normal", label: "일반" }}
+                          right={{ id: "hard", label: "난이도 UP" }}
+                          value={vocabWordLevel}
+                          onChange={(v) => setVocabWordLevel(v === "hard" ? "hard" : "normal")}
+                        />
+                        <p className="text-[11px] text-violet-600">
+                          {vocabWordLevel === "normal"
+                            ? "EngCore 고교기본까지의 낱말 자리에, 중학 수준의 쉬운 반대말로 묻습니다."
+                            : "고2~수능 수준의 어려운 낱말 자리를 앞세워 묻습니다."}
+                        </p>
+                      </div>
+                    </OptionRow>
+                  </div>
+                </div>
               ) : null}
 
               {wantVocabFix ? (

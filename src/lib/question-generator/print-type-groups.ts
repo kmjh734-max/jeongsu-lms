@@ -81,10 +81,28 @@ export type PrintTypeGroup<T> = {
   items: T[];
 };
 
-/** 상·하·영·한을 합쳐 문제 유형(코드)별로 묶음 */
+/**
+ * 선생님이 정한 유형 차례(코드 목록)대로 묶음을 다시 늘어놓는다.
+ * 목록에 없는 유형은 원래 차례대로 뒤에 붙는다.
+ *
+ * 선생님 요청(2026-10-20): 유형별 출력에서 유형 순서를 바꿀 수 있게.
+ */
+export function applyTypeOrder<G extends { code: string }>(groups: G[], order: readonly string[]): G[] {
+  if (order.length === 0) return groups;
+  const at = (code: string) => {
+    const i = order.indexOf(code);
+    return i >= 0 ? i : order.length;
+  };
+  return groups
+    .map((g, i) => ({ g, i }))
+    .sort((a, b) => at(a.g.code) - at(b.g.code) || a.i - b.i)
+    .map((x) => x.g);
+}
+
+/** 상·하·영·한을 합쳐 문제 유형(코드)별로 묶음. order가 있으면 그 차례를 따른다. */
 export function groupQuestionsByPrintType<
   T extends { option_key?: string | null; question_type?: string | null },
->(questions: T[]): PrintTypeGroup<T>[] {
+>(questions: T[], order: readonly string[] = []): PrintTypeGroup<T>[] {
   const map = new Map<string, T[]>();
   for (const q of questions) {
     const code =
@@ -96,9 +114,12 @@ export function groupQuestionsByPrintType<
   const codes = [...map.keys()].sort(
     (a, b) => printTypeSortIndex(a) - printTypeSortIndex(b) || a.localeCompare(b, "ko")
   );
-  return codes.map((code) => ({
-    code,
-    label: printTypeLabel(code),
-    items: map.get(code)!,
-  }));
+  return applyTypeOrder(
+    codes.map((code) => ({
+      code,
+      label: printTypeLabel(code),
+      items: map.get(code)!,
+    })),
+    order
+  );
 }

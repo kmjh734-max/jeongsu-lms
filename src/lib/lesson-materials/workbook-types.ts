@@ -142,6 +142,23 @@ export function sortWorkbookTypesByPrintOrder(
   });
 }
 
+/**
+ * 선생님이 정한 항목 차례를 따른다. 정하지 않은 항목은 기본 인쇄 순서대로 뒤에 붙는다.
+ * 선생님 요청(2026-10-20): 워크북 항목(한줄해석·어법 등) 순서를 바꿀 수 있게.
+ */
+export function orderWorkbookTypes(
+  ids: WorkbookTypeId[],
+  order: readonly WorkbookTypeId[] | null | undefined
+): WorkbookTypeId[] {
+  const base = sortWorkbookTypesByPrintOrder(ids);
+  if (!order?.length) return base;
+  const at = (id: WorkbookTypeId) => {
+    const i = order.indexOf(id);
+    return i >= 0 ? i : order.length;
+  };
+  return base.map((id, i) => ({ id, i })).sort((a, b) => at(a.id) - at(b.id) || a.i - b.i).map((x) => x.id);
+}
+
 export function workbookTypeDisplayTitle(id: WorkbookTypeId): string {
   if (id === "vocab_example") return "어휘 테스트 (예문)";
   return getWorkbookTypeMeta(id)?.title ?? id;
@@ -640,8 +657,17 @@ export type WorkbookData = {
   vocabFixSections?: WorkbookGrammarFixSection[];
   vocabFixSkipped?: WorkbookGrammarChoiceSkip[];
   vocabFixOptions?: WorkbookGrammarFixOptions;
+  /** 어휘 선택·수정 낱말 수준(EngCore 단어장 기준). 없으면 예전에 만든 것(난이도 UP과 같다). */
+  vocabWordLevel?: "normal" | "hard";
   /** 유형별 단 수. 없으면 1단. 한줄해석·통문장 영작·어순배열 영작은 늘 1단이다. */
   columnLayout?: Partial<Record<WorkbookColumnTypeId, 1 | 2>>;
+  /** 항목 인쇄 차례. 없으면 기본 순서(printOrder). */
+  typeOrder?: WorkbookTypeId[];
+  /**
+   * 항목마다 지문 배치. "page"면 지문마다 새 쪽에서 시작하고, 없으면 앞 지문에 이어 싣는다.
+   * 선생님 요청(2026-10-20): 한줄해석·어법 등을 한 지문씩 낼지 이어서 낼지 고르게.
+   */
+  passageBreak?: Partial<Record<WorkbookTypeId, "page">>;
   timing?: WorkbookGenerationTiming;
 };
 

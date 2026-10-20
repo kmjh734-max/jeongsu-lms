@@ -100,6 +100,7 @@ const BRANDING_STORAGE_KEY = "qg-print-branding";
  */
 type QuestionDesignStyle = "base" | "a" | "b" | "c";
 const DESIGN_STYLE_KEY = "question-print-design-style";
+const TYPE_ORDER_KEY = "question-print-type-order";
 const DESIGN_STYLES: Array<{ id: QuestionDesignStyle; label: string; hint: string }> = [
   { id: "a", label: "A", hint: "교재 세리프" },
   { id: "b", label: "B", hint: "깔끔한 산세리프" },
@@ -791,6 +792,28 @@ export function QuestionPrintView({
       /* 저장소를 못 쓰면 기본값 */
     }
   }, []);
+  /*
+   * 유형 차례(유형 코드 목록). 빈 목록은 기본 차례다.
+   * 선생님 요청(2026-10-20): 유형별 출력에서 유형 순서를 바꿀 수 있게. 한 번 정하면
+   * 다른 자료에도 같은 차례로 나오게 학원마다 브라우저에 저장한다.
+   */
+  const [typeOrder, setTypeOrder] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(`${TYPE_ORDER_KEY}:${academyName}`) ?? "[]");
+      if (Array.isArray(saved)) setTypeOrder(saved.filter((c): c is string => typeof c === "string"));
+    } catch {
+      /* 저장소를 못 쓰면 기본 차례 */
+    }
+  }, [academyName]);
+  const chooseTypeOrder = (order: string[]) => {
+    setTypeOrder(order);
+    try {
+      window.localStorage.setItem(`${TYPE_ORDER_KEY}:${academyName}`, JSON.stringify(order));
+    } catch {
+      /* 무시 */
+    }
+  };
   const chooseDesignStyle = (style: QuestionDesignStyle) => {
     setDesignStyle(style);
     try {
@@ -933,16 +956,25 @@ export function QuestionPrintView({
 
   /** 이 묶음에 든 유형들 (고르개에 쓴다) */
   const typeGroups = useMemo(
-    () => groupQuestionsByPrintType(questions).map((g) => ({ code: g.code, label: g.label, n: g.items.length })),
-    [questions]
+    () => groupQuestionsByPrintType(questions, typeOrder).map((g) => ({ code: g.code, label: g.label, n: g.items.length })),
+    [questions, typeOrder]
   );
+  /** 유형 하나를 위·아래로 옮긴다. 이 묶음에 없는 유형은 뒤에 그대로 둔다. */
+  const moveType = (code: string, dir: -1 | 1) => {
+    const codes = typeGroups.map((t) => t.code);
+    const i = codes.indexOf(code);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= codes.length) return;
+    [codes[i], codes[j]] = [codes[j]!, codes[i]!];
+    chooseTypeOrder([...codes, ...typeOrder.filter((c) => !codes.includes(c))]);
+  };
   /** 끈 유형을 뺀 문항 */
   const shown = useMemo(() => {
     if (offTypes.size === 0) return questions;
-    return groupQuestionsByPrintType(questions)
+    return groupQuestionsByPrintType(questions, typeOrder)
       .filter((g) => !offTypes.has(g.code))
       .flatMap((g) => g.items);
-  }, [questions, offTypes]);
+  }, [questions, offTypes, typeOrder]);
 
   const displayItems: DisplayItem[] = useMemo(() => {
     if (shown.length === 0) return [];
@@ -964,7 +996,7 @@ export function QuestionPrintView({
       // 한 지문 안에서는 유형 차례대로 돌아 회차마다 같은 순서가 되게 한다.
       for (const key of order) {
         const list = byPassage.get(key)!;
-        byPassage.set(key, groupQuestionsByPrintType(list).flatMap((g) => g.items));
+        byPassage.set(key, groupQuestionsByPrintType(list, typeOrder).flatMap((g) => g.items));
       }
       const rounds = Math.max(...order.map((k) => byPassage.get(k)!.length));
       const items: DisplayItem[] = [];
@@ -1038,7 +1070,7 @@ export function QuestionPrintView({
         num: i + 1,
       }));
     }
-    const groups = groupQuestionsByPrintType(shown);
+    const groups = groupQuestionsByPrintType(shown, typeOrder);
     const items: DisplayItem[] = [];
     let num = 1;
     for (const g of groups) {
@@ -1048,12 +1080,12 @@ export function QuestionPrintView({
       }
     }
     return items;
-  }, [shown, printLayout, mode, passageSources, branding.hideOrigin]);
+  }, [shown, printLayout, mode, passageSources, branding.hideOrigin, typeOrder]);
 
   /** 유형별: 각 유형 구간 [start, end) — 새 페이지 강제용 */
   const typeRanges = useMemo(() => {
     if (printLayout !== "byType" || shown.length === 0) return [];
-    const groups = groupQuestionsByPrintType(shown);
+    const groups = groupQuestionsByPrintType(shown, typeOrder);
     const ranges: { start: number; end: number; label: string }[] = [];
     let start = 0;
     for (const g of groups) {
@@ -1062,7 +1094,7 @@ export function QuestionPrintView({
       start = end;
     }
     return ranges;
-  }, [shown, printLayout]);
+  }, [shown, printLayout, typeOrder]);
 
   useEffect(() => {
     if (displayItems.length === 0) {
@@ -1573,20 +1605,31 @@ export function QuestionPrintView({
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                  낼 유형 고르기
+                  낼 유형 · 순서
                 </p>
-                {offTypes.size > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setOffTypes(new Set())}
-                    className="text-[11px] font-semibold text-brand-700 hover:underline"
-                  >
-                    다 켜기
-                  </button>
-                ) : null}
+                <div className="flex gap-2">
+                  {typeOrder.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => chooseTypeOrder([])}
+                      className="text-[11px] font-semibold text-brand-700 hover:underline"
+                    >
+                      기본 순서로
+                    </button>
+                  ) : null}
+                  {offTypes.size > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setOffTypes(new Set())}
+                      className="text-[11px] font-semibold text-brand-700 hover:underline"
+                    >
+                      다 켜기
+                    </button>
+                  ) : null}
+                </div>
               </div>
               <div className="space-y-1">
-                {typeGroups.map((t) => {
+                {typeGroups.map((t, ti) => {
                   const on = !offTypes.has(t.code);
                   return (
                     <label
@@ -1610,6 +1653,32 @@ export function QuestionPrintView({
                       />
                       <span className="min-w-0 flex-1 truncate font-semibold">{t.label}</span>
                       <span className="shrink-0 tabular-nums text-slate-400">{t.n}</span>
+                      <span className="flex shrink-0 gap-0.5">
+                        <button
+                          type="button"
+                          aria-label={`${t.label} 위로`}
+                          disabled={ti === 0}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            moveType(t.code, -1);
+                          }}
+                          className="rounded px-1 text-[10px] text-slate-500 hover:bg-slate-100 disabled:opacity-30"
+                        >
+                          ▲
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`${t.label} 아래로`}
+                          disabled={ti === typeGroups.length - 1}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            moveType(t.code, 1);
+                          }}
+                          className="rounded px-1 text-[10px] text-slate-500 hover:bg-slate-100 disabled:opacity-30"
+                        >
+                          ▼
+                        </button>
+                      </span>
                     </label>
                   );
                 })}

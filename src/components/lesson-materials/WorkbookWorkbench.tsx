@@ -1,5 +1,6 @@
 "use client";
 
+import { ChoiceItemEditor } from "@/components/lesson-materials/ChoiceItemEditor";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -47,6 +48,7 @@ import {
   parseBlankDensity,
   parseBlankHintType,
   parseBlankTranslationLayout,
+  orderWorkbookTypes,
   sortWorkbookTypesByPrintOrder,
   workbookTypeDisplayTitle,
   WORKBOOK_COLUMN_TYPES,
@@ -1431,6 +1433,8 @@ export function WorkbookWorkbench({
   }, []);
   /** 쪽번호 — 인쇄물 오른쪽 아래에 1부터 찍는다. 최종통합자료에 끼울 때는 통합자료가 센다. */
   const [pageNumbers, setPageNumbers] = useState(false);
+  /** 문항 고치기 창에 연 지문(어법 선택·어휘 선택의 몇 번째 지문) */
+  const [choiceEditing, setChoiceEditing] = useState<{ kind: "grammar" | "vocab"; index: number } | null>(null);
   useEffect(() => {
     try {
       setPageNumbers(window.localStorage.getItem(PAGE_NUMBER_KEY) === "on");
@@ -1583,6 +1587,38 @@ export function WorkbookWorkbench({
         vocabFixSections: fix.sections,
         vocabFixSkipped: fix.skipped,
       };
+    });
+  }
+
+  /**
+   * 고친 어법 선택·어휘 선택 지문을 넣고, 그 재료로 만드는 수정형(어법 수정·어휘 수정)도 다시 만든다.
+   */
+  function applyChoiceEdit(
+    kind: "grammar" | "vocab",
+    index: number,
+    next: WorkbookGrammarChoiceSection | WorkbookVocabChoiceSection
+  ) {
+    editWorkbook((w) => {
+      if (kind === "grammar") {
+        const list = [...(w.grammarChoiceSections ?? [])];
+        list[index] = next as WorkbookGrammarChoiceSection;
+        const out: WorkbookData = { ...w, grammarChoiceSections: list };
+        if (w.selectedTypes.includes("grammar_fix")) {
+          const fix = buildGrammarFixSections(list, w.grammarFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS);
+          out.grammarFixSections = fix.sections;
+          out.grammarFixSkipped = fix.skipped;
+        }
+        return out;
+      }
+      const list = [...(w.vocabChoiceSections ?? [])];
+      list[index] = next as WorkbookVocabChoiceSection;
+      const out: WorkbookData = { ...w, vocabChoiceSections: list };
+      if (w.selectedTypes.includes("vocab_fix")) {
+        const fix = buildVocabFixSections(list, w.vocabFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS);
+        out.vocabFixSections = fix.sections;
+        out.vocabFixSkipped = fix.skipped;
+      }
+      return out;
     });
   }
 
@@ -1822,6 +1858,7 @@ export function WorkbookWorkbench({
       const wantVocabChoice = types.includes("vocab_choice");
       const wantVocabFix = types.includes("vocab_fix");
       const needVocab = wantVocabChoice || wantVocabFix;
+      const vocabWordLevel = searchParams.get("vcLevel") === "hard" ? "hard" : "normal";
       const vocabFixOptions = {
         mode: parseGrammarFixMode(searchParams.get("vfMode")),
         errorCount: clampGrammarFixErrors(
@@ -1956,7 +1993,7 @@ export function WorkbookWorkbench({
           ? runPassagesInParallel<WorkbookVocabChoiceSection>({
               ids,
               url: "/api/lesson-materials/vocab-choice",
-              body: (projectId) => ({ role, projectId, forceRegenerate, usedIn: "workbook" }),
+              body: (projectId) => ({ role, projectId, forceRegenerate, usedIn: "workbook", wordLevel: vocabWordLevel }),
               isCancelled: () => cancelled,
             })
           : Promise.resolve(null);
@@ -2015,6 +2052,7 @@ export function WorkbookWorkbench({
         if (vocab) {
           // 어휘 수정만 골라도 어휘 선택 결과를 둔다(화면에서 출제 방식을 바꿀 때 쓴다).
           workbook.vocabChoiceSections = vocab.sections;
+          workbook.vocabWordLevel = vocabWordLevel;
           if (wantVocabChoice) workbook.vocabChoiceSkipped = vocab.skipped;
           if (wantVocabFix) {
             const fix = buildVocabFixSections(vocab.sections, vocabFixOptions);
@@ -2447,16 +2485,16 @@ export function WorkbookWorkbench({
 
   // 저장된 옛 워크북도 지금의 유형 순서로 보이게 그릴 때마다 정렬한다.
   const typeOrders = useMemo(() => {
-    const types = sortWorkbookTypesByPrintOrder(workbook?.selectedTypes ?? []);
+    const types = orderWorkbookTypes(workbook?.selectedTypes ?? [], workbook?.typeOrder);
     const map = new Map<WorkbookTypeId, number>();
     types.forEach((t, i) => map.set(t, i + 1));
     return map;
-  }, [workbook?.selectedTypes]);
+  }, [workbook?.selectedTypes, workbook?.typeOrder]);
 
   const pages = useMemo(() => {
     if (!workbook) return [] as WorkbookPage[];
     const out: WorkbookPage[] = [];
-    const types = sortWorkbookTypesByPrintOrder(workbook.selectedTypes);
+    const types = orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder);
     const soQuestions = workbook.sentenceOrderQuestions ?? [];
     const ltSections = workbook.lineTranslationSections ?? [];
     const feSections = workbook.fullEnWritingSections ?? [];
@@ -2599,7 +2637,12 @@ export function WorkbookWorkbench({
       return el.offsetHeight + (parseFloat(getComputedStyle(el).marginBottom) || 0);
     };
 
-    const packFlow = (prefix: string, sections: Array<{ items: unknown[] }>): FlowPart[][] => {
+    const packFlow = (
+      prefix: string,
+      sections: Array<{ items: unknown[] }>,
+      /** 지문마다 새 쪽에서 시작한다 */
+      separate = false
+    ): FlowPart[][] => {
       const pages: FlowPart[][] = [];
       let page: FlowPart[] = [];
       let used = 0;
@@ -2618,7 +2661,7 @@ export function WorkbookWorkbench({
         // 쪽 끝에서 지문을 시작하면 머리와 문항 두 개(한 개뿐이면 그것)가 함께 들어가야 한다.
         const lead = page.length ? FLOW_PART_GAP_PX : 0;
         const opening = (heights[0] ?? 0) + (heights[1] ?? 0);
-        if (page.length && used + lead + introH + opening > budget) flush();
+        if (page.length && (separate || used + lead + introH + opening > budget)) flush();
         used += (page.length ? FLOW_PART_GAP_PX : 0) + introH;
         let part: FlowPart = { sectionIndex: si, itemIndices: [], continued: false };
         heights.forEach((h, i) => {
@@ -2641,11 +2684,12 @@ export function WorkbookWorkbench({
     const lt = workbook.lineTranslationSections ?? [];
     const fe = workbook.fullEnWritingSections ?? [];
     const wo = workbook.wordOrderWritingSections ?? [];
-    if (lt.length) next.line_ko = packFlow("lt", lt);
-    if (fe.length) next.full_en = packFlow("fe", fe);
-    if (wo.length) next.word_order = packFlow("wo", wo);
+    const separate = (t: WorkbookTypeId) => workbook.passageBreak?.[t] === "page";
+    if (lt.length) next.line_ko = packFlow("lt", lt, separate("one_line_ko"));
+    if (fe.length) next.full_en = packFlow("fe", fe, separate("full_en_writing"));
+    if (wo.length) next.word_order = packFlow("wo", wo, separate("word_order_writing"));
     const kw = workbook.keyWordOrderSections ?? [];
-    if (kw.length) next.key_word_order = packFlow("kw", kw);
+    if (kw.length) next.key_word_order = packFlow("kw", kw, separate("key_word_order"));
     setFlowPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
   }, [workbook, designStyle, fontsTick]);
 
@@ -2676,11 +2720,17 @@ export function WorkbookWorkbench({
       const packs: { indices: number[]; packed: boolean }[] = [];
       let current: number[] = [];
       let used = 0;
+      // 지문마다 새 쪽: 문장 순서 배열은 문항 단위라, 같은 지문의 문항끼리는 한 쪽에 둔다.
+      const separate = workbook.passageBreak?.[t] === "page";
+      const passageOf = (i: number) =>
+        t === "sentence_order" ? (workbook.sentenceOrderQuestions?.[i]?.passageId ?? String(i)) : String(i);
       heights.forEach((h, i) => {
         const limit = current.length > 0 ? columnLimits[`${t}:${current[0]}`] : undefined;
         if (
           current.length > 0 &&
-          (used + h > capacity || (limit != null && current.length >= limit))
+          ((separate && passageOf(current[current.length - 1]!) !== passageOf(i)) ||
+            used + h > capacity ||
+            (limit != null && current.length >= limit))
         ) {
           packs.push({ indices: current, packed: true });
           current = [];
@@ -2927,7 +2977,7 @@ export function WorkbookWorkbench({
   }
 
   const title = workbook.metadata.title;
-  const columnTypes = sortWorkbookTypesByPrintOrder(workbook.selectedTypes).filter(
+  const columnTypes = orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder).filter(
     (t): t is WorkbookColumnTypeId =>
       (WORKBOOK_COLUMN_TYPES as readonly string[]).includes(t)
   );
@@ -3630,7 +3680,7 @@ export function WorkbookWorkbench({
                 : "새로 만들었습니다"}
           </p>
           <p className="text-[11px] text-slate-400">
-            {sortWorkbookTypesByPrintOrder(workbook.selectedTypes)
+            {orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder)
               .map((t) => workbookTypeDisplayTitle(t))
               .join(" · ")}
           </p>
@@ -3683,6 +3733,86 @@ export function WorkbookWorkbench({
             />
           </label>
 
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-bold text-slate-500">항목 순서 · 지문 배치</p>
+              {workbook.typeOrder?.length ? (
+                <button
+                  type="button"
+                  onClick={() => editWorkbook((w) => ({ ...w, typeOrder: undefined }))}
+                  className="text-[11px] font-semibold text-violet-700 hover:underline"
+                >
+                  기본 순서로
+                </button>
+              ) : null}
+            </div>
+            {(() => {
+              const ordered = orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder);
+              const move = (i: number, dir: -1 | 1) =>
+                editWorkbook((w) => {
+                  const next = orderWorkbookTypes(w.selectedTypes, w.typeOrder);
+                  const j = i + dir;
+                  if (j < 0 || j >= next.length) return w;
+                  [next[i], next[j]] = [next[j]!, next[i]!];
+                  return { ...w, typeOrder: next };
+                });
+              return ordered.map((t, i) => {
+                const separate = workbook.passageBreak?.[t] === "page";
+                return (
+                  <div key={t} className="rounded-lg border border-slate-200 px-2 py-1.5">
+                    <div className="flex items-center gap-1">
+                      <span className="w-4 shrink-0 text-[11px] font-bold tabular-nums text-slate-400">
+                        {i + 1}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700">
+                        {workbookTypeDisplayTitle(t)}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label={`${workbookTypeDisplayTitle(t)} 위로`}
+                        disabled={i === 0}
+                        onClick={() => move(i, -1)}
+                        className="rounded px-1 text-[10px] text-slate-500 hover:bg-slate-100 disabled:opacity-30"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`${workbookTypeDisplayTitle(t)} 아래로`}
+                        disabled={i === ordered.length - 1}
+                        onClick={() => move(i, 1)}
+                        className="rounded px-1 text-[10px] text-slate-500 hover:bg-slate-100 disabled:opacity-30"
+                      >
+                        ▼
+                      </button>
+                    </div>
+                    <div className="mt-1 ml-5 inline-flex rounded-lg border border-slate-200 p-0.5">
+                      {([false, true] as const).map((on) => (
+                        <button
+                          key={String(on)}
+                          type="button"
+                          onClick={() =>
+                            editWorkbook((w) => {
+                              const next = { ...w.passageBreak };
+                              if (on) next[t] = "page";
+                              else delete next[t];
+                              return { ...w, passageBreak: next };
+                            })
+                          }
+                          className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${
+                            separate === on ? "bg-violet-600 text-white" : "text-slate-500 hover:bg-slate-50"
+                          }`}
+                        >
+                          {on ? "지문마다 새 쪽" : "이어서"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+
           {columnTypes.length > 0 ? (
             <div className="space-y-1.5">
               <p className="text-[11px] font-bold text-slate-500">단 나누기</p>
@@ -3731,6 +3861,48 @@ export function WorkbookWorkbench({
               onChange={(patch) => changeFix("vocab", patch)}
             />
           ) : null}
+
+          {(
+            [
+              { kind: "grammar", label: "어법 문항 고치기", list: workbook.grammarChoiceSections ?? [] },
+              { kind: "vocab", label: "어휘 문항 고치기", list: workbook.vocabChoiceSections ?? [] },
+            ] as const
+          ).map((g) =>
+            g.list.length > 0 ? (
+              <div key={g.kind} className="space-y-1.5">
+                <p className="text-[11px] font-bold text-slate-500">{g.label}</p>
+                {g.list.map((sec, i) => (
+                  <button
+                    key={`${sec.projectId}-${i}`}
+                    type="button"
+                    onClick={() => setChoiceEditing({ kind: g.kind, index: i })}
+                    className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 px-2.5 py-1.5 text-left text-xs hover:border-violet-300 hover:bg-violet-50"
+                  >
+                    <span className="min-w-0 flex-1 truncate font-semibold text-slate-700">{sec.title}</span>
+                    <span className="shrink-0 tabular-nums text-slate-400">{sec.items.length}문항</span>
+                  </button>
+                ))}
+              </div>
+            ) : null
+          )}
+          {choiceEditing
+            ? (() => {
+                const list =
+                  choiceEditing.kind === "grammar"
+                    ? (workbook.grammarChoiceSections ?? [])
+                    : (workbook.vocabChoiceSections ?? []);
+                const sec = list[choiceEditing.index];
+                if (!sec) return null;
+                return (
+                  <ChoiceItemEditor
+                    kind={choiceEditing.kind}
+                    section={sec}
+                    onApply={(next) => applyChoiceEdit(choiceEditing.kind, choiceEditing.index, next)}
+                    onClose={() => setChoiceEditing(null)}
+                  />
+                );
+              })()
+            : null}
 
           {editablePassages.length > 0 ? (
             <div className="space-y-2">
