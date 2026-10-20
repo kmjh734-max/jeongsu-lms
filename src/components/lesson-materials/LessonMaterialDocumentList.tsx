@@ -98,6 +98,20 @@ export function LessonMaterialDocumentList({
     });
   }
 
+  /**
+   * 테스트 교재: 고른 교재(여러 권이면 지문을 합쳐)로 테스트지 뽑기를 연다. 뽑기는 재료를 새로 만들지 않아
+   * 값이 들지 않는다 — 지문 선택 바의 「테스트지 뽑기」와 같은 화면(선생님 2026-10-20).
+   */
+  function openDraw(ids: string[]) {
+    const projectIds = [...new Set(rows.filter((r) => ids.includes(r.id)).flatMap((r) => r.project_ids))];
+    if (!projectIds.length) return;
+    window.open(
+      `${documentPagePath(role, "test_book")}?mode=draw&ids=${encodeURIComponent(projectIds.join(","))}&t=${Date.now().toString(36)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+
   function open(id: string) {
     window.open(`${documentPagePath(role, kind)}?doc=${encodeURIComponent(id)}`, "_blank", "noopener,noreferrer");
   }
@@ -157,6 +171,15 @@ export function LessonMaterialDocumentList({
             전체 선택
           </label>
           <span className="text-[11px] text-slate-400">Shift + 클릭으로 범위 선택</span>
+          {kind === "test_book" && selected.size > 0 ? (
+            <button
+              type="button"
+              onClick={() => openDraw([...selected])}
+              className="ml-auto rounded-md bg-violet-600 px-2.5 py-0.5 text-[11px] font-bold text-white hover:bg-violet-700"
+            >
+              테스트지 뽑기 ({selected.size}권)
+            </button>
+          ) : null}
           {selected.size > 0 ? (
             <button
               type="button"
@@ -167,7 +190,7 @@ export function LessonMaterialDocumentList({
                   `선택한 파일 ${selected.size}개를 삭제할까요?`
                 )
               }
-              className="ml-auto rounded-md border border-rose-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+              className={`${kind === "test_book" ? "" : "ml-auto "}rounded-md border border-rose-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50`}
             >
               선택 삭제 ({selected.size})
             </button>
@@ -226,6 +249,15 @@ export function LessonMaterialDocumentList({
                 </span>
               </div>
               <div className="flex shrink-0 items-center gap-1">
+                {kind === "test_book" ? (
+                  <button
+                    type="button"
+                    onClick={() => openDraw([doc.id])}
+                    className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50"
+                  >
+                    테스트지 뽑기
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => {
