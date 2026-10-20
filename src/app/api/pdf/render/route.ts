@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     const diag = pdfServerDiagnostics();
     let files: string[] = [];
     try {
-      files = readdirSync(`${diag.home ?? "/tmp"}/.fonts`);
+      files = readdirSync("/tmp/fonts");
     } catch {
       files = [];
     }

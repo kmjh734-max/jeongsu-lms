@@ -30,14 +30,17 @@ async function getBrowser(origin: string): Promise<Browser> {
       const env = process.env.AWS_EXECUTION_ENV ?? "";
       if (!/2[02]\.x/.test(env)) process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
       const chromium = (await import("@sparticuz/chromium")).default;
-      // 서버리스 Chrome에는 한글 시스템 글꼴이 없다. 웹 글꼴이 빠진 글자가 네모로 나오지 않게 깔아 둔다.
-      fontNote = await chromium
-        .font(`${origin}/fonts/NotoSansKR-Regular.otf`)
-        .then((n) => `ok ${n}`)
-        .catch((e: unknown) => `fail ${String(e)}`);
+      // executablePath가 글꼴 설정(/tmp/fonts/fonts.conf)을 풀어 놓는다. 그 뒤에 한글 글꼴을 넣는다.
+      const executablePath = await chromium.executablePath();
+      /*
+       * 서버리스 Chrome에는 한글 시스템 글꼴이 없어, 웹 글꼴을 쓰지 않은 글자가 빈칸으로 나왔다.
+       * chromium.font()는 $HOME/.fonts(/tmp/.fonts)에 받는데 글꼴 설정은 /tmp/fonts만 본다(2026-10-20 확인).
+       * 그래서 /tmp/fonts에 직접 받는다.
+       */
+      fontNote = await installKoreanFont(origin);
       return puppeteer.launch({
         args: chromium.args,
-        executablePath: await chromium.executablePath(),
+        executablePath,
         headless: true,
         defaultViewport: { width: 1240, height: 1754 },
       });
@@ -45,6 +48,21 @@ async function getBrowser(origin: string): Promise<Browser> {
     return puppeteer.launch({ executablePath: local, headless: true, args: ["--no-sandbox"] });
   })();
   return browserPromise;
+}
+
+async function installKoreanFont(origin: string): Promise<string> {
+  const { mkdirSync, writeFileSync } = await import("node:fs");
+  const target = "/tmp/fonts/NotoSansKR-Regular.otf";
+  if (existsSync(target)) return "ok cached";
+  try {
+    const res = await fetch(`${origin}/fonts/NotoSansKR-Regular.otf`);
+    if (!res.ok) return `fail ${res.status}`;
+    mkdirSync("/tmp/fonts", { recursive: true });
+    writeFileSync(target, Buffer.from(await res.arrayBuffer()));
+    return "ok";
+  } catch (e) {
+    return `fail ${String(e)}`;
+  }
 }
 
 function allowed(url: string, origin: string): boolean {
