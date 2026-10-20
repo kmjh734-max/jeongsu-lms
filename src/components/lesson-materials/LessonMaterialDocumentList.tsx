@@ -99,8 +99,8 @@ export function LessonMaterialDocumentList({
   }
 
   /**
-   * 테스트 교재: 고른 교재(여러 권이면 지문을 합쳐)로 테스트지 뽑기를 연다. 뽑기는 재료를 새로 만들지 않아
-   * 값이 들지 않는다 — 지문 선택 바의 「테스트지 뽑기」와 같은 화면(선생님 2026-10-20).
+   * 테스트 교재: 고른 교재(여러 권이면 지문을 합쳐)로 테스트지 뽑기를 연다. 여는 것은 재료를 새로 만들지 않고,
+   * 뽑을 때마다 지문·유형마다 값을 받는다 — 지문 선택 바의 「테스트지 뽑기」와 같은 화면(선생님 2026-10-20).
    */
   function openDraw(ids: string[]) {
     const projectIds = [...new Set(rows.filter((r) => ids.includes(r.id)).flatMap((r) => r.project_ids))];

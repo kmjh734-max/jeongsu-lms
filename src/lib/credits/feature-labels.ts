@@ -38,6 +38,7 @@ const FEATURES: Record<string, FeatureInfo> = {
   lesson_one_page_test: { label: "1장 테스트지", group: "1장 자료", unit: "지문" },
   lesson_one_page: { label: "1장 자료", group: "1장 자료", unit: "지문" },
   lesson_test_book: { label: "테스트 교재", group: "수업자료", unit: "지문" },
+  lesson_test_draw: { label: "테스트지 뽑기", group: "수업자료", unit: "지문·유형" },
   school_exam_analysis: { label: "내신 시험지 분석", group: "내신 시험 분석", unit: "회" },
   exam_hit_book: { label: "적중 자료집 만들기", group: "내신 시험 분석", unit: "회" },
   exam_hit_book_recheck: { label: "적중 자료집 문항 재검토", group: "내신 시험 분석", unit: "문항" },

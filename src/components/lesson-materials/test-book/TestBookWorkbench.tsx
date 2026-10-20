@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { postJson } from "@/lib/lesson-materials/post-json";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import type { renameLessonMaterialDocument } from "@/lib/lesson-materials/document-actions";
 import { defaultDocumentName } from "@/lib/lesson-materials/documents";
@@ -389,10 +390,41 @@ export function TestBookWorkbench({
   const [drawWriting, setDrawWriting] = useState<WritingScope>("all");
   const [drawAnswers, setDrawAnswers] = useState(true);
   const [draw, setDraw] = useState<{ seed: string; picks: Record<string, TestBookTypeKey[]> } | null>(null);
-  function runDraw() {
+  /** 뽑을 때마다 값(지문 수 × 유형 수)을 받는다 — 확인 창을 띄우고, 서버에서 차감된 뒤에만 보여 준다 */
+  const [drawBusy, setDrawBusy] = useState(false);
+  const [drawError, setDrawError] = useState<string | null>(null);
+  async function runDraw() {
     const picks: Record<string, TestBookTypeKey[]> = {};
     for (const p of ready) if (drawIds.has(p.id)) picks[p.id] = drawTypes;
-    setDraw({ seed: newSeed(), picks });
+    const projectIds = Object.keys(picks);
+    if (!projectIds.length || !drawTypes.length) return;
+    const ok = await askCreditConfirm({
+      title: "테스트지 뽑기",
+      description: "고른 지문과 유형으로 테스트지를 새로 뽑습니다. 누를 때마다 문항·보기 순서가 새로 나옵니다.",
+      subject: `지문 ${projectIds.length}개 × 유형 ${drawTypes.length}개`,
+      contents: drawTypes.map((t) => testBookTypeLabel(t)),
+      items: [{ feature: "lesson_test_draw", quantity: projectIds.length * drawTypes.length }],
+      sample: "one_page_test",
+    });
+    if (!ok) return;
+    const seed = newSeed();
+    setDrawBusy(true);
+    setDrawError(null);
+    try {
+      const res = await postJson<{ ok: true } | { ok: false; message: string }>("/api/lesson-materials/test-book", {
+        op: "chargeDraw",
+        role,
+        seed,
+        projectIds,
+        typeCount: drawTypes.length,
+      });
+      if (res.ok) setDraw({ seed, picks });
+      else setDrawError(res.message);
+    } catch (e) {
+      setDrawError(e instanceof Error ? e.message : "뽑지 못했습니다.");
+    } finally {
+      setDrawBusy(false);
+    }
   }
 
   // ---------------------------------------------------------------- 미리보기·인쇄
@@ -913,11 +945,12 @@ export function TestBookWorkbench({
                 <input type="checkbox" checked={drawAnswers} onChange={(e) => setDrawAnswers(e.target.checked)} />
                 정답지 함께
               </label>
-              <Button type="button" className="w-full" disabled={!ready.some((p) => drawIds.has(p.id)) || !drawTypes.length} onClick={runDraw}>
-                {draw ? "다시 뽑기" : "뽑기"}
+              <Button type="button" className="w-full" disabled={drawBusy || !ready.some((p) => drawIds.has(p.id)) || !drawTypes.length} onClick={() => void runDraw()}>
+                {drawBusy ? "뽑는 중…" : draw ? "다시 뽑기" : "뽑기"}
               </Button>
+              {drawError ? <p className="text-[11px] font-semibold text-rose-600">{drawError}</p> : null}
               <p className="text-[11px] leading-relaxed text-slate-500">
-                누를 때마다 문항·보기 순서가 새로 나옵니다. 중요문장은 교재와 같고, 어순배열은 같은 덩어리를 새로 섞습니다. 값이 들지 않습니다.
+                누를 때마다 문항·보기 순서가 새로 나옵니다. 중요문장은 교재와 같고, 어순배열은 같은 덩어리를 새로 섞습니다. 뽑을 때마다 지문·유형마다 값이 듭니다.
               </p>
             </>
           )}

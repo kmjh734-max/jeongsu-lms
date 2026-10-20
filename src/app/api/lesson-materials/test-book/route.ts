@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  chargeTestDrawAction,
   prepareTestBookPassageAction,
   registerTestBookVocabAction,
   saveTestBookOptionsAction,
@@ -24,6 +25,8 @@ export async function POST(request: Request) {
       options?: unknown;
       title?: string;
       projectIds?: string[];
+      seed?: string;
+      typeCount?: number;
     };
     const role = body.role === "admin" ? "admin" : "teacher";
     if (body.op === "registerVocab") {
@@ -32,6 +35,15 @@ export async function POST(request: Request) {
           docId: body.id ? String(body.id) : null,
           title: String(body.title ?? ""),
           projectIds: Array.isArray(body.projectIds) ? body.projectIds.map(String) : [],
+        })
+      );
+    }
+    if (body.op === "chargeDraw") {
+      return NextResponse.json(
+        await chargeTestDrawAction(role, {
+          seed: String(body.seed ?? ""),
+          projectIds: Array.isArray(body.projectIds) ? body.projectIds.map(String) : [],
+          typeCount: Number(body.typeCount ?? 0),
         })
       );
     }

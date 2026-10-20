@@ -295,6 +295,37 @@ export async function prepareTestBookPassageAction(
   }
 }
 
+/** 테스트지 뽑기 값(지문·유형당). 저장된 재료로 조립만 하므로 원가는 없다 — 마이그레이션 194. */
+const TEST_DRAW_FEATURE = "lesson_test_draw";
+
+/**
+ * 테스트지를 뽑을 때 값을 받는다(선생님 2026-10-20: 새로 뽑을 때마다 기능에 따라). 뽑은 지문 수 × 유형 수.
+ * 같은 뽑기(seed)는 두 번 받지 않는다. 모자라면 뽑지 않는다.
+ */
+export async function chargeTestDrawAction(
+  role: Role,
+  input: { seed: string; projectIds: string[]; typeCount: number }
+): Promise<{ ok: true } | Fail> {
+  const { profile, error } = await requireTestBook(role);
+  if (error) return { ok: false, message: error };
+  const seed = String(input.seed ?? "").trim().slice(0, 80);
+  const passages = [...new Set((input.projectIds ?? []).map(String).filter(Boolean))].length;
+  const types = Math.max(0, Math.floor(Number(input.typeCount) || 0));
+  if (!seed || !passages || !types) return { ok: false, message: "뽑을 지문과 유형을 골라 주세요." };
+  const quantity = passages * types;
+  const shortfall = await lessonCreditShortfall(profile!.academy_id!, TEST_DRAW_FEATURE, quantity);
+  if (shortfall) return { ok: false, message: shortfall };
+  const ok = await debitLessonCredits({
+    academyId: profile!.academy_id!,
+    actorId: profile!.id,
+    featureKey: TEST_DRAW_FEATURE,
+    quantity,
+    idempotencyKey: `${TEST_DRAW_FEATURE}:${seed}`,
+    note: `테스트지 뽑기 · 지문 ${passages}개 × 유형 ${types}개`,
+  });
+  return ok ? { ok: true } : { ok: false, message: "크레딧을 차감하지 못했습니다. 잠시 뒤 다시 눌러 주세요." };
+}
+
 /** 교재 설정(유형·해석 보기·계획표 등)을 파일에 저장한다. */
 export async function saveTestBookOptionsAction(
   role: Role,

@@ -167,9 +167,9 @@ export function LessonMaterialsSelectionBar({
                 <button
                   type="button"
                   className={btn}
-                  title="고른 지문으로 오늘 볼 테스트지를 무작위로 뽑습니다(만든 재료를 쓰므로 값이 들지 않습니다)"
+                  title="고른 지문으로 오늘 볼 테스트지를 무작위로 뽑습니다(만든 재료로 조립하고, 뽑을 때마다 지문·유형마다 값이 듭니다)"
                   onClick={() =>
-                    // 뽑기는 파일을 만들지 않고, 만들어 둔 재료로만 조립한다(값이 들지 않는다)
+                    // 뽑기는 파일을 만들지 않고, 만들어 둔 재료로만 조립한다(값은 뽑을 때 받는다)
                     window.open(
                       `${documentPagePath(role, "test_book")}?mode=draw&ids=${encodeURIComponent(selectedIds.join(","))}&t=${Date.now().toString(36)}`,
                       "_blank",
