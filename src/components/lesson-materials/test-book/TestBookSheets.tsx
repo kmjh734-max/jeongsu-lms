@@ -76,6 +76,12 @@ export const TEST_BOOK_CSS = `
 .tb-line{height:7.5mm;border-bottom:.6pt solid #c9cdd4}
 .tb-blank{display:inline-block;min-width:24mm;border-bottom:.8pt solid #15171c;margin:0 1mm;text-align:center;font-family:"Noto Sans KR",sans-serif;font-size:7.6pt;font-weight:700;color:#6a707c;vertical-align:-.3mm}
 .tb-pick{white-space:nowrap;font-weight:600}
+/* 직독직해: 덩어리 아래에 뜻 쓸 칸 */
+.tb-gloss{display:flex;flex-wrap:wrap;gap:1.6mm 1.2mm;margin-top:.4mm}
+.tb-gloss > span{display:inline-flex;flex-direction:column;min-width:14mm}
+.tb-gloss > span > b{font-weight:400;padding:0 .8mm;border-right:.6pt solid #c9cdd4;line-height:1.45}
+.tb-gloss > span:last-child > b{border-right:0}
+.tb-gloss > span > i{display:block;height:6.2mm;border-bottom:.6pt solid #9aa0aa;margin:0 .8mm}
 .tb-pn{font-weight:700;margin-right:.6mm}
 .tb-sup{font-family:"Noto Sans KR",sans-serif;font-size:6.5pt;font-weight:700;margin-left:.6mm;color:#15171c}
 .tb-kol{font-family:"Noto Sans KR",sans-serif;font-size:8.5pt;font-weight:800;margin:2.5mm 0 1mm}
@@ -998,6 +1004,16 @@ function ItemNode({ item }: { item: TestItem }) {
         {item.tag ? <div className="tb-tag">{item.tag}</div> : null}
         {item.ko && (item.chunks || !item.text.length) ? <div className="tb-ko" style={{ marginTop: 0 }}>{item.ko}</div> : null}
         {item.hint ? <div className="tb-tip">조건: {item.hint}</div> : null}
+        {item.gloss ? (
+          <div className="tb-gloss">
+            {item.gloss.map((c, i) => (
+              <span key={i}>
+                <b className="tb-en">{c}</b>
+                <i />
+              </span>
+            ))}
+          </div>
+        ) : null}
         {item.chunks ? (
           <div className="tb-chunks tb-en">
             {item.chunks.map((c, i) => (

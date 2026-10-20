@@ -161,3 +161,92 @@ export async function refineTestBookVocab(input: {
     clearTimeout(timer);
   }
 }
+
+const CHUNK_SYSTEM = `너는 한국 고등학교 영어 교재의 직독직해 편집자다. JSON만 출력한다.
+문장마다 의미 단위(보통 2~6낱말)로 끊고, 덩어리마다 그 자리의 뜻을 한국어로 짧게 쓴다(앞에서부터 읽는 차례대로, 조사는 자연스럽게).
+- en: 원문 그대로 잘라 쓴다. 덩어리를 차례로 이으면 원문 문장 전체가 되어야 한다 — 따옴표 안 말과 문장 끝까지 낱말을 하나도 빼지 않는다.
+- ko: 그 덩어리 영어만 보고 앞에서부터 직역한다(덩어리 하나 = 그 낱말들의 뜻). 다른 덩어리의 말을 끌어오지 않는다. 예: "for the restoration" → "복원을 위해", "of cultural assets" → "문화재의", "under the name" → "~라는 이름으로", "has topped" → "1위를 차지했다".
+출력: {"items":[{"i":0,"chunks":[{"en":"","ko":""}]}]}`;
+
+/** 낱말 비교용: 소문자, 글자·숫자만 */
+function wordKey(t: string): string {
+  return t.toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9]/g, "");
+}
+
+/** 덩어리들을 원문 낱말에 맞춰 원문 조각으로 바꾼다. 맞지 않으면 null. */
+function alignChunks(sentence: string, chunks: Array<{ en: string; ko: string }>): Array<{ en: string; ko: string }> | null {
+  const tokens = sentence.split(/\s+/).filter(Boolean);
+  let at = 0;
+  const out: Array<{ en: string; ko: string }> = [];
+  for (const c of chunks) {
+    const words = c.en.split(/\s+/).map(wordKey).filter(Boolean);
+    if (!words.length) continue;
+    const start = at;
+    for (const w of words) {
+      while (at < tokens.length && !wordKey(tokens[at]!)) at++; // 문장부호만 있는 토막은 건너뛴다
+      if (at >= tokens.length || wordKey(tokens[at]!) !== w) return null;
+      at++;
+    }
+    out.push({ en: tokens.slice(start, at).join(" "), ko: c.ko });
+  }
+  // 남은 것이 문장부호뿐이면 마지막 덩어리에 붙이고, 낱말이 남았으면 버린다
+  const rest = tokens.slice(at);
+  if (rest.some((t) => wordKey(t))) return null;
+  if (rest.length && out.length) out[out.length - 1]!.en += " " + rest.join(" ");
+  return out;
+}
+
+/** 문장마다 직독직해 덩어리(원문 조각 + 뜻). 이어 붙인 조각이 원문과 다르면 그 문장은 null. */
+export async function glossTestBookChunks(input: {
+  title: string;
+  sentences: Array<{ english: string; korean: string }>;
+}): Promise<Array<Array<{ en: string; ko: string }> | null>> {
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  if (!apiKey) throw new Error("OPENAI_API_KEY가 설정되어 있지 않습니다.");
+  // 해석 문장은 넘기지 않는다 — 넘기면 덩어리를 직역하지 않고 해석 문장의 말을 옮겨 왔다
+  const lines = input.sentences.map((s, i) => `${i}. ${s.english}`).join("\n");
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 90_000);
+  try {
+    const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: MODEL,
+        temperature: 0.1,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: CHUNK_SYSTEM },
+          { role: "user", content: `제목: ${input.title}\n\n${lines.slice(0, 12000)}` },
+        ],
+      }),
+    });
+    const body = await res.text();
+    if (!res.ok) throw new Error(`직독직해를 만들지 못했습니다 (HTTP ${res.status})`);
+    const envelope = parseJson(body) as { choices?: Array<{ message?: { content?: string } }> } | null;
+    const parsed = parseJson(envelope?.choices?.[0]?.message?.content ?? "") as { items?: unknown[] } | null;
+    const out: Array<Array<{ en: string; ko: string }> | null> = input.sentences.map(() => null);
+    for (const raw of Array.isArray(parsed?.items) ? parsed!.items : []) {
+      const r = (raw ?? {}) as { i?: unknown; chunks?: unknown };
+      const i = Number(r.i);
+      if (!Number.isInteger(i) || i < 0 || i >= out.length) continue;
+      const chunks = (Array.isArray(r.chunks) ? r.chunks : [])
+        .map((c) => {
+          const x = (c ?? {}) as Record<string, unknown>;
+          return { en: String(x.en ?? "").trim(), ko: String(x.ko ?? "").trim() };
+        })
+        .filter((c) => c.en);
+      // 덩어리를 원문 낱말에 차례로 맞춘다. 덩어리 글은 원문에서 그대로 잘라 문장부호·따옴표를 살리고,
+      // 낱말이 빠지거나 바뀐 문장은 버린다(그 문장은 한줄해석을 전체 해석으로 낸다).
+      const aligned = alignChunks(input.sentences[i]!.english, chunks);
+      if (aligned && aligned.length >= 2 && aligned.every((c) => c.ko)) out[i] = aligned;
+    }
+    return out;
+  } catch (e) {
+    if (e instanceof Error && e.name === "AbortError") throw new Error("직독직해 시간이 초과되었습니다.");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}

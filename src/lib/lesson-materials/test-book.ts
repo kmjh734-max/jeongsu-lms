@@ -32,7 +32,7 @@ import type { WorkbookGrammarChoiceSection } from "@/lib/lesson-materials/workbo
  * 중요문장·어순 덩어리처럼 규칙으로 만드는 것만 다시 계산한다(선생님 2026-10-20: 들어갈 때마다
  * 새로 만드는 것 같고 너무 오래 걸린다 — 버전을 올리면 지문마다 단어 정리를 처음부터 다시 만들었다).
  */
-export const TEST_BOOK_MATERIAL_VERSION = "tb-3";
+export const TEST_BOOK_MATERIAL_VERSION = "tb-4";
 /** 단어 정리(모델이 만드는 부분) 규칙이 바뀌면 올린다 — 이것만 다르면 단어 정리만 다시 만든다 */
 export const TEST_BOOK_VOCAB_VERSION = "tv-3";
 
@@ -117,6 +117,8 @@ export type TestBookMaterial = {
   unitHits?: Array<{ si: number; grammar: string[] }>;
   /** 구문·구조가 어려운 문장(0부터, 단원문법 문장 빼고 2개까지) — key-sentence-analysis */
   hardHits?: Array<{ si: number; structures: string[] }>;
+  /** 문장마다 직독직해 덩어리(원문 조각 + 뜻). 못 만든 문장은 null — 한줄해석 「직독직해」에 쓴다 */
+  chunkGloss?: Array<Array<{ en: string; ko: string }> | null>;
   createdAt: string;
 };
 
@@ -239,6 +241,8 @@ export type TestBookOptions = {
   translation: TestBookTranslationMode;
   /** 통문장 영작: 모든 문장 · 중요문장만 */
   writing: WritingScope;
+  /** 한줄해석: 전체 해석 · 직독직해 */
+  lineMode: LineMode;
   /** 표지 */
   cover: boolean;
   /** 표지 모양·글자 */
@@ -277,6 +281,7 @@ export const DEFAULT_TEST_BOOK_OPTIONS: TestBookOptions = {
   types: BASIC_TEST_BOOK_TYPES,
   translation: "hide",
   writing: "all",
+  lineMode: "full",
   cover: true,
   coverInfo: { presetId: TEST_BOOK_BLEED_COVER, label: "", title: "", progress: "", academy: "", headline: "" },
   toc: true,
@@ -302,6 +307,7 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
     types: normalizeTestBookTypes(r.types),
     translation: t === "show" || t === "hide" || t === "back" ? t : DEFAULT_TEST_BOOK_OPTIONS.translation,
     writing: r.writing === "key" ? "key" : "all",
+    lineMode: r.lineMode === "chunk" ? "chunk" : "full",
     cover: r.cover !== false,
     coverInfo: (() => {
       const c = (r.coverInfo ?? {}) as Partial<Record<keyof TestBookCover, unknown>>;
@@ -347,6 +353,8 @@ export type TestItem = {
   ko?: string;
   /** 어순배열 덩어리(섞은 차례) */
   chunks?: string[];
+  /** 직독직해 덩어리(원래 차례) — 덩어리마다 아래에 뜻 쓸 칸 */
+  gloss?: string[];
   /** 문장 앞에 주는 말(어순배열: In other words, …) */
   lead?: string;
   /** 영작 조건 */
@@ -393,6 +401,8 @@ const no = (i: number) => `(${i + 1})`;
 // ---------------------------------------------------------------- 조립
 
 export type BlankMode = "same" | "diff";
+/** 한줄해석: 문장 전체를 해석 · 덩어리마다 직독직해 */
+export type LineMode = "full" | "chunk";
 /** 통문장 영작 범위: 모든 문장 · 중요문장(단원문법·어려운 구문·핵심 문장)만 */
 export type WritingScope = "all" | "key";
 
@@ -497,18 +507,22 @@ function arrange<T>(items: T[], seed: string): T[] {
  * 선생님 요청(2026-10-19): 중요문장 어순배열만 중요문장으로 하고, 나머지 유형은 지문 전체를 다룬다
  * (한줄해석·빈칸·영작은 모든 문장, 어법·어휘·T/F·연결어는 만들어 둔 것을 모두).
  */
-function buildLine(p: Ready, seed: string): TestSection | null {
+function buildLine(p: Ready, seed: string, mode: LineMode = "full"): TestSection | null {
   const all = p.sentences.map((s, si) => ({ si, s })).filter(({ s }) => s.korean.trim() && words(s.english) >= 3);
   if (!all.length) return null;
+  // 직독직해(선생님 2026-10-20): 덩어리마다 아래에 뜻을 쓴다. 덩어리를 못 만든 문장은 전체 해석으로.
+  const gloss = mode === "chunk" ? p.material.chunkGloss : undefined;
   return {
     type: "line",
     title: "한줄해석",
-    items: arrange(all, seed).map(({ s }, i) => ({
-      no: no(i),
-      text: [clean(s.english)],
-      lines: words(s.english) > 22 ? 2 : 1,
-      answer: s.korean,
-    })),
+    hint: mode === "chunk" ? "끊어 읽는 덩어리마다 뜻 쓰기" : undefined,
+    items: arrange(all, seed).map(({ s, si }, i) => {
+      const g = gloss?.[si];
+      if (g?.length) {
+        return { no: no(i), text: [], gloss: g.map((c) => c.en), answer: g.map((c) => c.ko).join(" / ") };
+      }
+      return { no: no(i), text: [clean(s.english)], lines: words(s.english) > 22 ? 2 : 1, answer: s.korean };
+    }),
   };
 }
 
@@ -918,7 +932,7 @@ function buildWords(p: Ready, seed: string): TestSection | null {
 export function buildTestSheet(
   p: Ready,
   types: TestBookTypeKey[],
-  opts: { seed: string; blankMode?: BlankMode; writing?: WritingScope }
+  opts: { seed: string; blankMode?: BlankMode; writing?: WritingScope; lineMode?: LineMode }
 ): TestSheet {
   const seed = `${opts.seed}|${p.id}`;
   const on = new Set(types);
@@ -931,7 +945,7 @@ export function buildTestSheet(
   for (const key of ALL_TEST_BOOK_TYPES) {
     if (!on.has(key)) continue;
     const sec =
-      key === "line" ? buildLine(p, seed)
+      key === "line" ? buildLine(p, seed, opts.lineMode ?? "full")
       : key === "blank" ? buildBlank(p, seed, opts.blankMode ?? "same")
       : key === "grammar" ? (workbookGrammarSection(p, seed) ?? pickSection(p, "grammar", "어법선택", "알맞은 것에 ○", forPick, seed))
       : key === "vocab" ? pickSection(p, "vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed)

@@ -25,6 +25,7 @@ import {
   testBookTypeLabel,
   type BlankMode,
   type WritingScope,
+  type LineMode,
   type TestBookOptions,
   type TestBookProjectInput,
   type TestBookTypeKey,
@@ -174,6 +175,32 @@ function CoverInput({
         <input className={cls} value={text} placeholder={placeholder} onChange={(e) => setText(e.target.value)} onBlur={blur} />
       )}
     </label>
+  );
+}
+
+/** 한줄해석: 전체 해석 · 직독직해 */
+function LineModeSwitch({ value, onChange }: { value: LineMode; onChange: (v: LineMode) => void }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] font-bold text-slate-500">한줄해석</p>
+      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+        {(
+          [
+            ["full", "전체 해석"],
+            ["chunk", "직독직해"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onChange(id)}
+            className={`rounded-md px-1 py-1 text-[11px] font-bold ${value === id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -388,6 +415,7 @@ export function TestBookWorkbench({
   const [drawTypes, setDrawTypes] = useState<TestBookTypeKey[]>(BASIC_TEST_BOOK_TYPES);
   const [blankMode, setBlankMode] = useState<BlankMode>("same");
   const [drawWriting, setDrawWriting] = useState<WritingScope>("all");
+  const [drawLineMode, setDrawLineMode] = useState<LineMode>("full");
   const [drawAnswers, setDrawAnswers] = useState(true);
   const [draw, setDraw] = useState<{ seed: string; picks: Record<string, TestBookTypeKey[]> } | null>(null);
   /** 뽑을 때마다 값(지문 수 × 유형 수)을 받는다 — 확인 창을 띄우고, 서버에서 차감된 뒤에만 보여 준다 */
@@ -498,18 +526,18 @@ export function TestBookWorkbench({
       ready.map((p) => ({
         project: p,
         word: buildWordTest(p, BOOK_SEED),
-        sheet: buildTestSheet(p, options.types, { seed: BOOK_SEED, blankMode: "same", writing: options.writing }),
+        sheet: buildTestSheet(p, options.types, { seed: BOOK_SEED, blankMode: "same", writing: options.writing, lineMode: options.lineMode }),
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ready.map((p) => p.id).join(","), projects, options.types, options.writing]
+    [ready.map((p) => p.id).join(","), projects, options.types, options.writing, options.lineMode]
   );
   const drawn = useMemo(() => {
     if (!draw) return [];
     return ready
       .filter((p) => draw.picks[p.id])
-      .map((p) => ({ project: p, sheet: buildTestSheet(p, draw.picks[p.id]!, { seed: draw.seed, blankMode, writing: drawWriting }) }));
+      .map((p) => ({ project: p, sheet: buildTestSheet(p, draw.picks[p.id]!, { seed: draw.seed, blankMode, writing: drawWriting, lineMode: drawLineMode }) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draw, blankMode, drawWriting, projects]);
+  }, [draw, blankMode, drawWriting, drawLineMode, projects]);
 
   // ---------------------------------------------------------------- 교재 차례·목차
   const testsOn = options.tests && book.length > 0 && (options.allWordTest || options.wordTest || options.types.length > 0);
@@ -838,6 +866,7 @@ export function TestBookWorkbench({
                   <div className="space-y-2 rounded-lg border border-violet-200 bg-violet-50/60 p-2.5">
                     <p className="text-[11px] font-bold text-violet-900">테스트 견본 유형</p>
                     <TypeChecks value={options.types} onChange={(types) => setOptions({ types })} />
+                    {options.types.includes("line") ? <LineModeSwitch value={options.lineMode} onChange={(lineMode) => setOptions({ lineMode })} /> : null}
                     {options.types.includes("writing") ? <WritingScopeSwitch value={options.writing} onChange={(writing) => setOptions({ writing })} /> : null}
                     {options.types.includes("grammar") ? (
                       <div className="space-y-1">
@@ -940,6 +969,7 @@ export function TestBookWorkbench({
                   ))}
                 </div>
               </div>
+              {drawTypes.includes("line") ? <LineModeSwitch value={drawLineMode} onChange={setDrawLineMode} /> : null}
               {drawTypes.includes("writing") ? <WritingScopeSwitch value={drawWriting} onChange={setDrawWriting} /> : null}
               <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                 <input type="checkbox" checked={drawAnswers} onChange={(e) => setDrawAnswers(e.target.checked)} />

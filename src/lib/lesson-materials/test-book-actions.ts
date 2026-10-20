@@ -21,7 +21,7 @@ import { generateWorkbookLineTranslation } from "@/lib/lesson-materials/generate
 import { generateWorkbookWordOrderWriting } from "@/lib/lesson-materials/generate-workbook-word-order-writing";
 import type { StoredWordOrderChunkCache } from "@/lib/lesson-materials/word-order-chunk-cache";
 import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
-import { refineTestBookVocab } from "@/lib/lesson-materials/generate-test-book";
+import { glossTestBookChunks, refineTestBookVocab } from "@/lib/lesson-materials/generate-test-book";
 import {
   KEY_SENTENCE_VERSION,
   analyzeKeySentences,
@@ -265,8 +265,15 @@ export async function prepareTestBookPassageAction(
         }
       }
 
+      // 직독직해 덩어리: 원문이 같고 이미 있으면 다시 쓰고, 없으면 만든다(gpt-4o-mini, 1원 아래)
+      const oldGloss = material && isTestBookMaterialSameSource(material, english) && !input.forceRegenerate ? material.chunkGloss : undefined;
+      const chunkGloss = oldGloss?.length
+        ? oldGloss
+        : await withAiUsage(usage, () => glossTestBookChunks({ title: project.title as string, sentences })).catch(() => undefined);
+
       material = {
         version: TEST_BOOK_MATERIAL_VERSION,
+        chunkGloss,
         vocabVersion: TEST_BOOK_VOCAB_VERSION,
         sourceHash: testBookSourceHash(english),
         vocab,
