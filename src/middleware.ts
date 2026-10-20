@@ -30,6 +30,8 @@ const PUBLIC_PREFIXES = [
   "/features",
   "/robots.txt",
   "/sitemap.xml",
+  // PDF 저장 서버: 라우트가 직접 로그인(POST)·서비스 키(GET 자가 시험)를 확인한다
+  "/api/pdf/render",
   // 공개 글꼴 파일 — PDF 저장 서버 Chrome이 로그인 없이 한글 글꼴을 받는다(api/pdf/render)
   "/fonts",
   "/api/signup",
