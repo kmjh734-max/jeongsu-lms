@@ -229,3 +229,62 @@ export async function loadTestBookProjects(
       };
     });
 }
+
+/**
+ * 최종통합자료의 계획표·전체 단어장·백지노트에 쓰는 지문 데이터. 무거운 열(lesson_pack_json 통째·분석서)은
+ * 읽지 않고 필요한 칸(1장 자료 재료·테스트 교재 재료)만 꺼낸다.
+ */
+export async function loadBundleExtraProjects(
+  supabase: SupabaseClient,
+  ids: string[]
+): Promise<TestBookProjectInput[]> {
+  if (ids.length === 0) return [];
+  const [{ data: projects }, { data: items }] = await Promise.all([
+    supabase
+      .from("lesson_material_projects")
+      .select("id,title,title_en,source,opc:lesson_pack_json->onePageContent,tbm:lesson_pack_json->testBookMaterial")
+      .in("id", ids)
+      .is("deleted_at", null),
+    supabase
+      .from("lesson_material_items")
+      .select("project_id,english_text,korean_text,order_index")
+      .in("project_id", ids)
+      .order("order_index", { ascending: true }),
+  ]);
+  const itemsByProject = new Map<string, NonNullable<typeof items>>();
+  for (const it of items ?? []) {
+    const list = itemsByProject.get(it.project_id as string) ?? [];
+    list.push(it);
+    itemsByProject.set(it.project_id as string, list);
+  }
+  const rows = (projects ?? []) as unknown as Array<{
+    id: string;
+    title: string;
+    title_en: string | null;
+    source: string | null;
+    opc: LessonPackData["onePageContent"] | null;
+    tbm: LessonPackData["testBookMaterial"] | null;
+  }>;
+  const byId = new Map(rows.map((p) => [p.id, p] as const));
+  return ids
+    .map((id) => byId.get(id))
+    .filter((p): p is NonNullable<typeof p> => !!p)
+    .map((p) => {
+      const sentences = onePageSentences(
+        (itemsByProject.get(p.id) ?? []) as Array<{ english_text?: string | null; korean_text?: string | null }>
+      );
+      const english = sentences.map((s) => s.english);
+      const content = isOnePageContentFresh(p.opc ?? undefined, english) ? (p.opc ?? null) : null;
+      return {
+        id: p.id,
+        title: p.title,
+        titleEn: p.title_en ?? null,
+        source: p.source ?? null,
+        sentences,
+        content,
+        material: isTestBookMaterialFresh(p.tbm ?? undefined, english)
+          ? mergeTestBookVocabHints(p.tbm!, content)
+          : null,
+      };
+    });
+}

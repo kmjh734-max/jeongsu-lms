@@ -5,6 +5,7 @@ import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding"
 import { normalizeIntegratedPayload } from "@/lib/lesson-materials/integrated";
 import {
   loadAnalysisReportProjects,
+  loadBundleExtraProjects,
   loadLessonPackProjects,
 } from "@/lib/lesson-materials/load-material-payloads";
 import {
@@ -56,7 +57,16 @@ export async function FinalBundlePage({ role, docId }: { role: "admin" | "teache
     return d && d.kind === kind ? d : null;
   };
 
-  const [lessonPacks, analyses] = await Promise.all([
+  // 계획표·전체 단어장·백지노트는 고른 파일들의 지문으로(처음 나온 순서, 겹치면 한 번)
+  const extraIds = [
+    ...new Set(
+      [...payload.selections.lesson_pack, ...payload.selections.analysis_report, ...payload.selections.workbook].flatMap(
+        (id) => ((docById.get(id)?.project_ids as string[] | undefined) ?? [])
+      )
+    ),
+  ];
+
+  const [lessonPacks, analyses, extraProjects] = await Promise.all([
     Promise.all(
       payload.selections.lesson_pack.map(async (id) => {
         const d = pick(id, "lesson_pack");
@@ -79,6 +89,7 @@ export async function FinalBundlePage({ role, docId }: { role: "admin" | "teache
         };
       })
     ),
+    loadBundleExtraProjects(supabase, extraIds),
   ]);
 
   const profile = await getCurrentProfile();
@@ -101,6 +112,7 @@ export async function FinalBundlePage({ role, docId }: { role: "admin" | "teache
     questions: payload.selections.questions
       .filter((id) => jobTitle.has(id))
       .map((id) => ({ jobId: id, title: jobTitle.get(id) || "변형문제" })),
+    extraProjects,
   };
 
   const branding = await getAcademyBrandingForCurrentUser();

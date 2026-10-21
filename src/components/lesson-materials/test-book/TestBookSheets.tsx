@@ -49,6 +49,7 @@ export const TEST_BOOK_CSS = `
 .tb-foot .tb-brand img{height:4.6mm;width:auto;max-width:16mm;object-fit:contain}
 .tb-foot .tb-fmid{flex:1;min-width:0;display:flex;justify-content:center;gap:4mm;overflow:hidden;white-space:nowrap}
 .tb-foot .tb-pgno{font-weight:700;color:#4b515c;white-space:nowrap}
+.tb-sheet[data-page-no]::after{content:none}
 .tb-b{display:flow-root;padding-bottom:2.6mm}
 .tb-dh{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.6pt solid #15171c;padding-bottom:2mm;margin-bottom:3mm}
 .tb-dh h2{margin:0;font-size:16pt;font-weight:900;letter-spacing:-.02em;line-height:1.15}

@@ -15,7 +15,12 @@ import { saveIntegratedDocument } from "@/lib/lesson-materials/document-actions"
 import {
   COVER_PRESETS,
   INTEGRATED_SECTION_META,
+  INTEGRATED_EXTRA_KINDS,
+  TEST_BOOK_PART_ORDER,
   coverPreset,
+  integratedPartMeta,
+  type IntegratedExtraKind,
+  type IntegratedPartKind,
   type IntegratedPayload,
   type IntegratedSectionKind,
 } from "@/lib/lesson-materials/integrated";
@@ -28,16 +33,46 @@ import {
   type ContentsEntry,
 } from "@/components/lesson-materials/integrated/BundleSheets";
 import { watchPageNumbers } from "@/lib/lesson-materials/page-numbers";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
+import { postJson } from "@/lib/lesson-materials/post-json";
+import type { prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-book-actions";
+import {
+  DEFAULT_TEST_BOOK_OPTIONS,
+  TEST_BOOK_THEMES,
+  type TestBookProjectInput,
+} from "@/lib/lesson-materials/test-book";
+import {
+  AllVocabSheets,
+  BlankNoteSheets,
+  PlanSheets,
+  TEST_BOOK_CSS,
+  TEST_BOOK_FONTS_HREF,
+  TestBookBrand,
+  partStyle,
+} from "@/components/lesson-materials/test-book/TestBookSheets";
 
 export type FinalBundleMaterials = {
   lessonPacks: Array<{ docId: string; name: string; projects: LessonPackProjectInput[] }>;
   analyses: Array<{ docId: string; name: string; projects: AnalysisReportProjectInput[] }>;
   workbooks: Array<{ docId: string; name: string }>;
   questions: Array<{ jobId: string; title: string }>;
+  /** 고른 파일들의 지문(계획표·전체 단어장·백지노트) */
+  extraProjects: TestBookProjectInput[];
 };
 
-/** 쪽으로 세는 요소(각 자료의 A4 쪽). */
-const PAGE_SELECTOR = ".lesson-pack-a4-sheet, .qg-print-page";
+/** 쪽으로 세는 요소(각 자료의 A4 쪽). 테스트 교재 쪽은 쪽 나눔 측정 틀 안의 것을 뺀다. */
+const PAGE_SELECTOR = ".lesson-pack-a4-sheet, .qg-print-page, .tb-sheet:not(.tb-measure .tb-sheet)";
+const PDF_PAGE_SELECTOR =
+  ":is(.final-bundle-sheet, .lesson-pack-a4-sheet, .qg-print-page, .tb-sheet:not(.tb-measure .tb-sheet))";
+
+/** 테스트 교재 묶음의 색(목차 번호·쪽 꼬리표) — 테스트 교재와 같다 */
+const EXTRA_COLOR: Record<IntegratedExtraKind, string> = {
+  plan: "#2b2f38",
+  vocab: "#1d2a8f",
+  blank_note: "#0f8a7e",
+};
+const isExtra = (k: string): k is IntegratedExtraKind => (INTEGRATED_EXTRA_KINDS as string[]).includes(k);
+type PrepareResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
 
 const PRINT_CSS = `
 /* 미리보기 배율은 화면에서만 건다. 인쇄 계산에 섞이면 쪽이 더 생긴다. */
@@ -72,6 +107,7 @@ const PRINT_CSS = `
     break-after: page !important; page-break-after: always !important;
   }
   #final-bundle-print-root .bundle-screen-only { display: none !important; }
+  #final-bundle-print-root .tb-sheet { box-shadow: none !important; }
   /* 겹친 flex 상자는 인쇄에서 쪽 나눔이 어긋나 빈 쪽이 생긴다. 인쇄에서는 블록으로 흐르게 한다. */
   #final-bundle-print-root,
   #final-bundle-print-root .bundle-section,
@@ -84,7 +120,7 @@ const PRINT_CSS = `
 
 type SectionPlan = {
   key: string;
-  kind: IntegratedSectionKind | "answers";
+  kind: IntegratedPartKind | "answers";
   en: string;
   title: string;
   sub: string;
@@ -121,31 +157,38 @@ export function FinalBundleClient({
   /** PDF로 바로 저장(인쇄 창 없이) */
   const pdf = usePdfSave();
   // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다
-  usePdfPrefetch("final-bundle-print-root", ":is(.final-bundle-sheet, .lesson-pack-a4-sheet, .qg-print-page)");
+  usePdfPrefetch("final-bundle-print-root", PDF_PAGE_SELECTOR);
   const [pageCounts, setPageCounts] = useState<Record<string, number>>({});
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const rootRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const preset = coverPreset(payload.cover.presetId);
 
-  const has: Record<IntegratedSectionKind, boolean> = {
+  const extraProjects = materials.extraProjects;
+  const vocabReady = extraProjects.filter((p) => (p.material?.vocab?.length ?? 0) > 0);
+  const vocabMissing = extraProjects.filter((p) => !p.material);
+  /** 파일 묶음은 고른 자료가 있을 때, 테스트 교재 묶음은 켰고 지문이 있을 때 */
+  const has: Record<IntegratedPartKind, boolean> = {
     lesson_pack: materials.lessonPacks.length > 0,
     analysis_report: materials.analyses.length > 0,
     questions: materials.questions.length > 0,
     workbook: materials.workbooks.length > 0,
+    plan: payload.extras.plan && extraProjects.length > 0,
+    vocab: payload.extras.vocab && vocabReady.length > 0,
+    blank_note: payload.extras.blank_note && extraProjects.length > 0,
   };
 
   // 목차·본문 순서. 고른 자료가 없는 유형은 뺀다. 변형문제 정답은 맨 뒤에 모은다.
   const sections: SectionPlan[] = useMemo(() => {
-    const out: SectionPlan[] = payload.order
+    const out: SectionPlan[] = payload.parts
       .filter((k) => has[k])
-      .map((k) => ({ key: k, kind: k, ...INTEGRATED_SECTION_META[k] }));
+      .map((k) => ({ key: k, kind: k, ...integratedPartMeta(k) }));
     if (payload.answerKey && has.questions) {
       out.push({ key: "answers", kind: "answers", en: "ANSWER KEY", title: "정답", sub: "변형문제 정답" });
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payload.order, payload.answerKey, materials]);
+  }, [payload.parts, payload.extras, payload.answerKey, materials]);
 
   // 인쇄 CSS
   useEffect(() => {
@@ -226,13 +269,62 @@ export function FinalBundleClient({
   const updateCover = (patch: Partial<IntegratedPayload["cover"]>) =>
     update({ cover: { ...payload.cover, ...patch } });
 
-  function move(kind: IntegratedSectionKind, dir: -1 | 1) {
-    const order = [...payload.order];
-    const i = order.indexOf(kind);
-    const j = i + dir;
-    if (i < 0 || j < 0 || j >= order.length) return;
-    [order[i], order[j]] = [order[j]!, order[i]!];
-    update({ order });
+  /** 보이는 묶음끼리 자리를 바꾼다(꺼 둔 묶음은 건너뛴다). 파일 묶음 순서(order)도 맞춰 둔다. */
+  function move(kind: IntegratedPartKind, dir: -1 | 1) {
+    const parts = [...payload.parts];
+    const shown = parts.filter((k) => !isExtra(k) || payload.extras[k]);
+    const a = shown.indexOf(kind);
+    const b = a + dir;
+    if (a < 0 || b < 0 || b >= shown.length) return;
+    const i = parts.indexOf(shown[a]!);
+    const j = parts.indexOf(shown[b]!);
+    [parts[i], parts[j]] = [parts[j]!, parts[i]!];
+    update({ parts, order: parts.filter((k): k is IntegratedSectionKind => !isExtra(k)) });
+  }
+
+  /** 「테스트 교재 구성」: 계획표·단어장·백지노트를 켜고 테스트 교재 차례로 놓는다 */
+  function applyTestBookPreset() {
+    const parts = [...TEST_BOOK_PART_ORDER];
+    update({
+      parts,
+      order: parts.filter((k): k is IntegratedSectionKind => !isExtra(k)),
+      extras: { plan: true, vocab: true, blank_note: true },
+      dividers: true,
+    });
+  }
+
+  /** 단어장 재료가 없는 지문: 지문당 한 번 값을 받고 만든 뒤 다시 불러온다(워크북 새 유형과 같은 재료·같은 값) */
+  const [preparing, setPreparing] = useState<string | null>(null);
+  async function prepareVocab() {
+    if (preparing || vocabMissing.length === 0) return;
+    const go = await askCreditConfirm({
+      title: "전체 단어장",
+      description: "지문마다 단어 정리(품사·지문 속 뜻·파생어·동반의어)를 만듭니다. 워크북 새 유형과 같은 재료라, 이미 값을 낸 지문은 다시 받지 않습니다.",
+      subject: `단어장 재료가 없는 지문 ${vocabMissing.length}개`,
+      contents: vocabMissing.map((p) => p.title),
+      items: [{ feature: "lesson_workbook_extras", quantity: vocabMissing.length }],
+    });
+    if (!go) return;
+    const failed: string[] = [];
+    for (let i = 0; i < vocabMissing.length; i++) {
+      const p = vocabMissing[i]!;
+      setPreparing(`단어장 재료를 만들고 있습니다… (${i + 1}/${vocabMissing.length})`);
+      try {
+        const res = await postJson<PrepareResult>("/api/lesson-materials/test-book", {
+          role,
+          op: "prepareWorkbook",
+          projectId: p.id,
+        });
+        if (!res.ok) failed.push(`「${p.title}」 ${res.message}`);
+      } catch (e) {
+        failed.push(`「${p.title}」 ${e instanceof Error ? e.message : "만들지 못했습니다."}`);
+      }
+    }
+    if (failed.length) {
+      setPreparing(failed.join(" · "));
+      return;
+    }
+    window.location.reload();
   }
 
   /*
@@ -241,6 +333,32 @@ export function FinalBundleClient({
    * 표지 글자가 바뀌어도 다시 만들지 않는다.
    */
   const renderSection = (s: SectionPlan) => {
+    if (s.kind === "plan" || s.kind === "vocab" || s.kind === "blank_note") {
+      const no = String(sections.findIndex((x) => x.key === s.key) + 1).padStart(2, "0");
+      const style = partStyle({ id: s.kind, no, en: s.en, ko: s.title, color: EXTRA_COLOR[s.kind] });
+      const indexOf = (id: string) => extraProjects.findIndex((p) => p.id === id);
+      return (
+        <div className="contents" style={style}>
+          {s.kind === "plan" ? (
+            <PlanSheets
+              projects={extraProjects}
+              measureKey="bundle-plan"
+              options={{
+                ...DEFAULT_TEST_BOOK_OPTIONS,
+                tests: false,
+                lesson: has.lesson_pack,
+                blankNote: has.blank_note,
+                analysis: has.analysis_report,
+              }}
+            />
+          ) : s.kind === "vocab" ? (
+            <AllVocabSheets projects={vocabReady} indexOf={indexOf} measureKey="bundle-vocab" />
+          ) : (
+            extraProjects.map((p, i) => <BlankNoteSheets key={p.id} index={i} project={p} />)
+          )}
+        </div>
+      );
+    }
     if (s.kind === "lesson_pack") {
       return materials.lessonPacks.map((m) => (
         <LessonPackWorkbench key={m.docId} role={role} projects={m.projects} logoSrc={logoSrc} embedded />
@@ -275,6 +393,11 @@ export function FinalBundleClient({
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sections, materials, role, logoSrc, academyName, base, qgBase]);
+  const brand = useMemo(() => ({ logoSrc: logoSrc || null, academy: payload.cover.academy || academyName }), [
+    logoSrc,
+    payload.cover.academy,
+    academyName,
+  ]);
 
   const inputClass =
     "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100";
@@ -327,7 +450,66 @@ export function FinalBundleClient({
           </section>
 
           <section className="space-y-2">
-            <p className="text-xs font-bold text-slate-600">구성</p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold text-slate-600">구성</p>
+              <button
+                type="button"
+                onClick={applyTestBookPreset}
+                title="계획표 → 전체 단어장 → 수업용 자료 → 백지노트 → 분석서 → 워크북 → 변형문제"
+                className="rounded-md border border-violet-200 bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700 hover:bg-violet-100"
+              >
+                테스트 교재 구성
+              </button>
+            </div>
+            <div className="space-y-1 rounded-xl bg-slate-50 p-2.5">
+              {INTEGRATED_EXTRA_KINDS.map((k) => (
+                <label key={k} className="flex items-center gap-2 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={payload.extras[k]}
+                    onChange={(e) => update({ extras: { ...payload.extras, [k]: e.target.checked } })}
+                  />
+                  {integratedPartMeta(k).title}
+                  <span className="text-[11px] text-slate-400">{integratedPartMeta(k).sub}</span>
+                </label>
+              ))}
+              {payload.extras.vocab && vocabMissing.length > 0 ? (
+                <div className="mt-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] text-amber-800">
+                  단어장 재료가 없는 지문 {vocabMissing.length}개는 단어장에서 빠집니다.
+                  <button
+                    type="button"
+                    disabled={!!preparing && preparing.endsWith(")")}
+                    onClick={() => void prepareVocab()}
+                    className="mt-1.5 block w-full rounded-md bg-amber-500 py-1 font-bold text-white hover:bg-amber-600 disabled:opacity-60"
+                  >
+                    재료 만들기 (지문 {vocabMissing.length}개)
+                  </button>
+                  {preparing ? <p className="mt-1">{preparing}</p> : null}
+                </div>
+              ) : null}
+              {INTEGRATED_EXTRA_KINDS.some((k) => payload.extras[k]) ? (
+                <div className="pt-1">
+                  <p className="mb-1 text-[11px] font-bold text-slate-500">계획표·단어장·백지노트 디자인</p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {TEST_BOOK_THEMES.map((t) => (
+                      <button
+                        key={t.key}
+                        type="button"
+                        onClick={() => update({ theme: t.key as IntegratedPayload["theme"] })}
+                        aria-pressed={payload.theme === t.key}
+                        className={`rounded-md border px-1 py-1 text-[11px] font-bold ${
+                          payload.theme === t.key
+                            ? "border-violet-500 bg-violet-600 text-white"
+                            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
             <label className="flex items-center gap-2 text-sm text-slate-700">
               <input type="checkbox" checked={payload.dividers} onChange={(e) => update({ dividers: e.target.checked })} />
               자료 사이에 간지 넣기
@@ -337,7 +519,9 @@ export function FinalBundleClient({
               변형문제 정답을 맨 뒤에 모으기
             </label>
             <ol className="space-y-1">
-              {payload.order.map((k, i) => (
+              {payload.parts
+                .filter((k) => !isExtra(k) || payload.extras[k])
+                .map((k, i, shown) => (
                 <li
                   key={k}
                   className={`flex items-center justify-between rounded-lg border px-2.5 py-1.5 text-sm ${
@@ -346,14 +530,14 @@ export function FinalBundleClient({
                 >
                   <span>
                     <span className="mr-1.5 font-bold text-violet-600">{i + 1}</span>
-                    {INTEGRATED_SECTION_META[k].title}
-                    {!has[k] ? " (고른 자료 없음)" : ""}
+                    {integratedPartMeta(k).title}
+                    {!has[k] ? (isExtra(k) ? " (지문 재료 없음)" : " (고른 자료 없음)") : ""}
                   </span>
                   <span className="flex gap-1">
                     <button type="button" disabled={i === 0} onClick={() => move(k, -1)} className="rounded px-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30">
                       ‹
                     </button>
-                    <button type="button" disabled={i === payload.order.length - 1} onClick={() => move(k, 1)} className="rounded px-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30">
+                    <button type="button" disabled={i === shown.length - 1} onClick={() => move(k, 1)} className="rounded px-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30">
                       ›
                     </button>
                   </span>
@@ -382,10 +566,7 @@ export function FinalBundleClient({
             onClick={() =>
               void pdf.save(
                 "통합자료",
-                collectPrintPages(
-                  document.getElementById("final-bundle-print-root"),
-                  ":is(.final-bundle-sheet, .lesson-pack-a4-sheet, .qg-print-page)"
-                ),
+                collectPrintPages(document.getElementById("final-bundle-print-root"), PDF_PAGE_SELECTOR),
                 [payload.cover.title.replace(/\s+/g, " ") || name]
               )
             }
@@ -412,11 +593,18 @@ export function FinalBundleClient({
             +
           </button>
         </div>
+        {sections.some((s) => isExtra(s.kind)) ? (
+          <>
+            <link rel="stylesheet" href={TEST_BOOK_FONTS_HREF} />
+            <style>{TEST_BOOK_CSS}</style>
+          </>
+        ) : null}
+        <TestBookBrand.Provider value={brand}>
         <div className="flex justify-center p-6 print:p-0">
           <div
             ref={rootRef}
             id="final-bundle-print-root"
-            className="flex flex-col items-center gap-6 print:gap-0"
+            className={`tb-theme-${payload.theme} flex flex-col items-center gap-6 print:gap-0 [&_.tb-sheet]:shadow-xl`}
             style={{ ["--bundle-zoom" as string]: String(zoom / 100) }}
           >
             <FrontCover preset={preset} cover={payload.cover} logoSrc={logoSrc} />
@@ -441,6 +629,7 @@ export function FinalBundleClient({
             <BackCover preset={preset} cover={payload.cover} />
           </div>
         </div>
+        </TestBookBrand.Provider>
       </main>
     </div>
   );

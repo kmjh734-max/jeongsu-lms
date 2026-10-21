@@ -22,6 +22,41 @@ export const INTEGRATED_SECTION_META: Record<
   workbook: { title: "워크북", en: "WORKBOOK", sub: "워크북 학습 자료", icon: "📘" },
 };
 
+/*
+ * 테스트 교재에서 옮긴 묶음(선생님 2026-10-21 — 테스트 교재를 최종통합자료로 합침). 고른 파일이 아니라
+ * 고른 파일들의 지문으로 만든다. 켜야 들어간다(옛 통합자료는 그대로).
+ */
+export type IntegratedExtraKind = "plan" | "vocab" | "blank_note";
+export const INTEGRATED_EXTRA_KINDS: IntegratedExtraKind[] = ["plan", "vocab", "blank_note"];
+/** 목차·본문 순서에 놓이는 묶음(파일 묶음 + 테스트 교재 묶음) */
+export type IntegratedPartKind = IntegratedSectionKind | IntegratedExtraKind;
+
+export const INTEGRATED_EXTRA_META: Record<IntegratedExtraKind, { title: string; en: string; sub: string }> = {
+  plan: { title: "학습 계획표", en: "STUDY PLAN", sub: "학습 계획표 · 이수표" },
+  vocab: { title: "전체 단어장", en: "VOCABULARY", sub: "지문 단어 · 파생어 · 동반의어" },
+  blank_note: { title: "백지노트", en: "BLANK NOTE", sub: "지문마다 백지 복습" },
+};
+
+export function integratedPartMeta(k: IntegratedPartKind): { title: string; en: string; sub: string } {
+  return (INTEGRATED_EXTRA_KINDS as string[]).includes(k)
+    ? INTEGRATED_EXTRA_META[k as IntegratedExtraKind]
+    : INTEGRATED_SECTION_META[k as IntegratedSectionKind];
+}
+
+/** 「테스트 교재 구성」: 표지 → 목차 → 계획표 → 단어장 → 수업용 자료 → 백지노트 → 분석서 → 워크북 → 변형문제 */
+export const TEST_BOOK_PART_ORDER: IntegratedPartKind[] = [
+  "plan",
+  "vocab",
+  "lesson_pack",
+  "blank_note",
+  "analysis_report",
+  "workbook",
+  "questions",
+];
+
+/** 계획표·단어장·백지노트 쪽 모양(테스트 교재 내지 디자인과 같다) */
+export type IntegratedTheme = "a" | "b" | "c" | "d";
+
 export type IntegratedCover = {
   /** 표지 프리셋 id(COVER_PRESETS) */
   presetId: string;
@@ -45,7 +80,23 @@ export type IntegratedPayload = {
   dividers: boolean;
   /** 변형문제 정답을 맨 뒤 "정답" 부분에 모은다 */
   answerKey: boolean;
+  /** 테스트 교재 묶음까지 넣은 목차·본문 순서(order는 파일 묶음만 — 만들기 창이 쓴다) */
+  parts: IntegratedPartKind[];
+  /** 켠 테스트 교재 묶음 */
+  extras: Record<IntegratedExtraKind, boolean>;
+  /** 계획표·단어장·백지노트 내지 디자인 */
+  theme: IntegratedTheme;
 };
+
+/** 파일 묶음 순서에 테스트 교재 묶음을 끼운다: 계획표 맨 앞, 단어장은 수업용 자료 앞, 백지노트는 뒤. */
+function partsFromOrder(order: IntegratedSectionKind[]): IntegratedPartKind[] {
+  const out: IntegratedPartKind[] = ["plan"];
+  for (const k of order) {
+    if (k === "lesson_pack") out.push("vocab", k, "blank_note");
+    else out.push(k);
+  }
+  return out;
+}
 
 export const DEFAULT_INTEGRATED_COVER: IntegratedCover = {
   presetId: "bold-field",
@@ -62,6 +113,9 @@ export function emptyIntegratedPayload(title = ""): IntegratedPayload {
     cover: { ...DEFAULT_INTEGRATED_COVER, title },
     dividers: true,
     answerKey: true,
+    parts: partsFromOrder(INTEGRATED_SECTION_ORDER),
+    extras: { plan: false, vocab: false, blank_note: false },
+    theme: "b",
   };
 }
 
@@ -85,6 +139,21 @@ export function normalizeIntegratedPayload(raw: unknown): IntegratedPayload {
     cover: { ...DEFAULT_INTEGRATED_COVER, ...(p.cover ?? {}) },
     dividers: p.dividers !== false,
     answerKey: p.answerKey !== false,
+    parts: (() => {
+      const all: IntegratedPartKind[] = [...INTEGRATED_SECTION_ORDER, ...INTEGRATED_EXTRA_KINDS];
+      const saved = (Array.isArray(p.parts) ? p.parts : []).filter((k): k is IntegratedPartKind =>
+        (all as string[]).includes(k)
+      );
+      if (saved.length === 0) return partsFromOrder(order);
+      for (const k of all) if (!saved.includes(k)) saved.push(k);
+      return [...new Set(saved)];
+    })(),
+    extras: {
+      plan: p.extras?.plan === true,
+      vocab: p.extras?.vocab === true,
+      blank_note: p.extras?.blank_note === true,
+    },
+    theme: (["a", "b", "c", "d"] as const).includes(p.theme as IntegratedTheme) ? (p.theme as IntegratedTheme) : "b",
   };
 }
 

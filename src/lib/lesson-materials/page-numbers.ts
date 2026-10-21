@@ -9,7 +9,7 @@
 
 /** 한 장에 해당하는 요소들 (자료 쪽 · 통합자료의 표지·목차·간지) */
 export const PAGE_SHEET_SELECTOR =
-  ".lesson-pack-a4-sheet, .qg-print-page, .final-bundle-sheet";
+  ".lesson-pack-a4-sheet, .qg-print-page, .final-bundle-sheet, .tb-sheet:not(.tb-measure .tb-sheet)";
 
 export interface PageNumberOptions {
   /** 첫 쪽에 적을 번호 (기본 1) */
@@ -52,6 +52,9 @@ export function stampPageNumbers(
     } else {
       const value = String(n);
       if (el.getAttribute("data-page-no") !== value) el.setAttribute("data-page-no", value);
+      // 테스트 교재 쪽(최종통합자료의 계획표·단어장·백지노트)은 바닥줄 칸에 적는다(쪽 귀퉁이 번호는 CSS가 숨김)
+      const slot = el.querySelector<HTMLElement>(":scope > .tb-foot .tb-pgno");
+      if (slot && slot.textContent !== value) slot.textContent = value;
     }
     n += 1;
   });
