@@ -36,7 +36,7 @@ import { addChoiceItem, type ChoiceSection } from "@/lib/lesson-materials/choice
  */
 export const TEST_BOOK_MATERIAL_VERSION = "tb-4";
 /** 단어 정리(모델이 만드는 부분) 규칙이 바뀌면 올린다 — 이것만 다르면 단어 정리만 다시 만든다 */
-export const TEST_BOOK_VOCAB_VERSION = "tv-4";
+export const TEST_BOOK_VOCAB_VERSION = "tv-5";
 
 // ---------------------------------------------------------------- 유형
 
@@ -108,6 +108,8 @@ export type TestBookVocabRow = {
   forms: Array<{ word: string; pos: string; ko?: string }>;
   /** 시험에 나올 어구(없으면 빈 문자열) */
   phrase: string;
+  /** 철자가 비슷해 헷갈리는 낱말(adapt → adopt, adept) — 객관식 오답·어휘선택에 쓴다 */
+  confusables?: string[];
   /** 내용상 핵심어이거나 바꿔 쓰기로 나올 만한 단어 */
   key: boolean;
 };
@@ -248,6 +250,15 @@ export type TestBookCover = {
   headline: string;
 };
 
+/** 내지 디자인(선생님 2026-10-21: ABC로 고르게) */
+export type TestBookTheme = "a" | "b" | "c" | "d" | "e" | "f" | "g";
+export const TEST_BOOK_THEMES: Array<{ key: TestBookTheme; label: string; hint: string }> = [
+  { key: "a", label: "A 클래식", hint: "가는 선·색 띠" },
+  { key: "b", label: "B 파스텔 블룸", hint: "화사한 번짐·둥근 카드" },
+  { key: "c", label: "C 볼드 블록", hint: "색 띠 머리·굵은 번호" },
+  { key: "d", label: "D 매거진", hint: "세리프·가는 선" },
+];
+
 /** 색 번짐 표지 큰 글자 기본값 */
 export const TEST_BOOK_DEFAULT_HEADLINE = "read.\ntest.\nnote.";
 
@@ -262,6 +273,8 @@ export type TestBookOptions = {
   lineMode: LineMode;
   /** 테스트 견본 난이도 */
   level: TestLevel;
+  /** 내지 디자인: A 클래식 · B 파스텔 블룸 · C 볼드 블록 · D 매거진 */
+  theme: TestBookTheme;
   /** 표지 */
   cover: boolean;
   /** 표지 모양·글자 */
@@ -309,6 +322,7 @@ export const DEFAULT_TEST_BOOK_OPTIONS: TestBookOptions = {
   writing: "all",
   lineMode: "full",
   level: "basic",
+  theme: "b",
   cover: true,
   coverInfo: { presetId: TEST_BOOK_BLEED_COVER, label: "", title: "", progress: "", academy: "", headline: "" },
   toc: true,
@@ -338,6 +352,7 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
     writing: r.writing === "key" ? "key" : "all",
     lineMode: r.lineMode === "chunk" ? "chunk" : "full",
     level: r.level === "up" ? "up" : "basic",
+    theme: (["a", "b", "c", "d", "e", "f", "g"] as const).includes(r.theme as TestBookTheme) ? (r.theme as TestBookTheme) : "b",
     cover: r.cover !== false,
     coverInfo: (() => {
       const c = (r.coverInfo ?? {}) as Partial<Record<keyof TestBookCover, unknown>>;
@@ -672,8 +687,13 @@ function grammarCandidates(p: Ready): PickCand[] {
 
 function vocabCandidates(p: Ready): PickCand[] {
   const out: PickCand[] = [];
+  // 오답은 철자가 비슷한 혼동어휘를 먼저(선생님 의견 2026-10-21: 어휘선택이 동반의어와 비슷하다), 없으면 반의어
+  const rowOf = (surface: string) =>
+    p.material.vocab.find((r) => r.word.toLowerCase() === surface.toLowerCase()) ??
+    p.material.vocab.find((r) => r.word.length >= 4 && surface.toLowerCase().startsWith(r.word.toLowerCase().slice(0, Math.max(4, r.word.length - 2))));
   p.content.vocab.forEach((v, vi) => {
-    const ant = v.antonyms.find((a) => a.trim() && words(a) <= 2);
+    const conf = rowOf(v.surface)?.confusables?.find((w) => w.trim() && words(w) <= 2 && w.toLowerCase() !== v.surface.toLowerCase());
+    const ant = conf ?? v.antonyms.find((a) => a.trim() && words(a) <= 2);
     const s = p.sentences[v.sentenceIndex];
     if (!ant || !s) return;
     const part = splitAt(clean(s.english), v.surface);
@@ -1244,6 +1264,32 @@ export const POS_NAME: Record<string, string> = {
   "ad.": "부사형",
 };
 
+/**
+ * 동반의어 객관식 오답 셋(선생님 의견 2026-10-21: 너무 연관 없는 말 대신 혼동어휘·같은 품사로).
+ * 1) 문제 낱말과 철자가 비슷한 혼동어휘 2) 같은 품사인 다른 단어와 그 동반의어. 정답·문제 낱말과
+ * 뿌리가 같은 말(exclusion·excluded)은 둘 다 답이 될 수 있어 쓰지 않는다.
+ */
+function choiceDistractors(rows: TestBookVocabRow[], r: TestBookVocabRow, correct: string, key: string): string[] {
+  const stem = (w: string) => w.toLowerCase().replace(/[^a-z]/g, "").slice(0, 5);
+  const banned = new Set([r.word, ...r.synonyms, ...r.antonyms, correct].map((w) => w.toLowerCase()));
+  const bannedStems = new Set([r.word, correct].map(stem).filter((s) => s.length >= 4));
+  const ok = (w: string) => !!w.trim() && !banned.has(w.toLowerCase()) && !bannedStems.has(stem(w));
+  const out: string[] = [];
+  const add = (list: string[]) => {
+    for (const w of list) {
+      if (out.length >= 3) return;
+      if (ok(w) && !out.some((x) => x.toLowerCase() === w.toLowerCase())) out.push(w.trim());
+    }
+  };
+  add(pickN(r.confusables ?? [], 2, `${key}|cf`));
+  const samePos = rows
+    .filter((o) => o.word !== r.word && o.pos === r.pos)
+    .flatMap((o) => [o.word, ...o.synonyms, ...o.antonyms, ...(o.confusables ?? [])]);
+  add(pickN([...new Set(samePos)], 6, `${key}|sp`));
+  if (out.length < 3) add(pickN([...new Set(rows.flatMap((o) => [o.word, ...o.synonyms]))], 6, `${key}|any`));
+  return out.slice(0, 3);
+}
+
 export function buildWordTest(p: Ready, seed: string): WordTest {
   const rows = p.material.vocab.filter((r) => r.word && r.meaning);
   // 뜻 쓰기: 핵심어를 먼저, 모자라면 나머지에서
@@ -1255,22 +1301,11 @@ export function buildWordTest(p: Ready, seed: string): WordTest {
   // 고르기: 동의어나 반의어가 있는 핵심어. 오답은 다른 단어·다른 단어의 동의어에서.
   const pool = keyRows.filter((r) => r.synonyms.length || r.antonyms.length);
   const chosen = pickN(pool, 6, `${seed}|syn`);
-  const fillers = [
-    ...new Set(rows.flatMap((r) => [r.word, ...r.synonyms, ...r.antonyms]).map((w) => w.trim()).filter(Boolean)),
-  ];
   const synonym = chosen.map((r, i) => {
     const useAnt = r.antonyms.length > 0 && (r.synonyms.length === 0 || hashSeedToUint32(`${seed}|rel|${r.word}`) % 3 === 0);
     const rel: "=" | "↔" = useAnt ? "↔" : "=";
     const correct = (useAnt ? r.antonyms : r.synonyms)[0]!;
-    const banned = new Set([r.word, ...r.synonyms, ...r.antonyms].map((w) => w.toLowerCase()));
-    // 정답·문제 낱말과 뿌리가 같은 말(exclusion·excluded)은 오답으로 쓰지 않는다 — 둘 다 답이 된다
-    const stem = (w: string) => w.toLowerCase().replace(/[^a-z]/g, "").slice(0, 5);
-    const bannedStems = new Set([r.word, correct].map(stem).filter((s) => s.length >= 4));
-    const wrong = pickN(
-      fillers.filter((w) => !banned.has(w.toLowerCase()) && !bannedStems.has(stem(w))),
-      3,
-      `${seed}|syn|${r.word}`
-    );
+    const wrong = choiceDistractors(rows, r, correct, `${seed}|syn|${r.word}`);
     const choices = fisherYatesShuffle([correct, ...wrong], createSeededRng(`${seed}|synorder|${r.word}`));
     return { no: String(i + 1), word: r.word, rel, choices, answer: choices.indexOf(correct) };
   });
@@ -1362,12 +1397,8 @@ export function buildVocabExam(
       rows.push({ ...r, passage: p.passage });
     }
   }
-  const stem = (w: string) => w.toLowerCase().replace(/[^a-z]/g, "").slice(0, 5);
-  const fillers = [...new Set(rows.flatMap((r) => [r.word, ...r.synonyms, ...r.antonyms]).map((w) => w.trim()).filter(Boolean))];
-  const mcq = (correct: string, avoid: string[], key: string) => {
-    const banned = new Set(avoid.map((w) => w.toLowerCase()));
-    const bannedStems = new Set(avoid.map(stem).filter((s) => s.length >= 4));
-    const wrong = pickN(fillers.filter((w) => !banned.has(w.toLowerCase()) && !bannedStems.has(stem(w))), 3, `${opts.seed}|vx|${key}`);
+  const mcq = (r: TestBookVocabRow, correct: string, key: string) => {
+    const wrong = choiceDistractors(rows, r, correct, `${opts.seed}|vx|${key}`);
     if (wrong.length < 3) return null;
     const choices = fisherYatesShuffle([correct, ...wrong], createSeededRng(`${opts.seed}|vxo|${key}`));
     return { choices, answer: CHOICE_NO[choices.indexOf(correct)]! };
@@ -1380,12 +1411,12 @@ export function buildVocabExam(
       .map((r) => ({ prompt: r.meaning, hint: r.word[0]!, answer: r.word, passage: r.passage })),
     synonym: rows.flatMap((r) => {
       const c = r.synonyms[0];
-      const m = c ? mcq(c, [r.word, ...r.synonyms, ...r.antonyms], `s|${r.word}`) : null;
+      const m = c ? mcq(r, c, `s|${r.word}`) : null;
       return m ? [{ prompt: r.word, ...m, passage: r.passage }] : [];
     }),
     antonym: rows.flatMap((r) => {
       const c = r.antonyms[0];
-      const m = c ? mcq(c, [r.word, ...r.synonyms, ...r.antonyms], `a|${r.word}`) : null;
+      const m = c ? mcq(r, c, `a|${r.word}`) : null;
       return m ? [{ prompt: r.word, ...m, passage: r.passage }] : [];
     }),
     form: rows.flatMap((r) => {
@@ -1393,14 +1424,13 @@ export function buildVocabExam(
       return f ? [{ prompt: `${r.word} (${r.pos}) → ${f.pos}`, answer: f.word, passage: r.passage }] : [];
     }),
     formChoice: rows.flatMap((r) => {
+      // 같은 뿌리의 꼴로만 보기를 만든다(선생님 의견: affect · affection · affective · affectionate)
       const f = r.forms.find((x) => x.word && POS_NAME[x.pos] && x.pos !== r.pos);
       if (!f) return [];
-      // 오답: 같은 뿌리의 다른 품사 꼴 + 다른 단어의 같은 품사 꼴
-      const own = r.forms.filter((x) => x.word !== f.word).map((x) => x.word);
-      const others = rows.flatMap((o) => (o.word === r.word ? [] : o.forms.filter((x) => x.pos === f.pos).map((x) => x.word)));
-      const wrong = [...own, ...pickN(others, 3, `${opts.seed}|fc|${r.word}`), r.word].filter((w, i, a) => w && w !== f.word && a.indexOf(w) === i).slice(0, 3);
-      if (wrong.length < 3) return [];
-      const choices = fisherYatesShuffle([f.word, ...wrong], createSeededRng(`${opts.seed}|fco|${r.word}`));
+      const family = [...new Set([r.word, ...r.forms.map((x) => x.word), ...(r.confusables ?? []).filter((w) => w[0]?.toLowerCase() === r.word[0]?.toLowerCase())])]
+        .filter((w) => w && w.toLowerCase() !== f.word.toLowerCase());
+      if (family.length < 3) return [];
+      const choices = fisherYatesShuffle([f.word, ...pickN(family, 3, `${opts.seed}|fc|${r.word}`)], createSeededRng(`${opts.seed}|fco|${r.word}`));
       return [{ prompt: `${r.word} 의 ${POS_NAME[f.pos]}`, choices, answer: CHOICE_NO[choices.indexOf(f.word)]!, passage: r.passage }];
     }),
   };

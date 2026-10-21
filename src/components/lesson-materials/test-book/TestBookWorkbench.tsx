@@ -31,6 +31,8 @@ import {
   type WritingScope,
   type LineMode,
   type TestLevel,
+  type TestBookTheme,
+  TEST_BOOK_THEMES,
   type VocabExamOptions,
   DEFAULT_VOCAB_EXAM,
   VOCAB_EXAM_KIND_COUNTS,
@@ -278,6 +280,28 @@ function VocabExamControls({ value, onChange }: { value: VocabExamOptions; onCha
           </select>
         </label>
       ))}
+    </div>
+  );
+}
+
+/** 내지 디자인 고르기 */
+function ThemePicker({ value, onChange }: { value: TestBookTheme; onChange: (v: TestBookTheme) => void }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] font-bold text-slate-500">내지 디자인</p>
+      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+        {TEST_BOOK_THEMES.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            title={t.hint}
+            onClick={() => onChange(t.key)}
+            className={`rounded-md px-1 py-1 text-[11px] font-bold ${value === t.key ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -553,6 +577,7 @@ export function TestBookWorkbench({
   const [drawWriting, setDrawWriting] = useState<WritingScope>("all");
   const [drawLineMode, setDrawLineMode] = useState<LineMode>("full");
   const [drawLevel, setDrawLevel] = useState<TestLevel>("basic");
+  const [drawTheme, setDrawTheme] = useState<TestBookTheme>(savedOptions.theme);
   const [drawVocabOn, setDrawVocabOn] = useState(true);
   const [drawVocab, setDrawVocab] = useState<VocabExamOptions>(DEFAULT_VOCAB_EXAM);
   const [drawAnswers, setDrawAnswers] = useState(true);
@@ -1002,6 +1027,7 @@ export function TestBookWorkbench({
         <div className="flex-1 space-y-4 overflow-auto p-4">
           {mode === "book" ? (
             <>
+              <ThemePicker value={options.theme} onChange={(theme) => setOptions({ theme })} />
               <div className="space-y-1">
                 <p className="text-[11px] font-bold text-slate-500">교재 차례 · 넣을 것</p>
                 <PartRow checked={options.cover} onChange={(v) => setOptions({ cover: v })} n={1} label="표지">
@@ -1247,6 +1273,7 @@ export function TestBookWorkbench({
                   ))}
                 </div>
               </div>
+              <ThemePicker value={drawTheme} onChange={setDrawTheme} />
               <LevelSwitch value={drawLevel} onChange={setDrawLevel} />
               <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                 <input type="checkbox" checked={drawVocabOn} onChange={(e) => setDrawVocabOn(e.target.checked)} />
@@ -1333,7 +1360,12 @@ export function TestBookWorkbench({
         <div className="flex flex-col items-center p-6 print:block print:p-0">
           <div style={scaled.frameStyle} className="print:!h-auto print:!overflow-visible">
             <TestBookBrand.Provider value={brand}>
-            <div ref={scaled.ref} id="tb-print-root" className="relative flex origin-top flex-col gap-6 print:gap-0 print:!transform-none [&_.tb-sheet]:shadow" style={previewStyle}>
+            <div
+              ref={scaled.ref}
+              id="tb-print-root"
+              className={`tb-theme-${mode === "book" ? options.theme : drawTheme} relative flex origin-top flex-col gap-6 print:gap-0 print:!transform-none [&_.tb-sheet]:shadow`}
+              style={previewStyle}
+            >
               {mode === "book" ? (
                 <>
                   {projects.map((p, i) =>

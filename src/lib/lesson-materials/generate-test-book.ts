@@ -18,9 +18,10 @@ const SYSTEM = `너는 한국 고등학교 영어 내신 교재의 단어장 편
 - meaning: 이 지문에서 쓰인 뜻만 한국어로 짧게(쉼표로 두 개까지). 사전 첫 뜻이 아니라 문맥 뜻.
 - key: 지문의 주제·흐름에 중요한 말이거나, 시험에서 동의어·반의어로 바꿔 나올 만한 말이면 true. 쉬운 기능어·고유명사·흔한 말은 false. 전체의 40~60%만 true.
 - synonyms, antonyms: key가 true일 때만, 이 문맥 뜻과 맞는 것을 있는 만큼 최대 3개(한 낱말이나 짧은 구, 영어). 시험에 바꿔 나올 만한 말이 여럿이면 하나로 줄이지 말고 다 쓴다. 딱 맞는 것이 없으면 빈 배열 — 억지로 만들지 않는다. key가 false면 둘 다 빈 배열.
-- forms: 이 낱말과 품사가 다른 형태를 품사마다(n. v. a. ad.) 하나씩, 실제로 쓰이는 것은 모두(최대 4개, 철자 정확히 — 시험에 「명사형은? 형용사형은? 부사형은?」으로 나온다). 명사형만 쓰고 끝내지 말고 동사형·형용사형·부사형이 있으면 다 쓴다. 원래 품사와 같은 형태는 쓰지 않는다. ko에 그 파생어의 대표 뜻을 짧게(한두 낱말) 쓴다. 예: attract → [{"word":"attraction","pos":"n.","ko":"매력"},{"word":"attractive","pos":"a.","ko":"매력적인"},{"word":"attractively","pos":"ad.","ko":"매력적으로"}], durable → [{"word":"durability","pos":"n.","ko":"내구성"},{"word":"durably","pos":"ad.","ko":"오래가게"}], creation → [{"word":"create","pos":"v.","ko":"창조하다"},{"word":"creative","pos":"a.","ko":"창의적인"},{"word":"creatively","pos":"ad.","ko":"창의적으로"}], decide → [{"word":"decision","pos":"n.","ko":"결정"},{"word":"decisive","pos":"a.","ko":"결정적인"},{"word":"decisively","pos":"ad.","ko":"단호하게"}]. 정말 없을 때만 [].
+- forms: 이 낱말과 품사가 다른 형태를 품사마다(n. v. a. ad.) 하나씩, 실제로 쓰이는 것은 모두(최대 4개, 철자 정확히 — 시험에 「명사형은? 형용사형은? 부사형은?」으로 나온다). 명사형만 쓰고 끝내지 말고 동사형·형용사형·부사형이 있으면 다 쓴다. 원래 품사와 같은 형태는 쓰지 않는다. 사전에 있는 낱말만 쓰고(developedly·dronely처럼 지어낸 말 금지), -ing·-ed만 붙인 단순 변화형(developing, rescued)은 파생어가 아니므로 쓰지 않는다. ko에 그 파생어의 대표 뜻을 짧게(한두 낱말) 쓴다. 예: attract → [{"word":"attraction","pos":"n.","ko":"매력"},{"word":"attractive","pos":"a.","ko":"매력적인"},{"word":"attractively","pos":"ad.","ko":"매력적으로"}], durable → [{"word":"durability","pos":"n.","ko":"내구성"},{"word":"durably","pos":"ad.","ko":"오래가게"}], creation → [{"word":"create","pos":"v.","ko":"창조하다"},{"word":"creative","pos":"a.","ko":"창의적인"},{"word":"creatively","pos":"ad.","ko":"창의적으로"}], decide → [{"word":"decision","pos":"n.","ko":"결정"},{"word":"decisive","pos":"a.","ko":"결정적인"},{"word":"decisively","pos":"ad.","ko":"단호하게"}]. 정말 없을 때만 [].
 - phrase: 시험에 나올 어구 하나를 "habit formation 습관 형성"처럼. 없으면 "".
-출력: {"vocab":[{"word":"","pos":"","meaning":"","key":true,"synonyms":[],"antonyms":[],"forms":[],"phrase":""}]}`;
+- confusables: key가 true인 낱말에는 꼭 1~3개 — 철자가 비슷해(앞 서너 글자가 같거나 한두 글자만 다름) 학생이 헷갈리는 다른 실제 영어 낱말, 되도록 같은 품사. 뜻이 비슷한 말(동의어)이 아니라 생김새가 비슷한 말이다. 예: adapt → ["adopt","adept"], affect → ["effect"], deliver → ["deliberate"], military → ["militant"], monitor → ["monument"], economic → ["economical"], sensible → ["sensitive"], persecute → ["prosecute"]. key가 false면 0~2개.
+출력: {"vocab":[{"word":"","pos":"","meaning":"","key":true,"synonyms":[],"antonyms":[],"forms":[],"phrase":"","confusables":[]}]}`;
 
 function parseJson(text: string): unknown {
   try {
@@ -67,6 +68,16 @@ function firstAt(passage: string, word: string): number {
     if (m >= 0) return m;
   }
   return Number.MAX_SAFE_INTEGER;
+}
+
+/** 영어 낱말 목록(약 27만, 서버에서만 처음 쓸 때 읽는다) — 모델이 지어낸 파생어·혼동어휘를 걸러 낸다 */
+let dictionary: Set<string> | null = null;
+async function englishWords(): Promise<Set<string>> {
+  if (!dictionary) {
+    const mod = (await import("an-array-of-english-words/index.json")) as unknown as { default: string[] };
+    dictionary = new Set(mod.default);
+  }
+  return dictionary;
 }
 
 export async function refineTestBookVocab(input: {
@@ -132,14 +143,35 @@ export async function refineTestBookVocab(input: {
             .filter((f) => /^[A-Za-z][A-Za-z-]*$/.test(f.word) && f.word.toLowerCase() !== word.toLowerCase() && f.pos)
             // 원래 품사와 같은 것(maintain → maintaining v.)·-ing를 동사형이라 한 것은 뺀다
             .filter((f) => f.pos !== rowPos && !(f.pos === "v." && /ing$/i.test(f.word)))
+            // -ing·-ed만 붙인 변화형(developing·rescued)은 파생어가 아니다
+            .filter((f) => {
+              const w = f.word.toLowerCase();
+              const base = word.toLowerCase().replace(/e$/, "");
+              return !(/(ing|ed)$/.test(w) && w.startsWith(base) && w.length - base.length <= 4);
+            })
             // 품사마다 하나씩
             .filter((f, i, all) => all.findIndex((x) => x.pos === f.pos) === i)
             .slice(0, 4),
           phrase: String(r.phrase ?? "").trim().slice(0, 40),
+          // 혼동어휘: 동반의어·어휘선택 오답에 먼저 쓴다(선생님 의견 2026-10-21: 연관 없는 오답 대신 혼동어휘·같은 품사)
+          confusables: list(r.confusables).filter((w) => /^[A-Za-z][A-Za-z -]*$/.test(w) && w.toLowerCase() !== word.toLowerCase()),
           key,
         };
       })
       .filter((r) => r.word && r.meaning);
+    // 사전에 없는 파생어·혼동어휘(developedly·delever·rescuingly)는 뺀다(선생님 의견 2026-10-21 반영 중 확인)
+    const dict = await englishWords();
+    for (const r of rows) {
+      r.forms = r.forms.filter((f) => dict.has(f.word.toLowerCase()));
+      const w0 = r.word.toLowerCase();
+      // 같은 뿌리의 잘린 꼴(devel ⊂ develop, hazarding)은 혼동어휘가 아니다
+      r.confusables = (r.confusables ?? []).filter((w) => {
+        const x = w.toLowerCase();
+        const root = w0.replace(/(ously|ous|ive|al|ment|ness|ly|ful|less|ion)$/, "");
+        const inflected = /(ing|ed|s)$/.test(x) && x.startsWith(root.length >= 3 ? root : w0.slice(0, Math.max(3, w0.length - 2)));
+        return !/\s/.test(x) && dict.has(x) && !w0.includes(x) && !x.includes(w0) && !inflected;
+      });
+    }
     // 같은 낱말은 하나만, 지문에 나온 차례로
     const seen = new Set<string>();
     const unique = rows.filter((r) => {
