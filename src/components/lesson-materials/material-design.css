@@ -446,3 +446,20 @@
 .qg-style.md.md .qg-print-sheet::after {
   z-index: -1;
 }
+
+/* 쪽 머리를 낮게 — 한 쪽에 두 지문이 들어갈 자리를 머리가 먹지 않게(선생님 2026-10-21: 어법·수정이 한 지문씩) */
+.md .wb-type-title {
+  margin-top: 10px !important;
+}
+.md-b .wb-sheet-title {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.md-c .wb-sheet-header {
+  padding-top: 6mm;
+  padding-bottom: 8px;
+}
+.md-c .wb-type-title {
+  font-size: 20px !important;
+  margin-top: 6px !important;
+}

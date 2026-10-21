@@ -1525,10 +1525,6 @@ export function WorkbookWorkbench({
   useEffect(() => watchPageNumbersById("workbook-print-root", false), []);
   const showPageNo = pageNumbers && !embeddedDocId;
 
-  // 모양이 바뀌면 글자 폭이 달라지므로, 앞 모양에서 넘쳐 줄여 둔 2단 쪽 한도를 비우고 다시 잰다.
-  useEffect(() => {
-    setColumnLimits((prev) => (Object.keys(prev).length === 0 ? prev : {}));
-  }, [designStyle]);
   /*
    * 모양 글꼴은 늦게 들어와 글자 폭이 달라진다. 쪽 나눔은 잰 높이로 하므로 글꼴이 들어온 뒤
    * 한 번 더 잰다(안 그러면 쪽이 넘쳐 아래가 잘린다).
@@ -1545,6 +1541,14 @@ export function WorkbookWorkbench({
       document.fonts.removeEventListener?.("loadingdone", bump);
     };
   }, [designStyle]);
+  /*
+   * 모양이 바뀌거나 글꼴이 늦게 들어오면 글자 폭이 달라지므로, 앞에서 넘쳐 줄여 둔 쪽 한도를 비우고 다시 잰다.
+   * 선생님 지적(2026-10-21): 어법 선택·수정이 한 쪽에 두 지문 들어갈 양인데 한 지문씩만 나왔다 — 글꼴이
+   * 들어오기 전 잠깐 넘쳐 걸린 한도(한 지문만)가 글꼴이 들어온 뒤에도 풀리지 않고 남아 있었다.
+   */
+  useEffect(() => {
+    setColumnLimits((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+  }, [designStyle, fontsTick]);
   const measureRef = useRef<HTMLDivElement>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -3078,10 +3082,15 @@ export function WorkbookWorkbench({
     const over: Record<string, number> = {};
     document.querySelectorAll<HTMLElement>("[data-col-body]").forEach((el) => {
       const count = Number(el.dataset.colCount ?? "0");
-      // 2단은 오른쪽 단 밖으로(가로), 1단은 본문 높이 밖으로(세로) 넘친다.
+      /*
+       * 2단은 오른쪽 단 밖으로(가로), 1단은 본문 높이 밖으로(세로) 넘친다. 가로로 몇 px 삐져나온 것(선택지 칩의
+       * 좌우 여백이 줄 끝에서 튀어나옴)은 넘침이 아니다 — 선생님 지적(2026-10-21): 이것을 넘침으로 보고 두 지문이
+       * 들어갈 쪽에 한 지문씩만 실었다. 2단이 실제로 넘치면 단 하나만큼(수백 px) 늘어난다.
+       */
+      const twoCol = el.classList.contains("workbook-two-col");
       if (
         count > 1 &&
-        (el.scrollWidth > el.clientWidth + 2 || el.scrollHeight > el.clientHeight + 2)
+        ((twoCol && el.scrollWidth > el.clientWidth + 40) || el.scrollHeight > el.clientHeight + 2)
       ) {
         over[el.dataset.colBody!] = count - 1;
       }

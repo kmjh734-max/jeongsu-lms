@@ -82,7 +82,7 @@ export function materialAccentStyle(accent: string): CSSProperties {
 }
 
 /** 각 자료의 바탕 글꼴 모양 — D 매거진은 세리프, 나머지는 산세리프, 워크북 B는 원래 파스텔 모양 */
-export const WORKBOOK_BASE_STYLE: Record<MaterialDesign, "a" | "b" | "c" | "d"> = { a: "b", b: "d", c: "b", d: "a" };
+export const WORKBOOK_BASE_STYLE: Record<MaterialDesign, "a" | "b" | "c" | "d"> = { a: "b", b: "b", c: "b", d: "a" };
 export const ANALYSIS_BASE_STYLE: Record<MaterialDesign, "a" | "b" | "c"> = { a: "b", b: "b", c: "b", d: "a" };
 export const QUESTION_BASE_STYLE: Record<MaterialDesign, "a" | "b" | "c"> = { a: "b", b: "b", c: "b", d: "a" };
 
