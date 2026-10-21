@@ -145,6 +145,8 @@ export function WorkbookCreateModal({
   const [vocabWordLevel, setVocabWordLevel] = useState<"normal" | "hard">("normal");
   const [tbLevel, setTbLevel] = useState<"basic" | "up">("basic");
   const [vocabExam, setVocabExam] = useState<VocabExamOptions>(DEFAULT_VOCAB_EXAM);
+  /** 해석 적기: 문장마다(한줄해석) / 끊어 읽기(직독직해) */
+  const [lineMode, setLineMode] = useState<"full" | "chunk">("full");
   const [title, setTitle] = useState(() => defaultWorkbookTitle());
   const [regenerate, setRegenerate] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -215,9 +217,11 @@ export function WorkbookCreateModal({
       setError("선택된 자료가 없습니다.");
       return;
     }
+    // 해석 적기를 끊어 읽기로 고르면 직독직해 유형으로 만든다
+    const types = lineMode === "chunk" ? readySelected.map((t) => (t === "one_line_ko" ? "tb_chunk_line" : t)) : readySelected;
     const href = buildWorkbookHref(role, {
       projectIds: [...projectIds],
-      selectedTypes: readySelected,
+      selectedTypes: types,
       tfOptions: {
         ...tfOptions,
         count: clampTfCount(tfOptions.count),
@@ -234,31 +238,31 @@ export function WorkbookCreateModal({
     // 고른 갈래 가운데 값이 나가는 것만 묻는다(한줄해석·영작 등은 값이 들지 않는다).
     const paid: Array<{ feature: string; quantity: number }> = [];
     const n = projectIds.length || 1;
-    if (readySelected.includes("grammar_choice") || readySelected.includes("grammar_fix"))
+    if (types.includes("grammar_choice") || types.includes("grammar_fix"))
       paid.push({ feature: "lesson_workbook_grammar_choice", quantity: n });
-    if (readySelected.includes("vocab_choice") || readySelected.includes("vocab_fix"))
+    if (types.includes("vocab_choice") || types.includes("vocab_fix"))
       paid.push({ feature: "lesson_workbook_vocab_choice", quantity: n });
-    if (readySelected.includes("tf")) paid.push({ feature: "lesson_workbook_tf", quantity: n });
+    if (types.includes("tf")) paid.push({ feature: "lesson_workbook_tf", quantity: n });
     // 한 줄 해석·전체 영작·제시어 배열도 모델을 부른다(2026-09-29부터 값을 받는다)
     if (
-      readySelected.includes("one_line_ko") ||
-      readySelected.includes("full_en_writing") ||
-      readySelected.includes("word_order_writing") ||
-      readySelected.includes("key_word_order")
+      types.includes("one_line_ko") ||
+      types.includes("full_en_writing") ||
+      types.includes("word_order_writing") ||
+      types.includes("key_word_order")
     )
       paid.push({ feature: "lesson_workbook_line_translation", quantity: n });
     // 중요문장 어순배열은 어순배열과 같은 값(둘 다 골라도 한 번)
-    if (readySelected.includes("word_order_writing") || readySelected.includes("key_word_order"))
+    if (types.includes("word_order_writing") || types.includes("key_word_order"))
       paid.push({ feature: "lesson_workbook_word_order", quantity: n });
     // 지칭·함축·바꿔 말하기·도식화·연결어·삽입·요약문·직독직해·단어 시험지 — 지문당 한 번(여러 갈래를 골라도)
-    if (readySelected.some(isTbWorkbookType))
+    if (types.some(isTbWorkbookType))
       paid.push({ feature: "lesson_workbook_extras", quantity: n });
     setAsking(true);
     const go = await askCreditConfirm({
       title: "워크북",
       description: "학생이 직접 써 보는 연습지를 만듭니다. 고른 갈래 가운데 값이 나가는 것만 아래에 적었습니다.",
-      subject: `고른 지문 ${projectIds.length}개 · 갈래 ${readySelected.length}가지`,
-      contents: readySelected.map((t) => getWorkbookTypeMeta(t)?.title ?? t),
+      subject: `고른 지문 ${projectIds.length}개 · 갈래 ${types.length}가지`,
+      contents: types.map((t) => getWorkbookTypeMeta(t)?.title ?? t),
       items: paid,
       sample: "workbook",
     });
@@ -301,7 +305,7 @@ export function WorkbookCreateModal({
         <div className="min-h-0 flex-1 overflow-auto px-5 py-4">
           {step === "types" ? (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {WORKBOOK_TYPE_CATALOG.map((t) => {
+              {WORKBOOK_TYPE_CATALOG.filter((t) => !t.hidden).map((t) => {
                 const on = selected.has(t.id);
                 return (
                   <button
@@ -648,12 +652,19 @@ export function WorkbookCreateModal({
               ) : null}
 
               {wantLineKo ? (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-                  <p className="text-sm font-bold text-slate-900">한줄해석</p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
-                    수업용 자료에 저장된 문장별 한글 해석을 그대로 사용합니다.
-                    새 번역을 만들지 않으며, 해석이 없거나 원문이 바뀐 문장이
-                    있으면 안내 후 선택할 수 있습니다.
+                <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                  <p className="text-sm font-bold text-slate-900">해석 적기</p>
+                  <TogglePair
+                    tone="violet"
+                    left={{ id: "full", label: "문장마다" }}
+                    right={{ id: "chunk", label: "끊어 읽기(직독직해)" }}
+                    value={lineMode}
+                    onChange={(v) => setLineMode(v === "chunk" ? "chunk" : "full")}
+                  />
+                  <p className="text-[11px] leading-relaxed text-slate-600">
+                    {lineMode === "full"
+                      ? "문장마다 한국어 해석을 씁니다. 수업용 자료에 저장된 문장별 해석을 정답으로 씁니다."
+                      : "끊어 읽는 덩어리마다 뜻을 씁니다(직독직해). 지문당 한 번 재료를 만듭니다."}
                   </p>
                 </div>
               ) : null}

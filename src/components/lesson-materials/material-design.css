@@ -432,3 +432,17 @@
 .qg-style.md.md-b .qg-print-sheet::after {
   z-index: -1;
 }
+/* 색 띠도 같은 원칙(내용 아래) — 워크북 바탕 모양 D의 동그란 빛 포함 */
+.md .workbook-a4-sheet,
+.md .analysis-report-a4-sheet,
+.qg-style.md.md .qg-print-sheet {
+  isolation: isolate;
+}
+.md .workbook-a4-sheet::before,
+.md .workbook-a4-sheet::after,
+.md .analysis-report-a4-sheet::before,
+.md .analysis-report-a4-sheet::after,
+.qg-style.md.md .qg-print-sheet::before,
+.qg-style.md.md .qg-print-sheet::after {
+  z-index: -1;
+}

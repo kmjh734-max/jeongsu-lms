@@ -306,7 +306,7 @@ const COLUMN_TYPE_TITLE: Record<WorkbookColumnTypeId, string> = {
   blank_fill: "빈칸 채우기",
   tf: "T/F 문제",
   sentence_order: "문장 순서 배열",
-  tb_chunk_line: "직독직해",
+  tb_chunk_line: "해석 적기 (끊어 읽기)",
   tb_link: "연결어 빈칸",
   tb_insert: "문장 삽입",
   tb_summary: "요약문 완성",
@@ -1110,7 +1110,7 @@ function LineTranslationAnswerBody({
       {showHeader ? (
       <>
       <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
-        <TitleNo no={typeOrder} /> 한줄해석
+        <TitleNo no={typeOrder} /> 해석 적기
         <AnswerTag projectId={section.projectId} source={section.source} />
       </h3>
       </>
@@ -1382,7 +1382,7 @@ const FLOW_KIND_BY_TYPE: Partial<Record<WorkbookTypeId, FlowKind>> = {
   key_word_order: "key_word_order",
 };
 const FLOW_TITLE: Record<FlowKind, string> = {
-  line_ko: "한줄해석",
+  line_ko: "해석 적기",
   full_en: "통문장 영작",
   word_order: "어순배열 영작",
   key_word_order: "중요문장 어순배열",
@@ -3440,7 +3440,7 @@ export function WorkbookWorkbench({
     // 문장 사이 간격은 각 정답 목록의 space-y(0.5 = 2px)와 같다.
     const olt = typeOrders.get("one_line_ko");
     if (olt != null) {
-      addSentenceBlocks("lta", olt, "한줄해석", ltSections, 2, (section, ii, showHeader) => (
+      addSentenceBlocks("lta", olt, "해석 적기", ltSections, 2, (section, ii, showHeader) => (
         <LineTranslationAnswerBody
           section={section}
           typeOrder={olt}

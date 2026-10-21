@@ -39,6 +39,8 @@ export type WorkbookTypeMeta = {
   ready: boolean;
   displayOrder: number;
   printOrder: number;
+  /** 고르는 목록에는 안 보인다(다른 유형의 선택지로 고른다) */
+  hidden?: boolean;
 };
 
 /**
@@ -50,8 +52,9 @@ export type WorkbookTypeMeta = {
 export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
   {
     id: "one_line_ko",
-    title: "한줄해석",
-    subtitle: "영어 문장을 한국어로 해석하기",
+    // 한줄해석·직독직해를 「해석 적기」 하나로(선생님 2026-10-21) — 만들 때 문장마다 / 끊어 읽기를 고른다
+    title: "해석 적기",
+    subtitle: "문장마다 쓰기 또는 끊어 읽기(직독직해) — 만들 때 고름",
     ready: true,
     displayOrder: 1,
     printOrder: 1,
@@ -136,7 +139,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     displayOrder: 11,
     printOrder: 11,
   },
-  { id: "tb_chunk_line", title: "직독직해", subtitle: "끊어 읽는 덩어리마다 뜻 쓰기", ready: true, displayOrder: 12, printOrder: 12 },
+  { id: "tb_chunk_line", title: "해석 적기 (끊어 읽기)", subtitle: "끊어 읽는 덩어리마다 뜻 쓰기", ready: true, displayOrder: 1, printOrder: 1, hidden: true },
   { id: "tb_link", title: "연결어 빈칸", subtitle: "However·Therefore 같은 연결어 채우기", ready: true, displayOrder: 13, printOrder: 13 },
   { id: "tb_insert", title: "문장 삽입", subtitle: "중요문장이 들어갈 자리 고르기", ready: true, displayOrder: 14, printOrder: 14 },
   { id: "tb_summary", title: "요약문 완성", subtitle: "한 문장 요약의 핵심어 채우기", ready: true, displayOrder: 15, printOrder: 15 },

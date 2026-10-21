@@ -211,6 +211,9 @@ export const TEST_BOOK_CSS = `
 .tb-pdiv .tb-pfoot{position:absolute;left:24mm;right:22mm;bottom:16mm;border-top:.5pt solid #e1e4e9;padding-top:3mm;display:flex;justify-content:space-between;font-size:8.5pt;color:#6a707c}
 /* 묶음 색: 바깥 가장자리 띠 + 쪽 머리 꼬리표 + 문항 번호 칸 */
 .tb-sheet.tb-part::before{content:"";position:absolute;top:0;bottom:0;left:0;width:2.4mm;background:var(--tb-accent,#15171c)}
+/* 쪽 장식(색 띠·동그란 빛)은 글자 뒤로 — 쪽 바탕 위, 내용 아래(선생님 2026-10-21: 통합자료에서 배경이 글씨를 가림) */
+.tb-sheet{isolation:isolate}
+.tb-sheet.tb-part::before,.tb-sheet.tb-part::after{z-index:-1}
 .tb-part .tb-dh{border-bottom-color:var(--tb-accent,#15171c)}
 .tb-part .tb-dh h2::before{content:var(--tb-part,"");display:block;font-size:6.8pt;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--tb-accent,#15171c);margin-bottom:1mm}
 .tb-part .tb-q .tb-qn{background:var(--tb-accent,#15171c)}
