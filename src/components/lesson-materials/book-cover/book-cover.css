@@ -59,6 +59,22 @@
   object-fit: contain;
 }
 
+/* 학원 로고 흰 판: 짙은 바탕에서도 로고가 제 색으로 보이게. 밝은 바탕에서는 가는 테두리로 판이 보인다. */
+.bk-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  padding: calc(1.6 * var(--m)) calc(2.6 * var(--m));
+  border-radius: calc(1.2 * var(--m));
+  background: #ffffff;
+  box-shadow: 0 0 0 calc(0.25 * var(--m)) rgba(0, 0, 0, 0.1);
+}
+/* 자리 잡기(absolute 등)는 판이 맡고 안의 로고는 판 안에 그대로 둔다 */
+.bk-plate > img {
+  position: static;
+}
+
 .bk-c-points li {
   font-size: calc(6.6pt * var(--s));
   line-height: 1.65;
@@ -218,6 +234,9 @@
   align-items: flex-end;
   gap: calc(8 * var(--m));
 }
+.bk-c-foot > :last-child {
+  margin-left: auto;
+}
 .bk-c-points li {
   color: var(--muted);
 }
@@ -227,8 +246,8 @@
   font-size: calc(10.5pt * var(--s));
 }
 img.bk-c-brand {
-  height: calc(8 * var(--m));
-  max-width: calc(44 * var(--m));
+  height: calc(11 * var(--m));
+  max-width: calc(52 * var(--m));
 }
 
 /* ── D 큰 숫자: 학년 숫자가 그림, 시험 영문은 제목 아래 작게 ── */
@@ -375,8 +394,8 @@ img.bk-c-brand {
   padding-left: 0.4em;
 }
 img.bk-j-brand {
-  height: calc(8 * var(--m));
-  max-width: calc(44 * var(--m));
+  height: calc(11 * var(--m));
+  max-width: calc(52 * var(--m));
   object-position: center;
   padding-left: 0;
 }
@@ -477,7 +496,8 @@ img.bk-j-brand {
 .bk-k-title .bk-line:nth-child(2) {
   color: var(--accent);
 }
-.bk-k-brand {
+.bk-k-brand,
+.bk-k-brand-plate {
   position: absolute;
   left: calc(14 * var(--m));
   bottom: calc(16 * var(--m));
@@ -485,8 +505,8 @@ img.bk-j-brand {
   font-size: calc(9pt * var(--s));
 }
 img.bk-k-brand {
-  height: calc(8 * var(--m));
-  max-width: calc(44 * var(--m));
+  height: calc(11 * var(--m));
+  max-width: calc(52 * var(--m));
 }
 
 /* ════════════ M. 스트립 ════════════ */
@@ -529,8 +549,8 @@ img.bk-k-brand {
   font-weight: 900;
 }
 img.bk-m-brand {
-  height: calc(8 * var(--m));
-  max-width: calc(44 * var(--m));
+  height: calc(10 * var(--m));
+  max-width: calc(48 * var(--m));
 }
 .bk-m-mid {
   position: absolute;
@@ -591,6 +611,152 @@ img.bk-m-brand {
   left: calc(30 * var(--m));
   right: calc(14 * var(--m));
   bottom: calc(16 * var(--m));
+}
+
+/* ════════════ 뒤표지 ════════════ */
+.bk-back-top {
+  position: absolute;
+  top: calc(16 * var(--m));
+  left: calc(20 * var(--m));
+  right: calc(20 * var(--m));
+  display: flex;
+  justify-content: space-between;
+  gap: calc(6 * var(--m));
+  padding-bottom: calc(2.6 * var(--m));
+  border-bottom: calc(0.3 * var(--m)) solid var(--muted);
+  font-size: calc(8pt * var(--s));
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.bk-back-main {
+  position: absolute;
+  top: calc(34 * var(--m));
+  left: calc(20 * var(--m));
+  right: calc(20 * var(--m));
+  bottom: calc(66 * var(--m));
+  display: flex;
+  flex-direction: column;
+  gap: calc(14 * var(--m));
+  overflow: hidden;
+}
+.bk-back-word {
+  font-family: "Playfair Display", Georgia, serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: calc(26 * var(--m));
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+.bk-back-title {
+  margin-top: calc(6 * var(--m));
+  font-weight: 900;
+  font-size: calc(22pt * var(--s));
+  letter-spacing: -0.03em;
+  word-break: keep-all;
+}
+.bk-back-mat {
+  margin-top: calc(1.5 * var(--m));
+  font-size: calc(10.5pt * var(--s));
+  font-weight: 500;
+  color: var(--muted);
+}
+.bk-back-k {
+  margin-bottom: calc(3 * var(--m));
+  font-size: calc(8pt * var(--s));
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+}
+.bk-back-toc {
+  list-style: none;
+  border-top: calc(0.3 * var(--m)) solid var(--muted);
+}
+.bk-back-toc li {
+  display: grid;
+  grid-template-columns: calc(12 * var(--m)) 1fr auto;
+  align-items: baseline;
+  gap: calc(3 * var(--m));
+  padding: calc(4 * var(--m)) 0;
+  border-bottom: calc(0.2 * var(--m)) solid var(--muted);
+}
+.bk-back-toc b {
+  font-family: Archivo, "Arial Narrow", sans-serif;
+  font-weight: 700;
+  font-size: calc(12pt * var(--s));
+  color: var(--accent);
+}
+.bk-back-t {
+  display: flex;
+  align-items: baseline;
+  gap: calc(3 * var(--m));
+  min-width: 0;
+  font-size: calc(12.5pt * var(--s));
+  font-weight: 700;
+  word-break: keep-all;
+}
+.bk-back-t small {
+  font-family: Archivo, "Arial Narrow", sans-serif;
+  font-size: calc(7pt * var(--s));
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.bk-back-p {
+  font-family: Archivo, "Arial Narrow", sans-serif;
+  font-size: calc(10pt * var(--s));
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.bk-back-points li {
+  font-size: calc(10pt * var(--s));
+  line-height: 1.75;
+  word-break: keep-all;
+}
+.bk-back-points li::before {
+  content: "— ";
+  color: var(--accent);
+}
+.bk-back-foot {
+  position: absolute;
+  left: calc(20 * var(--m));
+  right: calc(20 * var(--m));
+  bottom: calc(18 * var(--m));
+  display: flex;
+  align-items: flex-end;
+  gap: calc(7 * var(--m));
+  padding-top: calc(6 * var(--m));
+  border-top: calc(0.3 * var(--m)) solid var(--muted);
+}
+.bk-back-logo {
+  font-weight: 900;
+  font-size: calc(16pt * var(--s));
+  letter-spacing: 0.02em;
+}
+img.bk-back-logo {
+  height: calc(15 * var(--m));
+  max-width: calc(64 * var(--m));
+}
+.bk-back-logo-plate {
+  padding: calc(2.4 * var(--m)) calc(3.6 * var(--m));
+}
+.bk-back-legal {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(1.2 * var(--m));
+  font-size: calc(7.5pt * var(--s));
+  line-height: 1.5;
+  color: var(--muted);
+  word-break: keep-all;
+}
+.bk-back-legal b {
+  font-size: calc(11pt * var(--s));
+  font-weight: 900;
+  color: var(--ink);
 }
 
 /* 인쇄 쪽 나누기는 감싸는 쪽(통합자료 Sheet · 테스트 교재 tb-sheet)이 맡는다. 여기서 또 나누면 빈 쪽이 생긴다. */

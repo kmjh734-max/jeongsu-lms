@@ -234,9 +234,6 @@ export type TestBookTranslationMode = "show" | "hide" | "back";
  * 교재 차례(선생님 2026-10-20): 표지 → 목차 → 학습 계획표·이수표 → 수업용 자료 → 백지노트 →
  * 분석 자료 → 테스트지 자료 → 정답지. 묶음마다 넣고 뺄 수 있고, 테스트지 자료는 안에서 다시 고른다.
  */
-/** 테스트 교재 시안 01(색 번짐) 표지 id. 나머지는 최종통합자료 표지(COVER_PRESETS)를 그대로 쓴다. */
-export const TEST_BOOK_BLEED_COVER = "tb-bleed";
-
 /** 표지 글자(최종통합자료 표지와 같은 칸). 비어 있으면 교재 이름·범위·학원명으로 채운다. */
 export type TestBookCover = {
   presetId: string;
@@ -261,9 +258,6 @@ export const TEST_BOOK_THEMES: Array<{ key: TestBookTheme; label: string; hint: 
   { key: "c", label: "C 볼드 블록", hint: "색 띠 머리·굵은 번호" },
   { key: "d", label: "D 매거진", hint: "세리프·가는 선" },
 ];
-
-/** 색 번짐 표지 큰 글자 기본값 */
-export const TEST_BOOK_DEFAULT_HEADLINE = "read.\ntest.\nnote.";
 
 export type TestBookOptions = {
   /** 테스트지 자료 · 테스트 견본에 싣는 유형 */
@@ -327,7 +321,7 @@ export const DEFAULT_TEST_BOOK_OPTIONS: TestBookOptions = {
   level: "basic",
   theme: "b",
   cover: true,
-  coverInfo: { presetId: TEST_BOOK_BLEED_COVER, label: "", title: "", progress: "", academy: "", headline: "" },
+  coverInfo: { presetId: "exam-black", label: "", title: "", progress: "", academy: "", headline: "" },
   toc: true,
   dividers: true,
   passageDividers: true,
@@ -361,7 +355,8 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
       const c = (r.coverInfo ?? {}) as Partial<Record<keyof TestBookCover, unknown>>;
       const str = (v: unknown) => (typeof v === "string" ? v.slice(0, 300) : "");
       return {
-        presetId: str(c.presetId) || TEST_BOOK_BLEED_COVER,
+        // 색 번짐 표지는 지웠다(2026-10-22) — 예전 id는 coverPreset이 내신 · 검정으로 연다.
+        presetId: str(c.presetId) || "exam-black",
         label: str(c.label),
         title: str(c.title),
         progress: str(c.progress),

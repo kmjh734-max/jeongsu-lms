@@ -109,15 +109,21 @@ function Points({ text, className }: { text: string; className: string }) {
   );
 }
 
-/** 브랜드 자리: 로고가 있으면 이미지, 없거나 깨지면 이름을 글자로 짠다(대신 넣는 아이콘은 없다). */
+/**
+ * 브랜드 자리: 로고가 있으면 흰 판 위에, 없거나 깨지면 이름을 글자로 짠다(대신 넣는 아이콘은 없다).
+ * 학원 로고는 대부분 흰 바탕이 붙은 JPG이거나 짙은 글씨의 투명 PNG라, 짙은 표지에 그대로 얹으면
+ * 흰 네모가 튀거나 안 보인다 — 출판사 마크처럼 작은 흰 판에 올린다(선생님 2026-10-22).
+ */
 function Brand({ name, logoSrc, className }: { name: string; logoSrc?: string | null; className: string }) {
   const url = (logoSrc ?? "").trim();
   const [broken, setBroken] = useState("");
   if (url && broken !== url) {
     return (
-      // 외부(스토리지) 주소가 대부분이고 인쇄용이라 next/image를 쓰지 않는다.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={url} alt={name} className={`${className} bk-logo`} onError={() => setBroken(url)} />
+      <span className={`bk-plate ${className}-plate`}>
+        {/* 외부(스토리지) 주소가 대부분이고 인쇄용이라 next/image를 쓰지 않는다. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={url} alt={name} className={`${className} bk-logo`} onError={() => setBroken(url)} />
+      </span>
     );
   }
   return name ? <span className={className}>{name}</span> : null;
@@ -478,6 +484,81 @@ export function BookCover({ spec, design, logoSrc }: CoverProps) {
       ) : (
         <PremiumCover spec={spec} design={design} logoSrc={logoSrc} />
       )}
+    </article>
+  );
+}
+
+/**
+ * 뒤표지(선생님 2026-10-22: 뒷면이 너무 구림). 앞표지와 같은 바탕 · 강조색.
+ * 위: 시리즈 · 시험 줄 / 시험 영문 · 학교 학년 · 자료 이름. 가운데: 이 교재의 구성(목차와 쪽) · 특장점.
+ * 아래: 흰 판 위 학원 로고(크게) · 학원명 · 「수업용으로 만든 교재 · 무단 복제 금지」 · 연도 · 교과서.
+ */
+export function BookBackCover({
+  spec,
+  design,
+  logoSrc,
+  contents,
+}: CoverProps & { contents: { number: string; title: string; en: string; pages: string }[] }) {
+  const paper = BOOK_COVER_PAPERS[design.paper];
+  const pal = bookCoverPalette(design.style, design.paletteId);
+  const accent = gradeAccent(pal, spec.grade);
+  const exam = examLine(spec);
+  const title = coverTitle(spec);
+  const academy = spec.brand.trim();
+  const book = [spec.textbook, spec.publisher].filter((v) => v.trim()).join(" ");
+  const style = {
+    width: `${paper.widthMm}mm`,
+    height: `${paper.heightMm}mm`,
+    "--s": String(paper.widthMm / 210),
+  } as CSSProperties;
+  const vars = { "--ink": pal.ink, "--muted": pal.muted, "--accent": accent, "--bk-bg": pal.bg, background: pal.bg } as CSSProperties;
+  return (
+    <article className={`bk-sheet bk-paper-${design.paper.toLowerCase()}`} style={style}>
+      <link rel="stylesheet" href={BOOK_COVER_FONTS_HREF} />
+      <div className="bk bk-back" style={vars} data-cover-ready="1">
+        <div className="bk-back-top">
+          <span>{spec.series}</span>
+          <span>{exam ? `${exam} 대비` : ""}</span>
+        </div>
+        <div className="bk-back-main">
+          <div className="bk-back-head">
+            <p className="bk-back-word">{examWord(spec)}</p>
+            {title ? <p className="bk-back-title">{title}</p> : null}
+            {materialLine(spec) ? <p className="bk-back-mat">{materialLine(spec)}</p> : null}
+          </div>
+          {contents.length ? (
+            <div className="bk-back-block">
+              <p className="bk-back-k">이 교재의 구성</p>
+              <ol className="bk-back-toc">
+                {contents.map((c) => (
+                  <li key={c.number}>
+                    <b>{c.number}</b>
+                    <span className="bk-back-t">
+                      {c.title}
+                      {c.en && c.en !== c.title ? <small>{c.en}</small> : null}
+                    </span>
+                    <span className="bk-back-p">{c.pages}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
+          {lines(spec.points).length ? (
+            <div className="bk-back-block">
+              <p className="bk-back-k">이 교재의 특징</p>
+              <Points text={spec.points} className="bk-back-points" />
+            </div>
+          ) : null}
+        </div>
+        <div className="bk-back-foot">
+          <Brand name={academy} logoSrc={logoSrc} className="bk-back-logo" />
+          <div className="bk-back-legal">
+            {/* 로고가 있으면 이름은 로고 안에 이미 있다 — 굵은 이름을 또 쓰지 않는다 */}
+            <span>{academy ? `${academy} 수업용으로 만든 교재입니다.` : "수업용으로 만든 교재입니다."} 무단 복제 · 배포를 금합니다.</span>
+            {[spec.year, book].some((v) => v.trim()) ? <span>{[spec.year, book].filter((v) => v.trim()).join("  ·  ")}</span> : null}
+          </div>
+        </div>
+      </div>
     </article>
   );
 }

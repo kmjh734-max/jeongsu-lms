@@ -147,10 +147,55 @@ export const BOOK_COVER_FIELDS: { key: keyof BookCoverSpec; label: string; place
 const PUBLISHER =
   /^(?:NE)?능률|^천재|^YBM|^비상|^동아|^미래엔|^지학사?|^금성|^다락원|^교학사|^씨마스|^(?:좋은책)?신사고|^시사|^창비|^해냄|^지학/;
 
+/** 학교 · 학년 · 연도 · 학기 · 시험을 글 하나에서 읽고, 읽은 말을 뺀 나머지(rest)도 돌려준다. */
+function parseExamName(text: string) {
+  const t = text.replace(/\s+/g, " ").trim();
+  let rest = t;
+  const take = (m: RegExpMatchArray | null, i = 1): string => {
+    if (!m) return "";
+    rest = rest.replace(m[0], " ");
+    return m[i] ?? "";
+  };
+  const school = take(t.match(/([가-힣A-Za-z]+?(?:고등학교|중학교|여자고|여고|여중|고|중))(?=\s|\d|·|,|$)/));
+  const afterSchool = school ? t.slice(t.indexOf(school) + school.length) : "";
+  let grade = "";
+  const g1 = school ? afterSchool.match(/^\s*(\d)(?!\d)\s*(?:학년)?/) : null;
+  if (g1) {
+    grade = g1[1]!;
+    // 학교 바로 뒤의 학년(「상우고1」 · 「리얼고 1학년」) — 학교는 이미 뺐으니 처음 나오는 그 글을 뺀다
+    rest = rest.replace(g1[0].trim(), " ");
+  } else {
+    grade = take(rest.match(/(\d)\s*학년/)) || take(rest.match(/(?:^|[^가-힣])(?:고|중)\s*([1-3])(?!\d)/));
+  }
+  const full = take(rest.match(/(20\d{2})\s*(?:년도?|\.)?/));
+  const short = full ? "" : take(rest.match(/(?:^|\D)(\d{2})\s*년도?/));
+  const year = full || (short ? `20${short}` : "");
+  const sem = take(rest.match(/([12])\s*학기/));
+  const examRaw = take(
+    rest.match(/(\d+\s*월\s*(?:전국연합\s*)?(?:모의고사|학력평가)|중간고사|기말고사|중간|기말|모의고사|학력평가|수행평가)/)
+  );
+  const exam = examRaw === "중간" ? "중간고사" : examRaw === "기말" ? "기말고사" : examRaw;
+  rest = rest
+    .replace(/대비/g, " ")
+    .replace(/[·,|/]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return { school, grade, year, semester: sem ? `${sem}학기` : "", exam, rest };
+}
+
+/** 「영어독해와작문 천재(윤) 2과」 → 교과서 · 출판사 · 범위. 출판사 이름이 없으면 null. */
+function splitBook(text: string): { textbook: string; publisher: string; range: string } | null {
+  const tokens = text.split(/\s+/).map((x) => x.trim()).filter(Boolean);
+  const at = tokens.findIndex((x) => PUBLISHER.test(x));
+  if (at < 0) return null;
+  return { textbook: tokens.slice(0, at).join(" "), publisher: tokens[at]!, range: tokens.slice(at + 1).join(" ") };
+}
+
 /**
- * 예전 표지 칸(시험범위 라벨 · 제목 · 진도 · 학원명)에서 내신 표지 칸을 읽는다.
- *   라벨 「호원고 3학년 · 26년도 1학기 중간고사 대비」 → 학교 · 학년 · 연도 · 학기 · 시험
- *   제목 「영어독해와작문 / 천재(윤) 2과」 → 교과서 · 출판사 · 범위 (출판사 이름을 찾아 앞뒤로 가른다)
+ * 저장된 칸(자료 이름 · 예전 라벨 · 제목 · 진도 · 학원명)에서 내신 표지 칸을 읽는다.
+ *   자료 이름 「리얼고 1학년 기말대비 1회차」 → 학교 · 학년 · 시험, 나머지 「1회차」는 자료 이름 칸
+ *   예전 라벨 「호원고 3학년 · 26년도 1학기 중간고사 대비」 → 학교 · 학년 · 연도 · 학기 · 시험
+ *   제목 · 지문 출처 「영어독해와작문 천재(윤) 2과」 → 교과서 · 출판사 · 범위 (출판사 이름을 찾아 앞뒤로 가른다)
  *   진도 → 특장점, 학원명 → 브랜드
  * 못 읽은 칸은 비워 둔다(표지가 그 자리를 접는다). 선생님이 고친 칸이 늘 이것보다 앞선다.
  */
@@ -158,46 +203,35 @@ export function legacyCoverSpec(
   input: { label: string; title: string; progress: string; academy: string },
   defaults: { material?: string; range?: string } = {}
 ): BookCoverSpec {
-  const label = `${input.label || defaults.range || ""}`.replace(/\s+/g, " ").trim();
-  const school =
-    label.match(/([가-힣A-Za-z]+?(?:고등학교|중학교|여자고|여고|여중|고|중))(?=\s|\d|·|,|$)/)?.[1] ?? "";
-  const after = school ? label.slice(label.indexOf(school) + school.length) : label;
-  const grade =
-    (school ? after.match(/^\s*(\d)(?!\d)/)?.[1] : undefined) ??
-    label.match(/(\d)\s*학년/)?.[1] ??
-    label.match(/(?:^|[^가-힣])(?:고|중)\s*([1-3])(?!\d)/)?.[1] ??
-    "";
-  const full = label.match(/(20\d{2})\s*년?/)?.[1];
-  const short = label.match(/(?:^|\D)(\d{2})\s*년도?/)?.[1];
-  const year = full ?? (short ? `20${short}` : "");
-  const semester = label.match(/([12])\s*학기/) ? `${label.match(/([12])\s*학기/)![1]}학기` : "";
-  const examRaw = label.match(/(\d+\s*월\s*(?:전국연합\s*)?(?:모의고사|학력평가)|중간고사|기말고사|중간|기말|모의고사|학력평가|수행평가)/)?.[1] ?? "";
-  const exam = examRaw === "중간" ? "중간고사" : examRaw === "기말" ? "기말고사" : examRaw;
-
-  const tokens = input.title.split(/\s+/).map((t) => t.trim()).filter(Boolean);
-  const at = tokens.findIndex((t) => PUBLISHER.test(t));
-  let textbook = "";
-  let publisher = "";
-  let range = "";
-  if (at >= 0) {
-    textbook = tokens.slice(0, at).join(" ");
-    publisher = tokens[at]!;
-    range = tokens.slice(at + 1).join(" ");
-  } else {
+  const title = input.title.replace(/\r?\n/g, " ").trim();
+  const name = parseExamName(`${input.label} ${title}`);
+  const book = splitBook(title) ?? splitBook(defaults.range ?? "");
+  let textbook = book?.textbook ?? "";
+  let range = book?.range ?? "";
+  // 제목이 출판사 없는 여러 줄(예전 표지 「교과서 / 범위」)이면 첫 줄을 교과서로
+  if (!book && /\n/.test(input.title) && !name.school) {
     const rows = input.title.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     textbook = rows[0] ?? "";
     range = rows.slice(1).join(" ");
   }
+  if (!book && !range && defaults.range) range = defaults.range;
+  // 출판사로 가르지 못한 이름의 나머지.
+  let nameRest = splitBook(title) ? "" : parseExamName(title).rest;
+  // 범위처럼 생긴 나머지(「18~45번」 · 「3과」)는 범위로, 아니면(「1회차」 · 「통합 테스트북」) 자료 이름으로
+  if (nameRest && !range && /\d+\s*(?:과|번|강)?\s*[~∼\-–]\s*\d+|\d+\s*과|lesson|unit/i.test(nameRest)) {
+    range = nameRest;
+    nameRest = "";
+  }
   return {
     ...EMPTY_BOOK_COVER_SPEC,
-    school,
-    grade,
-    year,
-    semester,
-    exam,
-    material: defaults.material ?? "",
+    school: name.school,
+    grade: name.grade,
+    year: name.year,
+    semester: name.semester,
+    exam: name.exam,
+    material: defaults.material || nameRest,
     textbook,
-    publisher,
+    publisher: book?.publisher ?? "",
     range,
     points: input.progress.trim(),
     brand: input.academy.trim(),

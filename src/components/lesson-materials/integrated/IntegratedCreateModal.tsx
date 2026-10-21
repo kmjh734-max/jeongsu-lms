@@ -258,13 +258,15 @@ export function IntegratedCreateModal({
 
         <div className="flex flex-wrap items-start gap-6 border-b border-slate-100 px-5 py-4">
           <label className="block min-w-[280px] flex-1 space-y-1">
-            <span className="text-sm font-bold text-slate-800">통합 자료 제목</span>
+            <span className="text-sm font-bold text-slate-800">자료 이름</span>
             <input
               className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
-              placeholder="예: 리얼고 1학년 기말대비 1회차"
+              placeholder="예: 호원고 1학년 2학기 기말 대비 1회차"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
+            {/* 이름에서 학교 · 학년 · 학기 · 시험을 읽어 표지에 바로 넣는다(legacyCoverSpec) — 선생님 2026-10-22 */}
+            <span className="block text-[11.5px] text-slate-500">학교 · 학년 · 시험을 넣으면 표지에 바로 들어갑니다.</span>
           </label>
           <div className="space-y-1">
             <p className="text-sm font-bold text-slate-800">구성 순서</p>

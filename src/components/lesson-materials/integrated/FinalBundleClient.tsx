@@ -33,15 +33,14 @@ import {
   type ContentsEntry,
 } from "@/components/lesson-materials/integrated/BundleSheets";
 import { watchPageNumbers } from "@/lib/lesson-materials/page-numbers";
-import { BOOK_COVER_FIELDS, legacyCoverSpec, mergeCoverSpec } from "@/lib/lesson-materials/book-cover";
-import { ExamPicker } from "@/components/lesson-materials/book-cover/ExamPicker";
+import { legacyCoverSpec, mergeCoverSpec } from "@/lib/lesson-materials/book-cover";
+import { CoverForm } from "@/components/lesson-materials/book-cover/CoverForm";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
 import type { prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-book-actions";
 import {
   DEFAULT_TEST_BOOK_OPTIONS,
-  TEST_BOOK_BLEED_COVER,
   buildTestSheet,
   buildVocabExam,
   buildWordTest,
@@ -51,8 +50,6 @@ import {
 import {
   AllVocabSheets,
   AnswerSheets,
-  CoverSheet,
-  CoverThumbAny,
   TYPE_SHORT,
   BlankNoteSheets,
   LessonSheets,
@@ -199,8 +196,7 @@ export function FinalBundleClient({
   const rootRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const preset = coverPreset(payload.cover.presetId);
-  const bleedCover = payload.cover.presetId === TEST_BOOK_BLEED_COVER;
-  const examCover = !bleedCover && preset.layout === "exam";
+  // 표지 칸: 자료 이름 · 예전 칸에서 읽은 값 위에 고친 칸(cover.exam)을 얹는다. 학원명은 cover.academy.
   const examSpec = mergeCoverSpec(legacyCoverSpec(payload.cover), payload.cover.exam);
 
   const extraProjects = materials.extraProjects;
@@ -616,8 +612,6 @@ export function FinalBundleClient({
     academyName,
   ]);
 
-  const inputClass =
-    "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100";
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:block print:bg-white">
@@ -636,23 +630,8 @@ export function FinalBundleClient({
           <section className="space-y-2">
             <p className="text-xs font-bold text-slate-600">표지</p>
             <div className="grid grid-cols-2 gap-2.5">
-              {/* 테스트 교재 표지(색 번짐 · 큰 글자) — 선생님 2026-10-21: 테스트북 기능을 모두 통합자료에도 */}
-              <button
-                type="button"
-                onClick={() => updateCover({ presetId: TEST_BOOK_BLEED_COVER })}
-                aria-pressed={bleedCover}
-                className={`overflow-hidden rounded-lg border-2 bg-white text-left transition ${
-                  bleedCover ? "border-violet-600 shadow-md" : "border-slate-200 hover:border-slate-300"
-                }`}
-              >
-                <CoverThumbAny presetId={TEST_BOOK_BLEED_COVER} cover={payload.cover} range={payload.cover.label} logoSrc={logoSrc} widthPx={144} />
-                <div className="px-2 py-1.5">
-                  <p className="truncate text-[12px] font-bold text-slate-800">색 번짐</p>
-                  <p className="truncate text-[10.5px] text-slate-500">테스트 교재 표지 · 큰 글자</p>
-                </div>
-              </button>
               {COVER_PRESETS.map((p) => {
-                const on = !bleedCover && preset.id === p.id;
+                const on = preset.id === p.id;
                 return (
                   <button
                     key={p.id}
@@ -685,44 +664,16 @@ export function FinalBundleClient({
           />
 
           <section className="space-y-2 rounded-xl bg-slate-50 p-3">
-            <CoverField label="시험범위 라벨" value={payload.cover.label} placeholder="예: 호원고 3학년 · 26년도 1학기 중간고사 대비" inputClass={inputClass} onCommit={(v) => updateCover({ label: v })} />
-            <CoverField label="표지 메인 제목 (엔터로 줄 구분)" value={payload.cover.title} placeholder={"예: 영어독해와작문\n천재(윤) 2과"} inputClass={inputClass} rows={2} onCommit={(v) => updateCover({ title: v })} />
-            {examCover ? null : (
-              <CoverField label="제목 아래 한 줄 · 꼬릿말 (엔터로 줄 구분)" value={payload.cover.progress} placeholder={"예: Reading & Writing · Lesson 2\n2026. 3."} inputClass={inputClass} rows={2} onCommit={(v) => updateCover({ progress: v })} />
-            )}
-            <CoverField label="학원명" value={payload.cover.academy} inputClass={inputClass} onCommit={(v) => updateCover({ academy: v })} />
-            {/* 내신 표지: 위 라벨 · 제목에서 읽은 값이 먼저 들어 있고, 고친 칸만 따로 저장한다 */}
-            {examCover ? (
-              <div className="space-y-2 border-t border-slate-200 pt-2">
-                <p className="text-[11px] font-bold text-slate-500">내신 표지 칸 · 라벨과 제목에서 읽어 채웠습니다. 틀린 칸만 고치세요</p>
-                <ExamPicker
-                  exam={examSpec.exam}
-                  semester={examSpec.semester}
-                  onPick={(patch) => updateCover({ exam: { ...(payload.cover.exam ?? {}), ...patch } })}
-                />
-                {BOOK_COVER_FIELDS.map((f) => (
-                  <CoverField
-                    key={f.key}
-                    label={f.label}
-                    value={examSpec[f.key]}
-                    placeholder={f.placeholder}
-                    inputClass={inputClass}
-                    rows={f.rows}
-                    onCommit={(v) => updateCover({ exam: { ...(payload.cover.exam ?? {}), [f.key]: v } })}
-                  />
-                ))}
-              </div>
-            ) : null}
-            {bleedCover ? (
-              <CoverField
-                label="큰 글자 (엔터로 줄 구분 · 비우면 read. test. note.)"
-                value={payload.cover.headline ?? ""}
-                placeholder={"예: 호원고 1학년\n기말 대비\n테스트북"}
-                inputClass={inputClass}
-                rows={3}
-                onCommit={(v) => updateCover({ headline: v })}
-              />
-            ) : null}
+            <p className="text-xs font-bold text-slate-600">표지에 들어갈 말</p>
+            <CoverForm
+              spec={examSpec}
+              onPatch={({ brand, ...rest }) =>
+                updateCover({
+                  ...(brand !== undefined ? { academy: brand } : {}),
+                  ...(Object.keys(rest).length ? { exam: { ...(payload.cover.exam ?? {}), ...rest } } : {}),
+                })
+              }
+            />
           </section>
 
           <section className="space-y-2">
@@ -912,11 +863,7 @@ export function FinalBundleClient({
             className={`tb-theme-${payload.theme} flex flex-col items-center gap-6 print:gap-0 [&_.tb-sheet]:shadow-xl`}
             style={{ ["--bundle-zoom" as string]: String(zoom / 100) }}
           >
-            {bleedCover ? (
-              <CoverSheet cover={{ ...payload.cover, headline: payload.cover.headline ?? "" }} range={payload.cover.label} logoSrc={logoSrc} />
-            ) : (
-              <FrontCover preset={preset} cover={payload.cover} logoSrc={logoSrc} />
-            )}
+            <FrontCover preset={preset} cover={payload.cover} logoSrc={logoSrc} />
             {planBody}
             <ContentsPage entries={contents} cover={payload.cover} accent={preset.accent} />
             {sections.map((s, i) => (
@@ -936,7 +883,7 @@ export function FinalBundleClient({
                 </div>
               </div>
             ))}
-            <BackCover preset={preset} cover={payload.cover} />
+            <BackCover preset={preset} cover={payload.cover} logoSrc={logoSrc} entries={contents} />
           </div>
         </div>
         </TestBookBrand.Provider>
@@ -945,73 +892,3 @@ export function FinalBundleClient({
   );
 }
 
-/**
- * 표지 글자 입력 칸. 타자는 이 칸 안에서만 돌고, 0.4초 쉬면 그때 표지에 반영한다.
- * 한 자마다 표지·본문을 다시 그리면 입력이 밀린다(선생님 지적 2026-09-18).
- */
-function CoverField({
-  label,
-  value,
-  placeholder,
-  inputClass,
-  rows,
-  onCommit,
-}: {
-  label: string;
-  value: string;
-  placeholder?: string;
-  inputClass: string;
-  rows?: number;
-  onCommit: (value: string) => void;
-}) {
-  const [text, setText] = useState(value);
-  const typing = useRef(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // 밖에서 값이 바뀌면(다른 자료를 열거나 되돌릴 때) 따라간다. 타자 중에는 건드리지 않는다.
-  useEffect(() => {
-    if (!typing.current) setText(value);
-  }, [value]);
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-    },
-    []
-  );
-  const change = (next: string) => {
-    typing.current = true;
-    setText(next);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      typing.current = false;
-      onCommit(next);
-    }, 400);
-  };
-  const flush = () => {
-    if (timer.current) clearTimeout(timer.current);
-    typing.current = false;
-    if (text !== value) onCommit(text);
-  };
-  return (
-    <label className="block space-y-1">
-      <span className="text-[11px] font-bold text-slate-500">{label}</span>
-      {rows ? (
-        <textarea
-          className={inputClass}
-          rows={rows}
-          value={text}
-          placeholder={placeholder}
-          onChange={(e) => change(e.target.value)}
-          onBlur={flush}
-        />
-      ) : (
-        <input
-          className={inputClass}
-          value={text}
-          placeholder={placeholder}
-          onChange={(e) => change(e.target.value)}
-          onBlur={flush}
-        />
-      )}
-    </label>
-  );
-}

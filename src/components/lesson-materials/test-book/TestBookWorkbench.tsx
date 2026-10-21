@@ -29,10 +29,8 @@ import {
   buildTestSheet,
   buildWordTest,
   isTestBookProjectReady,
-  TEST_BOOK_BLEED_COVER,
   testBookChoiceSection,
   testBookSourceHash,
-  TEST_BOOK_DEFAULT_HEADLINE,
   testBookTypeLabel,
   type BlankMode,
   type WritingScope,
@@ -53,8 +51,8 @@ import type { generateAndSaveAnalysisReportAction } from "@/lib/lesson-materials
 import type { generateGrammarChoicePassageAction } from "@/lib/lesson-materials/workbook-actions";
 import { DESIGN_FONTS_HREF, DESIGN_STYLES, designClass } from "@/lib/lesson-materials/analysis-design";
 import { COVER_PRESETS, coverPreset, type IntegratedCover } from "@/lib/lesson-materials/integrated";
-import { BOOK_COVER_FIELDS, legacyCoverSpec, mergeCoverSpec } from "@/lib/lesson-materials/book-cover";
-import { ExamPicker } from "@/components/lesson-materials/book-cover/ExamPicker";
+import { legacyCoverSpec, mergeCoverSpec } from "@/lib/lesson-materials/book-cover";
+import { CoverForm } from "@/components/lesson-materials/book-cover/CoverForm";
 import {
   AllVocabSheets,
   AnalysisSheets,
@@ -129,40 +127,6 @@ function SubRow({ checked, onChange, label }: { checked: boolean; onChange: (v: 
     <label className="flex min-h-[22px] cursor-pointer items-center gap-2 text-[12px] text-slate-700">
       <input type="checkbox" className="h-3.5 w-3.5 accent-violet-600" checked={checked} onChange={(e) => onChange(e.target.checked)} />
       {label}
-    </label>
-  );
-}
-
-/** 표지 글자 칸: 칠 때는 칸 안에만 두고, 칸을 벗어날 때 저장한다(교재 전체를 글자마다 다시 그리지 않게) */
-function CoverInput({
-  label,
-  value,
-  placeholder,
-  rows,
-  onCommit,
-}: {
-  label: string;
-  value: string;
-  placeholder?: string;
-  rows?: number;
-  onCommit: (v: string) => void;
-}) {
-  const [text, setText] = useState(value);
-  useEffect(() => setText(value), [value]);
-  /** 다 지우면 기본 글(교재 이름 등)로 돌아간다 */
-  const blur = () => {
-    if (text !== value) onCommit(text);
-    if (!text.trim()) setText(value);
-  };
-  const cls = "w-full rounded-md border border-slate-200 px-2 py-1 text-[12px] text-slate-900 outline-none focus:border-violet-300";
-  return (
-    <label className="block space-y-0.5">
-      <span className="text-[10.5px] font-semibold text-slate-500">{label}</span>
-      {rows ? (
-        <textarea className={cls} rows={rows} value={text} placeholder={placeholder} onChange={(e) => setText(e.target.value)} onBlur={blur} />
-      ) : (
-        <input className={cls} value={text} placeholder={placeholder} onChange={(e) => setText(e.target.value)} onBlur={blur} />
-      )}
     </label>
   );
 }
@@ -646,11 +610,8 @@ export function TestBookWorkbench({
     title: options.coverInfo.title.trim() || bookTitle,
     academy: options.coverInfo.academy.trim() || academyName,
   };
-  const examCover = options.coverInfo.presetId !== TEST_BOOK_BLEED_COVER && coverPreset(options.coverInfo.presetId).layout === "exam";
-  const examSpec = mergeCoverSpec(
-    legacyCoverSpec({ ...coverShown, label: coverShown.label || rangeLabel }, { material: "테스트북", range: rangeLabel }),
-    options.coverInfo.exam
-  );
+  // 표지 칸: 교재 이름 · 지문 출처(교과서 · 출판사 · 과)에서 읽은 값 위에 고친 칸(coverInfo.exam)을 얹는다.
+  const examSpec = mergeCoverSpec(legacyCoverSpec(coverShown, { range: rangeLabel }), options.coverInfo.exam);
   /** 지문 간지(묶음 안에서 지문마다 첫 쪽) — 이 묶음에서 그 지문에 이어질 쪽 이름을 싣는다 */
   const passageDivider = (id: string, p: TestBookProjectInput, next: string[]) => {
     const part = partOf(id);
@@ -846,13 +807,13 @@ export function TestBookWorkbench({
                 <p className="text-[11px] font-bold text-slate-500">교재 차례 · 넣을 것</p>
                 <PartRow checked={options.cover} onChange={(v) => setOptions({ cover: v })} n={1} label="표지">
                   <div className="grid grid-cols-3 gap-1.5">
-                    {[TEST_BOOK_BLEED_COVER, ...COVER_PRESETS.map((x) => x.id)].map((id) => {
-                      const on = options.coverInfo.presetId === id;
+                    {COVER_PRESETS.map((x) => x.id).map((id) => {
+                      const on = coverPreset(options.coverInfo.presetId).id === id;
                       return (
                         <button
                           key={id}
                           type="button"
-                          title={id === TEST_BOOK_BLEED_COVER ? "색 번짐" : coverPreset(id).name}
+                          title={coverPreset(id).name}
                           onClick={() => setOptions({ coverInfo: { ...options.coverInfo, presetId: id } })}
                           className={`overflow-hidden rounded-md border-2 ${on ? "border-violet-600" : "border-slate-200 hover:border-slate-300"}`}
                         >
@@ -861,39 +822,18 @@ export function TestBookWorkbench({
                       );
                     })}
                   </div>
-                  {options.coverInfo.presetId === TEST_BOOK_BLEED_COVER ? (
-                    <CoverInput
-                      label="큰 글자 (엔터로 줄 구분)"
-                      value={options.coverInfo.headline || TEST_BOOK_DEFAULT_HEADLINE}
-                      rows={3}
-                      onCommit={(headline) => setOptions({ coverInfo: { ...options.coverInfo, headline } })}
-                    />
-                  ) : null}
-                  <CoverInput label="범위 라벨 (다 지우면 지문 출처로)" value={options.coverInfo.label || rangeLabel} onCommit={(label) => setOptions({ coverInfo: { ...options.coverInfo, label } })} />
-                  <CoverInput label="제목 (엔터로 줄 구분, 다 지우면 교재 이름)" value={options.coverInfo.title || bookTitle} rows={2} onCommit={(t) => setOptions({ coverInfo: { ...options.coverInfo, title: t } })} />
-                  {examCover ? null : (
-                    <CoverInput label="제목 아래 · 진도 (엔터로 줄 구분)" value={options.coverInfo.progress} rows={2} onCommit={(progress) => setOptions({ coverInfo: { ...options.coverInfo, progress } })} />
-                  )}
-                  <CoverInput label="학원명" value={options.coverInfo.academy || academyName} onCommit={(academy) => setOptions({ coverInfo: { ...options.coverInfo, academy } })} />
-                  {/* 내신 표지: 범위 라벨 · 제목에서 읽은 값이 먼저 들어 있고, 고친 칸만 따로 저장한다 */}
-                  {examCover ? (
-                    <ExamPicker
-                      exam={examSpec.exam}
-                      semester={examSpec.semester}
-                      onPick={(patch) => setOptions({ coverInfo: { ...options.coverInfo, exam: { ...(options.coverInfo.exam ?? {}), ...patch } } })}
-                    />
-                  ) : null}
-                  {examCover
-                    ? BOOK_COVER_FIELDS.map((f) => (
-                        <CoverInput
-                          key={f.key}
-                          label={f.label}
-                          value={examSpec[f.key]}
-                          rows={f.rows}
-                          onCommit={(v) => setOptions({ coverInfo: { ...options.coverInfo, exam: { ...(options.coverInfo.exam ?? {}), [f.key]: v } } })}
-                        />
-                      ))
-                    : null}
+                  <CoverForm
+                    spec={examSpec}
+                    onPatch={({ brand, ...rest }) =>
+                      setOptions({
+                        coverInfo: {
+                          ...options.coverInfo,
+                          ...(brand !== undefined ? { academy: brand } : {}),
+                          ...(Object.keys(rest).length ? { exam: { ...(options.coverInfo.exam ?? {}), ...rest } } : {}),
+                        },
+                      })
+                    }
+                  />
                 </PartRow>
                 <PartRow checked={options.toc} onChange={(v) => setOptions({ toc: v })} n={2} label="목차" hint="쪽 번호 자동">
                   <SubRow checked={options.dividers} onChange={(v) => setOptions({ dividers: v })} label="묶음마다 간지(지문별 시작 쪽)" />

@@ -24,7 +24,6 @@ export function ExamPicker({
     }`;
   return (
     <div className="space-y-1.5">
-      <p className="text-[11px] font-bold text-slate-500">시험 · 학기</p>
       <div className="flex flex-wrap gap-1.5">
         {BOOK_COVER_EXAMS.map((e) => (
           <button key={e} type="button" className={chip(examOn(e))} aria-pressed={examOn(e)} onClick={() => onPick({ exam: e })}>
