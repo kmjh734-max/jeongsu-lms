@@ -37,6 +37,7 @@ import { postJson } from "@/lib/lesson-materials/post-json";
 import type { prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-book-actions";
 import {
   DEFAULT_TEST_BOOK_OPTIONS,
+  TEST_BOOK_BLEED_COVER,
   TEST_BOOK_THEMES,
   buildTestSheet,
   buildVocabExam,
@@ -47,6 +48,8 @@ import {
 import {
   AllVocabSheets,
   AnswerSheets,
+  CoverSheet,
+  CoverThumbAny,
   BlankNoteSheets,
   LessonSheets,
   PlanSheets,
@@ -70,6 +73,7 @@ import {
   WritingScopeSwitch,
 } from "@/components/lesson-materials/test-book/TestBookControls";
 import { TestDrawDialog } from "@/components/lesson-materials/test-book/TestDrawDialog";
+import { RegenMaterials, type RegenPart } from "@/components/lesson-materials/test-book/LessonPackExtras";
 
 export type FinalBundleMaterials = {
   lessonPacks: Array<{ docId: string; name: string; projects: LessonPackProjectInput[] }>;
@@ -188,6 +192,7 @@ export function FinalBundleClient({
   const rootRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const preset = coverPreset(payload.cover.presetId);
+  const bleedCover = payload.cover.presetId === TEST_BOOK_BLEED_COVER;
 
   const extraProjects = materials.extraProjects;
   const ready = useMemo(() => extraProjects.filter(isTestBookProjectReady), [extraProjects]);
@@ -399,6 +404,31 @@ export function FinalBundleClient({
     window.location.reload();
   }
 
+  /** 기능마다 다시 만들기(단어 정리·직독직해·1장 자료 재료 — 값 없음) 뒤 다시 불러온다 */
+  async function regenerateMaterials(ids: string[], parts: RegenPart[]) {
+    if (preparing || !ids.length || !parts.length) return;
+    const failed: string[] = [];
+    for (let i = 0; i < ids.length; i++) {
+      setPreparing(`다시 만들고 있습니다… (${i + 1}/${ids.length})`);
+      try {
+        const res = await postJson<PrepareResult>("/api/lesson-materials/test-book", {
+          role,
+          op: "prepareWorkbook",
+          projectId: ids[i]!,
+          regenerate: parts,
+        });
+        if (!res.ok) failed.push(res.message);
+      } catch (e) {
+        failed.push(e instanceof Error ? e.message : "다시 만들지 못했습니다.");
+      }
+    }
+    if (failed.length) {
+      setPreparing(failed.join(" · "));
+      return;
+    }
+    window.location.reload();
+  }
+
   /*
    * 표지 글자를 한 자 칠 때마다 본문 122쪽이 통째로 다시 그려져 입력이 버벅였다
    * (선생님 지적 2026-09-18). 본문은 고른 자료·순서에만 달렸으므로 따로 기억해 두고,
@@ -579,8 +609,23 @@ export function FinalBundleClient({
           <section className="space-y-2">
             <p className="text-xs font-bold text-slate-600">표지</p>
             <div className="grid grid-cols-2 gap-2.5">
+              {/* 테스트 교재 표지(색 번짐 · 큰 글자) — 선생님 2026-10-21: 테스트북 기능을 모두 통합자료에도 */}
+              <button
+                type="button"
+                onClick={() => updateCover({ presetId: TEST_BOOK_BLEED_COVER })}
+                aria-pressed={bleedCover}
+                className={`overflow-hidden rounded-lg border-2 bg-white text-left transition ${
+                  bleedCover ? "border-violet-600 shadow-md" : "border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                <CoverThumbAny presetId={TEST_BOOK_BLEED_COVER} cover={payload.cover} range={payload.cover.label} logoSrc={logoSrc} widthPx={144} />
+                <div className="px-2 py-1.5">
+                  <p className="truncate text-[12px] font-bold text-slate-800">색 번짐</p>
+                  <p className="truncate text-[10.5px] text-slate-500">테스트 교재 표지 · 큰 글자</p>
+                </div>
+              </button>
               {COVER_PRESETS.map((p) => {
-                const on = preset.id === p.id;
+                const on = !bleedCover && preset.id === p.id;
                 return (
                   <button
                     key={p.id}
@@ -607,6 +652,16 @@ export function FinalBundleClient({
             <CoverField label="표지 메인 제목 (엔터로 줄 구분)" value={payload.cover.title} placeholder={"예: 영어독해와작문\n천재(윤) 2과"} inputClass={inputClass} rows={2} onCommit={(v) => updateCover({ title: v })} />
             <CoverField label="제목 아래 한 줄 · 꼬릿말 (엔터로 줄 구분)" value={payload.cover.progress} placeholder={"예: Reading & Writing · Lesson 2\n2026. 3."} inputClass={inputClass} rows={2} onCommit={(v) => updateCover({ progress: v })} />
             <CoverField label="학원명" value={payload.cover.academy} inputClass={inputClass} onCommit={(v) => updateCover({ academy: v })} />
+            {bleedCover ? (
+              <CoverField
+                label="큰 글자 (엔터로 줄 구분 · 비우면 read. test. note.)"
+                value={payload.cover.headline ?? ""}
+                placeholder={"예: 호원고 1학년\n기말 대비\n테스트북"}
+                inputClass={inputClass}
+                rows={3}
+                onCommit={(v) => updateCover({ headline: v })}
+              />
+            ) : null}
           </section>
 
           <section className="space-y-2">
@@ -724,6 +779,14 @@ export function FinalBundleClient({
                   </button>
                 </div>
               ) : null}
+              {INTEGRATED_EXTRA_KINDS.some((k) => payload.extras[k]) && ready.length ? (
+                <RegenMaterials
+                  passages={ready.map((p) => ({ id: p.id, label: `${String(extraProjects.indexOf(p) + 1).padStart(2, "0")} · ${p.title}` }))}
+                  busy={!!preparing && preparing.endsWith(")")}
+                  onRun={(ids, parts) => void regenerateMaterials(ids, parts)}
+                />
+              ) : null}
+              {preparing && !vocabMissing.length ? <p className="text-[11px] text-violet-700">{preparing}</p> : null}
               {vocabReg.msg ? (
                 <p className={`text-[11px] font-semibold ${vocabReg.error ? "text-rose-600" : "text-emerald-700"}`}>
                   {vocabReg.msg}
@@ -835,7 +898,11 @@ export function FinalBundleClient({
             className={`tb-theme-${payload.theme} flex flex-col items-center gap-6 print:gap-0 [&_.tb-sheet]:shadow-xl`}
             style={{ ["--bundle-zoom" as string]: String(zoom / 100) }}
           >
-            <FrontCover preset={preset} cover={payload.cover} logoSrc={logoSrc} />
+            {bleedCover ? (
+              <CoverSheet cover={{ ...payload.cover, headline: payload.cover.headline ?? "" }} range={payload.cover.label} logoSrc={logoSrc} />
+            ) : (
+              <FrontCover preset={preset} cover={payload.cover} logoSrc={logoSrc} />
+            )}
             {planBody}
             <ContentsPage entries={contents} cover={payload.cover} accent={preset.accent} />
             {sections.map((s, i) => (

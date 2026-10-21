@@ -99,6 +99,8 @@ export type IntegratedCover = {
   progress: string;
   /** 표지 강사 / 학원명 */
   academy: string;
+  /** 테스트 교재 표지(색 번짐)의 큰 글자(줄바꿈 가능). 비우면 「read. / test. / note.」 */
+  headline?: string;
 };
 
 export type IntegratedPayload = {

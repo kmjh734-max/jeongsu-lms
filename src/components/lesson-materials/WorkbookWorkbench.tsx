@@ -314,6 +314,8 @@ const COLUMN_TYPE_TITLE: Record<WorkbookColumnTypeId, string> = {
   tb_paraphrase: "바꿔 말하기",
   tb_flow: "도식화",
   tb_vocab_exam: "단어 시험",
+  tb_sequence: "글의 순서",
+  tb_words: "단어 영↔한",
 };
 
 /** 창 본문의 단 사이 간격. 화면·인쇄가 같아야 잰 단 수와 인쇄의 단 수가 같다. */
@@ -2777,6 +2779,8 @@ export function WorkbookWorkbench({
       tb_paraphrase: tbCount(workbook, "tb_paraphrase"),
       tb_flow: tbCount(workbook, "tb_flow"),
       tb_vocab_exam: tbCount(workbook, "tb_vocab_exam"),
+      tb_sequence: tbCount(workbook, "tb_sequence"),
+      tb_words: tbCount(workbook, "tb_words"),
     };
     const flowSections: Record<FlowKind, Array<{ items: unknown[] }>> = {
       line_ko: ltSections,

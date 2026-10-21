@@ -77,6 +77,7 @@ import {
   TranslationBackSheets,
   VocabSheets,
   WordTestSheets,
+  CoverThumbAny,
 } from "@/components/lesson-materials/test-book/TestBookSheets";
 
 type Mode = "book" | "draw";
@@ -88,35 +89,8 @@ type RegisterResult = Awaited<ReturnType<typeof registerTestBookVocabAction>>;
 const CONCURRENCY = 3;
 const BOOK_SEED = "book";
 
-
 function newSeed(): string {
   return `draw-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-/** 표지 고르기 썸네일 — A4 표지를 썸네일 폭에 맞춰 줄인다 */
-function CoverThumbAny({
-  presetId,
-  cover,
-  range,
-  logoSrc,
-  widthPx,
-}: {
-  presetId: string;
-  cover: IntegratedCover;
-  range: string;
-  logoSrc?: string | null;
-  widthPx: number;
-}) {
-  const scale = widthPx / 793.7;
-  return (
-    <div className="pointer-events-none relative overflow-hidden" style={{ width: widthPx, height: widthPx * (297 / 210) }}>
-      <link rel="stylesheet" href={TEST_BOOK_FONTS_HREF} />
-      <style>{TEST_BOOK_CSS}</style>
-      <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: "210mm" }}>
-        <CoverSheet cover={{ ...cover, presetId }} range={range} logoSrc={logoSrc} />
-      </div>
-    </div>
-  );
 }
 
 /** 왼쪽 「교재 차례」 한 줄(켜면 아래 세부 설정이 열린다) */

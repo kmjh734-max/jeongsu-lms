@@ -2056,3 +2056,29 @@ export function VocabExamAnswer({ exam }: { exam: VocabExam }) {
     </div>
   );
 }
+
+/** 표지 고르기 썸네일 — A4 표지를 썸네일 폭에 맞춰 줄인다 */
+export function CoverThumbAny({
+  presetId,
+  cover,
+  range,
+  logoSrc,
+  widthPx,
+}: {
+  presetId: string;
+  cover: IntegratedCover;
+  range: string;
+  logoSrc?: string | null;
+  widthPx: number;
+}) {
+  const scale = widthPx / 793.7;
+  return (
+    <div className="pointer-events-none relative overflow-hidden" style={{ width: widthPx, height: widthPx * (297 / 210) }}>
+      <link rel="stylesheet" href={TEST_BOOK_FONTS_HREF} />
+      <style>{TEST_BOOK_CSS}</style>
+      <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: "210mm" }}>
+        <CoverSheet cover={{ ...cover, presetId }} range={range} logoSrc={logoSrc} />
+      </div>
+    </div>
+  );
+}

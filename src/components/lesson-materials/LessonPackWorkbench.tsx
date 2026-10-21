@@ -28,6 +28,16 @@ import {
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 import "./lesson-pack-print-styles.css";
 import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
+import {
+  LessonPackExtrasControls,
+  LessonPackExtrasSheets,
+  LessonPackPlanSheets,
+  useExtrasProjects,
+  useLessonPackExtras,
+} from "@/components/lesson-materials/test-book/LessonPackExtras";
+
+/** 인쇄·PDF로 세는 쪽(테스트 교재 자료 쪽 포함, 쪽 나눔 측정 틀 안의 것은 뺀다) */
+const LP_PAGE_SELECTOR = ":is(.lesson-pack-a4-sheet, .tb-sheet:not(.tb-measure .tb-sheet))";
 
 /** 수업자료 준비(단어·동반의어, 영어 제목)를 동시에 돌리는 지문 수. */
 const LESSON_PACK_PREP_CONCURRENCY = 8;
@@ -209,7 +219,18 @@ export function LessonPackWorkbench({
   /** PDF로 바로 저장(인쇄 창 없이) */
   const pdf = usePdfSave();
   // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다
-  usePdfPrefetch("lesson-pack-print-root", ".lesson-pack-a4-sheet");
+  usePdfPrefetch("lesson-pack-print-root", LP_PAGE_SELECTOR);
+  /*
+   * 테스트 교재 자료 더하기(선생님 2026-10-21) — 계획표는 맨 앞, 나머지는 수업용 자료 뒤. 최종통합자료에
+   * 끼울 때는 통합자료가 같은 묶음을 따로 켜고 끄므로 여기서는 싣지 않는다(두 번 들어가지 않게).
+   */
+  const extras = useLessonPackExtras();
+  const extraData = useExtrasProjects(
+    role,
+    initialProjects.map((p) => p.id),
+    extras.any && !embedded
+  );
+  const showExtras = !embedded && extras.any && !!extraData.projects;
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -1181,6 +1202,9 @@ export function LessonPackWorkbench({
   const printPages = (
     <>
       <link rel="stylesheet" href={DESIGN_FONTS_HREF} />
+      {showExtras && extras.opts.plan ? (
+        <LessonPackPlanSheets projects={extraData.projects!} opts={extras.opts} logoSrc={showLogo ? logoSrc : null} />
+      ) : null}
       {pageChunks
         .filter((chunk) => chunk.length > 0)
         .map((chunk, pageI, pages) => {
@@ -1216,6 +1240,10 @@ export function LessonPackWorkbench({
             </A4Sheet>
           );
         })}
+
+      {showExtras ? (
+        <LessonPackExtrasSheets projects={extraData.projects!} opts={extras.opts} logoSrc={showLogo ? logoSrc : null} />
+      ) : null}
 
       {showLogo && logoSrc && !embedded ? (
         <div
@@ -1310,6 +1338,17 @@ export function LessonPackWorkbench({
               className="h-4 w-4 accent-violet-500"
             />
           </label>
+
+          <LessonPackExtrasControls
+            opts={extras.opts}
+            update={extras.update}
+            projects={extraData.projects ?? []}
+            missing={extraData.missing}
+            busy={extraData.busy}
+            error={extraData.error}
+            onPrepare={() => void extraData.prepareMissing()}
+            onRegenerate={(ids, parts) => void extraData.regenerate(ids, parts)}
+          />
 
           <label className="block space-y-1.5">
             <span className="text-xs font-bold text-slate-500">상단 라벨 (소제목)</span>
@@ -1570,7 +1609,7 @@ export function LessonPackWorkbench({
             onClick={() =>
               void pdf.save(
                 "수업자료",
-                collectPrintPages(document.getElementById("lesson-pack-print-root"), ".lesson-pack-a4-sheet"),
+                collectPrintPages(document.getElementById("lesson-pack-print-root"), LP_PAGE_SELECTOR),
                 [docTitle]
               )
             }

@@ -29,7 +29,9 @@ export type WorkbookTypeId =
   | "tb_implication"
   | "tb_paraphrase"
   | "tb_flow"
-  | "tb_vocab_exam";
+  | "tb_vocab_exam"
+  | "tb_sequence"
+  | "tb_words";
 
 export type WorkbookTypeMeta = {
   id: WorkbookTypeId;
@@ -143,6 +145,8 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
   { id: "tb_implication", title: "함축의미", subtitle: "밑줄 친 표현이 뜻하는 바 쓰기", ready: true, displayOrder: 17, printOrder: 17 },
   { id: "tb_paraphrase", title: "바꿔 말하기", subtitle: "같은 뜻 문장의 빈칸 채우기(패러프레이징)", ready: true, displayOrder: 18, printOrder: 18 },
   { id: "tb_flow", title: "도식화", subtitle: "글의 흐름 칸에 알맞은 내용 고르기", ready: true, displayOrder: 19, printOrder: 19 },
+  { id: "tb_sequence", title: "글의 순서", subtitle: "주어진 글 뒤 (A)~(E) 순서 맞추기", ready: true, displayOrder: 21, printOrder: 21 },
+  { id: "tb_words", title: "단어 영↔한", subtitle: "단어 정리 범위에서 뜻·철자 쓰기", ready: true, displayOrder: 22, printOrder: 22 },
   // 단어 시험지는 맨 앞(한줄해석보다 먼저) — 선생님 2026-10-21
   { id: "tb_vocab_exam", title: "단어 시험지", subtitle: "뜻·철자·동반의어·파생어(혼동어휘 객관식)", ready: true, displayOrder: 0, printOrder: 0 },
 ];
@@ -158,6 +162,8 @@ export const TB_WORKBOOK_TYPES = {
   tb_paraphrase: "paraphrase",
   tb_flow: "flow",
   tb_vocab_exam: null,
+  tb_sequence: "sequence",
+  tb_words: "words",
 } as const;
 export type TbWorkbookTypeId = keyof typeof TB_WORKBOOK_TYPES;
 export function isTbWorkbookType(id: string): id is TbWorkbookTypeId {
@@ -746,6 +752,8 @@ export const WORKBOOK_COLUMN_TYPES = [
   "tb_paraphrase",
   "tb_flow",
   "tb_vocab_exam",
+  "tb_sequence",
+  "tb_words",
 ] as const;
 export type WorkbookColumnTypeId = (typeof WORKBOOK_COLUMN_TYPES)[number];
 
