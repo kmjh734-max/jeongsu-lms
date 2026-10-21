@@ -251,7 +251,7 @@ export type TestBookCover = {
 };
 
 /** 내지 디자인(선생님 2026-10-21: ABC로 고르게) */
-export type TestBookTheme = "a" | "b" | "c" | "d" | "e" | "f" | "g";
+export type TestBookTheme = "a" | "b" | "c" | "d" | "e" | "f";
 export const TEST_BOOK_THEMES: Array<{ key: TestBookTheme; label: string; hint: string }> = [
   { key: "a", label: "A 클래식", hint: "가는 선·색 띠" },
   { key: "b", label: "B 파스텔 블룸", hint: "화사한 번짐·둥근 카드" },
@@ -352,7 +352,7 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
     writing: r.writing === "key" ? "key" : "all",
     lineMode: r.lineMode === "chunk" ? "chunk" : "full",
     level: r.level === "up" ? "up" : "basic",
-    theme: (["a", "b", "c", "d", "e", "f", "g"] as const).includes(r.theme as TestBookTheme) ? (r.theme as TestBookTheme) : "b",
+    theme: (["a", "b", "c", "d", "e", "f"] as const).includes(r.theme as TestBookTheme) ? (r.theme as TestBookTheme) : "b",
     cover: r.cover !== false,
     coverInfo: (() => {
       const c = (r.coverInfo ?? {}) as Partial<Record<keyof TestBookCover, unknown>>;

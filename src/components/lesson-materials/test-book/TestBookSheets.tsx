@@ -372,31 +372,6 @@ export const TEST_BOOK_CSS = `
 .tb-theme-f .tb-contents .tb-cno{background:linear-gradient(120deg,currentColor,#ff9f7a);-webkit-background-clip:text;background-clip:text}
 .tb-theme-f .tb-contents .tb-cbar{border-radius:99px;background:linear-gradient(90deg,#6a4bd8,#ff9f7a);height:2mm;width:36mm}
 .tb-theme-f .tb-annotes{border-left:0;border-radius:2mm;background:#fff5ee}
-
-/* ───────── 내지 디자인 G · 도트 팝(B 계열) ───────── */
-.tb-theme-g .tb-sheet.tb-part{background-image:radial-gradient(color-mix(in srgb,var(--tb-accent,#6a4bd8) 22%,#fff) 1.1mm,transparent 1.2mm);background-size:7mm 7mm;background-position:right top;background-repeat:repeat}
-.tb-theme-g .tb-sheet.tb-part::after{content:"";position:absolute;inset:9mm 9mm 9mm 9mm;background:#fff;border-radius:6mm;z-index:0}
-.tb-theme-g .tb-sheet.tb-part > *{position:relative;z-index:1}
-.tb-theme-g .tb-sheet.tb-part > .tb-foot{position:absolute}
-.tb-theme-g .tb-sheet.tb-part::before{display:none}
-.tb-theme-g .tb-part .tb-dh{border-bottom:0;padding-bottom:1.6mm;background-image:radial-gradient(circle at 3px 2px,color-mix(in srgb,var(--tb-accent,#15171c) 60%,#fff) 1.1px,transparent 1.4px);background-size:6px 4px;background-repeat:repeat-x;background-position:left bottom}
-.tb-theme-g .tb-part .tb-dh h2::before{display:table;margin-bottom:1.4mm;padding:.5mm 2.4mm;border-radius:99px;background:color-mix(in srgb,var(--tb-accent,#15171c) 15%,#fff)}
-.tb-theme-g .tb-q,.tb-theme-g .tb-part .tb-q{border-top:0;margin-top:1.6mm}
-.tb-theme-g .tb-q .tb-qn,.tb-theme-g .tb-part .tb-q .tb-qn{border-radius:2.4mm 2.4mm 2.4mm .6mm;min-width:8mm;height:7mm;background:var(--tb-accent,#15171c)}
-.tb-theme-g .tb-row.tb-th{border:0;background:color-mix(in srgb,var(--tb-accent,#15171c) 12%,#fff);border-radius:2.4mm}
-.tb-theme-g .tb-row{border-bottom:.6pt dotted color-mix(in srgb,var(--tb-accent,#15171c) 40%,#fff)}
-.tb-theme-g .tb-blank{border-bottom:1.1pt dotted var(--tb-accent,#15171c)}
-.tb-theme-g .tb-pick{background:color-mix(in srgb,#ffd66b 35%,#fff);border-radius:1.4mm;padding:0 .8mm}
-.tb-theme-g .tb-chunks span{border-radius:99px;border:1pt solid color-mix(in srgb,var(--tb-accent,#15171c) 50%,#fff);background:color-mix(in srgb,var(--tb-accent,#15171c) 6%,#fff)}
-.tb-theme-g .tb-foot{border-top:0}
-.tb-theme-g .tb-foot .tb-pgno{background:#ffd66b;color:#15171c;border-radius:99px;padding:.3mm 2.4mm}
-.tb-theme-g .tb-divider{background-image:radial-gradient(color-mix(in srgb,var(--tb-accent,#15171c) 30%,#fff) 1.6mm,transparent 1.7mm);background-size:9mm 9mm}
-.tb-theme-g .tb-divider .tb-din{background:#fff;border-radius:6mm;padding:8mm;box-shadow:0 0 0 1.6mm color-mix(in srgb,var(--tb-accent,#15171c) 20%,#fff)}
-.tb-theme-g .tb-divider .tb-dstrip{display:none}
-.tb-theme-g .tb-pdiv .tb-ptop{border-radius:0 0 50% 50% / 0 0 18mm 18mm}
-.tb-theme-g .tb-contents .tb-cno{display:inline-grid;place-items:center;width:12mm;height:12mm;border-radius:3mm 3mm 3mm 1mm;background:color-mix(in srgb,currentColor 16%,#fff);font-size:14pt}
-.tb-theme-g .tb-contents .tb-cbody{border-bottom:.8pt dotted #b9b2e8}
-.tb-theme-g .tb-annotes{border-left:0;border-radius:2.4mm;background:#fff8dc}
 `;
 
 // ---------------------------------------------------------------- 쪽 나누기
