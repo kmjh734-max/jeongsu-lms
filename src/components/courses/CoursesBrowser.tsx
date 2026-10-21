@@ -1,5 +1,6 @@
 "use client";
 
+import { CourseAssignModal } from "@/components/courses/CourseAssignModal";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -59,6 +60,8 @@ export function CoursesBrowser({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [movePick, setMovePick] = useState<string[] | null>(null);
+  /** 배정 창에 연 강좌들(선생님 요청 2026-10-21: 관리 화면에서 체크하고 배정, 단어장 배정처럼) */
+  const [assignIds, setAssignIds] = useState<string[] | null>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -539,7 +542,7 @@ export function CoursesBrowser({
         ) : null}
         {scope === "alive" && visible.length > 0 && selected.size === 0 ? (
           <p className="px-1 text-xs text-slate-400">
-            왼쪽 네모로 강좌를 고르면 아래 막대에서 폴더를 옮기거나 공개·보관·휴지통으로 보낼 수 있어요.
+            왼쪽 네모로 강좌를 고르면 아래 막대에서 반·학생에게 배정하거나, 폴더를 옮기거나 공개·보관·휴지통으로 보낼 수 있어요.
           </p>
         ) : null}
       </section>
@@ -569,7 +572,8 @@ export function CoursesBrowser({
                 </>
               ) : (
                 <>
-                  <BarButton icon="move" label="폴더 옮기기" primary onClick={() => setMovePick([...selected])} busy={busy} />
+                  <BarButton icon="usercheck" label="배정" primary onClick={() => setAssignIds([...selected])} busy={busy} />
+                  <BarButton icon="move" label="폴더 옮기기" onClick={() => setMovePick([...selected])} busy={busy} />
                   <BarButton icon="users" label="공개" onClick={() => void run(() => setCoursesPublishedAction([...selected], true))} busy={busy} />
                   <BarButton icon="lock" label="비공개" onClick={() => void run(() => setCoursesPublishedAction([...selected], false))} busy={busy} />
                   <BarButton icon="download" label="보관" onClick={() => void run(() => setCoursesArchivedAction([...selected], true))} busy={busy} />
@@ -589,6 +593,19 @@ export function CoursesBrowser({
           </div>
         </div>
       ) : null}
+
+      <CourseAssignModal
+        open={assignIds !== null}
+        onClose={() => setAssignIds(null)}
+        courseIds={assignIds ?? []}
+        courseTitle={(() => {
+          const titles = (assignIds ?? [])
+            .map((id) => ordered.find((c) => c.course.id === id)?.course.title)
+            .filter((t): t is string => !!t);
+          return titles.length <= 2 ? titles.join(", ") : `${titles.slice(0, 2).join(", ")} 외 ${titles.length - 2}개`;
+        })()}
+        onChanged={() => router.refresh()}
+      />
 
       <FolderPickDialog
         open={movePick !== null}

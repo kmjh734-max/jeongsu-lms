@@ -8,7 +8,7 @@ import {
   type CourseAssignPanelData,
 } from "@/lib/courses/course-assign";
 
-/** 강좌 화면에서 바로 배정하기. 관리자·강사 화면이 함께 쓴다. */
+/** 강좌 화면·강좌 목록에서 배정하기(여러 강좌 한꺼번에도). 관리자·강사 화면이 함께 쓴다. */
 
 function done() {
   for (const p of ["/admin/courses", "/teacher/courses", "/admin/classes", "/teacher/classes", "/student"]) {
@@ -17,26 +17,26 @@ function done() {
 }
 
 export async function loadCourseAssignPanelAction(
-  courseId: string
+  courseIds: string | string[]
 ): Promise<CourseAssignPanelData | null> {
-  return loadCourseAssignPanel(courseId);
+  return loadCourseAssignPanel(courseIds);
 }
 
 export async function assignCourseAction(
-  courseId: string,
+  courseIds: string | string[],
   classIds: string[],
   studentIds: string[]
 ) {
-  const r = await assignCourse(courseId, classIds, studentIds);
+  const r = await assignCourse(courseIds, classIds, studentIds);
   if (r.ok) done();
   return r;
 }
 
 export async function unassignCourseAction(
-  courseId: string,
+  courseIds: string | string[],
   opts: { classId?: string; studentId?: string }
 ) {
-  const r = await unassignCourse(courseId, opts);
+  const r = await unassignCourse(courseIds, opts);
   if (r.ok) done();
   return r;
 }
