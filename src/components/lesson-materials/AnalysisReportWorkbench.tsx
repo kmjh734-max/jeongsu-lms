@@ -403,10 +403,18 @@ export function AnalysisReportWorkbench({
 }) {
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
+  /** 이 분석서 파일(자료함). 새로 만들면 만든 뒤에 알게 된다. */
+  const docIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    docIdRef.current = new URLSearchParams(window.location.search).get("doc");
+  }, []);
   useCreateDocumentFromUrl(
     role,
     "analysis_report",
-    initialProjects.map((p) => p.id)
+    initialProjects.map((p) => p.id),
+    (id) => {
+      docIdRef.current = id;
+    }
   );
   /** 새로 만들기는 첫 생성 한 번에만 적용한다(이후 다시 시도는 빠진 지문만). */
   const regenerateOnce = useRef(regenerate);
@@ -525,6 +533,22 @@ export function AnalysisReportWorkbench({
   const [headerLabel, setHeaderLabel] = useState(
     () => initialProjects[0]?.headerLabel || "26년도 1학기 중간고사 대비"
   );
+  /*
+   * 상단 라벨을 고치면 자료함의 이 분석서 파일 이름도 같게(선생님 2026-10-21). 입력이 잠깐 멈춘 뒤 바꾼다.
+   * 처음 열 때(고치지 않았을 때)는 이름을 건드리지 않는다.
+   */
+  const labelEdited = useRef(false);
+  useEffect(() => {
+    if (embedded || !labelEdited.current) return;
+    const name = headerLabel.trim();
+    if (!name) return;
+    const t = setTimeout(() => {
+      const id = docIdRef.current;
+      if (!id) return;
+      void postJson("/api/lesson-materials/documents/open", { op: "rename", role, id, name }).catch(() => {});
+    }, 800);
+    return () => clearTimeout(t);
+  }, [headerLabel, embedded, role]);
   const [accent] = useState("#DC2626");
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -1099,8 +1123,12 @@ export function AnalysisReportWorkbench({
             <input
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={headerLabel}
-              onChange={(e) => setHeaderLabel(e.target.value)}
+              onChange={(e) => {
+                labelEdited.current = true;
+                setHeaderLabel(e.target.value);
+              }}
             />
+            <span className="block text-[10.5px] text-slate-400">자료함의 파일 이름도 이 라벨로 바뀝니다.</span>
           </label>
 
           <div className="space-y-1">
