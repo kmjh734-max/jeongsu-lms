@@ -10,8 +10,11 @@
  * 크기는 모두 A4(210mm) 기준 mm로 적고, 다른 판형은 폭 비율(--s)로 줄인다.
  */
 
-/** 지금은 프리미엄 하나(선생님 2026-10-21: 타이포그래피·그래픽 안은 뺌). */
-export type BookCoverStyle = "premium";
+/**
+ * 프리미엄(승인 · 앱에 붙음)과 같은 내신 정보 · 위계를 쓰는 판 셋(시안): 큰 학년 숫자 · 위아래 분할 · 밝은 판.
+ * 선생님 2026-10-21: 타이포그래피 · 그래픽 안은 뺌.
+ */
+export type BookCoverStyle = "premium" | "numeral" | "split" | "light";
 
 /** 판형. B5는 국내 교재에서 B5라 부르는 4×6배판(188×257mm)이다. */
 export type BookCoverPaper = "A4" | "B5";
@@ -221,18 +224,31 @@ export type BookCoverPalette = {
 /**
  * 배색. 짙은 바탕 위에서 학년마다 색상 자체를 바꾼다(한 줄로 꽂아도 학년이 갈린다).
  */
+const DARK_PALETTES: BookCoverPalette[] = [
+  { id: "black", name: "검정", bg: "#0b0b0d", ink: "#ffffff", muted: "#9a9aa2", steps: ["#4fd1c5", "#c5e05a", "#ff6fae", "#ffb04a"] },
+  { id: "navy", name: "남색", bg: "#0f1b33", ink: "#ffffff", muted: "#9aa7c0", steps: ["#7fd3ff", "#ffd166", "#ff8fa3", "#b6ee8a"] },
+  { id: "forest", name: "짙은 초록", bg: "#0f2a22", ink: "#f4f1e8", muted: "#93aca1", steps: ["#e8d29a", "#9fe0c2", "#f2a3a3", "#c3b6ff"] },
+  { id: "wine", name: "와인", bg: "#3a0f19", ink: "#fbf2ee", muted: "#c19aa2", steps: ["#f2c48d", "#f7a8b8", "#9fd8d0", "#e6e1a3"] },
+];
+
 export const BOOK_COVER_PALETTES: Record<BookCoverStyle, BookCoverPalette[]> = {
-  premium: [
-    { id: "black", name: "검정", bg: "#0b0b0d", ink: "#ffffff", muted: "#9a9aa2", steps: ["#4fd1c5", "#c5e05a", "#ff6fae", "#ffb04a"] },
-    { id: "navy", name: "남색", bg: "#0f1b33", ink: "#ffffff", muted: "#9aa7c0", steps: ["#7fd3ff", "#ffd166", "#ff8fa3", "#b6ee8a"] },
-    { id: "forest", name: "짙은 초록", bg: "#0f2a22", ink: "#f4f1e8", muted: "#93aca1", steps: ["#e8d29a", "#9fe0c2", "#f2a3a3", "#c3b6ff"] },
-    { id: "wine", name: "와인", bg: "#3a0f19", ink: "#fbf2ee", muted: "#c19aa2", steps: ["#f2c48d", "#f7a8b8", "#9fd8d0", "#e6e1a3"] },
+  premium: DARK_PALETTES,
+  numeral: DARK_PALETTES,
+  split: DARK_PALETTES,
+  /** 흰 종이 — 학원 레이저 프린터로 많이 찍어도 토너가 덜 든다. 강조색은 흰 바탕에서 읽히는 짙은 색 */
+  light: [
+    { id: "white", name: "흰 종이", bg: "#ffffff", ink: "#121417", muted: "#6c7179", steps: ["#0f8a7e", "#2a55c9", "#d23f5d", "#c96d0c"] },
+    { id: "grey", name: "회색 종이", bg: "#eceef1", ink: "#121417", muted: "#646a73", steps: ["#0c7b70", "#244bb3", "#bf3653", "#b4610a"] },
+    { id: "mint", name: "옅은 청록", bg: "#e6f2ef", ink: "#10201c", muted: "#5d6f69", steps: ["#0b6f64", "#2347a8", "#b8334f", "#a65a09"] },
   ],
 };
 
 export const BOOK_COVER_STYLES: { id: BookCoverStyle; name: string; description: string }[] = [
-  { id: "premium", name: "프리미엄", description: "짙은 바탕 · 굵은 학교·학년 · 기울인 시험 영문 · 정보 띠" },
-]
+  { id: "premium", name: "C 프리미엄", description: "승인 · 앱에 붙음 — 기울인 시험 영문이 그림" },
+  { id: "numeral", name: "D 큰 숫자", description: "학년 숫자가 그림 · 시험 영문은 제목 아래 작게" },
+  { id: "split", name: "E 분할", description: "위 짙은 바탕 · 아래 흰 칸에 정보 띠" },
+  { id: "light", name: "F 밝은 판", description: "C를 흰 종이에 — 토너가 덜 든다" },
+];
 
 /** 시리즈 하나의 판: 같은 시리즈 교재는 모두 이것을 쓴다. */
 export type BookCoverSeriesDesign = {

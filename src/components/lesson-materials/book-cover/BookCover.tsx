@@ -165,25 +165,28 @@ function materialLine(spec: BookCoverSpec): string {
   return [exam ? `${exam} 대비` : "", spec.material.trim()].filter(Boolean).join(" ");
 }
 
-/* ──────────────── C. 프리미엄 ────────────────
+/* ──────────────── C. 프리미엄 (D 큰 숫자 · E 분할 · F 밝은 판도 이 판에서 갈라진다) ────────────────
  * 짙은 바탕. 왼쪽 위 시리즈 띠 → 굵은 학교 · 학년 → 시험 · 자료 종류(강조색). 오른쪽 끝에 세로로
  * 연도 · 학기 · 시험. 가운데에 시험 영문을 크게 기울인 세리프로 놓되 판 안에 통째로 넣는다.
  * 아래는 기출문제집처럼 정보 띠 하나: 교과서 · 출판사 | 큰 학년 숫자 + 학기 · 시험 | 범위. */
 function PremiumCover({ spec, design, logoSrc }: CoverProps) {
-  const pal = bookCoverPalette("premium", design.paletteId);
+  const pal = bookCoverPalette(design.style, design.paletteId);
   const accent = gradeAccent(pal, spec.grade);
   const num = gradeNumber(spec.grade);
+  // D 큰 숫자: 학년을 숫자로 읽을 때만 — 못 읽으면 C처럼 시험 영문이 그림이 된다.
+  const bigNum = design.style === "numeral" && num != null;
   // 학교 이름이 길면(여섯 자 넘게) 학교 / 학년 두 줄로 — 한 줄에 몰면 글자가 너무 작아진다.
   const title = Array.from(spec.school.trim()).length > 5 ? coverTitle(spec).replace(" ", "\n") : coverTitle(spec);
   const fit = useFitTitle(30, 10, `${title}|${design.paper}`);
   const word = examWord(spec);
-  const wordFit = useFitWord(76, 24, 10, `${word}|${design.paper}`);
+  const wordFit = useFitWord(bigNum ? 30 : 76, bigNum ? 12 : 24, 10, `${word}|${design.paper}|${bigNum}`);
   const sub = materialLine(spec);
   const exam = examLine(spec);
   const vars = { "--ink": pal.ink, "--muted": pal.muted, "--accent": accent, "--bk-bg": pal.bg, background: pal.bg } as CSSProperties;
   const hasBand = Boolean(spec.textbook || spec.publisher || num != null || spec.range);
   return (
-    <div className="bk bk-c" style={vars} data-cover-ready={fit.ready && wordFit.ready ? "1" : "0"}>
+    <div className={`bk bk-c bk-c--${design.style}`} style={vars} data-cover-ready={fit.ready && wordFit.ready ? "1" : "0"}>
+      {design.style === "split" ? <div className="bk-c-panel" aria-hidden /> : null}
       <div className="bk-c-head">
         {spec.series ? <p className="bk-c-series">{spec.series}</p> : null}
         <div className="bk-c-titlebox" ref={fit.box}>
@@ -192,11 +195,23 @@ function PremiumCover({ spec, design, logoSrc }: CoverProps) {
           </h1>
         </div>
         {sub ? <p className="bk-c-sub">{sub}</p> : null}
+        {bigNum ? (
+          <p className="bk-c-word bk-c-word--small" ref={wordFit.ref} aria-hidden>
+            {word}
+          </p>
+        ) : null}
       </div>
       {exam ? <p className="bk-c-tag">{exam} 대비</p> : null}
-      <p className="bk-c-word" ref={wordFit.ref} aria-hidden>
-        {word}
-      </p>
+      {bigNum ? (
+        <p className="bk-c-bignum" aria-label={`${num}학년`}>
+          {num}
+          <small>학년</small>
+        </p>
+      ) : (
+        <p className="bk-c-word" ref={wordFit.ref} aria-hidden>
+          {word}
+        </p>
+      )}
       <div className="bk-c-bottom">
         {hasBand ? (
           <div className="bk-c-band">
@@ -208,9 +223,9 @@ function PremiumCover({ spec, design, logoSrc }: CoverProps) {
               </div>
             ) : null}
             <div className="bk-c-cell bk-c-gradecell">
-              {num != null ? <span className="bk-c-num">{num}</span> : null}
+              {num != null && !bigNum ? <span className="bk-c-num">{num}</span> : null}
               <span className="bk-c-stack">
-                <span>{num != null ? spec.semester : [spec.grade, spec.semester].filter(Boolean).join(" ")}</span>
+                <span>{num != null && !bigNum ? spec.semester : [bigNum ? `${num}학년` : spec.grade, spec.semester].filter(Boolean).join(" ")}</span>
                 <span>{spec.exam}</span>
               </span>
             </div>

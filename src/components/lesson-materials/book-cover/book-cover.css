@@ -231,6 +231,60 @@ img.bk-c-brand {
   max-width: calc(44 * var(--m));
 }
 
+/* ── D 큰 숫자: 학년 숫자가 그림, 시험 영문은 제목 아래 작게 ── */
+.bk-c-word--small {
+  position: static;
+  margin-top: calc(7 * var(--m));
+  transform: none;
+  line-height: 1.1;
+}
+.bk-c-bignum {
+  position: absolute;
+  right: calc(10 * var(--m));
+  bottom: calc(60 * var(--m));
+  display: flex;
+  align-items: baseline;
+  gap: calc(3 * var(--m));
+  font-family: "Playfair Display", Georgia, serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: calc(150 * var(--m));
+  line-height: 0.8;
+  color: var(--accent);
+  /* Playfair 숫자는 기본이 옛 숫자꼴이라 3 · 4 · 5 꼬리가 기준선 아래 정보 띠까지 내려온다 */
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
+}
+.bk-c-bignum small {
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  font-size: calc(16pt * var(--s));
+  color: var(--ink);
+}
+
+/* ── E 분할: 아래 흰 칸에 정보 띠. 흰 칸 윗변이 학년 색 ── */
+.bk-c-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(82 * var(--m));
+  background: #ffffff;
+  border-top: calc(2.4 * var(--m)) solid var(--accent);
+}
+.bk-c--split .bk-c-bottom {
+  --ink: #121417;
+  --muted: #6c7179;
+  color: var(--ink);
+}
+.bk-c--split .bk-c-num {
+  color: var(--bk-bg);
+}
+.bk-c--split .bk-c-word {
+  bottom: calc(98 * var(--m));
+}
+
 /* 인쇄 쪽 나누기는 감싸는 쪽(통합자료 Sheet · 테스트 교재 tb-sheet)이 맡는다. 여기서 또 나누면 빈 쪽이 생긴다. */
 @media print {
   .bk-sheet {

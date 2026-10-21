@@ -1,5 +1,5 @@
 import { normalizeTestBookOptions, type TestBookOptions } from "@/lib/lesson-materials/test-book";
-import { normalizeCoverOverrides, type BookCoverSpec } from "@/lib/lesson-materials/book-cover";
+import { BOOK_COVER_PALETTES, normalizeCoverOverrides, type BookCoverSpec, type BookCoverStyle } from "@/lib/lesson-materials/book-cover";
 
 /**
  * 최종통합자료: 수업용 자료·분석서·변형문제·워크북을 앞표지·목차·간지·뒤표지와 함께 한 파일로
@@ -254,38 +254,58 @@ export type CoverPreset = {
   backBackground: string;
   backInk: string;
   backMuted: string;
-  /** layout "exam"의 배색 id(BOOK_COVER_PALETTES.premium) */
+  /** layout "exam"의 배색 id(BOOK_COVER_PALETTES[coverStyle]) */
   paletteId?: string;
+  /** layout "exam"의 판(C 프리미엄 · D 큰 숫자 · E 분할 · F 밝은 판). 없으면 프리미엄 */
+  coverStyle?: BookCoverStyle;
 };
 
 /**
- * 내신 표지 넷(선생님 2026-10-21 승인 — 학교 시험 대비 교재 표지). 앞표지는 BookCover가 그리고,
- * 여기 색은 목차 · 간지 · 뒤표지가 쓴다. accent는 흰 종이 위 목차 번호라 짙은 색으로 따로 둔다.
+ * 내신 표지(선생님 2026-10-21 승인 — 학교 시험 대비 교재 표지). 판 넷 × 배색:
+ *   C 프리미엄(exam-<배색>) · D 큰 숫자(exam-numeral-<배색>) · E 분할(exam-split-<배색>) · F 밝은 판(exam-light-<배색>)
+ * 앞표지는 BookCover가 그리고, 여기 색은 목차 · 간지 · 뒤표지가 쓴다. accent는 흰 종이 위 목차 번호라
+ * 짙은 바탕 배색은 짙은 색을 따로 둔다.
  */
-const EXAM_COVER_PRESETS: CoverPreset[] = [
-  { id: "exam-black", paletteId: "black", name: "내신 · 검정", bg: "#0b0b0d", muted: "#9a9aa2", rule: "#4fd1c5", accent: "#0f7f75" },
-  { id: "exam-navy", paletteId: "navy", name: "내신 · 남색", bg: "#0f1b33", muted: "#9aa7c0", rule: "#7fd3ff", accent: "#1f4f9a" },
-  { id: "exam-forest", paletteId: "forest", name: "내신 · 짙은 초록", bg: "#0f2a22", muted: "#93aca1", rule: "#e8d29a", accent: "#1d5a45" },
-  { id: "exam-wine", paletteId: "wine", name: "내신 · 와인", bg: "#3a0f19", muted: "#c19aa2", rule: "#f2c48d", accent: "#7a1f33" },
-].map((x) => ({
-  id: x.id,
-  name: x.name,
-  description: "학교 · 학년 · 시험 영문 · 교과서 정보 띠",
-  layout: "exam" as const,
-  background: x.bg,
-  ink: "#ffffff",
-  muted: x.muted,
-  rule: x.rule,
-  accent: x.accent,
-  strip: x.bg,
-  backBackground: x.bg,
-  backInk: "#ffffff",
-  backMuted: x.muted,
-  paletteId: x.paletteId,
-}));
+const EXAM_BACK: Record<string, { muted: string; rule: string; accent: string }> = {
+  black: { muted: "#9a9aa2", rule: "#4fd1c5", accent: "#0f7f75" },
+  navy: { muted: "#9aa7c0", rule: "#7fd3ff", accent: "#1f4f9a" },
+  forest: { muted: "#93aca1", rule: "#e8d29a", accent: "#1d5a45" },
+  wine: { muted: "#c19aa2", rule: "#f2c48d", accent: "#7a1f33" },
+};
+
+const EXAM_STYLE_NAMES: Record<BookCoverStyle, { name: string; description: string }> = {
+  premium: { name: "내신", description: "학교 · 학년 · 시험 영문 · 교과서 정보 띠" },
+  numeral: { name: "내신 큰 숫자", description: "학년 숫자가 그림 · 시험 영문은 작게" },
+  split: { name: "내신 분할", description: "위 짙은 바탕 · 아래 흰 칸에 정보 띠" },
+  light: { name: "내신 밝은 판", description: "흰 종이 · 토너가 덜 든다" },
+};
+
+const EXAM_COVER_PRESETS: CoverPreset[] = (["premium", "numeral", "split", "light"] as const).flatMap((style) =>
+  BOOK_COVER_PALETTES[style].map((pal): CoverPreset => {
+    const back = EXAM_BACK[pal.id];
+    const dark = Boolean(back);
+    return {
+      id: style === "premium" ? `exam-${pal.id}` : `exam-${style}-${pal.id}`,
+      name: `${EXAM_STYLE_NAMES[style].name} · ${pal.name}`,
+      description: EXAM_STYLE_NAMES[style].description,
+      layout: "exam",
+      background: pal.bg,
+      ink: pal.ink,
+      muted: back?.muted ?? pal.muted,
+      rule: back?.rule ?? pal.steps[0]!,
+      accent: back?.accent ?? pal.steps[1]!,
+      strip: dark ? pal.bg : pal.steps[1]!,
+      backBackground: pal.bg,
+      backInk: pal.ink,
+      backMuted: back?.muted ?? pal.muted,
+      paletteId: pal.id,
+      coverStyle: style,
+    };
+  })
+);
 
 /**
- * 표지: 맨 앞 내신 표지 넷, 그 뒤 예전 여덟 가지. 여덟 가지는 승인된 시안 그대로다 — 바탕색 하나가 먼저 읽히고, 기하 구조 하나가 판을
+ * 표지: 맨 앞 내신 표지(판 넷 × 배색), 그 뒤 예전 여덟 가지. 여덟 가지는 승인된 시안 그대로다 — 바탕색 하나가 먼저 읽히고, 기하 구조 하나가 판을
  * 짜고, 제목이 표지의 3분의 1을 차지한다. 여기 색은 앞표지뿐 아니라 목차·간지·뒤표지가
  * 함께 쓴다. 모두 인쇄에서 배경색까지 그대로 찍힌다.
  */

@@ -576,7 +576,7 @@ export function FrontCover({
     const spec = mergeCoverSpec(legacyCoverSpec(cover, examDefaults), cover.exam);
     return (
       <Sheet>
-        <BookCover spec={spec} design={{ style: "premium", paletteId: preset.paletteId ?? "black", paper: "A4" }} logoSrc={logoSrc} />
+        <BookCover spec={spec} design={{ style: preset.coverStyle ?? "premium", paletteId: preset.paletteId ?? "black", paper: "A4" }} logoSrc={logoSrc} />
       </Sheet>
     );
   }
