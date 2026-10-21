@@ -11,6 +11,10 @@ import type {
 import {
   BASIC_TEST_BOOK_TYPES,
   DEFAULT_VOCAB_EXAM,
+  TEST_BOOK_TYPES,
+  VOCAB_EXAM_KINDS,
+  type TestLimits,
+  type TestSheet,
   buildTestSheet,
   buildVocabExam,
   isTestBookProjectReady,
@@ -32,6 +36,79 @@ import {
 } from "@/components/lesson-materials/test-book/TestBookControls";
 
 type LoadResult = Awaited<ReturnType<typeof loadDrawProjectsAction>>;
+
+/*
+ * 자동 뽑기 기준(선생님 2026-10-21 확정): 분량에 따라 지문당 유형 수와 유형마다 지문당 문항 상한.
+ * 유형은 고른 것을 섞어 지문마다 차례로 나눠 준다(골고루, 한 지문에 같은 유형 두 번 없음).
+ * 연결어·글의 순서·문장 삽입·요약문·도식화는 지문 하나 통째(1세트)라 상한이 없다.
+ */
+type AutoSize = "short" | "normal" | "long";
+const AUTO: Record<AutoSize, { label: string; perPassage: number; vocab: number; limits: TestLimits }> = {
+  short: {
+    label: "짧게",
+    perPassage: 2,
+    vocab: 3,
+    limits: { line: 2, writing: 1, order: 1, blank: 3, grammar: 3, vocab: 3, grammarFix: 2, tf: 3, reference: 1, implication: 1 },
+  },
+  normal: {
+    label: "보통",
+    perPassage: 3,
+    vocab: 5,
+    limits: { line: 3, writing: 2, order: 2, blank: 5, grammar: 4, vocab: 4, grammarFix: 3, tf: 4, reference: 2, implication: 2 },
+  },
+  long: {
+    label: "길게",
+    perPassage: 4,
+    vocab: 8,
+    limits: { line: 4, writing: 3, order: 3, blank: 7, grammar: 6, vocab: 6, grammarFix: 4, tf: 5 },
+  },
+};
+/** 기준표 줄 */
+const LIMIT_ROWS: Array<{ key: TestBookTypeKey; label: string; unit: string; how: string }> = [
+  { key: "line", label: "해석", unit: "문장", how: "중요문장 먼저" },
+  { key: "writing", label: "통문장 영작", unit: "문장", how: "중요문장 먼저" },
+  { key: "order", label: "중요문장 어순배열", unit: "문장", how: "단원문법·어려운 구문 먼저" },
+  { key: "blank", label: "빈칸", unit: "칸", how: "무작위" },
+  { key: "grammar", label: "어법·어휘 선택", unit: "자리", how: "무작위" },
+  { key: "grammarFix", label: "어법 서술형", unit: "문항", how: "무작위" },
+  { key: "tf", label: "T/F", unit: "문항", how: "무작위" },
+  { key: "reference", label: "지칭추론·함축의미", unit: "개", how: "무작위" },
+];
+/** 예상 시간(초) — 문항마다, 통째 유형은 세트마다 */
+const SECONDS: Partial<Record<TestBookTypeKey, number>> = {
+  line: 60, writing: 90, order: 60, blank: 20, grammar: 15, vocab: 15, grammarFix: 40, tf: 20, reference: 40, implication: 60,
+};
+const SET_SECONDS: Partial<Record<TestBookTypeKey, number>> = { link: 60, sequence: 90, insert: 60, summary: 60, flow: 90 };
+function estimateMinutes(sheets: TestSheet[], vocabItems: number): number {
+  let sec = vocabItems * 10;
+  for (const sh of sheets)
+    for (const s of sh.sections) sec += SET_SECONDS[s.type] ?? (SECONDS[s.type] ?? 30) * s.items.length;
+  return Math.max(1, Math.round(sec / 60));
+}
+/** 고른 유형을 열쇠로 섞어 지문마다 차례로 k개씩(골고루, 같은 열쇠면 같은 배정) */
+function assignTypes(ids: string[], types: TestBookTypeKey[], k: number, seed: string): Record<string, TestBookTypeKey[]> {
+  const order = [...types];
+  let h = 2166136261;
+  for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
+  for (let i = order.length - 1; i > 0; i--) {
+    h = (Math.imul(h, 1103515245) + 12345) >>> 0;
+    const j = h % (i + 1);
+    [order[i], order[j]] = [order[j]!, order[i]!];
+  }
+  const want = Math.min(k, order.length);
+  const out: Record<string, TestBookTypeKey[]> = {};
+  let cursor = 0;
+  for (const id of ids) {
+    const picked: TestBookTypeKey[] = [];
+    while (picked.length < want) {
+      const t = order[cursor % order.length]!;
+      cursor += 1;
+      if (!picked.includes(t)) picked.push(t);
+    }
+    out[id] = TEST_BOOK_TYPES.map((x) => x.key).filter((t) => picked.includes(t));
+  }
+  return out;
+}
 type PrepareResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
 
 function newSeed(): string {
@@ -66,6 +143,10 @@ export function TestDrawDialog({
   const [vocabOn, setVocabOn] = useState(true);
   const [vocab, setVocab] = useState<VocabExamOptions>(DEFAULT_VOCAB_EXAM);
   const [busy, setBusy] = useState<string | null>(null);
+  /** 자동 뽑기(기준대로 무작위) · 전부 뽑기(고른 유형 전부) */
+  const [mode, setMode] = useState<"auto" | "all">("auto");
+  const [size, setSize] = useState<AutoSize>("normal");
+  const [showRule, setShowRule] = useState(false);
   const [message, setMessage] = useState<{ text: string; error: boolean; href?: string } | null>(null);
   const idsKey = projectIds.join(",");
 
@@ -123,31 +204,52 @@ export function TestDrawDialog({
     await load();
   }
 
+  /** 뽑을 시험지(자동이면 지문마다 유형을 나누고 상한을 건다) */
+  function makeSnapshot(seed: string) {
+    const auto = mode === "auto";
+    const preset = AUTO[size];
+    const picks = auto
+      ? assignTypes(chosen.map((p) => p.id), types, preset.perPassage, seed)
+      : Object.fromEntries(chosen.map((p) => [p.id, types] as const));
+    const vocabOpts: VocabExamOptions = auto
+      ? { counts: Object.fromEntries(VOCAB_EXAM_KINDS.map((k) => [k.key, preset.vocab])) as VocabExamOptions["counts"] }
+      : vocab;
+    return {
+      sheets: chosen.map((p) => ({
+        project: { id: p.id, index: indexOf(p.id), title: p.title, titleEn: p.titleEn, source: p.source },
+        sheet: buildTestSheet(p, picks[p.id]!, { seed, blankMode, writing, lineMode, level, limits: auto ? preset.limits : undefined }),
+      })),
+      vocabExam: vocabOn
+        ? buildVocabExam(
+            chosen.map((p) => ({ passage: indexOf(p.id) + 1, vocab: p.material.vocab })),
+            { ...vocabOpts, seed: `${seed}|vocab` }
+          )
+        : null,
+    };
+  }
+  // 예상 시간·문항 수(열쇠 하나로 미리 조립해 본다 — 실제 뽑기는 조합이 달라도 분량은 비슷하다)
+  const preview = (() => {
+    if (!chosen.length || !types.length) return null;
+    const snap = makeSnapshot("preview");
+    const items = snap.sheets.reduce((n, s) => n + s.sheet.sections.reduce((m, x) => m + x.items.length, 0), 0);
+    return { minutes: estimateMinutes(snap.sheets.map((s) => s.sheet), snap.vocabExam?.total ?? 0), items, vocab: snap.vocabExam?.total ?? 0 };
+  })();
+
   async function runDraw() {
     if (busy || !chosen.length || !types.length) return;
-    const typeCount = types.length + (vocabOn ? 1 : 0);
+    const perPassage = mode === "auto" ? Math.min(AUTO[size].perPassage, types.length) : types.length;
+    const typeCount = perPassage + (vocabOn ? 1 : 0);
     const go = await askCreditConfirm({
       title: "테스트지 뽑기",
       description: "고른 지문과 유형으로 테스트지를 새로 뽑습니다. 누를 때마다 문항·보기 순서가 새로 나옵니다.",
-      subject: `지문 ${chosen.length}개 × 유형 ${typeCount}개`,
+      subject: `지문 ${chosen.length}개 × 유형 ${typeCount}개${mode === "auto" ? ` (자동 뽑기 · ${AUTO[size].label})` : ""}`,
       contents: [...types.map((t) => testBookTypeLabel(t)), ...(vocabOn ? ["단어 시험지"] : [])],
       items: [{ feature: "lesson_test_draw", quantity: chosen.length * typeCount }],
       sample: "one_page_test",
     });
     if (!go) return;
     const seed = newSeed();
-    const snapshot = {
-      sheets: chosen.map((p) => ({
-        project: { id: p.id, index: indexOf(p.id), title: p.title, titleEn: p.titleEn, source: p.source },
-        sheet: buildTestSheet(p, types, { seed, blankMode, writing, lineMode, level }),
-      })),
-      vocabExam: vocabOn
-        ? buildVocabExam(
-            chosen.map((p) => ({ passage: indexOf(p.id) + 1, vocab: p.material.vocab })),
-            { ...vocab, seed: `${seed}|vocab` }
-          )
-        : null,
-    };
+    const snapshot = makeSnapshot(seed);
     // 새 탭은 누른 순간 열어 둔다(응답 뒤에 열면 팝업 차단에 걸린다)
     const tab = window.open("", "_blank");
     setBusy("뽑는 중…");
@@ -226,11 +328,107 @@ export function TestDrawDialog({
               ) : null}
             </div>
             <div className="space-y-2 rounded-lg border border-violet-200 bg-violet-50/60 p-3">
-              <p className="text-xs font-bold text-violet-900">유형 (고른 유형을 모두 싣고, 문항은 누를 때마다 새로 섞음)</p>
+              <p className="text-xs font-bold text-violet-900">
+                {mode === "auto" ? "유형 (이 가운데서 지문마다 골고루 뽑음)" : "유형 (고른 유형을 모두 싣고, 문항은 누를 때마다 새로 섞음)"}
+              </p>
               <TypeChecks value={types} onChange={setTypes} />
             </div>
           </div>
           <div className="space-y-3">
+            <div className="space-y-1.5 rounded-lg border border-violet-200 bg-white p-2.5">
+              <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+                {(
+                  [
+                    ["auto", "자동 뽑기"],
+                    ["all", "전부 뽑기"],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setMode(id)}
+                    className={`rounded-md px-1 py-1.5 text-[12px] font-bold ${mode === id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {mode === "auto" ? (
+                <>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(Object.keys(AUTO) as AutoSize[]).map((k) => (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => setSize(k)}
+                        className={`rounded-md border px-1 py-1 text-[11px] font-bold ${
+                          size === k ? "border-violet-500 bg-violet-600 text-white" : "border-slate-200 bg-white text-slate-600"
+                        }`}
+                      >
+                        {AUTO[k].label} · 지문당 {AUTO[k].perPassage}유형
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-slate-600">
+                    고른 유형을 지문마다 {AUTO[size].perPassage}개씩 골고루 나눠 무작위로 뽑고, 유형마다 지문당 문항 수를 줄입니다.
+                    <button type="button" onClick={() => setShowRule((v) => !v)} className="ml-1 font-semibold text-violet-700 underline">
+                      {showRule ? "기준 닫기" : "기준 보기"}
+                    </button>
+                  </p>
+                  {showRule ? (
+                    <table className="w-full text-[10.5px] text-slate-600">
+                      <thead>
+                        <tr className="text-slate-400">
+                          <th className="text-left font-semibold">유형</th>
+                          {(Object.keys(AUTO) as AutoSize[]).map((k) => (
+                            <th key={k} className={`font-semibold ${size === k ? "text-violet-700" : ""}`}>
+                              {AUTO[k].label}
+                            </th>
+                          ))}
+                          <th className="text-left font-semibold">고르는 순서</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {LIMIT_ROWS.map((r) => (
+                          <tr key={r.key} className="border-t border-slate-100">
+                            <td>{r.label}</td>
+                            {(Object.keys(AUTO) as AutoSize[]).map((k) => (
+                              <td key={k} className={`text-center ${size === k ? "font-bold text-violet-700" : ""}`}>
+                                {AUTO[k].limits[r.key] != null ? `${AUTO[k].limits[r.key]}${r.unit}` : "전부"}
+                              </td>
+                            ))}
+                            <td>{r.how}</td>
+                          </tr>
+                        ))}
+                        <tr className="border-t border-slate-100">
+                          <td>연결어·순서·삽입·요약·도식</td>
+                          <td colSpan={3} className="text-center">
+                            지문 통째(1세트)
+                          </td>
+                          <td />
+                        </tr>
+                        <tr className="border-t border-slate-100">
+                          <td>단어 시험지</td>
+                          {(Object.keys(AUTO) as AutoSize[]).map((k) => (
+                            <td key={k} className={`text-center ${size === k ? "font-bold text-violet-700" : ""}`}>
+                              유형마다 {AUTO[k].vocab}
+                            </td>
+                          ))}
+                          <td>무작위</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  ) : null}
+                </>
+              ) : (
+                <p className="text-[11px] text-slate-600">고른 유형을 지문마다 전부, 문항도 전부 냅니다.</p>
+              )}
+              {preview ? (
+                <p className="text-[12px] font-bold text-slate-800">
+                  예상 약 {preview.minutes}분 · {preview.items}문항{preview.vocab ? ` + 단어 ${preview.vocab}문항` : ""}
+                </p>
+              ) : null}
+            </div>
             <div className="space-y-1.5">
               <p className="text-[11px] font-bold text-slate-500">빈칸 자리</p>
               <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
@@ -258,7 +456,7 @@ export function TestDrawDialog({
               <input type="checkbox" checked={vocabOn} onChange={(e) => setVocabOn(e.target.checked)} />
               단어 시험지 함께(고른 지문 합침)
             </label>
-            {vocabOn ? <VocabExamControls value={vocab} onChange={setVocab} /> : null}
+            {vocabOn && mode === "all" ? <VocabExamControls value={vocab} onChange={setVocab} /> : null}
             <p className="text-[11px] leading-relaxed text-slate-500">
               뽑은 테스트지는 정답지와 함께 새 탭에서 열리고, 자료함 「뽑은 테스트지」에 저장됩니다. 다시 열 때는 값이 들지 않습니다.
             </p>

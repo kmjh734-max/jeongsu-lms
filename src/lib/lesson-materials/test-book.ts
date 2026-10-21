@@ -75,7 +75,7 @@ export const TEST_BOOK_TYPES: Array<{ key: TestBookTypeKey; label: string; basic
   // 「단어 영↔한」은 뺐다 — 단어 시험지가 같이 나간다(선생님 2026-10-21)
   { key: "reference", label: "지칭추론", basic: false, hint: "밑줄 친 말이 가리키는 것을 본문에서 찾아 쓰기" },
   { key: "implication", label: "함축의미", basic: false, hint: "밑줄 친 표현이 이 글에서 뜻하는 바 쓰기" },
-  { key: "paraphrase", label: "바꿔 말하기", basic: false, hint: "본문 표현과 같은 뜻 문장의 빈칸 채우기" },
+  // 「바꿔 말하기」는 뺐다(선생님 2026-10-21 — 워크북·분석서에서도 안 넣는다)
   { key: "flow", label: "도식화", basic: false, hint: "글의 흐름 칸에 알맞은 내용 고르기" },
 ];
 
@@ -565,8 +565,8 @@ function arrange<T>(items: T[], seed: string): T[] {
  * 선생님 요청(2026-10-19): 중요문장 어순배열만 중요문장으로 하고, 나머지 유형은 지문 전체를 다룬다
  * (한줄해석·빈칸·영작은 모든 문장, 어법·어휘·T/F·연결어는 만들어 둔 것을 모두).
  */
-function buildLine(p: Ready, seed: string, mode: LineMode = "full"): TestSection | null {
-  const all = p.sentences.map((s, si) => ({ si, s })).filter(({ s }) => s.korean.trim() && words(s.english) >= 3);
+function buildLine(p: Ready, seed: string, mode: LineMode = "full", max?: number): TestSection | null {
+  const all = keyFirst(p, p.sentences.map((s, si) => ({ si, s })).filter(({ s }) => s.korean.trim() && words(s.english) >= 3), seed, max);
   if (!all.length) return null;
   // 직독직해(선생님 2026-10-20): 덩어리마다 아래에 뜻을 쓴다. 덩어리를 못 만든 문장은 전체 해석으로.
   const gloss = mode === "chunk" ? p.material.chunkGloss : undefined;
@@ -921,11 +921,16 @@ function buildTf(p: Ready, seed: string, up = false): TestSection | null {
 }
 
 /** 통문장 영작: 모든 문장 또는 중요문장만(선생님 2026-10-20 — 고르게) */
-function buildWriting(p: Ready, seed: string, scope: WritingScope, up = false): TestSection | null {
+function buildWriting(p: Ready, seed: string, scope: WritingScope, up = false, max?: number): TestSection | null {
   const key = new Set(p.material.keyIndexes);
-  const all = p.sentences
-    .map((s, si) => ({ si, s }))
-    .filter(({ s, si }) => s.korean.trim() && words(s.english) >= 3 && (scope === "all" || key.has(si)));
+  const all = keyFirst(
+    p,
+    p.sentences
+      .map((s, si) => ({ si, s }))
+      .filter(({ s, si }) => s.korean.trim() && words(s.english) >= 3 && (scope === "all" || key.has(si))),
+    seed,
+    max
+  );
   if (!all.length) return null;
   return {
     type: "writing",
@@ -1204,10 +1209,74 @@ function buildWords(p: Ready, seed: string): TestSection | null {
  * 지문 하나로 테스트지를 조립한다. seed가 같으면 같은 시험지가 나온다(교재 견본은 "book").
  * 재료가 모자라 못 만드는 유형은 빠진다.
  */
+/*
+ * 자동 뽑기(선생님 2026-10-21: 다 뽑으면 너무 많다 — 기준을 정해 무작위로). 유형마다 지문당 문항 상한.
+ * 해석·영작은 중요문장(어순배열과 같은 규칙·단원문법·어려운 구문)을 먼저 고르고, 지문 안에 번호가 박히는
+ * 유형(빈칸·어법·어휘·지칭·함축)은 고르지 않은 자리를 원문 글자로 되돌린다.
+ */
+export type TestLimits = Partial<Record<TestBookTypeKey, number>>;
+
+/** 상한이 있으면 중요문장 먼저, 그다음 무작위로 max개 — 지문 차례는 그대로 둔다 */
+function keyFirst<T extends { si: number }>(p: Ready, list: T[], seed: string, max?: number): T[] {
+  if (max == null || list.length <= max) return list;
+  const key = new Set([
+    ...p.material.keyIndexes,
+    ...(p.material.unitHits ?? []).map((h) => h.si),
+    ...(p.material.hardHits ?? []).map((h) => h.si),
+  ]);
+  const rng = createSeededRng(`${seed}|limit`);
+  const ranked = [
+    ...fisherYatesShuffle(list.filter((x) => key.has(x.si)), rng),
+    ...fisherYatesShuffle(list.filter((x) => !key.has(x.si)), rng),
+  ].slice(0, max);
+  const keep = new Set(ranked.map((x) => x.si));
+  return list.filter((x) => keep.has(x.si));
+}
+
+/** 이미 만든 문항에서 max개만 남긴다(번호는 다시 매긴다) */
+function limitSection(sec: TestSection, max: number, seed: string): TestSection {
+  if (sec.items.length <= max) return sec;
+  const rng = createSeededRng(`${seed}|${sec.type}|cap`);
+  const keepIdx = new Set(fisherYatesShuffle(sec.items.map((_, i) => i), rng).slice(0, max));
+  const numbered = !!sec.passage?.some((g) => typeof g !== "string" && "n" in g && g.n);
+  if (!numbered) {
+    // 문항 목록만 있는 유형(T/F·어순배열·어법 서술형 등): 앞에서부터 차례로(이미 섞여 있다)
+    const items = sec.items.slice(0, max).map((it, i) => ({ ...it, no: it.no.startsWith("(") ? no(i) : it.no }));
+    return { ...sec, items };
+  }
+  // 지문에 번호가 박힌 유형: 남길 번호만 다시 매기고, 나머지 자리는 원문 글자로
+  const itemOf = (n: string) => sec.items.findIndex((it) => it.no === n || it.no === `${n}.`);
+  const renum = new Map<string, string>();
+  let k = 0;
+  const passage = (sec.passage ?? []).map((g) => {
+    if (typeof g === "string" || !("n" in g) || !g.n) return g;
+    const idx = itemOf(g.n);
+    if (idx < 0 || !keepIdx.has(idx)) {
+      if ("blank" in g) return sec.items[idx]?.answer ?? "";
+      if ("pick" in g) return sec.items[idx]?.answer ?? g.pick[0];
+      return "u" in g ? g.u : "";
+    }
+    const isBlank = "blank" in g;
+    const nn = isBlank ? String(k + 1) : circled(k);
+    k += 1;
+    renum.set(g.n, nn);
+    return { ...g, n: nn };
+  });
+  const items = sec.items
+    .map((it, i) => ({ it, i }))
+    .filter(({ i }) => keepIdx.has(i))
+    .map(({ it }) => {
+      const old = it.no.replace(/\.$/, "");
+      const nn = renum.get(old) ?? it.no;
+      return { ...it, no: it.no.endsWith(".") ? `${nn}.` : nn };
+    });
+  return { ...sec, passage, items };
+}
+
 export function buildTestSheet(
   p: Ready,
   types: TestBookTypeKey[],
-  opts: { seed: string; blankMode?: BlankMode; writing?: WritingScope; lineMode?: LineMode; level?: TestLevel }
+  opts: { seed: string; blankMode?: BlankMode; writing?: WritingScope; lineMode?: LineMode; level?: TestLevel; limits?: TestLimits }
 ): TestSheet {
   const seed = `${opts.seed}|${p.id}`;
   const up = opts.level === "up";
@@ -1221,7 +1290,7 @@ export function buildTestSheet(
   for (const key of ALL_TEST_BOOK_TYPES) {
     if (!on.has(key)) continue;
     const sec =
-      key === "line" ? buildLine(p, seed, opts.lineMode ?? "full")
+      key === "line" ? buildLine(p, seed, opts.lineMode ?? "full", opts.limits?.line)
       : key === "blank" ? buildBlank(p, seed, opts.blankMode ?? "same", up)
       : key === "grammar" ? (workbookGrammarSection(p, seed) ?? pickSection(p, "grammar", "어법선택", "알맞은 것에 ○", forPick, seed))
       : key === "vocab"
@@ -1229,7 +1298,7 @@ export function buildTestSheet(
           pickSection(p, "vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed))
       : key === "order" ? buildOrder(p, seed, up)
       : key === "tf" ? buildTf(p, seed, up)
-      : key === "writing" ? buildWriting(p, seed, opts.writing ?? "all", up)
+      : key === "writing" ? buildWriting(p, seed, opts.writing ?? "all", up, opts.limits?.writing)
       : key === "link" ? buildLink(p, seed)
       : key === "sequence" ? buildSequence(p, seed)
       : key === "insert" ? buildInsert(p, seed)
@@ -1240,7 +1309,8 @@ export function buildTestSheet(
       : key === "flow" ? buildFlow(p, seed)
       : key === "grammarFix" ? buildGrammarFix(p, seed, usedGrammar)
       : buildWords(p, seed);
-    if (sec) sections.push(sec);
+    const cap = key === "line" || key === "writing" ? undefined : opts.limits?.[key];
+    if (sec) sections.push(cap != null ? limitSection(sec, cap, seed) : sec);
   }
   return { projectId: p.id, title: p.title, source: p.source, sections };
 }
