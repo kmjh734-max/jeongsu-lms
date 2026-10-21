@@ -20,7 +20,7 @@ import {
 } from "@/lib/lesson-materials/test-book";
 import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
 import { readAnalysisMarkup } from "@/lib/lesson-materials/analysis-markup";
-import { findPhrase } from "@/lib/lesson-materials/one-page";
+import { SentenceNotes, sentenceNotesFor } from "@/components/lesson-materials/AnalysisSentenceNotes";
 import { FrontCover } from "@/components/lesson-materials/integrated/BundleSheets";
 import { coverPreset, type IntegratedCover } from "@/lib/lesson-materials/integrated";
 
@@ -1758,62 +1758,9 @@ export function AnalysisSheets({
       ),
     });
   }
-  // 지칭·함축의미·바꿔 말하기는 그 문장 바로 아래 주석으로(선생님 2026-10-20: 끝에 모으지 말고 문장 밑에).
-  // 1장 자료 재료라 값이 들지 않는다. 분석서 문장 나눔이 다를 수 있어, 표현이 실제로 든 문장 가운데
-  // 재료의 문장 번호에 가장 가까운 문장에 붙인다.
+  // 지칭·함축의미·바꿔 말하기는 그 문장 바로 아래 주석으로(지문 분석서와 같은 부품)
   const plains = report.sentences.map((s) => s.enChunks.map((c) => c.text).join(" ").trim());
-  const notesAt = new Map<number, ReactNode[]>();
-  const attach = (si: number, phrase: string, node: ReactNode) => {
-    const hits = plains.map((t, i) => (findPhrase(t, phrase) ? i : -1)).filter((i) => i >= 0);
-    if (!hits.length) return;
-    const at = hits.sort((x, y) => Math.abs(x - si) - Math.abs(y - si))[0]!;
-    notesAt.set(at, [...(notesAt.get(at) ?? []), node]);
-  };
-  const c = project.content;
-  (c?.references ?? [])
-    .filter((r) => r.surface.trim() && r.referent.trim())
-    .forEach((r, i) =>
-      attach(
-        r.sentenceIndex,
-        r.surface,
-        <div key={`r${i}`} className="tb-annote">
-          <span className="tb-ankind">지칭</span>
-          <span>
-            <b className="tb-en">{r.surface}</b> → <span className="tb-en">{r.referent}</span>
-            {r.meaningKo ? ` · ${r.meaningKo}` : ""}
-          </span>
-        </div>
-      )
-    );
-  (c?.implications ?? [])
-    .filter((m) => m.expression.trim())
-    .forEach((m, i) =>
-      attach(
-        m.sentenceIndex,
-        m.expression,
-        <div key={`m${i}`} className="tb-annote">
-          <span className="tb-ankind">함축</span>
-          <span>
-            <b className="tb-en">{m.expression}</b> → {m.meaningKo}
-            {m.meaningEn ? <span className="tb-en tb-tip"> ({m.meaningEn})</span> : null}
-          </span>
-        </div>
-      )
-    );
-  (c?.paraphrases ?? [])
-    .filter((x) => x.expression.trim() && x.paraphrases.length)
-    .forEach((x, i) =>
-      attach(
-        x.sentenceIndex,
-        x.expression,
-        <div key={`p${i}`} className="tb-annote">
-          <span className="tb-ankind">바꿔 말하기</span>
-          <span>
-            <b className="tb-en">{x.expression}</b> = <span className="tb-en">{x.paraphrases.join(" / ")}</span>
-          </span>
-        </div>
-      )
-    );
+  const notesAt = sentenceNotesFor(plains, project.content);
 
   report.sentences.forEach((s, i) => {
     const plain = plains[i]!;
@@ -1838,7 +1785,7 @@ export function AnalysisSheets({
               </div>
             </div>
           )}
-          {notes?.length ? <div className="tb-annotes">{notes}</div> : null}
+          {notes?.length ? <SentenceNotes notes={notes} accent="var(--tb-accent,#15171c)" /> : null}
         </>
       ),
     });

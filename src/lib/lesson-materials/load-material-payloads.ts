@@ -80,11 +80,25 @@ export async function loadAnalysisReportProjects(
   ids: string[]
 ): Promise<AnalysisReportProjectInput[]> {
   if (ids.length === 0) return [];
-  const { data: projects } = await supabase
-    .from("lesson_material_projects")
-    .select("id,title,title_en,source,analysis_report_json,deleted_at")
-    .in("id", ids)
-    .is("deleted_at", null);
+  // 1장 자료 재료(지칭·함축·바꿔 말하기 — 문장 밑 주석)도 함께 읽는다. 원문이 바뀌었으면 쓰지 않는다.
+  const [{ data: projects }, { data: items }] = await Promise.all([
+    supabase
+      .from("lesson_material_projects")
+      .select("id,title,title_en,source,analysis_report_json,lesson_pack_json,deleted_at")
+      .in("id", ids)
+      .is("deleted_at", null),
+    supabase
+      .from("lesson_material_items")
+      .select("project_id,english_text,korean_text,order_index")
+      .in("project_id", ids)
+      .order("order_index", { ascending: true }),
+  ]);
+  const itemsByProject = new Map<string, NonNullable<typeof items>>();
+  for (const it of items ?? []) {
+    const list = itemsByProject.get(it.project_id as string) ?? [];
+    list.push(it);
+    itemsByProject.set(it.project_id as string, list);
+  }
   const byId = new Map((projects ?? []).map((p) => [p.id as string, p] as const));
   return ids
     .map((id) => byId.get(id))
@@ -92,6 +106,10 @@ export async function loadAnalysisReportProjects(
     .map((p) => {
       const report = (p.analysis_report_json ?? null) as AnalysisReportData | null;
       const hasSentences = !!report && Array.isArray(report.sentences) && report.sentences.length > 0;
+      const pack = (p.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+      const english = onePageSentences(
+        (itemsByProject.get(p.id as string) ?? []) as Array<{ english_text?: string | null; korean_text?: string | null }>
+      ).map((s) => s.english);
       return {
         id: p.id as string,
         title: p.title as string,
@@ -99,6 +117,7 @@ export async function loadAnalysisReportProjects(
         source: (p.source as string | null) ?? null,
         headerLabel: report?.headerLabel || "26년도 1학기 중간고사 대비",
         report: hasSentences ? report : null,
+        onePageContent: isOnePageContentFresh(pack.onePageContent, english) ? pack.onePageContent : null,
       };
     });
 }

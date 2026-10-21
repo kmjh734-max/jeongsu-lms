@@ -542,6 +542,8 @@ export function AnalysisMarkupSentence({
   pointsFrom = 0,
   pointsTo,
   extraNote,
+  notes,
+  showNotes = true,
   translationMode = "full",
 }: {
   markup: AnalysisSentenceMarkup;
@@ -549,6 +551,10 @@ export function AnalysisMarkupSentence({
   translationMode?: "full" | "chunk";
   /** 예전 분석서의 추가 설명(부연설명). 설명 아래에 이어 붙인다. */
   extraNote?: string;
+  /** 문장 밑 주석(지칭·함축·바꿔 말하기) — 쪽 나누기에서 따로 재도록 따로 감싼다 */
+  notes?: ReactNode;
+  /** 이 쪽에 주석을 찍을지(설명이 다음 쪽으로 이어지면 마지막 쪽에만) */
+  showNotes?: boolean;
   /** 테두리 문장과 해석을 이 쪽에 찍을지. 설명만 다음 쪽으로 이어질 때 false. */
   showHead?: boolean;
   /** 이 쪽에 찍을 번호 설명의 범위 */
@@ -696,6 +702,7 @@ export function AnalysisMarkupSentence({
           {extraNote}
         </p>
       ) : null}
+      {notes && showNotes ? <div data-analysis-part={`s-${index}-notes`}>{notes}</div> : null}
     </section>
   );
 }

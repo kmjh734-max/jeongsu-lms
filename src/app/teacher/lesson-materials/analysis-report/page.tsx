@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { loadAnalysisReportProjects } from "@/lib/lesson-materials/load-material-payloads";
 import { resolveDocumentProjectIds } from "@/lib/lesson-materials/document-page";
 import { AnalysisReportWorkbench } from "@/components/lesson-materials/AnalysisReportWorkbench";
 import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
@@ -31,29 +32,9 @@ export default async function TeacherAnalysisReportPage({
   }
 
   const supabase = await createClient();
-  const { data: projects } = await supabase
-    .from("lesson_material_projects")
-    .select("id,title,title_en,source,analysis_report_json,deleted_at")
-    .in("id", ids)
-    .is("deleted_at", null);
-
   const branding = await getAcademyBrandingForCurrentUser();
-  const byId = new Map((projects ?? []).map((p) => [p.id, p] as const));
-  const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
-
-  const payload = ordered.map((p) => {
-    const report = (p!.analysis_report_json ?? null) as AnalysisReportData | null;
-    const hasSentences =
-      !!report && Array.isArray(report.sentences) && report.sentences.length > 0;
-    return {
-      id: p!.id,
-      title: p!.title,
-      titleEn: (p!.title_en as string | null) ?? null,
-      source: (p!.source as string | null) ?? null,
-      headerLabel: report?.headerLabel || "26년도 1학기 중간고사 대비",
-      report: hasSentences ? report : null,
-    };
-  });
+  // 지문 분석서·최종통합자료가 같은 불러오기를 쓴다(1장 자료 재료 = 문장 밑 주석 포함)
+  const payload = await loadAnalysisReportProjects(supabase, ids);
 
   return (
     <AnalysisReportWorkbench

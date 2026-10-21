@@ -36,6 +36,8 @@ import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height
 import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
 import { readAnalysisMarkup } from "@/lib/lesson-materials/analysis-markup";
 import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
+import { SentenceNotes, sentenceNotesFor, type SentenceNote } from "@/components/lesson-materials/AnalysisSentenceNotes";
+import type { OnePageContent } from "@/lib/lesson-materials/one-page";
 import {
   DESIGN_FONTS_HREF,
   DESIGN_STYLES,
@@ -55,6 +57,8 @@ export type AnalysisReportProjectInput = {
   source: string | null;
   headerLabel: string;
   report: AnalysisReportData | null;
+  /** 1장 자료 재료(있으면 문장 밑에 지칭·함축·바꿔 말하기 주석) */
+  onePageContent?: OnePageContent | null;
 };
 
 const A4_WIDTH = "210mm";
@@ -114,20 +118,27 @@ function groupUnits(units: AnalysisUnit[]): Array<{
   showHead: boolean;
   pointsFrom: number;
   pointsTo: number;
+  /** 이 쪽에 문장 밑 주석을 찍는다 */
+  showNotes: boolean;
+  /** 이 쪽에는 주석만(설명은 앞 쪽에서 끝났다) */
+  notesOnly: boolean;
 }> {
-  const out: Array<{ s: number; showHead: boolean; pointsFrom: number; pointsTo: number }> = [];
+  const out: Array<{ s: number; showHead: boolean; pointsFrom: number; pointsTo: number; showNotes: boolean; notesOnly: boolean }> = [];
   for (const u of units) {
     const last = out[out.length - 1];
     if (!last || last.s !== u.s) {
       out.push({
         s: u.s,
-        showHead: u.kind !== "point",
+        showHead: u.kind === "head" || u.kind === "whole",
         pointsFrom: u.kind === "point" ? (u.p ?? 0) : 0,
         pointsTo: u.kind === "point" ? (u.p ?? 0) + 1 : u.kind === "whole" ? Number.MAX_SAFE_INTEGER : 0,
+        showNotes: u.kind === "notes" || u.kind === "whole",
+        notesOnly: u.kind === "notes",
       });
       continue;
     }
     if (u.kind === "point") last.pointsTo = (u.p ?? 0) + 1;
+    if (u.kind === "notes") last.showNotes = true;
   }
   return out;
 }
@@ -135,7 +146,7 @@ function groupUnits(units: AnalysisUnit[]): Array<{
 /** 쪽에 담는 조각. 표시 분석이 있는 문장은 테두리(head)와 설명 항목(point)으로 쪼갠다. */
 type AnalysisUnit = {
   s: number;
-  kind: "whole" | "head" | "point";
+  kind: "whole" | "head" | "point" | "notes";
   /** kind가 point일 때 설명 번호(0부터) */
   p?: number;
   /** 잰 높이(px) */
@@ -154,6 +165,9 @@ const TRANSLATION_MODE_KEY = "analysis-report-translation-mode";
 const DESIGN_STYLE_KEY = "analysis-report-design-style";
 /** 쪽번호를 넣을지 (선생님이 자료마다 고른다) */
 const PAGE_NUMBER_KEY = "analysis-report-page-numbers";
+/** 문장 밑 주석(지칭·함축·바꿔 말하기)을 넣을지 */
+const SENTENCE_NOTES_KEY = "analysis-report-sentence-notes";
+const NO_NOTES = new Map<number, SentenceNote[]>();
 
 function SentenceBlock({
   sentence,
@@ -163,6 +177,8 @@ function SentenceBlock({
   pointsFrom,
   pointsTo,
   translationMode,
+  notes,
+  showNotes = true,
 }: {
   sentence: AnalysisSentence;
   index: number;
@@ -171,7 +187,10 @@ function SentenceBlock({
   pointsFrom?: number;
   pointsTo?: number;
   translationMode?: TranslationMode;
+  notes?: SentenceNote[];
+  showNotes?: boolean;
 }) {
+  const notesNode = notes?.length ? <SentenceNotes notes={notes} accent={accent} /> : undefined;
   const plainEn = sentence.enChunks.map((c) => c.text).join(" ").trim();
   // 새 분석서는 문장 표시 분석(성분·괄호·이름표·번호 설명·해석)을 그대로 찍는다.
   // 저장본을 다시 읽을 때도 같은 검사를 지나고, 원문이 바뀌었으면 표시를 버리고 옛 모양으로 돌아간다.
@@ -189,6 +208,8 @@ function SentenceBlock({
         pointsTo={pointsTo}
         extraNote={extra || undefined}
         translationMode={translationMode}
+        notes={notesNode}
+        showNotes={showNotes}
       />
     );
   }
@@ -242,6 +263,7 @@ function SentenceBlock({
           </p>
         </div>
       ) : null}
+      {notesNode && showNotes ? notesNode : null}
     </section>
   );
 }
@@ -425,6 +447,36 @@ export function AnalysisReportWorkbench({
     }
   }, []);
   /** 쪽번호 — 인쇄물 오른쪽 아래에 1부터 찍는다. 최종통합자료에 끼울 때는 통합자료가 센다. */
+  /**
+   * 문장 밑 주석(지칭·함축의미·바꿔 말하기) — 테스트 교재 분석 자료와 같은 것을 지문 분석서에도
+   * (선생님 2026-10-21). 1장 자료 재료가 있는 지문만, 기본은 켬.
+   */
+  const [sentenceNotesOn, setSentenceNotesOn] = useState(true);
+  useEffect(() => {
+    try {
+      setSentenceNotesOn(window.localStorage.getItem(SENTENCE_NOTES_KEY) !== "off");
+    } catch {
+      /* 저장소를 못 쓰면 켠 채로 */
+    }
+  }, []);
+  const chooseSentenceNotes = (on: boolean) => {
+    setSentenceNotesOn(on);
+    try {
+      window.localStorage.setItem(SENTENCE_NOTES_KEY, on ? "on" : "off");
+    } catch {
+      /* 무시 */
+    }
+  };
+  const notesCache = useMemo(() => new Map<string, Map<number, SentenceNote[]>>(), [projects, sentenceNotesOn]);
+  const notesFor = (p: AnalysisReportProjectInput, sentences: AnalysisReportData["sentences"]) => {
+    if (!sentenceNotesOn || !p.onePageContent) return NO_NOTES;
+    let m = notesCache.get(p.id);
+    if (!m) {
+      m = sentenceNotesFor(sentences.map((s) => s.enChunks.map((c) => c.text).join(" ").trim()), p.onePageContent);
+      notesCache.set(p.id, m);
+    }
+    return m;
+  };
   const [pageNumbers, setPageNumbers] = useState(false);
   useEffect(() => {
     try {
@@ -673,10 +725,14 @@ export function AnalysisReportWorkbench({
         // 조각 높이를 더해도 묶음 높이에 모자란다(묶음 여백, 설명 목록 위 여백).
         // 그 차이를 첫 조각에 얹어야 쪽이 넘치지 않는다. 넘치면 인쇄에서 한 줄이
         // 다음 쪽으로 새어 나가 거의 빈 쪽이 생겼다.
-        const partsSum = head.offsetHeight + points.reduce((a, u) => a + u.h, 0);
+        // 문장 밑 주석(지칭·함축·바꿔 말하기)은 설명 뒤 따로 한 조각 — 넘기면 다음 쪽에 주석만 간다
+        const notesEl = box.querySelector(`[data-analysis-part="s-${i}-notes"]`) as HTMLElement | null;
+        const notesH = notesEl?.offsetHeight ?? 0;
+        const partsSum = head.offsetHeight + points.reduce((a, u) => a + u.h, 0) + notesH;
         const extra = Math.max(0, blockH - partsSum);
         units.push({ s: i, kind: "head", h: head.offsetHeight + extra });
         units.push(...points);
+        if (notesH) units.push({ s: i, kind: "notes", h: notesH });
       }
 
       /*
@@ -716,7 +772,7 @@ export function AnalysisReportWorkbench({
       next[p.id] = pages.length ? pages : [[]];
     }
     setPageChunksById(next);
-  }, [projects, headerLabel, active, translationMode, designStyle, fontsTick]);
+  }, [projects, headerLabel, active, translationMode, designStyle, fontsTick, sentenceNotesOn]);
 
   /** 지문 하나의 쪽 배치. 배치 effect가 돌기 전 렌더에서는 없는 문장 번호를 뺀다. */
   function pagesFor(projectId: string, count: number): AnalysisUnit[][] {
@@ -909,18 +965,27 @@ export function AnalysisReportWorkbench({
                     />
                   ) : null}
                   <div className="space-y-1">
-                    {groupUnits(sheet.chunk).map((g) => (
-                      <SentenceBlock
-                        key={`${sheet.sentences[g.s]?.itemId || g.s}-${g.pointsFrom}`}
-                        sentence={sheet.sentences[g.s]!}
-                        index={g.s}
-                        accent={accent}
-                        showHead={g.showHead}
-                        pointsFrom={g.pointsFrom}
-                        pointsTo={g.pointsTo}
-                        translationMode={translationMode}
-                      />
-                    ))}
+                    {groupUnits(sheet.chunk).map((g) => {
+                      const notes = notesFor(sheet.project, sheet.sentences).get(g.s);
+                      return g.notesOnly ? (
+                        notes?.length ? (
+                          <SentenceNotes key={`${sheet.sentences[g.s]?.itemId || g.s}-notes`} notes={notes} accent={accent} />
+                        ) : null
+                      ) : (
+                        <SentenceBlock
+                          key={`${sheet.sentences[g.s]?.itemId || g.s}-${g.pointsFrom}`}
+                          sentence={sheet.sentences[g.s]!}
+                          index={g.s}
+                          accent={accent}
+                          showHead={g.showHead}
+                          pointsFrom={g.pointsFrom}
+                          pointsTo={g.pointsTo}
+                          translationMode={translationMode}
+                          notes={notes}
+                          showNotes={g.showNotes}
+                        />
+                      );
+                    })}
                   </div>
                   {sheet.pageI === sheet.pageCount - 1 && sheet.project.report?.noPointMessage ? (
                     <p className="mt-5 break-inside-avoid rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-slate-600">
@@ -970,6 +1035,7 @@ export function AnalysisReportWorkbench({
                     index={i}
                     accent={accent}
                     translationMode={translationMode}
+                    notes={notesFor(p, p.report?.sentences ?? NO_SENTENCES).get(i)}
                   />
                 ))}
               </div>
@@ -1077,6 +1143,18 @@ export function AnalysisReportWorkbench({
             </p>
           </div>
 
+          <label
+            className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2"
+            title="1장 자료 재료가 있는 지문은 문장 바로 밑에 지칭·함축의미·바꿔 말하기를 적습니다"
+          >
+            <span className="text-[11px] font-bold text-slate-500">지칭·함축·바꿔 말하기 주석</span>
+            <input
+              type="checkbox"
+              checked={sentenceNotesOn}
+              onChange={(e) => chooseSentenceNotes(e.target.checked)}
+              className="h-4 w-4 accent-violet-500"
+            />
+          </label>
           <label className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
             <span className="text-[11px] font-bold text-slate-500">쪽번호 넣기</span>
             <input
