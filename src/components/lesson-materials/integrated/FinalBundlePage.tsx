@@ -7,7 +7,6 @@ import { orderWorkbookTypes, type WorkbookTypeId } from "@/lib/lesson-materials/
 import {
   loadAnalysisReportProjects,
   loadBundleExtraProjects,
-  loadLessonPackProjects,
 } from "@/lib/lesson-materials/load-material-payloads";
 import {
   FinalBundleClient,
@@ -76,7 +75,8 @@ export async function FinalBundlePage({ role, docId }: { role: "admin" | "teache
         return {
           docId: id,
           name: d.name as string,
-          projects: await loadLessonPackProjects(supabase, (d.project_ids as string[]) ?? []),
+          // 수업용 자료는 테스트 교재 모양(단어 정리·문장별 해석) — 같은 재료를 읽는다
+          projects: await loadBundleExtraProjects(supabase, (d.project_ids as string[]) ?? []),
         };
       })
     ),

@@ -492,7 +492,7 @@ export async function registerTestBookVocabAction(
       .from("lesson_material_documents")
       .select("payload")
       .eq("id", docId)
-      .in("kind", ["test_book", "integrated"])
+      .in("kind", ["test_book", "integrated", "lesson_pack"])
       .maybeSingle();
     payload = (data?.payload as Record<string, unknown> | null) ?? {};
   }
@@ -549,7 +549,7 @@ export async function registerTestBookVocabAction(
       .from("lesson_material_documents")
       .update({ payload: { ...payload, vocabSetId: setId } })
       .eq("id", docId)
-      .in("kind", ["test_book", "integrated"]);
+      .in("kind", ["test_book", "integrated", "lesson_pack"]);
   }
   revalidatePath(`/${role}/vocab`);
   return { ok: true, setId, count: items.length, created };

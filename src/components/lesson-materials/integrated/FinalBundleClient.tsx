@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { LessonPackWorkbench, type LessonPackProjectInput } from "@/components/lesson-materials/LessonPackWorkbench";
+import { LessonBookWorkbench } from "@/components/lesson-materials/LessonBookWorkbench";
 import {
   AnalysisReportWorkbench,
   type AnalysisReportProjectInput,
@@ -15,6 +15,7 @@ import { saveIntegratedDocument } from "@/lib/lesson-materials/document-actions"
 import {
   COVER_PRESETS,
   INTEGRATED_EXTRA_KINDS,
+  INTEGRATED_SECTION_ORDER,
   TEST_BOOK_PART_ORDER,
   coverPreset,
   integratedPartMeta,
@@ -38,7 +39,6 @@ import type { prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-bo
 import {
   DEFAULT_TEST_BOOK_OPTIONS,
   TEST_BOOK_BLEED_COVER,
-  TEST_BOOK_THEMES,
   buildTestSheet,
   buildVocabExam,
   buildWordTest,
@@ -74,11 +74,13 @@ import {
   WritingScopeSwitch,
 } from "@/components/lesson-materials/test-book/TestBookControls";
 import { TestDrawDialog } from "@/components/lesson-materials/test-book/TestDrawDialog";
+import { MaterialDesignPicker } from "@/components/lesson-materials/MaterialDesignPicker";
+import { writeMaterialDesign } from "@/lib/lesson-materials/material-design";
 import { WORKBOOK_TYPE_SHORT, type WorkbookTypeId } from "@/lib/lesson-materials/workbook-types";
 import { RegenMaterials, type RegenPart } from "@/components/lesson-materials/test-book/LessonPackExtras";
 
 export type FinalBundleMaterials = {
-  lessonPacks: Array<{ docId: string; name: string; projects: LessonPackProjectInput[] }>;
+  lessonPacks: Array<{ docId: string; name: string; projects: TestBookProjectInput[] }>;
   analyses: Array<{ docId: string; name: string; projects: AnalysisReportProjectInput[] }>;
   /** 고른 워크북(유형은 학습 계획표 이수 칸에 쓴다) */
   workbooks: Array<{ docId: string; name: string; types: WorkbookTypeId[] }>;
@@ -104,6 +106,11 @@ const EXTRA_COLOR: Record<IntegratedExtraKind, string> = {
 /** 테스트지 자료는 교재 견본처럼 늘 같은 열쇠(새로 섞은 것은 「테스트지 뽑기」) */
 const BOOK_SEED = "book";
 const isExtra = (k: string): k is IntegratedExtraKind => (INTEGRATED_EXTRA_KINDS as string[]).includes(k);
+/** 파일 묶음(수업용 자료·분석서·변형문제·워크북) */
+const isDocKind = (k: IntegratedPartKind): k is IntegratedSectionKind => (INTEGRATED_SECTION_ORDER as string[]).includes(k);
+/** 목록에 보이는 묶음: 파일 묶음 + 켠 테스트 교재 묶음(계획표는 표지 뒤라 목록에 없다) */
+const listed = (k: IntegratedPartKind, extras: Record<IntegratedExtraKind, boolean>) =>
+  k !== "plan" && (isDocKind(k) || (isExtra(k) && extras[k]));
 type PrepareResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
 
 const PRINT_CSS = `
@@ -211,8 +218,9 @@ export function FinalBundleClient({
     questions: materials.questions.length > 0,
     workbook: materials.workbooks.length > 0,
     plan: payload.extras.plan && extraProjects.length > 0,
-    vocab: payload.extras.vocab && vocabReady.length > 0,
-    word_note: payload.extras.word_note && ready.length > 0,
+    // 전체 단어장·단어 정리는 수업용 자료 안으로 들어갔다(통합자료 묶음으로는 싣지 않는다)
+    vocab: false,
+    word_note: false,
     blank_note: payload.extras.blank_note && extraProjects.length > 0,
     tests: payload.extras.tests && ready.length > 0 && testsAny,
     tb_answers: payload.extras.tb_answers && payload.extras.tests && ready.length > 0 && testsAny,
@@ -352,14 +360,14 @@ export function FinalBundleClient({
   /** 보이는 묶음끼리 자리를 바꾼다(꺼 둔 묶음은 건너뛴다). 파일 묶음 순서(order)도 맞춰 둔다. */
   function move(kind: IntegratedPartKind, dir: -1 | 1) {
     const parts = [...payload.parts];
-    const shown = parts.filter((k) => k !== "plan" && (!isExtra(k) || payload.extras[k]));
+    const shown = parts.filter((k) => listed(k, payload.extras));
     const a = shown.indexOf(kind);
     const b = a + dir;
     if (a < 0 || b < 0 || b >= shown.length) return;
     const i = parts.indexOf(shown[a]!);
     const j = parts.indexOf(shown[b]!);
     [parts[i], parts[j]] = [parts[j]!, parts[i]!];
-    update({ parts, order: parts.filter((k): k is IntegratedSectionKind => !isExtra(k)) });
+    update({ parts, order: parts.filter(isDocKind) });
   }
 
   /** 「테스트 교재 구성」: 계획표·단어장·백지노트를 켜고 테스트 교재 차례로 놓는다 */
@@ -367,8 +375,8 @@ export function FinalBundleClient({
     const parts = [...TEST_BOOK_PART_ORDER];
     update({
       parts,
-      order: parts.filter((k): k is IntegratedSectionKind => !isExtra(k)),
-      extras: { plan: true, vocab: true, word_note: true, blank_note: true, tests: true, tb_answers: true },
+      order: parts.filter(isDocKind),
+      extras: { plan: true, vocab: false, word_note: false, blank_note: true, tests: true, tb_answers: true },
       dividers: true,
     });
   }
@@ -493,16 +501,16 @@ export function FinalBundleClient({
     }
     if (s.kind === "lesson_pack") {
       return materials.lessonPacks.map((m) => (
-        <LessonPackWorkbench key={m.docId} role={role} projects={m.projects} logoSrc={logoSrc} embedded />
+        <LessonBookWorkbench key={m.docId} role={role} projects={m.projects} logoSrc={logoSrc} academyName={payload.cover.academy || academyName} design={payload.theme} embedded />
       ));
     }
     if (s.kind === "analysis_report") {
       return materials.analyses.map((m) => (
-        <AnalysisReportWorkbench key={m.docId} role={role} projects={m.projects} logoSrc={logoSrc} embedded />
+        <AnalysisReportWorkbench key={m.docId} role={role} projects={m.projects} logoSrc={logoSrc} design={payload.theme} embedded />
       ));
     }
     if (s.kind === "workbook") {
-      return materials.workbooks.map((m) => <WorkbookWorkbench key={m.docId} role={role} embeddedDocId={m.docId} />);
+      return materials.workbooks.map((m) => <WorkbookWorkbench key={m.docId} role={role} embeddedDocId={m.docId} design={payload.theme} />);
     }
     const mode = s.kind === "answers" ? "answers" : "exam";
     return materials.questions.map((q) => (
@@ -524,7 +532,7 @@ export function FinalBundleClient({
     for (const s of sections) out[s.key] = renderSection(s);
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sections, materials, role, logoSrc, academyName, base, qgBase, book, vocabExam, tOpt.translation, tOpt.wordTest, tOpt.allWordTest, fontsTick]);
+  }, [sections, materials, role, logoSrc, academyName, base, qgBase, book, vocabExam, tOpt.translation, tOpt.wordTest, tOpt.allWordTest, fontsTick, payload.theme]);
 
   /**
    * 이수표 칸 — 고른 워크북의 유형(원래 테스트 교재처럼 워크북을 보고, 선생님 2026-10-21) + 켠 테스트지 자료의 유형.
@@ -667,6 +675,16 @@ export function FinalBundleClient({
             </div>
           </section>
 
+          {/* 디자인 하나로 — 안에 든 수업용 자료·분석서·워크북·테스트지가 모두 이것을 쓴다(선생님 2026-10-21) */}
+          <MaterialDesignPicker
+            title="디자인 (모든 자료)"
+            value={payload.theme}
+            onChange={(theme) => {
+              update({ theme });
+              writeMaterialDesign(theme);
+            }}
+          />
+
           <section className="space-y-2 rounded-xl bg-slate-50 p-3">
             <CoverField label="시험범위 라벨" value={payload.cover.label} placeholder="예: 호원고 3학년 · 26년도 1학기 중간고사 대비" inputClass={inputClass} onCommit={(v) => updateCover({ label: v })} />
             <CoverField label="표지 메인 제목 (엔터로 줄 구분)" value={payload.cover.title} placeholder={"예: 영어독해와작문\n천재(윤) 2과"} inputClass={inputClass} rows={2} onCommit={(v) => updateCover({ title: v })} />
@@ -720,28 +738,6 @@ export function FinalBundleClient({
                     재료 만들기 (지문 {vocabMissing.length}개)
                   </button>
                   {preparing ? <p className="mt-1">{preparing}</p> : null}
-                </div>
-              ) : null}
-              {INTEGRATED_EXTRA_KINDS.some((k) => payload.extras[k]) ? (
-                <div className="pt-1">
-                  <p className="mb-1 text-[11px] font-bold text-slate-500">계획표·단어장·백지노트 디자인</p>
-                  <div className="grid grid-cols-2 gap-1">
-                    {TEST_BOOK_THEMES.map((t) => (
-                      <button
-                        key={t.key}
-                        type="button"
-                        onClick={() => update({ theme: t.key as IntegratedPayload["theme"] })}
-                        aria-pressed={payload.theme === t.key}
-                        className={`rounded-md border px-1 py-1 text-[11px] font-bold ${
-                          payload.theme === t.key
-                            ? "border-violet-500 bg-violet-600 text-white"
-                            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-                        }`}
-                      >
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               ) : null}
               {payload.extras.word_note ? (
@@ -831,7 +827,7 @@ export function FinalBundleClient({
             </label>
             <ol className="space-y-1">
               {payload.parts
-                .filter((k) => k !== "plan" && (!isExtra(k) || payload.extras[k]))
+                .filter((k) => listed(k, payload.extras))
                 .map((k, i, shown) => (
                 <li
                   key={k}

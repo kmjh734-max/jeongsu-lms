@@ -29,7 +29,11 @@ export const INTEGRATED_SECTION_META: Record<
  * 고른 파일들의 지문으로 만든다. 켜야 들어간다(옛 통합자료는 그대로).
  */
 export type IntegratedExtraKind = "plan" | "vocab" | "word_note" | "blank_note" | "tests" | "tb_answers";
-export const INTEGRATED_EXTRA_KINDS: IntegratedExtraKind[] = ["plan", "vocab", "word_note", "blank_note", "tests", "tb_answers"];
+/*
+ * 고를 수 있는 묶음. 전체 단어장·단어 정리·문장별 해석은 수업용 자료가 테스트 교재 모양이 되며(2026-10-21)
+ * 수업용 자료 안에 들어가 여기서는 뺐다(두 번 들어가지 않게).
+ */
+export const INTEGRATED_EXTRA_KINDS: IntegratedExtraKind[] = ["plan", "blank_note", "tests", "tb_answers"];
 /** 목차·본문 순서에 놓이는 묶음(파일 묶음 + 테스트 교재 묶음) */
 export type IntegratedPartKind = IntegratedSectionKind | IntegratedExtraKind;
 

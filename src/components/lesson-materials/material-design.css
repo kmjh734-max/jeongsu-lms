@@ -1,0 +1,293 @@
+/*
+ * 자료 디자인 통일(선생님 2026-10-21: 최종통합자료의 디자인이 다른 자료에도 같게 — 「다 따로 노는 것 같아」).
+ * 테스트 교재 내지 A 클래식 · B 파스텔 블룸 · C 볼드 블록 · D 매거진을 워크북·지문 분석서에도 같은 결로 입힌다.
+ * 뿌리에 .md .md-{a|b|c|d}를 단다(바탕 글꼴은 각 자료의 가까운 모양을 함께 쓴다). 강조색은 --md-accent.
+ *   A 클래식: 쪽 왼쪽 색 띠 · 머리 위 작은 영문 꼬리표 · 강조색 굵은 머리줄
+ *   B 파스텔 블룸: 위쪽 옅은 번짐 · 오른쪽 위 동그란 빛 · 둥근 꼬리표 · 그라데이션 머리줄
+ *   C 볼드 블록: 머리를 강조색 띠로 채움(흰 글자) · 쪽 아래 굵은 띠 · 굵은 번호
+ *   D 매거진: 세리프 제목 · 가는 선 · 기울인 세리프 번호 · 제목 끝 점
+ */
+
+/* ───────── 워크북 ───────── */
+.md .workbook-a4-sheet {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.md .wb-sheet-title {
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--md-accent) !important;
+}
+.md .wb-type-title {
+  color: #15171c !important;
+}
+.md .wb-title-dot {
+  display: none;
+}
+
+/* A 클래식 */
+.md-a .workbook-a4-sheet::before,
+.md-a .analysis-report-a4-sheet::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2.4mm;
+  background: var(--md-accent);
+}
+.md-a .wb-sheet-rule {
+  height: 2px !important;
+  background: var(--md-accent) !important;
+}
+.md-a .wb-title-no {
+  display: inline-block;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: #15171c;
+  color: #fff;
+  font-size: 13px;
+  line-height: 24px;
+  text-align: center;
+  vertical-align: 2px;
+  box-sizing: border-box;
+}
+
+/* B 파스텔 블룸 */
+.md-b .workbook-a4-sheet,
+.md-b .analysis-report-a4-sheet {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--md-accent) 10%, #fff) 0, #fff 42mm) !important;
+}
+.md-b .workbook-a4-sheet::after,
+.md-b .analysis-report-a4-sheet::after {
+  content: "";
+  position: absolute;
+  right: -26mm;
+  top: -26mm;
+  width: 78mm;
+  height: 78mm;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 40% 60%,
+    color-mix(in srgb, var(--md-accent) 30%, #fff) 0,
+    color-mix(in srgb, var(--md-accent) 8%, #fff) 55%,
+    transparent 72%
+  );
+  pointer-events: none;
+}
+.md-b .wb-sheet-title {
+  display: table;
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--md-accent) 16%, #fff);
+}
+.md-b .wb-sheet-rule {
+  height: 3px !important;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--md-accent), color-mix(in srgb, var(--md-accent) 25%, #fff) 60%, transparent) !important;
+}
+.md-b .wb-type-title {
+  color: color-mix(in srgb, var(--md-accent) 82%, #000) !important;
+}
+.md-b .wb-title-no {
+  display: inline-block;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--md-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 24px;
+  text-align: center;
+  vertical-align: 2px;
+  box-sizing: border-box;
+}
+.md-b .wb-page-no {
+  color: var(--md-accent);
+  background: color-mix(in srgb, var(--md-accent) 14%, #fff);
+  border-radius: 99px;
+  padding: 1px 8px;
+}
+
+/* C 볼드 블록 */
+.md-c .workbook-a4-sheet::before,
+.md-c .analysis-report-a4-sheet::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3.2mm;
+  background: var(--md-accent);
+}
+.md-c .wb-sheet-header {
+  margin: -14mm -14mm 16px;
+  padding: 9mm 14mm 10px;
+  background: var(--md-accent);
+}
+.md-c .wb-sheet-title {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.md-c .wb-sheet-rule {
+  display: none;
+}
+.md-c .wb-type-title {
+  color: #fff !important;
+  font-size: 22px !important;
+}
+.md-c .wb-title-no {
+  display: inline-block;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 5px;
+  background: #15171c;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 26px;
+  text-align: center;
+  vertical-align: 2px;
+  box-sizing: border-box;
+}
+.md-c .wb-page-no {
+  color: #15171c;
+  font-weight: 900;
+}
+
+/* D 매거진 */
+.md-d .wb-sheet-title {
+  font-weight: 600 !important;
+  letter-spacing: 0.32em;
+  color: #8a909b !important;
+}
+.md-d .wb-sheet-rule {
+  height: 0.5pt !important;
+  background: #15171c !important;
+}
+.md-d .wb-type-title {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 600 !important;
+  font-size: 22px !important;
+  letter-spacing: -0.01em;
+}
+.md-d .wb-type-title::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--md-accent);
+  margin-left: 7px;
+  vertical-align: 3px;
+}
+.md-d .wb-title-no {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--md-accent);
+  margin-right: 2px;
+}
+.md-d .wb-page-no {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-style: italic;
+}
+
+/* ───────── 지문 분석서 ───────── */
+.md .analysis-report-a4-sheet {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.md .ar-head-label {
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.2em;
+  color: var(--md-accent) !important;
+}
+.md .ar-head-no {
+  color: var(--md-accent) !important;
+}
+.md-a .ar-head-rule {
+  height: 2px !important;
+  background: var(--md-accent) !important;
+}
+.md-b .ar-head-label {
+  display: table;
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--md-accent) 16%, #fff);
+}
+.md-b .ar-head-title {
+  color: color-mix(in srgb, var(--md-accent) 82%, #000) !important;
+}
+.md-b .ar-head-rule {
+  height: 3px !important;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--md-accent), color-mix(in srgb, var(--md-accent) 25%, #fff) 60%, transparent) !important;
+}
+.md-b .ar-no {
+  color: var(--md-accent) !important;
+}
+.md-c .ar-head {
+  margin: -14mm -14mm 16px;
+  padding: 9mm 14mm 10px;
+  background: var(--md-accent);
+}
+.md-c .ar-head-source,
+.md-c .ar-head-label,
+.md-c .ar-head-title-en {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.md-c .ar-head-title,
+.md-c .ar-head-no {
+  color: #fff !important;
+}
+.md-c .ar-head-rule {
+  display: none;
+}
+.md-c .ar-head .ar-topic,
+.md-c .ar-head .ar-topic-en,
+.md-c .ar-head .ar-topic-ko,
+.md-c .ar-head .ar-topic-key {
+  color: #fff !important;
+  background: transparent !important;
+}
+.md-c .ar-no {
+  color: #15171c !important;
+  font-weight: 900 !important;
+}
+.md-d .ar-head-label {
+  font-weight: 600 !important;
+  letter-spacing: 0.32em;
+  color: #8a909b !important;
+}
+.md-d .ar-head-title {
+  font-family: "Source Serif 4", "Gowun Batang", Georgia, serif;
+  font-weight: 600 !important;
+}
+.md-d .ar-head-no {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-style: italic;
+  font-weight: 600 !important;
+}
+.md-d .ar-head-rule {
+  height: 0.5pt !important;
+  background: #15171c !important;
+}
+.md-d .ar-no {
+  font-style: italic;
+  color: var(--md-accent) !important;
+}
+
+/* 자료마다 강조색(테스트 교재 묶음 색과 같다) */
+.wb-style.md {
+  --md-accent: #e8552e;
+}
+.ar-style.md {
+  --md-accent: #6a4bd8;
+}

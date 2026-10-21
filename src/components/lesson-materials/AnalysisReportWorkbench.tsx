@@ -36,11 +36,18 @@ import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height
 import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
 import { readAnalysisMarkup } from "@/lib/lesson-materials/analysis-markup";
 import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
+import "./material-design.css";
+import { MaterialDesignPicker } from "@/components/lesson-materials/MaterialDesignPicker";
+import {
+  ANALYSIS_BASE_STYLE,
+  materialDesignClass,
+  useMaterialDesign,
+  type MaterialDesign,
+} from "@/lib/lesson-materials/material-design";
 import { SentenceNotes, sentenceNotesFor, type SentenceNote } from "@/components/lesson-materials/AnalysisSentenceNotes";
 import type { OnePageContent } from "@/lib/lesson-materials/one-page";
 import {
   DESIGN_FONTS_HREF,
-  DESIGN_STYLES,
   designClass,
   type AnalysisDesignStyle,
 } from "@/lib/lesson-materials/analysis-design";
@@ -162,7 +169,6 @@ const TRANSLATION_MODE_KEY = "analysis-report-translation-mode";
  * 처음 여는 사람과 예전에 기본을 골라 둔 사람은 A로 본다.
  * 글꼴과 색만 바꾸고 표시(성분·괄호·이름표·번호 설명) 구성은 같다 — globals.css의 .ar-style-*.
  */
-const DESIGN_STYLE_KEY = "analysis-report-design-style";
 /** 쪽번호를 넣을지 (선생님이 자료마다 고른다) */
 const PAGE_NUMBER_KEY = "analysis-report-page-numbers";
 /** 문장 밑 주석(지칭·함축·바꿔 말하기)을 넣을지 */
@@ -392,6 +398,7 @@ export function AnalysisReportWorkbench({
   logoSrc = LOGO_SRC,
   regenerate = false,
   embedded = false,
+  design,
 }: {
   role: "admin" | "teacher";
   projects: AnalysisReportProjectInput[];
@@ -400,6 +407,8 @@ export function AnalysisReportWorkbench({
   regenerate?: boolean;
   /** 최종통합자료 안에 쪽만 끼워 넣는다(모든 지문의 쪽을 보이고, 만들지 않는다). */
   embedded?: boolean;
+  /** 최종통합자료가 고른 디자인(주면 이것을 쓴다) */
+  design?: MaterialDesign;
 }) {
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
@@ -445,15 +454,9 @@ export function AnalysisReportWorkbench({
       /* 무시 */
     }
   };
-  const [designStyle, setDesignStyle] = useState<AnalysisDesignStyle>("a");
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(DESIGN_STYLE_KEY);
-      if (saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
-    } catch {
-      /* 저장소를 못 쓰면 기본값 */
-    }
-  }, []);
+  /** 디자인 — 모든 자료가 하나를 같이 쓴다(material-design.ts). 통합자료는 design으로 준다. */
+  const [md, chooseMd] = useMaterialDesign(design);
+  const designStyle = ANALYSIS_BASE_STYLE[md] as AnalysisDesignStyle;
   /** 쪽번호 — 인쇄물 오른쪽 아래에 1부터 찍는다. 최종통합자료에 끼울 때는 통합자료가 센다. */
   /**
    * 문장 밑 주석(지칭·함축의미·바꿔 말하기) — 테스트 교재 분석 자료와 같은 것을 지문 분석서에도
@@ -506,14 +509,6 @@ export function AnalysisReportWorkbench({
     [pageNumbers, embedded]
   );
 
-  const chooseDesignStyle = (style: AnalysisDesignStyle) => {
-    setDesignStyle(style);
-    try {
-      window.localStorage.setItem(DESIGN_STYLE_KEY, style);
-    } catch {
-      /* 무시 */
-    }
-  };
   /*
    * 모양을 바꾸면 글꼴이 늦게 들어와 글자 폭이 달라진다. 쪽 나눔은 잰 높이로 하므로
    * 글꼴이 다 들어온 뒤 한 번 더 잰다(안 그러면 쪽이 넘쳐 한 줄이 새어 나간다).
@@ -1044,7 +1039,7 @@ export function AnalysisReportWorkbench({
           <div className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden" aria-hidden>
           <div
             ref={measureRef}
-            className={`font-print -z-10 w-[210mm] opacity-0 ${designClass(designStyle)}`}
+            className={`font-print -z-10 w-[210mm] opacity-0 ${designClass(designStyle)} ${materialDesignClass(md)}`}
             style={{ padding: A4_PAD }}
           >
             {projects.map((p, pi) => (
@@ -1080,7 +1075,7 @@ export function AnalysisReportWorkbench({
     return (
       <div className="relative">
         {designStyle !== "base" ? <link rel="stylesheet" href={DESIGN_FONTS_HREF} /> : null}
-        <div id="analysis-report-print-root" className={`flex flex-col gap-6 print:gap-0 ${designClass(designStyle)}`}>
+        <div id="analysis-report-print-root" className={`flex flex-col gap-6 print:gap-0 ${designClass(designStyle)} ${materialDesignClass(md)}`}>
           {sheetPages}
         </div>
         {measureTree}
@@ -1153,27 +1148,7 @@ export function AnalysisReportWorkbench({
             </div>
           </div>
 
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold text-slate-500">분석지 모양</span>
-            <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
-              {DESIGN_STYLES.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  title={d.hint}
-                  onClick={() => chooseDesignStyle(d.id)}
-                  className={`rounded-md px-1 py-1.5 text-xs font-bold transition ${
-                    designStyle === d.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-            <p className="text-[11px] text-slate-400">
-              {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
-            </p>
-          </div>
+          <MaterialDesignPicker value={md} onChange={chooseMd} />
 
           <label
             className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2"
@@ -1328,7 +1303,7 @@ export function AnalysisReportWorkbench({
           <div
             ref={scaled.ref}
             id="analysis-report-print-root"
-            className={`flex origin-top flex-col gap-6 print:gap-0 print:!transform-none ${designClass(designStyle)}`}
+            className={`flex origin-top flex-col gap-6 print:gap-0 print:!transform-none ${designClass(designStyle)} ${materialDesignClass(md)}`}
             style={previewStyle}
           >
             {sheetPages}

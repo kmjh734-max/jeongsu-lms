@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { closeTabOrGo } from "@/components/lesson-materials/open-new-document";
 import { downloadSheetsPdf, pdfFileName } from "@/lib/pdf/download-sheets-pdf";
 import type { TestBookProjectInput, TestSheet, VocabExam } from "@/lib/lesson-materials/test-book";
+import { useMaterialDesign } from "@/lib/lesson-materials/material-design";
 import {
   AnswerSheets,
   TEST_BOOK_CSS,
@@ -46,6 +47,8 @@ export function TestDrawView({
 }) {
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const [answers, setAnswers] = useState(true);
+  /** 디자인 — 모든 자료가 같이 쓰는 것(material-design.ts) */
+  const [md] = useMaterialDesign();
   const [pdfBusy, setPdfBusy] = useState<string | null>(null);
   const brand = useMemo(() => ({ logoSrc: logoSrc || null, academy: academyName }), [logoSrc, academyName]);
   const sheets = payload.sheets ?? [];
@@ -126,7 +129,7 @@ export function TestDrawView({
         <style>{TEST_BOOK_CSS}</style>
         <div className="flex flex-col items-center p-6 print:block print:p-0">
           <TestBookBrand.Provider value={brand}>
-            <div id="tb-print-root" className="relative flex flex-col gap-6 print:gap-0 [&_.tb-sheet]:shadow">
+            <div id="tb-print-root" className={`tb-theme-${md} relative flex flex-col gap-6 print:gap-0 [&_.tb-sheet]:shadow`}>
               {payload.vocabExam ? <VocabExamSheets exam={payload.vocabExam} measureKey="saved" /> : null}
               {sheets.map((s) => (
                 <TestSheets key={s.project.id} index={s.project.index} project={asProject(s.project)} sheet={s.sheet} title="테스트" measureKey="saved" />

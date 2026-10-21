@@ -77,6 +77,14 @@ import {
 } from "@/lib/lesson-materials/grammar-fix";
 import { circledNumber } from "@/lib/lesson-materials/grammar-choice-constants";
 import "./workbook-print-styles.css";
+import "./material-design.css";
+import { MaterialDesignPicker } from "@/components/lesson-materials/MaterialDesignPicker";
+import {
+  WORKBOOK_BASE_STYLE,
+  materialDesignClass,
+  useMaterialDesign,
+  type MaterialDesign,
+} from "@/lib/lesson-materials/material-design";
 import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
 import type { prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-book-actions";
 import {
@@ -97,20 +105,12 @@ import {
 } from "@/components/lesson-materials/test-book/TestBookSheets";
 
 /*
- * 워크북 모양. 분석지·변형문제와 같은 시안 셋(A 교재 세리프 · B 깔끔한 산세리프 · C 클래식 인쇄)
- * 가운데 하나를 고른다(기본은 A). 문항 구성·크기는 같고 글꼴·색·선만 바꾼다 —
- * workbook-print-styles.css의 .wb-style-*.
+ * 워크북 바탕 모양(글꼴·색·선 — workbook-print-styles.css의 .wb-style-*). 선생님이 고르는 것은 모든 자료가
+ * 같이 쓰는 자료 디자인 하나(material-design.ts)이고, 바탕 모양은 그 디자인에 가까운 것으로 정해진다.
  */
 type WorkbookDesignStyle = "a" | "b" | "c" | "d";
-const DESIGN_STYLE_KEY = "workbook-print-design-style";
 /** 쪽번호를 넣을지 (선생님이 자료마다 고른다) */
 const PAGE_NUMBER_KEY = "workbook-page-numbers";
-const DESIGN_STYLES: Array<{ id: WorkbookDesignStyle; label: string; hint: string }> = [
-  { id: "a", label: "A", hint: "교재 세리프" },
-  { id: "b", label: "B", hint: "깔끔한 산세리프" },
-  { id: "c", label: "C", hint: "클래식 인쇄" },
-  { id: "d", label: "D", hint: "파스텔 블룸(테스트 교재 1안)" },
-];
 /** A·B·C가 쓰는 글꼴. */
 const DESIGN_FONTS_HREF =
   "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,500&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=Gowun+Batang:wght@400;700&display=swap";
@@ -1432,10 +1432,13 @@ function answerGapBefore(prev: { order: number }, b: { order: number; gap?: numb
 export function WorkbookWorkbench({
   role,
   embeddedDocId,
+  design,
 }: {
   role: "admin" | "teacher";
   /** 최종통합자료 안에 끼워 넣을 워크북 파일. 저장된 결과만 보여 주고 만들거나 고치지 않는다. */
   embeddedDocId?: string;
+  /** 최종통합자료가 고른 디자인(주면 이것을 쓴다) */
+  design?: MaterialDesign;
 }) {
   const searchParams = useSearchParams();
   const base =
@@ -1497,16 +1500,12 @@ export function WorkbookWorkbench({
   }, []);
   /** 그려 보니 넘친 2단 쪽: "유형:첫 지문 번호" → 그 쪽에 실을 수 있는 지문 수. */
   const [columnLimits, setColumnLimits] = useState<Record<string, number>>({});
-  /** 워크북 모양(A·B·C). 최종통합자료에 끼워 넣을 때도 같은 저장값을 읽는다. 옛 "base"는 A로 본다. */
-  const [designStyle, setDesignStyle] = useState<WorkbookDesignStyle>("a");
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(DESIGN_STYLE_KEY);
-      if (saved === "a" || saved === "b" || saved === "c" || saved === "d") setDesignStyle(saved);
-    } catch {
-      /* 저장소를 못 쓰면 A */
-    }
-  }, []);
+  /**
+   * 디자인 — 모든 자료가 하나를 같이 쓴다(선생님 2026-10-21, material-design.ts). 워크북 바탕 모양은 고른 디자인에
+   * 가까운 것으로, 머리·번호·꼬리는 material-design.css가 테스트 교재와 같은 결로 입힌다. 통합자료는 design으로 준다.
+   */
+  const [md, chooseMd] = useMaterialDesign(design);
+  const designStyle: WorkbookDesignStyle = WORKBOOK_BASE_STYLE[md];
   /*
    * 쪽번호 — 쪽 아래 가운데에 하나만 찍는다. 최종통합자료에 끼울 때는 통합자료가 센다.
    * 선생님 지적(2026-10-20): 쪽번호가 두 개 찍혔다(늘 찍히던 가운데 번호 + 「쪽번호 넣기」의 오른쪽 아래 번호).
@@ -1546,14 +1545,6 @@ export function WorkbookWorkbench({
   useEffect(() => watchPageNumbersById("workbook-print-root", false), []);
   const showPageNo = pageNumbers && !embeddedDocId;
 
-  const chooseDesignStyle = (style: WorkbookDesignStyle) => {
-    setDesignStyle(style);
-    try {
-      window.localStorage.setItem(DESIGN_STYLE_KEY, style);
-    } catch {
-      /* 무시 */
-    }
-  };
   // 모양이 바뀌면 글자 폭이 달라지므로, 앞 모양에서 넘쳐 줄여 둔 2단 쪽 한도를 비우고 다시 잰다.
   useEffect(() => {
     setColumnLimits((prev) => (Object.keys(prev).length === 0 ? prev : {}));
@@ -3788,7 +3779,7 @@ export function WorkbookWorkbench({
         <div className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden" aria-hidden>
         <div
           ref={measureRef}
-          className={`font-print -z-10 w-[210mm] opacity-0 ${designClass(designStyle)}`}
+          className={`font-print -z-10 w-[210mm] opacity-0 ${designClass(designStyle)} ${materialDesignClass(md)}`}
           style={{
             padding: A4_PAD,
             paddingBottom: `${A4_FOOTER_MM}mm`,
@@ -4014,7 +4005,7 @@ export function WorkbookWorkbench({
       <div className="relative">
         <div
           id="workbook-print-root"
-          className={`flex flex-col gap-6 print:gap-0 ${designClass(designStyle)}`}
+          className={`flex flex-col gap-6 print:gap-0 ${designClass(designStyle)} ${materialDesignClass(md)}`}
         >
           {printPages}
         </div>
@@ -4065,27 +4056,7 @@ export function WorkbookWorkbench({
             />
           </label>
 
-          <div className="space-y-1.5">
-            <p className="text-[11px] font-bold text-slate-500">워크북 모양</p>
-            <div className="grid grid-cols-4 gap-1 rounded-lg bg-slate-100 p-1">
-              {DESIGN_STYLES.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  title={d.hint}
-                  onClick={() => chooseDesignStyle(d.id)}
-                  className={`rounded-md px-1 py-1.5 text-xs font-bold transition ${
-                    designStyle === d.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-            <p className="text-[11px] text-slate-400">
-              {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
-            </p>
-          </div>
+          <MaterialDesignPicker value={md} onChange={chooseMd} />
 
           {/* 테스트지 뽑기(선생님 2026-10-21: 테스트 교재를 합치며 워크북·최종통합자료 둘 다) */}
           <button
@@ -4528,7 +4499,7 @@ export function WorkbookWorkbench({
         <div className="flex justify-center p-6 print:p-0">
           <div
             id="workbook-print-root"
-            className={`flex origin-top flex-col gap-6 print:gap-0 print:!transform-none ${designClass(designStyle)}`}
+            className={`flex origin-top flex-col gap-6 print:gap-0 print:!transform-none ${designClass(designStyle)} ${materialDesignClass(md)}`}
             style={previewStyle}
           >
             {printPages}
