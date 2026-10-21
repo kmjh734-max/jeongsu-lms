@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { LessonPackWorkbench, type LessonPackProjectInput } from "@/components/lesson-materials/LessonPackWorkbench";
 import {
   AnalysisReportWorkbench,
@@ -50,6 +50,7 @@ import {
   AnswerSheets,
   CoverSheet,
   CoverThumbAny,
+  TYPE_SHORT,
   BlankNoteSheets,
   LessonSheets,
   PlanSheets,
@@ -73,12 +74,14 @@ import {
   WritingScopeSwitch,
 } from "@/components/lesson-materials/test-book/TestBookControls";
 import { TestDrawDialog } from "@/components/lesson-materials/test-book/TestDrawDialog";
+import { WORKBOOK_TYPE_SHORT, type WorkbookTypeId } from "@/lib/lesson-materials/workbook-types";
 import { RegenMaterials, type RegenPart } from "@/components/lesson-materials/test-book/LessonPackExtras";
 
 export type FinalBundleMaterials = {
   lessonPacks: Array<{ docId: string; name: string; projects: LessonPackProjectInput[] }>;
   analyses: Array<{ docId: string; name: string; projects: AnalysisReportProjectInput[] }>;
-  workbooks: Array<{ docId: string; name: string }>;
+  /** 고른 워크북(유형은 학습 계획표 이수 칸에 쓴다) */
+  workbooks: Array<{ docId: string; name: string; types: WorkbookTypeId[] }>;
   questions: Array<{ jobId: string; title: string }>;
   /** 고른 파일들의 지문(계획표·전체 단어장·백지노트) */
   extraProjects: TestBookProjectInput[];
@@ -523,27 +526,44 @@ export function FinalBundleClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sections, materials, role, logoSrc, academyName, base, qgBase, book, vocabExam, tOpt.translation, tOpt.wordTest, tOpt.allWordTest, fontsTick]);
 
+  /**
+   * 이수표 칸 — 고른 워크북의 유형(원래 테스트 교재처럼 워크북을 보고, 선생님 2026-10-21) + 켠 테스트지 자료의 유형.
+   * 같은 이름은 한 번만.
+   */
+  const planColumns = [
+    ...new Set([
+      ...(has.workbook ? materials.workbooks.flatMap((w) => w.types.map((t) => WORKBOOK_TYPE_SHORT[t] ?? t)) : []),
+      ...(has.tests ? [...(tOpt.wordTest ? ["동반의어"] : []), ...tOpt.types.map((t) => TYPE_SHORT[t])] : []),
+    ]),
+  ];
   /** 학습 계획표 — 목차보다 앞, 앞표지 바로 뒤(선생님 2026-10-21) */
   const planBody = useMemo(
     () =>
       has.plan ? (
-        <div data-bundle-section="plan" className="contents" style={partStyle({ id: "plan", no: "00", en: "STUDY PLAN", ko: "학습 계획표", color: EXTRA_COLOR.plan })}>
+        <div
+          data-bundle-section="plan"
+          className="contents"
+          style={{ ["--tb-accent" as string]: EXTRA_COLOR.plan, ["--tb-part" as string]: '"STUDY PLAN"' } as CSSProperties}
+        >
           <PlanSheets
             projects={extraProjects}
             measureKey={`bundle-plan|${fontsTick}`}
             options={{
               ...DEFAULT_TEST_BOOK_OPTIONS,
               ...tOpt,
+              types: [],
               tests: has.tests,
               lesson: has.lesson_pack || has.word_note,
               blankNote: has.blank_note,
               analysis: has.analysis_report,
             }}
+            columns={planColumns}
+            extraTodo={[...(has.workbook ? ["워크북"] : []), ...(has.tests ? ["테스트지"] : [])]}
           />
         </div>
       ) : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [has.plan, has.tests, has.lesson_pack, has.word_note, has.blank_note, has.analysis_report, extraProjects, tOpt, fontsTick]
+    [has.plan, has.tests, has.lesson_pack, has.word_note, has.blank_note, has.analysis_report, has.workbook, extraProjects, tOpt, fontsTick, planColumns.join("|")]
   );
 
   /** 단어학습 단어장 등록(테스트 교재와 같다 — 다시 누르면 같은 단어장을 고친다) */

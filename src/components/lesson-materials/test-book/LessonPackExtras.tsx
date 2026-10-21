@@ -8,7 +8,6 @@ import type {
   prepareWorkbookExtrasAction,
 } from "@/lib/lesson-materials/test-book-actions";
 import {
-  DEFAULT_TEST_BOOK_OPTIONS,
   TEST_BOOK_THEMES,
   buildWordTest,
   isTestBookProjectReady,
@@ -19,7 +18,6 @@ import {
 import {
   AllVocabSheets,
   BlankNoteSheets,
-  PlanSheets,
   LessonSheets,
   TEST_BOOK_CSS,
   TEST_BOOK_FONTS_HREF,
@@ -36,12 +34,11 @@ type PrepareResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
 
 /**
  * 수업용 자료에 더하는 테스트 교재 자료(선생님 2026-10-21: 수업용 자료 제작에도 테스트북 기능을, 백지노트도).
+ * 학습 계획표는 넣지 않는다(선생님 2026-10-21 — 계획표는 최종통합자료에서 워크북을 보고 만든다).
  * 수업용 자료 쪽들 뒤에 전체 단어장 → 지문마다(단어 정리 · 해석 쓰기 · 동반의어·품사 TEST · 백지노트)를 붙인다.
  * 켜고 끄는 것은 수업용 자료 모양처럼 이 브라우저에 기억한다.
  */
 export type LessonPackExtrasOptions = {
-  /** 학습 계획표 · 이수표(수업용 자료 맨 앞) */
-  plan: boolean;
   allVocab: boolean;
   wordNote: boolean;
   lessonWrite: boolean;
@@ -52,7 +49,6 @@ export type LessonPackExtrasOptions = {
 };
 
 export const DEFAULT_LESSON_PACK_EXTRAS: LessonPackExtrasOptions = {
-  plan: false,
   allVocab: false,
   wordNote: false,
   lessonWrite: false,
@@ -84,7 +80,7 @@ export function useLessonPackExtras() {
       }
       return next;
     });
-  const any = opts.plan || opts.allVocab || opts.wordNote || opts.lessonWrite || opts.wordTest || opts.blankNote;
+  const any = opts.allVocab || opts.wordNote || opts.lessonWrite || opts.wordTest || opts.blankNote;
   return { opts, update, any };
 }
 
@@ -240,7 +236,6 @@ export function LessonPackExtrasControls({
   onRegenerate: (ids: string[], parts: RegenPart[]) => void;
 }) {
   const rows: Array<[keyof LessonPackExtrasOptions, string, string]> = [
-    ["plan", "학습 계획표 · 이수표", "수업용 자료 맨 앞"],
     ["allVocab", "전체 단어장", "지문 단어를 한데 모음"],
     ["wordNote", "단어 정리", "품사 · 지문 속 뜻 · 파생어 · 동반의어"],
     ["lessonWrite", "문장별 해석 쓰기", "해석을 지우거나 뒤로 모아 직접 써 보기"],
@@ -321,43 +316,6 @@ export function LessonPackExtrasControls({
       {busy && !missing.length ? <p className="text-[11px] text-violet-700">{busy}</p> : null}
       {error ? <p className="text-[11px] font-semibold text-rose-600">{error}</p> : null}
     </div>
-  );
-}
-
-/** 학습 계획표 · 이수표(수업용 자료 맨 앞) */
-export function LessonPackPlanSheets({
-  projects,
-  opts,
-  logoSrc,
-  academy = "",
-}: {
-  projects: TestBookProjectInput[];
-  opts: LessonPackExtrasOptions;
-  logoSrc?: string | null;
-  academy?: string;
-}) {
-  const brand = useMemo(() => ({ logoSrc: logoSrc || null, academy }), [logoSrc, academy]);
-  return (
-    <TestBookBrand.Provider value={brand}>
-      <link rel="stylesheet" href={TEST_BOOK_FONTS_HREF} />
-      <style>{TEST_BOOK_CSS}</style>
-      <div className={`tb-theme-${opts.theme} contents`} style={partStyle({ id: "plan", no: "", en: "STUDY PLAN", ko: "학습 계획표", color: "#2b2f38" })}>
-        <PlanSheets
-          projects={projects}
-          measureKey="lp-plan"
-          options={{
-            ...DEFAULT_TEST_BOOK_OPTIONS,
-            tests: opts.wordTest,
-            types: [],
-            allWordTest: false,
-            wordTest: opts.wordTest,
-            lesson: true,
-            blankNote: opts.blankNote,
-            analysis: false,
-          }}
-        />
-      </div>
-    </TestBookBrand.Provider>
   );
 }
 

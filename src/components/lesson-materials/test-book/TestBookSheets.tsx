@@ -141,6 +141,8 @@ export const TEST_BOOK_CSS = `
 .tb-crow > div{border-left:.5pt solid #d3d7de;display:flex;align-items:flex-end;justify-content:flex-end;color:#c9cdd4}
 .tb-crow > div:first-child{border-left:0;justify-content:flex-start;align-items:center;color:#15171c}
 .tb-crow.tb-th > div{justify-content:center;align-items:center;color:#6a707c}
+/* 칸이 많으면(워크북 유형으로 만든 이수표) 이름이 두 줄로 — 옆 칸과 겹치지 않게 */
+.tb-crow.tb-th > div{padding-left:.4mm;padding-right:.4mm;text-align:center;line-height:1.15;word-break:keep-all;min-width:0}
 .tb-crow.tb-th > div:first-child{justify-content:flex-start}
 .tb-rrow{grid-template-columns:24mm 30mm 25mm 18mm 1fr 1fr;font-size:8.1pt;min-height:8.5mm}
 .tb-rrow > div{border-left:.5pt solid #d3d7de;display:flex;align-items:center}
@@ -563,7 +565,15 @@ function passageLabel(index: number, p: { title: string; source: string | null }
 
 // ---------------------------------------------------------------- 학습 계획표·이수표
 
-const TYPE_SHORT: Record<TestBookTypeKey, string> = {
+/** 이수표 칸 이름을 줄바꿈할 자리: 한글·영문 경계, 아니면 네 글자 이상은 가운데(「동반/의어」) */
+function colLabel(c: string): string {
+  const mixed = c.match(/^([가-힣]+)([A-Za-z/]+)$/);
+  if (mixed) return `${mixed[1]}\u200b${mixed[2]}`;
+  if (c.length >= 4 && /^[가-힣]+$/.test(c)) return `${c.slice(0, Math.ceil(c.length / 2))}\u200b${c.slice(Math.ceil(c.length / 2))}`;
+  return c;
+}
+
+export const TYPE_SHORT: Record<TestBookTypeKey, string> = {
   line: "해석",
   blank: "빈칸",
   grammar: "어법",
@@ -591,13 +601,19 @@ export function PlanSheets({
   projects,
   options,
   measureKey,
+  columns,
+  extraTodo = [],
 }: {
   projects: TestBookProjectInput[];
   options: TestBookOptions;
   measureKey: string;
+  /** 이수표 칸(주면 이것을 쓴다 — 최종통합자료는 고른 워크북 유형으로 만든다) */
+  columns?: string[];
+  /** 「해 올 것」에 더할 것(워크북 등) */
+  extraTodo?: string[];
 }) {
   const tests = options.tests;
-  const cols = [
+  const cols = columns ?? [
     ...(tests && options.wordTest ? ["단어TEST"] : []),
     ...(tests ? options.types.map((t) => TYPE_SHORT[t]) : []),
   ];
@@ -606,6 +622,7 @@ export function PlanSheets({
     ...(tests && options.types.length ? ["견본 풀기"] : []),
     ...(options.blankNote ? ["백지노트"] : []),
     ...(options.analysis ? ["분석 자료"] : []),
+    ...extraTodo,
   ];
   const checkGrid = `24mm repeat(${cols.length}, minmax(0,1fr)) 12mm 15mm`;
   const allWordTestOn = tests && options.allWordTest;
@@ -685,7 +702,7 @@ export function PlanSheets({
                   <div className="tb-row tb-th tb-crow" style={{ gridTemplateColumns: checkGrid }}>
                     <div>지문</div>
                     {cols.map((c) => (
-                      <div key={c}>{c}</div>
+                      <div key={c}>{colLabel(c)}</div>
                     ))}
                     <div>결과</div>
                     <div>선생님</div>

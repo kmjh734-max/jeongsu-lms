@@ -151,6 +151,33 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
   { id: "tb_vocab_exam", title: "단어 시험지", subtitle: "뜻·철자·동반의어·파생어(혼동어휘 객관식)", ready: true, displayOrder: 0, printOrder: 0 },
 ];
 
+/** 학습 계획표 이수 칸에 쓰는 짧은 이름(최종통합자료 계획표가 고른 워크북 유형으로 칸을 만든다) */
+export const WORKBOOK_TYPE_SHORT: Record<WorkbookTypeId, string> = {
+  one_line_ko: "해석",
+  tf: "T/F",
+  blank_fill: "빈칸",
+  grammar_choice: "어법",
+  grammar_fix: "어법수정",
+  vocab_choice: "어휘",
+  vocab_fix: "어휘수정",
+  sentence_order: "순서",
+  word_order_writing: "어순",
+  key_word_order: "중요어순",
+  full_en_writing: "영작",
+  tb_chunk_line: "직독직해",
+  tb_link: "연결어",
+  tb_insert: "삽입",
+  tb_summary: "요약",
+  tb_reference: "지칭",
+  tb_implication: "함축",
+  tb_paraphrase: "바꿔말",
+  tb_flow: "도식",
+  tb_vocab_exam: "단어시험",
+  tb_sequence: "글순서",
+  tb_words: "단어",
+  vocab_example: "예문",
+};
+
 /** 테스트 교재에서 옮긴 워크북 유형 → 테스트 교재 문항 유형(단어 시험지는 따로 만든다) */
 export const TB_WORKBOOK_TYPES = {
   tb_chunk_line: "line",

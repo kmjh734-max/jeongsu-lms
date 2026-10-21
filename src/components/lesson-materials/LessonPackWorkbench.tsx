@@ -31,7 +31,6 @@ import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
 import {
   LessonPackExtrasControls,
   LessonPackExtrasSheets,
-  LessonPackPlanSheets,
   useExtrasProjects,
   useLessonPackExtras,
 } from "@/components/lesson-materials/test-book/LessonPackExtras";
@@ -221,7 +220,7 @@ export function LessonPackWorkbench({
   // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다
   usePdfPrefetch("lesson-pack-print-root", LP_PAGE_SELECTOR);
   /*
-   * 테스트 교재 자료 더하기(선생님 2026-10-21) — 계획표는 맨 앞, 나머지는 수업용 자료 뒤. 최종통합자료에
+   * 테스트 교재 자료 더하기(선생님 2026-10-21) — 수업용 자료 뒤에 붙는다(계획표는 최종통합자료에서만). 최종통합자료에
    * 끼울 때는 통합자료가 같은 묶음을 따로 켜고 끄므로 여기서는 싣지 않는다(두 번 들어가지 않게).
    */
   const extras = useLessonPackExtras();
@@ -1202,9 +1201,6 @@ export function LessonPackWorkbench({
   const printPages = (
     <>
       <link rel="stylesheet" href={DESIGN_FONTS_HREF} />
-      {showExtras && extras.opts.plan ? (
-        <LessonPackPlanSheets projects={extraData.projects!} opts={extras.opts} logoSrc={showLogo ? logoSrc : null} />
-      ) : null}
       {pageChunks
         .filter((chunk) => chunk.length > 0)
         .map((chunk, pageI, pages) => {

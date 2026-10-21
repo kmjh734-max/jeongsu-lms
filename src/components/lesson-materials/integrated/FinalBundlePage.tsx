@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 import { normalizeIntegratedPayload } from "@/lib/lesson-materials/integrated";
+import { orderWorkbookTypes, type WorkbookTypeId } from "@/lib/lesson-materials/workbook-types";
 import {
   loadAnalysisReportProjects,
   loadBundleExtraProjects,
@@ -47,7 +48,8 @@ export async function FinalBundlePage({ role, docId }: { role: "admin" | "teache
   const { data: docs } = docIds.length
     ? await supabase
         .from("lesson_material_documents")
-        .select("id,name,kind,project_ids")
+        // 워크북은 고른 유형만(학습 계획표 이수 칸을 워크북을 보고 만든다) — payload 통째로는 읽지 않는다
+        .select("id,name,kind,project_ids,wbt:payload->selectedTypes,wbo:payload->typeOrder")
         .in("id", docIds)
         .is("deleted_at", null)
     : { data: [] as Array<{ id: string; name: string; kind: string; project_ids: string[] }> };
@@ -108,7 +110,15 @@ export async function FinalBundlePage({ role, docId }: { role: "admin" | "teache
     workbooks: payload.selections.workbook
       .map((id) => pick(id, "workbook"))
       .filter((d): d is NonNullable<typeof d> => !!d)
-      .map((d) => ({ docId: d.id as string, name: d.name as string })),
+      .map((d) => {
+        const raw = d as unknown as { wbt?: unknown; wbo?: unknown };
+        const list = (v: unknown) => (Array.isArray(v) ? (v.map(String) as WorkbookTypeId[]) : []);
+        return {
+          docId: d.id as string,
+          name: d.name as string,
+          types: orderWorkbookTypes(list(raw.wbt), list(raw.wbo)),
+        };
+      }),
     questions: payload.selections.questions
       .filter((id) => jobTitle.has(id))
       .map((id) => ({ jobId: id, title: jobTitle.get(id) || "변형문제" })),
