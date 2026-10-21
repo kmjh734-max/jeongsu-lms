@@ -3448,6 +3448,13 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
  * 쪽번호. 자료 한 장(.lesson-pack-a4-sheet 등)에 data-page-no를 적어 두면 그 자리에 찍힌다.
  * 화면 미리보기와 종이가 같은 번호를 보여 준다 (page-numbers.ts가 번호를 적는다).
  */
+/*
+ * 번호는 그 장 안에 찍혀야 한다. 변형문제 쪽(.qg-print-page)은 위치 기준이 아니라, 최종통합자료에서
+ * 변형문제 쪽 번호(6·7·8)가 모두 마지막 쪽 바닥에 겹쳐 찍혔다(2026-10-21).
+ */
+[data-page-no] {
+  position: relative;
+}
 [data-page-no]::after {
   content: attr(data-page-no);
   position: absolute;
