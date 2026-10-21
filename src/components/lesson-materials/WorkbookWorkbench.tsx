@@ -1,6 +1,7 @@
 "use client";
 
 import { ChoiceItemEditor } from "@/components/lesson-materials/ChoiceItemEditor";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -332,6 +333,7 @@ function SheetHeader({
 
 function PageShell({
   children,
+  showPageNo = true,
   pageNo,
   total,
   workbookTitle,
@@ -348,6 +350,8 @@ function PageShell({
 }: {
   /** 정답 쪽이면 true — PDF 저장에서 문제지·정답지를 가른다 */
   answers?: boolean;
+  /** 쪽 아래 가운데 쪽번호를 찍는지(「쪽번호 넣기」, 최종통합자료에 끼울 때는 통합자료가 센다) */
+  showPageNo?: boolean;
   children: ReactNode;
   pageNo: number;
   total: number;
@@ -421,12 +425,15 @@ function PageShell({
           {children}
         </div>
       )}
-      <p className="wb-page-no pointer-events-none absolute bottom-[8mm] left-0 right-0 text-center text-[12px] text-slate-500">
-        - {pageNo} -
-      </p>
-      <span className="sheet-preview-page-label pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
-        {pageNo} / {total}
-      </span>
+      {showPageNo ? (
+        <p className="wb-page-no pointer-events-none absolute bottom-[8mm] left-0 right-0 text-center text-[12px] text-slate-500">
+          - {pageNo} -
+        </p>
+      ) : (
+        <span className="sheet-preview-page-label pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
+          {pageNo} / {total}
+        </span>
+      )}
     </article>
   );
 }
@@ -1437,14 +1444,21 @@ export function WorkbookWorkbench({
       /* 저장소를 못 쓰면 A */
     }
   }, []);
-  /** 쪽번호 — 인쇄물 오른쪽 아래에 1부터 찍는다. 최종통합자료에 끼울 때는 통합자료가 센다. */
-  const [pageNumbers, setPageNumbers] = useState(false);
+  /*
+   * 쪽번호 — 쪽 아래 가운데에 하나만 찍는다. 최종통합자료에 끼울 때는 통합자료가 센다.
+   * 선생님 지적(2026-10-20): 쪽번호가 두 개 찍혔다(늘 찍히던 가운데 번호 + 「쪽번호 넣기」의 오른쪽 아래 번호).
+   * 이제 「쪽번호 넣기」가 가운데 번호를 켜고 끈다. 처음에는 켠 채로 둔다(예전에도 가운데 번호는 늘 있었다).
+   */
+  const [pageNumbers, setPageNumbers] = useState(true);
   /*
    * 끌어서 원하는 자리에 놓기. 선생님 요청(2026-10-20): 한 칸씩 옮기는 게 아니라 원하는 곳에 넣게.
    * dragFrom = 끌고 있는 줄, dragOver = 놓일 줄(그 줄 자리로 들어간다).
    */
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
+  /** T/F 난이도를 바꾸며 다시 만드는 중 / 결과 한 줄 */
+  const [tfBusy, setTfBusy] = useState(false);
+  const [tfNote, setTfNote] = useState<string | null>(null);
   /** 어휘 수준을 바꾸는 중 / 바꾼 결과 한 줄 */
   const [vocabLevelBusy, setVocabLevelBusy] = useState(false);
   const [vocabLevelNote, setVocabLevelNote] = useState<string | null>(null);
@@ -1452,7 +1466,7 @@ export function WorkbookWorkbench({
   const [choiceEditing, setChoiceEditing] = useState<{ kind: "grammar" | "vocab"; index: number } | null>(null);
   useEffect(() => {
     try {
-      setPageNumbers(window.localStorage.getItem(PAGE_NUMBER_KEY) === "on");
+      setPageNumbers(window.localStorage.getItem(PAGE_NUMBER_KEY) !== "off");
     } catch {
       /* 저장소를 못 쓰면 끈 채로 */
     }
@@ -1465,10 +1479,9 @@ export function WorkbookWorkbench({
       /* 무시 */
     }
   };
-  useEffect(
-    () => watchPageNumbersById("workbook-print-root", pageNumbers && !embeddedDocId),
-    [pageNumbers, embeddedDocId]
-  );
+  // 예전에 오른쪽 아래에 찍던 번호(data-page-no)는 쓰지 않는다 — 남아 있으면 지운다
+  useEffect(() => watchPageNumbersById("workbook-print-root", false), []);
+  const showPageNo = pageNumbers && !embeddedDocId;
 
   const chooseDesignStyle = (style: WorkbookDesignStyle) => {
     setDesignStyle(style);
@@ -1681,6 +1694,51 @@ export function WorkbookWorkbench({
         : null
     );
     setVocabLevelBusy(false);
+  }
+
+  /**
+   * 만든 워크북의 T/F 난이도(일반 / 난이도 UP)를 바꾼다. T/F는 저장해 둔 재료가 없어 새로 만들고,
+   * 처음 만들 때와 같은 값(지문당)이 든다 — 값을 먼저 보여 주고 묻는다.
+   * 선생님 요청(2026-10-20): 어휘처럼 T/F 난이도도 만든 뒤에 바꿀 수 있게.
+   */
+  async function changeTfDifficulty(difficulty: "normal" | "hard") {
+    if (!workbook || tfBusy) return;
+    if ((workbook.tfOptions?.difficulty ?? "normal") === difficulty) return;
+    const ids = [...new Set(workbook.sections.map((sec) => sec.projectId))];
+    if (ids.length === 0) return;
+    const count = workbook.tfOptions?.count ?? 5;
+    const go = await askCreditConfirm({
+      title: "T/F 난이도 바꾸기",
+      description: `T/F 문항을 「${difficulty === "hard" ? "난이도 UP" : "일반"}」으로 새로 만듭니다. 지금 T/F 문항은 새 문항으로 바뀝니다.`,
+      subject: `지문 ${ids.length}개 · 지문마다 ${count}문항`,
+      contents: ["T/F 문제"],
+      items: [{ feature: "lesson_workbook_tf", quantity: ids.length * (count > 10 ? 2 : 1) }],
+      sample: "workbook",
+    });
+    if (!go) return;
+    setTfBusy(true);
+    setTfNote(null);
+    const tfOptions = { ...workbook.tfOptions, difficulty };
+    const res = await postJson<Awaited<ReturnType<typeof generateWorkbookAction>>>(
+      "/api/lesson-materials/workbook",
+      {
+        role,
+        input: {
+          projectIds: ids,
+          selectedTypes: ["tf"],
+          tfOptions,
+          blankOptions: workbook.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS,
+          title: workbook.metadata.title,
+        },
+      }
+    );
+    setTfBusy(false);
+    if (!res.ok || !("workbook" in res) || !res.workbook) {
+      setTfNote(("message" in res && res.message) || "T/F를 다시 만들지 못했습니다.");
+      return;
+    }
+    const sections = res.workbook.sections;
+    editWorkbook((w) => ({ ...w, sections, tfOptions }));
   }
 
   function columnsFor(type: WorkbookColumnTypeId): 1 | 2 {
@@ -2831,6 +2889,11 @@ export function WorkbookWorkbench({
     let used = 0;
     let prev: { order: number } | null = null;
     const oversize: string[] = [];
+    // 2단: 왼쪽 단을 채운 뒤 오른쪽 단, 그다음 쪽(단 위의 블록 사이 간격은 단이 바뀌면 없어진다).
+    // 블록은 단 사이에서 쪼개지지 않아 단 끝에 빈 줄이 생길 수 있으므로 조금 덜 채운다.
+    const twoCol = workbook.answerColumns === 2;
+    const colBudget = twoCol ? budget - 10 : budget;
+    let col = 0;
     root.querySelectorAll<HTMLElement>("[data-wb-answer]").forEach((el) => {
       const cur = {
         order: Number(el.dataset.wbAnswerOrder),
@@ -2839,14 +2902,20 @@ export function WorkbookWorkbench({
       const gap = prev ? answerGapBefore(prev, cur) : 0;
       const h = el.offsetHeight;
       // 한 쪽보다 긴 블록은 혼자 쪽을 쓰고, 잰 쪽 수만큼 이어 싣는다(windowCounts).
-      if (h > budget) oversize.push(el.dataset.wbAnswer!);
-      if (page.length && used + gap + h > budget) {
-        next.push(page);
-        page = [];
-        used = 0;
+      if (h > colBudget) oversize.push(el.dataset.wbAnswer!);
+      if (page.length && used + gap + h > colBudget) {
+        if (twoCol && col === 0) {
+          col = 1;
+          used = 0;
+        } else {
+          next.push(page);
+          page = [];
+          used = 0;
+          col = 0;
+        }
       }
-      if (page.length) used += gap;
-      else if (el.dataset.wbAnswerCont) used += contH;
+      if (used > 0) used += gap;
+      else if (!page.length && el.dataset.wbAnswerCont) used += contH;
       used += h;
       page.push(el.dataset.wbAnswer!);
       prev = cur;
@@ -3380,7 +3449,14 @@ export function WorkbookWorkbench({
   const printPages = (
     <>
             {pages.map((page, pageI) => {
-              const pageNo = pageI + 1;
+              /*
+               * 정답지는 1쪽부터 다시 센다. 선생님 말씀(2026-10-20): 문제지·정답지를 따로 뽑아도 쪽수가
+               * 이어져서, 정답지는 따로 프린트하니 1쪽부터 나오는 게 좋다.
+               */
+              const firstAnswer = pages.findIndex((p) => p.kind === "answers");
+              const inAnswers = firstAnswer >= 0 && pageI >= firstAnswer;
+              const pageNo = inAnswers ? pageI - firstAnswer + 1 : pageI + 1;
+              const partTotal = inAnswers ? total - firstAnswer : firstAnswer >= 0 ? firstAnswer : total;
               const isLast = pageI === total - 1;
 
               if (page.kind === "columns_q") {
@@ -3388,7 +3464,8 @@ export function WorkbookWorkbench({
                   <PageShell
                     key={`col-${page.type}-${page.indices.join("-")}${page.window ? `-w${page.window.index}` : ""}`}
                     pageNo={pageNo}
-                    total={total}
+                    total={partTotal}
+                    showPageNo={showPageNo}
                     workbookTitle={title}
                     showTypeTitle
                     typeTitle={`${page.typeOrder}. ${COLUMN_TYPE_TITLE[page.type]}`}
@@ -3416,7 +3493,8 @@ export function WorkbookWorkbench({
                   <PageShell
                     key={`flow-${page.flow}-${page.parts.map((p) => `${p.sectionIndex}.${p.itemIndices[0] ?? 0}`).join("-")}`}
                     pageNo={pageNo}
-                    total={total}
+                    total={partTotal}
+                    showPageNo={showPageNo}
                     workbookTitle={title}
                     showTypeTitle
                     typeTitle={`${page.typeOrder}. ${FLOW_TITLE[page.flow]}`}
@@ -3463,12 +3541,16 @@ export function WorkbookWorkbench({
                   key={`answers-${pageI}`}
                   answers
                   pageNo={pageNo}
-                  total={total}
+                  total={partTotal}
+                  showPageNo={showPageNo}
                   workbookTitle={title}
                   showTypeTitle
                   typeTitle={page.continued ? "정답 (계속)" : "정답"}
                   isLast={isLast}
-                  columnHeightMm={page.window ? (columnBodyMm ?? undefined) : undefined}
+                  columns={workbook.answerColumns === 2 && !page.window ? 2 : 1}
+                  columnHeightMm={
+                    page.window || workbook.answerColumns === 2 ? (columnBodyMm ?? undefined) : undefined
+                  }
                   windowIndex={page.window?.index}
                   windowCount={page.window?.count}
                 >
@@ -3511,7 +3593,10 @@ export function WorkbookWorkbench({
                 : null}
             </div>
           ))}
-          <div>{renderAnswerBlocks(answerBlocks, true)}</div>
+          {/* 정답지 2단이면 단 너비로 잰다(쪽 본문 너비 − 단 사이 26px의 절반) */}
+          <div style={workbook.answerColumns === 2 ? { width: "calc((100% - 26px) / 2)" } : undefined}>
+            {renderAnswerBlocks(answerBlocks, true)}
+          </div>
           {columnBodyMm != null ? (
             <div className="workbook-a4-body" style={{ height: 0, overflow: "hidden" }}>
               {columnTypesOn.flatMap((t) =>
@@ -3900,6 +3985,59 @@ export function WorkbookWorkbench({
                 );
               });
             })()}
+          </div>
+
+          {workbook.selectedTypes.includes("tf") && workbook.sections.length > 0 ? (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-bold text-slate-500">T/F 난이도</span>
+                <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
+                  {(
+                    [
+                      { id: "normal", label: "일반" },
+                      { id: "hard", label: "난이도 UP" },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      disabled={tfBusy}
+                      onClick={() => void changeTfDifficulty(opt.id)}
+                      className={`rounded-md px-2.5 py-0.5 text-xs font-semibold disabled:opacity-50 ${
+                        (workbook.tfOptions?.difficulty ?? "normal") === opt.id
+                          ? "bg-violet-600 text-white"
+                          : "text-slate-500 hover:bg-slate-50"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {tfBusy ? (
+                <p className="text-[11px] text-slate-500">T/F 문항을 새로 만들고 있습니다…</p>
+              ) : tfNote ? (
+                <p className="text-[11px] text-rose-600">{tfNote}</p>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-slate-500">정답지 단</span>
+            <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
+              {([1, 2] as const).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => editWorkbook((w) => ({ ...w, answerColumns: n }))}
+                  className={`rounded-md px-2.5 py-0.5 text-xs font-semibold ${
+                    (workbook.answerColumns ?? 1) === n ? "bg-violet-600 text-white" : "text-slate-500 hover:bg-slate-50"
+                  }`}
+                >
+                  {n}단
+                </button>
+              ))}
+            </div>
           </div>
 
           {columnTypes.length > 0 ? (

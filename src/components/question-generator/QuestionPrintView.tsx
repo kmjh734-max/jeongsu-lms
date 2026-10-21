@@ -101,6 +101,24 @@ const BRANDING_STORAGE_KEY = "qg-print-branding";
 type QuestionDesignStyle = "base" | "a" | "b" | "c";
 const DESIGN_STYLE_KEY = "question-print-design-style";
 const TYPE_ORDER_KEY = "question-print-type-order";
+const SPREAD_KEY = "question-print-spread-passages";
+
+/**
+ * 같은 지문 문항이 가까이(한 쪽 안에) 붙지 않게 순서를 벌린다. 앞 window−1문항에 나온 지문은 뒤로 미룬다.
+ * 선생님 말씀(2026-10-20): 같은 지문이 다른 유형으로 한 쪽에 겹쳐 나오면 서로 힌트가 된다(어휘 두 문항의
+ * 밑줄 낱말을 맞대 보면 답이 보인다). 미룰 문항이 없으면(한 지문뿐) 그대로 둔다.
+ */
+function spreadByPassage<T extends { passage_id?: string | null }>(list: T[], window = 5): T[] {
+  const rest = [...list];
+  const out: T[] = [];
+  while (rest.length) {
+    const recent = new Set(out.slice(-(window - 1)).map((q) => q.passage_id ?? ""));
+    let i = rest.findIndex((q) => !q.passage_id || !recent.has(q.passage_id));
+    if (i < 0) i = 0;
+    out.push(rest.splice(i, 1)[0]!);
+  }
+  return out;
+}
 const DESIGN_STYLES: Array<{ id: QuestionDesignStyle; label: string; hint: string }> = [
   { id: "a", label: "A", hint: "교재 세리프" },
   { id: "b", label: "B", hint: "깔끔한 산세리프" },
@@ -800,6 +818,23 @@ export function QuestionPrintView({
    * 다른 자료에도 같은 차례로 나오게 학원마다 브라우저에 저장한다.
    */
   const [typeOrder, setTypeOrder] = useState<string[]>([]);
+  /** 같은 지문이 한 쪽에 겹치지 않게(기본 켬). 끄면 예전처럼 만든 차례대로 싣는다. */
+  const [spreadPassages, setSpreadPassages] = useState(true);
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(SPREAD_KEY) === "off") setSpreadPassages(false);
+    } catch {
+      /* 저장소를 못 쓰면 켠 채로 */
+    }
+  }, []);
+  const chooseSpread = (on: boolean) => {
+    setSpreadPassages(on);
+    try {
+      window.localStorage.setItem(SPREAD_KEY, on ? "on" : "off");
+    } catch {
+      /* 무시 */
+    }
+  };
   useEffect(() => {
     try {
       const saved = JSON.parse(window.localStorage.getItem(`${TYPE_ORDER_KEY}:${academyName}`) ?? "[]");
@@ -1039,8 +1074,21 @@ export function QuestionPrintView({
         normalizePassage(questionPassage(q)) !== normalizePassage((q.passage_original || "").trim());
       const items: DisplayItem[] = [];
       let num = 1;
+      /*
+       * 지문을 바꾼 문항(무관한 문장·삽입·순서 등 자기 지문을 따로 찍는 문항)은 묶음에서 빼 뒤의 「개별 문항」으로
+       * 보낸다. 원문과 한 쪽에 있으면 원문과 맞대 보아 답이 보인다(선생님 지적 2026-10-20).
+       * 해설지도 같은 차례로 번호를 매기므로 나누기는 문제지·해설지에서 똑같이 한다.
+       */
+      const later: QuestionRow[] = [];
       for (const key of order) {
-        const list = byPassage.get(key)!;
+        const all = byPassage.get(key)!;
+        const original0 = all[0]!.passage_original || questionPassage(all[0]!);
+        const shareable0 = all.filter((q) => marked(q) && isSetMarkKey(q.option_key ?? ""));
+        const sharedOk = shareable0.length > 0 && mergeMarkedPassages(original0, shareable0.map((q) => questionPassage(q))) != null;
+        const ownPassage = (q: QuestionRow) => marked(q) && !(sharedOk && shareable0.includes(q));
+        const list = spreadPassages && all.length > 1 ? all.filter((q) => !ownPassage(q)) : all;
+        if (spreadPassages && all.length > 1) later.push(...all.filter(ownPassage));
+        if (list.length === 0) continue;
         if (mode !== "exam" || list.length < 2) {
           for (const q of list) items.push({ kind: "q", id: q.id, q, num: num++ });
           continue;
@@ -1067,10 +1115,11 @@ export function QuestionPrintView({
           items.push({ kind: "q", id: q.id, q, num: num++, hidePassage: !marked(q) || shared.has(q) });
         }
       }
+      for (const q of spreadByPassage(later)) items.push({ kind: "q", id: q.id, q, num: num++ });
       return items;
     }
     if (printLayout !== "byType") {
-      return shown.map((q, i) => ({
+      return (spreadPassages ? spreadByPassage(shown) : shown).map((q, i) => ({
         kind: "q" as const,
         id: q.id,
         q,
@@ -1081,13 +1130,14 @@ export function QuestionPrintView({
     const items: DisplayItem[] = [];
     let num = 1;
     for (const g of groups) {
-      for (const q of g.items) {
+      // 유형 안에서만 벌린다(유형 묶음과 유형별 쪽 나눔은 그대로)
+      for (const q of spreadPassages ? spreadByPassage(g.items) : g.items) {
         items.push({ kind: "q", id: q.id, q, num });
         num++;
       }
     }
     return items;
-  }, [shown, printLayout, mode, passageSources, branding.hideOrigin, typeOrder]);
+  }, [shown, printLayout, mode, passageSources, branding.hideOrigin, typeOrder, spreadPassages]);
 
   /** 유형별: 각 유형 구간 [start, end) — 새 페이지 강제용 */
   const typeRanges = useMemo(() => {
@@ -1605,6 +1655,21 @@ export function QuestionPrintView({
               >
                 지문별 묶음 (지문 한 번 + 여러 문항)
               </button>
+              <label className="mt-1 flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={spreadPassages}
+                  onChange={(e) => chooseSpread(e.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5 accent-brand-600"
+                />
+                <span>
+                  <span className="font-semibold text-slate-800">같은 지문 겹치지 않게</span>
+                  <span className="block text-[11px] leading-snug text-slate-500">
+                    같은 지문 문항을 떨어뜨려 한 쪽에서 서로 힌트가 되지 않게 해요. 지문별 묶음에서는 지문을 바꾼
+                    문항(무관한 문장·삽입·순서 등)을 뒤의 개별 문항으로 옮겨요.
+                  </span>
+                </span>
+              </label>
             </div>
           )}
 

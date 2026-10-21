@@ -661,6 +661,11 @@ export type WorkbookData = {
   vocabWordLevel?: "normal" | "hard";
   /** 유형별 단 수. 없으면 1단. 한줄해석·통문장 영작·어순배열 영작은 늘 1단이다. */
   columnLayout?: Partial<Record<WorkbookColumnTypeId, 1 | 2>>;
+  /**
+   * 정답지 단 수. 2면 정답지를 두 단으로 싣는다(없으면 1단).
+   * 선생님 말씀(2026-10-20): 답지가 한 단이라 쪽이 너무 많다(답지는 따로 프린트한다).
+   */
+  answerColumns?: 1 | 2;
   /** 항목 인쇄 차례. 없으면 기본 순서(printOrder). */
   typeOrder?: WorkbookTypeId[];
   /**
