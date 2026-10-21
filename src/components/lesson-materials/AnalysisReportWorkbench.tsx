@@ -530,6 +530,7 @@ export function AnalysisReportWorkbench({
       document.fonts.removeEventListener?.("loadingdone", bump);
     };
   }, [designStyle]);
+  /** 상단 라벨 — 모든 지문에 같게(선생님 2026-10-21: 하나 정하면 다음 지문도 같게) */
   const [headerLabel, setHeaderLabel] = useState(
     () => initialProjects[0]?.headerLabel || "26년도 1학기 중간고사 대비"
   );
@@ -809,9 +810,6 @@ export function AnalysisReportWorkbench({
   }
 
   /** 지문별 상단 라벨. 고른 지문은 편집 중인 값을 쓴다. */
-  function headerLabelFor(index: number): string {
-    return index === active ? headerLabel : projects[index]?.headerLabel || headerLabel;
-  }
 
   async function handleRegen() {
     if (!project) return;
@@ -893,9 +891,18 @@ export function AnalysisReportWorkbench({
         setError(res.message);
         return false;
       }
+      // 라벨은 모든 지문에 같게 — 라벨이 다른 다른 지문 분석서도 같은 라벨로 저장한다
+      const others = projects.filter((row, idx) => idx !== active && row.report && row.report.headerLabel !== headerLabel);
+      for (const row of others) {
+        await saveAnalysisReportAction(role, { projectId: row.id, report: { ...row.report!, headerLabel } });
+      }
       setProjects((prev) =>
         prev.map((row, idx) =>
-          idx === active ? { ...row, report: next, headerLabel } : row
+          idx === active
+            ? { ...row, report: next, headerLabel }
+            : row.report
+              ? { ...row, report: { ...row.report, headerLabel }, headerLabel }
+              : { ...row, headerLabel }
         )
       );
       return true;
@@ -978,7 +985,7 @@ export function AnalysisReportWorkbench({
                 >
                   {sheet.pageI === 0 ? (
                     <ReportHeader
-                      headerLabel={headerLabelFor(sheet.projectIndex)}
+                      headerLabel={headerLabel}
                       source={sheet.project.source}
                       title={sheet.project.title}
                       titleEn={sheet.project.titleEn || sheet.project.report?.titleEn}
@@ -1043,7 +1050,7 @@ export function AnalysisReportWorkbench({
             {projects.map((p, pi) => (
               <div key={`m-${p.id}`} data-measure-project={p.id}>
                 <ReportHeader
-                  headerLabel={headerLabelFor(pi)}
+                  headerLabel={headerLabel}
                   source={p.source}
                   title={p.title}
                   titleEn={p.titleEn || p.report?.titleEn}
@@ -1099,10 +1106,7 @@ export function AnalysisReportWorkbench({
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => {
-                    setActive(i);
-                    setHeaderLabel(p.headerLabel);
-                  }}
+                  onClick={() => setActive(i)}
                   className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                     i === active
                       ? "bg-violet-600 text-white"

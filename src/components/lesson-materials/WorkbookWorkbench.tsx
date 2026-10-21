@@ -83,6 +83,7 @@ import {
   buildTestSheet,
   buildVocabExam,
   DEFAULT_VOCAB_EXAM,
+  normalizeVocabExam,
   type TestBookTypeKey,
 } from "@/lib/lesson-materials/test-book";
 import { TestDrawDialog } from "@/components/lesson-materials/test-book/TestDrawDialog";
@@ -315,7 +316,6 @@ const COLUMN_TYPE_TITLE: Record<WorkbookColumnTypeId, string> = {
   tb_flow: "도식화",
   tb_vocab_exam: "단어 시험",
   tb_sequence: "글의 순서",
-  tb_words: "단어 영↔한",
 };
 
 /** 창 본문의 단 사이 간격. 화면·인쇄가 같아야 잰 단 수와 인쇄의 단 수가 같다. */
@@ -2189,6 +2189,13 @@ export function WorkbookWorkbench({
          */
         const tbTypes = types.filter(isTbWorkbookType);
         const tbLevel = searchParams.get("tbLevel") === "up" ? "up" : "basic";
+        // 단어 시험 유형마다 문항 수(vx=meaning:10,spelling:10,…) — 없으면 기본
+        const vx = searchParams.get("vx");
+        const vocabExamOpts = vx
+          ? normalizeVocabExam({
+              counts: Object.fromEntries(vx.split(",").map((kv) => kv.split(":")).map(([k, n]) => [k, Number(n)])),
+            })
+          : DEFAULT_VOCAB_EXAM;
         const tbTask = tbTypes.length
           ? (async () => {
               const got = new Array<Extract<PrepareExtrasResult, { ok: true }> | null>(ids.length).fill(null);
@@ -2243,7 +2250,7 @@ export function WorkbookWorkbench({
               const vocabExam = tbTypes.includes("tb_vocab_exam")
                 ? buildVocabExam(
                     got.flatMap((g, i) => (g ? [{ passage: i + 1, vocab: g.material.vocab }] : [])),
-                    { ...DEFAULT_VOCAB_EXAM, seed: "workbook|vocab" }
+                    { ...vocabExamOpts, seed: "workbook|vocab" }
                   )
                 : null;
               if (vocabExam) skipped.tb_vocab_exam = skips;
@@ -2780,7 +2787,6 @@ export function WorkbookWorkbench({
       tb_flow: tbCount(workbook, "tb_flow"),
       tb_vocab_exam: tbCount(workbook, "tb_vocab_exam"),
       tb_sequence: tbCount(workbook, "tb_sequence"),
-      tb_words: tbCount(workbook, "tb_words"),
     };
     const flowSections: Record<FlowKind, Array<{ items: unknown[] }>> = {
       line_ko: ltSections,

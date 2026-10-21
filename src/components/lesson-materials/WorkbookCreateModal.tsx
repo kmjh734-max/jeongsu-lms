@@ -26,6 +26,8 @@ import {
   type WorkbookTfOptions,
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
+import { DEFAULT_VOCAB_EXAM, type VocabExamOptions } from "@/lib/lesson-materials/test-book";
+import { VocabExamControls } from "@/components/lesson-materials/test-book/TestBookControls";
 
 export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v6";
 
@@ -61,6 +63,8 @@ export function buildWorkbookHref(
     vocabWordLevel?: "normal" | "hard";
     /** 테스트 교재에서 옮긴 유형의 난이도(지금은 바꿔 말하기만 달라진다) */
     tbLevel?: "basic" | "up";
+    /** 단어 시험 유형마다 문항 수 */
+    vocabExam?: VocabExamOptions;
     title: string;
     /** 저장된 결과(어법·어휘·빈칸·어순)가 있어도 새 문항으로 만든다. */
     regenerate?: boolean;
@@ -95,6 +99,9 @@ export function buildWorkbookHref(
     params.set("vcLevel", opts.vocabWordLevel ?? "normal");
   }
   if (opts.tbLevel === "up" && types.some(isTbWorkbookType)) params.set("tbLevel", "up");
+  if (types.includes("tb_vocab_exam") && opts.vocabExam) {
+    params.set("vx", Object.entries(opts.vocabExam.counts).map(([k, n]) => `${k}:${n}`).join(","));
+  }
   params.set("title", opts.title.trim() || defaultWorkbookTitle());
   params.set("fresh", "1");
   if (opts.regenerate) params.set("regen", "1");
@@ -137,6 +144,7 @@ export function WorkbookCreateModal({
   );
   const [vocabWordLevel, setVocabWordLevel] = useState<"normal" | "hard">("normal");
   const [tbLevel, setTbLevel] = useState<"basic" | "up">("basic");
+  const [vocabExam, setVocabExam] = useState<VocabExamOptions>(DEFAULT_VOCAB_EXAM);
   const [title, setTitle] = useState(() => defaultWorkbookTitle());
   const [regenerate, setRegenerate] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -168,6 +176,7 @@ export function WorkbookCreateModal({
   const wantWordOrder = selected.has("word_order_writing");
   const wantKeyWordOrder = selected.has("key_word_order");
   const wantParaphrase = selected.has("tb_paraphrase");
+  const wantVocabExam = selected.has("tb_vocab_exam");
 
   if (!open || asking) return null;
 
@@ -218,6 +227,7 @@ export function WorkbookCreateModal({
       vocabFixOptions,
       vocabWordLevel,
       tbLevel,
+      vocabExam,
       title: title.trim() || defaultWorkbookTitle(),
       regenerate,
     });
@@ -577,6 +587,16 @@ export function WorkbookCreateModal({
                         </p>
                       </div>
                     </OptionRow>
+                  </div>
+                </div>
+              ) : null}
+
+              {wantVocabExam ? (
+                <div className="space-y-2">
+                  <p className="text-sm font-bold text-slate-900">단어 시험 옵션</p>
+                  <div className="rounded-xl border border-slate-200 p-3">
+                    <p className="mb-2 text-[11px] text-slate-500">유형마다 문항 수(0이면 빼기) · 고른 지문의 단어를 합쳐 한 시험으로 냅니다.</p>
+                    <VocabExamControls value={vocabExam} onChange={setVocabExam} />
                   </div>
                 </div>
               ) : null}
