@@ -8,7 +8,6 @@ import { openNewDocument } from "@/components/lesson-materials/open-new-document
 import { defaultDocumentName, documentPagePath, type LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { materialConfirm } from "@/lib/credits/material-confirm";
-import { TestDrawDialog } from "@/components/lesson-materials/test-book/TestDrawDialog";
 
 
 /** Floating purple action bar when library items are selected. */
@@ -31,7 +30,6 @@ export function LessonMaterialsSelectionBar({
 }) {
   const [workbookOpen, setWorkbookOpen] = useState(false);
   const [mockOpen, setMockOpen] = useState(false);
-  const [drawOpen, setDrawOpen] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
   const [opening, setOpening] = useState(false);
   /** 1장 자료는 만들기 전에 제목(파일 이름)을 먼저 적는다. */
@@ -154,15 +152,6 @@ export function LessonMaterialsSelectionBar({
             >
               📝 1장 테스트 제작
             </button>
-            {/* 테스트지 뽑기 — 원래 테스트 교재처럼 자료 목록에서(선생님 2026-10-21). 워크북·통합자료 미리보기에서는 뺐다 */}
-            <button
-              type="button"
-              className={btn}
-              title="고른 지문으로 오늘 볼 테스트지를 새로 섞어 뽑습니다(뽑을 때마다 지문·유형마다 값). 뽑은 것은 「뽑은 테스트지」에 저장됩니다"
-              onClick={() => setDrawOpen(true)}
-            >
-              🎲 테스트지 뽑기
-            </button>
             {testBookOpen ? (
               <div className="flex flex-wrap items-center gap-2 border-l border-white/30 pl-3">
                 <span className="rounded bg-amber-300 px-1.5 py-0.5 text-[10px] font-black tracking-wide text-violet-900">NEW</span>
@@ -195,8 +184,6 @@ export function LessonMaterialsSelectionBar({
           </div>
         </div>
       </div>
-
-      <TestDrawDialog role={role} projectIds={selectedIds} open={drawOpen} onClose={() => setDrawOpen(false)} />
 
       {naming ? (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">

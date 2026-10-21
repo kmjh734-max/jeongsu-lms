@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { TestDrawDialog } from "@/components/lesson-materials/test-book/TestDrawDialog";
 import {
   renameLessonMaterialDocument,
   trashLessonMaterialDocuments,
@@ -104,15 +105,17 @@ export function LessonMaterialDocumentList({
    * 테스트 교재: 고른 교재(여러 권이면 지문을 합쳐)로 테스트지 뽑기를 연다. 여는 것은 재료를 새로 만들지 않고,
    * 뽑을 때마다 지문·유형마다 값을 받는다 — 지문 선택 바의 「테스트지 뽑기」와 같은 화면(선생님 2026-10-20).
    */
+  /*
+   * 워크북·최종통합자료 파일에서도 같은 방식으로(선생님 2026-10-21: 테스트 교재처럼 이름 바꾸기 옆 버튼).
+   * 파일의 지문으로 뽑기 창을 연다 — 뽑은 것은 「뽑은 테스트지」 파일로 저장된다.
+   */
+  const [drawIds, setDrawIds] = useState<string[] | null>(null);
   function openDraw(ids: string[]) {
     const projectIds = [...new Set(rows.filter((r) => ids.includes(r.id)).flatMap((r) => r.project_ids))];
     if (!projectIds.length) return;
-    window.open(
-      `${documentPagePath(role, "test_book")}?mode=draw&ids=${encodeURIComponent(projectIds.join(","))}&t=${Date.now().toString(36)}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
+    setDrawIds(projectIds);
   }
+  const canDraw = kind === "test_book" || kind === "workbook" || kind === "integrated";
 
   function open(id: string) {
     window.open(`${documentPagePath(role, kind)}?doc=${encodeURIComponent(id)}`, "_blank", "noopener,noreferrer");
@@ -173,13 +176,13 @@ export function LessonMaterialDocumentList({
             전체 선택
           </label>
           <span className="text-[11px] text-slate-400">Shift + 클릭으로 범위 선택</span>
-          {kind === "test_book" && selected.size > 0 ? (
+          {canDraw && selected.size > 0 ? (
             <button
               type="button"
               onClick={() => openDraw([...selected])}
               className="ml-auto rounded-md bg-violet-600 px-2.5 py-0.5 text-[11px] font-bold text-white hover:bg-violet-700"
             >
-              테스트지 뽑기 ({selected.size}권)
+              테스트지 뽑기 ({selected.size}개)
             </button>
           ) : null}
           {selected.size > 0 ? (
@@ -192,7 +195,7 @@ export function LessonMaterialDocumentList({
                   `선택한 파일 ${selected.size}개를 삭제할까요?`
                 )
               }
-              className={`${kind === "test_book" ? "" : "ml-auto "}rounded-md border border-rose-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50`}
+              className={`${canDraw ? "" : "ml-auto "}rounded-md border border-rose-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50`}
             >
               선택 삭제 ({selected.size})
             </button>
@@ -251,7 +254,7 @@ export function LessonMaterialDocumentList({
                 </span>
               </div>
               <div className="flex shrink-0 items-center gap-1">
-                {kind === "test_book" ? (
+                {canDraw ? (
                   <button
                     type="button"
                     onClick={() => openDraw([doc.id])}
@@ -283,6 +286,7 @@ export function LessonMaterialDocumentList({
         </ul>
         </>
       )}
+      <TestDrawDialog role={role} projectIds={drawIds ?? []} open={!!drawIds} onClose={() => setDrawIds(null)} />
     </section>
   );
 }
