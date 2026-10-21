@@ -37,8 +37,12 @@ export type BookCard =
       answerText: string;
       /** 이 문항이 시험과 같은 자리를 물었는가 */
       same: boolean;
+      /** 시험과 형식이 다른 자료면 「다른 형식 · 어순 배열」 같은 꼬리표 */
+      tag?: string;
+      /** 보기가 이스케이프된 HTML(<mark> 표시 포함)인가 — 손으로 만든 자료집에서 근거 보기에 표시를 단다 */
+      choicesHtml?: boolean;
     }
-  | { kind: "line"; source: string; date: string; linesHtml: string[] };
+  | { kind: "line"; source: string; date: string; linesHtml: string[]; tag?: string };
 
 export type BookCompare = { exam: string; ours: string; same: string };
 
@@ -171,24 +175,57 @@ export function isPageChrome(line: string): boolean {
   return rest.length === 0 || /교시|학년도|정기시험|지필평가|성명|학번|수험번호|답안지|문제지|감독/.test(t);
 }
 
+/** 쪽 사이 표지 — 쪽 글을 이어 붙여 splitExamBlocks 에 넘길 때 사이에 넣는다 */
+export const PAGE_BREAK = "<<PAGE>>";
+
 export function splitExamBlocks(pageText: string): Map<string, ExamBlock> {
   const lines = String(pageText ?? "")
     .split(/\r?\n/)
-    .filter((l) => !isPageChrome(l));
+    .filter((l) => l === PAGE_BREAK || !isPageChrome(l));
   const raw = new Map<string, string[]>();
   const shared = new Map<string, string[]>();
   let cur: string | null = null;
   let group: { from: number; to: number; lines: string[] } | null = null;
+  /*
+   * 쪽 맨 위, 첫 문항 번호 앞 글은 앞 쪽에서 넘어온 것 — 그 쪽 첫 문항의 바로 앞 번호에 붙인다.
+   * 사진이 쪽 순서대로 올라오지 않으면 저장 순서상 앞 문항에 붙어, 15번 보기가 빠지고 17번에 다른 지문이 섞였다(호원고1, 2026-10-21).
+   */
+  const groups: Array<{ from: number; to: number; lines: string[] }> = [];
+  let orphan: string[] | null = null;
+  let prevCur: string | null = null;
+  const carried = new Map<string, string[]>();
+  // 번호로 자리를 못 정한 넘어온 글은 예전처럼 저장 순서상 앞 문항에 붙인다(버리지 않는다)
+  const flushOrphan = () => {
+    if (orphan?.length && prevCur && raw.has(prevCur)) raw.get(prevCur)!.push(...orphan);
+    orphan = null;
+  };
   for (const line of lines) {
-    const head = line.match(/^\s*\[\s*(\d{1,2})\s*[~∼-]\s*(\d{1,2})\s*\]/);
+    if (line === PAGE_BREAK) {
+      flushOrphan();
+      prevCur = cur;
+      cur = null;
+      // 묶음 머리(「[10, 논술형 3]」)는 다음 쪽 문항까지 이어진다 — 지문 아래 쪽에 10번 발문이 있었다(호원고1)
+      orphan = [];
+      continue;
+    }
+    // 「[1~2] 다음 글을 …」, 「[13, 논술형 4] 다음 글을 …」 — 지문 하나를 여러 문항이 같이 쓴다
+    const head = line.match(/^\s*\[\s*(\d{1,2})\s*(?:[~∼-]\s*(\d{1,2})\s*)?(?:\]|,[^\]]*\])/);
     const num = line.match(/^\s*(\d{1,2})\s*[.)]\s+\S/);
     const subj = line.match(/^\s*[[<]?\s*(?:서술형|서답형|논술형)\s*(\d{1,2})\s*[\]>]?/);
     if (head) {
-      group = { from: Number(head[1]), to: Number(head[2]), lines: [line.replace(head[0], "").trim()] };
+      flushOrphan();
+      group = { from: Number(head[1]), to: Number(head[2] ?? head[1]), lines: [line.replace(head[0], "").trim()] };
+      groups.push(group);
       cur = null;
       continue;
     }
     if (num || subj) {
+      if (orphan?.length && num && Number(num[1]) > 1) {
+        const prev = String(Number(num[1]) - 1);
+        carried.set(prev, [...(carried.get(prev) ?? []), ...orphan]);
+        orphan = null;
+      }
+      flushOrphan();
       cur = num ? String(Number(num[1])) : `서${Number(subj![1])}`;
       if (!raw.has(cur)) raw.set(cur, [line]);
       else cur = null; // 같은 번호가 또 나오면(정답표 등) 앞 것을 쓴다
@@ -197,8 +234,20 @@ export function splitExamBlocks(pageText: string): Map<string, ExamBlock> {
       }
       continue;
     }
+    if (orphan) {
+      orphan.push(line);
+      continue;
+    }
     if (cur) raw.get(cur)!.push(line);
     else if (group) group.lines.push(line);
+  }
+  flushOrphan();
+  for (const [k, ls] of carried) if (raw.has(k)) raw.get(k)!.push(...ls);
+  // 묶음 머리와 그 문항이 다른 쪽에 있으면(쪽 순서가 섞여 사이에 다른 묶음이 끼면) 번호 범위로 다시 잇는다(호원고1 10번)
+  for (const k of raw.keys()) {
+    if (shared.has(k) || !/^\d+$/.test(k)) continue;
+    const g = groups.find((x) => Number(k) >= x.from && Number(k) <= x.to);
+    if (g) shared.set(k, g.lines);
   }
   const out = new Map<string, ExamBlock>();
   for (const [k, ls] of raw) {
@@ -314,7 +363,7 @@ function familyOf(typeName: string, subjective: boolean): Family {
   if (t.includes("무관")) return "irrelevant";
   if (/빈칸|요약/.test(t) && !subjective) return "blank";
   if (/어법|어휘|밑줄|지칭|영영/.test(t) && !subjective) return "underline";
-  if (/주제|제목|요지|주장/.test(t) && !subjective) return "idea";
+  if (/주제|제목|요지|주장|목적/.test(t) && !subjective) return "idea";
   if (/일치/.test(t)) return "content";
   if (subjective) return "writing";
   return "other";
@@ -717,7 +766,8 @@ async function materialHits(admin: SupabaseClient, academyId: string, ctx: MatCt
     .from("lesson_material_projects")
     .select("id, title, lesson_pack_json")
     .eq("academy_id", academyId)
-    .is("deleted_at", null)
+    // 지운 프로젝트도 센다 — 시험 전에 학생에게 준 자료는 그대로이고, 워크북·1장 문서도 남아 있다.
+    // 지운 것을 빼니 호원고1 워크북·1장 자료가 하나도 안 잡혔다(2026-10-21, 지문 24개 프로젝트를 정리해 지움)
     .in("id", [...pidSet]);
   const pids = (projects ?? []).map((p) => String(p.id));
   if (pids.length === 0) return [];
@@ -1028,9 +1078,14 @@ function uploadHits(
   const out: MatHit[] = [];
   for (const u of uploads) {
     const seen = new Set<string>();
-    for (const at of findPassageAll(u.text, ctx.body).slice(0, 8)) {
-      const stems = stemsFor(u.text, at);
-      const typeSame = stems.some((s) => sameStem(ctx.stem, ctx.typeName, s));
+    // 같은 유형 발문인 곳부터 — 앞 여덟 곳만 보면 모음집 뒤쪽 같은 유형 문항을 놓친다(상우고1 4번)
+    const spots = findPassageAll(u.text, ctx.body)
+      .slice(0, 40)
+      .map((at) => ({ at, stems: stemsFor(u.text, at) }))
+      .map((x) => ({ ...x, same: x.stems.some((s) => sameStem(ctx.stem, ctx.typeName, s)) }))
+      .sort((x, y) => Number(y.same) - Number(x.same))
+      .slice(0, 10);
+    for (const { at, stems, same: typeSame } of spots) {
       const win = u.text.slice(Math.max(0, at - 200), at + 2600);
       let spot: { line: string; exam: string; ours: string; what: string } | null = null;
       // 근거 문장 바로 앞 발문이 같은 유형인가(주어진 문장은 지문과 떨어져 앞에 나오기도 한다)
@@ -1068,6 +1123,8 @@ function uploadHits(
           if (m.index === undefined) continue;
           const after = u.text.slice(m.index, m.index + 450);
           const sen = after.split(/(?<=[.!?]["”’]?)\s+|\n/).find((x) => x.length > 15 && within(ctx.given, x) >= 0.8);
+          // 다른 문장을 넣는 삽입 문제면 그 문장은 지문 속에 원래 자리대로 있다 — 주어진 문장이 아니다(상우고1 2번)
+          if (sen && !givenAsGiven(u.text.slice(m.index, m.index + 700), ctx.given, ctx.body.split("\n").slice(1).join(" "))) continue;
           if (sen) {
             spotTypeSame = true;
             spot = { line: `<b class="br hit">${esc(sen.trim())}</b>`, exam: ctx.given, ours: sen.trim(), what: "올린 자료가 같은 문장을 주어진 문장으로 냄" };
@@ -1112,13 +1169,15 @@ function uploadHits(
       const key = spot ? spot.ours : `type:${stems[0] ?? ""}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      const stemLine = stems[0] ? `<span class="nt">${esc(stems[0].replace(/\s+/g, " ").slice(0, 60))}</span>` : "";
+      // 같은 유형 발문을 보여 준다 — 첫 발문(빈칸)만 실려 모델이 무관한 문장 문제를 못 알아봤다(상우고1 22번)
+      const shownStem = stems.find((x) => sameStem(ctx.stem, ctx.typeName, x)) ?? stems[0];
+      const stemLine = shownStem ? `<span class="nt">${esc(shownStem.replace(/\s+/g, " ").slice(0, 60))}</span>` : "";
       out.push({
         level: spot && sameType ? "same" : "similar",
         typeSame: sameType,
         source: `올린 자료 「${u.name}」`,
         date: "",
-        lineHtml: spot ? `${stemLine}<br>${spot.line}` : `${stemLine}<br>${esc(win.slice(200, 360).replace(/\s+/g, " "))} …`,
+        lineHtml: spot ? `${stemLine}<br>${spot.line}` : `${stemLine}<br>${esc(u.text.slice(at, at + 700).replace(/\s+/g, " "))} …`,
         compare: spot
           ? { exam: spot.exam, ours: spot.ours, same: sameType ? `${spot.what} · 같은 유형` : spot.what }
           : { exam: ctx.typeName, ours: stems[0] ?? "", same: "올린 자료에 같은 지문 · 같은 유형" },
@@ -1148,10 +1207,17 @@ export function otherSchool(title: string, school: string): boolean {
  * 올린 자료의 저작권 문구 · 카페/웹 주소 · 일련번호 · 쪽 표시를 지운다 — 자료집 카드에 「본 콘텐츠는 … 저작권」,
  * 「유별난! 영어 공부 cafe.naver.com/…」, 「I410-141-25-99-091285986 - 2 -」가 그대로 찍혔다(선생님 지적 2026-10-15).
  */
+const COPYRIGHT = /저작권|무단\s*(?:복제|전재|배포)|라이[센선]스를?\s*획득|All rights reserved|Copyright|ⓒ|©/i;
+const COPYRIGHT_AROUND = new RegExp(`[^.!?\\n]{0,80}(?:${COPYRIGHT.source})[^.!?\\n]{0,80}[.!?]?`, "gi");
+
 export function cleanUploadText(t: string): string {
   return String(t ?? "")
     .split("\n")
-    .filter((line) => !/저작권|무단\s*(복제|전재|배포)|라이[센선]스를?\s*획득|All rights reserved|Copyright|ⓒ|©/i.test(line))
+    /*
+     * 짧은 줄은 통째로 지우고, 긴 줄(PDF 글이 한 줄로 이어 붙은 것)은 그 문구 둘레만 지운다 — 줄째 지우니
+     * 자료 하나가 통째로 사라졌다(2026-10-15 상우고1 「우작서점」 1과 변형문제 8만 자 → 0).
+     */
+    .map((line) => (line.length <= 200 ? (COPYRIGHT.test(line) ? "" : line) : line.replace(COPYRIGHT_AROUND, " ")))
     .join("\n")
     .replace(/https?:\/\/\S+|www\.\S+|cafe\.naver\.com\/\S*|blog\.naver\.com\/\S*/gi, " ")
     .replace(/유별난!?\s*영어\s*공부/g, " ")
@@ -1172,9 +1238,17 @@ function uploadWindows(ctx: MatCtx & { stem: string | null; typeName: string }, 
   const out: MatHit[] = [];
   for (const u of uploads) {
     const seen = new Set<string>();
-    for (const at of findPassageAll(u.text, ctx.body).slice(0, 6)) {
-      const stems = stemsFor(u.text, at);
-      const typeSame = stems.some((x) => sameStem(ctx.stem, ctx.typeName, x));
+    /*
+     * 한 자료에 같은 지문이 열 번 넘게 나온다(변형문제 모음) — 앞 여섯 곳만 보니 뒤쪽 같은 유형 문항을 놓쳤다
+     * (2026-10-15 상우고1 4번: 「[고1] 2과 변형문제」 109번 문장 삽입). 다 보고 같은 유형 발문인 곳을 앞에 둔다.
+     */
+    const spots = findPassageAll(u.text, ctx.body)
+      .slice(0, 40)
+      .map((at) => ({ at, stems: stemsFor(u.text, at) }))
+      .map((x) => ({ ...x, same: x.stems.some((s) => sameStem(ctx.stem, ctx.typeName, s)) }))
+      .sort((x, y) => Number(y.same) - Number(x.same))
+      .slice(0, 6);
+    for (const { at, stems, same: typeSame } of spots) {
       const key = stems[0] ?? String(at);
       if (seen.has(key)) continue;
       seen.add(key);
@@ -1256,7 +1330,9 @@ function sameFamily(examType: string, subjective: boolean, q: Made): boolean {
   if (!subjective && t.includes("삽입")) return code.includes("삽입");
   if (!subjective && t.includes("순서")) return code.includes("순서");
   if (!subjective && t.includes("무관")) return code.includes("무관");
-  const mc = choiceTexts(q.choices).length >= 4 || /삽입|무관|순서/.test(code);
+  // 밑줄 고르기 어법·어휘도 보기 칸이 비어 있다(정답 번호와 지문 밑줄만) — 객관식에서 빠져 호원고1 2·6번이 같은 유형을 못 찾았다(2026-10-21)
+  const underlined = /어법|어휘|함축|지칭/.test(code) && /<u>/.test(String(q.passage_modified ?? ""));
+  const mc = choiceTexts(q.choices).length >= 4 || /삽입|무관|순서/.test(code) || underlined;
   if (subjective || t.includes("영작")) return !mc;
   if (!mc) return false;
   if (t.includes("요약")) return code.includes("요약");
@@ -1265,8 +1341,44 @@ function sameFamily(examType: string, subjective: boolean, q: Made): boolean {
   if (t.includes("어휘")) return code.includes("어휘");
   if (/밑줄|함축/.test(t)) return code.includes("함축");
   if (t.includes("지칭")) return code.includes("지칭");
-  if (/주제|제목|요지|주장/.test(t)) return /주제|제목|요지|주장/.test(code);
+  // 목적도 대의 파악 — 우리 문항은 요지·주제로 같은 뜻을 묻는다(호원고1 7번)
+  if (/주제|제목|요지|주장|목적/.test(t)) return /주제|제목|요지|주장|목적/.test(code);
   if (t.includes("일치")) return code.includes("일치");
+  return false;
+}
+
+/**
+ * 문장 삽입: 우리 자료에 그 문장이 「주어진 문장」으로 나왔는가. 지문 속(앞 세 낱말과 뒤 세 낱말이 모두 시험 지문 글과
+ * 시험 지문 글과 이어지는 곳)에 들어 있으면 주어진 문장이 아니다 — 모델이 어법 문제 지문 속 (A)…(B) 사이 문장이나
+ * 다른 문장을 넣는 삽입 문제의 지문 속 문장을 「같은 주어진 문장」으로 보고 ①을 줬다(2026-10-15 상우고1 2·26번).
+ */
+function givenAsGiven(text: string, given: string, examPassage: string): boolean {
+  // 따옴표 모양(’ / ')이 자료마다 달라 낱말이 어긋났다 — 맞춰 비교한다
+  const words = (x: string) => plainWords(String(x).replace(/<[^>]+>/g, " ").replace(/\(\s*[A-Ea-e]\s*\)/g, " ").replace(/[’‘`]/g, "'"));
+  const g = words(given);
+  if (g.length < 5) return true;
+  const t = words(text);
+  const e = ` ${words(examPassage).join(" ")} `;
+  let found = false;
+  for (let i = 0; i + g.length <= t.length; i++) {
+    if (g.some((w, k) => t[i + k] !== w)) continue;
+    found = true;
+    const prev = t.slice(Math.max(0, i - 3), i);
+    const next = t.slice(i + g.length, i + g.length + 3);
+    if (prev.length < 3 || next.length < 3) return true;
+    if (!e.includes(` ${prev.join(" ")} `) || !e.includes(` ${next.join(" ")} `)) return true;
+  }
+  // 낱말 그대로는 없으면, 조금 바꿔 쓴 주어진 문장(발문 아래 상자)일 때만 — 아예 없으면 같은 주어진 문장이 아니다(상우고1 26번)
+  return !found && within(given, String(text).replace(/<[^>]+>/g, " ").slice(0, 400)) >= 0.8;
+}
+
+/** 올린 자료 전체에서 — 삽입 발문 뒤에 그 문장이 주어진 문장으로 나온 곳이 하나라도 있는가 */
+function uploadGivesGiven(text: string, given: string, examPassage: string): boolean {
+  for (const m of text.matchAll(/주\s*어\s*진\s*문\s*장|들\s*어\s*가\s*기\s*에|들\s*어\s*갈/g)) {
+    const win = text.slice(m.index ?? 0, (m.index ?? 0) + 700);
+    if (!win.split(/(?<=[.!?]["”’]?)\s+|\n/).some((x) => x.length > 15 && within(given, x) >= 0.8)) continue;
+    if (givenAsGiven(win, given, examPassage)) return true;
+  }
   return false;
 }
 
@@ -1278,7 +1390,7 @@ function sameFamily(examType: string, subjective: boolean, q: Made): boolean {
  */
 /** key: q 같은 유형 우리 문항 · o 다른 유형 우리 문항 · m 규칙이 자리를 찾은 자료 · p 자료 묶음 · u 올린 자료 */
 /** sameType: 시험과 같은 유형인가 — 아래 「우리 학원 문제」 카드는 같은 유형만 붙인다(2026-10-15 선생님 지적) */
-type AiCand = { key: string; brief: string; card: BookCard; source: string; date: string; fallbackCompare?: BookCompare; ruleSame?: boolean; sameType?: boolean; exactType?: boolean };
+type AiCand = { key: string; brief: string; card: BookCard; source: string; date: string; fallbackCompare?: BookCompare; ruleSame?: boolean; sameType?: boolean; exactType?: boolean; typeCode?: string };
 type AiResult = {
   verdict: BookVerdict;
   matched: Array<{ key: string; level: "same" | "similar" }>;
@@ -1296,7 +1408,7 @@ const JUDGE_SYSTEM = `너는 영어 내신 시험의 「적중」을 가리는 �
   - 어법·어휘 개수: 시험이 틀리게 바꾼 자리들 가운데 하나 이상을 같은 자리로 물었어야 한다.
   - 어휘 판단과 어휘 개수, 어법 판단과 어법 개수·어법 수정은 같은 유형으로 본다 — 같은 자리를 물었으면 ①이다.
   - 빈칸: 같은 문장을 비웠거나, 정답이 같은 뜻이면 ①이다(표현이 달라도).
-  - 주제·제목·요지: 같은 유형으로 정답이 같은 뜻이면 ①(요지를 서술형으로 써 본 것도 같은 유형). 다른 갈래(요지 시험에 제목 문제)로 같은 뜻을 다뤘으면 ②. 지문 주제어만 겹치는 것은 아니다.
+  - 주제·제목·요지·목적(대의 파악): 우리 문항의 정답이 시험 정답과 분명히 같은 뜻이면 갈래가 달라도(요지 시험에 주제 문제, 목적 시험에 요지 문제) ①이다(요지를 서술형으로 써 본 것도 같다). 뜻이 일부만 겹치면 ②. 지문 주제어만 겹치는 것은 아니다.
   - 내용 일치·불일치·일치 개수: 시험 정답 진술이 묻는 바로 그 사실을 우리 보기로 다뤘으면 ①이다(참 버전으로 다뤘든 틀린 버전으로 다뤘든). 같은 도표·같은 문장을 보기로 다룬 것도 그 사실이면 ①. 고유명사만 겹치는 것은 아니다.
   - 문장 삽입: 주어진 문장이 같아야 한다(지문 속 문장이라 어디에나 들어 있는 것은 근거가 아니다).
   - 순서: 같은 지문 순서 문제에서 정답 순서가 같으면 ①이다(덩어리를 나눈 자리가 조금 달라도). 무관한 문장: 끼워 넣은 문장이 같으면 ①, 같은 지문 무관한 문장 문제만 풀었으면 ②.
@@ -1347,6 +1459,12 @@ async function aiJudge(examBrief: string, cands: AiCand[]): Promise<AiResult | n
   if (cands.length === 0) return null;
   const user = `[시험 문항]\n${examBrief}\n\n[시험 전 우리 자료 후보]\n${cands.map((c) => c.brief).join("\n\n")}`;
   if (process.env.HITBOOK_DEBUG) console.log(`\n##### PROMPT (${cands.length})\n${user.slice(0, 9000)}\n#####`);
+  // 손 판정용: 후보를 파일로만 내보내고 모델은 부르지 않는다(규칙 판정으로 넘어감)
+  if (process.env.HITBOOK_DUMP) {
+    const { appendFileSync } = await import("node:fs");
+    appendFileSync(process.env.HITBOOK_DUMP, `${JSON.stringify({ exam: examBrief, cands })}\n`);
+    return null;
+  }
   try {
     const { text } = await examChat(
       {
@@ -1401,8 +1519,11 @@ export async function buildHitBook(
   cutoff: string | null,
   /** 선생님이 올린 자료 — 시험 전에 학생에게 준 것이라고 보고 그대로 센다 */
   uploads: HitUpload[] = [],
-  /** ai: 모델로 판정 · only: 이 문항만(재검토) */
-  opts: { ai?: boolean; only?: string } = {}
+  /**
+   * ai: 모델로 판정 · only: 이 문항만(재검토)
+   * reuse: 저장된 판정(적중 · 까닭 · 도식)을 그대로 두고 카드만 다시 고른다 — 모델을 다시 부르지 않는다
+   */
+  opts: { ai?: boolean; only?: string; reuse?: Map<string, BookItem> } = {}
 ): Promise<HitBook> {
   const cutoffMs = cutoff ? new Date(cutoff).getTime() : Number.POSITIVE_INFINITY;
   uploads = uploads.map((u) => ({ ...u, text: cleanUploadText(u.text) }));
@@ -1416,7 +1537,7 @@ export async function buildHitBook(
     .select("text")
     .eq("analysis_id", analysis.id)
     .order("page_no");
-  const blocks = splitExamBlocks((pages ?? []).map((p) => String(p.text ?? "")).join("\n"));
+  const blocks = splitExamBlocks((pages ?? []).map((p) => String(p.text ?? "")).join(`\n${PAGE_BREAK}\n`));
 
   const jobTitle = new Map<string, string>();
   const loadJobs = async (qs: Made[]) => {
@@ -1439,7 +1560,8 @@ export async function buildHitBook(
   let lastBody = "";
   for (const it of items) {
     const b = blocks.get(itemKey(it.item_no)) ?? { stem: it.stem ?? "", body: it.passage_excerpt ?? "", choices: [] };
-    const long = b.body.replace(/\s/g, "").length >= 120;
+    // 영어 글자로 센다 — 서술형은 본문 칸에 한글 발문만 500자 넘게 있어 지문이 있는 줄 알고 빌려 오지 않았다(호원고1 서술 3)
+    const long = (b.body.match(/[A-Za-z]/g) ?? []).length >= 150;
     itemBlocks.set(it.id, !long && lastBody && /윗글|위 글|위의 글/.test(`${b.stem} ${it.stem ?? ""}`) ? { ...b, body: lastBody } : b);
     if (long) lastBody = b.body;
   }
@@ -1516,10 +1638,11 @@ export async function buildHitBook(
     const mats = [...allMats.filter((m) => m.level !== "cand"), ...uploadHits(upCtx, uploads)];
     const packs = allMats.filter((m) => m.level === "cand" && !mats.some((x) => x.source === m.source)).slice(0, 6);
     // 모델 판정에만 쓰는 후보 — 규칙이 이미 잡은 자료는 빼고 자료마다 한 곳
-    const upCands = opts.ai
+    const saved = opts.reuse?.get(it.id);
+    const upCands = opts.ai || saved
       ? uploadWindows(upCtx, uploads)
           .filter((w, i, xs) => !mats.some((m) => m.source === w.source) && xs.findIndex((x) => x.source === w.source) === i)
-          .slice(0, 10)
+          .slice(0, saved ? 999 : 10)
       : [];
     const sameMats = mats.filter((m) => m.level === "same");
     const matSources = new Set(mats.map((m) => m.source)).size;
@@ -1553,7 +1676,7 @@ export async function buildHitBook(
       answer: String(it.answer_guess ?? ""),
     };
 
-    if (opts.ai) {
+    if (opts.ai || saved) {
       // 후보: 우리 문항(규칙으로 같음 → 가까움 → 나머지 같은 유형) 여덟, 수업자료·올린 자료 여섯
       // 같은 유형 이름(요지면 요지)을 앞에 — 주제·제목 문항에 밀려 요지 문항이 빠지던 것(발곡고1 12번)
       const exact = (q: Made) => {
@@ -1594,6 +1717,7 @@ export async function buildHitBook(
             key: `q${i + 1}`,
             // 주제·제목·요지는 한 갈래로 후보를 모으지만, 카드는 유형 이름까지 같은 것만(요지 시험에 주제 문항 X)
             exactType: exact(j.q) || !/주제|제목|요지|주장/.test(it.type_name),
+            typeCode: code,
             source: label(j.q),
             date: dateLabel(j.q.created_at),
             card: qCard(j.q, j.marks, j.same),
@@ -1604,6 +1728,7 @@ export async function buildHitBook(
         ...others.map(
           (q, i): AiCand => ({
             key: `o${i + 1}`,
+            typeCode: String(q.option_key ?? "").split(":").pop() ?? "",
             source: label(q),
             date: dateLabel(q.created_at),
             card: qCard(q, [], false),
@@ -1611,31 +1736,97 @@ export async function buildHitBook(
           })
         ),
         ...[...mats.slice(0, 6), ...upCands, ...packs].map((m, i): AiCand => ({
-          key: m.level === "cand" ? (m.source.startsWith("올린 자료") ? `u${i + 1}` : `p${i + 1}`) : `m${i + 1}`,
+          key: m.source.startsWith("올린 자료") ? `u${i + 1}` : m.level === "cand" ? `p${i + 1}` : `m${i + 1}`,
           ruleSame: m.level === "same",
           sameType: m.level === "same" || !!m.typeSame,
           source: m.source,
           date: m.date,
           card: { kind: "line", source: m.source, date: m.date, linesHtml: [m.lineHtml] },
           fallbackCompare: m.compare,
+          // 올린 자료는 규칙이 자리를 찾았어도 [u] — [m](수업자료, ②까지)로 보여 같은 삽입 문장이 ②가 되던 것(상우고1 4번)
           // 모델에 보이는 이름표와 키가 같아야 한다 — [m1]로 보이고 키는 p1 이라 근거가 버려지던 것(발곡고1 5·8번)
-          brief: `[${m.level === "cand" ? (m.source.startsWith("올린 자료") ? `u${i + 1}` : `p${i + 1}`) : `m${i + 1}`}] ${m.source}${m.date ? ` (${m.date})` : ""}\n${briefMark(m.lineHtml)}`,
+          brief: `[${m.source.startsWith("올린 자료") ? `u${i + 1}` : m.level === "cand" ? `p${i + 1}` : `m${i + 1}`}] ${m.source}${m.date ? ` (${m.date})` : ""}\n${briefMark(m.lineHtml)}`,
         })),
       ];
-      const r = pool.length ? await aiJudge(examBriefOf(it, block, markedBody, answer), pool) : null;
+      const fromSaved = (b: BookItem): AiResult => {
+        // 도식의 「…  (자료 이름)」에서 자료 이름으로 후보 키를 되찾는다
+        const evidence = b.compare.flatMap((c) => {
+          const ours = c.ours.trim();
+          const hit = pool.find((x) => ours.endsWith(`(${x.source})`));
+          if (!hit) return [];
+          const quote = ours.slice(0, ours.length - hit.source.length - 2).trim();
+          return [{ key: hit.key, exam_quote: c.exam, ours_quote: quote, why: c.same }];
+        });
+        const level = b.verdict === "same" ? ("same" as const) : ("similar" as const);
+        return { verdict: b.verdict, matched: evidence.map((e) => ({ key: e.key, level })), evidence, reason: b.reason };
+      };
+      if (saved && saved.verdict === "none") return { ...base, verdict: "none", count: 0, reason: saved.reason, compare: [], cards: [] };
+      // 문장 삽입: 그 문장이 우리 자료에서 지문 속 문장일 뿐이면 모델에게 미리 알린다 — 까닭 글에 「같은 주어진 문장」이라 쓰지 않게
+      const givenOk = new Map<string, boolean>();
+      if (fam === "insertion" && matCtx.given) {
+        const passage = block.body.split("\n").slice(1).join(" ");
+        const givenWords = plainWords(matCtx.given).join(" ");
+        for (const c of pool) {
+          const up = uploads.find((u) => c.source === `올린 자료 「${u.name}」`);
+          const body = c.card.kind === "question" ? `${c.card.questionText} ${c.card.passageHtml}` : c.card.linesHtml.join(" ");
+          const has = up ? plainWords(up.text).join(" ").includes(givenWords) : within(matCtx.given, body.replace(/<[^>]+>/g, " ")) >= 0.8;
+          if (!has) continue;
+          const ok = up ? uploadGivesGiven(up.text, matCtx.given, passage) : givenAsGiven(body, matCtx.given, passage);
+          givenOk.set(c.key, ok);
+          if (!ok) c.brief += "\n(확인: 시험의 주어진 문장이 이 자료에서는 지문 속 문장으로만 나온다 — 주어진 문장으로 낸 삽입 문제가 아니다)";
+        }
+      }
+      const r = saved ? fromSaved(saved) : pool.length ? await aiJudge(examBriefOf(it, block, markedBody, answer), pool) : null;
       if (r) {
         const byKey = new Map(pool.map((c) => [c.key, c]));
         // 다른 유형 문항(o)·자료 묶음(p)·규칙이 같은 형식이라 하지 않은 자료(m)는 ②까지 — 한 줄 해석에 같은 문장이 있다고 ①이 되던 것(발곡고1 1·3번)
         const cap = (k: string) => k.startsWith("q") || k.startsWith("u") || (k.startsWith("m") && byKey.get(k)?.ruleSame);
         r.matched = r.matched.map((m) => (m.level === "same" && !cap(m.key) ? { ...m, level: "similar" as const } : m));
-        if (r.verdict === "same" && !r.matched.some((m) => m.level === "same")) r.verdict = r.matched.length ? "similar" : "none";
+        if (fam === "insertion" && matCtx.given) {
+          const passage = block.body.split("\n").slice(1).join(" ");
+          r.matched = r.matched.map((m) => {
+            const c = byKey.get(m.key);
+            if (m.level !== "same" || !c) return m;
+            const known = givenOk.get(m.key);
+            const up = uploads.find((u) => c.source === `올린 자료 「${u.name}」`);
+            const ok =
+              known ??
+              (up
+                ? uploadGivesGiven(up.text, matCtx.given, passage)
+                : givenAsGiven(c.card.kind === "question" ? `${c.card.questionText} ${c.card.passageHtml}` : c.card.linesHtml.join(" "), matCtx.given, passage));
+            return ok ? m : { ...m, level: "similar" as const };
+          });
+        }
+        if (!saved && r.verdict === "same" && !r.matched.some((m) => m.level === "same")) r.verdict = r.matched.length ? "similar" : "none";
+        /*
+         * 같은 지문 · 같은 유형 우리 문항이 있으면 적어도 ② — 일람표의 ② 정의 그대로다. 모델이 「묻는 자리가 다르다」며
+         * 아님을 낸 것(호원고1 8번: 같은 지문 어법 문제를 두 번 풀었는데 다루지 않음)을 바로잡는다.
+         */
+        const sameTypeQ = pool.find((c) => c.key.startsWith("q") && c.exactType);
+        if (!saved && r.verdict === "none" && sameTypeQ) {
+          r.verdict = "similar";
+          r.matched = [{ key: sameTypeQ.key, level: "similar" }];
+          r.evidence = [{ key: sameTypeQ.key, exam_quote: it.type_name.split(" · ")[0]!, ours_quote: sameTypeQ.card.kind === "question" ? sameTypeQ.card.instruction : "", why: "같은 지문을 같은 유형으로 미리 풀었음" }];
+          r.reason = `「${sameTypeQ.source}」(${sameTypeQ.date})에서 같은 지문을 같은 유형으로 미리 풀었습니다. 시험이 물은 자리까지 같지는 않아 유사 유형으로 셉니다.`;
+        }
         const evKeys = [...new Set([...r.evidence.map((e) => e.key), ...r.matched.map((m) => m.key)])];
         const cards: BookCard[] = [];
-        for (const k of evKeys) {
+        /*
+         * 같은 유형 우리 문항(q)과 같은 유형 발문이 붙은 자료를 먼저 붙인다. ② 쪽(또는 같은 유형 카드가 없을 때)은
+         * 근거가 된 다른 형식 자료도 붙이되 「다른 형식 · 어순 배열」 꼬리표로 밝힌다 — 같은 유형만 남기니 ② 쪽 아래가
+         * 텅 비었다(2026-10-15 상우고1 4·7·20번).
+         */
+        const sameKindOf = (k: string) => {
           const c = byKey.get(k);
-          // 같은 유형 우리 문항(q)과 같은 유형 발문이 붙은 자료만 카드로 — 다른 유형은 도식의 근거로만 둔다
-          const sameKind = (k.startsWith("q") && !!c?.exactType) || (!k.startsWith("q") && !k.startsWith("o") && !!c?.sameType);
-          if (!c || !sameKind || cards.some((x) => x.source === c.source && x.kind === c.card.kind)) continue;
+          return (k.startsWith("q") && !!c?.exactType) || (!k.startsWith("q") && !k.startsWith("o") && !!c?.sameType);
+        };
+        const tagOf = (c: AiCand) => `다른 형식 · ${(c.typeCode || "").replace(/[_-]+/g, " ").trim() || (c.card.kind === "line" ? c.source.split(/\s*[·:]\s*/)[0] : "다른 유형")}`;
+        const ordered = [...evKeys.filter(sameKindOf), ...evKeys.filter((k) => !sameKindOf(k))];
+        for (const k of ordered) {
+          const c = byKey.get(k);
+          const sameKind = sameKindOf(k);
+          if (!sameKind && (r.verdict === "same" ? cards.length > 0 : false)) continue;
+          if (!c || cards.some((x) => x.source === c.source && x.kind === c.card.kind)) continue;
           const quote = r.evidence.find((e) => e.key === k)?.ours_quote ?? "";
           /*
            * 인용에 ⑥·[ ]·⟦ ⟧ 가 섞이면 지문 글자와 그대로 맞지 않아 빨간 표시가 안 붙었다 — 표지를 뗀 글과
@@ -1643,7 +1834,8 @@ export async function buildHitBook(
            */
           const inner = [...quote.matchAll(/[[⟦]([^\]⟧]{2,40})[\]⟧]/g)].map((m) => m[1]!.split("/")[0]!.trim());
           const plainQuote = quote.replace(/[①-⑳ⓐ-ⓩ]|[[\]⟦⟧]/g, " ").replace(/\s+/g, " ").trim();
-          const marks = [quote, plainQuote, ...inner].filter((x) => x.length > 2);
+          // 긴 인용(문단 통째)은 빨간 상자로 칠하지 않는다 — 지문 반이 빨개졌다(상우고1 2번)
+          const marks = [quote, plainQuote, ...inner].filter((x) => x.length > 2 && x.length <= 160);
           const mark = (h: string) => {
             for (const m of marks) {
               const out = markHtml(h, [m]);
@@ -1651,10 +1843,11 @@ export async function buildHitBook(
             }
             return h;
           };
+          const tag = sameKind ? undefined : tagOf(c);
           cards.push(
             c.card.kind === "question"
-              ? { ...c.card, passageHtml: quote ? mark(c.card.passageHtml) : c.card.passageHtml }
-              : { ...c.card, linesHtml: c.card.linesHtml.map((h) => (quote ? mark(h) : h)) }
+              ? { ...c.card, tag, passageHtml: quote ? mark(c.card.passageHtml) : c.card.passageHtml }
+              : { ...c.card, tag, linesHtml: c.card.linesHtml.map((h) => (quote ? mark(h) : h)) }
           );
           if (cards.length >= 2) break;
         }
@@ -1664,6 +1857,7 @@ export async function buildHitBook(
           same: e.why,
         }));
         const counted = r.matched.filter((m) => (r.verdict === "same" ? m.level === "same" : true));
+        if (saved) return { ...base, verdict: saved.verdict, count: saved.count, reason: saved.reason, compare: saved.compare, cards };
         return {
           ...base,
           verdict: r.verdict,
@@ -1738,8 +1932,20 @@ export async function buildHitBook(
   return assembleHitBook(analysis, out, cutoff);
 }
 
+/** 문항 번호 순서 — 1, 2, … 20, 서술형1 … (재검토·병렬 판정으로 순서가 섞였다) */
+export function itemOrder(a: { no: string }, b: { no: string }): number {
+  const key = (no: string) => {
+    const n = no.match(/\d+/)?.[0];
+    return [/^\d/.test(no) ? 0 : 1, n ? Number(n) : 999] as const;
+  };
+  const [ga, na] = key(a.no);
+  const [gb, nb] = key(b.no);
+  return ga - gb || na - nb || a.no.localeCompare(b.no);
+}
+
 /** 문항들로 자료집 합계를 낸다 — 재검토로 한 문항만 바꿀 때도 쓴다 */
 export function assembleHitBook(analysis: ExamAnalysisRow, out: BookItem[], cutoff: string | null): HitBook {
+  out = [...out].sort(itemOrder);
   const pts = (x: BookItem) => Number(x.points ?? 0);
   const totalPts = Number(analysis.total_points ?? 0) || out.reduce((s, x) => s + pts(x), 0) || 1;
   const same = out.filter((x) => x.verdict === "same");

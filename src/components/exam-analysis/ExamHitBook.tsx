@@ -1,4 +1,4 @@
-import type { BookCard, BookItem, HitBook } from "@/lib/exam-analysis/hit-book";
+import { itemOrder, type BookCard, type BookItem, type HitBook } from "@/lib/exam-analysis/hit-book";
 import { HitBookTools } from "@/components/exam-analysis/HitBookTools";
 import { HitBookRecheck } from "@/components/exam-analysis/HitBookRecheck";
 
@@ -63,6 +63,7 @@ color:var(--ink);font-family:var(--body);display:grid;justify-content:center;gap
 .hb .list .no{font-family:var(--display);font-weight:700;font-size:10pt}
 .hb .list td:nth-child(2){white-space:nowrap}
 .hb .list .nt{color:var(--muted);font-size:7pt;line-height:1.35}
+.hb .list.dense td{padding:.55mm 1.4mm}.hb .list.dense .no{font-size:9pt}.hb .list.dense .bd{font-size:7pt;padding:.1mm 1.8mm}.hb .list.dense .nt{font-size:6.6pt;line-height:1.3}
 .hb .cntc{font-weight:700;color:var(--red)}
 .hb .bd{display:inline-block;border-radius:99px;padding:.3mm 2.2mm;font-weight:700;font-size:7.6pt;white-space:nowrap}
 .hb .bd.same{background:var(--red-soft);color:var(--red)}
@@ -146,7 +147,8 @@ color:var(--ink);font-family:var(--body);display:grid;justify-content:center;gap
 .hb .f6 .ebody{font-size:5.9pt;line-height:1.3}.hb .f6 .echo{font-size:6.3pt}.hb .f6 .arow{grid-template-columns:1fr 1.6fr}
 /* 2026-10-15 선생님 지시: 학교 문제는 작게, 우리 문제는 실제 시험지처럼 크게, 둘을 도식으로 잇는다 */
 .hb .top2{display:grid;grid-template-columns:0.92fr 1.08fr;gap:3mm;align-items:start}
-.hb .exam.mini{padding:2.4mm 3mm;font-size:7.4pt;max-height:96mm;overflow:hidden}
+.hb .exam.mini{padding:2.4mm 3mm;font-size:7.4pt}
+.hb .exam.mini .ebody{max-height:70mm;overflow:hidden;-webkit-mask-image:linear-gradient(#000 85%,transparent);mask-image:linear-gradient(#000 85%,transparent)}
 .hb .exam.mini .etag{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8mm}
 .hb .exam.mini .ans-chip{background:var(--ink);color:#fff;border-radius:99px;padding:.2mm 2.2mm;font-size:7pt;letter-spacing:0}
 .hb .exam.mini .stem{font-size:7.6pt;min-height:0;padding-right:0;margin-bottom:1mm}
@@ -199,10 +201,10 @@ color:var(--ink);font-family:var(--body);display:grid;justify-content:center;gap
 .hb .sheet.wb ul{margin:0;padding-left:4.4mm;display:grid;gap:1.4mm;font-family:Georgia,serif;font-size:8.6pt;line-height:1.6}
 .hb .cards.one .sheet{font-size:8.8pt}.hb .cards.one .sheet .pm{font-size:8.7pt}
 /* 넘치면: 학교 문제 · 도식부터 줄이고, 우리 시험지는 끝까지 남긴다 */
-.hb .f1 .exam.mini .ebody{font-size:6.4pt}.hb .f1 .exam.mini{max-height:84mm}
-.hb .f2 .fbox{font-size:6.8pt}.hb .f2 .fwhy{font-size:7pt}.hb .f2 .exam.mini{max-height:74mm}
+.hb .f1 .exam.mini .ebody{font-size:6.4pt;max-height:60mm}
+.hb .f2 .fbox{font-size:6.8pt}.hb .f2 .fwhy{font-size:7pt}.hb .f2 .exam.mini .ebody{max-height:50mm}
 .hb .f3 .fpair:nth-of-type(n+4){display:none}.hb .f3 .leadbox{min-height:96mm}
-.hb .f4 .ihead .ino{font-size:28pt}.hb .f4 .leadbox{min-height:84mm}.hb .f4 .exam.mini{max-height:64mm}
+.hb .f4 .ihead .ino{font-size:28pt}.hb .f4 .leadbox{min-height:84mm}.hb .f4 .exam.mini .ebody{max-height:40mm}
 .hb .f5 .fpair:nth-of-type(n+3){display:none}.hb .f5 .leadbox{min-height:70mm;display:flex}
 .hb .f6 .sheet{font-size:7.6pt}.hb .f6 .sheet .pm{font-size:7.5pt}.hb .f6 .leadbox{min-height:56mm}
 .hb .fpair{grid-template-columns:1fr 11mm 1fr;row-gap:.6mm}
@@ -212,6 +214,9 @@ color:var(--ink);font-family:var(--body);display:grid;justify-content:center;gap
 .hb .sheet .pm{max-height:64mm;overflow:hidden;-webkit-mask-image:linear-gradient(#000 82%,transparent);mask-image:linear-gradient(#000 82%,transparent)}
 .hb .cards.one .sheet .pm{max-height:84mm}
 .hb .f4 .sheet .pm{max-height:52mm}.hb .f6 .sheet .pm{max-height:40mm}
+.hb .sheet header{flex-wrap:wrap;row-gap:.8mm}.hb .sheet .src{min-width:28mm}
+.hb .sheet .stag{background:var(--ink);color:#fff;border-radius:99px;padding:.1mm 2.2mm;font-size:6.8pt;font-weight:700;white-space:nowrap}
+.hb .sheet.other{border-style:dashed}
 .hb .leadbox.nocard{min-height:0;flex:0 0 auto}.hb .nocard-note{font-size:8.4pt;line-height:1.6;color:var(--ink)}
 .hb-tools{display:flex;justify-content:center;gap:8px;padding:10px 0 0}
 .hb .hb-recheck{position:absolute;top:4mm;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:2mm;z-index:2}
@@ -252,24 +257,49 @@ function aroundMark(html: string): string {
   return `… ${html.slice(from)}`;
 }
 
-/** 줄 묶음 자료는 표시된 줄과 그 앞뒤만 — 없으면 앞 여덟 줄 */
+/** 문단 통째로 칠한 빨간 표시는 풀어 둔다 — 짧은 자리만 빨간 상자(상우고1 2번) */
+function shortMarks(html: string): string {
+  return html.replace(/<mark>([\s\S]*?)<\/mark>/g, (m, inner: string) => (inner.replace(/<[^>]+>/g, "").length > 160 ? inner : m));
+}
+
+/** 한 줄이 너무 길면(올린 자료 한 문항이 통째로 한 줄) 표시 둘레만 짧게 */
+function clipLine(h: string): string {
+  const plain = h.replace(/<[^>]+>/g, "");
+  if (plain.length <= 360) return h;
+  const at = h.indexOf("<mark");
+  if (at < 0) return `${h.slice(0, h.lastIndexOf(" ", 340) > 0 ? h.lastIndexOf(" ", 340) : 340)} …`;
+  const end = h.indexOf("</mark>", at);
+  let from = Math.max(0, at - 180);
+  let to = Math.min(h.length, (end < 0 ? at : end + 7) + 180);
+  // 태그 한가운데서 자르지 않는다
+  const lt = h.lastIndexOf("<", from);
+  if (lt > h.lastIndexOf(">", from)) from = lt;
+  const gt = h.indexOf(">", to);
+  if (h.lastIndexOf("<", to) > h.lastIndexOf(">", to - 1) && gt > 0) to = gt + 1;
+  return `${from > 0 ? "… " : ""}${h.slice(from, to)}${to < h.length ? " …" : ""}`;
+}
+
+/** 줄 묶음 자료는 표시된 줄과 그 앞뒤만 — 없으면 앞 여덟 줄. 올린 자료는 발문 한 줄을 맨 앞에 */
 function markedLines(linesHtml: string[]): string[] {
-  const all = linesHtml.flatMap((h) => h.split(/<br\s*\/?>/));
+  const all = linesHtml.flatMap((h) => shortMarks(h).split(/<br\s*\/?>|\n/)).filter((l) => l.replace(/<[^>]+>/g, "").trim());
   const hits = all.map((l, i) => (/<mark|class="br hit"/.test(l) ? i : -1)).filter((i) => i >= 0);
-  if (hits.length === 0) return all.slice(0, 8);
+  if (hits.length === 0) return all.slice(0, 8).map(clipLine);
   const keep = new Set<number>();
+  const stem = all.findIndex((l) => /[가-힣].*(것은|곳은|순서|고르|쓰시오|\?)/.test(l.replace(/<[^>]+>/g, "")));
+  if (stem >= 0 && stem < hits[0]!) keep.add(stem);
   for (const i of hits) for (const k of [i - 1, i, i + 1]) if (k >= 0 && k < all.length) keep.add(k);
-  return [...keep].sort((a, b) => a - b).slice(0, 9).map((i) => all[i]!);
+  return [...keep].sort((a, b) => a - b).slice(0, 7).map((i) => clipLine(all[i]!));
 }
 
 /** 우리 자료 — 실제 시험지처럼(문항 번호 · 발문 · 지문 상자 · 보기 · 정답 도장) */
 function Card({ card, n, academyName }: { card: BookCard; n: number; academyName: string }) {
   if (card.kind === "line") {
     return (
-      <article className="sheet wb">
+      <article className={`sheet wb${card.tag ? " other" : ""}`}>
         <header>
           <span className="sbrand">{academyName}</span>
           <span className="src">{card.source}</span>
+          {card.tag ? <span className="stag">{card.tag}</span> : null}
           <span className="dt">{card.date ? `${card.date} 수업` : ""}</span>
         </header>
         <ul>
@@ -282,10 +312,11 @@ function Card({ card, n, academyName }: { card: BookCard; n: number; academyName
   }
   const no = card.source.match(/(\d+)번$/)?.[1] ?? String(n);
   return (
-    <article className="sheet">
+    <article className={`sheet${card.tag ? " other" : ""}`}>
       <header>
         <span className="sbrand">{academyName}</span>
         <span className="src">{card.source.replace(/\s*\d+번$/, "")}</span>
+        {card.tag ? <span className="stag">{card.tag}</span> : null}
         <span className="dt">{card.date ? `${card.date} 수업` : ""}</span>
         <span className="sans">정답 {card.answerNo ? CIRCLED[card.answerNo - 1] : card.answerText}</span>
       </header>
@@ -293,13 +324,13 @@ function Card({ card, n, academyName }: { card: BookCard; n: number; academyName
         <b className="qno">{no}.</b> {card.instruction}
       </p>
       {card.questionText ? <div className="qt">{card.questionText}</div> : null}
-      {card.passageHtml ? <div className="pm" dangerouslySetInnerHTML={{ __html: aroundMark(card.passageHtml) }} /> : null}
+      {card.passageHtml ? <div className="pm" dangerouslySetInnerHTML={{ __html: aroundMark(shortMarks(card.passageHtml)) }} /> : null}
       {card.choices.length ? (
         <ol className="ch">
           {card.choices.map((c, i) => (
             <li key={i} className={card.answerNo === i + 1 ? "ans" : undefined}>
               <span>{CIRCLED[i]}</span>
-              <span>{c}</span>
+              {card.choicesHtml ? <span dangerouslySetInnerHTML={{ __html: c }} /> : <span>{c}</span>}
             </li>
           ))}
         </ol>
@@ -398,7 +429,11 @@ function ItemPage({ it, book, academyName }: { it: BookItem; book: HitBook; acad
       {it.cards.length ? (
         <div className="leadbox">
           <div className="ltag">
-            {same ? "▼ 시험 전에 학생들이 실제로 푼 정수학원 문제 — 같은 자리를 빨간 상자로" : "▼ 시험 전에 학생들이 실제로 푼 정수학원 자료"}
+            {same
+              ? `▼ 시험 전에 학생들이 실제로 푼 ${academyName} 문제 — 같은 자리를 빨간 상자로`
+              : it.cards.some((c) => c.tag)
+                ? `▼ 시험 전에 학생들이 실제로 푼 ${academyName} 자료 — 형식이 다른 자료는 꼬리표로 밝혔습니다`
+                : `▼ 시험 전에 학생들이 실제로 푼 ${academyName} 자료`}
           </div>
           <div className={`cards ${it.cards.length === 1 ? "one" : ""}`}>
             {it.cards.map((c, i) => (
@@ -408,7 +443,7 @@ function ItemPage({ it, book, academyName }: { it: BookItem; book: HitBook; acad
         </div>
       ) : (
         <div className="leadbox nocard">
-          <div className="ltag">▼ 시험 전에 학생들이 실제로 푼 정수학원 자료</div>
+          <div className="ltag">▼ 시험 전에 학생들이 실제로 푼 {academyName} 자료</div>
           <p className="nocard-note">
             이 문항은 시험과 같은 유형의 우리 문제 대신, 위 도식의 자료(워크북 · 1장 자료 · 다른 유형 문항)로 같은 내용을 미리 다뤘습니다.
           </p>
@@ -422,7 +457,8 @@ function ItemPage({ it, book, academyName }: { it: BookItem; book: HitBook; acad
 }
 
 export function ExamHitBook({ book, academyName, backHref }: { book: HitBook; academyName: string; backHref?: string }) {
-  const shown = book.items.filter((x) => x.verdict !== "none");
+  const items = [...book.items].sort(itemOrder);
+  const shown = items.filter((x) => x.verdict !== "none");
   const hard = book.items.filter((x) => x.level === "상");
   const hardHit = hard.filter((x) => x.verdict !== "none").length;
   const cutoff = book.cutoff ? book.cutoff.slice(0, 10).replace(/-/g, ". ") + "." : "";
@@ -530,7 +566,8 @@ export function ExamHitBook({ book, academyName, backHref }: { book: HitBook; ac
             같은 정답 표현)를 물은 것, <b className="blue">② 유사 유형</b>은 같은 지문 · 같은 유형을 풀어 바로 풀 수 있는
             것입니다. 같은 지문이라도 그 유형을 미리 풀지 않았으면 「다루지 않음」으로 셉니다.
           </p>
-          <table className="list">
+          {/* 문항이 많으면(서술형까지 22개 넘게) 표를 촘촘하게 — 26문항에서 마지막 줄이 A4 밖으로 밀렸다(호원고1) */}
+          <table className={`list${items.length > 22 ? " dense" : ""}`}>
             <thead>
               <tr>
                 <th>번호</th>
@@ -543,7 +580,7 @@ export function ExamHitBook({ book, academyName, backHref }: { book: HitBook; ac
               </tr>
             </thead>
             <tbody>
-              {book.items.map((it) => (
+              {items.map((it) => (
                 <tr key={it.id}>
                   <td className="no">{it.no}</td>
                   <td>{it.typeName}</td>
@@ -555,7 +592,7 @@ export function ExamHitBook({ book, academyName, backHref }: { book: HitBook; ac
                     </span>
                   </td>
                   <td className={`r ${it.verdict !== "none" ? "cntc" : ""}`}>{it.verdict !== "none" ? `${it.count}개` : "-"}</td>
-                  <td className="nt">{it.reason.length > 52 ? `${it.reason.slice(0, 52)}…` : it.reason}</td>
+                  <td className="nt">{it.reason.length > (items.length > 22 ? 40 : 52) ? `${it.reason.slice(0, items.length > 22 ? 40 : 52)}…` : it.reason}</td>
                 </tr>
               ))}
             </tbody>
