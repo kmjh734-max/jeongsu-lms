@@ -34,7 +34,8 @@ export function CourseSettingsForm({
   const [description, setDescription] = useState(course.description ?? "");
   const [folderId, setFolderId] = useState(course.folder_id ?? "");
   const [teacherId, setTeacherId] = useState(course.teacher_id ?? "");
-  const [isPublished, setIsPublished] = useState(course.is_published);
+  // 공개·비공개는 고르지 않는다(배정해야 학생에게 나온다, 2026-10-21) — 저장할 때 지금 값 그대로 둔다
+  const isPublished = course.is_published;
   const [loading, setLoading] = useState(false);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -184,14 +185,6 @@ export function CourseSettingsForm({
             </select>
           </div>
         )}
-        <label className="flex items-center gap-2 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            checked={isPublished}
-            onChange={(e) => setIsPublished(e.target.checked)}
-          />
-          학생에게 강좌 공개
-        </label>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"

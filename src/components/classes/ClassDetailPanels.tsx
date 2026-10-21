@@ -575,7 +575,7 @@ export function ClassCoursesPanel({
                 {available.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.title}
-                    {c.is_published ? "" : " (비공개)"}
+
                   </option>
                 ))}
               </select>

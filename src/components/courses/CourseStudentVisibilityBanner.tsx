@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -28,8 +27,9 @@ export function CourseStudentVisibilityBanner({
 
   const hasPublishedLessons = publishedLessonCount > 0;
   const hasEnrollments = enrollmentCount > 0;
-  const ready =
-    courseIsPublished && hasPublishedLessons && hasEnrollments;
+  // 강좌 공개·비공개는 보지 않는다(선생님 말씀(2026-10-21): 동영상 강좌 공개·비공개는 필요 없다 — 어차피 배정해야 학생에게 나온다.)
+  void courseIsPublished;
+  const ready = hasPublishedLessons && hasEnrollments;
 
   async function publishForStudents() {
     setLoading(true);
@@ -58,7 +58,7 @@ export function CourseStudentVisibilityBanner({
       return;
     }
 
-    setMessage("강좌와 영상을 학생에게 공개했습니다.");
+    setMessage("영상을 학생에게 공개했습니다.");
     setLoading(false);
     router.refresh();
   }
@@ -70,7 +70,7 @@ export function CourseStudentVisibilityBanner({
     <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-950">
       <p className="font-semibold">학생에게 아직 안 보일 수 있습니다</p>
       <p className="mt-1 text-amber-900">
-        「{courseTitle}」 — 아래 3가지가 모두 필요합니다.
+        「{courseTitle}」 — 아래 두 가지가 모두 필요합니다.
       </p>
       <ul className="mt-3 list-inside list-disc space-y-1">
         <li className={hasEnrollments ? "text-green-800" : ""}>
@@ -78,14 +78,7 @@ export function CourseStudentVisibilityBanner({
           {hasEnrollments
             ? `${enrollmentCount}명 배정됨`
             : "없음 → "}
-          {!hasEnrollments && (
-            <Link href="/admin/students#assign" className="font-medium underline">
-              학생·수강에서 배정
-            </Link>
-          )}
-        </li>
-        <li className={courseIsPublished ? "text-green-800" : ""}>
-          강좌 공개: {courseIsPublished ? "공개됨" : "비공개 (학생 목록에 안 나올 수 있음)"}
+          {!hasEnrollments && <span className="font-medium">이 화면의 「배정하기」로 배정</span>}
         </li>
         <li className={hasPublishedLessons ? "text-green-800" : ""}>
           영상 공개:{" "}
@@ -101,17 +94,10 @@ export function CourseStudentVisibilityBanner({
           onClick={() => void publishForStudents()}
           className="rounded-lg bg-amber-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-900 disabled:opacity-50"
         >
-          {loading ? "처리 중..." : "강좌·영상 모두 학생에게 공개"}
+          {loading ? "처리 중..." : "영상 모두 학생에게 공개"}
         </button>
       </div>
       {message && <p className="mt-2 text-xs">{message}</p>}
-      <p className="mt-3 text-xs text-amber-800">
-        Supabase에서 학생이 비공개 강좌도 보도록 하려면{" "}
-        <code className="rounded bg-amber-100 px-1">
-          FIX_STUDENT_COURSE_VISIBILITY.sql
-        </code>{" "}
-        실행이 필요할 수 있습니다.
-      </p>
     </div>
   );
 }

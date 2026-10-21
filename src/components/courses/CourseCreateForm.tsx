@@ -36,7 +36,8 @@ export function CourseCreateForm({
   const [description, setDescription] = useState("");
   const [folderId, setFolderId] = useState("");
   const [teacherId, setTeacherId] = useState("");
-  const [isPublished, setIsPublished] = useState(true);
+  // 공개·비공개는 고르지 않는다(배정해야 학생에게 나온다, 2026-10-21)
+  const isPublished = true;
   const [videoRows, setVideoRows] = useState<VideoDraftRow[]>([
     createEmptyVideoRow(),
   ]);
@@ -229,14 +230,6 @@ export function CourseCreateForm({
             </select>
           </div>
         )}
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={isPublished}
-            onChange={(e) => setIsPublished(e.target.checked)}
-          />
-          강좌 공개 (학생에게 표시)
-        </label>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

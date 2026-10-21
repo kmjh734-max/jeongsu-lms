@@ -13,7 +13,6 @@ import {
   reorderCoursesAction,
   restoreCoursesAction,
   setCoursesArchivedAction,
-  setCoursesPublishedAction,
   trashCoursesAction,
 } from "@/app/admin/courses/actions";
 import { Icon } from "@/components/layout/NavIcon";
@@ -513,19 +512,20 @@ export function CoursesBrowser({
                       ) : null}
                     </span>
 
-                    <span className="w-[70px] shrink-0 text-right">
+                    {/* 공개·비공개 대신 배정 여부를 보인다(선생님 말씀(2026-10-21): 동영상 강좌 공개·비공개는 필요 없다 — 어차피 배정해야 학생에게 나온다.) */}
+                    <span className="w-[76px] shrink-0 text-right">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                        className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold ${
                           trashed
                             ? "bg-rose-50 text-rose-700"
                             : course.archived_at
                               ? "bg-slate-100 text-slate-500"
-                              : course.is_published
+                              : c.studentCount > 0
                                 ? "bg-green-50 text-green-700"
-                                : "bg-slate-100 text-slate-500"
+                                : "bg-amber-50 text-amber-700"
                         }`}
                       >
-                        {trashed ? "휴지통" : course.archived_at ? "보관" : course.is_published ? "공개" : "비공개"}
+                        {trashed ? "휴지통" : course.archived_at ? "보관" : c.studentCount > 0 ? "배정됨" : "배정 안 됨"}
                       </span>
                     </span>
                   </li>
@@ -542,7 +542,7 @@ export function CoursesBrowser({
         ) : null}
         {scope === "alive" && visible.length > 0 && selected.size === 0 ? (
           <p className="px-1 text-xs text-slate-400">
-            왼쪽 네모로 강좌를 고르면 아래 막대에서 반·학생에게 배정하거나, 폴더를 옮기거나 공개·보관·휴지통으로 보낼 수 있어요.
+            왼쪽 네모로 강좌를 고르면 아래 막대에서 반·학생에게 배정하거나, 폴더를 옮기거나 보관·휴지통으로 보낼 수 있어요.
           </p>
         ) : null}
       </section>
@@ -574,8 +574,6 @@ export function CoursesBrowser({
                 <>
                   <BarButton icon="usercheck" label="배정" primary onClick={() => setAssignIds([...selected])} busy={busy} />
                   <BarButton icon="move" label="폴더 옮기기" onClick={() => setMovePick([...selected])} busy={busy} />
-                  <BarButton icon="users" label="공개" onClick={() => void run(() => setCoursesPublishedAction([...selected], true))} busy={busy} />
-                  <BarButton icon="lock" label="비공개" onClick={() => void run(() => setCoursesPublishedAction([...selected], false))} busy={busy} />
                   <BarButton icon="download" label="보관" onClick={() => void run(() => setCoursesArchivedAction([...selected], true))} busy={busy} />
                   <BarButton icon="trash" label="휴지통" danger onClick={() => handleTrash([...selected])} busy={busy} />
                 </>

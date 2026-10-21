@@ -56,13 +56,6 @@ export function CourseManageView({
             <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{folderLabel}</span>
           ) : null}
           <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-[22px]">{course.title}</h1>
-          <span
-            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-              course.is_published ? "bg-green-50 text-green-700" : "bg-slate-100 text-slate-500"
-            }`}
-          >
-            {course.is_published ? "공개 중" : "비공개"}
-          </span>
           {course.archived_at ? (
             <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
               보관함

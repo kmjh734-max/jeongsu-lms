@@ -3,7 +3,6 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { loadStudentDashboardCourses } from "@/lib/student/load-dashboard-courses";
 import { formatDuration } from "@/lib/video/format-duration";
 import { loadLessonVideoMeta } from "@/lib/video/video-meta";
-import { PublishedBadge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ButtonLink } from "@/components/ui/Button";
 import { Icon } from "@/components/layout/NavIcon";
@@ -109,7 +108,6 @@ export async function StudentDashboardContent() {
                         ) : null}
                         {course.title ?? "제목 없음"}
                       </h3>
-                      {!course.is_published && <PublishedBadge published={false} />}
                     </div>
                     {course.description ? (
                       <p className="mt-1.5 line-clamp-2 text-sm text-slate-500">{course.description}</p>
