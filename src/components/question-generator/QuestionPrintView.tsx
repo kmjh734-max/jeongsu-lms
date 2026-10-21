@@ -38,6 +38,14 @@ import {
 import { isSetMarkKey } from "@/lib/question-generator/passage-set";
 import { mergeMarkedPassages } from "@/lib/question-generator/passage-set-merge";
 import "./question-print-styles.css";
+import "@/components/lesson-materials/material-design.css";
+import { MaterialDesignPicker } from "@/components/lesson-materials/MaterialDesignPicker";
+import {
+  QUESTION_BASE_STYLE,
+  materialDesignClass,
+  useMaterialDesign,
+  type MaterialDesign,
+} from "@/lib/lesson-materials/material-design";
 
 type QuestionRow = {
   id: string;
@@ -99,7 +107,6 @@ const BRANDING_STORAGE_KEY = "qg-print-branding";
  * 바꾼다 — question-print-styles.css의 .qg-style-*.
  */
 type QuestionDesignStyle = "base" | "a" | "b" | "c";
-const DESIGN_STYLE_KEY = "question-print-design-style";
 const TYPE_ORDER_KEY = "question-print-type-order";
 const SPREAD_KEY = "question-print-spread-passages";
 
@@ -119,11 +126,6 @@ function spreadByPassage<T extends { passage_id?: string | null }>(list: T[], wi
   }
   return out;
 }
-const DESIGN_STYLES: Array<{ id: QuestionDesignStyle; label: string; hint: string }> = [
-  { id: "a", label: "A", hint: "교재 세리프" },
-  { id: "b", label: "B", hint: "깔끔한 산세리프" },
-  { id: "c", label: "C", hint: "클래식 인쇄" },
-];
 /** A·B·C가 쓰는 글꼴. 기본 모양에서는 불러오지 않는다. */
 const DESIGN_FONTS_HREF =
   "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,500&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=Gowun+Batang:wght@400;700&display=swap";
@@ -747,6 +749,7 @@ export function QuestionPrintView({
   academyName = ACADEMY_NAME,
   logoSrc = LOGO_SRC,
   embedded = false,
+  design,
 }: {
   jobId: string;
   /**
@@ -767,6 +770,8 @@ export function QuestionPrintView({
   logoSrc?: string;
   /** 최종통합자료 안에 쪽만 끼워 넣는다(설정 창 없이). */
   embedded?: boolean;
+  /** 최종통합자료가 고른 디자인(주면 이것을 쓴다) */
+  design?: MaterialDesign;
 }) {
   const [title, setTitle] = useState("영어 변형문제");
   /** PDF로 바로 저장(인쇄 창 없이) */
@@ -803,15 +808,9 @@ export function QuestionPrintView({
   });
   const [brandingReady, setBrandingReady] = useState(false);
   const measureRef = useRef<HTMLDivElement>(null);
-  const [designStyle, setDesignStyle] = useState<QuestionDesignStyle>("a");
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(DESIGN_STYLE_KEY);
-      if (saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
-    } catch {
-      /* 저장소를 못 쓰면 기본값 */
-    }
-  }, []);
+  /** 디자인 — 모든 자료가 하나를 같이 쓴다(material-design.ts, 선생님 2026-10-21). 통합자료는 design으로 준다. */
+  const [md, chooseMd] = useMaterialDesign(design);
+  const designStyle = QUESTION_BASE_STYLE[md] as QuestionDesignStyle;
   /*
    * 유형 차례(유형 코드 목록). 빈 목록은 기본 차례다.
    * 선생님 요청(2026-10-20): 유형별 출력에서 유형 순서를 바꿀 수 있게. 한 번 정하면
@@ -847,14 +846,6 @@ export function QuestionPrintView({
     setTypeOrder(order);
     try {
       window.localStorage.setItem(`${TYPE_ORDER_KEY}:${academyName}`, JSON.stringify(order));
-    } catch {
-      /* 무시 */
-    }
-  };
-  const chooseDesignStyle = (style: QuestionDesignStyle) => {
-    setDesignStyle(style);
-    try {
-      window.localStorage.setItem(DESIGN_STYLE_KEY, style);
     } catch {
       /* 무시 */
     }
@@ -1498,7 +1489,7 @@ export function QuestionPrintView({
           <div
             ref={measureRef}
             aria-hidden
-            className={`qg-print-measure font-print no-print ${designClass(designStyle)}`}
+            className={`qg-print-measure font-print no-print ${designClass(designStyle)} ${materialDesignClass(md)}`}
             style={{ width: `${COL_WIDTH_MM}mm` }}
           >
             {displayItems.map((item) => (
@@ -1510,7 +1501,7 @@ export function QuestionPrintView({
 
           <div
             id="qg-print-root"
-            className={`max-w-[210mm] px-4 py-6 print:mx-0 print:max-w-none print:px-0 print:py-0 ${designClass(designStyle)}`}
+            className={`max-w-[210mm] px-4 py-6 print:mx-0 print:max-w-none print:px-0 print:py-0 ${designClass(designStyle)} ${materialDesignClass(md)}`}
           >
             {sheetPages.map((page, pageIdx) => (
               <article
@@ -1788,29 +1779,7 @@ export function QuestionPrintView({
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-1.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-              시험지 모양
-            </p>
-            <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
-              {DESIGN_STYLES.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  title={d.hint}
-                  onClick={() => chooseDesignStyle(d.id)}
-                  className={`rounded-md px-1 py-1.5 text-xs font-bold transition ${
-                    designStyle === d.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-            <p className="text-[11px] text-slate-400">
-              {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
-            </p>
-          </div>
+          <MaterialDesignPicker value={md} onChange={chooseMd} />
 
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">

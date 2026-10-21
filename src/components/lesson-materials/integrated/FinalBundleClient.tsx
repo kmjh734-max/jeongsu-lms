@@ -522,6 +522,7 @@ export function FinalBundleClient({
         mode={mode}
         academyName={academyName}
         logoSrc={logoSrc}
+        design={payload.theme}
         embedded
       />
     ));

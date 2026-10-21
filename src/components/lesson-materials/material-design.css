@@ -291,3 +291,144 @@
 .ar-style.md {
   --md-accent: #6a4bd8;
 }
+
+/* ───────── 변형문제 시험지 ───────── */
+.qg-style.md {
+  --md-accent: #e8552e;
+}
+/* 시험지 모양(.qg-style-a/b/c)이 정한 강조색보다 앞서게 클래스를 겹쳐 쓴다 */
+.qg-style.md.md .qg-print-sheet {
+  --qg-accent: var(--md-accent);
+}
+.qg-style.md.md .qg-print-sheet {
+  position: relative;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.qg-style.md.md .qg-print-header,
+.qg-style.md.md .qg-print-footer {
+  position: relative;
+  z-index: 1;
+}
+/* 시험지 B 모양의 회색 둥근 머리 띠는 끄고 다른 자료처럼 머리줄로 */
+.qg-style.md.md .qg-print-header {
+  background: none;
+  border-radius: 0;
+  padding: 0 0 1.5mm;
+  border-bottom: 1mm solid var(--md-accent);
+}
+/* A 클래식 */
+.qg-style.md.md-a .qg-print-sheet::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2.4mm;
+  background: var(--md-accent);
+}
+/* B 파스텔 블룸 */
+.qg-style.md.md-b .qg-print-sheet {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--md-accent) 10%, #fff) 0, #fff 38mm) !important;
+}
+.qg-style.md.md-b .qg-print-sheet::after {
+  content: "";
+  position: absolute;
+  right: -26mm;
+  top: -26mm;
+  width: 78mm;
+  height: 78mm;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 40% 60%,
+    color-mix(in srgb, var(--md-accent) 30%, #fff) 0,
+    color-mix(in srgb, var(--md-accent) 8%, #fff) 55%,
+    transparent 72%
+  );
+  pointer-events: none;
+}
+.qg-style.md.md-b .qg-print-header {
+  border-bottom: 0;
+  background-image: linear-gradient(90deg, var(--md-accent), color-mix(in srgb, var(--md-accent) 25%, #fff) 60%, transparent);
+  background-size: 100% 3px;
+  background-repeat: no-repeat;
+  background-position: bottom left;
+  padding-bottom: 2.4mm;
+}
+.qg-style.md.md-b .qg-print-title {
+  color: color-mix(in srgb, var(--md-accent) 82%, #000);
+}
+.qg-style.md.md-b .qg-print-page-no {
+  background: color-mix(in srgb, var(--md-accent) 14%, #fff);
+  border-radius: 99px;
+  padding: 0 2mm;
+}
+/* C 볼드 블록 */
+.qg-style.md.md-c .qg-print-sheet::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3.2mm;
+  background: var(--md-accent);
+}
+.qg-style.md.md-c .qg-print-header {
+  margin: -8mm -10mm 3mm;
+  padding: 5mm 10mm 2.4mm;
+  border-bottom: 0;
+  background: var(--md-accent);
+}
+.qg-style.md.md-c .qg-print-header,
+.qg-style.md.md-c .qg-print-header .qg-print-title,
+.qg-style.md.md-c .qg-print-header .qg-print-kicker,
+.qg-style.md.md-c .qg-print-header .qg-print-sub,
+.qg-style.md.md-c .qg-print-header .qg-print-banner,
+.qg-style.md.md-c .qg-print-header .qg-print-meta,
+.qg-style.md.md-c .qg-print-header .qg-print-page-no,
+.qg-style.md.md-c .qg-print-header .qg-print-vocab-qr-label {
+  color: #fff !important;
+}
+.qg-style.md.md-c .qg-print-footer {
+  border-top: 1.2pt solid #15171c;
+  color: #15171c;
+  margin-bottom: 2mm;
+}
+/* D 매거진 */
+.qg-style.md.md-d .qg-print-header {
+  border-bottom: 0.5pt solid #15171c;
+}
+.qg-style.md.md-d .qg-print-title {
+  font-family: "Source Serif 4", "Gowun Batang", Georgia, serif;
+  font-weight: 600;
+}
+.qg-style.md.md-d .qg-print-title::after {
+  content: "";
+  display: inline-block;
+  width: 1.6mm;
+  height: 1.6mm;
+  border-radius: 50%;
+  background: var(--md-accent);
+  margin-left: 1.6mm;
+  vertical-align: 0.5mm;
+}
+.qg-style.md.md-d .qg-print-page-no,
+.qg-style.md.md-d .qg-print-footer-page {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-style: italic;
+}
+.qg-style.md.md-d .qg-print-footer {
+  border-top: 0;
+}
+
+/* B의 동그란 빛은 글자 뒤로(쪽 바탕 위·내용 아래) — 글자가 흐려지지 않게 */
+.md-b .workbook-a4-sheet,
+.md-b .analysis-report-a4-sheet,
+.qg-style.md.md-b .qg-print-sheet {
+  isolation: isolate;
+}
+.md-b .workbook-a4-sheet::after,
+.md-b .analysis-report-a4-sheet::after,
+.qg-style.md.md-b .qg-print-sheet::after {
+  z-index: -1;
+}
