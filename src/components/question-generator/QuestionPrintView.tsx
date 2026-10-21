@@ -1439,7 +1439,8 @@ export function QuestionPrintView({
           )}
           <span>{branding.footerLeft || academyName}</span>
         </div>
-        <span className="qg-print-footer-page">- {pageIdx + 1} -</span>
+        {/* 최종통합자료에 끼울 때는 통합자료가 교재 전체 쪽번호를 찍는다 — 두 번호가 겹치지 않게 뺀다 */}
+        <span className="qg-print-footer-page">{embedded ? "" : `- ${pageIdx + 1} -`}</span>
         <span className="qg-print-footer-right">
           {branding.footerRight || "영어 변형문제"}
         </span>

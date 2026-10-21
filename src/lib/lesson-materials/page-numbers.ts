@@ -25,9 +25,22 @@ export function stampPageNumbers(
   opts: PageNumberOptions = {}
 ): void {
   if (!root) return;
-  const sheets = Array.from(root.querySelectorAll<HTMLElement>(PAGE_SHEET_SELECTOR)).filter(
-    (el) => el.offsetParent !== null || el.getClientRects().length > 0
-  );
+  /*
+   * 종이에 찍히는 장을 센다(화면에 보이는 장이 아니라). 지문분석서·수업자료는 고르지 않은 지문의 쪽을
+   * 화면에서만 숨기고(hidden print:block) 인쇄에는 넣는다. 예전에는 화면에 보이는 장만 세어, 인쇄하면
+   * 그 쪽들에 번호가 없고 번호도 고른 지문부터 1로 시작했다(2026-10-21 「쪽번호 넣기가 제대로 안 된다」).
+   */
+  const printed = (el: HTMLElement) => {
+    for (let n: HTMLElement | null = el; n && n !== root; n = n.parentElement) {
+      const c = n.classList;
+      if (c.contains("print:hidden") || c.contains("no-print")) return false;
+      if (c.contains("hidden") && !c.contains("print:block") && !c.contains("print:flex") && !c.contains("print:grid")) {
+        return false;
+      }
+    }
+    return true;
+  };
+  const sheets = Array.from(root.querySelectorAll<HTMLElement>(PAGE_SHEET_SELECTOR)).filter(printed);
   if (!enabled) {
     for (const el of sheets) el.removeAttribute("data-page-no");
     return;
