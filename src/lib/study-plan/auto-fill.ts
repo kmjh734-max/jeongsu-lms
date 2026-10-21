@@ -354,7 +354,7 @@ function monthEnd(year: number, month: number): string {
  * 몰아넣고 있었다. 9월 일정표인데 10월 20일 치까지 한 칸에 들어갔다.
  * 이제 그 달 안에서만 끌어오고, 회차마다 다음 회차 전날까지만 담는다.
  */
-async function listeningPlanRow(
+export async function listeningPlanRow(
   admin: ReturnType<typeof createAdminClient>,
   studentId: string,
   slots: { week: number; index: number; date: string }[],
@@ -366,12 +366,25 @@ async function listeningPlanRow(
 
   const { data: tasks } = await admin
     .from("listening_daily_tasks")
-    .select("task_date, set_id, question_ids, set:listening_sets(title)")
+    .select("task_date, set_id, question_ids, assignment_id, set:listening_sets(title)")
     .eq("student_id", studentId)
     .gte("task_date", first)
     .lte("task_date", last)
     .order("task_date");
   if (!tasks || tasks.length === 0) return null;
+
+  /*
+   * 하루 몇 문항씩인지(배정의 questions_per_day)를 칸에 함께 적는다.
+   * 선생님 말씀(2026-10-21): 듣기를 2개씩 풀기로 배정했는데 일정표에는 그렇게 안 보인다 — 회차 칸은
+   * 다음 수업 전날까지 풀 분량을 묶어(수·목 → 1~5번) 하루 양이 안 보였다. 묶음은 두고 하루 양을 덧붙인다.
+   */
+  const assignmentIds = [...new Set(tasks.map((t) => String(t.assignment_id ?? "")).filter(Boolean))];
+  const { data: assignments } = assignmentIds.length
+    ? await admin.from("listening_schedule_assignments").select("id, questions_per_day").in("id", assignmentIds)
+    : { data: [] as { id: string; questions_per_day: number }[] };
+  const perDayOf = new Map((assignments ?? []).map((a) => [String(a.id), Number(a.questions_per_day)]));
+  /** 세트 이름 → 하루 문항 수 */
+  const perDayByTitle = new Map<string, number>();
 
   // 문항 id → 문항 번호
   const setIds = [...new Set(tasks.map((t) => String(t.set_id)))];
@@ -399,6 +412,8 @@ async function listeningPlanRow(
 
     const title = one(t.set as { title: string } | { title: string }[] | null)?.title ?? "듣기";
     if (!titles.includes(title)) titles.push(title);
+    const perDay = perDayOf.get(String(t.assignment_id ?? ""));
+    if (perDay && !perDayByTitle.has(title)) perDayByTitle.set(title, perDay);
     const key = `${slots[slot]!.week}-${slots[slot]!.index}`;
     const per = perSlot.get(key) ?? new Map<string, number[]>();
     const nums = per.get(title) ?? [];
@@ -427,7 +442,10 @@ async function listeningPlanRow(
       const text = per
         ? [...per]
             .filter(([, nums]) => nums.length > 0)
-            .map(([title, nums]) => `${title} ${numberRanges(nums)}번`)
+            .map(([title, nums]) => {
+              const perDay = perDayByTitle.get(title);
+              return `${title} ${numberRanges(nums)}번${perDay ? ` (하루 ${perDay}문항)` : ""}`;
+            })
             .join(" / ")
         : "";
       return { week: s.week, index: s.index, text };
