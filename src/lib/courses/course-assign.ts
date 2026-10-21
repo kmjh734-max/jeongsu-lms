@@ -65,7 +65,14 @@ function ids(input: string | string[]): string[] {
 export async function loadCourseAssignPanel(
   courseIdOrIds: string | string[]
 ): Promise<CourseAssignPanelData | null> {
-  const profile = await getCurrentProfile();
+  return loadCourseAssignPanelAs(await getCurrentProfile(), courseIdOrIds);
+}
+
+/** 정해 준 사람으로 연다(서버 안에서만 — 서버 액션으로 내보내지 않는다) */
+export async function loadCourseAssignPanelAs(
+  profile: Profile | null,
+  courseIdOrIds: string | string[]
+): Promise<CourseAssignPanelData | null> {
   if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) return null;
   if (!profile.academy_id) return null;
   const courseIds = ids(courseIdOrIds);
@@ -127,7 +134,15 @@ export async function assignCourse(
   classIds: string[],
   studentIds: string[]
 ): Promise<{ ok: boolean; message: string }> {
-  const profile = await getCurrentProfile();
+  return assignCourseAs(await getCurrentProfile(), courseIdOrIds, classIds, studentIds);
+}
+
+export async function assignCourseAs(
+  profile: Profile | null,
+  courseIdOrIds: string | string[],
+  classIds: string[],
+  studentIds: string[]
+): Promise<{ ok: boolean; message: string }> {
   if (!profile || (profile.role !== "admin" && profile.role !== "teacher") || !profile.academy_id) {
     return { ok: false, message: "권한이 없어요." };
   }
@@ -211,7 +226,14 @@ export async function unassignCourse(
   courseIdOrIds: string | string[],
   opts: { classId?: string; studentId?: string }
 ): Promise<{ ok: boolean; message: string }> {
-  const profile = await getCurrentProfile();
+  return unassignCourseAs(await getCurrentProfile(), courseIdOrIds, opts);
+}
+
+export async function unassignCourseAs(
+  profile: Profile | null,
+  courseIdOrIds: string | string[],
+  opts: { classId?: string; studentId?: string }
+): Promise<{ ok: boolean; message: string }> {
   if (!profile || (profile.role !== "admin" && profile.role !== "teacher") || !profile.academy_id) {
     return { ok: false, message: "권한이 없어요." };
   }
