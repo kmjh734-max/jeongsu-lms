@@ -22,6 +22,7 @@ import { A4, B5, collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { generatePrintExamQuestions } from "@/lib/vocab/generate-print-test-questions";
 import { highlightWordInSentence } from "@/lib/vocab/highlight-word-in-sentence";
+import { vocabSetsRangeTitle } from "@/lib/vocab/print-title";
 import {
   itemsPerVocabPrintPage,
   paginateVocabItems,
@@ -325,13 +326,34 @@ export function VocabSetPrintView({
     return rows;
   }, [sections, deferredPerPage, deferredMode]);
 
-  const title =
-    documentTitle ??
-    (sections.length === 1
-      ? sections[0]!.title
-      : `${sections.length}개 단어세트`);
-  const headerTitle =
-    sections.length === 1 ? sections[0]!.title : title;
+  /*
+   * 자료 이름. 선생님 요청(2026-10-21): 「2개 단어세트」가 아니라 단어장 이름과 범위가 나오게, 이름을 입력하는 칸도.
+   * 기본은 단어장 이름과 범위(중1 Day 1~3), 선생님이 적으면 그 이름. 고른 단어장 묶음마다 이 브라우저에 기억한다.
+   */
+  const autoTitle =
+    documentTitle && !/개\s*단어세트$/.test(documentTitle)
+      ? documentTitle
+      : vocabSetsRangeTitle(sections.map((s) => s.title));
+  const titleKey = `vocab-print-title:${sections.map((s) => s.setId).join(",")}`;
+  const [customTitle, setCustomTitle] = useState("");
+  useEffect(() => {
+    try {
+      setCustomTitle(window.localStorage.getItem(titleKey) ?? "");
+    } catch {
+      /* 저장소를 못 쓰면 기본 이름 */
+    }
+  }, [titleKey]);
+  const chooseTitle = (v: string) => {
+    setCustomTitle(v);
+    try {
+      if (v.trim()) window.localStorage.setItem(titleKey, v);
+      else window.localStorage.removeItem(titleKey);
+    } catch {
+      /* 무시 */
+    }
+  };
+  const title = customTitle.trim() || autoTitle;
+  const headerTitle = title;
 
   const coverDefaults = useMemo(
     () =>
@@ -944,6 +966,20 @@ export function VocabSetPrintView({
                   : ""}
               </p>
             </div>
+
+            <label className="flex flex-col gap-1 px-1">
+              <span className="text-xs font-semibold text-slate-600">자료 이름</span>
+              <input
+                value={customTitle}
+                onChange={(e) => chooseTitle(e.target.value)}
+                placeholder={autoTitle}
+                maxLength={60}
+                className="w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-[13px] text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+              />
+              <span className="text-[11px] text-slate-400">
+                비워 두면 단어장 이름과 범위로 나와요{sections.length > 1 ? ` (${sections.length}개 단어장)` : ""}.
+              </span>
+            </label>
 
             <PanelSection title="인쇄 종류" defaultOpen>
               <div className="flex flex-col gap-1.5">

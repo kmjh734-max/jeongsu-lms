@@ -1,4 +1,5 @@
 import { seatLockScreen } from "@/components/credits/SeatLockedNotice";
+import { vocabSetsRangeTitle } from "@/lib/vocab/print-title";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { VocabSetPrintView } from "@/components/vocab/VocabSetPrintView";
@@ -47,9 +48,7 @@ export default async function AdminVocabBulkPrintPage({
         sections={sections}
         backHref={backHref}
         documentTitle={
-          sections.length === 1
-            ? sections[0]!.title
-            : `${sections.length}개 단어세트`
+          vocabSetsRangeTitle(sections.map((s) => s.title))
         }
         academyName={branding.name}
         logoSrc={branding.logoUrl}
