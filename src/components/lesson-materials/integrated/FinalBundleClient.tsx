@@ -195,6 +195,10 @@ export function FinalBundleClient({
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const rootRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** 아직 보내지 않은 마지막 설정과, 보내는 중인 저장 — 「닫기(저장)」가 이 둘을 끝내고 닫는다 */
+  const pendingPayload = useRef<IntegratedPayload | null>(null);
+  const inflightSave = useRef<Promise<void>>(Promise.resolve());
+  const [closing, setClosing] = useState(false);
   const preset = coverPreset(payload.cover.presetId);
   // 표지 칸: 자료 이름 · 예전 칸에서 읽은 값 위에 고친 칸(cover.exam)을 얹는다. 학원명은 cover.academy.
   const examSpec = mergeCoverSpec(legacyCoverSpec(payload.cover), payload.cover.exam);
@@ -337,16 +341,42 @@ export function FinalBundleClient({
   function update(patch: Partial<IntegratedPayload>) {
     const next = { ...payload, ...patch };
     setPayload(next);
+    pendingPayload.current = next;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     setSaveState("saving");
-    saveTimer.current = setTimeout(async () => {
+    saveTimer.current = setTimeout(() => {
+      saveTimer.current = null;
+      void savePayload(next);
+    }, 800);
+  }
+
+  function savePayload(next: IntegratedPayload): Promise<void> {
+    pendingPayload.current = null;
+    const run = inflightSave.current.then(async () => {
       try {
         const res = await saveIntegratedDocument(role, { id: docId, payload: next });
         setSaveState(res.ok ? "saved" : "error");
       } catch {
         setSaveState("error");
       }
-    }, 800);
+    });
+    inflightSave.current = run;
+    return run;
+  }
+
+  /**
+   * 닫기(저장): 기다리던 저장(0.8초)을 바로 보내고, 보내는 중인 저장까지 끝난 뒤 닫는다
+   * (선생님 2026-10-22 — 바꾸고 곧바로 닫으면 마지막 설정이 사라지던 것).
+   */
+  async function saveAndClose() {
+    setClosing(true);
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    if (pendingPayload.current) void savePayload(pendingPayload.current);
+    await inflightSave.current;
+    closeTabOrGo(base);
   }
   const updateCover = (patch: Partial<IntegratedPayload["cover"]>) =>
     update({ cover: { ...payload.cover, ...patch } });
@@ -617,8 +647,13 @@ export function FinalBundleClient({
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:block print:bg-white">
       <aside className="flex w-[340px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-          <button type="button" onClick={() => closeTabOrGo(base)} className="text-sm font-semibold text-slate-500 hover:text-slate-800">
-            ‹ 닫기
+          <button
+            type="button"
+            onClick={() => void saveAndClose()}
+            disabled={closing}
+            className="text-sm font-semibold text-slate-500 hover:text-slate-800 disabled:opacity-60"
+          >
+            {closing ? "저장 중…" : "‹ 닫기(저장)"}
           </button>
           <p className="flex items-center gap-2 text-base font-black text-slate-900">
             <span className="rounded-md bg-violet-100 px-1.5 py-0.5 text-violet-700">🗂</span>

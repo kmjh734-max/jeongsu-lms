@@ -1,5 +1,6 @@
 "use client";
 
+import { CloseSaveButton } from "@/components/lesson-materials/CloseSaveButton";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
@@ -25,6 +26,7 @@ import type {
   saveTestBookOptionsAction,
 } from "@/lib/lesson-materials/test-book-actions";
 import {
+  ALL_TEST_BOOK_TYPES,
   BASIC_TEST_BOOK_TYPES,
   buildTestSheet,
   buildWordTest,
@@ -44,7 +46,7 @@ import {
   type TestBookProjectInput,
   type TestBookTypeKey,
 } from "@/lib/lesson-materials/test-book";
-import { closeTabOrGo, useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
+import { useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 import { downloadSheetsPdf, pdfFileName } from "@/lib/pdf/download-sheets-pdf";
 import type { generateAndSaveAnalysisReportAction } from "@/lib/lesson-materials/analysis-report-actions";
@@ -88,6 +90,8 @@ type RegisterResult = Awaited<ReturnType<typeof registerTestBookVocabAction>>;
 
 const CONCURRENCY = 3;
 const BOOK_SEED = "book";
+/** 뽑기 설정을 두는 곳(이 브라우저) */
+const DRAW_SETTINGS_KEY = "test-book-draw-settings";
 
 function newSeed(): string {
   return `draw-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -274,6 +278,13 @@ export function TestBookWorkbench({
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => void saveOptions(), 600);
   };
+  /** 닫기(저장): 기다리던 설정 저장(0.6초)과 제목을 바로 보내고 끝날 때까지 기다린다. */
+  async function flushTestBook() {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = null;
+    await saveOptions();
+    await commitTitle();
+  }
 
   useCreateDocumentFromUrl(role, "test_book", initialProjects.map((p) => p.id), (id, name) => {
     docIdRef.current = id;
@@ -354,6 +365,48 @@ export function TestBookWorkbench({
   const [drawVocabOn, setDrawVocabOn] = useState(true);
   const [drawVocab, setDrawVocab] = useState<VocabExamOptions>(DEFAULT_VOCAB_EXAM);
   const [drawAnswers, setDrawAnswers] = useState(true);
+  /*
+   * 뽑기 설정도 다음에 열 때 그대로(선생님 2026-10-22: 닫으면 설정한 대로 저장). 교재 설정과 달리 파일이 아닌
+   * 이 브라우저에 둔다 — 뽑은 테스트지는 뽑을 때 그 설정째 파일로 저장된다. 불러온 뒤에만 쓴다(기본값으로 덮지 않게).
+   */
+  const [drawLoaded, setDrawLoaded] = useState(false);
+  useEffect(() => {
+    try {
+      const raw = JSON.parse(window.localStorage.getItem(DRAW_SETTINGS_KEY) ?? "null") as Record<string, unknown> | null;
+      if (raw) {
+        const known = new Set<string>(ALL_TEST_BOOK_TYPES);
+        if (Array.isArray(raw.types)) setDrawTypes(raw.types.filter((t): t is TestBookTypeKey => typeof t === "string" && known.has(t)));
+        if (raw.blankMode === "same" || raw.blankMode === "diff") setBlankMode(raw.blankMode);
+        if (raw.writing === "all" || raw.writing === "key") setDrawWriting(raw.writing);
+        if (raw.lineMode === "full" || raw.lineMode === "chunk") setDrawLineMode(raw.lineMode);
+        if (raw.level === "basic" || raw.level === "up") setDrawLevel(raw.level);
+        if (typeof raw.theme === "string" && ["a", "b", "c", "d", "e", "f"].includes(raw.theme)) setDrawTheme(raw.theme as TestBookTheme);
+        if (typeof raw.vocabOn === "boolean") setDrawVocabOn(raw.vocabOn);
+        if (raw.vocab && typeof raw.vocab === "object") setDrawVocab({ ...DEFAULT_VOCAB_EXAM, ...(raw.vocab as Partial<VocabExamOptions>) });
+        if (typeof raw.answers === "boolean") setDrawAnswers(raw.answers);
+      }
+    } catch {}
+    setDrawLoaded(true);
+  }, []);
+  useEffect(() => {
+    if (!drawLoaded) return;
+    try {
+      window.localStorage.setItem(
+        DRAW_SETTINGS_KEY,
+        JSON.stringify({
+          types: drawTypes,
+          blankMode,
+          writing: drawWriting,
+          lineMode: drawLineMode,
+          level: drawLevel,
+          theme: drawTheme,
+          vocabOn: drawVocabOn,
+          vocab: drawVocab,
+          answers: drawAnswers,
+        })
+      );
+    } catch {}
+  }, [drawLoaded, drawTypes, blankMode, drawWriting, drawLineMode, drawLevel, drawTheme, drawVocabOn, drawVocab, drawAnswers]);
   const [draw, setDraw] = useState<{ seed: string; picks: Record<string, TestBookTypeKey[]>; vocab?: VocabExamOptions | null } | null>(null);
   /** 뽑을 때마다 값(지문 수 × 유형 수)을 받는다 — 확인 창을 띄우고, 서버에서 차감된 뒤에만 보여 준다 */
   const [drawBusy, setDrawBusy] = useState(false);
@@ -765,9 +818,7 @@ export function TestBookWorkbench({
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[272px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
         <div className="space-y-2.5 border-b border-slate-100 p-4">
-          <button type="button" onClick={() => closeTabOrGo(base)} className="text-left text-xs font-semibold text-violet-700">
-            ← 자료함
-          </button>
+          <CloseSaveButton base={base} save={flushTestBook} className="text-left text-xs font-semibold text-violet-700" />
           <h1 className="flex items-center gap-1.5 text-base font-bold text-slate-900">
             테스트 교재 <span className="rounded bg-violet-600 px-1.5 py-0.5 text-[10px] font-bold text-white">NEW</span>
           </h1>

@@ -1,10 +1,11 @@
 "use client";
 
+import { CloseSaveButton } from "@/components/lesson-materials/CloseSaveButton";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
-import { closeTabOrGo, useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
+import { useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
 import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
@@ -283,13 +284,8 @@ export function LessonBookWorkbench({
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
         <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
-          <button
-            type="button"
-            onClick={() => closeTabOrGo(base)}
-            className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100"
-          >
-            ← 닫기
-          </button>
+          {/* 설정(디자인 · 쪽 번호 · 해석 등)은 바꾸는 즉시 저장된다 — 닫을 때 따로 보낼 것이 없다 */}
+          <CloseSaveButton base={base} className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100" />
           <DocumentTitle role={role} fallback="수업용 자료" />
         </div>
 

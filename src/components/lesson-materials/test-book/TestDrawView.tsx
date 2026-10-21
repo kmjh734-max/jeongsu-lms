@@ -1,8 +1,8 @@
 "use client";
 
+import { CloseSaveButton } from "@/components/lesson-materials/CloseSaveButton";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { closeTabOrGo } from "@/components/lesson-materials/open-new-document";
 import { downloadSheetsPdf, pdfFileName } from "@/lib/pdf/download-sheets-pdf";
 import type { TestBookProjectInput, TestSheet, VocabExam } from "@/lib/lesson-materials/test-book";
 import { useMaterialDesign } from "@/lib/lesson-materials/material-design";
@@ -102,9 +102,8 @@ export function TestDrawView({
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[260px] shrink-0 flex-col gap-3 border-r border-slate-200 bg-white p-4 print:hidden">
-        <button type="button" onClick={() => closeTabOrGo(base)} className="text-left text-xs font-semibold text-violet-700">
-          ← 자료함
-        </button>
+        {/* 뽑을 때 이미 파일로 저장됐다 */}
+        <CloseSaveButton base={base} className="text-left text-xs font-semibold text-violet-700" />
         <h1 className="text-base font-bold text-slate-900">뽑은 테스트지</h1>
         <p className="text-[13px] font-semibold text-slate-800">{name}</p>
         <p className="text-[11px] leading-relaxed text-slate-500">

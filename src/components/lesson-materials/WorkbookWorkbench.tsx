@@ -1,5 +1,6 @@
 "use client";
 
+import { CloseSaveButton } from "@/components/lesson-materials/CloseSaveButton";
 import { ChoiceItemEditor } from "@/components/lesson-materials/ChoiceItemEditor";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import Link from "next/link";
@@ -29,7 +30,6 @@ import type {
 } from "@/lib/lesson-materials/workbook-actions";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
-import { closeTabOrGo } from "@/components/lesson-materials/open-new-document";
 import type {
   createLessonMaterialDocument,
   getWorkbookDocument,
@@ -1609,8 +1609,8 @@ export function WorkbookWorkbench({
     }, 800);
   }
 
-  /** 탭을 닫고 자료함 탭으로 돌아간다. 아직 보내지 않은 고친 내용이 있으면 먼저 저장한다. */
-  async function leaveWorkbook() {
+  /** 닫기(저장): 아직 보내지 않은 고친 내용을 바로 보내고, 보내는 중인 저장까지 끝낸다. */
+  async function flushWorkbook() {
     if (saveTimer.current && workbook) {
       clearTimeout(saveTimer.current);
       saveTimer.current = null;
@@ -1623,7 +1623,6 @@ export function WorkbookWorkbench({
       }
     }
     await saveChain.current;
-    closeTabOrGo(base);
   }
 
   /** 지문 제목·출처는 유형마다 따로 들어 있어 같은 지문을 모두 고친다. */
@@ -3220,13 +3219,8 @@ export function WorkbookWorkbench({
             <div className="h-full w-2/5 animate-indeterminate rounded-full bg-violet-600" />
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => closeTabOrGo(base)}
-          className="text-xs font-semibold text-violet-700"
-        >
-          ← 자료함으로 돌아가기
-        </button>
+        {/* 만드는 중에는 서버가 다 만든 뒤 스스로 저장한다 */}
+        <CloseSaveButton base={base} className="text-xs font-semibold text-violet-700" />
       </div>
     );
   }
@@ -4098,13 +4092,7 @@ export function WorkbookWorkbench({
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[260px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
         <div className="space-y-2 border-b border-slate-100 p-4">
-          <button
-            type="button"
-            onClick={() => void leaveWorkbook()}
-            className="text-left text-xs font-semibold text-violet-700"
-          >
-            ← 자료함
-          </button>
+          <CloseSaveButton base={base} save={flushWorkbook} className="text-left text-xs font-semibold text-violet-700" />
           <h1 className="flex min-w-0 text-base font-bold text-slate-900">
             <DocumentTitle role={role} fallback="워크북" />
           </h1>

@@ -1,7 +1,9 @@
 "use client";
 
+import { CloseSaveButton } from "@/components/lesson-materials/CloseSaveButton";
 import Link from "next/link";
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -30,7 +32,6 @@ import { postJson } from "@/lib/lesson-materials/post-json";
 import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import {
-  closeTabOrGo,
   useCreateDocumentFromUrl,
   DOCUMENT_NAME_EVENT,
 } from "@/components/lesson-materials/open-new-document";
@@ -519,19 +520,22 @@ export function AnalysisReportWorkbench({
    * 처음 열 때(고치지 않았을 때)는 이름을 건드리지 않는다.
    */
   const labelEdited = useRef(false);
-  useEffect(() => {
-    if (embedded || !labelEdited.current) return;
-    const name = headerLabel.trim();
-    if (!name) return;
-    const t = setTimeout(() => {
+  /** 파일 이름을 상단 라벨로 — 닫기(저장)는 기다리지 않고 바로 부른다 */
+  const renameToLabel = useCallback(
+    async (label: string) => {
       const id = docIdRef.current;
-      if (!id) return;
-      void postJson("/api/lesson-materials/documents/open", { op: "rename", role, id, name })
+      const name = label.trim();
+      if (embedded || !labelEdited.current || !id || !name) return;
+      await postJson("/api/lesson-materials/documents/open", { op: "rename", role, id, name })
         .then(() => window.dispatchEvent(new CustomEvent(DOCUMENT_NAME_EVENT, { detail: { id, name } })))
         .catch(() => {});
-    }, 800);
+    },
+    [embedded, role]
+  );
+  useEffect(() => {
+    const t = setTimeout(() => void renameToLabel(headerLabel), 800);
     return () => clearTimeout(t);
-  }, [headerLabel, embedded, role]);
+  }, [headerLabel, renameToLabel]);
   const [accent] = useState("#DC2626");
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -896,6 +900,19 @@ export function AnalysisReportWorkbench({
     }
   }
 
+  /**
+   * 닫기(저장): 분석서(상단 라벨 포함)를 저장하고, 파일 이름도 라벨로 바로 바꾼다. 만드는 중이면 서버가
+   * 다 만든 뒤 스스로 저장한다. 저장이 실패하면 false — 닫지 않는다.
+   */
+  async function saveForClose(): Promise<boolean> {
+    if (!generating && project?.report) {
+      const ok = await handleSave();
+      if (!ok) return false;
+    }
+    await renameToLabel(headerLabel);
+    return true;
+  }
+
   const previewStyle = useMemo(
     (): CSSProperties => ({
       transform: `scale(${zoom / 100})`,
@@ -1074,13 +1091,7 @@ export function AnalysisReportWorkbench({
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[280px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
         <div className="space-y-3 border-b border-slate-100 p-4">
-          <button
-            type="button"
-            onClick={() => closeTabOrGo(base)}
-            className="text-left text-xs font-semibold text-violet-700"
-          >
-            ← 자료함
-          </button>
+          <CloseSaveButton base={base} save={saveForClose} className="text-left text-xs font-semibold text-violet-700" />
           <h1 className="flex min-w-0 text-base font-bold text-slate-900">
             <DocumentTitle role={role} fallback="분석서" />
           </h1>
@@ -1200,16 +1211,13 @@ export function AnalysisReportWorkbench({
               </p>
             </div>
           ) : null}
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            className="w-full"
-            disabled={generating || saving || !report}
-            onClick={() => void handleSave().then((ok) => ok && closeTabOrGo(base))}
-          >
-            {saving ? "저장 중…" : "저장 후 닫기"}
-          </Button>
+          <CloseSaveButton
+            base={base}
+            save={saveForClose}
+            label="닫기(저장)"
+            disabled={generating || saving}
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          />
           <Button
             type="button"
             size="sm"

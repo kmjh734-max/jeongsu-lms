@@ -1,5 +1,6 @@
 "use client";
 
+import { CloseSaveButton } from "@/components/lesson-materials/CloseSaveButton";
 import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
@@ -30,7 +31,6 @@ import {
   type OnePageTestPayload,
 } from "@/lib/lesson-materials/one-page";
 import {
-  closeTabOrGo,
   useCreateDocumentFromUrl,
 } from "@/components/lesson-materials/open-new-document";
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
@@ -45,6 +45,7 @@ import {
 
 /** 고른 문항 유형을 기억해 두는 자리 */
 const TEST_TYPES_KEY = "one-page-test-types";
+const INCLUDE_ANSWERS_KEY = "one-page-include-answers";
 
 /** 동시에 준비하는 지문 수. 테스트는 지문마다 어법·어휘 선택까지 불러 조금 낮춘다. */
 const CONCURRENCY = { summary: 6, test: 4 } as const;
@@ -255,6 +256,21 @@ export function OnePageWorkbench({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [active, setActive] = useState<string | null>(initialProjects[0]?.id ?? null);
   const [includeAnswers, setIncludeAnswers] = useState(true);
+  // 정답지 넣기도 다른 설정처럼 다음에 열 때 그대로(선생님 2026-10-22: 닫으면 설정한 대로 저장)
+  const answersLoaded = useRef(false);
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(INCLUDE_ANSWERS_KEY);
+      if (raw === "0" || raw === "1") setIncludeAnswers(raw === "1");
+    } catch {}
+    answersLoaded.current = true;
+  }, []);
+  useEffect(() => {
+    if (!answersLoaded.current) return;
+    try {
+      window.localStorage.setItem(INCLUDE_ANSWERS_KEY, includeAnswers ? "1" : "0");
+    } catch {}
+  }, [includeAnswers]);
   /** 시험지에 실을 문항 유형(왼쪽에서 고른다). 다음에 열어도 같은 유형으로 시작한다. */
   const [testTypes, setTestTypes] = useState<OnePageTestTypeKey[]>(ALL_ONE_PAGE_TEST_TYPES);
   useEffect(() => {
@@ -562,13 +578,15 @@ export function OnePageWorkbench({
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[260px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
         <div className="space-y-2.5 border-b border-slate-100 p-4">
-          <button
-            type="button"
-            onClick={() => closeTabOrGo(base)}
+          <CloseSaveButton
+            base={base}
+            save={async () => {
+              // 제목 · 새로 조립한 시험지를 바로 보내고 끝날 때까지 기다린다
+              await commitTitle();
+              await saveTests();
+            }}
             className="text-left text-xs font-semibold text-violet-700"
-          >
-            ← 자료함
-          </button>
+          />
           <h1 className="flex min-w-0 text-base font-bold text-slate-900">
             <DocumentTitle role={role} fallback={MODE_LABEL[mode]} />
           </h1>
