@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   chargeTestDrawAction,
+  prepareWorkbookExtrasAction,
   prepareTestBookPassageAction,
   registerTestBookVocabAction,
   saveTestBookOptionsAction,
@@ -37,6 +38,16 @@ export async function POST(request: Request) {
           docId: body.id ? String(body.id) : null,
           title: String(body.title ?? ""),
           projectIds: Array.isArray(body.projectIds) ? body.projectIds.map(String) : [],
+        })
+      );
+    }
+    if (body.op === "prepareWorkbook") {
+      return NextResponse.json(
+        await prepareWorkbookExtrasAction(role, {
+          projectId: String(body.projectId ?? ""),
+          regenerate: Array.isArray(body.regenerate)
+            ? (body.regenerate.filter((x) => x === "vocab" || x === "gloss" || x === "content") as Array<"vocab" | "gloss" | "content">)
+            : undefined,
         })
       );
     }

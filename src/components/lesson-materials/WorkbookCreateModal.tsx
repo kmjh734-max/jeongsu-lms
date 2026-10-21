@@ -19,6 +19,7 @@ import {
   defaultWorkbookTitle,
   estimateBlankCountPreview,
   getWorkbookTypeMeta,
+  isTbWorkbookType,
   sortWorkbookTypesByPrintOrder,
   type WorkbookBlankFillOptions,
   type WorkbookData,
@@ -58,6 +59,8 @@ export function buildWorkbookHref(
     vocabFixOptions?: WorkbookGrammarFixOptions;
     /** 어휘 선택·수정 낱말 수준 */
     vocabWordLevel?: "normal" | "hard";
+    /** 테스트 교재에서 옮긴 유형의 난이도(지금은 바꿔 말하기만 달라진다) */
+    tbLevel?: "basic" | "up";
     title: string;
     /** 저장된 결과(어법·어휘·빈칸·어순)가 있어도 새 문항으로 만든다. */
     regenerate?: boolean;
@@ -91,6 +94,7 @@ export function buildWorkbookHref(
   if (types.includes("vocab_choice") || types.includes("vocab_fix")) {
     params.set("vcLevel", opts.vocabWordLevel ?? "normal");
   }
+  if (opts.tbLevel === "up" && types.some(isTbWorkbookType)) params.set("tbLevel", "up");
   params.set("title", opts.title.trim() || defaultWorkbookTitle());
   params.set("fresh", "1");
   if (opts.regenerate) params.set("regen", "1");
@@ -132,6 +136,7 @@ export function WorkbookCreateModal({
     DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS
   );
   const [vocabWordLevel, setVocabWordLevel] = useState<"normal" | "hard">("normal");
+  const [tbLevel, setTbLevel] = useState<"basic" | "up">("basic");
   const [title, setTitle] = useState(() => defaultWorkbookTitle());
   const [regenerate, setRegenerate] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -162,6 +167,7 @@ export function WorkbookCreateModal({
   const wantFullEn = selected.has("full_en_writing");
   const wantWordOrder = selected.has("word_order_writing");
   const wantKeyWordOrder = selected.has("key_word_order");
+  const wantParaphrase = selected.has("tb_paraphrase");
 
   if (!open || asking) return null;
 
@@ -211,6 +217,7 @@ export function WorkbookCreateModal({
       grammarFixOptions,
       vocabFixOptions,
       vocabWordLevel,
+      tbLevel,
       title: title.trim() || defaultWorkbookTitle(),
       regenerate,
     });
@@ -233,6 +240,9 @@ export function WorkbookCreateModal({
     // 중요문장 어순배열은 어순배열과 같은 값(둘 다 골라도 한 번)
     if (readySelected.includes("word_order_writing") || readySelected.includes("key_word_order"))
       paid.push({ feature: "lesson_workbook_word_order", quantity: n });
+    // 지칭·함축·바꿔 말하기·도식화·연결어·삽입·요약문·직독직해·단어 시험지 — 지문당 한 번(여러 갈래를 골라도)
+    if (readySelected.some(isTbWorkbookType))
+      paid.push({ feature: "lesson_workbook_extras", quantity: n });
     setAsking(true);
     const go = await askCreditConfirm({
       title: "워크북",
@@ -564,6 +574,30 @@ export function WorkbookCreateModal({
                           {vocabWordLevel === "normal"
                             ? "EngCore 고교기본까지의 낱말 자리에, 중학 수준의 쉬운 반대말로 묻습니다."
                             : "고2~수능 수준의 어려운 낱말 자리를 앞세워 묻습니다."}
+                        </p>
+                      </div>
+                    </OptionRow>
+                  </div>
+                </div>
+              ) : null}
+
+              {wantParaphrase ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-bold text-slate-900">바꿔 말하기 옵션</p>
+                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                    <OptionRow tone="violet" label="난이도">
+                      <div className="space-y-2">
+                        <TogglePair
+                          tone="violet"
+                          left={{ id: "basic", label: "일반" }}
+                          right={{ id: "up", label: "난이도 UP" }}
+                          value={tbLevel}
+                          onChange={(v) => setTbLevel(v === "up" ? "up" : "basic")}
+                        />
+                        <p className="text-[11px] text-violet-600">
+                          {tbLevel === "basic"
+                            ? "빈칸에 첫 글자와 우리말 뜻을 주고 바꿔 쓴 표현을 채웁니다."
+                            : "첫 글자·우리말 뜻 없이 채웁니다."}
                         </p>
                       </div>
                     </OptionRow>

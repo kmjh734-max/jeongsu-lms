@@ -113,7 +113,40 @@ async function loadProject(role: Role, profile: { id: string; academy_id: string
  * 3. 단어 정리(품사·지문 속 뜻·파생어), 중요문장(워크북과 같은 규칙), 어순 덩어리(워크북과 같은 캐시).
  * 원문이 그대로면 저장해 둔 것을 쓴다. 값은 같은 지문에 한 번만 받는다.
  */
+/**
+ * 워크북 새 유형(지칭·함축·바꿔 말하기·도식화·연결어·삽입·요약문·직독직해·단어 시험지)에 쓰는 재료.
+ * 테스트 교재와 같은 재료를 만들되, 테스트 교재 기능 스위치 없이 모든 학원이 쓰고 값은 지문당 한 번
+ * lesson_workbook_extras(200, 마이그레이션 197)로 받는다(선생님 2026-10-21: 테스트 교재를 워크북·최종통합자료로 합침).
+ */
+export async function prepareWorkbookExtrasAction(
+  role: Role,
+  input: { projectId: string; regenerate?: Array<"vocab" | "gloss" | "content"> }
+) {
+  return preparePassage(role, input, "workbook");
+}
+
 export async function prepareTestBookPassageAction(
+  role: Role,
+  input: {
+    projectId: string;
+    forceRegenerate?: boolean;
+    regenerate?: Array<"vocab" | "gloss" | "content">;
+  }
+) {
+  return preparePassage(role, input, "test_book");
+}
+
+async function requireLessonRole(role: Role) {
+  const profile = await getCurrentProfile();
+  if (!profile || profile.role !== role) return { profile: null, error: "권한이 없습니다." };
+  if (role === "teacher" && profile.is_active === false) return { profile: null, error: "비활성화된 계정입니다." };
+  if (!profile.academy_id) return { profile: null, error: "소속 학원 정보가 없습니다." };
+  return { profile, error: null as null };
+}
+
+const WORKBOOK_EXTRAS_FEATURE = "lesson_workbook_extras";
+
+async function preparePassage(
   role: Role,
   input: {
     projectId: string;
@@ -123,25 +156,29 @@ export async function prepareTestBookPassageAction(
      * 고른 것만 새로 만든다. 같은 지문의 테스트 교재 값은 다시 받지 않는다.
      */
     regenerate?: Array<"vocab" | "gloss" | "content">;
-  }
+  },
+  kind: "test_book" | "workbook"
 ): Promise<
   | {
       ok: true;
       content: OnePageContent;
       material: TestBookMaterial;
       sentences: Array<{ english: string; korean: string }>;
+      title: string;
+      source: string | null;
     }
   | Fail
 > {
-  const { profile, error } = await requireTestBook(role);
+  const { profile, error } = kind === "test_book" ? await requireTestBook(role) : await requireLessonRole(role);
   if (error) return { ok: false, message: error };
   const projectId = String(input.projectId ?? "").trim();
   if (!projectId) return { ok: false, message: "선택된 지문이 없습니다." };
+  const FEATURE = kind === "test_book" ? TEST_BOOK_FEATURE : WORKBOOK_EXTRAS_FEATURE;
 
   let loaded = await loadProject(role, profile!, projectId);
   if (!loaded) return { ok: false, message: "지문을 찾을 수 없습니다." };
 
-  const shortfall = await lessonCreditShortfall(profile!.academy_id!, TEST_BOOK_FEATURE);
+  const shortfall = await lessonCreditShortfall(profile!.academy_id!, FEATURE);
   if (shortfall) return { ok: false, message: shortfall };
 
   // 1. 해석·단어 목록
@@ -161,8 +198,8 @@ export async function prepareTestBookPassageAction(
   const usage = {
     academyId: profile!.academy_id,
     actorId: profile!.id,
-    featureKey: TEST_BOOK_FEATURE,
-    usedFor: "test_book",
+    featureKey: FEATURE,
+    usedFor: kind,
     projectId,
   };
 
@@ -301,12 +338,20 @@ export async function prepareTestBookPassageAction(
     await debitLessonCredits({
       academyId: profile!.academy_id!,
       actorId: profile!.id,
-      featureKey: TEST_BOOK_FEATURE,
+      featureKey: FEATURE,
       projectId,
-      idempotencyKey: `${TEST_BOOK_FEATURE}:${projectId}`,
-      note: `테스트 교재 · ${project.title}`,
+      // 같은 지문은 기능마다 한 번만 받는다(다시 열거나 다시 만들어도 같은 키).
+      idempotencyKey: `${kind === "test_book" ? TEST_BOOK_FEATURE : WORKBOOK_EXTRAS_FEATURE}:${projectId}`,
+      note: `${kind === "test_book" ? "테스트 교재" : "워크북 지칭·함축·요약 등"} · ${project.title}`,
     });
-    return { ok: true, content: content!, material: mergeTestBookVocabHints(material!, content), sentences };
+    return {
+      ok: true,
+      content: content!,
+      material: mergeTestBookVocabHints(material!, content),
+      sentences,
+      title: String(project.title ?? ""),
+      source: (project.source as string | null) ?? null,
+    };
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : "테스트 교재 재료를 만들지 못했습니다." };
   }

@@ -600,3 +600,166 @@
 .wb-style.wb-style-c .line-translation-answer-key-korean {
   color: #2a2326;
 }
+
+/* ══════════ D · 파스텔 블룸 (2026-10-21) ══════════
+ * 테스트 교재 내지 1안(B 파스텔 블룸)과 같은 결: 쪽 위쪽 옅은 보라→복숭아 번짐, 동그란 그라데이션 번호,
+ * 둥근 선택지 칩, 점선 빈칸. 선생님: 테스트 교재 시안을 워크북에도.
+ */
+.wb-style.wb-style-d .workbook-a4-sheet,
+.wb-style.wb-style-d.font-print {
+  font-family: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  color: #241f3a;
+}
+.wb-style.wb-style-d .workbook-a4-sheet {
+  background: linear-gradient(180deg, #f1edff 0, #fff7f2 30mm, #ffffff 46mm) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.wb-style.wb-style-d .workbook-a4-sheet::after {
+  content: "";
+  position: absolute;
+  right: -24mm;
+  top: -24mm;
+  width: 70mm;
+  height: 70mm;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 60%, rgba(123, 92, 255, 0.22) 0, rgba(255, 138, 92, 0.1) 50%, transparent 72%);
+  pointer-events: none;
+}
+.wb-style.wb-style-d .workbook-passage,
+.wb-style.wb-style-d .grammar-passage,
+.wb-style.wb-style-d .wb-en,
+.wb-style.wb-style-d .wb-tf-item,
+.wb-style.wb-style-d .sentence-order-choice-text,
+.wb-style.wb-style-d .line-translation-english,
+.wb-style.wb-style-d .word-order-bank,
+.wb-style.wb-style-d .wb-ak-item,
+.wb-style.wb-style-d .wb-ak-text,
+.wb-style.wb-style-d .full-writing-answer-key-english,
+.wb-style.wb-style-d .word-order-answer-key-english,
+.wb-style.wb-style-d .line-translation-answer-key-korean {
+  font-family: "Source Serif 4", Georgia, serif;
+  color: #241f3a;
+}
+.wb-style.wb-style-d .wb-ko {
+  color: #6d6787;
+}
+.wb-style.wb-style-d .wb-sheet-title {
+  color: #4b36b8;
+}
+.wb-style.wb-style-d .wb-sheet-rule {
+  background: linear-gradient(90deg, #6a4bd8, #ff8a5c 60%, transparent) !important;
+  height: 3px !important;
+  border-radius: 99px;
+}
+.wb-style.wb-style-d .wb-type-title {
+  color: #3a2a99 !important;
+  background: #f1edff;
+  border-radius: 10px;
+  padding: 4px 10px;
+}
+.wb-style.wb-style-d .wb-title-no {
+  display: inline-block;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: linear-gradient(135deg, #6a4bd8, #ff8a5c);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 24px;
+  text-align: center;
+  vertical-align: 2px;
+  box-sizing: border-box;
+}
+.wb-style.wb-style-d .wb-title-dot {
+  display: none;
+}
+.wb-style.wb-style-d .wb-page-no {
+  color: #6a4bd8;
+  background: #efeaff;
+  border-radius: 99px;
+  padding: 1px 8px;
+}
+.wb-style.wb-style-d .wb-passage-meta,
+.wb-style.wb-style-d .word-order-passage-title,
+.wb-style.wb-style-d .word-order-source {
+  color: #7a6fb0;
+}
+.wb-style.wb-style-d .wb-instruction,
+.wb-style.wb-style-d .word-order-instruction {
+  color: #3d3560;
+  font-weight: 600;
+}
+.wb-style.wb-style-d .wb-sub-label,
+.wb-style.wb-style-d .wb-set-heading {
+  color: #6a4bd8 !important;
+}
+.wb-style.wb-style-d .wb-divider {
+  background: linear-gradient(90deg, #d9d0ff, transparent);
+}
+.wb-style.wb-style-d .workbook-col-section + .workbook-col-section,
+.wb-style.wb-style-d .workbook-flow-part + .workbook-flow-part {
+  border-top-color: #e6e0ff;
+}
+.wb-style.wb-style-d .workbook-two-col {
+  column-rule-color: #e6e0ff;
+}
+.wb-style.wb-style-d .grammar-choice {
+  color: #241f3a;
+  font-weight: 600;
+  background: #f3efff;
+  border-radius: 6px;
+  padding: 1px 4px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.wb-style.wb-style-d .grammar-choice-num {
+  color: #6a4bd8;
+  font-weight: 800;
+  margin-right: 2px;
+}
+.wb-style.wb-style-d .grammar-choice-br {
+  display: none;
+}
+.wb-style.wb-style-d .grammar-choice-or {
+  color: #ff8a5c;
+}
+.wb-style.wb-style-d .grammar-fix-num,
+.wb-style.wb-style-d .blank-number,
+.wb-style.wb-style-d .wb-tf-no,
+.wb-style.wb-style-d .sentence-order-choice-num,
+.wb-style.wb-style-d .workbook-tf-mark {
+  color: #6a4bd8;
+  font-weight: 800;
+}
+.wb-style.wb-style-d .grammar-fix-answer-line,
+.wb-style.wb-style-d .translation-answer-line,
+.wb-style.wb-style-d .full-writing-answer-line,
+.wb-style.wb-style-d .word-order-answer-line {
+  border-bottom-color: #c9bdff;
+}
+.wb-style.wb-style-d .blank-line {
+  border-bottom: 1.2px dashed #6a4bd8;
+}
+.wb-style.wb-style-d .sentence-order-answer-box {
+  border-color: #c9bdff;
+  border-radius: 10px;
+}
+.wb-style.wb-style-d .line-translation-number,
+.wb-style.wb-style-d .full-writing-number,
+.wb-style.wb-style-d .word-order-number {
+  color: #6a4bd8;
+  font-weight: 800;
+}
+.wb-style.wb-style-d .full-writing-korean,
+.wb-style.wb-style-d .word-order-korean {
+  color: #3d3560;
+}
+.wb-style.wb-style-d .word-order-bank {
+  background: #f6f3ff;
+  border-color: transparent;
+  border-radius: 12px;
+  font-weight: 500;
+}

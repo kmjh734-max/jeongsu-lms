@@ -1,5 +1,6 @@
 /** Lesson-materials workbook types (ready + placeholder cards). */
 import { defaultDocumentName } from "@/lib/lesson-materials/documents";
+import type { TestSection, VocabExam } from "@/lib/lesson-materials/test-book";
 
 export type WorkbookTypeId =
   | "grammar_choice"
@@ -15,7 +16,20 @@ export type WorkbookTypeId =
   | "full_en_writing"
   | "word_order_writing"
   /** 주제문·핵심 문장만 골라 어순배열(2026-10-07) */
-  | "key_word_order";
+  | "key_word_order"
+  /*
+   * 테스트 교재에서 옮긴 유형(2026-10-21 — 테스트 교재를 워크북·최종통합자료로 합침). 1장 자료 재료로
+   * 조립하며, 재료는 지문당 lesson_workbook_extras로 한 번 받는다.
+   */
+  | "tb_chunk_line"
+  | "tb_link"
+  | "tb_insert"
+  | "tb_summary"
+  | "tb_reference"
+  | "tb_implication"
+  | "tb_paraphrase"
+  | "tb_flow"
+  | "tb_vocab_exam";
 
 export type WorkbookTypeMeta = {
   id: WorkbookTypeId;
@@ -121,7 +135,40 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     displayOrder: 11,
     printOrder: 11,
   },
+  { id: "tb_chunk_line", title: "직독직해", subtitle: "끊어 읽는 덩어리마다 뜻 쓰기", ready: true, displayOrder: 12, printOrder: 12 },
+  { id: "tb_link", title: "연결어 빈칸", subtitle: "However·Therefore 같은 연결어 채우기", ready: true, displayOrder: 13, printOrder: 13 },
+  { id: "tb_insert", title: "문장 삽입", subtitle: "중요문장이 들어갈 자리 고르기", ready: true, displayOrder: 14, printOrder: 14 },
+  { id: "tb_summary", title: "요약문 완성", subtitle: "한 문장 요약의 핵심어 채우기", ready: true, displayOrder: 15, printOrder: 15 },
+  { id: "tb_reference", title: "지칭추론", subtitle: "밑줄 친 말이 가리키는 것 쓰기", ready: true, displayOrder: 16, printOrder: 16 },
+  { id: "tb_implication", title: "함축의미", subtitle: "밑줄 친 표현이 뜻하는 바 쓰기", ready: true, displayOrder: 17, printOrder: 17 },
+  { id: "tb_paraphrase", title: "바꿔 말하기", subtitle: "같은 뜻 문장의 빈칸 채우기(패러프레이징)", ready: true, displayOrder: 18, printOrder: 18 },
+  { id: "tb_flow", title: "도식화", subtitle: "글의 흐름 칸에 알맞은 내용 고르기", ready: true, displayOrder: 19, printOrder: 19 },
+  { id: "tb_vocab_exam", title: "단어 시험지", subtitle: "뜻·철자·동반의어·파생어(혼동어휘 객관식)", ready: true, displayOrder: 20, printOrder: 20 },
 ];
+
+/** 테스트 교재에서 옮긴 워크북 유형 → 테스트 교재 문항 유형(단어 시험지는 따로 만든다) */
+export const TB_WORKBOOK_TYPES = {
+  tb_chunk_line: "line",
+  tb_link: "link",
+  tb_insert: "insert",
+  tb_summary: "summary",
+  tb_reference: "reference",
+  tb_implication: "implication",
+  tb_paraphrase: "paraphrase",
+  tb_flow: "flow",
+  tb_vocab_exam: null,
+} as const;
+export type TbWorkbookTypeId = keyof typeof TB_WORKBOOK_TYPES;
+export function isTbWorkbookType(id: string): id is TbWorkbookTypeId {
+  return id in TB_WORKBOOK_TYPES;
+}
+/** 지문마다 테스트 교재 문항 하나(워크북 파일에 그대로 저장) */
+export type WorkbookTbSection = {
+  projectId: string;
+  title: string;
+  source: string | null;
+  section: TestSection;
+};
 
 export const READY_WORKBOOK_TYPE_IDS: WorkbookTypeId[] = WORKBOOK_TYPE_CATALOG.filter(
   (t) => t.ready
@@ -674,6 +721,10 @@ export type WorkbookData = {
    */
   passageBreak?: Partial<Record<WorkbookTypeId, "page">>;
   timing?: WorkbookGenerationTiming;
+  /** 테스트 교재에서 옮긴 유형의 문항(유형마다 지문 목록). 단어 시험지는 vocabExam. */
+  tbSections?: Partial<Record<TbWorkbookTypeId, WorkbookTbSection[]>>;
+  vocabExam?: VocabExam | null;
+  tbSkipped?: Partial<Record<TbWorkbookTypeId, WorkbookGrammarChoiceSkip[]>>;
 };
 
 /** 1단·2단을 고를 수 있는 유형(쓰기 칸이 있는 유형은 뺀다). */
@@ -685,6 +736,15 @@ export const WORKBOOK_COLUMN_TYPES = [
   "blank_fill",
   "tf",
   "sentence_order",
+  "tb_chunk_line",
+  "tb_link",
+  "tb_insert",
+  "tb_summary",
+  "tb_reference",
+  "tb_implication",
+  "tb_paraphrase",
+  "tb_flow",
+  "tb_vocab_exam",
 ] as const;
 export type WorkbookColumnTypeId = (typeof WORKBOOK_COLUMN_TYPES)[number];
 

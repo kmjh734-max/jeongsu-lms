@@ -79,6 +79,11 @@ export const TEST_BOOK_CSS = `
 .tb-line{height:7.5mm;border-bottom:.6pt solid #c9cdd4}
 .tb-blank{display:inline-block;min-width:24mm;border-bottom:.8pt solid #15171c;margin:0 1mm;text-align:center;font-family:"Noto Sans KR",sans-serif;font-size:7.6pt;font-weight:700;color:#6a707c;vertical-align:-.3mm}
 .tb-pick{white-space:nowrap;font-weight:600}
+/* 워크북 쪽 안(2026-10-21): 워크북 글꼴 크기에 맞추고 문항 머리 막대는 뺀다 */
+.tb-wb{font-size:12.5px;line-height:1.6;color:#15171c}
+.tb-wb .tb-psg{font-size:13px}
+.tb-arow-plain > span{display:inline-block;margin-right:3mm}
+.tb-arow-plain b{margin-right:1mm}
 .tb-form i{font-style:italic;color:#6a707c}
 .tb-form small{font-family:"Noto Sans KR",sans-serif;font-size:.78em;color:#6a707c;margin-left:.6mm}
 .tb-u u{text-decoration:underline;text-decoration-thickness:.9pt;text-underline-offset:1.2pt}
@@ -1218,13 +1223,18 @@ function ItemNode({ item }: { item: TestItem }) {
 
 /** 문항 하나하나를 덩어리로(발문은 첫 문항과 함께 둔다) */
 function sectionBlocks(sec: TestSection, n: number, prefix: string): Block[] {
-  const title = (
+  // 제목이 비면(워크북 쪽 안 — 쪽 제목은 워크북이 단다) 안내만 한 줄로
+  const title = sec.title ? (
     <div className="tb-q">
       <span className="tb-qn">{n}</span>
       {sec.title}
       {sec.hint ? <small>{sec.hint}</small> : null}
     </div>
-  );
+  ) : sec.hint ? (
+    <p className="tb-tip" style={{ margin: "0 0 1.4mm" }}>
+      {sec.hint}
+    </p>
+  ) : null;
   const top = (
     <>
       {title}
@@ -1951,5 +1961,93 @@ export function VocabExamAnswerSheets({ exam, title = "정답 · 단어 시험",
       measureKey={measureKey}
       head={(page) => <DocHead title={title} sub={page > 0 ? "(이어서)" : undefined} label="ANSWERS" right="정답만 싣습니다" />}
     />
+  );
+}
+
+// ---------------------------------------------------------------- 워크북에 끼우는 조각
+
+/**
+ * 워크북 쪽 안에 테스트 교재 문항 하나를 그린다(쪽 제목은 워크북이 단다). 테스트 교재 유형을
+ * 워크북으로 옮기며(2026-10-21) 같은 그림을 쓰게 했다. 글꼴·모양은 TEST_BOOK_CSS를 함께 넣어야 한다.
+ */
+export function TestSectionContent({ section }: { section: TestSection }) {
+  const blocks = sectionBlocks({ ...section, title: "" }, 0, "wb");
+  return (
+    <div className="tb-wb">
+      {blocks.map((b) => (
+        <Fragment key={b.key}>{b.node}</Fragment>
+      ))}
+    </div>
+  );
+}
+
+/** 워크북 정답 칸: 문항 번호와 정답만 */
+export function TestSectionAnswer({ section }: { section: TestSection }) {
+  return <div className="tb-wb tb-arow-plain">{sectionAnswer(section)}</div>;
+}
+
+/** 워크북에 끼우는 단어 시험지 문항(쪽 제목·이름 칸은 워크북이 단다) */
+export function VocabExamContent({ exam }: { exam: VocabExam }) {
+  return (
+    <div className="tb-wb">
+      {exam.sections.map((sec, si) => (
+        <div key={sec.kind} className="tb-b">
+          <div className="tb-q">
+            <span className="tb-qn">{si + 1}</span>
+            {sec.title}
+            <small>{sec.hint}</small>
+          </div>
+          {sec.items[0]?.choices ? (
+            sec.items.map((it) => (
+              <div key={it.no} className="tb-mc">
+                <span className="tb-i">{it.no}</span>
+                <div>
+                  <b className="tb-en">{it.prompt}</b>
+                  <div className="tb-ch tb-en">
+                    {it.choices!.map((c, ci) => (
+                      <span key={ci}>
+                        {"①②③④"[ci]} {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="tb-words">
+              {sec.items.map((it) => (
+                <div key={it.no} className="tb-wq">
+                  <span className="tb-i">{it.no}</span>
+                  <span className={sec.kind === "spelling" ? undefined : "tb-en"}>
+                    {it.prompt}
+                    {it.hint ? <span className="tb-tip"> ({it.hint}…)</span> : null}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function VocabExamAnswer({ exam }: { exam: VocabExam }) {
+  return (
+    <div className="tb-wb">
+      {exam.sections.map((sec) => (
+        <dl key={sec.kind} className="tb-arow">
+          <dt>{sec.title}</dt>
+          <dd>
+            {sec.items.map((it) => (
+              <span key={it.no}>
+                <b>{it.no}</b>
+                {it.answer}
+              </span>
+            ))}
+          </dd>
+        </dl>
+      ))}
+    </div>
   );
 }

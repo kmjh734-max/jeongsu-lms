@@ -53,6 +53,10 @@ import {
   sortWorkbookTypesByPrintOrder,
   workbookTypeDisplayTitle,
   WORKBOOK_COLUMN_TYPES,
+  TB_WORKBOOK_TYPES,
+  isTbWorkbookType,
+  type TbWorkbookTypeId,
+  type WorkbookTbSection,
   type BlankRenderToken,
   type WorkbookColumnTypeId,
   type WorkbookBlankSection,
@@ -74,13 +78,28 @@ import {
 import { circledNumber } from "@/lib/lesson-materials/grammar-choice-constants";
 import "./workbook-print-styles.css";
 import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
+import type { prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-book-actions";
+import {
+  buildTestSheet,
+  buildVocabExam,
+  DEFAULT_VOCAB_EXAM,
+  type TestBookTypeKey,
+} from "@/lib/lesson-materials/test-book";
+import {
+  TEST_BOOK_CSS,
+  TEST_BOOK_FONTS_HREF,
+  TestSectionAnswer,
+  TestSectionContent,
+  VocabExamAnswer,
+  VocabExamContent,
+} from "@/components/lesson-materials/test-book/TestBookSheets";
 
 /*
  * 워크북 모양. 분석지·변형문제와 같은 시안 셋(A 교재 세리프 · B 깔끔한 산세리프 · C 클래식 인쇄)
  * 가운데 하나를 고른다(기본은 A). 문항 구성·크기는 같고 글꼴·색·선만 바꾼다 —
  * workbook-print-styles.css의 .wb-style-*.
  */
-type WorkbookDesignStyle = "a" | "b" | "c";
+type WorkbookDesignStyle = "a" | "b" | "c" | "d";
 const DESIGN_STYLE_KEY = "workbook-print-design-style";
 /** 쪽번호를 넣을지 (선생님이 자료마다 고른다) */
 const PAGE_NUMBER_KEY = "workbook-page-numbers";
@@ -88,6 +107,7 @@ const DESIGN_STYLES: Array<{ id: WorkbookDesignStyle; label: string; hint: strin
   { id: "a", label: "A", hint: "교재 세리프" },
   { id: "b", label: "B", hint: "깔끔한 산세리프" },
   { id: "c", label: "C", hint: "클래식 인쇄" },
+  { id: "d", label: "D", hint: "파스텔 블룸(테스트 교재 1안)" },
 ];
 /** A·B·C가 쓰는 글꼴. */
 const DESIGN_FONTS_HREF =
@@ -234,7 +254,18 @@ function withWorkbookDefaults(w: WorkbookData): WorkbookData {
     vocabChoiceSkipped: w.vocabChoiceSkipped ?? [],
     vocabFixSections: w.vocabFixSections ?? [],
     vocabFixSkipped: w.vocabFixSkipped ?? [],
+    tbSections: w.tbSections ?? {},
+    vocabExam: w.vocabExam ?? null,
+    tbSkipped: w.tbSkipped ?? {},
   };
+}
+
+type PrepareExtrasResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
+
+/** 테스트 교재에서 옮긴 유형의 문항 수(단어 시험지는 한 묶음) */
+function tbCount(w: WorkbookData, t: TbWorkbookTypeId): number {
+  if (t === "tb_vocab_exam") return w.vocabExam && w.vocabExam.total > 0 ? 1 : 0;
+  return (w.tbSections?.[t] ?? []).length;
 }
 
 const A4_WIDTH = "210mm";
@@ -254,6 +285,15 @@ const COLUMN_TYPE_TITLE: Record<WorkbookColumnTypeId, string> = {
   blank_fill: "빈칸 채우기",
   tf: "T/F 문제",
   sentence_order: "문장 순서 배열",
+  tb_chunk_line: "직독직해",
+  tb_link: "연결어 빈칸",
+  tb_insert: "문장 삽입",
+  tb_summary: "요약문 완성",
+  tb_reference: "지칭추론",
+  tb_implication: "함축의미",
+  tb_paraphrase: "바꿔 말하기",
+  tb_flow: "도식화",
+  tb_vocab_exam: "단어 시험",
 };
 
 /** 창 본문의 단 사이 간격. 화면·인쇄가 같아야 잰 단 수와 인쇄의 단 수가 같다. */
@@ -1439,7 +1479,7 @@ export function WorkbookWorkbench({
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(DESIGN_STYLE_KEY);
-      if (saved === "a" || saved === "b" || saved === "c") setDesignStyle(saved);
+      if (saved === "a" || saved === "b" || saved === "c" || saved === "d") setDesignStyle(saved);
     } catch {
       /* 저장소를 못 쓰면 A */
     }
@@ -1944,7 +1984,9 @@ export function WorkbookWorkbench({
             (cached.keyWordOrderSections?.length ?? 0) > 0 ||
             (cached.grammarFixSections?.length ?? 0) > 0 ||
             (cached.vocabChoiceSections?.length ?? 0) > 0 ||
-            (cached.vocabFixSections?.length ?? 0) > 0)
+            (cached.vocabFixSections?.length ?? 0) > 0 ||
+            Object.values(cached.tbSections ?? {}).some((list) => (list?.length ?? 0) > 0) ||
+            (cached.vocabExam?.total ?? 0) > 0)
         ) {
           if (!cancelled) {
             setSourceNote("existing");
@@ -2002,6 +2044,7 @@ export function WorkbookWorkbench({
           wantLineKo,
           wantFullEn,
           wantWordOrder,
+          ...types.filter(isTbWorkbookType),
         ].filter(Boolean).length > 1;
       const creatingNew = searchParams.get("fresh") === "1";
       if (multiReady) {
@@ -2117,6 +2160,74 @@ export function WorkbookWorkbench({
             })
           : Promise.resolve(null);
 
+        /*
+         * 테스트 교재에서 옮긴 유형(지칭·함축·바꿔 말하기·도식화·연결어·삽입·요약문·직독직해·단어 시험지).
+         * 지문마다 1장 자료 재료를 받아(지문당 한 번 값) 규칙으로 조립한다. 난이도 UP은 tbLevel=up.
+         */
+        const tbTypes = types.filter(isTbWorkbookType);
+        const tbLevel = searchParams.get("tbLevel") === "up" ? "up" : "basic";
+        const tbTask = tbTypes.length
+          ? (async () => {
+              const got = new Array<Extract<PrepareExtrasResult, { ok: true }> | null>(ids.length).fill(null);
+              const skips: WorkbookGrammarChoiceSkip[] = [];
+              let next = 0;
+              const worker = async () => {
+                for (;;) {
+                  const i = next;
+                  next += 1;
+                  if (i >= ids.length || cancelled) return;
+                  const one = await postJson<PrepareExtrasResult>("/api/lesson-materials/test-book", {
+                    role,
+                    op: "prepareWorkbook",
+                    projectId: ids[i]!,
+                  });
+                  if (cancelled) return;
+                  if (one.ok) got[i] = one;
+                  else skips.push({ projectId: ids[i]!, title: ids[i]!, reason: one.message });
+                }
+              };
+              await Promise.all(Array.from({ length: Math.min(4, ids.length) }, worker));
+              const sections: Partial<Record<TbWorkbookTypeId, WorkbookTbSection[]>> = {};
+              const skipped: Partial<Record<TbWorkbookTypeId, WorkbookGrammarChoiceSkip[]>> = {};
+              for (const t of tbTypes) {
+                const key = TB_WORKBOOK_TYPES[t];
+                if (!key) continue;
+                const list: WorkbookTbSection[] = [];
+                const miss: WorkbookGrammarChoiceSkip[] = [...skips];
+                got.forEach((g, i) => {
+                  if (!g) return;
+                  const ready = {
+                    id: ids[i]!,
+                    title: g.title,
+                    titleEn: null,
+                    source: g.source,
+                    sentences: g.sentences,
+                    content: g.content,
+                    material: g.material,
+                  };
+                  const sheet = buildTestSheet(ready, [key as TestBookTypeKey], {
+                    seed: "workbook",
+                    lineMode: "chunk",
+                    level: tbLevel,
+                  });
+                  const sec = sheet.sections[0];
+                  if (sec) list.push({ projectId: ids[i]!, title: g.title, source: g.source, section: sec });
+                  else miss.push({ projectId: ids[i]!, title: g.title, reason: "이 지문은 재료가 모자라 이 유형을 만들지 못했습니다." });
+                });
+                sections[t] = list;
+                skipped[t] = miss;
+              }
+              const vocabExam = tbTypes.includes("tb_vocab_exam")
+                ? buildVocabExam(
+                    got.flatMap((g, i) => (g ? [{ passage: i + 1, vocab: g.material.vocab }] : [])),
+                    { ...DEFAULT_VOCAB_EXAM, seed: "workbook|vocab" }
+                  )
+                : null;
+              if (vocabExam) skipped.tb_vocab_exam = skips;
+              return { sections, skipped, vocabExam };
+            })()
+          : Promise.resolve(null);
+
         const res = await postJson<Awaited<ReturnType<typeof generateWorkbookAction>>>(
           "/api/lesson-materials/workbook",
           {
@@ -2179,6 +2290,13 @@ export function WorkbookWorkbench({
             workbook.vocabFixSkipped = [...vocab.skipped, ...fix.skipped];
             workbook.vocabFixOptions = vocabFixOptions;
           }
+        }
+        const tb = await tbTask;
+        if (cancelled) return;
+        if (tb) {
+          workbook.tbSections = tb.sections;
+          workbook.tbSkipped = tb.skipped;
+          workbook.vocabExam = tb.vocabExam;
         }
         setSourceNote(creatingNew ? "new" : "existing");
         saveWorkbookToSession(workbook);
@@ -2629,6 +2747,15 @@ export function WorkbookWorkbench({
       blank_fill: workbook.blankSections.length,
       tf: workbook.sections.length,
       sentence_order: soQuestions.length,
+      tb_chunk_line: tbCount(workbook, "tb_chunk_line"),
+      tb_link: tbCount(workbook, "tb_link"),
+      tb_insert: tbCount(workbook, "tb_insert"),
+      tb_summary: tbCount(workbook, "tb_summary"),
+      tb_reference: tbCount(workbook, "tb_reference"),
+      tb_implication: tbCount(workbook, "tb_implication"),
+      tb_paraphrase: tbCount(workbook, "tb_paraphrase"),
+      tb_flow: tbCount(workbook, "tb_flow"),
+      tb_vocab_exam: tbCount(workbook, "tb_vocab_exam"),
     };
     const flowSections: Record<FlowKind, Array<{ items: unknown[] }>> = {
       line_ko: ltSections,
@@ -3339,6 +3466,44 @@ export function WorkbookWorkbench({
         />
       ));
     }
+    for (const t of Object.keys(TB_WORKBOOK_TYPES) as TbWorkbookTypeId[]) {
+      const ot = typeOrders.get(t);
+      if (ot == null) continue;
+      const head = (projectId?: string, source?: string | null) => (
+        <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
+          <TitleNo no={ot} /> {COLUMN_TYPE_TITLE[t]}
+          {projectId || source ? <AnswerTag projectId={projectId} source={source} /> : null}
+        </h3>
+      );
+      if (t === "tb_vocab_exam") {
+        if (workbook.vocabExam && workbook.vocabExam.total > 0) {
+          answerBlocks.push({
+            key: "tbv",
+            order: ot,
+            node: (
+              <>
+                {head()}
+                <VocabExamAnswer exam={workbook.vocabExam} />
+              </>
+            ),
+          });
+        }
+        continue;
+      }
+      (workbook.tbSections?.[t] ?? []).forEach((one, i) =>
+        answerBlocks.push({
+          key: `tb-${t}-${i}`,
+          order: ot,
+          node: (
+            <>
+              {head(one.projectId, one.source)}
+              <TestSectionAnswer section={one.section} />
+            </>
+          ),
+        })
+      );
+      addSkipped(`tbs-${t}`, ot, workbook.tbSkipped?.[t] ?? []);
+    }
   }
   answerBlocks.sort((a, b) => a.order - b.order);
   const answerBlockByKey = new Map(answerBlocks.map((b) => [b.key, b] as const));
@@ -3414,6 +3579,19 @@ export function WorkbookWorkbench({
         <TfQuestionBody section={section} />
       ) : null;
     }
+    if (type === "tb_vocab_exam") {
+      return workbook.vocabExam ? <VocabExamContent exam={workbook.vocabExam} /> : null;
+    }
+    if (isTbWorkbookType(type)) {
+      const one = workbook.tbSections?.[type]?.[i];
+      if (!one) return null;
+      return (
+        <>
+          <PassageMeta projectId={one.projectId} source={one.source} />
+          <TestSectionContent section={one.section} />
+        </>
+      );
+    }
     const question = soQuestions[i];
     if (!question) return null;
     const sets = soQuestions.filter((x) => x.passageId === question.passageId).length;
@@ -3441,13 +3619,21 @@ export function WorkbookWorkbench({
         ? workbook.blankSections.length
         : type === "tf"
           ? workbook.sections.length
-          : soQuestions.length;
+          : isTbWorkbookType(type)
+            ? tbCount(workbook, type)
+            : soQuestions.length;
   /** 배치를 잴 유형(고른 유형 전부). 1단은 쪽 너비, 2단은 단 너비로 잰다. */
   const columnTypesOn = WORKBOOK_COLUMN_TYPES.filter((t) => workbook.selectedTypes.includes(t));
 
   /** 인쇄할 쪽들과 쪽 나눔 측정 영역. 최종통합자료에 끼워 넣을 때(embedded)도 같은 모양을 쓴다. */
   const printPages = (
     <>
+            {columnTypes.some(isTbWorkbookType) ? (
+              <>
+                <link rel="stylesheet" href={TEST_BOOK_FONTS_HREF} />
+                <style>{TEST_BOOK_CSS}</style>
+              </>
+            ) : null}
             {pages.map((page, pageI) => {
               /*
                * 정답지는 1쪽부터 다시 센다. 선생님 말씀(2026-10-20): 문제지·정답지를 따로 뽑아도 쪽수가
@@ -3849,7 +4035,7 @@ export function WorkbookWorkbench({
 
           <div className="space-y-1.5">
             <p className="text-[11px] font-bold text-slate-500">워크북 모양</p>
-            <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
+            <div className="grid grid-cols-4 gap-1 rounded-lg bg-slate-100 p-1">
               {DESIGN_STYLES.map((d) => (
                 <button
                   key={d.id}
