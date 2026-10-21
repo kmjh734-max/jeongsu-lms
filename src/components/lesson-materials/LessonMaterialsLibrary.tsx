@@ -50,7 +50,7 @@ const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
   { id: "workbook", label: "워크북" },
   { id: "onePageSummary", label: "1장 요약직보자료" },
   { id: "onePageTest", label: "1장 테스트" },
-  { id: "testBook", label: "테스트 교재" },
+  { id: "testBook", label: "테스트 교재(지난 파일)" },
   { id: "questions", label: "변형문제" },
   { id: "integrated", label: "최종통합자료" },
 ];
@@ -750,7 +750,12 @@ export function LessonMaterialsLibrary({
           className="flex flex-wrap gap-1 border-b border-slate-200 bg-white px-1"
           aria-label="자료 종류"
         >
-          {LIBRARY_TABS.filter((tab) => tab.id !== "testBook" || data.testBookOpen).map((tab) => {
+          {/* 테스트 교재 메뉴는 뺐다(선생님 2026-10-21 — 워크북·최종통합자료로 합침). 이미 만든 파일이 있을 때만 열어 보게 탭을 남긴다 */}
+          {LIBRARY_TABS.filter(
+            (tab) =>
+              tab.id !== "testBook" ||
+              (data.testBookOpen && (data.documents ?? []).some((d) => d.kind === "test_book" || d.kind === "test_draw"))
+          ).map((tab) => {
             const active = libraryTab === tab.id;
             return (
               <button
@@ -1235,7 +1240,7 @@ export function LessonMaterialsLibrary({
           role={role}
           selectedCount={selectedCount}
           selectedIds={selectedInInputOrder}
-          testBookOpen={data.testBookOpen === true}
+          testBookOpen={false}
           onIntegrated={() => setIntegratedOpen({ preselected: selectedInInputOrder })}
         />
       ) : null}
