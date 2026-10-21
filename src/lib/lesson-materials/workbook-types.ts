@@ -143,7 +143,8 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
   { id: "tb_implication", title: "함축의미", subtitle: "밑줄 친 표현이 뜻하는 바 쓰기", ready: true, displayOrder: 17, printOrder: 17 },
   { id: "tb_paraphrase", title: "바꿔 말하기", subtitle: "같은 뜻 문장의 빈칸 채우기(패러프레이징)", ready: true, displayOrder: 18, printOrder: 18 },
   { id: "tb_flow", title: "도식화", subtitle: "글의 흐름 칸에 알맞은 내용 고르기", ready: true, displayOrder: 19, printOrder: 19 },
-  { id: "tb_vocab_exam", title: "단어 시험지", subtitle: "뜻·철자·동반의어·파생어(혼동어휘 객관식)", ready: true, displayOrder: 20, printOrder: 20 },
+  // 단어 시험지는 맨 앞(한줄해석보다 먼저) — 선생님 2026-10-21
+  { id: "tb_vocab_exam", title: "단어 시험지", subtitle: "뜻·철자·동반의어·파생어(혼동어휘 객관식)", ready: true, displayOrder: 0, printOrder: 0 },
 ];
 
 /** 테스트 교재에서 옮긴 워크북 유형 → 테스트 교재 문항 유형(단어 시험지는 따로 만든다) */
