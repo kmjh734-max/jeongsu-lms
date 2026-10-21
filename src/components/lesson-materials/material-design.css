@@ -463,3 +463,20 @@
   font-size: 20px !important;
   margin-top: 6px !important;
 }
+
+/* 지문 분석서 글자를 조금 작게(선생님 2026-10-21: 폰트가 좀 큰 것 같다) */
+.md.ar-style .ar-sentence,
+.md .ar-style .ar-sentence {
+  font-size: 12.4px;
+}
+.md-d.ar-style .ar-sentence,
+.md-d .ar-style .ar-sentence {
+  font-size: 13.4px;
+}
+.md.ar-style .ar-trans,
+.md .ar-style .ar-trans {
+  font-size: 10.8px;
+}
+.md .ar-head-title {
+  font-size: 20px !important;
+}

@@ -33,10 +33,7 @@ export function sentenceNotesFor(plains: string[], content: OnePageContent | nul
     if (m.expression.trim())
       attach(m.sentenceIndex, m.expression, { kind: "imp", expression: m.expression, meaningKo: m.meaningKo, meaningEn: m.meaningEn });
   }
-  for (const x of content.paraphrases ?? []) {
-    if (x.expression.trim() && x.paraphrases.length)
-      attach(x.sentenceIndex, x.expression, { kind: "para", expression: x.expression, paraphrases: x.paraphrases });
-  }
+  // 바꿔 말하기는 싣지 않는다(선생님 2026-10-21: 바꿔 말하기 자체는 안 넣어도 될 듯)
   return at;
 }
 

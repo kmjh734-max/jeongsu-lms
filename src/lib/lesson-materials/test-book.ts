@@ -72,7 +72,7 @@ export const TEST_BOOK_TYPES: Array<{ key: TestBookTypeKey; label: string; basic
   { key: "insert", label: "문장 삽입", basic: false, hint: "중요문장이 들어갈 자리 고르기" },
   { key: "summary", label: "요약문 완성", basic: false, hint: "요약 한 문장의 핵심어 채우기" },
   { key: "grammarFix", label: "어법 서술형", basic: false, hint: "틀린 곳 찾아 고쳐 쓰기" },
-  { key: "words", label: "단어 영↔한", basic: false, hint: "단어 정리 범위에서 뜻·철자 쓰기" },
+  // 「단어 영↔한」은 뺐다 — 단어 시험지가 같이 나간다(선생님 2026-10-21)
   { key: "reference", label: "지칭추론", basic: false, hint: "밑줄 친 말이 가리키는 것을 본문에서 찾아 쓰기" },
   { key: "implication", label: "함축의미", basic: false, hint: "밑줄 친 표현이 이 글에서 뜻하는 바 쓰기" },
   { key: "paraphrase", label: "바꿔 말하기", basic: false, hint: "본문 표현과 같은 뜻 문장의 빈칸 채우기" },
@@ -1335,7 +1335,7 @@ export type VocabExamKind = "meaning" | "spelling" | "synonym" | "antonym" | "fo
 
 export const VOCAB_EXAM_KINDS: Array<{ key: VocabExamKind; label: string; hint: string }> = [
   { key: "meaning", label: "뜻 쓰기 (영→한)", hint: "단어를 보고 지문 속 뜻 쓰기" },
-  { key: "spelling", label: "철자 쓰기 (한→영)", hint: "뜻을 보고 영어 쓰기 · 첫 글자 줌" },
+  { key: "spelling", label: "철자 쓰기 (한→영)", hint: "뜻을 보고 영어 쓰기" },
   { key: "synonym", label: "동의어 고르기", hint: "4지선다" },
   { key: "antonym", label: "반의어 고르기", hint: "4지선다" },
   { key: "form", label: "파생어 쓰기", hint: "품사를 바꿔 쓰기" },
@@ -1408,7 +1408,8 @@ export function buildVocabExam(
     meaning: rows.map((r) => ({ prompt: r.word, answer: r.meaning, passage: r.passage })),
     spelling: rows
       .filter((r) => /^[A-Za-z]/.test(r.word))
-      .map((r) => ({ prompt: r.meaning, hint: r.word[0]!, answer: r.word, passage: r.passage })),
+      // 첫 글자는 알려 주지 않는다(선생님 2026-10-21)
+      .map((r) => ({ prompt: r.meaning, answer: r.word, passage: r.passage })),
     synonym: rows.flatMap((r) => {
       const c = r.synonyms[0];
       const m = c ? mcq(r, c, `s|${r.word}`) : null;

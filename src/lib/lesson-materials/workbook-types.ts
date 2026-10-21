@@ -145,7 +145,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
   { id: "tb_summary", title: "요약문 완성", subtitle: "한 문장 요약의 핵심어 채우기", ready: true, displayOrder: 15, printOrder: 15 },
   { id: "tb_reference", title: "지칭추론", subtitle: "밑줄 친 말이 가리키는 것 쓰기", ready: true, displayOrder: 16, printOrder: 16 },
   { id: "tb_implication", title: "함축의미", subtitle: "밑줄 친 표현이 뜻하는 바 쓰기", ready: true, displayOrder: 17, printOrder: 17 },
-  { id: "tb_paraphrase", title: "바꿔 말하기", subtitle: "같은 뜻 문장의 빈칸 채우기(패러프레이징)", ready: true, displayOrder: 18, printOrder: 18 },
+  // 「바꿔 말하기」는 뺐다(선생님 2026-10-21) — 예전에 만든 워크북은 그대로 보인다
   { id: "tb_flow", title: "도식화", subtitle: "글의 흐름 칸에 알맞은 내용 고르기", ready: true, displayOrder: 19, printOrder: 19 },
   { id: "tb_sequence", title: "글의 순서", subtitle: "주어진 글 뒤 (A)~(E) 순서 맞추기", ready: true, displayOrder: 21, printOrder: 21 },
   /*

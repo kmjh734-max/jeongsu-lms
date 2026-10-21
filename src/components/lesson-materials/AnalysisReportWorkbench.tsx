@@ -171,8 +171,6 @@ const TRANSLATION_MODE_KEY = "analysis-report-translation-mode";
  */
 /** 쪽번호를 넣을지 (선생님이 자료마다 고른다) */
 const PAGE_NUMBER_KEY = "analysis-report-page-numbers";
-/** 문장 밑 주석(지칭·함축·바꿔 말하기)을 넣을지 */
-const SENTENCE_NOTES_KEY = "analysis-report-sentence-notes";
 const NO_NOTES = new Map<number, SentenceNote[]>();
 
 function SentenceBlock({
@@ -459,25 +457,10 @@ export function AnalysisReportWorkbench({
   const designStyle = ANALYSIS_BASE_STYLE[md] as AnalysisDesignStyle;
   /** 쪽번호 — 인쇄물 오른쪽 아래에 1부터 찍는다. 최종통합자료에 끼울 때는 통합자료가 센다. */
   /**
-   * 문장 밑 주석(지칭·함축의미·바꿔 말하기) — 테스트 교재 분석 자료와 같은 것을 지문 분석서에도
-   * (선생님 2026-10-21). 1장 자료 재료가 있는 지문만, 기본은 켬.
+   * 문장 밑 주석(지칭·함축의미) — 테스트 교재 분석 자료와 같은 것을 지문 분석서에도(선생님 2026-10-21).
+   * 1장 자료 재료가 있는 지문은 늘 넣는다(켜고 끄는 칸은 선생님 말씀으로 뺐다).
    */
-  const [sentenceNotesOn, setSentenceNotesOn] = useState(true);
-  useEffect(() => {
-    try {
-      setSentenceNotesOn(window.localStorage.getItem(SENTENCE_NOTES_KEY) !== "off");
-    } catch {
-      /* 저장소를 못 쓰면 켠 채로 */
-    }
-  }, []);
-  const chooseSentenceNotes = (on: boolean) => {
-    setSentenceNotesOn(on);
-    try {
-      window.localStorage.setItem(SENTENCE_NOTES_KEY, on ? "on" : "off");
-    } catch {
-      /* 무시 */
-    }
-  };
+  const sentenceNotesOn = true;
   const notesCache = useMemo(() => new Map<string, Map<number, SentenceNote[]>>(), [projects, sentenceNotesOn]);
   const notesFor = (p: AnalysisReportProjectInput, sentences: AnalysisReportData["sentences"]) => {
     if (!sentenceNotesOn || !p.onePageContent) return NO_NOTES;
@@ -1150,18 +1133,6 @@ export function AnalysisReportWorkbench({
 
           <MaterialDesignPicker value={md} onChange={chooseMd} />
 
-          <label
-            className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2"
-            title="1장 자료 재료가 있는 지문은 문장 바로 밑에 지칭·함축의미·바꿔 말하기를 적습니다"
-          >
-            <span className="text-[11px] font-bold text-slate-500">지칭·함축·바꿔 말하기 주석</span>
-            <input
-              type="checkbox"
-              checked={sentenceNotesOn}
-              onChange={(e) => chooseSentenceNotes(e.target.checked)}
-              className="h-4 w-4 accent-violet-500"
-            />
-          </label>
           <label className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
             <span className="text-[11px] font-bold text-slate-500">쪽번호 넣기</span>
             <input

@@ -143,7 +143,8 @@ export function WorkbookCreateModal({
     DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS
   );
   const [vocabWordLevel, setVocabWordLevel] = useState<"normal" | "hard">("normal");
-  const [tbLevel, setTbLevel] = useState<"basic" | "up">("basic");
+  // 테스트 교재 유형 난이도 UP은 바꿔 말하기에만 있었다 — 바꿔 말하기를 빼며 늘 기본(2026-10-21)
+  const tbLevel = "basic" as "basic" | "up";
   const [vocabExam, setVocabExam] = useState<VocabExamOptions>(DEFAULT_VOCAB_EXAM);
   /** 해석 적기: 문장마다(한줄해석) / 끊어 읽기(직독직해) */
   const [lineMode, setLineMode] = useState<"full" | "chunk">("full");
@@ -177,7 +178,6 @@ export function WorkbookCreateModal({
   const wantFullEn = selected.has("full_en_writing");
   const wantWordOrder = selected.has("word_order_writing");
   const wantKeyWordOrder = selected.has("key_word_order");
-  const wantParaphrase = selected.has("tb_paraphrase");
   const wantVocabExam = selected.has("tb_vocab_exam");
 
   if (!open || asking) return null;
@@ -605,29 +605,6 @@ export function WorkbookCreateModal({
                 </div>
               ) : null}
 
-              {wantParaphrase ? (
-                <div className="space-y-3">
-                  <p className="text-sm font-bold text-slate-900">바꿔 말하기 옵션</p>
-                  <div className="overflow-hidden rounded-xl border border-slate-200">
-                    <OptionRow tone="violet" label="난이도">
-                      <div className="space-y-2">
-                        <TogglePair
-                          tone="violet"
-                          left={{ id: "basic", label: "일반" }}
-                          right={{ id: "up", label: "난이도 UP" }}
-                          value={tbLevel}
-                          onChange={(v) => setTbLevel(v === "up" ? "up" : "basic")}
-                        />
-                        <p className="text-[11px] text-violet-600">
-                          {tbLevel === "basic"
-                            ? "빈칸에 첫 글자와 우리말 뜻을 주고 바꿔 쓴 표현을 채웁니다."
-                            : "첫 글자·우리말 뜻 없이 채웁니다."}
-                        </p>
-                      </div>
-                    </OptionRow>
-                  </div>
-                </div>
-              ) : null}
 
               {wantVocabFix ? (
                 <FixOptions
