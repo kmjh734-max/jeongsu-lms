@@ -162,6 +162,8 @@ const MARKUP_EXTRA_LABELS = [
   "간접의문문", "의문사절", "관계사절", "관계부사절", "분사구문", "부정사구", "동명사구",
   "부정의 시간 부사절", "때 부사절", "조건 부사절", "양보 부사절", "이유 부사절",
   "목적 부사절", "결과 부사절", "비교 부사절", "양태 부사절",
+  // as가 「~함에 따라」일 때. 목록에 없어 모델이 「시간 부사절」을 골랐다(2026-10-21 최다빈 선생님 지문 대조)
+  "비례 부사절",
   // 생략·축약
   "관계사 생략", "관계사 생략 절", "접속사 that 생략", "주어+be 생략",
   "반복 어구 생략", "대동사", "공통 관계", "축약 관계절",
@@ -320,13 +322,30 @@ export function resolveMarkupSpan(
   const doc = canonicalize(sentence);
   const nth = Math.max(1, Math.floor(occurrence) || 1);
 
-  let at = -1;
-  let found = -1;
-  for (let k = 0; k < nth; k++) {
-    found = doc.text.indexOf(q, at + 1);
-    if (found < 0) return null;
-    at = found;
-  }
+  /*
+   * 낱말 경계에 맞는 자리만 센다. 경계를 보지 않으면 짧은 낱말이 앞 낱말 속에 걸렸다
+   * (Then 속의 he에 주어 S가 찍힘 — 2026-10-21 최다빈 선생님 지문분석 대조). 경계에 맞는 자리가
+   * 없을 때만(따옴말이 낱말 일부인 경우) 예전처럼 아무 자리나 센다.
+   */
+  const isWordChar = (c: string | undefined) => !!c && /[A-Za-z0-9]/.test(c);
+  const onBoundary = (pos: number) =>
+    (!isWordChar(q[0]) || !isWordChar(doc.text[pos - 1])) &&
+    (!isWordChar(q[q.length - 1]) || !isWordChar(doc.text[pos + q.length]));
+  const findNth = (strict: boolean) => {
+    let from = 0;
+    let hit = -1;
+    for (let k = 0; k < nth; ) {
+      const pos = doc.text.indexOf(q, from);
+      if (pos < 0) return -1;
+      from = pos + 1;
+      if (strict && !onBoundary(pos)) continue;
+      hit = pos;
+      k++;
+    }
+    return hit;
+  };
+  let found = findNth(true);
+  if (found < 0) found = findNth(false);
   if (found < 0) return null;
 
   const start = doc.map[found];
