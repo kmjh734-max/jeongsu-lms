@@ -263,6 +263,25 @@ function withWorkbookDefaults(w: WorkbookData): WorkbookData {
 
 type PrepareExtrasResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** 워크북에 실린 지문(처음 나온 순서) — 유형마다 지문 목록이 따로라 projectId를 모두 모은다 */
+function workbookProjectIds(w: WorkbookData): string[] {
+  const out = new Set<string>();
+  const walk = (v: unknown, depth: number) => {
+    if (!v || typeof v !== "object" || depth > 4) return;
+    if (Array.isArray(v)) {
+      for (const x of v) walk(x, depth + 1);
+      return;
+    }
+    for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+      if (k === "projectId" && typeof x === "string" && UUID_RE.test(x)) out.add(x);
+      else if (typeof x === "object") walk(x, depth + 1);
+    }
+  };
+  walk(w, 0);
+  return [...out];
+}
+
 
 /** 테스트 교재에서 옮긴 유형의 문항 수(단어 시험지는 한 묶음) */
 function tbCount(w: WorkbookData, t: TbWorkbookTypeId): number {
@@ -1732,6 +1751,77 @@ export function WorkbookWorkbench({
         : null
     );
     setVocabLevelBusy(false);
+  }
+
+  /**
+   * 해석 적기를 만든 뒤에도 문장마다 ↔ 끊어 읽기(직독직해)로 바꾼다(선생님 2026-10-21). 바꿀 쪽 문항이
+   * 아직 없으면 그때 만든다 — 문장마다는 한 줄 해석 값, 끊어 읽기는 지문당 재료 값(한 번). 값을 먼저 묻는다.
+   */
+  const [lineBusy, setLineBusy] = useState<string | null>(null);
+  async function switchLineMode(mode: "full" | "chunk") {
+    if (!workbook || lineBusy) return;
+    const from = mode === "chunk" ? "one_line_ko" : "tb_chunk_line";
+    const to = mode === "chunk" ? "tb_chunk_line" : "one_line_ko";
+    if (!workbook.selectedTypes.includes(from)) return;
+    const ids = workbookProjectIds(workbook);
+    if (!ids.length) return;
+    const swap = (w: WorkbookData): WorkbookData => ({
+      ...w,
+      selectedTypes: w.selectedTypes.map((t) => (t === from ? to : t)),
+      typeOrder: w.typeOrder?.map((t) => (t === from ? to : t)),
+    });
+    const have = mode === "chunk" ? (workbook.tbSections?.tb_chunk_line?.length ?? 0) > 0 : (workbook.lineTranslationSections?.length ?? 0) > 0;
+    if (have) {
+      editWorkbook(swap);
+      return;
+    }
+    const go = await askCreditConfirm({
+      title: "해석 적기 바꾸기",
+      description:
+        mode === "chunk"
+          ? "해석 적기를 끊어 읽기(직독직해)로 바꿉니다. 지문마다 끊어 읽기 재료를 만듭니다(이미 만든 지문은 값이 들지 않습니다)."
+          : "해석 적기를 문장마다로 바꿉니다. 문장별 해석 문항을 만듭니다.",
+      subject: `지문 ${ids.length}개`,
+      contents: [mode === "chunk" ? "해석 적기 (끊어 읽기)" : "해석 적기"],
+      items: [{ feature: mode === "chunk" ? "lesson_workbook_extras" : "lesson_workbook_line_translation", quantity: ids.length }],
+      sample: "workbook",
+    });
+    if (!go) return;
+    setLineBusy("바꾸는 중…");
+    try {
+      if (mode === "chunk") {
+        const list: WorkbookTbSection[] = [];
+        for (let i = 0; i < ids.length; i++) {
+          setLineBusy(`끊어 읽기를 만드는 중… (${i + 1}/${ids.length})`);
+          const g = await postJson<PrepareExtrasResult>("/api/lesson-materials/test-book", { role, op: "prepareWorkbook", projectId: ids[i]! });
+          if (!g.ok) continue;
+          const ready = { id: ids[i]!, title: g.title, titleEn: null, source: g.source, sentences: g.sentences, content: g.content, material: g.material };
+          const sec = buildTestSheet(ready, ["line"], { seed: "workbook", lineMode: "chunk" }).sections[0];
+          if (sec) list.push({ projectId: ids[i]!, title: g.title, source: g.source, section: sec });
+        }
+        if (!list.length) throw new Error("끊어 읽기 문항을 만들지 못했습니다.");
+        editWorkbook((w) => swap({ ...w, tbSections: { ...(w.tbSections ?? {}), tb_chunk_line: list } }));
+      } else {
+        const res = await postJson<Awaited<ReturnType<typeof generateWorkbookAction>>>("/api/lesson-materials/workbook", {
+          role,
+          input: {
+            projectIds: ids,
+            selectedTypes: ["one_line_ko"],
+            tfOptions: workbook.tfOptions,
+            blankOptions: workbook.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS,
+            title: workbook.metadata.title,
+          },
+        });
+        if (!res.ok || !("workbook" in res) || !res.workbook) throw new Error(("message" in res && res.message) || "문장별 해석 문항을 만들지 못했습니다.");
+        const made = res.workbook;
+        editWorkbook((w) =>
+          swap({ ...w, lineTranslationSections: made.lineTranslationSections ?? [], lineTranslationSkipped: made.lineTranslationSkipped ?? [] })
+        );
+      }
+      setLineBusy(null);
+    } catch (e) {
+      setLineBusy(e instanceof Error ? e.message : "바꾸지 못했습니다.");
+    }
   }
 
   /**
@@ -4045,6 +4135,34 @@ export function WorkbookWorkbench({
           </label>
 
           <MaterialDesignPicker value={md} onChange={chooseMd} />
+
+          {workbook.selectedTypes.includes("one_line_ko") || workbook.selectedTypes.includes("tb_chunk_line") ? (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-bold text-slate-500">해석 적기</p>
+              <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+                {(
+                  [
+                    ["full", "문장마다"],
+                    ["chunk", "끊어 읽기(직독직해)"],
+                  ] as const
+                ).map(([id, label]) => {
+                  const on = id === "chunk" ? workbook.selectedTypes.includes("tb_chunk_line") : workbook.selectedTypes.includes("one_line_ko");
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      disabled={!!lineBusy && lineBusy.endsWith("…")}
+                      onClick={() => void switchLineMode(id)}
+                      className={`rounded-md px-1 py-1.5 text-[11px] font-bold transition ${on ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              {lineBusy ? <p className="text-[11px] font-semibold text-violet-700">{lineBusy}</p> : null}
+            </div>
+          ) : null}
 
 
           <label className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
