@@ -1,0 +1,239 @@
+/*
+ * 교재 표지 디자인 시스템(BookCover.tsx).
+ *
+ * 치수는 A4 기준 값에 --s(판 폭 ÷ 210)를 곱한다: 길이는 calc(N * var(--m)), 글자는
+ * calc(Npt * var(--s)). 위쪽 요소는 top, 아래쪽 요소는 bottom에 붙인다 — 판형의 세로 비율이
+ * 달라도(A4 1.414 · B5 1.367) 아래 글자가 잘리지 않는다.
+ *
+ * 큰 영문(시험 이름)까지 모두 판 안에 둔다. 읽어야 하는 글자는 재단선 안쪽 13mm 안에 둔다.
+ */
+
+.bk-sheet {
+  --m: calc(1mm * var(--s));
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: #fff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  break-inside: avoid;
+}
+
+.bk {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-kerning: normal;
+}
+
+.bk *,
+.bk *::before,
+.bk *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bk-line {
+  display: block;
+  text-wrap: balance;
+}
+
+/* 제목: 한글은 낱말 단위로만 끊는다. 그래도 안 들어가면(아주 긴 영어 낱말) 어디서든 끊는다. */
+.bk h1 {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.bk ul {
+  list-style: none;
+}
+
+.bk-logo {
+  display: block;
+  width: auto;
+  object-fit: contain;
+}
+
+.bk-c-points li {
+  font-size: calc(6.6pt * var(--s));
+  line-height: 1.65;
+  word-break: keep-all;
+}
+.bk-c-points li::before {
+  content: "· ";
+}
+
+/* ════════════ 표지 ════════════ */
+.bk-c-head {
+  position: absolute;
+  top: calc(16 * var(--m));
+  left: calc(16 * var(--m));
+  right: calc(36 * var(--m));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.bk-c-series {
+  background: var(--accent);
+  color: var(--bk-bg, #000);
+  padding: calc(1.6 * var(--m)) calc(3.4 * var(--m));
+  font-size: calc(9pt * var(--s));
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: calc(6 * var(--m));
+}
+.bk-c-titlebox {
+  width: 100%;
+  max-height: calc(60 * var(--m));
+  /* 칸이 내용 높이라 글자 몸통 위아래가 칸 밖에 걸친다 — 자르지 않는다 */
+  overflow: visible;
+}
+.bk-c-title {
+  font-weight: 900;
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+}
+.bk-c-sub {
+  margin-top: calc(4 * var(--m));
+  font-size: calc(15pt * var(--s));
+  font-weight: 700;
+  color: var(--accent);
+  word-break: keep-all;
+}
+.bk-c-tag {
+  position: absolute;
+  top: calc(16 * var(--m));
+  right: calc(14 * var(--m));
+  max-height: calc(105 * var(--m));
+  writing-mode: vertical-rl;
+  padding-left: calc(3 * var(--m));
+  border-left: calc(0.4 * var(--m)) solid var(--accent);
+  font-size: calc(7.5pt * var(--s));
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+  opacity: 0.88;
+  overflow: hidden;
+}
+.bk-c-word {
+  position: absolute;
+  left: calc(8 * var(--m));
+  bottom: calc(84 * var(--m));
+  font-family: "Playfair Display", Georgia, serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: calc(62 * var(--m));
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  color: var(--accent);
+  transform: rotate(-8deg);
+  transform-origin: left bottom;
+}
+.bk-c-bottom {
+  position: absolute;
+  left: calc(16 * var(--m));
+  right: calc(16 * var(--m));
+  bottom: calc(14 * var(--m));
+  display: flex;
+  flex-direction: column;
+  gap: calc(6 * var(--m));
+}
+/* 기출문제집의 정보 띠: 교과서 · 출판사 | 큰 학년 숫자 + 학기 · 시험 | 범위 */
+.bk-c-band {
+  display: flex;
+  border-top: calc(0.3 * var(--m)) solid var(--muted);
+  border-bottom: calc(0.3 * var(--m)) solid var(--muted);
+}
+.bk-c-cell {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(1.2 * var(--m));
+  min-width: 0;
+  padding: calc(4 * var(--m)) calc(5 * var(--m));
+}
+.bk-c-cell:first-child {
+  padding-left: 0;
+}
+.bk-c-cell:last-child {
+  padding-right: 0;
+}
+.bk-c-cell + .bk-c-cell {
+  border-left: calc(0.3 * var(--m)) solid var(--muted);
+}
+.bk-c-k {
+  font-size: calc(6.5pt * var(--s));
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  color: var(--muted);
+}
+.bk-c-v {
+  font-size: calc(10.5pt * var(--s));
+  font-weight: 700;
+  line-height: 1.3;
+  word-break: keep-all;
+}
+.bk-c-range {
+  font-size: calc(9pt * var(--s));
+}
+.bk-c-p {
+  font-size: calc(8pt * var(--s));
+  color: var(--muted);
+}
+.bk-c-gradecell {
+  flex: none;
+  flex-direction: row;
+  align-items: center;
+  gap: calc(3.5 * var(--m));
+  padding-left: calc(7 * var(--m));
+  padding-right: calc(7 * var(--m));
+}
+.bk-c-num {
+  font-family: Archivo, "Arial Narrow", sans-serif;
+  font-stretch: 75%;
+  font-weight: 800;
+  font-size: calc(20 * var(--m));
+  line-height: 0.8;
+  color: var(--accent);
+  font-variant-numeric: lining-nums;
+}
+.bk-c-stack {
+  display: flex;
+  flex-direction: column;
+  font-size: calc(9pt * var(--s));
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.bk-c-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: calc(8 * var(--m));
+}
+.bk-c-points li {
+  color: var(--muted);
+}
+.bk-c-brand {
+  flex: none;
+  font-weight: 900;
+  font-size: calc(10.5pt * var(--s));
+}
+img.bk-c-brand {
+  height: calc(8 * var(--m));
+  max-width: calc(44 * var(--m));
+}
+
+/* 인쇄 쪽 나누기는 감싸는 쪽(통합자료 Sheet · 테스트 교재 tb-sheet)이 맡는다. 여기서 또 나누면 빈 쪽이 생긴다. */
+@media print {
+  .bk-sheet {
+    box-shadow: none !important;
+  }
+}

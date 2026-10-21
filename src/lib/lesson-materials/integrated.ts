@@ -1,4 +1,5 @@
 import { normalizeTestBookOptions, type TestBookOptions } from "@/lib/lesson-materials/test-book";
+import { normalizeCoverOverrides, type BookCoverSpec } from "@/lib/lesson-materials/book-cover";
 
 /**
  * 최종통합자료: 수업용 자료·분석서·변형문제·워크북을 앞표지·목차·간지·뒤표지와 함께 한 파일로
@@ -105,6 +106,8 @@ export type IntegratedCover = {
   academy: string;
   /** 테스트 교재 표지(색 번짐)의 큰 글자(줄바꿈 가능). 비우면 「read. / test. / note.」 */
   headline?: string;
+  /** 내신 표지(layout "exam")에서 선생님이 고친 칸. 고치지 않은 칸은 위 칸들에서 읽는다(legacyCoverSpec) */
+  exam?: Partial<BookCoverSpec>;
 };
 
 export type IntegratedPayload = {
@@ -141,7 +144,7 @@ function partsFromOrder(order: IntegratedSectionKind[]): IntegratedPartKind[] {
 }
 
 export const DEFAULT_INTEGRATED_COVER: IntegratedCover = {
-  presetId: "bold-field",
+  presetId: "exam-black",
   label: "",
   title: "",
   progress: "",
@@ -179,7 +182,11 @@ export function normalizeIntegratedPayload(raw: unknown): IntegratedPayload {
       questions: list(sel.questions),
       workbook: list(sel.workbook),
     },
-    cover: { ...DEFAULT_INTEGRATED_COVER, ...(p.cover ?? {}) },
+    cover: (() => {
+      // 예전에 만든 자료는 표지 id가 저장돼 있어 그대로 열린다. id가 없을 때만 새 기본(내신 · 검정).
+      const c = { ...DEFAULT_INTEGRATED_COVER, ...(p.cover ?? {}) };
+      return { ...c, exam: normalizeCoverOverrides(c.exam) };
+    })(),
     dividers: p.dividers !== false,
     answerKey: p.answerKey !== false,
     parts: (() => {
@@ -212,7 +219,7 @@ export function normalizeIntegratedPayload(raw: unknown): IntegratedPayload {
 }
 
 
-/** 표지 배치. 여덟 가지 표지가 각각 하나씩 쓴다(BundleSheets.tsx). */
+/** 표지 배치. 여덟 가지 표지가 각각 하나씩 쓰고, 내신 표지 넷은 exam 하나를 같이 쓴다(BundleSheets.tsx). */
 export type CoverLayout =
   | "bold-field"
   | "circle"
@@ -221,7 +228,9 @@ export type CoverLayout =
   | "frame"
   | "initial"
   | "wave"
-  | "stack";
+  | "stack"
+  /** 내신 표지(book-cover.ts · BookCover.tsx) — 배색만 다르다 */
+  | "exam";
 
 export type CoverPreset = {
   id: string;
@@ -245,14 +254,43 @@ export type CoverPreset = {
   backBackground: string;
   backInk: string;
   backMuted: string;
+  /** layout "exam"의 배색 id(BOOK_COVER_PALETTES.premium) */
+  paletteId?: string;
 };
 
 /**
- * 표지 여덟 가지. 승인된 시안 그대로다 — 바탕색 하나가 먼저 읽히고, 기하 구조 하나가 판을
+ * 내신 표지 넷(선생님 2026-10-21 승인 — 학교 시험 대비 교재 표지). 앞표지는 BookCover가 그리고,
+ * 여기 색은 목차 · 간지 · 뒤표지가 쓴다. accent는 흰 종이 위 목차 번호라 짙은 색으로 따로 둔다.
+ */
+const EXAM_COVER_PRESETS: CoverPreset[] = [
+  { id: "exam-black", paletteId: "black", name: "내신 · 검정", bg: "#0b0b0d", muted: "#9a9aa2", rule: "#4fd1c5", accent: "#0f7f75" },
+  { id: "exam-navy", paletteId: "navy", name: "내신 · 남색", bg: "#0f1b33", muted: "#9aa7c0", rule: "#7fd3ff", accent: "#1f4f9a" },
+  { id: "exam-forest", paletteId: "forest", name: "내신 · 짙은 초록", bg: "#0f2a22", muted: "#93aca1", rule: "#e8d29a", accent: "#1d5a45" },
+  { id: "exam-wine", paletteId: "wine", name: "내신 · 와인", bg: "#3a0f19", muted: "#c19aa2", rule: "#f2c48d", accent: "#7a1f33" },
+].map((x) => ({
+  id: x.id,
+  name: x.name,
+  description: "학교 · 학년 · 시험 영문 · 교과서 정보 띠",
+  layout: "exam" as const,
+  background: x.bg,
+  ink: "#ffffff",
+  muted: x.muted,
+  rule: x.rule,
+  accent: x.accent,
+  strip: x.bg,
+  backBackground: x.bg,
+  backInk: "#ffffff",
+  backMuted: x.muted,
+  paletteId: x.paletteId,
+}));
+
+/**
+ * 표지: 맨 앞 내신 표지 넷, 그 뒤 예전 여덟 가지. 여덟 가지는 승인된 시안 그대로다 — 바탕색 하나가 먼저 읽히고, 기하 구조 하나가 판을
  * 짜고, 제목이 표지의 3분의 1을 차지한다. 여기 색은 앞표지뿐 아니라 목차·간지·뒤표지가
  * 함께 쓴다. 모두 인쇄에서 배경색까지 그대로 찍힌다.
  */
 export const COVER_PRESETS: CoverPreset[] = [
+  ...EXAM_COVER_PRESETS,
   {
     id: "bold-field",
     name: "색면 폭발",

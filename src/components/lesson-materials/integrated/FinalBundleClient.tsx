@@ -33,6 +33,7 @@ import {
   type ContentsEntry,
 } from "@/components/lesson-materials/integrated/BundleSheets";
 import { watchPageNumbers } from "@/lib/lesson-materials/page-numbers";
+import { BOOK_COVER_FIELDS, legacyCoverSpec, mergeCoverSpec } from "@/lib/lesson-materials/book-cover";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
@@ -198,6 +199,8 @@ export function FinalBundleClient({
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const preset = coverPreset(payload.cover.presetId);
   const bleedCover = payload.cover.presetId === TEST_BOOK_BLEED_COVER;
+  const examCover = !bleedCover && preset.layout === "exam";
+  const examSpec = mergeCoverSpec(legacyCoverSpec(payload.cover), payload.cover.exam);
 
   const extraProjects = materials.extraProjects;
   const ready = useMemo(() => extraProjects.filter(isTestBookProjectReady), [extraProjects]);
@@ -683,8 +686,27 @@ export function FinalBundleClient({
           <section className="space-y-2 rounded-xl bg-slate-50 p-3">
             <CoverField label="시험범위 라벨" value={payload.cover.label} placeholder="예: 호원고 3학년 · 26년도 1학기 중간고사 대비" inputClass={inputClass} onCommit={(v) => updateCover({ label: v })} />
             <CoverField label="표지 메인 제목 (엔터로 줄 구분)" value={payload.cover.title} placeholder={"예: 영어독해와작문\n천재(윤) 2과"} inputClass={inputClass} rows={2} onCommit={(v) => updateCover({ title: v })} />
-            <CoverField label="제목 아래 한 줄 · 꼬릿말 (엔터로 줄 구분)" value={payload.cover.progress} placeholder={"예: Reading & Writing · Lesson 2\n2026. 3."} inputClass={inputClass} rows={2} onCommit={(v) => updateCover({ progress: v })} />
+            {examCover ? null : (
+              <CoverField label="제목 아래 한 줄 · 꼬릿말 (엔터로 줄 구분)" value={payload.cover.progress} placeholder={"예: Reading & Writing · Lesson 2\n2026. 3."} inputClass={inputClass} rows={2} onCommit={(v) => updateCover({ progress: v })} />
+            )}
             <CoverField label="학원명" value={payload.cover.academy} inputClass={inputClass} onCommit={(v) => updateCover({ academy: v })} />
+            {/* 내신 표지: 위 라벨 · 제목에서 읽은 값이 먼저 들어 있고, 고친 칸만 따로 저장한다 */}
+            {examCover ? (
+              <div className="space-y-2 border-t border-slate-200 pt-2">
+                <p className="text-[11px] font-bold text-slate-500">내신 표지 칸 · 라벨과 제목에서 읽어 채웠습니다. 틀린 칸만 고치세요</p>
+                {BOOK_COVER_FIELDS.map((f) => (
+                  <CoverField
+                    key={f.key}
+                    label={f.label}
+                    value={examSpec[f.key]}
+                    placeholder={f.placeholder}
+                    inputClass={inputClass}
+                    rows={f.rows}
+                    onCommit={(v) => updateCover({ exam: { ...(payload.cover.exam ?? {}), [f.key]: v } })}
+                  />
+                ))}
+              </div>
+            ) : null}
             {bleedCover ? (
               <CoverField
                 label="큰 글자 (엔터로 줄 구분 · 비우면 read. test. note.)"

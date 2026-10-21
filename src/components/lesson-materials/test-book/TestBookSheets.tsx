@@ -1610,7 +1610,12 @@ export function CoverSheet({
   if (cover.presetId !== TEST_BOOK_BLEED_COVER) {
     return (
       <div className="tb-sheet" style={{ padding: 0 }}>
-        <FrontCover preset={coverPreset(cover.presetId)} cover={{ ...cover, label: cover.label || range }} logoSrc={logoSrc} />
+        <FrontCover
+          preset={coverPreset(cover.presetId)}
+          cover={{ ...cover, label: cover.label || range }}
+          logoSrc={logoSrc}
+          examDefaults={{ material: "테스트북", range }}
+        />
       </div>
     );
   }

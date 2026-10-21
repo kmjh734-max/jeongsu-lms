@@ -2,6 +2,8 @@
 
 import { useState, type CSSProperties, type ReactNode } from "react";
 import type { CoverPreset, IntegratedCover } from "@/lib/lesson-materials/integrated";
+import { BookCover } from "@/components/lesson-materials/book-cover/BookCover";
+import { legacyCoverSpec, mergeCoverSpec } from "@/lib/lesson-materials/book-cover";
 import "./bundle-cover-styles.css";
 
 /**
@@ -554,16 +556,30 @@ function StackCover({ cover, logoSrc }: CoverProps) {
   );
 }
 
-/** 앞표지 */
+/**
+ * 앞표지. 내신 표지(layout "exam")는 BookCover가 그린다 — 예전 칸(라벨 · 제목 · 진도 · 학원명)에서
+ * 학교 · 학년 · 시험 · 교과서 · 범위를 읽고, 선생님이 고친 칸(cover.exam)을 그 위에 얹는다.
+ * examDefaults는 칸이 비었을 때 쓰는 자료 종류 · 범위(테스트 교재: 「테스트북」 · 지문 출처).
+ */
 export function FrontCover({
   preset,
   cover,
   logoSrc,
+  examDefaults,
 }: {
   preset: CoverPreset;
   cover: IntegratedCover;
   logoSrc?: string | null;
+  examDefaults?: { material?: string; range?: string };
 }) {
+  if (preset.layout === "exam") {
+    const spec = mergeCoverSpec(legacyCoverSpec(cover, examDefaults), cover.exam);
+    return (
+      <Sheet>
+        <BookCover spec={spec} design={{ style: "premium", paletteId: preset.paletteId ?? "black", paper: "A4" }} logoSrc={logoSrc} />
+      </Sheet>
+    );
+  }
   const props: CoverProps = { cover, logoSrc };
   let art: ReactNode;
   switch (preset.layout) {
@@ -724,11 +740,13 @@ export function CoverThumb({
   cover,
   widthPx = 76,
   logoSrc,
+  examDefaults,
 }: {
   preset: CoverPreset;
   cover: IntegratedCover;
   widthPx?: number;
   logoSrc?: string | null;
+  examDefaults?: { material?: string; range?: string };
 }) {
   // A4 폭 210mm ≈ 793.7px(96dpi)를 썸네일 폭에 맞춰 줄인다.
   const scale = widthPx / 793.7;
@@ -738,7 +756,7 @@ export function CoverThumb({
       style={{ width: widthPx, height: widthPx * (297 / 210) }}
     >
       <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: "210mm" }}>
-        <FrontCover preset={preset} cover={cover} logoSrc={logoSrc} />
+        <FrontCover preset={preset} cover={cover} logoSrc={logoSrc} examDefaults={examDefaults} />
       </div>
     </div>
   );

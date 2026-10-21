@@ -53,6 +53,7 @@ import type { generateAndSaveAnalysisReportAction } from "@/lib/lesson-materials
 import type { generateGrammarChoicePassageAction } from "@/lib/lesson-materials/workbook-actions";
 import { DESIGN_FONTS_HREF, DESIGN_STYLES, designClass } from "@/lib/lesson-materials/analysis-design";
 import { COVER_PRESETS, coverPreset, type IntegratedCover } from "@/lib/lesson-materials/integrated";
+import { BOOK_COVER_FIELDS, legacyCoverSpec, mergeCoverSpec } from "@/lib/lesson-materials/book-cover";
 import {
   AllVocabSheets,
   AnalysisSheets,
@@ -644,6 +645,11 @@ export function TestBookWorkbench({
     title: options.coverInfo.title.trim() || bookTitle,
     academy: options.coverInfo.academy.trim() || academyName,
   };
+  const examCover = options.coverInfo.presetId !== TEST_BOOK_BLEED_COVER && coverPreset(options.coverInfo.presetId).layout === "exam";
+  const examSpec = mergeCoverSpec(
+    legacyCoverSpec({ ...coverShown, label: coverShown.label || rangeLabel }, { material: "테스트북", range: rangeLabel }),
+    options.coverInfo.exam
+  );
   /** 지문 간지(묶음 안에서 지문마다 첫 쪽) — 이 묶음에서 그 지문에 이어질 쪽 이름을 싣는다 */
   const passageDivider = (id: string, p: TestBookProjectInput, next: string[]) => {
     const part = partOf(id);
@@ -864,8 +870,22 @@ export function TestBookWorkbench({
                   ) : null}
                   <CoverInput label="범위 라벨 (다 지우면 지문 출처로)" value={options.coverInfo.label || rangeLabel} onCommit={(label) => setOptions({ coverInfo: { ...options.coverInfo, label } })} />
                   <CoverInput label="제목 (엔터로 줄 구분, 다 지우면 교재 이름)" value={options.coverInfo.title || bookTitle} rows={2} onCommit={(t) => setOptions({ coverInfo: { ...options.coverInfo, title: t } })} />
-                  <CoverInput label="제목 아래 · 진도 (엔터로 줄 구분)" value={options.coverInfo.progress} rows={2} onCommit={(progress) => setOptions({ coverInfo: { ...options.coverInfo, progress } })} />
+                  {examCover ? null : (
+                    <CoverInput label="제목 아래 · 진도 (엔터로 줄 구분)" value={options.coverInfo.progress} rows={2} onCommit={(progress) => setOptions({ coverInfo: { ...options.coverInfo, progress } })} />
+                  )}
                   <CoverInput label="학원명" value={options.coverInfo.academy || academyName} onCommit={(academy) => setOptions({ coverInfo: { ...options.coverInfo, academy } })} />
+                  {/* 내신 표지: 범위 라벨 · 제목에서 읽은 값이 먼저 들어 있고, 고친 칸만 따로 저장한다 */}
+                  {examCover
+                    ? BOOK_COVER_FIELDS.map((f) => (
+                        <CoverInput
+                          key={f.key}
+                          label={f.label}
+                          value={examSpec[f.key]}
+                          rows={f.rows}
+                          onCommit={(v) => setOptions({ coverInfo: { ...options.coverInfo, exam: { ...(options.coverInfo.exam ?? {}), [f.key]: v } } })}
+                        />
+                      ))
+                    : null}
                 </PartRow>
                 <PartRow checked={options.toc} onChange={(v) => setOptions({ toc: v })} n={2} label="목차" hint="쪽 번호 자동">
                   <SubRow checked={options.dividers} onChange={(v) => setOptions({ dividers: v })} label="묶음마다 간지(지문별 시작 쪽)" />

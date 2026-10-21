@@ -17,6 +17,7 @@ import {
   stripLeadingSentenceMarkers,
 } from "@/lib/lesson-materials/sentence-order-shuffle";
 import { formatWorkbookPassage } from "@/lib/lesson-materials/workbook-types";
+import { normalizeCoverOverrides, type BookCoverSpec } from "@/lib/lesson-materials/book-cover";
 import {
   answerSentence,
   buildOnePageSentenceOrder,
@@ -248,6 +249,8 @@ export type TestBookCover = {
   academy: string;
   /** 색 번짐 표지의 큰 글자(줄바꿈 가능). 비우면 「read. / test. / note.」 */
   headline: string;
+  /** 내신 표지에서 선생님이 고친 칸(integrated.ts IntegratedCover.exam과 같다) */
+  exam?: Partial<BookCoverSpec>;
 };
 
 /** 내지 디자인(선생님 2026-10-21: ABC로 고르게) */
@@ -364,6 +367,7 @@ export function normalizeTestBookOptions(raw: unknown): TestBookOptions {
         progress: str(c.progress),
         academy: str(c.academy),
         headline: str(c.headline),
+        exam: normalizeCoverOverrides(c.exam),
       };
     })(),
     toc: r.toc !== false,
