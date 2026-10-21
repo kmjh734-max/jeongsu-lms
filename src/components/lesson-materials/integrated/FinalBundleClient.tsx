@@ -66,14 +66,8 @@ import {
   partStyle,
 } from "@/components/lesson-materials/test-book/TestBookSheets";
 import {
-  LevelSwitch,
-  LineModeSwitch,
   TRANSLATION_MODES,
-  TypeChecks,
-  VocabExamControls,
-  WritingScopeSwitch,
 } from "@/components/lesson-materials/test-book/TestBookControls";
-import { TestDrawDialog } from "@/components/lesson-materials/test-book/TestDrawDialog";
 import { MaterialDesignPicker } from "@/components/lesson-materials/MaterialDesignPicker";
 import { writeMaterialDesign } from "@/lib/lesson-materials/material-design";
 import { WORKBOOK_TYPE_SHORT, type WorkbookTypeId } from "@/lib/lesson-materials/workbook-types";
@@ -210,7 +204,6 @@ export function FinalBundleClient({
   /** 재료(1장 자료·단어 정리)가 없는 지문 — 단어장·단어 정리·테스트지에서 빠진다 */
   const vocabMissing = extraProjects.filter((p) => !isTestBookProjectReady(p));
   const tOpt = payload.tests;
-  const testsAny = tOpt.types.length > 0 || tOpt.wordTest || tOpt.allWordTest;
   /** 파일 묶음은 고른 자료가 있을 때, 테스트 교재 묶음은 켰고 지문이 있을 때 */
   const has: Record<IntegratedPartKind, boolean> = {
     lesson_pack: materials.lessonPacks.length > 0,
@@ -222,8 +215,9 @@ export function FinalBundleClient({
     vocab: false,
     word_note: false,
     blank_note: payload.extras.blank_note && extraProjects.length > 0,
-    tests: payload.extras.tests && ready.length > 0 && testsAny,
-    tb_answers: payload.extras.tb_answers && payload.extras.tests && ready.length > 0 && testsAny,
+    // 테스트지는 자료함에서 뽑는다(선생님 2026-10-21: 통합자료·워크북 미리보기에는 안 나오게)
+    tests: false,
+    tb_answers: false,
   };
 
   /** 테스트지 자료(지문마다 동반의어·품사 TEST + 유형별 테스트, 앞에 단어 시험지) */
@@ -251,7 +245,6 @@ export function FinalBundleClient({
     [ready, extraProjects, tOpt.vocabExam]
   );
   const updateTests = (patch: Partial<IntegratedPayload["tests"]>) => update({ tests: { ...payload.tests, ...patch } });
-  const [drawOpen, setDrawOpen] = useState(false);
   // 글꼴이 늦게 들어오면 테스트 교재 쪽 나눔을 다시 잰다(먼저 잰 높이로 나누면 쪽이 넘친다)
   const [fontsTick, setFontsTick] = useState(0);
   useEffect(() => {
@@ -376,7 +369,7 @@ export function FinalBundleClient({
     update({
       parts,
       order: parts.filter(isDocKind),
-      extras: { plan: true, vocab: false, word_note: false, blank_note: true, tests: true, tb_answers: true },
+      extras: { plan: true, vocab: false, word_note: false, blank_note: true, tests: false, tb_answers: false },
       dividers: true,
     });
   }
@@ -758,39 +751,14 @@ export function FinalBundleClient({
                   </div>
                 </div>
               ) : null}
-              {payload.extras.tests ? (
-                <div className="space-y-2 rounded-lg border border-violet-200 bg-white p-2.5">
-                  <p className="text-[11px] font-bold text-violet-900">테스트지 자료</p>
-                  <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                    <input type="checkbox" checked={tOpt.allWordTest} onChange={(e) => updateTests({ allWordTest: e.target.checked })} />
-                    단어 시험지(지문 합침)
-                  </label>
-                  {tOpt.allWordTest ? <VocabExamControls value={tOpt.vocabExam} onChange={(v) => updateTests({ vocabExam: v })} /> : null}
-                  <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                    <input type="checkbox" checked={tOpt.wordTest} onChange={(e) => updateTests({ wordTest: e.target.checked })} />
-                    지문마다 동반의어 · 품사 TEST
-                  </label>
-                  <TypeChecks value={tOpt.types} onChange={(types) => updateTests({ types })} />
-                  <LevelSwitch value={tOpt.level} onChange={(level) => updateTests({ level })} />
-                  {tOpt.types.includes("line") ? <LineModeSwitch value={tOpt.lineMode} onChange={(lineMode) => updateTests({ lineMode })} /> : null}
-                  {tOpt.types.includes("writing") ? <WritingScopeSwitch value={tOpt.writing} onChange={(writing) => updateTests({ writing })} /> : null}
-                </div>
-              ) : null}
               {extraProjects.length ? (
-                <div className="grid grid-cols-2 gap-1.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setDrawOpen(true)}
-                    className="rounded-lg border border-violet-300 bg-white py-1.5 text-[12px] font-bold text-violet-800 hover:bg-violet-50"
-                  >
-                    테스트지 뽑기
-                  </button>
+                <div className="pt-1">
                   <button
                     type="button"
                     disabled={vocabReg.busy || !vocabReady.length}
                     onClick={() => void registerVocab()}
                     title="전체 단어(뜻·품사·동의어·반의어·지문 예문)를 단어학습 「테스트 교재」 폴더에 단어장으로 넣습니다"
-                    className="rounded-lg border border-emerald-300 bg-white py-1.5 text-[12px] font-bold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
+                    className="w-full rounded-lg border border-emerald-300 bg-white py-1.5 text-[12px] font-bold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
                   >
                     {vocabReg.busy ? "등록 중…" : "단어학습에 등록"}
                   </button>
@@ -943,7 +911,6 @@ export function FinalBundleClient({
           </div>
         </div>
         </TestBookBrand.Provider>
-        <TestDrawDialog role={role} projectIds={extraProjects.map((p) => p.id)} open={drawOpen} onClose={() => setDrawOpen(false)} />
       </main>
     </div>
   );

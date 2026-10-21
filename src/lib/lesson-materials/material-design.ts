@@ -45,7 +45,10 @@ export function writeMaterialDesign(d: MaterialDesign) {
  */
 export function useMaterialDesign(override?: MaterialDesign | null): [MaterialDesign, (d: MaterialDesign) => void] {
   const [design, setDesign] = useState<MaterialDesign>(DEFAULT_MATERIAL_DESIGN);
+  const fixed = override != null;
   useEffect(() => {
+    // 통합자료 안에 끼울 때(design을 받음)는 공용 설정을 듣지 않는다 — 바꿀 때 두 번 다시 그리지 않게
+    if (fixed) return;
     setDesign(readMaterialDesign());
     const onChange = (e: Event) => {
       const d = (e as CustomEvent).detail;
@@ -60,7 +63,7 @@ export function useMaterialDesign(override?: MaterialDesign | null): [MaterialDe
       window.removeEventListener(EVENT, onChange);
       window.removeEventListener("storage", onStorage);
     };
-  }, []);
+  }, [fixed]);
   const choose = (d: MaterialDesign) => {
     setDesign(d);
     writeMaterialDesign(d);
