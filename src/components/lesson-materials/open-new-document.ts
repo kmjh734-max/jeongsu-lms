@@ -52,6 +52,9 @@ const creating = new Set<string>();
  * 이후 새로 고침이나 자료함에서 열 때는 이 파일로 연다. 워크북은 생성 흐름 안에서
  * 따로 만든다(WorkbookWorkbench).
  */
+/** 파일을 만들거나 이름을 바꾸면 알린다 — 자료 화면 왼쪽 위 파일 이름이 따라간다 */
+export const DOCUMENT_NAME_EVENT = "lesson-document-name";
+
 export function useCreateDocumentFromUrl(
   role: "admin" | "teacher",
   kind: LessonMaterialDocumentKind,
@@ -79,6 +82,8 @@ export function useCreateDocumentFromUrl(
       params.set("doc", res.id);
       window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
       onCreated?.(res.id, res.name);
+      // 화면 왼쪽 위 파일 이름(DocumentTitle)이 받는다
+      window.dispatchEvent(new CustomEvent(DOCUMENT_NAME_EVENT, { detail: { id: res.id, name: res.name } }));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

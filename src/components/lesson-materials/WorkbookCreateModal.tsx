@@ -638,11 +638,6 @@ export function WorkbookCreateModal({
                     value={lineMode}
                     onChange={(v) => setLineMode(v === "chunk" ? "chunk" : "full")}
                   />
-                  <p className="text-[11px] leading-relaxed text-slate-600">
-                    {lineMode === "full"
-                      ? "문장마다 한국어 해석을 씁니다. 수업용 자료에 저장된 문장별 해석을 정답으로 씁니다."
-                      : "끊어 읽는 덩어리마다 뜻을 씁니다(직독직해). 지문당 한 번 재료를 만듭니다."}
-                  </p>
                 </div>
               ) : null}
 

@@ -54,7 +54,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     id: "one_line_ko",
     // 한줄해석·직독직해를 「해석 적기」 하나로(선생님 2026-10-21) — 만들 때 문장마다 / 끊어 읽기를 고른다
     title: "해석 적기",
-    subtitle: "문장마다 쓰기 또는 끊어 읽기(직독직해) — 만들 때 고름",
+    subtitle: "영어 문장을 한국어로 해석하기",
     ready: true,
     displayOrder: 1,
     printOrder: 1,
@@ -126,7 +126,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
   {
     id: "key_word_order",
     title: "중요문장 어순배열",
-    subtitle: "주제문·핵심 문장만 골라 어순 배열하기(외울 문장)",
+    subtitle: "주제문·핵심 문장만 골라 어순 배열하기",
     ready: true,
     displayOrder: 10,
     printOrder: 10,
@@ -152,7 +152,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
    * 단어 시험은 한줄해석 바로 다음(선생님 2026-10-21). 단어 영↔한도 이 안에서 같이 낸다(뜻 쓰기·철자 쓰기 —
    * 따로 두니 두 번 나와 이상하다고 하셔서 하나로 합침). 유형마다 문항 수는 만들 때 고른다.
    */
-  { id: "tb_vocab_exam", title: "단어 시험", subtitle: "영→한·한→영·동의어·반의어·파생어(유형별 문항 수)", ready: true, displayOrder: 1.5, printOrder: 1.5 },
+  { id: "tb_vocab_exam", title: "단어 시험", subtitle: "영→한·한→영·동의어·반의어·파생어", ready: true, displayOrder: 1.5, printOrder: 1.5 },
 ];
 
 /** 학습 계획표 이수 칸에 쓰는 짧은 이름(최종통합자료 계획표가 고른 워크북 유형으로 칸을 만든다) */

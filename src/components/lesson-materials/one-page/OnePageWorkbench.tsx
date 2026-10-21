@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
@@ -568,7 +569,9 @@ export function OnePageWorkbench({
           >
             ← 자료함
           </button>
-          <h1 className="text-base font-bold text-slate-900">{MODE_LABEL[mode]}</h1>
+          <h1 className="flex min-w-0 text-base font-bold text-slate-900">
+            <DocumentTitle role={role} fallback={MODE_LABEL[mode]} />
+          </h1>
           <label className="block space-y-1">
             <span className="flex items-center justify-between text-[11px] font-bold text-slate-500">
               자료 제목

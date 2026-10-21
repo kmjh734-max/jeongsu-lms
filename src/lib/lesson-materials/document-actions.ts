@@ -89,6 +89,25 @@ export async function createLessonMaterialDocument(
   return { ok: true, id: data.id as string, name: data.name as string };
 }
 
+/** 자료 화면 왼쪽 위에 보이는 파일 이름(선생님 2026-10-21) */
+export async function getLessonMaterialDocumentName(
+  role: Role,
+  input: { id: string }
+): Promise<{ ok: true; name: string } | Fail> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("lesson_material_documents")
+    .select("name")
+    .eq("id", input.id)
+    .eq("academy_id", profile!.academy_id!)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (!data) return { ok: false, message: "파일을 찾을 수 없습니다." };
+  return { ok: true, name: data.name as string };
+}
+
 export async function renameLessonMaterialDocument(
   role: Role,
   input: { id: string; name: string }

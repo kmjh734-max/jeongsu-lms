@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { postJson } from "@/lib/lesson-materials/post-json";
+import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
 import { closeTabOrGo, useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
 import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
@@ -289,7 +290,7 @@ export function LessonBookWorkbench({
           >
             ← 닫기
           </button>
-          <span className="text-sm font-bold text-slate-900">수업용 자료</span>
+          <DocumentTitle role={role} fallback="수업용 자료" />
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm">

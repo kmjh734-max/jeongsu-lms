@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   createLessonMaterialDocument,
+  getLessonMaterialDocumentName,
   getWorkbookDocument,
   renameLessonMaterialDocument,
 } from "@/lib/lesson-materials/document-actions";
@@ -41,6 +42,9 @@ export async function POST(request: Request) {
     }
     if (body.op === "getWorkbook") {
       return NextResponse.json(await getWorkbookDocument(role, { id: String(body.id ?? "") }));
+    }
+    if (body.op === "getName") {
+      return NextResponse.json(await getLessonMaterialDocumentName(role, { id: String(body.id ?? "") }));
     }
     if (body.op === "rename") {
       return NextResponse.json(

@@ -35,6 +35,7 @@ import {
 import { watchPageNumbers } from "@/lib/lesson-materials/page-numbers";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { postJson } from "@/lib/lesson-materials/post-json";
+import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
 import type { prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-book-actions";
 import {
   DEFAULT_TEST_BOOK_OPTIONS,
@@ -623,7 +624,7 @@ export function FinalBundleClient({
           </button>
           <p className="flex items-center gap-2 text-base font-black text-slate-900">
             <span className="rounded-md bg-violet-100 px-1.5 py-0.5 text-violet-700">🗂</span>
-            통합 자료 프리뷰
+            <DocumentTitle role={role} fallback={name || "통합 자료"} />
           </p>
         </div>
 

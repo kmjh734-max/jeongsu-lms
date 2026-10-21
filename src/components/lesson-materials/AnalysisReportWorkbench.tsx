@@ -27,10 +27,12 @@ import type {
 } from "@/lib/lesson-materials/generate-analysis-report";
 import { LOGO_SRC } from "@/lib/branding";
 import { postJson } from "@/lib/lesson-materials/post-json";
+import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import {
   closeTabOrGo,
   useCreateDocumentFromUrl,
+  DOCUMENT_NAME_EVENT,
 } from "@/components/lesson-materials/open-new-document";
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
@@ -524,7 +526,9 @@ export function AnalysisReportWorkbench({
     const t = setTimeout(() => {
       const id = docIdRef.current;
       if (!id) return;
-      void postJson("/api/lesson-materials/documents/open", { op: "rename", role, id, name }).catch(() => {});
+      void postJson("/api/lesson-materials/documents/open", { op: "rename", role, id, name })
+        .then(() => window.dispatchEvent(new CustomEvent(DOCUMENT_NAME_EVENT, { detail: { id, name } })))
+        .catch(() => {});
     }, 800);
     return () => clearTimeout(t);
   }, [headerLabel, embedded, role]);
@@ -1077,7 +1081,9 @@ export function AnalysisReportWorkbench({
           >
             ← 자료함
           </button>
-          <h1 className="text-base font-bold text-slate-900">분석서</h1>
+          <h1 className="flex min-w-0 text-base font-bold text-slate-900">
+            <DocumentTitle role={role} fallback="분석서" />
+          </h1>
           {projects.length > 1 ? (
             <div className="flex flex-wrap gap-1">
               {projects.map((p, i) => (

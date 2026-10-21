@@ -28,6 +28,7 @@ import type {
   generateGrammarChoicePassageAction,
 } from "@/lib/lesson-materials/workbook-actions";
 import { postJson } from "@/lib/lesson-materials/post-json";
+import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
 import { closeTabOrGo } from "@/components/lesson-materials/open-new-document";
 import type {
   createLessonMaterialDocument,
@@ -4104,7 +4105,9 @@ export function WorkbookWorkbench({
           >
             ← 자료함
           </button>
-          <h1 className="text-base font-bold text-slate-900">워크북</h1>
+          <h1 className="flex min-w-0 text-base font-bold text-slate-900">
+            <DocumentTitle role={role} fallback="워크북" />
+          </h1>
           <p className="text-xs font-semibold text-slate-700">
             {sourceNote === "new"
               ? "새로 만들었습니다"
