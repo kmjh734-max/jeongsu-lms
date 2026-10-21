@@ -12,9 +12,11 @@
 
 /**
  * 프리미엄(승인 · 앱에 붙음)과 같은 내신 정보 · 위계를 쓰는 판 셋(시안): 큰 학년 숫자 · 위아래 분할 · 밝은 판.
- * 선생님 2026-10-21: 타이포그래피 · 그래픽 안은 뺌.
+ * 선생님 2026-10-21: 타이포그래피 · 그래픽 안은 뺌. 2026-10-22: 아예 다른 스타일도(팝 · 화이트 에디토리얼 · 레터 그리드는
+ * 「다 별로」로 뺌) — 상위권 교재 계열로 다시: 미니멀(헤더진 Final) · 마스터(READING MASTER) · 스트립(2017 FINAL).
+ * 라벨(blacklabel)은 「L 빼고는 다 괜찮아」로 뺌.
  */
-export type BookCoverStyle = "premium" | "numeral" | "split" | "light";
+export type BookCoverStyle = "premium" | "numeral" | "split" | "light" | "minimal" | "master" | "strip";
 
 /** 판형. B5는 국내 교재에서 B5라 부르는 4×6배판(188×257mm)이다. */
 export type BookCoverPaper = "A4" | "B5";
@@ -103,6 +105,22 @@ export function examWord(spec: BookCoverSpec): string {
   if (/모의|학력평가|학평/.test(e)) return "Mock Test";
   if (/수행/.test(e)) return "Performance";
   return "Exam";
+}
+
+/** 표지 칸에서 한 번에 고르는 시험 · 학기 */
+export const BOOK_COVER_EXAMS = ["중간고사", "기말고사", "모의고사", "수행평가"] as const;
+export const BOOK_COVER_SEMESTERS = ["1학기", "2학기"] as const;
+
+/**
+ * 오늘 날짜로 짐작한 다음 시험(추천 표시에만 쓴다 — 학교마다 일정이 달라 자동으로 넣지 않는다).
+ * 3~4월 1학기 중간 · 5~7월 1학기 기말 · 8~10월 2학기 중간 · 11~2월 2학기 기말.
+ */
+export function suggestedExam(now: Date = new Date()): { semester: string; exam: string } {
+  const m = now.getMonth() + 1;
+  if (m >= 3 && m <= 4) return { semester: "1학기", exam: "중간고사" };
+  if (m >= 5 && m <= 7) return { semester: "1학기", exam: "기말고사" };
+  if (m >= 8 && m <= 10) return { semester: "2학기", exam: "중간고사" };
+  return { semester: "2학기", exam: "기말고사" };
 }
 
 /** 시험 줄: 2026 2학기 기말고사 */
@@ -241,6 +259,23 @@ export const BOOK_COVER_PALETTES: Record<BookCoverStyle, BookCoverPalette[]> = {
     { id: "grey", name: "회색 종이", bg: "#eceef1", ink: "#121417", muted: "#646a73", steps: ["#0c7b70", "#244bb3", "#bf3653", "#b4610a"] },
     { id: "mint", name: "옅은 청록", bg: "#e6f2ef", ink: "#10201c", muted: "#5d6f69", steps: ["#0b6f64", "#2347a8", "#b8334f", "#a65a09"] },
   ],
+  /** 미니멀: 짙은 바탕 · 가는 글자만. 학년색은 시험 한글 두 줄과 가는 선 */
+  minimal: [
+    { id: "black", name: "검정", bg: "#0d0d0e", ink: "#f2f2f2", muted: "#7c7c84", steps: ["#5fd0bf", "#e9c46a", "#ff8fa3", "#9ec5ff"] },
+    { id: "charcoal", name: "숯", bg: "#202225", ink: "#f4f1ea", muted: "#8b8d92", steps: ["#d9b56c", "#9fd8c6", "#e8a0a8", "#a9c3f0"] },
+    { id: "navy", name: "남색", bg: "#0e1a2e", ink: "#f1f3f7", muted: "#7f8ba3", steps: ["#7fd3ff", "#f2c48d", "#ff9eb5", "#b6ee8a"] },
+  ],
+  /** 마스터: 짙은 갈색 · 초록 · 먹. 학년색은 세로 영문 첫 줄 · 한글 둘째 줄 */
+  master: [
+    { id: "cocoa", name: "코코아", bg: "#2e1714", ink: "#ffffff", muted: "#bba39d", steps: ["#f2a48d", "#f2c48d", "#e9a3c0", "#a8d5c8"] },
+    { id: "forest", name: "짙은 초록", bg: "#102a22", ink: "#ffffff", muted: "#9db5aa", steps: ["#9fe0c2", "#e8d29a", "#f2a3a3", "#b7c8ff"] },
+    { id: "ink", name: "먹", bg: "#14161c", ink: "#ffffff", muted: "#9a9ca4", steps: ["#ffb26b", "#7fd3ff", "#ff8fa3", "#c5e05a"] },
+  ],
+  /** 스트립: 짙은 바탕 · 학년색 세로 띠와 영문 */
+  strip: [
+    { id: "black", name: "검정", bg: "#151617", ink: "#ffffff", muted: "#8a8c90", steps: ["#c8e86b", "#7fd3ff", "#ff9eb5", "#ffc46b"] },
+    { id: "navy", name: "남색", bg: "#0f1a2c", ink: "#ffffff", muted: "#8592a8", steps: ["#ffc46b", "#9fe0c2", "#ff9eb5", "#c8e86b"] },
+  ],
 };
 
 export const BOOK_COVER_STYLES: { id: BookCoverStyle; name: string; description: string }[] = [
@@ -248,6 +283,9 @@ export const BOOK_COVER_STYLES: { id: BookCoverStyle; name: string; description:
   { id: "numeral", name: "D 큰 숫자", description: "학년 숫자가 그림 · 시험 영문은 제목 아래 작게" },
   { id: "split", name: "E 분할", description: "위 짙은 바탕 · 아래 흰 칸에 정보 띠" },
   { id: "light", name: "F 밝은 판", description: "C를 흰 종이에 — 토너가 덜 든다" },
+  { id: "minimal", name: "J 미니멀", description: "가는 글자만 · 맨 위 넓게 띄운 영문 · 가운데 축" },
+  { id: "master", name: "K 마스터", description: "세로로 세운 두 줄 영문 · 오른쪽 아래 거대한 두 색 한글" },
+  { id: "strip", name: "M 스트립", description: "학년색 세로 띠 · 가는 큰 연도 · 외곽선 그림자 영문" },
 ];
 
 /** 시리즈 하나의 판: 같은 시리즈 교재는 모두 이것을 쓴다. */

@@ -263,6 +263,7 @@ export type CoverPreset = {
 /**
  * 내신 표지(선생님 2026-10-21 승인 — 학교 시험 대비 교재 표지). 판 넷 × 배색:
  *   C 프리미엄(exam-<배색>) · D 큰 숫자(exam-numeral-<배색>) · E 분할(exam-split-<배색>) · F 밝은 판(exam-light-<배색>)
+ *   · 미니멀(exam-minimal-<배색>) · 마스터(exam-master-<배색>) · 스트립(exam-strip-<배색>) — 2026-10-22 추가
  * 앞표지는 BookCover가 그리고, 여기 색은 목차 · 간지 · 뒤표지가 쓴다. accent는 흰 종이 위 목차 번호라
  * 짙은 바탕 배색은 짙은 색을 따로 둔다.
  */
@@ -271,23 +272,29 @@ const EXAM_BACK: Record<string, { muted: string; rule: string; accent: string }>
   navy: { muted: "#9aa7c0", rule: "#7fd3ff", accent: "#1f4f9a" },
   forest: { muted: "#93aca1", rule: "#e8d29a", accent: "#1d5a45" },
   wine: { muted: "#c19aa2", rule: "#f2c48d", accent: "#7a1f33" },
+  charcoal: { muted: "#8b8d92", rule: "#d9b56c", accent: "#7a5a1e" },
+  cocoa: { muted: "#bba39d", rule: "#f2a48d", accent: "#8a3a26" },
+  ink: { muted: "#9a9ca4", rule: "#ffb26b", accent: "#8a4a12" },
 };
 
-const EXAM_STYLE_NAMES: Record<BookCoverStyle, { name: string; description: string }> = {
+const EXAM_STYLE_NAMES: Partial<Record<BookCoverStyle, { name: string; description: string }>> = {
   premium: { name: "내신", description: "학교 · 학년 · 시험 영문 · 교과서 정보 띠" },
   numeral: { name: "내신 큰 숫자", description: "학년 숫자가 그림 · 시험 영문은 작게" },
   split: { name: "내신 분할", description: "위 짙은 바탕 · 아래 흰 칸에 정보 띠" },
   light: { name: "내신 밝은 판", description: "흰 종이 · 토너가 덜 든다" },
+  minimal: { name: "내신 미니멀", description: "가는 글자만 · 넓게 띄운 시험 영문" },
+  master: { name: "내신 마스터", description: "세로 두 줄 영문 · 거대한 두 색 한글" },
+  strip: { name: "내신 스트립", description: "학년색 세로 띠 · 외곽선 그림자 영문" },
 };
 
-const EXAM_COVER_PRESETS: CoverPreset[] = (["premium", "numeral", "split", "light"] as const).flatMap((style) =>
+const EXAM_COVER_PRESETS: CoverPreset[] = (["premium", "numeral", "split", "light", "minimal", "master", "strip"] as const).flatMap((style) =>
   BOOK_COVER_PALETTES[style].map((pal): CoverPreset => {
     const back = EXAM_BACK[pal.id];
     const dark = Boolean(back);
     return {
       id: style === "premium" ? `exam-${pal.id}` : `exam-${style}-${pal.id}`,
-      name: `${EXAM_STYLE_NAMES[style].name} · ${pal.name}`,
-      description: EXAM_STYLE_NAMES[style].description,
+      name: `${EXAM_STYLE_NAMES[style]!.name} · ${pal.name}`,
+      description: EXAM_STYLE_NAMES[style]!.description,
       layout: "exam",
       background: pal.bg,
       ink: pal.ink,

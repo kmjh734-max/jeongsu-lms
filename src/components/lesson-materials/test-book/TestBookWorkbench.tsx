@@ -54,6 +54,7 @@ import type { generateGrammarChoicePassageAction } from "@/lib/lesson-materials/
 import { DESIGN_FONTS_HREF, DESIGN_STYLES, designClass } from "@/lib/lesson-materials/analysis-design";
 import { COVER_PRESETS, coverPreset, type IntegratedCover } from "@/lib/lesson-materials/integrated";
 import { BOOK_COVER_FIELDS, legacyCoverSpec, mergeCoverSpec } from "@/lib/lesson-materials/book-cover";
+import { ExamPicker } from "@/components/lesson-materials/book-cover/ExamPicker";
 import {
   AllVocabSheets,
   AnalysisSheets,
@@ -875,6 +876,13 @@ export function TestBookWorkbench({
                   )}
                   <CoverInput label="학원명" value={options.coverInfo.academy || academyName} onCommit={(academy) => setOptions({ coverInfo: { ...options.coverInfo, academy } })} />
                   {/* 내신 표지: 범위 라벨 · 제목에서 읽은 값이 먼저 들어 있고, 고친 칸만 따로 저장한다 */}
+                  {examCover ? (
+                    <ExamPicker
+                      exam={examSpec.exam}
+                      semester={examSpec.semester}
+                      onPick={(patch) => setOptions({ coverInfo: { ...options.coverInfo, exam: { ...(options.coverInfo.exam ?? {}), ...patch } } })}
+                    />
+                  ) : null}
                   {examCover
                     ? BOOK_COVER_FIELDS.map((f) => (
                         <CoverInput

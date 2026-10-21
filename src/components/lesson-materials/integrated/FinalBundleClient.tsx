@@ -34,6 +34,7 @@ import {
 } from "@/components/lesson-materials/integrated/BundleSheets";
 import { watchPageNumbers } from "@/lib/lesson-materials/page-numbers";
 import { BOOK_COVER_FIELDS, legacyCoverSpec, mergeCoverSpec } from "@/lib/lesson-materials/book-cover";
+import { ExamPicker } from "@/components/lesson-materials/book-cover/ExamPicker";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
@@ -694,6 +695,11 @@ export function FinalBundleClient({
             {examCover ? (
               <div className="space-y-2 border-t border-slate-200 pt-2">
                 <p className="text-[11px] font-bold text-slate-500">내신 표지 칸 · 라벨과 제목에서 읽어 채웠습니다. 틀린 칸만 고치세요</p>
+                <ExamPicker
+                  exam={examSpec.exam}
+                  semester={examSpec.semester}
+                  onPick={(patch) => updateCover({ exam: { ...(payload.cover.exam ?? {}), ...patch } })}
+                />
                 {BOOK_COVER_FIELDS.map((f) => (
                   <CoverField
                     key={f.key}

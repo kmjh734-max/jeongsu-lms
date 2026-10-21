@@ -246,6 +246,218 @@ function PremiumCover({ spec, design, logoSrc }: CoverProps) {
   );
 }
 
+/** 정보 띠(C와 같은 칸): 교과서 · 출판사 | 학년 숫자 + 학기 · 시험 | 범위. 흰 카드 안에서도 쓴다. */
+function InfoBand({ spec }: { spec: BookCoverSpec }) {
+  const num = gradeNumber(spec.grade);
+  if (!(spec.textbook || spec.publisher || num != null || spec.range)) return null;
+  return (
+    <div className="bk-c-band">
+      {spec.textbook || spec.publisher ? (
+        <div className="bk-c-cell">
+          <span className="bk-c-k">교과서</span>
+          {spec.textbook ? <span className="bk-c-v">{spec.textbook}</span> : null}
+          {spec.publisher ? <span className="bk-c-p">{spec.publisher}</span> : null}
+        </div>
+      ) : null}
+      <div className="bk-c-cell bk-c-gradecell">
+        {num != null ? <span className="bk-c-num">{num}</span> : null}
+        <span className="bk-c-stack">
+          <span>{num != null ? spec.semester : [spec.grade, spec.semester].filter(Boolean).join(" ")}</span>
+          <span>{spec.exam}</span>
+        </span>
+      </div>
+      {spec.range ? (
+        <div className="bk-c-cell">
+          <span className="bk-c-k">범위</span>
+          <span className="bk-c-v bk-c-range">{spec.range}</span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * 칸 맞추기: 글자(el)가 감싼 칸(부모) 안에 폭 · 높이(axis "width"면 폭만) 들 때까지 maxMm에서 0.5mm씩 줄인다.
+ * 판 폭을 꽉 채우는 영문 · 세로로 세운 영문처럼 「칸에 맞춰 크게」 쓰는 글자에 쓴다.
+ */
+function useFitBox(maxMm: number, minMm: number, key: string, axis: "both" | "width" = "both") {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [ready, setReady] = useState(false);
+  useLayoutEffect(() => {
+    let alive = true;
+    const fit = () => {
+      const el = ref.current;
+      const box = el?.parentElement;
+      if (!el || !box || !alive) return;
+      const fits = () =>
+        el.scrollWidth <= box.clientWidth + 0.5 && (axis === "width" || el.scrollHeight <= box.clientHeight + 0.5);
+      let size = maxMm;
+      for (; size > minMm; size -= 0.5) {
+        el.style.fontSize = `calc(${size}mm * var(--s))`;
+        if (fits()) break;
+      }
+      el.style.fontSize = `calc(${Math.max(size, minMm)}mm * var(--s))`;
+      setReady(true);
+    };
+    setReady(false);
+    fit();
+    if (typeof document !== "undefined" && document.fonts) void document.fonts.ready.then(fit);
+    return () => {
+      alive = false;
+    };
+  }, [maxMm, minMm, key, axis]);
+  return { ref, ready };
+}
+
+/** 시험 이름을 두 줄로(「기말고사」 → 기말 / 고사, 「3월 모의고사」 → 3월 / 모의고사). */
+function examRows(exam: string): string[] {
+  const t = exam.trim();
+  if (!t) return [];
+  if (/\s/.test(t)) return t.split(/\s+/).slice(0, 3);
+  const chars = Array.from(t);
+  return chars.length === 4 ? [chars.slice(0, 2).join(""), chars.slice(2).join("")] : [t];
+}
+
+/** 시험 영문을 두 줄로(K 마스터): Final → FINAL / EXAM, Mock Test → MOCK / TEST, 모르면 ENGLISH / EXAM */
+function wordRows(word: string): [string, string] {
+  const parts = word.toUpperCase().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return [parts[0]!, parts.slice(1).join(" ")];
+  const w = parts[0] ?? "EXAM";
+  // 시험을 모르면(examWord → Exam) 「EXAM / EXAM」으로 겹치지 않게 과목을 앞에 둔다.
+  if (w === "EXAM") return ["ENGLISH", "EXAM"];
+  return [w, w === "PERFORMANCE" ? "TEST" : "EXAM"];
+}
+
+/** 교과서 · 출판사 · 범위 한 줄 */
+function bookLine(spec: BookCoverSpec): string {
+  return [spec.textbook, spec.publisher, spec.range].map((v) => v.trim()).filter(Boolean).join("  ·  ");
+}
+
+/* ──────────────── J. 미니멀 ────────────────
+ * 헤더진 Final 계열. 맨 위 시험 영문을 판 폭 끝까지 가늘게 띄워 쓰고, 가운데 축 하나에
+ * 연도(낱자) → 학교 · 학년 → 시험 한글 두 줄(학년색, 크게 띄워) → 학기 · 자료 종류. 영문은 맨 위 한 번만.
+ * 아래도 가운데: 가는 선 · 교과서 · 범위 한 줄 · 학원명. 굵은 글자가 하나도 없다. */
+function MinimalCover({ spec, design, logoSrc }: CoverProps) {
+  const pal = bookCoverPalette("minimal", design.paletteId);
+  const accent = gradeAccent(pal, spec.grade);
+  const word = examWord(spec);
+  const letters = Array.from(word.replace(/\s+/g, ""));
+  const rows = examRows(spec.exam);
+  const who = coverTitle(spec);
+  const vars = { "--ink": pal.ink, "--muted": pal.muted, "--accent": accent, "--bk-bg": pal.bg, background: pal.bg } as CSSProperties;
+  return (
+    <div className="bk bk-j" style={vars} data-cover-ready="1">
+      <p className="bk-j-spread" aria-hidden>
+        {letters.map((c, i) => (
+          <span key={i}>{c}</span>
+        ))}
+      </p>
+      <div className="bk-j-axis">
+        {spec.year ? <p className="bk-j-year">{Array.from(spec.year.trim()).join(" ")}</p> : null}
+        {who ? <h1 className="bk-j-who">{who}</h1> : null}
+        {rows.length ? (
+          <p className="bk-j-exam">
+            {rows.map((r, i) => (
+              <span key={i}>{r}</span>
+            ))}
+          </p>
+        ) : null}
+        {[spec.semester, spec.material].some((v) => v.trim()) ? (
+          <p className="bk-j-mat">{[spec.semester, spec.material].filter((v) => v.trim()).join("  ·  ")}</p>
+        ) : null}
+      </div>
+      <div className="bk-j-bottom">
+        <span className="bk-j-rule" />
+        {bookLine(spec) ? <p className="bk-j-book">{bookLine(spec)}</p> : null}
+        <Brand name={spec.brand} logoSrc={logoSrc} className="bk-j-brand" />
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────── K. 마스터 ────────────────
+ * READING MASTER 계열. 왼쪽에 시험 영문 두 줄을 세로로 세워 두 색으로(FINAL 학년색 / EXAM 흰),
+ * 오른쪽 위에 대상 문구와 학년 동그라미, 오른쪽 아래에 거대한 두 색 한글(학교 / 시험). */
+function MasterCover({ spec, design, logoSrc }: CoverProps) {
+  const pal = bookCoverPalette("master", design.paletteId);
+  const accent = gradeAccent(pal, spec.grade);
+  const num = gradeNumber(spec.grade);
+  const [w1, w2] = wordRows(examWord(spec));
+  const wordFit = useFitBox(44, 16, `${w1}${w2}|${design.paper}`);
+  const big = [spec.school.trim() || coverTitle(spec), spec.exam.trim()].filter(Boolean).join("\n");
+  const fit = useFitTitle(30, 12, `${big}|${design.paper}`);
+  const vars = { "--ink": pal.ink, "--muted": pal.muted, "--accent": accent, "--bk-bg": pal.bg, background: pal.bg } as CSSProperties;
+  return (
+    <div className="bk bk-k" style={vars} data-cover-ready={fit.ready && wordFit.ready ? "1" : "0"}>
+      <div className="bk-k-wordbox">
+        <p className="bk-k-word" ref={wordFit.ref} aria-hidden>
+          <span className="bk-k-w1">{w1}</span>
+          <span className="bk-k-w2">{w2}</span>
+        </p>
+      </div>
+      <div className="bk-k-corner">
+        <div className="bk-k-copy">
+          {spec.series ? <p>{spec.series}</p> : null}
+          {[spec.year, spec.semester].some((v) => v.trim()) ? <p>{[spec.year, spec.semester].filter(Boolean).join(" ")}</p> : null}
+        </div>
+        {num != null ? (
+          <p className="bk-k-badge">
+            <b>{num}</b>
+            <small>학년</small>
+          </p>
+        ) : null}
+      </div>
+      <div className="bk-k-bottom">
+        {spec.material ? <p className="bk-k-mat">{spec.material}</p> : null}
+        {bookLine(spec) ? <p className="bk-k-book">{bookLine(spec)}</p> : null}
+        <div className="bk-k-titlebox" ref={fit.box}>
+          <h1 className="bk-k-title" ref={fit.text}>
+            <Title title={big} />
+          </h1>
+        </div>
+      </div>
+      <Brand name={spec.brand} logoSrc={logoSrc} className="bk-k-brand" />
+    </div>
+  );
+}
+
+/* ──────────────── M. 스트립 ────────────────
+ * 2017 FINAL 계열. 왼쪽에 학년색 세로 띠(세로로 대상 · 특장점), 오른쪽 위 학원명 · 시리즈.
+ * 가운데 가는 큰 연도, 그 아래 판 폭을 채우는 시험 영문과 외곽선 그림자, 시험 대비 · 자료 종류.
+ * 아래는 C와 같은 정보 띠. */
+function StripCover({ spec, design, logoSrc }: CoverProps) {
+  const pal = bookCoverPalette("strip", design.paletteId);
+  const accent = gradeAccent(pal, spec.grade);
+  const word = examWord(spec).toUpperCase();
+  const wordFit = useFitBox(54, 20, `${word}|${design.paper}`, "width");
+  const title = coverTitle(spec);
+  const side = [spec.exam ? `${spec.exam} 대비` : "", ...lines(spec.points)].filter(Boolean).join("   |   ");
+  const vars = { "--ink": pal.ink, "--muted": pal.muted, "--accent": accent, "--bk-bg": pal.bg, background: pal.bg } as CSSProperties;
+  return (
+    <div className="bk bk-m" style={vars} data-cover-ready={wordFit.ready ? "1" : "0"}>
+      <div className="bk-m-strip">{side ? <p>{side}</p> : null}</div>
+      <div className="bk-m-corner">
+        <Brand name={spec.brand} logoSrc={logoSrc} className="bk-m-brand" />
+        {spec.series ? <p>{spec.series}</p> : null}
+      </div>
+      <div className="bk-m-mid">
+        {spec.year ? <p className="bk-m-year">{spec.year}</p> : null}
+        <div className="bk-m-wordbox">
+          {/* 외곽선 그림자는 ::after(data-word) — 같은 크기로 바로 아래에 겹친다 */}
+          <p className="bk-m-word" ref={wordFit.ref} data-word={word}>
+            {word}
+          </p>
+        </div>
+        {title ? <h1 className="bk-m-title">{title}</h1> : null}
+        {materialLine(spec) ? <p className="bk-m-sub">{materialLine(spec)}</p> : null}
+      </div>
+      <div className="bk-m-bottom">
+        <InfoBand spec={spec} />
+      </div>
+    </div>
+  );
+}
+
 /** 앞표지 한 장. 바깥 크기는 판형 그대로(mm)이고 인쇄에서 배경색까지 찍힌다. */
 export function BookCover({ spec, design, logoSrc }: CoverProps) {
   const paper = BOOK_COVER_PAPERS[design.paper];
@@ -257,7 +469,15 @@ export function BookCover({ spec, design, logoSrc }: CoverProps) {
   return (
     <article className={`bk-sheet bk-paper-${design.paper.toLowerCase()}`} style={style}>
       <link rel="stylesheet" href={BOOK_COVER_FONTS_HREF} />
-      <PremiumCover spec={spec} design={design} logoSrc={logoSrc} />
+      {design.style === "minimal" ? (
+        <MinimalCover spec={spec} design={design} logoSrc={logoSrc} />
+      ) : design.style === "master" ? (
+        <MasterCover spec={spec} design={design} logoSrc={logoSrc} />
+      ) : design.style === "strip" ? (
+        <StripCover spec={spec} design={design} logoSrc={logoSrc} />
+      ) : (
+        <PremiumCover spec={spec} design={design} logoSrc={logoSrc} />
+      )}
     </article>
   );
 }

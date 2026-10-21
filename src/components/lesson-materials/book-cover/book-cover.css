@@ -285,6 +285,314 @@ img.bk-c-brand {
   bottom: calc(98 * var(--m));
 }
 
+/* ════════════ J. 미니멀 ════════════ */
+.bk-j-spread {
+  position: absolute;
+  top: calc(15 * var(--m));
+  left: calc(13 * var(--m));
+  right: calc(13 * var(--m));
+  display: flex;
+  justify-content: space-between;
+  font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+  font-stretch: 100%;
+  font-weight: 200;
+  font-size: calc(22 * var(--m));
+  line-height: 1;
+  color: var(--muted);
+}
+.bk-j-axis {
+  position: absolute;
+  left: calc(20 * var(--m));
+  right: calc(20 * var(--m));
+  top: calc(84 * var(--m));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.bk-j-year {
+  font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 200;
+  font-size: calc(12pt * var(--s));
+  letter-spacing: 0.5em;
+  padding-left: 0.5em;
+  margin-bottom: calc(9 * var(--m));
+}
+.bk-j-who {
+  font-weight: 400;
+  font-size: calc(17pt * var(--s));
+  letter-spacing: 0.16em;
+  padding-left: 0.16em;
+  margin-bottom: calc(12 * var(--m));
+  word-break: keep-all;
+}
+.bk-j-exam {
+  display: flex;
+  flex-direction: column;
+  gap: calc(1 * var(--m));
+  font-weight: 300;
+  font-size: calc(58pt * var(--s));
+  line-height: 1.16;
+  color: var(--accent);
+}
+.bk-j-exam span {
+  letter-spacing: 0.7em;
+  padding-left: 0.7em;
+  white-space: nowrap;
+}
+.bk-j-mat {
+  margin-top: calc(12 * var(--m));
+  font-size: calc(8.5pt * var(--s));
+  letter-spacing: 0.3em;
+  padding-left: 0.3em;
+  color: var(--muted);
+}
+.bk-j-bottom {
+  position: absolute;
+  left: calc(20 * var(--m));
+  right: calc(20 * var(--m));
+  bottom: calc(16 * var(--m));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(4 * var(--m));
+  text-align: center;
+}
+.bk-j-rule {
+  width: calc(18 * var(--m));
+  border-top: calc(0.3 * var(--m)) solid var(--accent);
+}
+.bk-j-book {
+  font-size: calc(7.5pt * var(--s));
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  word-break: keep-all;
+}
+.bk-j-brand {
+  font-weight: 500;
+  font-size: calc(9pt * var(--s));
+  letter-spacing: 0.4em;
+  padding-left: 0.4em;
+}
+img.bk-j-brand {
+  height: calc(8 * var(--m));
+  max-width: calc(44 * var(--m));
+  object-position: center;
+  padding-left: 0;
+}
+
+/* ════════════ K. 마스터 ════════════ */
+.bk-k-wordbox {
+  position: absolute;
+  top: calc(14 * var(--m));
+  left: calc(12 * var(--m));
+  width: calc(84 * var(--m));
+  height: calc(170 * var(--m));
+}
+.bk-k-word {
+  writing-mode: vertical-rl;
+  font-family: Archivo, "Arial Narrow", sans-serif;
+  font-stretch: 100%;
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.bk-k-word span {
+  display: block;
+}
+.bk-k-w1 {
+  color: var(--accent);
+}
+.bk-k-corner {
+  position: absolute;
+  top: calc(16 * var(--m));
+  right: calc(14 * var(--m));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(6 * var(--m));
+  text-align: right;
+}
+.bk-k-copy p {
+  font-size: calc(8pt * var(--s));
+  font-weight: 500;
+  line-height: 1.55;
+  opacity: 0.85;
+}
+.bk-k-badge {
+  width: calc(20 * var(--m));
+  height: calc(20 * var(--m));
+  border: calc(0.4 * var(--m)) solid var(--ink);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(0.6 * var(--m));
+}
+.bk-k-badge b {
+  font-family: Archivo, "Arial Narrow", sans-serif;
+  font-weight: 800;
+  font-size: calc(9 * var(--m));
+  line-height: 0.9;
+}
+.bk-k-badge small {
+  font-size: calc(6pt * var(--s));
+  font-weight: 700;
+}
+.bk-k-bottom {
+  position: absolute;
+  left: calc(20 * var(--m));
+  right: calc(14 * var(--m));
+  bottom: calc(28 * var(--m));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(2.5 * var(--m));
+  text-align: right;
+}
+.bk-k-mat {
+  font-size: calc(11pt * var(--s));
+  font-weight: 700;
+}
+.bk-k-book {
+  font-size: calc(8pt * var(--s));
+  color: var(--muted);
+  word-break: keep-all;
+}
+.bk-k-titlebox {
+  width: 100%;
+  max-height: calc(72 * var(--m));
+  margin-top: calc(3 * var(--m));
+  display: flex;
+  justify-content: flex-end;
+}
+.bk-k-title {
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  text-align: right;
+}
+.bk-k-title .bk-line:nth-child(2) {
+  color: var(--accent);
+}
+.bk-k-brand {
+  position: absolute;
+  left: calc(14 * var(--m));
+  bottom: calc(16 * var(--m));
+  font-weight: 900;
+  font-size: calc(9pt * var(--s));
+}
+img.bk-k-brand {
+  height: calc(8 * var(--m));
+  max-width: calc(44 * var(--m));
+}
+
+/* ════════════ M. 스트립 ════════════ */
+.bk-m-strip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(17 * var(--m));
+  display: flex;
+  justify-content: center;
+  padding-top: calc(16 * var(--m));
+  background: var(--accent);
+}
+.bk-m-strip p {
+  writing-mode: vertical-rl;
+  max-height: calc(250 * var(--m));
+  overflow: hidden;
+  font-size: calc(7.5pt * var(--s));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  color: var(--bk-bg);
+}
+.bk-m-corner {
+  position: absolute;
+  top: calc(16 * var(--m));
+  right: calc(14 * var(--m));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(1.2 * var(--m));
+  text-align: right;
+  color: var(--accent);
+  font-size: calc(8pt * var(--s));
+  font-weight: 500;
+}
+.bk-m-brand {
+  font-size: calc(11pt * var(--s));
+  font-weight: 900;
+}
+img.bk-m-brand {
+  height: calc(8 * var(--m));
+  max-width: calc(44 * var(--m));
+}
+.bk-m-mid {
+  position: absolute;
+  left: calc(30 * var(--m));
+  right: calc(14 * var(--m));
+  top: calc(88 * var(--m));
+  display: flex;
+  flex-direction: column;
+}
+.bk-m-year {
+  font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 200;
+  font-size: calc(34 * var(--m));
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+.bk-m-wordbox {
+  width: 100%;
+  margin-top: calc(2 * var(--m));
+}
+.bk-m-word {
+  position: relative;
+  isolation: isolate;
+  font-family: Archivo, "Arial Narrow", sans-serif;
+  font-stretch: 100%;
+  font-weight: 800;
+  line-height: 0.82;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  color: var(--accent);
+}
+/* 외곽선 그림자: 같은 낱말을 아래로 반쯤 내려 겹친다 */
+.bk-m-word::after {
+  content: attr(data-word);
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  z-index: -1;
+  color: transparent;
+  -webkit-text-stroke: calc(0.35 * var(--m)) var(--accent);
+  opacity: 0.45;
+}
+.bk-m-title {
+  margin-top: calc(26 * var(--m));
+  font-weight: 900;
+  font-size: calc(22pt * var(--s));
+  letter-spacing: -0.03em;
+  word-break: keep-all;
+}
+.bk-m-sub {
+  margin-top: calc(2 * var(--m));
+  font-size: calc(12pt * var(--s));
+  font-weight: 700;
+  color: var(--accent);
+}
+.bk-m-bottom {
+  position: absolute;
+  left: calc(30 * var(--m));
+  right: calc(14 * var(--m));
+  bottom: calc(16 * var(--m));
+}
+
 /* 인쇄 쪽 나누기는 감싸는 쪽(통합자료 Sheet · 테스트 교재 tb-sheet)이 맡는다. 여기서 또 나누면 빈 쪽이 생긴다. */
 @media print {
   .bk-sheet {
