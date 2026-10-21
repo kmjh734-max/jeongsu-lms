@@ -1,3 +1,5 @@
+import { normalizeTestBookOptions, type TestBookOptions } from "@/lib/lesson-materials/test-book";
+
 /**
  * 최종통합자료: 수업용 자료·분석서·변형문제·워크북을 앞표지·목차·간지·뒤표지와 함께 한 파일로
  * 묶는다. 자료함 파일(lesson_material_documents, kind = integrated)의 payload에 구성을 둔다.
@@ -26,16 +28,39 @@ export const INTEGRATED_SECTION_META: Record<
  * 테스트 교재에서 옮긴 묶음(선생님 2026-10-21 — 테스트 교재를 최종통합자료로 합침). 고른 파일이 아니라
  * 고른 파일들의 지문으로 만든다. 켜야 들어간다(옛 통합자료는 그대로).
  */
-export type IntegratedExtraKind = "plan" | "vocab" | "blank_note";
-export const INTEGRATED_EXTRA_KINDS: IntegratedExtraKind[] = ["plan", "vocab", "blank_note"];
+export type IntegratedExtraKind = "plan" | "vocab" | "word_note" | "blank_note" | "tests" | "tb_answers";
+export const INTEGRATED_EXTRA_KINDS: IntegratedExtraKind[] = ["plan", "vocab", "word_note", "blank_note", "tests", "tb_answers"];
 /** 목차·본문 순서에 놓이는 묶음(파일 묶음 + 테스트 교재 묶음) */
 export type IntegratedPartKind = IntegratedSectionKind | IntegratedExtraKind;
 
 export const INTEGRATED_EXTRA_META: Record<IntegratedExtraKind, { title: string; en: string; sub: string }> = {
-  plan: { title: "학습 계획표", en: "STUDY PLAN", sub: "학습 계획표 · 이수표" },
+  plan: { title: "학습 계획표 · 이수표", en: "STUDY PLAN", sub: "앞표지 바로 뒤" },
   vocab: { title: "전체 단어장", en: "VOCABULARY", sub: "지문 단어 · 파생어 · 동반의어" },
+  word_note: { title: "단어 정리 · 문장별 해석", en: "WORDS & READING", sub: "지문마다 단어 정리 · 문장별 해석" },
   blank_note: { title: "백지노트", en: "BLANK NOTE", sub: "지문마다 백지 복습" },
+  tests: { title: "테스트지 자료", en: "TEST", sub: "단어 시험 · 동반의어·품사 TEST · 유형별 테스트" },
+  tb_answers: { title: "테스트지 정답", en: "ANSWER KEY", sub: "테스트지 자료 정답" },
 };
+
+/** 테스트지 자료 설정(테스트 교재와 같은 뜻) */
+export type IntegratedTestOptions = Pick<
+  TestBookOptions,
+  "types" | "translation" | "writing" | "lineMode" | "level" | "wordTest" | "allWordTest" | "vocabExam"
+>;
+
+export function normalizeIntegratedTestOptions(raw: unknown): IntegratedTestOptions {
+  const o = normalizeTestBookOptions(raw);
+  return {
+    types: o.types,
+    translation: o.translation,
+    writing: o.writing,
+    lineMode: o.lineMode,
+    level: o.level,
+    wordTest: o.wordTest,
+    allWordTest: o.allWordTest,
+    vocabExam: o.vocabExam,
+  };
+}
 
 export function integratedPartMeta(k: IntegratedPartKind): { title: string; en: string; sub: string } {
   return (INTEGRATED_EXTRA_KINDS as string[]).includes(k)
@@ -43,15 +68,21 @@ export function integratedPartMeta(k: IntegratedPartKind): { title: string; en: 
     : INTEGRATED_SECTION_META[k as IntegratedSectionKind];
 }
 
-/** 「테스트 교재 구성」: 표지 → 목차 → 계획표 → 단어장 → 수업용 자료 → 백지노트 → 분석서 → 워크북 → 변형문제 */
+/**
+ * 「테스트 교재 구성」: 표지 → 계획표 → 목차 → 단어장 → 수업용 자료 → 단어 정리·문장별 해석 → 백지노트 →
+ * 분석서 → 워크북 → 테스트지 자료 → 변형문제 → 테스트지 정답 (계획표는 순서와 상관없이 표지 뒤)
+ */
 export const TEST_BOOK_PART_ORDER: IntegratedPartKind[] = [
   "plan",
   "vocab",
   "lesson_pack",
+  "word_note",
   "blank_note",
   "analysis_report",
   "workbook",
+  "tests",
   "questions",
+  "tb_answers",
 ];
 
 /** 계획표·단어장·백지노트 쪽 모양(테스트 교재 내지 디자인과 같다) */
@@ -86,15 +117,20 @@ export type IntegratedPayload = {
   extras: Record<IntegratedExtraKind, boolean>;
   /** 계획표·단어장·백지노트 내지 디자인 */
   theme: IntegratedTheme;
+  /** 테스트지 자료 설정 */
+  tests: IntegratedTestOptions;
+  /** 단어학습에 등록한 단어장(다시 누르면 같은 단어장을 고친다) */
+  vocabSetId?: string | null;
 };
 
 /** 파일 묶음 순서에 테스트 교재 묶음을 끼운다: 계획표 맨 앞, 단어장은 수업용 자료 앞, 백지노트는 뒤. */
 function partsFromOrder(order: IntegratedSectionKind[]): IntegratedPartKind[] {
   const out: IntegratedPartKind[] = ["plan"];
   for (const k of order) {
-    if (k === "lesson_pack") out.push("vocab", k, "blank_note");
+    if (k === "lesson_pack") out.push("vocab", k, "word_note", "blank_note");
     else out.push(k);
   }
+  out.push("tests", "tb_answers");
   return out;
 }
 
@@ -114,8 +150,9 @@ export function emptyIntegratedPayload(title = ""): IntegratedPayload {
     dividers: true,
     answerKey: true,
     parts: partsFromOrder(INTEGRATED_SECTION_ORDER),
-    extras: { plan: false, vocab: false, blank_note: false },
+    extras: { plan: false, vocab: false, word_note: false, blank_note: false, tests: false, tb_answers: false },
     theme: "b",
+    tests: normalizeIntegratedTestOptions(null),
   };
 }
 
@@ -145,14 +182,25 @@ export function normalizeIntegratedPayload(raw: unknown): IntegratedPayload {
         (all as string[]).includes(k)
       );
       if (saved.length === 0) return partsFromOrder(order);
-      for (const k of all) if (!saved.includes(k)) saved.push(k);
+      // 나중에 생긴 묶음: 단어 정리는 수업용 자료 뒤, 나머지는 끝에
+      for (const k of all) {
+        if (saved.includes(k)) continue;
+        const at = k === "word_note" ? saved.indexOf("lesson_pack") : -1;
+        if (at >= 0) saved.splice(at + 1, 0, k);
+        else saved.push(k);
+      }
       return [...new Set(saved)];
     })(),
     extras: {
       plan: p.extras?.plan === true,
       vocab: p.extras?.vocab === true,
+      word_note: p.extras?.word_note === true,
       blank_note: p.extras?.blank_note === true,
+      tests: p.extras?.tests === true,
+      tb_answers: p.extras?.tb_answers === true,
     },
+    tests: normalizeIntegratedTestOptions(p.tests ?? null),
+    vocabSetId: typeof p.vocabSetId === "string" ? p.vocabSetId : null,
     theme: (["a", "b", "c", "d"] as const).includes(p.theme as IntegratedTheme) ? (p.theme as IntegratedTheme) : "b",
   };
 }

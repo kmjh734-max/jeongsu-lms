@@ -14,7 +14,6 @@ import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { saveIntegratedDocument } from "@/lib/lesson-materials/document-actions";
 import {
   COVER_PRESETS,
-  INTEGRATED_SECTION_META,
   INTEGRATED_EXTRA_KINDS,
   TEST_BOOK_PART_ORDER,
   coverPreset,
@@ -39,17 +38,38 @@ import type { prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-bo
 import {
   DEFAULT_TEST_BOOK_OPTIONS,
   TEST_BOOK_THEMES,
+  buildTestSheet,
+  buildVocabExam,
+  buildWordTest,
+  isTestBookProjectReady,
   type TestBookProjectInput,
 } from "@/lib/lesson-materials/test-book";
 import {
   AllVocabSheets,
+  AnswerSheets,
   BlankNoteSheets,
+  LessonSheets,
   PlanSheets,
   TEST_BOOK_CSS,
   TEST_BOOK_FONTS_HREF,
   TestBookBrand,
+  TestSheets,
+  TranslationBackSheets,
+  VocabExamAnswerSheets,
+  VocabExamSheets,
+  VocabSheets,
+  WordTestSheets,
   partStyle,
 } from "@/components/lesson-materials/test-book/TestBookSheets";
+import {
+  LevelSwitch,
+  LineModeSwitch,
+  TRANSLATION_MODES,
+  TypeChecks,
+  VocabExamControls,
+  WritingScopeSwitch,
+} from "@/components/lesson-materials/test-book/TestBookControls";
+import { TestDrawDialog } from "@/components/lesson-materials/test-book/TestDrawDialog";
 
 export type FinalBundleMaterials = {
   lessonPacks: Array<{ docId: string; name: string; projects: LessonPackProjectInput[] }>;
@@ -69,8 +89,13 @@ const PDF_PAGE_SELECTOR =
 const EXTRA_COLOR: Record<IntegratedExtraKind, string> = {
   plan: "#2b2f38",
   vocab: "#1d2a8f",
+  word_note: "#1d2a8f",
   blank_note: "#0f8a7e",
+  tests: "#e8552e",
+  tb_answers: "#475066",
 };
+/** 테스트지 자료는 교재 견본처럼 늘 같은 열쇠(새로 섞은 것은 「테스트지 뽑기」) */
+const BOOK_SEED = "book";
 const isExtra = (k: string): k is IntegratedExtraKind => (INTEGRATED_EXTRA_KINDS as string[]).includes(k);
 type PrepareResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
 
@@ -165,8 +190,12 @@ export function FinalBundleClient({
   const preset = coverPreset(payload.cover.presetId);
 
   const extraProjects = materials.extraProjects;
+  const ready = useMemo(() => extraProjects.filter(isTestBookProjectReady), [extraProjects]);
   const vocabReady = extraProjects.filter((p) => (p.material?.vocab?.length ?? 0) > 0);
-  const vocabMissing = extraProjects.filter((p) => !p.material);
+  /** 재료(1장 자료·단어 정리)가 없는 지문 — 단어장·단어 정리·테스트지에서 빠진다 */
+  const vocabMissing = extraProjects.filter((p) => !isTestBookProjectReady(p));
+  const tOpt = payload.tests;
+  const testsAny = tOpt.types.length > 0 || tOpt.wordTest || tOpt.allWordTest;
   /** 파일 묶음은 고른 자료가 있을 때, 테스트 교재 묶음은 켰고 지문이 있을 때 */
   const has: Record<IntegratedPartKind, boolean> = {
     lesson_pack: materials.lessonPacks.length > 0,
@@ -175,13 +204,56 @@ export function FinalBundleClient({
     workbook: materials.workbooks.length > 0,
     plan: payload.extras.plan && extraProjects.length > 0,
     vocab: payload.extras.vocab && vocabReady.length > 0,
+    word_note: payload.extras.word_note && ready.length > 0,
     blank_note: payload.extras.blank_note && extraProjects.length > 0,
+    tests: payload.extras.tests && ready.length > 0 && testsAny,
+    tb_answers: payload.extras.tb_answers && payload.extras.tests && ready.length > 0 && testsAny,
   };
+
+  /** 테스트지 자료(지문마다 동반의어·품사 TEST + 유형별 테스트, 앞에 단어 시험지) */
+  const book = useMemo(
+    () =>
+      ready.map((p) => ({
+        project: p,
+        word: buildWordTest(p, BOOK_SEED),
+        sheet: buildTestSheet(p, tOpt.types, {
+          seed: BOOK_SEED,
+          blankMode: "same",
+          writing: tOpt.writing,
+          lineMode: tOpt.lineMode,
+          level: tOpt.level,
+        }),
+      })),
+    [ready, tOpt.types, tOpt.writing, tOpt.lineMode, tOpt.level]
+  );
+  const vocabExam = useMemo(
+    () =>
+      buildVocabExam(
+        ready.map((p) => ({ passage: extraProjects.indexOf(p) + 1, vocab: p.material.vocab })),
+        { ...tOpt.vocabExam, seed: `${BOOK_SEED}|vocab` }
+      ),
+    [ready, extraProjects, tOpt.vocabExam]
+  );
+  const updateTests = (patch: Partial<IntegratedPayload["tests"]>) => update({ tests: { ...payload.tests, ...patch } });
+  const [drawOpen, setDrawOpen] = useState(false);
+  // 글꼴이 늦게 들어오면 테스트 교재 쪽 나눔을 다시 잰다(먼저 잰 높이로 나누면 쪽이 넘친다)
+  const [fontsTick, setFontsTick] = useState(0);
+  useEffect(() => {
+    if (typeof document === "undefined" || !document.fonts) return;
+    let alive = true;
+    const bump = () => alive && setFontsTick((t) => t + 1);
+    void document.fonts.ready.then(bump);
+    document.fonts.addEventListener?.("loadingdone", bump);
+    return () => {
+      alive = false;
+      document.fonts.removeEventListener?.("loadingdone", bump);
+    };
+  }, []);
 
   // 목차·본문 순서. 고른 자료가 없는 유형은 뺀다. 변형문제 정답은 맨 뒤에 모은다.
   const sections: SectionPlan[] = useMemo(() => {
     const out: SectionPlan[] = payload.parts
-      .filter((k) => has[k])
+      .filter((k) => has[k] && k !== "plan")
       .map((k) => ({ key: k, kind: k, ...integratedPartMeta(k) }));
     if (payload.answerKey && has.questions) {
       out.push({ key: "answers", kind: "answers", en: "ANSWER KEY", title: "정답", sub: "변형문제 정답" });
@@ -234,9 +306,9 @@ export function FinalBundleClient({
     });
   }, []);
 
-  // 쪽 번호: 앞표지 1, 목차 2, 그다음 간지와 자료 쪽을 차례로 센다.
+  // 쪽 번호: 앞표지 1, (학습 계획표), 목차, 그다음 간지와 자료 쪽을 차례로 센다.
   const contents: ContentsEntry[] = [];
-  let page = 3;
+  let page = 3 + (has.plan ? (pageCounts.plan ?? 0) : 0);
   sections.forEach((s, i) => {
     if (payload.dividers) page += 1;
     const n = pageCounts[s.key] ?? 0;
@@ -272,7 +344,7 @@ export function FinalBundleClient({
   /** 보이는 묶음끼리 자리를 바꾼다(꺼 둔 묶음은 건너뛴다). 파일 묶음 순서(order)도 맞춰 둔다. */
   function move(kind: IntegratedPartKind, dir: -1 | 1) {
     const parts = [...payload.parts];
-    const shown = parts.filter((k) => !isExtra(k) || payload.extras[k]);
+    const shown = parts.filter((k) => k !== "plan" && (!isExtra(k) || payload.extras[k]));
     const a = shown.indexOf(kind);
     const b = a + dir;
     if (a < 0 || b < 0 || b >= shown.length) return;
@@ -288,7 +360,7 @@ export function FinalBundleClient({
     update({
       parts,
       order: parts.filter((k): k is IntegratedSectionKind => !isExtra(k)),
-      extras: { plan: true, vocab: true, blank_note: true },
+      extras: { plan: true, vocab: true, word_note: true, blank_note: true, tests: true, tb_answers: true },
       dividers: true,
     });
   }
@@ -333,29 +405,56 @@ export function FinalBundleClient({
    * 표지 글자가 바뀌어도 다시 만들지 않는다.
    */
   const renderSection = (s: SectionPlan) => {
-    if (s.kind === "plan" || s.kind === "vocab" || s.kind === "blank_note") {
+    if (s.kind !== "answers" && isExtra(s.kind)) {
       const no = String(sections.findIndex((x) => x.key === s.key) + 1).padStart(2, "0");
       const style = partStyle({ id: s.kind, no, en: s.en, ko: s.title, color: EXTRA_COLOR[s.kind] });
       const indexOf = (id: string) => extraProjects.findIndex((p) => p.id === id);
+      const mk = `bundle-${s.kind}|${fontsTick}`;
       return (
         <div className="contents" style={style}>
-          {s.kind === "plan" ? (
-            <PlanSheets
-              projects={extraProjects}
-              measureKey="bundle-plan"
-              options={{
-                ...DEFAULT_TEST_BOOK_OPTIONS,
-                tests: false,
-                lesson: has.lesson_pack,
-                blankNote: has.blank_note,
-                analysis: has.analysis_report,
-              }}
-            />
-          ) : s.kind === "vocab" ? (
-            <AllVocabSheets projects={vocabReady} indexOf={indexOf} measureKey="bundle-vocab" />
-          ) : (
+          {s.kind === "vocab" ? (
+            <AllVocabSheets projects={vocabReady} indexOf={indexOf} measureKey={mk} />
+          ) : s.kind === "word_note" ? (
+            <>
+              {ready.map((p) => (
+                <div key={p.id} className="contents">
+                  <VocabSheets index={indexOf(p.id)} project={p} measureKey={mk} />
+                  <LessonSheets index={indexOf(p.id)} project={p} translation={tOpt.translation} measureKey={`${mk}|${tOpt.translation}`} />
+                </div>
+              ))}
+              {tOpt.translation === "back" ? <TranslationBackSheets projects={ready} measureKey={mk} /> : null}
+            </>
+          ) : s.kind === "blank_note" ? (
             extraProjects.map((p, i) => <BlankNoteSheets key={p.id} index={i} project={p} />)
-          )}
+          ) : s.kind === "tests" ? (
+            <>
+              {tOpt.allWordTest ? <VocabExamSheets exam={vocabExam} measureKey={mk} /> : null}
+              {book.map((b) => (
+                <div key={b.project.id} className="contents">
+                  {tOpt.wordTest ? <WordTestSheets index={indexOf(b.project.id)} project={b.project} test={b.word} measureKey={mk} /> : null}
+                  {tOpt.types.length ? (
+                    <TestSheets index={indexOf(b.project.id)} project={b.project} sheet={b.sheet} title="테스트" measureKey={mk} />
+                  ) : null}
+                </div>
+              ))}
+            </>
+          ) : s.kind === "tb_answers" ? (
+            <>
+              {tOpt.allWordTest ? <VocabExamAnswerSheets exam={vocabExam} measureKey={mk} /> : null}
+              {tOpt.wordTest || tOpt.types.length ? (
+                <AnswerSheets
+                  title="테스트지 정답"
+                  entries={book.map((b) => ({
+                    index: indexOf(b.project.id),
+                    project: b.project,
+                    word: tOpt.wordTest ? b.word : undefined,
+                    sheet: tOpt.types.length ? b.sheet : { ...b.sheet, sections: [] },
+                  }))}
+                  measureKey={mk}
+                />
+              ) : null}
+            </>
+          ) : null}
         </div>
       );
     }
@@ -392,7 +491,68 @@ export function FinalBundleClient({
     for (const s of sections) out[s.key] = renderSection(s);
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sections, materials, role, logoSrc, academyName, base, qgBase]);
+  }, [sections, materials, role, logoSrc, academyName, base, qgBase, book, vocabExam, tOpt.translation, tOpt.wordTest, tOpt.allWordTest, fontsTick]);
+
+  /** 학습 계획표 — 목차보다 앞, 앞표지 바로 뒤(선생님 2026-10-21) */
+  const planBody = useMemo(
+    () =>
+      has.plan ? (
+        <div data-bundle-section="plan" className="contents" style={partStyle({ id: "plan", no: "00", en: "STUDY PLAN", ko: "학습 계획표", color: EXTRA_COLOR.plan })}>
+          <PlanSheets
+            projects={extraProjects}
+            measureKey={`bundle-plan|${fontsTick}`}
+            options={{
+              ...DEFAULT_TEST_BOOK_OPTIONS,
+              ...tOpt,
+              tests: has.tests,
+              lesson: has.lesson_pack || has.word_note,
+              blankNote: has.blank_note,
+              analysis: has.analysis_report,
+            }}
+          />
+        </div>
+      ) : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [has.plan, has.tests, has.lesson_pack, has.word_note, has.blank_note, has.analysis_report, extraProjects, tOpt, fontsTick]
+  );
+
+  /** 단어학습 단어장 등록(테스트 교재와 같다 — 다시 누르면 같은 단어장을 고친다) */
+  const [vocabReg, setVocabReg] = useState<{ busy: boolean; msg: string | null; error: boolean; href: string | null }>({
+    busy: false,
+    msg: null,
+    error: false,
+    href: null,
+  });
+  async function registerVocab() {
+    if (vocabReg.busy) return;
+    setVocabReg({ busy: true, msg: null, error: false, href: null });
+    try {
+      const res = await postJson<{ ok: true; setId: string; count: number; created: boolean } | { ok: false; message: string }>(
+        "/api/lesson-materials/test-book",
+        {
+          op: "registerVocab",
+          role,
+          id: docId,
+          title: payload.cover.title.replace(/\s+/g, " ").trim() || name,
+          projectIds: extraProjects.map((p) => p.id),
+        }
+      );
+      if (!res.ok) {
+        setVocabReg({ busy: false, msg: res.message, error: true, href: null });
+        return;
+      }
+      // 파일에 남긴 단어장 id를 화면 설정에도 둔다(설정을 저장할 때 지워지지 않게)
+      setPayload((p) => ({ ...p, vocabSetId: res.setId }));
+      setVocabReg({
+        busy: false,
+        msg: `${res.created ? "단어장을 만들었습니다" : "단어장을 고쳤습니다"} · ${res.count}단어`,
+        error: false,
+        href: `/${role}/vocab/set/${res.setId}`,
+      });
+    } catch (e) {
+      setVocabReg({ busy: false, msg: e instanceof Error ? e.message : "등록하지 못했습니다.", error: true, href: null });
+    }
+  }
   const brand = useMemo(() => ({ logoSrc: logoSrc || null, academy: payload.cover.academy || academyName }), [
     logoSrc,
     payload.cover.academy,
@@ -473,9 +633,9 @@ export function FinalBundleClient({
                   <span className="text-[11px] text-slate-400">{integratedPartMeta(k).sub}</span>
                 </label>
               ))}
-              {payload.extras.vocab && vocabMissing.length > 0 ? (
+              {(payload.extras.vocab || payload.extras.word_note || payload.extras.tests) && vocabMissing.length > 0 ? (
                 <div className="mt-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] text-amber-800">
-                  단어장 재료가 없는 지문 {vocabMissing.length}개는 단어장에서 빠집니다.
+                  재료가 없는 지문 {vocabMissing.length}개는 단어장·단어 정리·테스트지에서 빠집니다.
                   <button
                     type="button"
                     disabled={!!preparing && preparing.endsWith(")")}
@@ -509,6 +669,74 @@ export function FinalBundleClient({
                   </div>
                 </div>
               ) : null}
+              {payload.extras.word_note ? (
+                <div className="space-y-1 pt-1">
+                  <p className="text-[11px] font-bold text-slate-500">문장별 해석</p>
+                  <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
+                    {TRANSLATION_MODES.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => updateTests({ translation: t.id })}
+                        className={`rounded-md px-1 py-1 text-[11px] font-bold ${tOpt.translation === t.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {payload.extras.tests ? (
+                <div className="space-y-2 rounded-lg border border-violet-200 bg-white p-2.5">
+                  <p className="text-[11px] font-bold text-violet-900">테스트지 자료</p>
+                  <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                    <input type="checkbox" checked={tOpt.allWordTest} onChange={(e) => updateTests({ allWordTest: e.target.checked })} />
+                    단어 시험지(지문 합침)
+                  </label>
+                  {tOpt.allWordTest ? <VocabExamControls value={tOpt.vocabExam} onChange={(v) => updateTests({ vocabExam: v })} /> : null}
+                  <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                    <input type="checkbox" checked={tOpt.wordTest} onChange={(e) => updateTests({ wordTest: e.target.checked })} />
+                    지문마다 동반의어 · 품사 TEST
+                  </label>
+                  <TypeChecks value={tOpt.types} onChange={(types) => updateTests({ types })} />
+                  <LevelSwitch value={tOpt.level} onChange={(level) => updateTests({ level })} />
+                  {tOpt.types.includes("line") ? <LineModeSwitch value={tOpt.lineMode} onChange={(lineMode) => updateTests({ lineMode })} /> : null}
+                  {tOpt.types.includes("writing") ? <WritingScopeSwitch value={tOpt.writing} onChange={(writing) => updateTests({ writing })} /> : null}
+                </div>
+              ) : null}
+              {extraProjects.length ? (
+                <div className="grid grid-cols-2 gap-1.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setDrawOpen(true)}
+                    className="rounded-lg border border-violet-300 bg-white py-1.5 text-[12px] font-bold text-violet-800 hover:bg-violet-50"
+                  >
+                    테스트지 뽑기
+                  </button>
+                  <button
+                    type="button"
+                    disabled={vocabReg.busy || !vocabReady.length}
+                    onClick={() => void registerVocab()}
+                    title="전체 단어(뜻·품사·동의어·반의어·지문 예문)를 단어학습 「테스트 교재」 폴더에 단어장으로 넣습니다"
+                    className="rounded-lg border border-emerald-300 bg-white py-1.5 text-[12px] font-bold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
+                  >
+                    {vocabReg.busy ? "등록 중…" : "단어학습에 등록"}
+                  </button>
+                </div>
+              ) : null}
+              {vocabReg.msg ? (
+                <p className={`text-[11px] font-semibold ${vocabReg.error ? "text-rose-600" : "text-emerald-700"}`}>
+                  {vocabReg.msg}
+                  {vocabReg.href ? (
+                    <>
+                      {" · "}
+                      <a href={vocabReg.href} target="_blank" rel="noreferrer" className="underline">
+                        단어장 열기
+                      </a>
+                    </>
+                  ) : null}
+                </p>
+              ) : null}
             </div>
             <label className="flex items-center gap-2 text-sm text-slate-700">
               <input type="checkbox" checked={payload.dividers} onChange={(e) => update({ dividers: e.target.checked })} />
@@ -520,7 +748,7 @@ export function FinalBundleClient({
             </label>
             <ol className="space-y-1">
               {payload.parts
-                .filter((k) => !isExtra(k) || payload.extras[k])
+                .filter((k) => k !== "plan" && (!isExtra(k) || payload.extras[k]))
                 .map((k, i, shown) => (
                 <li
                   key={k}
@@ -608,6 +836,7 @@ export function FinalBundleClient({
             style={{ ["--bundle-zoom" as string]: String(zoom / 100) }}
           >
             <FrontCover preset={preset} cover={payload.cover} logoSrc={logoSrc} />
+            {planBody}
             <ContentsPage entries={contents} cover={payload.cover} accent={preset.accent} />
             {sections.map((s, i) => (
               <div key={s.key} className="bundle-section flex flex-col items-center gap-6 print:gap-0">
@@ -630,6 +859,7 @@ export function FinalBundleClient({
           </div>
         </div>
         </TestBookBrand.Provider>
+        <TestDrawDialog role={role} projectIds={extraProjects.map((p) => p.id)} open={drawOpen} onClose={() => setDrawOpen(false)} />
       </main>
     </div>
   );

@@ -12,7 +12,7 @@ import { TestDrawView, type TestDrawPayload } from "@/components/lesson-material
 import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 
 /**
- * 테스트 교재 화면(서버). 학원 기능 「테스트 교재」를 켠 학원만 열린다(정수학원).
+ * 테스트 교재 화면(서버). 학원 기능 「테스트 교재」를 켠 학원만 열린다(정수학원). 뽑은 테스트지 파일은 모두.
  * ?doc=면 저장된 파일의 지문·설정을, 아니면 ?ids=를 쓴다. ?mode=draw면 테스트지 뽑기로 연다.
  */
 export async function TestBookPage({
@@ -22,9 +22,6 @@ export async function TestBookPage({
   role: "admin" | "teacher";
   params: { ids?: string; doc?: string; mode?: string };
 }) {
-  const profile = await getCurrentProfile();
-  if (!(await isAcademyFeatureOn(createAdminClient(), profile?.academy_id, "test_book"))) notFound();
-
   // 뽑은 테스트지 파일이면 저장해 둔 그대로 보여 준다(값 없음)
   const openDoc = params.doc?.trim();
   if (openDoc) {
@@ -48,6 +45,9 @@ export async function TestBookPage({
       );
     }
   }
+  // 뽑은 테스트지는 워크북·최종통합자료에서도 만들므로 어느 학원이든 연다. 테스트 교재 편집은 기능을 켠 학원만.
+  const profile = await getCurrentProfile();
+  if (!(await isAcademyFeatureOn(createAdminClient(), profile?.academy_id, "test_book"))) notFound();
   const ids = await resolveDocumentProjectIds(params, "test_book");
   if (ids.length === 0) {
     return (

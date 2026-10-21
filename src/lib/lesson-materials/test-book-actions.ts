@@ -5,7 +5,7 @@ import { defaultDocumentName, uniqueDocumentName } from "@/lib/lesson-materials/
 import { createClient } from "@/lib/supabase/server";
 import { persistVocabItems, type VocabItemSaveInput } from "@/lib/vocab/save-items";
 import { nextVocabSetOrderIndex } from "@/lib/vocab/reorder-sets";
-import { loadTestBookProjects } from "@/lib/lesson-materials/load-material-payloads";
+import { loadBundleExtraProjects } from "@/lib/lesson-materials/load-material-payloads";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isAcademyFeatureOn } from "@/lib/academies/features";
@@ -40,6 +40,7 @@ import {
   testBookSourceHash,
   type TestBookMaterial,
   type TestBookOptions,
+  type TestBookProjectInput,
 } from "@/lib/lesson-materials/test-book";
 
 type Role = "admin" | "teacher";
@@ -368,7 +369,8 @@ export async function chargeTestDrawAction(
   role: Role,
   input: { seed: string; projectIds: string[]; typeCount: number; snapshot?: unknown }
 ): Promise<{ ok: true; docId: string | null; name: string | null } | Fail> {
-  const { profile, error } = await requireTestBook(role);
+  // 워크북·최종통합자료에서도 뽑는다(2026-10-21 테스트 교재 메뉴를 합침) — 학원 기능 스위치 없이
+  const { profile, error } = await requireLessonRole(role);
   if (error) return { ok: false, message: error };
   const seed = String(input.seed ?? "").trim().slice(0, 80);
   const passages = [...new Set((input.projectIds ?? []).map(String).filter(Boolean))].length;
@@ -452,12 +454,12 @@ export async function registerTestBookVocabAction(
   role: Role,
   input: { docId: string | null; title: string; projectIds: string[] }
 ): Promise<{ ok: true; setId: string; count: number; created: boolean } | Fail> {
-  const { profile, error } = await requireTestBook(role);
+  const { profile, error } = await requireLessonRole(role);
   if (error) return { ok: false, message: error };
   const projectIds = [...new Set((input.projectIds ?? []).map((s) => String(s).trim()).filter(Boolean))];
   if (!projectIds.length) return { ok: false, message: "선택된 지문이 없습니다." };
   const supabase = await createClient();
-  const projects = await loadTestBookProjects(supabase, projectIds);
+  const projects = await loadBundleExtraProjects(supabase, projectIds);
 
   const seen = new Set<string>();
   const items: VocabItemSaveInput[] = [];
@@ -485,7 +487,13 @@ export async function registerTestBookVocabAction(
   const docId = input.docId?.trim() || null;
   let payload: Record<string, unknown> = {};
   if (docId) {
-    const { data } = await supabase.from("lesson_material_documents").select("payload").eq("id", docId).eq("kind", "test_book").maybeSingle();
+    // 테스트 교재 파일 또는 최종통합자료 파일(단어장 id를 파일에 남겨 다음에 같은 단어장을 고친다)
+    const { data } = await supabase
+      .from("lesson_material_documents")
+      .select("payload")
+      .eq("id", docId)
+      .in("kind", ["test_book", "integrated"])
+      .maybeSingle();
     payload = (data?.payload as Record<string, unknown> | null) ?? {};
   }
 
@@ -541,8 +549,24 @@ export async function registerTestBookVocabAction(
       .from("lesson_material_documents")
       .update({ payload: { ...payload, vocabSetId: setId } })
       .eq("id", docId)
-      .eq("kind", "test_book");
+      .in("kind", ["test_book", "integrated"]);
   }
   revalidatePath(`/${role}/vocab`);
   return { ok: true, setId, count: items.length, created };
+}
+
+/**
+ * 테스트지 뽑기 창(워크북·최종통합자료)이 쓰는 지문 재료. 읽기만 한다(값 없음). 재료가 없는 지문은
+ * material이 null — 창에서 prepareWorkbook으로 만든다.
+ */
+export async function loadDrawProjectsAction(
+  role: Role,
+  input: { projectIds: string[] }
+): Promise<{ ok: true; projects: TestBookProjectInput[] } | Fail> {
+  const { error } = await requireLessonRole(role);
+  if (error) return { ok: false, message: error };
+  const ids = [...new Set((input.projectIds ?? []).map((s) => String(s).trim()).filter(Boolean))].slice(0, 80);
+  if (!ids.length) return { ok: false, message: "선택된 지문이 없습니다." };
+  const supabase = await createClient();
+  return { ok: true, projects: await loadBundleExtraProjects(supabase, ids) };
 }

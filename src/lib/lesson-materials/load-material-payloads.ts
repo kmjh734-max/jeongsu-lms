@@ -242,7 +242,9 @@ export async function loadBundleExtraProjects(
   const [{ data: projects }, { data: items }] = await Promise.all([
     supabase
       .from("lesson_material_projects")
-      .select("id,title,title_en,source,opc:lesson_pack_json->onePageContent,tbm:lesson_pack_json->testBookMaterial")
+      .select(
+        "id,title,title_en,source,opc:lesson_pack_json->onePageContent,tbm:lesson_pack_json->testBookMaterial,gc:lesson_pack_json->grammarChoiceV2Cache"
+      )
       .in("id", ids)
       .is("deleted_at", null),
     supabase
@@ -264,6 +266,7 @@ export async function loadBundleExtraProjects(
     source: string | null;
     opc: LessonPackData["onePageContent"] | null;
     tbm: LessonPackData["testBookMaterial"] | null;
+    gc: StoredGrammarChoiceV2Cache | null;
   }>;
   const byId = new Map(rows.map((p) => [p.id, p] as const));
   return ids
@@ -285,6 +288,12 @@ export async function loadBundleExtraProjects(
         material: isTestBookMaterialFresh(p.tbm ?? undefined, english)
           ? mergeTestBookVocabHints(p.tbm!, content)
           : null,
+        // 워크북 어법 선택이 저장돼 있으면 테스트지 어법선택도 그것을 쓴다(값 없음)
+        grammarChoice: readCachedGrammarChoiceV2(
+          p.gc,
+          p.id,
+          (itemsByProject.get(p.id) ?? []).map((it) => String(it.english_text ?? ""))
+        ),
       };
     });
 }

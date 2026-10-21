@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   chargeTestDrawAction,
   prepareWorkbookExtrasAction,
+  loadDrawProjectsAction,
   prepareTestBookPassageAction,
   registerTestBookVocabAction,
   saveTestBookOptionsAction,
@@ -37,6 +38,13 @@ export async function POST(request: Request) {
         await registerTestBookVocabAction(role, {
           docId: body.id ? String(body.id) : null,
           title: String(body.title ?? ""),
+          projectIds: Array.isArray(body.projectIds) ? body.projectIds.map(String) : [],
+        })
+      );
+    }
+    if (body.op === "loadDraw") {
+      return NextResponse.json(
+        await loadDrawProjectsAction(role, {
           projectIds: Array.isArray(body.projectIds) ? body.projectIds.map(String) : [],
         })
       );

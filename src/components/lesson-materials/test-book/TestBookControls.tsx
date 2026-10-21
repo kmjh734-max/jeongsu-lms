@@ -1,0 +1,194 @@
+"use client";
+
+/*
+ * 테스트 교재 고르기 부품(유형·난이도·직독직해·영작 범위·단어 시험 문항 수·내지 디자인). 테스트 교재를
+ * 워크북·최종통합자료로 합치며(2026-10-21) 세 화면이 같이 쓰게 따로 뺐다.
+ */
+import {
+  ALL_TEST_BOOK_TYPES,
+  BASIC_TEST_BOOK_TYPES,
+  TEST_BOOK_THEMES,
+  TEST_BOOK_TYPES,
+  VOCAB_EXAM_KINDS,
+  VOCAB_EXAM_KIND_COUNTS,
+  type LineMode,
+  type TestBookOptions,
+  type TestBookTheme,
+  type TestBookTypeKey,
+  type TestLevel,
+  type VocabExamOptions,
+  type WritingScope,
+} from "@/lib/lesson-materials/test-book";
+
+export const TRANSLATION_MODES: Array<{ id: TestBookOptions["translation"]; label: string }> = [
+  { id: "show", label: "해석 있음" },
+  { id: "hide", label: "해석 지움" },
+  { id: "back", label: "뒤쪽에 모음" },
+];
+
+/** 단어 시험지: 유형마다 문항 수(0이면 빼기) */
+export function VocabExamControls({ value, onChange }: { value: VocabExamOptions; onChange: (v: VocabExamOptions) => void }) {
+  const total = VOCAB_EXAM_KINDS.reduce((n, k) => n + (value.counts[k.key] ?? 0), 0);
+  return (
+    <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-2">
+      <p className="text-[11px] font-bold text-slate-500">유형별 문항 수 · 모두 {total}문항</p>
+      {VOCAB_EXAM_KINDS.map((k) => (
+        <label key={k.key} className="flex items-center justify-between gap-2 text-[12px] text-slate-700" title={k.hint}>
+          <span className={value.counts[k.key] ? "" : "text-slate-400"}>{k.label}</span>
+          <select
+            value={value.counts[k.key] ?? 0}
+            onChange={(e) => onChange({ counts: { ...value.counts, [k.key]: Number(e.target.value) } })}
+            className="rounded-md border border-slate-200 bg-white px-1 py-0.5 text-[12px]"
+          >
+            {VOCAB_EXAM_KIND_COUNTS.map((n) => (
+              <option key={n} value={n}>
+                {n ? `${n}문항` : "빼기"}
+              </option>
+            ))}
+          </select>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/** 내지 디자인 고르기 */
+export function ThemePicker({ value, onChange }: { value: TestBookTheme; onChange: (v: TestBookTheme) => void }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] font-bold text-slate-500">내지 디자인</p>
+      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+        {TEST_BOOK_THEMES.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            title={t.hint}
+            onClick={() => onChange(t.key)}
+            className={`rounded-md px-1 py-1 text-[11px] font-bold ${value === t.key ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** 난이도: 기본 · UP — 다시 만들지 않고 문항 내는 방식만 바꾼다(값 없음) */
+export function LevelSwitch({ value, onChange }: { value: TestLevel; onChange: (v: TestLevel) => void }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] font-bold text-slate-500">난이도</p>
+      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+        {(
+          [
+            ["basic", "기본"],
+            ["up", "난이도 UP"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onChange(id)}
+            className={`rounded-md px-1 py-1 text-[11px] font-bold ${value === id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {value === "up" ? (
+        <p className="text-[10.5px] leading-snug text-slate-500">
+          빈칸 문장마다 둘 · 어순배열 덩어리 잘게(앞말 없음) · 영작 단어 수 숨김 · 바꿔 말하기 힌트 숨김 · T/F는 F를 고쳐 쓰기
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** 한줄해석: 전체 해석 · 직독직해 */
+export function LineModeSwitch({ value, onChange }: { value: LineMode; onChange: (v: LineMode) => void }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] font-bold text-slate-500">한줄해석</p>
+      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+        {(
+          [
+            ["full", "전체 해석"],
+            ["chunk", "직독직해"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onChange(id)}
+            className={`rounded-md px-1 py-1 text-[11px] font-bold ${value === id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** 통문장 영작 범위 고르기 */
+export function WritingScopeSwitch({ value, onChange }: { value: WritingScope; onChange: (v: WritingScope) => void }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] font-bold text-slate-500">통문장 영작</p>
+      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+        {(
+          [
+            ["all", "모든 문장"],
+            ["key", "중요문장만"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onChange(id)}
+            className={`rounded-md px-1 py-1 text-[11px] font-bold ${value === id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function TypeChecks({
+  value,
+  onChange,
+}: {
+  value: TestBookTypeKey[];
+  onChange: (next: TestBookTypeKey[]) => void;
+}) {
+  const on = new Set(value);
+  const toggle = (k: TestBookTypeKey) =>
+    onChange(ALL_TEST_BOOK_TYPES.filter((x) => (x === k ? !on.has(x) : on.has(x))));
+  return (
+    <div className="space-y-2">
+      {[true, false].map((basic) => (
+        <div key={String(basic)} className="space-y-0.5">
+          <p className="text-[10.5px] font-bold tracking-wide text-slate-400">{basic ? "기본" : "선택"}</p>
+          {TEST_BOOK_TYPES.filter((t) => t.basic === basic).map((t) => (
+            <label key={t.key} className="flex min-h-[26px] cursor-pointer items-center gap-2 text-[13px] text-slate-800" title={t.hint}>
+              <input type="checkbox" className="h-4 w-4 accent-violet-600" checked={on.has(t.key)} onChange={() => toggle(t.key)} />
+              <span className="flex-1">{t.label}</span>
+            </label>
+          ))}
+        </div>
+      ))}
+      <div className="flex gap-1.5">
+        <button type="button" onClick={() => onChange(BASIC_TEST_BOOK_TYPES)} className="h-7 flex-1 rounded-md border border-violet-300 bg-white text-[11px] font-semibold text-violet-800">
+          기본 8종
+        </button>
+        <button type="button" onClick={() => onChange(ALL_TEST_BOOK_TYPES)} className="h-7 flex-1 rounded-md border border-slate-200 bg-white text-[11px] font-semibold text-slate-600">
+          전부
+        </button>
+      </div>
+    </div>
+  );
+}
+

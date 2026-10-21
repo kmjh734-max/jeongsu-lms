@@ -85,6 +85,7 @@ import {
   DEFAULT_VOCAB_EXAM,
   type TestBookTypeKey,
 } from "@/lib/lesson-materials/test-book";
+import { TestDrawDialog } from "@/components/lesson-materials/test-book/TestDrawDialog";
 import {
   TEST_BOOK_CSS,
   TEST_BOOK_FONTS_HREF,
@@ -261,6 +262,25 @@ function withWorkbookDefaults(w: WorkbookData): WorkbookData {
 }
 
 type PrepareExtrasResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** 워크북에 실린 지문(처음 나온 순서) — 유형마다 지문 목록이 따로라 projectId를 모두 모은다 */
+function workbookProjectIds(w: WorkbookData): string[] {
+  const out = new Set<string>();
+  const walk = (v: unknown, depth: number) => {
+    if (!v || typeof v !== "object" || depth > 4) return;
+    if (Array.isArray(v)) {
+      for (const x of v) walk(x, depth + 1);
+      return;
+    }
+    for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+      if (k === "projectId" && typeof x === "string" && UUID_RE.test(x)) out.add(x);
+      else if (typeof x === "object") walk(x, depth + 1);
+    }
+  };
+  walk(w, 0);
+  return [...out];
+}
 
 /** 테스트 교재에서 옮긴 유형의 문항 수(단어 시험지는 한 묶음) */
 function tbCount(w: WorkbookData, t: TbWorkbookTypeId): number {
@@ -1457,6 +1477,7 @@ export function WorkbookWorkbench({
    * "answer:블록 key". 재기 전에는 없고, 그동안은 예전처럼 한 쪽에 싣는다.
    */
   const [windowCounts, setWindowCounts] = useState<Record<string, number>>({});
+  const [drawOpen, setDrawOpen] = useState(false);
   /** 정답지 쪽마다 실을 블록(key). 재기 전에는 null(한 쪽에 전부). */
   const [answerPages, setAnswerPages] = useState<string[][] | null>(null);
   /** 한 쪽보다 긴 정답 블록(key). 쪽 수를 재어 여러 쪽에 이어 싣는다. */
@@ -3234,6 +3255,7 @@ export function WorkbookWorkbench({
   }
 
   const title = workbook.metadata.title;
+  const drawIds = workbookProjectIds(workbook);
   const columnTypes = orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder).filter(
     (t): t is WorkbookColumnTypeId =>
       (WORKBOOK_COLUMN_TYPES as readonly string[]).includes(t)
@@ -4054,6 +4076,17 @@ export function WorkbookWorkbench({
               {DESIGN_STYLES.find((d) => d.id === designStyle)?.hint}
             </p>
           </div>
+
+          {/* 테스트지 뽑기(선생님 2026-10-21: 테스트 교재를 합치며 워크북·최종통합자료 둘 다) */}
+          <button
+            type="button"
+            onClick={() => setDrawOpen(true)}
+            className="w-full rounded-lg border border-violet-300 bg-white py-2 text-[12px] font-bold text-violet-800 hover:bg-violet-50"
+            title="이 워크북의 지문으로 테스트지를 새로 섞어 뽑습니다(뽑을 때마다 값). 뽑은 것은 자료함 「뽑은 테스트지」에 저장됩니다."
+          >
+            테스트지 뽑기
+          </button>
+          <TestDrawDialog role={role} projectIds={drawIds} open={drawOpen} onClose={() => setDrawOpen(false)} />
 
           <label className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
             <span className="text-[11px] font-bold text-slate-500">쪽번호 넣기</span>

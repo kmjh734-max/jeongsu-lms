@@ -408,7 +408,10 @@ export function PagedSheet({
     const firstHead = (root.querySelector("[data-tb-head='0']") as HTMLElement | null)?.offsetHeight ?? 0;
     const restHead = (root.querySelector("[data-tb-head='1']") as HTMLElement | null)?.offsetHeight ?? firstHead;
     const heights = Array.from(root.querySelectorAll<HTMLElement>("[data-tb-block]")).map((el) => el.offsetHeight);
-    const inner = (PAGE_H_MM - PAD_Y_MM * 2 - FOOT_MM) * MM;
+    // 최종통합자료처럼 미리보기 배율(zoom)이 걸린 곳에서도 맞게, 잰 쪽 높이에 대한 비율로 센다
+    const ruler = (root.querySelector("[data-tb-ruler]") as HTMLElement | null)?.offsetHeight ?? 0;
+    const scale = ruler > 0 ? ruler / (100 * MM) : 1;
+    const inner = (PAGE_H_MM - PAD_Y_MM * 2 - FOOT_MM) * MM * scale;
     const out: number[][] = [];
     let cur: number[] = [];
     let used = firstHead;
@@ -428,6 +431,7 @@ export function PagedSheet({
   return (
     <>
       <div ref={measureRef} className="tb-measure" aria-hidden>
+        <div data-tb-ruler="" style={{ height: "100mm", width: 0, position: "absolute" }} />
         <div className="tb-sheet tb-part">
           <div data-tb-head="0">{head(0)}</div>
           <div data-tb-head="1">{head(1)}</div>

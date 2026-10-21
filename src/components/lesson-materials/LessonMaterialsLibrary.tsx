@@ -50,7 +50,7 @@ const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
   { id: "workbook", label: "워크북" },
   { id: "onePageSummary", label: "1장 요약직보자료" },
   { id: "onePageTest", label: "1장 테스트" },
-  { id: "testBook", label: "테스트 교재(지난 파일)" },
+  { id: "testBook", label: "뽑은 테스트지" },
   { id: "questions", label: "변형문제" },
   { id: "integrated", label: "최종통합자료" },
 ];
@@ -750,11 +750,10 @@ export function LessonMaterialsLibrary({
           className="flex flex-wrap gap-1 border-b border-slate-200 bg-white px-1"
           aria-label="자료 종류"
         >
-          {/* 테스트 교재 메뉴는 뺐다(선생님 2026-10-21 — 워크북·최종통합자료로 합침). 이미 만든 파일이 있을 때만 열어 보게 탭을 남긴다 */}
           {LIBRARY_TABS.filter(
             (tab) =>
-              tab.id !== "testBook" ||
-              (data.testBookOpen && (data.documents ?? []).some((d) => d.kind === "test_book" || d.kind === "test_draw"))
+              // 테스트 교재 탭은 뺐다(선생님 2026-10-21 「아예 없어 줘」) — 뽑은 테스트지는 워크북 탭 아래에
+              tab.id !== "testBook"
           ).map((tab) => {
             const active = libraryTab === tab.id;
             return (
@@ -1003,7 +1002,7 @@ export function LessonMaterialsLibrary({
             documents={tabDocuments}
           />
         ) : null}
-        {documentKind === "test_book" && !inTrash ? (
+        {documentKind === "workbook" && !inTrash && (data.documents ?? []).some((d) => d.kind === "test_draw") ? (
           // 뽑은 테스트지(선생님 2026-10-20: 만들고 나면 어디에 저장돼야) — 뽑은 그대로 다시 열어 인쇄
           <div className="mt-4">
             <LessonMaterialDocumentList
