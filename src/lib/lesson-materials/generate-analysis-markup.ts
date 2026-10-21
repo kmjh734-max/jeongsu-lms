@@ -71,6 +71,12 @@ export function resolveAnalysisMarkupModel(): string {
   return process.env.OPENAI_MODEL_ANALYSIS_MARKUP?.trim() || "gpt-5.6-sol";
 }
 
+/** 문장 표시 사고 수준. 기본 low(OPENAI_ANALYSIS_MARKUP_EFFORT로 바꿔 잰다). */
+export function resolveAnalysisMarkupEffort(): "low" | "medium" | "high" {
+  const v = process.env.OPENAI_ANALYSIS_MARKUP_EFFORT?.trim().toLowerCase();
+  return v === "medium" || v === "high" ? v : "low";
+}
+
 type Called = { text: string; inputTokens: number; outputTokens: number };
 
 async function callMarkup(input: {
@@ -111,7 +117,7 @@ async function callMarkup(input: {
       if (includeTemperature) body.temperature = 0.2;
       if (isGpt5FamilyModel(model)) {
         body.max_completion_tokens = 6_000;
-        if (includeReasoning) body.reasoning_effort = "low";
+        if (includeReasoning) body.reasoning_effort = resolveAnalysisMarkupEffort();
       } else {
         body.max_tokens = 3_000;
       }

@@ -12,9 +12,14 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import {
   ANALYSIS_REPORT_FORMAT_VERSION,
+  capImplyTags,
+  capMarkupStars,
   generateAnalysisReport,
   type AnalysisReportData,
 } from "@/lib/lesson-materials/generate-analysis-report";
+import { generateSentenceMarkup } from "@/lib/lesson-materials/generate-analysis-markup";
+import { verifyAnalysisMarkups } from "@/lib/lesson-materials/analysis-markup-verify";
+import { hasAnyMarkup } from "@/lib/lesson-materials/analysis-markup";
 
 function analysisSourceHash(lines: Array<string | null | undefined>): string {
   const joined = lines
@@ -154,6 +159,123 @@ export async function generateAndSaveAnalysisReportAction(
       ok: false,
       message: e instanceof Error ? e.message : "분석서 생성 실패",
     };
+  }
+}
+
+/**
+ * 분석서의 문장 하나만 다시 만든다(문장 표시: 성분·괄호·이름표·번호 설명·해석·부연).
+ * 선생님 말씀(2026-10-21): 지문 전체를 다시 만들면 맞던 문장까지 바뀌어 「또 다른 오류」가 생기고
+ * 값도 지문마다 든다. 문장 하나만 고치고 값도 문장마다(lesson_analysis_sentence) 받는다.
+ * 만들지 못하면 값을 받지 않고 그대로 둔다.
+ */
+export async function regenerateAnalysisSentenceAction(
+  role: Role,
+  input: { projectId: string; itemId: string }
+): Promise<{ ok: true; report: AnalysisReportData } | { ok: false; message: string }> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+  const projectId = input.projectId?.trim();
+  if (!projectId || !input.itemId) return { ok: false, message: "문장을 골라 주세요." };
+
+  const supabase = await createClient();
+  let pq = supabase
+    .from("lesson_material_projects")
+    .select("id,title,analysis_report_json")
+    .eq("id", projectId)
+    .eq("academy_id", profile!.academy_id!)
+    .is("deleted_at", null);
+  if (role === "teacher") {
+    pq = pq.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+  }
+  const { data: project } = await pq.maybeSingle();
+  if (!project) return { ok: false, message: "프로젝트를 찾을 수 없습니다." };
+  const prev = project.analysis_report_json as AnalysisReportData | null;
+  const index = prev?.sentences?.findIndex((s) => s.itemId === input.itemId) ?? -1;
+  if (!prev || index < 0) return { ok: false, message: "분석서에서 그 문장을 찾지 못했습니다. 분석서를 먼저 만들어 주세요." };
+
+  const { data: items, error: iErr } = await supabase
+    .from("lesson_material_items")
+    .select("id,english_text,korean_text,order_index")
+    .eq("project_id", projectId)
+    .order("order_index", { ascending: true });
+  if (iErr) return { ok: false, message: iErr.message };
+  const lines = (items ?? []).filter((it) => String(it.english_text ?? "").trim());
+  const line = lines.find((it) => it.id === input.itemId);
+  if (!line) return { ok: false, message: "그 문장의 원문을 찾지 못했습니다." };
+
+  const shortfall = await lessonCreditShortfall(profile!.academy_id!, LESSON_CREDIT_FEATURES.analysisSentence);
+  if (shortfall) return { ok: false, message: shortfall };
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  if (!apiKey) return { ok: false, message: "OPENAI_API_KEY가 설정되어 있지 않습니다." };
+
+  try {
+    const built = await withAiUsage(
+      {
+        academyId: profile!.academy_id,
+        actorId: profile!.id,
+        featureKey: LESSON_CREDIT_FEATURES.analysisSentence,
+        usedFor: "analysis_report_sentence",
+        projectId,
+      },
+      async () => {
+        const signal = AbortSignal.timeout(110_000);
+        const one = await generateSentenceMarkup({
+          apiKey,
+          passage: lines.map((l) => String(l.english_text).trim()).join(" "),
+          sentence: String(line.english_text).trim(),
+          sentenceNumber: lines.indexOf(line) + 1,
+          totalSentences: lines.length,
+          koreanHint: line.korean_text,
+          signal,
+        });
+        if (!one?.markup || !hasAnyMarkup(one.markup)) return null;
+        // 지문 전체 만들기와 같은 검수(번호 설명·해석)를 거친다. 검수가 실패하면 만든 것을 그대로 쓴다.
+        let markup = one.markup;
+        try {
+          const verified = await verifyAnalysisMarkups({ apiKey, markups: [markup], signal });
+          markup = verified.markups[0] ?? markup;
+        } catch {
+          /* 넘어간다 */
+        }
+        return { markup, contextNote: one.contextNote };
+      }
+    );
+    await flushAiUsage();
+    if (!built) return { ok: false, message: "이 문장을 다시 만들지 못했습니다. 잠시 뒤 다시 눌러 주세요. (값은 받지 않았습니다)" };
+
+    const sentences = prev.sentences.map((s, i) =>
+      i === index
+        ? {
+            ...s,
+            markup: built.markup,
+            contextNote: built.contextNote?.trim() || s.contextNote,
+            easyUnderstanding: built.contextNote?.trim() || s.easyUnderstanding,
+          }
+        : s
+    );
+    // 별표·함축 의미 꼬리표는 지문 전체에서 개수를 맞춘다(지문 전체 만들기와 같은 규칙)
+    const capped = capImplyTags(capMarkupStars(sentences.map((s) => s.markup ?? null)));
+    const report: AnalysisReportData = {
+      ...prev,
+      sentences: sentences.map((s, i) => ({ ...s, markup: capped[i] ?? undefined })),
+      updatedAt: new Date().toISOString(),
+    };
+    const { error: uErr } = await supabase
+      .from("lesson_material_projects")
+      .update({ analysis_report_json: report, updated_at: new Date().toISOString() })
+      .eq("id", projectId);
+    if (uErr) return { ok: false, message: uErr.message };
+    await debitLessonCredits({
+      academyId: profile!.academy_id!,
+      actorId: profile!.id,
+      featureKey: LESSON_CREDIT_FEATURES.analysisSentence,
+      projectId,
+      note: `지문 분석서 문장 다시 만들기 · ${project.title} · ${index + 1}번 문장`,
+    });
+    revalidatePath(`/${role}/lesson-materials/analysis-report`);
+    return { ok: true, report };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "문장을 다시 만들지 못했습니다." };
   }
 }
 

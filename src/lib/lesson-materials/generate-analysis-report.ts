@@ -698,7 +698,7 @@ async function runScopedCall(
  * (선생님 지적: "함축의미추론이 좀 나올 만한 문장을 만들어야지 이상한 걸 만들면 어떻게").
  * 남길 것은 뜻풀이(paraphrase)를 가장 충실히 적은 것으로 고른다.
  */
-function capImplyTags(
+export function capImplyTags(
   markups: Array<AnalysisSentenceMarkup | null>
 ): Array<AnalysisSentenceMarkup | null> {
   const withImply = markups
@@ -719,7 +719,7 @@ function capImplyTags(
   });
 }
 
-function capMarkupStars(
+export function capMarkupStars(
   markups: Array<AnalysisSentenceMarkup | null>
 ): Array<AnalysisSentenceMarkup | null> {
   const starred = markups

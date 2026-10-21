@@ -16,8 +16,10 @@ import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { Alert } from "@/components/ui/Alert";
 import {
   generateAndSaveAnalysisReportAction,
+  regenerateAnalysisSentenceAction,
   saveAnalysisReportAction,
 } from "@/lib/lesson-materials/analysis-report-actions";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import type {
   AnalysisGrammarPoint,
   AnalysisReportData,
@@ -474,6 +476,9 @@ export function AnalysisReportWorkbench({
   const [accent] = useState("#DC2626");
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  /** 문장 하나만 다시 만들기: 고른 문장(itemId)과 만드는 중인지 */
+  const [regenItemId, setRegenItemId] = useState("");
+  const [regenSentenceBusy, setRegenSentenceBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [prepLoading, setPrepLoading] = useState(
     () => !embedded && (regenerate || initialProjects.some((p) => !p.report?.sentences?.length))
@@ -736,7 +741,10 @@ export function AnalysisReportWorkbench({
       const res = await generateAndSaveAnalysisReportAction(role, {
         projectId: project.id,
         headerLabel,
-      });
+      }).catch((e: unknown) => ({
+        ok: false as const,
+        message: e instanceof Error ? e.message : "분석서를 다시 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
+      }));
       if (!res.ok) {
         setError(res.message);
         return;
@@ -754,6 +762,37 @@ export function AnalysisReportWorkbench({
       );
     } finally {
       setGenerating(false);
+    }
+  }
+
+  /**
+   * 문장 하나만 다시 만든다. 선생님 말씀(2026-10-21): 지문 전체를 다시 만들면 맞던 문장까지 바뀌어
+   * 다른 오류가 또 생긴다. 고친 문장만 바꾸고 값도 문장마다 받는다(값을 먼저 묻는다).
+   */
+  async function handleRegenSentence() {
+    if (!project?.report || !regenItemId || regenSentenceBusy) return;
+    const no = project.report.sentences.findIndex((s) => s.itemId === regenItemId) + 1;
+    const go = await askCreditConfirm({
+      title: "문장 하나만 다시 만들기",
+      description: "고른 문장의 문법 표시(성분·괄호·이름표·번호 설명)와 해석·부연을 새로 만듭니다. 다른 문장은 그대로 둡니다.",
+      subject: `${no}번 문장`,
+      contents: ["문장 표시 분석"],
+      items: [{ feature: "lesson_analysis_sentence", quantity: 1 }],
+    });
+    if (!go) return;
+    setRegenSentenceBusy(true);
+    setError(null);
+    try {
+      const res = await regenerateAnalysisSentenceAction(role, { projectId: project.id, itemId: regenItemId }).catch(
+        (e: unknown) => ({ ok: false as const, message: e instanceof Error ? e.message : "문장을 다시 만들지 못했습니다." })
+      );
+      if (!res.ok) {
+        setError(res.message);
+        return;
+      }
+      setProjects((prev) => prev.map((row, idx) => (idx === active ? { ...row, report: res.report } : row)));
+    } finally {
+      setRegenSentenceBusy(false);
     }
   }
 
@@ -1066,6 +1105,39 @@ export function AnalysisReportWorkbench({
           >
             {generating ? "생성 중…" : "분석서 다시 만들기"}
           </Button>
+          {report?.sentences?.length ? (
+            <div className="space-y-1.5 rounded-lg border border-slate-200 p-2">
+              <p className="text-[11px] font-bold text-slate-500">문장 하나만 다시 만들기</p>
+              <select
+                value={regenItemId}
+                onChange={(e) => setRegenItemId(e.target.value)}
+                className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700"
+              >
+                <option value="">고칠 문장을 고르세요</option>
+                {report.sentences.map((s, i) => {
+                  const text = s.enChunks.map((c) => c.text).join(" ");
+                  return (
+                    <option key={s.itemId} value={s.itemId}>
+                      {i + 1}. {text.length > 46 ? `${text.slice(0, 46)}…` : text}
+                    </option>
+                  );
+                })}
+              </select>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="w-full"
+                disabled={!regenItemId || regenSentenceBusy || generating || saving}
+                onClick={() => void handleRegenSentence()}
+              >
+                {regenSentenceBusy ? "그 문장을 다시 만드는 중…" : "이 문장만 다시 만들기"}
+              </Button>
+              <p className="text-[11px] leading-snug text-slate-400">
+                다른 문장은 그대로 두고 고른 문장의 문법 표시·해석만 새로 만듭니다.
+              </p>
+            </div>
+          ) : null}
           <Button
             type="button"
             size="sm"

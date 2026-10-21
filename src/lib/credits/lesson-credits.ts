@@ -17,6 +17,8 @@ export const LESSON_CREDIT_FEATURES = {
   lessonPack: "lesson_pack",
   /** 지문 분석서, 지문당 */
   analysisReport: "lesson_analysis_report",
+  /** 지문 분석서 문장 하나 다시 만들기, 문장당(2026-10-21) */
+  analysisSentence: "lesson_analysis_sentence",
   /** 워크북 어법 선택(어법 수정 포함), 지문당 */
   workbookGrammarChoice: "lesson_workbook_grammar_choice",
   /** 워크북 어휘 선택(어휘 수정 포함), 지문당 */
