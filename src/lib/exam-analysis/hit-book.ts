@@ -1149,7 +1149,8 @@ function uploadHits(
         const ko = /[가-힣]{4}/.test(ctx.answer);
         for (const line of win.split(/\n|(?=[①②③④⑤])/)) {
           const l = line.replace(/^[①②③④⑤]\s*/, "").trim();
-          if (l.length < 10) continue;
+          // 대의 파악은 보기·정답 줄만 — 지문 문단이 정답 낱말(atoms · cycle)을 품어 「같은 내용」으로 잡혔다(상우고1 14번)
+          if (l.length < 10 || (ctx.fam === "idea" && l.length > 200)) continue;
           const ok = ko
             ? /[가-힣]{4}/.test(l) && koWithin(ctx.answer, l) >= 0.6
             : (() => {
@@ -1177,7 +1178,13 @@ function uploadHits(
         typeSame: sameType,
         source: `올린 자료 「${u.name}」`,
         date: "",
-        lineHtml: spot ? `${stemLine}<br>${spot.line}` : `${stemLine}<br>${esc(u.text.slice(at, at + 700).replace(/\s+/g, " "))} …`,
+        // 같은 유형만 맞은 자리는 그 문항 하나를 통째로(발문 → 지문 → 보기) — 지문 앞 700자만 보내 제목 보기가 잘렸다(상우고1 14번)
+        lineHtml: spot
+          ? ctx.fam === "idea"
+            ? // 대의 파악은 보기 한 줄만 보이면 우리 정답이 안 보인다 — 그 문항을 통째로, 맞은 줄에 표시
+              `${stemLine}<br>${markHtml(esc(oneQuestionWindow(u.text, stemStart(u.text, shownStem, at), at).replace(/\s+/g, " ")), [spot.ours])}`
+            : `${stemLine}<br>${spot.line}`
+          : `${stemLine}<br>${esc(oneQuestionWindow(u.text, stemStart(u.text, shownStem, at), at).replace(/\s+/g, " "))}`,
         compare: spot
           ? { exam: spot.exam, ours: spot.ours, same: sameType ? `${spot.what} · 같은 유형` : spot.what }
           : { exam: ctx.typeName, ours: stems[0] ?? "", same: "올린 자료에 같은 지문 · 같은 유형" },
@@ -1224,6 +1231,12 @@ export function cleanUploadText(t: string): string {
     .replace(/\bI\d{3}-\d{3}-\d{2}-\d{2}-\d{6,}\b/g, " ")
     .replace(/(^|\s)-\s?\d{1,3}\s?-(?=\s|$)/g, " ")
     .replace(/[ \t]{2,}/g, " ");
+}
+
+/** 발문이 지문 바로 앞(1500자 안)에 있으면 그 자리부터, 아니면 지문부터 */
+function stemStart(text: string, stem: string | undefined, at: number): number {
+  const s = stem ? text.lastIndexOf(stem.slice(0, 24), at) : -1;
+  return s >= 0 && at - s < 1500 ? s : at;
 }
 
 /** 올린 자료에서 그 문항 하나만 — 발문부터 다음 문항 번호 전까지 */
@@ -1410,7 +1423,7 @@ const JUDGE_SYSTEM = `너는 영어 내신 시험의 「적중」을 가리는 �
   - 빈칸: 같은 문장을 비웠거나, 정답이 같은 뜻이면 ①이다(표현이 달라도).
   - 주제·제목·요지·목적(대의 파악): 우리 문항의 정답이 시험 정답과 분명히 같은 뜻이면 갈래가 달라도(요지 시험에 주제 문제, 목적 시험에 요지 문제) ①이다(요지를 서술형으로 써 본 것도 같다). 뜻이 일부만 겹치면 ②. 지문 주제어만 겹치는 것은 아니다.
   - 내용 일치·불일치·일치 개수: 시험 정답 진술이 묻는 바로 그 사실을 우리 보기로 다뤘으면 ①이다(참 버전으로 다뤘든 틀린 버전으로 다뤘든). 같은 도표·같은 문장을 보기로 다룬 것도 그 사실이면 ①. 고유명사만 겹치는 것은 아니다.
-  - 문장 삽입: 주어진 문장이 같아야 한다(지문 속 문장이라 어디에나 들어 있는 것은 근거가 아니다).
+  - 문장 삽입: 주어진 문장이 같아야 한다 — 같은 문장을 바꿔 쓴 것(같은 내용이 같은 자리에 들어가는 주어진 문장)도 같다. 지문 속 문장이라 어디에나 들어 있는 것은 근거가 아니다.
   - 순서: 같은 지문 순서 문제에서 정답 순서가 같으면 ①이다(덩어리를 나눈 자리가 조금 달라도). 무관한 문장: 끼워 넣은 문장이 같으면 ①, 같은 지문 무관한 문장 문제만 풀었으면 ②.
   - 서술형·영작: 모범 답과 같은 문장·표현을 미리 써 봤어야 한다.
 ② similar — 「유사 유형」: 이 자료를 풀었으면 시험 문제를 바로 풀 수 있다. 예: 같은 지문을 시험과 같은 유형으로 풀며 시험이 묻는 정보(같은 문장·같은 도표 항목·같은 수치·같은 사실)를 이미 다뤘다, 같은 자리를 괄호 고르기·빈칸 쓰기·T/F·요약자료로 다뤘다, 정답과 비슷한 뜻을 다뤘다, 같은 지문의 삽입·순서·무관한 문장을 같은 유형으로 풀었다.
@@ -1639,9 +1652,14 @@ export async function buildHitBook(
     const packs = allMats.filter((m) => m.level === "cand" && !mats.some((x) => x.source === m.source)).slice(0, 6);
     // 모델 판정에만 쓰는 후보 — 규칙이 이미 잡은 자료는 빼고 자료마다 한 곳
     const saved = opts.reuse?.get(it.id);
+    /*
+     * 모델에 보일 규칙 근거 — 같은 자리 → 같은 유형 → 나머지 순으로 열둘까지. 예전엔 앞 여섯만 보내고 나머지 자료는
+     * 「규칙이 이미 잡았다」며 창 후보에서도 빼, 아잉카 변형문제 제목 문항이 아무 데도 안 실렸다(상우고1 14번, 2026-10-21).
+     */
+    const shownMats = [...mats].sort((x, y) => Number(y.level === "same") - Number(x.level === "same") || Number(!!y.typeSame) - Number(!!x.typeSame)).slice(0, 12);
     const upCands = opts.ai || saved
       ? uploadWindows(upCtx, uploads)
-          .filter((w, i, xs) => !mats.some((m) => m.source === w.source) && xs.findIndex((x) => x.source === w.source) === i)
+          .filter((w, i, xs) => !shownMats.some((m) => m.source === w.source) && xs.findIndex((x) => x.source === w.source) === i)
           .slice(0, saved ? 999 : 10)
       : [];
     const sameMats = mats.filter((m) => m.level === "same");
@@ -1735,7 +1753,7 @@ export async function buildHitBook(
             brief: qBrief(`o${i + 1}`, q, " (시험과 다른 유형)"),
           })
         ),
-        ...[...mats.slice(0, 6), ...upCands, ...packs].map((m, i): AiCand => ({
+        ...[...shownMats, ...upCands, ...packs].map((m, i): AiCand => ({
           key: m.source.startsWith("올린 자료") ? `u${i + 1}` : m.level === "cand" ? `p${i + 1}` : `m${i + 1}`,
           ruleSame: m.level === "same",
           sameType: m.level === "same" || !!m.typeSame,
@@ -1767,8 +1785,10 @@ export async function buildHitBook(
         const passage = block.body.split("\n").slice(1).join(" ");
         const givenWords = plainWords(matCtx.given).join(" ");
         for (const c of pool) {
+          // 우리가 만든 삽입 문항은 발문 아래 글이 곧 주어진 문장이다(바꿔 쓴 문장이어도) — 검사하지 않는다(발곡고1 7번이 ②로 깎였다)
+          if (c.card.kind === "question") continue;
           const up = uploads.find((u) => c.source === `올린 자료 「${u.name}」`);
-          const body = c.card.kind === "question" ? `${c.card.questionText} ${c.card.passageHtml}` : c.card.linesHtml.join(" ");
+          const body = c.card.linesHtml.join(" ");
           const has = up ? plainWords(up.text).join(" ").includes(givenWords) : within(matCtx.given, body.replace(/<[^>]+>/g, " ")) >= 0.8;
           if (!has) continue;
           const ok = up ? uploadGivesGiven(up.text, matCtx.given, passage) : givenAsGiven(body, matCtx.given, passage);
@@ -1786,14 +1806,14 @@ export async function buildHitBook(
           const passage = block.body.split("\n").slice(1).join(" ");
           r.matched = r.matched.map((m) => {
             const c = byKey.get(m.key);
-            if (m.level !== "same" || !c) return m;
+            if (m.level !== "same" || !c || c.card.kind === "question") return m;
             const known = givenOk.get(m.key);
             const up = uploads.find((u) => c.source === `올린 자료 「${u.name}」`);
             const ok =
               known ??
               (up
                 ? uploadGivesGiven(up.text, matCtx.given, passage)
-                : givenAsGiven(c.card.kind === "question" ? `${c.card.questionText} ${c.card.passageHtml}` : c.card.linesHtml.join(" "), matCtx.given, passage));
+                : givenAsGiven(c.card.linesHtml.join(" "), matCtx.given, passage));
             return ok ? m : { ...m, level: "similar" as const };
           });
         }
@@ -1802,6 +1822,19 @@ export async function buildHitBook(
          * 같은 지문 · 같은 유형 우리 문항이 있으면 적어도 ② — 일람표의 ② 정의 그대로다. 모델이 「묻는 자리가 다르다」며
          * 아님을 낸 것(호원고1 8번: 같은 지문 어법 문제를 두 번 풀었는데 다루지 않음)을 바로잡는다.
          */
+        /*
+         * 삽입 · 순서 · 무관한 문장은 그 유형을 풀어 봤어야 ② — 다른 유형 문항(o)이나 자료 묶음(p)만으로 ②를 주던 것
+         * (호원고1 13번: 무관한 문장 문제는 없고 순서 문제만 있었다)을 「다루지 않음」으로 돌린다.
+         */
+        if (!saved && r.verdict === "similar" && (fam === "insertion" || fam === "order" || fam === "irrelevant")) {
+          const typed = r.matched.filter((m) => m.key.startsWith("q") || ((m.key.startsWith("u") || m.key.startsWith("m")) && byKey.get(m.key)?.sameType));
+          if (typed.length === 0) {
+            r.verdict = "none";
+            r.matched = [];
+            r.evidence = [];
+            r.reason = "";
+          } else r.matched = typed;
+        }
         const sameTypeQ = pool.find((c) => c.key.startsWith("q") && c.exactType);
         if (!saved && r.verdict === "none" && sameTypeQ) {
           r.verdict = "similar";
