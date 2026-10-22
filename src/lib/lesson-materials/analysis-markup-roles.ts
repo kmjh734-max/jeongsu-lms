@@ -32,10 +32,6 @@ const OC_VERBS = new Set([
 /** 능동에서 목적격보어로 to 없는 원형·분사만 받는 동사(make O to V는 목적격보어가 아니다) */
 const BARE_OC = new Set(["make", "let", "have", "see", "watch", "hear", "feel", "notice", "witness", "observe"]);
 const PRONOUN_SUBJECT = new Set(["i", "you", "he", "she", "it", "we", "they", "who", "which", "that"]);
-const PREPOSITIONS = new Set([
-  "by", "of", "in", "for", "after", "before", "without", "from", "about", "on", "at", "into", "with",
-  "through", "upon", "besides", "despite", "like", "than", "toward", "towards", "against", "while", "when", "as",
-]);
 const IRREGULAR_PP = new Set([
   "found", "made", "called", "known", "born", "built", "shown", "given", "taken", "written", "seen", "done",
   "used", "left", "kept", "held", "brought", "set", "put", "lit", "led", "grown", "thrown", "worn", "torn",
@@ -44,6 +40,7 @@ const IRREGULAR_PP = new Set([
   "bought", "caught", "taught", "thought", "felt", "heard", "meant", "run", "cut", "hit", "shut", "spread",
 ]);
 const NO_SUBJECT = new Set(["there", "let's", "let’s", "lets"]);
+const ING_BASE = new Set(["bring", "sing", "ring", "swing", "cling", "fling", "sting", "spring", "string", "wring", "sling"]);
 
 type Tok = { w: string; start: number; end: number };
 
@@ -110,6 +107,12 @@ export function normalizeMarkupRoles(
 
   // 4. There · Let's 에 단 S
   rs = rs.filter((r) => !(r.role === "S" && NO_SUBJECT.has(lower(slice(text, r.span).trim()))));
+  // 명사절 접속사(proves that the world is ~의 that)에 단 성분: 바로 뒤가 더 깊은 층의 S면 접속사다
+  rs = rs.filter((r, i) => {
+    if (!["that", "whether", "if"].includes(lower(slice(text, r.span).trim()))) return true;
+    const next = rs[i + 1];
+    return !(next && next.role === "S" && next.level > r.level);
+  });
 
   // 3. 술어 V를 조동사부터 한 구간으로
   for (const r of rs) {
@@ -264,11 +267,17 @@ export function normalizeMarkupRoles(
     const w = words(slice(text, r.span));
     const head = w[0] ?? "";
     const prevTok = tokBefore(r.span.start);
-    const afterPrep = !!prevTok && PREPOSITIONS.has(lower(prevTok.w));
+    // 도치 의문문(What are you doing ~?)은 조동사가 주어 앞으로 가 있어 -ing가 술어다
+    const prevRole = rs[i - 1];
+    if (prevRole && prevRole.role === "S" && prevRole.level === r.level) {
+      const auxTok = tokBefore(prevRole.span.start);
+      if (auxTok && AUX.has(lower(auxTok.w))) continue;
+    }
     const nonFinite =
       startsWithTo(r) ||
       afterTo(r) ||
-      (w.length === 1 && /ing$/i.test(head) && (afterPrep || !sameLevelS(r.level))) ||
+      // 술어 -ing는 늘 be와 함께다. 한 낱말 -ing는 준동사(bring·sing 같은 원형은 뺀다)
+      (w.length === 1 && /ing$/i.test(head) && !ING_BASE.has(lower(head))) ||
       (w.length === 1 &&
         isPastParticiple(head) &&
         !sameLevelS(r.level) &&

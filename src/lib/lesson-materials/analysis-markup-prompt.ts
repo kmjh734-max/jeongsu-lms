@@ -24,6 +24,8 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
      (Playing sports is ~ → S[Playing sports] / love to watch games → O[to watch games] /
       After reading his study, ~ → 성분 없음(전치사구) / to see whether ~ → M 또는 표시 없음)
      명사를 꾸미는 분사(현재분사·과거분사 모두)에도 V를 달지 않는다. 꾸밈은 notes로 이름만 얹는다.
+     단 준동사구 안에 들어 있는 절은 절이므로 그 S·V를 단다(to see whether it would be suitable → S¹[it] V¹[would be] C¹[suitable]).
+   - 명사절을 이끄는 that·whether·if 자체에는 성분을 달지 않는다(관계대명사 that은 S·O를 단다).
    - 주절의 S와 V는 반드시 넣는다. O·C는 있을 때만.
    - 조동사와 본동사가 붙어 있으면 V는 조동사부터 본동사까지 한 구간에 단다.
      (can detect · may not sound · could exacerbate · should not become · has been developed 전체가 V)
@@ -31,7 +33,10 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
      본동사 자리에 V를 단다. (Do you recognize ~ → recognize에 V,
      How could that be? → be에 V, Not one day did we drop ~ → drop에 V)
      동사가 아예 없는 명사구 문장(제목·감탄구)만 V 없이 둔다.
-   - 한 성분이 6단어를 넘으면 넣지 말고 대신 괄호(brackets)로 묶는다.
+   - 한 성분이 6단어를 넘으면 통째로 빼지 말고 중심이 되는 앞부분(명사와 그 앞 꾸밈말)에만 단다.
+     (have found the best angles between the handle and the blade → O[the best angles],
+      being a fan of a sports team is ~ → S[being a fan]) 절 전체가 성분이면 괄호(brackets)로 묶는다.
+   - 주절의 O·C, 그리고 종속절(when·because·if·whether·that·관계사절) 안의 S·V·O·C도 빠뜨리지 않는다.
    - 부사와 전치사구(수식어)에는 M을 단다(선생님 확정). 단 명사를 꾸미는 전치사구(the head of the team)는
      그 명사 성분 안에 들어가므로 따로 달지 않는다. 동사에 꼭 필요한 부사어(put A into B, belong to you)는 A로 단다.
    - 겹쳐 달지 않는다: M을 단 구간 안의 낱말에 다시 S·V·O·C를 달지 않고, 같은 낱말에 성분을 두 번 달지 않는다.
