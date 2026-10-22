@@ -38,8 +38,8 @@ const TRANSLATION_PROMPT = `You check Korean translations printed under English 
 For each item you get an English sentence, its Korean rendering (ko), and sometimes the teacher's own translation (reference, may be "").
 When ko says the same thing as reference, it is ok — do not reword it.
 Set ok=false when the Korean says something the English does not say, drops the main clause, has the wrong subject, tense or negation, mistranslates a key word, reads unnatural in Korean, or uses honorific/polite endings (-습니다, -해요, -하세요) instead of the plain -다 ending a printed sheet uses.
-An English imperative (Imagine ~, Think about ~) must stay an imperative in Korean: -하라 / -해 보라 is correct. Never turn it into -한다 / -해 본다 / -하다.
-When ok is false, write "fixed": a faithful, natural Korean rendering of the same English, same length and register, ending in -다 (or -하라 / -해 보라 for an imperative). Otherwise "fixed" is "".
+An English imperative (Imagine ~, Think about ~) must stay an imperative in Korean: -하라 / -해 보라 is correct. Never turn it into -한다 / -해 본다 / -하다. "Let's ~" becomes -하자. A question stays a question (-인가? / -할까?).
+When ok is false, write "fixed": a faithful, natural Korean rendering of the same English, same length and register, ending in -다 for a statement (-하라 for an imperative, -하자 for Let's, a question mark for a question). Otherwise "fixed" is "".
 Return only JSON.`;
 
 const NOTE_PROMPT = `You check the short Korean grammar names printed above parts of English sentences on a Korean school English analysis sheet.
@@ -432,7 +432,8 @@ export async function verifyAnalysisMarkups(input: {
     if (row.ok !== true) {
       const fixed = clean(row.fixed);
       // 명령문 해석을 평서형으로 바꾸는 고침은 받지 않는다(「상상해 보라」→「상상해 본다」, 2026-10-22)
-      if (fixed && isImperativeKo(m.translation) && !isImperativeKo(fixed)) {
+      const wasQuestion = /\?\s*$/.test(m.translation) && /\?\s*["”’]?\s*$/.test(m.text);
+      if (fixed && ((isImperativeKo(m.translation) && !isImperativeKo(fixed)) || (wasQuestion && !/\?\s*$/.test(fixed)))) {
         notes.push(`해석 고침 거절 s${item.si + 1}`);
         continue;
       }

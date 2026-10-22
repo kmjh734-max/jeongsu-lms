@@ -42,6 +42,7 @@ import {
   verifiedChunks,
 } from "@/lib/lesson-materials/analysis-markup";
 import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
+import { normalizeMarkupRoles } from "@/lib/lesson-materials/analysis-markup-roles";
 
 export type MarkupUsage = { inputTokens: number; outputTokens: number; calls: number };
 
@@ -480,7 +481,18 @@ export function buildVerifiedMarkup(
   const contextNote = String(o.contextNote ?? "").replace(/\s+/g, " ").trim().slice(0, 220);
 
   return {
-    markup: { text, roles, brackets, notes, points, callouts, translation, tags: keptTags, tagSpans, chunks: verifiedChunks(text, o.chunks) },
+    markup: {
+      text,
+      roles: normalizeMarkupRoles(text, roles, brackets),
+      brackets,
+      notes,
+      points,
+      callouts,
+      translation,
+      tags: keptTags,
+      tagSpans,
+      chunks: verifiedChunks(text, o.chunks),
+    },
     report,
     contextNote,
   };

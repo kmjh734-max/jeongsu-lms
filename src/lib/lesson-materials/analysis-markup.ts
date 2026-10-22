@@ -11,6 +11,7 @@
  * 어긋나게 걸치면 그 항목만 버린다. 틀린 분석을 찍느니 비우는 편이 낫다.
  */
 import { GRAMMAR_ONTOLOGY } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
+import { normalizeMarkupRoles } from "@/lib/lesson-materials/analysis-markup-roles";
 
 /** 문장 안 글자 범위. start는 포함, end는 제외. */
 export type MarkupSpan = { start: number; end: number };
@@ -639,7 +640,8 @@ export function readAnalysisMarkup(
   const chunks = verifiedChunks(text, o.chunks);
   const markup: AnalysisSentenceMarkup = {
     text,
-    roles,
+    // 표기 규칙(준동사 V 없음·목적격보어 C·조동사부터 V)을 예전 저장본에도 그대로 적용한다
+    roles: normalizeMarkupRoles(text, roles, brackets),
     brackets,
     notes,
     points,
