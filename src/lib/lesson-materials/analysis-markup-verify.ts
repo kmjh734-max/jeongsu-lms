@@ -32,7 +32,6 @@ Answer for each item:
 - labelFits: true only if labelKo names the construction that the span actually is in this sentence. False when it names a different construction (the span is an adverbial clause but the label says 명사절; the span is a gerund but the label says 현재분사).
 - explanationTrue: true only if explanationKo states the rule that really governs this span in this sentence, describes the sentence correctly, and reads as clean Korean. False when the reason given is not the real reason, when it invents a rule, when it names words that are not in the sentence, when it is honorific Korean (-습니다), or when a word is broken or misspelled.
 - rewriteTrue: true when rewrite is "" or when the rewritten form is grammatical English (or a correct Korean gloss) that really is equivalent to what the sentence says. False when the rewrite changes the meaning or is ungrammatical.
-- fixedExplanationKo: when explanationTrue is false but the span itself is worth explaining, write the correct Korean explanation in 2-3 plain sentences ending in -다, naming the words in the sentence that decide it; otherwise "".
 Judge grammar only, not style. Never mention this sheet, tools, or how the text was produced. Return only JSON.`;
 
 const TRANSLATION_PROMPT = `You check Korean translations printed under English sentences on a Korean school English analysis sheet.
@@ -70,14 +69,12 @@ const POINT_SCHEMA = {
           "labelFits",
           "explanationTrue",
           "rewriteTrue",
-          "fixedExplanationKo",
         ],
         properties: {
           id: str,
           labelFits: bool,
           explanationTrue: bool,
           rewriteTrue: bool,
-          fixedExplanationKo: str,
         },
       },
     },
@@ -231,8 +228,8 @@ export type MarkupVerifyResult = {
 };
 
 /**
- * 지문 하나의 표시 분석을 한꺼번에 검수한다. 설명이 틀렸다고 나오면 고쳐 준 설명으로 바꾸고,
- * 고쳐 주지 못했거나 이름표까지 틀렸으면 그 번호 설명을 버린다. 해석은 고쳐 준 것으로 바꾼다.
+ * 지문 하나의 표시 분석을 한꺼번에 검수한다. 설명·이름표가 틀렸다고 나오면 그 번호 설명을
+ * 버린다. 해석은 고쳐 준 것으로 바꾼다.
  */
 export async function verifyAnalysisMarkups(input: {
   apiKey: string;
@@ -387,18 +384,16 @@ export async function verifyAnalysisMarkups(input: {
       const point = m?.points[item.pi];
       if (!m || !point) continue;
 
-      const fixed = clean(row.fixedExplanationKo);
+      /*
+       * 틀린 설명은 고쳐 쓰지 않고 뺀다. 검수가 새로 쓴 설명이 오히려 틀렸다
+       * (2026-10-22 지문 다섯 개 대조: 고침 2건 모두 「보어 usually」「한옥」처럼 없는 말을 넣음).
+       */
       if (row.explanationTrue !== true) {
-        if (fixed.length >= 15 && row.labelFits === true) {
-          point.explanation = fixed;
-          notes.push(`설명 고침 s${item.si + 1}: ${point.label}`);
-        } else {
-          const set = dropByS.get(item.si) ?? new Set<number>();
-          set.add(item.pi);
-          dropByS.set(item.si, set);
-          notes.push(`설명 버림 s${item.si + 1}: ${point.label}`);
-          continue;
-        }
+        const set = dropByS.get(item.si) ?? new Set<number>();
+        set.add(item.pi);
+        dropByS.set(item.si, set);
+        notes.push(`설명 버림 s${item.si + 1}: ${point.label}`);
+        continue;
       }
       if (row.labelFits !== true) {
         const set = dropByS.get(item.si) ?? new Set<number>();

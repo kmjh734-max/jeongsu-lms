@@ -197,6 +197,17 @@ function locate(sentence: string, raw: RawItem): MarkupSpan | null {
   );
 }
 
+/**
+ * 지침으로 막아도 되풀이되는 이름표 자리 실수(2026-10-22 지문 다섯 개 대조).
+ *  - 동격구·동격절을 콜론 뒤 설명에 단다(콜론 뒤는 앞 문장을 풀어 쓴 말이지 명사의 동격이 아니다)
+ *  - 문형 이름표(5형식 등)를 문장 전체에 단다(동사~보어 구간이어야 읽힌다)
+ */
+function misplacedNote(sentence: string, label: string, span: MarkupSpan): boolean {
+  if (/^동격/.test(label) && /:\s*$/.test(sentence.slice(0, span.start))) return true;
+  if (/^[1-5]형식$/.test(label) && span.end - span.start >= sentence.length * 0.8) return true;
+  return false;
+}
+
 /** 이미 받아들인 구간과 반쯤 걸치면 안 된다(괄호를 칠 수 없는 배치). */
 function fits(span: MarkupSpan, accepted: MarkupSpan[]): boolean {
   return !accepted.some((a) => spansCross(a, span));
@@ -210,7 +221,8 @@ export type MarkupDropReason =
   | "span-crossing"
   | "role-too-long"
   | "too-many"
-  | "empty-text";
+  | "empty-text"
+  | "label-misplaced";
 
 export type MarkupBuildReport = {
   kept: number;
@@ -377,6 +389,10 @@ export function buildVerifiedMarkup(
     const span = locate(text, row);
     if (!span) {
       drop("note", "span-not-found", row.text);
+      continue;
+    }
+    if (misplacedNote(text, label, span)) {
+      drop("note", "label-misplaced", label);
       continue;
     }
     if (
