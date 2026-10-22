@@ -31,6 +31,13 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
    - M(수식어)·A(필수 부사어)는 꼭 짚어야 할 때만. 전명구마다 M을 달지 않는다.
    - 겹쳐 달지 않는다: M을 단 구간 안의 낱말에 다시 S·V·O·C를 달지 않고, 같은 낱말에 성분을 두 번 달지 않는다.
    - 구동사의 부사(jump out의 out)는 V에 함께 넣는다. A로 따로 달지 않는다.
+   - 5형식의 목적격보어 자리에 온 to부정사·원형부정사·분사는 V가 아니라 C로 단다(선생님 지적).
+     (allows hanji to maintain → C[to maintain], make you feel → C[feel], has its fibers lined up → C[lined up],
+      Imagine two frogs being kidnapped and taken → C[being kidnapped]·C[taken])
+   - 명사를 뒤에서 꾸미는 과거분사(systems found in ~, people called jeonin, helmets equipped with ~)에는 V를 달지 않는다.
+     V는 문장·절의 술어 동사에만 단다. 꾸밈은 notes(축약 관계절·분사 명사 수식)로 이름만 얹는다.
+   - 수동태·완료·조동사가 붙은 술어는 be·have·조동사부터 한 구간이 V다(was found, can be used, will be recognized).
+     과거분사 한 낱말에만 V를 달지 않는다.
 2) brackets  구간 괄호. 세 가지만 쓴다.
    - "adverbial" [ ] 부사절
    - "nominal" < > 명사절·명사구·간접의문문(주어절·목적어절·보어절)
