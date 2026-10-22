@@ -99,6 +99,10 @@ export type AnalysisSentence = {
    * 검증을 통과한 것만 들어 있고, 못 만든 문장은 비어 있다.
    */
   markup?: AnalysisSentenceMarkup;
+  /** 선생님이 분석지에서 직접 고친 문장. 지문 전체 다시 만들기에서도 그대로 둔다. */
+  teacherEdited?: boolean;
+  /** 처음 고치기 전의 표시(「원래대로」로 되돌릴 때 쓴다) */
+  originalMarkup?: AnalysisSentenceMarkup;
 };
 
 /**

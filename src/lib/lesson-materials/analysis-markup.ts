@@ -26,6 +26,8 @@ export type MarkupRoleMark = {
   span: MarkupSpan;
   role: MarkupRoleCode;
   level: MarkupRoleLevel;
+  /** 선생님이 직접 고친 표시. 코드 검사(analysis-markup-roles.ts)가 손대지 않는다. */
+  edited?: boolean;
 };
 
 /**
@@ -45,6 +47,8 @@ export type MarkupSpanNote = {
   label: string;
   /** 이름표 뒤에 붙는 짧은 뜻풀이. 예: "'~해서 …한'" */
   gloss?: string;
+  /** 선생님이 직접 고친 이름표 */
+  edited?: boolean;
 };
 
 /** 동그라미 번호를 붙여 아래에서 설명하는 자리. */
@@ -59,6 +63,8 @@ export type MarkupNumberedPoint = {
   explanation: string;
   /** 바꿔 쓴 형태. 예: "→ [도치 이전 문장] You should show it to ~" */
   rewrite?: string;
+  /** 선생님이 직접 고친 설명 */
+  edited?: boolean;
 };
 
 /** 점선 상자로 뽑아 주는 규칙(문형 전환·관용 표현 등). */
@@ -131,6 +137,8 @@ export type AnalysisSentenceMarkup = {
   callouts: MarkupCallout[];
   /** 문장 해석(한 줄). */
   translation: string;
+  /** 선생님이 해석을 직접 고쳤다 */
+  translationEdited?: boolean;
   tags: MarkupSentenceTag[];
   /**
    * 꼬리표가 가리키는 자리. 빈칸 추론·함축 의미·어휘 추론처럼 문장의 한 부분을 두고 붙는
@@ -385,7 +393,8 @@ function sameSpan(a: MarkupSpan, b: MarkupSpan): boolean {
 
 export type MarkupDecoration = {
   bracket?: MarkupBracketKind;
-  role?: { code: MarkupRoleCode; level: MarkupRoleLevel };
+  /** idx: markup.roles 안의 자리(분석지에서 눌러 고칠 때 쓴다) */
+  role?: { code: MarkupRoleCode; level: MarkupRoleLevel; idx: number; edited?: boolean };
 };
 
 /**
@@ -430,9 +439,9 @@ export function buildMarkupTree(markup: AnalysisSentenceMarkup): MarkupNode[] {
   };
 
   for (const b of markup.brackets) upsert(b.span).bracket = b.kind;
-  for (const r of markup.roles) {
-    upsert(r.span).role = { code: r.role, level: r.level };
-  }
+  markup.roles.forEach((r, idx) => {
+    upsert(r.span).role = { code: r.role, level: r.level, idx, edited: r.edited };
+  });
 
   // 넓은 것이 먼저, 같으면 앞선 것이 먼저.
   entries.sort((a, b) => {
@@ -552,6 +561,7 @@ export function readAnalysisMarkup(
       span,
       role: code as MarkupRoleCode,
       level: level as MarkupRoleLevel,
+      ...(row.edited === true ? { edited: true } : {}),
     });
   }
 
@@ -572,7 +582,7 @@ export function readAnalysisMarkup(
     const label = canonicalMarkupLabel(row.label);
     if (!span || !label) continue;
     const gloss = String(row.gloss ?? "").trim();
-    notes.push({ span, label, gloss: gloss || undefined });
+    notes.push({ span, label, gloss: gloss || undefined, ...(row.edited === true ? { edited: true } : {}) });
   }
 
   const points: MarkupNumberedPoint[] = [];
@@ -590,6 +600,7 @@ export function readAnalysisMarkup(
       star: row.star === true,
       explanation,
       rewrite: rewrite || undefined,
+      ...(row.edited === true ? { edited: true } : {}),
     });
   }
 
@@ -649,6 +660,7 @@ export function readAnalysisMarkup(
     tagSpans,
     chunks,
     translation,
+    ...(o.translationEdited === true ? { translationEdited: true } : {}),
     tags,
   };
   return hasAnyMarkup(markup) ? markup : null;

@@ -19,6 +19,7 @@ import { Alert } from "@/components/ui/Alert";
 import {
   generateAndSaveAnalysisReportAction,
   regenerateAnalysisSentenceAction,
+  reportAnalysisErrorAction,
   saveAnalysisReportAction,
 } from "@/lib/lesson-materials/analysis-report-actions";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
@@ -38,6 +39,12 @@ import {
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 import { AnalysisMarkupSentence } from "@/components/lesson-materials/AnalysisMarkupSentence";
 import { readAnalysisMarkup } from "@/lib/lesson-materials/analysis-markup";
+import { applyMarkupEdit, plainSentenceText, type MarkupEdit } from "@/lib/lesson-materials/analysis-markup-edit";
+import {
+  AnalysisErrorReportDialog,
+  AnalysisMarkupEditPopover,
+  type MarkupEditTarget,
+} from "@/components/lesson-materials/AnalysisMarkupEditPopover";
 import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
 import "./material-design.css";
 import { MaterialDesignPicker } from "@/components/lesson-materials/MaterialDesignPicker";
@@ -433,7 +440,15 @@ export function AnalysisReportWorkbench({
   /** PDF로 바로 저장(인쇄 창 없이) — 인쇄처럼 모든 지문의 분석서를 담는다 */
   const pdf = usePdfSave();
   // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다
-  usePdfPrefetch("analysis-report-print-root", ".analysis-report-a4-sheet");
+  /*
+   * 분석지 직접 고치기(선생님 2026-10-22 시안 승인). 켜면 성분·이름표·해석·번호 설명을 눌러 고친다.
+   * 켜 둔 동안에는 PDF를 미리 만들지 않는다(고치기 표시가 PDF에 찍히지 않게).
+   */
+  const [editMode, setEditMode] = useState(false);
+  const [editTarget, setEditTarget] = useState<MarkupEditTarget | null>(null);
+  const [reportFor, setReportFor] = useState<number | null>(null);
+  const [editNotice, setEditNotice] = useState<string | null>(null);
+  usePdfPrefetch("analysis-report-print-root", ".analysis-report-a4-sheet", { enabled: !editMode });
   /*
    * 해석 방식. 선생님 요청: 전체 해석과 직독직해 중 고를 수 있게. 고른 값은 이 브라우저에 기억한다.
    * 직독직해 조각이 없는 예전 분석서는 전체 해석으로 나간다.
@@ -558,6 +573,49 @@ export function AnalysisReportWorkbench({
 
   const project = projects[active];
   const report = project?.report;
+  const editedCount = report?.sentences?.filter((s) => s.teacherEdited).length ?? 0;
+
+  function onSheetClick(e: React.MouseEvent<HTMLDivElement>) {
+    if (!editMode || embedded || !report) return;
+    const el = (e.target as HTMLElement).closest<HTMLElement>("[data-edit]");
+    if (!el) return;
+    const blk = el.closest<HTMLElement>("[data-analysis-block]");
+    const s = Number(blk?.dataset.analysisBlock?.replace(/^s-/, ""));
+    if (!Number.isFinite(s) || !report.sentences[s]) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const r = el.getBoundingClientRect();
+    setEditTarget({
+      kind: el.dataset.edit as MarkupEditTarget["kind"],
+      s,
+      i: Number(el.dataset.i ?? -1),
+      x: r.left,
+      y: r.bottom,
+    });
+  }
+
+  async function applyEdit(s: number, edit: MarkupEdit) {
+    if (!project?.report) return;
+    const cur = project.report.sentences[s];
+    const next = cur ? applyMarkupEdit(cur, edit) : null;
+    setEditTarget(null);
+    if (!next) {
+      setEditNotice("이 자리는 고칠 수 없습니다.");
+      return;
+    }
+    const nextReport: AnalysisReportData = {
+      ...project.report,
+      headerLabel,
+      sentences: project.report.sentences.map((x, k) => (k === s ? next : x)),
+    };
+    setProjects((prev) => prev.map((row, idx) => (idx === active ? { ...row, report: nextReport } : row)));
+    setEditNotice("저장하는 중…");
+    const res = await saveAnalysisReportAction(role, { projectId: project.id, report: nextReport }).catch(() => ({
+      ok: false as const,
+      message: "저장하지 못했습니다. 잠시 뒤 다시 고쳐 주세요.",
+    }));
+    setEditNotice(res.ok ? (edit.kind === "reset" ? `${s + 1}번 문장을 원래대로 되돌렸습니다` : `${s + 1}번 문장을 고쳐 저장했습니다`) : res.message);
+  }
 
   useEffect(() => {
     const id = "analysis-report-print-page-size-style";
@@ -1169,6 +1227,33 @@ export function AnalysisReportWorkbench({
         </div>
 
         <div className="space-y-2 border-t border-slate-100 p-4">
+          {!embedded && report?.sentences?.length ? (
+            <div className="space-y-1.5 rounded-lg border border-slate-200 p-2">
+              <p className="text-[11px] font-bold text-slate-500">직접 고치기</p>
+              <Button
+                type="button"
+                size="sm"
+                variant={editMode ? "primary" : "secondary"}
+                className="w-full"
+                disabled={generating}
+                onClick={() => {
+                  setEditMode((v) => !v);
+                  setEditTarget(null);
+                }}
+              >
+                {editMode ? "다 고쳤어요" : "분석지 고치기"}
+              </Button>
+              <p className="text-[11px] leading-snug text-slate-400">
+                {editMode
+                  ? "분석지에서 성분·이름표·해석·번호 설명을 누르면 고칠 수 있습니다. 문장 번호를 누르면 오류 신고·원래대로가 있습니다. 고친 문장은 지문 전체를 다시 만들어도 그대로 둡니다."
+                  : "틀린 곳을 직접 고치거나 오류를 알려 주세요(크레딧 없음)."}
+              </p>
+              {editedCount ? (
+                <p className="text-[11px] font-semibold text-amber-700">선생님이 고친 문장 {editedCount}개</p>
+              ) : null}
+              {editNotice ? <p className="text-[11px] font-semibold text-slate-600">{editNotice}</p> : null}
+            </div>
+          ) : null}
           <Button
             type="button"
             size="sm"
@@ -1236,13 +1321,19 @@ export function AnalysisReportWorkbench({
             variant="secondary"
             className="w-full"
             disabled={generating || !!pdf.busy}
-            onClick={() =>
+            onClick={async () => {
+              // 고치기 표시가 PDF에 찍히지 않게 먼저 끈다
+              if (editMode) {
+                setEditMode(false);
+                setEditTarget(null);
+                await new Promise((r) => setTimeout(r, 80));
+              }
               void pdf.save(
                 "분석서",
                 collectPrintPages(document.getElementById("analysis-report-print-root"), ".analysis-report-a4-sheet"),
                 [projects.length > 1 ? `${projects[0]?.title ?? ""} 외 ${projects.length - 1}개` : projects[0]?.title]
-              )
-            }
+              );
+            }}
           >
             PDF로 저장
           </Button>
@@ -1288,8 +1379,9 @@ export function AnalysisReportWorkbench({
           <div
             ref={scaled.ref}
             id="analysis-report-print-root"
-            className={`flex origin-top flex-col gap-6 print:gap-0 print:!transform-none ${designClass(designStyle)} ${materialDesignClass(md)}`}
+            className={`flex origin-top flex-col gap-6 print:gap-0 print:!transform-none ${designClass(designStyle)} ${materialDesignClass(md)}${editMode ? " ar-edit-mode" : ""}`}
             style={previewStyle}
+            onClickCapture={onSheetClick}
           >
             {sheetPages}
           </div>
@@ -1297,6 +1389,39 @@ export function AnalysisReportWorkbench({
         </div>
 
         {measureTree}
+        {editTarget && report?.sentences[editTarget.s] ? (
+          <AnalysisMarkupEditPopover
+            key={`${editTarget.s}-${editTarget.kind}-${editTarget.i}`}
+            target={editTarget}
+            sentence={report.sentences[editTarget.s]!}
+            onApply={(edit) => void applyEdit(editTarget.s, edit)}
+            onReport={() => {
+              setReportFor(editTarget.s);
+              setEditTarget(null);
+            }}
+            onClose={() => setEditTarget(null)}
+          />
+        ) : null}
+        {reportFor !== null && project && report?.sentences[reportFor] ? (
+          <AnalysisErrorReportDialog
+            sentenceNo={reportFor + 1}
+            sentenceText={plainSentenceText(report.sentences[reportFor]!)}
+            onClose={() => setReportFor(null)}
+            onSend={async (categories, memo) => {
+              const res = await reportAnalysisErrorAction(role, {
+                projectId: project.id,
+                sentenceIndex: reportFor,
+                itemId: report.sentences[reportFor]!.itemId,
+                sentenceText: plainSentenceText(report.sentences[reportFor]!),
+                categories,
+                memo,
+              }).catch(() => ({ ok: false as const, message: "신고를 보내지 못했습니다. 잠시 뒤 다시 눌러 주세요." }));
+              if (!res.ok) return res.message;
+              setEditNotice(`${reportFor + 1}번 문장 오류 신고를 보냈습니다. 확인하고 고쳐 드리겠습니다.`);
+              return null;
+            }}
+          />
+        ) : null}
       </main>
     </div>
   );

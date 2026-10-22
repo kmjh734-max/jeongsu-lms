@@ -91,6 +91,15 @@ export function normalizeMarkupRoles(
   roles: MarkupRoleMark[],
   brackets: MarkupBracket[] = []
 ): MarkupRoleMark[] {
+  // 선생님이 고친 성분은 그대로 두고, 그 자리와 겹치는 나머지만 규칙대로 맞춘다
+  const fixed = roles.filter((r) => r.edited);
+  if (fixed.length > 0) {
+    const rest = normalizeMarkupRoles(text, roles.filter((r) => !r.edited), brackets);
+    const clash = (a: MarkupRoleMark) => fixed.some((f) => f.span.start === a.span.start && f.span.end === a.span.end);
+    return [...rest.filter((r) => !clash(r)), ...fixed.map((r) => ({ ...r, span: { ...r.span } }))].sort(
+      (a, b) => a.span.start - b.span.start
+    );
+  }
   const toks = tokens(text);
   const tokBefore = (pos: number): Tok | undefined => {
     let hit: Tok | undefined;

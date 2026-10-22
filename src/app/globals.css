@@ -4822,3 +4822,26 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .gb-why-text span {
   color: #374151;
 }
+
+/* 분석지 직접 고치기(선생님 2026-10-22 시안 승인) — 화면에서만, 「분석지 고치기」를 켰을 때만 보인다 */
+@media screen {
+  .ar-edit-mode [data-edit] {
+    cursor: pointer;
+    border-radius: 2px;
+    outline: 1px dashed #8fb0dc;
+    outline-offset: 1px;
+  }
+  .ar-edit-mode [data-edit]:hover {
+    background: #e4ecf7;
+  }
+  .ar-edit-mode .ar-note[data-edit] {
+    outline-color: #e597bb;
+  }
+  .ar-edit-mode .ar-no[data-edit]:hover {
+    background: #1b4a85;
+  }
+  .ar-edit-mode .ar-edited {
+    background: #fff1df;
+    outline: 1px solid #e3a25a;
+  }
+}

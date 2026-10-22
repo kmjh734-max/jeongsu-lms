@@ -9,6 +9,7 @@ import { flushAiUsage, withAiUsage } from "@/lib/ai-usage/context";
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import {
   ANALYSIS_REPORT_FORMAT_VERSION,
@@ -128,8 +129,18 @@ export async function generateAndSaveAnalysisReportAction(
         })
     );
     await flushAiUsage();
+    /*
+     * 선생님이 분석지에서 직접 고친 문장은 지문 전체를 다시 만들어도 그대로 둔다(선생님 2026-10-22).
+     * 원문이 바뀐 문장은 새로 만든 것을 쓴다.
+     */
+    const plain = (s: { enChunks: Array<{ text: string }> }) => s.enChunks.map((c) => c.text).join(" ").replace(/\s+/g, " ").trim();
+    const kept = new Map((prev.sentences ?? []).filter((s) => s.teacherEdited).map((s) => [s.itemId, s] as const));
     const report: AnalysisReportData = {
       ...generated,
+      sentences: generated.sentences.map((s) => {
+        const old = kept.get(s.itemId);
+        return old && plain(old) === plain(s) ? old : s;
+      }),
       sourceHash,
       formatVersion: ANALYSIS_REPORT_FORMAT_VERSION,
     };
@@ -247,6 +258,9 @@ export async function regenerateAnalysisSentenceAction(
       i === index
         ? {
             ...s,
+            // 문장 하나 다시 만들기는 선생님이 고친 것까지 새로 만든다(직접 누른 것이므로)
+            teacherEdited: undefined,
+            originalMarkup: undefined,
             markup: built.markup,
             contextNote: built.contextNote?.trim() || s.contextNote,
             easyUnderstanding: built.contextNote?.trim() || s.easyUnderstanding,
@@ -318,5 +332,57 @@ export async function saveAnalysisReportAction(
 
   revalidatePath(`/${role}/lesson-materials`);
   revalidatePath(`/${role}/lesson-materials/analysis-report`);
+  return { ok: true };
+}
+
+/**
+ * 분석지 문장 「오류 신고」(선생님 2026-10-22 시안 승인). 값은 받지 않는다. 세션 시작 점검이 안 본 신고를 띄우고,
+ * 확인한 것은 그 분석지를 고치고 코드 검사·채점 문장에 넣는다.
+ */
+export async function reportAnalysisErrorAction(
+  role: Role,
+  input: {
+    projectId: string;
+    sentenceIndex: number;
+    itemId?: string;
+    sentenceText: string;
+    categories: string[];
+    memo: string;
+  }
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+  const projectId = input.projectId?.trim();
+  if (!projectId) return { ok: false, message: "프로젝트 ID가 없습니다." };
+  const categories = (input.categories ?? []).map((c) => String(c).slice(0, 20)).slice(0, 6);
+  const memo = String(input.memo ?? "").trim().slice(0, 1000);
+  if (!categories.length && !memo) return { ok: false, message: "틀린 곳을 고르거나 한 줄 적어 주세요." };
+
+  const supabase = await createClient();
+  let pq = supabase
+    .from("lesson_material_projects")
+    .select("id")
+    .eq("id", projectId)
+    .eq("academy_id", profile!.academy_id!)
+    .is("deleted_at", null);
+  if (role === "teacher") {
+    pq = pq.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+  }
+  const { data: project } = await pq.maybeSingle();
+  if (!project) return { ok: false, message: "프로젝트를 찾을 수 없습니다." };
+
+  const { error: iErr } = await createAdminClient()
+    .from("analysis_error_reports")
+    .insert({
+      academy_id: profile!.academy_id!,
+      project_id: projectId,
+      item_id: input.itemId ?? null,
+      sentence_index: Math.max(0, Math.floor(Number(input.sentenceIndex) || 0)),
+      sentence_text: String(input.sentenceText ?? "").slice(0, 2000),
+      categories,
+      memo,
+      reporter_id: profile!.id,
+    });
+  if (iErr) return { ok: false, message: "신고를 보내지 못했습니다. 잠시 뒤 다시 눌러 주세요." };
   return { ok: true };
 }

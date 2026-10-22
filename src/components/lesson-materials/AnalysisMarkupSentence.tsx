@@ -177,6 +177,9 @@ function renderMarked(text: string, at: number, marks: Mark[]): ReactNode {
   return <>{out}</>;
 }
 
+/** 이름표가 markup.notes 안에서 몇 번째인지(분석지에서 눌러 고칠 때 data-i로 찍는다) */
+const NOTE_INDEX = new WeakMap<object, number>();
+
 function renderNodes(
   nodes: MarkupNode[],
   marks: Mark[],
@@ -194,7 +197,11 @@ function renderNodes(
         <Fragment key={i}>
           {node.notes.map((n, ni) => (
             <span key={`n${ni}`} className="ar-note-anchor">
-              <span className="ar-note">
+              <span
+                className={`ar-note${n.edited ? " ar-edited" : ""}`}
+                data-edit="note"
+                data-i={NOTE_INDEX.get(n)}
+              >
                 {n.label}
                 {n.gloss ? <span className="ar-note-gloss"> {n.gloss}</span> : null}
               </span>
@@ -236,7 +243,11 @@ function renderNodes(
     const body = deco.role ? (
       <span className="ar-role-wrap">
         <span className="ar-role-text">{inner}</span>
-        <span className={`ar-role-tag ar-role-tag--l${deco.role.level}`}>
+        <span
+          className={`ar-role-tag ar-role-tag--l${deco.role.level}${deco.role.edited ? " ar-edited" : ""}`}
+          data-edit="role"
+          data-i={deco.role.idx}
+        >
           {deco.role.code}
           {LEVEL_SUP[deco.role.level as MarkupRoleLevel]}
         </span>
@@ -563,6 +574,7 @@ export function AnalysisMarkupSentence({
   /** 문장 번호(0부터). 화면에는 1부터 찍는다. */
   index: number;
 }) {
+  markup.notes.forEach((n, i) => NOTE_INDEX.set(n, i));
   const tree = buildMarkupTree(markup);
   const glosses = translationMode === "chunk" ? chunkGlosses(markup) : null;
   const sentenceRef = useRef<HTMLParagraphElement>(null);
@@ -631,7 +643,7 @@ export function AnalysisMarkupSentence({
         ) : null}
 
         <p className={`ar-sentence${glosses ? " ar-sentence--chunk" : ""}`} ref={sentenceRef}>
-          <span className="ar-no">{String(index + 1).padStart(2, "0")}</span>
+          <span className="ar-no" data-edit="sentence">{String(index + 1).padStart(2, "0")}</span>
           {renderNodes(tree, marks, glosses)}
         </p>
 
@@ -652,7 +664,9 @@ export function AnalysisMarkupSentence({
       {glosses ? null : markup.translation ? (
         <p className="ar-trans">
           <span className="ar-trans-key">해석</span>
-          {markup.translation}
+          <span data-edit="trans" className={markup.translationEdited ? "ar-edited" : undefined}>
+            {markup.translation}
+          </span>
         </p>
       ) : null}
       </div>
@@ -671,7 +685,13 @@ export function AnalysisMarkupSentence({
                 {/* 설명 머리의 ★는 실물 분석지처럼 번호마다 붙인다(문장 안 ★는 중요한 자리에만). */}
                 <span className="ar-star">★</span>
                 <span className="ar-point-label">{p.label}</span>
-                <span className="ar-point-text">{p.explanation}</span>
+                <span
+                  className={`ar-point-text${p.edited ? " ar-edited" : ""}`}
+                  data-edit="point"
+                  data-i={markup.points.indexOf(p)}
+                >
+                  {p.explanation}
+                </span>
                 {p.rewrite ? (
                   <span className="ar-point-rewrite">{p.rewrite}</span>
                 ) : null}
