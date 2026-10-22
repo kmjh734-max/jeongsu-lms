@@ -232,7 +232,7 @@ export async function regenerateAnalysisSentenceAction(
         // 지문 전체 만들기와 같은 검수(번호 설명·해석)를 거친다. 검수가 실패하면 만든 것을 그대로 쓴다.
         let markup = one.markup;
         try {
-          const verified = await verifyAnalysisMarkups({ apiKey, markups: [markup], signal });
+          const verified = await verifyAnalysisMarkups({ apiKey, markups: [markup], references: [line.korean_text], signal });
           markup = verified.markups[0] ?? markup;
         } catch {
           /* 넘어간다 */

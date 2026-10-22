@@ -17,6 +17,9 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
    - level 0 = 주절 성분, level 1 = 종속절·준동사구 안의 성분(S¹·V¹), level 2 = 그 안의 절.
      level은 절이 몇 겹 안에 있는지로만 정한다. 같은 절 안의 성분(그 절의 S·V·O)은 모두 같은 level이다.
      (where절이 level 1이면 그 안의 S¹·V¹도 1, 그 where절 안에 또 절이 있을 때만 2)
+     종속절·관계사절 안에서도 S와 V를 빠뜨리지 않는다(where the amount ~ is balanced → the amount에 S¹).
+     절·구 안에 또 들어 있는 관계사절은 한 겹 더 깊다. 깊이가 2를 넘으면(because절 안 ignoring구 안의
+     that happen gradually) 그 관계사절에는 성분을 달지 않고 notes 이름만 얹는다.
    - 주절의 S와 V는 반드시 넣는다. O·C는 있을 때만.
    - 조동사와 본동사가 붙어 있으면 V는 조동사부터 본동사까지 한 구간에 단다.
      (can detect · may not sound · could exacerbate · should not become · has been developed 전체가 V)
@@ -41,10 +44,22 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
      to부정사가 「~할」이면 형용사적 용법, 「~하기 위해」면 부사적 용법(목적)이다.
    - "등위절" 이름표는 접속사(and·but·or·so) 한 낱말이 아니라 접속사부터 그 절 끝까지의 구간에 단다.
    - "동격구"·"동격절"은 앞 명사를 같은 뜻으로 다시 풀어 쓴 자리에만. 콜론 뒤 설명이나 동명사구 주어에 쓰지 않는다.
+   - "등위절"은 접속사 뒤에 주어가 따로 있을 때만(~, and it jumps out). 주어 없이 동사만 이어지면
+     "동사 병렬"이다(puts ~ and slowly turns up ~).
+   - "삽입구"·"삽입절"은 문장 중간에 쉼표 둘로 끼워 넣어 빼도 문장이 되는 자리(however, I think)에만.
+     문장 끝에서 앞 명사를 꾸미는 such as ~, including ~ 같은 예시 구는 삽입구가 아니다 — 이름표를 달지 않는다.
+   - 문형 이름표(5형식 등)는 문장 전체가 아니라 동사부터 보어까지의 구간에 단다.
+   - 이름표를 먼저 정하고 설명을 끼워 맞추지 않는다. 그 자리에 맞는 이름표가 없으면 그 항목을 뺀다.
+     (rise·happen·fall처럼 수동태가 없는 자동사의 분사에 "분사 능동·수동"을 달지 않는다 — rising/risen은
+     능동·수동이 아니라 진행·완료의 차이다)
 4) points  동그라미 번호를 붙여 아래에서 설명할 자리. 문장당 1~3개(설명할 것이 없으면 0개).
    - label 도 "쓸 수 있는 이름표"에서만.
    - star 는 그 문장에서 가장 중요한 한 자리에만 true. 없으면 전부 false.
    - explanation 은 한국어 2~4문장. 규칙 이름을 말하고, 왜 이 형태인지, 이 문장에서 무엇이 근거인지 적는다.
+     근거는 학교 문법 그대로 적는다. 부분 표현(much/most/some/half/part of + 명사)의 수는 of 뒤 명사에 맞춘다.
+     해설 속 뜻풀이도 해석과 같아야 한다(cannot simply A and B = 'A하고 B할 수는 없다', 'A도 B도 못 한다'가 아니다).
+   - 학생이 시험에서 틀리는 자리를 먼저 고른다: 전치사 to + 명사/동명사(be accustomed to, be prone to,
+     contribute to), 동사+to부정사/동명사(fail to, keep -ing), 수일치, 병렬.
    - rewrite 는 바꿔 쓴 형태(선택). 예: "→ [도치 이전 문장] You should show it to someone else only when ~",
      "→ = ~ you've done the best that you can (do) for your story".
 5) callouts  점선 상자로 뽑는 규칙. 문장당 0~1개. 문형 전환·관용 표현처럼 규칙 자체를 보여 줄 때만.
@@ -52,6 +67,9 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
    - body 1~2문장. 단서·예외를 적는다(예: "직접목적어가 it이나 them이면 4형식으로 바꿀 수 없다").
 6) translation  이 문장의 한국어 해석 한 줄. 자연스러운 한국어로, 빠뜨리는 말 없이.
    - '~다'로 끝나는 평서형으로 쓴다. '~합니다/~하세요/~해요'는 쓰지 않는다(명령문도 '~하라/~해 보라'로).
+   - 명령문(Imagine ~, Think about ~)은 반드시 '~해 보라/~하라'로 끝낸다. '상상하다/상상해 본다'는 틀린 해석이다.
+     notes 의 gloss 도 마찬가지다.
+   - korean_hint 가 있으면 그 해석을 바탕으로 하고, 틀린 데만 고친다.
 6-1) chunks  직독직해. 문장을 앞에서부터 의미 덩어리로 끊고, 덩어리마다 그 뜻을 영어 어순 그대로 한국어로 적는다.
    - en: 원문을 앞에서부터 빠짐없이, 글자 그대로 잘라 낸 조각(2~7 words). 조각을 차례로 이으면 원문과 똑같아야 한다.
    - 끊는 자리: 주어 덩어리 / 동사(+목적어) / 전치사구 / 접속사·관계사로 시작하는 절 / to부정사·분사구.

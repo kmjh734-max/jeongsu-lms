@@ -36,10 +36,21 @@ Answer for each item:
 Judge grammar only, not style. Never mention this sheet, tools, or how the text was produced. Return only JSON.`;
 
 const TRANSLATION_PROMPT = `You check Korean translations printed under English sentences on a Korean school English analysis sheet.
-For each item you get an English sentence and its Korean rendering (ko).
-Set ok=false when the Korean says something the English does not say, drops the main clause, has the wrong subject, tense or negation, mistranslates a key word, reads unnatural in Korean, or uses honorific/polite endings (-습니다, -해요, -하세요) instead of the plain -다 ending a printed sheet uses (an imperative becomes -하라 / -해 보라).
-When ok is false, write "fixed": a faithful, natural Korean rendering of the same English, same length and register, ending in -다 or a plain sentence ending. Otherwise "fixed" is "".
+For each item you get an English sentence, its Korean rendering (ko), and sometimes the teacher's own translation (reference, may be "").
+When ko says the same thing as reference, it is ok — do not reword it.
+Set ok=false when the Korean says something the English does not say, drops the main clause, has the wrong subject, tense or negation, mistranslates a key word, reads unnatural in Korean, or uses honorific/polite endings (-습니다, -해요, -하세요) instead of the plain -다 ending a printed sheet uses.
+An English imperative (Imagine ~, Think about ~) must stay an imperative in Korean: -하라 / -해 보라 is correct. Never turn it into -한다 / -해 본다 / -하다.
+When ok is false, write "fixed": a faithful, natural Korean rendering of the same English, same length and register, ending in -다 (or -하라 / -해 보라 for an imperative). Otherwise "fixed" is "".
 Return only JSON.`;
+
+const NOTE_PROMPT = `You check the short Korean grammar names printed above parts of English sentences on a Korean school English analysis sheet.
+For each item you get: sentence, span (the marked part), labelKo (the grammar name), glossKo (a short Korean meaning, may be "").
+- labelFits: true only if labelKo correctly names what the span is in this sentence, by Korean school grammar. False examples:
+  "등위절" on "and slowly turns up the heat" (no subject after and: that is 동사 병렬, not a clause);
+  "삽입구" on a phrase at the end of a sentence that modifies the noun before it (such as coal, oil, and gas);
+  a clause-type name on a span that is not that clause; a sentence-pattern name (5형식) on a sentence whose verb does not take that pattern.
+- glossTrue: true when glossKo is "" or is a correct short meaning of the span in this sentence (an imperative stays -하라 / -해 보라).
+Judge grammar only, not style. Return only JSON.`;
 
 const str = { type: "string" } as const;
 const bool = { type: "boolean" } as const;
@@ -89,6 +100,28 @@ const TRANSLATION_SCHEMA = {
     },
   },
 } as const;
+
+const NOTE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["results"],
+  properties: {
+    results: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["id", "labelFits", "glossTrue"],
+        properties: { id: str, labelFits: bool, glossTrue: bool },
+      },
+    },
+  },
+} as const;
+
+/** 명령문 해석인가(「~하라」「~해 보라」로 끝난다). 검수가 이것을 평서형으로 바꾸면 받지 않는다. */
+function isImperativeKo(ko: string): boolean {
+  return /(?<!이)라[.!]?$/.test(ko.trim());
+}
 
 type Called = { text: string; inputTokens: number; outputTokens: number };
 
@@ -204,6 +237,8 @@ export type MarkupVerifyResult = {
 export async function verifyAnalysisMarkups(input: {
   apiKey: string;
   markups: Array<AnalysisSentenceMarkup | null>;
+  /** 선생님이 넣은 해석(문장 순서대로). 있으면 해석 검수의 기준으로 준다. */
+  references?: Array<string | null | undefined>;
   signal: AbortSignal;
 }): Promise<MarkupVerifyResult> {
   const usage: MarkupUsage = { inputTokens: 0, outputTokens: 0, calls: 0 };
@@ -212,6 +247,7 @@ export async function verifyAnalysisMarkups(input: {
 
   type PointRef = { id: string; si: number; pi: number; ask: Record<string, unknown> };
   const pointItems: PointRef[] = [];
+  const noteItems: Array<{ id: string; si: number; ni: number; ask: Record<string, unknown> }> = [];
   const translationItems: Array<{
     id: string;
     si: number;
@@ -236,12 +272,32 @@ export async function verifyAnalysisMarkups(input: {
         },
       });
     });
+    m.notes.forEach((n, ni) => {
+      const id = `n-${si}-${ni}`;
+      noteItems.push({
+        id,
+        si,
+        ni,
+        ask: {
+          id,
+          sentence: m.text,
+          span: m.text.slice(n.span.start, n.span.end),
+          labelKo: n.label,
+          glossKo: n.gloss ?? "",
+        },
+      });
+    });
     if (m.translation) {
       const id = `t-${si}`;
       translationItems.push({
         id,
         si,
-        ask: { id, en: m.text, ko: m.translation },
+        ask: {
+          id,
+          en: m.text,
+          ko: m.translation,
+          reference: String(input.references?.[si] ?? "").replace(/\s+/g, " ").trim(),
+        },
       });
     }
   });
@@ -277,7 +333,7 @@ export async function verifyAnalysisMarkups(input: {
     return new Map(rows.map((row) => [clean(row.id), row] as const));
   };
 
-  const [pointRows, translationRows] = await Promise.all([
+  const [pointRows, translationRows, noteRows] = await Promise.all([
     gather(
       pointItems.map((it) => it.ask),
       POINT_PROMPT,
@@ -290,7 +346,36 @@ export async function verifyAnalysisMarkups(input: {
       "analysis_translations",
       TRANSLATION_SCHEMA as unknown as Record<string, unknown>
     ),
+    gather(
+      noteItems.map((it) => it.ask),
+      NOTE_PROMPT,
+      "analysis_notes",
+      NOTE_SCHEMA as unknown as Record<string, unknown>
+    ),
   ]);
+
+  // 이름표: 그 자리에 안 맞으면 뗀다(고쳐 쓰지 않는다 — 다른 이름을 지어 붙이면 또 틀린다).
+  if (noteRows.size > 0) {
+    const dropByS = new Map<number, Set<number>>();
+    for (const item of noteItems) {
+      const row = noteRows.get(item.id);
+      const note = markups[item.si]?.notes[item.ni];
+      if (!row || !note) continue;
+      if (row.labelFits !== true) {
+        const set = dropByS.get(item.si) ?? new Set<number>();
+        set.add(item.ni);
+        dropByS.set(item.si, set);
+        notes.push(`이름표 뗌 s${item.si + 1}: ${note.label}`);
+      } else if (note.gloss && row.glossTrue !== true) {
+        note.gloss = undefined;
+        notes.push(`뜻풀이 뗌 s${item.si + 1}: ${note.label}`);
+      }
+    }
+    for (const [si, drops] of dropByS) {
+      const m = markups[si];
+      if (m) m.notes = m.notes.filter((_, ni) => !drops.has(ni));
+    }
+  }
 
   // 번호 설명: 고칠 수 있으면 고치고, 아니면 버린다.
   if (pointRows.size > 0) {
@@ -351,6 +436,11 @@ export async function verifyAnalysisMarkups(input: {
     if (!m) continue;
     if (row.ok !== true) {
       const fixed = clean(row.fixed);
+      // 명령문 해석을 평서형으로 바꾸는 고침은 받지 않는다(「상상해 보라」→「상상해 본다」, 2026-10-22)
+      if (fixed && isImperativeKo(m.translation) && !isImperativeKo(fixed)) {
+        notes.push(`해석 고침 거절 s${item.si + 1}`);
+        continue;
+      }
       if (fixed) {
         m.translation = fixed;
         notes.push(`해석 고침 s${item.si + 1}`);

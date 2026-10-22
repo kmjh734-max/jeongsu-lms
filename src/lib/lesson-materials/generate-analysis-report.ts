@@ -838,6 +838,7 @@ export async function generateAnalysisReport(input: {
       const verified = await verifyAnalysisMarkups({
         apiKey,
         markups,
+        references: lines.map((l) => l.korean),
         signal: controller.signal,
       });
       markups = verified.markups;
