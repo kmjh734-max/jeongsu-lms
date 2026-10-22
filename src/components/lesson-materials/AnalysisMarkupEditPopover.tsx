@@ -6,13 +6,13 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  markupLabelVocabulary,
   readAnalysisMarkup,
   type MarkupRoleCode,
   type MarkupRoleLevel,
 } from "@/lib/lesson-materials/analysis-markup";
 import { plainSentenceText, type MarkupEdit } from "@/lib/lesson-materials/analysis-markup-edit";
 import type { AnalysisSentence } from "@/lib/lesson-materials/generate-analysis-report";
+import { ANALYSIS_LABEL_GUIDE } from "@/lib/lesson-materials/analysis-label-guide";
 
 export type MarkupEditTarget = {
   kind: "role" | "note" | "point" | "trans" | "sentence";
@@ -67,7 +67,11 @@ export function AnalysisMarkupEditPopover({
   const [text, setText] = useState(
     target.kind === "point" ? point?.explanation ?? "" : target.kind === "trans" ? shown?.translation ?? "" : ""
   );
-  const labels = useMemo(() => markupLabelVocabulary(), []);
+  // 이름표 규칙서 목록(지금 붙은 이름이 목록 밖이면 맨 위에)
+  const labels = useMemo(() => {
+    const guide = ANALYSIS_LABEL_GUIDE.map(([l]) => l);
+    return note?.label && !guide.includes(note.label) ? [note.label, ...guide] : guide;
+  }, [note?.label]);
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

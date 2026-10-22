@@ -5,9 +5,8 @@
  * 글자를 문장 안에서 찾아 좌표로 바꾼다(analysis-markup.ts). 그래서 지침에서 제일 세게 거는 것은
  * "원문 글자를 한 글자도 바꾸지 말 것"과 "이름표는 목록에 있는 것만 쓸 것" 둘이다.
  */
-import { markupLabelVocabulary, MARKUP_SENTENCE_TAGS } from "@/lib/lesson-materials/analysis-markup";
-
-const LABELS = markupLabelVocabulary().join(" · ");
+import { MARKUP_SENTENCE_TAGS } from "@/lib/lesson-materials/analysis-markup";
+import { ANALYSIS_LABEL_GUIDE_TEXT } from "@/lib/lesson-materials/analysis-label-guide";
 
 export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등학교 내신 영어 "지문분석지"를 만드는 교재 집필자이다.
 문장 하나를 받아, 학생이 그 문장 위에 바로 표시해 읽을 수 있게 분석한다.
@@ -130,8 +129,10 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
 - 같은 글자가 문장에 여러 번 나오면 occurrence 로 몇 번째인지 적는다(1부터). 한 번뿐이면 1.
 - 문장에 없는 글자를 적으면 코드가 그 항목을 버린다. 확실하지 않으면 그 항목을 빼라.
 
-# 쓸 수 있는 이름표 (이 목록 밖의 말은 쓰지 않는다)
-${LABELS}
+# 쓸 수 있는 이름표 — 이름: 쓰는 자리·규칙 요지 (이 목록 밖의 말은 쓰지 않는다)
+notes·points의 label은 아래 이름 그대로 쓴다. 그 자리가 「쓰는 자리」에 맞지 않으면 그 이름표를 쓰지 않는다.
+points의 explanation은 그 이름표의 규칙 요지와 같은 규칙을 이 문장의 낱말로 풀어 쓴다. 요지에 없는 규칙을 지어내지 않는다.
+${ANALYSIS_LABEL_GUIDE_TEXT}
 
 # 하지 말 것
 - 쉬운 것에 이름만 붙이기(단순 3인칭 단수, 일반 관사·전치사, 단순 과거시제).

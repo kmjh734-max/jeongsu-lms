@@ -203,6 +203,8 @@ function locate(sentence: string, raw: RawItem): MarkupSpan | null {
  *  - 동격구·동격절을 콜론 뒤 설명에 단다(콜론 뒤는 앞 문장을 풀어 쓴 말이지 명사의 동격이 아니다)
  *  - 문형 이름표(5형식 등)를 문장 전체에 단다(동사~보어 구간이어야 읽힌다)
  */
+const PROPORTION = /\b(increases?|rises?|grows?|(gets?|becomes?|grows?) \w+er|more|less|older|higher|lower|deeper)\b/i;
+
 function misplacedNote(sentence: string, label: string, span: MarkupSpan): boolean {
   if (/^동격/.test(label) && /:\s*$/.test(sentence.slice(0, span.start))) return true;
   if (/^[1-5]형식$/.test(label) && span.end - span.start >= sentence.length * 0.8) return true;
@@ -382,7 +384,7 @@ export function buildVerifiedMarkup(
       continue;
     }
     const row = n as RawItem & { label?: unknown; gloss?: unknown };
-    const label = canonicalMarkupLabel(row.label);
+    let label = canonicalMarkupLabel(row.label);
     if (!label) {
       drop("note", "label-unknown", row.label);
       continue;
@@ -391,6 +393,10 @@ export function buildVerifiedMarkup(
     if (!span) {
       drop("note", "span-not-found", row.text);
       continue;
+    }
+    // as + 비교·변화(as the water gets warmer)는 「~함에 따라」 — 비례 부사절(규칙서)
+    if (label === "시간 부사절" && /^as\s/i.test(text.slice(span.start, span.end)) && PROPORTION.test(text.slice(span.start, span.end))) {
+      label = "비례 부사절";
     }
     if (misplacedNote(text, label, span)) {
       drop("note", "label-misplaced", label);
