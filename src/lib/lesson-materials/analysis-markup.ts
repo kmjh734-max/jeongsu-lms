@@ -241,6 +241,10 @@ const LABEL_ALIASES: Record<string, string> = {
   "때 부사절": "시간 부사절",
   "as ... as": "as ... as 구문",
   "삽입": "삽입구",
+  "의문사절": "간접의문문",
+  "의문사 명사절": "간접의문문",
+  "5형식 목적격보어": "5형식",
+  "동명사 주어 수일치": "동명사 주어",
   "2형식 보어": "2형식",
   "there+be": "there be 수일치",
 };
@@ -662,13 +666,17 @@ export function readAnalysisMarkup(
 
   const translation = String(o.translation ?? "").trim();
   const chunks = verifiedChunks(text, o.chunks);
+  // 같은 자리에 같은 이름의 번호 설명이 있으면 이름표는 겹쳐 찍지 않는다(이름 묶기로 같아진 것 포함)
+  const notesKept = notes.filter((n) => !points.some((p) => p.span.start === n.span.start && p.label === n.label));
+  // 제목·구호 줄(짧고 마침표 없음)은 성분·이름표를 찍지 않는다(The First Period (2003~2009)에 2형식이 붙던 것)
+  const heading = isHeadingLine(text);
   const markup: AnalysisSentenceMarkup = {
     text,
     // 표기 규칙(준동사 V 없음·목적격보어 C·조동사부터 V)을 예전 저장본에도 그대로 적용한다
-    roles: raiseRoleLevels(text, normalizeMarkupRoles(text, roles, brackets), brackets, notes),
-    brackets,
-    notes,
-    points,
+    roles: heading ? [] : raiseRoleLevels(text, normalizeMarkupRoles(text, roles, brackets), brackets, notesKept),
+    brackets: heading ? [] : brackets,
+    notes: heading ? [] : notesKept,
+    points: heading ? [] : points,
     callouts,
     tagSpans,
     chunks,
@@ -677,6 +685,13 @@ export function readAnalysisMarkup(
     tags,
   };
   return hasAnyMarkup(markup) ? markup : null;
+}
+
+/** 제목·번호 줄처럼 문장이 아닌 줄: 여섯 낱말 이하이고 끝에 마침표·물음표·느낌표가 없다 */
+export function isHeadingLine(text: string): boolean {
+  const t = text.trim();
+  if (/[.?!]["”’)]*$/.test(t)) return false;
+  return t.split(/\s+/).filter(Boolean).length <= 6;
 }
 
 export function hasAnyMarkup(m: AnalysisSentenceMarkup | null | undefined): boolean {

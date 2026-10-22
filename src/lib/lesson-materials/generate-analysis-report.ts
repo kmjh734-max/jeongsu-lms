@@ -17,6 +17,7 @@ import {
 } from "@/lib/lesson-materials/cheonilmun-basic-taxonomy";
 import {
   hasAnyMarkup,
+  isHeadingLine,
   type AnalysisSentenceMarkup,
 } from "@/lib/lesson-materials/analysis-markup";
 import {
@@ -805,7 +806,7 @@ export async function generateAnalysisReport(input: {
       async (line, i) => {
         // 영어가 없는 줄(「이미지 속 텍스트는…」)·번호만 있는 줄(「4.」)은 분석하지 않는다
         const en = line.english.trim();
-        if (!/[A-Za-z]{2,}/.test(en) || /^[\d.\-–()[\]\s]+$/.test(en)) return null;
+        if (!/[A-Za-z]{2,}/.test(en) || /^[\d.\-–()[\]\s]+$/.test(en) || isHeadingLine(en)) return null;
         try {
           const built = await generateSentenceMarkup({
             apiKey,
