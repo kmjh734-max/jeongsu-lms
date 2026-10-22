@@ -43,6 +43,7 @@ import {
 } from "@/lib/lesson-materials/analysis-markup";
 import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 import { normalizeMarkupRoles } from "@/lib/lesson-materials/analysis-markup-roles";
+import { labelFitsSpan, raiseRoleLevels } from "@/lib/lesson-materials/analysis-markup-rules";
 
 export type MarkupUsage = { inputTokens: number; outputTokens: number; calls: number };
 
@@ -225,7 +226,8 @@ export type MarkupDropReason =
   | "role-too-long"
   | "too-many"
   | "empty-text"
-  | "label-misplaced";
+  | "label-misplaced"
+  | "label-shape";
 
 export type MarkupBuildReport = {
   kept: number;
@@ -354,6 +356,10 @@ export function buildVerifiedMarkup(
       drop("point", "span-not-found", row.text);
       continue;
     }
+    if (!labelFitsSpan(label, text.slice(span.start, span.end), text.slice(Math.max(0, span.start - 24), span.start))) {
+      drop("point", "label-shape", `${label}: ${text.slice(span.start, span.end)}`);
+      continue;
+    }
     // 번호는 구간을 감싸지 않고 시작 자리에만 찍으므로 다른 구간과 걸쳐도 된다.
     const rewrite = String(row.rewrite ?? "").replace(/\s+/g, " ").trim();
     points.push({
@@ -400,6 +406,10 @@ export function buildVerifiedMarkup(
     }
     if (misplacedNote(text, label, span)) {
       drop("note", "label-misplaced", label);
+      continue;
+    }
+    if (!labelFitsSpan(label, text.slice(span.start, span.end), text.slice(Math.max(0, span.start - 24), span.start))) {
+      drop("note", "label-shape", `${label}: ${text.slice(span.start, span.end)}`);
       continue;
     }
     if (
@@ -489,7 +499,7 @@ export function buildVerifiedMarkup(
   return {
     markup: {
       text,
-      roles: normalizeMarkupRoles(text, roles, brackets),
+      roles: raiseRoleLevels(text, normalizeMarkupRoles(text, roles, brackets), brackets, notes),
       brackets,
       notes,
       points,
@@ -555,5 +565,11 @@ export async function generateSentenceMarkup(input: {
   }
   const raw = parseJsonSafe(called.text);
   if (!raw) return null;
-  return buildVerifiedMarkup(input.sentence, raw);
+  const built = buildVerifiedMarkup(input.sentence, raw);
+  // 해석이 '~합니다/~해요'로 나왔고 선생님 해석이 평서형이면 선생님 해석을 쓴다
+  const hint = String(input.koreanHint ?? "").replace(/\s+/g, " ").trim();
+  if (/(습니다|세요|해요|예요|에요)[.!?]?$/.test(built.markup.translation) && hint && /다[.!?]?$/.test(hint)) {
+    built.markup.translation = hint;
+  }
+  return built;
 }

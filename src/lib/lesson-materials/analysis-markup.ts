@@ -12,6 +12,7 @@
  */
 import { GRAMMAR_ONTOLOGY } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
 import { normalizeMarkupRoles } from "@/lib/lesson-materials/analysis-markup-roles";
+import { labelFitsSpan, raiseRoleLevels } from "@/lib/lesson-materials/analysis-markup-rules";
 
 /** 문장 안 글자 범위. start는 포함, end는 제외. */
 export type MarkupSpan = { start: number; end: number };
@@ -109,6 +110,8 @@ export function verifiedChunks(text: string, raw: unknown): MarkupChunk[] | unde
     const en = String(row?.en ?? "").replace(/\s+/g, " ").trim();
     const ko = String(row?.ko ?? "").replace(/\s+/g, " ").trim();
     if (!en) continue;
+    // 뜻이 빈 조각이 하나라도 있으면 직독직해를 싣지 않는다(빈칸으로 찍히던 것)
+    if (!ko) return undefined;
     chunks.push({ en, ko });
   }
   if (chunks.length < 2) return undefined;
@@ -589,6 +592,8 @@ export function readAnalysisMarkup(
     const label = canonicalMarkupLabel(row.label);
     if (!span || !label) continue;
     const gloss = String(row.gloss ?? "").trim();
+    // 이름표 모양이 그 자리와 안 맞으면(선생님이 고친 것은 빼고) 찍지 않는다
+    if (row.edited !== true && !labelFitsSpan(label, text.slice(span.start, span.end), text.slice(Math.max(0, span.start - 24), span.start))) continue;
     notes.push({ span, label, gloss: gloss || undefined, ...(row.edited === true ? { edited: true } : {}) });
   }
 
@@ -599,6 +604,7 @@ export function readAnalysisMarkup(
     const label = canonicalMarkupLabel(row.label);
     const explanation = String(row.explanation ?? "").trim();
     if (!span || !label || !explanation) continue;
+    if (row.edited !== true && !labelFitsSpan(label, text.slice(span.start, span.end), text.slice(Math.max(0, span.start - 24), span.start))) continue;
     const rewrite = String(row.rewrite ?? "").trim();
     points.push({
       index: points.length + 1,
@@ -659,7 +665,7 @@ export function readAnalysisMarkup(
   const markup: AnalysisSentenceMarkup = {
     text,
     // 표기 규칙(준동사 V 없음·목적격보어 C·조동사부터 V)을 예전 저장본에도 그대로 적용한다
-    roles: normalizeMarkupRoles(text, roles, brackets),
+    roles: raiseRoleLevels(text, normalizeMarkupRoles(text, roles, brackets), brackets, notes),
     brackets,
     notes,
     points,
