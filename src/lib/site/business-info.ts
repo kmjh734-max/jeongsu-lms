@@ -15,7 +15,7 @@ export const BUSINESS_INFO: Record<
   /** 통신판매업 신고번호 (신고 후 채운다) */
   mailOrderNumber: "",
   /** 사업장 주소 */
-  address: "서울특별시 중랑구 봉우재로 109-15(상봉동)",
+  address: "서울특별시 중랑구 봉우재로 109-15 (상봉동) 1층",
   /** 환불·결제 문의 이메일 */
   email: "",
   /** 환불·결제 문의 전화 */
