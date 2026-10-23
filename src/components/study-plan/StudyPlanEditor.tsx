@@ -8,6 +8,7 @@ import {
   loadAssignedPlan,
   loadPlanDoneStatus,
   type AutoFillArea,
+  type PlanDoneArea,
   type PlanDoneCell,
   type PlanDoneState,
 } from "@/lib/study-plan/auto-fill";
@@ -48,26 +49,114 @@ function weekdayOf(iso: string): string {
   return WEEKDAY_LABELS[(d.getUTCDay() + 6) % 7] ?? "";
 }
 
-/** 실제로 했는지를 한 알약으로 — 일정표 듣기·단어 칸에 붙는다 */
-function DoneBadge({ cell }: { cell: PlanDoneCell }) {
-  const look: Record<PlanDoneState, { text: string; className: string } | null> = {
-    done: { text: "했음", className: "border-emerald-300 bg-emerald-50 text-emerald-700" },
-    partial: { text: "덜 함", className: "border-amber-300 bg-amber-50 text-amber-700" },
-    missing: { text: "안 함", className: "border-rose-300 bg-rose-50 text-rose-700" },
-    upcoming: { text: "아직", className: "border-slate-200 bg-white text-slate-400" },
-    none: { text: "과제 없음", className: "border-slate-200 bg-white text-slate-400" },
-  };
-  const got = look[cell.state];
-  if (!got) return null;
+/** 상태별 색 — 「실제」 줄, 칸 바탕, 회차 머리 요약이 같은 색을 쓴다 */
+const STATE_LINE: Record<PlanDoneState, string> = {
+  done: "border-emerald-300 text-emerald-800",
+  partial: "border-amber-300 text-amber-800",
+  missing: "border-rose-300 text-rose-800",
+  upcoming: "border-slate-200 text-slate-400",
+  none: "border-slate-200 text-slate-400",
+};
+const STATE_CELL: Record<PlanDoneState, string> = {
+  done: "bg-emerald-50/70",
+  partial: "bg-amber-50/80",
+  missing: "bg-rose-50/70",
+  upcoming: "",
+  none: "",
+};
+const STATE_PILL: Record<PlanDoneState, string> = {
+  done: "border-emerald-300 bg-emerald-50 text-emerald-700",
+  partial: "border-amber-300 bg-amber-50 text-amber-700",
+  missing: "border-rose-300 bg-rose-50 text-rose-700",
+  upcoming: "border-slate-200 bg-white text-slate-400",
+  none: "border-slate-200 bg-white text-slate-300",
+};
+const STATE_MARK: Record<PlanDoneState, string> = { done: "✓", partial: "△", missing: "✗", upcoming: "", none: "" };
+const AREA_SHORT: Record<PlanDoneArea, string> = { listening: "듣기", vocab: "단어", course: "강좌" };
+
+/**
+ * 「실제」 줄 — 진도(계획) 아래에 실제로 한 것을 적고, 마우스를 올리면 날짜별 상세가 뜬다.
+ * 선생님 요청(2026-10-23): 일정표와 실제 학습을 한눈에 비교하고, 올리면 구체적인 내역이 보이게.
+ */
+function ActualLine({ cell, state }: { cell: PlanDoneCell; state: PlanDoneState }) {
+  const faint = state === "upcoming" || state === "none";
   return (
-    <span
-      title={cell.area === "listening" ? "실제 듣기 기록" : "실제 단어 기록"}
-      className={`inline-flex h-8 shrink-0 items-center gap-1 rounded-md border px-1.5 text-[11px] font-semibold ${got.className}`}
-    >
-      {got.text}
-      {cell.label ? <span className="font-normal tabular-nums">{cell.label}</span> : null}
-    </span>
+    <div tabIndex={0} className="group relative outline-none">
+      <div
+        className={`flex min-h-8 items-start gap-1.5 rounded-md border bg-white/70 px-2 py-1 text-xs ${faint ? "font-normal" : "font-medium"} ${STATE_LINE[state]}`}
+      >
+        <span className="shrink-0 text-[10px] font-bold opacity-70">실제</span>
+        <span className="min-w-0 flex-1 break-words">{cell.text || "-"}</span>
+        {STATE_MARK[state] ? <span className="shrink-0 font-bold">{STATE_MARK[state]}</span> : null}
+      </div>
+      {cell.details.length > 0 ? (
+        <div
+          role="tooltip"
+          className="pointer-events-none absolute left-0 top-full z-20 hidden w-72 rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 shadow-lg group-hover:block group-focus-within:block"
+        >
+          <p className="mb-1 font-bold text-slate-900">{AREA_SHORT[cell.area]} · 날짜별 기록</p>
+          <ul className="space-y-0.5">
+            {cell.details.map((line, i) => (
+              <li key={i} className="flex gap-1.5">
+                <span className="text-slate-400">·</span>
+                <span className="min-w-0 break-words">{line}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
   );
+}
+
+/** 진도 칸의 "Day 15, 16" · "Day 9,10" · "Day 1~3" 에서 Day 번호들을 뽑는다 */
+function plannedDaysOf(text: string): number[] {
+  const out: number[] = [];
+  const re = /day\s*([\d][\d\s,~\-]*)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    for (const part of m[1]!.split(",")) {
+      const range = /(\d+)\s*[~\-]\s*(\d+)/.exec(part);
+      if (range) {
+        for (let d = Number(range[1]); d <= Number(range[2]) && d - Number(range[1]) < 50; d += 1) out.push(d);
+      } else {
+        const n = Number(part.trim());
+        if (n) out.push(n);
+      }
+    }
+  }
+  return [...new Set(out)];
+}
+
+/**
+ * 단어 칸은 계획에 적힌 Day 와 실제 합격한 Day 를 맞춰 본다.
+ * "Day 11, 12" 인데 Day11 불합격·Day12 2단계면 「덜 함」, 둘 다 합격이면 「했음」.
+ * 계획에 Day 가 없으면 서버가 준 상태(단계를 하나라도 끝냈으면 했음)를 그대로 쓴다.
+ */
+function refineState(cell: PlanDoneCell, progress: string): PlanDoneState {
+  if (cell.area !== "vocab") return cell.state;
+  if (cell.state === "upcoming" || cell.state === "none") return cell.state;
+  const planned = plannedDaysOf(progress);
+  if (planned.length === 0) return cell.state;
+  const passed = new Set(cell.passedDays ?? []);
+  const touched = new Set(cell.touchedDays ?? []);
+  const hit = planned.filter((d) => passed.has(d)).length;
+  if (hit === planned.length) return "done";
+  if (hit > 0 || planned.some((d) => touched.has(d)) || (cell.touchedDays?.length ?? 0) > 0) return "partial";
+  return "missing";
+}
+
+/** 영역 이름·교재명으로 강좌(영상) 기록과 이어지는 줄인지 — "강좌/영상/인강" 이거나 교재명이 듣는 강좌 이름과 같을 때 */
+function isCourseRow(area: string, textbook: string, courseTitles: string[]): boolean {
+  if (courseTitles.length === 0) return false;
+  if (/강좌|영상|인강/.test(area)) return true;
+  const norm = (t: string) => t.toLowerCase().replace(/\s+/g, "");
+  const tb = norm(textbook);
+  if (!tb) return false;
+  return courseTitles.some((c) => {
+    const n = norm(c);
+    return n === tb || n.includes(tb) || tb.includes(n);
+  });
 }
 
 /** 숙제 확인 네 단계 단추 */
@@ -130,7 +219,8 @@ function applyAutoDone(
     let touched = false;
     const entries = r.entries.map((e, i) => {
       if (e.check) return e;
-      if (done.get(`${kind}-${r.week}-${i}`)?.state !== "done") return e;
+      const cell = done.get(`${kind}-${r.week}-${i}`);
+      if (!cell || refineState(cell, e.progress) !== "done") return e;
       touched = true;
       count += 1;
       return { ...e, check: "done" as HomeworkCheck };
@@ -182,6 +272,8 @@ export function StudyPlanEditor({
   const [vocabDays, setVocabDays] = useState(2);
   /** 실제로 했는지 — "listening-1-0" 꼴 열쇠 */
   const [done, setDone] = useState<Map<string, PlanDoneCell>>(new Map());
+  /** 이 학생이 듣는 강좌 이름 — 교재명과 맞춰 강좌 줄을 찾는다 */
+  const [courseTitles, setCourseTitles] = useState<string[]>([]);
 
 
   /** 이 달이 달력상 걸치는 주차 — 9월이면 1~5주 */
@@ -360,6 +452,7 @@ export function StudyPlanEditor({
         if (!alive || !r.ok) return;
         const map = new Map(r.cells.map((c) => [`${c.area}-${c.week}-${c.index}`, c]));
         setDone(map);
+        setCourseTitles(r.courseTitles);
         // 듣기·단어를 다 한 회차는 여기서 바로 완료로 찍어 둔다
         const auto = applyAutoDone(rowsRef.current, map);
         if (auto.count > 0) {
@@ -742,13 +835,50 @@ export function StudyPlanEditor({
         />
       ) : null}
 
-      {weeks.map((week) => (
+      {weeks.map((week) => {
+        /** 이 주의 줄마다 실제 기록과 이어지는 영역 — 회차 머리 요약·주차 합계에 쓴다 */
+        const linkedRows = rows
+          .filter((r) => r.week === week)
+          .map((r) => ({ row: r, kind: (autoFillArea(r.area) ?? (isCourseRow(r.area, r.textbook, courseTitles) ? "course" : null)) as PlanDoneArea | null }))
+          .filter((x): x is { row: Row; kind: PlanDoneArea } => x.kind !== null)
+          .sort((a, b) => a.row.orderIndex - b.row.orderIndex);
+        const stateAt = (kind: PlanDoneArea, row: Row, i: number): PlanDoneState | null => {
+          const cell = done.get(`${kind}-${week}-${i}`);
+          return cell ? refineState(cell, row.entries[i]?.progress ?? "") : null;
+        };
+        /** 주차 합계: 지난 회차 중 했음 수 / 본 회차 수 */
+        const weekTotals = linkedRows.map(({ row, kind }) => {
+          let seen = 0;
+          let ok = 0;
+          for (let i = 0; i < sessions; i += 1) {
+            const st = stateAt(kind, row, i);
+            if (!st || st === "upcoming" || st === "none") continue;
+            seen += 1;
+            if (st === "done") ok += 1;
+          }
+          return { kind, area: row.area, seen, ok };
+        });
+        return (
         <section key={week} className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
           <table className="w-full min-w-[900px] border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50 text-left text-xs font-bold text-slate-600">
                 <th className="w-20 px-2 py-2">
                   <span className="block">{week}주</span>
+                  {weekTotals.some((t) => t.seen > 0) ? (
+                    <span className="mt-1 block space-y-0.5 text-[11px] font-normal text-slate-500">
+                      {weekTotals
+                        .filter((t) => t.seen > 0)
+                        .map((t) => (
+                          <span key={t.area} className="block whitespace-nowrap">
+                            {AREA_SHORT[t.kind]}{" "}
+                            <b className={t.ok === t.seen ? "text-emerald-700" : t.ok === 0 ? "text-rose-700" : "text-amber-700"}>
+                              {t.ok}/{t.seen}
+                            </b>
+                          </span>
+                        ))}
+                    </span>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => removeWeek(week)}
@@ -785,6 +915,22 @@ export function StudyPlanEditor({
                       }
                       className="ui-input mt-1 h-7 w-[9.5rem] text-xs font-normal"
                     />
+                    {linkedRows.some(({ row, kind }) => {
+                      const st = stateAt(kind, row, i);
+                      return st && st !== "none";
+                    }) ? (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {linkedRows.map(({ row, kind }) => {
+                          const st = stateAt(kind, row, i);
+                          if (!st || st === "none") return null;
+                          return (
+                            <span key={row.area} className={`rounded-full border px-1.5 py-px text-[10px] font-semibold ${STATE_PILL[st]}`}>
+                              {AREA_SHORT[kind]} {STATE_MARK[st] || "·"}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : null}
                     <div className="mt-1 flex flex-wrap gap-0.5">
                       {(Object.keys(ATTENDANCE_LABELS) as Array<keyof typeof ATTENDANCE_LABELS>).map((key) => {
                         const on = attendanceAt(week, i) === key;
@@ -854,19 +1000,21 @@ export function StudyPlanEditor({
                     {row.entries.map((entry, i) => {
                       const kind = autoFillArea(area);
                       const linked = kind !== null;
-                      // 듣기·단어 영역이면 그 회차에 실제로 했는지 옆에 붙인다
-                      const doneCell = kind ? done.get(`${kind}-${week}-${i}`) : undefined;
+                      // 듣기·단어 영역이면 그 회차에 실제로 했는지, 강좌와 이어진 줄이면 본 영상을 진도 아래에 붙인다
+                      const doneKind: PlanDoneArea | null = kind ?? (isCourseRow(area, row.textbook, courseTitles) ? "course" : null);
+                      const doneCell = doneKind ? done.get(`${doneKind}-${week}-${i}`) : undefined;
+                      const cellState = doneCell ? refineState(doneCell, entry.progress) : null;
+                      // 강좌 줄은 영상 기록이 없는 게 흔해(수업에서 듣는다) 「안 함」이어도 바탕은 안 칠하고 글만 빨갛게 둔다
                       return (
-                      <td key={i} className="p-1">
+                      <td key={i} className={`p-1 ${cellState && !(doneKind === "course" && cellState === "missing") ? STATE_CELL[cellState] : ""}`}>
                         <div className="space-y-1">
                           <div className="flex items-center gap-1">
                             <input
                               value={entry.progress}
                               onChange={(e) => setProgressAt(week, area, i, e.target.value)}
                               className="ui-input h-8 flex-1 text-sm"
-                              placeholder={linked ? "진도" : "학습진도"}
+                              placeholder={linked ? "계획" : "학습진도"}
                             />
-                            {doneCell ? <DoneBadge cell={doneCell} /> : null}
                             {linked ? null : (
                               <button
                                 type="button"
@@ -878,6 +1026,7 @@ export function StudyPlanEditor({
                               </button>
                             )}
                           </div>
+                          {doneCell && cellState ? <ActualLine cell={doneCell} state={cellState} /> : null}
                           {linked ? null : (
                           <input
                             value={entry.homework}
@@ -921,7 +1070,8 @@ export function StudyPlanEditor({
             </tbody>
           </table>
         </section>
-      ))}
+        );
+      })}
     </div>
   );
 }

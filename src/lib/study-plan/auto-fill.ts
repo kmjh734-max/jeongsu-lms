@@ -5,6 +5,7 @@ import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isStudyPlanEnabled } from "@/lib/study-plan/access";
 import { ensureStudentScheduleDailyTasks } from "@/lib/listening/schedule/today-summary";
+import { WEEKDAY_LABELS } from "@/lib/study-plan/weekday-dates";
 
 /** 일정표 회차 하나에 채워 넣을 한 줄 */
 export interface AutoFillCell {
@@ -512,21 +513,59 @@ async function vocabPlanRow(
 /** 일정표 한 회차에 그 영역을 실제로 했는지 */
 export type PlanDoneState = "done" | "partial" | "missing" | "upcoming" | "none";
 
+/** 실제 기록이 이어지는 영역 — 듣기·단어에 강좌(영상)까지 */
+export type PlanDoneArea = AutoFillArea | "course";
+
 export interface PlanDoneCell {
   week: number;
   index: number;
-  area: AutoFillArea;
+  area: PlanDoneArea;
   state: PlanDoneState;
   /** 칸에 붙일 짧은 글 — "3/3일", "2단계" */
   label: string;
+  /**
+   * 「실제」 줄에 적을 한 줄 — "Day15 합격 95 · Day16 합격 100", "10/19 4회 0/5 · 10/20 5회 5/5 ✓".
+   * 선생님 요청(2026-10-23): 일정표에서 계획과 실제가 한눈에 비교되게.
+   */
+  text: string;
+  /** 마우스를 올리면 보여 줄 날짜별 상세 */
+  details: string[];
+  /** 단어: 이 회차 안에 종합테스트에 합격한 Day 번호 — 계획 칸의 "Day 15, 16"과 맞춰 본다 */
+  passedDays?: number[];
+  /** 단어: 이 회차 안에 손댄 Day 번호(합격 못 한 것 포함) */
+  touchedDays?: number[];
+}
+
+/** "2026-10-19" → "10/19" */
+function md(iso: string): string {
+  return `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}`;
+}
+
+/** "2026-10-19" → "월" */
+function wd(iso: string): string {
+  return WEEKDAY_LABELS[(new Date(`${iso}T00:00:00Z`).getUTCDay() + 6) % 7] ?? "";
+}
+
+/** UTC 시각 → 한국 날짜 */
+function koreaDateOf(ts: string): string {
+  return new Date(new Date(ts).getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+/** "EngCore 중학필수 Day12 핵심 빈출 단어" → "Day12" (Day 없으면 제목 그대로) */
+function shortSetTitle(title: string): string {
+  const d = dayNumberOf(title);
+  return d !== null ? `Day${d}` : title;
 }
 
 /**
- * 일정표 회차마다 듣기·단어를 실제로 했는지 돌려준다.
+ * 일정표 회차마다 듣기·단어·강좌를 실제로 했는지 돌려준다.
  *
  * 선생님 요청(2026-09-30): 일정표에서도 단어·듣기와 이어서 학습을 했는지 안 했는지
  * 표시가 나오게 해 달라. 진도 칸에 적힌 것은 「할 것」이지 「한 것」이 아니어서,
  * 옆에 실제 기록을 따로 붙인다.
+ *
+ * 선생님 요청(2026-10-23): 알약 하나로는 비교가 안 된다 — 회차마다 실제로 한 것을 글로 적고
+ * (text), 마우스를 올리면 날짜별 상세(details)가 보이게. 강좌(영상)도 같이.
  *
  * 한 회차는 「그 수업 날부터 다음 수업 전날까지」를 본다 — 진도를 깔 때와 같은 규칙이다.
  * 아직 오지 않은 날은 안 한 것으로 세지 않는다.
@@ -537,7 +576,10 @@ export async function loadPlanDoneStatus(input: {
   month: number;
   /** 주차별 회차 날짜: { "1": ["2026-09-01", …] } */
   sessionDates: Record<string, string[]>;
-}): Promise<{ ok: true; cells: PlanDoneCell[] } | { ok: false; message: string }> {
+}): Promise<
+  | { ok: true; cells: PlanDoneCell[]; /** 이 학생이 듣는 강좌 이름 — 교재명과 맞춰 강좌 영역을 찾는다 */ courseTitles: string[] }
+  | { ok: false; message: string }
+> {
   const profile = await getCurrentProfile();
   if (!profile || !["admin", "teacher"].includes(profile.role) || !profile.academy_id) {
     return { ok: false, message: "권한이 없어요." };
@@ -568,6 +610,7 @@ export async function loadPlanDoneStatus(input: {
   const first = slots[0]!.date;
   const last = monthEnd(input.year, input.month);
   const today = getTodayIsoKorea();
+  const firstUtc = new Date(`${first}T00:00:00+09:00`).toISOString();
   /** 날짜 → 그 날이 속한 회차 자리 (그 날 이하인 마지막 회차) */
   const slotOf = (date: string): number => {
     let at = -1;
@@ -580,92 +623,242 @@ export async function loadPlanDoneStatus(input: {
   // 배정된 단어장이 없으면 단어 칸은 「안 함」이 아니라 비워 둔다(선생님 말씀 2026-10-05)
   const { data: members } = await admin.from("class_students").select("class_id").eq("student_id", input.studentId);
   const classIds = [...new Set((members ?? []).map((m) => String(m.class_id)))];
-  const [vocabMine, vocabClass] = await Promise.all([
+  const [vocabMine, vocabClass, enrollRes] = await Promise.all([
     admin.from("vocab_assignments").select("id", { count: "exact", head: true }).eq("student_id", input.studentId),
     classIds.length
       ? admin.from("vocab_assignments").select("id", { count: "exact", head: true }).in("class_id", classIds)
       : Promise.resolve({ count: 0 }),
+    admin
+      .from("enrollments")
+      .select("course_id, course:courses(id, title, deleted_at)")
+      .eq("student_id", input.studentId),
   ]);
   const hasVocab = (vocabMine.count ?? 0) + (vocabClass.count ?? 0) > 0;
+  const courses = (enrollRes.data ?? [])
+    .map((e) => one(e.course as unknown as { id: string; title: string | null; deleted_at: string | null } | null))
+    .filter((c): c is { id: string; title: string | null; deleted_at: string | null } => Boolean(c && !c.deleted_at));
+  const courseIds = courses.map((c) => c.id);
+  const courseTitleOf = new Map(courses.map((c) => [c.id, c.title ?? "강좌"]));
 
-  const [listeningRows, vocabRows] = await Promise.all([
+  const [listeningRows, vocabRows, lessonRows] = await Promise.all([
     admin
       .from("listening_daily_tasks")
-      .select("task_date, status, completed_count, total_count")
+      .select("task_date, status, completed_count, total_count, set:listening_sets(title)")
       .eq("student_id", input.studentId)
       .gte("task_date", first)
-      .lte("task_date", last),
+      .lte("task_date", last)
+      .order("task_date"),
     admin
       .from("vocab_stage_progress")
       .select(
-        "stage1_completed_at, stage2_completed_at, stage3_completed_at, stage4_passed_at",
+        "stage1_completed_at, stage2_completed_at, stage3_completed_at, stage4_passed_at, stage4_passed, stage4_best_score, stage4_last_score, stage4_attempt_count, updated_at, set:vocab_sets(title, exam_compact)",
       )
-      .eq("student_id", input.studentId),
+      .eq("student_id", input.studentId)
+      .gte("updated_at", firstUtc),
+    courseIds.length
+      ? admin
+          .from("lesson_progress")
+          .select("is_completed, completed_at, last_watched_at, progress_percent, lesson:lessons(title, course_id, order_index)")
+          .eq("student_id", input.studentId)
+          .gte("last_watched_at", firstUtc)
+          .limit(2000)
+      : Promise.resolve({ data: [] as unknown[] }),
   ]);
 
   /** 회차 자리 → 그 사이에 나간 듣기 과제 (아직 안 온 날은 뺀다) */
-  const listenBySlot = new Map<number, { due: number; done: number; part: number }>();
+  type ListenDay = { date: string; title: string; done: number; total: number; completed: boolean };
+  const listenBySlot = new Map<number, ListenDay[]>();
   for (const r of listeningRows.data ?? []) {
     const date = String(r.task_date);
     const at = slotOf(date);
     if (at < 0 || date > today) continue;
-    const got = listenBySlot.get(at) ?? { due: 0, done: 0, part: 0 };
-    got.due += 1;
-    if (r.status === "completed") got.done += 1;
-    else if (Number(r.completed_count ?? 0) > 0) got.part += 1;
-    listenBySlot.set(at, got);
+    const list = listenBySlot.get(at) ?? [];
+    list.push({
+      date,
+      title: one(r.set as { title: string } | { title: string }[] | null)?.title ?? "듣기",
+      done: Number(r.completed_count ?? 0),
+      total: Number(r.total_count ?? 0),
+      completed: r.status === "completed",
+    });
+    listenBySlot.set(at, list);
   }
 
-  /** 회차 자리 → 그 사이에 끝낸 단어 단계 수 */
-  const vocabBySlot = new Map<number, number>();
+  /** 회차 자리 → 단어장별로 그 사이에 한 것 */
+  type VocabSet = { title: string; short: string; day: number | null; stages: number; passedAt: string | null; score: number; failed: boolean; lastAt: string };
+  const vocabBySlot = new Map<number, Map<string, VocabSet>>();
   for (const r of vocabRows.data ?? []) {
-    for (const key of [
-      "stage1_completed_at",
-      "stage2_completed_at",
-      "stage3_completed_at",
-      "stage4_passed_at",
-    ] as const) {
-      const at = (r as unknown as Record<string, string | null>)[key];
-      if (!at) continue;
-      // UTC 시각을 한국 날짜로
-      const iso = new Date(new Date(at).getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-      if (iso < first || iso > last || iso > today) continue;
+    const title = one(r.set as { title: string } | { title: string }[] | null)?.title ?? "단어장";
+    const row = r as unknown as Record<string, string | number | boolean | null>;
+    const stamps = [
+      row.stage1_completed_at,
+      row.stage2_completed_at,
+      row.stage3_completed_at,
+      row.stage4_passed_at,
+    ] as (string | null)[];
+    /** 단계마다 회차 자리를 찾아 그 회차에 단계를 더한다 */
+    const touchedSlots = new Set<number>();
+    stamps.forEach((at, stageIdx) => {
+      if (!at) return;
+      const iso = koreaDateOf(at);
+      if (iso < first || iso > last || iso > today) return;
       const slot = slotOf(iso);
-      if (slot < 0) continue;
-      vocabBySlot.set(slot, (vocabBySlot.get(slot) ?? 0) + 1);
+      if (slot < 0) return;
+      touchedSlots.add(slot);
+      const per = vocabBySlot.get(slot) ?? new Map<string, VocabSet>();
+      const got = per.get(title) ?? { title, short: shortSetTitle(title), day: dayNumberOf(title), stages: 0, passedAt: null, score: 0, failed: false, lastAt: "" };
+      got.stages += 1;
+      if (stageIdx === 3) {
+        got.passedAt = iso;
+        got.score = Number(row.stage4_best_score ?? 0);
+      }
+      if (iso > got.lastAt) got.lastAt = iso;
+      per.set(title, got);
+      vocabBySlot.set(slot, per);
+    });
+    // 종합테스트를 봤는데 아직 못 붙었으면 마지막 손댄 회차에 「불합격」으로 적는다
+    const passed = Boolean(row.stage4_passed);
+    const attempts = Number(row.stage4_attempt_count ?? 0);
+    if (!passed && attempts > 0 && row.updated_at) {
+      const iso = koreaDateOf(String(row.updated_at));
+      if (iso >= first && iso <= last && iso <= today) {
+        const slot = slotOf(iso);
+        if (slot >= 0) {
+          const per = vocabBySlot.get(slot) ?? new Map<string, VocabSet>();
+          const got = per.get(title) ?? { title, short: shortSetTitle(title), day: dayNumberOf(title), stages: 0, passedAt: null, score: 0, failed: false, lastAt: iso };
+          got.failed = true;
+          got.score = Number(row.stage4_last_score ?? row.stage4_best_score ?? 0);
+          if (iso > got.lastAt) got.lastAt = iso;
+          per.set(title, got);
+          vocabBySlot.set(slot, per);
+        }
+      }
     }
+  }
+
+  /** 회차 자리 → 그 사이에 본 영상 */
+  type LessonHit = { date: string; title: string; course: string; completed: boolean; percent: number };
+  const lessonBySlot = new Map<number, LessonHit[]>();
+  for (const raw of (lessonRows.data ?? []) as unknown[]) {
+    const r = raw as { is_completed: boolean; completed_at: string | null; last_watched_at: string | null; progress_percent: number | null; lesson: unknown };
+    const lesson = one(r.lesson as { title: string; course_id: string; order_index: number } | { title: string; course_id: string; order_index: number }[] | null);
+    if (!lesson || !courseIds.includes(String(lesson.course_id))) continue;
+    const at = r.is_completed && r.completed_at ? r.completed_at : r.last_watched_at;
+    if (!at) continue;
+    const iso = koreaDateOf(at);
+    if (iso < first || iso > last || iso > today) continue;
+    const slot = slotOf(iso);
+    if (slot < 0) continue;
+    const list = lessonBySlot.get(slot) ?? [];
+    list.push({
+      date: iso,
+      title: lesson.title,
+      course: courseTitleOf.get(String(lesson.course_id)) ?? "강좌",
+      completed: Boolean(r.is_completed),
+      percent: Math.round(Number(r.progress_percent ?? 0)),
+    });
+    lessonBySlot.set(slot, list);
   }
 
   const cells: PlanDoneCell[] = [];
   slots.forEach((s, at) => {
     const upcoming = s.date > today;
 
-    const listen = listenBySlot.get(at);
+    // 듣기
+    const listen = listenBySlot.get(at) ?? [];
+    const lDue = listen.length;
+    const lDone = listen.filter((d) => d.completed).length;
+    const lPart = listen.filter((d) => !d.completed && d.done > 0).length;
     cells.push({
       week: s.week,
       index: s.index,
       area: "listening",
       state: upcoming
         ? "upcoming"
-        : !listen
+        : lDue === 0
           ? "none"
-          : listen.done === listen.due
+          : lDone === lDue
             ? "done"
-            : listen.done + listen.part > 0
+            : lDone + lPart > 0
               ? "partial"
               : "missing",
-      label: listen ? `${listen.done}/${listen.due}일` : "",
+      label: lDue ? `${lDone}/${lDue}일` : "",
+      text: upcoming
+        ? "아직"
+        : lDue === 0
+          ? "배정된 과제 없음"
+          : listen
+              .map((d) => `${md(d.date)} ${d.title} ${d.done}/${d.total}${d.completed ? " ✓" : d.done === 0 ? " 안 함" : ""}`)
+              .join(" · "),
+      details: listen.map(
+        (d) =>
+          `${md(d.date)} (${wd(d.date)}) ${d.title} · ${d.total}문항 중 ${d.done}문항${d.completed ? " · 완료" : d.done === 0 ? " · 안 함" : " · 하다 맒"}`,
+      ),
     });
 
-    const stages = vocabBySlot.get(at) ?? 0;
+    // 단어
+    const per = vocabBySlot.get(at);
+    const sets = per ? [...per.values()].sort((a, b) => (a.day ?? 0) - (b.day ?? 0) || a.title.localeCompare(b.title, "ko")) : [];
+    const stages = sets.reduce((n, v) => n + v.stages, 0);
+    const anyFailed = sets.some((v) => v.failed);
+    const setText = (v: VocabSet) =>
+      v.passedAt
+        ? `${v.short} 합격 ${v.score}`
+        : v.failed
+          ? `${v.short} 불합격 ${v.score}`
+          : `${v.short} ${v.stages}단계까지`;
     cells.push({
       week: s.week,
       index: s.index,
       area: "vocab",
-      state: !hasVocab && stages === 0 ? "none" : upcoming ? "upcoming" : stages > 0 ? "done" : "missing",
+      state:
+        !hasVocab && sets.length === 0
+          ? "none"
+          : upcoming
+            ? "upcoming"
+            : sets.length === 0
+              ? "missing"
+              : anyFailed || sets.some((v) => !v.passedAt)
+                ? "partial"
+                : "done",
       label: stages > 0 ? `${stages}단계` : "",
+      text: upcoming ? "아직" : !hasVocab && sets.length === 0 ? "배정된 단어장 없음" : sets.length === 0 ? "안 함" : sets.map(setText).join(" · "),
+      details: sets.map(
+        (v) =>
+          `${v.title}: ${v.passedAt ? `종합테스트 합격 ${v.score}점 (${md(v.passedAt)})` : v.failed ? `종합테스트 ${v.score}점 불합격 (${md(v.lastAt)})` : `${v.stages}단계 끝냄 (${md(v.lastAt)})`}`,
+      ),
+      passedDays: sets.filter((v) => v.passedAt && v.day !== null).map((v) => v.day as number),
+      touchedDays: sets.filter((v) => v.day !== null).map((v) => v.day as number),
+    });
+
+    // 강좌
+    const hits = (lessonBySlot.get(at) ?? []).sort((a, b) => a.date.localeCompare(b.date));
+    const cDone = hits.filter((h) => h.completed).length;
+    cells.push({
+      week: s.week,
+      index: s.index,
+      area: "course",
+      state:
+        courseIds.length === 0
+          ? "none"
+          : upcoming
+            ? "upcoming"
+            : cDone > 0
+              ? "done"
+              : hits.length > 0
+                ? "partial"
+                : "missing",
+      label: hits.length ? `${cDone}강` : "",
+      text:
+        courseIds.length === 0
+          ? "듣는 강좌 없음"
+          : upcoming
+            ? "아직"
+            : hits.length === 0
+              ? "본 영상 없음"
+              : hits.map((h) => `${h.title}${h.completed ? " 완료" : ` ${h.percent}%`}`).join(" · "),
+      details: hits.map((h) => `${md(h.date)} ${h.course} · ${h.title} · ${h.completed ? "완료" : `${h.percent}% 시청`}`),
     });
   });
 
-  return { ok: true, cells };
+  return { ok: true, cells, courseTitles: courses.map((c) => c.title ?? "").filter(Boolean) };
 }
