@@ -23,6 +23,8 @@ import {
 import { WEEKDAY_LABELS, weeksInMonth } from "@/lib/study-plan/weekday-dates";
 import { hasHolidayTable, holidayNameOf } from "@/lib/study-plan/holidays";
 import { UnitPickerModal } from "@/components/textbooks/UnitPickerModal";
+import { TodayStatusPanel, type SessionHomework } from "@/components/study-plan/TodayStatusPanel";
+import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import type { Textbook } from "@/lib/textbooks";
 
 export type PlanStudent = {
@@ -155,6 +157,7 @@ export function StudyPlanEditor({
   month,
   plan,
   books,
+  academyName,
 }: {
   student: PlanStudent;
   year: number;
@@ -162,6 +165,8 @@ export function StudyPlanEditor({
   plan: StudyPlan | null;
   /** 올려 둔 교재 목차 — 진도 칸을 트리로 고른다 */
   books: Textbook[];
+  /** 알림 문구에 넣을 학원 이름 */
+  academyName?: string;
 }) {
   const [sessions, setSessions] = useState(plan?.sessionsPerWeek ?? 3);
   const [rows, setRows] = useState<Row[]>(plan?.rows ?? []);
@@ -177,6 +182,7 @@ export function StudyPlanEditor({
   const [vocabDays, setVocabDays] = useState(2);
   /** 실제로 했는지 — "listening-1-0" 꼴 열쇠 */
   const [done, setDone] = useState<Map<string, PlanDoneCell>>(new Map());
+
 
   /** 이 달이 달력상 걸치는 주차 — 9월이면 1~5주 */
   const monthWeeks = useMemo(() => weeksInMonth(year, month), [year, month]);
@@ -198,6 +204,38 @@ export function StudyPlanEditor({
   const areas = [...new Map(rows.filter((r) => r.week === weeks[0]).map((r) => [r.area, r.orderIndex])).keys()];
   /** 뺐다가 되돌릴 수 있는 주차 */
   const droppedWeeks = monthWeeks.filter((w) => !weeks.includes(w));
+
+  /**
+   * 오늘이 속한 회차의 숙제 — 「오늘 학습 현황」 오른쪽 칸에 보여 준다.
+   * 이 달을 보고 있을 때만 뜬다. 회차는 「그 수업 날부터 다음 수업 전날까지」(진도를 깔 때와 같은 규칙).
+   */
+  const todayIso = getTodayIsoKorea();
+  const viewingThisMonth = todayIso.startsWith(`${year}-${String(month).padStart(2, "0")}`);
+  const todaySession = useMemo(() => {
+    if (!viewingThisMonth) return null;
+    let best: { week: number; index: number; date: string } | null = null;
+    for (const week of weeks) {
+      (dates[String(week)] ?? []).slice(0, sessions).forEach((date, index) => {
+        if (!date || date > todayIso) return;
+        if (!best || date > best.date || (date === best.date && index > best.index)) best = { week, index, date };
+      });
+    }
+    return best as { week: number; index: number; date: string } | null;
+  }, [viewingThisMonth, weeks, dates, sessions, todayIso]);
+  const todayHomework: SessionHomework[] | null = useMemo(() => {
+    if (!todaySession) return null;
+    return rows
+      .filter((r) => r.week === todaySession.week)
+      .sort((a, b) => a.orderIndex - b.orderIndex)
+      .map((r) => ({
+        area: r.area,
+        homework: r.entries[todaySession.index]?.homework ?? "",
+        check: r.entries[todaySession.index]?.check ?? "",
+      }));
+  }, [rows, todaySession]);
+  const todaySessionLabel = todaySession
+    ? `${Number(todaySession.date.slice(5, 7))}/${Number(todaySession.date.slice(8, 10))} (${weekdayOf(todaySession.date)}) 회차`
+    : null;
 
   /** 표에 있는 주차인데 줄이 없으면 만들어 넣는다 */
   useEffect(() => {
@@ -626,6 +664,17 @@ export function StudyPlanEditor({
           {student.enrolledOn ? <span className="text-slate-500">입학 {student.enrolledOn}</span> : null}
         </div>
       </div>
+
+      {viewingThisMonth ? (
+        <TodayStatusPanel
+          key={student.id}
+          studentId={student.id}
+          studentName={student.name}
+          academyName={academyName}
+          homework={todayHomework}
+          sessionLabel={todaySessionLabel}
+        />
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <label className="text-sm text-slate-600">

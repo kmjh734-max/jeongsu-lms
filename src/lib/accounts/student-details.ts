@@ -33,15 +33,23 @@ const date = (v: unknown) => {
   return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
 };
 
+/**
+ * 요청에 **들어 있는** 칸만 뽑는다. 없는 칸은 undefined 로 두어 저장 때 건드리지 않는다.
+ *
+ * 2026-10-23: 전에는 없는 칸도 null 로 만들어 돌려줬다. 그래서 이름만 고치거나
+ * 계정을 쉬게 하는 PATCH(본문에 is_active 하나)가 올 때마다 전화번호·학교·입학일이
+ * 모두 null 로 덮여 지워졌다. 선생님이 "전화번호를 넣었는데 안 뜬다"고 한 원인이다.
+ */
 export function pickStudentDetails(body: Record<string, unknown>): StudentDetailsInput {
+  const has = (k: string) => Object.prototype.hasOwnProperty.call(body, k);
   return {
-    birthDate: date(body.birthDate),
-    phone: normalizePhone(body.phone),
-    parentPhone: normalizePhone(body.parentPhone),
-    school: text(body.school),
-    schoolGrade: text(body.schoolGrade),
-    enrolledOn: date(body.enrolledOn),
-    note: text(body.note),
+    ...(has("birthDate") ? { birthDate: date(body.birthDate) } : {}),
+    ...(has("phone") ? { phone: normalizePhone(body.phone) } : {}),
+    ...(has("parentPhone") ? { parentPhone: normalizePhone(body.parentPhone) } : {}),
+    ...(has("school") ? { school: text(body.school) } : {}),
+    ...(has("schoolGrade") ? { schoolGrade: text(body.schoolGrade) } : {}),
+    ...(has("enrolledOn") ? { enrolledOn: date(body.enrolledOn) } : {}),
+    ...(has("note") ? { note: text(body.note) } : {}),
   };
 }
 

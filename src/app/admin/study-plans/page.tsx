@@ -13,6 +13,7 @@ import {
   type PickerTeacher,
 } from "@/components/study-plan/StudyPlanPicker";
 import { listTextbooks } from "@/lib/textbooks";
+import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 
 interface PageProps {
   searchParams: Promise<{
@@ -158,9 +159,10 @@ export default async function StudyPlansPage({ searchParams }: PageProps) {
     | null;
   const classTime = cls ? classTimeLabel(cls) : null;
 
-  const [plan, books] = await Promise.all([
+  const [plan, books, branding] = await Promise.all([
     studentId ? loadStudyPlan(admin, studentId, year, month) : Promise.resolve(null),
     academyId ? listTextbooks(admin, academyId) : Promise.resolve([]),
+    getAcademyBrandingForCurrentUser(),
   ]);
   const student: PlanStudent | null = row
     ? {
@@ -248,6 +250,7 @@ export default async function StudyPlansPage({ searchParams }: PageProps) {
           month={month}
           plan={plan}
           books={books}
+          academyName={branding.name}
         />
       ) : (
         <p className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-500">

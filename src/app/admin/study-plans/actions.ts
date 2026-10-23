@@ -7,6 +7,7 @@ import { createStudyPlan, saveStudyPlanRows, type Attendance, type PlanRow } fro
 import { isStudyPlanEnabled } from "@/lib/study-plan/access";
 import { monthSessionDates, sessionsPerWeekFrom, weekdayLabel } from "@/lib/study-plan/weekday-dates";
 import { studentClassWeekdays } from "@/lib/study-plan/student-weekdays";
+import { loadStudentTodayStatus, type TodayStudyStatus } from "@/lib/study-plan/today-status";
 
 type Result = { ok: boolean; message: string };
 
@@ -105,6 +106,28 @@ export async function savePlanAction(input: {
   // 학생이 보는 화면도 다시 그리게 한다
   revalidatePath("/student/plan");
   return { ok: true, message: "저장했어요." };
+}
+
+/** 오늘 이 학생이 단어·듣기·강좌를 했는지 — 일정표 머리의 「오늘 학습 현황」 */
+export async function todayStatusAction(input: {
+  studentId: string;
+}): Promise<{ ok: true; status: TodayStudyStatus } | { ok: false; message: string }> {
+  const profile = await staff();
+  if (!profile) return { ok: false, message: "권한이 없어요." };
+  const admin = createAdminClient();
+  const { data: student } = await admin
+    .from("profiles")
+    .select("id, academy_id")
+    .eq("id", input.studentId)
+    .maybeSingle();
+  if (!student || student.academy_id !== profile.academy_id) {
+    return { ok: false, message: "우리 학원 학생이 아니에요." };
+  }
+  try {
+    return { ok: true, status: await loadStudentTodayStatus(admin, input.studentId) };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "오늘 현황을 읽지 못했어요." };
+  }
 }
 
 /** 이 학생이 다니는 반의 수업 요일로 그 달 회차 수와 날짜를 뽑아 준다 */

@@ -211,6 +211,8 @@ export function StudentsBoard({
                         </span>
                         <span className="truncate text-xs text-slate-400">
                           {r.username ?? r.email}
+                          {/* 선생님 지적(2026-10-23): 넣어 둔 전화번호가 어디에도 안 보였다 */}
+                          {r.parentPhone ? ` · 학부모 ${r.parentPhone}` : r.phone ? ` · 본인 ${r.phone}` : ""}
                           <span className="md:hidden">
                             {` · ${classLabel ?? "반 없음"} · 강좌 ${r.courseCount}개`}
                           </span>
@@ -316,6 +318,14 @@ export function StudentsBoard({
           flash={actions.flash}
           onSubmit={(body) => actions.update(dialog.user.id, body)}
           onClose={() => setDialog(null)}
+          studentDetails={{
+            phone: dialog.user.phone,
+            parentPhone: dialog.user.parentPhone,
+            school: dialog.user.school,
+            schoolGrade: dialog.user.schoolGrade,
+            birthDate: dialog.user.birthDate,
+            enrolledOn: dialog.user.enrolledOn,
+          }}
         />
       ) : null}
       {dialog?.kind === "password" ? (

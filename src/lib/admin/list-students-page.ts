@@ -4,7 +4,17 @@ export const STUDENTS_PAGE_SIZE = 50;
 
 export type StudentStatusFilter = "all" | "active" | "inactive";
 
-export interface StudentListRow {
+/** 학생 등록 때 같이 받은 신상 정보 — 목록·수정 창·학생 창에 보여 준다 */
+export interface StudentListDetails {
+  phone: string | null;
+  parentPhone: string | null;
+  school: string | null;
+  schoolGrade: string | null;
+  birthDate: string | null;
+  enrolledOn: string | null;
+}
+
+export interface StudentListRow extends StudentListDetails {
   id: string;
   name: string;
   username: string | null;
@@ -114,7 +124,10 @@ export async function loadStudentsPageData(
 
   let list = supabase
     .from("profiles")
-    .select("id, name, username, email, is_active", { count: "exact" })
+    .select(
+      "id, name, username, email, is_active, phone, parent_phone, school, school_grade, birth_date, enrolled_on",
+      { count: "exact" },
+    )
     .eq("role", "student");
   if (scope.createdBy) list = list.eq("created_by", scope.createdBy);
   if (scope.teacherVisible) {
@@ -137,7 +150,25 @@ export async function loadStudentsPageData(
   if (classMembers) list = list.in("id", classMembers);
 
   const { data: students, count } = await list.order("name").range(from, to);
-  const base = (students ?? []) as Omit<StudentListRow, "classNames" | "courseCount">[];
+  type Raw = Omit<StudentListRow, "classNames" | "courseCount" | keyof StudentListDetails> & {
+    phone: string | null;
+    parent_phone: string | null;
+    school: string | null;
+    school_grade: string | null;
+    birth_date: string | null;
+    enrolled_on: string | null;
+  };
+  const raw = (students ?? []) as Raw[];
+  // 선생님 지적(2026-10-23): 전화번호를 넣었는데 화면에 안 뜬다 — 목록이 아예 읽지 않고 있었다
+  const base = raw.map(({ phone, parent_phone, school, school_grade, birth_date, enrolled_on, ...rest }) => ({
+    ...rest,
+    phone: phone ?? null,
+    parentPhone: parent_phone ?? null,
+    school: school ?? null,
+    schoolGrade: school_grade ?? null,
+    birthDate: birth_date ?? null,
+    enrolledOn: enrolled_on ?? null,
+  }));
   if (base.length === 0) return { ...empty, total: count ?? 0 };
 
   const ids = base.map((s) => s.id);

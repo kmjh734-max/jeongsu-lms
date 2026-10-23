@@ -187,6 +187,32 @@ export function StudentDrawer({
                 </span>
                 <span className="truncate text-[13px] text-slate-500">
                   {student.username ?? student.email} · {classLabel}
+                  {student.school || student.schoolGrade
+                    ? ` · ${[student.school, student.schoolGrade].filter(Boolean).join(" ")}`
+                    : ""}
+                </span>
+                {/* 등록 때 받은 전화번호 — 누르면 바로 전화 (선생님 지적 2026-10-23) */}
+                <span className="flex flex-wrap gap-x-3 text-[13px] text-slate-600">
+                  <span>
+                    본인{" "}
+                    {student.phone ? (
+                      <a href={`tel:${student.phone.replace(/\D/g, "")}`} className="font-semibold text-slate-800 hover:underline">
+                        {student.phone}
+                      </a>
+                    ) : (
+                      <span className="text-slate-400">미입력</span>
+                    )}
+                  </span>
+                  <span>
+                    학부모{" "}
+                    {student.parentPhone ? (
+                      <a href={`tel:${student.parentPhone.replace(/\D/g, "")}`} className="font-semibold text-slate-800 hover:underline">
+                        {student.parentPhone}
+                      </a>
+                    ) : (
+                      <span className="text-slate-400">미입력</span>
+                    )}
+                  </span>
                 </span>
               </div>
             </div>

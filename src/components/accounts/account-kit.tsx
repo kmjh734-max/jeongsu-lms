@@ -310,7 +310,7 @@ export function AccountCreateModal({
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [details, setDetails] = useState({
+  const [details, setDetails] = useState<StudentDetailFields>({
     school: "",
     schoolGrade: "",
     birthDate: "",
@@ -318,7 +318,7 @@ export function AccountCreateModal({
     parentPhone: "",
     enrolledOn: "",
   });
-  const setField = (k: keyof typeof details) => (e: { target: { value: string } }) =>
+  const setField = (k: keyof StudentDetailFields) => (e: { target: { value: string } }) =>
     setDetails((d) => ({ ...d, [k]: e.target.value }));
 
   const [classIds, setClassIds] = useState<string[]>([]);
@@ -476,31 +476,7 @@ export function AccountCreateModal({
             {classError ? <p className="mt-1.5 text-[13px] text-rose-600">{classError}</p> : null}
           </div>
         ) : null}
-        {withStudentDetails ? (
-          <div className="rounded-xl bg-slate-50 p-3">
-            <p className="mb-2 text-xs font-semibold text-slate-600">학습일정표·상담에 쓰는 정보 (나중에 채워도 돼요)</p>
-            <div className="grid grid-cols-2 gap-2">
-              <Field label="학교">
-                <input value={details.school} onChange={setField("school")} className="ui-input" placeholder="동암중" />
-              </Field>
-              <Field label="학년">
-                <input value={details.schoolGrade} onChange={setField("schoolGrade")} className="ui-input" placeholder="중2" />
-              </Field>
-              <Field label="생년월일">
-                <input type="date" value={details.birthDate} onChange={setField("birthDate")} className="ui-input" />
-              </Field>
-              <Field label="입학일">
-                <input type="date" value={details.enrolledOn} onChange={setField("enrolledOn")} className="ui-input" />
-              </Field>
-              <Field label="본인 전화">
-                <input value={details.phone} onChange={setField("phone")} className="ui-input" placeholder="010-0000-0000" inputMode="numeric" />
-              </Field>
-              <Field label="학부모 전화">
-                <input value={details.parentPhone} onChange={setField("parentPhone")} className="ui-input" placeholder="010-0000-0000" inputMode="numeric" />
-              </Field>
-            </div>
-          </div>
-        ) : null}
+        {withStudentDetails ? <StudentDetailInputs details={details} setField={setField} /> : null}
         {flash?.type === "error" ? <Alert variant="error">{flash.text}</Alert> : null}
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="secondary" onClick={onClose}>
@@ -515,6 +491,51 @@ export function AccountCreateModal({
   );
 }
 
+/** 학생 수정 창에서 같이 고치는 신상 정보 (등록 창과 같은 칸) */
+export type StudentDetailFields = {
+  school: string;
+  schoolGrade: string;
+  birthDate: string;
+  phone: string;
+  parentPhone: string;
+  enrolledOn: string;
+};
+
+/** 신상 정보 여섯 칸 — 등록·수정 창이 같이 쓴다 */
+function StudentDetailInputs({
+  details,
+  setField,
+}: {
+  details: StudentDetailFields;
+  setField: (k: keyof StudentDetailFields) => (e: { target: { value: string } }) => void;
+}) {
+  return (
+    <div className="rounded-xl bg-slate-50 p-3">
+      <p className="mb-2 text-xs font-semibold text-slate-600">학습일정표·상담에 쓰는 정보 (나중에 채워도 돼요)</p>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="학교">
+          <input value={details.school} onChange={setField("school")} className="ui-input" placeholder="동암중" />
+        </Field>
+        <Field label="학년">
+          <input value={details.schoolGrade} onChange={setField("schoolGrade")} className="ui-input" placeholder="중2" />
+        </Field>
+        <Field label="생년월일">
+          <input type="date" value={details.birthDate} onChange={setField("birthDate")} className="ui-input" />
+        </Field>
+        <Field label="입학일">
+          <input type="date" value={details.enrolledOn} onChange={setField("enrolledOn")} className="ui-input" />
+        </Field>
+        <Field label="본인 전화">
+          <input value={details.phone} onChange={setField("phone")} className="ui-input" placeholder="010-0000-0000" inputMode="numeric" />
+        </Field>
+        <Field label="학부모 전화">
+          <input value={details.parentPhone} onChange={setField("parentPhone")} className="ui-input" placeholder="010-0000-0000" inputMode="numeric" />
+        </Field>
+      </div>
+    </div>
+  );
+}
+
 export function AccountEditModal({
   user,
   roleLabel,
@@ -523,17 +544,33 @@ export function AccountEditModal({
   flash,
   onSubmit,
   onClose,
+  studentDetails,
 }: {
   user: AccountBase;
   roleLabel: string;
   allowUsernameEdit: boolean;
   busy: boolean;
   flash: Flash;
-  onSubmit: (body: { name: string; username?: string }) => Promise<boolean>;
+  onSubmit: (body: { name: string; username?: string } & Record<string, unknown>) => Promise<boolean>;
   onClose: () => void;
+  /**
+   * 학생이면 전화번호·학교도 여기서 고친다 — 지금 저장된 값을 넣어 준다.
+   * 선생님 지적(2026-10-23): 등록 때 넣은 전화번호를 다시 볼 곳도, 고칠 곳도 없었다.
+   */
+  studentDetails?: Partial<Record<keyof StudentDetailFields, string | null>>;
 }) {
   const [name, setName] = useState(user.name);
   const [username, setUsername] = useState(user.username ?? "");
+  const [details, setDetails] = useState<StudentDetailFields>({
+    school: studentDetails?.school ?? "",
+    schoolGrade: studentDetails?.schoolGrade ?? "",
+    birthDate: studentDetails?.birthDate ?? "",
+    phone: studentDetails?.phone ?? "",
+    parentPhone: studentDetails?.parentPhone ?? "",
+    enrolledOn: studentDetails?.enrolledOn ?? "",
+  });
+  const setField = (k: keyof StudentDetailFields) => (e: { target: { value: string } }) =>
+    setDetails((d) => ({ ...d, [k]: e.target.value }));
 
   return (
     <Modal title={`${roleLabel} 정보 수정`} onClose={onClose}>
@@ -541,8 +578,9 @@ export function AccountEditModal({
         className="space-y-4"
         onSubmit={async (e) => {
           e.preventDefault();
-          const body: { name: string; username?: string } = { name };
+          const body: { name: string; username?: string } & Record<string, unknown> = { name };
           if (allowUsernameEdit) body.username = username;
+          if (studentDetails) Object.assign(body, details);
           if (await onSubmit(body)) onClose();
         }}
       >
@@ -566,6 +604,7 @@ export function AccountEditModal({
             className="ui-input disabled:bg-slate-50 disabled:text-slate-500"
           />
         </Field>
+        {studentDetails ? <StudentDetailInputs details={details} setField={setField} /> : null}
         {flash?.type === "error" ? <Alert variant="error">{flash.text}</Alert> : null}
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="secondary" onClick={onClose}>
