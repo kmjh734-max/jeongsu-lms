@@ -168,17 +168,41 @@ export function TodayStatusPanel({
         <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200">
           {status
             ? status.items.map((item: TodayStudyItem) => (
-                <li key={item.kind} className="flex items-start gap-2 px-3 py-2 text-sm">
+                /*
+                 * 마우스를 올리면(또는 탭으로 고르면) 무엇을 어디까지 했는지 자세한 줄이 뜬다.
+                 * 선생님 요청(2026-10-23): 요약은 그대로 두고 올리면 구체적으로 보이게.
+                 */
+                <li
+                  key={item.kind}
+                  tabIndex={0}
+                  className="group relative flex items-start gap-2 px-3 py-2 text-sm outline-none hover:bg-slate-50 focus:bg-slate-50"
+                >
                   <span className="w-8 shrink-0 pt-0.5 text-xs font-bold text-slate-500">
                     {TODAY_STUDY_KIND_LABELS[item.kind]}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-slate-800" title={item.title}>
-                      {item.title}
-                    </span>
+                    <span className="block truncate text-slate-800">{item.title}</span>
                     {item.detail ? <span className="block text-xs text-slate-500">{item.detail}</span> : null}
                   </span>
                   <StatePill state={item.state} />
+                  {item.details.length > 0 ? (
+                    <div
+                      role="tooltip"
+                      className="pointer-events-none absolute left-2 right-2 top-full z-20 hidden rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 shadow-lg group-hover:block group-focus:block"
+                    >
+                      <p className="mb-1 font-bold text-slate-900">
+                        {TODAY_STUDY_KIND_LABELS[item.kind]} · 어디까지 했나
+                      </p>
+                      <ul className="space-y-0.5">
+                        {item.details.map((line, i) => (
+                          <li key={i} className="flex gap-1.5">
+                            <span className="text-slate-400">·</span>
+                            <span className="min-w-0 break-words">{line}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                 </li>
               ))
             : (["vocab", "listening", "course"] as const).map((k) => (
