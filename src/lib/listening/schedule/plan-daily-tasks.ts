@@ -42,6 +42,15 @@ export type PlannedDailyTask = {
   question_ids: string[];
 };
 
+/** 이미 시작한 오늘 과제에서 안 푼 문항을 덜어 낸 결과 */
+export type PlannedDailyTaskUpdate = {
+  id: string;
+  /** 남길 문항 (원래 순서) */
+  question_ids: string[];
+  /** 다음 날로 넘기는 문항 */
+  removed_ids: string[];
+};
+
 export function isTaskDateInAssignment(
   taskDateIso: string,
   assignment: PlanAssignmentRule
@@ -76,6 +85,9 @@ function sameIdList(a: string[] | null | undefined, b: string[]): boolean {
 /**
  * - 오늘 이전 과제는 그대로 둔다(그 문항은 이미 나간 것으로 본다).
  * - 오늘·이후 과제는 끝냈거나, 시작했고 순서가 맞으면 그대로 둔다.
+ *   단, 하루 문항 수를 줄였는데 시작한 과제가 그보다 많으면 아직 손 안 댄 문항만 덜어 내
+ *   다음 날부터 다시 나눈다(updates). 선생님 지적(2026-10-23): 3문항으로 배정했다가 2문항으로
+ *   고쳤는데 그날 과제가 3문항으로 남았다 — 학생이 이미 풀기 시작한 뒤라 통째로 지켰기 때문.
  * - 나머지 날은 「이미 나간·끝낸 마지막 문항 다음」부터 새 규칙으로 채운다.
  *   (아무것도 나간 게 없으면 시작일 기준 순번으로 자른다)
  * - 일시정지한 날은 과제를 만들지 않고, 순번에서도 뺀다(다시 시작하면 멈춘 곳부터 이어짐).
@@ -89,18 +101,21 @@ export function planStudentDailyTasks(input: {
   completedQuestionIds: Iterable<string>;
   /** 오늘·이후 과제 중 진행 기록(객관식·받아쓰기)이 있는 과제 id */
   startedTaskIds?: ReadonlySet<string>;
+  /** 오늘·이후 과제에서 학생이 손댄(객관식·받아쓰기 기록이 있는) 문항 id — 덜어 낼 때 지킨다 */
+  touchedQuestionIds?: ReadonlySet<string>;
   todayIso: string;
   /** 유효 시작일로 이미 잘린 시작 */
   fromIso: string;
   toIso: string;
   /** 이 학생에게 걸린 일시정지 기간 (과제 전체 + 이 학생) */
   pausedRanges?: readonly PauseDateRange[];
-}): { idsToDelete: string[]; inserts: PlannedDailyTask[] } {
+}): { idsToDelete: string[]; inserts: PlannedDailyTask[]; updates: PlannedDailyTaskUpdate[] } {
   const {
     assignment,
     queue,
     existingRows,
     startedTaskIds,
+    touchedQuestionIds,
     todayIso,
     fromIso,
     toIso,
@@ -110,7 +125,8 @@ export function planStudentDailyTasks(input: {
 
   const idsToDelete: string[] = [];
   const inserts: PlannedDailyTask[] = [];
-  if (fromIso > toIso || queue.length === 0) return { idsToDelete, inserts };
+  const updates: PlannedDailyTaskUpdate[] = [];
+  if (fromIso > toIso || queue.length === 0) return { idsToDelete, inserts, updates };
 
   const consumed = new Set<string>();
   for (const row of existingRows) {
@@ -142,8 +158,29 @@ export function planStudentDailyTasks(input: {
       (isTaskStarted(row, startedTaskIds) && sequential);
 
     if (keep) {
-      locked.push(row);
-      for (const id of row.question_ids ?? []) consumed.add(id);
+      let ids = row.question_ids ?? [];
+      const perDay = assignment.questions_per_day;
+      if (row.status !== "completed" && perDay > 0 && ids.length > perDay) {
+        // 끝냈거나 손댄 마지막 문항까지는 지키고, 그 뒤 꼬리에서만 새 하루 문항 수까지 남긴다.
+        // (큐는 「나간 마지막 문항 다음」부터 이어지므로 중간 문항을 빼면 사라진다 — 꼬리만 덜어 낸다)
+        const lastMust = ids.reduce(
+          (acc, id, i) => (consumed.has(id) || touchedQuestionIds?.has(id) ? i : acc),
+          -1
+        );
+        const head = ids.slice(0, lastMust + 1);
+        const tailKeep = Math.max(0, perDay - head.length);
+        const kept = [...head, ...ids.slice(lastMust + 1, lastMust + 1 + tailKeep)];
+        if (kept.length < ids.length) {
+          updates.push({
+            id: row.id,
+            question_ids: kept,
+            removed_ids: ids.filter((id) => !kept.includes(id)),
+          });
+          ids = kept;
+        }
+      }
+      locked.push({ ...row, question_ids: ids });
+      for (const id of ids) consumed.add(id);
       continue;
     }
 
@@ -230,5 +267,5 @@ export function planStudentDailyTasks(input: {
     futureDates.forEach((iso, i) => reconcile(iso, slices[i] ?? null));
   }
 
-  return { idsToDelete, inserts };
+  return { idsToDelete, inserts, updates };
 }

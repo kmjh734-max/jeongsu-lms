@@ -41,6 +41,30 @@ type DailyTaskInsert = {
 const STARTED_PROGRESS_FILTER =
   "objective_completed.eq.true,dictation_completed.eq.true,completed.eq.true,dictation_score.not.is.null";
 
+/** 오늘·이후 과제에서 학생이 손댄 문항 id (객관식·받아쓰기 기록이 하나라도 있는 문항) */
+async function loadTouchedQuestionIds(
+  admin: SupabaseClient,
+  taskIds: string[]
+): Promise<Set<string>> {
+  const touched = new Set<string>();
+  const chunks: string[][] = [];
+  for (let i = 0; i < taskIds.length; i += 100) chunks.push(taskIds.slice(i, i + 100));
+  const parts = await Promise.all(
+    chunks.map(async (chunk) => {
+      const { data } = await admin
+        .from("listening_daily_task_progress")
+        .select("question_id")
+        .in("daily_task_id", chunk)
+        .or(STARTED_PROGRESS_FILTER);
+      return data ?? [];
+    })
+  );
+  for (const data of parts) {
+    for (const row of data) touched.add(row.question_id as string);
+  }
+  return touched;
+}
+
 export async function loadStartedTaskIds(
   admin: SupabaseClient,
   taskIds: string[]
@@ -235,25 +259,62 @@ export async function ensureDailyTasksForStudentRange(
   }
 
   // 오늘 과제를 풀기 시작했으면(끝낸 문항이 아직 없어도) 그대로 둔다
-  const startedTaskIds = await loadStartedTaskIds(
-    admin,
-    existingRows
-      .filter((row) => row.task_date >= todayIso && !isTaskStarted(row))
-      .map((row) => row.id)
-  );
+  const upcomingRows = existingRows.filter((row) => row.task_date >= todayIso);
+  const [startedTaskIds, touchedQuestionIds] = await Promise.all([
+    loadStartedTaskIds(
+      admin,
+      upcomingRows.filter((row) => !isTaskStarted(row)).map((row) => row.id)
+    ),
+    // 하루 문항 수를 줄였을 때 시작한 과제에서 덜어 내도 되는 문항을 가리려면 손댄 문항을 알아야 한다
+    loadTouchedQuestionIds(
+      admin,
+      upcomingRows
+        .filter((row) => (row.question_ids?.length ?? 0) > assignment.questions_per_day)
+        .map((row) => row.id)
+    ),
+  ]);
 
-  const { idsToDelete, inserts } = planStudentDailyTasks({
+  const { idsToDelete, inserts, updates } = planStudentDailyTasks({
     // 끝나는 날이 있으면 쉰 날만큼 뒤로 민 규칙으로 짠다
     assignment: applyPausesToAssignment(assignment, pausedRanges),
     queue: resolvedQueue,
     existingRows,
     completedQuestionIds,
     startedTaskIds,
+    touchedQuestionIds,
     todayIso,
     fromIso: clampedFrom,
     toIso,
     pausedRanges,
   });
+
+  // 시작한 오늘 과제에서 안 푼 문항을 덜어 낸다 — 덜어 낸 문항은 아래 inserts 로 다음 날에 들어간다
+  for (const u of updates) {
+    if (u.removed_ids.length > 0) {
+      await admin
+        .from("listening_daily_task_progress")
+        .delete()
+        .eq("daily_task_id", u.id)
+        .in("question_id", u.removed_ids);
+    }
+    const { data: left } = await admin
+      .from("listening_daily_task_progress")
+      .select("completed")
+      .eq("daily_task_id", u.id);
+    const completedCount = (left ?? []).filter((r) => r.completed).length;
+    const total = u.question_ids.length;
+    const allDone = total > 0 && completedCount >= total;
+    await admin
+      .from("listening_daily_tasks")
+      .update({
+        question_ids: u.question_ids,
+        total_count: total,
+        completed_count: completedCount,
+        status: allDone ? "completed" : completedCount > 0 ? "in_progress" : "pending",
+        completed_at: allDone ? new Date().toISOString() : null,
+      })
+      .eq("id", u.id);
+  }
 
   const pending: DailyTaskInsert[] = inserts.map((task) => ({
     assignment_id: assignment.id,
