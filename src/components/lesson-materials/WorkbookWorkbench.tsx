@@ -40,6 +40,8 @@ import {
   DEFAULT_WORKBOOK_BLANK_OPTIONS,
   DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
+  GIST_KIND_LABEL,
+  parseGistOptions,
   clampGrammarFixErrors,
   clampTfCount,
   parseGrammarFixMode,
@@ -68,6 +70,7 @@ import {
   type WorkbookGrammarChoiceSection,
   type WorkbookGrammarChoiceSkip,
   type WorkbookLineTranslationSection,
+  type WorkbookGistSection,
   type WorkbookPassageSection,
   type WorkbookSentenceOrderQuestion,
   type WorkbookTypeId,
@@ -247,6 +250,8 @@ function withWorkbookDefaults(w: WorkbookData): WorkbookData {
     sentenceOrderSkipped: w.sentenceOrderSkipped ?? [],
     lineTranslationSections: w.lineTranslationSections ?? [],
     lineTranslationSkipped: w.lineTranslationSkipped ?? [],
+    gistSections: w.gistSections ?? [],
+    gistSkipped: w.gistSkipped ?? [],
     fullEnWritingSections: w.fullEnWritingSections ?? [],
     fullEnWritingSkipped: w.fullEnWritingSkipped ?? [],
     wordOrderWritingSections: w.wordOrderWritingSections ?? [],
@@ -1074,6 +1079,98 @@ function LineTranslationQuestionBody({
   );
 }
 
+/** 제목·주제·요지 해석(2026-10-24): 해석 적기와 같은 모양에 갈래 꼬리표(제목·주제·요지)를 단다. */
+function GistKindTag({ kind }: { kind: keyof typeof GIST_KIND_LABEL }) {
+  return (
+    <span
+      className="wb-gist-kind mr-1.5 inline-block rounded px-1.5 py-0.5 align-middle text-[10.5px] font-bold leading-none"
+      style={{ background: "#eef2ff", color: "#3730a3" }}
+    >
+      {GIST_KIND_LABEL[kind]}
+    </span>
+  );
+}
+
+function GistQuestionBody({
+  section,
+  itemIndices,
+  continued,
+}: {
+  section: WorkbookGistSection;
+  itemIndices?: number[];
+  continued?: boolean;
+}) {
+  const items =
+    itemIndices != null ? itemIndices.map((i) => section.items[i]!).filter(Boolean) : section.items;
+  return (
+    <>
+      <PassageMeta projectId={section.projectId} source={section.source} continued={continued} gap="mb-3" spacer />
+      {!continued ? (
+        <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
+          다음은 이 글의 제목·주제·요지를 바꿔 쓴 영어입니다. 우리말로 해석하세요.
+        </p>
+      ) : null}
+      <div>
+        {items.map((it) => (
+          <div
+            key={`${section.projectId}-gi-${it.orderIndex}`}
+            className="line-translation-item"
+            data-wb-item={`gi-${section.projectId}-${it.orderIndex}`}
+          >
+            <div className="line-translation-question">
+              <span className="line-translation-number">{it.orderIndex}.</span>
+              <p className="line-translation-english">
+                <GistKindTag kind={it.kind} />
+                {it.english}
+              </p>
+            </div>
+            <div className="line-translation-answer">
+              {Array.from({ length: it.answerLineCount }, (_, i) => (
+                <div key={`gal-${it.orderIndex}-${i}`} className="translation-answer-line" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function GistAnswerBody({
+  section,
+  typeOrder,
+  itemIndices,
+  showHeader = true,
+}: {
+  section: WorkbookGistSection;
+  typeOrder: number;
+  itemIndices?: number[];
+  showHeader?: boolean;
+}) {
+  const items =
+    itemIndices != null ? itemIndices.map((i) => section.items[i]!).filter(Boolean) : section.items;
+  return (
+    <div className="line-translation-answer-key">
+      {showHeader ? (
+        <h3 className="wb-ak-title mb-1 text-[12.5px] font-black" style={{ color: ACCENT }}>
+          <TitleNo no={typeOrder} /> 제목·주제·요지 해석
+          <AnswerTag projectId={section.projectId} source={section.source} />
+        </h3>
+      ) : null}
+      <div className="space-y-0.5">
+        {items.map((it) => (
+          <div key={`gia-${section.projectId}-${it.orderIndex}`} className="break-inside-avoid" style={{ pageBreakInside: "avoid" }}>
+            <p className="line-translation-answer-key-korean">
+              <span className="wb-ak-no font-bold text-slate-700">{it.orderIndex}.</span> <GistKindTag kind={it.kind} />
+              {it.korean}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** 정답지에서 쪽을 넘겨 이어지는 지문 위에 다는 한 줄. */
 function AnswerContinued({
   typeOrder,
@@ -1375,17 +1472,19 @@ type ColumnPage = {
 };
 
 /** 한줄해석·통문장 영작·어순배열 영작: 문항 단위로 쪽을 나누고 지문을 이어 싣는다. */
-type FlowKind = "line_ko" | "full_en" | "word_order" | "key_word_order";
+type FlowKind = "line_ko" | "gist" | "full_en" | "word_order" | "key_word_order";
 type FlowPart = { sectionIndex: number; itemIndices: number[]; continued: boolean };
 
 const FLOW_KIND_BY_TYPE: Partial<Record<WorkbookTypeId, FlowKind>> = {
   one_line_ko: "line_ko",
+  gist_ko: "gist",
   full_en_writing: "full_en",
   word_order_writing: "word_order",
   key_word_order: "key_word_order",
 };
 const FLOW_TITLE: Record<FlowKind, string> = {
   line_ko: "해석 적기",
+  gist: "제목·주제·요지 해석",
   full_en: "통문장 영작",
   word_order: "어순배열 영작",
   key_word_order: "중요문장 어순배열",
@@ -1643,6 +1742,7 @@ export function WorkbookWorkbench({
       vocabChoiceSections: apply(w.vocabChoiceSections),
       vocabFixSections: apply(w.vocabFixSections),
       lineTranslationSections: apply(w.lineTranslationSections),
+      gistSections: apply(w.gistSections),
       fullEnWritingSections: apply(w.fullEnWritingSections),
       wordOrderWritingSections: apply(w.wordOrderWritingSections),
       keyWordOrderSections: apply(w.keyWordOrderSections),
@@ -1892,6 +1992,7 @@ export function WorkbookWorkbench({
       workbook.blankSections,
       workbook.sections,
       workbook.lineTranslationSections ?? [],
+      workbook.gistSections ?? [],
       workbook.fullEnWritingSections ?? [],
       workbook.wordOrderWritingSections ?? [],
       workbook.keyWordOrderSections ?? [],
@@ -2072,6 +2173,7 @@ export function WorkbookWorkbench({
             (cached.grammarChoiceSections?.length ?? 0) > 0 ||
             (cached.sentenceOrderQuestions?.length ?? 0) > 0 ||
             (cached.lineTranslationSections?.length ?? 0) > 0 ||
+            (cached.gistSections?.length ?? 0) > 0 ||
             (cached.fullEnWritingSections?.length ?? 0) > 0 ||
             (cached.wordOrderWritingSections?.length ?? 0) > 0 ||
             (cached.keyWordOrderSections?.length ?? 0) > 0 ||
@@ -2147,6 +2249,7 @@ export function WorkbookWorkbench({
       };
       const wantSentenceOrder = types.includes("sentence_order");
       const wantLineKo = types.includes("one_line_ko");
+      const wantGist = types.includes("gist_ko");
       const wantFullEn = types.includes("full_en_writing");
       const wantWordOrder = types.includes("word_order_writing") || types.includes("key_word_order");
       const ltExclude = (searchParams.get("ltExclude") ?? "")
@@ -2161,6 +2264,7 @@ export function WorkbookWorkbench({
           needVocab,
           wantSentenceOrder,
           wantLineKo,
+          wantGist,
           wantFullEn,
           wantWordOrder,
           ...types.filter(isTbWorkbookType),
@@ -2202,6 +2306,8 @@ export function WorkbookWorkbench({
             ? "새로 만들고 있습니다…"
             : "한줄해석 워크북을 만들고 있습니다…"
         );
+      } else if (wantGist) {
+        setStatus(creatingNew ? "새로 만들고 있습니다…" : "제목·주제·요지 해석 워크북을 만들고 있습니다…");
       } else if (wantSentenceOrder) {
         setStatus(
           creatingNew
@@ -2367,6 +2473,7 @@ export function WorkbookWorkbench({
               projectIds: ids,
               selectedTypes: types,
               tfOptions: { count, language, difficulty },
+              gistOptions: wantGist ? parseGistOptions(searchParams.get("gist")) : undefined,
               blankOptions,
               title,
               lineTranslationExcludeIds: ltExclude,
@@ -2867,6 +2974,7 @@ export function WorkbookWorkbench({
     const types = orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder);
     const soQuestions = workbook.sentenceOrderQuestions ?? [];
     const ltSections = workbook.lineTranslationSections ?? [];
+    const giSections = workbook.gistSections ?? [];
     const feSections = workbook.fullEnWritingSections ?? [];
     const woSections = workbook.wordOrderWritingSections ?? [];
     const kwSections = workbook.keyWordOrderSections ?? [];
@@ -2893,6 +3001,7 @@ export function WorkbookWorkbench({
     };
     const flowSections: Record<FlowKind, Array<{ items: unknown[] }>> = {
       line_ko: ltSections,
+      gist: giSections,
       full_en: feSections,
       word_order: woSections,
       key_word_order: kwSections,
@@ -3066,6 +3175,8 @@ export function WorkbookWorkbench({
     const wo = workbook.wordOrderWritingSections ?? [];
     const separate = (t: WorkbookTypeId) => workbook.passageBreak?.[t] === "page";
     if (lt.length) next.line_ko = packFlow("lt", lt, separate("one_line_ko"));
+    const gi = workbook.gistSections ?? [];
+    if (gi.length) next.gist = packFlow("gi", gi, separate("gist_ko"));
     if (fe.length) next.full_en = packFlow("fe", fe, separate("full_en_writing"));
     if (wo.length) next.word_order = packFlow("wo", wo, separate("word_order_writing"));
     const kw = workbook.keyWordOrderSections ?? [];
@@ -3386,6 +3497,8 @@ export function WorkbookWorkbench({
   const soSkipped = workbook.sentenceOrderSkipped ?? [];
   const ltSections = workbook.lineTranslationSections ?? [];
   const ltSkipped = workbook.lineTranslationSkipped ?? [];
+  const giSections = workbook.gistSections ?? [];
+  const giSkipped = workbook.gistSkipped ?? [];
   const feSections = workbook.fullEnWritingSections ?? [];
   const feSkipped = workbook.fullEnWritingSkipped ?? [];
   const woSections = workbook.wordOrderWritingSections ?? [];
@@ -3569,6 +3682,13 @@ export function WorkbookWorkbench({
         />
       ));
       addSkipped("lts", olt, ltSkipped);
+    }
+    const ogi = typeOrders.get("gist_ko");
+    if (ogi != null) {
+      addSentenceBlocks("gia", ogi, "제목·주제·요지 해석", giSections, 2, (section, ii, showHeader) => (
+        <GistAnswerBody section={section} typeOrder={ogi} itemIndices={[ii]} showHeader={showHeader} />
+      ));
+      addSkipped("gis", ogi, giSkipped);
     }
     const ofe = typeOrders.get("full_en_writing");
     if (ofe != null) {
@@ -3839,6 +3959,12 @@ export function WorkbookWorkbench({
                             itemIndices={part.itemIndices}
                             continued={part.continued}
                           />
+                        ) : page.flow === "gist" ? (
+                          <GistQuestionBody
+                            section={giSections[part.sectionIndex]!}
+                            itemIndices={part.itemIndices}
+                            continued={part.continued}
+                          />
                         ) : page.flow === "full_en" ? (
                           <FullEnWritingQuestionBody
                             section={feSections[part.sectionIndex]!}
@@ -4006,6 +4132,35 @@ export function WorkbookWorkbench({
                         key={`m-al-${it.sentenceId}-${i}`}
                         className="translation-answer-line"
                       />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+          {giSections.map((section, si) => (
+            <div key={`m-gi-${section.projectId}`}>
+              <div data-wb-measure={`gi-intro-${si}`}>
+                <PassageMeta projectId={section.projectId} source={section.source} gap="mb-3" spacer />
+                <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
+                  다음은 이 글의 제목·주제·요지를 바꿔 쓴 영어입니다. 우리말로 해석하세요.
+                </p>
+              </div>
+              <div data-wb-measure={`gi-cont-${si}`}>
+                <PassageMeta projectId={section.projectId} source={section.source} continued gap="mb-3" spacer />
+              </div>
+              {section.items.map((it, ii) => (
+                <div key={`m-gi-item-${it.orderIndex}`} className="line-translation-item" data-wb-measure={`gi-item-${si}-${ii}`}>
+                  <div className="line-translation-question">
+                    <span className="line-translation-number">{it.orderIndex}.</span>
+                    <p className="line-translation-english">
+                      <GistKindTag kind={it.kind} />
+                      {it.english}
+                    </p>
+                  </div>
+                  <div className="line-translation-answer">
+                    {Array.from({ length: it.answerLineCount }, (_, i) => (
+                      <div key={`m-gal-${it.orderIndex}-${i}`} className="translation-answer-line" />
                     ))}
                   </div>
                 </div>

@@ -8,7 +8,13 @@ import { Alert } from "@/components/ui/Alert";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import {
   DEFAULT_WORKBOOK_BLANK_OPTIONS,
+  DEFAULT_WORKBOOK_GIST_OPTIONS,
   DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS,
+  GIST_KIND_LABEL,
+  MAX_GIST_COUNT,
+  clampGistCount,
+  gistOptionsParam,
+  type WorkbookGistOptions,
   DEFAULT_WORKBOOK_TF_OPTIONS,
   GRAMMAR_FIX_ERROR_COUNTS,
   MAX_TF_COUNT,
@@ -66,6 +72,8 @@ export function buildWorkbookHref(
     tbLevel?: "basic" | "up";
     /** 단어 시험 유형마다 문항 수 */
     vocabExam?: VocabExamOptions;
+    /** 제목·주제·요지 해석: 갈래마다 개수 */
+    gistOptions?: WorkbookGistOptions;
     title: string;
     /** 저장된 결과(어법·어휘·빈칸·어순)가 있어도 새 문항으로 만든다. */
     regenerate?: boolean;
@@ -100,6 +108,7 @@ export function buildWorkbookHref(
     params.set("vcLevel", opts.vocabWordLevel ?? "normal");
   }
   if (opts.tbLevel === "up" && types.some(isTbWorkbookType)) params.set("tbLevel", "up");
+  if (types.includes("gist_ko")) params.set("gist", gistOptionsParam(opts.gistOptions ?? DEFAULT_WORKBOOK_GIST_OPTIONS));
   if (types.includes("tb_vocab_exam") && opts.vocabExam) {
     params.set("vx", Object.entries(opts.vocabExam.counts).map(([k, n]) => `${k}:${n}`).join(","));
   }
@@ -117,6 +126,7 @@ export function workbookPaidItems(types: WorkbookTypeId[], n: number): Array<{ f
   if (types.includes("vocab_choice") || types.includes("vocab_fix"))
     paid.push({ feature: "lesson_workbook_vocab_choice", quantity: n });
   if (types.includes("tf")) paid.push({ feature: "lesson_workbook_tf", quantity: n });
+  if (types.includes("gist_ko")) paid.push({ feature: "lesson_workbook_gist", quantity: n });
   // 한 줄 해석·전체 영작·제시어 배열도 모델을 부른다(2026-09-29부터 값을 받는다)
   if (
     types.includes("one_line_ko") ||
@@ -185,6 +195,7 @@ export function WorkbookCreateModal({
   // 테스트 교재 유형 난이도 UP은 바꿔 말하기에만 있었다 — 바꿔 말하기를 빼며 늘 기본(2026-10-21)
   const tbLevel = "basic" as "basic" | "up";
   const [vocabExam, setVocabExam] = useState<VocabExamOptions>(DEFAULT_VOCAB_EXAM);
+  const [gistOptions, setGistOptions] = useState<WorkbookGistOptions>(DEFAULT_WORKBOOK_GIST_OPTIONS);
   /** 해석 적기: 문장마다(한줄해석) / 끊어 읽기(직독직해) */
   const [lineMode, setLineMode] = useState<"full" | "chunk">("full");
   const [title, setTitle] = useState(() => defaultWorkbookTitle());
@@ -218,6 +229,7 @@ export function WorkbookCreateModal({
   const wantWordOrder = selected.has("word_order_writing");
   const wantKeyWordOrder = selected.has("key_word_order");
   const wantVocabExam = selected.has("tb_vocab_exam");
+  const wantGist = selected.has("gist_ko");
 
   if (!open || asking) return null;
 
@@ -256,6 +268,10 @@ export function WorkbookCreateModal({
       setError("선택된 자료가 없습니다.");
       return;
     }
+    if (wantGist && gistOptions.title + gistOptions.topic + gistOptions.gist === 0) {
+      setError("제목·주제·요지 해석은 적어도 한 갈래의 개수를 1 이상으로 해 주세요.");
+      return;
+    }
     // 해석 적기를 끊어 읽기로 고르면 직독직해 유형으로 만든다
     const types = lineMode === "chunk" ? readySelected.map((t) => (t === "one_line_ko" ? "tb_chunk_line" : t)) : readySelected;
     const href = buildWorkbookHref(role, {
@@ -271,6 +287,7 @@ export function WorkbookCreateModal({
       vocabWordLevel,
       tbLevel,
       vocabExam,
+      gistOptions,
       title: title.trim() || defaultWorkbookTitle(),
       regenerate,
     });
@@ -669,6 +686,35 @@ export function WorkbookCreateModal({
                 </div>
               ) : null}
 
+              {wantGist ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-bold text-slate-900">제목·주제·요지 해석</p>
+                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                    {(Object.keys(GIST_KIND_LABEL) as Array<keyof typeof GIST_KIND_LABEL>).map((k) => (
+                      <OptionRow key={k} tone="violet" label={`${GIST_KIND_LABEL[k]} 개수`}>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {Array.from({ length: MAX_GIST_COUNT + 1 }, (_, n) => (
+                            <button
+                              key={n}
+                              type="button"
+                              onClick={() => setGistOptions((o) => ({ ...o, [k]: clampGistCount(n) }))}
+                              className={`rounded-md px-3 py-1 text-xs font-bold ${
+                                gistOptions[k] === n ? "bg-violet-600 text-white" : "border border-slate-200 bg-white text-slate-600"
+                              }`}
+                            >
+                              {n === 0 ? "안 냄" : `${n}개`}
+                            </button>
+                          ))}
+                        </div>
+                      </OptionRow>
+                    ))}
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-slate-600">
+                    지문의 제목·주제·요지를 지문 문장을 베끼지 않고 바꿔 쓴 영어로 주고, 학생이 우리말로 해석합니다. 제목은 명사구,
+                    요지는 완전한 문장으로 나오며 정답지에는 우리말 해석이 실립니다.
+                  </p>
+                </div>
+              ) : null}
               {wantLineKo ? (
                 <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                   <p className="text-sm font-bold text-slate-900">해석 적기</p>

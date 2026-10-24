@@ -15,6 +15,7 @@ import { mapLineTranslationToFullEnWriting } from "@/lib/lesson-materials/genera
 import { generateWorkbookLineTranslation } from "@/lib/lesson-materials/generate-workbook-line-translation";
 import { generateWorkbookSentenceOrder } from "@/lib/lesson-materials/generate-workbook-sentence-order";
 import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf";
+import { generateWorkbookGist } from "@/lib/lesson-materials/generate-workbook-gist";
 import { generateWorkbookWordOrderWriting } from "@/lib/lesson-materials/generate-workbook-word-order-writing";
 import { generateWorkbookGrammarChoice } from "@/lib/lesson-materials/generate-workbook-grammar-choice";
 import {
@@ -36,7 +37,9 @@ import {
 } from "@/lib/lesson-materials/vocab-choice";
 import {
   DEFAULT_WORKBOOK_TF_OPTIONS,
+  DEFAULT_WORKBOOK_GIST_OPTIONS,
   READY_WORKBOOK_TYPE_IDS,
+  clampGistCount,
   clampTfCount,
   defaultWorkbookTitle,
   parseBlankHintType,
@@ -45,6 +48,7 @@ import {
   sortWorkbookTypesByPrintOrder,
   type WorkbookBlankFillOptions,
   type WorkbookData,
+  type WorkbookGistOptions,
   type WorkbookTfOptions,
   type WorkbookGrammarChoiceSection,
   type WorkbookGrammarChoiceSkip,
@@ -81,6 +85,8 @@ export async function generateWorkbookAction(
     selectedTypes: WorkbookTypeId[];
     tfOptions?: Partial<WorkbookTfOptions>;
     blankOptions?: Partial<WorkbookBlankFillOptions>;
+    /** 제목·주제·요지 해석: 갈래마다 개수(2026-10-24) */
+    gistOptions?: Partial<WorkbookGistOptions>;
     title?: string;
     /** Exclude these project IDs from one-line translation only */
     lineTranslationExcludeIds?: string[];
@@ -126,6 +132,12 @@ export async function generateWorkbookAction(
 
   const wantTf = types.includes("tf");
   const wantBlank = types.includes("blank_fill");
+  const wantGist = types.includes("gist_ko");
+  const gistOptions: WorkbookGistOptions = {
+    title: clampGistCount(input.gistOptions?.title ?? DEFAULT_WORKBOOK_GIST_OPTIONS.title),
+    topic: clampGistCount(input.gistOptions?.topic ?? DEFAULT_WORKBOOK_GIST_OPTIONS.topic),
+    gist: clampGistCount(input.gistOptions?.gist ?? DEFAULT_WORKBOOK_GIST_OPTIONS.gist),
+  };
   // 어법 선택은 지문당 30~180초가 걸려 다른 유형과 한 요청에 묶으면 함수 실행시간
   // 상한을 넘긴다. 클라이언트가 generateGrammarChoicePassageAction으로 지문 단위로
   // 따로 호출할 때는 여기서 건너뛰고, 유형 선택 자체는 워크북 구조에 그대로 남긴다.
@@ -281,6 +293,8 @@ export async function generateWorkbookAction(
     sentenceOrderSkipped: [],
     lineTranslationSections: [],
     lineTranslationSkipped: [],
+    gistSections: [],
+    gistSkipped: [],
     fullEnWritingSections: [],
     fullEnWritingSkipped: [],
     wordOrderWritingSections: [],
@@ -298,6 +312,7 @@ export async function generateWorkbookAction(
   for (const [want, feature, what] of [
     [wantBilingual, LESSON_CREDIT_FEATURES.workbookLineTranslation, "한 줄 해석·전체 영작"],
     [wantWordOrder, LESSON_CREDIT_FEATURES.workbookWordOrder, "제시어 배열 영작"],
+    [wantGist, LESSON_CREDIT_FEATURES.workbookGist, "제목·주제·요지 해석"],
   ] as const) {
     if (!want) continue;
     const hold = await reserveLessonCredits({
@@ -498,6 +513,20 @@ export async function generateWorkbookAction(
           })
         )
       : null;
+    // 제목·주제·요지 해석: 지문당 한 번, 다른 갈래와 동시에(2026-10-24)
+    const gistTask = wantGist
+      ? settle(
+          generateWorkbookGist({
+            passages: passages.map((p) => ({
+              projectId: p.projectId,
+              title: p.title,
+              source: p.source,
+              englishLines: p.englishLines,
+            })),
+            options: gistOptions,
+          })
+        )
+      : null;
     // 중요 문장: 분석서 「주제문」 → 빈칸 후보 핵심 문장 → 규칙 점수(새 모델 호출 없음)
     const keyIdsByProject = new Map(
       passages.map((p) => [
@@ -598,6 +627,33 @@ export async function generateWorkbookAction(
       if (workbook.timing && !wantBlank) {
         workbook.timing.openAiRequestCount = passages.length;
       }
+    }
+
+    if (wantGist) {
+      // 던지면 바깥 catch가 잡아 둔 값을 되돌린다. T/F 값은 T/F 쪽에서 따로 잡아 여기서 같이 되돌린다.
+      let gist;
+      try {
+        gist = unwrap(await gistTask!);
+        if (gist.sections.length === 0) {
+          throw new Error(
+            `제목·주제·요지를 만들지 못했습니다. ${gist.skipped[0]?.reason ?? ""}`.trim()
+          );
+        }
+      } catch (e) {
+        if (tfHold > 0) {
+          await refundLessonCredits({
+            academyId: profile!.academy_id!,
+            actorId: profile!.id,
+            amount: tfHold,
+            note: "제목·주제·요지를 만들지 못해 O/X 값 되돌림",
+          });
+          tfHold = 0;
+        }
+        throw e;
+      }
+      workbook.gistSections = gist.sections;
+      workbook.gistSkipped = gist.skipped;
+      workbook.gistOptions = gistOptions;
     }
 
     if (wantSentenceOrder) {

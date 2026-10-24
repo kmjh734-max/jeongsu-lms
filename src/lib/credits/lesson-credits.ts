@@ -38,6 +38,8 @@ export const LESSON_CREDIT_FEATURES = {
   workbookWordOrder: "lesson_workbook_word_order",
   /** 워크북 한 줄 해석·전체 영작, 지문당 */
   workbookLineTranslation: "lesson_workbook_line_translation",
+  /** 워크북 제목·주제·요지 해석, 지문당(2026-10-24) */
+  workbookGist: "lesson_workbook_gist",
   /** 문장 해석 다시 만들기(자료함), 지문당 */
   lineTranslate: "lesson_line_translate",
 } as const;

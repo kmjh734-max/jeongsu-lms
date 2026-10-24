@@ -13,6 +13,8 @@ export type WorkbookTypeId =
   /** @deprecated removed from catalog; kept for old session payloads */
   | "vocab_example"
   | "one_line_ko"
+  /** 제목·주제·요지 해석: 바꿔 쓴 영어 제목·주제·요지를 주고 우리말로 해석(선생님 2026-10-24) */
+  | "gist_ko"
   | "full_en_writing"
   | "word_order_writing"
   /** 주제문·핵심 문장만 골라 어순배열(2026-10-07) */
@@ -58,6 +60,14 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     ready: true,
     displayOrder: 1,
     printOrder: 1,
+  },
+  {
+    id: "gist_ko",
+    title: "제목·주제·요지 해석",
+    subtitle: "바꿔 쓴 영어 제목·주제·요지를 우리말로 해석하기",
+    ready: true,
+    displayOrder: 1.7,
+    printOrder: 1.7,
   },
   {
     id: "tf",
@@ -158,6 +168,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
 /** 학습 계획표 이수 칸에 쓰는 짧은 이름(최종통합자료 계획표가 고른 워크북 유형으로 칸을 만든다) */
 export const WORKBOOK_TYPE_SHORT: Record<WorkbookTypeId, string> = {
   one_line_ko: "해석",
+  gist_ko: "제목주제",
   tf: "T/F",
   blank_fill: "빈칸",
   grammar_choice: "어법",
@@ -446,6 +457,48 @@ export type WorkbookLineTranslationSkip = {
   reason: string;
 };
 
+/** 제목·주제·요지 해석(선생님 2026-10-24): 갈래마다 몇 개를 줄지(0~3). */
+export type WorkbookGistOptions = {
+  title: number;
+  topic: number;
+  gist: number;
+};
+export const DEFAULT_WORKBOOK_GIST_OPTIONS: WorkbookGistOptions = { title: 1, topic: 1, gist: 1 };
+export const MAX_GIST_COUNT = 3;
+export function clampGistCount(n: unknown): number {
+  const v = Math.floor(Number(n));
+  if (!Number.isFinite(v)) return 1;
+  return Math.max(0, Math.min(MAX_GIST_COUNT, v));
+}
+/** "1,1,1"(제목,주제,요지) ↔ 옵션 */
+export function parseGistOptions(raw: string | null | undefined): WorkbookGistOptions {
+  if (!raw?.trim()) return DEFAULT_WORKBOOK_GIST_OPTIONS;
+  const [t, p, g] = raw.split(",").map((x) => clampGistCount(x));
+  return { title: t ?? 1, topic: p ?? 1, gist: g ?? 1 };
+}
+export function gistOptionsParam(o: WorkbookGistOptions): string {
+  return [o.title, o.topic, o.gist].map(clampGistCount).join(",");
+}
+export const GIST_KIND_LABEL = { title: "제목", topic: "주제", gist: "요지" } as const;
+export type WorkbookGistKind = keyof typeof GIST_KIND_LABEL;
+
+export type WorkbookGistItem = {
+  orderIndex: number;
+  kind: WorkbookGistKind;
+  /** 지문 문장을 베끼지 않고 바꿔 쓴 영어 */
+  english: string;
+  /** 정답(우리말 해석) */
+  korean: string;
+  answerLineCount: number;
+};
+
+export type WorkbookGistSection = {
+  projectId: string;
+  title: string;
+  source: string | null;
+  items: WorkbookGistItem[];
+};
+
 export type WorkbookFullEnWritingItem = {
   sentenceId: string;
   orderIndex: number;
@@ -721,6 +774,10 @@ export type WorkbookData = {
   /** One-line Korean translation sections */
   lineTranslationSections?: WorkbookLineTranslationSection[];
   lineTranslationSkipped?: WorkbookLineTranslationSkip[];
+  /** 제목·주제·요지 해석(영어 제시 → 우리말 해석) */
+  gistSections?: WorkbookGistSection[];
+  gistSkipped?: WorkbookLineTranslationSkip[];
+  gistOptions?: WorkbookGistOptions;
   /** Full-sentence English writing (Korean prompt → English answer) */
   fullEnWritingSections?: WorkbookFullEnWritingSection[];
   fullEnWritingSkipped?: WorkbookLineTranslationSkip[];

@@ -66,6 +66,11 @@ export function mergeAddedWorkbookTypes(
     out.lineTranslationSections = fresh.lineTranslationSections ?? [];
     out.lineTranslationSkipped = fresh.lineTranslationSkipped ?? [];
   }
+  if (add.has("gist_ko")) {
+    out.gistSections = fresh.gistSections ?? [];
+    out.gistSkipped = fresh.gistSkipped ?? [];
+    out.gistOptions = fresh.gistOptions ?? base.gistOptions;
+  }
   if (add.has("full_en_writing")) {
     out.fullEnWritingSections = fresh.fullEnWritingSections ?? [];
     out.fullEnWritingSkipped = fresh.fullEnWritingSkipped ?? [];

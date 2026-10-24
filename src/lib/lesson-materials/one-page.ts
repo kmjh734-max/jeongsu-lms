@@ -157,6 +157,11 @@ export type OnePageContent = {
   summaryEn: string;
   /** summaryEn에 그대로 들어 있는 핵심 어구(나온 순서). 정리자료 밑줄, 시험지 빈칸이 된다. */
   summaryKeywords: string[];
+  /**
+   * 핵심 어구 안의 동사: 요약문에 쓰인 꼴 → 원형. 요약문 완성 〈보기〉에서 동사만 원형으로 주려고
+   * 만들 때 함께 받는다(선생님 2026-10-24). 옛 재료에는 없다 — 그때는 코드 규칙으로 찾는다.
+   */
+  summaryVerbs?: Array<{ form: string; base: string }>;
   summaryKo: string;
   flow: OnePageFlowNode[];
   vocab: OnePageVocabNote[];

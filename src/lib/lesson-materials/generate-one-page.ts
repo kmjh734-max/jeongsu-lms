@@ -166,6 +166,7 @@ const CORE_PROMPT = `${COMMON_HEADER}
 - en: 지문 전체를 요약한 영어 한 문장(22~38 words). 지문 문장을 그대로 베끼지 말고 바꿔 쓴다.
 - keywords: en 안에 철자·대소문자까지 똑같이 들어 있는 핵심 어구 3~4개(각 1~4 words, 서로 겹치지 않음, en에 나오는 순서대로). 요약문 빈칸 문제의 정답이 되므로 주제를 드러내는 내용어를 고르고, 관사·전치사만으로 된 어구는 안 된다.
 - ko: en의 자연스러운 한국어 해석.
+- verbs: keywords 안에 든 동사마다 { form: en에 쓰인 꼴 그대로, base: 원형 }. 동사만 넣고 명사·형용사·부사는 넣지 않는다(복수 명사는 동사가 아니다). be동사·have는 base를 be·have로. 동사가 없으면 빈 배열.
 [flow] 글의 논리 흐름 4~5단계. 이 칸만 읽어도 글의 줄거리가 잡혀야 한다 — 라벨만 달고 끝내지 않는다.
 - en: "라벨: 그 단계에서 실제로 무슨 일이 있었는지" 꼴로 8~16 words. 라벨 예: Assumption, Claim, Example, Counter-example, Cause, Result, Contrast, Solution, Conclusion.
   나쁜 예(너무 짧다): "Background: Evolutionary monitoring function"
@@ -264,7 +265,7 @@ const GRAMMAR_ITEMS_SCHEMA = {
 const CORE_SCHEMA = obj({
   topicKo: str,
   titleEn: str,
-  summary: obj({ en: str, keywords: strList, ko: str }),
+  summary: obj({ en: str, keywords: strList, ko: str, verbs: { type: "array", items: obj({ form: str, base: str }) } }),
   flow: { type: "array", items: obj({ en: str, ko: str, from: int, to: int }) },
   tf: { type: "array", items: obj({ statement: str, answer: { type: "string", enum: ["T", "F"] } }) },
   keySentences: { type: "array", items: int },
@@ -309,7 +310,7 @@ type Row = Record<string, unknown>;
 type RawContent = {
   topicKo?: unknown;
   titleEn?: unknown;
-  summary?: { en?: unknown; keywords?: unknown; ko?: unknown } | null;
+  summary?: { en?: unknown; keywords?: unknown; ko?: unknown; verbs?: unknown } | null;
   flow?: unknown;
   vocab?: unknown;
   grammar?: unknown;
@@ -867,6 +868,7 @@ type CheckedCore = {
   titleEn: string;
   summaryEn: string;
   summaryKeywords: string[];
+  summaryVerbs: Array<{ form: string; base: string }>;
   summaryKo: string;
   flow: OnePageContent["flow"];
   paraphrases: OnePageParaphrase[];
@@ -896,6 +898,15 @@ function checkCore(
   const summaryEn = str1(raw.summary?.en);
   const summaryKo = str1(raw.summary?.ko);
   const summaryKeywords = summaryEn ? locateKeywords(summaryEn, raw.summary?.keywords) : [];
+  // 핵심 어구 안의 동사(쓰인 꼴 → 원형). 어구에 없는 것·원형과 같은 것은 뺀다.
+  const inKeyword = (form: string) => {
+    const re = new RegExp(`(?<![A-Za-z])${form.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![A-Za-z])`, "i");
+    return summaryKeywords.some((k) => re.test(k));
+  };
+  const summaryVerbs = rows(raw.summary?.verbs)
+    .map((r) => ({ form: str1(r.form), base: str1(r.base).toLowerCase() }))
+    .filter((v) => v.form && v.base && v.form.toLowerCase() !== v.base && /^[a-z'-]+$/.test(v.base) && inKeyword(v.form))
+    .slice(0, 8);
   if (!summaryEn) problems.push("요약문 없음");
   if (summaryKeywords.length < 3) problems.push("요약문 핵심 어구 부족(summary.en에 그대로 있어야 함)");
 
@@ -987,6 +998,7 @@ function checkCore(
     titleEn,
     summaryEn,
     summaryKeywords,
+    summaryVerbs,
     summaryKo,
     flow,
     paraphrases,
@@ -2033,6 +2045,7 @@ export async function generateOnePageContent(input: {
         titleEn: core.titleEn,
         summaryEn: core.summaryEn,
         summaryKeywords: core.summaryKeywords,
+        summaryVerbs: core.summaryVerbs,
         summaryKo: translated.summaryKo,
         flow: core.flow,
         tf: core.tf,

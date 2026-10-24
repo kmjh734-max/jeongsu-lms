@@ -1254,8 +1254,8 @@ function sectionBlocks(sec: TestSection, n: number, prefix: string): Block[] {
       {title}
       {sec.box ? (
         <div className="tb-box tb-en">
-          {sec.box.map((b) => (
-            <span key={b}>{b}</span>
+          {sec.box.map((b, i) => (
+            <span key={`${i}-${b}`}>{b}</span>
           ))}
         </div>
       ) : null}

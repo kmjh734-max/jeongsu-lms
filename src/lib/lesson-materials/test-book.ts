@@ -29,6 +29,7 @@ import {
 import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
 import type { WorkbookGrammarChoiceSection, WorkbookVocabChoiceSection } from "@/lib/lesson-materials/workbook-types";
 import { addChoiceItem, type ChoiceSection } from "@/lib/lesson-materials/choice-edit";
+import { inflectionsOf, verbBaseForms } from "@/lib/question-generator/verb-forms";
 
 /**
  * 재료 형식이 바뀌면 올린다. 원문이 그대로인 옛 재료는 열 때 단어 정리(모델 호출)는 그대로 두고
@@ -1034,18 +1035,92 @@ function buildInsert(p: Ready, seed: string): TestSection | null {
   };
 }
 
-function buildSummary(p: Ready): TestSection | null {
-  const kws = p.content.summaryKeywords.slice(0, 3);
-  if (!p.content.summaryEn.trim() || !kws.length) return null;
+/** 낱말 앞뒤 문장부호를 뗀다(따옴표·쉼표·마침표). */
+function bareWord(raw: string): string {
+  return raw.replace(/^[^A-Za-z0-9'’-]+|[^A-Za-z0-9'’-]+$/g, "");
+}
+
+/**
+ * 요약문 완성 〈보기〉의 동사 원형 찾기(옛 재료용 — 새 재료는 만들 때 모델이 summaryVerbs로 준다).
+ * 선생님(2026-10-24): 어형변화는 동사만. apples를 apple로 주지 않는다.
+ *  · 불규칙 꼴(went·taken·has·is)은 표로 바로 원형.
+ *  · 규칙 꼴(-ed·-ing)은 원형 후보가 지문 안에 낱말로 나올 때만(named → name이 지문에 있을 때).
+ *  · -s 꼴은 명사 복수와 가릴 수 없어 그대로 둔다. 애매하면 정답 꼴 그대로가 안전하다.
+ */
+function codeVerbBase(lower: string, passageWords: Set<string>): string | null {
+  const regular = /(?:ed|ing)$/.test(lower);
+  for (const b of verbBaseForms(lower)) {
+    if (b === lower || !inflectionsOf(b).has(lower)) continue;
+    const sForm =
+      lower === `${b}s` || lower === `${b}es` || (b.endsWith("y") && lower === `${b.slice(0, -1)}ies`);
+    if (sForm) continue;
+    if (!regular) return b; // 표에 있는 불규칙 꼴
+    if (passageWords.has(b)) return b;
+  }
+  return null;
+}
+
+/** 핵심 어구 하나의 낱말들을 〈보기〉 꼴로(동사만 원형). 동사가 들어 있는지도 함께 돌려준다. */
+function summaryBankTokens(
+  kw: string,
+  known: Map<string, string>,
+  passageWords: Set<string>
+): { words: string[]; hasVerb: boolean } {
+  const words: string[] = [];
+  let hasVerb = false;
+  for (const raw of kw.split(/\s+/)) {
+    const tok = bareWord(raw);
+    if (!tok) continue;
+    const lower = tok.toLowerCase();
+    const base = known.get(lower) ?? codeVerbBase(lower, passageWords);
+    if (base && base !== lower) {
+      hasVerb = true;
+      words.push(base);
+    } else {
+      words.push(tok);
+    }
+  }
+  return { words, hasVerb };
+}
+
+/**
+ * 요약문 완성. withBank(기본)면 빈칸 답 낱말을 〈보기〉로 주고 동사만 원형으로 바꿔 둔다 — 학생이 어형을
+ * 바꿔 넣는다(선생님 2026-10-24: 보기 없이는 너무 어렵다). 빈칸 셋은 동사가 든 어구를 먼저 고른다.
+ */
+function buildSummary(p: Ready, seed: string, withBank = true): TestSection | null {
+  if (!p.content.summaryEn.trim() || !p.content.summaryKeywords.length) return null;
+  const known = new Map((p.content.summaryVerbs ?? []).map((v) => [v.form.toLowerCase(), v.base.toLowerCase()] as const));
+  const passageWords = new Set(
+    [...p.sentences.map((s) => s.english), p.content.summaryEn]
+      .join(" ")
+      .toLowerCase()
+      .split(/[^a-z'’-]+/)
+      .filter(Boolean)
+  );
+  const scored = p.content.summaryKeywords.map((kw, i) => ({ kw, i, ...summaryBankTokens(kw, known, passageWords) }));
+  // 동사가 든 어구 먼저, 그다음 나머지 — 셋을 고른 뒤 요약문에 나온 차례로
+  const chosen = withBank
+    ? [...scored.filter((x) => x.hasVerb), ...scored.filter((x) => !x.hasVerb)].slice(0, 3).sort((a, b) => a.i - b.i)
+    : scored.slice(0, 3);
+  const kws = chosen.map((x) => x.kw);
   const labels = "ABC";
   const parts = splitSummaryByKeywords(p.content.summaryEn, kws);
   const passage: TestSeg[] = parts.map((x) => (x.keywordIndex == null ? x.text : { blank: `(${labels[x.keywordIndex]})` }));
   const answers = parts.filter((x) => x.keywordIndex != null).map((x) => `(${labels[x.keywordIndex!]}) ${x.text}`);
   if (!answers.length) return null;
+  const bank = withBank
+    ? fisherYatesShuffle(
+        chosen.flatMap((x) => x.words),
+        createSeededRng(`${seed}|summary-bank`)
+      )
+    : null;
   return {
     type: "summary",
     title: "요약문 완성",
-    hint: "지문을 한 문장으로 요약할 때 빈칸에 알맞은 말",
+    hint: bank
+      ? "보기의 낱말을 모두 한 번씩 쓰되, 동사는 필요하면 형태를 바꿔 빈칸을 완성할 것"
+      : "지문을 한 문장으로 요약할 때 빈칸에 알맞은 말",
+    ...(bank ? { box: bank } : {}),
     passage,
     items: [],
     answer: answers.join("  "),
@@ -1275,7 +1350,16 @@ function limitSection(sec: TestSection, max: number, seed: string): TestSection 
 export function buildTestSheet(
   p: Ready,
   types: TestBookTypeKey[],
-  opts: { seed: string; blankMode?: BlankMode; writing?: WritingScope; lineMode?: LineMode; level?: TestLevel; limits?: TestLimits }
+  opts: {
+    seed: string;
+    blankMode?: BlankMode;
+    writing?: WritingScope;
+    lineMode?: LineMode;
+    level?: TestLevel;
+    limits?: TestLimits;
+    /** 요약문 완성에 〈보기〉(동사만 원형)를 준다. 기본 켬(선생님 2026-10-24). */
+    summaryBank?: boolean;
+  }
 ): TestSheet {
   const seed = `${opts.seed}|${p.id}`;
   const up = opts.level === "up";
@@ -1301,7 +1385,7 @@ export function buildTestSheet(
       : key === "link" ? buildLink(p, seed)
       : key === "sequence" ? buildSequence(p, seed)
       : key === "insert" ? buildInsert(p, seed)
-      : key === "summary" ? buildSummary(p)
+      : key === "summary" ? buildSummary(p, seed, opts.summaryBank !== false)
       : key === "reference" ? buildReference(p)
       : key === "implication" ? buildImplication(p)
       : key === "paraphrase" ? buildParaphrase(p, seed, up)
