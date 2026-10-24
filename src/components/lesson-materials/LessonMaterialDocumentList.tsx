@@ -2,6 +2,10 @@
 
 import { useRef, useState } from "react";
 import { TestDrawDialog } from "@/components/lesson-materials/test-book/TestDrawDialog";
+import { WorkbookCreateModal } from "@/components/lesson-materials/WorkbookCreateModal";
+import { postJson } from "@/lib/lesson-materials/post-json";
+import type { getWorkbookDocument } from "@/lib/lesson-materials/document-actions";
+import type { WorkbookData } from "@/lib/lesson-materials/workbook-types";
 import {
   renameLessonMaterialDocument,
   trashLessonMaterialDocuments,
@@ -116,6 +120,37 @@ export function LessonMaterialDocumentList({
     setDrawIds(projectIds);
   }
   const canDraw = kind === "test_book" || kind === "workbook" || kind === "integrated";
+
+  /*
+   * 워크북 파일에 유형 더하기(선생님 2026-10-24: 이름 바꾸기 옆 버튼). 저장본의 유형을 읽어 만들기 창을
+   * 추가 모드로 띄우고, 값 확인이 끝나면 워크북 화면을 새 탭에서 add=1로 열어 거기서 만들어 합친다.
+   */
+  const [addTarget, setAddTarget] = useState<{ id: string; projectIds: string[]; existingTypes: WorkbookData["selectedTypes"] } | null>(null);
+  async function openAddTypes(doc: LessonMaterialDocumentRow) {
+    setError(null);
+    setBusyIds(new Set([doc.id]));
+    const res = await postJson<Awaited<ReturnType<typeof getWorkbookDocument>>>("/api/lesson-materials/documents/open", {
+      op: "getWorkbook",
+      role,
+      id: doc.id,
+    });
+    setBusyIds(new Set());
+    if (!res.ok) {
+      setError(res.message);
+      return;
+    }
+    const payload = res.payload as WorkbookData | null;
+    if (!payload || !Array.isArray(payload.selectedTypes)) {
+      setError("저장된 워크북 내용이 없어 유형을 더할 수 없습니다. 워크북을 먼저 열어 완성해 주세요.");
+      return;
+    }
+    const projectIds = res.projectIds?.length ? res.projectIds : doc.project_ids;
+    if (!projectIds.length) {
+      setError("이 워크북에는 지문이 없어 유형을 더할 수 없습니다.");
+      return;
+    }
+    setAddTarget({ id: doc.id, projectIds, existingTypes: payload.selectedTypes });
+  }
 
   function open(id: string) {
     window.open(`${documentPagePath(role, kind)}?doc=${encodeURIComponent(id)}`, "_blank", "noopener,noreferrer");
@@ -263,6 +298,17 @@ export function LessonMaterialDocumentList({
                     테스트지 뽑기
                   </button>
                 ) : null}
+                {kind === "workbook" ? (
+                  <button
+                    type="button"
+                    disabled={busyIds.has(doc.id)}
+                    onClick={() => void openAddTypes(doc)}
+                    className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-50"
+                    title="이 워크북에 없는 유형을 더합니다"
+                  >
+                    유형 추가
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => {
@@ -287,6 +333,23 @@ export function LessonMaterialDocumentList({
         </>
       )}
       <TestDrawDialog role={role} projectIds={drawIds ?? []} open={!!drawIds} onClose={() => setDrawIds(null)} />
+      {addTarget ? (
+        <WorkbookCreateModal
+          role={role}
+          mode="add"
+          projectIds={addTarget.projectIds}
+          existingTypes={addTarget.existingTypes}
+          open
+          onClose={() => setAddTarget(null)}
+          onAdd={(query) => {
+            const params = new URLSearchParams(query);
+            params.set("doc", addTarget.id);
+            params.set("add", "1");
+            // 워크북 화면이 add=1을 받아 더할 유형만 만들고 파일에 합친다(WorkbookWorkbench).
+            window.open(`${documentPagePath(role, "workbook")}?${params.toString()}`, "_blank", "noopener,noreferrer");
+          }}
+        />
+      ) : null}
     </section>
   );
 }
