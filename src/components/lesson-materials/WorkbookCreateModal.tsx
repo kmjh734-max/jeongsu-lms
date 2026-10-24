@@ -161,15 +161,20 @@ export function WorkbookCreateModal({
   /**
    * "add"면 만들어 둔 워크북에 유형을 더하는 창(선생님 2026-10-24). 이미 있는 유형은 막아 두고,
    * 제목은 묻지 않으며, 새 파일을 열지 않고 onAdd에 만든 조건(주소 쿼리)을 넘긴다.
+   * "regen"은 반대로 이미 있는 유형만 골라 새로 만들어 그 자리에 바꿔 넣는다(선생님 2026-10-24:
+   * 업데이트하거나 마음에 안 드는 부분 다시 만들기). 흐름은 add와 같고 「새 문항으로」가 기본 켬이다.
    */
-  mode?: "create" | "add";
+  mode?: "create" | "add" | "regen";
   /** 유형 추가 창: 워크북에 이미 있는 유형 */
   existingTypes?: WorkbookTypeId[];
   /** 유형 추가 창: 값 확인까지 끝난 뒤 만든 조건을 받는다(ids·types·옵션·fresh=1·regen) */
   onAdd?: (query: string) => void | Promise<void>;
 }) {
-  const adding = mode === "add";
+  const adding = mode === "add" || mode === "regen";
+  const regen = mode === "regen";
   const existing = useMemo(() => workbookExistingTypesForAdd(existingTypes ?? []), [existingTypes]);
+  /** 이 창에서 고를 수 없는 유형: 추가는 이미 있는 것, 다시 만들기는 없는 것 */
+  const blocked = (id: WorkbookTypeId) => (regen ? !existing.has(id) : existing.has(id));
   const [step, setStep] = useState<Step>("types");
   /*
    * 선생님 지적(2026-09-29): "과금 표시가 아래창으로 떠서 중복으로 뜨니 불편해."
@@ -199,7 +204,7 @@ export function WorkbookCreateModal({
   /** 해석 적기: 문장마다(한줄해석) / 끊어 읽기(직독직해) */
   const [lineMode, setLineMode] = useState<"full" | "chunk">("full");
   const [title, setTitle] = useState(() => defaultWorkbookTitle());
-  const [regenerate, setRegenerate] = useState(false);
+  const [regenerate, setRegenerate] = useState(mode === "regen");
   const [error, setError] = useState<string | null>(null);
 
   const readySelected = useMemo(
@@ -234,7 +239,7 @@ export function WorkbookCreateModal({
   if (!open || asking) return null;
 
   function toggleType(id: WorkbookTypeId, ready: boolean) {
-    if (!ready || (adding && existing.has(id))) return;
+    if (!ready || (adding && blocked(id))) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -295,10 +300,12 @@ export function WorkbookCreateModal({
     const paid = workbookPaidItems(types, projectIds.length || 1);
     setAsking(true);
     const go = await askCreditConfirm({
-      title: adding ? "워크북에 더할 유형" : "워크북",
-      description: adding
-        ? "만들어 둔 워크북에 유형을 더합니다. 고른 갈래 가운데 값이 나가는 것만 아래에 적었습니다."
-        : "학생이 직접 써 보는 연습지를 만듭니다. 고른 갈래 가운데 값이 나가는 것만 아래에 적었습니다.",
+      title: regen ? "워크북에서 다시 만들 유형" : adding ? "워크북에 더할 유형" : "워크북",
+      description: regen
+        ? "고른 유형을 새로 만들어 지금 워크북의 그 자리에 바꿔 넣습니다. 고른 갈래 가운데 값이 나가는 것만 아래에 적었습니다."
+        : adding
+          ? "만들어 둔 워크북에 유형을 더합니다. 고른 갈래 가운데 값이 나가는 것만 아래에 적었습니다."
+          : "학생이 직접 써 보는 연습지를 만듭니다. 고른 갈래 가운데 값이 나가는 것만 아래에 적었습니다.",
       subject: `${adding ? "워크북의 지문" : "고른 지문"} ${projectIds.length}개 · 갈래 ${types.length}가지`,
       contents: types.map((t) => getWorkbookTypeMeta(t)?.title ?? t),
       items: paid,
@@ -336,7 +343,7 @@ export function WorkbookCreateModal({
             <span className="text-lg" aria-hidden>
               📘
             </span>
-            <h2 className="text-base font-bold">{adding ? "워크북에 유형 추가" : "워크북 만들기"}</h2>
+            <h2 className="text-base font-bold">{regen ? "워크북 다시 만들기" : adding ? "워크북에 유형 추가" : "워크북 만들기"}</h2>
           </div>
           <button
             type="button"
@@ -351,14 +358,18 @@ export function WorkbookCreateModal({
         <div className="min-h-0 flex-1 overflow-auto px-5 py-4">
           {step === "types" ? (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {adding ? (
+              {regen ? (
+                <p className="text-[11px] text-slate-500 sm:col-span-2">
+                  이 워크북에 들어 있는 유형만 고를 수 있습니다. 고른 유형은 지문 {projectIds.length}개로 새로 만들어 그 자리에 바꿔 넣고, 다른 유형과 고친 내용은 그대로 둡니다.
+                </p>
+              ) : adding ? (
                 <p className="text-[11px] text-slate-500 sm:col-span-2">
                   이미 들어 있는 유형은 고를 수 없습니다. 더한 유형은 지금 워크북의 지문 {projectIds.length}개로 만들어 뒤에 붙습니다.
                 </p>
               ) : null}
               {WORKBOOK_TYPE_CATALOG.filter((t) => !t.hidden).map((t) => {
                 const on = selected.has(t.id);
-                const have = adding && existing.has(t.id);
+                const have = adding && blocked(t.id);
                 return (
                   <button
                     key={t.id}
@@ -393,7 +404,7 @@ export function WorkbookCreateModal({
                           </span>
                         ) : have ? (
                           <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700">
-                            이미 있음
+                            {regen ? "없음" : "이미 있음"}
                           </span>
                         ) : null}
                       </span>
@@ -430,7 +441,9 @@ export function WorkbookCreateModal({
                 <span className="text-xs text-slate-700">
                   <span className="font-bold">새 문항으로 다시 만들기</span>
                   <span className="block text-[11px] text-slate-500">
-                    끄면 전에 만든 문항 재료를 다시 써서 빠르게 만듭니다. 켜면 어법·어휘·빈칸·어순배열을 처음부터 새로 만들어 시간과 비용이 더 듭니다.
+                    {regen
+                      ? "켜면 어법·어휘·빈칸·어순배열과 요약·지칭 같은 재료를 처음부터 새로 만들어 다른 문항이 나옵니다(시간과 값이 더 듭니다). 끄면 전에 만든 재료를 다시 써서 T/F·해석처럼 매번 새로 만드는 유형만 달라집니다."
+                      : "끄면 전에 만든 문항 재료를 다시 써서 빠르게 만듭니다. 켜면 어법·어휘·빈칸·어순배열을 처음부터 새로 만들어 시간과 비용이 더 듭니다."}
                   </span>
                 </span>
               </label>
@@ -799,7 +812,7 @@ export function WorkbookCreateModal({
                 ← 이전
               </Button>
               <Button type="button" size="sm" onClick={handleStart}>
-                {adding ? "유형 추가" : "워크북 생성"}
+                {regen ? "다시 만들기" : adding ? "유형 추가" : "워크북 생성"}
               </Button>
             </>
           )}

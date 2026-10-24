@@ -1559,7 +1559,7 @@ export function WorkbookWorkbench({
       ? "새로 만들고 있습니다…"
       : "기존 워크북을 불러오고 있습니다…"
   );
-  const [sourceNote, setSourceNote] = useState<"new" | "existing" | "added" | null>(null);
+  const [sourceNote, setSourceNote] = useState<"new" | "existing" | "added" | "regen" | null>(null);
   /** 나머지 유형을 먼저 보여 준 뒤 어법 선택을 만드는 중인지. */
   const [grammarChoicePending, setGrammarChoicePending] = useState(false);
   /** PDF로 바로 저장(인쇄 창 없이) */
@@ -1627,8 +1627,8 @@ export function WorkbookWorkbench({
   const [vocabLevelNote, setVocabLevelNote] = useState<string | null>(null);
   /** 문항 고치기 창에 연 지문(어법 선택·어휘 선택의 몇 번째 지문) */
   const [choiceEditing, setChoiceEditing] = useState<{ kind: "grammar" | "vocab"; index: number } | null>(null);
-  /** 「유형 추가」 창(선생님 2026-10-24: 만들어 둔 워크북에 유형을 더한다) */
-  const [addOpen, setAddOpen] = useState(false);
+  /** 「유형 추가」 창(선생님 2026-10-24: 만들어 둔 워크북에 유형을 더한다) · 「다시 만들기」 창(있는 유형만 새로) */
+  const [addOpen, setAddOpen] = useState<"add" | "regen" | null>(null);
   useEffect(() => {
     try {
       setPageNumbers(window.localStorage.getItem(PAGE_NUMBER_KEY) !== "off");
@@ -2322,8 +2322,10 @@ export function WorkbookWorkbench({
         );
       }
       if (addBase) {
+        const baseTypes = addBase.selectedTypes;
+        const allExisting = types.every((t) => baseTypes.includes(t));
         setStatus(
-          `워크북에 유형을 더하고 있습니다… (${types.map((t) => workbookTypeDisplayTitle(t)).join(" · ")} · 지문 ${ids.length}개)`
+          `${allExisting ? "워크북의 유형을 다시 만들고 있습니다" : "워크북에 유형을 더하고 있습니다"}… (${types.map((t) => workbookTypeDisplayTitle(t)).join(" · ")} · 지문 ${ids.length}개)`
         );
       }
 
@@ -2417,6 +2419,8 @@ export function WorkbookWorkbench({
                     role,
                     op: "prepareWorkbook",
                     projectId: ids[i]!,
+                    // 「새 문항으로」면 1장 재료(요약·지칭·함축 등)도 새로 만든다 — 아니면 같은 문항이 그대로 나온다
+                    regenerate: forceRegenerate ? ["content"] : undefined,
                   });
                   if (cancelled) return;
                   if (one.ok) got[i] = one;
@@ -2538,7 +2542,9 @@ export function WorkbookWorkbench({
         }
         // 유형 추가: 더한 유형의 문항만 저장된 워크북에 얹는다(제목·차례·단 수·고친 내용은 그대로).
         const finished = addBase ? mergeAddedWorkbookTypes(addBase, workbook, types) : workbook;
-        setSourceNote(addBase ? "added" : creatingNew ? "new" : "existing");
+        setSourceNote(
+          addBase ? (types.every((t) => addBase!.selectedTypes.includes(t)) ? "regen" : "added") : creatingNew ? "new" : "existing"
+        );
         saveWorkbookToSession(finished);
         setWorkbook(finished);
         setGenerating(false);
@@ -4304,7 +4310,9 @@ export function WorkbookWorkbench({
                 ? "기존 워크북을 불러왔습니다"
                 : sourceNote === "added"
                   ? "유형을 더했습니다"
-                  : "새로 만들었습니다"}
+                  : sourceNote === "regen"
+                    ? "다시 만들었습니다"
+                    : "새로 만들었습니다"}
           </p>
           <p className="text-[11px] text-slate-400">
             {orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder)
@@ -4475,15 +4483,26 @@ export function WorkbookWorkbench({
                 );
               });
             })()}
-            <button
-              type="button"
-              onClick={() => setAddOpen(true)}
-              disabled={!workbookProjectIds(workbook).length || !new URLSearchParams(window.location.search).get("doc")}
-              title="만들어 둔 이 워크북에 유형을 더합니다"
-              className="w-full rounded-lg border border-dashed border-violet-300 px-2 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              + 유형 추가
-            </button>
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={() => setAddOpen("add")}
+                disabled={!workbookProjectIds(workbook).length || !new URLSearchParams(window.location.search).get("doc")}
+                title="만들어 둔 이 워크북에 유형을 더합니다"
+                className="flex-1 rounded-lg border border-dashed border-violet-300 px-2 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                + 유형 추가
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddOpen("regen")}
+                disabled={!workbookProjectIds(workbook).length || !new URLSearchParams(window.location.search).get("doc")}
+                title="들어 있는 유형 가운데 골라 새로 만들어 바꿔 넣습니다"
+                className="flex-1 rounded-lg border border-dashed border-violet-300 px-2 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                다시 만들기
+              </button>
+            </div>
           </div>
 
           {workbook.selectedTypes.includes("tf") && workbook.sections.length > 0 ? (
@@ -4810,12 +4829,13 @@ export function WorkbookWorkbench({
     </div>
     {addOpen ? (
       <WorkbookCreateModal
+        key={addOpen}
         role={role}
-        mode="add"
+        mode={addOpen}
         projectIds={workbookProjectIds(workbook)}
         existingTypes={workbook.selectedTypes}
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
+        open
+        onClose={() => setAddOpen(null)}
         onAdd={async (query) => {
           const docId = new URLSearchParams(window.location.search).get("doc")?.trim();
           if (!docId) return;

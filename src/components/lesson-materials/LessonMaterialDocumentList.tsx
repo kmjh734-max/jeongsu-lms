@@ -125,8 +125,8 @@ export function LessonMaterialDocumentList({
    * 워크북 파일에 유형 더하기(선생님 2026-10-24: 이름 바꾸기 옆 버튼). 저장본의 유형을 읽어 만들기 창을
    * 추가 모드로 띄우고, 값 확인이 끝나면 워크북 화면을 새 탭에서 add=1로 열어 거기서 만들어 합친다.
    */
-  const [addTarget, setAddTarget] = useState<{ id: string; projectIds: string[]; existingTypes: WorkbookData["selectedTypes"] } | null>(null);
-  async function openAddTypes(doc: LessonMaterialDocumentRow) {
+  const [addTarget, setAddTarget] = useState<{ id: string; projectIds: string[]; existingTypes: WorkbookData["selectedTypes"]; mode: "add" | "regen" } | null>(null);
+  async function openAddTypes(doc: LessonMaterialDocumentRow, mode: "add" | "regen" = "add") {
     setError(null);
     setBusyIds(new Set([doc.id]));
     const res = await postJson<Awaited<ReturnType<typeof getWorkbookDocument>>>("/api/lesson-materials/documents/open", {
@@ -149,7 +149,7 @@ export function LessonMaterialDocumentList({
       setError("이 워크북에는 지문이 없어 유형을 더할 수 없습니다.");
       return;
     }
-    setAddTarget({ id: doc.id, projectIds, existingTypes: payload.selectedTypes });
+    setAddTarget({ id: doc.id, projectIds, existingTypes: payload.selectedTypes, mode });
   }
 
   function open(id: string) {
@@ -309,6 +309,17 @@ export function LessonMaterialDocumentList({
                     유형 추가
                   </button>
                 ) : null}
+                {kind === "workbook" ? (
+                  <button
+                    type="button"
+                    disabled={busyIds.has(doc.id)}
+                    onClick={() => void openAddTypes(doc, "regen")}
+                    className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-50"
+                    title="들어 있는 유형 가운데 골라 새로 만들어 바꿔 넣습니다"
+                  >
+                    다시 만들기
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => {
@@ -335,8 +346,9 @@ export function LessonMaterialDocumentList({
       <TestDrawDialog role={role} projectIds={drawIds ?? []} open={!!drawIds} onClose={() => setDrawIds(null)} />
       {addTarget ? (
         <WorkbookCreateModal
+          key={addTarget.mode}
           role={role}
-          mode="add"
+          mode={addTarget.mode}
           projectIds={addTarget.projectIds}
           existingTypes={addTarget.existingTypes}
           open
