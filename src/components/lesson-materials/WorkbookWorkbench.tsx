@@ -21,9 +21,11 @@ import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { Alert } from "@/components/ui/Alert";
 import {
+  WorkbookCreateModal,
   loadWorkbookFromSession,
   saveWorkbookToSession,
 } from "@/components/lesson-materials/WorkbookCreateModal";
+import { mergeAddedWorkbookTypes } from "@/lib/lesson-materials/workbook-merge";
 import type {
   generateWorkbookAction,
   generateGrammarChoicePassageAction,
@@ -1458,7 +1460,7 @@ export function WorkbookWorkbench({
       ? "새로 만들고 있습니다…"
       : "기존 워크북을 불러오고 있습니다…"
   );
-  const [sourceNote, setSourceNote] = useState<"new" | "existing" | null>(null);
+  const [sourceNote, setSourceNote] = useState<"new" | "existing" | "added" | null>(null);
   /** 나머지 유형을 먼저 보여 준 뒤 어법 선택을 만드는 중인지. */
   const [grammarChoicePending, setGrammarChoicePending] = useState(false);
   /** PDF로 바로 저장(인쇄 창 없이) */
@@ -1526,6 +1528,8 @@ export function WorkbookWorkbench({
   const [vocabLevelNote, setVocabLevelNote] = useState<string | null>(null);
   /** 문항 고치기 창에 연 지문(어법 선택·어휘 선택의 몇 번째 지문) */
   const [choiceEditing, setChoiceEditing] = useState<{ kind: "grammar" | "vocab"; index: number } | null>(null);
+  /** 「유형 추가」 창(선생님 2026-10-24: 만들어 둔 워크북에 유형을 더한다) */
+  const [addOpen, setAddOpen] = useState(false);
   useEffect(() => {
     try {
       setPageNumbers(window.localStorage.getItem(PAGE_NUMBER_KEY) !== "off");
@@ -1945,6 +1949,7 @@ export function WorkbookWorkbench({
       const params = new URLSearchParams(window.location.search);
       params.delete("fresh");
       params.delete("regen");
+      params.delete("add");
       window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
     };
 
@@ -2092,6 +2097,32 @@ export function WorkbookWorkbench({
         return;
       }
 
+      /*
+       * 유형 추가(add=1&doc=): 만들어 둔 워크북 파일을 먼저 읽어 두고, 주소의 types(더할 유형)만
+       * 아래 흐름 그대로 만든 다음 파일에 합친다(workbook-merge.ts). 새로 고쳐도 fresh=1이 붙어
+       * 있는 동안은 같은 추가를 다시 하고, 저장되면 fresh·add가 떨어져 저장본을 연다.
+       */
+      let addBase: WorkbookData | null = null;
+      if (searchParams.get("add") === "1" && docId) {
+        setStatus("워크북 파일을 불러오고 있습니다…");
+        const doc = await postJson<Awaited<ReturnType<typeof getWorkbookDocument>>>(
+          "/api/lesson-materials/documents/open",
+          { op: "getWorkbook", role, id: docId }
+        );
+        if (cancelled) return;
+        if (!doc.ok) {
+          setError(doc.message);
+          setGenerating(false);
+          return;
+        }
+        if (!doc.payload || typeof doc.payload !== "object") {
+          setError("저장된 워크북 내용이 없어 유형을 더할 수 없습니다. 워크북을 먼저 완성해 주세요.");
+          setGenerating(false);
+          return;
+        }
+        addBase = withWorkbookDefaults(doc.payload as WorkbookData);
+      }
+
       const wantBlank = types.includes("blank_fill");
       const wantTf = types.includes("tf");
       const wantGrammarChoice = types.includes("grammar_choice");
@@ -2182,6 +2213,11 @@ export function WorkbookWorkbench({
           creatingNew
             ? `새로 만들고 있습니다… (지문 ${ids.length}개)`
             : `T/F 문제를 생성하고 있습니다… (지문 ${ids.length}개)`
+        );
+      }
+      if (addBase) {
+        setStatus(
+          `워크북에 유형을 더하고 있습니다… (${types.map((t) => workbookTypeDisplayTitle(t)).join(" · ")} · 지문 ${ids.length}개)`
         );
       }
 
@@ -2393,11 +2429,13 @@ export function WorkbookWorkbench({
           workbook.tbSkipped = tb.skipped;
           workbook.vocabExam = tb.vocabExam;
         }
-        setSourceNote(creatingNew ? "new" : "existing");
-        saveWorkbookToSession(workbook);
-        setWorkbook(workbook);
+        // 유형 추가: 더한 유형의 문항만 저장된 워크북에 얹는다(제목·차례·단 수·고친 내용은 그대로).
+        const finished = addBase ? mergeAddedWorkbookTypes(addBase, workbook, types) : workbook;
+        setSourceNote(addBase ? "added" : creatingNew ? "new" : "existing");
+        saveWorkbookToSession(finished);
+        setWorkbook(finished);
         setGenerating(false);
-        void persistToDocument(workbook);
+        void persistToDocument(finished);
       } catch (e) {
         if (timers.status) clearTimeout(timers.status);
         if (timers.elapsed) clearInterval(timers.elapsed);
@@ -3263,6 +3301,14 @@ export function WorkbookWorkbench({
         <Alert variant="error">
           <span className="whitespace-pre-wrap">{error}</span>
         </Alert>
+        {searchParams.get("add") === "1" && searchParams.get("doc") ? (
+          <Link
+            href={`${window.location.pathname}?doc=${encodeURIComponent(searchParams.get("doc") ?? "")}`}
+            className="inline-flex rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
+          >
+            유형을 더하기 전 워크북으로 돌아가기
+          </Link>
+        ) : null}
         {errorCode === "MISSING_TRANSLATION" ? (
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Link
@@ -4101,7 +4147,9 @@ export function WorkbookWorkbench({
               ? "새로 만들었습니다"
               : sourceNote === "existing"
                 ? "기존 워크북을 불러왔습니다"
-                : "새로 만들었습니다"}
+                : sourceNote === "added"
+                  ? "유형을 더했습니다"
+                  : "새로 만들었습니다"}
           </p>
           <p className="text-[11px] text-slate-400">
             {orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder)
@@ -4272,6 +4320,15 @@ export function WorkbookWorkbench({
                 );
               });
             })()}
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              disabled={!workbookProjectIds(workbook).length || !new URLSearchParams(window.location.search).get("doc")}
+              title="만들어 둔 이 워크북에 유형을 더합니다"
+              className="w-full rounded-lg border border-dashed border-violet-300 px-2 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              + 유형 추가
+            </button>
           </div>
 
           {workbook.selectedTypes.includes("tf") && workbook.sections.length > 0 ? (
@@ -4596,6 +4653,26 @@ export function WorkbookWorkbench({
         {measureBlock}
       </main>
     </div>
+    {addOpen ? (
+      <WorkbookCreateModal
+        role={role}
+        mode="add"
+        projectIds={workbookProjectIds(workbook)}
+        existingTypes={workbook.selectedTypes}
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onAdd={async (query) => {
+          const docId = new URLSearchParams(window.location.search).get("doc")?.trim();
+          if (!docId) return;
+          // 아직 보내지 않은 고친 내용을 먼저 저장한다. 주소를 바꾸면 이 화면이 다시 뜬다.
+          await flushWorkbook();
+          const params = new URLSearchParams(query);
+          params.set("doc", docId);
+          params.set("add", "1");
+          window.location.assign(`${window.location.pathname}?${params.toString()}`);
+        }}
+      />
+    ) : null}
     </PassageNoContext.Provider>
   );
 }

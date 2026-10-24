@@ -27,6 +27,7 @@ import {
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
 import { DEFAULT_VOCAB_EXAM, type VocabExamOptions } from "@/lib/lesson-materials/test-book";
+import { workbookExistingTypesForAdd } from "@/lib/lesson-materials/workbook-merge";
 import { VocabExamControls } from "@/components/lesson-materials/test-book/TestBookControls";
 
 export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v6";
@@ -108,6 +109,30 @@ export function buildWorkbookHref(
   return `${base}?${params.toString()}`;
 }
 
+/** 고른 갈래 가운데 값이 나가는 것(지문 n개). 만들기 창과 유형 추가 창이 같은 계산을 쓴다. */
+export function workbookPaidItems(types: WorkbookTypeId[], n: number): Array<{ feature: string; quantity: number }> {
+  const paid: Array<{ feature: string; quantity: number }> = [];
+  if (types.includes("grammar_choice") || types.includes("grammar_fix"))
+    paid.push({ feature: "lesson_workbook_grammar_choice", quantity: n });
+  if (types.includes("vocab_choice") || types.includes("vocab_fix"))
+    paid.push({ feature: "lesson_workbook_vocab_choice", quantity: n });
+  if (types.includes("tf")) paid.push({ feature: "lesson_workbook_tf", quantity: n });
+  // 한 줄 해석·전체 영작·제시어 배열도 모델을 부른다(2026-09-29부터 값을 받는다)
+  if (
+    types.includes("one_line_ko") ||
+    types.includes("full_en_writing") ||
+    types.includes("word_order_writing") ||
+    types.includes("key_word_order")
+  )
+    paid.push({ feature: "lesson_workbook_line_translation", quantity: n });
+  // 중요문장 어순배열은 어순배열과 같은 값(둘 다 골라도 한 번)
+  if (types.includes("word_order_writing") || types.includes("key_word_order"))
+    paid.push({ feature: "lesson_workbook_word_order", quantity: n });
+  // 지칭·함축·바꿔 말하기·도식화·연결어·삽입·요약문·직독직해·단어 시험지 — 지문당 한 번(여러 갈래를 골라도)
+  if (types.some(isTbWorkbookType)) paid.push({ feature: "lesson_workbook_extras", quantity: n });
+  return paid;
+}
+
 type Step = "types" | "options";
 
 export function WorkbookCreateModal({
@@ -115,12 +140,26 @@ export function WorkbookCreateModal({
   projectIds,
   open,
   onClose,
+  mode = "create",
+  existingTypes,
+  onAdd,
 }: {
   role: "admin" | "teacher";
   projectIds: string[];
   open: boolean;
   onClose: () => void;
+  /**
+   * "add"면 만들어 둔 워크북에 유형을 더하는 창(선생님 2026-10-24). 이미 있는 유형은 막아 두고,
+   * 제목은 묻지 않으며, 새 파일을 열지 않고 onAdd에 만든 조건(주소 쿼리)을 넘긴다.
+   */
+  mode?: "create" | "add";
+  /** 유형 추가 창: 워크북에 이미 있는 유형 */
+  existingTypes?: WorkbookTypeId[];
+  /** 유형 추가 창: 값 확인까지 끝난 뒤 만든 조건을 받는다(ids·types·옵션·fresh=1·regen) */
+  onAdd?: (query: string) => void | Promise<void>;
 }) {
+  const adding = mode === "add";
+  const existing = useMemo(() => workbookExistingTypesForAdd(existingTypes ?? []), [existingTypes]);
   const [step, setStep] = useState<Step>("types");
   /*
    * 선생님 지적(2026-09-29): "과금 표시가 아래창으로 떠서 중복으로 뜨니 불편해."
@@ -128,7 +167,7 @@ export function WorkbookCreateModal({
    */
   const [asking, setAsking] = useState(false);
   const [selected, setSelected] = useState<Set<WorkbookTypeId>>(
-    () => new Set(["tf"])
+    () => new Set(adding ? [] : ["tf"])
   );
   const [tfOptions, setTfOptions] = useState<WorkbookTfOptions>(
     DEFAULT_WORKBOOK_TF_OPTIONS
@@ -183,7 +222,7 @@ export function WorkbookCreateModal({
   if (!open || asking) return null;
 
   function toggleType(id: WorkbookTypeId, ready: boolean) {
-    if (!ready) return;
+    if (!ready || (adding && existing.has(id))) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -236,38 +275,28 @@ export function WorkbookCreateModal({
       regenerate,
     });
     // 고른 갈래 가운데 값이 나가는 것만 묻는다(한줄해석·영작 등은 값이 들지 않는다).
-    const paid: Array<{ feature: string; quantity: number }> = [];
-    const n = projectIds.length || 1;
-    if (types.includes("grammar_choice") || types.includes("grammar_fix"))
-      paid.push({ feature: "lesson_workbook_grammar_choice", quantity: n });
-    if (types.includes("vocab_choice") || types.includes("vocab_fix"))
-      paid.push({ feature: "lesson_workbook_vocab_choice", quantity: n });
-    if (types.includes("tf")) paid.push({ feature: "lesson_workbook_tf", quantity: n });
-    // 한 줄 해석·전체 영작·제시어 배열도 모델을 부른다(2026-09-29부터 값을 받는다)
-    if (
-      types.includes("one_line_ko") ||
-      types.includes("full_en_writing") ||
-      types.includes("word_order_writing") ||
-      types.includes("key_word_order")
-    )
-      paid.push({ feature: "lesson_workbook_line_translation", quantity: n });
-    // 중요문장 어순배열은 어순배열과 같은 값(둘 다 골라도 한 번)
-    if (types.includes("word_order_writing") || types.includes("key_word_order"))
-      paid.push({ feature: "lesson_workbook_word_order", quantity: n });
-    // 지칭·함축·바꿔 말하기·도식화·연결어·삽입·요약문·직독직해·단어 시험지 — 지문당 한 번(여러 갈래를 골라도)
-    if (types.some(isTbWorkbookType))
-      paid.push({ feature: "lesson_workbook_extras", quantity: n });
+    const paid = workbookPaidItems(types, projectIds.length || 1);
     setAsking(true);
     const go = await askCreditConfirm({
-      title: "워크북",
-      description: "학생이 직접 써 보는 연습지를 만듭니다. 고른 갈래 가운데 값이 나가는 것만 아래에 적었습니다.",
-      subject: `고른 지문 ${projectIds.length}개 · 갈래 ${types.length}가지`,
+      title: adding ? "워크북에 더할 유형" : "워크북",
+      description: adding
+        ? "만들어 둔 워크북에 유형을 더합니다. 고른 갈래 가운데 값이 나가는 것만 아래에 적었습니다."
+        : "학생이 직접 써 보는 연습지를 만듭니다. 고른 갈래 가운데 값이 나가는 것만 아래에 적었습니다.",
+      subject: `${adding ? "워크북의 지문" : "고른 지문"} ${projectIds.length}개 · 갈래 ${types.length}가지`,
       contents: types.map((t) => getWorkbookTypeMeta(t)?.title ?? t),
       items: paid,
       sample: "workbook",
     });
     setAsking(false);
     if (!go) return;
+
+    if (adding) {
+      // 새 파일을 열지 않는다. 워크북 화면이 이 조건으로 더할 유형만 만들어 파일에 합친다.
+      await onAdd?.(href.slice(href.indexOf("?") + 1));
+      onClose();
+      setStep("types");
+      return;
+    }
 
     // 워크북도 파일로 저장한다. 제목이 곧 파일 이름이고, 만든 조건(유형·옵션)을 함께 둔다.
     const err = await openNewDocument(role, "workbook", [...projectIds], {
@@ -290,7 +319,7 @@ export function WorkbookCreateModal({
             <span className="text-lg" aria-hidden>
               📘
             </span>
-            <h2 className="text-base font-bold">워크북 만들기</h2>
+            <h2 className="text-base font-bold">{adding ? "워크북에 유형 추가" : "워크북 만들기"}</h2>
           </div>
           <button
             type="button"
@@ -305,16 +334,22 @@ export function WorkbookCreateModal({
         <div className="min-h-0 flex-1 overflow-auto px-5 py-4">
           {step === "types" ? (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {adding ? (
+                <p className="text-[11px] text-slate-500 sm:col-span-2">
+                  이미 들어 있는 유형은 고를 수 없습니다. 더한 유형은 지금 워크북의 지문 {projectIds.length}개로 만들어 뒤에 붙습니다.
+                </p>
+              ) : null}
               {WORKBOOK_TYPE_CATALOG.filter((t) => !t.hidden).map((t) => {
                 const on = selected.has(t.id);
+                const have = adding && existing.has(t.id);
                 return (
                   <button
                     key={t.id}
                     type="button"
-                    disabled={!t.ready}
+                    disabled={!t.ready || have}
                     onClick={() => toggleType(t.id, t.ready)}
                     className={`flex items-start gap-3 rounded-xl border px-3 py-3 text-left transition ${
-                      !t.ready
+                      !t.ready || have
                         ? "cursor-not-allowed border-slate-100 bg-slate-50 opacity-60"
                         : on
                           ? "border-violet-400 bg-violet-50 ring-1 ring-violet-300"
@@ -339,6 +374,10 @@ export function WorkbookCreateModal({
                           <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
                             준비 중
                           </span>
+                        ) : have ? (
+                          <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700">
+                            이미 있음
+                          </span>
                         ) : null}
                       </span>
                       <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">
@@ -351,16 +390,18 @@ export function WorkbookCreateModal({
             </div>
           ) : (
             <div className="space-y-5">
-              <label className="block space-y-1">
-                <span className="text-xs font-bold text-slate-600">
-                  워크북 제목
-                </span>
-                <input
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </label>
+              {adding ? null : (
+                <label className="block space-y-1">
+                  <span className="text-xs font-bold text-slate-600">
+                    워크북 제목
+                  </span>
+                  <input
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                </label>
+              )}
 
               <label className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
                 <input
@@ -712,7 +753,7 @@ export function WorkbookCreateModal({
                 ← 이전
               </Button>
               <Button type="button" size="sm" onClick={handleStart}>
-                워크북 생성
+                {adding ? "유형 추가" : "워크북 생성"}
               </Button>
             </>
           )}
