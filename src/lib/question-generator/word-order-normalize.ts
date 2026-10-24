@@ -593,25 +593,6 @@ export function buildWordBankFromAnswer(
   }
   const lem = (t: string) => lemmaEnglishToken(t, { auxiliaries: mode === "inflect" });
 
-  if (mode === "add") {
-    const answerLemmas = new Set(answerTokens.map(lem));
-    const bank: string[] = [];
-    for (const g of given) {
-      const l = lem(g);
-      if (answerLemmas.has(l) && !bank.some((x) => x.toLowerCase() === l)) bank.push(l);
-    }
-    const contentNeeded = answerTokens
-      .map((t, i) => keepProperCase(t, lem(t), i))
-      .filter((t) => t && !FUNCTION_KEEP.has(t.toLowerCase()));
-    for (const w of contentNeeded) {
-      const need = contentNeeded.filter((x) => x.toLowerCase() === w.toLowerCase()).length;
-      while (bank.filter((x) => x.toLowerCase() === w.toLowerCase()).length < need) {
-        bank.push(w);
-      }
-    }
-    return bank.filter(Boolean);
-  }
-
   /*
    * 어형변화: 동사 꼴만 원형으로 돌린다. 끝의 -s는 바로 앞이 주어 대명사일 때(3인칭 동사)만 떼고
    * 명사 복수형은 정답 꼴 그대로 둔다(선생님 지적 2026-10-05: customs→custom, clothes→clothe).
@@ -660,6 +641,22 @@ export function buildWordBankFromAnswer(
     }
     return lemVerb(t);
   };
+
+  /*
+   * 단어추가: 정답의 내용어(관사·전치사 등 FUNCTION_KEEP 제외)를 보기로. 어형변화는 동사만 하므로
+   * 동사만 원형(inflectToken), 명사·형용사·부사는 정답 꼴 그대로(선생님 2026-10-24: apples는 apples).
+   * 모델 보기는 -ed·-ing 원형 짐작에만 쓴다(givenLower).
+   */
+  if (mode === "add") {
+    const bank: string[] = [];
+    const contentNeeded = answerTokens
+      .map((t, i) => keepProperCase(t, inflectToken(answerTokens, i), i))
+      .filter((t) => t && !FUNCTION_KEEP.has(t.toLowerCase()));
+    for (const w of contentNeeded) {
+      if (!bank.some((x) => x.toLowerCase() === w.toLowerCase())) bank.push(w);
+    }
+    return bank.filter(Boolean);
+  }
 
   if (given.length === answerTokens.length && sameMultiset(given.map(lem), answerTokens.map(lem))) {
     /*
@@ -833,7 +830,11 @@ export function normalizeWordOrderQuestionText(
 
   const answer = String(opts?.correctAnswer ?? "").trim();
   if (answer) {
-    const reconciled = buildWordBankFromAnswer(answer, mode, words);
+    /*
+     * 기본(어형 변화 없음)은 보기를 정답에 쓰인 꼴 그대로 다시 짠다 — 모델 보기가 원형 비교로 같아 보여도
+     * (apple / apples) 그대로 두면 조건상 풀 수 없는 문항이 된다(선생님 2026-10-24).
+     */
+    const reconciled = buildWordBankFromAnswer(answer, mode, mode === "basic" ? "" : words);
     if (reconciled.length > 0) {
       shuffleInPlace(reconciled);
       words = joinWordBank(reconciled);
@@ -858,6 +859,14 @@ export function normalizeWordOrderQuestionText(
    */
   if (mode === "add") {
     const finalCond = "○ 단어 중복·어형 변화 가능\n○ 보기에 없는 단어 추가 가능";
+    return `<조건>\n${finalCond}\n\n<보기>\n${words}\n\n<해석>\n${translation}`.trim();
+  }
+  // 기본: 보기가 정답 꼴 그대로이므로 조건도 「어형을 바꾸지 말 것」으로 고정한다(「필요 시 어형 변화 가능」이 섞여 나왔다)
+  if (mode === "basic") {
+    const rest = condBlock
+      .split("\n")
+      .filter((l) => !/어형|형태|단어를\s*모두|한 번씩/.test(l));
+    const finalCond = ["○ 주어진 단어를 모두 한 번씩만 사용할 것 (어형을 바꾸지 말 것)", ...rest].join("\n");
     return `<조건>\n${finalCond}\n\n<보기>\n${words}\n\n<해석>\n${translation}`.trim();
   }
 

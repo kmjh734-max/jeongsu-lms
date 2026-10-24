@@ -507,7 +507,13 @@ export function validateGeneratedQuestion(opts: {
    * 바뀌었으면 명사·형용사를 원형으로 준 것이다. -s로만 다른 짝은 정답 문장에서 분명한 명사 자리
    * (관사·소유격·전치사·형용사 뒤, 복수 be·조동사 앞)일 때만 센다. 자세한 규칙은 verb-forms.ts.
    */
-  if (code === "요약문빈칸영작" || code === "제시어배열어형변화" || code === "문법조건영작") {
+  if (
+    code === "요약문빈칸영작" ||
+    code === "제시어배열어형변화" ||
+    code === "문법조건영작" ||
+    code === "제시어배열기본" ||
+    code === "제시어배열단어추가"
+  ) {
     const qt = String(q.questionText ?? "");
     const bankLine = qt.match(/<보기>\s*\n?([^\n]+)/)?.[1] ?? "";
     const bank = splitWordBank(scrubWordBankNoise(bankLine));
@@ -538,6 +544,14 @@ export function validateGeneratedQuestion(opts: {
           `보기 「${first.bank}」이 정답에 「${first.answer}」로 쓰였습니다. 어형변화는 동사만 하므로 명사·형용사·부사는 정답 꼴 그대로 줘야 합니다.`
         );
         score -= 45;
+      } else if (code === "제시어배열기본") {
+        // 기본은 어형을 바꾸지 않으므로 보기 낱말이 정답에 그대로 있어야 한다(선생님 2026-10-24)
+        const have = new Set(answerTokens.map((t) => t.toLowerCase()));
+        const off = bank.find((b) => !have.has(b.toLowerCase()));
+        if (off) {
+          warnings.push(`보기 「${off}」이 정답에 그대로 없습니다. 제시어 배열 기본은 보기를 정답 꼴 그대로 줍니다.`);
+          score -= 45;
+        }
       }
     }
   }
