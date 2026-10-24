@@ -2,7 +2,8 @@ import { engcoreLevelOf } from "@/lib/vocab/engcore-lemma";
 import { isFunctionWord } from "@/lib/vocab/function-words";
 import { renumberMarksInOrder } from "@/lib/question-generator/renumber-marks";
 import { difficultyRule, targetLevelFromOverall, type TargetLevel } from "@/lib/question-generator/difficulty";
-import { summaryBlankFitProblem } from "@/lib/question-generator/summary-blank-fit";
+import { splitSummaryAnswer, summaryBlankFitProblem } from "@/lib/question-generator/summary-blank-fit";
+import { fixNonVerbBankForms } from "@/lib/question-generator/verb-forms";
 import {
   balancedGistRule,
   choiceCraftCommonRules,
@@ -179,6 +180,14 @@ function expandNegativeContractions(text: string): string {
     if (lower === "sha") return base[0] === "S" ? "Shall not" : "shall not";
     return `${base} not`;
   });
+}
+
+/** questionText의 <보기> 줄에 fixNonVerbBankForms를 적용한다(제시어 배열 어형변화) */
+function fixNonVerbBankLine(questionText: string, answerTokens: string[], explanation: string): string {
+  const m = questionText.match(/(<보기>\s*\n)([^\n]+)/);
+  if (!m) return questionText;
+  const fixed = fixNonVerbBankForms(splitWordBank(m[2]!), answerTokens, explanation);
+  return fixed ? questionText.replace(m[0], `${m[1]}${joinWordBank(fixed)}`) : questionText;
 }
 
 function typeRules(
@@ -709,8 +718,9 @@ word1 / word2 / … (정답 문장의 낱말을 원형으로 흩어 놓는다. 8
   보기: 「○ It - that 강조구문을 사용할 것」, 「○ 가정법 과거를 사용할 것」.
   목록에 없는 이름을 지어내거나 「어법을 사용할 것」처럼 뭉뚱그리면 안 된다.
 - correctAnswer: 고쳐 쓴 영어 문장 하나. 그 어법이 <b>눈에 보이게</b> 들어 있어야 한다.
-- 보기에는 정답 문장에 쓰이는 낱말만 넣는다. 관사·전치사처럼 어형이 바뀌지 않는 말은
-  그대로, 동사·명사는 원형으로 적는다.
+- 보기에는 정답 문장에 쓰이는 낱말만 넣는다. 어형변화는 동사만 한다 — 동사는 원형으로
+  (be동사는 be), 명사·형용사·부사·대명사·관사·전치사는 정답에 쓰인 꼴 그대로 적는다
+  (복수는 복수로: apples는 apples, 비교급·최상급도 그대로).
 - choices 없음. explanation 한글: 어떤 어법을 묻는지와 왜 그 형태인지 한두 줄.`;
       }
       if (code === "지칭대명사서술") {
@@ -768,10 +778,10 @@ LANGUAGE: 지문·정답 영어만.`;
 - correctAnswer = 어형·어순을 맞춘 완성 영어
 - CRITICAL: <보기> 다중집합 = correctAnswer의 모든 토큰(전치사 for/to/of, 관사 the/a, 중복 pleasure 등 포함). 정답에 쓰인 단어를 보기에서 빼지 말 것.`
             : mode === "inflect"
-              ? `- <조건>: 주어진 단어를 모두 한 번씩만 사용하되, 필요한 경우 어형 변화
-- <보기>: 동사·조동사·be동사는 반드시 원형으로 (과거·과거분사·3인칭 -s·-ing 금지). 명사의 복수형(clothes, customs, ideas)은 정답 꼴 그대로 둔다 — 어형 변화는 동사 꼴을 바꾸는 것이다. 생성 후 시스템이 무작위로 섞음
+              ? `- <조건>: 「○ 주어진 단어를 모두 한 번씩만 사용하되, 필요한 경우 동사의 형태를 바꿔 쓸 것」
+- <보기>: 어형변화는 동사만 한다. 동사·조동사·be동사는 반드시 원형으로(be동사는 be. 과거·과거분사·3인칭 -s·-ing 금지 — 학생이 시제·분사·-ing·3인칭을 맞춘다). 명사·형용사·부사·대명사는 정답에 쓰인 꼴 그대로 — 복수는 복수로(ideas는 ideas, clothes는 clothes. apple로 주지 않는다), 비교급·최상급도 그대로(better는 better). 생성 후 시스템이 무작위로 섞음
 - correctAnswer = 어형 변화를 적용한 완성 영어 (예시는 맨 뒤 「이번 문항」)
-- CRITICAL: <보기> 다중집합 = correctAnswer 토큰의 원형(전치사·관사·중복 포함). 누락 금지.`
+- CRITICAL: <보기> 다중집합 = correctAnswer 토큰(동사만 원형으로. 전치사·관사·중복 포함). 누락 금지.`
               : `- <조건>은 반드시 아래 두 줄만 (한 줄에 / 로 붙이지 말 것). 조건에 <보기> 태그 금지:
 ○ 단어 중복·어형 변화 가능
 ○ 보기에 없는 단어 추가 가능
@@ -840,12 +850,12 @@ ${focusBlock}${mode === "basic" ? "" : `\n(정답 예: ${c.example})`}`;
 - questionText 형식(필수) — 섹션 태그는 반드시 줄 단독. 조건 문장 안에 <보기> 태그를 넣지 말 것:
 <조건>
 ○ 보기의 단어를 모두 한 번씩만 사용할 것
-○ 필요한 경우 단어의 형태를 바꿔 쓸 것
+○ 필요한 경우 동사의 형태를 바꿔 쓸 것
 ○ 글의 내용에 맞게 ⓐ, ⓑ를 완성할 것
 ○ ⓐ는 N단어, ⓑ는 M단어로 쓸 것 (N+M = 보기 단어 수, 예: 3·4)
 
 <보기>
-word1 / word2 / … (6~10개, 정답 ⓐ+ⓑ를 섞은 핵심 단어. 원형만. 적을수록 쉽고 명확함)
+word1 / word2 / … (6~10개, 정답 ⓐ+ⓑ를 섞은 핵심 단어. 동사는 원형, 나머지는 정답 꼴 그대로. 적을수록 쉽고 명확함)
 
 <요약문>
 (영어 요약 1~2문장. 지문 핵심을 지문 표현 그대로 또는 최소 변형. 빈칸 ⓐ__________ 와 ⓑ__________ 포함)
@@ -855,7 +865,7 @@ word1 / word2 / … (6~10개, 정답 ⓐ+ⓑ를 섞은 핵심 단어. 원형만.
   · ⓐ와 ⓑ는 요약문에서 맡는 역할이 달라야 한다(예: ⓐ 동사구, ⓑ 명사구). 두 칸의 답을 서로 바꿔 넣어도 말이 되면 안 된다.
   · 보기의 낱말 하나하나가 한쪽 칸에만 들어갈 수 있게 고른다.
   · 빈칸 안의 동사는 그 목적어·보어까지 같은 빈칸에 담는다. 타동사로 끝나 목적어가 빠지거나 다른 빈칸으로 떨어지면 안 된다(× ⓐ가 「how X serve」로 끝나고 serve의 목적어는 ⓑ 뒤에 따로 있음). 두 칸을 채운 요약문이 그대로 완전한 문장이어야 한다.
-  · 형태를 꼭 바꿔야 하는 낱말만 원형으로 주고, 바꾸지 않아도 되는 낱말은 정답 형태 그대로 준다(life/lives처럼 바꿔도 안 바꿔도 맞는 낱말을 두지 않는다).
+  · 어형변화는 동사만 한다. 보기에서 동사는 원형으로 준다(be동사는 be. 학생이 시제·분사·-ing·3인칭을 맞춘다). 명사·형용사·부사·대명사는 정답에 쓰인 꼴 그대로 준다 — 복수는 복수로(apples는 apples, 절대 apple이 아니다), 비교급·최상급도 그대로(better는 better).
 - 요약문은 지문 핵심 문장을 거의 그대로 활용. 새 단어 지어내기 금지.
 - 요약문의 주체·인과는 지문에 있는 그대로(10-14 점검: 기록을 남긴 쪽을 바꿈, 지문에 없는 원인을 붙임, 특정 집단을 사람 전체로 넓힘). 요약문만 읽어도 뜻이 통해야 한다 — this·such 같은 지시어가 가리킬 말을 요약문 안에 둔다. "The ⓐ in the passage are ⓑ"처럼 내용 없는 틀 금지.
 - choices 없음. explanation 한글: 정답 + 지문 어디에 근거하는지.
@@ -1832,6 +1842,11 @@ export function assertBasicQuestionShape(
     q.questionText = restoreLeadingProperNoun(q.questionText, String(q.correctAnswer ?? ""), q.passageOriginal || "");
     if (woMode === "inflect") {
       q.questionText = alignInflectBankToExplanation(q.questionText, q.explanation || "");
+      /*
+       * 어형변화는 동사만 한다(선생님 결정 2026-10-24). 명사·형용사·부사가 원형으로 남았으면 정답 꼴로 되돌린다.
+       * 검수가 같은 규칙으로 걸러 내므로, 여기서 안 고치면 보기 한 낱말 때문에 다시 만들게 된다.
+       */
+      q.questionText = fixNonVerbBankLine(q.questionText, tokenizeAnswerPhrase(String(q.correctAnswer ?? "")), q.explanation || "");
     }
     /*
      * 선생님 지적(2026-09-29): 빈칸 옆에 정답 낱말이 그대로 남아 있는데 보기에도 같은 말이
@@ -2230,7 +2245,8 @@ export function assertBasicQuestionShape(
       // 선생님 요청(2026-09-28): 조건에는 문법 용어만 적는다. 괄호 속 형태는 빼 준다.
       `○ ${grammar.label}${objectParticle(grammar.label)} 사용할 것`,
       "○ <보기>에 있는 단어를 모두 한 번씩 사용할 것 (단어를 더하거나 빼지 말 것)",
-      "○ 필요하면 어형을 바꿔 쓸 것 (시제·수·태에 유의할 것)",
+      // 어형변화는 동사만 한다(선생님 결정 2026-10-24) — 명사·형용사는 보기에 정답 꼴 그대로 나간다
+      "○ 필요하면 동사의 형태를 바꿔 쓸 것 (시제·수·태에 유의할 것)",
       ...(wordCount > 0 ? [`○ 모두 ${wordCount}단어로 쓸 것`] : []),
       "○ 첫 글자는 대문자로 쓰고, 문장 끝에 알맞은 문장 부호를 쓸 것",
     ];
@@ -2241,10 +2257,14 @@ export function assertBasicQuestionShape(
      * 조건이 「필요하면 어형을 바꿔 쓸 것」이므로 원형으로 낸다.
      */
     // 원형 손질은 buildWordBankFromAnswer가 한다. 여기서 다시 원형으로 돌리면 명사 복수형까지 깎인다(clothes→clothe).
-    const bank =
+    let bank =
       shuffleWordBankKeepForms(
         joinWordBank(buildWordBankFromAnswer(answer, "inflect", blocks.words))
       ) || normalizeAndShuffleWordBank(blocks.words);
+    // 어형변화는 동사만 — 명사·형용사·부사가 원형으로 남았으면 정답 꼴로(선생님 결정 2026-10-24)
+    bank = joinWordBank(
+      fixNonVerbBankForms(splitWordBank(bank), tokenizeAnswerPhrase(answer), q.explanation || "") ?? splitWordBank(bank)
+    );
 
     // 제시어 배열과 같은 검사 — 빈칸 옆에 정답 낱말이 남아 있으면 버린다
     let leftOver = bankWordsLeftInBlankLine(modified, bank);
@@ -2356,11 +2376,23 @@ export function assertBasicQuestionShape(
       const answerText = String(q.correctAnswer ?? "")
         .replace(/[\u24D0-\u24D4]\s*[:：]?/g, " ")
         .replace(/\s*\/\s*/g, " ");
-      const rebuilt = shuffleWordBankKeepForms(
+      let rebuilt = shuffleWordBankKeepForms(
         joinWordBank(buildWordBankFromAnswer(answerText, "basic", blocks.words ?? ""))
       );
       if (!rebuilt) {
         return "요약문 빈칸 보기를 만들지 못했습니다.";
+      }
+      /*
+       * 어형변화는 동사만 한다(선생님 결정 2026-10-24). 모델 보기가 정답과 원형으로 맞으면 그대로 쓰므로
+       * apple(정답 apples) 같은 명사 원형이 남을 수 있다. 빈칸을 채운 요약문으로 자리를 보고 정답 꼴로 되돌린다.
+       */
+      {
+        let filled = blocks.summary;
+        for (const [mark, phrase] of splitSummaryAnswer(String(q.correctAnswer ?? ""))) {
+          filled = filled.replace(new RegExp(`${mark}\\s*_+`, "g"), ` ${phrase} `);
+        }
+        const fixed = fixNonVerbBankForms(splitWordBank(rebuilt), tokenizeAnswerPhrase(filled), q.explanation || "");
+        if (fixed) rebuilt = joinWordBank(fixed);
       }
       /*
        * 조건의 낱말 수도 코드가 다시 쓴다.

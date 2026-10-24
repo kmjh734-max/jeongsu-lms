@@ -13,6 +13,8 @@ import {
   splitWordBank,
   tokenizeAnswerPhrase,
 } from "@/lib/question-generator/word-order-normalize";
+import { splitSummaryAnswer } from "@/lib/question-generator/summary-blank-fit";
+import { findNonVerbBankForms } from "@/lib/question-generator/verb-forms";
 
 /** 밑줄 태그·기호·빈칸을 걷어 내고 따옴표를 통일한 본문 */
 function plainText(text: string): string {
@@ -493,6 +495,48 @@ export function validateGeneratedQuestion(opts: {
       const sorted = (a: string[]) => [...a].sort().join("\u0001");
       if (sorted(bank) === sorted(answerTokens)) {
         warnings.push("어형변화 유형인데 보기가 정답 꼴 그대로라 바꿀 어형이 없습니다. 보기는 원형으로 주어야 합니다.");
+        score -= 45;
+      }
+    }
+  }
+
+  /*
+   * 어형변화는 동사만 한다(선생님 결정 2026-10-24). 보기의 동사는 원형(be동사는 be)으로 주고
+   * 명사·형용사·부사는 정답에 쓰인 꼴 그대로 둔다(apples는 apples, better는 better).
+   * 보기 낱말이 정답에 그대로 없고 동사 어형으로도 읽히지 않는 꼴(명사 복수·비교급·최상급·-ly)로만
+   * 바뀌었으면 명사·형용사를 원형으로 준 것이다. -s로만 다른 짝은 정답 문장에서 분명한 명사 자리
+   * (관사·소유격·전치사·형용사 뒤, 복수 be·조동사 앞)일 때만 센다. 자세한 규칙은 verb-forms.ts.
+   */
+  if (code === "요약문빈칸영작" || code === "제시어배열어형변화" || code === "문법조건영작") {
+    const qt = String(q.questionText ?? "");
+    const bankLine = qt.match(/<보기>\s*\n?([^\n]+)/)?.[1] ?? "";
+    const bank = splitWordBank(scrubWordBankNoise(bankLine));
+    let answerTokens: string[] = [];
+    if (code === "요약문빈칸영작") {
+      // 빈칸을 채운 요약문 전체로 본다 — 빈칸 앞뒤 말(the·their)이 명사 자리를 알려 준다
+      const summary = qt.match(/<요약문>\s*\n?([\s\S]*?)$/)?.[1]?.trim() ?? "";
+      const byMark = splitSummaryAnswer(answerStr);
+      if (summary && byMark.size > 0) {
+        let filled = summary;
+        for (const [mark, phrase] of byMark) {
+          filled = filled.replace(new RegExp(`${mark}\\s*_+`, "g"), ` ${phrase} `);
+        }
+        answerTokens = tokenizeAnswerPhrase(filled);
+      } else {
+        answerTokens = tokenizeAnswerPhrase(
+          answerStr.replace(/[ⓐ-ⓔ]\s*[:：]?/g, " ").replace(/\s*\/\s*/g, " ")
+        );
+      }
+    } else {
+      answerTokens = tokenizeAnswerPhrase(answerStr);
+    }
+    if (bank.length > 0 && answerTokens.length > 0) {
+      const issues = findNonVerbBankForms(bank, answerTokens);
+      if (issues.length > 0) {
+        const first = issues[0]!;
+        warnings.push(
+          `보기 「${first.bank}」이 정답에 「${first.answer}」로 쓰였습니다. 어형변화는 동사만 하므로 명사·형용사·부사는 정답 꼴 그대로 줘야 합니다.`
+        );
         score -= 45;
       }
     }
