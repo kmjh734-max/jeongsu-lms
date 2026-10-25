@@ -945,7 +945,8 @@ function buildWriting(p: Ready, seed: string, scope: WritingScope, up = false, m
   };
 }
 
-function buildLink(p: Ready, seed: string): TestSection | null {
+/** 연결어 빈칸. max가 있으면 연결어 자리 가운데 max개만 비우고 나머지는 원문 그대로 둔다. */
+function buildLink(p: Ready, seed: string, max?: number): TestSection | null {
   const hits: Array<{ si: number; word: string; rest: string }> = [];
   p.sentences.forEach((s, si) => {
     const text = clean(s.english);
@@ -955,7 +956,8 @@ function buildLink(p: Ready, seed: string): TestSection | null {
     hits.push({ si, word, rest: text.slice(m[0].length).trimStart() });
   });
   if (!hits.length) return null;
-  const chosen = hits;
+  const keep = max != null && max < hits.length ? new Set(pickN(hits, max, `${seed}|linkcap`).map((h) => h.si)) : null;
+  const chosen = keep ? hits.filter((h) => keep.has(h.si)) : hits;
   const labels = "ABCDEFGHIJ";
   const used = new Set(chosen.map((h) => h.si));
   const passage: TestSeg[] = [];
@@ -986,10 +988,16 @@ function buildLink(p: Ready, seed: string): TestSection | null {
   };
 }
 
-function buildSequence(p: Ready, seed: string): TestSection | null {
+/**
+ * 문장 순서. 여러 문항이면 주어진 글을 한 문장씩 늘려 다른 문항을 만든다(at=0이 첫 문장만 주는 기본 문항).
+ * 섞을 문장이 셋 미만이 되면 만들지 않는다.
+ */
+function buildSequence(p: Ready, seed: string, at = 0): TestSection | null {
+  const english = p.sentences.map((s) => s.english);
+  if (english.length - (at + 1) < 3) return null;
   const order = buildOnePageSentenceOrder(
-    p.sentences.map((s) => s.english),
-    `${p.id}|${seed}`
+    at > 0 ? [english.slice(0, at + 1).join(" "), ...english.slice(at + 1)] : english,
+    at > 0 ? `${p.id}|${seed}|${at}` : `${p.id}|${seed}`
   );
   if (!order) return null;
   return {
@@ -1002,14 +1010,16 @@ function buildSequence(p: Ready, seed: string): TestSection | null {
   };
 }
 
-function buildInsert(p: Ready, seed: string): TestSection | null {
-  const n = p.sentences.length;
-  if (n < 4) return null;
-  const pool = p.material.keyIndexes.filter((si) => si > 0);
+/** 문장 삽입으로 뺄 문장 count개(중요문장 먼저 — 없으면 시험 포인트의 삽입 자리) */
+function insertSentences(p: Ready, seed: string, count: number): number[] {
+  if (p.sentences.length < 4) return [];
+  const pool = p.material.keyIndexes.filter((si) => si > 0 && si < p.sentences.length);
   const fromExam = p.content.examPoints?.find((e) => e.kind === "insert")?.sentenceIndex;
   const candidates = pool.length ? pool : fromExam != null && fromExam > 0 ? [fromExam] : [];
-  if (!candidates.length) return null;
-  const si = pickN(candidates, 1, `${seed}|insert`)[0]!;
+  return pickN([...new Set(candidates)], count, `${seed}|insert`);
+}
+
+function buildInsert(p: Ready, seed: string, si: number): TestSection | null {
   const rest = p.sentences.map((s, i) => ({ i, text: clean(s.english) })).filter((x) => x.i !== si);
   // 자리: 남은 문장 사이(첫 문장 뒤부터). 정답 자리를 넣고 다섯 자리까지.
   const gaps = rest.map((_, k) => k).filter((k) => k >= 1);
@@ -1384,9 +1394,8 @@ export function buildTestSheet(
       : key === "order" ? buildOrder(p, seed, up)
       : key === "tf" ? buildTf(p, seed, up)
       : key === "writing" ? buildWriting(p, seed, opts.writing ?? "all", up, opts.limits?.writing)
-      : key === "link" ? buildLink(p, seed)
-      : key === "sequence" ? buildSequence(p, seed)
-      : key === "insert" ? buildInsert(p, seed)
+      : key === "link" ? buildLink(p, seed, opts.limits?.link)
+      : key === "sequence" || key === "insert" ? null
       : key === "summary" ? buildSummary(p, seed, opts.summaryBank !== false)
       : key === "reference" ? buildReference(p)
       : key === "implication" ? buildImplication(p)
@@ -1394,7 +1403,17 @@ export function buildTestSheet(
       : key === "flow" ? buildFlow(p, seed)
       : key === "grammarFix" ? buildGrammarFix(p, seed, usedGrammar)
       : buildWords(p, seed);
-    const cap = key === "line" || key === "writing" ? undefined : opts.limits?.[key];
+    if (key === "sequence" || key === "insert") {
+      // 지문 통째 유형은 문항 수만큼 서로 다른 문항을 싣는다(기본 1문항, 재료가 모자라면 되는 만큼)
+      const count = Math.max(1, opts.limits?.[key] ?? 1);
+      const made =
+        key === "sequence"
+          ? Array.from({ length: count }, (_, at) => buildSequence(p, seed, at))
+          : insertSentences(p, seed, count).map((si) => buildInsert(p, seed, si));
+      for (const x of made) if (x) sections.push(x);
+      continue;
+    }
+    const cap = key === "line" || key === "writing" || key === "link" ? undefined : opts.limits?.[key];
     if (sec) sections.push(cap != null ? limitSection(sec, cap, seed) : sec);
   }
   return { projectId: p.id, title: p.title, source: p.source, sections };

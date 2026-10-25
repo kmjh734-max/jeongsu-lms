@@ -1315,11 +1315,11 @@ function sectionBlocks(sec: TestSection, n: number, prefix: string): Block[] {
       ) : null}
     </>
   );
-  if (sec.inline) return [{ key: `${prefix}-${sec.type}`, node: <div className="tb-b">{top}</div> }];
+  if (sec.inline) return [{ key: `${prefix}-${n}-${sec.type}`, node: <div className="tb-b">{top}</div> }];
   if (sec.type === "words") {
     return [
       {
-        key: `${prefix}-${sec.type}`,
+        key: `${prefix}-${n}-${sec.type}`,
         node: (
           <div className="tb-b">
             {top}
@@ -1341,7 +1341,7 @@ function sectionBlocks(sec: TestSection, n: number, prefix: string): Block[] {
   if (!sec.items.length || sec.type === "sequence") {
     return [
       {
-        key: `${prefix}-${sec.type}`,
+        key: `${prefix}-${n}-${sec.type}`,
         node: (
           <div className="tb-b">
             {top}
@@ -1366,7 +1366,7 @@ function sectionBlocks(sec: TestSection, n: number, prefix: string): Block[] {
     ];
   }
   return sec.items.map((it, i) => ({
-    key: `${prefix}-${sec.type}-${i}`,
+    key: `${prefix}-${n}-${sec.type}-${i}`,
     node: (
       <div className={i === sec.items.length - 1 ? "tb-b" : undefined}>
         {i === 0 ? top : null}
@@ -1569,7 +1569,7 @@ export function AnswerSheets({
       if (!long) {
         return [
           {
-            key: `a${k}-${sec.type}`,
+            key: `a${k}-${i}-${sec.type}`,
             node: (
               <dl className="tb-arow">
                 <dt>{label}</dt>
@@ -1580,7 +1580,7 @@ export function AnswerSheets({
         ];
       }
       return sec.items.map((it, j) => ({
-        key: `a${k}-${sec.type}-${j}`,
+        key: `a${k}-${i}-${sec.type}-${j}`,
         node: (
           <dl className="tb-arow">
             <dt>{j === 0 ? label : ""}</dt>

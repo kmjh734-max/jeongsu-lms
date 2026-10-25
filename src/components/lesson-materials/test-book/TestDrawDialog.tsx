@@ -39,7 +39,7 @@ type LoadResult = Awaited<ReturnType<typeof loadDrawProjectsAction>>;
 /*
  * 자동 뽑기 기준(선생님 2026-10-21 확정): 분량에 따라 지문당 유형 수와 유형마다 지문당 문항 상한.
  * 유형은 고른 것을 섞어 지문마다 차례로 나눠 준다(골고루, 한 지문에 같은 유형 두 번 없음).
- * 연결어·글의 순서·문장 삽입·요약문·도식화는 지문 하나 통째(1세트)라 상한이 없다.
+ * 요약문·도식화는 지문 하나 통째(1세트)다. 연결어는 빈칸 수, 문장 순서·삽입은 지문당 문항 수를 고른다.
  */
 type AutoSize = "short" | "normal" | "long";
 const AUTO: Record<AutoSize, { label: string; perPassage: number; vocab: number; limits: TestLimits }> = {
@@ -79,8 +79,11 @@ const SECONDS: Partial<Record<TestBookTypeKey, number>> = {
 };
 const SET_SECONDS: Partial<Record<TestBookTypeKey, number>> = { link: 60, sequence: 90, insert: 60, summary: 60, flow: 90 };
 /** 지문 전체가 한 문항인 유형은 개수를 따로 고르지 않는다. */
-const WHOLE_PASSAGE_TYPES = new Set<TestBookTypeKey>(["link", "sequence", "insert", "summary", "flow"]);
+const WHOLE_PASSAGE_TYPES = new Set<TestBookTypeKey>(["summary", "flow"]);
+/** 지문 통째 유형이라 「가능한 만큼」 없이 1문항부터 고른다(기본 1문항) */
+const SET_COUNT_TYPES = new Set<TestBookTypeKey>(["sequence", "insert"]);
 const COUNT_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
+const SET_COUNT_OPTIONS = [1, 2, 3] as const;
 function estimateMinutes(sheets: TestSheet[], vocabItems: number): number {
   let sec = vocabItems * 10;
   for (const sh of sheets)
@@ -187,7 +190,7 @@ export function TestDrawDialog({
     setLimits((prev) => {
       const updated = { ...prev };
       for (const type of next) {
-        if (!WHOLE_PASSAGE_TYPES.has(type) && updated[type] == null) {
+        if (!WHOLE_PASSAGE_TYPES.has(type) && !SET_COUNT_TYPES.has(type) && type !== "link" && updated[type] == null) {
           updated[type] = AUTO[size].limits[type] ?? 3;
         }
       }
@@ -357,15 +360,20 @@ export function TestDrawDialog({
                   selected && !WHOLE_PASSAGE_TYPES.has(type) ? (
                     <select
                       aria-label={`${testBookTypeLabel(type)} 문항 수`}
-                      value={limits[type] ?? "all"}
+                      value={limits[type] ?? (SET_COUNT_TYPES.has(type) ? 1 : "all")}
                       onChange={(e) => {
                         const value = e.target.value === "all" ? undefined : Number(e.target.value);
                         setLimits((prev) => ({ ...prev, [type]: value }));
                       }}
                       className="rounded-md border border-violet-200 bg-white px-1 py-0.5 text-[11px]"
                     >
-                      {COUNT_OPTIONS.map((n) => <option key={n} value={n}>{n}문항</option>)}
-                      <option value="all">가능한 만큼</option>
+                      {(SET_COUNT_TYPES.has(type) ? SET_COUNT_OPTIONS : COUNT_OPTIONS).map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                          {type === "link" ? "칸" : "문항"}
+                        </option>
+                      ))}
+                      {SET_COUNT_TYPES.has(type) ? null : <option value="all">가능한 만큼</option>}
                     </select>
                   ) : selected ? <span className="text-[10px] font-semibold text-slate-400">1세트</span> : null
                 }
@@ -447,7 +455,7 @@ export function TestDrawDialog({
                         <tr className="border-t border-slate-100">
                           <td>연결어·순서·삽입·요약·도식</td>
                           <td colSpan={3} className="text-center">
-                            지문 통째(1세트)
+                            지문 통째 · 연결어는 전부, 순서·삽입은 1문항(유형 옆에서 바꿈)
                           </td>
                           <td />
                         </tr>
