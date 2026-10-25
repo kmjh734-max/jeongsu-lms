@@ -1133,6 +1133,28 @@ export function LessonSheets({
       </div>
     ),
   }));
+  /*
+   * 지문 삽화(4컷)는 본문 뒤에 싣는다. 10-21에 수업용 자료를 이 모양으로 바꾸면서 빠졌다(선생님 2026-10-26).
+   * 정사각 그림이라 높이를 정해 두어 쪽 나누기가 그림이 늦게 떠도 어긋나지 않게 한다.
+   */
+  if (project.illustrationUrl) {
+    blocks.push({
+      key: "illust",
+      node: (
+        <div style={{ marginTop: "4mm", textAlign: "center" }}>
+          <div className="tb-tip" style={{ textAlign: "left", marginBottom: "1.5mm" }}>
+            삽화로 보는 지문 흐름
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={project.illustrationUrl}
+            alt="지문 4컷 삽화"
+            style={{ width: "100mm", height: "100mm", objectFit: "contain", display: "inline-block" }}
+          />
+        </div>
+      ),
+    });
+  }
   const sub = translation === "show" ? "해석 있음" : translation === "hide" ? "해석 쓰기" : "해석은 뒤쪽에";
   return (
     <PagedSheet

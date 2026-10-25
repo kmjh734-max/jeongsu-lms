@@ -247,7 +247,7 @@ export async function loadBundleExtraProjects(
     supabase
       .from("lesson_material_projects")
       .select(
-        "id,title,title_en,source,opc:lesson_pack_json->onePageContent,tbm:lesson_pack_json->testBookMaterial,gc:lesson_pack_json->grammarChoiceV2Cache,vc:lesson_pack_json->vocabChoiceCache"
+        "id,title,title_en,source,illustration_url,opc:lesson_pack_json->onePageContent,tbm:lesson_pack_json->testBookMaterial,gc:lesson_pack_json->grammarChoiceV2Cache,vc:lesson_pack_json->vocabChoiceCache"
       )
       .in("id", ids)
       .is("deleted_at", null),
@@ -268,6 +268,7 @@ export async function loadBundleExtraProjects(
     title: string;
     title_en: string | null;
     source: string | null;
+    illustration_url: string | null;
     opc: LessonPackData["onePageContent"] | null;
     tbm: LessonPackData["testBookMaterial"] | null;
     gc: StoredGrammarChoiceV2Cache | null;
@@ -316,6 +317,7 @@ export async function loadBundleExtraProjects(
           (itemsByProject.get(p.id) ?? []).map((it) => String(it.english_text ?? ""))
         ),
         vocabChoice: vocabChoice.section,
+        illustrationUrl: p.illustration_url ?? null,
       };
     }));
 }

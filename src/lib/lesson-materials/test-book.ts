@@ -219,6 +219,8 @@ export type TestBookProjectInput = {
   grammarChoice?: WorkbookGrammarChoiceSection | null;
   /** 선생님이 고친 어휘 선택(교재 파일에 저장). 있으면 어휘선택을 이 문항으로 싣는다. */
   vocabChoice?: WorkbookVocabChoiceSection | null;
+  /** 지문 삽화(4컷). 있으면 수업용 자료 본문 뒤에 싣는다(선생님 2026-10-26: 만든 삽화가 안 나온다). */
+  illustrationUrl?: string | null;
 };
 
 export function isTestBookProjectReady(
