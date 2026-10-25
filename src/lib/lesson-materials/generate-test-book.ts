@@ -7,6 +7,12 @@ import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 import { findPhrase } from "@/lib/lesson-materials/one-page";
 import type { LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
 import type { TestBookVocabRow } from "@/lib/lesson-materials/test-book";
+import { engcoreWordLevel } from "@/lib/vocab/engcore-level";
+
+/** 파생어는 지문당 이만큼의 낱말에만, 낱말마다 둘까지(선생님 2026-10-25: 안 나올 것까지 많이 할 필요 없다) */
+// 지침은 예전 그대로 넉넉히 받는다(줄여 적으면 gpt-4o-mini가 아예 빈 배열만 준다 — 2026-10-25 확인). 줄이는 것은 아래 코드가 한다.
+const FORMS_WORDS_MAX = 6;
+const FORMS_PER_WORD = 2;
 
 const MODEL = "gpt-4o-mini";
 const MAX_ROWS = 18;
@@ -19,9 +25,8 @@ const SYSTEM = `너는 한국 고등학교 영어 내신 교재의 단어장 편
 - key: 지문의 주제·흐름에 중요한 말이거나, 시험에서 동의어·반의어로 바꿔 나올 만한 말이면 true. 쉬운 기능어·고유명사·흔한 말은 false. 전체의 40~60%만 true.
 - synonyms, antonyms: key가 true일 때만, 이 문맥 뜻과 맞는 것을 있는 만큼 최대 3개(한 낱말이나 짧은 구, 영어). 시험에 바꿔 나올 만한 말이 여럿이면 하나로 줄이지 말고 다 쓴다. 딱 맞는 것이 없으면 빈 배열 — 억지로 만들지 않는다. key가 false면 둘 다 빈 배열.
 - forms: 이 낱말과 품사가 다른 형태를 품사마다(n. v. a. ad.) 하나씩, 실제로 쓰이는 것은 모두(최대 4개, 철자 정확히 — 시험에 「명사형은? 형용사형은? 부사형은?」으로 나온다). 명사형만 쓰고 끝내지 말고 동사형·형용사형·부사형이 있으면 다 쓴다. 원래 품사와 같은 형태는 쓰지 않는다. 사전에 있는 낱말만 쓰고(developedly·dronely처럼 지어낸 말 금지), -ing·-ed만 붙인 단순 변화형(developing, rescued)은 파생어가 아니므로 쓰지 않는다. ko에 그 파생어의 대표 뜻을 짧게(한두 낱말) 쓴다. 예: attract → [{"word":"attraction","pos":"n.","ko":"매력"},{"word":"attractive","pos":"a.","ko":"매력적인"},{"word":"attractively","pos":"ad.","ko":"매력적으로"}], durable → [{"word":"durability","pos":"n.","ko":"내구성"},{"word":"durably","pos":"ad.","ko":"오래가게"}], creation → [{"word":"create","pos":"v.","ko":"창조하다"},{"word":"creative","pos":"a.","ko":"창의적인"},{"word":"creatively","pos":"ad.","ko":"창의적으로"}], decide → [{"word":"decision","pos":"n.","ko":"결정"},{"word":"decisive","pos":"a.","ko":"결정적인"},{"word":"decisively","pos":"ad.","ko":"단호하게"}]. 정말 없을 때만 [].
-- phrase: 시험에 나올 어구 하나를 "habit formation 습관 형성"처럼. 없으면 "".
 - confusables: key가 true인 낱말에는 꼭 1~3개 — 철자가 비슷해(앞 서너 글자가 같거나 한두 글자만 다름) 학생이 헷갈리는 다른 실제 영어 낱말, 되도록 같은 품사. 뜻이 비슷한 말(동의어)이 아니라 생김새가 비슷한 말이다. 예: adapt → ["adopt","adept"], affect → ["effect"], deliver → ["deliberate"], military → ["militant"], monitor → ["monument"], economic → ["economical"], sensible → ["sensitive"], persecute → ["prosecute"]. key가 false면 0~2개.
-출력: {"vocab":[{"word":"","pos":"","meaning":"","key":true,"synonyms":[],"antonyms":[],"forms":[],"phrase":"","confusables":[]}]}`;
+출력: {"vocab":[{"word":"","pos":"","meaning":"","key":true,"synonyms":[],"antonyms":[],"forms":[],"confusables":[]}]}`;
 
 function parseJson(text: string): unknown {
   try {
@@ -152,7 +157,8 @@ export async function refineTestBookVocab(input: {
             // 품사마다 하나씩
             .filter((f, i, all) => all.findIndex((x) => x.pos === f.pos) === i)
             .slice(0, 4),
-          phrase: String(r.phrase ?? "").trim().slice(0, 40),
+          // 어구는 만들지 않는다(선생님 2026-10-25)
+          phrase: "",
           // 혼동어휘: 동반의어·어휘선택 오답에 먼저 쓴다(선생님 의견 2026-10-21: 연관 없는 오답 대신 혼동어휘·같은 품사)
           confusables: list(r.confusables).filter((w) => /^[A-Za-z][A-Za-z -]*$/.test(w) && w.toLowerCase() !== word.toLowerCase()),
           key,
@@ -162,7 +168,13 @@ export async function refineTestBookVocab(input: {
     // 사전에 없는 파생어·혼동어휘(developedly·delever·rescuingly)는 뺀다(선생님 의견 2026-10-21 반영 중 확인)
     const dict = await englishWords();
     for (const r of rows) {
-      r.forms = r.forms.filter((f) => dict.has(f.word.toLowerCase()));
+      /*
+       * 파생어는 사전에 있고 우리 EngCore 단어장에 바로 있는 낱말만(engcoreWordLevel — weedy·ideality·decadal처럼 시험에 안 나올 것은 뺀다),
+       * 낱말마다 둘까지.
+       */
+      r.forms = r.forms
+        .filter((f) => dict.has(f.word.toLowerCase()) && engcoreWordLevel(f.word) !== null)
+        .slice(0, FORMS_PER_WORD);
       const w0 = r.word.toLowerCase();
       // 같은 뿌리의 잘린 꼴(devel ⊂ develop, hazarding)은 혼동어휘가 아니다
       r.confusables = (r.confusables ?? []).filter((w) => {
@@ -181,6 +193,15 @@ export async function refineTestBookVocab(input: {
       return true;
     });
     if (unique.length < 3) throw new Error("단어 정리를 충분히 만들지 못했습니다. 다시 시도해 주세요.");
+    // 파생어는 핵심어부터 지문당 여섯 낱말까지만 남긴다
+    {
+      let kept = 0;
+      for (const r of [...unique].sort((a, b) => Number(b.key) - Number(a.key))) {
+        if (r.forms.length === 0) continue;
+        if (kept >= FORMS_WORDS_MAX) r.forms = [];
+        else kept += 1;
+      }
+    }
     return unique
       .map((r, i) => ({ r, i, at: firstAt(passage, r.word) }))
       .sort((a, b) => a.at - b.at || a.i - b.i)

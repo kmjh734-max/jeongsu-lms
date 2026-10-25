@@ -3,6 +3,8 @@ import type { StoredWordOrderChunkCache } from "@/lib/lesson-materials/word-orde
 import type { StoredSentenceTranslation } from "@/lib/lesson-materials/translation-meta";
 import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
 
+import { collectLessonVocabCandidates, pickLessonVocab } from "@/lib/lesson-materials/lesson-vocab-pick";
+
 export type LessonPackVocabItem = {
   word: string;
   meaning: string; // e.g. "a. 생산적인"
@@ -113,12 +115,8 @@ const SYSTEM = `너는 한국 중·고등 영어 지문에서 수업용 어휘�
 }
 
 규칙:
-- vocab는 지문에서 실제로 나온(또는 파생형으로 나온) 단어 10~14개.
-- 난이도 섞기(중요): 목록의 약 40~50%는 중·고등 수업에서 자주 다루는 쉬운/기초 단어,
-  나머지는 핵심·중급 단어. 너무 어려운 단어만 모으지 말 것.
-  예: advance, assume, response, strain 같은 쉬운 단어도 지문에 있으면 반드시 포함.
-- 제외: 관사·대명사·be동사·아주 기초 접속사(the/a/is/and/of/to 등).
-- word는 기본형(lemma) 영어 단어.
+- vocab는 「단어 목록」에 적힌 단어를 빠짐없이, 적힌 차례 그대로. 목록에 없는 단어를 보태거나 목록의 단어를 빼지 않는다.
+- word는 목록에 적힌 기본형(lemma) 그대로 쓴다.
 - meaning은 품사 약어(a./n./v./ad. 등) + 한국어 뜻(쉽고 짧게).
 - synonyms는 각 단어마다 1~3개.
 - antonyms는 각 단어마다 1~3개. 대립 개념이 분명하면 반드시 넣는다.
@@ -201,6 +199,16 @@ async function fillEmptyAntonyms(
   });
 }
 
+/** 영어 낱말 목록(약 27만) — 우리 단어장 밖 낱말이 진짜 영어인지 본다 */
+let dictionary: Set<string> | null = null;
+async function englishWords(): Promise<Set<string>> {
+  if (!dictionary) {
+    const mod = (await import("an-array-of-english-words/index.json")) as unknown as { default: string[] };
+    dictionary = new Set(mod.default);
+  }
+  return dictionary;
+}
+
 export async function generateLessonPackVocab(input: {
   englishPassage: string;
   koreanPassage?: string;
@@ -212,13 +220,27 @@ export async function generateLessonPackVocab(input: {
   const passage = input.englishPassage.trim().slice(0, 6000);
   if (passage.length < 20) throw new Error("지문이 너무 짧습니다.");
 
+  /*
+   * 어느 낱말을 실을지는 코드가 고른다(선생님 2026-10-25: 중학고난도 이상은 모두, 지문당 12~16개).
+   * 모델은 뜻·동의어·반의어만 붙인다. 고르는 규칙은 lesson-vocab-pick.ts.
+   */
+  const picked = pickLessonVocab(
+    collectLessonVocabCandidates(
+      passage.split(/\r?\n/).map((s) => s.trim()).filter(Boolean),
+      await englishWords()
+    )
+  );
+  const wanted = picked.map((c) => c.word);
+  const wantedSet = new Set(wanted);
+  const listBlock = picked.map((c) => `- ${c.word} (지문: ${c.surface})`).join("\n");
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 90_000);
 
   try {
     const user = `제목: ${input.title ?? "(없음)"}\n\nEN:\n${passage}\n\nKR:\n${
       (input.koreanPassage ?? "").trim() || "(없음)"
-    }\n\n위 지문으로 수업용 단어 목록을 만들어라. 쉬운 단어와 핵심 단어를 함께 넣고, synonyms와 antonyms를 모두 채워라. 반의어 빈 칸이 있으면 안 된다.`;
+    }\n\n단어 목록(${wanted.length}개, 이 차례 그대로):\n${listBlock}\n\n위 지문에서 쓰인 뜻으로 목록의 단어마다 meaning·synonyms·antonyms를 채워라. 목록을 바꾸지 말고 반의어 빈 칸이 있으면 안 된다.`;
 
     let vocab: LessonPackVocabItem[] = [];
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -227,14 +249,19 @@ export async function generateLessonPackVocab(input: {
         SYSTEM,
         attempt === 0
           ? user
-          : `${user}\n\n이전 결과에 반의어가 너무 비어 있었다. 이번에는 각 단어 antonyms를 반드시 1개 이상 넣어라.`,
+          : `${user}\n\n이전 결과가 목록과 다르거나 반의어가 너무 비어 있었다. 목록의 단어를 모두 쓰고 각 단어 antonyms를 반드시 1개 이상 넣어라.`,
         controller.signal
       )) as { vocab?: unknown } | null;
       const raw = Array.isArray(parsed?.vocab) ? parsed!.vocab : [];
-      vocab = parseVocabRows(raw);
-      if (vocab.length < 3) continue;
+      // 목록에 있는 낱말만, 목록 차례로(모델이 보탠 것은 버리고 빠뜨린 것은 다음 시도에서 받는다)
+      const byWord = new Map(parseVocabRows(raw).map((v) => [v.word.toLowerCase(), v] as const));
+      vocab = wanted.flatMap((w) => {
+        const v = byWord.get(w);
+        return v && wantedSet.has(w) ? [{ ...v, word: w }] : [];
+      });
+      if (vocab.length < Math.min(3, wanted.length)) continue;
       const withAnt = vocab.filter((v) => v.antonyms.length > 0).length;
-      if (withAnt >= Math.ceil(vocab.length * 0.6)) break;
+      if (vocab.length >= Math.ceil(wanted.length * 0.8) && withAnt >= Math.ceil(vocab.length * 0.6)) break;
     }
 
     if (vocab.length < 3) {
