@@ -56,8 +56,8 @@ export type GrammarChapterGroup = {
 };
 
 /**
- * 인쇄 서식 — 선생님 결정(2026-10-26): 내신 기출형 하나만 쓴다.
- * 고르는 칸에 서식이 다섯 개 뜨는 게 많다고 하셨고, 나머지는 별로라 하셨다.
+ * 인쇄 서식 — 선생님 결정(2026-10-26): 내신 기출형 + STEP 단계형 + 기출 예상형 셋만 쓴다.
+ * 다섯 개 뜨는 게 많다 하셨고, 내신 기출형 말고는 별로라 하셔서 시안을 다시 그려 둘을 받았다.
  *
  * 빠진 서식(포인트 라벨형·서술 연습형·초록 라벨형·파랑 워크북형 등)의 CSS 와 그리는 코드는 그대로 둔다.
  * 다시 쓰게 되면 아래 목록에 되돌리기만 하면 된다.
@@ -65,10 +65,13 @@ export type GrammarChapterGroup = {
 export const GRAMMAR_SHEET_STYLES = [
   // 2026-10-25 선생님 승인 — 교재(내신 대비 문제집·기출예상·학원 실전문제지)를 보고 따온 서식
   { key: "a", label: "내신 기출형", hint: "색 띠 머리글, 배점·서술형·고난도 표시, 정답은 모아 쓰기" },
+  // 2026-10-26 선생님 승인 — 해커스 STEP 쪽, 기출예상 문제집 쪽을 따른 서식. 글자 크기는 내신 기출형과 같다.
+  { key: "s", label: "STEP 단계형", hint: "객관식은 STEP 1, 서술형은 STEP 2 쪽으로 나눠 싣기" },
+  { key: "p", label: "기출 예상형", hint: "육각 표지, 문항마다 ❶ 세부 단원, 굵은 01 번호" },
 ] as const;
 
 /** 그릴 줄 아는 서식 전부 — 목록에서 뺀 서식도 코드에는 남아 있다 */
-export type GrammarSheetStyle = "a" | "b" | "c" | "g" | "i";
+export type GrammarSheetStyle = "a" | "b" | "c" | "g" | "i" | "s" | "p";
 
 export function isGrammarSheetStyle(v: unknown): v is GrammarSheetStyle {
   return GRAMMAR_SHEET_STYLES.some((s) => s.key === v);
