@@ -10,7 +10,6 @@ import type {
 } from "@/lib/lesson-materials/test-book-actions";
 import {
   BASIC_TEST_BOOK_TYPES,
-  DEFAULT_VOCAB_EXAM,
   TEST_BOOK_TYPES,
   VOCAB_EXAM_KINDS,
   type TestLimits,
@@ -144,7 +143,9 @@ export function TestDrawDialog({
   const [lineMode, setLineMode] = useState<LineMode>("full");
   const [writing, setWriting] = useState<WritingScope>("all");
   const [vocabOn, setVocabOn] = useState(true);
-  const [vocab, setVocab] = useState<VocabExamOptions>(DEFAULT_VOCAB_EXAM);
+  const [vocab, setVocab] = useState<VocabExamOptions>(() => ({
+    counts: Object.fromEntries(VOCAB_EXAM_KINDS.map((kind) => [kind.key, AUTO.normal.vocab])) as VocabExamOptions["counts"],
+  }));
   const [busy, setBusy] = useState<string | null>(null);
   /** 자동 뽑기(기준대로 무작위) · 전부 뽑기(고른 유형 전부) */
   const [mode, setMode] = useState<"auto" | "all">("auto");
@@ -179,6 +180,18 @@ export function TestDrawDialog({
   const missing = list.filter((p) => !isTestBookProjectReady(p));
   const indexOf = (id: string) => list.findIndex((p) => p.id === id);
   const chosen = ready.filter((p) => picked.has(p.id));
+  const changeTypes = (next: TestBookTypeKey[]) => {
+    setLimits((prev) => {
+      const updated = { ...prev };
+      for (const type of next) {
+        if (!WHOLE_PASSAGE_TYPES.has(type) && updated[type] == null) {
+          updated[type] = AUTO[size].limits[type] ?? 3;
+        }
+      }
+      return updated;
+    });
+    setTypes(next);
+  };
 
   async function prepareMissing() {
     if (busy || !missing.length) return;
@@ -216,9 +229,7 @@ export function TestDrawDialog({
     const picks = auto
       ? assignTypes(chosen.map((p) => p.id), types, preset.perPassage, seed)
       : Object.fromEntries(chosen.map((p) => [p.id, types] as const));
-    const vocabOpts: VocabExamOptions = auto
-      ? { counts: Object.fromEntries(VOCAB_EXAM_KINDS.map((k) => [k.key, preset.vocab])) as VocabExamOptions["counts"] }
-      : vocab;
+    const vocabOpts = vocab;
     return {
       sheets: chosen.map((p) => ({
         project: { id: p.id, index: indexOf(p.id), title: p.title, titleEn: p.titleEn, source: p.source },
@@ -336,7 +347,26 @@ export function TestDrawDialog({
               <p className="text-xs font-bold text-violet-900">
                 {mode === "auto" ? "유형 (이 가운데서 지문마다 골고루 뽑음)" : "유형 (고른 유형을 모두 싣고, 문항은 누를 때마다 새로 섞음)"}
               </p>
-              <TypeChecks value={types} onChange={setTypes} />
+              <TypeChecks
+                value={types}
+                onChange={changeTypes}
+                accessory={(type, selected) =>
+                  selected && !WHOLE_PASSAGE_TYPES.has(type) ? (
+                    <select
+                      aria-label={`${testBookTypeLabel(type)} 문항 수`}
+                      value={limits[type] ?? "all"}
+                      onChange={(e) => {
+                        const value = e.target.value === "all" ? undefined : Number(e.target.value);
+                        setLimits((prev) => ({ ...prev, [type]: value }));
+                      }}
+                      className="rounded-md border border-violet-200 bg-white px-1 py-0.5 text-[11px]"
+                    >
+                      {COUNT_OPTIONS.map((n) => <option key={n} value={n}>{n}문항</option>)}
+                      <option value="all">가능한 만큼</option>
+                    </select>
+                  ) : selected ? <span className="text-[10px] font-semibold text-slate-400">1세트</span> : null
+                }
+              />
             </div>
           </div>
           <div className="space-y-3">
@@ -368,6 +398,9 @@ export function TestDrawDialog({
                         onClick={() => {
                           setSize(k);
                           setLimits({ ...AUTO[k].limits });
+                          setVocab({
+                            counts: Object.fromEntries(VOCAB_EXAM_KINDS.map((kind) => [kind.key, AUTO[k].vocab])) as VocabExamOptions["counts"],
+                          });
                         }}
                         className={`rounded-md border px-1 py-1 text-[11px] font-bold ${
                           size === k ? "border-violet-500 bg-violet-600 text-white" : "border-slate-200 bg-white text-slate-600"
@@ -431,32 +464,6 @@ export function TestDrawDialog({
               ) : (
                 <p className="text-[11px] text-slate-600">고른 유형을 지문마다 모두 싣고, 아래에서 정한 문항 수만큼 냅니다.</p>
               )}
-              {types.some((t) => !WHOLE_PASSAGE_TYPES.has(t)) ? (
-                <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-2">
-                  <p className="text-[11px] font-bold text-slate-600">유형별 문항 수 · 지문마다</p>
-                  {types.filter((t) => !WHOLE_PASSAGE_TYPES.has(t)).map((t) => (
-                    <label key={t} className="flex items-center justify-between gap-2 text-[11.5px] text-slate-700">
-                      <span>{testBookTypeLabel(t)}</span>
-                      <select
-                        value={limits[t] ?? "all"}
-                        onChange={(e) => {
-                          const value = e.target.value === "all" ? undefined : Number(e.target.value);
-                          setLimits((prev) => ({ ...prev, [t]: value }));
-                        }}
-                        className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[11.5px]"
-                      >
-                        {COUNT_OPTIONS.map((n) => (
-                          <option key={n} value={n}>{n}문항</option>
-                        ))}
-                        <option value="all">가능한 만큼</option>
-                      </select>
-                    </label>
-                  ))}
-                  <p className="text-[10.5px] leading-snug text-slate-500">
-                    재료가 부족한 지문은 가능한 문항 수로 자동 조정됩니다. 연결어·순서·삽입·요약·도식은 지문 전체 1세트입니다.
-                  </p>
-                </div>
-              ) : null}
               {preview ? (
                 <p className="text-[12px] font-bold text-slate-800">
                   예상 약 {preview.minutes}분 · {preview.items}문항{preview.vocab ? ` + 단어 ${preview.vocab}문항` : ""}
@@ -490,7 +497,7 @@ export function TestDrawDialog({
               <input type="checkbox" checked={vocabOn} onChange={(e) => setVocabOn(e.target.checked)} />
               단어 시험지 함께(고른 지문 합침)
             </label>
-            {vocabOn && mode === "all" ? <VocabExamControls value={vocab} onChange={setVocab} /> : null}
+            {vocabOn ? <VocabExamControls value={vocab} onChange={setVocab} /> : null}
             <p className="text-[11px] leading-relaxed text-slate-500">
               뽑은 테스트지는 정답지와 함께 새 탭에서 열리고, 자료함 「뽑은 테스트지」에 저장됩니다. 다시 열 때는 값이 들지 않습니다.
             </p>

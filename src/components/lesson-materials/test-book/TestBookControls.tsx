@@ -19,6 +19,7 @@ import {
   type VocabExamOptions,
   type WritingScope,
 } from "@/lib/lesson-materials/test-book";
+import type { ReactNode } from "react";
 
 export const TRANSLATION_MODES: Array<{ id: TestBookOptions["translation"]; label: string }> = [
   { id: "show", label: "해석 있음" },
@@ -160,9 +161,12 @@ export function WritingScopeSwitch({ value, onChange }: { value: WritingScope; o
 export function TypeChecks({
   value,
   onChange,
+  accessory,
 }: {
   value: TestBookTypeKey[];
   onChange: (next: TestBookTypeKey[]) => void;
+  /** 선택된 유형 오른쪽에 문항 수 같은 추가 설정을 붙인다. */
+  accessory?: (type: TestBookTypeKey, selected: boolean) => ReactNode;
 }) {
   const on = new Set(value);
   const toggle = (k: TestBookTypeKey) =>
@@ -172,12 +176,18 @@ export function TypeChecks({
       {[true, false].map((basic) => (
         <div key={String(basic)} className="space-y-0.5">
           <p className="text-[10.5px] font-bold tracking-wide text-slate-400">{basic ? "기본" : "선택"}</p>
-          {TEST_BOOK_TYPES.filter((t) => t.basic === basic).map((t) => (
-            <label key={t.key} className="flex min-h-[26px] cursor-pointer items-center gap-2 text-[13px] text-slate-800" title={t.hint}>
-              <input type="checkbox" className="h-4 w-4 accent-violet-600" checked={on.has(t.key)} onChange={() => toggle(t.key)} />
-              <span className="flex-1">{t.label}</span>
-            </label>
-          ))}
+          {TEST_BOOK_TYPES.filter((t) => t.basic === basic).map((t) => {
+            const selected = on.has(t.key);
+            return (
+              <div key={t.key} className="flex min-h-[28px] items-center gap-2 text-[13px] text-slate-800" title={t.hint}>
+                <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
+                  <input type="checkbox" className="h-4 w-4 accent-violet-600" checked={selected} onChange={() => toggle(t.key)} />
+                  <span className="flex-1">{t.label}</span>
+                </label>
+                {accessory?.(t.key, selected)}
+              </div>
+            );
+          })}
         </div>
       ))}
       <div className="flex gap-1.5">
