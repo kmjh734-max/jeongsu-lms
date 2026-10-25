@@ -8,10 +8,13 @@ export function MaterialDesignPicker({
   value,
   onChange,
   title = "디자인",
+  compact = false,
 }: {
   value: MaterialDesign;
   onChange: (d: MaterialDesign) => void;
   title?: string;
+  /** 한 줄 고르는 상자(워크북 왼쪽 메뉴 줄이기, 선생님 2026-10-26) */
+  compact?: boolean;
 }) {
   /*
    * 디자인을 바꾸면 모든 쪽을 다시 재고 나눈다(통합자료는 수십 쪽). 선생님 지적(2026-10-21 「너무 느려」):
@@ -20,6 +23,30 @@ export function MaterialDesignPicker({
   const [pending, startTransition] = useTransition();
   const [picked, setPicked] = useState<MaterialDesign | null>(null);
   const shown = pending && picked ? picked : value;
+  if (compact) {
+    return (
+      <label className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-bold text-slate-500">{pending ? "바꾸는 중…" : title}</span>
+        <select
+          value={shown}
+          onChange={(e) => {
+            const id = e.target.value as MaterialDesign;
+            if (id === value) return;
+            setPicked(id);
+            startTransition(() => onChange(id));
+          }}
+          title="수업용 자료·분석서·워크북·통합자료에 같이 적용됩니다"
+          className="min-w-0 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+        >
+          {MATERIAL_DESIGNS.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    );
+  }
   return (
     <div className="space-y-1.5">
       <p className="text-[11px] font-bold text-slate-500">{title}</p>

@@ -813,6 +813,11 @@ export type WorkbookData = {
    * 선생님 요청(2026-10-20): 한줄해석·어법 등을 한 지문씩 낼지 이어서 낼지 고르게.
    */
   passageBreak?: Partial<Record<WorkbookTypeId, "page">>;
+  /**
+   * 나오는 순서. "passage"면 지문별(지문 하나에 고른 유형을 다 풀고 다음 지문, 지문마다 새 쪽),
+   * 없거나 "type"이면 유형별(지금까지 방식). 선생님 2026-10-26.
+   */
+  layoutOrder?: "type" | "passage";
   timing?: WorkbookGenerationTiming;
   /** 테스트 교재에서 옮긴 유형의 문항(유형마다 지문 목록). 단어 시험지는 vocabExam. */
   tbSections?: Partial<Record<TbWorkbookTypeId, WorkbookTbSection[]>>;

@@ -291,6 +291,85 @@ function workbookProjectIds(w: WorkbookData): string[] {
 }
 
 
+/**
+ * 지문별 차례(선생님 2026-10-26)에 쓰는 도우미. 단어 시험지처럼 여러 지문을 합친 것은 맨 앞(-1),
+ * 지문을 모르는 것(건너뛴 지문 안내·문장 순서 정답 묶음)은 맨 뒤.
+ */
+function passageRankOf(_w: WorkbookData, order: string[]) {
+  const at = new Map(order.map((id, i) => [id, i] as const));
+  return (pid: string | null | undefined): number => {
+    if (pid === "__all") return -1;
+    if (!pid) return 1_000_000;
+    return at.get(pid) ?? 999_999;
+  };
+}
+
+/** 2단 유형의 i번째 묶음이 어느 지문인지 */
+function columnPassageId(w: WorkbookData, type: WorkbookColumnTypeId, i: number): string | null {
+  switch (type) {
+    case "grammar_choice":
+      return w.grammarChoiceSections?.[i]?.projectId ?? null;
+    case "grammar_fix":
+      return w.grammarFixSections?.[i]?.projectId ?? null;
+    case "vocab_choice":
+      return w.vocabChoiceSections?.[i]?.projectId ?? null;
+    case "vocab_fix":
+      return w.vocabFixSections?.[i]?.projectId ?? null;
+    case "blank_fill":
+      return w.blankSections?.[i]?.projectId ?? null;
+    case "tf":
+      return w.sections?.[i]?.projectId ?? null;
+    case "sentence_order":
+      return w.sentenceOrderQuestions?.[i]?.passageId ?? null;
+    case "tb_vocab_exam":
+      return "__all";
+    default:
+      return w.tbSections?.[type as TbWorkbookTypeId]?.[i]?.projectId ?? null;
+  }
+}
+
+/** 정답 블록 이름(answerBlocks의 key)으로 그 블록이 어느 지문인지 */
+function answerBlockPassageId(w: WorkbookData, key: string): string | null {
+  if (key === "tbv") return "__all";
+  const m = key.match(/^([a-z]+)-(.+)$/);
+  if (!m) return null;
+  const [, prefix, rest] = m;
+  const n = (x: string | undefined) => Number(x ?? -1);
+  const parts = rest!.split("-");
+  switch (prefix) {
+    case "ba":
+      return w.blankSections?.[n(parts[0])]?.projectId ?? null;
+    case "gca":
+      return w.grammarChoiceSections?.[n(parts[0])]?.projectId ?? null;
+    case "gfa":
+      return w.grammarFixSections?.[n(parts[0])]?.projectId ?? null;
+    case "vca":
+      return w.vocabChoiceSections?.[n(parts[0])]?.projectId ?? null;
+    case "vfa":
+      return w.vocabFixSections?.[n(parts[0])]?.projectId ?? null;
+    case "ta":
+      return w.sections?.[n(parts[0])]?.projectId ?? null;
+    case "lta":
+      return w.lineTranslationSections?.[n(parts[0])]?.projectId ?? null;
+    case "gia":
+      return w.gistSections?.[n(parts[0])]?.projectId ?? null;
+    case "fea":
+      return w.fullEnWritingSections?.[n(parts[0])]?.projectId ?? null;
+    case "woa":
+      return w.wordOrderWritingSections?.[n(parts[0])]?.projectId ?? null;
+    case "kwa":
+      return w.keyWordOrderSections?.[n(parts[0])]?.projectId ?? null;
+    case "tb": {
+      // tb-<유형>-<i> (유형 이름에 _가 있어 -로만 나눈다)
+      const i = n(parts[parts.length - 1]);
+      const t = parts.slice(0, -1).join("-") as TbWorkbookTypeId;
+      return w.tbSections?.[t]?.[i]?.projectId ?? null;
+    }
+    default:
+      return null;
+  }
+}
+
 /** 테스트 교재에서 옮긴 유형의 문항 수(단어 시험지는 한 묶음) */
 function tbCount(w: WorkbookData, t: TbWorkbookTypeId): number {
   if (t === "tb_vocab_exam") return w.vocabExam && w.vocabExam.total > 0 ? 1 : 0;
@@ -1629,6 +1708,8 @@ export function WorkbookWorkbench({
   const [choiceEditing, setChoiceEditing] = useState<{ kind: "grammar" | "vocab"; index: number } | null>(null);
   /** 「유형 추가」 창(선생님 2026-10-24: 만들어 둔 워크북에 유형을 더한다) · 「다시 만들기」 창(있는 유형만 새로) */
   const [addOpen, setAddOpen] = useState<"add" | "regen" | null>(null);
+  /** 왼쪽 메뉴 칸(선생님 2026-10-26: 메뉴가 너무 많다 — 구성 / 유형 설정 / 지문 세 칸으로) */
+  const [sideTab, setSideTab] = useState<"build" | "types" | "passages">("build");
   useEffect(() => {
     try {
       setPageNumbers(window.localStorage.getItem(PAGE_NUMBER_KEY) !== "off");
@@ -3078,6 +3159,21 @@ export function WorkbookWorkbench({
         }
       }
     }
+    if (workbook.layoutOrder === "passage") {
+      const rank = passageRankOf(workbook, editablePassages.map((x) => x.projectId));
+      const pidOfPage = (page: WorkbookPage): string | null => {
+        if (page.kind === "columns_q") return columnPassageId(workbook, page.type, page.indices[0] ?? 0);
+        if (page.kind === "flow_q") {
+          const sec = (flowSections[page.flow] as Array<{ projectId?: string }>)[page.parts[0]?.sectionIndex ?? 0];
+          return sec?.projectId ?? null;
+        }
+        return null;
+      };
+      const tagged = out.map((page, i) => ({ page, i, r: rank(pidOfPage(page)) }));
+      tagged.sort((a, b) => a.r - b.r || a.i - b.i);
+      out.length = 0;
+      for (const t of tagged) out.push(t.page);
+    }
     if (types.length > 0) {
       // 정답지도 A4 쪽으로 나눈다. 예전에는 한 장에 전부 실어 인쇄에서 여러 쪽으로
       // 잘렸고, 가운데 쪽들은 위아래 여백 없이 종이 끝까지 찍혔다.
@@ -3101,7 +3197,7 @@ export function WorkbookWorkbench({
       });
     }
     return out;
-  }, [workbook, typeOrders, flowPages, columnPacks, answerPages, windowCounts]);
+  }, [workbook, typeOrders, flowPages, columnPacks, answerPages, windowCounts, editablePassages]);
 
   useLayoutEffect(() => {
     ensureWorkbookPrintStyles();
@@ -3181,7 +3277,7 @@ export function WorkbookWorkbench({
     const lt = workbook.lineTranslationSections ?? [];
     const fe = workbook.fullEnWritingSections ?? [];
     const wo = workbook.wordOrderWritingSections ?? [];
-    const separate = (t: WorkbookTypeId) => workbook.passageBreak?.[t] === "page";
+    const separate = (t: WorkbookTypeId) => workbook.layoutOrder === "passage" || workbook.passageBreak?.[t] === "page";
     if (lt.length) next.line_ko = packFlow("lt", lt, separate("one_line_ko"));
     const gi = workbook.gistSections ?? [];
     if (gi.length) next.gist = packFlow("gi", gi, separate("gist_ko"));
@@ -3220,7 +3316,7 @@ export function WorkbookWorkbench({
       let current: number[] = [];
       let used = 0;
       // 지문마다 새 쪽: 문장 순서 배열은 문항 단위라, 같은 지문의 문항끼리는 한 쪽에 둔다.
-      const separate = workbook.passageBreak?.[t] === "page";
+      const separate = workbook.layoutOrder === "passage" || workbook.passageBreak?.[t] === "page";
       const passageOf = (i: number) =>
         t === "sentence_order" ? (workbook.sentenceOrderQuestions?.[i]?.passageId ?? String(i)) : String(i);
       heights.forEach((h, i) => {
@@ -3775,7 +3871,15 @@ export function WorkbookWorkbench({
       addSkipped(`tbs-${t}`, ot, workbook.tbSkipped?.[t] ?? []);
     }
   }
-  answerBlocks.sort((a, b) => a.order - b.order);
+  if (workbook.layoutOrder === "passage") {
+    const rank = passageRankOf(workbook, editablePassages.map((x) => x.projectId));
+    const ranked = answerBlocks.map((b, i) => ({ b, i, r: rank(answerBlockPassageId(workbook, b.key)) }));
+    ranked.sort((a, b) => a.r - b.r || a.b.order - b.b.order || a.i - b.i);
+    answerBlocks.length = 0;
+    for (const x of ranked) answerBlocks.push(x.b);
+  } else {
+    answerBlocks.sort((a, b) => a.order - b.order);
+  }
   const answerBlockByKey = new Map(answerBlocks.map((b) => [b.key, b] as const));
   /**
    * 정답 블록 목록을 쪽 본문으로 그린다(블록 사이 간격은 쪽 나눔 계산과 같다). 쪽의 첫
@@ -4300,46 +4404,303 @@ export function WorkbookWorkbench({
     <PassageNoContext.Provider value={passageNos}>
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[260px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
-        <div className="space-y-2 border-b border-slate-100 p-4">
+        <div className="space-y-2 border-b border-slate-100 p-4 pb-3">
           <CloseSaveButton base={base} save={flushWorkbook} className="text-left text-xs font-semibold text-violet-700" />
           <h1 className="flex min-w-0 text-base font-bold text-slate-900">
             <DocumentTitle role={role} fallback="워크북" />
           </h1>
-          <p className="text-xs font-semibold text-slate-700">
-            {sourceNote === "new"
-              ? "새로 만들었습니다"
-              : sourceNote === "existing"
-                ? "기존 워크북을 불러왔습니다"
-                : sourceNote === "added"
-                  ? "유형을 더했습니다"
-                  : sourceNote === "regen"
-                    ? "다시 만들었습니다"
-                    : "새로 만들었습니다"}
+          <p className="text-[11px] font-semibold text-slate-500">
+            {sourceNote === "existing"
+              ? "기존 워크북을 불러왔습니다"
+              : sourceNote === "added"
+                ? "유형을 더했습니다"
+                : sourceNote === "regen"
+                  ? "다시 만들었습니다"
+                  : "새로 만들었습니다"}
           </p>
-          <p className="text-[11px] text-slate-400">
-            {orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder)
-              .map((t) => workbookTypeDisplayTitle(t))
-              .join(" · ")}
-          </p>
+          {/* 인쇄·PDF는 맨 위에(스크롤하지 않고 누르게) */}
+          <div className="grid grid-cols-4 gap-1">
+            <Button
+              type="button"
+              size="sm"
+              className="px-0"
+              disabled={grammarChoicePending}
+              onClick={() => window.print()}
+              title={grammarChoicePending ? "어법 선택이 끝나면 인쇄할 수 있습니다" : "인쇄"}
+            >
+              인쇄
+            </Button>
+            {(
+              [
+                ["문제", "문제지", "questions"],
+                ["정답", "정답지", "answers"],
+                ["전체", "전체", "all"],
+              ] as const
+            ).map(([short, label, part]) => (
+              <Button
+                key={part}
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="px-0"
+                title={`${label} PDF로 저장`}
+                disabled={grammarChoicePending || !!pdf.busy}
+                onClick={() =>
+                  void pdf.save(
+                    label,
+                    collectPrintPages(
+                      document.getElementById("workbook-print-root"),
+                      part === "all" ? ".workbook-a4-sheet" : `.workbook-a4-sheet[data-wb-part="${part}"]`
+                    ),
+                    [title]
+                  )
+                }
+              >
+                {short}
+              </Button>
+            ))}
+          </div>
+          <p className="text-[10.5px] text-slate-400">문제·정답·전체는 PDF로 저장합니다.</p>
+          {pdf.status ? (
+            <p className={`text-[11px] font-semibold ${pdf.busy ? "text-violet-700" : "text-rose-600"}`}>{pdf.status}</p>
+          ) : null}
+          <div className="grid grid-cols-3 overflow-hidden rounded-lg border border-slate-200">
+            {(
+              [
+                ["build", "구성"],
+                ["types", "유형 설정"],
+                ["passages", "지문"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setSideTab(id)}
+                className={`py-1.5 text-xs font-bold ${sideTab === id ? "bg-violet-50 text-violet-700" : "text-slate-500 hover:bg-slate-50"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
+        {grammarChoicePending ? (
+          <div className="mx-4 mt-4 rounded-xl border border-violet-200 bg-violet-50 px-3 py-3">
+            <p className="text-xs font-bold text-violet-800">어법 선택 제작 중</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-violet-700">
+              나머지 유형은 완성됐습니다. 어법 선택은 끝나는 대로 워크북에 붙습니다.
+            </p>
+            <div
+              className="mt-2 h-1.5 overflow-hidden rounded-full bg-white"
+              role="progressbar"
+              aria-label="어법 선택 제작 중"
+            >
+              <div className="h-full w-2/5 animate-indeterminate rounded-full bg-violet-600" />
+            </div>
+          </div>
+        ) : null}
         <div className="min-h-0 flex-1 space-y-4 overflow-auto p-4">
-          <label className="block space-y-1">
-            <span className="text-[11px] font-bold text-slate-500">워크북 제목</span>
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
-              value={title}
-              maxLength={80}
-              onChange={(e) =>
-                editWorkbook((w) => ({
-                  ...w,
-                  metadata: { ...w.metadata, title: e.target.value },
-                }))
-              }
-            />
-          </label>
+          {sideTab === "build" ? (
+            <>
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-bold text-slate-500">나오는 순서</p>
+                <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+                  {(
+                    [
+                      ["type", "유형별"],
+                      ["passage", "지문별"],
+                    ] as const
+                  ).map(([id, label]) => {
+                    const on = (workbook.layoutOrder ?? "type") === id;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => editWorkbook((w) => ({ ...w, layoutOrder: id === "type" ? undefined : "passage" }))}
+                        className={`rounded-md py-1.5 text-xs font-bold transition ${on ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[10.5px] leading-snug text-slate-400">
+                  {workbook.layoutOrder === "passage"
+                    ? "지문 하나에 고른 유형을 다 풀고 다음 지문으로 갑니다. 지문마다 새 쪽에서 시작합니다."
+                    : "한 유형을 지문 전부 하고 다음 유형으로 갑니다."}
+                </p>
+              </div>
 
-          <MaterialDesignPicker value={md} onChange={chooseMd} />
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold text-slate-500">항목 · 차례</p>
+                  {workbook.typeOrder?.length ? (
+                    <button
+                      type="button"
+                      onClick={() => editWorkbook((w) => ({ ...w, typeOrder: undefined }))}
+                      className="text-[11px] font-semibold text-violet-700 hover:underline"
+                    >
+                      기본 순서로
+                    </button>
+                  ) : null}
+                </div>
+                {(() => {
+                  const ordered = orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder);
+                  const byPassage = workbook.layoutOrder === "passage";
+                  const moveTo = (from: number, to: number) =>
+                    editWorkbook((w) => {
+                      const next = orderWorkbookTypes(w.selectedTypes, w.typeOrder);
+                      if (from === to || to < 0 || to >= next.length) return w;
+                      const [t] = next.splice(from, 1);
+                      next.splice(to, 0, t!);
+                      return { ...w, typeOrder: next };
+                    });
+                  const chip = (on: boolean) =>
+                    `shrink-0 rounded border px-1 text-[10px] font-bold leading-[18px] ${
+                      on ? "border-violet-500 bg-violet-50 text-violet-700" : "border-slate-200 text-slate-400 hover:text-slate-600"
+                    }`;
+                  return ordered.map((t, i) => {
+                    const separate = byPassage || workbook.passageBreak?.[t] === "page";
+                    const isColumn = (WORKBOOK_COLUMN_TYPES as readonly string[]).includes(t);
+                    const two = isColumn && columnsFor(t as WorkbookColumnTypeId) === 2;
+                    return (
+                      <div
+                        key={t}
+                        draggable
+                        onDragStart={(e) => {
+                          setDragFrom(i);
+                          e.dataTransfer.effectAllowed = "move";
+                        }}
+                        onDragOver={(e) => {
+                          if (dragFrom === null) return;
+                          e.preventDefault();
+                          if (dragOver !== i) setDragOver(i);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          if (dragFrom !== null) moveTo(dragFrom, i);
+                          setDragFrom(null);
+                          setDragOver(null);
+                        }}
+                        onDragEnd={() => {
+                          setDragFrom(null);
+                          setDragOver(null);
+                        }}
+                        title="끌어서 원하는 자리에 놓을 수 있습니다"
+                        className={`flex cursor-grab items-center gap-1 rounded-lg border px-1.5 py-1 ${
+                          dragOver === i && dragFrom !== i ? "border-violet-500 ring-2 ring-violet-200" : "border-slate-200"
+                        } ${dragFrom === i ? "opacity-40" : ""}`}
+                      >
+                        <span className="w-4 shrink-0 text-center text-[11px] font-bold tabular-nums text-slate-400">{i + 1}</span>
+                        <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700">{workbookTypeDisplayTitle(t)}</span>
+                        {isColumn ? (
+                          <button
+                            type="button"
+                            title={two ? "2단(누르면 1단)" : "1단(누르면 2단)"}
+                            onClick={() =>
+                              editWorkbook((w) => ({
+                                ...w,
+                                columnLayout: { ...w.columnLayout, [t]: two ? 1 : 2 },
+                              }))
+                            }
+                            className={chip(two)}
+                          >
+                            2단
+                          </button>
+                        ) : null}
+                        {byPassage ? null : <button
+                          type="button"
+                          disabled={byPassage}
+                          title={byPassage ? "지문별에서는 늘 지문마다 새 쪽입니다" : separate ? "지문마다 새 쪽(누르면 이어서)" : "이어서(누르면 지문마다 새 쪽)"}
+                          onClick={() =>
+                            editWorkbook((w) => {
+                              const next = { ...w.passageBreak };
+                              if (next[t] === "page") delete next[t];
+                              else next[t] = "page";
+                              return { ...w, passageBreak: next };
+                            })
+                          }
+                          className={`${chip(separate)} disabled:cursor-default disabled:opacity-60`}
+                        >
+                          새 쪽
+                        </button>}
+                        <button
+                          type="button"
+                          aria-label={`${workbookTypeDisplayTitle(t)} 위로`}
+                          disabled={i === 0}
+                          onClick={() => moveTo(i, i - 1)}
+                          className="rounded px-0.5 text-[10px] text-slate-500 hover:bg-slate-100 disabled:opacity-30"
+                        >
+                          ▲
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`${workbookTypeDisplayTitle(t)} 아래로`}
+                          disabled={i === ordered.length - 1}
+                          onClick={() => moveTo(i, i + 1)}
+                          className="rounded px-0.5 text-[10px] text-slate-500 hover:bg-slate-100 disabled:opacity-30"
+                        >
+                          ▼
+                        </button>
+                      </div>
+                    );
+                  });
+                })()}
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setAddOpen("add")}
+                    disabled={!workbookProjectIds(workbook).length || !new URLSearchParams(window.location.search).get("doc")}
+                    title="만들어 둔 이 워크북에 유형을 더합니다"
+                    className="flex-1 rounded-lg border border-dashed border-violet-300 px-2 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    + 유형 추가
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAddOpen("regen")}
+                    disabled={!workbookProjectIds(workbook).length || !new URLSearchParams(window.location.search).get("doc")}
+                    title="들어 있는 유형 가운데 골라 새로 만들어 바꿔 넣습니다"
+                    className="flex-1 rounded-lg border border-dashed border-violet-300 px-2 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    다시 만들기
+                  </button>
+                </div>
+              </div>
 
+              <MaterialDesignPicker value={md} onChange={chooseMd} compact />
+              <div className="flex items-center justify-between gap-2">
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    checked={pageNumbers}
+                    onChange={(e) => choosePageNumbers(e.target.checked)}
+                    className="h-4 w-4 accent-violet-500"
+                  />
+                  <span className="text-[11px] font-bold text-slate-500">쪽번호</span>
+                </label>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-bold text-slate-500">정답지</span>
+                  <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
+                    {([1, 2] as const).map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => editWorkbook((w) => ({ ...w, answerColumns: n }))}
+                        className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
+                          (workbook.answerColumns ?? 1) === n ? "bg-violet-600 text-white" : "text-slate-500 hover:bg-slate-50"
+                        }`}
+                      >
+                        {n}단
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : null}
+
+          {sideTab === "types" ? (
+            <>
           {workbook.selectedTypes.includes("one_line_ko") || workbook.selectedTypes.includes("tb_chunk_line") ? (
             <div className="space-y-1.5">
               <p className="text-[11px] font-bold text-slate-500">해석 적기</p>
@@ -4367,146 +4728,6 @@ export function WorkbookWorkbench({
               {lineBusy ? <p className="text-[11px] font-semibold text-violet-700">{lineBusy}</p> : null}
             </div>
           ) : null}
-
-
-          <label className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
-            <span className="text-[11px] font-bold text-slate-500">쪽번호 넣기</span>
-            <input
-              type="checkbox"
-              checked={pageNumbers}
-              onChange={(e) => choosePageNumbers(e.target.checked)}
-              className="h-4 w-4 accent-violet-500"
-            />
-          </label>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold text-slate-500">항목 순서 · 지문 배치</p>
-              {workbook.typeOrder?.length ? (
-                <button
-                  type="button"
-                  onClick={() => editWorkbook((w) => ({ ...w, typeOrder: undefined }))}
-                  className="text-[11px] font-semibold text-violet-700 hover:underline"
-                >
-                  기본 순서로
-                </button>
-              ) : null}
-            </div>
-            {(() => {
-              const ordered = orderWorkbookTypes(workbook.selectedTypes, workbook.typeOrder);
-              const moveTo = (from: number, to: number) =>
-                editWorkbook((w) => {
-                  const next = orderWorkbookTypes(w.selectedTypes, w.typeOrder);
-                  if (from === to || to < 0 || to >= next.length) return w;
-                  const [t] = next.splice(from, 1);
-                  next.splice(to, 0, t!);
-                  return { ...w, typeOrder: next };
-                });
-              const move = (i: number, dir: -1 | 1) => moveTo(i, i + dir);
-              return ordered.map((t, i) => {
-                const separate = workbook.passageBreak?.[t] === "page";
-                return (
-                  <div
-                    key={t}
-                    draggable
-                    onDragStart={(e) => {
-                      setDragFrom(i);
-                      e.dataTransfer.effectAllowed = "move";
-                    }}
-                    onDragOver={(e) => {
-                      if (dragFrom === null) return;
-                      e.preventDefault();
-                      if (dragOver !== i) setDragOver(i);
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      if (dragFrom !== null) moveTo(dragFrom, i);
-                      setDragFrom(null);
-                      setDragOver(null);
-                    }}
-                    onDragEnd={() => {
-                      setDragFrom(null);
-                      setDragOver(null);
-                    }}
-                    title="끌어서 원하는 자리에 놓을 수 있습니다"
-                    className={`cursor-grab rounded-lg border px-2 py-1.5 ${
-                      dragOver === i && dragFrom !== i ? "border-violet-500 ring-2 ring-violet-200" : "border-slate-200"
-                    } ${dragFrom === i ? "opacity-40" : ""}`}
-                  >
-                    <div className="flex items-center gap-1">
-                      <span aria-hidden className="shrink-0 select-none text-[11px] text-slate-300">⋮⋮</span>
-                      <span className="w-4 shrink-0 text-[11px] font-bold tabular-nums text-slate-400">
-                        {i + 1}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700">
-                        {workbookTypeDisplayTitle(t)}
-                      </span>
-                      <button
-                        type="button"
-                        aria-label={`${workbookTypeDisplayTitle(t)} 위로`}
-                        disabled={i === 0}
-                        onClick={() => move(i, -1)}
-                        className="rounded px-1 text-[10px] text-slate-500 hover:bg-slate-100 disabled:opacity-30"
-                      >
-                        ▲
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={`${workbookTypeDisplayTitle(t)} 아래로`}
-                        disabled={i === ordered.length - 1}
-                        onClick={() => move(i, 1)}
-                        className="rounded px-1 text-[10px] text-slate-500 hover:bg-slate-100 disabled:opacity-30"
-                      >
-                        ▼
-                      </button>
-                    </div>
-                    <div className="mt-1 ml-5 inline-flex rounded-lg border border-slate-200 p-0.5">
-                      {([false, true] as const).map((on) => (
-                        <button
-                          key={String(on)}
-                          type="button"
-                          onClick={() =>
-                            editWorkbook((w) => {
-                              const next = { ...w.passageBreak };
-                              if (on) next[t] = "page";
-                              else delete next[t];
-                              return { ...w, passageBreak: next };
-                            })
-                          }
-                          className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${
-                            separate === on ? "bg-violet-600 text-white" : "text-slate-500 hover:bg-slate-50"
-                          }`}
-                        >
-                          {on ? "지문마다 새 쪽" : "이어서"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-            <div className="flex gap-1.5">
-              <button
-                type="button"
-                onClick={() => setAddOpen("add")}
-                disabled={!workbookProjectIds(workbook).length || !new URLSearchParams(window.location.search).get("doc")}
-                title="만들어 둔 이 워크북에 유형을 더합니다"
-                className="flex-1 rounded-lg border border-dashed border-violet-300 px-2 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                + 유형 추가
-              </button>
-              <button
-                type="button"
-                onClick={() => setAddOpen("regen")}
-                disabled={!workbookProjectIds(workbook).length || !new URLSearchParams(window.location.search).get("doc")}
-                title="들어 있는 유형 가운데 골라 새로 만들어 바꿔 넣습니다"
-                className="flex-1 rounded-lg border border-dashed border-violet-300 px-2 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                다시 만들기
-              </button>
-            </div>
-          </div>
-
           {workbook.selectedTypes.includes("tf") && workbook.sections.length > 0 ? (
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-2">
@@ -4541,57 +4762,6 @@ export function WorkbookWorkbench({
               ) : null}
             </div>
           ) : null}
-
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-bold text-slate-500">정답지 단</span>
-            <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
-              {([1, 2] as const).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => editWorkbook((w) => ({ ...w, answerColumns: n }))}
-                  className={`rounded-md px-2.5 py-0.5 text-xs font-semibold ${
-                    (workbook.answerColumns ?? 1) === n ? "bg-violet-600 text-white" : "text-slate-500 hover:bg-slate-50"
-                  }`}
-                >
-                  {n}단
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {columnTypes.length > 0 ? (
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-bold text-slate-500">단 나누기</p>
-              {columnTypes.map((t) => (
-                <div key={t} className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-slate-700">{workbookTypeDisplayTitle(t)}</span>
-                  <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
-                    {([1, 2] as const).map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() =>
-                          editWorkbook((w) => ({
-                            ...w,
-                            columnLayout: { ...w.columnLayout, [t]: n },
-                          }))
-                        }
-                        className={`rounded-md px-2.5 py-0.5 text-xs font-semibold ${
-                          columnsFor(t) === n
-                            ? "bg-violet-600 text-white"
-                            : "text-slate-500 hover:bg-slate-50"
-                        }`}
-                      >
-                        {n}단
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
           {workbook.selectedTypes.includes("grammar_fix") ? (
             <FixControls
               label="어법 수정"
@@ -4608,7 +4778,6 @@ export function WorkbookWorkbench({
               onChange={(patch) => changeFix("vocab", patch)}
             />
           ) : null}
-
           {(
             [
               { kind: "grammar", label: "어법 문항 고치기", list: workbook.grammarChoiceSections ?? [] },
@@ -4685,7 +4854,33 @@ export function WorkbookWorkbench({
                 );
               })()
             : null}
+              {!(
+                workbook.selectedTypes.some((t) => t === "one_line_ko" || t === "tb_chunk_line" || t === "grammar_fix" || t === "vocab_fix") ||
+                (workbook.selectedTypes.includes("tf") && workbook.sections.length > 0) ||
+                (workbook.grammarChoiceSections?.length ?? 0) > 0 ||
+                (workbook.vocabChoiceSections?.length ?? 0) > 0
+              ) ? (
+                <p className="text-[11px] leading-relaxed text-slate-500">이 워크북의 유형에는 따로 고를 설정이 없습니다.</p>
+              ) : null}
+            </>
+          ) : null}
 
+          {sideTab === "passages" ? (
+            <>
+              <label className="block space-y-1">
+                <span className="text-[11px] font-bold text-slate-500">워크북 제목(쪽 머리에 찍힘)</span>
+                <input
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
+                  value={title}
+                  maxLength={80}
+                  onChange={(e) =>
+                    editWorkbook((w) => ({
+                      ...w,
+                      metadata: { ...w.metadata, title: e.target.value },
+                    }))
+                  }
+                />
+              </label>
           {editablePassages.length > 0 ? (
             <div className="space-y-2">
               <p className="text-[11px] font-bold text-slate-500">지문 제목 · 출처</p>
@@ -4714,6 +4909,8 @@ export function WorkbookWorkbench({
               ))}
             </div>
           ) : null}
+            </>
+          ) : null}
 
           {saveState !== "idle" ? (
             <p
@@ -4727,65 +4924,6 @@ export function WorkbookWorkbench({
                   ? "고친 내용을 저장했습니다."
                   : "저장하지 못했습니다. 잠시 후 다시 고쳐 보세요."}
             </p>
-          ) : null}
-        </div>
-        {grammarChoicePending ? (
-          <div className="mx-4 mt-4 rounded-xl border border-violet-200 bg-violet-50 px-3 py-3">
-            <p className="text-xs font-bold text-violet-800">어법 선택 제작 중</p>
-            <p className="mt-1 text-[11px] leading-relaxed text-violet-700">
-              나머지 유형은 완성됐습니다. 어법 선택은 끝나는 대로 워크북에 붙습니다.
-            </p>
-            <div
-              className="mt-2 h-1.5 overflow-hidden rounded-full bg-white"
-              role="progressbar"
-              aria-label="어법 선택 제작 중"
-            >
-              <div className="h-full w-2/5 animate-indeterminate rounded-full bg-violet-600" />
-            </div>
-          </div>
-        ) : null}
-        <div className="mt-auto space-y-2 border-t border-slate-100 p-4">
-          <Button
-            type="button"
-            size="sm"
-            className="w-full"
-            disabled={grammarChoicePending}
-            onClick={() => window.print()}
-          >
-            {grammarChoicePending ? "어법 선택 완성 후 인쇄" : "인쇄"}
-          </Button>
-          <p className="text-[11px] font-bold text-slate-500">PDF로 저장</p>
-          <div className="grid grid-cols-3 gap-1.5">
-            {(
-              [
-                ["문제지", "questions"],
-                ["정답지", "answers"],
-                ["전체", "all"],
-              ] as const
-            ).map(([label, part]) => (
-              <Button
-                key={part}
-                type="button"
-                size="sm"
-                variant="secondary"
-                disabled={grammarChoicePending || !!pdf.busy}
-                onClick={() =>
-                  void pdf.save(
-                    label,
-                    collectPrintPages(
-                      document.getElementById("workbook-print-root"),
-                      part === "all" ? ".workbook-a4-sheet" : `.workbook-a4-sheet[data-wb-part="${part}"]`
-                    ),
-                    [title]
-                  )
-                }
-              >
-                {label}
-              </Button>
-            ))}
-          </div>
-          {pdf.status ? (
-            <p className={`text-[11px] font-semibold ${pdf.busy ? "text-violet-700" : "text-rose-600"}`}>{pdf.status}</p>
           ) : null}
         </div>
       </aside>
