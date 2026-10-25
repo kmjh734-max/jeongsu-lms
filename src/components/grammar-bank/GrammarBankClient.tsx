@@ -348,8 +348,11 @@ export function GrammarBankClient({
         </div>
 
         <div className="no-print rounded-lg border border-slate-200 bg-white p-4">
+          {/* 서식이 하나뿐이면 고르는 칸을 감춘다 */}
+          {GRAMMAR_SHEET_STYLES.length > 1 ? (
+          <>
           <p className="text-xs font-semibold text-slate-500">서식</p>
-          <div className="mt-2 grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="mt-2 mb-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
             {GRAMMAR_SHEET_STYLES.map((style) => (
               <button
                 key={style.key}
@@ -375,8 +378,10 @@ export function GrammarBankClient({
               </button>
             ))}
           </div>
+          </>
+          ) : null}
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-3">
             <label className="block">
               <span className="text-xs font-semibold text-slate-500">제목</span>
               <input

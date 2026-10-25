@@ -62,7 +62,8 @@ function pad2(n: number) {
 /** 보기 길이에 따라 한 줄에 몇 개를 놓을지 — 짧으면 가로로 늘어놓는다 */
 function choiceColumns(q: GrammarQuestion) {
   const longest = Math.max(...q.choices.map((c) => c.text.length));
-  return longest <= 8 ? 5 : longest <= 15 ? 3 : longest <= 26 ? 2 : 1;
+  // 3칸은 한 칸이 좁아 13자 넘는 보기(who are holding 등)가 두 줄로 꺾인다
+  return longest <= 8 ? 5 : longest <= 12 ? 3 : longest <= 26 ? 2 : 1;
 }
 
 /** 서술 연습형의 단어 칸 수 — 정답 단어 수만큼, 대안 표기 [ ] 는 뺀다 */

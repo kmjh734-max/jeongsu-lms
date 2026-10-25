@@ -56,22 +56,19 @@ export type GrammarChapterGroup = {
 };
 
 /**
- * 인쇄 서식 — 선생님 결정(2026-10-01): 초록 라벨형과 파랑 워크북형을 쓰고,
- * 2026-10-25 새 서식 셋(내신 기출형·포인트 라벨형·서술 연습형)을 앞에 더했다.
+ * 인쇄 서식 — 선생님 결정(2026-10-26): 내신 기출형 하나만 쓴다.
+ * 고르는 칸에 서식이 다섯 개 뜨는 게 많다고 하셨고, 나머지는 별로라 하셨다.
  *
- * 예전 서식(정갈형·음영 머리글형·저널형)의 서식은 globals.css 에 그대로 둔다.
- * 그 서식으로 저장해 둔 시험지가 있어, 서식까지 걷으면 그 자료가 모양을 잃는다.
+ * 빠진 서식(포인트 라벨형·서술 연습형·초록 라벨형·파랑 워크북형 등)의 CSS 와 그리는 코드는 그대로 둔다.
+ * 다시 쓰게 되면 아래 목록에 되돌리기만 하면 된다.
  */
 export const GRAMMAR_SHEET_STYLES = [
   // 2026-10-25 선생님 승인 — 교재(내신 대비 문제집·기출예상·학원 실전문제지)를 보고 따온 서식
   { key: "a", label: "내신 기출형", hint: "색 띠 머리글, 배점·서술형·고난도 표시, 정답은 모아 쓰기" },
-  { key: "b", label: "포인트 라벨형", hint: "문항마다 세부 단원 라벨, 01 번호, 흑백 복사에도 선명" },
-  { key: "c", label: "서술 연습형", hint: "1단 큰 번호, 우리말 띠, 영작은 정답 단어 수만큼 칸" },
-  { key: "g", label: "초록 라벨형", hint: "초록 라벨과 사각 번호, 예문은 연초록 칸" },
-  { key: "i", label: "파랑 워크북형", hint: "문항마다 연파랑 카드, 앱 색과 같음" },
 ] as const;
 
-export type GrammarSheetStyle = (typeof GRAMMAR_SHEET_STYLES)[number]["key"];
+/** 그릴 줄 아는 서식 전부 — 목록에서 뺀 서식도 코드에는 남아 있다 */
+export type GrammarSheetStyle = "a" | "b" | "c" | "g" | "i";
 
 export function isGrammarSheetStyle(v: unknown): v is GrammarSheetStyle {
   return GRAMMAR_SHEET_STYLES.some((s) => s.key === v);
