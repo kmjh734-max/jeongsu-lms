@@ -3848,6 +3848,186 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .gb-sheet--j .gb-foot { border-top: 1mm solid #111 }
 .gb-sheet--j .gb-sec { border-top: 0.5mm solid #111; padding-top: 1mm; text-align: center }
 
+/* ───── 새 서식 셋 (2026-10-25, 선생님 「새로 만든 서식들은 다 좋은듯」) ─────
+   교재를 보고 따온 서식: A 내신 기출형(내신 대비 문제집 Chapter Test),
+   B 포인트 라벨형(기출예상 문제지 + 3800제), C 서술 연습형(학원 실전문제지).
+   공통 조각 — 배지·배점·라벨·보기 가로 배열·답 줄·단어 칸·정답 모음. */
+.gb-sheet--a .gb-q, .gb-sheet--b .gb-q, .gb-sheet--c .gb-q { margin-bottom: 5mm }
+.gb-sheet--a .gb-q-head, .gb-sheet--b .gb-q-head, .gb-sheet--c .gb-q-head { align-items: baseline; gap: 2mm }
+.gb-sheet--a .gb-ask, .gb-sheet--b .gb-ask, .gb-sheet--c .gb-ask { font-size: 9.2pt }
+.gb-sheet--a .gb-body, .gb-sheet--b .gb-body, .gb-sheet--c .gb-body { font-family: inherit }
+.gb-sheet--a .gb-ch, .gb-sheet--b .gb-ch, .gb-sheet--c .gb-ch {
+  display: grid;
+  column-gap: 3mm;
+  row-gap: 0.6mm;
+  line-height: 1.5;
+}
+.gb-sheet--a .gb-ch--5, .gb-sheet--b .gb-ch--5, .gb-sheet--c .gb-ch--5 { grid-template-columns: repeat(5, auto); justify-content: start; column-gap: 5mm }
+.gb-sheet--a .gb-ch--3, .gb-sheet--b .gb-ch--3, .gb-sheet--c .gb-ch--3 { grid-template-columns: repeat(3, 1fr) }
+.gb-sheet--a .gb-ch--2, .gb-sheet--b .gb-ch--2, .gb-sheet--c .gb-ch--2 { grid-template-columns: repeat(2, 1fr) }
+.gb-sheet--a .gb-ch--1, .gb-sheet--b .gb-ch--1, .gb-sheet--c .gb-ch--1 { grid-template-columns: 1fr }
+.gb-write-line {
+  margin: 2.2mm 0 0;
+  display: flex;
+  gap: 2mm;
+  align-items: flex-end;
+  font-size: 9pt;
+  color: #333;
+}
+.gb-write-line i { flex: 1; border-bottom: 0.25mm solid #555; height: 5.5mm }
+.gb-bds { margin: 0 0 0.8mm; display: flex; gap: 1mm }
+.gb-bd {
+  font-style: normal;
+  font-size: 6.5pt;
+  font-weight: 800;
+  color: #fff;
+  padding: 0.3mm 1.6mm;
+  border-radius: 2mm;
+  line-height: 1.5;
+}
+.gb-bd--w { background: #2b6fd6 }
+.gb-bd--h { background: #d9382b }
+.gb-pt { font-style: normal; font-size: 7pt; color: #4b7f7f; font-weight: 600; margin-left: 1mm; white-space: nowrap }
+
+/* ── A 내신 기출형 ── */
+.gb-sheet--a { --gb-accent: #1a7f7f; --gb-soft: #e9f3f3; --gb-line: #c9d2d2; padding: 0 0 8mm }
+.gb-sheet--a .gb-band {
+  position: relative;
+  height: 22mm;
+  background: var(--gb-accent);
+  color: #fff;
+  padding: 0 12mm;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  overflow: hidden;
+}
+.gb-sheet--a .gb-band-blob { position: absolute; right: 0; top: 0; width: 60%; height: 100%; fill: #fff; opacity: 0.12 }
+.gb-sheet--a .gb-band-main { position: relative; min-width: 0; padding-bottom: 3.6mm }
+.gb-sheet--a .gb-kicker { color: #fff; opacity: 0.85; letter-spacing: 0.12em }
+.gb-sheet--a .gb-title { color: #fff; font-size: 17pt; margin-top: 1mm }
+.gb-sheet--a .gb-band-aside { position: relative; margin: 0 0 4mm; font-size: 7.5pt; font-weight: 700; opacity: 0.9; white-space: nowrap }
+.gb-sheet--a .gb-band-aside b { color: #fff; font-size: 9pt }
+.gb-sheet--a .gb-info {
+  justify-content: flex-start;
+  gap: 6mm;
+  margin: 0 12mm;
+  padding: 3.2mm 0 3mm;
+  border-bottom: 0.2mm solid var(--gb-line);
+  font-size: 8pt;
+  color: #333;
+}
+.gb-sheet--a .gb-info b { color: var(--gb-accent); font-weight: 800; margin-right: 1mm }
+.gb-sheet--a .gb-ln { display: inline-block; width: 24mm; border-bottom: 0.25mm solid #777; height: 3mm; vertical-align: baseline }
+.gb-sheet--a .gb-ln--s { width: 12mm }
+.gb-sheet--a .gb-cols { padding-left: 12mm; padding-right: 12mm; padding-top: 5mm; column-gap: 7mm }
+.gb-sheet--a .gb-col--right { border-left-color: var(--gb-line); padding-left: 7mm }
+.gb-sheet--a .gb-no { font-size: 11.5pt; min-width: 5mm }
+.gb-sheet--a .gb-body { border: 0.25mm solid #444; background: #fff; padding: 1.8mm 2.4mm; margin-bottom: 2mm }
+.gb-sheet--a .gb-foot { margin-left: 12mm; margin-right: 12mm; border-top: none; grid-template-columns: auto minmax(0, 1fr); text-align: left }
+.gb-sheet--a .gb-foot-page { font-size: 10pt; color: #111 }
+.gb-sheet--a .gb-foot-right { text-align: left }
+.gb-sheet--a .gb-key { margin: 5mm 12mm 1mm; background: var(--gb-soft); border-radius: 2mm; padding: 3mm 4mm }
+.gb-sheet--a .gb-key-title { margin: 0 0 1.5mm; font-size: 9pt; font-weight: 900; color: var(--gb-accent); letter-spacing: 0.06em }
+.gb-sheet--a .gb-key-mcq { margin: 0; display: flex; flex-wrap: wrap; gap: 1mm 6mm; font-size: 9.5pt; font-weight: 700 }
+.gb-sheet--a .gb-key-mcq b, .gb-sheet--a .gb-key-written b { font-weight: 800; color: var(--gb-accent); margin-right: 1mm }
+.gb-sheet--a .gb-key-written { margin-top: 1.5mm; border-top: 0.2mm solid #b9d3d3; padding-top: 1.5mm; columns: 2; column-gap: 6mm; font-size: 9pt }
+.gb-sheet--a .gb-key-written p { margin: 0 0 0.6mm; break-inside: avoid; font-family: Georgia, "Times New Roman", "Noto Serif KR", serif }
+.gb-sheet--a .gb-why-row { margin-bottom: 2mm; font-size: 8.6pt }
+.gb-sheet--a .gb-why-text b { margin-right: 1.5mm }
+.gb-sheet--a .gb-ans-row { padding-left: 0; padding-right: 0 }
+
+/* ── B 포인트 라벨형 ── */
+.gb-sheet--b { --gb-accent: #a33a2e; --gb-soft: #f6ebe8; --gb-line: #999; padding: 12mm 13mm 9mm }
+.gb-sheet--b .gb-head {
+  border-bottom: 0.8mm solid #111;
+  padding-bottom: 3mm;
+  position: relative;
+}
+.gb-sheet--b .gb-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1.6mm; border-bottom: 0.2mm solid #111 }
+.gb-sheet--b .gb-kicker { color: var(--gb-accent); letter-spacing: 0.14em }
+.gb-sheet--b .gb-title { font-size: 19pt; line-height: 1.05 }
+.gb-sheet--b .gb-grid { border-collapse: collapse; font-size: 7.5pt; flex-shrink: 0 }
+.gb-sheet--b .gb-grid th { border: 0.25mm solid #111; background: #f0ece9; font-weight: 700; padding: 1mm 3mm; color: #333 }
+.gb-sheet--b .gb-grid td { border: 0.25mm solid #111; height: 7mm; min-width: 18mm }
+.gb-sheet--b .gb-cols { padding-top: 6mm; column-gap: 7mm }
+.gb-sheet--b .gb-col--right { border-left: 0.25mm dashed var(--gb-line); padding-left: 7mm }
+.gb-sheet--b .gb-lab { margin: 0 0 0.8mm; display: flex; gap: 1.5mm; align-items: center; font-size: 6.8pt; font-weight: 700 }
+.gb-sheet--b .gb-lab-unit { color: var(--gb-accent); background: var(--gb-soft); padding: 0.3mm 1.8mm; border-radius: 0.8mm }
+.gb-sheet--b .gb-lab-tier { color: #555 }
+.gb-sheet--b .gb-lab-tier--3 { color: var(--gb-accent) }
+.gb-sheet--b .gb-lab-wr { color: #1d4ed8 }
+.gb-sheet--b .gb-no { font-size: 13pt; min-width: 7mm; line-height: 1; letter-spacing: -0.02em }
+.gb-sheet--b .gb-body { border: none; background: #f3f1ee; border-radius: 1.2mm; padding: 2mm 2.6mm; margin-bottom: 2mm }
+.gb-sheet--b .gb-foot { border-top: 0.25mm solid #111; padding-top: 2mm; color: #666 }
+.gb-sheet--b .gb-foot-page { font-size: 9pt; color: #111 }
+.gb-sheet--b .gb-key-table { width: 100%; border-collapse: collapse; margin: 4mm 0 2mm; font-size: 8.5pt; text-align: center }
+.gb-sheet--b .gb-key-table th { border: 0.25mm solid #111; background: #f0ece9; font-weight: 800; font-size: 8pt; padding: 1mm 0 }
+.gb-sheet--b .gb-key-table td { border: 0.25mm solid #111; padding: 1.4mm 0; font-weight: 700; color: var(--gb-accent) }
+.gb-sheet--b .gb-key-table td i { font-style: normal; font-size: 6.5pt; color: #888; font-weight: 600 }
+.gb-sheet--b .gb-why-row { margin-bottom: 2.4mm; font-size: 8.4pt; align-items: flex-start }
+.gb-sheet--b .gb-why-row .gb-ans-no { font-size: 10pt; line-height: 1.2 }
+.gb-sheet--b .gb-why-text { display: flex; flex-direction: column; gap: 0.2mm }
+.gb-sheet--b .gb-why-unit { font-size: 6.8pt; color: var(--gb-accent); font-weight: 700 }
+.gb-sheet--b .gb-why-text b { font-family: Georgia, "Times New Roman", "Noto Serif KR", serif; margin: 0; color: #111 }
+
+/* ── C 서술 연습형 ── */
+.gb-sheet--c { --gb-accent: #e07b1a; --gb-soft: #fcecd9; --gb-line: #e5e7eb; padding: 0 0 9mm }
+.gb-sheet--c .gb-head { display: block }
+.gb-sheet--c .gb-band {
+  height: 14mm;
+  background: var(--gb-accent);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 12mm;
+}
+.gb-sheet--c .gb-band-tab {
+  background: #fff;
+  color: var(--gb-accent);
+  font-size: 12pt;
+  font-weight: 900;
+  padding: 1.6mm 7mm 0;
+  border-radius: 2.5mm 2.5mm 0 0;
+  height: 8mm;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+.gb-sheet--c .gb-band-unit { color: #fff; font-size: 10pt; font-weight: 700; padding-bottom: 2mm; opacity: 0.95 }
+.gb-sheet--c .gb-c-title {
+  margin: 4mm 12mm 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4mm;
+  font-size: 11pt;
+  font-weight: 900;
+}
+.gb-sheet--c .gb-c-name { font-size: 8pt; font-weight: 600; color: #555; white-space: nowrap }
+.gb-sheet--c .gb-c-name i { display: inline-block; width: 34mm; border-bottom: 0.25mm solid #777; height: 3.5mm; margin-left: 1.5mm }
+.gb-sheet--c .gb-c-page { font-size: 8pt; font-weight: 600; color: #777 }
+.gb-sheet--c .gb-cols { padding: 6mm 12mm 0; column-gap: 7mm }
+.gb-sheet--c .gb-q { margin-bottom: 7mm }
+.gb-sheet--c .gb-q-head { gap: 3mm }
+.gb-sheet--c .gb-no { font-size: 15pt; line-height: 1; min-width: 8mm; letter-spacing: -0.03em }
+.gb-sheet--c .gb-ask { font-size: 9.6pt }
+.gb-sheet--c .gb-body { margin: 1.5mm 0 3mm 11mm; background: var(--gb-soft); border: none; border-radius: 2mm; padding: 2mm 3.5mm; font-size: 9pt; color: #111 }
+.gb-sheet--c .gb-body .gb-en { font-family: Georgia, "Times New Roman", "Noto Serif KR", serif; font-size: 9.8pt }
+.gb-sheet--c .gb-ch { margin-left: 11mm; font-family: Georgia, "Times New Roman", "Noto Serif KR", serif; font-size: 9.6pt; row-gap: 1mm }
+.gb-sheet--c .gb-blanks { margin: 3mm 0 0 11mm; display: flex; flex-wrap: wrap; gap: 3mm 4mm }
+.gb-sheet--c .gb-blanks i { width: 22mm; height: 5.5mm; border-bottom: 0.25mm solid #555 }
+.gb-sheet--c .gb-foot { margin-left: 12mm; margin-right: 12mm; border-top: none; grid-template-columns: auto auto minmax(0, 1fr); text-align: left }
+.gb-sheet--c .gb-foot-page { font-size: 10pt; color: #111 }
+.gb-sheet--c .gb-foot-logo { background: var(--gb-accent); color: #fff; font-weight: 800; padding: 0.4mm 2mm; border-radius: 1mm; white-space: nowrap }
+.gb-sheet--c .gb-foot-right { text-align: left }
+.gb-sheet--c .gb-ans-row { padding: 1.2mm 0; border-bottom: none; align-items: flex-start }
+.gb-sheet--c .gb-ans-row .gb-ans-no, .gb-sheet--c .gb-why-row .gb-ans-no { font-size: 13pt; line-height: 1.2; width: 8mm }
+.gb-sheet--c .gb-ans-text, .gb-sheet--c .gb-ans-mark { font-size: 10pt }
+.gb-sheet--c .gb-why-row { margin-bottom: 3mm; align-items: flex-start }
+.gb-sheet--c .gb-why-text { display: flex; flex-direction: column; gap: 0.6mm }
+.gb-sheet--c .gb-why-text b { font-family: Georgia, "Times New Roman", "Noto Serif KR", serif; font-size: 10pt; margin: 0; color: #111 }
+.gb-sheet--c .gb-why-text span { color: #444; font-size: 8.2pt }
+
 @media print {
   [data-page-no]::after {
     color: #64748b;
