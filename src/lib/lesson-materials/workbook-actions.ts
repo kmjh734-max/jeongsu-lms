@@ -94,6 +94,11 @@ export async function generateWorkbookAction(
     forceRegenerate?: boolean;
     /** 어법 선택은 생성하지 않고 비워 둔다. 클라이언트가 지문 단위로 따로 채운다. */
     deferGrammarChoice?: boolean;
+    /**
+     * 이미 만든 끊어읽기에서 문장별 전체해석으로 바꿀 때만 쓴다.
+     * 저장된 문장 해석을 다시 배열할 뿐 모델을 부르지 않으므로 크레딧을 받지 않는다.
+     */
+    reuseStoredLineTranslations?: boolean;
   }
 ): Promise<
   | { ok: true; workbook: WorkbookData }
@@ -151,6 +156,11 @@ export async function generateWorkbookAction(
   const wantKeyWordOrder = types.includes("key_word_order");
   const wantWordOrder = wantFullWordOrder || wantKeyWordOrder;
   const wantBilingual = wantLineKo || wantFullEn || wantWordOrder;
+  const freeStoredLineSwitch =
+    input.reuseStoredLineTranslations === true &&
+    types.length === 1 &&
+    wantLineKo &&
+    input.forceRegenerate !== true;
   const lineTranslationExcludeIds = [
     ...new Set(
       (input.lineTranslationExcludeIds ?? [])
@@ -322,7 +332,7 @@ export async function generateWorkbookAction(
    */
   const extraHolds: Array<{ amount: number; what: string }> = [];
   for (const [want, feature, what] of [
-    [wantBilingual, LESSON_CREDIT_FEATURES.workbookLineTranslation, "한 줄 해석·전체 영작"],
+    [wantBilingual && !freeStoredLineSwitch, LESSON_CREDIT_FEATURES.workbookLineTranslation, "한 줄 해석·전체 영작"],
     [wantWordOrder, LESSON_CREDIT_FEATURES.workbookWordOrder, "제시어 배열 영작"],
     [wantGist, LESSON_CREDIT_FEATURES.workbookGist, "제목·주제·요지 해석"],
   ] as const) {

@@ -1879,18 +1879,19 @@ export function WorkbookWorkbench({
       editWorkbook(swap);
       return;
     }
-    const go = await askCreditConfirm({
-      title: "해석 적기 바꾸기",
-      description:
-        mode === "chunk"
-          ? "해석 적기를 끊어 읽기(직독직해)로 바꿉니다. 지문마다 끊어 읽기 재료를 만듭니다(이미 만든 지문은 값이 들지 않습니다)."
-          : "해석 적기를 문장마다로 바꿉니다. 문장별 해석 문항을 만듭니다.",
-      subject: `지문 ${ids.length}개`,
-      contents: [mode === "chunk" ? "해석 적기 (끊어 읽기)" : "해석 적기"],
-      items: [{ feature: mode === "chunk" ? "lesson_workbook_extras" : "lesson_workbook_line_translation", quantity: ids.length }],
-      sample: "workbook",
-    });
-    if (!go) return;
+    // 문장별 전체해석은 이미 저장된 해석을 다시 배열하기만 하므로 값을 받지 않는다.
+    // 끊어읽기 재료가 없을 때만 새 재료 제작 값을 확인한다.
+    if (mode === "chunk") {
+      const go = await askCreditConfirm({
+        title: "해석 적기 바꾸기",
+        description: "해석 적기를 끊어 읽기(직독직해)로 바꿉니다. 지문마다 끊어 읽기 재료를 만듭니다(이미 만든 지문은 값이 들지 않습니다).",
+        subject: `지문 ${ids.length}개`,
+        contents: ["해석 적기 (끊어 읽기)"],
+        items: [{ feature: "lesson_workbook_extras", quantity: ids.length }],
+        sample: "workbook",
+      });
+      if (!go) return;
+    }
     setLineBusy("바꾸는 중…");
     try {
       if (mode === "chunk") {
@@ -1914,6 +1915,7 @@ export function WorkbookWorkbench({
             tfOptions: workbook.tfOptions,
             blankOptions: workbook.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS,
             title: workbook.metadata.title,
+            reuseStoredLineTranslations: true,
           },
         });
         if (!res.ok || !("workbook" in res) || !res.workbook) throw new Error(("message" in res && res.message) || "문장별 해석 문항을 만들지 못했습니다.");

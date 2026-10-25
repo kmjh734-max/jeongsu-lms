@@ -217,7 +217,13 @@ async function preparePassage(
 
     // 3. 테스트 교재 재료
     let material = pack.testBookMaterial;
-    if (again.size || !isTestBookMaterialFresh(material, english)) {
+    // 예전 생성 실패로 최신 재료 안에 직독직해만 비어 있을 수 있다. 이 상태를 최신으로
+    // 취급하면 끊어읽기를 골라도 모든 문장이 전체해석으로 나오는 폴백에 머문다.
+    const missingChunkGloss =
+      !material?.chunkGloss ||
+      material.chunkGloss.length !== sentences.length ||
+      material.chunkGloss.every((chunks) => !chunks?.length);
+    if (again.size || missingChunkGloss || !isTestBookMaterialFresh(material, english)) {
       // 원문이 그대로면(재료 버전만 바뀌었으면) 단어 정리는 다시 쓰고 규칙으로 만드는 것만 새로
       const vocab =
         !again.has("vocab") &&
