@@ -226,7 +226,10 @@ export function IntegratedCreateModal({
           ) : (
             rows.map((r) => (
               <li key={r.id}>
-                <label className="flex cursor-pointer items-start gap-2 px-3 py-2 hover:bg-slate-50">
+                <label
+                  className="flex cursor-pointer items-start gap-2 px-3 py-2 hover:bg-slate-50"
+                  title={r.title}
+                >
                   <input
                     type="checkbox"
                     className="mt-0.5"
@@ -300,6 +303,7 @@ export function IntegratedCreateModal({
                 <li key={f.id}>
                   <button
                     type="button"
+                    title={f.name}
                     onClick={() => setFolder(f.id)}
                     className={`flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left ${
                       folder === f.id ? "bg-violet-100 font-semibold text-violet-800" : "text-slate-700 hover:bg-slate-50"
