@@ -6,7 +6,7 @@ import {
   refundLessonCredits,
   reserveLessonCredits,
 } from "@/lib/credits/lesson-credits";
-import { flushAiUsage, withAiUsage } from "@/lib/ai-usage/context";
+import { flushAiUsage, setAiUsage, withAiUsage } from "@/lib/ai-usage/context";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { patchLessonPack } from "@/lib/lesson-materials/patch-lesson-pack";
@@ -302,6 +302,18 @@ export async function generateWorkbookAction(
     keyWordOrderSections: [],
   };
   const workbookId = `${workbook.metadata.title}|${workbook.metadata.createdAt}`;
+  /**
+   * 모델 호출 기록에 학원·기능을 붙인다(2026-10-25). 전에는 T/F·해석·제목주제 호출이 기능 없이 남아
+   * 원가를 기능별로 모을 수 없었고, 모아 두었다가 쓰는 기록이 응답 뒤에 끊겨 다섯 지문 중 둘이 빠졌다.
+   */
+  const usageCtx = (featureKey: string | null) => ({
+    academyId: profile!.academy_id!,
+    actorId: profile!.id,
+    featureKey,
+    usedFor: "workbook",
+  });
+  // 바깥 테두리: 따로 감싸지 않은 호출(한 줄 해석·전체 영작은 동기 함수라 못 감싼다)은 여기에 붙는다
+  setAiUsage(usageCtx(wantBilingual ? LESSON_CREDIT_FEATURES.workbookLineTranslation : null));
 
   /*
    * 선생님 지적(2026-09-29): "API를 쓰는 곳은 모두 크레딧을 쓰도록 해야 해."
@@ -501,6 +513,7 @@ export async function generateWorkbookAction(
       : null;
     const tfTask = wantTf
       ? settle(
+          withAiUsage(usageCtx(LESSON_CREDIT_FEATURES.workbookTf), () =>
           generateWorkbookTf({
             title: workbook.metadata.title,
             passages: passages.map((p) => ({
@@ -510,12 +523,13 @@ export async function generateWorkbookAction(
               englishLines: p.englishLines,
             })),
             options: tfOptions,
-          })
+          }))
         )
       : null;
     // 제목·주제·요지 해석: 지문당 한 번, 다른 갈래와 동시에(2026-10-24)
     const gistTask = wantGist
       ? settle(
+          withAiUsage(usageCtx(LESSON_CREDIT_FEATURES.workbookGist), () =>
           generateWorkbookGist({
             passages: passages.map((p) => ({
               projectId: p.projectId,
@@ -524,7 +538,7 @@ export async function generateWorkbookAction(
               englishLines: p.englishLines,
             })),
             options: gistOptions,
-          })
+          }))
         )
       : null;
     // 중요 문장: 분석서 「주제문」 → 빈칸 후보 핵심 문장 → 규칙 점수(새 모델 호출 없음)
@@ -547,6 +561,7 @@ export async function generateWorkbookAction(
     const wordOrderTask =
       wantWordOrder && bilingualEarly && bilingualEarly.blocking.length === 0
         ? settle(
+            withAiUsage(usageCtx(LESSON_CREDIT_FEATURES.workbookWordOrder), () =>
             generateWorkbookWordOrderWriting({
                 workbookId,
                 passages: passages.map((p) => ({
@@ -564,7 +579,7 @@ export async function generateWorkbookAction(
                   : onlyKeySentences(bilingualEarly.sections),
                 prebuiltSkipped: bilingualEarly.skipped,
                 prebuiltBlocking: [],
-            })
+            }))
           )
         : null;
 
@@ -832,9 +847,11 @@ export async function generateWorkbookAction(
       };
     }
 
+    await flushAiUsage();
     return { ok: true, workbook };
   } catch (e) {
     await giveBackExtras("만들기 실패");
+    await flushAiUsage();
     const code =
       e && typeof e === "object" && "code" in e
         ? String((e as { code?: string }).code)
