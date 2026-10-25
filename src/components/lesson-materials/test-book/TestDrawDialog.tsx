@@ -91,7 +91,7 @@ function estimateMinutes(sheets: TestSheet[], vocabItems: number): number {
 function assignTypes(ids: string[], types: TestBookTypeKey[], k: number, seed: string): Record<string, TestBookTypeKey[]> {
   // 어법·어휘는 시험의 기본 밀도를 좌우하므로 선택하면 모든 지문에 우선 배치한다.
   // 예전에는 이 둘도 무작위 배정되어 여러 지문에서 통째로 빠졌다.
-  const pinned = types.filter((type) => type === "grammar" || type === "vocab");
+  const pinned: TestBookTypeKey[] = types.filter((type) => type === "grammar" || type === "vocab");
   const order = types.filter((type) => !pinned.includes(type));
   let h = 2166136261;
   for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
