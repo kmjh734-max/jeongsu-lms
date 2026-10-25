@@ -9,9 +9,20 @@ import { DOCUMENT_NAME_EVENT } from "@/components/lesson-materials/open-new-docu
  * 주소의 ?doc=로 이름을 읽고, 새로 만들면 만든 뒤에 받는다. 누르면 그 자리에서 이름을 바꾼다.
  * 파일이 없는 화면(주소에 doc이 없고 만들지도 않음)에서는 기본 글자(fallback)를 보인다.
  */
-export function DocumentTitle({ role, fallback }: { role: "admin" | "teacher"; fallback: string }) {
+export function DocumentTitle({
+  role,
+  fallback,
+  asField = false,
+}: {
+  role: "admin" | "teacher";
+  fallback: string;
+  /** 「파일 이름」 칸으로 늘 보이게(선생님 2026-10-26: 수업용 자료도 닫기(저장) 아래에 파일 이름 입력) */
+  asField?: boolean;
+}) {
   const [doc, setDoc] = useState<{ id: string; name: string } | null>(null);
   const [editing, setEditing] = useState(false);
+  /** 파일 이름 칸: 바꾼 뒤 잠깐 「저장했습니다」 */
+  const [savedNote, setSavedNote] = useState<"saved" | "error" | null>(null);
   const [draft, setDraft] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -53,8 +64,48 @@ export function DocumentTitle({ role, fallback }: { role: "admin" | "teacher"; f
       name,
     }).catch(() => null);
     if (!res || !res.ok) setDoc({ ...doc, name: prev });
+    setSavedNote(res && res.ok ? "saved" : "error");
+    setTimeout(() => setSavedNote(null), 2500);
   }
 
+  if (asField) {
+    return (
+      <label className="block space-y-1">
+        <span className="flex items-center justify-between text-xs font-bold text-slate-500">
+          파일 이름
+          {savedNote ? (
+            <span className={`text-[11px] font-semibold ${savedNote === "saved" ? "text-emerald-600" : "text-rose-600"}`}>
+              {savedNote === "saved" ? "✓ 저장했습니다" : "저장하지 못했습니다"}
+            </span>
+          ) : (
+            <span className="text-[11px] font-normal text-slate-400">고치고 Enter</span>
+          )}
+        </span>
+        <input
+          value={editing ? draft : (doc?.name ?? "")}
+          placeholder={doc ? "" : `${fallback} (파일을 만드는 중…)`}
+          disabled={!doc}
+          maxLength={80}
+          onFocus={() => {
+            if (!doc) return;
+            setDraft(doc.name);
+            setEditing(true);
+          }}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={() => void commit()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            if (e.key === "Escape") {
+              setDraft(doc?.name ?? "");
+              setEditing(false);
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100 disabled:bg-slate-50"
+        />
+      </label>
+    );
+  }
   if (!doc) return <span className="min-w-0 truncate text-sm font-bold text-slate-900">{fallback}</span>;
   if (editing) {
     return (

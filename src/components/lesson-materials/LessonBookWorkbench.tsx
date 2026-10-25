@@ -283,10 +283,10 @@ export function LessonBookWorkbench({
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
-        <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
+        <div className="space-y-2 border-b border-slate-100 px-4 py-3">
           {/* 설정(디자인 · 쪽 번호 · 해석 등)은 바꾸는 즉시 저장된다 — 닫을 때 따로 보낼 것이 없다 */}
-          <CloseSaveButton base={base} className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100" />
-          <DocumentTitle role={role} fallback="수업용 자료" />
+          <CloseSaveButton base={base} className="-ml-2 rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100" />
+          <DocumentTitle role={role} fallback="수업용 자료" asField />
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm">

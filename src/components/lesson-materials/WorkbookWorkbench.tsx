@@ -370,6 +370,35 @@ function answerBlockPassageId(w: WorkbookData, key: string): string | null {
   }
 }
 
+/** 2단 유형의 지문(문항) 수 — 쪽 배치와 측정 영역이 같은 수를 쓴다 */
+function columnCountOf(w: WorkbookData, t: WorkbookColumnTypeId): number {
+  switch (t) {
+    case "grammar_choice":
+      return (w.grammarChoiceSections ?? []).length;
+    case "grammar_fix":
+      return (w.grammarFixSections ?? []).length;
+    case "vocab_choice":
+      return (w.vocabChoiceSections ?? []).length;
+    case "vocab_fix":
+      return (w.vocabFixSections ?? []).length;
+    case "blank_fill":
+      return (w.blankSections ?? []).length;
+    case "tf":
+      return (w.sections ?? []).length;
+    case "sentence_order":
+      return (w.sentenceOrderQuestions ?? []).length;
+    default:
+      return tbCount(w, t as TbWorkbookTypeId);
+  }
+}
+
+/** 「이어서」로 한 흐름에 실을 유형인가 — 새 쪽·지문별이 아니고 지문이 둘 이상(단어 시험지는 한 묶음이라 뺀다) */
+function streamColumnType(w: WorkbookData, t: WorkbookColumnTypeId, count: number): boolean {
+  if (t === "tb_vocab_exam" || count < 2) return false;
+  if (w.layoutOrder === "passage") return false;
+  return w.passageBreak?.[t] !== "page";
+}
+
 /** 테스트 교재에서 옮긴 유형의 문항 수(단어 시험지는 한 묶음) */
 function tbCount(w: WorkbookData, t: TbWorkbookTypeId): number {
   if (t === "tb_vocab_exam") return w.vocabExam && w.vocabExam.total > 0 ? 1 : 0;
@@ -3103,6 +3132,29 @@ export function WorkbookWorkbench({
       if (columnType) {
         const count = columnCounts[columnType];
         const columns = workbook.columnLayout?.[columnType] === 2 ? 2 : 1;
+        /*
+         * 「이어서」(새 쪽을 끔): 지문을 통째로만 옮기면 T/F처럼 한 지문이 쪽의 절반을 넘는 유형은 쪽마다
+         * 100mm 가까이 비었다(선생님 2026-10-26 「새 쪽 아니면 이어서 나와야 하는데」). 지문들을 한 흐름으로
+         * 흘려 남은 자리를 채우고 넘치면 다음 쪽으로 잇는다. 쪽 수는 측정 영역의 흐름(probe)으로 잰다.
+         */
+        if (streamColumnType(workbook, columnType, count)) {
+          const windows = windowCounts[`${columnType}:stream`] ?? 0;
+          if (windows > 0) {
+            const all = Array.from({ length: count }, (_, i) => i);
+            for (let k = 0; k < windows; k++) {
+              out.push({
+                kind: "columns_q",
+                type: columnType,
+                indices: all,
+                typeOrder: order,
+                packed: false,
+                columns,
+                window: { index: k, count: windows },
+              });
+            }
+            continue;
+          }
+        }
         // 배치를 재기 전(첫 그림)에는 지문마다 한 쪽씩 둔다.
         const packs =
           columnPacks[columnType]?.filter((p) => p.indices.every((i) => i < count)) ??
@@ -3198,6 +3250,7 @@ export function WorkbookWorkbench({
     }
     return out;
   }, [workbook, typeOrders, flowPages, columnPacks, answerPages, windowCounts, editablePassages]);
+  // (흐름 쪽 수는 columnBodyMm이 정해진 뒤 probe가 재므로 windowCounts만 보면 된다)
 
   useLayoutEffect(() => {
     ensureWorkbookPrintStyles();
@@ -4165,6 +4218,23 @@ export function WorkbookWorkbench({
           </div>
           {columnBodyMm != null ? (
             <div className="workbook-a4-body" style={{ height: 0, overflow: "hidden" }}>
+              {columnTypesOn
+                .filter((t) => streamColumnType(workbook, t, columnCountOf(workbook, t)))
+                .map((t) => (
+                  <WindowFlow
+                    key={`probe-stream-${t}`}
+                    columns={workbook.columnLayout?.[t] === 2 ? 2 : 1}
+                    heightMm={columnBodyMm}
+                    index={0}
+                    probe={`${t}:stream`}
+                  >
+                    {Array.from({ length: columnCountOf(workbook, t) }, (_, i) => (
+                      <div key={`ps-${t}-${i}`} className="workbook-col-section">
+                        {renderColumnSection(t, i)}
+                      </div>
+                    ))}
+                  </WindowFlow>
+                ))}
               {columnTypesOn.flatMap((t) =>
                 (columnPacks[t] ?? [])
                   .filter((p) => !p.packed && p.indices.length === 1)
@@ -4419,21 +4489,23 @@ export function WorkbookWorkbench({
                   : "새로 만들었습니다"}
           </p>
           {/* 인쇄·PDF는 맨 위에(스크롤하지 않고 누르게) */}
-          <div className="grid grid-cols-4 gap-1">
+          <div className="space-y-1.5">
             <Button
               type="button"
               size="sm"
-              className="px-0"
+              className="w-full"
               disabled={grammarChoicePending}
               onClick={() => window.print()}
               title={grammarChoicePending ? "어법 선택이 끝나면 인쇄할 수 있습니다" : "인쇄"}
             >
               인쇄
             </Button>
+            <div className="flex items-center gap-1">
+            <span className="shrink-0 text-[11px] font-bold text-slate-500">PDF 저장</span>
             {(
               [
-                ["문제", "문제지", "questions"],
-                ["정답", "정답지", "answers"],
+                ["문제지", "문제지", "questions"],
+                ["정답지", "정답지", "answers"],
                 ["전체", "전체", "all"],
               ] as const
             ).map(([short, label, part]) => (
@@ -4442,7 +4514,7 @@ export function WorkbookWorkbench({
                 type="button"
                 size="sm"
                 variant="secondary"
-                className="px-0"
+                className="flex-1 px-0"
                 title={`${label} PDF로 저장`}
                 disabled={grammarChoicePending || !!pdf.busy}
                 onClick={() =>
@@ -4459,8 +4531,8 @@ export function WorkbookWorkbench({
                 {short}
               </Button>
             ))}
+            </div>
           </div>
-          <p className="text-[10.5px] text-slate-400">문제·정답·전체는 PDF로 저장합니다.</p>
           {pdf.status ? (
             <p className={`text-[11px] font-semibold ${pdf.busy ? "text-violet-700" : "text-rose-600"}`}>{pdf.status}</p>
           ) : null}
