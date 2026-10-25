@@ -89,7 +89,10 @@ function estimateMinutes(sheets: TestSheet[], vocabItems: number): number {
 }
 /** 고른 유형을 열쇠로 섞어 지문마다 차례로 k개씩(골고루, 같은 열쇠면 같은 배정) */
 function assignTypes(ids: string[], types: TestBookTypeKey[], k: number, seed: string): Record<string, TestBookTypeKey[]> {
-  const order = [...types];
+  // 어법·어휘는 시험의 기본 밀도를 좌우하므로 선택하면 모든 지문에 우선 배치한다.
+  // 예전에는 이 둘도 무작위 배정되어 여러 지문에서 통째로 빠졌다.
+  const pinned = types.filter((type) => type === "grammar" || type === "vocab");
+  const order = types.filter((type) => !pinned.includes(type));
   let h = 2166136261;
   for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
   for (let i = order.length - 1; i > 0; i--) {
@@ -97,12 +100,12 @@ function assignTypes(ids: string[], types: TestBookTypeKey[], k: number, seed: s
     const j = h % (i + 1);
     [order[i], order[j]] = [order[j]!, order[i]!];
   }
-  const want = Math.min(k, order.length);
+  const want = Math.min(Math.max(k, pinned.length), types.length);
   const out: Record<string, TestBookTypeKey[]> = {};
   let cursor = 0;
   for (const id of ids) {
-    const picked: TestBookTypeKey[] = [];
-    while (picked.length < want) {
+    const picked: TestBookTypeKey[] = [...pinned];
+    while (picked.length < want && order.length > 0) {
       const t = order[cursor % order.length]!;
       cursor += 1;
       if (!picked.includes(t)) picked.push(t);

@@ -12,6 +12,10 @@ import {
 } from "@/lib/lesson-materials/one-page";
 import { readCachedGrammarChoiceV2 } from "@/lib/lesson-materials/grammar-choice-v2/read-cached";
 import type { StoredGrammarChoiceV2Cache } from "@/lib/lesson-materials/grammar-choice-v2/cache";
+import {
+  generateVocabChoiceForPassage,
+  type StoredVocabChoiceCache,
+} from "@/lib/lesson-materials/vocab-choice";
 import { isTestBookMaterialFresh, mergeTestBookVocabHints, type TestBookProjectInput } from "@/lib/lesson-materials/test-book";
 
 /**
@@ -243,13 +247,13 @@ export async function loadBundleExtraProjects(
     supabase
       .from("lesson_material_projects")
       .select(
-        "id,title,title_en,source,opc:lesson_pack_json->onePageContent,tbm:lesson_pack_json->testBookMaterial,gc:lesson_pack_json->grammarChoiceV2Cache"
+        "id,title,title_en,source,opc:lesson_pack_json->onePageContent,tbm:lesson_pack_json->testBookMaterial,gc:lesson_pack_json->grammarChoiceV2Cache,vc:lesson_pack_json->vocabChoiceCache"
       )
       .in("id", ids)
       .is("deleted_at", null),
     supabase
       .from("lesson_material_items")
-      .select("project_id,english_text,korean_text,order_index")
+      .select("id,project_id,english_text,korean_text,order_index")
       .in("project_id", ids)
       .order("order_index", { ascending: true }),
   ]);
@@ -267,17 +271,34 @@ export async function loadBundleExtraProjects(
     opc: LessonPackData["onePageContent"] | null;
     tbm: LessonPackData["testBookMaterial"] | null;
     gc: StoredGrammarChoiceV2Cache | null;
+    vc: StoredVocabChoiceCache | null;
   }>;
   const byId = new Map(rows.map((p) => [p.id, p] as const));
-  return ids
+  return Promise.all(ids
     .map((id) => byId.get(id))
     .filter((p): p is NonNullable<typeof p> => !!p)
-    .map((p) => {
-      const sentences = onePageSentences(
-        (itemsByProject.get(p.id) ?? []) as Array<{ english_text?: string | null; korean_text?: string | null }>
-      );
+    .map(async (p) => {
+      const projectItems = itemsByProject.get(p.id) ?? [];
+      const sentences = onePageSentences(projectItems as Array<{ english_text?: string | null; korean_text?: string | null }>);
       const english = sentences.map((s) => s.english);
       const content = isOnePageContentFresh(p.opc ?? undefined, english) ? (p.opc ?? null) : null;
+      const sentenceIds = projectItems
+        .filter((item) => String(item.english_text ?? "").trim())
+        .map((item) => String(item.id));
+      // 워크북에서 이미 만들고 검수한 어휘 선택 캐시를 모델 호출 없이 테스트지에도 쓴다.
+      const vocabChoice = await generateVocabChoiceForPassage({
+        projectId: p.id,
+        title: p.title,
+        source: p.source ?? null,
+        sentences: sentences.map((sentence, i) => ({ id: sentenceIds[i] ?? `s${i}`, english: sentence.english })),
+        hints: (content?.vocab ?? []).map((item) => ({
+          word: item.surface,
+          antonyms: item.antonyms,
+        })),
+        cache: p.vc,
+        wordLevel: "normal",
+        cacheOnly: true,
+      });
       return {
         id: p.id,
         title: p.title,
@@ -294,6 +315,7 @@ export async function loadBundleExtraProjects(
           p.id,
           (itemsByProject.get(p.id) ?? []).map((it) => String(it.english_text ?? ""))
         ),
+        vocabChoice: vocabChoice.section,
       };
-    });
+    }));
 }
