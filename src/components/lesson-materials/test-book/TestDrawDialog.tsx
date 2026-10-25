@@ -79,6 +79,9 @@ const SECONDS: Partial<Record<TestBookTypeKey, number>> = {
   line: 60, writing: 90, order: 60, blank: 20, grammar: 15, vocab: 15, grammarFix: 40, tf: 20, reference: 40, implication: 60,
 };
 const SET_SECONDS: Partial<Record<TestBookTypeKey, number>> = { link: 60, sequence: 90, insert: 60, summary: 60, flow: 90 };
+/** 지문 전체가 한 문항인 유형은 개수를 따로 고르지 않는다. */
+const WHOLE_PASSAGE_TYPES = new Set<TestBookTypeKey>(["link", "sequence", "insert", "summary", "flow"]);
+const COUNT_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 function estimateMinutes(sheets: TestSheet[], vocabItems: number): number {
   let sec = vocabItems * 10;
   for (const sh of sheets)
@@ -146,6 +149,8 @@ export function TestDrawDialog({
   /** 자동 뽑기(기준대로 무작위) · 전부 뽑기(고른 유형 전부) */
   const [mode, setMode] = useState<"auto" | "all">("auto");
   const [size, setSize] = useState<AutoSize>("normal");
+  /** 유형별 지문당 최대 문항 수. 재료가 적으면 실제 가능한 개수로 자동으로 줄어든다. */
+  const [limits, setLimits] = useState<TestLimits>({ ...AUTO.normal.limits });
   const [showRule, setShowRule] = useState(false);
   const [message, setMessage] = useState<{ text: string; error: boolean; href?: string } | null>(null);
   const idsKey = projectIds.join(",");
@@ -217,7 +222,7 @@ export function TestDrawDialog({
     return {
       sheets: chosen.map((p) => ({
         project: { id: p.id, index: indexOf(p.id), title: p.title, titleEn: p.titleEn, source: p.source },
-        sheet: buildTestSheet(p, picks[p.id]!, { seed, blankMode, writing, lineMode, level, limits: auto ? preset.limits : undefined }),
+        sheet: buildTestSheet(p, picks[p.id]!, { seed, blankMode, writing, lineMode, level, limits }),
       })),
       vocabExam: vocabOn
         ? buildVocabExam(
@@ -360,7 +365,10 @@ export function TestDrawDialog({
                       <button
                         key={k}
                         type="button"
-                        onClick={() => setSize(k)}
+                        onClick={() => {
+                          setSize(k);
+                          setLimits({ ...AUTO[k].limits });
+                        }}
                         className={`rounded-md border px-1 py-1 text-[11px] font-bold ${
                           size === k ? "border-violet-500 bg-violet-600 text-white" : "border-slate-200 bg-white text-slate-600"
                         }`}
@@ -421,8 +429,34 @@ export function TestDrawDialog({
                   ) : null}
                 </>
               ) : (
-                <p className="text-[11px] text-slate-600">고른 유형을 지문마다 전부, 문항도 전부 냅니다.</p>
+                <p className="text-[11px] text-slate-600">고른 유형을 지문마다 모두 싣고, 아래에서 정한 문항 수만큼 냅니다.</p>
               )}
+              {types.some((t) => !WHOLE_PASSAGE_TYPES.has(t)) ? (
+                <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-2">
+                  <p className="text-[11px] font-bold text-slate-600">유형별 문항 수 · 지문마다</p>
+                  {types.filter((t) => !WHOLE_PASSAGE_TYPES.has(t)).map((t) => (
+                    <label key={t} className="flex items-center justify-between gap-2 text-[11.5px] text-slate-700">
+                      <span>{testBookTypeLabel(t)}</span>
+                      <select
+                        value={limits[t] ?? "all"}
+                        onChange={(e) => {
+                          const value = e.target.value === "all" ? undefined : Number(e.target.value);
+                          setLimits((prev) => ({ ...prev, [t]: value }));
+                        }}
+                        className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[11.5px]"
+                      >
+                        {COUNT_OPTIONS.map((n) => (
+                          <option key={n} value={n}>{n}문항</option>
+                        ))}
+                        <option value="all">가능한 만큼</option>
+                      </select>
+                    </label>
+                  ))}
+                  <p className="text-[10.5px] leading-snug text-slate-500">
+                    재료가 부족한 지문은 가능한 문항 수로 자동 조정됩니다. 연결어·순서·삽입·요약·도식은 지문 전체 1세트입니다.
+                  </p>
+                </div>
+              ) : null}
               {preview ? (
                 <p className="text-[12px] font-bold text-slate-800">
                   예상 약 {preview.minutes}분 · {preview.items}문항{preview.vocab ? ` + 단어 ${preview.vocab}문항` : ""}
