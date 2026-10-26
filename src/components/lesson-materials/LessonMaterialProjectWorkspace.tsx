@@ -223,10 +223,25 @@ export function LessonMaterialProjectWorkspace({
     }
   }
 
+  // 입력 단계(LessonMaterialsInputWizard)와 같이, 저장된 장면 설명이 없으면 지문으로 그린다.
+  const passageForIllustration = itemsDraft
+    .map((it) => it.english_text)
+    .join("\n")
+    .trim();
+  function resolveIllustrationPrompt(): string {
+    const direct = illustrationPrompt.trim();
+    if (direct.length >= 8) return direct;
+    const hint = passageForIllustration.slice(0, 600);
+    if (hint.length >= 20) {
+      return `One continuous 2x2 educational manhwa about this passage idea. Same characters in all panels. Soft narrative arc. No text, no speech bubbles in the art. Passage: ${hint}`;
+    }
+    return "";
+  }
+
   async function handleRegenerateIllustration() {
-    const prompt = illustrationPrompt.trim();
+    const prompt = resolveIllustrationPrompt();
     if (prompt.length < 8) {
-      setError("먼저 논리 흐름을 생성해 주세요.");
+      setError("삽화에 쓸 지문이 없습니다. 영어 지문을 넣거나 논리 흐름을 다시 만든 뒤 눌러 주세요.");
       return;
     }
     setGeneratingIllustration(true);
@@ -274,6 +289,7 @@ export function LessonMaterialProjectWorkspace({
         return;
       }
       setIllustrationUrl(img.url);
+      setIllustrationPrompt(prompt);
       const saved = await persist({
         illustrationUrl: img.url,
         comicCaptions: captions,
@@ -404,7 +420,8 @@ export function LessonMaterialProjectWorkspace({
               disabled={
                 generatingIllustration ||
                 generatingOrganization ||
-                illustrationPrompt.trim().length < 8
+                (illustrationPrompt.trim().length < 8 &&
+                  passageForIllustration.length < 20)
               }
               onClick={() => void handleRegenerateIllustration()}
             >
