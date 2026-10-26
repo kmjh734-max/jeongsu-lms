@@ -22,6 +22,7 @@ import {
   splitPassageIntoLinePairs,
 } from "@/lib/lesson-materials/split-sentences";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { MockPassagePickerModal, type PickedMockPassage } from "@/components/mock-passages/MockPassagePickerModal";
 import { PassageSheet } from "@/components/passages/PassageSheet";
 
@@ -495,6 +496,19 @@ export function LessonMaterialsInputWizard({
   }
 
   async function handleBulkIllustrations() {
+    // 누르자마자 지문마다 그려져 값이 나가서 당황한다(선생님 2026-10-26). 장 수와 값을 먼저 보여 준다.
+    if (workbenches.length === 0) return;
+    if (
+      !(await askCreditConfirm({
+        title: "삽화 일괄 생성",
+        description: "지문마다 내용에 맞는 삽화를 한 장씩 그립니다. 이미 그린 삽화도 새로 그립니다.",
+        subject: `지문 ${workbenches.length}개 · 삽화 ${workbenches.length}장`,
+        items: [{ feature: "lesson_illustration", quantity: workbenches.length }],
+        sample: "illustration",
+      }))
+    ) {
+      return;
+    }
     setBulkBusy(true);
     setError(null);
     try {
