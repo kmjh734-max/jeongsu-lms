@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getFeatureCost } from "@/lib/credits";
+import { isFeatureFreeForAcademy } from "@/lib/credits/academy-free";
 
 export const runtime = "nodejs";
 
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
     const pricing = await getFeatureCost(admin, it.feature);
     // 가격이 없거나 꺼져 있으면 값이 나가지 않는 기능이다. 줄에서 뺀다.
     if (!pricing || !pricing.active || pricing.cost <= 0) continue;
+    if (isFeatureFreeForAcademy(profile.academy_id, it.feature)) continue;
     lines.push({
       feature: it.feature,
       label: pricing.label,

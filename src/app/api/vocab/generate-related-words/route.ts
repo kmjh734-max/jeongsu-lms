@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { flushAiUsage, setAiUsage } from "@/lib/ai-usage/context";
+import { chargeFeatureOrError, CREDIT_FEATURES } from "@/lib/credits/charge";
+import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { openAiErrorMessage } from "@/lib/vocab/openai-error-message";
 import { openAiFetch } from "@/lib/ai-usage/openai-fetch";
@@ -24,13 +26,17 @@ export async function POST(request: Request) {
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return jsonError("권한이 없습니다.", 403);
     }
-    /*
-     * 원가 귀속(2026-10-01): 값을 따로 받지 않는 보조 호출이라 기능 키는 비우고,
-     * 어느 학원에서 어느 화면에 썼는지만 남긴다. 테두리가 없으면 학원도 안 붙는다.
-     */
+    if (!profile.academy_id) {
+      return NextResponse.json(
+        { ok: false, message: "소속 학원 정보가 없습니다.", code: "no_academy" },
+        { status: 403 }
+      );
+    }
+    const academyId = profile.academy_id;
     setAiUsage({
-      academyId: profile.academy_id,
+      academyId,
       actorId: profile.id,
+      featureKey: CREDIT_FEATURES.vocab_generate_related,
       usedFor: "vocab_related_words",
     });
 
@@ -52,6 +58,19 @@ export async function POST(request: Request) {
 
     if (items.length === 0) {
       return jsonError("생성할 단어가 없습니다.");
+    }
+
+    // 값은 단어당(선생님 2026-10-26). 잔액이 모자라면 만들기 전에 알려 준다(차감은 아직 안 함)
+    const shortfall = await lessonCreditShortfall(
+      academyId,
+      CREDIT_FEATURES.vocab_generate_related,
+      items.length
+    );
+    if (shortfall) {
+      return NextResponse.json(
+        { ok: false, message: shortfall, code: "insufficient_credits" },
+        { status: 402 }
+      );
     }
 
     const fieldGuide =
@@ -158,7 +177,19 @@ ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.tri
       return jsonError("생성된 내용이 비어 있습니다. 다시 시도해 주세요.");
     }
 
+    // 동의어나 반의어가 하나라도 채워진 단어 수만큼 차감
+    const chargeErr = await chargeFeatureOrError({
+      academyId,
+      featureKey: CREDIT_FEATURES.vocab_generate_related,
+      actorId: profile.id,
+      // 이미 만든 결과라 잔액이 그 사이 모자라져도 차감하고 결과를 돌려준다
+      allowNegative: true,
+      idempotencyKey: `vocab_generate_related:${academyId}:${profile.id}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+      metadata: { words: items.length, filled: filled.length, kind },
+      quantity: filled.length,
+    });
     await flushAiUsage();
+    if (chargeErr) return chargeErr;
     return NextResponse.json({ ok: true, items: result, kind });
   } catch (err) {
     console.error("generate-related-words error", err);

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isFeatureFreeForAcademy } from "@/lib/credits/academy-free";
 
 export {
   CREDIT_WON_PER_UNIT,
@@ -18,6 +19,7 @@ export const CREDIT_FEATURES = {
   /** 듣기 그림 상황 문항의 장면 그림(그림 + 정답 대화 검수) */
   listening_generate_scene: "listening_generate_scene",
   vocab_generate_examples: "vocab_generate_examples",
+  vocab_generate_related: "vocab_generate_related",
   vocab_extract_passage: "vocab_extract_passage",
   vocab_grade_meaning: "vocab_grade_meaning",
   student_record_analyze: "student_record_analyze",
@@ -168,6 +170,9 @@ export async function debitFeatureCredits(
     );
   }
   if (!pricing.active || pricing.cost <= 0) {
+    return { skipped: true, transaction: null };
+  }
+  if (isFeatureFreeForAcademy(params.academyId, params.featureKey)) {
     return { skipped: true, transaction: null };
   }
 

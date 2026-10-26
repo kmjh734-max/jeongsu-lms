@@ -264,11 +264,22 @@ export function VocabTableEditor({
       setStatus({ text: "채울 빈칸이 없어요.", tone: "info" });
       return;
     }
-    if (exTargets.length > 0 && !(await askCreditConfirm({
-      title: "예문 만들기",
-      description: "낱말마다 그 뜻에 맞는 예문을 만들어 빈칸을 채웁니다.",
-      subject: `예문이 빈 낱말 ${exTargets.length}개`,
-      items: [{ feature: "vocab_generate_examples", quantity: exTargets.length }],
+    const subjects = [
+      exTargets.length > 0 ? `예문이 빈 낱말 ${exTargets.length}개` : "",
+      relTargets.length > 0 ? `동의어·반의어가 빈 낱말 ${relTargets.length}개` : "",
+    ].filter(Boolean);
+    if (!(await askCreditConfirm({
+      title: "빈칸 채우기",
+      description: "낱말마다 그 뜻에 맞는 예문과 동의어·반의어를 만들어 빈칸을 채웁니다.",
+      subject: subjects.join(" · "),
+      items: [
+        ...(exTargets.length > 0
+          ? [{ feature: "vocab_generate_examples", quantity: exTargets.length }]
+          : []),
+        ...(relTargets.length > 0
+          ? [{ feature: "vocab_generate_related", quantity: relTargets.length }]
+          : []),
+      ],
     }))) return;
     setFilling(true);
     setStatus({ text: "빈칸을 채우는 중이에요…", tone: "info" });

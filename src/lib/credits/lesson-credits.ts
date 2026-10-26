@@ -7,6 +7,7 @@ import {
   debitFeatureCredits,
   getFeatureCost,
 } from "@/lib/credits";
+import { isFeatureFreeForAcademy } from "@/lib/credits/academy-free";
 
 /**
  * 수업자료 기능 크레딧(가격은 feature_pricing). 원가(2026-09-14 실측)의 약 2배로 잡았다.
@@ -59,6 +60,7 @@ export async function lessonCreditShortfall(
   const admin = createAdminClient();
   const pricing = await getFeatureCost(admin, featureKey);
   if (!pricing || !pricing.active || pricing.cost <= 0) return null;
+  if (isFeatureFreeForAcademy(academyId, featureKey)) return null;
   const need = pricing.cost * Math.max(1, Math.floor(quantity));
   const { data } = await admin
     .from("academy_wallets")

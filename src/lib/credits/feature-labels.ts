@@ -52,6 +52,7 @@ const FEATURES: Record<string, FeatureInfo> = {
   listening_generate_scene: { label: "듣기 상황 그림 만들기", group: "듣기 자료", unit: "문항" },
   listening_variant_questions: { label: "듣기 비슷한 문항 만들기", group: "듣기 자료", unit: "문항" },
   vocab_generate_examples: { label: "단어 예문 만들기", group: "단어 자료", unit: "단어" },
+  vocab_generate_related: { label: "단어 동의어·반의어 만들기", group: "단어 자료", unit: "단어" },
   vocab_extract_passage: { label: "지문에서 단어 뽑기", group: "단어 자료", unit: "지문" },
   vocab_grade_meaning: { label: "단어 뜻 채점", group: "단어 자료" },
   student_record_analyze: { label: "학생부 분석", group: "학생부 분석", unit: "건" },
