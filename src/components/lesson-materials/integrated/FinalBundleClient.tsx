@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { LessonBookWorkbench } from "@/components/lesson-materials/LessonBookWorkbench";
+import type { LessonBookOptions } from "@/lib/lesson-materials/lesson-book-options";
 import {
   AnalysisReportWorkbench,
   type AnalysisReportProjectInput,
@@ -74,7 +75,7 @@ import { WORKBOOK_TYPE_SHORT, type WorkbookTypeId } from "@/lib/lesson-materials
 import { RegenMaterials, type RegenPart } from "@/components/lesson-materials/test-book/LessonPackExtras";
 
 export type FinalBundleMaterials = {
-  lessonPacks: Array<{ docId: string; name: string; projects: TestBookProjectInput[] }>;
+  lessonPacks: Array<{ docId: string; name: string; options: Partial<LessonBookOptions> | null; projects: TestBookProjectInput[] }>;
   analyses: Array<{ docId: string; name: string; projects: AnalysisReportProjectInput[] }>;
   /** 고른 워크북(유형은 학습 계획표 이수 칸에 쓴다) */
   workbooks: Array<{ docId: string; name: string; types: WorkbookTypeId[] }>;
@@ -525,7 +526,7 @@ export function FinalBundleClient({
     }
     if (s.kind === "lesson_pack") {
       return materials.lessonPacks.map((m) => (
-        <LessonBookWorkbench key={m.docId} role={role} projects={m.projects} logoSrc={logoSrc} academyName={payload.cover.academy || academyName} design={payload.theme} embedded />
+        <LessonBookWorkbench key={m.docId} role={role} projects={m.projects} savedOptions={m.options} logoSrc={logoSrc} academyName={payload.cover.academy || academyName} design={payload.theme} embedded />
       ));
     }
     if (s.kind === "analysis_report") {

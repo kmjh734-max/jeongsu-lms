@@ -8,6 +8,7 @@ import {
   uniqueDocumentName,
   type LessonMaterialDocumentKind,
 } from "@/lib/lesson-materials/documents";
+import { normalizeLessonBookOptions } from "@/lib/lesson-materials/lesson-book-options";
 
 type Role = "admin" | "teacher";
 type Fail = { ok: false; message: string };
@@ -244,5 +245,36 @@ export async function saveIntegratedDocument(
     .maybeSingle();
   if (updateError) return { ok: false, message: updateError.message };
   if (!data) return { ok: false, message: "통합자료 파일을 찾을 수 없습니다." };
+  return { ok: true };
+}
+
+/** 수업용 자료 설정(해석·전체 단어장·백지노트)을 파일에 저장한다. payload의 다른 값은 그대로 둔다. */
+export async function saveLessonPackOptions(
+  role: Role,
+  input: { id: string; options: unknown }
+): Promise<{ ok: true } | Fail> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+  const options = normalizeLessonBookOptions(input.options);
+  if (!options) return { ok: false, message: "설정을 읽지 못했습니다." };
+  const supabase = await createClient();
+  const { data: cur } = await supabase
+    .from("lesson_material_documents")
+    .select("payload")
+    .eq("id", input.id)
+    .eq("kind", "lesson_pack")
+    .eq("academy_id", profile!.academy_id!)
+    .maybeSingle();
+  if (!cur) return { ok: false, message: "파일을 찾을 수 없습니다." };
+  const prev = (cur.payload as Record<string, unknown> | null) ?? {};
+  const { error: upErr } = await supabase
+    .from("lesson_material_documents")
+    .update({
+      payload: { ...prev, options: { ...((prev.options as Record<string, unknown> | undefined) ?? {}), ...options } },
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.id)
+    .eq("academy_id", profile!.academy_id!);
+  if (upErr) return { ok: false, message: upErr.message };
   return { ok: true };
 }

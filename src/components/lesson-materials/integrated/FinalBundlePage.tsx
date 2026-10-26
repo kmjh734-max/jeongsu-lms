@@ -1,3 +1,4 @@
+import { normalizeLessonBookOptions } from "@/lib/lesson-materials/lesson-book-options";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
@@ -48,7 +49,7 @@ export async function FinalBundlePage({ role, docId }: { role: "admin" | "teache
     ? await supabase
         .from("lesson_material_documents")
         // 워크북은 고른 유형만(학습 계획표 이수 칸을 워크북을 보고 만든다) — payload 통째로는 읽지 않는다
-        .select("id,name,kind,project_ids,wbt:payload->selectedTypes,wbo:payload->typeOrder")
+        .select("id,name,kind,project_ids,wbt:payload->selectedTypes,wbo:payload->typeOrder,lpo:payload->options")
         .in("id", docIds)
         .is("deleted_at", null)
     : { data: [] as Array<{ id: string; name: string; kind: string; project_ids: string[] }> };
@@ -75,6 +76,8 @@ export async function FinalBundlePage({ role, docId }: { role: "admin" | "teache
         return {
           docId: id,
           name: d.name as string,
+          // 파일에 저장된 수업용 자료 설정(해석 등) — 없으면 null
+          options: normalizeLessonBookOptions((d as { lpo?: unknown }).lpo),
           // 수업용 자료는 테스트 교재 모양(단어 정리·문장별 해석) — 같은 재료를 읽는다
           projects: await loadBundleExtraProjects(supabase, (d.project_ids as string[]) ?? []),
         };

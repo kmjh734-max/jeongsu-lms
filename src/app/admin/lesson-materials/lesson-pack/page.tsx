@@ -3,6 +3,7 @@ import { resolveDocumentProjectIds } from "@/lib/lesson-materials/document-page"
 import { LessonBookWorkbench } from "@/components/lesson-materials/LessonBookWorkbench";
 import { loadBundleExtraProjects } from "@/lib/lesson-materials/load-material-payloads";
 import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
+import { normalizeLessonBookOptions } from "@/lib/lesson-materials/lesson-book-options";
 import Link from "next/link";
 
 export default async function AdminLessonPackPage({
@@ -32,6 +33,12 @@ export default async function AdminLessonPackPage({
   // 수업용 자료는 테스트 교재의 수업용 자료 모양으로 만든다(선생님 2026-10-21) — 단어 정리·해석 재료를 읽는다
   const projects = await loadBundleExtraProjects(supabase, ids);
   const branding = await getAcademyBrandingForCurrentUser();
+  // 파일에 저장된 설정(해석 등)
+  const docId = params.doc?.trim();
+  const { data: doc } = docId
+    ? await supabase.from("lesson_material_documents").select("opts:payload->options").eq("id", docId).eq("kind", "lesson_pack").maybeSingle()
+    : { data: null };
+  const savedOptions = normalizeLessonBookOptions((doc as { opts?: unknown } | null)?.opts);
 
-  return <LessonBookWorkbench role="admin" projects={projects} logoSrc={branding.logoUrl} academyName={branding.name || ""} />;
+  return <LessonBookWorkbench role="admin" projects={projects} savedOptions={savedOptions} logoSrc={branding.logoUrl} academyName={branding.name || ""} />;
 }

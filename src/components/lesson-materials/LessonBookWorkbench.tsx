@@ -13,12 +13,9 @@ import type {
   loadDrawProjectsAction,
   prepareWorkbookExtrasAction,
 } from "@/lib/lesson-materials/test-book-actions";
-import {
-  isTestBookProjectReady,
-  type TestBookOptions,
-  type TestBookProjectInput,
-  type TestBookTheme,
-} from "@/lib/lesson-materials/test-book";
+import { isTestBookProjectReady, type TestBookProjectInput } from "@/lib/lesson-materials/test-book";
+import { DEFAULT_LESSON_BOOK_OPTIONS, type LessonBookOptions } from "@/lib/lesson-materials/lesson-book-options";
+import { saveLessonPackOptions } from "@/lib/lesson-materials/document-actions";
 import {
   AllVocabSheets,
   BlankNoteSheets,
@@ -43,14 +40,7 @@ type PrepareResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
  * 테스트 교재에서 만들던 수업용 자료 그대로). 전체 단어장 → 지문마다 단어 정리 · 문장별 해석, 백지노트는 골라서.
  * 쪽 틀은 예전 수업용 자료와 같은 #lesson-pack-print-root(전역 인쇄 규칙·최종통합자료가 이 이름을 안다).
  */
-export type LessonBookOptions = {
-  allVocab: boolean;
-  translation: TestBookOptions["translation"];
-  blankNote: boolean;
-  theme: TestBookTheme;
-};
-
-const DEFAULT_OPTIONS: LessonBookOptions = { allVocab: true, translation: "show", blankNote: false, theme: "b" };
+const DEFAULT_OPTIONS = DEFAULT_LESSON_BOOK_OPTIONS;
 const OPTIONS_KEY = "lesson-book-options";
 const PAGE_NUMBER_KEY = "lesson-book-page-numbers";
 const PDF_SELECTOR = ":is(.tb-sheet:not(.tb-measure .tb-sheet))";
@@ -72,6 +62,7 @@ export function LessonBookWorkbench({
   academyName = "",
   embedded = false,
   design,
+  savedOptions = null,
 }: {
   role: "admin" | "teacher";
   projects: TestBookProjectInput[];
@@ -81,6 +72,8 @@ export function LessonBookWorkbench({
   embedded?: boolean;
   /** 최종통합자료가 고른 디자인(주면 이것을 쓴다) */
   design?: MaterialDesign;
+  /** 파일에 저장된 설정(있으면 브라우저 기억보다 먼저) */
+  savedOptions?: Partial<LessonBookOptions> | null;
 }) {
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const ids = initialProjects.map((p) => p.id);
@@ -90,6 +83,8 @@ export function LessonBookWorkbench({
   }, []);
   useCreateDocumentFromUrl(role, "lesson_pack", ids, (id) => {
     docIdRef.current = id;
+    // 새 파일에도 지금 설정을 적어 둔다(통합자료가 파일 설정을 읽는다)
+    if (!embedded) void saveLessonPackOptions(role, { id, options: optsRef.current }).catch(() => {});
   });
 
   const [projects, setProjects] = useState(initialProjects);
@@ -99,26 +94,38 @@ export function LessonBookWorkbench({
   const missing = projects.filter((p) => !isTestBookProjectReady(p));
   const indexOf = (id: string) => projects.findIndex((p) => p.id === id);
 
-  // ---------------------------------------------------------------- 설정(이 브라우저에 기억 — 통합자료도 같은 설정)
-  const [opts, setOpts] = useState<LessonBookOptions>(DEFAULT_OPTIONS);
+  // ---------------------------------------------------------------- 설정(파일에 저장 — 통합자료도 파일 설정을 읽는다. 저장 전 파일은 이 브라우저 기억)
+  const [opts, setOpts] = useState<LessonBookOptions>({ ...DEFAULT_OPTIONS, ...savedOptions });
+  const optsRef = useRef(opts);
+  const persist = (next: LessonBookOptions) => {
+    if (!embedded && docIdRef.current) void saveLessonPackOptions(role, { id: docIdRef.current, options: next }).catch(() => {});
+  };
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(OPTIONS_KEY);
-      if (raw) setOpts({ ...DEFAULT_OPTIONS, ...(JSON.parse(raw) as Partial<LessonBookOptions>) });
+      const local = raw ? (JSON.parse(raw) as Partial<LessonBookOptions>) : {};
+      // 파일에 저장된 값이 먼저, 빠진 것은 이 브라우저 기억
+      const next = { ...DEFAULT_OPTIONS, ...local, ...savedOptions };
+      optsRef.current = next;
+      setOpts(next);
+      // 파일에 빠진 값이 있으면(옛 파일) 지금 보이는 설정을 파일에 옮겨 둔다
+      if (Object.keys(savedOptions ?? {}).length < Object.keys(DEFAULT_OPTIONS).length) persist(next);
     } catch {
       /* 저장소를 못 쓰면 기본 */
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const update = (patch: Partial<LessonBookOptions>) =>
-    setOpts((prev) => {
-      const next = { ...prev, ...patch };
-      try {
-        window.localStorage.setItem(OPTIONS_KEY, JSON.stringify(next));
-      } catch {
-        /* 무시 */
-      }
-      return next;
-    });
+  const update = (patch: Partial<LessonBookOptions>) => {
+    const next = { ...optsRef.current, ...patch };
+    optsRef.current = next;
+    setOpts(next);
+    try {
+      window.localStorage.setItem(OPTIONS_KEY, JSON.stringify(next));
+    } catch {
+      /* 무시 */
+    }
+    persist(next);
+  };
   const [pageNumbers, setPageNumbers] = useState(true);
   useEffect(() => {
     try {
