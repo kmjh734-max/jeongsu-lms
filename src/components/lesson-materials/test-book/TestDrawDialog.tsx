@@ -18,6 +18,7 @@ import {
   buildVocabExam,
   isTestBookProjectReady,
   testBookTypeLabel,
+  testDrawUnits,
   type BlankMode,
   type LineMode,
   type TestBookProjectInput,
@@ -265,17 +266,19 @@ export function TestDrawDialog({
     if (busy || !chosen.length || !types.length) return;
     const perPassage = mode === "auto" ? Math.min(AUTO[size].perPassage, types.length) : types.length;
     const typeCount = perPassage + (vocabOn ? 1 : 0);
+    // 값은 뽑은 문항으로 센다(문항 1 · 세트 3 · 단어 시험 지문당 3) — 확인 창과 서버가 같은 시험지를 센다
+    const seed = newSeed();
+    const snapshot = makeSnapshot(seed);
+    const count = testDrawUnits(snapshot.sheets.map((s) => s.sheet), snapshot.vocabExam ? chosen.length : 0);
     const go = await askCreditConfirm({
       title: "테스트지 뽑기",
       description: "고른 지문과 유형으로 테스트지를 새로 뽑습니다. 누를 때마다 문항·보기 순서가 새로 나옵니다.",
-      subject: `지문 ${chosen.length}개 × 유형 ${typeCount}개${mode === "auto" ? ` (자동 뽑기 · ${AUTO[size].label})` : ""}`,
+      subject: `지문 ${chosen.length}개 · 문항 ${count.items}개 · 세트 ${count.sets}개${snapshot.vocabExam ? " · 단어 시험" : ""}${mode === "auto" ? ` (자동 뽑기 · ${AUTO[size].label})` : ""}`,
       contents: [...types.map((t) => testBookTypeLabel(t)), ...(vocabOn ? ["단어 시험지"] : [])],
-      items: [{ feature: "lesson_test_draw", quantity: chosen.length * typeCount }],
+      items: [{ feature: "lesson_test_draw", quantity: count.units }],
       sample: "one_page_test",
     });
     if (!go) return;
-    const seed = newSeed();
-    const snapshot = makeSnapshot(seed);
     // 새 탭은 누른 순간 열어 둔다(응답 뒤에 열면 팝업 차단에 걸린다)
     const tab = window.open("", "_blank");
     setBusy("뽑는 중…");

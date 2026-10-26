@@ -219,7 +219,8 @@ const CHUNK_SYSTEM = `너는 한국 고등학교 영어 교재의 직독직해 �
 문장마다 의미 단위(보통 2~6낱말)로 끊고, 덩어리마다 그 자리의 뜻을 한국어로 짧게 쓴다(앞에서부터 읽는 차례대로, 조사는 자연스럽게).
 - en: 원문 그대로 잘라 쓴다. 덩어리를 차례로 이으면 원문 문장 전체가 되어야 한다 — 따옴표 안 말과 문장 끝까지 낱말을 하나도 빼지 않는다.
 - ko: 그 덩어리 영어만 보고 앞에서부터 직역한다(덩어리 하나 = 그 낱말들의 뜻). 다른 덩어리의 말을 끌어오지 않는다. 예: "for the restoration" → "복원을 위해", "of cultural assets" → "문화재의", "under the name" → "~라는 이름으로", "has topped" → "1위를 차지했다".
-출력: {"items":[{"i":0,"chunks":[{"en":"","ko":""}]}]}`;
+- 문장마다 items 하나씩, i는 그 문장 번호(0부터). 여러 문장을 한 item에 몰아 넣지 않는다.
+출력: {"items":[{"i":0,"chunks":[{"en":"","ko":""}]},{"i":1,"chunks":[{"en":"","ko":""}]}]}`;
 
 /** 낱말 비교용: 소문자, 글자·숫자만 */
 function wordKey(t: string): string {
@@ -280,6 +281,9 @@ export async function glossTestBookChunks(input: {
     const envelope = parseJson(body) as { choices?: Array<{ message?: { content?: string } }> } | null;
     const parsed = parseJson(envelope?.choices?.[0]?.message?.content ?? "") as { items?: unknown[] } | null;
     const out: Array<Array<{ en: string; ko: string }> | null> = input.sentences.map(() => null);
+    const ok = (a: Array<{ en: string; ko: string }> | null): a is Array<{ en: string; ko: string }> =>
+      !!a && a.length >= 2 && a.every((c) => c.ko);
+    const all: Array<{ i: number; en: string; ko: string }> = [];
     for (const raw of Array.isArray(parsed?.items) ? parsed!.items : []) {
       const r = (raw ?? {}) as { i?: unknown; chunks?: unknown };
       const i = Number(r.i);
@@ -290,10 +294,30 @@ export async function glossTestBookChunks(input: {
           return { en: String(x.en ?? "").trim(), ko: String(x.ko ?? "").trim() };
         })
         .filter((c) => c.en);
+      for (const c of chunks) all.push({ i, ...c });
       // 덩어리를 원문 낱말에 차례로 맞춘다. 덩어리 글은 원문에서 그대로 잘라 문장부호·따옴표를 살리고,
       // 낱말이 빠지거나 바뀐 문장은 버린다(그 문장은 한줄해석을 전체 해석으로 낸다).
       const aligned = alignChunks(input.sentences[i]!.english, chunks);
-      if (aligned && aligned.length >= 2 && aligned.every((c) => c.ko)) out[i] = aligned;
+      if (ok(aligned)) out[i] = aligned;
+    }
+    /*
+     * 모델이 여러 문장의 덩어리를 한 item에 몰아 넣는 일이 있다(경민고1 4과, 선생님 2026-10-26: 끊어 읽기가
+     * 안 만들어진다 — 6문장이 모두 i=0에 들어가 통째로 버려졌다). 덩어리를 받은 차례대로 이어 두고, 문장마다
+     * 낱말 수만큼 덩어리를 떼어 다시 맞춘다. 덩어리가 문장 경계를 넘으면 그 문장만 버린다.
+     */
+    if (out.some((x) => !x) && all.length) {
+      const flat = [...all].sort((a, b) => a.i - b.i);
+      const count = (t: string) => t.split(/\s+/).map(wordKey).filter(Boolean).length;
+      let c = 0;
+      input.sentences.forEach((sen, i) => {
+        const need = count(sen.english);
+        let got = 0;
+        const start = c;
+        while (c < flat.length && got < need) got += count(flat[c++]!.en);
+        if (out[i] || got !== need) return;
+        const aligned = alignChunks(sen.english, flat.slice(start, c).map(({ en, ko }) => ({ en, ko })));
+        if (ok(aligned)) out[i] = aligned;
+      });
     }
     return out;
   } catch (e) {

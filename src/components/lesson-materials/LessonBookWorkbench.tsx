@@ -203,7 +203,7 @@ export function LessonBookWorkbench({
     const go = await askCreditConfirm({
       title: "수업용 자료",
       description:
-        "지문마다 단어 정리(★핵심어 · 품사 · 지문 속 뜻 · 동의어 · 반의어 · 파생어 뜻)와 문장별 해석을 만듭니다. 한 번 만든 지문은 다시 값을 받지 않고, 워크북 새 유형·최종통합자료도 같은 재료를 씁니다.",
+        "지문마다 단어 정리(★핵심어 · 품사 · 지문 속 뜻 · 동의어 · 반의어 · 파생어 뜻)와 문장별 해석을 만듭니다. 값은 이것 한 번뿐이고, 한 번 만든 지문은 다시 받지 않습니다. 워크북 새 유형·테스트지·최종통합자료도 같은 재료를 씁니다.",
       subject: `고른 지문 ${missing.length}개`,
       contents: ["전체 단어장", "단어 정리", "문장별 해석", "백지노트"],
       items: [{ feature: "lesson_workbook_extras", quantity: missing.length }],

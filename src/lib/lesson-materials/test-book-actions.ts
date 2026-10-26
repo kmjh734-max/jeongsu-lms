@@ -14,7 +14,7 @@ import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-
 import { generateOnePageContent } from "@/lib/lesson-materials/generate-one-page";
 import type { LessonPackData } from "@/lib/lesson-materials/generate-lesson-pack";
 import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
-import { generateAndSaveLessonPackVocabAction } from "@/lib/lesson-materials/lesson-pack-actions";
+import { generateAndSaveLessonPackVocab } from "@/lib/lesson-materials/lesson-pack-vocab";
 import { findPhrase, isOnePageContentFresh, onePageSentences, type OnePageContent } from "@/lib/lesson-materials/one-page";
 import { patchLessonPack } from "@/lib/lesson-materials/patch-lesson-pack";
 import { pickKeySentenceIds } from "@/lib/lesson-materials/key-sentences";
@@ -38,6 +38,7 @@ import {
   mergeTestBookVocabHints,
   normalizeTestBookOptions,
   testBookSourceHash,
+  testDrawUnits,
   type TestBookMaterial,
   type TestBookOptions,
   type TestBookProjectInput,
@@ -186,7 +187,8 @@ async function preparePassage(
   const pack0 = (loaded.project.lesson_pack_json ?? {}) as Partial<LessonPackData>;
   const missingKorean = loaded.items.some((it) => String(it.english_text ?? "").trim() && !String(it.korean_text ?? "").trim());
   if (missingKorean || !(pack0.vocab ?? []).length) {
-    const res = await generateAndSaveLessonPackVocabAction(role, { projectId });
+    // 단어·해석 값은 따로 받지 않는다 — 이 재료 값(지문당 한 번)에 들어 있다(선생님 2026-10-26: 두 번 뜬다)
+    const res = await generateAndSaveLessonPackVocab(role, { projectId }, false);
     if (!res.ok) return { ok: false, message: res.message };
     loaded = await loadProject(role, profile!, projectId);
     if (!loaded) return { ok: false, message: "지문을 찾을 수 없습니다." };
@@ -205,39 +207,57 @@ async function preparePassage(
   };
 
   try {
-    // 2. 1장 자료 재료
+    // 2. 1장 자료 재료. 단어 정리만 이것을 기다리고, 어순 덩어리·직독직해는 같이 돌린다
+    //    (선생님 2026-10-26: 수업용 자료가 너무 오래 걸린다 — 예전에는 다섯 단계를 차례로 기다렸다)
     let content = pack.onePageContent;
     const again = new Set(input.forceRegenerate ? ["vocab", "gloss", "content"] : (input.regenerate ?? []));
-    if (again.has("content") || !isOnePageContentFresh(content, english)) {
-      content = (
-        await withAiUsage(usage, () => generateOnePageContent({ title: project.title as string, sentences: english }))
-      ).content;
-      await patchLessonPack(supabase, projectId, pack, { onePageContent: content });
-    }
+    const contentP: Promise<OnePageContent | undefined> =
+      again.has("content") || !isOnePageContentFresh(content, english)
+        ? withAiUsage(usage, () => generateOnePageContent({ title: project.title as string, sentences: english })).then(
+            async (r) => {
+              await patchLessonPack(supabase, projectId, pack, { onePageContent: r.content });
+              return r.content;
+            }
+          )
+        : Promise.resolve(content);
+    // 나중에 기다린다 — 그 사이 실패해도 처리 안 된 거부로 서버가 멈추지 않게
+    contentP.catch(() => {});
 
     // 3. 테스트 교재 재료
     let material = pack.testBookMaterial;
     // 예전 생성 실패로 최신 재료 안에 직독직해만 비어 있을 수 있다. 이 상태를 최신으로
     // 취급하면 끊어읽기를 골라도 모든 문장이 전체해석으로 나오는 폴백에 머문다.
+    // 절반 넘게 비어도 다시 만든다(경민고1 4과: 9문장 중 1문장만 있어 끊어 읽기가 거의 전체해석으로 나왔다)
     const missingChunkGloss =
       !material?.chunkGloss ||
       material.chunkGloss.length !== sentences.length ||
-      material.chunkGloss.every((chunks) => !chunks?.length);
+      material.chunkGloss.filter((chunks) => chunks?.length).length * 2 < sentences.length;
     if (again.size || missingChunkGloss || !isTestBookMaterialFresh(material, english)) {
       // 원문이 그대로면(재료 버전만 바뀌었으면) 단어 정리는 다시 쓰고 규칙으로 만드는 것만 새로
-      const vocab =
-        !again.has("vocab") &&
-        isTestBookMaterialSameSource(material, english) &&
-        material.vocabVersion === TEST_BOOK_VOCAB_VERSION
-          ? material.vocab
-          : await withAiUsage(usage, () =>
+      const reuseVocab =
+        !again.has("vocab") && isTestBookMaterialSameSource(material, english) && material.vocabVersion === TEST_BOOK_VOCAB_VERSION;
+      const oldVocab = reuseVocab ? material!.vocab : null;
+      const vocabP = oldVocab
+        ? Promise.resolve(oldVocab)
+        : contentP.then((c) =>
+            withAiUsage(usage, () =>
               refineTestBookVocab({
                 title: project.title as string,
                 sentences,
                 packVocab: pack.vocab ?? [],
-                keyHints: content!.vocab.map((v) => ({ surface: v.surface, synonyms: v.synonyms, antonyms: v.antonyms })),
+                keyHints: c!.vocab.map((v) => ({ surface: v.surface, synonyms: v.synonyms, antonyms: v.antonyms })),
               })
-            );
+            )
+          );
+      vocabP.catch(() => {});
+      // 직독직해 덩어리: 원문이 같고 이미 있으면 다시 쓰고, 없으면 만든다(gpt-4o-mini, 1원 아래) — 바로 시작
+      const oldGloss =
+        material && isTestBookMaterialSameSource(material, english) && !again.has("gloss") && !missingChunkGloss
+          ? material.chunkGloss
+          : undefined;
+      const glossP = oldGloss?.length
+        ? Promise.resolve(oldGloss)
+        : withAiUsage(usage, () => glossTestBookChunks({ title: project.title as string, sentences })).catch(() => undefined);
 
       // 중요문장: 워크북 「중요문장 어순배열」과 같은 규칙(분석서 주제문 → 빈칸 후보 핵심 문장 → 규칙)
       const report = (project.analysis_report_json ?? null) as AnalysisReportData | null;
@@ -295,35 +315,32 @@ async function preparePassage(
         wordOrderChunkCache: (pack.wordOrderChunkCache as StoredWordOrderChunkCache | undefined) ?? null,
       };
       const bilingual = generateWorkbookLineTranslation({ passages: [passageInput] });
-      if (bilingual.blocking.length === 0 && keyIndexes.length) {
-        const keySet = chunkKeySet;
-        const wo = await withAiUsage(usage, () =>
-          generateWorkbookWordOrderWriting({
-            workbookId: `test-book-${projectId}`,
-            passages: [passageInput],
-            prebuiltLineSections: bilingual.sections
-              .map((sec) => ({ ...sec, items: sec.items.filter((it) => keySet.has(it.sentenceId)) }))
-              .filter((sec) => sec.items.length > 0),
-            prebuiltSkipped: bilingual.skipped,
-            prebuiltBlocking: [],
-          })
-        );
-        for (const sec of wo.sections) {
-          for (const it of sec.items) {
-            const i = ids.indexOf(it.sentenceId);
-            if (i >= 0) chunks[i] = it.originalChunks.map((c) => c.text);
+      const chunksP = (async () => {
+        if (bilingual.blocking.length === 0 && keyIndexes.length) {
+          const keySet = chunkKeySet;
+          const wo = await withAiUsage(usage, () =>
+            generateWorkbookWordOrderWriting({
+              workbookId: `test-book-${projectId}`,
+              passages: [passageInput],
+              prebuiltLineSections: bilingual.sections
+                .map((sec) => ({ ...sec, items: sec.items.filter((it) => keySet.has(it.sentenceId)) }))
+                .filter((sec) => sec.items.length > 0),
+              prebuiltSkipped: bilingual.skipped,
+              prebuiltBlocking: [],
+            })
+          );
+          for (const sec of wo.sections) {
+            for (const it of sec.items) {
+              const i = ids.indexOf(it.sentenceId);
+              if (i >= 0) chunks[i] = it.originalChunks.map((c) => c.text);
+            }
+          }
+          for (const { cache } of wo.cachesToSave) {
+            await patchLessonPack(supabase, projectId, pack, { wordOrderChunkCache: cache });
           }
         }
-        for (const { cache } of wo.cachesToSave) {
-          await patchLessonPack(supabase, projectId, pack, { wordOrderChunkCache: cache });
-        }
-      }
-
-      // 직독직해 덩어리: 원문이 같고 이미 있으면 다시 쓰고, 없으면 만든다(gpt-4o-mini, 1원 아래)
-      const oldGloss = material && isTestBookMaterialSameSource(material, english) && !again.has("gloss") ? material.chunkGloss : undefined;
-      const chunkGloss = oldGloss?.length
-        ? oldGloss
-        : await withAiUsage(usage, () => glossTestBookChunks({ title: project.title as string, sentences })).catch(() => undefined);
+      })();
+      const [vocab, chunkGloss] = await Promise.all([vocabP, glossP, chunksP]);
 
       material = {
         version: TEST_BOOK_MATERIAL_VERSION,
@@ -340,6 +357,7 @@ async function preparePassage(
       };
       await patchLessonPack(supabase, projectId, pack, { testBookMaterial: material });
     }
+    content = await contentP;
     await flushAiUsage();
 
     await debitLessonCredits({
@@ -364,7 +382,7 @@ async function preparePassage(
   }
 }
 
-/** 테스트지 뽑기 값(지문·유형당). 저장된 재료로 조립만 하므로 원가는 없다 — 마이그레이션 194. */
+/** 테스트지 뽑기 값(1크레딧 단위 — 문항 1 · 세트 3 · 단어 시험 지문당 3). 조립만 하므로 원가는 없다 — 마이그레이션 194·201. */
 const TEST_DRAW_FEATURE = "lesson_test_draw";
 
 /**
@@ -380,9 +398,16 @@ export async function chargeTestDrawAction(
   if (error) return { ok: false, message: error };
   const seed = String(input.seed ?? "").trim().slice(0, 80);
   const passages = [...new Set((input.projectIds ?? []).map(String).filter(Boolean))].length;
-  const types = Math.max(0, Math.floor(Number(input.typeCount) || 0));
-  if (!seed || !passages || !types) return { ok: false, message: "뽑을 지문과 유형을 골라 주세요." };
-  const quantity = passages * types;
+  // 뽑은 시험지(snapshot)로 문항·세트를 센다(선생님 2026-10-26 — 유형별·문항별로)
+  const snapSheets = (input.snapshot as { sheets?: Array<{ sheet?: unknown }> } | null | undefined)?.sheets;
+  if (!seed || !passages || !Array.isArray(snapSheets) || !snapSheets.length) return { ok: false, message: "뽑을 지문과 유형을 골라 주세요." };
+  const hasVocab = !!(input.snapshot as { vocabExam?: unknown } | null | undefined)?.vocabExam;
+  const count = testDrawUnits(
+    snapSheets.map((x) => x?.sheet as { sections?: Array<{ type?: unknown; items?: unknown[] }> } | undefined),
+    hasVocab ? passages : 0
+  );
+  const quantity = count.units;
+  if (!quantity) return { ok: false, message: "뽑을 문항이 없습니다. 유형을 다시 골라 주세요." };
   const shortfall = await lessonCreditShortfall(profile!.academy_id!, TEST_DRAW_FEATURE, quantity);
   if (shortfall) return { ok: false, message: shortfall };
   const ok = await debitLessonCredits({
@@ -391,7 +416,7 @@ export async function chargeTestDrawAction(
     featureKey: TEST_DRAW_FEATURE,
     quantity,
     idempotencyKey: `${TEST_DRAW_FEATURE}:${seed}`,
-    note: `테스트지 뽑기 · 지문 ${passages}개 × 유형 ${types}개`,
+    note: `테스트지 뽑기 · 지문 ${passages}개 · 문항 ${count.items}개 · 세트 ${count.sets}개${hasVocab ? ` · 단어 시험 ${passages}지문` : ""}`,
   });
   if (!ok) return { ok: false, message: "크레딧을 차감하지 못했습니다. 잠시 뒤 다시 눌러 주세요." };
 

@@ -34,6 +34,7 @@ import {
   testBookChoiceSection,
   testBookSourceHash,
   testBookTypeLabel,
+  testDrawUnits,
   type BlankMode,
   type WritingScope,
   type LineMode,
@@ -408,7 +409,7 @@ export function TestBookWorkbench({
     } catch {}
   }, [drawLoaded, drawTypes, blankMode, drawWriting, drawLineMode, drawLevel, drawTheme, drawVocabOn, drawVocab, drawAnswers]);
   const [draw, setDraw] = useState<{ seed: string; picks: Record<string, TestBookTypeKey[]>; vocab?: VocabExamOptions | null } | null>(null);
-  /** 뽑을 때마다 값(지문 수 × 유형 수)을 받는다 — 확인 창을 띄우고, 서버에서 차감된 뒤에만 보여 준다 */
+  /** 뽑을 때마다 값(문항 1 · 세트 3 · 단어 시험 지문당 3)을 받는다 — 확인 창을 띄우고, 서버에서 차감된 뒤에만 보여 준다 */
   const [drawBusy, setDrawBusy] = useState(false);
   const [drawError, setDrawError] = useState<string | null>(null);
   /** 방금 뽑은 테스트지를 저장한 파일 */
@@ -418,20 +419,8 @@ export function TestBookWorkbench({
     for (const p of ready) if (drawIds.has(p.id)) picks[p.id] = drawTypes;
     const projectIds = Object.keys(picks);
     if (!projectIds.length || !drawTypes.length) return;
-    const ok = await askCreditConfirm({
-      title: "테스트지 뽑기",
-      description: "고른 지문과 유형으로 테스트지를 새로 뽑습니다. 누를 때마다 문항·보기 순서가 새로 나옵니다.",
-      subject: `지문 ${projectIds.length}개 × 유형 ${drawTypes.length}개`,
-      contents: drawTypes.map((t) => testBookTypeLabel(t)),
-      items: [{ feature: "lesson_test_draw", quantity: projectIds.length * (drawTypes.length + (drawVocabOn ? 1 : 0)) }],
-      sample: "one_page_test",
-    });
-    if (!ok) return;
     const seed = newSeed();
-    setDrawBusy(true);
-    setDrawError(null);
-    setDrawSaved(null);
-    // 뽑은 그대로 저장한다(화면에 그릴 것과 같은 열쇠로 미리 만든다)
+    // 뽑은 그대로 저장한다(화면에 그릴 것과 같은 열쇠로 미리 만든다) — 값도 이 시험지로 센다
     const snapshot = {
       sheets: edited
         .filter((p) => picks[p.id])
@@ -446,6 +435,19 @@ export function TestBookWorkbench({
           )
         : null,
     };
+    const count = testDrawUnits(snapshot.sheets.map((s) => s.sheet), snapshot.vocabExam ? projectIds.length : 0);
+    const ok = await askCreditConfirm({
+      title: "테스트지 뽑기",
+      description: "고른 지문과 유형으로 테스트지를 새로 뽑습니다. 누를 때마다 문항·보기 순서가 새로 나옵니다.",
+      subject: `지문 ${projectIds.length}개 · 문항 ${count.items}개 · 세트 ${count.sets}개${snapshot.vocabExam ? " · 단어 시험" : ""}`,
+      contents: drawTypes.map((t) => testBookTypeLabel(t)),
+      items: [{ feature: "lesson_test_draw", quantity: count.units }],
+      sample: "one_page_test",
+    });
+    if (!ok) return;
+    setDrawBusy(true);
+    setDrawError(null);
+    setDrawSaved(null);
     try {
       const res = await postJson<{ ok: true; docId: string | null; name: string | null } | { ok: false; message: string }>(
         "/api/lesson-materials/test-book",

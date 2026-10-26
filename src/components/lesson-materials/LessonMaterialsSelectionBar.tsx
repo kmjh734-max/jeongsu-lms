@@ -39,7 +39,8 @@ export function LessonMaterialsSelectionBar({
   async function make(kind: LessonMaterialDocumentKind, name?: string) {
     setOpenError(null);
     // 만들면 크레딧이 나간다. 잘못 눌러도 되돌릴 수 없으니 견본과 값을 보여 주고 한 번 더 묻는다.
-    if (!(await askCreditConfirm(materialConfirm(kind, selectedIds.length)))) return;
+    // 수업용 자료는 열린 화면이 재료가 없는 지문만 세어 한 번 묻는다(선생님 2026-10-26: 확인 창이 두 번 떴다)
+    if (kind !== "lesson_pack" && !(await askCreditConfirm(materialConfirm(kind, selectedIds.length)))) return;
     setOpening(true);
     const err = await openNewDocument(role, kind, selectedIds, name ? { name } : undefined);
     setOpening(false);

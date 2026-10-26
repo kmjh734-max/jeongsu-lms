@@ -464,6 +464,29 @@ export type TestSheet = {
   sections: TestSection[];
 };
 
+/*
+ * 테스트지 뽑기 값(선생님 2026-10-26): 문항당 1크레딧, 지문 통째 유형은 세트당 3크레딧,
+ * 단어 시험지는 지문당 3크레딧. 기능(lesson_test_draw)은 1크레딧 단위로 받고 수량을 여기서 센다.
+ */
+export const TEST_DRAW_SET_TYPES = new Set<TestBookTypeKey>(["link", "insert", "summary", "flow", "sequence", "sentenceOrder", "gist"]);
+export const TEST_DRAW_SET_CREDITS = 3;
+export const TEST_DRAW_VOCAB_CREDITS = 3;
+
+export function testDrawUnits(
+  sheets: Array<{ sections?: Array<{ type?: unknown; items?: unknown[] }> } | null | undefined>,
+  vocabPassages: number
+): { units: number; items: number; sets: number } {
+  let items = 0;
+  let sets = 0;
+  for (const sh of sheets) {
+    for (const sec of sh?.sections ?? []) {
+      if (TEST_DRAW_SET_TYPES.has(sec.type as TestBookTypeKey)) sets += 1;
+      else items += Array.isArray(sec.items) ? sec.items.length : 0;
+    }
+  }
+  return { units: items + sets * TEST_DRAW_SET_CREDITS + Math.max(0, vocabPassages) * TEST_DRAW_VOCAB_CREDITS, items, sets };
+}
+
 const CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳";
 const no = (i: number) => `(${i + 1})`;
 
