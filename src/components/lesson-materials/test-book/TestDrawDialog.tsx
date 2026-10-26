@@ -40,6 +40,7 @@ type LoadResult = Awaited<ReturnType<typeof loadDrawProjectsAction>>;
  * 자동 뽑기 기준(선생님 2026-10-21 확정): 분량에 따라 지문당 유형 수와 유형마다 지문당 문항 상한.
  * 유형은 고른 것을 섞어 지문마다 차례로 나눠 준다(골고루, 한 지문에 같은 유형 두 번 없음).
  * 요약문·도식화는 지문 하나 통째(1세트)다. 연결어는 빈칸 수, 문장 순서·삽입은 지문당 문항 수를 고른다.
+ * 어법선택은 상한 없이 워크북 자리를 전부 싣는다(선생님 2026-10-26: 3~6자리는 빈약하다).
  */
 type AutoSize = "short" | "normal" | "long";
 const AUTO: Record<AutoSize, { label: string; perPassage: number; vocab: number; limits: TestLimits }> = {
@@ -47,19 +48,19 @@ const AUTO: Record<AutoSize, { label: string; perPassage: number; vocab: number;
     label: "짧게",
     perPassage: 2,
     vocab: 3,
-    limits: { line: 2, writing: 1, order: 1, blank: 3, grammar: 3, vocab: 3, grammarFix: 2, tf: 3, reference: 1, implication: 1 },
+    limits: { line: 2, writing: 1, order: 1, blank: 3, vocab: 3, grammarFix: 2, tf: 3, reference: 1, implication: 1 },
   },
   normal: {
     label: "보통",
     perPassage: 3,
     vocab: 5,
-    limits: { line: 3, writing: 2, order: 2, blank: 5, grammar: 4, vocab: 4, grammarFix: 3, tf: 4, reference: 2, implication: 2 },
+    limits: { line: 3, writing: 2, order: 2, blank: 5, vocab: 4, grammarFix: 3, tf: 4, reference: 2, implication: 2 },
   },
   long: {
     label: "길게",
     perPassage: 4,
     vocab: 8,
-    limits: { line: 4, writing: 3, order: 3, blank: 7, grammar: 6, vocab: 6, grammarFix: 4, tf: 5 },
+    limits: { line: 4, writing: 3, order: 3, blank: 7, vocab: 6, grammarFix: 4, tf: 5 },
   },
 };
 /** 기준표 줄 */
@@ -68,8 +69,9 @@ const LIMIT_ROWS: Array<{ key: TestBookTypeKey; label: string; unit: string; how
   { key: "writing", label: "통문장 영작", unit: "문장", how: "중요문장 먼저" },
   { key: "order", label: "중요문장 어순배열", unit: "문장", how: "단원문법·어려운 구문 먼저" },
   { key: "blank", label: "빈칸", unit: "칸", how: "무작위" },
-  { key: "grammar", label: "어법·어휘 선택", unit: "자리", how: "무작위" },
-  { key: "grammarFix", label: "어법 서술형", unit: "문항", how: "무작위" },
+  { key: "grammar", label: "어법선택", unit: "자리", how: "워크북 자리 전부" },
+  { key: "vocab", label: "어휘선택", unit: "자리", how: "무작위" },
+  { key: "grammarFix", label: "어법 서술형", unit: "문항", how: "워크북 어법 자리 · 선택과 안 겹침" },
   { key: "tf", label: "T/F", unit: "문항", how: "무작위" },
   { key: "reference", label: "지칭추론·함축의미", unit: "개", how: "무작위" },
 ];
@@ -190,7 +192,7 @@ export function TestDrawDialog({
     setLimits((prev) => {
       const updated = { ...prev };
       for (const type of next) {
-        if (!WHOLE_PASSAGE_TYPES.has(type) && !SET_COUNT_TYPES.has(type) && type !== "link" && updated[type] == null) {
+        if (!WHOLE_PASSAGE_TYPES.has(type) && !SET_COUNT_TYPES.has(type) && type !== "link" && type !== "grammar" && updated[type] == null) {
           updated[type] = AUTO[size].limits[type] ?? 3;
         }
       }

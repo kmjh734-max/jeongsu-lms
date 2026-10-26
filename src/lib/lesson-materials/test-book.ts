@@ -755,8 +755,8 @@ function pickSection(
  * 어법선택을 워크북 어법 선택 문항 그대로(선생님 2026-10-20: 퀄리티가 안 나온다, 워크북 참고).
  * 지문·고르기 자리·바른 말은 워크북과 같고, 뽑기는 열쇠에 따라 [A / B] 좌우만 바꾼다.
  */
-function workbookGrammarSection(p: Ready, seed: string): TestSection | null {
-  return choiceSectionTest(p.grammarChoice, "grammar", "어법선택", "알맞은 것에 ○", seed);
+function workbookGrammarSection(p: Ready, seed: string, skip?: Set<number>): TestSection | null {
+  return choiceSectionTest(p.grammarChoice, "grammar", "어법선택", "알맞은 것에 ○", seed, skip);
 }
 
 /** 어법·어휘 선택 문항(워크북 형태)을 테스트 견본으로. 뽑기는 열쇠에 따라 [A / B] 좌우만 바꾼다. */
@@ -765,7 +765,9 @@ function choiceSectionTest(
   type: "grammar" | "vocab",
   title: string,
   hint: string,
-  seed: string
+  seed: string,
+  /** 다른 유형(어법 서술형)이 쓰는 자리 번호 — 바른 말을 원문 글자로 둔다 */
+  skip?: Set<number>
 ): TestSection | null {
   if (!gc?.segments?.length || !gc.items?.length) return null;
   const byNo = new Map(gc.items.map((it) => [it.number, it] as const));
@@ -778,11 +780,16 @@ function choiceSectionTest(
       continue;
     }
     const it = byNo.get(seg.number);
-    const n = circled(seg.number - 1);
+    if (skip?.has(seg.number)) {
+      passage.push(it?.correctText ?? seg.leftText);
+      continue;
+    }
+    const n = circled(items.length);
     const swap = !book && hashSeedToUint32(`${seed}|wgc|${seg.number}`) % 2 === 1;
     passage.push({ pick: swap ? [seg.rightText, seg.leftText] : [seg.leftText, seg.rightText], n });
     items.push({ no: n, text: [], answer: it?.correctText ?? "" });
   }
+  if (!items.length) return null;
   return { type, title, hint, passage, inline: true, items };
 }
 
@@ -1264,6 +1271,83 @@ function buildFlow(p: Ready, seed: string): TestSection | null {
   };
 }
 
+/** 워크북 어법 선택의 [바른 말 / 틀린 말] 쌍(검수를 마친 자리) — 원문 위치와 맞는 것만 */
+type WorkbookGrammarPair = { number: number; start: number; end: number; right: string; wrong: string; sentenceId: string; category: string; value: number };
+
+function workbookGrammarPairs(p: Ready): WorkbookGrammarPair[] {
+  const gc = p.grammarChoice;
+  const text = gc?.sourcePassage ?? "";
+  if (!gc?.items?.length || !text) return [];
+  return gc.items
+    .filter(
+      (it) =>
+        it.startCharIndex >= 0 &&
+        it.startCharIndex < it.endCharIndex &&
+        it.endCharIndex <= text.length &&
+        text.slice(it.startCharIndex, it.endCharIndex) === it.correctText &&
+        !!it.incorrectText.trim() &&
+        it.incorrectText.trim().toLowerCase() !== it.correctText.trim().toLowerCase()
+    )
+    .map((it) => ({
+      number: it.number,
+      start: it.startCharIndex,
+      end: it.endCharIndex,
+      right: it.correctText,
+      wrong: it.incorrectText.trim(),
+      sentenceId: it.sentenceId,
+      category: it.grammarCategoryId,
+      value: it.learningValue,
+    }));
+}
+
+/**
+ * 어법 서술형에 쓸 워크북 자리(선생님 2026-10-26: 서술형이 빈약하다 — 워크북 어법 자리로, 선택과 안 겹치게).
+ * 학습 가치가 높은 것 먼저, 문항 하나가 문장 하나라 서로 다른 문장에서, 되도록 다른 문법 항목으로.
+ */
+function pickGrammarFixPairs(pairs: WorkbookGrammarPair[], count: number, seed: string): WorkbookGrammarPair[] {
+  const pool = fisherYatesShuffle(pairs, createSeededRng(`${seed}|gfix`)).sort((a, b) => b.value - a.value);
+  const chosen: WorkbookGrammarPair[] = [];
+  const takes = (x: WorkbookGrammarPair, newCategory: boolean) =>
+    !chosen.includes(x) &&
+    !chosen.some((c) => c.sentenceId === x.sentenceId) &&
+    (!newCategory || !chosen.some((c) => c.category === x.category));
+  for (const strict of [true, false]) {
+    for (const x of pool) {
+      if (chosen.length >= count) break;
+      if (takes(x, strict)) chosen.push(x);
+    }
+  }
+  return chosen.sort((a, b) => a.start - b.start);
+}
+
+/** 지문 속 자리를 감싼 문장의 범위. 지문 문장을 차례로 찾아 쓰고, 못 찾으면 마침표로 가른다. */
+function sentenceSpan(p: Ready, text: string, start: number, end: number): { from: number; to: number } {
+  let cursor = 0;
+  for (const s of p.sentences) {
+    const sentence = clean(s.english);
+    if (!sentence) continue;
+    const at = text.indexOf(sentence, cursor);
+    if (at < 0) continue;
+    cursor = at + sentence.length;
+    if (at <= start && end <= cursor) return { from: at, to: cursor };
+  }
+  const head = text.slice(0, start).search(/[^.!?]*$/);
+  const tail = /[.!?]["'”’)]*(\s|$)/.exec(text.slice(end));
+  return { from: Math.max(0, head), to: tail ? end + tail.index + tail[0].trimEnd().length : text.length };
+}
+
+function buildGrammarFixFromWorkbook(p: Ready, chosen: WorkbookGrammarPair[]): TestSection | null {
+  const text = p.grammarChoice?.sourcePassage ?? "";
+  const items = chosen.map((x, i) => {
+    const span = sentenceSpan(p, text, x.start, x.end);
+    const wrong = matchCase(x.right, x.wrong);
+    const sentence = (text.slice(span.from, x.start) + wrong + text.slice(x.end, span.to)).trim();
+    return { no: no(i), text: [sentence], lines: 1, answer: `${wrong} → ${x.right}` };
+  });
+  if (!items.length) return null;
+  return { type: "grammarFix", title: "어법 서술형", hint: "틀린 곳을 찾아 바르게 고쳐 쓰기", items };
+}
+
 function buildGrammarFix(p: Ready, seed: string, skip: Set<string>): TestSection | null {
   void seed;
   const chosen = bySentence(grammarCandidates(p).filter((c) => !skip.has(c.key)));
@@ -1381,13 +1465,24 @@ export function buildTestSheet(
   const grammarPool = grammarCandidates(p);
   const both = on.has("grammar") && on.has("grammarFix") && !p.grammarChoice?.items?.length;
   const forPick = both ? grammarPool.filter((_, i) => i % 2 === 0) : grammarPool;
-  const usedGrammar = new Set(on.has("grammar") ? forPick.map((c) => c.key) : []);
+  // 워크북 어법 선택이 있으면 어법 서술형도 그 자리로: 서술형 몫을 먼저 떼고 어법선택은 남은 자리 전부.
+  // 함께 고르면 서술형은 자리의 절반을 넘지 않는다(어법선택에도 자리가 남게).
+  const wbPairs = on.has("grammarFix") ? workbookGrammarPairs(p) : [];
+  const fixWant = Math.max(1, opts.limits?.grammarFix ?? 4);
+  const fixPairs = wbPairs.length
+    ? pickGrammarFixPairs(wbPairs, Math.min(fixWant, on.has("grammar") ? Math.floor(wbPairs.length / 2) : wbPairs.length), seed)
+    : [];
+  const fixNos = new Set(fixPairs.map((x) => x.number));
+  const wbGrammar = on.has("grammar") ? workbookGrammarSection(p, seed, fixNos) : null;
+  // 1장 자료 어법 자리로 어법선택을 만들었을 때만 서술형이 그 자리를 피한다
+  // (예전에는 워크북 어법선택을 쓸 때도 1장 자리를 모두 쓴 것으로 쳐서 서술형이 통째로 빠졌다)
+  const usedGrammar = new Set(on.has("grammar") && !wbGrammar ? forPick.map((c) => c.key) : []);
   for (const key of ALL_TEST_BOOK_TYPES) {
     if (!on.has(key)) continue;
     const sec =
       key === "line" ? buildLine(p, seed, opts.lineMode ?? "full", opts.limits?.line)
       : key === "blank" ? buildBlank(p, seed, opts.blankMode ?? "same", up)
-      : key === "grammar" ? (workbookGrammarSection(p, seed) ?? pickSection(p, "grammar", "어법선택", "알맞은 것에 ○", forPick, seed))
+      : key === "grammar" ? (wbGrammar ?? pickSection(p, "grammar", "어법선택", "알맞은 것에 ○", forPick, seed))
       : key === "vocab"
         ? (choiceSectionTest(p.vocabChoice, "vocab", "어휘선택", "문맥에 맞는 것에 ○", seed) ??
           pickSection(p, "vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed))
@@ -1401,7 +1496,7 @@ export function buildTestSheet(
       : key === "implication" ? buildImplication(p)
       : key === "paraphrase" ? buildParaphrase(p, seed, up)
       : key === "flow" ? buildFlow(p, seed)
-      : key === "grammarFix" ? buildGrammarFix(p, seed, usedGrammar)
+      : key === "grammarFix" ? (fixPairs.length ? buildGrammarFixFromWorkbook(p, fixPairs) : buildGrammarFix(p, seed, usedGrammar))
       : buildWords(p, seed);
     if (key === "sequence" || key === "insert") {
       // 지문 통째 유형은 문항 수만큼 서로 다른 문항을 싣는다(기본 1문항, 재료가 모자라면 되는 만큼)
