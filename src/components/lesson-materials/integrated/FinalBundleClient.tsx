@@ -193,6 +193,8 @@ export function FinalBundleClient({
   // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다
   usePdfPrefetch("final-bundle-print-root", PDF_PAGE_SELECTOR);
   const [pageCounts, setPageCounts] = useState<Record<string, number>>({});
+  /** 묶음 안 세부 항목(워크북 유형·수업용 자료 지문)마다 쪽 수 — 이어진 쪽끼리 한 줄 */
+  const [subCounts, setSubCounts] = useState<Record<string, Array<{ label: string; note?: string; n: number }>>>({});
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const rootRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -304,14 +306,25 @@ export function FinalBundleClient({
     if (!root) return;
     const count = () => {
       const next: Record<string, number> = {};
+      const subs: Record<string, Array<{ label: string; note?: string; n: number }>> = {};
       root.querySelectorAll<HTMLElement>("[data-bundle-section]").forEach((sec) => {
-        const n = Array.from(sec.querySelectorAll<HTMLElement>(PAGE_SELECTOR)).filter(
-          (el) => el.offsetParent !== null
-        ).length;
+        const pages = Array.from(sec.querySelectorAll<HTMLElement>(PAGE_SELECTOR)).filter((el) => el.offsetParent !== null);
         const key = sec.dataset.bundleSection!;
-        next[key] = (next[key] ?? 0) + n;
+        next[key] = (next[key] ?? 0) + pages.length;
+        const list = (subs[key] ??= []);
+        for (const el of pages) {
+          const tag = el.closest<HTMLElement>("[data-toc-sub]");
+          const label = tag?.dataset.tocSub?.trim() ?? "";
+          const note = tag?.dataset.tocNote?.trim() || undefined;
+          const last = list[list.length - 1];
+          if (last && last.label === label) last.n += 1;
+          else list.push({ label, ...(note ? { note } : {}), n: 1 });
+        }
       });
+      // 꼬리표 없는 쪽만 있는 묶음(분석서·변형문제 등)은 세부 항목을 싣지 않는다
+      for (const k of Object.keys(subs)) if (!subs[k]!.some((x) => x.label)) delete subs[k];
       setPageCounts((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+      setSubCounts((prev) => (JSON.stringify(prev) === JSON.stringify(subs) ? prev : subs));
     };
     count();
     const observer = new MutationObserver(() => count());
@@ -339,12 +352,21 @@ export function FinalBundleClient({
   sections.forEach((s, i) => {
     if (payload.dividers) page += 1;
     const n = pageCounts[s.key] ?? 0;
+    let at = page;
+    const children = (subCounts[s.key] ?? [])
+      .map((x) => {
+        const from = at;
+        at += x.n;
+        return { label: x.label, note: x.note, from, to: from + x.n - 1 };
+      })
+      .filter((x) => x.label);
     contents.push({
       number: String(i + 1).padStart(2, "0"),
       en: s.en,
       sub: s.sub,
       from: n > 0 ? page : null,
       to: n > 0 ? page + n - 1 : null,
+      children,
     });
     page += n;
   });

@@ -113,6 +113,8 @@ export type ContentsEntry = {
   sub: string;
   from: number | null;
   to: number | null;
+  /** 세부 항목(워크북 유형·수업용 자료 지문)과 쪽 범위 */
+  children?: Array<{ label: string; note?: string; from: number; to: number }>;
 };
 
 /** 목차 */
@@ -131,7 +133,7 @@ export function ContentsPage({
         CONTENTS
       </h2>
       <div className="mt-[4mm] h-[1.6mm] w-[22mm] bg-slate-900" />
-      <ol className="mt-[14mm] space-y-[7mm]">
+      <ol className={`mt-[14mm] ${entries.some((e) => e.children?.length) ? "space-y-[5mm]" : "space-y-[7mm]"}`}>
         {entries.map((e) => (
           <li key={e.number} className="flex items-start gap-[6mm]">
             <span className="w-[14mm] text-[22pt] font-black leading-none" style={{ color: accent, fontFamily: "Georgia, serif" }}>
@@ -147,6 +149,32 @@ export function ContentsPage({
                 </p>
               </div>
               <p className="mt-1 text-[10pt] text-slate-500">{e.sub}</p>
+              {e.children?.length ? (
+                <ul
+                  className="mt-[2.5mm] grid gap-x-[6mm] gap-y-[1.2mm] text-[8.5pt] leading-tight text-slate-700"
+                  // 위에서 아래로 읽고 다음 단으로(지문 번호 차례대로)
+                  style={(() => {
+                    const cols = e.children.length > 16 ? 3 : 2;
+                    return {
+                      gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+                      gridTemplateRows: `repeat(${Math.ceil(e.children.length / cols)}, auto)`,
+                      gridAutoFlow: "column",
+                    };
+                  })()}
+                >
+                  {e.children.map((c, ci) => (
+                    <li key={`${ci}-${c.label}`} className="min-w-0">
+                      <div className="flex min-w-0 items-baseline gap-[1.5mm]">
+                        <span className="min-w-0 truncate">{c.label}</span>
+                        <span className="min-w-[4mm] flex-1 border-b border-dotted border-slate-300" />
+                        <span className="shrink-0 tabular-nums text-slate-500">{c.from === c.to ? c.from : `${c.from}~${c.to}`}</span>
+                      </div>
+                      {/* 출처(수업용 자료 지문) */}
+                      {c.note ? <div className="truncate pl-[5mm] text-[7.5pt] text-slate-400">{c.note}</div> : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
           </li>
         ))}

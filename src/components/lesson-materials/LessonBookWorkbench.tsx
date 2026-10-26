@@ -264,9 +264,19 @@ export function LessonBookWorkbench({
         className={`tb-theme-${md} flex flex-col items-center gap-6 print:gap-0 [&_.tb-sheet]:shadow-xl print:[&_.tb-sheet]:shadow-none`}
         style={partStyle({ id: "lesson", no: "", en: "LESSON MATERIALS", ko: "수업용 자료", color: "#1d2a8f" })}
       >
-        {opts.allVocab && ready.length ? <AllVocabSheets projects={ready} indexOf={indexOf} measureKey={mk} /> : null}
+        {/* data-toc-sub: 최종통합자료 목차의 세부 항목(지문별 쪽 범위) */}
+        {opts.allVocab && ready.length ? (
+          <div className="contents" data-toc-sub="전체 단어장">
+            <AllVocabSheets projects={ready} indexOf={indexOf} measureKey={mk} />
+          </div>
+        ) : null}
         {projects.map((p) => (
-          <div key={p.id} className="contents">
+          <div
+            key={p.id}
+            className="contents"
+            data-toc-sub={`${String(indexOf(p.id) + 1).padStart(2, "0")} ${p.title}`}
+            data-toc-note={p.source?.trim() || undefined}
+          >
             {isTestBookProjectReady(p) ? (
               <>
                 <VocabSheets index={indexOf(p.id)} project={p} measureKey={mk} />
@@ -276,7 +286,11 @@ export function LessonBookWorkbench({
             {opts.blankNote ? <BlankNoteSheets index={indexOf(p.id)} project={p} /> : null}
           </div>
         ))}
-        {opts.translation === "back" && ready.length ? <TranslationBackSheets projects={ready} measureKey={mk} /> : null}
+        {opts.translation === "back" && ready.length ? (
+          <div className="contents" data-toc-sub="해석 모음">
+            <TranslationBackSheets projects={ready} measureKey={mk} />
+          </div>
+        ) : null}
       </div>
     </TestBookBrand.Provider>
   );

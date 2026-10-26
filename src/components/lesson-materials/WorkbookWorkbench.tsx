@@ -561,6 +561,8 @@ function PageShell({
   return (
     <article
       data-wb-part={answers ? "answers" : "questions"}
+      // 최종통합자료 목차의 세부 항목(유형별 쪽 범위)
+      data-toc-sub={answers ? "정답" : typeTitle ? typeTitle.replace(/^\d+\.\s*/, "").replace(/\s*\(계속\)$/, "") : undefined}
       className={`workbook-a4-sheet lesson-pack-a4-sheet relative box-border bg-white shadow-xl print:shadow-none ${
         isLast ? "lesson-pack-a4-sheet--last" : ""
       }`}
