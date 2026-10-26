@@ -797,7 +797,12 @@ export function VocabSetPrintView({
             <div className="vocab-exam-body">
               {pageSlice.basic.length > 0 ? (
                 <div
-                  className={`vocab-exam-list vocab-exam-list--basic vocab-exam-list--${examCols}col`}
+                  className={`vocab-exam-list vocab-exam-list--basic vocab-exam-list--${examCols}col vocab-exam-list--colflow`}
+                  style={
+                    {
+                      "--vocab-exam-rows": Math.ceil(pageSlice.basic.length / examCols),
+                    } as React.CSSProperties
+                  }
                 >
                   {pageSlice.basic.map((q) => (
                     <PrintExamEntry key={q.number} question={q} />

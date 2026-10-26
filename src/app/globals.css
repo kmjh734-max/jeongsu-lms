@@ -1652,6 +1652,12 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   row-gap: var(--vocab-exam-row-gap, 4px);
 }
 
+/* 번호를 단마다 위→아래로(정답지와 같은 순서). 줄 수는 쪽마다 --vocab-exam-rows 로 넘긴다 */
+.vocab-exam-list--basic.vocab-exam-list--colflow {
+  grid-auto-flow: column;
+  grid-template-rows: repeat(var(--vocab-exam-rows, 1), auto);
+}
+
 .vocab-exam-list--basic.vocab-exam-list--2col,
 .vocab-exam-list--basic.vocab-exam-list--3col,
 .vocab-exam-list--basic.vocab-exam-list--4col {

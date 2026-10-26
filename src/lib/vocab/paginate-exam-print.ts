@@ -38,8 +38,6 @@ function paginateExamFlow(
     usedH = 0;
   };
 
-  const leadingGapForBasicRow = () => (hasContent() ? rowGapPx : 0);
-
   const leadingGapForExample = () => {
     if (!hasContent()) return 0;
     if (page.basic.length > 0 && page.examples.length === 0) {
@@ -55,13 +53,30 @@ function paginateExamFlow(
     usedH += gap + contentH;
   };
 
-  for (let i = 0; i < basic.length; i += cols) {
-    const row = basic.slice(i, i + cols);
-    const rowHeights = row.map((_, j) => basicHeights[i + j] ?? 0);
-    const contentH = Math.max(...rowHeights, 0);
-    place(leadingGapForBasicRow(), contentH, () => {
-      page.basic.push(...row);
-    });
+  /*
+   * 번호는 쪽마다 세로로 흐른다(왼쪽 단 위→아래, 다음 단) — 정답지와 같은 순서(선생님 2026-10-26).
+   * 그래서 한 줄에 놓이는 문항이 쪽에 든 문항 수에 따라 바뀐다. 문항을 하나씩 더해 보며 쪽 높이를 다시 잰다.
+   */
+  const columnFlowHeight = (hs: number[]) => {
+    const rows = Math.ceil(hs.length / cols);
+    let h = 0;
+    for (let r = 0; r < rows; r++) {
+      let rowH = 0;
+      for (let c = 0; c < cols; c++) rowH = Math.max(rowH, hs[c * rows + r] ?? 0);
+      h += rowH;
+    }
+    return h + Math.max(0, rows - 1) * rowGapPx;
+  };
+  let pageBasicHeights: number[] = [];
+  for (let i = 0; i < basic.length; i++) {
+    const next = [...pageBasicHeights, basicHeights[i] ?? 0];
+    if (page.basic.length > 0 && columnFlowHeight(next) > maxH) {
+      flush();
+      pageBasicHeights = [];
+    }
+    pageBasicHeights.push(basicHeights[i] ?? 0);
+    page.basic.push(basic[i]!);
+    usedH = columnFlowHeight(pageBasicHeights);
   }
 
   for (let i = 0; i < examples.length; i++) {
