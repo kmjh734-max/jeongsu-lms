@@ -20,7 +20,14 @@ export function usePdfSave() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const running = useRef(false);
-  async function save(label: string, pages: HTMLElement[], nameParts: Array<string | null | undefined>, paper?: PdfPaper) {
+  /** exactName: 파일 이름을 nameParts 그대로(뒤에 label을 붙이지 않는다) */
+  async function save(
+    label: string,
+    pages: HTMLElement[],
+    nameParts: Array<string | null | undefined>,
+    paper?: PdfPaper,
+    exactName = false
+  ) {
     if (running.current) return;
     setError(null);
     if (pages.length === 0) {
@@ -31,7 +38,7 @@ export function usePdfSave() {
     let progress = `${label} 0/${pages.length}`;
     const show = setTimeout(() => setBusy(progress), SHOW_BUSY_AFTER_MS);
     try {
-      await downloadSheetsPdf(pages, pdfFileName(...nameParts, label), {
+      await downloadSheetsPdf(pages, (exactName ? pdfFileName(...nameParts) : pdfFileName(...nameParts, label)), {
         paper,
         onProgress: (done, total) => {
           progress = `${label} ${done}/${total}`;

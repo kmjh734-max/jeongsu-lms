@@ -251,6 +251,18 @@ export function FinalBundleClient({
     [ready, extraProjects, tOpt.vocabExam]
   );
   const updateTests = (patch: Partial<IntegratedPayload["tests"]>) => update({ tests: { ...payload.tests, ...patch } });
+
+  /** PDF 이름은 자료함 파일 이름 그대로(선생님 2026-10-26) — 화면에서 이름을 바꿨을 수 있어 누를 때 다시 읽는다 */
+  async function savePdf() {
+    const pages = collectPrintPages(document.getElementById("final-bundle-print-root"), PDF_PAGE_SELECTOR);
+    const res = await postJson<{ ok: true; name: string } | { ok: false; message: string }>("/api/lesson-materials/documents/open", {
+      op: "getName",
+      role,
+      id: docId,
+    }).catch(() => null);
+    const fileName = (res && res.ok ? res.name : name) || payload.cover.title.replace(/\s+/g, " ") || "통합자료";
+    await pdf.save("통합자료", pages, [fileName], undefined, true);
+  }
   // 글꼴이 늦게 들어오면 테스트 교재 쪽 나눔을 다시 잰다(먼저 잰 높이로 나누면 쪽이 넘친다)
   const [fontsTick, setFontsTick] = useState(0);
   useEffect(() => {
@@ -855,13 +867,7 @@ export function FinalBundleClient({
           <button
             type="button"
             disabled={!!pdf.busy}
-            onClick={() =>
-              void pdf.save(
-                "통합자료",
-                collectPrintPages(document.getElementById("final-bundle-print-root"), PDF_PAGE_SELECTOR),
-                [payload.cover.title.replace(/\s+/g, " ") || name]
-              )
-            }
+            onClick={() => void savePdf()}
             className="mt-2 w-full rounded-xl border border-violet-300 bg-white py-2.5 text-sm font-bold text-violet-800 hover:bg-violet-50 disabled:opacity-50"
           >
             ⤓ PDF로 저장
