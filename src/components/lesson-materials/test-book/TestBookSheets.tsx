@@ -567,6 +567,10 @@ function colLabel(c: string): string {
 
 export const TYPE_SHORT: Record<TestBookTypeKey, string> = {
   line: "해석",
+  gist: "제목요지",
+  vocabFix: "어휘수정",
+  sentenceOrder: "문장순서",
+  wordOrder: "어순영작",
   blank: "빈칸",
   grammar: "어법",
   vocab: "어휘",
@@ -577,7 +581,7 @@ export const TYPE_SHORT: Record<TestBookTypeKey, string> = {
   sequence: "순서",
   insert: "삽입",
   summary: "요약",
-  grammarFix: "어법서술",
+  grammarFix: "어법수정",
   words: "단어",
   reference: "지칭",
   implication: "함축",
@@ -1338,7 +1342,7 @@ function sectionBlocks(sec: TestSection, n: number, prefix: string): Block[] {
       },
     ];
   }
-  if (!sec.items.length || sec.type === "sequence") {
+  if (!sec.items.length || sec.type === "sequence" || sec.type === "sentenceOrder") {
     return [
       {
         key: `${prefix}-${n}-${sec.type}`,
@@ -1355,7 +1359,7 @@ function sectionBlocks(sec: TestSection, n: number, prefix: string): Block[] {
                 </div>
               </div>
             ))}
-            {sec.type === "sequence" || sec.type === "insert" ? (
+            {sec.type === "sequence" || sec.type === "insert" || sec.type === "sentenceOrder" ? (
               <div className="tb-txt">
                 정답 <span className="tb-blank" style={{ minWidth: "50mm" }} />
               </div>
@@ -1377,7 +1381,7 @@ function sectionBlocks(sec: TestSection, n: number, prefix: string): Block[] {
 }
 
 export function sheetTotal(sheet: TestSheet): number {
-  return sheet.sections.reduce((n, s) => n + (s.items.length && s.type !== "sequence" ? s.items.length : 1), 0);
+  return sheet.sections.reduce((n, s) => n + (s.items.length && s.type !== "sequence" && s.type !== "sentenceOrder" ? s.items.length : 1), 0);
 }
 
 export function TestSheets({

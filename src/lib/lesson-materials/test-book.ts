@@ -44,6 +44,10 @@ export const TEST_BOOK_VOCAB_VERSION = "tv-5";
 
 export type TestBookTypeKey =
   | "line"
+  | "gist"
+  | "vocabFix"
+  | "sentenceOrder"
+  | "wordOrder"
   | "blank"
   | "grammar"
   | "vocab"
@@ -63,16 +67,21 @@ export type TestBookTypeKey =
 
 /*
  * 유형 이름·차례는 워크북과 같게(선생님 2026-10-26 — 테스트지 뽑기도 워크북과 같은 유형·같은 순서로).
- * 워크북 차례: 해석 적기 · T/F 문제 · 빈칸 채우기 · 어법 선택 · 어법 수정 · 어휘 선택 · 중요문장 어순배열 ·
- * 통문장 영작 · 연결어 빈칸 · 문장 삽입 · 요약문 완성 · 지칭추론 · 함축의미 · 도식화 · 글의 순서.
+ * 워크북 차례: 해석 적기 · 제목·주제·요지 해석 · T/F 문제 · 빈칸 채우기 · 어법 선택 · 어법 수정 · 어휘 선택 ·
+ * 어휘 수정 · 문장 순서 배열 · 어순배열 영작 · 중요문장 어순배열 · 통문장 영작 · 연결어 빈칸 · 문장 삽입 ·
+ * 요약문 완성 · 지칭추론 · 함축의미 · 도식화 · 글의 순서. (단어 시험은 따로 나가는 단어 시험지)
  */
 export const TEST_BOOK_TYPES: Array<{ key: TestBookTypeKey; label: string; basic: boolean; hint: string }> = [
   { key: "line", label: "해석 적기", basic: true, hint: "문장을 보고 해석 쓰기" },
+  { key: "gist", label: "제목·주제·요지 해석", basic: false, hint: "영어 제목·요지를 우리말로 해석하기" },
   { key: "tf", label: "T/F 문제", basic: true, hint: "바꿔 쓴 문장으로 참·거짓" },
   { key: "blank", label: "빈칸 채우기", basic: true, hint: "해석을 보고 핵심어 채우기" },
   { key: "grammar", label: "어법 선택", basic: true, hint: "[ 바른 형태 / 틀린 형태 ] 고르기" },
   { key: "grammarFix", label: "어법 수정", basic: false, hint: "틀린 곳 찾아 고쳐 쓰기" },
   { key: "vocab", label: "어휘 선택", basic: true, hint: "[ 문맥에 맞는 말 / 반대말 ] 고르기" },
+  { key: "vocabFix", label: "어휘 수정", basic: false, hint: "문맥상 어색한 어휘 찾아 고쳐 쓰기" },
+  { key: "sentenceOrder", label: "문장 순서 배열", basic: false, hint: "첫 문장 뒤 문장들을 글의 흐름대로 배열하기" },
+  { key: "wordOrder", label: "어순배열 영작", basic: false, hint: "모든 문장을 덩어리 배열로 영작하기" },
   { key: "order", label: "중요문장 어순배열", basic: true, hint: "워크북과 같은 덩어리, 섞는 순서만 새로" },
   { key: "writing", label: "통문장 영작", basic: true, hint: "중요문장 해석만 보고 영어로 쓰기" },
   { key: "link", label: "연결어 빈칸", basic: true, hint: "However·Therefore 같은 연결어 채우기" },
@@ -692,7 +701,8 @@ function grammarCandidates(p: Ready): PickCand[] {
   return out;
 }
 
-function vocabCandidates(p: Ready): PickCand[] {
+/** antonymOnly: 어휘 수정용 — 철자 비슷한 혼동어는 뜻이 비슷할 수 있어(disappear/dissipate) 반의어만 쓴다 */
+function vocabCandidates(p: Ready, antonymOnly = false): PickCand[] {
   const out: PickCand[] = [];
   // 오답은 철자가 비슷한 혼동어휘를 먼저(선생님 의견 2026-10-21: 어휘선택이 동반의어와 비슷하다), 없으면 반의어
   const rowOf = (surface: string) =>
@@ -700,7 +710,8 @@ function vocabCandidates(p: Ready): PickCand[] {
     p.material.vocab.find((r) => r.word.length >= 4 && surface.toLowerCase().startsWith(r.word.toLowerCase().slice(0, Math.max(4, r.word.length - 2))));
   p.content.vocab.forEach((v, vi) => {
     const conf = rowOf(v.surface)?.confusables?.find((w) => w.trim() && words(w) <= 2 && w.toLowerCase() !== v.surface.toLowerCase());
-    const ant = conf ?? v.antonyms.find((a) => a.trim() && words(a) <= 2);
+    const antonym = v.antonyms.find((a) => a.trim() && words(a) <= 2);
+    const ant = antonymOnly ? antonym : (conf ?? antonym);
     const s = p.sentences[v.sentenceIndex];
     if (!ant || !s) return;
     const part = splitAt(clean(s.english), v.surface);
@@ -1353,6 +1364,85 @@ function buildGrammarFixFromWorkbook(p: Ready, chosen: WorkbookGrammarPair[]): T
   return { type: "grammarFix", title: "어법 수정", hint: "틀린 곳을 찾아 바르게 고쳐 쓰기", items };
 }
 
+/**
+ * 제목·주제·요지 해석(워크북과 같이 영어를 주고 우리말로). 1장 자료의 영어 제목·요약문을 쓰고
+ * 정답은 지문 제목·요약문 해석이다. 영어 주제문은 1장 자료에 없어 제목·요지 둘만.
+ */
+function buildGist(p: Ready): TestSection | null {
+  const items: TestItem[] = [];
+  const title = p.content.titleEn.trim();
+  if (title && p.title.trim()) items.push({ no: no(items.length), tag: "제목", text: [title], lines: 1, answer: p.title.trim() });
+  const gist = p.content.summaryEn.trim();
+  if (gist && p.content.summaryKo.trim()) items.push({ no: no(items.length), tag: "요지", text: [gist], lines: 2, answer: p.content.summaryKo.trim() });
+  if (!items.length) return null;
+  return { type: "gist", title: "제목·주제·요지 해석", hint: "영어를 우리말로 해석하기", items };
+}
+
+/** 어휘 수정: 문맥에 어색한 낱말(어휘 선택의 오답)을 넣은 문장에서 찾아 고쳐 쓴다 */
+function buildVocabFix(p: Ready, skip: Set<string>): TestSection | null {
+  const chosen = bySentence(vocabCandidates(p, true).filter((c) => !skip.has(c.key)));
+  if (!chosen.length) return null;
+  // 바꾼 낱말 앞 관사를 맞춘다(a improvisation처럼 관사가 답을 알려 주지 않게)
+  const article = (before: string, word: string) =>
+    before.replace(/\b([Aa])(n?)(\s+)$/, (_m, a: string, _n: string, sp: string) => `${a}${/^[aeiou]/i.test(word) ? "n" : ""}${sp}`);
+  return {
+    type: "vocabFix",
+    title: "어휘 수정",
+    hint: "문맥상 어색한 낱말을 찾아 바르게 고쳐 쓰기",
+    items: chosen.map((c, i) => ({ no: no(i), text: [article(c.before, c.wrong) + c.wrong + c.after], lines: 1, answer: `${c.wrong} → ${c.right}` })),
+  };
+}
+
+/** 문장 순서 배열(워크북과 같이 첫 문장을 주고 나머지 문장을 섞는다) */
+function buildSentenceOrder(p: Ready, seed: string): TestSection | null {
+  const all = p.sentences.map((s) => clean(s.english)).filter(Boolean);
+  if (all.length < 4) return null;
+  const [given, ...rest] = all;
+  const ids = rest.map((_, i) => i);
+  let order = fisherYatesShuffle(ids, createSeededRng(`${seed}|sorder`));
+  if (order.every((x, i) => x === i)) order = [...order.slice(1), order[0]!];
+  return {
+    type: "sentenceOrder",
+    title: "문장 순서 배열",
+    hint: "주어진 문장 다음에 이어질 순서대로 번호 쓰기",
+    given,
+    items: order.map((orig, k) => ({ no: no(k), text: [rest[orig]!], answer: "" })),
+    answer: ids.map((orig) => no(order.indexOf(orig))).join(" - "),
+  };
+}
+
+/** 어순배열 영작: 모든 문장(덩어리를 못 나눈 짧은 문장은 뺀다). 중요문장 어순배열과 같은 모양. */
+function buildWordOrder(p: Ready, seed: string, up = false, max?: number): TestSection | null {
+  const pool = keyFirst(
+    p,
+    p.sentences
+      .map((_, si) => ({ si, chunks: p.material.chunks[si] }))
+      .filter((x): x is { si: number; chunks: string[] } => !!x.chunks && x.chunks.length >= 3 && !!p.sentences[x.si]?.korean.trim()),
+    seed,
+    max
+  );
+  if (!pool.length) return null;
+  return {
+    type: "wordOrder",
+    title: "어순배열 영작",
+    hint: up ? "해석에 맞게 배열하기 · 덩어리 잘게, 앞말 없음" : "해석에 맞게 배열하기",
+    items: pool.map((c, i) => {
+      const split = splitLead(c.chunks);
+      const lead = up ? "" : split.lead;
+      const rest = up ? finerChunks(c.chunks) : split.rest;
+      return {
+        no: no(i),
+        text: [],
+        ko: p.sentences[c.si]!.korean,
+        lead: lead || undefined,
+        chunks: shuffleChunks(rest, `${seed}|word-order|${c.si}`),
+        lines: 1,
+        answer: answerSentence(p.sentences[c.si]!.english),
+      };
+    }),
+  };
+}
+
 function buildGrammarFix(p: Ready, seed: string, skip: Set<string>): TestSection | null {
   void seed;
   const chosen = bySentence(grammarCandidates(p).filter((c) => !skip.has(c.key)));
@@ -1482,6 +1572,12 @@ export function buildTestSheet(
   // 1장 자료 어법 자리로 어법선택을 만들었을 때만 서술형이 그 자리를 피한다
   // (예전에는 워크북 어법선택을 쓸 때도 1장 자리를 모두 쓴 것으로 쳐서 서술형이 통째로 빠졌다)
   const usedGrammar = new Set(on.has("grammar") && !wbGrammar ? forPick.map((c) => c.key) : []);
+  // 어휘 선택·어휘 수정을 함께 고르면(1장 자료 어휘 자리로 만들 때) 자리를 번갈아 나눈다
+  const vocabPool = vocabCandidates(p);
+  const vocabFromWb = !!p.vocabChoice?.items?.length;
+  const vocabBoth = on.has("vocab") && on.has("vocabFix") && !vocabFromWb;
+  const forVocabPick = vocabBoth ? vocabPool.filter((_, i) => i % 2 === 0) : vocabPool;
+  const usedVocab = new Set(on.has("vocab") && !vocabFromWb ? forVocabPick.map((c) => c.key) : []);
   for (const key of ALL_TEST_BOOK_TYPES) {
     if (!on.has(key)) continue;
     const sec =
@@ -1490,7 +1586,7 @@ export function buildTestSheet(
       : key === "grammar" ? (wbGrammar ?? pickSection(p, "grammar", "어법 선택", "알맞은 것에 ○", forPick, seed))
       : key === "vocab"
         ? (choiceSectionTest(p.vocabChoice, "vocab", "어휘 선택", "문맥에 맞는 것에 ○", seed) ??
-          pickSection(p, "vocab", "어휘 선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed))
+          pickSection(p, "vocab", "어휘 선택", "문맥에 맞는 것에 ○", forVocabPick, seed))
       : key === "order" ? buildOrder(p, seed, up)
       : key === "tf" ? buildTf(p, seed, up)
       : key === "writing" ? buildWriting(p, seed, opts.writing ?? "all", up, opts.limits?.writing)
@@ -1502,6 +1598,10 @@ export function buildTestSheet(
       : key === "paraphrase" ? buildParaphrase(p, seed, up)
       : key === "flow" ? buildFlow(p, seed)
       : key === "grammarFix" ? (fixPairs.length ? buildGrammarFixFromWorkbook(p, fixPairs) : buildGrammarFix(p, seed, usedGrammar))
+      : key === "gist" ? buildGist(p)
+      : key === "vocabFix" ? buildVocabFix(p, usedVocab)
+      : key === "sentenceOrder" ? buildSentenceOrder(p, seed)
+      : key === "wordOrder" ? buildWordOrder(p, seed, up, opts.limits?.wordOrder)
       : buildWords(p, seed);
     if (key === "sequence" || key === "insert") {
       // 지문 통째 유형은 문항 수만큼 서로 다른 문항을 싣는다(기본 1문항, 재료가 모자라면 되는 만큼)
@@ -1513,7 +1613,7 @@ export function buildTestSheet(
       for (const x of made) if (x) sections.push(x);
       continue;
     }
-    const cap = key === "line" || key === "writing" || key === "link" ? undefined : opts.limits?.[key];
+    const cap = key === "line" || key === "writing" || key === "link" || key === "wordOrder" || key === "sentenceOrder" ? undefined : opts.limits?.[key];
     if (sec) sections.push(cap != null ? limitSection(sec, cap, seed) : sec);
   }
   return { projectId: p.id, title: p.title, source: p.source, sections };

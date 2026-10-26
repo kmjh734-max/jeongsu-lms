@@ -39,7 +39,7 @@ type LoadResult = Awaited<ReturnType<typeof loadDrawProjectsAction>>;
 /*
  * 자동 뽑기 기준(선생님 2026-10-21 확정): 분량에 따라 지문당 유형 수와 유형마다 지문당 문항 상한.
  * 유형은 고른 것을 섞어 지문마다 차례로 나눠 준다(골고루, 한 지문에 같은 유형 두 번 없음).
- * 요약문·도식화는 지문 하나 통째(1세트)다. 연결어는 빈칸 수, 문장 순서·삽입은 지문당 문항 수를 고른다.
+ * 요약문·도식화·제목·요지·문장 순서 배열은 지문 하나 통째(1세트)다. 연결어는 빈칸 수, 글의 순서·삽입은 지문당 문항 수를 고른다.
  * 어법선택은 상한 없이 워크북 자리를 전부 싣는다(선생님 2026-10-26: 3~6자리는 빈약하다).
  */
 type AutoSize = "short" | "normal" | "long";
@@ -48,19 +48,19 @@ const AUTO: Record<AutoSize, { label: string; perPassage: number; vocab: number;
     label: "짧게",
     perPassage: 2,
     vocab: 3,
-    limits: { line: 2, writing: 1, order: 1, blank: 3, vocab: 3, grammarFix: 2, tf: 3, reference: 1, implication: 1 },
+    limits: { line: 2, writing: 1, order: 1, wordOrder: 2, blank: 3, vocab: 3, grammarFix: 2, vocabFix: 2, tf: 3, reference: 1, implication: 1 },
   },
   normal: {
     label: "보통",
     perPassage: 3,
     vocab: 5,
-    limits: { line: 3, writing: 2, order: 2, blank: 5, vocab: 4, grammarFix: 3, tf: 4, reference: 2, implication: 2 },
+    limits: { line: 3, writing: 2, order: 2, wordOrder: 3, blank: 5, vocab: 4, grammarFix: 3, vocabFix: 3, tf: 4, reference: 2, implication: 2 },
   },
   long: {
     label: "길게",
     perPassage: 4,
     vocab: 8,
-    limits: { line: 4, writing: 3, order: 3, blank: 7, vocab: 6, grammarFix: 4, tf: 5 },
+    limits: { line: 4, writing: 3, order: 3, wordOrder: 4, blank: 7, vocab: 6, grammarFix: 4, vocabFix: 4, tf: 5 },
   },
 };
 /** 기준표 줄 */
@@ -71,17 +71,19 @@ const LIMIT_ROWS: Array<{ key: TestBookTypeKey; label: string; unit: string; how
   { key: "grammar", label: "어법 선택", unit: "자리", how: "워크북 자리 전부" },
   { key: "grammarFix", label: "어법 수정", unit: "문항", how: "워크북 어법 자리 · 선택과 안 겹침" },
   { key: "vocab", label: "어휘 선택", unit: "자리", how: "무작위" },
+  { key: "vocabFix", label: "어휘 수정", unit: "문항", how: "어휘 자리 · 선택과 안 겹침" },
+  { key: "wordOrder", label: "어순배열 영작", unit: "문장", how: "중요문장 먼저" },
   { key: "order", label: "중요문장 어순배열", unit: "문장", how: "단원문법·어려운 구문 먼저" },
   { key: "writing", label: "통문장 영작", unit: "문장", how: "중요문장 먼저" },
   { key: "reference", label: "지칭추론·함축의미", unit: "개", how: "무작위" },
 ];
 /** 예상 시간(초) — 문항마다, 통째 유형은 세트마다 */
 const SECONDS: Partial<Record<TestBookTypeKey, number>> = {
-  line: 60, writing: 90, order: 60, blank: 20, grammar: 15, vocab: 15, grammarFix: 40, tf: 20, reference: 40, implication: 60,
+  line: 60, writing: 90, order: 60, wordOrder: 60, blank: 20, grammar: 15, vocab: 15, grammarFix: 40, vocabFix: 40, tf: 20, reference: 40, implication: 60, gist: 60,
 };
-const SET_SECONDS: Partial<Record<TestBookTypeKey, number>> = { link: 60, sequence: 90, insert: 60, summary: 60, flow: 90 };
+const SET_SECONDS: Partial<Record<TestBookTypeKey, number>> = { link: 60, sequence: 90, insert: 60, summary: 60, flow: 90, sentenceOrder: 120 };
 /** 지문 전체가 한 문항인 유형은 개수를 따로 고르지 않는다. */
-const WHOLE_PASSAGE_TYPES = new Set<TestBookTypeKey>(["summary", "flow"]);
+const WHOLE_PASSAGE_TYPES = new Set<TestBookTypeKey>(["summary", "flow", "gist", "sentenceOrder"]);
 /** 지문 통째 유형이라 「가능한 만큼」 없이 1문항부터 고른다(기본 1문항) */
 const SET_COUNT_TYPES = new Set<TestBookTypeKey>(["sequence", "insert"]);
 const COUNT_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
@@ -455,7 +457,7 @@ export function TestDrawDialog({
                           </tr>
                         ))}
                         <tr className="border-t border-slate-100">
-                          <td>연결어·삽입·요약·도식·글의 순서</td>
+                          <td>제목·요지·문장 순서 배열·연결어·삽입·요약·도식·글의 순서</td>
                           <td colSpan={3} className="text-center">
                             지문 통째 · 연결어는 전부, 순서·삽입은 1문항(유형 옆에서 바꿈)
                           </td>
