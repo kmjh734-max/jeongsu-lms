@@ -38,7 +38,7 @@ function moveRow(rows: LessonQuestionJobRow[], fromId: string, toId: string): Le
 
 /**
  * 자료함 "변형문제" 탭: 자료함에서 지문을 골라 "문제 제작"으로 만든 변형문제 목록.
- * 손잡이를 끌어 순서를 바꾸고, 체크해서 여러 개를 한 번에 지운다.
+ * 손잡이를 끌어 순서를 바꾸고, 체크해서 여러 개를 한 번에 지우거나 문항째 복사한다.
  * 문제지·정답·상세는 변형문제 화면을 새 탭으로 연다.
  */
 export function LessonQuestionJobList({
@@ -202,6 +202,45 @@ export function LessonQuestionJobList({
     }
   }
 
+  /** 만든 문항까지 통째로 복사한다(다시 만들지 않음) — 사본은 목록 맨 위에 「이름 사본」으로 생긴다. */
+  async function copy(ids: string[]) {
+    if (ids.length === 0) return;
+    setError(null);
+    setBusyIds(new Set(ids));
+    try {
+      const fresh: LessonQuestionJobRow[] = [];
+      for (let i = 0; i < ids.length; i += 20) {
+        const chunk = ids.slice(i, i + 20);
+        const res = await fetch("/api/question-generator/jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ duplicateIds: chunk }),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          ok?: boolean;
+          message?: string;
+          copied?: Array<{ id: string; sourceId: string; title: string }>;
+        };
+        if (!data.ok) {
+          setError(data.message ?? "복사하지 못했습니다.");
+          break;
+        }
+        for (const c of data.copied ?? []) {
+          const src = rows.find((r) => r.id === c.sourceId);
+          if (src) fresh.push({ ...src, id: c.id, title: c.title, created_at: new Date().toISOString() });
+        }
+      }
+      if (fresh.length) {
+        setRows((prev) => [...fresh, ...prev]);
+        setSelected(new Set());
+      }
+    } catch {
+      setError("서버 응답이 늦어 복사하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setBusyIds(new Set());
+    }
+  }
+
   const link =
     "rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 disabled:opacity-40";
 
@@ -234,10 +273,20 @@ export function LessonQuestionJobList({
               <button
                 type="button"
                 disabled={busyIds.size > 0}
-                onClick={() => void remove(rows.filter((r) => selected.has(r.id)).map((r) => r.id))}
-                className="ml-auto rounded-md border border-rose-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                onClick={() => void copy(rows.filter((r) => selected.has(r.id)).map((r) => r.id))}
+                className="ml-auto rounded-md border border-violet-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-50"
               >
-                {busyIds.size > 0 ? "삭제 중…" : `선택 삭제 (${selected.size})`}
+                선택 복사 ({selected.size})
+              </button>
+            ) : null}
+            {selected.size > 0 ? (
+              <button
+                type="button"
+                disabled={busyIds.size > 0}
+                onClick={() => void remove(rows.filter((r) => selected.has(r.id)).map((r) => r.id))}
+                className="rounded-md border border-rose-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+              >
+                선택 삭제 ({selected.size})
               </button>
             ) : null}
           </div>
@@ -363,6 +412,19 @@ export function LessonQuestionJobList({
                     >
                       <svg viewBox="0 0 20 20" fill="currentColor" className="h-[13px] w-[13px]" aria-hidden>
                         <path d="M13.586 3.586a2 2 0 1 1 2.828 2.828l-.793.793-2.828-2.828.793-.793ZM11.379 5.793 3 14.172V17h2.828l8.38-8.379-2.83-2.828Z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busyIds.size > 0}
+                      onClick={() => void copy([job.id])}
+                      className="rounded-md p-1 text-slate-300 hover:bg-violet-50 hover:text-violet-600 disabled:opacity-40"
+                      title="문항째 복사"
+                      aria-label={`${job.title} 복사`}
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor" className="h-[13px] w-[13px]" aria-hidden>
+                        <path d="M7 3a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H7Z" />
+                        <path d="M3 7a2 2 0 0 1 1-1.732V14a3 3 0 0 0 3 3h6.732A2 2 0 0 1 12 18H7a4 4 0 0 1-4-4V7Z" />
                       </svg>
                     </button>
                     <button

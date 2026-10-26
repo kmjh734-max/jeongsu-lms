@@ -38,7 +38,72 @@ export async function POST(req: Request) {
       copyFromIds?: string[];
       /** 복사·불러오기한 작업에 이어서 생성 (새 작업 만들지 않음) */
       reuseJobId?: string;
+      /** 자료함 변형문제 탭: 만든 문항까지 통째로 복사 (다시 만들지 않음, 값 없음) */
+      duplicateIds?: string[];
     };
+
+    // ── 문항째 복사 ──
+    if (Array.isArray(body.duplicateIds) && body.duplicateIds.length > 0) {
+      const ids = [...new Set(body.duplicateIds.filter((id) => typeof id === "string" && id.length > 0))];
+      if (ids.length > 20) return jsonError("한 번에 최대 20개까지 복사할 수 있습니다.");
+      const supabase = await createClient();
+      const copied: Array<{ id: string; sourceId: string; title: string }> = [];
+      // 문항 본문이 커서 작업 하나씩 읽어 넣는다.
+      for (const id of ids) {
+        let q = supabase
+          .from("question_generation_jobs")
+          .select("*")
+          .eq("id", id)
+          .eq("academy_id", profile.academy_id!);
+        if (profile.role === "teacher") q = q.eq("created_by", profile.id);
+        const { data: src, error: sErr } = await q.maybeSingle();
+        if (sErr) return jsonError(sErr.message, 500);
+        if (!src) continue;
+        if (!["completed", "partially_completed", "failed"].includes(String(src.status))) {
+          return jsonError("아직 만드는 중인 변형문제는 다 만든 뒤에 복사할 수 있습니다.");
+        }
+        // 작업 차지 표시(_run)와 원가 기록(_cost)은 원본 것이라 사본에 옮기지 않는다.
+        const { _run: _r, _cost: _c, ...config } = (src.request_config ?? {}) as Record<string, unknown>;
+        void _r;
+        void _c;
+        const baseTitle = String(config.title ?? "").trim() || "변형문제";
+        const title = `${baseTitle} 사본`.slice(0, 100);
+        const { id: _id, created_at: _at, library_order: _o, ...jobRest } = src as Record<string, unknown>;
+        void _id;
+        void _at;
+        void _o;
+        const { data: job, error: jErr } = await supabase
+          .from("question_generation_jobs")
+          .insert({ ...jobRest, request_config: { ...config, title }, created_by: profile.id, academy_id: profile.academy_id })
+          .select("id")
+          .single();
+        if (jErr || !job) return jsonError(jErr?.message ?? "복사하지 못했습니다.", 500);
+        const { data: questions, error: qErr } = await supabase
+          .from("generated_english_questions")
+          .select("*")
+          .eq("generation_job_id", id);
+        if (qErr) return jsonError(qErr.message, 500);
+        const rows = (questions ?? []).map((row) => {
+          const { id: _qid, created_at: _qc, updated_at: _qu, ...rest } = row as Record<string, unknown>;
+          void _qid;
+          void _qc;
+          void _qu;
+          return { ...rest, generation_job_id: job.id, created_by: profile.id, academy_id: profile.academy_id };
+        });
+        for (let i = 0; i < rows.length; i += 50) {
+          const { error: insErr } = await supabase.from("generated_english_questions").insert(rows.slice(i, i + 50));
+          if (insErr) {
+            // 문항이 반만 들어간 사본은 남기지 않는다.
+            await supabase.from("generated_english_questions").delete().eq("generation_job_id", job.id);
+            await supabase.from("question_generation_jobs").delete().eq("id", job.id);
+            return jsonError(insErr.message, 500);
+          }
+        }
+        copied.push({ id: job.id as string, sourceId: id, title });
+      }
+      if (copied.length === 0) return jsonError("복사할 수 있는 항목이 없습니다.", 404);
+      return jsonOk({ copied });
+    }
 
     // ── 선택 복사·재생성 ──
     if (Array.isArray(body.copyFromIds) && body.copyFromIds.length > 0) {

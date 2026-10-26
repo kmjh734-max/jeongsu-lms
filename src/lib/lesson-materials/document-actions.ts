@@ -7,6 +7,7 @@ import {
   defaultDocumentName,
   uniqueDocumentName,
   type LessonMaterialDocumentKind,
+  type LessonMaterialDocumentRow,
 } from "@/lib/lesson-materials/documents";
 import { normalizeLessonBookOptions } from "@/lib/lesson-materials/lesson-book-options";
 
@@ -149,6 +150,63 @@ export async function trashLessonMaterialDocuments(
   if (updateError) return { ok: false, message: updateError.message };
   revalidatePath(`/${role}/lesson-materials`);
   return { ok: true };
+}
+
+/**
+ * 고른 파일을 내용(payload)째 복사한다. 이름은 「원래 이름 사본」, 겹치면 -2, -3을 붙인다.
+ * 내용이 클 수 있어 한 번에 몰아 읽지 않고 한 개씩 읽어 넣는다.
+ */
+export async function copyLessonMaterialDocuments(
+  role: Role,
+  input: { ids: string[] }
+): Promise<{ ok: true; documents: LessonMaterialDocumentRow[] } | Fail> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+  const ids = [...new Set((input.ids ?? []).map((id) => id.trim()).filter(Boolean))];
+  if (ids.length === 0) return { ok: false, message: "선택된 파일이 없습니다." };
+  if (ids.length > 30) return { ok: false, message: "한 번에 30개까지 복사할 수 있습니다." };
+  const supabase = await createClient();
+  const created: LessonMaterialDocumentRow[] = [];
+  for (const id of ids) {
+    const { data: src } = await supabase
+      .from("lesson_material_documents")
+      .select("kind,name,project_ids,payload,source_query")
+      .eq("id", id)
+      .eq("academy_id", profile!.academy_id!)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (!src) continue;
+    const base = cleanName(`${src.name} 사본`);
+    const { data: same } = await supabase
+      .from("lesson_material_documents")
+      .select("name")
+      .eq("academy_id", profile!.academy_id!)
+      .eq("kind", src.kind)
+      .is("deleted_at", null)
+      .like("name", `${base.replace(/[%_\\]/g, (c) => `\\${c}`)}%`);
+    const name = uniqueDocumentName(base, (same ?? []).map((row) => row.name as string));
+    const { data, error: insertError } = await supabase
+      .from("lesson_material_documents")
+      .insert({
+        kind: src.kind,
+        name,
+        project_ids: src.project_ids ?? [],
+        payload: src.payload ?? null,
+        source_query: src.source_query ?? null,
+        teacher_id: role === "teacher" ? profile!.id : null,
+        created_by: profile!.id,
+        academy_id: profile!.academy_id,
+      })
+      .select("id,kind,name,project_ids,created_at,updated_at")
+      .single();
+    if (insertError || !data) {
+      return { ok: false, message: insertError?.message ?? "파일을 복사하지 못했습니다." };
+    }
+    created.push(data as LessonMaterialDocumentRow);
+  }
+  if (created.length === 0) return { ok: false, message: "복사할 수 있는 파일이 없습니다." };
+  revalidatePath(`/${role}/lesson-materials`);
+  return { ok: true, documents: created };
 }
 
 /** 워크북 파일을 연다: 저장된 결과가 있으면 그것을, 없으면 만든 조건을 돌려준다. */

@@ -7,6 +7,7 @@ import { postJson } from "@/lib/lesson-materials/post-json";
 import type { getWorkbookDocument } from "@/lib/lesson-materials/document-actions";
 import type { WorkbookData } from "@/lib/lesson-materials/workbook-types";
 import {
+  copyLessonMaterialDocuments,
   renameLessonMaterialDocument,
   trashLessonMaterialDocuments,
 } from "@/lib/lesson-materials/document-actions";
@@ -54,7 +55,7 @@ function formatWhen(iso: string): string {
 /**
  * 자료함의 "만든 파일" 목록. 지문자료에서 수업용 자료·분석서·워크북을 만들 때마다
  * 파일이 하나씩 생긴다(수업용자료_0911). 이름을 누르면 열리고, 이름을 바꾸거나
- * 휴지통으로 보낼 수 있다. 체크해서 여러 개를 한 번에 지울 수도 있다.
+ * 휴지통으로 보낼 수 있다. 체크해서 여러 개를 한 번에 지우거나 복사할 수도 있다.
  */
 export function LessonMaterialDocumentList({
   role,
@@ -187,6 +188,22 @@ export function LessonMaterialDocumentList({
     setSelected((prev) => new Set([...prev].filter((id) => !gone.has(id))));
   }
 
+  /** 고른 파일을 내용째 복사한다 — 사본은 목록 맨 위에 「이름 사본」으로 생긴다. */
+  async function copy(ids: string[]) {
+    if (ids.length === 0) return;
+    setError(null);
+    setBusyIds(new Set(ids));
+    const res = await copyLessonMaterialDocuments(role, { ids });
+    setBusyIds(new Set());
+    if (!res.ok) {
+      setError(res.message);
+      return;
+    }
+    const known = new Set(rows.map((r) => r.id));
+    setRows((prev) => [...res.documents.filter((d) => !known.has(d.id)), ...prev]);
+    setSelected(new Set());
+  }
+
   return (
     <section className="mt-3">
       <h2 className="mb-2 text-sm font-bold text-slate-800">
@@ -224,13 +241,23 @@ export function LessonMaterialDocumentList({
             <button
               type="button"
               disabled={busyIds.size > 0}
+              onClick={() => void copy(rows.filter((r) => selected.has(r.id)).map((r) => r.id))}
+              className={`${canDraw ? "" : "ml-auto "}rounded-md border border-violet-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-50`}
+            >
+              선택 복사 ({selected.size})
+            </button>
+          ) : null}
+          {selected.size > 0 ? (
+            <button
+              type="button"
+              disabled={busyIds.size > 0}
               onClick={() =>
                 void trash(
                   rows.filter((r) => selected.has(r.id)).map((r) => r.id),
                   `선택한 파일 ${selected.size}개를 삭제할까요?`
                 )
               }
-              className={`${canDraw ? "" : "ml-auto "}rounded-md border border-rose-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50`}
+              className={`rounded-md border border-rose-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50`}
             >
               선택 삭제 ({selected.size})
             </button>
@@ -329,6 +356,15 @@ export function LessonMaterialDocumentList({
                   className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-slate-500 hover:bg-slate-100"
                 >
                   이름 바꾸기
+                </button>
+                <button
+                  type="button"
+                  disabled={busyIds.size > 0}
+                  onClick={() => void copy([doc.id])}
+                  className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+                  title="내용째 사본을 만듭니다"
+                >
+                  복사
                 </button>
                 <button
                   type="button"
