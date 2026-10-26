@@ -79,10 +79,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2) 잔액이 모자라면 만들기 전에 알려 준다(차감은 아직 안 함)
+    // 2) 잔액이 모자라면 만들기 전에 알려 준다(차감은 아직 안 함). 값은 단어당이다.
     const shortfall = await lessonCreditShortfall(
       profile.academy_id,
-      CREDIT_FEATURES.vocab_generate_examples
+      CREDIT_FEATURES.vocab_generate_examples,
+      items.length
     );
     if (shortfall) {
       return NextResponse.json(
@@ -228,7 +229,7 @@ ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.tri
       return jsonError("생성된 예문이 비어 있습니다. 다시 시도해 주세요.");
     }
 
-    // 3) 쓸 수 있는 예문이 나왔을 때만 차감
+    // 3) 쓸 수 있는 예문이 나왔을 때만, 예문이 채워진 단어 수만큼 차감(선생님 2026-10-26: 단어당 1크레딧)
     const clientKey =
       typeof body.idempotencyKey === "string" && body.idempotencyKey.trim()
         ? body.idempotencyKey.trim().slice(0, 120)
@@ -243,6 +244,7 @@ ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.tri
         ? `vocab_generate_examples:${profile.academy_id}:${profile.id}:${clientKey}`
         : `vocab_generate_examples:${profile.academy_id}:${profile.id}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
       metadata: { words: items.length, filled: filled.length },
+      quantity: filled.length,
     });
     if (chargeErr) return chargeErr;
 
