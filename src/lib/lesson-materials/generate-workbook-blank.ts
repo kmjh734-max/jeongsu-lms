@@ -79,8 +79,7 @@ function parseJsonSafe<T>(text: string): T | null {
 }
 
 /**
- * Blank-candidate OpenAI — intentionally uses a fast model (gpt-4o-mini).
- * Do NOT use gpt-5.* + reasoning here; that was the main workbook latency bottleneck.
+ * 빈칸 후보 고르기. gpt-5.6-luna를 먼저 쓰되 생각 정도는 low로 둔다(길게 생각하면 느리고 상한에 걸린다).
  */
 export async function callBlankOpenAI(input: {
   passageId: string;
@@ -158,6 +157,11 @@ export async function callBlankOpenAI(input: {
       let includeTemperature = studentRecordModelSupportsTemperature(model);
       let includeJsonMode = true;
       let useJsonSchema = true;
+      /*
+       * 생각 정도를 안 정하면 gpt-5.6-luna가 6,144토큰을 생각에만 다 쓰고 빈손으로 끝났다
+       * (10-19~26 수업용 자료 29번 중 23번 · 워크북 18번 중 16번, 한 번에 40초 넘게 기다리고 규칙 후보로 대신했다).
+       */
+      let includeReasoning = isGpt5FamilyModel(model);
 
       for (let attempt = 0; attempt < 4; attempt++) {
         const body: Record<string, unknown> = {
@@ -254,8 +258,9 @@ export async function callBlankOpenAI(input: {
 
         if (isGpt5FamilyModel(model)) {
           delete body.max_tokens;
-          body.max_completion_tokens = 6_144;
+          body.max_completion_tokens = 12_000;
         }
+        if (includeReasoning) body.reasoning_effort = "low";
 
         const res = await openAiFetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
@@ -283,6 +288,10 @@ export async function callBlankOpenAI(input: {
         }
         if (includeTemperature && isUnsupportedTemperatureError(bodyText)) {
           includeTemperature = false;
+          continue;
+        }
+        if (includeReasoning && isUnsupportedParameterError(bodyText, "reasoning_effort")) {
+          includeReasoning = false;
           continue;
         }
         if (
