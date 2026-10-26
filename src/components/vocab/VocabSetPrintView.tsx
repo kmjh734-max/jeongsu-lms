@@ -189,8 +189,11 @@ function PrintPageHeader({
   sectionTitle,
   scoreTotal,
   review,
+  studentName,
 }: {
   sectionTitle: string;
+  /** 이름 칸에 미리 넣을 학생 이름 */
+  studentName?: string;
   /** 시험지면 문항 수(점수 칸에 쓴다) */
   scoreTotal?: number;
   /** 여러 세트를 모은 누적 시험 */
@@ -203,7 +206,7 @@ function PrintPageHeader({
       title={main}
       tag={tag}
       scoreTotal={scoreTotal}
-      passCount={scoreTotal ? Math.ceil(scoreTotal * 0.8) : undefined}
+      studentName={studentName}
     />
   );
 }
@@ -354,6 +357,8 @@ export function VocabSetPrintView({
   };
   const title = customTitle.trim() || autoTitle;
   const headerTitle = title;
+  /** 시험지 이름 칸에 미리 넣을 학생 이름(선생님 2026-10-26). 학생마다 달라서 기억하지 않는다. */
+  const [studentName, setStudentName] = useState("");
 
   const coverDefaults = useMemo(
     () =>
@@ -786,6 +791,7 @@ export function VocabSetPrintView({
               sectionTitle={headerTitle}
               scoreTotal={examGenerated.questions.length}
               review={sections.length > 1}
+              studentName={studentName}
             />
 
             <div className="vocab-exam-body">
@@ -930,6 +936,7 @@ export function VocabSetPrintView({
                 sectionTitle={headerTitle}
                 scoreTotal={examGenerated.questions.length}
                 review={sections.length > 1}
+                studentName={studentName}
               />
               <div data-exam-body-zone className="min-h-0 flex-1" />
               <footer className="vocab-print-footer">
@@ -980,6 +987,20 @@ export function VocabSetPrintView({
                 비워 두면 단어장 이름과 범위로 나와요{sections.length > 1 ? ` (${sections.length}개 단어장)` : ""}.
               </span>
             </label>
+
+            {mode === "exam" ? (
+              <label className="flex flex-col gap-1 px-1">
+                <span className="text-xs font-semibold text-slate-600">학생 이름</span>
+                <input
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  placeholder="비워 두면 빈칸으로 나와요"
+                  maxLength={20}
+                  className="w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-[13px] text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+                />
+                <span className="text-[11px] text-slate-400">시험지 이름 칸에 미리 적혀 나와요.</span>
+              </label>
+            ) : null}
 
             <PanelSection title="인쇄 종류" defaultOpen>
               <div className="flex flex-col gap-1.5">

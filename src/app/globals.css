@@ -4786,13 +4786,18 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   border-bottom: 1px solid #94a3b8;
 }
 .vd-field--name i {
-  width: 72px;
+  min-width: 72px;
+  padding: 0 4px;
+  font-style: normal;
+  line-height: 14px;
+  text-align: center;
+  color: #111827;
 }
 .vd-field--date i {
   width: 44px;
 }
 .vocab-print-page--b5 .vd-field--name i {
-  width: 56px;
+  min-width: 56px;
 }
 .vd-score {
   display: inline-flex;
@@ -4806,14 +4811,6 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   width: 26px;
   height: 14px;
   border-bottom: 1.5px solid #111827;
-}
-.vd-pass {
-  padding: 2px 7px;
-  border: 1.5px solid var(--vd, #0f766e);
-  border-radius: 5px;
-  color: var(--vd, #0f766e);
-  font-weight: 800;
-  font-size: 10.5px;
 }
 .vd-note {
   flex-shrink: 0;

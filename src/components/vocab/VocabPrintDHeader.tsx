@@ -13,7 +13,7 @@ export function VocabPrintDHeader({
   tag,
   fields = ["name", "date"],
   scoreTotal,
-  passCount,
+  studentName,
   aside,
   dark = false,
 }: {
@@ -23,8 +23,8 @@ export function VocabPrintDHeader({
   fields?: ("name" | "date")[];
   /** 시험지면 문항 수(점수 칸에 쓴다) */
   scoreTotal?: number;
-  /** 통과 기준 개수 */
-  passCount?: number;
+  /** 뽑기 전에 적어 둔 학생 이름(비우면 빈 줄) */
+  studentName?: string;
   /** 오른쪽 칸 대신 보여 줄 글(정답지의 "선생님용" 등) */
   aside?: string;
   dark?: boolean;
@@ -42,7 +42,7 @@ export function VocabPrintDHeader({
         <div className="vd-head-right">
           {fields.includes("name") ? (
             <span className="vd-field vd-field--name">
-              이름 <i />
+              이름 <i>{studentName?.trim() || null}</i>
             </span>
           ) : null}
           {fields.includes("date") ? (
@@ -55,7 +55,6 @@ export function VocabPrintDHeader({
               <i />/ {scoreTotal}
             </span>
           ) : null}
-          {passCount ? <span className="vd-pass">{passCount}개 이상 통과</span> : null}
         </div>
       )}
     </header>
