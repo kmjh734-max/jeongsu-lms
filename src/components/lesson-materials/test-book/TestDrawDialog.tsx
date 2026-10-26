@@ -65,14 +65,14 @@ const AUTO: Record<AutoSize, { label: string; perPassage: number; vocab: number;
 };
 /** 기준표 줄 */
 const LIMIT_ROWS: Array<{ key: TestBookTypeKey; label: string; unit: string; how: string }> = [
-  { key: "line", label: "해석", unit: "문장", how: "중요문장 먼저" },
-  { key: "writing", label: "통문장 영작", unit: "문장", how: "중요문장 먼저" },
+  { key: "line", label: "해석 적기", unit: "문장", how: "중요문장 먼저" },
+  { key: "tf", label: "T/F 문제", unit: "문항", how: "무작위" },
+  { key: "blank", label: "빈칸 채우기", unit: "칸", how: "무작위" },
+  { key: "grammar", label: "어법 선택", unit: "자리", how: "워크북 자리 전부" },
+  { key: "grammarFix", label: "어법 수정", unit: "문항", how: "워크북 어법 자리 · 선택과 안 겹침" },
+  { key: "vocab", label: "어휘 선택", unit: "자리", how: "무작위" },
   { key: "order", label: "중요문장 어순배열", unit: "문장", how: "단원문법·어려운 구문 먼저" },
-  { key: "blank", label: "빈칸", unit: "칸", how: "무작위" },
-  { key: "grammar", label: "어법선택", unit: "자리", how: "워크북 자리 전부" },
-  { key: "vocab", label: "어휘선택", unit: "자리", how: "무작위" },
-  { key: "grammarFix", label: "어법 서술형", unit: "문항", how: "워크북 어법 자리 · 선택과 안 겹침" },
-  { key: "tf", label: "T/F", unit: "문항", how: "무작위" },
+  { key: "writing", label: "통문장 영작", unit: "문장", how: "중요문장 먼저" },
   { key: "reference", label: "지칭추론·함축의미", unit: "개", how: "무작위" },
 ];
 /** 예상 시간(초) — 문항마다, 통째 유형은 세트마다 */
@@ -455,7 +455,7 @@ export function TestDrawDialog({
                           </tr>
                         ))}
                         <tr className="border-t border-slate-100">
-                          <td>연결어·순서·삽입·요약·도식</td>
+                          <td>연결어·삽입·요약·도식·글의 순서</td>
                           <td colSpan={3} className="text-center">
                             지문 통째 · 연결어는 전부, 순서·삽입은 1문항(유형 옆에서 바꿈)
                           </td>

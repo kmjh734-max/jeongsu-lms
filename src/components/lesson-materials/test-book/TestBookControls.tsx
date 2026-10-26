@@ -110,7 +110,7 @@ export function LevelSwitch({ value, onChange }: { value: TestLevel; onChange: (
 export function LineModeSwitch({ value, onChange }: { value: LineMode; onChange: (v: LineMode) => void }) {
   return (
     <div className="space-y-1">
-      <p className="text-[11px] font-bold text-slate-500">한줄해석</p>
+      <p className="text-[11px] font-bold text-slate-500">해석 적기</p>
       <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
         {(
           [
@@ -173,23 +173,21 @@ export function TypeChecks({
     onChange(ALL_TEST_BOOK_TYPES.filter((x) => (x === k ? !on.has(x) : on.has(x))));
   return (
     <div className="space-y-2">
-      {[true, false].map((basic) => (
-        <div key={String(basic)} className="space-y-0.5">
-          <p className="text-[10.5px] font-bold tracking-wide text-slate-400">{basic ? "기본" : "선택"}</p>
-          {TEST_BOOK_TYPES.filter((t) => t.basic === basic).map((t) => {
-            const selected = on.has(t.key);
-            return (
-              <div key={t.key} className="flex min-h-[28px] items-center gap-2 text-[13px] text-slate-800" title={t.hint}>
-                <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
-                  <input type="checkbox" className="h-4 w-4 accent-violet-600" checked={selected} onChange={() => toggle(t.key)} />
-                  <span className="flex-1">{t.label}</span>
-                </label>
-                {accessory?.(t.key, selected)}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+      {/* 워크북과 같은 차례로 한 목록(기본 유형은 「기본 8종」 단추로 고른다) */}
+      <div className="space-y-0.5">
+        {TEST_BOOK_TYPES.map((t) => {
+          const selected = on.has(t.key);
+          return (
+            <div key={t.key} className="flex min-h-[28px] items-center gap-2 text-[13px] text-slate-800" title={t.hint}>
+              <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
+                <input type="checkbox" className="h-4 w-4 accent-violet-600" checked={selected} onChange={() => toggle(t.key)} />
+                <span className="flex-1">{t.label}</span>
+              </label>
+              {accessory?.(t.key, selected)}
+            </div>
+          );
+        })}
+      </div>
       <div className="flex gap-1.5">
         <button type="button" onClick={() => onChange(BASIC_TEST_BOOK_TYPES)} className="h-7 flex-1 rounded-md border border-violet-300 bg-white text-[11px] font-semibold text-violet-800">
           기본 8종

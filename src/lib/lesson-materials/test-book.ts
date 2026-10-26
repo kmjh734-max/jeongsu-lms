@@ -61,24 +61,29 @@ export type TestBookTypeKey =
   | "paraphrase"
   | "flow";
 
+/*
+ * 유형 이름·차례는 워크북과 같게(선생님 2026-10-26 — 테스트지 뽑기도 워크북과 같은 유형·같은 순서로).
+ * 워크북 차례: 해석 적기 · T/F 문제 · 빈칸 채우기 · 어법 선택 · 어법 수정 · 어휘 선택 · 중요문장 어순배열 ·
+ * 통문장 영작 · 연결어 빈칸 · 문장 삽입 · 요약문 완성 · 지칭추론 · 함축의미 · 도식화 · 글의 순서.
+ */
 export const TEST_BOOK_TYPES: Array<{ key: TestBookTypeKey; label: string; basic: boolean; hint: string }> = [
-  { key: "line", label: "한줄해석", basic: true, hint: "문장을 보고 해석 쓰기" },
-  { key: "blank", label: "빈칸", basic: true, hint: "해석을 보고 핵심어 채우기" },
-  { key: "grammar", label: "어법선택", basic: true, hint: "[ 바른 형태 / 틀린 형태 ] 고르기" },
-  { key: "vocab", label: "어휘선택", basic: true, hint: "[ 문맥에 맞는 말 / 반대말 ] 고르기" },
+  { key: "line", label: "해석 적기", basic: true, hint: "문장을 보고 해석 쓰기" },
+  { key: "tf", label: "T/F 문제", basic: true, hint: "바꿔 쓴 문장으로 참·거짓" },
+  { key: "blank", label: "빈칸 채우기", basic: true, hint: "해석을 보고 핵심어 채우기" },
+  { key: "grammar", label: "어법 선택", basic: true, hint: "[ 바른 형태 / 틀린 형태 ] 고르기" },
+  { key: "grammarFix", label: "어법 수정", basic: false, hint: "틀린 곳 찾아 고쳐 쓰기" },
+  { key: "vocab", label: "어휘 선택", basic: true, hint: "[ 문맥에 맞는 말 / 반대말 ] 고르기" },
   { key: "order", label: "중요문장 어순배열", basic: true, hint: "워크북과 같은 덩어리, 섞는 순서만 새로" },
-  { key: "tf", label: "T/F", basic: true, hint: "바꿔 쓴 문장으로 참·거짓" },
   { key: "writing", label: "통문장 영작", basic: true, hint: "중요문장 해석만 보고 영어로 쓰기" },
   { key: "link", label: "연결어 빈칸", basic: true, hint: "However·Therefore 같은 연결어 채우기" },
-  { key: "sequence", label: "문장 순서", basic: false, hint: "주어진 글 뒤 (A)~(E) 순서 맞추기" },
   { key: "insert", label: "문장 삽입", basic: false, hint: "중요문장이 들어갈 자리 고르기" },
   { key: "summary", label: "요약문 완성", basic: false, hint: "요약 한 문장의 핵심어 채우기" },
-  { key: "grammarFix", label: "어법 서술형", basic: false, hint: "틀린 곳 찾아 고쳐 쓰기" },
   // 「단어 영↔한」은 뺐다 — 단어 시험지가 같이 나간다(선생님 2026-10-21)
   { key: "reference", label: "지칭추론", basic: false, hint: "밑줄 친 말이 가리키는 것을 본문에서 찾아 쓰기" },
   { key: "implication", label: "함축의미", basic: false, hint: "밑줄 친 표현이 이 글에서 뜻하는 바 쓰기" },
   // 「바꿔 말하기」는 뺐다(선생님 2026-10-21 — 워크북·분석서에서도 안 넣는다)
   { key: "flow", label: "도식화", basic: false, hint: "글의 흐름 칸에 알맞은 내용 고르기" },
+  { key: "sequence", label: "글의 순서", basic: false, hint: "주어진 글 뒤 (A)~(E) 순서 맞추기" },
 ];
 
 export const ALL_TEST_BOOK_TYPES: TestBookTypeKey[] = TEST_BOOK_TYPES.map((t) => t.key);
@@ -574,7 +579,7 @@ function buildLine(p: Ready, seed: string, mode: LineMode = "full", max?: number
   const gloss = mode === "chunk" ? p.material.chunkGloss : undefined;
   return {
     type: "line",
-    title: "한줄해석",
+    title: "해석 적기",
     hint: mode === "chunk" ? "끊어 읽는 덩어리마다 뜻 쓰기" : undefined,
     items: arrange(all, seed).map(({ s, si }, i) => {
       const g = gloss?.[si];
@@ -650,7 +655,7 @@ function buildBlank(p: Ready, seed: string, mode: BlankMode, up = false): TestSe
   if (!items.length) return null;
   return {
     type: "blank",
-    title: "빈칸",
+    title: "빈칸 채우기",
     hint: up ? "해석을 보고 빈칸 채우기 · 문장마다 빈칸 둘" : "해석을 보고 빈칸 채우기",
     passage,
     passageKo: p.sentences.map((s) => s.korean.trim()).filter(Boolean).join(" "),
@@ -756,7 +761,7 @@ function pickSection(
  * 지문·고르기 자리·바른 말은 워크북과 같고, 뽑기는 열쇠에 따라 [A / B] 좌우만 바꾼다.
  */
 function workbookGrammarSection(p: Ready, seed: string, skip?: Set<number>): TestSection | null {
-  return choiceSectionTest(p.grammarChoice, "grammar", "어법선택", "알맞은 것에 ○", seed, skip);
+  return choiceSectionTest(p.grammarChoice, "grammar", "어법 선택", "알맞은 것에 ○", seed, skip);
 }
 
 /** 어법·어휘 선택 문항(워크북 형태)을 테스트 견본으로. 뽑기는 열쇠에 따라 [A / B] 좌우만 바꾼다. */
@@ -923,7 +928,7 @@ function buildTf(p: Ready, seed: string, up = false): TestSection | null {
   const order = fisherYatesShuffle(all, createSeededRng(`${seed}|tf`));
   return {
     type: "tf",
-    title: "T/F",
+    title: "T/F 문제",
     hint: up ? "맞으면 T, 틀리면 F — F는 아래 줄에 바르게 고쳐 쓰기" : "지문 내용과 맞으면 T, 틀리면 F",
     items: order.map((x, i) => ({ no: no(i), text: [x.statement], tf: true, lines: up ? 1 : undefined, answer: x.answer })),
   };
@@ -1009,7 +1014,7 @@ function buildSequence(p: Ready, seed: string, at = 0): TestSection | null {
   if (!order) return null;
   return {
     type: "sequence",
-    title: "문장 순서",
+    title: "글의 순서",
     hint: "주어진 글 다음에 이어질 순서",
     given: order.given,
     items: order.items.map((it) => ({ no: `(${it.label})`, text: [it.text], answer: "" })),
@@ -1345,7 +1350,7 @@ function buildGrammarFixFromWorkbook(p: Ready, chosen: WorkbookGrammarPair[]): T
     return { no: no(i), text: [sentence], lines: 1, answer: `${wrong} → ${x.right}` };
   });
   if (!items.length) return null;
-  return { type: "grammarFix", title: "어법 서술형", hint: "틀린 곳을 찾아 바르게 고쳐 쓰기", items };
+  return { type: "grammarFix", title: "어법 수정", hint: "틀린 곳을 찾아 바르게 고쳐 쓰기", items };
 }
 
 function buildGrammarFix(p: Ready, seed: string, skip: Set<string>): TestSection | null {
@@ -1354,7 +1359,7 @@ function buildGrammarFix(p: Ready, seed: string, skip: Set<string>): TestSection
   if (!chosen.length) return null;
   return {
     type: "grammarFix",
-    title: "어법 서술형",
+    title: "어법 수정",
     hint: "틀린 곳을 찾아 바르게 고쳐 쓰기",
     items: chosen.map((c, i) => ({ no: no(i), text: [c.before + c.wrong + c.after], lines: 1, answer: `${c.wrong} → ${c.right}` })),
   };
@@ -1482,10 +1487,10 @@ export function buildTestSheet(
     const sec =
       key === "line" ? buildLine(p, seed, opts.lineMode ?? "full", opts.limits?.line)
       : key === "blank" ? buildBlank(p, seed, opts.blankMode ?? "same", up)
-      : key === "grammar" ? (wbGrammar ?? pickSection(p, "grammar", "어법선택", "알맞은 것에 ○", forPick, seed))
+      : key === "grammar" ? (wbGrammar ?? pickSection(p, "grammar", "어법 선택", "알맞은 것에 ○", forPick, seed))
       : key === "vocab"
-        ? (choiceSectionTest(p.vocabChoice, "vocab", "어휘선택", "문맥에 맞는 것에 ○", seed) ??
-          pickSection(p, "vocab", "어휘선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed))
+        ? (choiceSectionTest(p.vocabChoice, "vocab", "어휘 선택", "문맥에 맞는 것에 ○", seed) ??
+          pickSection(p, "vocab", "어휘 선택", "문맥에 맞는 것에 ○", vocabCandidates(p), seed))
       : key === "order" ? buildOrder(p, seed, up)
       : key === "tf" ? buildTf(p, seed, up)
       : key === "writing" ? buildWriting(p, seed, opts.writing ?? "all", up, opts.limits?.writing)
