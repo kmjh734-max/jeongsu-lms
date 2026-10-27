@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { LESSON_VOCAB_FOLDER } from "@/lib/lesson-materials/load-library";
 import { defaultDocumentName, uniqueDocumentName } from "@/lib/lesson-materials/documents";
 import { createClient } from "@/lib/supabase/server";
 import { persistVocabItems, type VocabItemSaveInput } from "@/lib/vocab/save-items";
@@ -573,7 +574,13 @@ export async function saveTestBookOptionsAction(
  */
 export async function registerTestBookVocabAction(
   role: Role,
-  input: { docId: string | null; title: string; projectIds: string[] }
+  input: {
+    docId: string | null;
+    title: string;
+    projectIds: string[];
+    /** 자료함 「단어」 탭: 적은 이름 그대로 「수업자료 단어장」 폴더에 늘 새로 만든다(2026-10-27) */
+    lessonTab?: boolean;
+  }
 ): Promise<{ ok: true; setId: string; count: number; created: boolean } | Fail> {
   const { profile, error } = await requireLessonRole(role);
   if (error) return { ok: false, message: error };
@@ -604,7 +611,10 @@ export async function registerTestBookVocabAction(
   }
   if (!items.length) return { ok: false, message: "단어 정리가 아직 없습니다. 교재를 먼저 만들어 주세요." };
 
-  const title = `${String(input.title ?? "").trim() || "테스트 교재"} · 전체 단어`;
+  const title = input.lessonTab
+    ? String(input.title ?? "").trim().slice(0, 80) || "수업자료 단어장"
+    : `${String(input.title ?? "").trim() || "테스트 교재"} · 전체 단어`;
+  const folderName = input.lessonTab ? LESSON_VOCAB_FOLDER : "테스트 교재";
   const docId = input.docId?.trim() || null;
   let payload: Record<string, unknown> = {};
   if (docId) {
@@ -630,14 +640,14 @@ export async function registerTestBookVocabAction(
       .from("vocab_folders")
       .select("id")
       .eq("academy_id", profile!.academy_id!)
-      .eq("name", "테스트 교재")
+      .eq("name", folderName)
       .limit(1)
       .maybeSingle();
     let folderId = (folder?.id as string | undefined) ?? null;
     if (!folderId) {
       const { data: made, error: fErr } = await supabase
         .from("vocab_folders")
-        .insert({ name: "테스트 교재", teacher_id: role === "teacher" ? profile!.id : null, created_by: profile!.id, academy_id: profile!.academy_id })
+        .insert({ name: folderName, teacher_id: role === "teacher" ? profile!.id : null, created_by: profile!.id, academy_id: profile!.academy_id })
         .select("id")
         .single();
       if (fErr) return { ok: false, message: fErr.message };
@@ -647,7 +657,7 @@ export async function registerTestBookVocabAction(
       .from("vocab_sets")
       .insert({
         title,
-        description: "테스트 교재에서 등록한 단어장",
+        description: input.lessonTab ? "자료함 단어 탭에서 만든 단어장" : "테스트 교재에서 등록한 단어장",
         folder_id: folderId,
         order_index: await nextVocabSetOrderIndex(supabase, folderId),
         teacher_id: profile!.id,

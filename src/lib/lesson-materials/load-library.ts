@@ -56,7 +56,16 @@ export interface LessonMaterialLibraryData {
   questionJobs: LessonQuestionJobRow[];
   /** 테스트 교재(수업자료 NEW)를 켠 학원인지 — 정수학원 */
   testBookOpen?: boolean;
+  /** 자료함 「단어」 탭을 켠 학원인지 — 윌링어학원(2026-10-27) */
+  vocabTabOpen?: boolean;
+  /** 「단어」 탭에서 만든 단어장(수업자료 단어장 폴더), 최신순 */
+  lessonVocabSets?: LessonVocabSetRow[];
 }
+
+export type LessonVocabSetRow = { id: string; title: string; created_at: string; word_count: number };
+
+/** 자료함 「단어」 탭에서 만든 단어장이 들어가는 단어학습 폴더 이름 */
+export const LESSON_VOCAB_FOLDER = "수업자료 단어장";
 
 function analysisSnippet(analysis_json: unknown): string {
   if (!Array.isArray(analysis_json) || analysis_json.length === 0) return "";
@@ -189,9 +198,36 @@ export async function loadLessonMaterialsLibraryData(
   });
 
   const testBookOpen = await isAcademyFeatureOn(createAdminClient(), academyId, "test_book");
+  const vocabTabOpen = await isAcademyFeatureOn(createAdminClient(), academyId, "lesson_vocab_tab");
+  let lessonVocabSets: LessonVocabSetRow[] = [];
+  if (vocabTabOpen && academyId) {
+    const { data: folder } = await supabase
+      .from("vocab_folders")
+      .select("id")
+      .eq("academy_id", academyId)
+      .eq("name", LESSON_VOCAB_FOLDER)
+      .limit(1)
+      .maybeSingle();
+    if (folder?.id) {
+      const { data: sets } = await supabase
+        .from("vocab_sets")
+        .select("id, title, created_at, vocab_items(count)")
+        .eq("folder_id", folder.id)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      lessonVocabSets = (sets ?? []).map((s) => ({
+        id: s.id as string,
+        title: s.title as string,
+        created_at: s.created_at as string,
+        word_count: ((s as { vocab_items?: Array<{ count: number }> }).vocab_items?.[0]?.count as number | undefined) ?? 0,
+      }));
+    }
+  }
 
   return {
     testBookOpen,
+    vocabTabOpen,
+    lessonVocabSets,
     folders,
     projects: active.filter((p) => p.folder_id !== null),
     unfiledProjects: active.filter((p) => p.folder_id === null),

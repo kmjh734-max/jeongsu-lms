@@ -27,6 +27,7 @@ import {
 } from "@/lib/lesson-materials/library-ops";
 import { updateLessonMaterialProjectMeta } from "@/lib/lesson-materials/lesson-pack-actions";
 import { LessonMaterialsSelectionBar } from "@/components/lesson-materials/LessonMaterialsSelectionBar";
+import { LessonVocabTab } from "@/components/lesson-materials/LessonVocabTab";
 import { useReloadOnNewDeploy } from "@/components/lesson-materials/use-reload-on-new-deploy";
 import type { LessonMaterialFolderRow } from "@/lib/lesson-materials/load-library";
 
@@ -35,6 +36,7 @@ type FolderFilter = "all" | "unfiled" | "trash" | string;
 type LibraryTab =
   | "materials"
   | "lesson"
+  | "vocab"
   | "analysis"
   | "workbook"
   | "onePageSummary"
@@ -46,6 +48,8 @@ type LibraryTab =
 const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
   { id: "materials", label: "지문자료" },
   { id: "lesson", label: "수업용자료" },
+  // 윌링어학원만(선생님 2026-10-27) — 지문을 골라 단어장 만들기 · 목록 · 시험지
+  { id: "vocab", label: "단어" },
   { id: "analysis", label: "분석서" },
   { id: "workbook", label: "워크북" },
   { id: "onePageSummary", label: "1장 요약직보자료" },
@@ -199,7 +203,7 @@ export function LessonMaterialsLibrary({
       list = list.filter((p) => p.has_lesson_pack);
     } else if (libraryTab === "analysis") {
       list = list.filter((p) => p.has_analysis_report);
-    } else if (!["materials", "lesson", "analysis"].includes(libraryTab)) {
+    } else if (!["materials", "lesson", "analysis", "vocab"].includes(libraryTab)) {
       // 워크북·1장 자료·변형문제·최종통합자료 탭은 만든 파일만 보여 준다.
       list = [];
     }
@@ -294,7 +298,7 @@ export function LessonMaterialsLibrary({
   );
   /** 워크북·1장 자료·변형문제·최종통합자료 탭은 만든 결과만 있고 지문별 목록이 없다. */
   const showProjectList =
-    libraryTab === "materials" || libraryTab === "lesson" || libraryTab === "analysis";
+    libraryTab === "materials" || libraryTab === "lesson" || libraryTab === "analysis" || libraryTab === "vocab";
 
   /** 폴더(또는 미분류)를 고른 채 새 자료를 추가하면 그 폴더에 들어간다. */
   const newMaterialHref =
@@ -753,7 +757,7 @@ export function LessonMaterialsLibrary({
           {LIBRARY_TABS.filter(
             (tab) =>
               // 테스트 교재 탭은 뺐다(선생님 2026-10-21 「아예 없어 줘」) — 뽑은 테스트지는 워크북 탭 아래에
-              tab.id !== "testBook"
+              tab.id !== "testBook" && (tab.id !== "vocab" || data.vocabTabOpen === true)
           ).map((tab) => {
             const active = libraryTab === tab.id;
             return (
@@ -1013,7 +1017,15 @@ export function LessonMaterialsLibrary({
             />
           </div>
         ) : null}
-        {documentKind && showProjectList && !inTrash ? (
+        {libraryTab === "vocab" && !inTrash ? (
+          <LessonVocabTab
+            role={role}
+            sets={data.lessonVocabSets ?? []}
+            selectedIds={selectedInInputOrder}
+            onMade={() => setSelected(new Set())}
+          />
+        ) : null}
+        {(documentKind || libraryTab === "vocab") && showProjectList && !inTrash ? (
           <h2 className="mt-4 text-sm font-bold text-slate-800">지문별 자료</h2>
         ) : null}
 
@@ -1234,7 +1246,7 @@ export function LessonMaterialsLibrary({
         </div>
       </main>
 
-      {!inTrash ? (
+      {!inTrash && libraryTab !== "vocab" ? (
         <LessonMaterialsSelectionBar
           role={role}
           selectedCount={selectedCount}

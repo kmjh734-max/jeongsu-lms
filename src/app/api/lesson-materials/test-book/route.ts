@@ -33,6 +33,7 @@ export async function POST(request: Request) {
       typeCount?: number;
       snapshot?: unknown;
       chargeKey?: string;
+      lessonTab?: boolean;
     };
     const role = body.role === "admin" ? "admin" : "teacher";
     if (body.op === "registerVocab") {
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
           docId: body.id ? String(body.id) : null,
           title: String(body.title ?? ""),
           projectIds: Array.isArray(body.projectIds) ? body.projectIds.map(String) : [],
+          lessonTab: body.lessonTab === true,
         })
       );
     }

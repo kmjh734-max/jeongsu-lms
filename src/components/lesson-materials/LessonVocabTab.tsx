@@ -1,0 +1,217 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { askCreditConfirm } from "@/lib/credits/confirm-store";
+import { postJson } from "@/lib/lesson-materials/post-json";
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import type { LessonVocabSetRow } from "@/lib/lesson-materials/load-library";
+import type { loadDrawProjectsAction, prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-book-actions";
+import { PASSAGE_PREP_CONCURRENCY, isTestBookProjectReady } from "@/lib/lesson-materials/test-book";
+
+type LoadResult = Awaited<ReturnType<typeof loadDrawProjectsAction>>;
+type PrepareResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
+type RegisterResult = { ok: true; setId: string; count: number; created: boolean } | { ok: false; message: string };
+
+function formatWhen(iso: string): string {
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(iso));
+}
+
+function todayName(): string {
+  const d = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const m = d.find((p) => p.type === "month")?.value ?? "";
+  const day = d.find((p) => p.type === "day")?.value ?? "";
+  return `단어장_${m}${day}`;
+}
+
+/**
+ * 자료함 「단어」 탭(윌링어학원, 선생님 2026-10-27): 지문을 골라 단어장을 만들고, 만든 단어장의 목록을 보고
+ * 단어 시험지를 출력한다. 단어장은 단어학습 「수업자료 단어장」 폴더에 들어가 단어학습 화면에서도 그대로 쓴다.
+ * 단어는 지문마다 만든 단어 정리(품사·지문 속 뜻·동의어·반의어)이고, 없는 지문만 값을 받고 먼저 만든다.
+ */
+export function LessonVocabTab({
+  role,
+  sets,
+  selectedIds,
+  onMade,
+}: {
+  role: "admin" | "teacher";
+  sets: LessonVocabSetRow[];
+  selectedIds: string[];
+  onMade: () => void;
+}) {
+  const router = useRouter();
+  const [naming, setNaming] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
+  const vocabBase = `/${role}/vocab/set`;
+
+  async function make(name: string) {
+    setMessage(null);
+    setBusy("지문을 확인하고 있습니다…");
+    try {
+      const loaded = await postJson<LoadResult>("/api/lesson-materials/test-book", { role, op: "loadDraw", projectIds: selectedIds });
+      if (!loaded.ok) throw new Error(loaded.message);
+      const missing = loaded.projects.filter((p) => !isTestBookProjectReady(p));
+      if (missing.length) {
+        setBusy(null);
+        const go = await askCreditConfirm({
+          title: "단어장 만들기",
+          description: "단어 정리(품사·지문 속 뜻·동의어·반의어)가 없는 지문은 먼저 만듭니다. 한 번 만든 지문은 다시 받지 않습니다.",
+          subject: `단어 정리가 없는 지문 ${missing.length}개`,
+          contents: missing.map((p) => p.title),
+          items: [{ feature: "lesson_workbook_extras", quantity: missing.length }],
+        });
+        if (!go) return;
+        let done = 0;
+        const failed: string[] = [];
+        setBusy(`단어 정리를 만들고 있습니다… (0/${missing.length})`);
+        await runWithConcurrency(missing, PASSAGE_PREP_CONCURRENCY, async (p) => {
+          try {
+            const res = await postJson<PrepareResult>("/api/lesson-materials/test-book", { role, op: "prepareWorkbook", projectId: p.id });
+            if (!res.ok) failed.push(`「${p.title}」 ${res.message}`);
+          } catch (e) {
+            failed.push(`「${p.title}」 ${e instanceof Error ? e.message : "만들지 못했습니다."}`);
+          }
+          setBusy(`단어 정리를 만들고 있습니다… (${++done}/${missing.length})`);
+        });
+        if (failed.length) throw new Error(failed.join(" · "));
+      }
+      setBusy("단어장을 만들고 있습니다…");
+      const res = await postJson<RegisterResult>("/api/lesson-materials/test-book", {
+        role,
+        op: "registerVocab",
+        title: name,
+        projectIds: selectedIds,
+        lessonTab: true,
+      });
+      if (!res.ok) throw new Error(res.message);
+      setMessage({ text: `「${name}」 단어장을 만들었습니다 · ${res.count}단어`, error: false });
+      onMade();
+      router.refresh();
+    } catch (e) {
+      setMessage({ text: e instanceof Error ? e.message : "단어장을 만들지 못했습니다.", error: true });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <section className="mt-3 space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-bold text-slate-800">
+          만든 단어장 <span className="font-semibold text-slate-400">{sets.length}</span>
+        </h2>
+        <button
+          type="button"
+          disabled={!selectedIds.length || !!busy}
+          onClick={() => setNaming(todayName())}
+          className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
+          title={selectedIds.length ? "고른 지문의 단어로 단어장을 만듭니다" : "아래 지문 목록에서 지문을 먼저 고르세요"}
+        >
+          📗 단어장 만들기{selectedIds.length ? ` (지문 ${selectedIds.length}개)` : ""}
+        </button>
+      </div>
+      {busy ? <p className="text-xs font-semibold text-violet-700">{busy}</p> : null}
+      {message ? <p className={`text-xs font-semibold ${message.error ? "text-rose-600" : "text-emerald-700"}`}>{message.text}</p> : null}
+      {sets.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
+          아래 지문 목록에서 지문을 고른 뒤 「단어장 만들기」를 누르면 여기에 단어장이 생깁니다.
+        </p>
+      ) : (
+        <ul className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200">
+          {sets.map((s) => (
+            <li key={s.id} className="flex items-center gap-2.5 bg-white px-3 py-1.5 hover:bg-slate-50">
+              <span className="text-xs" aria-hidden>
+                📗
+              </span>
+              <div className="flex min-w-0 flex-1 items-baseline gap-2">
+                <a
+                  href={`${vocabBase}/${s.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="min-w-0 truncate text-[13px] font-semibold text-slate-900 hover:text-violet-700 hover:underline"
+                >
+                  {s.title}
+                </a>
+                <span className="shrink-0 text-[11px] text-slate-400">
+                  {s.word_count}단어 · {formatWhen(s.created_at)}
+                </span>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <a
+                  href={`${vocabBase}/${s.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50"
+                >
+                  목록 보기
+                </a>
+                <a
+                  href={`${vocabBase}/${s.id}/print`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50"
+                >
+                  시험지 출력
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {naming != null ? (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
+          <form
+            className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const name = naming.trim() || todayName();
+              setNaming(null);
+              void make(name);
+            }}
+          >
+            <header className="flex items-center justify-between bg-violet-600 px-5 py-4 text-white">
+              <h2 className="text-base font-bold">📗 단어장 만들기</h2>
+              <button type="button" className="rounded-lg px-2 py-1 text-lg leading-none hover:bg-white/20" onClick={() => setNaming(null)} aria-label="닫기">
+                ×
+              </button>
+            </header>
+            <div className="space-y-1 px-5 py-4">
+              <label className="block space-y-1">
+                <span className="text-xs font-bold text-slate-600">단어장 이름</span>
+                <input
+                  autoFocus
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  value={naming}
+                  maxLength={80}
+                  onChange={(e) => setNaming(e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                />
+              </label>
+              <p className="text-[11px] text-slate-500">
+                고른 지문 {selectedIds.length}개의 단어를 합쳐(같은 낱말은 한 번) 단어학습 「수업자료 단어장」 폴더에 만듭니다.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-3">
+              <button type="button" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100" onClick={() => setNaming(null)}>
+                취소
+              </button>
+              <button type="submit" className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-bold text-white hover:bg-violet-700">
+                만들기
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+    </section>
+  );
+}
