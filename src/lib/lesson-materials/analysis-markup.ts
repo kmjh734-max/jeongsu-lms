@@ -13,6 +13,7 @@
 import { GRAMMAR_ONTOLOGY } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
 import { normalizeMarkupRoles } from "@/lib/lesson-materials/analysis-markup-roles";
 import { labelFitsSpan, raiseRoleLevels } from "@/lib/lesson-materials/analysis-markup-rules";
+import { fillMissingRoles } from "@/lib/lesson-materials/analysis-markup-fill";
 
 /** 문장 안 글자 범위. start는 포함, end는 제외. */
 export type MarkupSpan = { start: number; end: number };
@@ -672,8 +673,8 @@ export function readAnalysisMarkup(
   const heading = isHeadingLine(text);
   const markup: AnalysisSentenceMarkup = {
     text,
-    // 표기 규칙(준동사 V 없음·목적격보어 C·조동사부터 V)을 예전 저장본에도 그대로 적용한다
-    roles: heading ? [] : raiseRoleLevels(text, normalizeMarkupRoles(text, roles, brackets), brackets, notesKept),
+    // 표기 규칙(준동사 V 없음·목적격보어 C·조동사부터 V)을 예전 저장본에도 그대로 적용한다. 빠진 주절 성분·잘린 준동사구는 채운다
+    roles: heading ? [] : fillMissingRoles(text, raiseRoleLevels(text, normalizeMarkupRoles(text, roles, brackets), brackets, notesKept), brackets),
     brackets: heading ? [] : brackets,
     notes: heading ? [] : notesKept,
     points: heading ? [] : points,
