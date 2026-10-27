@@ -8,6 +8,7 @@ import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
+  Fragment,
   createContext,
   useContext,
   useEffect,
@@ -102,11 +103,14 @@ import {
   buildVocabExam,
   DEFAULT_VOCAB_EXAM,
   normalizeVocabExam,
+  type TestBookProjectInput,
   type TestBookTypeKey,
 } from "@/lib/lesson-materials/test-book";
 import {
+  BlankNoteSheets,
   TEST_BOOK_CSS,
   TEST_BOOK_FONTS_HREF,
+  partStyle,
   TestSectionAnswer,
   TestSectionContent,
   VocabExamAnswer,
@@ -1719,6 +1723,36 @@ export function WorkbookWorkbench({
    * 옛 워크북은 지문 원문만 불러와 채운다(값 없음).
    */
   const [loadedPassages, setLoadedPassages] = useState<Record<string, string>>({});
+  /** 백지노트에 싣는 지문(원문 문장) — 켰을 때만 불러온다 */
+  const [blankNoteProjects, setBlankNoteProjects] = useState<TestBookProjectInput[] | null>(null);
+  /** 파일에 저장된 지문(단어 시험처럼 문항에 지문 번호가 없는 유형만 든 워크북도 백지노트를 만든다) */
+  const [docProjectIds, setDocProjectIds] = useState<string[]>([]);
+  const blankNoteKey = workbook?.blankNote
+    ? [
+        ...new Set([
+          ...docProjectIds,
+          ...(searchParams.get("ids") ?? "").split(",").map((x) => x.trim()).filter((x) => UUID_RE.test(x)),
+          ...workbookProjectIds(workbook),
+        ]),
+      ].join(",")
+    : "";
+  useEffect(() => {
+    if (!blankNoteKey) return;
+    let alive = true;
+    void postJson<{ ok: true; projects: TestBookProjectInput[] } | { ok: false; message: string }>("/api/lesson-materials/test-book", {
+      role,
+      op: "loadDraw",
+      projectIds: blankNoteKey.split(","),
+    })
+      .then((res) => {
+        if (alive && res.ok) setBlankNoteProjects(res.projects);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blankNoteKey]);
   const passageOf = (s: { projectId: string; passage?: string }) => s.passage || loadedPassages[s.projectId] || undefined;
   useEffect(() => {
     if (!workbook) return;
@@ -2245,6 +2279,7 @@ export function WorkbookWorkbench({
           { op: "getWorkbook", role, id: embeddedDocId }
         );
         if (cancelled) return;
+        if (doc.ok) setDocProjectIds(doc.projectIds ?? []);
         if (!doc.ok || !doc.payload || typeof doc.payload !== "object") {
           setError(doc.ok ? "저장된 워크북 내용이 없습니다. 워크북을 먼저 열어 완성해 주세요." : doc.message);
           setGenerating(false);
@@ -2312,6 +2347,7 @@ export function WorkbookWorkbench({
           { op: "getWorkbook", role, id: docId }
         );
         if (cancelled) return;
+        if (doc.ok) setDocProjectIds(doc.projectIds ?? []);
         if (!doc.ok) {
           setError(doc.message);
           setGenerating(false);
@@ -2389,6 +2425,7 @@ export function WorkbookWorkbench({
           { op: "getWorkbook", role, id: docId }
         );
         if (cancelled) return;
+        if (doc.ok) setDocProjectIds(doc.projectIds ?? []);
         if (!doc.ok) {
           setError(doc.message);
           setGenerating(false);
@@ -4164,6 +4201,26 @@ export function WorkbookWorkbench({
   const columnTypesOn = WORKBOOK_COLUMN_TYPES.filter((t) => workbook.selectedTypes.includes(t));
 
   /** 인쇄할 쪽들과 쪽 나눔 측정 영역. 최종통합자료에 끼워 넣을 때(embedded)도 같은 모양을 쓴다. */
+  /* 백지노트(선생님 2026-10-27): 켜면 정답지 앞(정답지가 없으면 맨 뒤)에 지문마다 2쪽 */
+  const blankNoteSheets =
+    workbook.blankNote && blankNoteProjects?.length ? (
+      <Fragment key="blank-notes">
+        <link rel="stylesheet" href={TEST_BOOK_FONTS_HREF} />
+        <style>{TEST_BOOK_CSS}</style>
+        <div className={`tb-theme-${md} contents`} style={partStyle({ id: "blank", no: "", en: "BLANK NOTE", ko: "백지노트", color: "#1d2a8f" })}>
+          {blankNoteProjects.map((p, i) => (
+            <BlankNoteSheets key={p.id} index={i} project={p} />
+          ))}
+        </div>
+      </Fragment>
+    ) : null;
+  const withBlankNotes = (rendered: ReactNode[]): ReactNode[] => {
+    if (!blankNoteSheets) return rendered;
+    const at = pages.findIndex((p) => p.kind === "answers");
+    const out = [...rendered];
+    out.splice(at >= 0 ? at : out.length, 0, blankNoteSheets);
+    return out;
+  };
   const printPages = (
     <>
             {columnTypes.some(isTbWorkbookType) ? (
@@ -4172,7 +4229,7 @@ export function WorkbookWorkbench({
                 <style>{TEST_BOOK_CSS}</style>
               </>
             ) : null}
-            {pages.map((page, pageI) => {
+            {withBlankNotes(pages.map((page, pageI) => {
               /*
                * 정답지는 1쪽부터 다시 센다. 선생님 말씀(2026-10-20): 문제지·정답지를 따로 뽑아도 쪽수가
                * 이어져서, 정답지는 따로 프린트하니 1쪽부터 나오는 게 좋다.
@@ -4288,7 +4345,7 @@ export function WorkbookWorkbench({
                   {renderAnswerBlocks(shown)}
                 </PageShell>
               );
-            })}
+            }))}
     </>
   );
   const measureBlock = (
@@ -4877,6 +4934,18 @@ export function WorkbookWorkbench({
                   </div>
                 </div>
               </div>
+              <label className="flex items-start gap-1.5" title="지문마다 원문·문장별 정리·4단 정리·동반의어·틀린 것 다시 쓰기 2쪽">
+                <input
+                  type="checkbox"
+                  checked={workbook.blankNote === true}
+                  onChange={(e) => editWorkbook((w) => ({ ...w, blankNote: e.target.checked }))}
+                  className="mt-0.5 h-4 w-4 accent-violet-500"
+                />
+                <span className="text-[11px] font-bold text-slate-500">
+                  백지노트
+                  <span className="block font-medium text-slate-400">지문마다 2쪽 · 정답지 앞에</span>
+                </span>
+              </label>
             </>
           ) : null}
 

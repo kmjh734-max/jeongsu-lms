@@ -232,6 +232,20 @@ export const TEST_BOOK_CSS = `
 .tb-fill:last-child{margin-bottom:0}
 .tb-gridlines{flex:1;border-top:1pt solid #15171c;background-image:linear-gradient(transparent calc(100% - .5pt),#c9cdd4 0);background-size:100% 7mm;position:relative}
 .tb-gridlines.tb-num{background-image:linear-gradient(transparent calc(100% - .5pt),#c9cdd4 0),linear-gradient(90deg,transparent 9mm,#c9cdd4 9mm,#c9cdd4 calc(9mm + .5pt),transparent 0)}
+/* 백지노트(2026-10-27 시안 A안): 원문 문장 번호 · 문장별 정리 · 4단 정리 */
+.tb-bn-psg p{margin:0;font-size:10pt;line-height:2.05;text-align:justify}
+.tb-bn-psg sup{font-size:7.5pt;font-weight:800;color:var(--tb-accent,#15171c);margin:0 .6mm 0 .4mm;vertical-align:.25em}
+.tb-bn-rows{flex:1;display:flex;flex-direction:column;border-top:1pt solid #15171c;min-height:0}
+.tb-bn-rows > div{flex:1;min-height:7mm;display:grid;grid-template-columns:8mm 1fr;align-items:start;border-bottom:.8pt solid #9aa0aa;background-image:linear-gradient(transparent calc(100% - .5pt),#dfe2e6 0);background-size:100% 7mm;background-position:0 -.5pt}
+.tb-bn-rows > div > b{font-size:8.5pt;color:var(--tb-accent,#15171c);padding-top:1.4mm;text-align:center}
+.tb-bn-four{display:flex;flex-direction:column;gap:0;margin-bottom:3mm}
+.tb-bn-step{display:grid;grid-template-columns:24mm 1fr;border:.8pt solid #9aa0aa;border-radius:1.4mm;overflow:hidden;min-height:19mm}
+.tb-bn-step > div:first-child{background:var(--tb-accent,#15171c);color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:.6mm;padding:1.4mm}
+.tb-bn-step > div:first-child b{font-size:10pt;font-weight:800}
+.tb-bn-step > div:first-child small{font-size:7pt;opacity:.85;text-align:center;line-height:1.3}
+.tb-bn-step > div:last-child{position:relative;background-image:linear-gradient(transparent calc(100% - .5pt),#d6d9de 0);background-size:100% 6.4mm}
+.tb-bn-step em{position:absolute;right:1.6mm;top:1.2mm;font-style:normal;font-size:7.5pt;color:#6a707c}
+.tb-bn-arrow{text-align:center;color:#9aa0aa;font-size:9pt;line-height:1;padding:.8mm 0}
 .tb-gridlines.tb-syn{background-image:linear-gradient(transparent calc(100% - .5pt),#c9cdd4 0),linear-gradient(90deg,transparent 42mm,#c9cdd4 42mm,#c9cdd4 calc(42mm + .5pt),transparent calc(42mm + .5pt),transparent 82mm,#c9cdd4 82mm,#c9cdd4 calc(82mm + .5pt),transparent calc(82mm + .5pt),transparent 132mm,#c9cdd4 132mm,#c9cdd4 calc(132mm + .5pt),transparent 0)}
 .tb-synhead{display:grid;grid-template-columns:42mm 40mm 50mm 1fr;font-size:8pt;color:#6a707c;border-top:1pt solid #15171c;padding:.8mm 0}
 .tb-synhead span{padding-left:1.4mm}
@@ -1439,19 +1453,87 @@ export function TestSheets({
 
 // ---------------------------------------------------------------- 백지노트
 
+/** 4단 정리 칸(도식화 느낌 — 선생님 2026-10-27). 칸마다 이 단계에 해당하는 문장 번호를 적는다. */
+const FOUR_STEPS: Array<{ no: string; title: string; hint: string }> = [
+  { no: "1", title: "도입", hint: "소재 · 배경" },
+  { no: "2", title: "전개", hint: "문제 · 주장" },
+  { no: "3", title: "근거", hint: "예시 · 이유" },
+  { no: "4", title: "결론", hint: "요지 · 교훈" },
+];
+
+function FourStep({ s }: { s: (typeof FOUR_STEPS)[number] }) {
+  return (
+    <div className="tb-bn-step">
+      <div>
+        <b>
+          {s.no}. {s.title}
+        </b>
+        <small>{s.hint}</small>
+      </div>
+      <div>
+        <em>문장 ____ ~ ____</em>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 백지노트(지문마다 2쪽). 원문 문장마다 번호를 달고 아래 「문장별 정리」에 같은 번호 칸을 둔다(선생님 2026-10-27).
+ * 둘째 쪽은 4단 정리(도입 → 전개 → 근거 → 결론, 세로 흐름 — 시안 A안) → 동반의어 → 틀린 것 다시 쓰기.
+ */
 export function BlankNoteSheets({ index, project }: { index: number; project: TestBookProjectInput }) {
   const label = passageLabel(index, project);
+  const sentences = project.sentences.map((s) => s.english.trim()).filter(Boolean);
   return (
     <>
       <div className="tb-sheet tb-part">
         <div className="tb-note">
           <DocHead title="백지노트" sub="1/2" label={label} right={project.source?.trim() || "BLANK NOTE"} />
-          <div className="tb-psgbox">
+          <div className="tb-psgbox tb-bn-psg">
             <div className="tb-lb">
               <span>원문</span>
               <span>표시·메모하며 읽기</span>
             </div>
-            <p className="tb-en">{project.sentences.map((s) => s.english).join(" ")}</p>
+            <p className="tb-en">
+              {sentences.map((en, i) => (
+                <Fragment key={i}>
+                  <sup>{circled(i)}</sup>
+                  {en}{" "}
+                </Fragment>
+              ))}
+            </p>
+          </div>
+          <div className="tb-fill">
+            <div className="tb-lb">
+              <b>문장별 정리</b>
+              <span>해석 · 구문 · 핵심어를 문장 번호에 맞춰</span>
+            </div>
+            <div className="tb-bn-rows">
+              {sentences.map((_, i) => (
+                <div key={i}>
+                  <b>{circled(i)}</b>
+                  <span />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <BookFoot />
+      </div>
+      <div className="tb-sheet tb-part">
+        <div className="tb-note">
+          <DocHead title="백지노트" sub="2/2" label={label} right={project.source?.trim() || "BLANK NOTE"} />
+          <div className="tb-lb">
+            <b>4단 정리</b>
+            <span>글의 흐름을 네 단계로 · 단계마다 문장 번호</span>
+          </div>
+          <div className="tb-bn-four" style={{ borderTop: "1pt solid #15171c", paddingTop: "1.6mm" }}>
+              {FOUR_STEPS.map((s, i) => (
+                <Fragment key={s.no}>
+                  {i ? <div className="tb-bn-arrow">▼</div> : null}
+                  <FourStep s={s} />
+                </Fragment>
+              ))}
           </div>
           <div className="tb-fill">
             <div className="tb-lb">
@@ -1465,19 +1547,6 @@ export function BlankNoteSheets({ index, project }: { index: number; project: Te
               <span>↔ 반의어</span>
             </div>
             <div className="tb-gridlines tb-syn" />
-          </div>
-        </div>
-        <BookFoot />
-      </div>
-      <div className="tb-sheet tb-part">
-        <div className="tb-note">
-          <DocHead title="백지노트" sub="2/2" label={label} right={project.source?.trim() || "BLANK NOTE"} />
-          <div className="tb-fill" style={{ flex: 1.1 }}>
-            <div className="tb-lb">
-              <b>중요 내용 정리</b>
-              <span>주제 · 흐름 · 문법 · 서술형 포인트</span>
-            </div>
-            <div className="tb-gridlines tb-num" />
           </div>
           <div className="tb-fill">
             <div className="tb-lb">

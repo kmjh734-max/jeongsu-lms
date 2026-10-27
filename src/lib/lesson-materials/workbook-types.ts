@@ -810,6 +810,8 @@ export type WorkbookData = {
    * 선생님 말씀(2026-10-20): 답지가 한 단이라 쪽이 너무 많다(답지는 따로 프린트한다).
    */
   answerColumns?: 1 | 2;
+  /** 백지노트(지문마다 2쪽)를 정답지 앞에 붙인다 — 다시 만들지 않고 값도 없다(선생님 2026-10-27) */
+  blankNote?: boolean;
   /** 항목 인쇄 차례. 없으면 기본 순서(printOrder). */
   typeOrder?: WorkbookTypeId[];
   /**
