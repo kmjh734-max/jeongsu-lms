@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { postJson } from "@/lib/lesson-materials/post-json";
@@ -41,17 +41,24 @@ export function LessonVocabTab({
   sets,
   selectedIds,
   onMade,
+  askSignal = 0,
 }: {
   role: "admin" | "teacher";
   sets: LessonVocabSetRow[];
   selectedIds: string[];
   onMade: () => void;
+  /** 다른 탭 아래 바에서 「단어장 만들기」를 눌렀다(늘어날 때마다 이름 창을 띄운다) */
+  askSignal?: number;
 }) {
   const router = useRouter();
   const [naming, setNaming] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
   const vocabBase = `/${role}/vocab/set`;
+  useEffect(() => {
+    if (askSignal > 0 && selectedIds.length) setNaming(todayName());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [askSignal]);
 
   async function make(name: string) {
     setMessage(null);
@@ -167,6 +174,25 @@ export function LessonVocabTab({
           ))}
         </ul>
       )}
+
+      {selectedIds.length && naming == null && !busy ? (
+        // 지문을 고르면 아래에 뜨는 바(다른 탭의 선택 바와 같은 자리·모양, 선생님 2026-10-28)
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 flex justify-center px-4 lg:left-[244px]">
+          <div className="pointer-events-auto flex flex-wrap items-center gap-3 rounded-2xl bg-violet-600 px-4 py-3 text-white shadow-xl">
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-xs">✓</span>
+              {selectedIds.length}개 자료 선택됨
+            </span>
+            <button
+              type="button"
+              onClick={() => setNaming(todayName())}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-violet-700 shadow-sm hover:bg-violet-50"
+            >
+              📗 단어장 만들기
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {naming != null ? (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">

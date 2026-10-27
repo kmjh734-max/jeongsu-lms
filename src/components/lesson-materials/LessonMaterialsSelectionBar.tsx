@@ -17,6 +17,7 @@ export function LessonMaterialsSelectionBar({
   selectedIds,
   onEdit,
   onIntegrated,
+  onVocab,
   testBookOpen = false,
 }: {
   role: "admin" | "teacher";
@@ -25,6 +26,8 @@ export function LessonMaterialsSelectionBar({
   onEdit?: () => void;
   /** 최종통합자료 제작: 고른 지문으로 만든 파일을 골라 둔 생성 창을 연다. */
   onIntegrated?: () => void;
+  /** 단어장 만들기(자료함 「단어」 탭을 켠 학원만 — 윌링어학원, 2026-10-28) */
+  onVocab?: () => void;
   /** 수업자료 NEW(테스트 교재)를 켠 학원만 NEW 구역을 보인다 — 정수학원 */
   testBookOpen?: boolean;
 }) {
@@ -140,6 +143,11 @@ export function LessonMaterialsSelectionBar({
             >
               🗂 최종통합자료 제작
             </button>
+            {onVocab ? (
+              <button type="button" className={btn} onClick={onVocab} title="고른 지문의 단어로 단어장을 만듭니다">
+                📗 단어장 만들기
+              </button>
+            ) : null}
             <button
               type="button"
               className={btn}

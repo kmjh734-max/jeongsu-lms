@@ -119,6 +119,8 @@ export function LessonMaterialsLibrary({
     setLibraryTab("materials");
   }
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  /** 아래 바의 「단어장 만들기」를 누를 때마다 늘린다 — 단어 탭이 이름 창을 띄운다 */
+  const [vocabAsk, setVocabAsk] = useState(0);
   /** 내 순서(끌어서 정한 순서) / 최근 추가순. */
   const [sortMode, setSortMode] = useState<"custom" | "recent">("custom");
   const [error, setError] = useState<string | null>(null);
@@ -1023,6 +1025,7 @@ export function LessonMaterialsLibrary({
             sets={data.lessonVocabSets ?? []}
             selectedIds={selectedInInputOrder}
             onMade={() => setSelected(new Set())}
+            askSignal={vocabAsk}
           />
         ) : null}
         {(documentKind || libraryTab === "vocab") && showProjectList && !inTrash ? (
@@ -1253,6 +1256,15 @@ export function LessonMaterialsLibrary({
           selectedIds={selectedInInputOrder}
           testBookOpen={false}
           onIntegrated={() => setIntegratedOpen({ preselected: selectedInInputOrder })}
+          onVocab={
+            data.vocabTabOpen
+              ? () => {
+                  // 고른 지문은 그대로 두고 단어 탭으로 옮겨 이름 창을 띄운다
+                  setLibraryTab("vocab");
+                  setVocabAsk((n) => n + 1);
+                }
+              : undefined
+          }
         />
       ) : null}
       {integratedOpen ? (
