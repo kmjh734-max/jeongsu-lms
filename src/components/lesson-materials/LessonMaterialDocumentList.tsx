@@ -347,6 +347,22 @@ export function LessonMaterialDocumentList({
                     다시 만들기
                   </button>
                 ) : null}
+                {kind === "lesson_pack" ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.open(
+                        `${documentPagePath(role, "lesson_pack")}/vocab-exam?doc=${encodeURIComponent(doc.id)}`,
+                        "_blank",
+                        "noopener,noreferrer"
+                      )
+                    }
+                    className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50"
+                    title="이 수업용 자료의 단어로 영→한·한→영·동의어·반의어·파생어 시험지를 찍습니다"
+                  >
+                    단어 시험지
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => {
