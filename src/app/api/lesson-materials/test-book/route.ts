@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   chargeTestDrawAction,
+  prepareWorkbookChunkGlossAction,
   prepareWorkbookExtrasAction,
   loadDrawProjectsAction,
   prepareTestBookPassageAction,
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
       seed?: string;
       typeCount?: number;
       snapshot?: unknown;
+      chargeKey?: string;
     };
     const role = body.role === "admin" ? "admin" : "teacher";
     if (body.op === "registerVocab") {
@@ -56,6 +58,14 @@ export async function POST(request: Request) {
           regenerate: Array.isArray(body.regenerate)
             ? (body.regenerate.filter((x) => x === "vocab" || x === "gloss" || x === "content") as Array<"vocab" | "gloss" | "content">)
             : undefined,
+        })
+      );
+    }
+    if (body.op === "chunkGloss") {
+      return NextResponse.json(
+        await prepareWorkbookChunkGlossAction(role, {
+          projectId: String(body.projectId ?? ""),
+          chargeKey: typeof body.chargeKey === "string" ? body.chargeKey : undefined,
         })
       );
     }

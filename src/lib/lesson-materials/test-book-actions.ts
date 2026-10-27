@@ -127,6 +127,96 @@ export async function prepareWorkbookExtrasAction(
   return preparePassage(role, input, "workbook");
 }
 
+const LINE_TRANSLATION_FEATURE = "lesson_workbook_line_translation";
+
+/** 직독직해 덩어리가 문장 수만큼 있고 절반 넘게 채워졌는가 */
+function chunkGlossUsable(gloss: TestBookMaterial["chunkGloss"] | undefined, count: number) {
+  return !!gloss && gloss.length === count && gloss.filter((c) => c?.length).length * 2 >= count;
+}
+
+/**
+ * 워크북 해석 적기를 끊어 읽기로 만들 때 쓰는 직독직해 덩어리만 준다(선생님 2026-10-27: 문장마다 ↔ 끊어 읽기로
+ * 바꾸는데 왜 크레딧이 드나). 예전에는 워크북 부가 재료 전체(1장 재료·단어 정리·어순 덩어리, 지문당 200)를 만들고
+ * 값을 받았다. 덩어리는 gpt-4o-mini 한 번(1원 아래)이고 한 번 만들면 다시 쓴다.
+ * chargeKey가 있으면(처음 만들 때 끊어 읽기를 고른 경우) 문장마다 해석과 같은 한 줄 해석 값을 지문당 한 번 받는다.
+ * 바꾸기에는 chargeKey를 주지 않는다 — 값이 없다.
+ */
+export async function prepareWorkbookChunkGlossAction(
+  role: Role,
+  input: { projectId: string; chargeKey?: string }
+): Promise<
+  | {
+      ok: true;
+      sentences: Array<{ english: string; korean: string }>;
+      chunkGloss: Array<Array<{ en: string; ko: string }> | null>;
+      title: string;
+      source: string | null;
+    }
+  | Fail
+> {
+  const { profile, error } = await requireLessonRole(role);
+  if (error) return { ok: false, message: error };
+  const projectId = String(input.projectId ?? "").trim();
+  if (!projectId) return { ok: false, message: "선택된 지문이 없습니다." };
+  const chargeKey = String(input.chargeKey ?? "").trim().slice(0, 80);
+  const loaded = await loadProject(role, profile!, projectId);
+  if (!loaded) return { ok: false, message: "지문을 찾을 수 없습니다." };
+  const { supabase, project, items } = loaded;
+  const pack = (project.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+  const sentences = onePageSentences(items.filter((it) => String(it.english_text ?? "").trim()));
+  if (!sentences.length) return { ok: false, message: "지문 문장이 없습니다." };
+  const english = sentences.map((s) => s.english);
+  const hash = testBookSourceHash(english);
+
+  if (chargeKey) {
+    const shortfall = await lessonCreditShortfall(profile!.academy_id!, LINE_TRANSLATION_FEATURE);
+    if (shortfall) return { ok: false, message: shortfall };
+  }
+
+  const material = pack.testBookMaterial;
+  let chunkGloss =
+    material && isTestBookMaterialSameSource(material, english) && chunkGlossUsable(material.chunkGloss, sentences.length)
+      ? material.chunkGloss!
+      : pack.chunkGlossCache?.sourceHash === hash && chunkGlossUsable(pack.chunkGlossCache.chunkGloss, sentences.length)
+        ? pack.chunkGlossCache.chunkGloss
+        : null;
+  try {
+    if (!chunkGloss) {
+      const usage = {
+        academyId: profile!.academy_id,
+        actorId: profile!.id,
+        featureKey: chargeKey ? LINE_TRANSLATION_FEATURE : null,
+        usedFor: "workbook",
+        projectId,
+      };
+      chunkGloss = await withAiUsage(usage, () => glossTestBookChunks({ title: project.title as string, sentences }));
+      await flushAiUsage();
+      await patchLessonPack(supabase, projectId, pack, {
+        chunkGlossCache: { sourceHash: hash, chunkGloss, createdAt: new Date().toISOString() },
+      });
+    }
+    if (chargeKey) {
+      await debitLessonCredits({
+        academyId: profile!.academy_id!,
+        actorId: profile!.id,
+        featureKey: LINE_TRANSLATION_FEATURE,
+        projectId,
+        idempotencyKey: `${LINE_TRANSLATION_FEATURE}:chunk:${chargeKey}:${projectId}`,
+        note: `워크북 해석 적기(끊어 읽기) · ${project.title}`,
+      });
+    }
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "끊어 읽기를 만들지 못했습니다." };
+  }
+  return {
+    ok: true,
+    sentences,
+    chunkGloss,
+    title: String(project.title ?? ""),
+    source: (project.source as string | null) ?? null,
+  };
+}
+
 export async function prepareTestBookPassageAction(
   role: Role,
   input: {

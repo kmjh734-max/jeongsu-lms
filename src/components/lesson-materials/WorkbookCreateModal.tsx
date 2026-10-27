@@ -130,6 +130,8 @@ export function workbookPaidItems(types: WorkbookTypeId[], n: number): Array<{ f
   // 한 줄 해석·전체 영작·제시어 배열도 모델을 부른다(2026-09-29부터 값을 받는다)
   if (
     types.includes("one_line_ko") ||
+    // 해석 적기를 끊어 읽기로 골라도 문장마다와 같은 값(선생님 2026-10-27)
+    (types.includes("tb_chunk_line") && !types.some((t) => isTbWorkbookType(t) && t !== "tb_chunk_line")) ||
     types.includes("full_en_writing") ||
     types.includes("word_order_writing") ||
     types.includes("key_word_order")
@@ -139,7 +141,8 @@ export function workbookPaidItems(types: WorkbookTypeId[], n: number): Array<{ f
   if (types.includes("word_order_writing") || types.includes("key_word_order"))
     paid.push({ feature: "lesson_workbook_word_order", quantity: n });
   // 지칭·함축·바꿔 말하기·도식화·연결어·삽입·요약문·직독직해·단어 시험지 — 지문당 한 번(여러 갈래를 골라도)
-  if (types.some(isTbWorkbookType)) paid.push({ feature: "lesson_workbook_extras", quantity: n });
+  // 끊어 읽기만이면 부가 재료가 필요 없다(직독직해 덩어리만 만든다)
+  if (types.some((t) => isTbWorkbookType(t) && t !== "tb_chunk_line")) paid.push({ feature: "lesson_workbook_extras", quantity: n });
   return paid;
 }
 

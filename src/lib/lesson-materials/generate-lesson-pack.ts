@@ -37,6 +37,8 @@ export type LessonPackData = {
   onePageContent?: import("@/lib/lesson-materials/one-page").OnePageContent | null;
   /** 테스트 교재 재료(단어 정리·중요문장·어순 덩어리) */
   testBookMaterial?: import("@/lib/lesson-materials/test-book").TestBookMaterial | null;
+  /** 끊어 읽기(직독직해) 덩어리만 따로 만든 것 — 테스트 교재 재료 없이 워크북 해석 적기를 끊어 읽기로 바꿀 때 */
+  chunkGlossCache?: { sourceHash: string; chunkGloss: Array<Array<{ en: string; ko: string }> | null>; createdAt: string } | null;
   /**
    * 반의어가 적은 단어장을 한 번 다시 만들었거나 선생님이 저장했다. 그 뒤로는 반의어가
    * 적어도 열 때마다 다시 만들지 않는다(예전에는 열 때마다 다시 만들어 고친 내용을 덮었다).

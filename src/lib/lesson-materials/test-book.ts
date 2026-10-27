@@ -623,6 +623,24 @@ function buildLine(p: Ready, seed: string, mode: LineMode = "full", max?: number
   };
 }
 
+/**
+ * 직독직해 덩어리만으로 「해석 적기(끊어 읽기)」 문항을 만든다 — buildTestSheet(…, ["line"], { lineMode: "chunk" })와
+ * 같은 결과(같은 열쇠). 워크북에서 문장마다 ↔ 끊어 읽기로 바꿀 때 1장 재료 없이 쓴다(선생님 2026-10-27).
+ */
+export function buildChunkLineSection(
+  p: { id: string; title: string; source: string | null; sentences: Array<{ english: string; korean: string }> },
+  chunkGloss: TestBookMaterial["chunkGloss"],
+  seed: string
+): TestSection | null {
+  // 해석이 비어도 덩어리 뜻이 있으면 그 문장을 싣는다
+  const sentences = p.sentences.map((s, si) => ({
+    ...s,
+    korean: s.korean.trim() || (chunkGloss?.[si] ?? []).map((c) => c.ko).join(" "),
+  }));
+  const ready = { ...p, titleEn: null, sentences, material: { chunkGloss, keyIndexes: [] } } as unknown as Ready;
+  return buildLine(ready, `${seed}|${p.id}`, "chunk");
+}
+
 const STOP = new Set(
   "about above after again against because before being below between could during every their there these those through under until where which while would should other another however therefore people".split(" ")
 );

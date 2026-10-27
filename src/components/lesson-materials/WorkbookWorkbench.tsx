@@ -92,8 +92,9 @@ import {
   type MaterialDesign,
 } from "@/lib/lesson-materials/material-design";
 import { watchPageNumbersById } from "@/lib/lesson-materials/page-numbers";
-import type { prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-book-actions";
+import type { prepareWorkbookChunkGlossAction, prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-book-actions";
 import {
+  buildChunkLineSection,
   buildTestSheet,
   buildVocabExam,
   DEFAULT_VOCAB_EXAM,
@@ -270,6 +271,7 @@ function withWorkbookDefaults(w: WorkbookData): WorkbookData {
 }
 
 type PrepareExtrasResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
+type ChunkGlossResult = Awaited<ReturnType<typeof prepareWorkbookChunkGlossAction>>;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** 워크북에 실린 지문(처음 나온 순서) — 유형마다 지문 목록이 따로라 projectId를 모두 모은다 */
@@ -1991,32 +1993,34 @@ export function WorkbookWorkbench({
       editWorkbook(swap);
       return;
     }
-    // 문장별 전체해석은 이미 저장된 해석을 다시 배열하기만 하므로 값을 받지 않는다.
-    // 끊어읽기 재료가 없을 때만 새 재료 제작 값을 확인한다.
-    if (mode === "chunk") {
-      const go = await askCreditConfirm({
-        title: "해석 적기 바꾸기",
-        description: "해석 적기를 끊어 읽기(직독직해)로 바꿉니다. 지문마다 끊어 읽기 재료를 만듭니다(이미 만든 지문은 값이 들지 않습니다).",
-        subject: `지문 ${ids.length}개`,
-        contents: ["해석 적기 (끊어 읽기)"],
-        items: [{ feature: "lesson_workbook_extras", quantity: ids.length }],
-        sample: "workbook",
-      });
-      if (!go) return;
-    }
+    // 바꾸기는 어느 쪽이든 값을 받지 않는다(선생님 2026-10-27). 문장별 전체해석은 저장된 해석을 다시 배열하고,
+    // 끊어 읽기는 직독직해 덩어리만 만든다(예전에는 워크북 부가 재료 전체를 만들며 지문당 200을 받았다).
     setLineBusy("바꾸는 중…");
     try {
       if (mode === "chunk") {
-        const list: WorkbookTbSection[] = [];
-        for (let i = 0; i < ids.length; i++) {
-          setLineBusy(`끊어 읽기를 만드는 중… (${i + 1}/${ids.length})`);
-          const g = await postJson<PrepareExtrasResult>("/api/lesson-materials/test-book", { role, op: "prepareWorkbook", projectId: ids[i]! });
-          if (!g.ok) continue;
-          const ready = { id: ids[i]!, title: g.title, titleEn: null, source: g.source, sentences: g.sentences, content: g.content, material: g.material };
-          const sec = buildTestSheet(ready, ["line"], { seed: "workbook", lineMode: "chunk" }).sections[0];
-          if (sec) list.push({ projectId: ids[i]!, title: g.title, source: g.source, section: sec });
-        }
-        if (!list.length) throw new Error("끊어 읽기 문항을 만들지 못했습니다.");
+        const got = new Array<WorkbookTbSection | null>(ids.length).fill(null);
+        const fails: string[] = [];
+        let next = 0;
+        let done = 0;
+        const worker = async () => {
+          for (;;) {
+            const i = next;
+            next += 1;
+            if (i >= ids.length) return;
+            const g = await postJson<ChunkGlossResult>("/api/lesson-materials/test-book", { role, op: "chunkGloss", projectId: ids[i]! });
+            done += 1;
+            setLineBusy(`끊어 읽기를 만드는 중… (${done}/${ids.length})`);
+            if (!g.ok) {
+              fails.push(g.message);
+              continue;
+            }
+            const sec = buildChunkLineSection({ id: ids[i]!, title: g.title, source: g.source, sentences: g.sentences }, g.chunkGloss, "workbook");
+            if (sec) got[i] = { projectId: ids[i]!, title: g.title, source: g.source, section: sec };
+          }
+        };
+        await Promise.all(Array.from({ length: Math.min(4, ids.length) }, worker));
+        const list = got.filter((x): x is WorkbookTbSection => x !== null);
+        if (!list.length) throw new Error(fails[0] ?? "끊어 읽기 문항을 만들지 못했습니다.");
         editWorkbook((w) => swap({ ...w, tbSections: { ...(w.tbSections ?? {}), tb_chunk_line: list } }));
       } else {
         const res = await postJson<Awaited<ReturnType<typeof generateWorkbookAction>>>("/api/lesson-materials/workbook", {
@@ -2519,7 +2523,44 @@ export function WorkbookWorkbench({
               counts: Object.fromEntries(vx.split(",").map((kv) => kv.split(":")).map(([k, n]) => [k, Number(n)])),
             })
           : DEFAULT_VOCAB_EXAM;
-        const tbTask = tbTypes.length
+        // 해석 적기(끊어 읽기)만 고르면 부가 재료 전체 대신 직독직해 덩어리만 만들고, 문장마다 해석과 같은
+        // 한 줄 해석 값(지문당)만 받는다(선생님 2026-10-27 — 예전에는 부가 재료 값 200을 받았다).
+        const chunkOnly = tbTypes.length === 1 && tbTypes[0] === "tb_chunk_line";
+        const chunkChargeKey = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+        const tbTask = chunkOnly
+          ? (async () => {
+              const list = new Array<WorkbookTbSection | null>(ids.length).fill(null);
+              const miss: WorkbookGrammarChoiceSkip[] = [];
+              let next = 0;
+              const worker = async () => {
+                for (;;) {
+                  const i = next;
+                  next += 1;
+                  if (i >= ids.length || cancelled) return;
+                  const g = await postJson<ChunkGlossResult>("/api/lesson-materials/test-book", {
+                    role,
+                    op: "chunkGloss",
+                    projectId: ids[i]!,
+                    chargeKey: chunkChargeKey,
+                  });
+                  if (cancelled) return;
+                  if (!g.ok) {
+                    miss.push({ projectId: ids[i]!, title: ids[i]!, reason: g.message });
+                    continue;
+                  }
+                  const sec = buildChunkLineSection({ id: ids[i]!, title: g.title, source: g.source, sentences: g.sentences }, g.chunkGloss, "workbook");
+                  if (sec) list[i] = { projectId: ids[i]!, title: g.title, source: g.source, section: sec };
+                  else miss.push({ projectId: ids[i]!, title: g.title, reason: "이 지문은 끊어 읽기 문항을 만들지 못했습니다." });
+                }
+              };
+              await Promise.all(Array.from({ length: Math.min(4, ids.length) }, worker));
+              const sections: Partial<Record<TbWorkbookTypeId, WorkbookTbSection[]>> = {
+                tb_chunk_line: list.filter((x): x is WorkbookTbSection => x !== null),
+              };
+              const skipped: Partial<Record<TbWorkbookTypeId, WorkbookGrammarChoiceSkip[]>> = { tb_chunk_line: miss };
+              return { sections, skipped, vocabExam: null };
+            })()
+          : tbTypes.length
           ? (async () => {
               const got = new Array<Extract<PrepareExtrasResult, { ok: true }> | null>(ids.length).fill(null);
               const skips: WorkbookGrammarChoiceSkip[] = [];

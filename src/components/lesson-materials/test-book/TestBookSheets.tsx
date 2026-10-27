@@ -71,7 +71,7 @@ export const TEST_BOOK_CSS = `
 .tb-q{display:flex;align-items:center;gap:2.2mm;border-top:1.2pt solid #15171c;padding-top:1.6mm;margin-bottom:1.6mm;font-size:10pt;font-weight:700}
 .tb-q .tb-qn{display:inline-grid;place-items:center;min-width:6mm;height:6mm;padding:0 1mm;background:#15171c;color:#fff;font-size:8pt;font-weight:700}
 .tb-q small{font-weight:400;color:#6a707c;font-size:8pt}
-.tb-it{display:grid;grid-template-columns:7mm minmax(0,1fr);column-gap:1mm;margin-bottom:1.6mm}
+.tb-it{display:grid;grid-template-columns:7mm minmax(0,1fr);column-gap:1mm;margin-bottom:1.6mm;break-inside:avoid;page-break-inside:avoid}
 .tb-it > .tb-i{color:#6a707c;font-size:8pt;padding-top:.6mm}
 .tb-it .tb-txt{font-size:10pt;line-height:1.6}
 .tb-ko{color:#5b616c;font-size:8.5pt;margin-top:.4mm}
