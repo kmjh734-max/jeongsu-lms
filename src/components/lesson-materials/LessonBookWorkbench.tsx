@@ -13,7 +13,7 @@ import type {
   loadDrawProjectsAction,
   prepareWorkbookExtrasAction,
 } from "@/lib/lesson-materials/test-book-actions";
-import { buildVocabExam, isTestBookProjectReady, type TestBookProjectInput } from "@/lib/lesson-materials/test-book";
+import { PASSAGE_PREP_CONCURRENCY, buildVocabExam, isTestBookProjectReady, type TestBookProjectInput } from "@/lib/lesson-materials/test-book";
 import { vocabExamCaps } from "@/components/lesson-materials/test-book/useVocabExamCaps";
 import { DEFAULT_LESSON_BOOK_OPTIONS, type LessonBookOptions } from "@/lib/lesson-materials/lesson-book-options";
 import { saveLessonPackOptions } from "@/lib/lesson-materials/document-actions";
@@ -47,7 +47,7 @@ const DEFAULT_OPTIONS = DEFAULT_LESSON_BOOK_OPTIONS;
 const OPTIONS_KEY = "lesson-book-options";
 const PAGE_NUMBER_KEY = "lesson-book-page-numbers";
 const PDF_SELECTOR = ":is(.tb-sheet:not(.tb-measure .tb-sheet))";
-const CONCURRENCY = 3;
+const CONCURRENCY = PASSAGE_PREP_CONCURRENCY;
 const PRINT_CSS = `
 @media print {
   @page { size: 210mm 297mm; margin: 0; }

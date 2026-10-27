@@ -470,6 +470,12 @@ export type TestSheet = {
  */
 export const TEST_DRAW_SET_TYPES = new Set<TestBookTypeKey>(["link", "insert", "summary", "flow", "sequence", "sentenceOrder", "gist"]);
 export const TEST_DRAW_SET_CREDITS = 3;
+
+/**
+ * 지문 재료(단어·해석·1장 자료 재료)를 한꺼번에 몇 지문씩 만드는가(선생님 2026-10-27 「모든 게 좀 오래 걸려」).
+ * 지문 하나가 약 3분인데 3개씩(어떤 화면은 하나씩) 돌려 7지문이면 9분 넘게 걸렸다. 지문 안의 호출은 이미 동시에 나간다.
+ */
+export const PASSAGE_PREP_CONCURRENCY = 6;
 export const TEST_DRAW_VOCAB_CREDITS = 3;
 
 export function testDrawUnits(

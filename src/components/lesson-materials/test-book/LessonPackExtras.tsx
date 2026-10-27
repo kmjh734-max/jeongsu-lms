@@ -1,5 +1,8 @@
 "use client";
 
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import { PASSAGE_PREP_CONCURRENCY } from "@/lib/lesson-materials/test-book";
+
 import { useEffect, useMemo, useState } from "react";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { postJson } from "@/lib/lesson-materials/post-json";
@@ -112,19 +115,21 @@ export function useExtrasProjects(role: "admin" | "teacher", projectIds: string[
     });
     if (!go) return;
     const failed: string[] = [];
-    for (let i = 0; i < missing.length; i++) {
-      setBusy(`재료를 만들고 있습니다… (${i + 1}/${missing.length})`);
+    let done = 0;
+    setBusy(`재료를 만들고 있습니다… (0/${missing.length})`);
+    await runWithConcurrency(missing, PASSAGE_PREP_CONCURRENCY, async (p) => {
       try {
         const res = await postJson<PrepareResult>("/api/lesson-materials/test-book", {
           role,
           op: "prepareWorkbook",
-          projectId: missing[i]!.id,
+          projectId: p.id,
         });
-        if (!res.ok) failed.push(`「${missing[i]!.title}」 ${res.message}`);
+        if (!res.ok) failed.push(`「${p.title}」 ${res.message}`);
       } catch (e) {
-        failed.push(`「${missing[i]!.title}」 ${e instanceof Error ? e.message : "만들지 못했습니다."}`);
+        failed.push(`「${p.title}」 ${e instanceof Error ? e.message : "만들지 못했습니다."}`);
       }
-    }
+      setBusy(`재료를 만들고 있습니다… (${++done}/${missing.length})`);
+    });
     setBusy(null);
     setError(failed.length ? failed.join(" · ") : null);
     await load();
@@ -133,20 +138,22 @@ export function useExtrasProjects(role: "admin" | "teacher", projectIds: string[
   async function regenerate(ids: string[], parts: RegenPart[]) {
     if (busy || !ids.length || !parts.length) return;
     const failed: string[] = [];
-    for (let i = 0; i < ids.length; i++) {
-      setBusy(`다시 만들고 있습니다… (${i + 1}/${ids.length})`);
+    let done = 0;
+    setBusy(`다시 만들고 있습니다… (0/${ids.length})`);
+    await runWithConcurrency(ids, PASSAGE_PREP_CONCURRENCY, async (id) => {
       try {
         const res = await postJson<PrepareResult>("/api/lesson-materials/test-book", {
           role,
           op: "prepareWorkbook",
-          projectId: ids[i]!,
+          projectId: id,
           regenerate: parts,
         });
         if (!res.ok) failed.push(res.message);
       } catch (e) {
         failed.push(e instanceof Error ? e.message : "다시 만들지 못했습니다.");
       }
-    }
+      setBusy(`다시 만들고 있습니다… (${++done}/${ids.length})`);
+    });
     setBusy(null);
     setError(failed.length ? failed.join(" · ") : null);
     await load();

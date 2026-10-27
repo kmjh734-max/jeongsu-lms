@@ -1,5 +1,7 @@
 "use client";
 
+import { PASSAGE_PREP_CONCURRENCY } from "@/lib/lesson-materials/test-book";
+
 import { CloseSaveButton } from "@/components/lesson-materials/CloseSaveButton";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
@@ -89,7 +91,7 @@ type GrammarChoiceResult = Awaited<ReturnType<typeof generateGrammarChoicePassag
 type PrepareResult = Awaited<ReturnType<typeof prepareTestBookPassageAction>>;
 type RegisterResult = Awaited<ReturnType<typeof registerTestBookVocabAction>>;
 
-const CONCURRENCY = 3;
+const CONCURRENCY = PASSAGE_PREP_CONCURRENCY;
 const BOOK_SEED = "book";
 /** 뽑기 설정을 두는 곳(이 브라우저) */
 const DRAW_SETTINGS_KEY = "test-book-draw-settings";

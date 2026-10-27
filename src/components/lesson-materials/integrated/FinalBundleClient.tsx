@@ -1,5 +1,8 @@
 "use client";
 
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import { PASSAGE_PREP_CONCURRENCY } from "@/lib/lesson-materials/test-book";
+
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { LessonBookWorkbench } from "@/components/lesson-materials/LessonBookWorkbench";
 import type { LessonBookOptions } from "@/lib/lesson-materials/lesson-book-options";
@@ -453,9 +456,9 @@ export function FinalBundleClient({
     });
     if (!go) return;
     const failed: string[] = [];
-    for (let i = 0; i < vocabMissing.length; i++) {
-      const p = vocabMissing[i]!;
-      setPreparing(`단어장 재료를 만들고 있습니다… (${i + 1}/${vocabMissing.length})`);
+    let done = 0;
+    setPreparing(`단어장 재료를 만들고 있습니다… (0/${vocabMissing.length})`);
+    await runWithConcurrency(vocabMissing, PASSAGE_PREP_CONCURRENCY, async (p) => {
       try {
         const res = await postJson<PrepareResult>("/api/lesson-materials/test-book", {
           role,
@@ -466,7 +469,8 @@ export function FinalBundleClient({
       } catch (e) {
         failed.push(`「${p.title}」 ${e instanceof Error ? e.message : "만들지 못했습니다."}`);
       }
-    }
+      setPreparing(`단어장 재료를 만들고 있습니다… (${++done}/${vocabMissing.length})`);
+    });
     if (failed.length) {
       setPreparing(failed.join(" · "));
       return;
@@ -478,20 +482,22 @@ export function FinalBundleClient({
   async function regenerateMaterials(ids: string[], parts: RegenPart[]) {
     if (preparing || !ids.length || !parts.length) return;
     const failed: string[] = [];
-    for (let i = 0; i < ids.length; i++) {
-      setPreparing(`다시 만들고 있습니다… (${i + 1}/${ids.length})`);
+    let done = 0;
+    setPreparing(`다시 만들고 있습니다… (0/${ids.length})`);
+    await runWithConcurrency(ids, PASSAGE_PREP_CONCURRENCY, async (id) => {
       try {
         const res = await postJson<PrepareResult>("/api/lesson-materials/test-book", {
           role,
           op: "prepareWorkbook",
-          projectId: ids[i]!,
+          projectId: id,
           regenerate: parts,
         });
         if (!res.ok) failed.push(res.message);
       } catch (e) {
         failed.push(e instanceof Error ? e.message : "다시 만들지 못했습니다.");
       }
-    }
+      setPreparing(`다시 만들고 있습니다… (${++done}/${ids.length})`);
+    });
     if (failed.length) {
       setPreparing(failed.join(" · "));
       return;

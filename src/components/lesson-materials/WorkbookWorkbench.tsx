@@ -1,5 +1,7 @@
 "use client";
 
+import { PASSAGE_PREP_CONCURRENCY } from "@/lib/lesson-materials/test-book";
+
 import { CloseSaveButton } from "@/components/lesson-materials/CloseSaveButton";
 import { ChoiceItemEditor } from "@/components/lesson-materials/ChoiceItemEditor";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
@@ -2075,7 +2077,7 @@ export function WorkbookWorkbench({
             if (sec) got[i] = { projectId: ids[i]!, title: g.title, source: g.source, section: sec };
           }
         };
-        await Promise.all(Array.from({ length: Math.min(4, ids.length) }, worker));
+        await Promise.all(Array.from({ length: Math.min(PASSAGE_PREP_CONCURRENCY, ids.length) }, worker));
         const list = got.filter((x): x is WorkbookTbSection => x !== null);
         if (!list.length) throw new Error(fails[0] ?? "끊어 읽기 문항을 만들지 못했습니다.");
         editWorkbook((w) => swap({ ...w, tbSections: { ...(w.tbSections ?? {}), tb_chunk_line: list } }));
@@ -2610,7 +2612,7 @@ export function WorkbookWorkbench({
                   else miss.push({ projectId: ids[i]!, title: g.title, reason: "이 지문은 끊어 읽기 문항을 만들지 못했습니다." });
                 }
               };
-              await Promise.all(Array.from({ length: Math.min(4, ids.length) }, worker));
+              await Promise.all(Array.from({ length: Math.min(PASSAGE_PREP_CONCURRENCY, ids.length) }, worker));
               const sections: Partial<Record<TbWorkbookTypeId, WorkbookTbSection[]>> = {
                 tb_chunk_line: list.filter((x): x is WorkbookTbSection => x !== null),
               };
@@ -2639,7 +2641,7 @@ export function WorkbookWorkbench({
                   else skips.push({ projectId: ids[i]!, title: ids[i]!, reason: one.message });
                 }
               };
-              await Promise.all(Array.from({ length: Math.min(4, ids.length) }, worker));
+              await Promise.all(Array.from({ length: Math.min(PASSAGE_PREP_CONCURRENCY, ids.length) }, worker));
               const sections: Partial<Record<TbWorkbookTypeId, WorkbookTbSection[]>> = {};
               const skipped: Partial<Record<TbWorkbookTypeId, WorkbookGrammarChoiceSkip[]>> = {};
               for (const t of tbTypes) {
