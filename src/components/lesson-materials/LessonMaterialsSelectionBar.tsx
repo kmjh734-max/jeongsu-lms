@@ -32,8 +32,11 @@ export function LessonMaterialsSelectionBar({
   const [mockOpen, setMockOpen] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
   const [opening, setOpening] = useState(false);
-  /** 1장 자료는 만들기 전에 제목(파일 이름)을 먼저 적는다. */
-  const [naming, setNaming] = useState<{ kind: "one_page_summary" | "one_page_test" | "test_book"; name: string } | null>(null);
+  /** 만들기 전에 제목(파일 이름)을 먼저 적는다 — 1장 자료·테스트 교재, 수업용 자료·분석서도(선생님 2026-10-27 「이름 변경이 제작 이후에만 됨」) */
+  const [naming, setNaming] = useState<{
+    kind: "one_page_summary" | "one_page_test" | "test_book" | "lesson_pack" | "analysis_report";
+    name: string;
+  } | null>(null);
   if (selectedCount <= 0) return null;
 
   async function make(kind: LessonMaterialDocumentKind, name?: string) {
@@ -88,7 +91,7 @@ export function LessonMaterialsSelectionBar({
               type="button"
               className={btn}
               disabled={opening}
-              onClick={() => void make("lesson_pack")}
+              onClick={() => setNaming({ kind: "lesson_pack", name: defaultDocumentName("lesson_pack") })}
             >
               ✦ 수업용 자료 제작
             </button>
@@ -96,7 +99,7 @@ export function LessonMaterialsSelectionBar({
               type="button"
               className={btn}
               disabled={opening}
-              onClick={() => void make("analysis_report")}
+              onClick={() => setNaming({ kind: "analysis_report", name: defaultDocumentName("analysis_report") })}
             >
               📄 지문 분석서 제작
             </button>
@@ -203,7 +206,11 @@ export function LessonMaterialsSelectionBar({
                   ? "📃 1장 요약직보자료 만들기"
                   : naming.kind === "test_book"
                     ? "🧪 테스트 교재 만들기"
-                    : "📝 1장 테스트 만들기"}
+                    : naming.kind === "lesson_pack"
+                      ? "✦ 수업용 자료 만들기"
+                      : naming.kind === "analysis_report"
+                        ? "📄 지문 분석서 만들기"
+                        : "📝 1장 테스트 만들기"}
               </h2>
               <button
                 type="button"

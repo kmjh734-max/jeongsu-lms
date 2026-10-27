@@ -35,6 +35,7 @@ import {
 import { DEFAULT_VOCAB_EXAM, type VocabExamOptions } from "@/lib/lesson-materials/test-book";
 import { workbookExistingTypesForAdd } from "@/lib/lesson-materials/workbook-merge";
 import { VocabExamControls } from "@/components/lesson-materials/test-book/TestBookControls";
+import { useVocabExamCaps } from "@/components/lesson-materials/test-book/useVocabExamCaps";
 
 export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v6";
 
@@ -237,6 +238,8 @@ export function WorkbookCreateModal({
   const wantWordOrder = selected.has("word_order_writing");
   const wantKeyWordOrder = selected.has("key_word_order");
   const wantVocabExam = selected.has("tb_vocab_exam");
+  /** 고른 지문의 단어 수·유형마다 최대 문항 수(만들기 전에 보인다, 값 없음) */
+  const vocabCaps = useVocabExamCaps(role, projectIds, open && wantVocabExam);
   const wantGist = selected.has("gist_ko");
 
   if (!open || asking) return null;
@@ -674,7 +677,7 @@ export function WorkbookCreateModal({
                   <p className="text-sm font-bold text-slate-900">단어 시험 옵션</p>
                   <div className="rounded-xl border border-slate-200 p-3">
                     <p className="mb-2 text-[11px] text-slate-500">유형마다 문항 수(0이면 빼기) · 고른 지문의 단어를 합쳐 한 시험으로 냅니다.</p>
-                    <VocabExamControls value={vocabExam} onChange={setVocabExam} />
+                    <VocabExamControls value={vocabExam} onChange={setVocabExam} caps={vocabCaps} />
                   </div>
                 </div>
               ) : null}

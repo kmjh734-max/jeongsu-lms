@@ -20,6 +20,7 @@ import {
   type WritingScope,
 } from "@/lib/lesson-materials/test-book";
 import type { ReactNode } from "react";
+import type { VocabExamCaps } from "@/components/lesson-materials/test-book/useVocabExamCaps";
 
 export const TRANSLATION_MODES: Array<{ id: TestBookOptions["translation"]; label: string }> = [
   { id: "show", label: "해석 있음" },
@@ -27,15 +28,41 @@ export const TRANSLATION_MODES: Array<{ id: TestBookOptions["translation"]; labe
   { id: "back", label: "뒤쪽에 모음" },
 ];
 
-/** 단어 시험지: 유형마다 문항 수(0이면 빼기) */
-export function VocabExamControls({ value, onChange }: { value: VocabExamOptions; onChange: (v: VocabExamOptions) => void }) {
+/**
+ * 단어 시험지: 유형마다 문항 수(0이면 빼기). caps를 주면 고른 지문의 단어 수와 유형마다 낼 수 있는 최대 문항 수를 같이 보인다
+ * (선생님 2026-10-27 — 만들기 전에 단어 개수를 알 수 있게). 단어가 모자란 유형은 있는 만큼만 나온다.
+ */
+export function VocabExamControls({
+  value,
+  onChange,
+  caps,
+}: {
+  value: VocabExamOptions;
+  onChange: (v: VocabExamOptions) => void;
+  caps?: VocabExamCaps | null;
+}) {
   const total = VOCAB_EXAM_KINDS.reduce((n, k) => n + (value.counts[k.key] ?? 0), 0);
+  const real = caps ? VOCAB_EXAM_KINDS.reduce((n, k) => n + Math.min(value.counts[k.key] ?? 0, caps.perKind[k.key]), 0) : total;
   return (
     <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-2">
-      <p className="text-[11px] font-bold text-slate-500">유형별 문항 수 · 모두 {total}문항</p>
+      {caps ? (
+        <p className="text-[11px] font-bold text-violet-700">
+          고른 지문 단어 {caps.words}개{caps.missing ? ` · 단어 정리가 없는 지문 ${caps.missing}개는 만들 때 더해짐` : ""}
+        </p>
+      ) : null}
+      <p className="text-[11px] font-bold text-slate-500">
+        유형별 문항 수 · 모두 {caps && real < total ? `${real}문항(고른 ${total}문항 중 단어가 있는 만큼)` : `${total}문항`}
+      </p>
       {VOCAB_EXAM_KINDS.map((k) => (
         <label key={k.key} className="flex items-center justify-between gap-2 text-[12px] text-slate-700" title={k.hint}>
-          <span className={value.counts[k.key] ? "" : "text-slate-400"}>{k.label}</span>
+          <span className={value.counts[k.key] ? "" : "text-slate-400"}>
+            {k.label}
+            {caps ? (
+              <span className={`ml-1 text-[10.5px] ${(value.counts[k.key] ?? 0) > caps.perKind[k.key] ? "font-bold text-amber-600" : "text-slate-400"}`}>
+                최대 {caps.perKind[k.key]}
+              </span>
+            ) : null}
+          </span>
           <select
             value={value.counts[k.key] ?? 0}
             onChange={(e) => onChange({ counts: { ...value.counts, [k.key]: Number(e.target.value) } })}

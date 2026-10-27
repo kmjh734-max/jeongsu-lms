@@ -21,6 +21,7 @@ import {
   partStyle,
 } from "@/components/lesson-materials/test-book/TestBookSheets";
 import { VocabExamControls } from "@/components/lesson-materials/test-book/TestBookControls";
+import { vocabExamCaps } from "@/components/lesson-materials/test-book/useVocabExamCaps";
 import { MaterialDesignPicker } from "@/components/lesson-materials/MaterialDesignPicker";
 import { useMaterialDesign } from "@/lib/lesson-materials/material-design";
 
@@ -59,6 +60,7 @@ export function LessonPackVocabExam({
   const [md, chooseMd] = useMaterialDesign();
   const ready = useMemo(() => projects.filter(isTestBookProjectReady), [projects]);
   const missing = projects.length - ready.length;
+  const caps = useMemo(() => vocabExamCaps(projects), [projects]);
 
   // 유형별 문항 수 · 정답지 — 이 브라우저에 기억한다
   const [counts, setCounts] = useState<VocabExamOptions>(DEFAULT_VOCAB_EXAM);
@@ -136,7 +138,7 @@ export function LessonPackVocabExam({
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm">
-          <VocabExamControls value={counts} onChange={chooseCounts} />
+          <VocabExamControls value={counts} onChange={chooseCounts} caps={caps} />
           {short.length ? (
             <p className="text-[11px] leading-snug text-amber-700">
               단어가 모자라 덜 나온 유형: {short.map((s) => `${s.title} ${s.items.length}문항`).join(" · ")}

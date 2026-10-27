@@ -215,6 +215,8 @@ export type WorkbookTbSection = {
   title: string;
   source: string | null;
   section: TestSection;
+  /** 지문 원문(요약문 완성 위에 싣는다, 선생님 2026-10-27). 옛 워크북은 없어 화면이 불러온다. */
+  passage?: string;
 };
 
 export const READY_WORKBOOK_TYPE_IDS: WorkbookTypeId[] = WORKBOOK_TYPE_CATALOG.filter(
@@ -497,6 +499,8 @@ export type WorkbookGistSection = {
   title: string;
   source: string | null;
   items: WorkbookGistItem[];
+  /** 지문 원문(문항 위에 싣는다, 선생님 2026-10-27). 옛 워크북은 없어 화면이 불러온다. */
+  passage?: string;
 };
 
 export type WorkbookFullEnWritingItem = {

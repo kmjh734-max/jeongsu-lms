@@ -51,6 +51,7 @@ import {
   type WorkbookVocabChoiceSection,
   defaultWorkbookTitle,
   formatWorkbookPassage,
+  joinWorkbookPassageLines,
   parseBlankDensity,
   parseBlankHintType,
   parseBlankTranslationLayout,
@@ -1203,25 +1204,51 @@ function GistKindTag({ kind }: { kind: keyof typeof GIST_KIND_LABEL }) {
   );
 }
 
+/** 문항 위에 싣는 지문 원문(제목·주제·요지 해석·요약문 완성 — 선생님 2026-10-27 「지문이 나오지 않는다」) */
+function WorkbookPassageText({ text }: { text?: string }) {
+  if (!text) return null;
+  return (
+    <>
+      <p className="workbook-passage text-[13px] leading-relaxed text-slate-900">{formatWorkbookPassage(text)}</p>
+      <div className="wb-divider my-4 h-px w-full bg-slate-200" />
+    </>
+  );
+}
+
+function GistIntro({ section, passage }: { section: WorkbookGistSection; passage?: string }) {
+  return (
+    <>
+      <PassageMeta projectId={section.projectId} source={section.source} gap="mb-3" spacer />
+      <WorkbookPassageText text={passage} />
+      <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
+        {passage
+          ? "위 글의 제목·주제·요지를 바꿔 쓴 영어입니다. 우리말로 해석하세요."
+          : "다음은 이 글의 제목·주제·요지를 바꿔 쓴 영어입니다. 우리말로 해석하세요."}
+      </p>
+    </>
+  );
+}
+
 function GistQuestionBody({
   section,
   itemIndices,
   continued,
+  passage,
 }: {
   section: WorkbookGistSection;
   itemIndices?: number[];
   continued?: boolean;
+  passage?: string;
 }) {
   const items =
     itemIndices != null ? itemIndices.map((i) => section.items[i]!).filter(Boolean) : section.items;
   return (
     <>
-      <PassageMeta projectId={section.projectId} source={section.source} continued={continued} gap="mb-3" spacer />
-      {!continued ? (
-        <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
-          다음은 이 글의 제목·주제·요지를 바꿔 쓴 영어입니다. 우리말로 해석하세요.
-        </p>
-      ) : null}
+      {continued ? (
+        <PassageMeta projectId={section.projectId} source={section.source} continued gap="mb-3" spacer />
+      ) : (
+        <GistIntro section={section} passage={passage} />
+      )}
       <div>
         {items.map((it) => (
           <div
@@ -1685,6 +1712,36 @@ export function WorkbookWorkbench({
   const [zoom, setZoom] = useState(85);
   /** 한줄해석·영작 유형의 쪽 배치(재 둔 높이로 나눈 것). */
   const [flowPages, setFlowPages] = useState<Partial<Record<FlowKind, FlowPart[][]>>>({});
+  /*
+   * 제목·주제·요지 해석·요약문 완성 위에 싣는 지문 원문(선생님 2026-10-27). 새 워크북은 저장본에 들어 있고,
+   * 옛 워크북은 지문 원문만 불러와 채운다(값 없음).
+   */
+  const [loadedPassages, setLoadedPassages] = useState<Record<string, string>>({});
+  const passageOf = (s: { projectId: string; passage?: string }) => s.passage || loadedPassages[s.projectId] || undefined;
+  useEffect(() => {
+    if (!workbook) return;
+    const need = [...(workbook.gistSections ?? []), ...(workbook.tbSections?.tb_summary ?? [])]
+      .filter((s) => !s.passage && loadedPassages[s.projectId] == null)
+      .map((s) => s.projectId);
+    if (!need.length) return;
+    let alive = true;
+    void postJson<{ ok: true; projects: Array<{ id: string; sentences: Array<{ english: string }> }> } | { ok: false; message: string }>(
+      "/api/lesson-materials/test-book",
+      { role, op: "loadDraw", projectIds: [...new Set(need)] }
+    )
+      .then((res) => {
+        if (!alive || !res.ok) return;
+        const next: Record<string, string> = {};
+        for (const id of need) next[id] = "";
+        for (const p of res.projects) next[p.id] = joinWorkbookPassageLines(p.sentences.map((x) => x.english));
+        setLoadedPassages((prev) => ({ ...prev, ...next }));
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workbook]);
   /** 2단 유형: 쪽마다 실을 지문(문항) 번호. packed가 아니면 한 쪽보다 긴 지문 하나. */
   const [columnPacks, setColumnPacks] = useState<
     Partial<Record<WorkbookColumnTypeId, { indices: number[]; packed: boolean }[]>>
@@ -2607,7 +2664,15 @@ export function WorkbookWorkbench({
                     level: tbLevel,
                   });
                   const sec = sheet.sections[0];
-                  if (sec) list.push({ projectId: ids[i]!, title: g.title, source: g.source, section: sec });
+                  if (sec)
+                    list.push({
+                      projectId: ids[i]!,
+                      title: g.title,
+                      source: g.source,
+                      section: sec,
+                      // 요약문 완성은 지문 원문을 같이 싣는다(선생님 2026-10-27)
+                      ...(t === "tb_summary" ? { passage: joinWorkbookPassageLines(g.sentences.map((x) => x.english)) } : {}),
+                    });
                   else miss.push({ projectId: ids[i]!, title: g.title, reason: "이 지문은 재료가 모자라 이 유형을 만들지 못했습니다." });
                 });
                 sections[t] = list;
@@ -3382,7 +3447,7 @@ export function WorkbookWorkbench({
     const kw = workbook.keyWordOrderSections ?? [];
     if (kw.length) next.key_word_order = packFlow("kw", kw, separate("key_word_order"));
     setFlowPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
-  }, [workbook, designStyle, fontsTick]);
+  }, [workbook, designStyle, fontsTick, loadedPassages]);
 
   // 2단 유형: 단 너비로 잰 지문 높이로 쪽마다 실을 지문을 정한다(왼쪽 단 → 오른쪽 단 → 다음 쪽).
   useLayoutEffect(() => {
@@ -3438,7 +3503,7 @@ export function WorkbookWorkbench({
       next[t] = packs;
     }
     setColumnPacks((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
-  }, [workbook, columnLimits, designStyle, fontsTick]);
+  }, [workbook, columnLimits, designStyle, fontsTick, loadedPassages]);
 
   // 정답지: 블록(유형·지문별 정답) 높이를 재서 A4 쪽마다 나눈다. 본문 높이는 한줄해석과 같다.
   useLayoutEffect(() => {
@@ -3514,7 +3579,7 @@ export function WorkbookWorkbench({
       next[el.dataset.wbProbe!] = Math.max(1, Math.ceil(cols / perPage));
     });
     setWindowCounts((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
-  }, [workbook, columnPacks, answerOversize, columnBodyMm, fontsReady, designStyle, fontsTick]);
+  }, [workbook, columnPacks, answerOversize, columnBodyMm, fontsReady, designStyle, fontsTick, loadedPassages]);
 
   // 그린 2단 쪽이 오른쪽 단 밖으로 넘치면(재 둔 높이와 실제가 다를 때) 그 쪽에 싣는 지문을 하나 줄인다.
   useLayoutEffect(() => {
@@ -4058,6 +4123,7 @@ export function WorkbookWorkbench({
       return (
         <>
           <PassageMeta projectId={one.projectId} source={one.source} />
+          {one.section.type === "summary" ? <WorkbookPassageText text={passageOf(one)} /> : null}
           <TestSectionContent section={one.section} />
         </>
       );
@@ -4172,6 +4238,7 @@ export function WorkbookWorkbench({
                             section={giSections[part.sectionIndex]!}
                             itemIndices={part.itemIndices}
                             continued={part.continued}
+                            passage={passageOf(giSections[part.sectionIndex]!)}
                           />
                         ) : page.flow === "full_en" ? (
                           <FullEnWritingQuestionBody
@@ -4366,10 +4433,7 @@ export function WorkbookWorkbench({
           {giSections.map((section, si) => (
             <div key={`m-gi-${section.projectId}`}>
               <div data-wb-measure={`gi-intro-${si}`}>
-                <PassageMeta projectId={section.projectId} source={section.source} gap="mb-3" spacer />
-                <p className="wb-instruction mb-4 text-[13px] font-semibold text-slate-800">
-                  다음은 이 글의 제목·주제·요지를 바꿔 쓴 영어입니다. 우리말로 해석하세요.
-                </p>
+                <GistIntro section={section} passage={passageOf(section)} />
               </div>
               <div data-wb-measure={`gi-cont-${si}`}>
                 <PassageMeta projectId={section.projectId} source={section.source} continued gap="mb-3" spacer />

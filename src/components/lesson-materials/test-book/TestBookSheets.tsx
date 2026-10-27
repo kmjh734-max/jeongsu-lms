@@ -81,6 +81,14 @@ export const TEST_BOOK_CSS = `
 /* 워크북 쪽 안(2026-10-21): 워크북 글꼴 크기에 맞추고 문항 머리 막대는 뺀다 */
 .tb-wb{font-size:12.5px;line-height:1.6;color:#15171c}
 .tb-wb .tb-psg{font-size:13px}
+/* 워크북 2단(좁은 단, 선생님 2026-10-27 「단어 2단으로 제작 시 깨짐」): 단어 시험 쓰기는 한 줄에 하나, 뜻이 길면 줄을 늘리고, 보기는 둘씩 두 줄 */
+.tb-wb{container-type:inline-size}
+@container (max-width: 125mm){
+.tb-wb .tb-words{grid-template-columns:minmax(0,1fr)}
+.tb-wb .tb-wq{height:auto;min-height:8.2mm;padding-top:1.2mm;align-items:baseline}
+.tb-wb .tb-mc .tb-ch{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.tb-wb .tb-ch > span{overflow-wrap:anywhere}
 .tb-arow-plain > span{display:inline-block;margin-right:3mm}
 .tb-arow-plain b{margin-right:1mm}
 .tb-form i{font-style:italic;color:#6a707c}

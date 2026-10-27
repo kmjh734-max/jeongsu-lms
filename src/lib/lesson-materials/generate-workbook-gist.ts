@@ -12,6 +12,7 @@ import {
 import {
   GIST_KIND_LABEL,
   clampGistCount,
+  joinWorkbookPassageLines,
   type WorkbookGistItem,
   type WorkbookGistKind,
   type WorkbookGistOptions,
@@ -259,7 +260,7 @@ export async function generateWorkbookGist(input: {
     if (!passage) return { skip: { projectId: p.projectId, title: p.title, reason: "영어 원문이 없습니다." } };
     try {
       const items = await callGistOpenAI({ title: p.title, passage, options });
-      return { section: { projectId: p.projectId, title: p.title, source: p.source ?? null, items } };
+      return { section: { projectId: p.projectId, title: p.title, source: p.source ?? null, items, passage: joinWorkbookPassageLines(p.englishLines) } };
     } catch (e) {
       return { skip: { projectId: p.projectId, title: p.title, reason: e instanceof Error ? e.message : "만들지 못했습니다." } };
     }
