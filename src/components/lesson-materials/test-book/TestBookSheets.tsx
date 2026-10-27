@@ -43,8 +43,9 @@ export const TEST_BOOK_CSS = `
 .tb-measure{position:absolute;left:-10000px;top:0;visibility:hidden;pointer-events:none}
 .tb-measure .tb-sheet{height:auto;overflow:visible}
 .tb-foot{position:absolute;left:${PAD_X_MM}mm;right:${PAD_X_MM}mm;bottom:5.5mm;display:flex;align-items:center;gap:4mm;font-size:7.2pt;color:#8a909b;border-top:.4pt solid #e1e4e9;padding-top:1.4mm}
-.tb-foot .tb-brand{display:flex;align-items:center;gap:1.6mm;color:#4b515c;font-weight:700;white-space:nowrap}
-.tb-foot .tb-brand img{height:4.6mm;width:auto;max-width:16mm;object-fit:contain}
+/* 바닥줄에는 로고만(없으면 학원 이름) — 가로로 긴 글자 로고(윌링어학원)가 이름과 겹쳐 보였다(2026-10-27) */
+.tb-foot .tb-brand{display:flex;align-items:center;color:#4b515c;font-weight:700;white-space:nowrap;line-height:1}
+.tb-foot .tb-brand img{height:5.2mm;width:auto;max-width:28mm;object-fit:contain;display:block}
 .tb-foot .tb-fmid{flex:1;min-width:0;display:flex;justify-content:center;gap:4mm;overflow:hidden;white-space:nowrap}
 .tb-foot .tb-pgno{font-weight:700;color:#4b515c;white-space:nowrap}
 .tb-sheet[data-page-no]::after{content:none}
@@ -470,7 +471,8 @@ function BookFoot({ children }: { children?: ReactNode }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={brand.logoSrc} alt="" />
         ) : null}
-        {brand.academy}
+        {/* 로고가 있으면 로고만(선생님 2026-10-27), 없으면 학원 이름 */}
+        {!brand.logoSrc && brand.academy ? <span>{brand.academy}</span> : null}
       </span>
       <span className="tb-fmid">{children}</span>
       {/* 교재 전체 쪽 번호는 화면이 그린 뒤 적어 넣는다(PDF를 쪽마다 따로 찍어도 맞게) */}
