@@ -21,6 +21,7 @@ import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { A4, B5, collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { generatePrintExamQuestions } from "@/lib/vocab/generate-print-test-questions";
+import { paginateAnswerKey } from "@/lib/vocab/paginate-answer-key";
 import { highlightWordInSentence } from "@/lib/vocab/highlight-word-in-sentence";
 import { vocabSetsRangeTitle } from "@/lib/vocab/print-title";
 import {
@@ -445,14 +446,8 @@ export function VocabSetPrintView({
 
   const answerKeyPages = useMemo(() => {
     if (!showAnswerKey) return [];
-    // 3단 밀집 배치 — 일반 시험(≤60문항)은 한 장에 맞춤
-    const perPage = size === "b5" ? 66 : 78;
-    const pages: PrintExamQuestion[][] = [];
-    const qs = examGenerated.questions;
-    for (let i = 0; i < qs.length; i += perPage) {
-      pages.push(qs.slice(i, i + perPage));
-    }
-    return pages;
+    // 3단 밀집 배치 — 답 길이로 쪽을 채우고 세 단을 고르게
+    return paginateAnswerKey(examGenerated.questions, size);
   }, [showAnswerKey, examGenerated.questions, size]);
 
   const bodyPageCount =
@@ -856,14 +851,8 @@ export function VocabSetPrintView({
           </article>
           );
         })}
-        {answerKeyPages.map((slice, pageIndex) => {
+        {answerKeyPages.map((cols, pageIndex) => {
           const isLast = pageIndex === answerKeyPages.length - 1;
-          const colSize = Math.ceil(slice.length / 3);
-          const cols = [
-            slice.slice(0, colSize),
-            slice.slice(colSize, colSize * 2),
-            slice.slice(colSize * 2),
-          ];
           // 시험지 뒤에 붙일 때·정답지 2장째부터 페이지 나눔
           const answerBreakClass =
             pageIndex === 0
