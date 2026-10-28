@@ -4,7 +4,11 @@ export type ExamQuestionKind =
   | "meaning_mc"
   | "meaning_sa"
   | "example_mc"
-  | "example_sa";
+  | "example_sa"
+  | "syn_mc"
+  | "syn_sa"
+  | "ant_mc"
+  | "ant_sa";
 
 export type ExamColumnCount = 1 | 2 | 3 | 4;
 export type ExamLineSpacing = "compact" | "normal" | "wide";
@@ -16,6 +20,11 @@ export interface ExamPrintConfig {
   meaning_sa: number;
   example_mc: number;
   example_sa: number;
+  /** 동의어·반의어: 단어를 주고 동의어(반의어)를 고르거나 쓴다 */
+  syn_mc: number;
+  syn_sa: number;
+  ant_mc: number;
+  ant_sa: number;
 }
 
 export interface ExamPrintLayout {
@@ -41,6 +50,10 @@ export const DEFAULT_EXAM_PRINT_CONFIG: ExamPrintConfig = {
   meaning_sa: 0,
   example_mc: 0,
   example_sa: 0,
+  syn_mc: 0,
+  syn_sa: 0,
+  ant_mc: 0,
+  ant_sa: 0,
 };
 
 export const DEFAULT_EXAM_LAYOUT: ExamPrintLayout = {
@@ -95,7 +108,11 @@ export function examConfigTotal(config: ExamPrintConfig): number {
     config.meaning_mc +
     config.meaning_sa +
     config.example_mc +
-    config.example_sa
+    config.example_sa +
+    config.syn_mc +
+    config.syn_sa +
+    config.ant_mc +
+    config.ant_sa
   );
 }
 
@@ -106,6 +123,10 @@ const EXAM_CONFIG_KEYS: (keyof ExamPrintConfig)[] = [
   "meaning_sa",
   "example_mc",
   "example_sa",
+  "syn_mc",
+  "syn_sa",
+  "ant_mc",
+  "ant_sa",
 ];
 
 /** 요청 문항 합이 단어 수를 넘지 않도록 앞에서부터 배분 */
@@ -124,6 +145,10 @@ export function clampExamConfigToPool(
     meaning_sa: 0,
     example_mc: 0,
     example_sa: 0,
+    syn_mc: 0,
+    syn_sa: 0,
+    ant_mc: 0,
+    ant_sa: 0,
   };
   for (const key of EXAM_CONFIG_KEYS) {
     const take = Math.min(config[key], remaining);
@@ -178,6 +203,10 @@ export function parseExamPrintSettings(
       meaning_sa: readCount(searchParams, "meaning_sa"),
       example_mc: readCount(searchParams, "example_mc"),
       example_sa: readCount(searchParams, "example_sa"),
+      syn_mc: readCount(searchParams, "syn_mc"),
+      syn_sa: readCount(searchParams, "syn_sa"),
+      ant_mc: readCount(searchParams, "ant_mc"),
+      ant_sa: readCount(searchParams, "ant_sa"),
     },
     layout: {
       columns: parseExamColumnCount(searchParams.get("exam_cols")),

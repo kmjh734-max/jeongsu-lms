@@ -1719,6 +1719,25 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   word-break: break-word;
 }
 
+/* 동의어·반의어 문항: 단어 앞 작은 표(무엇을 쓰는지) */
+.vocab-exam-tag {
+  display: inline-block;
+  margin-right: 5px;
+  padding: 0 4px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-size: 0.68em;
+  font-weight: 700;
+  line-height: 1.45;
+  vertical-align: 0.12em;
+}
+.vocab-exam-tag--syn {
+  color: #2563eb;
+}
+.vocab-exam-tag--ant {
+  color: #dc2626;
+}
+
 .vocab-exam-sub {
   margin: 3px 0 0;
   font-size: var(--vocab-small-size);
@@ -4687,6 +4706,24 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   flex: 0 1 auto;
   max-width: 58%;
   min-width: 0;
+}
+/* 3·4단은 칸이 좁다 — 단어를 중간에서 끊지 않고(potentia/l) 답칸을 줄인다 */
+.vocab-exam-list--3col .vocab-exam-row--inline .vocab-exam-q-head,
+.vocab-exam-list--4col .vocab-exam-row--inline .vocab-exam-q-head {
+  max-width: 74%;
+}
+.vocab-exam-list--3col .vocab-exam-row--inline .vocab-exam-prompt,
+.vocab-exam-list--4col .vocab-exam-row--inline .vocab-exam-prompt {
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+.vocab-exam-list--3col .vocab-exam-row--inline .vocab-exam-answer-line,
+.vocab-exam-list--4col .vocab-exam-row--inline .vocab-exam-answer-line {
+  min-width: 36px;
+}
+/* 「동」「반」 표와 한 낱말 단어는 한 줄에 붙여 둔다 */
+.vocab-exam-tagged {
+  white-space: nowrap;
 }
 .vocab-exam-row--inline .vocab-exam-answer-line {
   flex: 1 1 auto;

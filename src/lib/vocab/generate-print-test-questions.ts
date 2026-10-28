@@ -19,6 +19,58 @@ export interface PrintExamQuestion {
   /** 정답 표시용 (객관식: ① meaning / 주관식: 정답 문자열) */
   answer: string;
   correctChoiceIndex?: number;
+  /** 동의어·반의어 문항이면 단어 앞에 「동」「반」 표를 붙인다 */
+  tag?: "syn" | "ant";
+}
+
+/** "period, expression, condition" → 낱말 목록 */
+function splitList(raw: string | null | undefined): string[] {
+  return (raw ?? "")
+    .split(/[,;/]/)
+    .map((w) => w.trim())
+    .filter(Boolean);
+}
+
+const norm = (w: string) => w.trim().toLowerCase();
+
+/**
+ * 동의어(반의어) 객관식 보기: 정답 하나 + 다른 단어 셋.
+ * 오답은 범위 안 다른 표제어에서 고르되, 이 단어의 동의어·반의어로 적힌 말이나
+ * 이 단어(정답)를 동의어·반의어로 가진 단어는 빼서 정답이 둘이 되지 않게 한다. 셋이 안 되면 문항을 만들지 않는다.
+ */
+function buildRelationChoices(
+  item: VocabItem,
+  correct: string,
+  pool: VocabItem[],
+  rng: Rng
+): string[] | null {
+  const own = new Set(
+    [item.word, ...splitList(item.synonyms), ...splitList(item.antonyms)].map(norm)
+  );
+  // 한글 뜻 낱낱(「수입」「소득」…)이 겹치는 단어도 오답으로 쓰지 않는다
+  const meaningBits = (m: string | null | undefined) =>
+    (m ?? "")
+      .replace(/\([^)]*\)/g, " ")
+      .split(/[,;·\/\s]+/)
+      .map((t) => t.trim())
+      .filter((t) => t.length >= 2);
+  const ownMeaning = new Set(meaningBits(item.meaning));
+  const seen = new Set<string>([norm(correct)]);
+  const candidates: string[] = [];
+  for (const other of pool) {
+    if (other.id === item.id) continue;
+    const w = other.word?.trim();
+    if (!w || own.has(norm(w)) || seen.has(norm(w))) continue;
+    const rel = new Set(
+      [...splitList(other.synonyms), ...splitList(other.antonyms)].map(norm)
+    );
+    if (rel.has(norm(item.word)) || rel.has(norm(correct))) continue;
+    if (meaningBits(other.meaning).some((t) => ownMeaning.has(t))) continue;
+    seen.add(norm(w));
+    candidates.push(w);
+  }
+  if (candidates.length < 3) return null;
+  return shuffle([correct, ...shuffle(candidates, rng).slice(0, 3)], rng);
 }
 
 /** 시험지 예문 문항: 대표 예문 한 줄만, 단어(변화형 포함)를 모두 빈칸으로 */
@@ -153,12 +205,44 @@ function buildQuestion(
             : word,
       };
     }
+    case "syn_mc":
+    case "ant_mc": {
+      const list = splitList(kind === "syn_mc" ? item.synonyms : item.antonyms);
+      if (list.length === 0) return null;
+      const correct = list[Math.floor(rng() * list.length)];
+      const choices = buildRelationChoices(item, correct, pool, rng);
+      if (!choices) return null;
+      const idx = choices.indexOf(correct);
+      return {
+        kind,
+        number: 0,
+        prompt: item.word,
+        choices,
+        answer: `${CHOICE_MARKS[idx] ?? "①"} ${correct}`,
+        correctChoiceIndex: idx,
+        tag: kind === "syn_mc" ? "syn" : "ant",
+      };
+    }
+    case "syn_sa":
+    case "ant_sa": {
+      const list = splitList(kind === "syn_sa" ? item.synonyms : item.antonyms);
+      if (list.length === 0) return null;
+      return {
+        kind,
+        number: 0,
+        prompt: item.word,
+        // 적힌 말 중 하나면 정답
+        answer: list.join(" / "),
+        tag: kind === "syn_sa" ? "syn" : "ant",
+      };
+    }
     default:
       return null;
   }
 }
 
 const EXAMPLE_KINDS: ExamQuestionKind[] = ["example_mc", "example_sa"];
+const RELATION_KINDS: ExamQuestionKind[] = ["syn_mc", "syn_sa", "ant_mc", "ant_sa"];
 const BASIC_KINDS: ExamQuestionKind[] = [
   "word_mc",
   "word_sa",
@@ -170,6 +254,8 @@ export interface PrintExamGenerateResult {
   questions: PrintExamQuestion[];
   /** 예문이 있는 단어가 모자라 뺀 예문 문항 수 */
   skippedNoExample: number;
+  /** 동의어·반의어가 적힌 단어가 모자라(또는 보기를 못 만들어) 뺀 문항 수 */
+  skippedNoRelation: number;
   /** 그 밖의 이유(보기를 만들 수 없음 등)로 뺀 문항 수 */
   skipped: number;
   capped: boolean;
@@ -181,7 +267,7 @@ export function generatePrintExamQuestions(
   options?: { shuffle?: boolean; shuffleSeed?: number }
 ): PrintExamGenerateResult {
   if (items.length < 2) {
-    return { questions: [], skipped: 0, skippedNoExample: 0, capped: false };
+    return { questions: [], skipped: 0, skippedNoExample: 0, skippedNoRelation: 0, capped: false };
   }
 
   const cappedConfig = clampExamConfigToPool(config, items.length);
@@ -191,6 +277,7 @@ export function generatePrintExamQuestions(
   const exampleQuestions: PrintExamQuestion[] = [];
   let skipped = 0;
   let skippedNoExample = 0;
+  let skippedNoRelation = 0;
 
   const rng = seededRng(options?.shuffleSeed || seedFromItems(items));
   const usedIds = new Set<string>();
@@ -232,7 +319,17 @@ export function generatePrintExamQuestions(
     skippedNoExample += count - made;
   }
 
-  // 2) 기본 문항은 남은 단어로
+  // 2) 동의어·반의어 — 적힌 단어만 낼 수 있으니 기본 문항보다 먼저
+  for (const kind of RELATION_KINDS) {
+    const count = cappedConfig[kind];
+    if (count <= 0) continue;
+    const field = kind.startsWith("syn") ? "synonyms" : "antonyms";
+    const pool = items.filter((item) => splitList(item[field]).length > 0);
+    const made = fill(kind, count, pool, basicQuestions);
+    skippedNoRelation += count - made;
+  }
+
+  // 3) 기본 문항은 남은 단어로
   for (const kind of BASIC_KINDS) {
     const count = cappedConfig[kind];
     if (count <= 0) continue;
@@ -256,6 +353,7 @@ export function generatePrintExamQuestions(
     })),
     skipped,
     skippedNoExample,
+    skippedNoRelation,
     capped,
   };
 }

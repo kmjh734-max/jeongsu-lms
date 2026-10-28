@@ -175,6 +175,10 @@ const EXAM_URL_KEYS = [
   "meaning_sa",
   "example_mc",
   "example_sa",
+  "syn_mc",
+  "syn_sa",
+  "ant_mc",
+  "ant_sa",
   "exam_cols",
   "exam_spacing",
   "exam_shuffle",
@@ -288,6 +292,14 @@ export function VocabSetPrintView({
     () => allItems.slice(examRange.from - 1, examRange.to),
     [allItems, examRange.from, examRange.to]
   );
+  /** 범위 안에서 동의어·반의어가 적힌 단어 수 — 그만큼만 낼 수 있다 */
+  const relationCounts = useMemo(
+    () => ({
+      syn: examItems.filter((i) => i.synonyms?.trim()).length,
+      ant: examItems.filter((i) => i.antonyms?.trim()).length,
+    }),
+    [examItems]
+  );
 
   const examGenerated = useMemo(() => {
     if (mode !== "exam") {
@@ -295,6 +307,7 @@ export function VocabSetPrintView({
         questions: [] as PrintExamQuestion[],
         skipped: 0,
         skippedNoExample: 0,
+        skippedNoRelation: 0,
         capped: false,
       };
     }
@@ -1131,6 +1144,7 @@ export function VocabSetPrintView({
                   onChange={updateExamSettings}
                   onReshuffle={reshuffleExam}
                   wordCount={totalItems}
+                  relationCounts={relationCounts}
                 />
                 {examTotal === 0 ? (
                   <p className="text-[13px] text-amber-700">
@@ -1153,6 +1167,12 @@ export function VocabSetPrintView({
                   <p className="text-[13px] text-amber-700">
                     예문이 있는 단어가 부족해 {examGenerated.skippedNoExample}
                     문항을 뺐어요. (예문에 그 단어가 들어 있어야 문제로 낼 수 있어요)
+                  </p>
+                ) : null}
+                {examGenerated.skippedNoRelation > 0 ? (
+                  <p className="text-[13px] text-amber-700">
+                    동의어·반의어가 적힌 단어가 부족해 {examGenerated.skippedNoRelation}
+                    문항을 뺐어요. (객관식은 헷갈리지 않는 오답 보기가 3개 있어야 내요)
                   </p>
                 ) : null}
                 {examGenerated.skipped > 0 ? (
@@ -1529,7 +1549,18 @@ const PrintExamEntry = memo(function PrintExamEntry({
       <div className="vocab-exam-q-head">
         <span className="vocab-exam-q-no">{question.number}.</span>
         <div className="vocab-exam-q-main">
-          <p className="vocab-exam-prompt">{question.prompt}</p>
+          <p className="vocab-exam-prompt">
+            {question.tag ? (
+              <span className={/\s/.test(question.prompt.trim()) ? undefined : "vocab-exam-tagged"}>
+                <span className={`vocab-exam-tag vocab-exam-tag--${question.tag}`}>
+                  {question.tag === "syn" ? "동" : "반"}
+                </span>
+                {question.prompt}
+              </span>
+            ) : (
+              question.prompt
+            )}
+          </p>
         </div>
       </div>
       {question.choices ? (

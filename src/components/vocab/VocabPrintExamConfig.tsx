@@ -21,12 +21,16 @@ interface VocabPrintExamConfigProps {
   onReshuffle: () => void;
   /** 단어장 전체 단어 수(번호는 1~wordCount) */
   wordCount: number;
+  /** 범위 안에서 동의어·반의어가 적힌 단어 수 */
+  relationCounts: { syn: number; ant: number };
 }
 
 const ROWS = [
   { label: "단어제시", mc: "word_mc" as const, sa: "word_sa" as const },
   { label: "의미제시", mc: "meaning_mc" as const, sa: "meaning_sa" as const },
   { label: "예문제시", mc: "example_mc" as const, sa: "example_sa" as const },
+  { label: "동의어", mc: "syn_mc" as const, sa: "syn_sa" as const, rel: "syn" as const },
+  { label: "반의어", mc: "ant_mc" as const, sa: "ant_sa" as const, rel: "ant" as const },
 ];
 
 const COLUMNS: ExamColumnCount[] = [1, 2, 3, 4];
@@ -37,6 +41,7 @@ export function VocabPrintExamConfig({
   onChange,
   onReshuffle,
   wordCount,
+  relationCounts,
 }: VocabPrintExamConfigProps) {
   const { counts, layout } = settings;
   const range = resolveExamRange(settings, wordCount);
@@ -157,7 +162,14 @@ export function VocabPrintExamConfig({
         <tbody>
           {ROWS.map((row) => (
             <tr key={row.label}>
-              <td className="py-1.5 pr-3 text-[13px] font-medium text-slate-700">{row.label}</td>
+              <td className="py-1.5 pr-3 text-[13px] font-medium text-slate-700">
+                {row.label}
+                {"rel" in row && row.rel ? (
+                  <span className="block text-[11px] font-normal text-slate-400">
+                    적힌 단어 {relationCounts[row.rel]}개
+                  </span>
+                ) : null}
+              </td>
               <td className="px-1 py-1.5 text-center">
                 <input
                   type="number"
