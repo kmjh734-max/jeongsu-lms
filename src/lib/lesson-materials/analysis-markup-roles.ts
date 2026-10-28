@@ -115,7 +115,13 @@ export function normalizeMarkupRoles(
     .sort((a, b) => a.span.start - b.span.start);
 
   // 4. There · Let's 에 단 S
-  rs = rs.filter((r) => !(r.role === "S" && NO_SUBJECT.has(lower(slice(text, r.span).trim()))));
+  // Let’s의 ’s 하나에만 단 S도 뗀다(2026-10-28 「Let’s take a look」에 S[’s])
+  rs = rs.filter((r) => {
+    if (r.role !== "S") return true;
+    const w = lower(slice(text, r.span).trim());
+    if (NO_SUBJECT.has(w)) return false;
+    return !(w === "'s" && /\blet\s*$/i.test(text.slice(0, r.span.start)));
+  });
   // 명사절 접속사(proves that the world is ~의 that)에 단 성분: 바로 뒤가 더 깊은 층의 S면 접속사다
   rs = rs.filter((r, i) => {
     if (!["that", "whether", "if"].includes(lower(slice(text, r.span).trim()))) return true;
