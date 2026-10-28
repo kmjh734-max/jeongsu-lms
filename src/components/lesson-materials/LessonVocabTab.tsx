@@ -152,7 +152,7 @@ export function LessonVocabTab({
                   목록 보기
                 </a>
                 <a
-                  href={`${vocabBase}/${s.id}/print`}
+                  href={`/${role}/lesson-materials/vocab-set-exam?set=${s.id}`}
                   target="_blank"
                   rel="noreferrer"
                   className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50"

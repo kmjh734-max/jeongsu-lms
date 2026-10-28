@@ -53,12 +53,15 @@ export function LessonPackVocabExam({
   projects,
   logoSrc = null,
   academyName = "",
+  fromWordSet = false,
 }: {
   role: "admin" | "teacher";
   docName: string;
   projects: TestBookProjectInput[];
   logoSrc?: string | null;
   academyName?: string;
+  /** 자료함 「단어」 탭 단어장(지문 하나로 묶어 넘긴다) — 지문 번호를 감춘다 */
+  fromWordSet?: boolean;
 }) {
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const [md, chooseMd] = useMaterialDesign();
@@ -174,7 +177,9 @@ export function LessonPackVocabExam({
           <p className="truncate text-sm font-bold text-slate-900" title={docName}>
             {docName}
           </p>
-          <p className="text-[11px] text-slate-400">지문 {projects.length}개의 단어를 합쳐 냅니다</p>
+          <p className="text-[11px] text-slate-400">
+            {fromWordSet ? `단어장 ${wordCount}단어로 냅니다` : `지문 ${projects.length}개의 단어를 합쳐 냅니다`}
+          </p>
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm">
@@ -333,7 +338,7 @@ export function LessonPackVocabExam({
                 className={`tb-theme-${md} flex flex-col items-center gap-6 print:gap-0 [&_.tb-sheet]:shadow-xl print:[&_.tb-sheet]:shadow-none`}
                 style={partStyle({ id: "lesson", no: "", en: "VOCABULARY TEST", ko: "단어 시험", color: "#1d2a8f" })}
               >
-                {wordList ? <AllVocabSheets projects={ready} indexOf={indexOf} measureKey={mk} range={range} /> : null}
+                {wordList ? <AllVocabSheets projects={ready} indexOf={indexOf} measureKey={mk} range={range} noPassage={fromWordSet} /> : null}
                 <VocabExamSheets exam={exam} measureKey={mk} />
                 {answers ? <VocabExamAnswerSheets exam={exam} measureKey={mk} /> : null}
               </div>

@@ -903,19 +903,23 @@ export function AllVocabSheets({
   indexOf,
   measureKey,
   range = null,
+  noPassage = false,
 }: {
   projects: TestBookProjectInput[];
   indexOf: (id: string) => number;
   measureKey: string;
   /** 번호 범위만 싣는다(단어 시험지 화면의 출제 범위) — 번호는 전체 차례 그대로 */
   range?: { from: number; to: number } | null;
+  /** 지문 번호 칸을 뺀다(자료함 「단어」 탭 단어장은 지문 정보가 없다) */
+  noPassage?: boolean;
 }) {
+  const grid = noPassage ? "9mm 0 29mm 8mm 33mm 1fr 1fr 1fr" : ALL_GRID;
   const allRows = allVocabRows(projects, indexOf);
   const rows = range ? allRows.filter((r) => r.no >= range.from && r.no <= range.to) : allRows;
   const head = (
-    <div className="tb-row tb-th tb-vrow" style={{ gridTemplateColumns: ALL_GRID }}>
+    <div className="tb-row tb-th tb-vrow" style={{ gridTemplateColumns: grid }}>
       <div />
-      <div>지문</div>
+      <div>{noPassage ? null : "지문"}</div>
       <div>단어</div>
       <div />
       <div>지문 속 뜻</div>
@@ -927,9 +931,9 @@ export function AllVocabSheets({
   const blocks: Block[] = rows.map((r) => ({
     key: `all${r.no}`,
     node: (
-      <div className="tb-row tb-vrow" style={{ gridTemplateColumns: ALL_GRID }}>
+      <div className="tb-row tb-vrow" style={{ gridTemplateColumns: grid }}>
         <div className="tb-n">{r.no}</div>
-        <div className="tb-n">{String(r.passage).padStart(2, "0")}</div>
+        <div className="tb-n">{noPassage ? null : String(r.passage).padStart(2, "0")}</div>
         <div className="tb-w tb-en">
           {r.row.key ? <span className="tb-star">★ </span> : null}
           {r.row.word}
@@ -952,7 +956,7 @@ export function AllVocabSheets({
             title="전체 단어장"
             sub={page > 0 ? "(이어서)" : range && rows.length < allRows.length ? `${range.from}~${range.to}번 · ${rows.length}단어` : `지문 ${projects.length}개 · ${rows.length}단어`}
             label="ALL WORDS"
-            right="지문 번호는 계획표 차례"
+            right={noPassage ? "VOCABULARY" : "지문 번호는 계획표 차례"}
           />
           {head}
         </>

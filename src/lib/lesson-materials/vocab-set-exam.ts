@@ -1,0 +1,48 @@
+import type { VocabItem } from "@/types/database";
+import type {
+  OnePageContent,
+} from "@/lib/lesson-materials/one-page";
+import type { TestBookMaterial, TestBookProjectInput, TestBookVocabRow } from "@/lib/lesson-materials/test-book";
+
+function splitList(raw: string | null | undefined): string[] {
+  return (raw ?? "")
+    .split(/[,;/]/)
+    .map((w) => w.trim())
+    .filter(Boolean);
+}
+
+/**
+ * 자료함 「단어」 탭 단어장을 수업용 자료 「단어 시험지」에 넣을 수 있게 지문 하나처럼 묶는다
+ * (선생님 2026-10-29: 단어 탭 시험지와 수업용 자료 단어 시험지가 달라 맞춘다).
+ * 단어장에는 지문 정보가 없으므로 단어학습에 저장된 단어(차례·뜻·품사·동의어·반의어)를 그대로 쓴다 —
+ * 단어학습에서 고친 단어도 그대로 나온다. 파생어는 단어장에 없어 파생어 문항은 0이다.
+ * 단어 시험지는 material.vocab만 읽으므로 나머지 재료는 빈 값이다.
+ */
+export function vocabSetAsProject(
+  set: { id: string; title: string },
+  items: VocabItem[]
+): TestBookProjectInput {
+  const vocab: TestBookVocabRow[] = items
+    .filter((i) => i.word?.trim() && i.meaning?.trim())
+    .map((i) => ({
+      word: i.word.trim(),
+      pos: i.part_of_speech?.trim() ?? "",
+      meaning: i.meaning.trim(),
+      synonyms: splitList(i.synonyms),
+      antonyms: splitList(i.antonyms),
+      forms: [],
+      phrase: "",
+      key: false,
+    }));
+  const material = { version: "vocab-set", sourceHash: set.id, vocab, keyIndexes: [], chunks: [] } as unknown as TestBookMaterial;
+  return {
+    id: set.id,
+    title: set.title,
+    titleEn: null,
+    source: null,
+    sentences: [],
+    // 「재료가 있는 지문」으로 세도록 비어 있지 않은 값을 둔다(단어 시험지는 읽지 않는다)
+    content: {} as OnePageContent,
+    material,
+  };
+}
