@@ -54,6 +54,9 @@ export function LessonPackVocabExam({
   logoSrc = null,
   academyName = "",
   fromWordSet = false,
+  listOnly = false,
+  editHref = null,
+  examHref = null,
 }: {
   role: "admin" | "teacher";
   docName: string;
@@ -62,6 +65,14 @@ export function LessonPackVocabExam({
   academyName?: string;
   /** 자료함 「단어」 탭 단어장(지문 하나로 묶어 넘긴다) — 지문 번호를 감춘다 */
   fromWordSet?: boolean;
+  /**
+   * 단어장만 보여 준다(자료함 「단어」 탭 「목록 보기」, 선생님 2026-10-29) — 수업용 자료 모양 전체 단어장 + 인쇄·PDF.
+   * 고치기는 단어학습 편집 화면(editHref)에서 한다.
+   */
+  listOnly?: boolean;
+  editHref?: string | null;
+  /** 단어장 화면에서 시험지 화면으로 */
+  examHref?: string | null;
 }) {
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const [md, chooseMd] = useMaterialDesign();
@@ -173,16 +184,41 @@ export function LessonPackVocabExam({
       <aside className="flex w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
         <div className="space-y-1 border-b border-slate-100 px-4 py-3">
           <CloseSaveButton base={base} label="← 닫기" className="-ml-2 rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100" />
-          <p className="text-xs font-bold text-violet-700">단어 시험지</p>
+          <p className="text-xs font-bold text-violet-700">{listOnly ? "단어장" : "단어 시험지"}</p>
           <p className="truncate text-sm font-bold text-slate-900" title={docName}>
             {docName}
           </p>
           <p className="text-[11px] text-slate-400">
-            {fromWordSet ? `단어장 ${wordCount}단어로 냅니다` : `지문 ${projects.length}개의 단어를 합쳐 냅니다`}
+            {listOnly ? `단어 ${wordCount}개` : fromWordSet ? `단어장 ${wordCount}단어로 냅니다` : `지문 ${projects.length}개의 단어를 합쳐 냅니다`}
           </p>
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm">
+          {listOnly ? (
+            <>
+              {editHref ? (
+                <a
+                  href={editHref}
+                  className="block w-full rounded-lg border border-violet-300 bg-violet-50 py-2 text-center text-[13px] font-bold text-violet-800 hover:bg-violet-100"
+                >
+                  ✎ 단어 고치기
+                </a>
+              ) : null}
+              <p className="text-[11px] leading-snug text-slate-400">
+                단어·뜻·품사·동의어·반의어를 고치거나 더하고 지울 수 있어요. 고친 뒤 이 화면을 다시 열면 바로 반영돼요.
+              </p>
+              {examHref ? (
+                <a
+                  href={examHref}
+                  className="block w-full rounded-lg border border-slate-300 bg-white py-2 text-center text-[13px] font-bold text-slate-700 hover:bg-slate-50"
+                >
+                  이 단어장으로 시험지 만들기 →
+                </a>
+              ) : null}
+              <MaterialDesignPicker value={md} onChange={chooseMd} />
+            </>
+          ) : (
+          <>
           {wordCount ? (
             <div className="space-y-1.5 rounded-lg border border-slate-200 p-2">
               <p className="text-[11px] font-bold text-slate-500">출제 범위 (전체 단어장 번호)</p>
@@ -281,12 +317,14 @@ export function LessonPackVocabExam({
               단어 정리가 없는 지문 {missing}개는 빠집니다. 수업용 자료를 열어 먼저 만들어 주세요.
             </p>
           ) : null}
+          </>
+          )}
         </div>
 
         <div className="space-y-2 border-t border-slate-100 p-4">
           <button
             type="button"
-            disabled={!exam.total}
+            disabled={listOnly ? !wordCount : !exam.total}
             onClick={() => window.print()}
             className="w-full rounded-xl bg-violet-600 py-3 text-sm font-bold text-white hover:bg-violet-700 disabled:opacity-50"
           >
@@ -294,10 +332,10 @@ export function LessonPackVocabExam({
           </button>
           <button
             type="button"
-            disabled={!!pdf.busy || !exam.total}
+            disabled={!!pdf.busy || (listOnly ? !wordCount : !exam.total)}
             onClick={() =>
               void pdf.save(
-                `${docName} 단어 시험지`,
+                `${docName} ${listOnly ? "단어장" : "단어 시험지"}`,
                 collectPrintPages(document.getElementById("lesson-pack-print-root"), PDF_SELECTOR),
                 [docName]
               )
@@ -324,7 +362,7 @@ export function LessonPackVocabExam({
         </div>
         <div className="flex justify-center p-6 print:p-0">
           <div className="lb-zoom" style={{ zoom: zoom / 100 }}>
-            {!exam.total ? (
+            {!listOnly && !exam.total ? (
               <div className="flex h-[60mm] w-[210mm] items-center justify-center rounded bg-white/70 text-sm text-slate-500 shadow print:hidden">
                 {ready.length ? "왼쪽에서 유형별 문항 수를 골라 주세요." : "단어 정리가 있는 지문이 없습니다. 수업용 자료를 먼저 열어 만들어 주세요."}
               </div>
@@ -338,9 +376,15 @@ export function LessonPackVocabExam({
                 className={`tb-theme-${md} flex flex-col items-center gap-6 print:gap-0 [&_.tb-sheet]:shadow-xl print:[&_.tb-sheet]:shadow-none`}
                 style={partStyle({ id: "lesson", no: "", en: "VOCABULARY TEST", ko: "단어 시험", color: "#1d2a8f" })}
               >
-                {wordList ? <AllVocabSheets projects={ready} indexOf={indexOf} measureKey={mk} range={range} noPassage={fromWordSet} /> : null}
-                <VocabExamSheets exam={exam} measureKey={mk} />
-                {answers ? <VocabExamAnswerSheets exam={exam} measureKey={mk} /> : null}
+                {listOnly ? (
+                  <AllVocabSheets projects={ready} indexOf={indexOf} measureKey={mk} noPassage={fromWordSet} />
+                ) : (
+                  <>
+                    {wordList ? <AllVocabSheets projects={ready} indexOf={indexOf} measureKey={mk} range={range} noPassage={fromWordSet} /> : null}
+                    <VocabExamSheets exam={exam} measureKey={mk} />
+                    {answers ? <VocabExamAnswerSheets exam={exam} measureKey={mk} /> : null}
+                  </>
+                )}
               </div>
             </TestBookBrand.Provider>
           </div>

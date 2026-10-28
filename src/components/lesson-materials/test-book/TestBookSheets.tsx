@@ -913,7 +913,8 @@ export function AllVocabSheets({
   /** 지문 번호 칸을 뺀다(자료함 「단어」 탭 단어장은 지문 정보가 없다) */
   noPassage?: boolean;
 }) {
-  const grid = noPassage ? "9mm 0 29mm 8mm 33mm 1fr 1fr 1fr" : ALL_GRID;
+  // 단어 탭 단어장은 지문·파생어가 없다 — 두 칸을 빼고 뜻 칸을 넓힌다
+  const grid = noPassage ? "9mm 0 32mm 8mm 46mm 1fr 1fr 0" : ALL_GRID;
   const allRows = allVocabRows(projects, indexOf);
   const rows = range ? allRows.filter((r) => r.no >= range.from && r.no <= range.to) : allRows;
   const head = (
@@ -922,10 +923,10 @@ export function AllVocabSheets({
       <div>{noPassage ? null : "지문"}</div>
       <div>단어</div>
       <div />
-      <div>지문 속 뜻</div>
+      <div>{noPassage ? "뜻" : "지문 속 뜻"}</div>
       <div>= 동의어</div>
       <div>↔ 반의어</div>
-      <div>파생어</div>
+      <div>{noPassage ? null : "파생어"}</div>
     </div>
   );
   const blocks: Block[] = rows.map((r) => ({
@@ -942,7 +943,7 @@ export function AllVocabSheets({
         <div>{r.row.meaning}</div>
         <div className={r.row.synonyms.length ? "tb-en" : "tb-nil"}>{r.row.synonyms.join(", ") || "—"}</div>
         <div className={r.row.antonyms.length ? "tb-en" : "tb-nil"}>{r.row.antonyms.join(", ") || "—"}</div>
-        <div className={r.row.forms.length ? "tb-en" : "tb-nil"}>{r.row.forms.length ? <FormList forms={r.row.forms} /> : "—"}</div>
+        {noPassage ? <div /> : <div className={r.row.forms.length ? "tb-en" : "tb-nil"}>{r.row.forms.length ? <FormList forms={r.row.forms} /> : "—"}</div>}
       </div>
     ),
   }));
@@ -954,7 +955,7 @@ export function AllVocabSheets({
         <>
           <DocHead
             title="전체 단어장"
-            sub={page > 0 ? "(이어서)" : range && rows.length < allRows.length ? `${range.from}~${range.to}번 · ${rows.length}단어` : `지문 ${projects.length}개 · ${rows.length}단어`}
+            sub={page > 0 ? "(이어서)" : range && rows.length < allRows.length ? `${range.from}~${range.to}번 · ${rows.length}단어` : noPassage ? `${rows.length}단어` : `지문 ${projects.length}개 · ${rows.length}단어`}
             label="ALL WORDS"
             right={noPassage ? "VOCABULARY" : "지문 번호는 계획표 차례"}
           />

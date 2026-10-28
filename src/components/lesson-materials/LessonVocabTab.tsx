@@ -53,7 +53,6 @@ export function LessonVocabTab({
   const [naming, setNaming] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
-  const vocabBase = `/${role}/vocab/set`;
   useEffect(() => {
     if (askSignal > 0 && selectedIds.length) setNaming(todayName());
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -131,7 +130,7 @@ export function LessonVocabTab({
               </span>
               <div className="flex min-w-0 flex-1 items-baseline gap-2">
                 <a
-                  href={`${vocabBase}/${s.id}`}
+                  href={`/${role}/lesson-materials/vocab-set-exam?set=${s.id}&view=list`}
                   target="_blank"
                   rel="noreferrer"
                   className="min-w-0 truncate text-[13px] font-semibold text-slate-900 hover:text-violet-700 hover:underline"
@@ -144,7 +143,7 @@ export function LessonVocabTab({
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 <a
-                  href={`${vocabBase}/${s.id}`}
+                  href={`/${role}/lesson-materials/vocab-set-exam?set=${s.id}&view=list`}
                   target="_blank"
                   rel="noreferrer"
                   className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50"

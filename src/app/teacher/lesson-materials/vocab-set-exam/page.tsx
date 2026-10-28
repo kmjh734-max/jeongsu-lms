@@ -9,9 +9,9 @@ import Link from "next/link";
 export default async function TeacherVocabSetExamPage({
   searchParams,
 }: {
-  searchParams: Promise<{ set?: string }>;
+  searchParams: Promise<{ set?: string; view?: string }>;
 }) {
-  const { set: setId } = await searchParams;
+  const { set: setId, view } = await searchParams;
   const supabase = await createClient();
   const loaded = setId?.trim() ? await loadVocabSetPrintData(supabase, setId.trim()) : null;
 
@@ -33,6 +33,9 @@ export default async function TeacherVocabSetExamPage({
       docName={loaded.set.title}
       projects={[vocabSetAsProject(loaded.set, loaded.items)]}
       fromWordSet
+      listOnly={view === "list"}
+      editHref={`/teacher/vocab/set/${loaded.set.id}`}
+      examHref={`/teacher/lesson-materials/vocab-set-exam?set=${loaded.set.id}`}
       logoSrc={branding.logoUrl}
       academyName={branding.name || ""}
     />
