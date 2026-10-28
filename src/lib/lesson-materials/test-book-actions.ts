@@ -123,7 +123,12 @@ async function loadProject(role: Role, profile: { id: string; academy_id: string
  */
 export async function prepareWorkbookExtrasAction(
   role: Role,
-  input: { projectId: string; regenerate?: Array<"vocab" | "gloss" | "content"> }
+  input: {
+    projectId: string;
+    regenerate?: Array<"vocab" | "gloss" | "content">;
+    /** 자료함 「단어」 탭에서 부름 — 그 기능을 켠 학원이면 값을 받지 않는다(선생님 2026-10-28) */
+    vocabTab?: boolean;
+  }
 ) {
   return preparePassage(role, input, "workbook");
 }
@@ -249,6 +254,7 @@ async function preparePassage(
      * 고른 것만 새로 만든다. 같은 지문의 테스트 교재 값은 다시 받지 않는다.
      */
     regenerate?: Array<"vocab" | "gloss" | "content">;
+    vocabTab?: boolean;
   },
   kind: "test_book" | "workbook"
 ): Promise<
@@ -271,8 +277,16 @@ async function preparePassage(
   let loaded = await loadProject(role, profile!, projectId);
   if (!loaded) return { ok: false, message: "지문을 찾을 수 없습니다." };
 
-  const shortfall = await lessonCreditShortfall(profile!.academy_id!, FEATURE);
-  if (shortfall) return { ok: false, message: shortfall };
+  // 자료함 「단어」 탭(윌링어학원)에서 만드는 단어 정리는 값을 받지 않는다(선생님 2026-10-28).
+  // 기능을 켠 학원만 — 다른 학원이 이 표시로 워크북 재료 값을 피하지 못하게
+  const free =
+    kind === "workbook" &&
+    input.vocabTab === true &&
+    (await isAcademyFeatureOn(createAdminClient(), profile!.academy_id, "lesson_vocab_tab"));
+  if (!free) {
+    const shortfall = await lessonCreditShortfall(profile!.academy_id!, FEATURE);
+    if (shortfall) return { ok: false, message: shortfall };
+  }
 
   // 1. 해석·단어 목록
   const pack0 = (loaded.project.lesson_pack_json ?? {}) as Partial<LessonPackData>;
@@ -451,15 +465,16 @@ async function preparePassage(
     content = await contentP;
     await flushAiUsage();
 
-    await debitLessonCredits({
-      academyId: profile!.academy_id!,
-      actorId: profile!.id,
-      featureKey: FEATURE,
-      projectId,
-      // 같은 지문은 기능마다 한 번만 받는다(다시 열거나 다시 만들어도 같은 키).
-      idempotencyKey: `${kind === "test_book" ? TEST_BOOK_FEATURE : WORKBOOK_EXTRAS_FEATURE}:${projectId}`,
-      note: `${kind === "test_book" ? "테스트 교재" : "워크북 지칭·함축·요약 등"} · ${project.title}`,
-    });
+    if (!free)
+      await debitLessonCredits({
+        academyId: profile!.academy_id!,
+        actorId: profile!.id,
+        featureKey: FEATURE,
+        projectId,
+        // 같은 지문은 기능마다 한 번만 받는다(다시 열거나 다시 만들어도 같은 키).
+        idempotencyKey: `${kind === "test_book" ? TEST_BOOK_FEATURE : WORKBOOK_EXTRAS_FEATURE}:${projectId}`,
+        note: `${kind === "test_book" ? "테스트 교재" : "워크북 지칭·함축·요약 등"} · ${project.title}`,
+      });
     return {
       ok: true,
       content: content!,

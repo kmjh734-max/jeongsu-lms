@@ -60,6 +60,7 @@ export async function POST(request: Request) {
           regenerate: Array.isArray(body.regenerate)
             ? (body.regenerate.filter((x) => x === "vocab" || x === "gloss" || x === "content") as Array<"vocab" | "gloss" | "content">)
             : undefined,
+          vocabTab: body.lessonTab === true,
         })
       );
     }

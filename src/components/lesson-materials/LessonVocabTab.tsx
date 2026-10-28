@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import type { LessonVocabSetRow } from "@/lib/lesson-materials/load-library";
@@ -34,7 +33,7 @@ function todayName(): string {
 /**
  * 자료함 「단어」 탭(윌링어학원, 선생님 2026-10-27): 지문을 골라 단어장을 만들고, 만든 단어장의 목록을 보고
  * 단어 시험지를 출력한다. 단어장은 단어학습 「수업자료 단어장」 폴더에 들어가 단어학습 화면에서도 그대로 쓴다.
- * 단어는 지문마다 만든 단어 정리(품사·지문 속 뜻·동의어·반의어)이고, 없는 지문만 값을 받고 먼저 만든다.
+ * 단어는 지문마다 만든 단어 정리(품사·지문 속 뜻·동의어·반의어)이고, 없는 지문은 먼저 만든다 — 값은 받지 않는다(선생님 2026-10-28).
  */
 export function LessonVocabTab({
   role,
@@ -68,21 +67,12 @@ export function LessonVocabTab({
       if (!loaded.ok) throw new Error(loaded.message);
       const missing = loaded.projects.filter((p) => !isTestBookProjectReady(p));
       if (missing.length) {
-        setBusy(null);
-        const go = await askCreditConfirm({
-          title: "단어장 만들기",
-          description: "단어 정리(품사·지문 속 뜻·동의어·반의어)가 없는 지문은 먼저 만듭니다. 한 번 만든 지문은 다시 받지 않습니다.",
-          subject: `단어 정리가 없는 지문 ${missing.length}개`,
-          contents: missing.map((p) => p.title),
-          items: [{ feature: "lesson_workbook_extras", quantity: missing.length }],
-        });
-        if (!go) return;
         let done = 0;
         const failed: string[] = [];
         setBusy(`단어 정리를 만들고 있습니다… (0/${missing.length})`);
         await runWithConcurrency(missing, PASSAGE_PREP_CONCURRENCY, async (p) => {
           try {
-            const res = await postJson<PrepareResult>("/api/lesson-materials/test-book", { role, op: "prepareWorkbook", projectId: p.id });
+            const res = await postJson<PrepareResult>("/api/lesson-materials/test-book", { role, op: "prepareWorkbook", projectId: p.id, lessonTab: true });
             if (!res.ok) failed.push(`「${p.title}」 ${res.message}`);
           } catch (e) {
             failed.push(`「${p.title}」 ${e instanceof Error ? e.message : "만들지 못했습니다."}`);
