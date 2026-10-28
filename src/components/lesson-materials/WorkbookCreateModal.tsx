@@ -27,6 +27,7 @@ import {
   getWorkbookTypeMeta,
   isTbWorkbookType,
   TB_PAID_WORKBOOK_TYPES,
+  WORKBOOK_RULE_TYPES,
   sortWorkbookTypesByPrintOrder,
   type WorkbookBlankFillOptions,
   type WorkbookData,
@@ -151,6 +152,9 @@ export function workbookPaidItems(types: WorkbookTypeId[], n: number): Array<{ f
       (t !== "tb_chunk_line" || types.some((o) => isTbWorkbookType(o) && o !== "tb_chunk_line"))
   ).length;
   if (tbPaid) paid.push({ feature: "lesson_workbook_tb_type", quantity: n * tbPaid });
+  // 빈칸 채우기·문장 순서 배열·연결어·글의 순서·문장 삽입은 유형마다 지문당 5(선생님 2026-10-28)
+  const rulePaid = types.filter((t) => WORKBOOK_RULE_TYPES.has(t)).length;
+  if (rulePaid) paid.push({ feature: "lesson_workbook_rule_type", quantity: n * rulePaid });
   return paid;
 }
 

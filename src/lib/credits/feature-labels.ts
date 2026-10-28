@@ -41,6 +41,7 @@ const FEATURES: Record<string, FeatureInfo> = {
   lesson_test_book: { label: "테스트 교재", group: "수업자료", unit: "지문" },
   lesson_test_draw: { label: "테스트지 뽑기", group: "수업자료", unit: "문항(세트 3)" },
   lesson_workbook_extras: { label: "수업자료 부가 재료 묶음(요약·지칭·함축·단어 등)", group: "워크북·1장 테스트", unit: "지문" },
+  lesson_workbook_rule_type: { label: "워크북 빈칸·문장 순서·연결어·글의 순서·문장 삽입", group: "워크북·1장 테스트", unit: "유형×지문" },
   lesson_workbook_tb_type: { label: "워크북 요약문·도식화·지칭·함축·바꿔 말하기·단어 시험", group: "워크북·1장 테스트", unit: "유형×지문" },
   school_exam_analysis: { label: "내신 시험지 분석", group: "내신 시험 분석", unit: "회" },
   exam_hit_book: { label: "적중 자료집 만들기", group: "내신 시험 분석", unit: "회" },

@@ -206,6 +206,8 @@ export const TB_WORKBOOK_TYPES = {
   tb_sequence: "sequence",
 } as const;
 export type TbWorkbookTypeId = keyof typeof TB_WORKBOOK_TYPES;
+/** 규칙으로만 만드는 유형 — 유형마다 지문당 5(lesson_workbook_rule_type, 선생님 2026-10-28 「무료는 좀 그래」) */
+export const WORKBOOK_RULE_TYPES = new Set<string>(["blank_fill", "sentence_order", "tb_link", "tb_sequence", "tb_insert"]);
 /** 유형마다 지문당 값을 받는 유형(lesson_workbook_tb_type). 연결어·글의 순서·문장 삽입은 규칙으로만 만들어 값이 없다 */
 export const TB_PAID_WORKBOOK_TYPES = new Set<string>([
   "tb_summary",

@@ -46,6 +46,8 @@ import {
   parseBlankTranslationLayout,
   parseBlankDensity,
   sortWorkbookTypesByPrintOrder,
+  WORKBOOK_RULE_TYPES,
+  WORKBOOK_TYPE_SHORT,
   type WorkbookBlankFillOptions,
   type WorkbookData,
   type WorkbookGistOptions,
@@ -331,17 +333,25 @@ export async function generateWorkbookAction(
    * 실제로는 모델을 부른다. 값을 먼저 잡아 두고 만든다.
    */
   const extraHolds: Array<{ amount: number; what: string }> = [];
-  for (const [want, feature, what] of [
-    [wantBilingual && !freeStoredLineSwitch, LESSON_CREDIT_FEATURES.workbookLineTranslation, "한 줄 해석·전체 영작"],
-    [wantWordOrder, LESSON_CREDIT_FEATURES.workbookWordOrder, "제시어 배열 영작"],
-    [wantGist, LESSON_CREDIT_FEATURES.workbookGist, "제목·주제·요지 해석"],
+  // 규칙으로만 만드는 유형도 유형마다 지문당 5(선생님 2026-10-28 「무료는 좀 그래」)
+  const ruleTypes = types.filter((t) => WORKBOOK_RULE_TYPES.has(t));
+  for (const [want, feature, what, per] of [
+    [wantBilingual && !freeStoredLineSwitch, LESSON_CREDIT_FEATURES.workbookLineTranslation, "한 줄 해석·전체 영작", 1],
+    [wantWordOrder, LESSON_CREDIT_FEATURES.workbookWordOrder, "제시어 배열 영작", 1],
+    [wantGist, LESSON_CREDIT_FEATURES.workbookGist, "제목·주제·요지 해석", 1],
+    [
+      ruleTypes.length > 0,
+      LESSON_CREDIT_FEATURES.workbookRuleType,
+      ruleTypes.map((t) => WORKBOOK_TYPE_SHORT[t] ?? t).join("·"),
+      ruleTypes.length,
+    ],
   ] as const) {
     if (!want) continue;
     const hold = await reserveLessonCredits({
       academyId: profile!.academy_id!,
       actorId: profile!.id,
       featureKey: feature,
-      quantity: passages.length,
+      quantity: passages.length * per,
       metadata: { used_for: "workbook" },
       note: `워크북 ${what} · 지문 ${passages.length}개`,
     });

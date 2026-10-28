@@ -41,6 +41,8 @@ export const LESSON_CREDIT_FEATURES = {
   workbookLineTranslation: "lesson_workbook_line_translation",
   /** 워크북 제목·주제·요지 해석, 지문당(2026-10-24) */
   workbookGist: "lesson_workbook_gist",
+  /** 워크북 규칙 유형(빈칸 채우기·문장 순서 배열·연결어·글의 순서·문장 삽입), 유형마다 지문당 5(2026-10-28) */
+  workbookRuleType: "lesson_workbook_rule_type",
   /** 문장 해석 다시 만들기(자료함), 지문당 */
   lineTranslate: "lesson_line_translate",
 } as const;
