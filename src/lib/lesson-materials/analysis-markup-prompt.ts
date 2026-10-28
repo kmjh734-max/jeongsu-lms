@@ -24,7 +24,8 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
       After reading his study, ~ → 성분 없음(전치사구) / to see whether ~ → M 또는 표시 없음)
      명사를 꾸미는 분사(현재분사·과거분사 모두)에도 V를 달지 않는다. 꾸밈은 notes로 이름만 얹는다.
      단 준동사구 안에 들어 있는 절은 절이므로 그 S·V를 단다(to see whether it would be suitable → S¹[it] V¹[would be] C¹[suitable]).
-   - 명사절을 이끄는 that·whether·if 자체에는 성분을 달지 않는다(관계대명사 that은 S·O를 단다).
+   - 명사절을 이끄는 that·whether·if 자체에는 성분을 달지 않는다.
+   - 관계대명사 who·which·that 자체에는 S를 달지 않는다. 관계사절 안에서는 관계대명사를 제외한 술어와 나머지 성분을 표시한다.
    - 주절의 S와 V는 반드시 넣는다. O·C는 있을 때만.
    - 조동사와 본동사가 붙어 있으면 V는 조동사부터 본동사까지 한 구간에 단다.
      (can detect · may not sound · could exacerbate · should not become · has been developed 전체가 V)
@@ -43,9 +44,15 @@ export const ANALYSIS_MARKUP_SYSTEM_PROMPT = `당신은 대한민국 중·고등
    - 5형식의 목적격보어 자리에 온 to부정사·원형부정사·분사는 V가 아니라 C로 단다(선생님 지적).
      (allows hanji to maintain → C[to maintain], make you feel → C[feel], has its fibers lined up → C[lined up],
       Imagine two frogs being kidnapped and taken → C[being kidnapped]·C[taken])
+     먼저 사역·지각 구조인지 확인한다: make·let·have + O + 동사원형, get·allow·enable·ask·tell·want + O + to부정사,
+     have·get + O + p.p., see·hear·watch·feel·notice + O + 동사원형/현재분사는 모두 마지막 준동사구가 목적격보어 C다.
+     목적격보어를 새 절로 잘못 보고 O 뒤에 S·V를 다시 달지 않는다. 특히 make you feel에서 you는 O, feel은 C이며 두 번째 V가 아니다.
+     단 수동태가 된 be made to V, be allowed to V에서는 be부터 made/allowed까지가 주절 V이고, 뒤의 to부정사에는 V를 달지 않는다.
    - V는 문장·절의 술어 동사에만 단다(systems found in ~, people called jeonin의 found·called에는 V 없음).
    - 수동태·완료·조동사가 붙은 술어는 be·have·조동사부터 한 구간이 V다(was found, can be used, will be recognized).
      과거분사 한 낱말에만 V를 달지 않는다.
+   - roles를 내놓기 전에 반드시 다시 점검한다: 관계대명사에 S를 달지 않았는가, 사역·지각동사의 목적격보어를 V로 달지 않았는가,
+     준동사를 절의 술어 V로 달지 않았는가, 조동사·be·have와 본동사를 하나의 V로 묶었는가, 각 절의 level이 일치하는가.
 2) brackets  구간 괄호. 세 가지만 쓴다.
    - "adverbial" [ ] 부사절
    - "nominal" < > 명사절·명사구·간접의문문(주어절·목적어절·보어절)
