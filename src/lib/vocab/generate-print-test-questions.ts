@@ -194,8 +194,15 @@ export function generatePrintExamQuestions(
 
   const rng = seededRng(options?.shuffleSeed || seedFromItems(items));
   const usedIds = new Set<string>();
+  const doShuffle = options?.shuffle !== false;
+  /** 섞지 않을 때 문항을 단어 번호 순으로 놓으려고 */
+  const order = new Map<PrintExamQuestion, number>();
+  const itemNo = new Map(items.map((item, i) => [item.id, i]));
 
-  /** pool을 섞어 앞에서부터 문항을 만들고, 만들지 못한 단어는 건너뛴다 */
+  /**
+   * 앞에서부터 문항을 만들고, 만들지 못한 단어는 건너뛴다.
+   * 섞기면 단어도 무작위로 고르고, 섞지 않으면 단어 번호 순서대로 고른다(1~50번 순서대로 시험).
+   */
   function fill(
     kind: ExamQuestionKind,
     count: number,
@@ -203,12 +210,13 @@ export function generatePrintExamQuestions(
     bucket: PrintExamQuestion[]
   ): number {
     let made = 0;
-    for (const item of shuffle(pool, rng)) {
+    for (const item of doShuffle ? shuffle(pool, rng) : pool) {
       if (made >= count) break;
       if (usedIds.has(item.id)) continue;
       const q = buildQuestion(kind, item, items, rng);
       if (!q) continue;
       usedIds.add(item.id);
+      order.set(q, itemNo.get(item.id) ?? 0);
       bucket.push(q);
       made += 1;
     }
@@ -232,11 +240,14 @@ export function generatePrintExamQuestions(
     skipped += count - made;
   }
 
-  const doShuffle = options?.shuffle !== false;
-  const orderedBasic = doShuffle ? shuffle(basicQuestions, rng) : basicQuestions;
+  const byNo = (a: PrintExamQuestion, b: PrintExamQuestion) =>
+    (order.get(a) ?? 0) - (order.get(b) ?? 0);
+  const orderedBasic = doShuffle
+    ? shuffle(basicQuestions, rng)
+    : [...basicQuestions].sort(byNo);
   const orderedExamples = doShuffle
     ? shuffle(exampleQuestions, rng)
-    : exampleQuestions;
+    : [...exampleQuestions].sort(byNo);
 
   return {
     questions: [...orderedBasic, ...orderedExamples].map((q, i) => ({

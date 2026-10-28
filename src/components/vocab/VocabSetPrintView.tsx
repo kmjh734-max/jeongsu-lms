@@ -36,6 +36,7 @@ import {
   examConfigTotal,
   examSettingsToSearchParams,
   parseExamPrintSettings,
+  resolveExamRange,
   type ExamPrintSettings,
 } from "@/lib/vocab/vocab-print-exam-config";
 import {
@@ -178,6 +179,8 @@ const EXAM_URL_KEYS = [
   "exam_spacing",
   "exam_shuffle",
   "exam_seed",
+  "exam_from",
+  "exam_to",
 ] as const;
 
 function formatNo(globalIndex: number) {
@@ -217,7 +220,9 @@ function withDefaultExamCounts(
   sections: VocabPrintSection[]
 ): ExamPrintSettings {
   if (examConfigTotal(parsed.counts) > 0) return parsed;
-  const n = sections.reduce((sum, s) => sum + s.items.length, 0);
+  const total = sections.reduce((sum, s) => sum + s.items.length, 0);
+  const range = resolveExamRange(parsed, total);
+  const n = Math.max(0, range.to - range.from + 1);
   return {
     ...parsed,
     counts: { ...parsed.counts, meaning_sa: Math.ceil(n / 2), word_sa: Math.floor(n / 2) },
@@ -277,6 +282,13 @@ export function VocabSetPrintView({
 
   const totalItems = allItems.length;
 
+  /** 출제 범위(단어 번호)에 든 단어만 시험에 낸다 */
+  const examRange = resolveExamRange(examSettings, totalItems);
+  const examItems = useMemo(
+    () => allItems.slice(examRange.from - 1, examRange.to),
+    [allItems, examRange.from, examRange.to]
+  );
+
   const examGenerated = useMemo(() => {
     if (mode !== "exam") {
       return {
@@ -286,13 +298,13 @@ export function VocabSetPrintView({
         capped: false,
       };
     }
-    return generatePrintExamQuestions(allItems, examSettings.counts, {
+    return generatePrintExamQuestions(examItems, examSettings.counts, {
       shuffle: examSettings.layout.shuffle,
       shuffleSeed: examSettings.shuffleSeed,
     });
   }, [
     mode,
-    allItems,
+    examItems,
     examSettings.counts,
     examSettings.layout.shuffle,
     examSettings.shuffleSeed,
@@ -1118,7 +1130,7 @@ export function VocabSetPrintView({
                   settings={examSettings}
                   onChange={updateExamSettings}
                   onReshuffle={reshuffleExam}
-                  maxPool={totalItems}
+                  wordCount={totalItems}
                 />
                 {examTotal === 0 ? (
                   <p className="text-[13px] text-amber-700">
@@ -1133,7 +1145,7 @@ export function VocabSetPrintView({
                 ) : null}
                 {examGenerated.capped ? (
                   <p className="text-[13px] text-amber-700">
-                    단어 {totalItems}개까지만 낼 수 있어요. (요청 {examTotal}문항 →
+                    범위 단어 {examItems.length}개까지만 낼 수 있어요. (요청 {examTotal}문항 →
                     실제 {examGenerated.questions.length}문항)
                   </p>
                 ) : null}

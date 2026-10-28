@@ -29,6 +29,9 @@ export interface ExamPrintSettings {
   layout: ExamPrintLayout;
   /** 변경 시 문항 순서 재생성 */
   shuffleSeed: number;
+  /** 출제 범위(단어 번호, 1부터). 0이면 처음·끝 — 단어장 전체 */
+  rangeFrom: number;
+  rangeTo: number;
 }
 
 export const DEFAULT_EXAM_PRINT_CONFIG: ExamPrintConfig = {
@@ -50,7 +53,20 @@ export const DEFAULT_EXAM_SETTINGS: ExamPrintSettings = {
   counts: DEFAULT_EXAM_PRINT_CONFIG,
   layout: DEFAULT_EXAM_LAYOUT,
   shuffleSeed: 0,
+  rangeFrom: 0,
+  rangeTo: 0,
 };
+
+/** 출제 범위를 단어 수 안으로 맞춘 [처음, 끝] 번호(1부터, 끝 포함) */
+export function resolveExamRange(
+  settings: Pick<ExamPrintSettings, "rangeFrom" | "rangeTo">,
+  total: number
+): { from: number; to: number } {
+  if (total <= 0) return { from: 1, to: 0 };
+  const from = Math.min(Math.max(settings.rangeFrom || 1, 1), total);
+  const to = Math.min(Math.max(settings.rangeTo || total, from), total);
+  return { from, to };
+}
 
 export const EXAM_COLUMN_LABELS: Record<ExamColumnCount, string> = {
   1: "1단",
@@ -123,7 +139,13 @@ function readCount(
 ): number {
   const raw = searchParams.get(key);
   const n = raw ? Number.parseInt(raw, 10) : 0;
-  return Number.isFinite(n) && n > 0 ? Math.min(n, 99) : 0;
+  // 상한은 단어 수로 다시 줄인다(240개 단어장을 한 유형으로 다 낼 수 있게)
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 5000) : 0;
+}
+
+function readRangeNo(searchParams: URLSearchParams, key: string): number {
+  const n = Number.parseInt(searchParams.get(key) ?? "", 10);
+  return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
 export function parseExamColumnCount(raw: string | null): ExamColumnCount {
@@ -163,6 +185,8 @@ export function parseExamPrintSettings(
       shuffle,
     },
     shuffleSeed,
+    rangeFrom: readRangeNo(searchParams, "exam_from"),
+    rangeTo: readRangeNo(searchParams, "exam_to"),
   };
 }
 
@@ -185,6 +209,8 @@ export function examSettingsToSearchParams(
   if (settings.shuffleSeed > 0) {
     out.exam_seed = String(settings.shuffleSeed);
   }
+  if (settings.rangeFrom > 0) out.exam_from = String(settings.rangeFrom);
+  if (settings.rangeTo > 0) out.exam_to = String(settings.rangeTo);
   return out;
 }
 

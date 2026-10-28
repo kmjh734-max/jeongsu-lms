@@ -12,13 +12,15 @@ import {
   EXAM_LINE_SPACING_LABELS,
   clampExamConfigToPool,
   examConfigTotal,
+  resolveExamRange,
 } from "@/lib/vocab/vocab-print-exam-config";
 
 interface VocabPrintExamConfigProps {
   settings: ExamPrintSettings;
   onChange: (settings: ExamPrintSettings) => void;
   onReshuffle: () => void;
-  maxPool: number;
+  /** 단어장 전체 단어 수(번호는 1~wordCount) */
+  wordCount: number;
 }
 
 const ROWS = [
@@ -34,9 +36,12 @@ export function VocabPrintExamConfig({
   settings,
   onChange,
   onReshuffle,
-  maxPool,
+  wordCount,
 }: VocabPrintExamConfigProps) {
   const { counts, layout } = settings;
+  const range = resolveExamRange(settings, wordCount);
+  const maxPool = Math.max(0, range.to - range.from + 1);
+  const ranged = maxPool < wordCount;
 
   const total = examConfigTotal(counts);
   const overPool = total > maxPool;
@@ -64,15 +69,73 @@ export function VocabPrintExamConfig({
 
   function setCount(key: keyof ExamPrintConfig, raw: string) {
     const n = Number.parseInt(raw, 10);
-    const value =
-      Number.isFinite(n) && n > 0 ? Math.min(n, Math.max(maxPool, 0), 99) : 0;
+    const value = Number.isFinite(n) && n > 0 ? Math.min(n, Math.max(maxPool, 0)) : 0;
     setCounts({ ...counts, [key]: value });
+  }
+
+  /**
+   * 범위를 바꾼다. 범위 단어를 한 유형으로 전부 내던 중이면(예: 뜻 쓰기 240) 새 범위 단어 수로 따라가고,
+   * 아니면 새 범위 단어 수를 넘는 만큼만 줄인다.
+   */
+  function setRange(from: number, to: number) {
+    const next = { ...settings, rangeFrom: from, rangeTo: to };
+    const r = resolveExamRange(next, wordCount);
+    const pool = Math.max(0, r.to - r.from + 1);
+    const used = (Object.keys(counts) as (keyof ExamPrintConfig)[]).filter((k) => counts[k] > 0);
+    let nextCounts = counts;
+    if (used.length === 1 && counts[used[0]] === maxPool) {
+      nextCounts = { ...counts, [used[0]]: pool };
+    }
+    onChange({ ...next, counts: clampExamConfigToPool(nextCounts, pool) });
+  }
+
+  function readNo(raw: string): number {
+    const n = Number.parseInt(raw, 10);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, wordCount) : 0;
   }
 
   return (
     <div className="w-full space-y-3">
-      <p className="text-[13px] font-medium text-slate-600">
-        문항 수 · 단어 {maxPool}개라 합계 {maxPool}문항까지 (예문 문항은 마지막에 1단)
+      <div className="space-y-1.5">
+        <span className="text-[13px] font-medium text-slate-600">출제 범위 (단어 번호)</span>
+        <div className="flex items-center gap-1.5 text-[13px] text-slate-700">
+          <input
+            type="number"
+            min={1}
+            max={wordCount}
+            value={settings.rangeFrom || ""}
+            placeholder="1"
+            onChange={(e) => setRange(readNo(e.target.value), settings.rangeTo)}
+            className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-center text-sm tabular-nums focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+          />
+          <span>번 ~</span>
+          <input
+            type="number"
+            min={1}
+            max={wordCount}
+            value={settings.rangeTo || ""}
+            placeholder={String(wordCount)}
+            onChange={(e) => setRange(settings.rangeFrom, readNo(e.target.value))}
+            className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-center text-sm tabular-nums focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+          />
+          <span>번</span>
+          {ranged ? (
+            <button
+              type="button"
+              onClick={() => setRange(0, 0)}
+              className="ml-auto rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+            >
+              전체
+            </button>
+          ) : null}
+        </div>
+        <p className="text-xs text-slate-500">
+          {range.from}~{range.to}번 단어 {maxPool}개에서 내요. 비워 두면 단어장 전체({wordCount}개).
+        </p>
+      </div>
+
+      <p className="border-t border-slate-200 pt-3 text-[13px] font-medium text-slate-600">
+        문항 수 · 범위 단어 {maxPool}개라 합계 {maxPool}문항까지 (예문 문항은 마지막에 1단)
       </p>
       <p
         className={`text-xs font-medium ${
@@ -166,15 +229,22 @@ export function VocabPrintExamConfig({
             onChange={(e) => setLayout({ shuffle: e.target.checked })}
             className="h-4 w-4 accent-brand-600"
           />
-          문항 순서 섞기
+          무작위 순서로 내기
         </label>
-        <button
-          type="button"
-          onClick={onReshuffle}
-          className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-[13px] font-semibold text-slate-700 hover:bg-slate-50"
-        >
-          순서 다시 섞기
-        </button>
+        {layout.shuffle ? (
+          <button
+            type="button"
+            onClick={onReshuffle}
+            className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-[13px] font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            순서 다시 섞기
+          </button>
+        ) : null}
+        <p className="w-full text-xs text-slate-500">
+          {layout.shuffle
+            ? "범위 안에서 단어를 무작위로 골라 섞어 내요."
+            : "범위 안 단어를 번호 순서대로 내요."}
+        </p>
       </div>
     </div>
   );
