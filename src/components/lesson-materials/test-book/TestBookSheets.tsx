@@ -902,12 +902,16 @@ export function AllVocabSheets({
   projects,
   indexOf,
   measureKey,
+  range = null,
 }: {
   projects: TestBookProjectInput[];
   indexOf: (id: string) => number;
   measureKey: string;
+  /** 번호 범위만 싣는다(단어 시험지 화면의 출제 범위) — 번호는 전체 차례 그대로 */
+  range?: { from: number; to: number } | null;
 }) {
-  const rows = allVocabRows(projects, indexOf);
+  const allRows = allVocabRows(projects, indexOf);
+  const rows = range ? allRows.filter((r) => r.no >= range.from && r.no <= range.to) : allRows;
   const head = (
     <div className="tb-row tb-th tb-vrow" style={{ gridTemplateColumns: ALL_GRID }}>
       <div />
@@ -944,7 +948,12 @@ export function AllVocabSheets({
       measureKey={measureKey}
       head={(page) => (
         <>
-          <DocHead title="전체 단어장" sub={page > 0 ? "(이어서)" : `지문 ${projects.length}개 · ${rows.length}단어`} label="ALL WORDS" right="지문 번호는 계획표 차례" />
+          <DocHead
+            title="전체 단어장"
+            sub={page > 0 ? "(이어서)" : range && rows.length < allRows.length ? `${range.from}~${range.to}번 · ${rows.length}단어` : `지문 ${projects.length}개 · ${rows.length}단어`}
+            label="ALL WORDS"
+            right="지문 번호는 계획표 차례"
+          />
           {head}
         </>
       )}

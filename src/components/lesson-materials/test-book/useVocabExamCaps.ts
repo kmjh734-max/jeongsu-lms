@@ -22,12 +22,15 @@ export type VocabExamCaps = {
 };
 
 /** 이미 받은 지문으로 센다(값·호출 없음). 지문 단어를 합쳐 같은 낱말은 한 번만. */
-export function vocabExamCaps(projects: TestBookProjectInput[]): VocabExamCaps {
+export function vocabExamCaps(
+  projects: TestBookProjectInput[],
+  range: { from: number; to: number } | null = null
+): VocabExamCaps {
   const ready = projects.filter(isTestBookProjectReady);
   const all = Object.fromEntries(VOCAB_EXAM_KINDS.map((k) => [k.key, 9999])) as Record<VocabExamKind, number>;
   const exam = buildVocabExam(
     ready.map((p, i) => ({ passage: i + 1, vocab: p.material.vocab })),
-    { counts: all, seed: "caps" }
+    { counts: all, seed: "caps", range }
   );
   const perKind = Object.fromEntries(VOCAB_EXAM_KINDS.map((k) => [k.key, 0])) as Record<VocabExamKind, number>;
   for (const s of exam.sections) perKind[s.kind] = s.items.length;

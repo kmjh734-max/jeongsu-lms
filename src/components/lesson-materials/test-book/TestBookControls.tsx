@@ -10,6 +10,7 @@ import {
   TEST_BOOK_THEMES,
   TEST_BOOK_TYPES,
   VOCAB_EXAM_KINDS,
+  VOCAB_EXAM_ALL,
   VOCAB_EXAM_KIND_COUNTS,
   type LineMode,
   type TestBookOptions,
@@ -36,10 +37,13 @@ export function VocabExamControls({
   value,
   onChange,
   caps,
+  countOptions = VOCAB_EXAM_KIND_COUNTS,
 }: {
   value: VocabExamOptions;
   onChange: (v: VocabExamOptions) => void;
   caps?: VocabExamCaps | null;
+  /** 고를 수 있는 문항 수(단어 시험지 화면은 「전체」까지) */
+  countOptions?: number[];
 }) {
   const total = VOCAB_EXAM_KINDS.reduce((n, k) => n + (value.counts[k.key] ?? 0), 0);
   const real = caps ? VOCAB_EXAM_KINDS.reduce((n, k) => n + Math.min(value.counts[k.key] ?? 0, caps.perKind[k.key]), 0) : total;
@@ -51,14 +55,19 @@ export function VocabExamControls({
         </p>
       ) : null}
       <p className="text-[11px] font-bold text-slate-500">
-        유형별 문항 수 · 모두 {caps && real < total ? `${real}문항(고른 ${total}문항 중 단어가 있는 만큼)` : `${total}문항`}
+        유형별 문항 수 · 모두{" "}
+        {caps && real < total
+          ? total >= VOCAB_EXAM_ALL
+            ? `${real}문항`
+            : `${real}문항(고른 ${total}문항 중 단어가 있는 만큼)`
+          : `${total}문항`}
       </p>
       {VOCAB_EXAM_KINDS.map((k) => (
         <label key={k.key} className="flex items-center justify-between gap-2 text-[12px] text-slate-700" title={k.hint}>
           <span className={value.counts[k.key] ? "" : "text-slate-400"}>
             {k.label}
             {caps ? (
-              <span className={`ml-1 text-[10.5px] ${(value.counts[k.key] ?? 0) > caps.perKind[k.key] ? "font-bold text-amber-600" : "text-slate-400"}`}>
+              <span className={`ml-1 text-[10.5px] ${(value.counts[k.key] ?? 0) > caps.perKind[k.key] && (value.counts[k.key] ?? 0) < VOCAB_EXAM_ALL ? "font-bold text-amber-600" : "text-slate-400"}`}>
                 최대 {caps.perKind[k.key]}
               </span>
             ) : null}
@@ -68,9 +77,9 @@ export function VocabExamControls({
             onChange={(e) => onChange({ counts: { ...value.counts, [k.key]: Number(e.target.value) } })}
             className="rounded-md border border-slate-200 bg-white px-1 py-0.5 text-[12px]"
           >
-            {VOCAB_EXAM_KIND_COUNTS.map((n) => (
+            {countOptions.map((n) => (
               <option key={n} value={n}>
-                {n ? `${n}문항` : "빼기"}
+                {n >= VOCAB_EXAM_ALL ? "전체" : n ? `${n}문항` : "빼기"}
               </option>
             ))}
           </select>

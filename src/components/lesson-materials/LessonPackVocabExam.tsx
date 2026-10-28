@@ -6,6 +6,8 @@ import { usePdfPrefetch, usePdfSave } from "@/components/pdf/usePdfSave";
 import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import {
   DEFAULT_VOCAB_EXAM,
+  VOCAB_EXAM_ALL,
+  VOCAB_EXAM_KIND_COUNTS_WIDE,
   buildVocabExam,
   isTestBookProjectReady,
   normalizeVocabExam,
@@ -15,7 +17,9 @@ import {
 import {
   TEST_BOOK_CSS,
   TEST_BOOK_FONTS_HREF,
+  AllVocabSheets,
   TestBookBrand,
+  allVocabRows,
   VocabExamAnswerSheets,
   VocabExamSheets,
   partStyle,
@@ -60,36 +64,69 @@ export function LessonPackVocabExam({
   const [md, chooseMd] = useMaterialDesign();
   const ready = useMemo(() => projects.filter(isTestBookProjectReady), [projects]);
   const missing = projects.length - ready.length;
-  const caps = useMemo(() => vocabExamCaps(projects), [projects]);
+  const indexOf = (id: string) => projects.findIndex((p) => p.id === id);
+  /** 전체 단어장 번호(지문 차례, 같은 낱말은 한 번) — 출제 범위는 이 번호로 */
+  const wordCount = useMemo(() => allVocabRows(ready, () => 0).length, [ready]);
 
-  // 유형별 문항 수 · 정답지 — 이 브라우저에 기억한다
+  /*
+   * 출제 범위·번호순(윌링어학원 Jayden 선생님 2026-10-29): 전체 단어장 번호로 「1~50번」을 골라
+   * 그 단어만 번호 순서대로 또는 무작위로 낸다. 범위는 파일마다 달라 기억하지 않는다(비우면 전체).
+   */
+  const [rangeFrom, setRangeFrom] = useState(0);
+  const [rangeTo, setRangeTo] = useState(0);
+  const range = useMemo(() => {
+    if (!wordCount) return null;
+    const from = Math.min(Math.max(rangeFrom || 1, 1), wordCount);
+    const to = Math.min(Math.max(rangeTo || wordCount, from), wordCount);
+    return from === 1 && to === wordCount ? null : { from, to };
+  }, [rangeFrom, rangeTo, wordCount]);
+  const caps = useMemo(() => vocabExamCaps(projects, range), [projects, range]);
+
+  // 유형별 문항 수 · 정답지 · 번호순 · 단어장 — 이 브라우저에 기억한다
   const [counts, setCounts] = useState<VocabExamOptions>(DEFAULT_VOCAB_EXAM);
   const [answers, setAnswers] = useState(true);
+  const [inOrder, setInOrder] = useState(false);
+  const [wordList, setWordList] = useState(false);
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(OPTIONS_KEY);
       if (!raw) return;
-      const saved = JSON.parse(raw) as { vocabExam?: unknown; answers?: unknown };
+      const saved = JSON.parse(raw) as { vocabExam?: unknown; answers?: unknown; inOrder?: unknown; wordList?: unknown };
       setCounts(normalizeVocabExam(saved.vocabExam));
       if (typeof saved.answers === "boolean") setAnswers(saved.answers);
+      if (typeof saved.inOrder === "boolean") setInOrder(saved.inOrder);
+      if (typeof saved.wordList === "boolean") setWordList(saved.wordList);
     } catch {
       /* 저장소를 못 쓰면 기본 */
     }
   }, []);
-  const remember = (next: { vocabExam: VocabExamOptions; answers: boolean }) => {
+  const settings = { vocabExam: counts, answers, inOrder, wordList };
+  const remember = (patch: Partial<typeof settings>) => {
     try {
-      window.localStorage.setItem(OPTIONS_KEY, JSON.stringify(next));
+      window.localStorage.setItem(OPTIONS_KEY, JSON.stringify({ ...settings, ...patch }));
     } catch {
       /* 무시 */
     }
   };
   const chooseCounts = (v: VocabExamOptions) => {
     setCounts(v);
-    remember({ vocabExam: v, answers });
+    remember({ vocabExam: v });
   };
   const chooseAnswers = (on: boolean) => {
     setAnswers(on);
-    remember({ vocabExam: counts, answers: on });
+    remember({ answers: on });
+  };
+  const chooseInOrder = (on: boolean) => {
+    setInOrder(on);
+    remember({ inOrder: on });
+  };
+  const chooseWordList = (on: boolean) => {
+    setWordList(on);
+    remember({ wordList: on });
+  };
+  const readNo = (raw: string) => {
+    const n = Number.parseInt(raw, 10);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, wordCount) : 0;
   };
 
   // 「새로 섞기」 — 같은 단어에서 다른 문항·보기 차례로
@@ -98,12 +135,15 @@ export function LessonPackVocabExam({
     () =>
       buildVocabExam(
         ready.map((p) => ({ passage: projects.indexOf(p) + 1, vocab: p.material.vocab })),
-        { ...counts, seed: `lesson-pack|vocab|${round}` }
+        { ...counts, seed: `lesson-pack|vocab|${round}`, range, inOrder }
       ),
-    [ready, projects, counts, round]
+    [ready, projects, counts, round, range, inOrder]
   );
   /** 유형마다 고른 수보다 단어가 모자라 덜 나온 것 */
-  const short = exam.sections.filter((s) => s.items.length < (counts.counts[s.kind] ?? 0));
+  const short = exam.sections.filter((s) => {
+    const want = counts.counts[s.kind] ?? 0;
+    return want < VOCAB_EXAM_ALL && s.items.length < want;
+  });
   const wanted = Object.values(counts.counts).reduce((n, c) => n + c, 0);
 
   const [fontsTick, setFontsTick] = useState(0);
@@ -138,7 +178,65 @@ export function LessonPackVocabExam({
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm">
-          <VocabExamControls value={counts} onChange={chooseCounts} caps={caps} />
+          {wordCount ? (
+            <div className="space-y-1.5 rounded-lg border border-slate-200 p-2">
+              <p className="text-[11px] font-bold text-slate-500">출제 범위 (전체 단어장 번호)</p>
+              <div className="flex items-center gap-1 text-[12px] text-slate-700">
+                <input
+                  type="number"
+                  min={1}
+                  max={wordCount}
+                  value={rangeFrom || ""}
+                  placeholder="1"
+                  onChange={(e) => setRangeFrom(readNo(e.target.value))}
+                  className="w-14 rounded-md border border-slate-200 px-1.5 py-1 text-center tabular-nums"
+                />
+                <span>번 ~</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={wordCount}
+                  value={rangeTo || ""}
+                  placeholder={String(wordCount)}
+                  onChange={(e) => setRangeTo(readNo(e.target.value))}
+                  className="w-14 rounded-md border border-slate-200 px-1.5 py-1 text-center tabular-nums"
+                />
+                <span>번</span>
+                {range ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRangeFrom(0);
+                      setRangeTo(0);
+                    }}
+                    className="ml-auto rounded-md border border-slate-200 px-1.5 py-0.5 text-[11px] font-bold text-slate-500 hover:bg-slate-50"
+                  >
+                    전체
+                  </button>
+                ) : null}
+              </div>
+              <p className="text-[11px] text-slate-400">
+                {range ? `${range.from}~${range.to}번 단어 ${range.to - range.from + 1}개에서 냅니다` : `비워 두면 전체 ${wordCount}단어`}
+              </p>
+              <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+                {[
+                  { on: true, label: "번호순" },
+                  { on: false, label: "무작위" },
+                ].map((o) => (
+                  <button
+                    key={o.label}
+                    type="button"
+                    onClick={() => chooseInOrder(o.on)}
+                    className={`rounded-md py-1 text-[11px] font-bold ${inOrder === o.on ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <VocabExamControls value={counts} onChange={chooseCounts} caps={caps} countOptions={VOCAB_EXAM_KIND_COUNTS_WIDE} />
           {short.length ? (
             <p className="text-[11px] leading-snug text-amber-700">
               단어가 모자라 덜 나온 유형: {short.map((s) => `${s.title} ${s.items.length}문항`).join(" · ")}
@@ -148,13 +246,23 @@ export function LessonPackVocabExam({
             <p className="text-[11px] text-amber-700">고른 유형으로 낼 수 있는 단어가 없습니다.</p>
           ) : null}
 
-          <button
-            type="button"
-            onClick={() => setRound((r) => r + 1)}
-            className="w-full rounded-lg border border-slate-300 bg-white py-1.5 text-[12px] font-bold text-slate-700 hover:bg-slate-50"
-          >
-            ↻ 새로 섞기
-          </button>
+          {inOrder ? null : (
+            <button
+              type="button"
+              onClick={() => setRound((r) => r + 1)}
+              className="w-full rounded-lg border border-slate-300 bg-white py-1.5 text-[12px] font-bold text-slate-700 hover:bg-slate-50"
+            >
+              ↻ 새로 섞기
+            </button>
+          )}
+
+          <label className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
+            <span className="text-xs font-bold text-slate-500">
+              전체 단어장 넣기
+              <span className="block text-[10.5px] font-normal text-slate-400">번호 붙은 단어 목록(범위만) · 시험지 앞에</span>
+            </span>
+            <input type="checkbox" checked={wordList} onChange={(e) => chooseWordList(e.target.checked)} className="h-4 w-4 accent-violet-500" />
+          </label>
 
           <label className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
             <span className="text-xs font-bold text-slate-500">정답지 넣기</span>
@@ -225,6 +333,7 @@ export function LessonPackVocabExam({
                 className={`tb-theme-${md} flex flex-col items-center gap-6 print:gap-0 [&_.tb-sheet]:shadow-xl print:[&_.tb-sheet]:shadow-none`}
                 style={partStyle({ id: "lesson", no: "", en: "VOCABULARY TEST", ko: "단어 시험", color: "#1d2a8f" })}
               >
+                {wordList ? <AllVocabSheets projects={ready} indexOf={indexOf} measureKey={mk} range={range} /> : null}
                 <VocabExamSheets exam={exam} measureKey={mk} />
                 {answers ? <VocabExamAnswerSheets exam={exam} measureKey={mk} /> : null}
               </div>

@@ -1765,6 +1765,12 @@ export const VOCAB_EXAM_KINDS: Array<{ key: VocabExamKind; label: string; hint: 
 
 /** 유형마다 문항 수(선생님 2026-10-20: 단어 시험은 유형별로 문항 수를 정하게) */
 export const VOCAB_EXAM_KIND_COUNTS = [0, 5, 10, 15, 20, 25, 30];
+/** 「전체」 — 범위 안 단어로 낼 수 있는 만큼 */
+export const VOCAB_EXAM_ALL = 9999;
+/**
+ * 단어 시험지 화면은 범위 단어를 한 번에 다 내기도 한다(윌링어학원 Jayden 선생님 2026-10-29: 240단어 뜻쓰기 240문항).
+ */
+export const VOCAB_EXAM_KIND_COUNTS_WIDE = [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, VOCAB_EXAM_ALL];
 
 export type VocabExamOptions = { counts: Record<VocabExamKind, number> };
 
@@ -1778,7 +1784,7 @@ export function normalizeVocabExam(raw: unknown): VocabExamOptions {
   if (r.counts && typeof r.counts === "object") {
     for (const k of VOCAB_EXAM_KINDS.map((x) => x.key)) {
       const n = Math.floor(Number(r.counts[k]));
-      if (Number.isFinite(n) && n >= 0) counts[k] = Math.min(60, n);
+      if (Number.isFinite(n) && n >= 0) counts[k] = Math.min(VOCAB_EXAM_ALL, n);
     }
   }
   return { counts };
@@ -1786,6 +1792,8 @@ export function normalizeVocabExam(raw: unknown): VocabExamOptions {
 
 export type VocabExamItem = {
   no: number;
+  /** 전체 단어장 번호(지문 차례로 같은 낱말은 한 번, 1부터) */
+  wordNo: number;
   /** 문항에 보이는 말(단어·뜻·「restore (v.) → n.」) */
   prompt: string;
   /** 철자 쓰기 첫 글자 */
@@ -1804,18 +1812,35 @@ export type VocabExam = { total: number; sections: VocabExamSection[] };
 
 const CHOICE_NO = "①②③④";
 
+/**
+ * 단어 시험 옵션.
+ * range: 전체 단어장 번호 범위(1부터, 끝 포함) — 그 번호 단어만 낸다.
+ * inOrder: 무작위 대신 단어장 번호 순서대로 앞에서부터 낸다.
+ * (윌링어학원 Jayden 선생님 2026-10-29: 「1~50번만 번호순 또는 무작위로」)
+ */
+export type VocabExamBuildOptions = VocabExamOptions & {
+  seed: string;
+  range?: { from: number; to: number } | null;
+  inOrder?: boolean;
+};
+
 export function buildVocabExam(
   projects: Array<{ passage: number; vocab: TestBookVocabRow[] }>,
-  opts: VocabExamOptions & { seed: string }
+  opts: VocabExamBuildOptions
 ): VocabExam {
+  // 번호는 전체 단어장(allVocabRows)과 같게 센다: 지문 차례, 같은 낱말은 처음 것 하나
   const seen = new Set<string>();
-  const rows: Array<TestBookVocabRow & { passage: number }> = [];
+  const rows: Array<TestBookVocabRow & { passage: number; wordNo: number }> = [];
+  let wordNo = 0;
   for (const p of projects) {
     for (const r of p.vocab) {
       const k = r.word.toLowerCase();
-      if (!r.word || !r.meaning || seen.has(k)) continue;
+      if (seen.has(k)) continue;
       seen.add(k);
-      rows.push({ ...r, passage: p.passage });
+      wordNo += 1;
+      if (!r.word || !r.meaning) continue;
+      if (opts.range && (wordNo < opts.range.from || wordNo > opts.range.to)) continue;
+      rows.push({ ...r, passage: p.passage, wordNo });
     }
   }
   const mcq = (r: TestBookVocabRow, correct: string, key: string) => {
@@ -1826,24 +1851,24 @@ export function buildVocabExam(
   };
   // 유형마다 만들 수 있는 문항(후보)
   const cands: Record<VocabExamKind, Array<Omit<VocabExamItem, "no">>> = {
-    meaning: rows.map((r) => ({ prompt: r.word, answer: r.meaning, passage: r.passage })),
+    meaning: rows.map((r) => ({ prompt: r.word, answer: r.meaning, passage: r.passage, wordNo: r.wordNo })),
     spelling: rows
       .filter((r) => /^[A-Za-z]/.test(r.word))
       // 첫 글자는 알려 주지 않는다(선생님 2026-10-21)
-      .map((r) => ({ prompt: r.meaning, answer: r.word, passage: r.passage })),
+      .map((r) => ({ prompt: r.meaning, answer: r.word, passage: r.passage, wordNo: r.wordNo })),
     synonym: rows.flatMap((r) => {
       const c = r.synonyms[0];
       const m = c ? mcq(r, c, `s|${r.word}`) : null;
-      return m ? [{ prompt: r.word, ...m, passage: r.passage }] : [];
+      return m ? [{ prompt: r.word, ...m, passage: r.passage, wordNo: r.wordNo }] : [];
     }),
     antonym: rows.flatMap((r) => {
       const c = r.antonyms[0];
       const m = c ? mcq(r, c, `a|${r.word}`) : null;
-      return m ? [{ prompt: r.word, ...m, passage: r.passage }] : [];
+      return m ? [{ prompt: r.word, ...m, passage: r.passage, wordNo: r.wordNo }] : [];
     }),
     form: rows.flatMap((r) => {
       const f = r.forms.find((x) => x.word && POS_NAME[x.pos] && x.pos !== r.pos);
-      return f ? [{ prompt: `${r.word} (${r.pos}) → ${f.pos}`, answer: f.word, passage: r.passage }] : [];
+      return f ? [{ prompt: `${r.word} (${r.pos}) → ${f.pos}`, answer: f.word, passage: r.passage, wordNo: r.wordNo }] : [];
     }),
     formChoice: rows.flatMap((r) => {
       // 같은 뿌리의 꼴로만 보기를 만든다(선생님 의견: affect · affection · affective · affectionate)
@@ -1853,7 +1878,7 @@ export function buildVocabExam(
         .filter((w) => w && w.toLowerCase() !== f.word.toLowerCase());
       if (family.length < 3) return [];
       const choices = fisherYatesShuffle([f.word, ...pickN(family, 3, `${opts.seed}|fc|${r.word}`)], createSeededRng(`${opts.seed}|fco|${r.word}`));
-      return [{ prompt: `${r.word} 의 ${POS_NAME[f.pos]}`, choices, answer: CHOICE_NO[choices.indexOf(f.word)]!, passage: r.passage }];
+      return [{ prompt: `${r.word} 의 ${POS_NAME[f.pos]}`, choices, answer: CHOICE_NO[choices.indexOf(f.word)]!, passage: r.passage, wordNo: r.wordNo }];
     }),
   };
   const want: Record<string, number> = {};
@@ -1866,7 +1891,8 @@ export function buildVocabExam(
     const n = want[k] ?? 0;
     if (!n) continue;
     const meta = VOCAB_EXAM_KINDS.find((x) => x.key === k)!;
-    const items = pickN(cands[k], n, `${opts.seed}|vxk|${k}`).map((it) => ({ ...it, no: ++no }));
+    const picked = opts.inOrder ? cands[k].slice(0, n) : pickN(cands[k], n, `${opts.seed}|vxk|${k}`);
+    const items = picked.map((it) => ({ ...it, no: ++no }));
     sections.push({ kind: k, title: meta.label, hint: meta.hint, items });
   }
   return { total: no, sections };
