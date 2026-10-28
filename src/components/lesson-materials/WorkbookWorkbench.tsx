@@ -2672,6 +2672,8 @@ export function WorkbookWorkbench({
                     projectId: ids[i]!,
                     // 「새 문항으로」면 1장 재료(요약·지칭·함축 등)도 새로 만든다 — 아니면 같은 문항이 그대로 나온다
                     regenerate: forceRegenerate ? ["content"] : undefined,
+                    // 고른 유형에 필요한 재료만 만들고 고른 유형만 값을 받는다(선생님 2026-10-28)
+                    tbTypes,
                   });
                   if (cancelled) return;
                   if (one.ok) got[i] = one;

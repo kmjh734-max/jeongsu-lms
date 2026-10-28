@@ -206,6 +206,16 @@ export const TB_WORKBOOK_TYPES = {
   tb_sequence: "sequence",
 } as const;
 export type TbWorkbookTypeId = keyof typeof TB_WORKBOOK_TYPES;
+/** 유형마다 지문당 값을 받는 유형(lesson_workbook_tb_type). 연결어·글의 순서·문장 삽입은 규칙으로만 만들어 값이 없다 */
+export const TB_PAID_WORKBOOK_TYPES = new Set<string>([
+  "tb_summary",
+  "tb_flow",
+  "tb_reference",
+  "tb_implication",
+  "tb_paraphrase",
+  "tb_vocab_exam",
+  "tb_chunk_line",
+]);
 export function isTbWorkbookType(id: string): id is TbWorkbookTypeId {
   return id in TB_WORKBOOK_TYPES;
 }

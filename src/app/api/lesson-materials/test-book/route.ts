@@ -34,6 +34,7 @@ export async function POST(request: Request) {
       snapshot?: unknown;
       chargeKey?: string;
       lessonTab?: boolean;
+      tbTypes?: unknown[];
     };
     const role = body.role === "admin" ? "admin" : "teacher";
     if (body.op === "registerVocab") {
@@ -61,6 +62,7 @@ export async function POST(request: Request) {
             ? (body.regenerate.filter((x) => x === "vocab" || x === "gloss" || x === "content") as Array<"vocab" | "gloss" | "content">)
             : undefined,
           vocabTab: body.lessonTab === true,
+          tbTypes: Array.isArray(body.tbTypes) ? body.tbTypes.map(String) : undefined,
         })
       );
     }

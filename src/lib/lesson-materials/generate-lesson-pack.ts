@@ -35,6 +35,11 @@ export type LessonPackData = {
   vocabChoiceCache?: import("@/lib/lesson-materials/vocab-choice").StoredVocabChoiceCache | null;
   /** 1장 요약직보자료·1장 테스트 재료(주제·요약문·도식화·동반의어·어법 포인트·바꿔 쓰기·T/F·주요문장) */
   onePageContent?: import("@/lib/lesson-materials/one-page").OnePageContent | null;
+  /**
+   * 워크북 유형(요약문·도식화·지칭·함축·바꿔 말하기)만 쓰는 가벼운 1장 재료 — 어법·낱말이 비어 있다.
+   * 1장 자료가 이것을 쓰면 안 되므로 onePageContent와 따로 둔다(2026-10-28).
+   */
+  workbookLiteContent?: import("@/lib/lesson-materials/one-page").OnePageContent | null;
   /** 테스트 교재 재료(단어 정리·중요문장·어순 덩어리) */
   testBookMaterial?: import("@/lib/lesson-materials/test-book").TestBookMaterial | null;
   /** 끊어 읽기(직독직해) 덩어리만 따로 만든 것 — 테스트 교재 재료 없이 워크북 해석 적기를 끊어 읽기로 바꿀 때 */

@@ -26,6 +26,7 @@ import {
   estimateBlankCountPreview,
   getWorkbookTypeMeta,
   isTbWorkbookType,
+  TB_PAID_WORKBOOK_TYPES,
   sortWorkbookTypesByPrintOrder,
   type WorkbookBlankFillOptions,
   type WorkbookData,
@@ -141,9 +142,15 @@ export function workbookPaidItems(types: WorkbookTypeId[], n: number): Array<{ f
   // 중요문장 어순배열은 어순배열과 같은 값(둘 다 골라도 한 번)
   if (types.includes("word_order_writing") || types.includes("key_word_order"))
     paid.push({ feature: "lesson_workbook_word_order", quantity: n });
-  // 지칭·함축·바꿔 말하기·도식화·연결어·삽입·요약문·직독직해·단어 시험지 — 지문당 한 번(여러 갈래를 골라도)
-  // 끊어 읽기만이면 부가 재료가 필요 없다(직독직해 덩어리만 만든다)
-  if (types.some((t) => isTbWorkbookType(t) && t !== "tb_chunk_line")) paid.push({ feature: "lesson_workbook_extras", quantity: n });
+  // 요약문·도식화·지칭·함축·바꿔 말하기·단어 시험(·다른 유형과 함께 고른 끊어 읽기)은 고른 유형마다 지문당
+  // 값을 받는다. 연결어·글의 순서·문장 삽입은 규칙으로만 만들어 받지 않는다(선생님 2026-10-28 — 예전에는 무엇을
+  // 골라도 묶음 값 200). 끊어 읽기만이면 위 한 줄 해석 값으로 받는다.
+  const tbPaid = types.filter(
+    (t) =>
+      TB_PAID_WORKBOOK_TYPES.has(t) &&
+      (t !== "tb_chunk_line" || types.some((o) => isTbWorkbookType(o) && o !== "tb_chunk_line"))
+  ).length;
+  if (tbPaid) paid.push({ feature: "lesson_workbook_tb_type", quantity: n * tbPaid });
   return paid;
 }
 

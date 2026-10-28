@@ -1598,7 +1598,14 @@ function chunkPlan(
 export async function generateOnePageContent(input: {
   title: string;
   sentences: string[];
+  /**
+   * 워크북 유형(요약문·도식화·지칭·함축·바꿔 말하기)만 쓸 때: 어법·낱말 갈래와 그 보충·채점을 건너뛴다.
+   * 그 둘이 원가의 약 4분의 3이다(2026-10-28 실측 44원 중 34원). 결과의 grammar·vocab은 비어 있으므로
+   * 1장 자료 재료(onePageContent)로 저장하면 안 된다.
+   */
+  lite?: boolean;
 }): Promise<{ content: OnePageContent; model: string; usage: Usage; notes: string[] }> {
+  const lite = input.lite === true;
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) throw new Error("OPENAI_API_KEY가 설정되어 있지 않습니다.");
   const sentences = input.sentences.map((s) => formatWorkbookPassage(s)).filter(Boolean);
@@ -1690,7 +1697,7 @@ export async function generateOnePageContent(input: {
 
     // ---- 낱말: 앞뒤로 나눠 만들고, 다 돌아오면 걸러 바로 검수한다.
     const vocabPicked = Promise.all(
-      chunkPlan(sentences.length, VOCAB_CANDIDATES, 2).map((part, i) =>
+      (lite ? [] : chunkPlan(sentences.length, VOCAB_CANDIDATES, 2)).map((part, i) =>
         ask(
           `words${i + 1}`,
           WORDS_PROMPT,
@@ -1709,6 +1716,7 @@ export async function generateOnePageContent(input: {
     const vocabPromise = done(
       "낱말+검수",
       vocabPicked.then(async (picked) => {
+        if (lite) return { picked, vocab: [] as OnePageVocabNote[], notes: [] as string[] };
         const checked = await verifyOnePageVocab({ apiKey, sentences, vocab: picked, signal: controller.signal });
         usage.inputTokens += checked.usage.inputTokens;
         usage.outputTokens += checked.usage.outputTokens;
@@ -1725,7 +1733,7 @@ export async function generateOnePageContent(input: {
      * 늦는 조각을 한 번 더 불러 봤더니(먼저 오는 쪽 쓰기) 42초로 더 느려졌다 — 호출을 늘리면
      * 서로 밀려 모두 느려진다. 그래서 부르는 횟수를 늘리지 않고, 어법 생성만 가벼운 설정으로 둔다.
      */
-    const grammarChunks = chunkPlan(sentences.length, GRAMMAR_CANDIDATES, 4).map((part, i) => {
+    const grammarChunks = (lite ? [] : chunkPlan(sentences.length, GRAMMAR_CANDIDATES, 4)).map((part, i) => {
       /**
        * 조각 하나가 유난히 오래 끄는 일이 있다(같은 지문에서 20초와 70초가 섞인다). 조각은 서로
        * 기다리지 않으므로, 기한을 넘긴 조각은 끊고 나머지로 만든다. 한 장에 실을 수보다 넉넉히
@@ -1786,7 +1794,7 @@ export async function generateOnePageContent(input: {
        * 검수에서 한둘은 버려지므로, 뽑은 수가 실을 수보다 두 개쯤 많지 않으면 미리 띄운다.
        * 이 호출은 검수·채점과 겹쳐 도니 맨 뒤에 붙는 시간이 아니다(2026-09-29 속도 손질).
        */
-      if (lists.flat().length >= MIN_GRAMMAR + 2) return { grammar: [] as OnePageGrammarPoint[] };
+      if (lite || lists.flat().length >= MIN_GRAMMAR + 2) return { grammar: [] as OnePageGrammarPoint[] };
       const spareAbort = new AbortController();
       const stop = () => spareAbort.abort();
       controller.signal.addEventListener("abort", stop);
@@ -1880,7 +1888,7 @@ export async function generateOnePageContent(input: {
        * 채점에서 또 한둘이 떨어지므로, 검수를 통과한 수만 보고 딱 맞게 부르면 모자란다.
        * 모자랄 때는 넉넉히(둘 이상) 가져온다 — 어차피 한 번만 부르는 호출이다.
        */
-      if (verified.length >= MIN_GRAMMAR + 2) {
+      if (lite || verified.length >= MIN_GRAMMAR + 2) {
         return { grammar: [] as OnePageGrammarPoint[], vocab: [] as OnePageVocabNote[] };
       }
       const need = Math.max(2, MIN_GRAMMAR + 2 - verified.length);
@@ -1953,14 +1961,16 @@ export async function generateOnePageContent(input: {
     const addGrammar = spare.grammar.filter((g) => !taken.has(`${g.sentenceIndex}|${g.target.toLowerCase()}`));
     if (addGrammar.length) notes.push(`어법 ${addGrammar.length}개 더 뽑음`);
     const [gradedGrammar, gradedExam] = await Promise.all([
-      rateGrammarPoints({
-        apiKey,
-        sentences,
-        points: [...verifiedGrammar, ...addGrammar],
-        signal: controller.signal,
-        usage,
-        notes,
-      }),
+      lite
+        ? Promise.resolve([] as OnePageGrammarPoint[])
+        : rateGrammarPoints({
+            apiKey,
+            sentences,
+            points: [...verifiedGrammar, ...addGrammar],
+            signal: controller.signal,
+            usage,
+            notes,
+          }),
       rateExamAndParaphrases({
         apiKey,
         sentences,
@@ -1976,7 +1986,7 @@ export async function generateOnePageContent(input: {
     let vocab = vocabDone.vocab.slice(0, MAX_VOCAB);
 
     // 검수 직후에 띄워 둔 보충을 여기서 받는다. 어법이 찼으면 기다리지 않는다.
-    if (grammar.length < MIN_GRAMMAR) {
+    if (!lite && grammar.length < MIN_GRAMMAR) {
       const at = Date.now();
       const more = await tailRefill;
       const has = new Set(grammar.map((g) => `${g.sentenceIndex}|${g.target.toLowerCase()}`));
@@ -1985,7 +1995,7 @@ export async function generateOnePageContent(input: {
       grammar = [...grammar, ...add].slice(0, MAX_GRAMMAR);
       lap.push(`어법 보충 ${seconds(at)}초`);
     }
-    if (vocab.length < MIN_VOCAB - 2) {
+    if (!lite && vocab.length < MIN_VOCAB - 2) {
       const at = Date.now();
       const more = await refillMaterial({
         apiKey,

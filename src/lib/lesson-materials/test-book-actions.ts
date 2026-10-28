@@ -128,6 +128,8 @@ export async function prepareWorkbookExtrasAction(
     regenerate?: Array<"vocab" | "gloss" | "content">;
     /** 자료함 「단어」 탭에서 부름 — 그 기능을 켠 학원이면 값을 받지 않는다(선생님 2026-10-28) */
     vocabTab?: boolean;
+    /** 워크북에서 고른 유형(tb_*) — 그 유형 재료만 만들고 유형마다 값을 받는다(선생님 2026-10-28) */
+    tbTypes?: string[];
   }
 ) {
   return preparePassage(role, input, "workbook");
@@ -243,6 +245,48 @@ async function requireLessonRole(role: Role) {
 }
 
 const WORKBOOK_EXTRAS_FEATURE = "lesson_workbook_extras";
+/**
+ * 워크북 유형마다 지문당 값(30, 마이그레이션 202). 고른 유형만 받는다(선생님 2026-10-28: 요약문만 골랐는데
+ * 「지칭·함축·요약 등」 200이 나갔다). 재료도 고른 유형에 필요한 것만 만든다.
+ */
+const WORKBOOK_TB_TYPE_FEATURE = "lesson_workbook_tb_type";
+/** 1장 재료(가벼운 것)가 있어야 하는 유형 */
+const TB_CONTENT_TYPES = new Set(["tb_summary", "tb_flow", "tb_reference", "tb_implication", "tb_paraphrase"]);
+/** 단어 정리·직독직해·중요문장 재료가 있어야 하는 유형 */
+const TB_MATERIAL_TYPES = new Set(["tb_chunk_line", "tb_vocab_exam", "tb_insert"]);
+/** 값을 받는 유형 — 연결어·글의 순서·문장 삽입은 규칙으로만 만들어 받지 않는다 */
+const TB_PAID_TYPES: Record<string, string> = {
+  tb_summary: "요약문 완성",
+  tb_flow: "도식화",
+  tb_reference: "지칭추론",
+  tb_implication: "함축의미",
+  tb_paraphrase: "바꿔 말하기",
+  tb_vocab_exam: "단어 시험",
+  tb_chunk_line: "해석 적기(끊어 읽기)",
+};
+
+/** 재료가 필요 없는 유형만 골랐을 때 쓰는 빈 1장 재료·빈 테스트 교재 재료(저장하지 않는다) */
+function emptyOnePageContent(): OnePageContent {
+  return {
+    version: "",
+    sourceHash: "",
+    topicKo: "",
+    titleEn: "",
+    summaryEn: "",
+    summaryKeywords: [],
+    summaryKo: "",
+    flow: [],
+    vocab: [],
+    grammar: [],
+    paraphrases: [],
+    tf: [],
+    keySentenceIndexes: [],
+    createdAt: new Date().toISOString(),
+  };
+}
+function emptyTestBookMaterial(): TestBookMaterial {
+  return { version: "", sourceHash: "", vocab: [], keyIndexes: [], chunks: [], createdAt: new Date().toISOString() };
+}
 
 async function preparePassage(
   role: Role,
@@ -255,6 +299,8 @@ async function preparePassage(
      */
     regenerate?: Array<"vocab" | "gloss" | "content">;
     vocabTab?: boolean;
+    /** 워크북에서 고른 유형(tb_*). 주면 그 유형에 필요한 재료만 만들고 유형마다 값을 받는다 */
+    tbTypes?: string[];
   },
   kind: "test_book" | "workbook"
 ): Promise<
@@ -272,7 +318,13 @@ async function preparePassage(
   if (error) return { ok: false, message: error };
   const projectId = String(input.projectId ?? "").trim();
   if (!projectId) return { ok: false, message: "선택된 지문이 없습니다." };
-  const FEATURE = kind === "test_book" ? TEST_BOOK_FEATURE : WORKBOOK_EXTRAS_FEATURE;
+  // 워크북에서 고른 유형만 — 그 유형에 필요한 재료만 만들고 유형마다 값을 받는다(2026-10-28)
+  const typed = kind === "workbook" && !input.vocabTab && Array.isArray(input.tbTypes) && input.tbTypes.length > 0;
+  const tbTypes = typed ? input.tbTypes!.filter((t) => typeof t === "string") : [];
+  const needContent = !typed || tbTypes.some((t) => TB_CONTENT_TYPES.has(t));
+  const needMaterial = !typed || tbTypes.some((t) => TB_MATERIAL_TYPES.has(t));
+  const paidTypes = tbTypes.filter((t) => t in TB_PAID_TYPES);
+  const FEATURE = kind === "test_book" ? TEST_BOOK_FEATURE : typed ? WORKBOOK_TB_TYPE_FEATURE : WORKBOOK_EXTRAS_FEATURE;
 
   let loaded = await loadProject(role, profile!, projectId);
   if (!loaded) return { ok: false, message: "지문을 찾을 수 없습니다." };
@@ -280,9 +332,10 @@ async function preparePassage(
   // 자료함 「단어」 탭(윌링어학원)에서 만드는 단어 정리는 값을 받지 않는다(선생님 2026-10-28).
   // 기능을 켠 학원만 — 다른 학원이 이 표시로 워크북 재료 값을 피하지 못하게
   const free =
-    kind === "workbook" &&
-    input.vocabTab === true &&
-    (await isAcademyFeatureOn(createAdminClient(), profile!.academy_id, "lesson_vocab_tab"));
+    (typed && paidTypes.length === 0) ||
+    (kind === "workbook" &&
+      input.vocabTab === true &&
+      (await isAcademyFeatureOn(createAdminClient(), profile!.academy_id, "lesson_vocab_tab")));
   if (!free) {
     const shortfall = await lessonCreditShortfall(profile!.academy_id!, FEATURE);
     if (shortfall) return { ok: false, message: shortfall };
@@ -291,7 +344,7 @@ async function preparePassage(
   // 1. 해석·단어 목록
   const pack0 = (loaded.project.lesson_pack_json ?? {}) as Partial<LessonPackData>;
   const missingKorean = loaded.items.some((it) => String(it.english_text ?? "").trim() && !String(it.korean_text ?? "").trim());
-  if (missingKorean || !(pack0.vocab ?? []).length) {
+  if (missingKorean || (needMaterial && !(pack0.vocab ?? []).length)) {
     // 단어·해석 값은 따로 받지 않는다 — 이 재료 값(지문당 한 번)에 들어 있다(선생님 2026-10-26: 두 번 뜬다)
     const res = await generateAndSaveLessonPackVocab(role, { projectId }, false);
     if (!res.ok) return { ok: false, message: res.message };
@@ -316,15 +369,30 @@ async function preparePassage(
     //    (선생님 2026-10-26: 수업용 자료가 너무 오래 걸린다 — 예전에는 다섯 단계를 차례로 기다렸다)
     let content = pack.onePageContent;
     const again = new Set(input.forceRegenerate ? ["vocab", "gloss", "content"] : (input.regenerate ?? []));
-    const contentP: Promise<OnePageContent | undefined> =
-      again.has("content") || !isOnePageContentFresh(content, english)
+    const fullFresh = isOnePageContentFresh(content, english);
+    const liteFresh = isOnePageContentFresh(pack.workbookLiteContent, english);
+    const contentP: Promise<OnePageContent | undefined> = typed
+      ? // 워크북 유형만: 1장 자료 재료가 있으면 그것을, 없으면 어법·낱말을 뺀 가벼운 재료를 따로 만들어 둔다
+        !needContent
+        ? Promise.resolve(fullFresh ? content! : liteFresh ? pack.workbookLiteContent! : undefined)
+        : !again.has("content") && fullFresh
+          ? Promise.resolve(content!)
+          : !again.has("content") && liteFresh
+            ? Promise.resolve(pack.workbookLiteContent!)
+            : withAiUsage(usage, () =>
+                generateOnePageContent({ title: project.title as string, sentences: english, lite: true })
+              ).then(async (r) => {
+                await patchLessonPack(supabase, projectId, pack, { workbookLiteContent: r.content });
+                return r.content;
+              })
+      : again.has("content") || !fullFresh
         ? withAiUsage(usage, () => generateOnePageContent({ title: project.title as string, sentences: english })).then(
             async (r) => {
               await patchLessonPack(supabase, projectId, pack, { onePageContent: r.content });
               return r.content;
             }
           )
-        : Promise.resolve(content);
+        : Promise.resolve(content!);
     // 나중에 기다린다 — 그 사이 실패해도 처리 안 된 거부로 서버가 멈추지 않게
     contentP.catch(() => {});
 
@@ -337,7 +405,9 @@ async function preparePassage(
       !material?.chunkGloss ||
       material.chunkGloss.length !== sentences.length ||
       material.chunkGloss.filter((chunks) => chunks?.length).length * 2 < sentences.length;
-    if (again.size || missingChunkGloss || !isTestBookMaterialFresh(material, english)) {
+    // 워크북에서 재료가 필요 없는 유형만 골랐으면 만들지 않는다(있는 것은 쓴다)
+    if (!needMaterial && !isTestBookMaterialFresh(material, english)) material = null;
+    if (needMaterial && (again.size || missingChunkGloss || !isTestBookMaterialFresh(material, english))) {
       // 원문이 그대로면(재료 버전만 바뀌었으면) 단어 정리는 다시 쓰고 규칙으로 만드는 것만 새로
       const reuseVocab =
         !again.has("vocab") && isTestBookMaterialSameSource(material, english) && material.vocabVersion === TEST_BOOK_VOCAB_VERSION;
@@ -350,7 +420,7 @@ async function preparePassage(
                 title: project.title as string,
                 sentences,
                 packVocab: pack.vocab ?? [],
-                keyHints: c!.vocab.map((v) => ({ surface: v.surface, synonyms: v.synonyms, antonyms: v.antonyms })),
+                keyHints: (c?.vocab ?? []).map((v) => ({ surface: v.surface, synonyms: v.synonyms, antonyms: v.antonyms })),
               })
             )
           );
@@ -465,7 +535,26 @@ async function preparePassage(
     content = await contentP;
     await flushAiUsage();
 
-    if (!free)
+    if (!free && typed) {
+      // 예전 묶음 값(200)을 이미 낸 지문은 유형 값을 더 받지 않는다
+      const { data: paidBundle } = await createAdminClient()
+        .from("credit_transactions")
+        .select("id")
+        .eq("academy_id", profile!.academy_id!)
+        .eq("idempotency_key", `${WORKBOOK_EXTRAS_FEATURE}:${projectId}`)
+        .limit(1);
+      if (!paidBundle?.length)
+        for (const t of paidTypes)
+          await debitLessonCredits({
+            academyId: profile!.academy_id!,
+            actorId: profile!.id,
+            featureKey: WORKBOOK_TB_TYPE_FEATURE,
+            projectId,
+            // 같은 지문·같은 유형은 한 번만 받는다
+            idempotencyKey: `${WORKBOOK_TB_TYPE_FEATURE}:${projectId}:${t}`,
+            note: `워크북 ${TB_PAID_TYPES[t]} · ${project.title}`,
+          });
+    } else if (!free)
       await debitLessonCredits({
         academyId: profile!.academy_id!,
         actorId: profile!.id,
@@ -477,8 +566,8 @@ async function preparePassage(
       });
     return {
       ok: true,
-      content: content!,
-      material: mergeTestBookVocabHints(material!, content),
+      content: content ?? emptyOnePageContent(),
+      material: mergeTestBookVocabHints(material ?? emptyTestBookMaterial(), content),
       sentences,
       title: String(project.title ?? ""),
       source: (project.source as string | null) ?? null,
