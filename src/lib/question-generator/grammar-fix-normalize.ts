@@ -303,3 +303,54 @@ export function reconcileGrammarFixQuestion(opts: {
   void wrongMarks;
   return { correctAnswer, explanation, ok: true };
 }
+
+/**
+ * 해설이 「ⓐ declined → declining」으로 고치라는 말이 ⓐ 밑줄 밖에 있으면 밑줄을 그 말까지 넓힌다.
+ * 2026-10-28 어법개수: 밑줄이 「have been」에만 걸리고 틀린 declined가 밑줄 밖이라 「틀린 것 0개」로 다툴 수 있었다.
+ * 버리고 다시 만들지 않고 고친다. 밑줄 바로 앞뒤 네 낱말 안에서 찾을 때만 넓히고, 다른 표시는 넘지 않는다.
+ */
+export function widenUnderlineToWrongText(passage: string, explanation: string): string {
+  let out = passage;
+  const n = (s: string) => s.toLowerCase().replace(/’/g, "'").replace(/\s+/g, " ").trim();
+  for (const line of String(explanation ?? "").split("\n")) {
+    const m = line.match(/([ⓐⓑⓒⓓⓔⓕⓖ①②③④⑤])\s*[:：]?\s*([^→\n:：]+?)\s*(?:→|->|⇒)/);
+    if (!m) continue;
+    const mark = m[1]!;
+    const wrong = n(m[2]!.replace(/^[“"']|[”"']$/g, ""));
+    if (!wrong || /[가-힣]/.test(wrong)) continue;
+    const re = new RegExp(`${mark}\\s*<u>([\\s\\S]*?)<\\/u>`);
+    const hit = re.exec(out);
+    if (!hit || n(hit[1]!).includes(wrong)) continue;
+    const start = hit.index;
+    const end = start + hit[0].length;
+    // 뒤로: 다음 표시·밑줄 전까지 낱말을 하나씩 붙여 본다
+    const after = out.slice(end).split(/(?=<u>|[ⓐ-ⓖ①-⑤])/)[0] ?? "";
+    const afterWords = after.match(/^(\s*[^\s<]+){1,4}/)?.[0] ?? "";
+    let done = false;
+    for (let k = 1; k <= 4 && !done; k++) {
+      const piece = afterWords.match(new RegExp(`^(\\s*[^\\s<]+){${k}}`))?.[0];
+      if (!piece) break;
+      const body = hit[1]! + piece.replace(/[.,;:!?]+$/, "");
+      if (n(body).includes(wrong)) {
+        const kept = piece.replace(/^[\s\S]*?([.,;:!?]+)$/, "$1");
+        const tail = /[.,;:!?]+$/.test(piece) ? kept : "";
+        out = `${out.slice(0, start)}${mark}<u>${body}</u>${tail}${out.slice(end + piece.length)}`;
+        done = true;
+      }
+    }
+    if (done) continue;
+    // 앞으로: 앞 밑줄·표시 뒤부터 낱말을 하나씩 붙여 본다(표시는 넓힌 맨 앞으로 옮김)
+    const before = out.slice(0, start).split(/<\/u>|[ⓐ-ⓖ①-⑤]/).pop() ?? "";
+    const beforeWords = before.match(/([^\s>]+\s+){1,4}$/)?.[0] ?? "";
+    for (let k = 1; k <= 4; k++) {
+      const piece = beforeWords.match(new RegExp(`([^\\s>]+\\s+){${k}}$`))?.[0];
+      if (!piece || /^[.,;:!?]/.test(piece)) break;
+      const body = piece + hit[1]!;
+      if (n(body).includes(wrong)) {
+        out = `${out.slice(0, start - piece.length)}${mark}<u>${body}</u>${out.slice(end)}`;
+        break;
+      }
+    }
+  }
+  return out;
+}

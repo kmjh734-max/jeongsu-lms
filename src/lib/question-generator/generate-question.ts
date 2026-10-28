@@ -73,6 +73,7 @@ import {
 import {
   reconcileGrammarFixQuestion,
   parseGrammarFixAnswer,
+  widenUnderlineToWrongText,
 } from "@/lib/question-generator/grammar-fix-normalize";
 import { agreementBreakAfterFix } from "@/lib/question-generator/agreement-check";
 import { falseGrammarError } from "@/lib/question-generator/grammar-false-error";
@@ -1397,6 +1398,15 @@ function normalizePayload(
         )
         .replace(/__(.+?)__/g, "<u>$1</u>")
         .replace(/\*\*(.+?)\*\*/g, "<u>$1</u>");
+      // 해설이 고치라는 말이 밑줄 밖이면 밑줄을 넓힌다(2026-10-28 have been | declined)
+      if (
+        option.type === "grammar" &&
+        (option.aingkaCode === "어법추론" ||
+          option.aingkaCode === "어법모두고르기" ||
+          option.aingkaCode === "어법개수")
+      ) {
+        passageModified = widenUnderlineToWrongText(passageModified, explanation);
+      }
     }
   }
 
