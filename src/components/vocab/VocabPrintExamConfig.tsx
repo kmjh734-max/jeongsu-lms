@@ -181,14 +181,19 @@ export function VocabPrintExamConfig({
                 />
               </td>
               <td className="px-1 py-1.5 text-center">
-                <input
-                  type="number"
-                  min={0}
-                  max={maxPool || 0}
-                  value={counts[row.sa] || ""}
-                  onChange={(e) => setCount(row.sa, e.target.value)}
-                  className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-center text-sm tabular-nums focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
-                />
+                {"rel" in row ? (
+                  // 동의어·반의어는 객관식만(수업용 자료 단어 시험지와 같게, 선생님 2026-10-29)
+                  <span className="text-xs text-slate-300">—</span>
+                ) : (
+                  <input
+                    type="number"
+                    min={0}
+                    max={maxPool || 0}
+                    value={counts[row.sa] || ""}
+                    onChange={(e) => setCount(row.sa, e.target.value)}
+                    className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-center text-sm tabular-nums focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                  />
+                )}
               </td>
             </tr>
           ))}

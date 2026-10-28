@@ -221,9 +221,9 @@ export function parseExamPrintSettings(
       example_mc: readCount(searchParams, "example_mc"),
       example_sa: readCount(searchParams, "example_sa"),
       syn_mc: readCount(searchParams, "syn_mc"),
-      syn_sa: readCount(searchParams, "syn_sa"),
+      syn_sa: 0, // 동의어·반의어는 객관식만
       ant_mc: readCount(searchParams, "ant_mc"),
-      ant_sa: readCount(searchParams, "ant_sa"),
+      ant_sa: 0, // 동의어·반의어는 객관식만
     },
     layout: {
       columns: parseExamColumnCount(searchParams.get("exam_cols")),
