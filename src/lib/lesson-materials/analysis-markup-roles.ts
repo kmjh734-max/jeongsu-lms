@@ -6,7 +6,7 @@
  *  2. 준동사(to부정사·동명사·분사)는 동사가 아니다 — V를 떼고, 그 준동사가 거느린 안쪽 성분(목적어 등)도 뗀다.
  *     명사를 꾸미는 분사(systems found in ~, people called ~)도 같다.
  *  3. 술어 V는 조동사·be·have부터 한 구간(found → was found, influence → can significantly influence).
- *  4. There·Let's에는 S를 달지 않는다.
+ *  4. There·Let's와 관계대명사에는 S를 달지 않는다.
  *  5. 넓힌 V 안에 들어간 M 같은 겹친 표시는 뗀다.
  * 확실하지 않으면 손대지 않는다(틀린 표시를 새로 만들지 않는다).
  */
@@ -40,6 +40,9 @@ const IRREGULAR_PP = new Set([
   "bought", "caught", "taught", "thought", "felt", "heard", "meant", "run", "cut", "hit", "shut", "spread",
 ]);
 const NO_SUBJECT = new Set(["there", "let's", "let’s", "lets"]);
+const RELATIVE_PRONOUN = new Set(["who", "whom", "whose", "which", "that"]);
+/** 이 낱말 바로 뒤의 who·which·that은 관계대명사가 아니다(앞에 선행사 명사가 없다) */
+const AFTER_CONJ = /\b(if|when|because|since|although|though|while|unless|once|until|and|but|or|so)\s*,?\s*$/i;
 const ING_BASE = new Set(["bring", "sing", "ring", "swing", "cling", "fling", "sting", "spring", "string", "wring", "sling"]);
 
 type Tok = { w: string; start: number; end: number };
@@ -121,6 +124,14 @@ export function normalizeMarkupRoles(
     const w = lower(slice(text, r.span).trim());
     if (NO_SUBJECT.has(w)) return false;
     return !(w === "'s" && /\blet\s*$/i.test(text.slice(0, r.span.start)));
+  });
+  // 관계대명사 자체에는 S를 달지 않는다. 명사절 괄호 안의 의문대명사는 관계대명사가 아니므로 남긴다.
+  // 접속사 바로 뒤의 that(If that were the case)은 지시대명사 주어라 남긴다(2026-10-28)
+  rs = rs.filter((r) => {
+    if (r.role !== "S" || !RELATIVE_PRONOUN.has(lower(slice(text, r.span).trim()))) return true;
+    if (AFTER_CONJ.test(text.slice(0, r.span.start))) return true;
+    const inNominalClause = brackets.some((bracket) => bracket.kind === "nominal" && inside(r.span, bracket.span));
+    return r.level === 0 || inNominalClause;
   });
   // 명사절 접속사(proves that the world is ~의 that)에 단 성분: 바로 뒤가 더 깊은 층의 S면 접속사다
   rs = rs.filter((r, i) => {
@@ -211,8 +222,6 @@ export function normalizeMarkupRoles(
     const r = rs[i]!;
     if (r.role !== "V") continue;
     const w = words(slice(text, r.span));
-    const looksNonFinite = startsWithTo(r) || afterTo(r) || /ing$/i.test(w[0] ?? "") || (w.length === 1 && (isPastParticiple(w[0]!) || r.level > 0));
-    if (!looksNonFinite) continue;
     // 바로 앞이 목적어(사이에 to만 있을 수 있음)
     const prev = rs[i - 1];
     if (!prev || prev.role !== "O") continue;
@@ -223,6 +232,14 @@ export function normalizeMarkupRoles(
     const base = verb ? ocVerbBase(slice(text, verb.span)) : "";
     if (!base) continue;
     const hasTo = /^\s*to\s+$/i.test(gap) || startsWithTo(r);
+    const isBareComplement = !hasTo && BARE_OC.has(base) && w.length >= 1;
+    const looksNonFinite =
+      startsWithTo(r) ||
+      afterTo(r) ||
+      isBareComplement ||
+      /ing$/i.test(w[0] ?? "") ||
+      (w.length === 1 && (isPastParticiple(w[0]!) || r.level > 0));
+    if (!looksNonFinite) continue;
     // to 뒤 -ing는 전치사 to(contribution to promoting), make·let·지각동사 뒤 to V는 목적격보어가 아니다
     if (hasTo && (/ing$/i.test(w[w.length - 1] ?? "") || BARE_OC.has(base))) continue;
     if (/^\s*to\s+$/i.test(gap)) r.span = { start: prev.span.end + gap.indexOf("to"), end: r.span.end };
