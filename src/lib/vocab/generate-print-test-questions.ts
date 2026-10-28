@@ -294,15 +294,16 @@ export function generatePrintExamQuestions(
     kind: ExamQuestionKind,
     count: number,
     pool: VocabItem[],
-    bucket: PrintExamQuestion[]
+    bucket: PrintExamQuestion[],
+    used: Set<string> = usedIds
   ): number {
     let made = 0;
     for (const item of doShuffle ? shuffle(pool, rng) : pool) {
       if (made >= count) break;
-      if (usedIds.has(item.id)) continue;
+      if (used.has(item.id)) continue;
       const q = buildQuestion(kind, item, items, rng);
       if (!q) continue;
-      usedIds.add(item.id);
+      used.add(item.id);
       order.set(q, itemNo.get(item.id) ?? 0);
       bucket.push(q);
       made += 1;
@@ -319,13 +320,13 @@ export function generatePrintExamQuestions(
     skippedNoExample += count - made;
   }
 
-  // 2) 동의어·반의어 — 적힌 단어만 낼 수 있으니 기본 문항보다 먼저
+  // 2) 동의어·반의어 — 뜻 쓰기에 나온 단어도 다시 물을 수 있게 따로 센다(동의어 안에서·반의어 안에서만 한 번씩)
   for (const kind of RELATION_KINDS) {
     const count = cappedConfig[kind];
     if (count <= 0) continue;
     const field = kind.startsWith("syn") ? "synonyms" : "antonyms";
     const pool = items.filter((item) => splitList(item[field]).length > 0);
-    const made = fill(kind, count, pool, basicQuestions);
+    const made = fill(kind, count, pool, basicQuestions, new Set());
     skippedNoRelation += count - made;
   }
 
@@ -337,10 +338,16 @@ export function generatePrintExamQuestions(
     skipped += count - made;
   }
 
+  // 번호순이면 유형끼리 묶어(뜻 쓰기 → 동의어 → 반의어 …) 그 안에서 단어 번호 순서로
+  const kindRank = (q: PrintExamQuestion) =>
+    [...BASIC_KINDS, ...RELATION_KINDS, ...EXAMPLE_KINDS].indexOf(q.kind);
   const byNo = (a: PrintExamQuestion, b: PrintExamQuestion) =>
-    (order.get(a) ?? 0) - (order.get(b) ?? 0);
+    kindRank(a) - kindRank(b) || (order.get(a) ?? 0) - (order.get(b) ?? 0);
+  // 섞어도 쓰기 문항 묶음 → 객관식 묶음으로 나눈다(한 줄에 객관식·쓰기가 섞이면 칸이 들쭉날쭉하다)
+  const written = basicQuestions.filter((q) => !q.choices);
+  const choice = basicQuestions.filter((q) => q.choices);
   const orderedBasic = doShuffle
-    ? shuffle(basicQuestions, rng)
+    ? [...shuffle(written, rng), ...shuffle(choice, rng)]
     : [...basicQuestions].sort(byNo);
   const orderedExamples = doShuffle
     ? shuffle(exampleQuestions, rng)

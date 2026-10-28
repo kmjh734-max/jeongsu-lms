@@ -11,7 +11,7 @@ import {
   EXAM_COLUMN_LABELS,
   EXAM_LINE_SPACING_LABELS,
   clampExamConfigToPool,
-  examConfigTotal,
+  examSharedTotal,
   resolveExamRange,
 } from "@/lib/vocab/vocab-print-exam-config";
 
@@ -48,7 +48,7 @@ export function VocabPrintExamConfig({
   const maxPool = Math.max(0, range.to - range.from + 1);
   const ranged = maxPool < wordCount;
 
-  const total = examConfigTotal(counts);
+  const total = examSharedTotal(counts);
   const overPool = total > maxPool;
 
   function setCounts(next: ExamPrintConfig) {
@@ -140,7 +140,7 @@ export function VocabPrintExamConfig({
       </div>
 
       <p className="border-t border-slate-200 pt-3 text-[13px] font-medium text-slate-600">
-        문항 수 · 범위 단어 {maxPool}개라 합계 {maxPool}문항까지 (예문 문항은 마지막에 1단)
+        문항 수 · 단어·의미·예문은 합계 {maxPool}문항까지, 동의어·반의어는 따로 더할 수 있어요 (예문 문항은 마지막에 1단)
       </p>
       <p
         className={`text-xs font-medium ${

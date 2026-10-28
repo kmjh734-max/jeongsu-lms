@@ -129,13 +129,26 @@ const EXAM_CONFIG_KEYS: (keyof ExamPrintConfig)[] = [
   "ant_sa",
 ];
 
-/** 요청 문항 합이 단어 수를 넘지 않도록 앞에서부터 배분 */
+/** 동의어·반의어 문항 — 뜻 쓰기와 같은 단어를 따로 물어도 되므로 단어 수 합계에 넣지 않는다 */
+export const RELATION_EXAM_KEYS: (keyof ExamPrintConfig)[] = ["syn_mc", "syn_sa", "ant_mc", "ant_sa"];
+
+/** 단어·의미·예문 문항 합(한 단어는 이 가운데 한 번만 낸다) */
+export function examSharedTotal(config: ExamPrintConfig): number {
+  return examConfigTotal(config) - RELATION_EXAM_KEYS.reduce((n, k) => n + config[k], 0);
+}
+
+/**
+ * 단어·의미·예문 문항 합이 단어 수를 넘지 않도록 앞에서부터 배분하고,
+ * 동의어·반의어는 유형마다 단어 수까지만 둔다(선생님 2026-10-29: 뜻 쓰기를 전부 내고 동반의어 객관식을 더 붙이면
+ * 동반의어가 0으로 잘려 안 나왔다).
+ */
 export function clampExamConfigToPool(
   config: ExamPrintConfig,
   maxTotal: number
 ): ExamPrintConfig {
   const max = Math.max(0, maxTotal);
-  if (examConfigTotal(config) <= max) return config;
+  const relationOk = RELATION_EXAM_KEYS.every((k) => config[k] <= max);
+  if (examSharedTotal(config) <= max && relationOk) return config;
 
   let remaining = max;
   const next: ExamPrintConfig = {
@@ -151,6 +164,10 @@ export function clampExamConfigToPool(
     ant_sa: 0,
   };
   for (const key of EXAM_CONFIG_KEYS) {
+    if (RELATION_EXAM_KEYS.includes(key)) {
+      next[key] = Math.min(config[key], max);
+      continue;
+    }
     const take = Math.min(config[key], remaining);
     next[key] = take;
     remaining -= take;
