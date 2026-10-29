@@ -826,6 +826,18 @@
   }
 }
 
+/*
+ * 테스트 교재·수업용 자료·워크북 미리보기도 화면에 안 보이는 쪽은 배치·그리기를 미룬다(2026-10-29 속도:
+ * 표지·디자인 하나 바꿔도 194쪽을 다시 배치했다). 화면에서만 — 인쇄·PDF에는 걸리지 않는다. 재기용 사본(.tb-measure)은 뺀다.
+ */
+@media screen {
+  :is(#tb-print-root, #lesson-pack-print-root, #workbook-print-root)
+    :is(.tb-sheet, .lesson-pack-a4-sheet, .qg-print-page):not(.tb-measure *) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 210mm auto 297mm;
+  }
+}
+
 .vocab-print-page--b5 {
   --vocab-pad-left: 14mm;
   --vocab-pad-right: 5mm;
