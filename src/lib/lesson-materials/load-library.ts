@@ -73,15 +73,6 @@ function analysisSnippet(analysis_json: unknown): string {
   return String(first?.desc ?? first?.title ?? "").trim();
 }
 
-function hasLessonPack(lesson_pack_json: unknown): boolean {
-  if (!lesson_pack_json || typeof lesson_pack_json !== "object") return false;
-  const pack = lesson_pack_json as { vocab?: unknown; headerLabel?: unknown };
-  return (
-    Array.isArray(pack.vocab) ||
-    (typeof pack.headerLabel === "string" && pack.headerLabel.trim().length > 0)
-  );
-}
-
 export async function loadLessonMaterialsLibraryData(
   supabase: SupabaseClient
 ): Promise<LessonMaterialLibraryData> {
@@ -119,15 +110,16 @@ export async function loadLessonMaterialsLibraryData(
   let projectsQuery = supabase
     .from("lesson_material_projects")
     .select(
-      "id,title,title_en,source,folder_id,created_at,updated_at,deleted_at,order_index,analysis_first:analysis_json->0,pack_vocab:lesson_pack_json->vocab,pack_header:lesson_pack_json->>headerLabel,report_first:analysis_report_json->sentences->0"
+      "id,title,title_en,source,folder_id,created_at,updated_at,deleted_at,order_index,analysis_first:analysis_json->0->>title,pack_vocab_first:lesson_pack_json->vocab->0,pack_header:lesson_pack_json->>headerLabel,report_first:analysis_report_json->sentences->0->>itemId,item_count:lesson_material_items(count)"
     )
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: true });
-  // 개수만 세므로 project_id 만 읽는다
-  let itemsQuery = supabase
-    .from("lesson_material_items")
-    .select("project_id")
-    .order("created_at", { ascending: true });
+  /*
+   * 2026-10-29 속도: 있음/없음 판정은 작은 값 하나로(분석 첫 항목 title·분석서 첫 문장 itemId·단어 첫 칸) —
+   * 예전엔 단어 목록 전체와 첫 항목 통째를 읽어 456지문에 820KB·0.7~1.4초였다(전 학원 820지문 판정 같음 확인).
+   * 문장 수는 지문마다 DB가 센다(item_count) — 예전엔 문장 행을 읽어 셌는데 한 번에 1000행까지만 와서
+   * 정수학원(3,996문장)은 대부분 지문의 문장 수가 덜 세였다.
+   */
   let documentsQuery = supabase
     .from("lesson_material_documents")
     .select("id,kind,name,project_ids,created_at,updated_at")
@@ -136,14 +128,12 @@ export async function loadLessonMaterialsLibraryData(
   if (academyId) {
     foldersQuery = foldersQuery.eq("academy_id", academyId);
     projectsQuery = projectsQuery.eq("academy_id", academyId);
-    itemsQuery = itemsQuery.eq("academy_id", academyId);
     documentsQuery = documentsQuery.eq("academy_id", academyId);
   }
 
-  const [foldersRes, projectsRes, itemsRes, documentsRes, questionJobsRes] = await Promise.all([
+  const [foldersRes, projectsRes, documentsRes, questionJobsRes] = await Promise.all([
     foldersQuery,
     projectsQuery,
-    itemsQuery,
     documentsQuery,
     questionJobsQuery,
   ]);
@@ -155,20 +145,22 @@ export async function loadLessonMaterialsLibraryData(
       "has_analysis" | "has_lesson_pack" | "has_analysis_report" | "analysis_json"
     > & {
       analysis_first?: unknown;
-      pack_vocab?: unknown;
+      pack_vocab_first?: unknown;
       pack_header?: string | null;
       report_first?: unknown;
       order_index?: number | null;
+      item_count?: Array<{ count: number }> | null;
     }
   >;
 
   const projects: LessonMaterialProjectRow[] = rawProjects.map((p) => {
-    const { analysis_first, pack_vocab, pack_header, report_first, ...rest } = p;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { analysis_first, pack_vocab_first, pack_header, report_first, item_count, ...rest } = p;
     return {
       ...rest,
       order_index: typeof p.order_index === "number" ? p.order_index : 0,
       has_analysis: analysis_first != null,
-      has_lesson_pack: hasLessonPack({ vocab: pack_vocab ?? undefined, headerLabel: pack_header ?? undefined }),
+      has_lesson_pack: pack_vocab_first != null || (typeof pack_header === "string" && pack_header.trim().length > 0),
       has_analysis_report: report_first != null,
     };
   });
@@ -176,12 +168,7 @@ export async function loadLessonMaterialsLibraryData(
   const documents = (documentsRes.error ? [] : documentsRes.data ?? []) as LessonMaterialDocumentRow[];
 
   const itemCountByProjectId: Record<string, number> = {};
-  for (const row of (itemsRes.data ?? []) as Array<{
-    project_id: string;
-  }>) {
-    itemCountByProjectId[row.project_id] =
-      (itemCountByProjectId[row.project_id] ?? 0) + 1;
-  }
+  for (const p of rawProjects) itemCountByProjectId[p.id] = Number(p.item_count?.[0]?.count ?? 0);
 
   const active = projects.filter((p) => !p.deleted_at);
   const trashed = projects.filter((p) => !!p.deleted_at);
