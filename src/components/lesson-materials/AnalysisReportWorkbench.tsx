@@ -565,6 +565,12 @@ export function AnalysisReportWorkbench({
   const scaled = useScaledHeight<HTMLDivElement>(zoom / 100);
   const [pageChunksById, setPageChunksById] = useState<Record<string, AnalysisUnit[][]>>({});
   const measureRef = useRef<HTMLDivElement>(null);
+  /*
+   * 분석지 쪽과 재기용 사본은 서버에서 그리지 않는다(2026-10-29 속도: 서버가 둘 다 그려 보내 HTML 423KB,
+   * 브라우저는 받아 맞춘 뒤 어차피 다시 재고 나눴다). 브라우저에서 처음 그릴 때 재고 나눈다.
+   */
+  const [sheetsOn, setSheetsOn] = useState(false);
+  useEffect(() => setSheetsOn(true), []);
   /** 아직 만드는 중인 지문. 보고 있는 지문이 먼저 끝나면 나머지를 기다리지 않고 화면을 연다. */
   const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
   const [prepTotal, setPrepTotal] = useState(0);
@@ -841,7 +847,7 @@ export function AnalysisReportWorkbench({
       next[p.id] = pages.length ? pages : [[]];
     }
     setPageChunksById(next);
-  }, [projects, headerLabel, active, translationMode, designStyle, fontsTick, sentenceNotesOn]);
+  }, [projects, headerLabel, active, translationMode, designStyle, fontsTick, sentenceNotesOn, sheetsOn]);
 
   /** 지문 하나의 쪽 배치. 배치 effect가 돌기 전 렌더에서는 없는 문장 번호를 뺀다. */
   function pagesFor(projectId: string, count: number): AnalysisUnit[][] {
@@ -1138,9 +1144,9 @@ export function AnalysisReportWorkbench({
       <div className="relative">
         {designStyle !== "base" ? <link rel="stylesheet" href={DESIGN_FONTS_HREF} /> : null}
         <div id="analysis-report-print-root" className={`flex flex-col gap-6 print:gap-0 ${designClass(designStyle)} ${materialDesignClass(md)}`}>
-          {sheetPages}
+          {sheetsOn ? sheetPages : null}
         </div>
-        {measureTree}
+        {sheetsOn ? measureTree : null}
       </div>
     );
   }
@@ -1383,12 +1389,12 @@ export function AnalysisReportWorkbench({
             style={previewStyle}
             onClickCapture={onSheetClick}
           >
-            {sheetPages}
+            {sheetsOn ? sheetPages : null}
           </div>
           </div>
         </div>
 
-        {measureTree}
+        {sheetsOn ? measureTree : null}
         {editTarget && report?.sentences[editTarget.s] ? (
           <AnalysisMarkupEditPopover
             key={`${editTarget.s}-${editTarget.kind}-${editTarget.i}`}

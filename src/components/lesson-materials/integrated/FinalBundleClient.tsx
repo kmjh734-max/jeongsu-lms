@@ -200,6 +200,12 @@ export function FinalBundleClient({
     },
   }));
   const [zoom, setZoom] = useState(60);
+  /*
+   * 묶음 본문(수업용 자료·분석서·워크북 등)은 서버에서 그리지 않고 브라우저에서 한 번 그린다(2026-10-29 속도:
+   * 서버가 184쪽을 그려 보낸 HTML 588KB를 브라우저가 받아 맞춘 뒤 어차피 쪽을 다시 나눴다). 표지·목차는 서버에서.
+   */
+  const [bodiesOn, setBodiesOn] = useState(false);
+  useEffect(() => setBodiesOn(true), []);
   // 안에 든 워크북 내용을 화면을 그리기 시작할 때 미리 부른다(워크북 부분은 같은 요청을 받아 쓴다)
   useState(() => {
     if (typeof window !== "undefined") for (const w of materials.workbooks) void fetchWorkbookDoc(role, w.docId).catch(() => undefined);
@@ -963,7 +969,7 @@ export function FinalBundleClient({
                   />
                 ) : null}
                 <div data-bundle-section={s.key} className="flex flex-col items-center gap-6 print:gap-0">
-                  {sectionBodies[s.key]}
+                  {bodiesOn ? sectionBodies[s.key] : null}
                 </div>
               </div>
             ))}
