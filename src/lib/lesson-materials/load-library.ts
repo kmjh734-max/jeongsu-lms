@@ -49,7 +49,6 @@ export interface LessonMaterialLibraryData {
   unfiledProjects: LessonMaterialProjectRow[];
   /** Soft-deleted projects */
   trashedProjects: LessonMaterialProjectRow[];
-  itemCountByProjectId: Record<string, number>;
   /** 만든 파일(수업용 자료 · 분석서 · 워크북), 최신순 */
   documents: LessonMaterialDocumentRow[];
   /** 자료함 지문으로 만든 변형문제, 최신순 */
@@ -110,15 +109,14 @@ export async function loadLessonMaterialsLibraryData(
   let projectsQuery = supabase
     .from("lesson_material_projects")
     .select(
-      "id,title,title_en,source,folder_id,created_at,updated_at,deleted_at,order_index,analysis_first:analysis_json->0->>title,pack_vocab_first:lesson_pack_json->vocab->0,pack_header:lesson_pack_json->>headerLabel,report_first:analysis_report_json->sentences->0->>itemId,item_count:lesson_material_items(count)"
+      "id,title,title_en,source,folder_id,created_at,updated_at,deleted_at,order_index,analysis_first:analysis_json->0->>title,pack_vocab_first:lesson_pack_json->vocab->0,pack_header:lesson_pack_json->>headerLabel,report_first:analysis_report_json->sentences->0->>itemId"
     )
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: true });
   /*
    * 2026-10-29 속도: 있음/없음 판정은 작은 값 하나로(분석 첫 항목 title·분석서 첫 문장 itemId·단어 첫 칸) —
    * 예전엔 단어 목록 전체와 첫 항목 통째를 읽어 456지문에 820KB·0.7~1.4초였다(전 학원 820지문 판정 같음 확인).
-   * 문장 수는 지문마다 DB가 센다(item_count) — 예전엔 문장 행을 읽어 셌는데 한 번에 1000행까지만 와서
-   * 정수학원(3,996문장)은 대부분 지문의 문장 수가 덜 세였다.
+   * 지문마다 문장 수를 세던 조회(문장 행 전부)는 화면이 쓰지 않아 뺐다.
    */
   let documentsQuery = supabase
     .from("lesson_material_documents")
@@ -149,13 +147,11 @@ export async function loadLessonMaterialsLibraryData(
       pack_header?: string | null;
       report_first?: unknown;
       order_index?: number | null;
-      item_count?: Array<{ count: number }> | null;
     }
   >;
 
   const projects: LessonMaterialProjectRow[] = rawProjects.map((p) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { analysis_first, pack_vocab_first, pack_header, report_first, item_count, ...rest } = p;
+    const { analysis_first, pack_vocab_first, pack_header, report_first, ...rest } = p;
     return {
       ...rest,
       order_index: typeof p.order_index === "number" ? p.order_index : 0,
@@ -166,9 +162,6 @@ export async function loadLessonMaterialsLibraryData(
   });
   // 파일 테이블이 없는 환경(마이그레이션 128 전)에서도 자료함은 열린다.
   const documents = (documentsRes.error ? [] : documentsRes.data ?? []) as LessonMaterialDocumentRow[];
-
-  const itemCountByProjectId: Record<string, number> = {};
-  for (const p of rawProjects) itemCountByProjectId[p.id] = Number(p.item_count?.[0]?.count ?? 0);
 
   const active = projects.filter((p) => !p.deleted_at);
   const trashed = projects.filter((p) => !!p.deleted_at);
@@ -219,7 +212,6 @@ export async function loadLessonMaterialsLibraryData(
     projects: active.filter((p) => p.folder_id !== null),
     unfiledProjects: active.filter((p) => p.folder_id === null),
     trashedProjects: trashed,
-    itemCountByProjectId,
     documents: visibleDocuments,
     questionJobs: (questionJobsRes.error ? [] : (questionJobsRes.data ?? [])).map((j) => {
       const row = j as Record<string, unknown>;
