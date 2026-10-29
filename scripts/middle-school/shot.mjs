@@ -65,7 +65,24 @@ await snap("ms-workbook");
 await click("뽑기");
 await snap("ms-draw");
 await click("문제");
-await snap("ms-questions");
+await new Promise((r) => setTimeout(r, 4000));
+await page.emulateMediaType("screen");
+await page.screenshot({ path: `${OUT}/ms-questions.png` });
 await click("20문항");
-await snap("ms-qdraw");
+await new Promise((r) => setTimeout(r, 3000));
+// 인쇄 화면(변형문제와 같은 화면) — 문제지·해설지
+const href = await page.evaluate(() => [...document.querySelectorAll("a")].find((a) => a.textContent?.includes("인쇄 화면 열기"))?.href);
+for (const mode of ["exam", "answers"]) {
+  await page.goto(href.replace(/mode=\w+/, `mode=${mode}`), { waitUntil: "networkidle0", timeout: 240000 });
+  await new Promise((r) => setTimeout(r, 5000));
+  await page.emulateMediaType("screen");
+  await page.screenshot({ path: `${OUT}/ms-qprint-${mode}.png` });
+  const info = await page.evaluate(() => {
+    const sheets = [...document.querySelectorAll("#qg-print-root .qg-print-sheet")];
+    return { sheets: sheets.length, overflow: sheets.map((s, i) => [i + 1, s.scrollHeight - s.clientHeight]).filter(([, d]) => d > 1) };
+  });
+  await page.emulateMediaType("print");
+  await page.pdf({ path: `${OUT}/ms-qprint-${mode}.pdf`, preferCSSPageSize: true, printBackground: true });
+  console.log("qprint", mode, "쪽", info.sheets, "넘침", JSON.stringify(info.overflow));
+}
 await browser.close();

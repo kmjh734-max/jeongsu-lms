@@ -59,10 +59,12 @@ export function MiddleSchoolUnitWorkspace({
   unit,
   questions,
   academyName,
+  base,
 }: {
   unit: MsUnit;
   questions: MsQuestion[];
   academyName: string;
+  base: string;
 }) {
   const [tab, setTab] = useState<TabId>("lesson");
   const [design, setDesign] = useMaterialDesign();
@@ -124,7 +126,7 @@ export function MiddleSchoolUnitWorkspace({
           questions={questions}
           design={design}
           setDesign={setDesign}
-          academyName={academyName}
+          academyName={academyName} base={base}
         />
       ) : (
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">

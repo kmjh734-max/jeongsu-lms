@@ -67,6 +67,19 @@ type QuestionRow = {
   choice_language?: string | null;
 };
 
+/**
+ * 서버에서 불러오지 않고 미리 넣어 주는 문항(중학교 수업자료 문제 은행 — 선생님 2026-10-29 「변형문제 디자인과 같이」).
+ * 주면 작업·시험지를 불러오지 않고 보기 단어장 QR도 만들지 않는다.
+ */
+export type QuestionPrintPreloaded = {
+  title: string;
+  grade?: string;
+  sourceDetail?: string;
+  questions: QuestionRow[];
+  passages?: Array<{ id: string; source_detail: string | null }>;
+};
+export type QuestionPrintRow = QuestionRow;
+
 type PrintLayoutMode = "mixed" | "byType" | "byPassage" | "bySet";
 
 type DisplayItem =
@@ -640,7 +653,7 @@ function QuestionBlock({
               <span className="qg-print-choice-mark">
                 {CIRCLED[c.number - 1] ?? `${c.number}.`}
               </span>
-              {c.text.trim() ? <span>{c.text}</span> : null}
+              {c.text.trim() ? <span>{renderMarkedText(c.text)}</span> : null}
             </li>
           ))}
         </ul>
@@ -750,8 +763,11 @@ export function QuestionPrintView({
   logoSrc = LOGO_SRC,
   embedded = false,
   design,
+  preloaded,
 }: {
   jobId: string;
+  /** 미리 넣어 주는 문항(있으면 불러오지 않는다) */
+  preloaded?: QuestionPrintPreloaded;
   /**
    * 골라 묶은 시험지를 찍을 때 그 시험지 id.
    *
@@ -868,12 +884,16 @@ export function QuestionPrintView({
   }, [designStyle]);
 
   const load = useCallback(async () => {
-    const res = await fetch(
-      setId
-        ? `/api/question-generator/sets/${setId}/print-data`
-        : `/api/question-generator/jobs/${jobId}`
-    );
-    const data = await res.json();
+    const data = preloaded
+      ? {
+          ok: true,
+          job: { request_config: { title: preloaded.title, grade: preloaded.grade, sourceDetail: preloaded.sourceDetail } },
+          questions: preloaded.questions,
+          passages: preloaded.passages ?? [],
+        }
+      : await (
+          await fetch(setId ? `/api/question-generator/sets/${setId}/print-data` : `/api/question-generator/jobs/${jobId}`)
+        ).json();
     if (!data.ok) {
       setError(data.message ?? "불러오기 실패");
       return;
@@ -909,7 +929,7 @@ export function QuestionPrintView({
     );
 
     // 보기 단어장 동기화 (QR용 vocab_set_id 확보) — 생성 묶음에만 있다
-    if (!setId && (data.questions ?? []).length > 0) {
+    if (!setId && !preloaded && (data.questions ?? []).length > 0) {
       try {
         const vr = await fetch(
           `/api/question-generator/jobs/${jobId}/exam-vocab`,
@@ -950,7 +970,7 @@ export function QuestionPrintView({
       };
     });
     setBrandingReady(true);
-  }, [jobId, setId, mode, academyName]);
+  }, [jobId, setId, mode, academyName, preloaded]);
 
   useEffect(() => {
     void load();
@@ -1345,6 +1365,7 @@ export function QuestionPrintView({
       !compact &&
       pageIdx === 0 &&
       questions.length > 0 &&
+      !preloaded &&
       (!setId || Boolean(vocabSetId));
     return (
       <header

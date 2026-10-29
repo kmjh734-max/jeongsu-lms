@@ -5,6 +5,9 @@ import { isMiddleSchoolOpen, loadMsQuestions, loadMsUnit, loadMsUnits } from "@/
 import { loadAcademyName } from "@/lib/grammar-bank/academy-name";
 import { MiddleSchoolHome } from "./MiddleSchoolHome";
 import { MiddleSchoolUnitWorkspace } from "./MiddleSchoolUnitWorkspace";
+import { QuestionPrintView } from "@/components/question-generator/QuestionPrintView";
+import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
+import { decodeQuestionIds, msExamPreloaded } from "@/lib/middle-school/exam-print";
 
 /** 관리자·강사 화면이 같이 쓰는 중학교 수업자료 쪽(base = /admin/middle-school 등) */
 export async function MiddleSchoolHomePage({ base }: { base: string }) {
@@ -39,7 +42,44 @@ export async function MiddleSchoolUnitPage({ base, unitId }: { base: string; uni
           {unit.grade} {unit.publisher} {unit.lessonNo}과 <span className="text-slate-500">· {unit.title}</span>
         </h1>
       </header>
-      <MiddleSchoolUnitWorkspace unit={unit} questions={questions} academyName={academyName ?? ""} />
+      <MiddleSchoolUnitWorkspace unit={unit} questions={questions} academyName={academyName ?? ""} base={base} />
     </div>
+  );
+}
+
+/** 문제 인쇄: 변형문제 인쇄 화면 그대로(고른 문항 id를 주소에 담는다 — 문제지·해설지 전환에도 그대로 간다) */
+export async function MiddleSchoolExamPrintPage({
+  base,
+  unitId,
+  sel,
+  mode,
+}: {
+  base: string;
+  unitId: string;
+  sel: string;
+  mode: "exam" | "answers";
+}) {
+  const profile = await getCurrentProfile();
+  if (!profile?.academy_id || !(await isMiddleSchoolOpen(profile.academy_id))) notFound();
+  const unit = await loadMsUnit(profile.academy_id, unitId);
+  if (!unit) notFound();
+  const all = await loadMsQuestions(unit.id);
+  const byId = new Map(all.map((q) => [q.id, q]));
+  const picked = decodeQuestionIds(sel)
+    .map((id) => byId.get(id))
+    .filter((q): q is NonNullable<typeof q> => !!q);
+  if (!picked.length) notFound();
+  const branding = await getAcademyBrandingForCurrentUser();
+  return (
+    <QuestionPrintView
+      jobId={`ms-${unit.id}`}
+      backHref={`${base}/${unit.id}`}
+      printBaseHref={`${base}/${unit.id}/exam/${sel}`}
+      mode={mode}
+      layout="bySet"
+      academyName={branding.name}
+      logoSrc={branding.logoUrl}
+      preloaded={msExamPreloaded(unit, picked)}
+    />
   );
 }

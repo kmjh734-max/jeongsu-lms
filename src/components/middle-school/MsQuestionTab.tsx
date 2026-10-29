@@ -5,8 +5,8 @@ import type { MsQuestion, MsUnit } from "@/lib/middle-school/queries";
 import type { MaterialDesign } from "@/lib/lesson-materials/material-design";
 import { MaterialDesignPicker } from "@/components/lesson-materials/MaterialDesignPicker";
 import { seeded, shuffle } from "@/lib/middle-school/workbook";
-import { MsPrintFrame } from "./MsSheets";
-import { MsQuestionAnswerSheets, MsQuestionSheets } from "./MsQuestionSheets";
+import { QuestionPrintView } from "@/components/question-generator/QuestionPrintView";
+import { encodeQuestionIds, msExamPreloaded } from "@/lib/middle-school/exam-print";
 
 const AREAS = ["단어", "의사소통", "어법", "본문"] as const;
 const COUNTS = [10, 20, 30] as const;
@@ -18,20 +18,22 @@ export function MsQuestionTab({
   design,
   setDesign,
   academyName,
+  base,
 }: {
   unit: MsUnit;
   questions: MsQuestion[];
   design: MaterialDesign;
   setDesign: (d: MaterialDesign) => void;
   academyName: string;
+  base: string;
 }) {
   const sources = useMemo(() => [...new Set(questions.map((q) => q.source))], [questions]);
   const [src, setSrc] = useState<string[]>(sources);
   const [areas, setAreas] = useState<string[]>([...AREAS]);
   const [kinds, setKinds] = useState<("mc" | "sa")[]>(["mc", "sa"]);
   const [withReview, setWithReview] = useState(false);
-  const [answers, setAnswers] = useState(true);
-  const [expl, setExpl] = useState(false);
+  /** 미리보기: 문제지 · 해설지(변형문제와 같이 해설지는 따로 낸다) */
+  const [sheet, setSheet] = useState<"exam" | "answers">("exam");
   const [draw, setDraw] = useState<{ n: number; seed: string } | null>(null);
 
   const pool = useMemo(
@@ -49,6 +51,7 @@ export function MsQuestionTab({
     return on ? [...list, v] : list.filter((x) => x !== v);
   }
   const ids = shown.map((q) => q.id).join(".");
+  const preloaded = useMemo(() => msExamPreloaded(unit, shown, draw ? `${unit.grade} ${unit.lessonNo}과 테스트` : undefined), [unit, shown, draw]);
 
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
@@ -92,15 +95,24 @@ export function MsQuestionTab({
           <input type="checkbox" checked={withReview} onChange={(e) => setWithReview(e.target.checked)} />
           검수 필요 문항도 보기 ({questions.filter((q) => q.review).length})
         </label>
-        <div className="space-y-1">
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={answers} onChange={(e) => setAnswers(e.target.checked)} />
-            정답지 함께
-          </label>
-          <label className={`flex items-center gap-2 ${answers ? "" : "text-slate-300"}`}>
-            <input type="checkbox" disabled={!answers} checked={expl} onChange={(e) => setExpl(e.target.checked)} />
-            정답지에 해설
-          </label>
+        <div className="flex gap-1">
+          {(
+            [
+              ["exam", "문제지"],
+              ["answers", "해설지"],
+            ] as const
+          ).map(([k, label]) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setSheet(k)}
+              className={`flex-1 rounded-md border px-2 py-1 text-xs font-semibold ${
+                sheet === k ? "border-slate-900 bg-slate-900 text-white" : "border-slate-300 bg-white text-slate-700"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
         <div className="rounded-lg border border-violet-200 bg-violet-50 p-3">
           <div className="mb-2 font-bold text-violet-800">시험지 뽑기</div>
@@ -123,23 +135,32 @@ export function MsQuestionTab({
             </button>
           ) : null}
         </div>
-        <button type="button" onClick={() => window.print()} className="w-full rounded-lg bg-slate-900 py-2 font-semibold text-white hover:bg-slate-800">
-          인쇄 · PDF 저장
-        </button>
+        <a
+          href={shown.length ? `${base}/${unit.id}/exam/${encodeQuestionIds(shown.map((q) => q.id))}/print?mode=${sheet}` : undefined}
+          target="_blank"
+          rel="noreferrer"
+          className={`block w-full rounded-lg py-2 text-center font-semibold text-white ${shown.length ? "bg-slate-900 hover:bg-slate-800" : "pointer-events-none bg-slate-300"}`}
+        >
+          인쇄 화면 열기 (머리글·PDF 저장)
+        </a>
       </aside>
-      <div className="min-w-0 flex-1 overflow-x-auto bg-slate-100 py-4 print:overflow-visible print:bg-white print:p-0">
-        <MsPrintFrame design={design} academyName={academyName}>
-          <MsQuestionSheets
-            questions={shown}
-            title={draw ? "테스트" : "예상문제"}
-            sub={`${shown.length}문항`}
-            right={`${unit.grade} ${unit.publisher} ${unit.lessonNo}과`}
-            measureKey={`${unit.id}-q-${design}-${ids}`}
+      <div className="min-w-0 flex-1 overflow-x-auto bg-slate-200 print:overflow-visible print:bg-white">
+        {shown.length ? (
+          <QuestionPrintView
+            key={`${sheet}-${ids}`}
+            jobId={`ms-${unit.id}`}
+            backHref={`${base}/${unit.id}`}
+            printBaseHref={`${base}/${unit.id}/exam/${encodeQuestionIds(shown.map((q) => q.id))}`}
+            mode={sheet}
+            layout="bySet"
+            academyName={academyName}
+            embedded
+            design={design}
+            preloaded={preloaded}
           />
-          {answers && shown.length ? (
-            <MsQuestionAnswerSheets questions={shown} explanation={expl} title="정답" measureKey={`${unit.id}-qa-${design}-${expl}-${ids}`} />
-          ) : null}
-        </MsPrintFrame>
+        ) : (
+          <p className="p-6 text-sm text-slate-500">고른 조건에 맞는 문항이 없습니다.</p>
+        )}
       </div>
     </div>
   );
