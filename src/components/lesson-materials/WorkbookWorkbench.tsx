@@ -33,6 +33,7 @@ import type {
   generateWorkbookAction,
   generateGrammarChoicePassageAction,
 } from "@/lib/lesson-materials/workbook-actions";
+import { loadDrawProjects } from "@/lib/lesson-materials/load-draw-client";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
 import type {
@@ -1739,11 +1740,7 @@ export function WorkbookWorkbench({
   useEffect(() => {
     if (!blankNoteKey) return;
     let alive = true;
-    void postJson<{ ok: true; projects: TestBookProjectInput[] } | { ok: false; message: string }>("/api/lesson-materials/test-book", {
-      role,
-      op: "loadDraw",
-      projectIds: blankNoteKey.split(","),
-    })
+    void loadDrawProjects(role, blankNoteKey.split(","))
       .then((res) => {
         if (alive && res.ok) setBlankNoteProjects(res.projects);
       })
@@ -1761,10 +1758,7 @@ export function WorkbookWorkbench({
       .map((s) => s.projectId);
     if (!need.length) return;
     let alive = true;
-    void postJson<{ ok: true; projects: Array<{ id: string; sentences: Array<{ english: string }> }> } | { ok: false; message: string }>(
-      "/api/lesson-materials/test-book",
-      { role, op: "loadDraw", projectIds: [...new Set(need)] }
-    )
+    void loadDrawProjects(role, need)
       .then((res) => {
         if (!alive || !res.ok) return;
         const next: Record<string, string> = {};

@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, createContext, useContext, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   POS_NAME,
   circled,
@@ -417,8 +417,16 @@ export function PagedSheet({
   measureKey: string;
 }) {
   const measureRef = useRef<HTMLDivElement>(null);
-  const [pages, setPages] = useState<number[][]>(() => [blocks.map((_, i) => i)]);
+  // 재기 전에는 쪽을 그리지 않는다(긴 한 쪽을 먼저 그렸다 버리지 않게)
+  const [pages, setPages] = useState<number[][] | null>(null);
   const blockKeys = blocks.map((b) => b.key).join("|");
+  /*
+   * 서버에서는 그리지 않는다(2026-10-29 속도): 서버가 재기용 사본과 나누기 전 긴 한 쪽을 둘 다 그려 보내
+   * 테스트 교재 5지문이 HTML 1.85MB였고, 브라우저는 그걸 받아 맞춘 뒤 어차피 다시 나눴다.
+   * 브라우저에서 처음 그릴 때 재고 나눈다.
+   */
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   useLayoutEffect(() => {
     const root = measureRef.current;
     if (!root) return;
@@ -444,7 +452,8 @@ export function PagedSheet({
     });
     if (cur.length || out.length === 0) out.push(cur);
     setPages((prev) => (JSON.stringify(prev) === JSON.stringify(out) ? prev : out));
-  }, [blockKeys, measureKey]);
+  }, [blockKeys, measureKey, mounted]);
+  if (!mounted) return null;
   return (
     <>
       <div ref={measureRef} className="tb-measure" aria-hidden>
@@ -459,11 +468,11 @@ export function PagedSheet({
           ))}
         </div>
       </div>
-      {pages.map((idx, p) => (
+      {(pages ?? []).map((idx, p, all) => (
         <div key={p} className="tb-sheet tb-part">
           {head(p)}
           {idx.map((i) => (blocks[i] ? <Fragment key={blocks[i]!.key}>{blocks[i]!.node}</Fragment> : null))}
-          <BookFoot>{foot ? foot(p, pages.length) : null}</BookFoot>
+          <BookFoot>{foot ? foot(p, all.length) : null}</BookFoot>
         </div>
       ))}
     </>
