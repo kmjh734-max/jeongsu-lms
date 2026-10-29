@@ -7,6 +7,8 @@ import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import type { LessonVocabSetRow } from "@/lib/lesson-materials/load-library";
 import type { loadDrawProjectsAction, prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-book-actions";
 import { PASSAGE_PREP_CONCURRENCY, isTestBookProjectReady } from "@/lib/lesson-materials/test-book";
+import { deleteVocabSet as adminDeleteVocabSet, updateVocabSet as adminUpdateVocabSet } from "@/app/admin/vocab/actions";
+import { deleteVocabSet as teacherDeleteVocabSet, updateVocabSet as teacherUpdateVocabSet } from "@/app/teacher/vocab/actions";
 
 type LoadResult = Awaited<ReturnType<typeof loadDrawProjectsAction>>;
 type PrepareResult = Awaited<ReturnType<typeof prepareWorkbookExtrasAction>>;
@@ -53,6 +55,39 @@ export function LessonVocabTab({
   const [naming, setNaming] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
+  // 다른 자료처럼 이름 바꾸기·삭제(선생님 2026-10-29) — 단어학습 단어장 기능을 그대로 쓴다
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const updateSet = role === "admin" ? adminUpdateVocabSet : teacherUpdateVocabSet;
+  const deleteSet = role === "admin" ? adminDeleteVocabSet : teacherDeleteVocabSet;
+
+  async function commitRename(id: string, before: string) {
+    const title = draft.trim();
+    setEditingId(null);
+    if (!title || title === before) return;
+    const res = await updateSet(id, { title });
+    if (!res.ok) {
+      setMessage({ text: res.message || "이름을 바꾸지 못했습니다.", error: true });
+      return;
+    }
+    setMessage(null);
+    router.refresh();
+  }
+
+  async function removeSet(id: string, title: string) {
+    if (!window.confirm(`「${title}」 단어장을 삭제할까요? 단어학습의 같은 단어장도 함께 지워집니다. 지문 자료는 그대로 남습니다.`)) return;
+    setBusy("단어장을 지우는 중…");
+    try {
+      const res = await deleteSet(id);
+      if (!res.ok) throw new Error(res.message || "단어장을 지우지 못했습니다.");
+      setMessage({ text: `「${title}」 단어장을 삭제했습니다.`, error: false });
+      router.refresh();
+    } catch (e) {
+      setMessage({ text: e instanceof Error ? e.message : "단어장을 지우지 못했습니다.", error: true });
+    } finally {
+      setBusy(null);
+    }
+  }
   useEffect(() => {
     if (askSignal > 0 && selectedIds.length) setNaming(todayName());
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -129,14 +164,30 @@ export function LessonVocabTab({
                 📗
               </span>
               <div className="flex min-w-0 flex-1 items-baseline gap-2">
-                <a
-                  href={`/${role}/lesson-materials/vocab-set-exam?set=${s.id}&view=list`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="min-w-0 truncate text-[13px] font-semibold text-slate-900 hover:text-violet-700 hover:underline"
-                >
-                  {s.title}
-                </a>
+                {editingId === s.id ? (
+                  <input
+                    autoFocus
+                    value={draft}
+                    maxLength={80}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onBlur={() => void commitRename(s.id, s.title)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void commitRename(s.id, s.title);
+                      if (e.key === "Escape") setEditingId(null);
+                    }}
+                    className="w-full max-w-md rounded-md border border-violet-300 px-2 py-0.5 text-[13px] font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-violet-200"
+                    aria-label="단어장 이름"
+                  />
+                ) : (
+                  <a
+                    href={`/${role}/lesson-materials/vocab-set-exam?set=${s.id}&view=list`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="min-w-0 truncate text-[13px] font-semibold text-slate-900 hover:text-violet-700 hover:underline"
+                  >
+                    {s.title}
+                  </a>
+                )}
                 <span className="shrink-0 text-[11px] text-slate-400">
                   {s.word_count}단어 · {formatWhen(s.created_at)}
                 </span>
@@ -158,6 +209,24 @@ export function LessonVocabTab({
                 >
                   시험지 출력
                 </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraft(s.title);
+                    setEditingId(s.id);
+                  }}
+                  className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-slate-500 hover:bg-slate-100"
+                >
+                  이름 바꾸기
+                </button>
+                <button
+                  type="button"
+                  disabled={!!busy}
+                  onClick={() => void removeSet(s.id, s.title)}
+                  className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                >
+                  삭제
+                </button>
               </div>
             </li>
           ))}
