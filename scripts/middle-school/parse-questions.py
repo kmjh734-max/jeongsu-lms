@@ -10,9 +10,11 @@ import sys, os, re, json, glob
 SRC, OUT = sys.argv[1], sys.argv[2]
 ONLY = next((a for a in sys.argv[3:] if not a.startswith("--")), "동아(윤)")
 FILES = {"예상PRE": "예상문제 PRE-STEP", "예상1": "예상문제 1회", "예상2": "예상문제 2회"}
-# Grammar Build Up은 표 꼴 보기·서술형 칸 모양이 달라 아직 절반 가까이 점검에 걸린다(2026-10-29) — --gbu 로만 넣는다
-if "--gbu" in sys.argv:
-    FILES.update({"GBU객관식": "Grammar Build Up 객관식", "GBU주관식": "Grammar Build Up 주관식"})
+# Grammar Build Up 객관식은 전용 해석기(gbu_item)로 넣는다 — 무작위 표본을 직접 풀어 28문항 중 27문항이 그대로 맞음(2026-10-29).
+# 주관식은 꼴이 제각각(정답이 앞에 오거나 <보기> 예시가 소문항에 섞임)이라 아직 --gbu-sa 로만 본다.
+FILES["GBU객관식"] = "Grammar Build Up 객관식"
+if "--gbu-sa" in sys.argv:
+    FILES["GBU주관식"] = "Grammar Build Up 주관식"
 
 KO = re.compile(r"[가-힣]")
 CIRC = "①②③④⑤"
@@ -84,6 +86,8 @@ def review_reason(q):
             return "문제 글 없음"
     if any(KO.search(b) and re.search(r"(알맞다|자연스럽다|따라서)", b) for b in q["body"]):
         return "해설이 섞임"
+    if q["kind"] == "mc" and not q["body"] and not q["group"] and re.search(r"\(가\)|\(A\)|<보기>|우리말과|다음 문장|주어진 (문장|단어)|다음 글|다음 대화|다음 표", strip_u(q["stem"])):
+        return "문제 글 없음"
     return ""
 
 
@@ -95,7 +99,9 @@ def is_en_stem(lines, k):
     """영어 발문(「What flower does Mrs. Parker like the most?」): 물음표로 끝나는 영어 줄 바로 다음이 한 칸 들여 쓴 정답 줄"""
     t = strip_u(lines[k]).strip()
     # 「…? Choose all.」처럼 물음표 뒤에 짧은 지시가 붙기도 한다
-    if not re.search(r"\?(\s*[A-Z][^?]{0,30}\.)?$", t) or KO.search(t) or lines[k].startswith(" ") or re.match(r"^([①-⑤❶-❺(]|[A-Z][a-z]*\s*:|Q\b)", t):
+    # 물음표가 없어도 「Choose the pair of words that fits in the blank.」 같은 영어 지시문
+    imperative = re.match(r"^(Choose|Find|Pick|Select|Write|Complete|Circle|Read)\b.*\.$", t) is not None
+    if not (imperative or re.search(r"\?(\s*[A-Z][^?]{0,30}\.)?$", t)) or KO.search(t) or lines[k].startswith(" ") or re.match(r"^([①-⑤❶-❺(]|[A-Z][a-z]*\s*:|Q\b)", t):
         return False
     nxt = next((l for l in lines[k + 1:k + 4] if l.strip()), "")
     return nxt.startswith(" ") and re.match(r"^\s+[①-⑤](\s*,\s*[①-⑤])*\s*(:|$)", strip_u(nxt)) is not None
@@ -127,12 +133,127 @@ def split_choices(line):
     return out
 
 
+GBU_NOISE = re.compile(r"^(Pattern \d+\.?.*|Lesson|Grammar Build Up.*|중[123] 동아\(.*\)|\d{1,2}|해설|정답)$")
+
+
+def gbu_item(stem, chunk, titles):
+    """Grammar Build Up 한 문항. 예상문제와 달리 상자 이름이 없고 해설이 문항 앞에 바로 붙는다.
+    객관식: 정답 줄(「 ④: 해설」) → 해설 조각(「① is → are」 「- 3인칭…」) → 문항 → 마지막 ①부터 보기.
+    주관식: 「문제 줄 → 한 칸 들여 쓴 정답 줄(→ 칸)」이 소문항마다 되풀이된다."""
+    lines = [l for l in chunk if l.strip() and not GBU_NOISE.match(strip_u(l).strip()) and strip_u(l).strip() not in titles]
+    if not lines:
+        return None
+    first = strip_u(lines[0]).strip()
+    m = re.match(r"^([①-⑤](?:\s*,\s*[①-⑤])*)\s*:?\s*(.*)$", first) if lines[0].startswith(" ") else None
+    if m:
+        answer = ", ".join(str(CIRC.index(c) + 1) for c in re.findall(r"[①-⑤]", m.group(1)))
+        expl = m.group(2)
+        rest = lines[1:]
+        # 마지막 ①(또는 ❶)부터가 보기
+        starts = [k for k, l in enumerate(rest) if re.match(r"^\s*[①❶]", strip_u(l))]
+        if not starts:
+            return {"kind": "mc", "answer": answer, "explanation": expl, "body": [], "choices": []}
+        k0 = starts[-1]
+        choices = []
+        for l in rest[k0:]:
+            t = l.strip()
+            if re.match(r"^[①-⑤❶-❺]", strip_u(t)):
+                choices.extend(split_choices(t))
+            elif choices and (
+                re.match(r"^\s+[A-Z][a-z]*\s*:", l)
+                or (t.startswith("→") and not KO.search(t))
+                or (l.startswith("  ") and not KO.search(t))  # 「   = 수동태 문장」 같은 둘째 줄
+                or re.match(r"^\([^)]*\)$", t)  # 「(주어를 Jane으로 바꾸어 부정문으로)」 지시
+            ):
+                # 두 줄 보기: 대화(A:/B:) 둘째 줄, 「① 두 문장 / → 합친 문장」
+                no_, f_, tx = choices[-1]
+                choices[-1] = (no_, f_, tx + "\n" + t)
+            elif choices and l.startswith(" ") and (KO.search(t) or "→" in t):
+                break  # 해설 되풀이
+        def is_expl(b):
+            t = strip_u(b).strip()
+            if "___" in t:
+                return False  # 빈칸이 있는 줄은 문제 글(「→ If the weather (A)____ …」)
+            if t.startswith("→") and not KO.search(t) and "→" not in t[1:]:
+                return False  # 「→ Do you (like / know / their / if / they) jobs?」 — 해설의 「is → are」는 화살표가 가운데
+            if re.match(r"^[:/\-→①-⑤❶-❺]", t) or "→" in t:
+                return True
+            if KO.search(t) and "_" not in t and not t.startswith(("•", "<", "(A)", "A:", "B:")) and re.search(r"(다\.?|다\))$|[<〔]", t):
+                if re.search(r"우리말|해석", strip_u(stem)) and not re.search(r"이므로|때문|주어|동사|형태|쓰인|쓴다|알맞|어색|→|〔|<", t):
+                    return False
+                return True
+            if t.startswith("e.g."):
+                return True
+            return False
+        body = [b.strip() for b in rest[:k0] if not is_expl(b)]
+        # 우리말을 쓰는 발문(영작·해석·뜻)이 아니면 한글만 있는 줄(「나머지는 주격 관계대명사」)은 해설이다
+        if not re.search(r"우리말|해석|뜻|의미|한국어", strip_u(stem)):
+            # 우리말이 필요 없는 문항의 한글 줄은 해설·문법 요점이다(「(1) 1, 2인칭 주어 : Do +주어 …」)
+            def mostly_en(b):
+                t = strip_u(b)
+                return len(re.findall(r"[A-Za-z]", t)) > len(re.findall(r"[가-힣]", t)) * 2
+            body = [b for b in body if not KO.search(strip_u(b)) or "_" in b or mostly_en(b)]
+        # 「to – give, send, tell」 같은 문법 요점 줄
+        body = [b for b in body if not re.search(r"\s[–—]\s", strip_u(b)) or "_" in b]
+        return {"kind": "mc", "answer": answer, "explanation": expl, "body": body, "choices": choices}
+    # 주관식: 문제 줄(여러 줄일 수 있음 — A:/B:) → 정확히 한 칸 들여 쓴 정답 줄. 여러 칸 들여 쓴 줄은 문제 이어짐.
+    def is_ans(l):
+        return len(l) > 1 and l[0] == " " and l[1] != " " and not re.match(r"^\s*[①-⑤]", strip_u(l))
+
+    def is_answer_slot(t):
+        return t.startswith("→") and "_" in t or set(t) <= set("_ →")
+
+    def is_expl(t):
+        return bool(KO.search(t)) and bool(re.search(r"다\.?$|이다|알맞다|적절하다", t)) and "_" not in t
+
+    pre, subs, buf = [], [], []
+    for l in lines:
+        t = strip_u(l).strip()
+        if not t or is_answer_slot(t):
+            continue
+        if is_ans(l):
+            if buf:
+                subs.append((" / ".join(buf) if len(buf) > 1 else buf[0], t))
+                buf = []
+            continue
+        if is_expl(t):
+            continue
+        # 소문항 앞의 <보기>·<조건>·예시는 머리 글로
+        if not subs and not buf and re.match(r"^(<|•|\d\.|※)", t):
+            pre.append(l.strip())
+            continue
+        if not subs and buf and re.match(r"^(<|•|\d\.|※|→)", buf[0]):
+            pre.extend(buf)
+            buf = []
+        buf.append(l.strip())
+    if not subs and buf:
+        pre.extend(buf)
+    if not subs:
+        return {"kind": "sa", "answer": "", "explanation": "", "body": pre, "choices": []}
+    def with_blank(q):
+        return q if "_" in q else q + "\n→ <blank/>"
+    if len(subs) == 1:
+        body = pre + [with_blank(subs[0][0])]
+        answer = subs[0][1]
+    else:
+        body = pre + [with_blank(f"({i + 1}) {q}") for i, (q, _a) in enumerate(subs)]
+        answer = " / ".join(f"({i + 1}) {a}" for i, (_q, a) in enumerate(subs))
+    body = [b.replace("___________", "<blank/>") if False else b for b in body]
+    return {"kind": "sa", "answer": answer, "explanation": "", "body": body, "choices": []}
+
+
 def parse_file(lines, src):
     items = []
     group = None  # 함께 쓰는 지문
     area = ""
     point = ""  # Grammar Build Up: │Pattern 1│ 다음 줄 이름
     i, n = 0, len(lines)
+    titles = set()
+    for k, l in enumerate(lines):
+        if re.match(r"^│Pattern \d│$", strip_u(l).strip()):
+            nm = next((strip_u(x).strip() for x in lines[k + 1:k + 4] if x.strip()), "")
+            if nm:
+                titles.add(nm)
     while i < n:
         raw = lines[i]
         t = strip_u(raw).strip()
@@ -168,6 +289,20 @@ def parse_file(lines, src):
                 area = AREA_NAME.get(am.group(1), am.group(1))
         chunk = [l for l in chunk if l.strip() and not NOISE.match(strip_u(l).strip())]
         if not chunk:
+            continue
+        if src.startswith("Grammar"):
+            g = gbu_item(stem, chunk, titles)
+            if g is None:
+                continue
+            q = {
+                "src": src, "point": point, "area": "어법", "stem": stem, "group": None,
+                "body": g["body"], "choices": [{"no": c[0], "text": c[2]} for c in g["choices"]],
+                "answer": g["answer"] or ", ".join(str(c[0]) for c in g["choices"] if c[1]),
+                "explanation": g["explanation"], "kind": g["kind"] if g["choices"] or g["kind"] == "sa" else "mc",
+                "needsImage": bool(re.search(r"그림|사진|표를 보고|표의|표에|도표|포스터|광고|만화", strip_u(stem))),
+            }
+            q["review"] = review_reason(q)
+            items.append(q)
             continue
         # 문항 끝에 다음 영역 소제목(「본문┃주관식┃」 뒤의 「본문」)이 붙어 온다 — 상자 이름으로 착각하지 않게 뗀다
         while chunk and strip_u(chunk[-1]).strip() in SUBLABELS:
