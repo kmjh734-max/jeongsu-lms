@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, createContext, memo, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   POS_NAME,
   circled,
@@ -626,7 +626,7 @@ export const TYPE_SHORT: Record<TestBookTypeKey, string> = {
  * 계획표의 「해 올 것」과 이수표 칸은 교재에 넣기로 고른 묶음·테스트 유형을 그대로 따른다
  * (선생님 2026-10-20: 고른 테스트 종류대로 자동으로).
  */
-export function PlanSheets({
+export const PlanSheets = memo(function PlanSheets({
   projects,
   options,
   measureKey,
@@ -811,11 +811,11 @@ export function PlanSheets({
       head={(page) => <DocHead title="학습 계획표 · 이수표" sub={page > 0 ? "(이어서)" : undefined} label="PLAN & CHECK" />}
     />
   );
-}
+});
 
 // ---------------------------------------------------------------- 단어 정리
 
-export function VocabSheets({
+export const VocabSheets = memo(function VocabSheets({
   index,
   project,
   measureKey,
@@ -881,7 +881,7 @@ export function VocabSheets({
       )}
     />
   );
-}
+});
 
 // ---------------------------------------------------------------- 전체 단어장
 
@@ -907,7 +907,7 @@ export function allVocabRows(projects: TestBookProjectInput[], indexOf: (id: str
 
 const ALL_GRID = "9mm 8mm 29mm 8mm 33mm 1fr 1fr 1fr";
 
-export function AllVocabSheets({
+export const AllVocabSheets = memo(function AllVocabSheets({
   projects,
   indexOf,
   measureKey,
@@ -973,10 +973,10 @@ export function AllVocabSheets({
       )}
     />
   );
-}
+});
 
 /** 전체 단어 TEST: 뜻 쓰기(모든 단어, 두 단) */
-export function AllWordTestSheets({
+export const AllWordTestSheets = memo(function AllWordTestSheets({
   projects,
   indexOf,
   measureKey,
@@ -1011,9 +1011,9 @@ export function AllWordTestSheets({
       head={(page) => <DocHead title="전체 단어 TEST" sub={page > 0 ? "(이어서)" : "지문 속 뜻 쓰기"} label="ALL WORDS TEST" />}
     />
   );
-}
+});
 
-export function AllWordAnswerSheets({
+export const AllWordAnswerSheets = memo(function AllWordAnswerSheets({
   projects,
   indexOf,
   measureKey,
@@ -1048,7 +1048,7 @@ export function AllWordAnswerSheets({
       head={(page) => <DocHead title="정답 · 전체 단어 TEST" sub={page > 0 ? "(이어서)" : undefined} label="ANSWERS" right="정답만 싣습니다" />}
     />
   );
-}
+});
 
 // ---------------------------------------------------------------- 동반의어·품사 테스트
 
@@ -1056,7 +1056,7 @@ export function wordTestTotal(t: WordTest): number {
   return t.meaning.length + t.synonym.length + t.forms.length;
 }
 
-export function WordTestSheets({
+export const WordTestSheets = memo(function WordTestSheets({
   index,
   project,
   test,
@@ -1150,11 +1150,11 @@ export function WordTestSheets({
       )}
     />
   );
-}
+});
 
 // ---------------------------------------------------------------- 수업용 자료
 
-export function LessonSheets({
+export const LessonSheets = memo(function LessonSheets({
   index,
   project,
   translation,
@@ -1216,10 +1216,10 @@ export function LessonSheets({
       )}
     />
   );
-}
+});
 
 /** 해석을 뒤쪽에 모을 때: 지문마다 해석만 */
-export function TranslationBackSheets({ projects, measureKey }: { projects: TestBookProjectInput[]; measureKey: string }) {
+export const TranslationBackSheets = memo(function TranslationBackSheets({ projects, measureKey }: { projects: TestBookProjectInput[]; measureKey: string }) {
   const blocks: Block[] = projects.flatMap((p, pi) => [
     {
       key: `h${p.id}`,
@@ -1243,7 +1243,7 @@ export function TranslationBackSheets({ projects, measureKey }: { projects: Test
     })),
   ]);
   return <PagedSheet blocks={blocks} measureKey={measureKey} head={() => <DocHead title="해석" label="TRANSLATION" />} />;
-}
+});
 
 // ---------------------------------------------------------------- 테스트지
 
@@ -1431,7 +1431,7 @@ export function sheetTotal(sheet: TestSheet): number {
   return sheet.sections.reduce((n, s) => n + (s.items.length && s.type !== "sequence" && s.type !== "sentenceOrder" ? s.items.length : 1), 0);
 }
 
-export function TestSheets({
+export const TestSheets = memo(function TestSheets({
   index,
   project,
   sheet,
@@ -1472,7 +1472,7 @@ export function TestSheets({
       )}
     />
   );
-}
+});
 
 // ---------------------------------------------------------------- 백지노트
 
@@ -1504,7 +1504,7 @@ function FourStep({ s }: { s: (typeof FOUR_STEPS)[number] }) {
  * 백지노트(지문마다 2쪽). 원문 문장마다 번호를 달고 아래 「문장별 정리」에 같은 번호 칸을 둔다(선생님 2026-10-27).
  * 둘째 쪽은 4단 정리(도입 → 전개 → 근거 → 결론, 세로 흐름 — 시안 A안) → 동반의어 → 틀린 것 다시 쓰기.
  */
-export function BlankNoteSheets({ index, project }: { index: number; project: TestBookProjectInput }) {
+export const BlankNoteSheets = memo(function BlankNoteSheets({ index, project }: { index: number; project: TestBookProjectInput }) {
   const label = passageLabel(index, project);
   const sentences = project.sentences.map((s) => s.english.trim()).filter(Boolean);
   return (
@@ -1588,7 +1588,7 @@ export function BlankNoteSheets({ index, project }: { index: number; project: Te
       </div>
     </>
   );
-}
+});
 
 // ---------------------------------------------------------------- 정답지
 
@@ -1602,7 +1602,7 @@ function sectionAnswer(sec: TestSection): ReactNode {
   ));
 }
 
-export function AnswerSheets({
+export const AnswerSheets = memo(function AnswerSheets({
   entries,
   measureKey,
   title = "정답",
@@ -1707,7 +1707,7 @@ export function AnswerSheets({
       head={(page) => <DocHead title={title} sub={page > 0 ? "(이어서)" : undefined} label="ANSWERS" right="정답만 싣습니다" />}
     />
   );
-}
+});
 
 // ---------------------------------------------------------------- 표지·목차·분석 자료
 
@@ -1715,7 +1715,7 @@ export function AnswerSheets({
  * 표지 = 내신 표지(FrontCover). 칸이 비면 교재 이름 · 지문 출처(교과서 · 출판사 · 과)에서 읽는다.
  * 선생님 2026-10-22: 색 번짐 표지는 지움.
  */
-export function CoverSheet({
+export const CoverSheet = memo(function CoverSheet({
   cover,
   range,
   logoSrc,
@@ -1729,7 +1729,7 @@ export function CoverSheet({
       <FrontCover preset={coverPreset(cover.presetId)} cover={cover} logoSrc={logoSrc} examDefaults={{ range }} />
     </div>
   );
-}
+});
 
 /** 교재 묶음(목차·간지·쪽 색). no는 목차 번호, color는 그 묶음 색. */
 export type BookPart = { id: string; no: string; en: string; ko: string; sub?: string; color: string };
@@ -1744,7 +1744,7 @@ export function partStyle(part: BookPart | undefined): CSSProperties | undefined
  * 목차(통합자료 목차와 같은 꼴). 쪽 번호는 화면이 그린 쪽을 세어 넣는다
  * (pages: 묶음 id → 첫 쪽, total: 전체 쪽 수, 표지가 1쪽).
  */
-export function ContentsSheet({
+export const ContentsSheet = memo(function ContentsSheet({
   parts,
   pages,
   total,
@@ -1791,10 +1791,10 @@ export function ContentsSheet({
       </div>
     </div>
   );
-}
+});
 
 /** 간지: 묶음 첫 쪽. 지문마다 이 묶음에서 시작하는 쪽을 싣는다. */
-export function DividerSheet({
+export const DividerSheet = memo(function DividerSheet({
   part,
   items,
   title,
@@ -1833,10 +1833,10 @@ export function DividerSheet({
       </div>
     </div>
   );
-}
+});
 
 /** 분석 자료: 분석서의 주제·문장 분석을 테스트 교재 쪽에 싣는다(분석서가 있는 지문만). */
-export function AnalysisSheets({
+export const AnalysisSheets = memo(function AnalysisSheets({
   index,
   project,
   translation = "full",
@@ -1904,10 +1904,10 @@ export function AnalysisSheets({
       )}
     />
   );
-}
+});
 
 /** 지문 간지: 묶음 안에서 지문이 시작하는 쪽. 지문 번호를 크게, 이 묶음에서 이어질 쪽을 차례로 싣는다. */
-export function PassageDividerSheet({
+export const PassageDividerSheet = memo(function PassageDividerSheet({
   part,
   index,
   project,
@@ -1957,12 +1957,12 @@ export function PassageDividerSheet({
       </div>
     </div>
   );
-}
+});
 
 // ---------------------------------------------------------------- 단어 시험지
 
 /** 단어 시험지(지문을 합친 한 장 묶음). 쓰기는 두 단, 객관식은 보기 넷을 한 줄에. */
-export function VocabExamSheets({ exam, title = "단어 시험", measureKey }: { exam: VocabExam; title?: string; measureKey: string }) {
+export const VocabExamSheets = memo(function VocabExamSheets({ exam, title = "단어 시험", measureKey }: { exam: VocabExam; title?: string; measureKey: string }) {
   if (!exam.total) return null;
   const blocks: Block[] = [{ key: "who", node: <Who total={exam.total} /> }];
   exam.sections.forEach((sec, si) => {
@@ -2030,9 +2030,9 @@ export function VocabExamSheets({ exam, title = "단어 시험", measureKey }: {
       head={(page) => <DocHead title={title} sub={page > 0 ? "(이어서)" : `${exam.total}문항`} label="VOCABULARY TEST" />}
     />
   );
-}
+});
 
-export function VocabExamAnswerSheets({ exam, title = "정답 · 단어 시험", measureKey }: { exam: VocabExam; title?: string; measureKey: string }) {
+export const VocabExamAnswerSheets = memo(function VocabExamAnswerSheets({ exam, title = "정답 · 단어 시험", measureKey }: { exam: VocabExam; title?: string; measureKey: string }) {
   if (!exam.total) return null;
   const blocks: Block[] = exam.sections.map((sec) => ({
     key: `va-${sec.kind}`,
@@ -2057,7 +2057,7 @@ export function VocabExamAnswerSheets({ exam, title = "정답 · 단어 시험",
       head={(page) => <DocHead title={title} sub={page > 0 ? "(이어서)" : undefined} label="ANSWERS" right="정답만 싣습니다" />}
     />
   );
-}
+});
 
 // ---------------------------------------------------------------- 워크북에 끼우는 조각
 

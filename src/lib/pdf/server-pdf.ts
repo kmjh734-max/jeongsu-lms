@@ -209,8 +209,27 @@ const mergedCache = new Map<string, Promise<Blob>>();
 /** 쪽들의 PDF를 (기억해 둔 것은 그대로, 없는 것만 만들어) 쪽 차례대로 돌려준다. */
 function ensurePages(pages: HTMLElement[], paper: PdfPaper): { entries: Array<Promise<PageResult>>; listKey: string } {
   const head = collectCss();
-  const pieces = pages.map((p) => pieceOf(p, paper));
-  const keys = pieces.map((p) => hash(`${paper.w}x${paper.h}|${head}|${p.html}`));
+  return schedulePieces(head, pages.map((p) => pieceOf(p, paper)), paper);
+}
+
+/**
+ * 미리 만들기용: 쪽 조각을 몇 쪽씩 나눠 만들며 사이사이 화면에 틈을 준다(2026-10-29 속도: 184쪽을 한 번에
+ * 복사·글로 바꾸느라 무언가 고친 2.5초 뒤 화면이 1~3초 멈췄다).
+ */
+async function ensurePagesGently(pages: HTMLElement[], paper: PdfPaper): Promise<{ entries: Array<Promise<PageResult>>; listKey: string }> {
+  const head = collectCss();
+  const pieces: PagePiece[] = [];
+  for (let i = 0; i < pages.length; i++) {
+    pieces.push(pieceOf(pages[i]!, paper));
+    if (i % 6 === 5) await new Promise((r) => setTimeout(r, 0));
+  }
+  return schedulePieces(head, pieces, paper);
+}
+
+function schedulePieces(head: string, pieces: PagePiece[], paper: PdfPaper): { entries: Array<Promise<PageResult>>; listKey: string } {
+  // 스타일(수백 KB)은 한 번만 센다 — 예전엔 쪽마다 스타일까지 붙여 다시 세어 184쪽이면 같은 글을 184번 읽었다
+  const headKey = hash(head);
+  const keys = pieces.map((p) => hash(`${paper.w}x${paper.h}|${headKey}|${p.html}`));
   const missing: number[] = [];
   keys.forEach((k, i) => {
     if (!pageCache.has(k) && !missing.some((j) => keys[j] === k)) missing.push(i);
@@ -250,7 +269,17 @@ function ensurePages(pages: HTMLElement[], paper: PdfPaper): { entries: Array<Pr
 /** 화면을 열거나 고친 뒤 미리 만들어(합쳐) 둔다. 실패해도 조용히 넘어간다(누를 때 다시 만든다). */
 export async function prefetchPagesPdf(pages: HTMLElement[], paper: PdfPaper): Promise<void> {
   if (pages.length === 0) return;
-  await renderPagesToPdf(pages, paper).catch(() => undefined);
+  try {
+    const { entries, listKey } = await ensurePagesGently(pages, paper);
+    if (mergedCache.has(listKey)) return;
+    const job = mergeEntries(entries, pages.length);
+    mergedCache.set(listKey, job);
+    job.catch(() => mergedCache.delete(listKey));
+    while (mergedCache.size > 12) mergedCache.delete(mergedCache.keys().next().value!);
+    await job.catch(() => undefined);
+  } catch {
+    /* 미리 만들기는 실패해도 조용히(누를 때 다시 만든다) */
+  }
 }
 
 /** 쪽들을 서버에서 글자 PDF로 만들어 한 파일(Blob)로 돌려준다. 미리 만든 쪽은 바로 쓴다. */

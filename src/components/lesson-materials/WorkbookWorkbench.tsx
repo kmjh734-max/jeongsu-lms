@@ -1830,7 +1830,7 @@ export function WorkbookWorkbench({
   /** 「유형 추가」 창(선생님 2026-10-24: 만들어 둔 워크북에 유형을 더한다) · 「다시 만들기」 창(있는 유형만 새로) */
   const [addOpen, setAddOpen] = useState<"add" | "regen" | null>(null);
   /** 왼쪽 메뉴 칸(선생님 2026-10-26: 메뉴가 너무 많다 — 구성 / 유형 설정 / 지문 세 칸으로) */
-  const [sideTab, setSideTab] = useState<"build" | "types" | "passages">("build");
+  // 탭 상태는 탭 버튼(WorkbookSideTabs)만 들고 칸은 CSS로 감춘다 — 탭을 바꿔도 미리보기 307쪽을 다시 그리지 않게(2026-10-29 속도: 0.7초)
   useEffect(() => {
     try {
       setPageNumbers(window.localStorage.getItem(PAGE_NUMBER_KEY) !== "off");
@@ -4697,24 +4697,7 @@ export function WorkbookWorkbench({
           {pdf.status ? (
             <p className={`text-[11px] font-semibold ${pdf.busy ? "text-violet-700" : "text-rose-600"}`}>{pdf.status}</p>
           ) : null}
-          <div className="grid grid-cols-3 overflow-hidden rounded-lg border border-slate-200">
-            {(
-              [
-                ["build", "구성"],
-                ["types", "유형 설정"],
-                ["passages", "지문"],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setSideTab(id)}
-                className={`py-1.5 text-xs font-bold ${sideTab === id ? "bg-violet-50 text-violet-700" : "text-slate-500 hover:bg-slate-50"}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <WorkbookSideTabs panelsId="wb-side-panels" />
         </div>
         {grammarChoicePending ? (
           <div className="mx-4 mt-4 rounded-xl border border-violet-200 bg-violet-50 px-3 py-3">
@@ -4731,9 +4714,9 @@ export function WorkbookWorkbench({
             </div>
           </div>
         ) : null}
-        <div className="min-h-0 flex-1 space-y-4 overflow-auto p-4">
-          {sideTab === "build" ? (
-            <>
+        <div id="wb-side-panels" data-tab="build" className="min-h-0 flex-1 space-y-4 overflow-auto p-4">
+          <style>{WB_SIDE_PANEL_CSS}</style>
+          <div data-side-panel="build" className="space-y-4">
               <div className="space-y-1.5">
                 <p className="text-[11px] font-bold text-slate-500">나오는 순서</p>
                 <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
@@ -4941,11 +4924,9 @@ export function WorkbookWorkbench({
                   <span className="block font-medium text-slate-400">지문마다 2쪽 · 정답지 앞에</span>
                 </span>
               </label>
-            </>
-          ) : null}
+          </div>
 
-          {sideTab === "types" ? (
-            <>
+          <div data-side-panel="types" className="space-y-4">
           {workbook.selectedTypes.includes("one_line_ko") || workbook.selectedTypes.includes("tb_chunk_line") ? (
             <div className="space-y-1.5">
               <p className="text-[11px] font-bold text-slate-500">해석 적기</p>
@@ -5107,11 +5088,9 @@ export function WorkbookWorkbench({
               ) ? (
                 <p className="text-[11px] leading-relaxed text-slate-500">이 워크북의 유형에는 따로 고를 설정이 없습니다.</p>
               ) : null}
-            </>
-          ) : null}
+          </div>
 
-          {sideTab === "passages" ? (
-            <>
+          <div data-side-panel="passages" className="space-y-4">
               <label className="block space-y-1">
                 <span className="text-[11px] font-bold text-slate-500">워크북 제목(쪽 머리에 찍힘)</span>
                 <input
@@ -5154,8 +5133,7 @@ export function WorkbookWorkbench({
               ))}
             </div>
           ) : null}
-            </>
-          ) : null}
+          </div>
 
           {saveState !== "idle" ? (
             <p
@@ -5234,5 +5212,40 @@ export function WorkbookWorkbench({
       />
     ) : null}
     </PassageNoContext.Provider>
+  );
+}
+
+/** 왼쪽 칸 탭: 고른 칸만 보이게 CSS로 감춘다(칸은 늘 그려 두고, 탭을 바꿔도 워크북 화면을 다시 그리지 않는다) */
+const WB_SIDE_PANEL_CSS = `
+#wb-side-panels:not([data-tab="build"]) > [data-side-panel="build"],
+#wb-side-panels:not([data-tab="types"]) > [data-side-panel="types"],
+#wb-side-panels:not([data-tab="passages"]) > [data-side-panel="passages"] { display: none; }
+`;
+
+function WorkbookSideTabs({ panelsId }: { panelsId: string }) {
+  const [tab, setTab] = useState<"build" | "types" | "passages">("build");
+  return (
+    <div className="grid grid-cols-3 overflow-hidden rounded-lg border border-slate-200">
+      {(
+        [
+          ["build", "구성"],
+          ["types", "유형 설정"],
+          ["passages", "지문"],
+        ] as const
+      ).map(([id, label]) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() => {
+            setTab(id);
+            const panels = document.getElementById(panelsId);
+            if (panels) panels.dataset.tab = id;
+          }}
+          className={`py-1.5 text-xs font-bold ${tab === id ? "bg-violet-50 text-violet-700" : "text-slate-500 hover:bg-slate-50"}`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
   );
 }
