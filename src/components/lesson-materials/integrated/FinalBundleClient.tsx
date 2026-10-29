@@ -116,6 +116,14 @@ const PRINT_CSS = `
 /* 미리보기 배율은 화면에서만 건다. 인쇄 계산에 섞이면 쪽이 더 생긴다. */
 @media screen {
   #final-bundle-print-root { zoom: var(--bundle-zoom, 1); }
+  /*
+   * 화면에 안 보이는 쪽은 배치·그리기를 미룬다(2026-10-29 속도: 700쪽 가까운 묶음을 한 번에 배치했다).
+   * 쪽 높이는 A4로 잡아 두어 스크롤 막대가 흔들리지 않게. 인쇄·PDF에는 걸리지 않는다(화면에서만).
+   */
+  #final-bundle-print-root :is(.final-bundle-sheet, .lesson-pack-a4-sheet, .qg-print-page, .tb-sheet):not(.tb-measure .tb-sheet) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 210mm auto 297mm;
+  }
 }
 @media print {
   @page { size: 210mm 297mm; margin: 0; }
