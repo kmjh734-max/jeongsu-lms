@@ -68,18 +68,24 @@ export async function FinalBundlePage({ role, docId }: { role: "admin" | "teache
     ),
   ];
 
+  /*
+   * 수업용 자료 지문은 늘 extraIds 안에 있다 — 한 번만 읽어 같은 것을 쓴다(2026-10-29 속도: 같은 지문 재료를
+   * 두 번 읽어 두 번 실어 보냈다). 같은 객체라 화면으로도 한 번만 간다.
+   */
+  const extraJob = loadBundleExtraProjects(supabase, extraIds);
   const [lessonPacks, analyses, extraProjects] = await Promise.all([
     Promise.all(
       payload.selections.lesson_pack.map(async (id) => {
         const d = pick(id, "lesson_pack");
         if (!d) return null;
+        const byId = new Map((await extraJob).map((p) => [p.id, p] as const));
         return {
           docId: id,
           name: d.name as string,
           // 파일에 저장된 수업용 자료 설정(해석 등) — 없으면 null
           options: normalizeLessonBookOptions((d as { lpo?: unknown }).lpo),
           // 수업용 자료는 테스트 교재 모양(단어 정리·문장별 해석) — 같은 재료를 읽는다
-          projects: await loadBundleExtraProjects(supabase, (d.project_ids as string[]) ?? []),
+          projects: ((d.project_ids as string[]) ?? []).map((pid) => byId.get(pid)).filter((p) => !!p),
         };
       })
     ),
@@ -94,7 +100,7 @@ export async function FinalBundlePage({ role, docId }: { role: "admin" | "teache
         };
       })
     ),
-    loadBundleExtraProjects(supabase, extraIds),
+    extraJob,
   ]);
 
   const profile = await getCurrentProfile();
