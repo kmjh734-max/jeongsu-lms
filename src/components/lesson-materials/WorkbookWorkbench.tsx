@@ -1049,16 +1049,35 @@ function GrammarFixAnswerBody({
   );
 }
 
-function sentenceOrderHeading(
-  typeOrder: number,
+/**
+ * 문장 순서 배열 문항 번호. 문제지(지문 딱지 「지문 3」)와 정답지가 같은 번호를 쓴다:
+ * 지문 번호, 한 지문에 문항이 여럿이면 「3-2」. 지문이 하나뿐이라 지문 번호가 없으면
+ * 문항 순번이다(예전엔 유형 번호를 찍어 정답이 모두 「1.」이었다).
+ */
+function useSentenceOrderNo(
   q: WorkbookSentenceOrderQuestion,
   all: WorkbookSentenceOrderQuestion[]
 ): string {
-  const samePassage = all.filter((x) => x.passageId === q.passageId);
-  if (samePassage.length > 1) {
-    return `${typeOrder}-${q.setIndex}. 문장 순서 배열`;
-  }
-  return `${typeOrder}. 문장 순서 배열`;
+  const nos = useContext(PassageNoContext);
+  const sets = all.filter((x) => x.passageId === q.passageId).length;
+  const no = nos[q.passageId];
+  if (no == null) return String(all.indexOf(q) + 1);
+  return sets > 1 ? `${no}-${q.setIndex}` : String(no);
+}
+
+function SentenceOrderSetHeading({
+  question,
+  all,
+}: {
+  question: WorkbookSentenceOrderQuestion;
+  all: WorkbookSentenceOrderQuestion[];
+}) {
+  const no = useSentenceOrderNo(question, all);
+  return (
+    <p className="wb-set-heading mb-1 text-[13px] font-black" style={{ color: ACCENT }}>
+      {no}
+    </p>
+  );
 }
 
 function SentenceOrderQuestionBody({
@@ -1122,18 +1141,12 @@ function SentenceOrderQuestionBody({
 
 function SentenceOrderAnswerBody({
   question,
-  typeOrder,
   all,
 }: {
   question: WorkbookSentenceOrderQuestion;
-  typeOrder: number;
   all: WorkbookSentenceOrderQuestion[];
 }) {
-  const samePassage = all.filter((x) => x.passageId === question.passageId);
-  const heading =
-    samePassage.length > 1
-      ? `${typeOrder}-${question.setIndex}`
-      : `${typeOrder}`;
+  const heading = useSentenceOrderNo(question, all);
   return (
     <div className="break-inside-avoid">
       <p className="wb-ak-text text-[10.5px] font-semibold text-slate-800">
@@ -3958,7 +3971,6 @@ export function WorkbookWorkbench({
                 <SentenceOrderAnswerBody
                   key={`soa-${q.questionId}`}
                   question={q}
-                  typeOrder={oso}
                   all={soQuestions}
                 />
               ))}
@@ -4167,11 +4179,7 @@ export function WorkbookWorkbench({
     const sets = soQuestions.filter((x) => x.passageId === question.passageId).length;
     return (
       <>
-        {sets > 1 ? (
-          <p className="wb-set-heading mb-1 text-[13px] font-black" style={{ color: ACCENT }}>
-            {typeOrders.get("sentence_order") ?? 1}-{question.setIndex}
-          </p>
-        ) : null}
+        {sets > 1 ? <SentenceOrderSetHeading question={question} all={soQuestions} /> : null}
         <SentenceOrderQuestionBody question={question} />
       </>
     );
