@@ -540,7 +540,7 @@ function Segs({ segs }: { segs: TestSeg[] }) {
   );
 }
 
-function DocHead({ title, sub, label, right }: { title: string; sub?: string; label: string; right?: string }) {
+export function DocHead({ title, sub, label, right }: { title: string; sub?: string; label: string; right?: string }) {
   return (
     <div className="tb-b">
       <div className="tb-dh">
@@ -1669,7 +1669,8 @@ export const AnswerSheets = memo(function AnswerSheets({
       ),
     };
     const rows: Block[] = (e.sheet?.sections ?? []).flatMap((sec, i) => {
-      const label = `${i + 1} ${testBookTypeLabel(sec.type)}`;
+      // 중학교 워크북은 유형 이름을 제목으로 직접 준다(고등 유형 이름과 다를 수 있다)
+      const label = `${i + 1} ${sec.title || testBookTypeLabel(sec.type)}`;
       // 긴 답(해석·영작 문장)은 문항마다 한 줄, 짧은 답은 한 줄에 모은다
       const long = !sec.answer && sec.items.some((it) => it.answer.length > 24);
       if (!long) {

@@ -36,23 +36,32 @@ await page.setCookie(...[...jar.entries()].map(([name, value]) => ({ name, value
 await page.goto("http://localhost:3000/admin/middle-school", { waitUntil: "networkidle0", timeout: 240000 });
 await page.screenshot({ path: `${OUT}/ms-home.png` });
 await page.goto(`http://localhost:3000/admin/middle-school/${unit.id}`, { waitUntil: "networkidle0", timeout: 240000 });
-await new Promise((r) => setTimeout(r, 2500));
-await page.screenshot({ path: `${OUT}/ms-unit.png` });
-const info = await page.evaluate(() => {
-  const sheets = [...document.querySelectorAll("#ms-print-root .ms-sheet")];
-  return {
-    sheets: sheets.length,
-    overflow: sheets.map((s, i) => [i + 1, s.scrollHeight - s.clientHeight]).filter(([, d]) => d > 1),
-    // 바닥줄과 겹치는 마지막 블록
-    clash: sheets.map((s, i) => {
-      const foot = s.querySelector(".ms-foot")?.getBoundingClientRect().top ?? 1e9;
-      const last = [...s.querySelectorAll(".ms-block")].pop();
-      return last && last.getBoundingClientRect().bottom > foot - 2 ? i + 1 : 0;
-    }).filter(Boolean),
-  };
-});
-console.log("쪽", info.sheets, "넘침", JSON.stringify(info.overflow), "바닥줄 겹침", JSON.stringify(info.clash));
-await page.emulateMediaType("print");
-await page.pdf({ path: `${OUT}/ms-unit.pdf`, preferCSSPageSize: true, printBackground: true });
-console.log("pdf ok");
+
+/** 쪽 수·넘침을 재고 화면·PDF를 남긴다 */
+async function snap(name) {
+  await new Promise((r) => setTimeout(r, 3000));
+  await page.emulateMediaType("screen");
+  await page.screenshot({ path: `${OUT}/${name}.png` });
+  const info = await page.evaluate(() => {
+    const sheets = [...document.querySelectorAll("#tb-print-root .tb-sheet")].filter((el) => !el.closest(".tb-measure"));
+    return { sheets: sheets.length, overflow: sheets.map((s, i) => [i + 1, s.scrollHeight - s.clientHeight]).filter(([, d]) => d > 1) };
+  });
+  await page.emulateMediaType("print");
+  await page.pdf({ path: `${OUT}/${name}.pdf`, preferCSSPageSize: true, printBackground: true });
+  console.log(name, "쪽", info.sheets, "넘침", JSON.stringify(info.overflow));
+}
+async function click(text) {
+  await page.emulateMediaType("screen");
+  const ok = await page.evaluate((text) => {
+    const b = [...document.querySelectorAll("button")].find((el) => el.textContent?.trim().startsWith(text));
+    b?.click();
+    return !!b;
+  }, text);
+  if (!ok) throw new Error("단추 없음: " + text);
+}
+await snap("ms-lesson");
+await click("워크북");
+await snap("ms-workbook");
+await click("뽑기");
+await snap("ms-draw");
 await browser.close();

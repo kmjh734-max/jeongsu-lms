@@ -7,6 +7,13 @@ import hwp_text
 
 ROOT, OUT = sys.argv[1], sys.argv[2]
 KINDS = {"본문": r"_본문(_\(\d+수정\))?\.hwp$", "플러스": r"내용정리 플러스", "단어": r"WORD TEST", "문법": r"Grammar Build Up 워크북"}
+# 워크북·문제(3·4단계): 본문 10단계 워크북 1~10, Grammar Build Up 객관식·주관식, 예상문제(교사용)
+EXTRA = {f"워크북{n}": rf"본문10단계 워크북 {n} " for n in range(1, 11)}
+EXTRA.update({"GBU객관식": r"Grammar Build Up 객관식", "GBU주관식": r"Grammar Build Up 주관식",
+              "예상PRE": r"예상문제 PRE-STEP\(교사용\)", "예상1": r"예상문제 1회\(교사용\)", "예상2": r"예상문제 2회\(교사용\)"})
+if "--extra" in sys.argv:
+    KINDS = EXTRA
+ONLY = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--only=")), None)
 
 
 def latest(files):
@@ -20,6 +27,8 @@ def latest(files):
 for grade in ("중1", "중2"):
     for book in sorted(glob.glob(f"{ROOT}/{grade} 족보닷컴 다운로드/*/")):
         pub = os.path.basename(book.rstrip("/\\"))
+        if ONLY and pub != ONLY:
+            continue
         for unit in sorted(glob.glob(book + "*/")):
             lesson = os.path.basename(unit.rstrip("/\\"))
             hwps = glob.glob(unit + "*.hwp")

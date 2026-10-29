@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAcademyFeatureOn } from "@/lib/academies/features";
+import type { MsWorkbook } from "./workbook";
 
 /**
  * 중학교 수업자료(선생님 2026-10-29): 족보닷컴 중학 교과서 자료를 과 단위로 읽는다.
@@ -46,6 +47,8 @@ export type MsUnit = MsUnitSummary & {
   grammar: MsGrammar[];
   dialogues: MsText[];
   passages: MsText[];
+  /** 미리 정해 둔 워크북 문항(족보닷컴 본문 10단계 워크북) */
+  workbook: MsWorkbook;
 };
 
 export async function isMiddleSchoolOpen(academyId: string | null | undefined): Promise<boolean> {
@@ -89,7 +92,7 @@ export async function loadMsUnit(academyId: string, unitId: string): Promise<MsU
   const admin = createAdminClient();
   const { data: row } = await admin
     .from("ms_units")
-    .select("id, grade, publisher, lesson_no, title, words, grammar")
+    .select("id, grade, publisher, lesson_no, title, words, grammar, workbook")
     .eq("academy_id", academyId)
     .eq("id", unitId)
     .maybeSingle();
@@ -100,12 +103,13 @@ export async function loadMsUnit(academyId: string, unitId: string): Promise<MsU
     .eq("unit_id", unitId)
     .order("order_index");
   const all = (texts ?? []) as MsText[];
-  const r = row as UnitRow;
+  const r = row as UnitRow & { workbook: MsWorkbook | null };
   return {
     ...summary(r),
     words: r.words ?? [],
     grammar: r.grammar ?? [],
     dialogues: all.filter((t) => t.kind === "대화문"),
     passages: all.filter((t) => t.kind === "본문"),
+    workbook: r.workbook ?? {},
   };
 }
