@@ -26,6 +26,12 @@ export function stampPageNumbers(
 ): void {
   if (!root) return;
   /*
+   * 바깥에서 번호를 매기는 곳(최종통합자료)이 있으면 안쪽(그 안에 든 분석서·수업용 자료 등)은 손대지 않는다.
+   * 둘이 1.5초마다 서로 덮어써 같은 쪽이 「153」과 「3」을 오갔고, 화면이 쉬지 않고 바뀌어 PDF 미리 만들기도
+   * 시작하지 못했다(2026-10-29).
+   */
+  if (root.parentElement?.closest("[data-page-numbers-owner]")) return;
+  /*
    * 종이에 찍히는 장을 센다(화면에 보이는 장이 아니라). 지문분석서·수업자료는 고르지 않은 지문의 쪽을
    * 화면에서만 숨기고(hidden print:block) 인쇄에는 넣는다. 예전에는 화면에 보이는 장만 세어, 인쇄하면
    * 그 쪽들에 번호가 없고 번호도 고른 지문부터 1로 시작했다(2026-10-21 「쪽번호 넣기가 제대로 안 된다」).
@@ -70,6 +76,7 @@ export function watchPageNumbers(
   opts: PageNumberOptions = {}
 ): () => void {
   if (!root) return () => {};
+  root.setAttribute("data-page-numbers-owner", "");
   let timer: ReturnType<typeof setTimeout> | null = null;
   const run = () => {
     if (timer) clearTimeout(timer);
@@ -83,6 +90,7 @@ export function watchPageNumbers(
     observer.disconnect();
     clearInterval(tick);
     if (timer) clearTimeout(timer);
+    root.removeAttribute("data-page-numbers-owner");
   };
 }
 
