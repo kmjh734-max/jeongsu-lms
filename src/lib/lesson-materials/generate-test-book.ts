@@ -63,8 +63,47 @@ function formPos(raw: string): string {
   return "";
 }
 
+/*
+ * 받은 단어 목록에서 모델이 빼먹은 낱말을 되살린다(선생님 2026-10-29: 지문에 있는 meditative가 단어 정리에 없는데
+ * 학교 시험에는 나왔다). 전체 207지문에서 목록의 11%(10-29엔 19%)가 빠져 있었다. 뜻·동반의어는 수업용 자료 목록 것을 쓰고,
+ * 사전에 없는 잘못된 원형(reache·tilly)은 넣지 않는다. 이미 만든 단어 정리를 채울 때도 쓴다.
+ */
+export function missingPackRows(
+  rows: TestBookVocabRow[],
+  packVocab: LessonPackVocabItem[],
+  passage: string,
+  dict: Set<string>,
+  keyWords: Set<string>
+): TestBookVocabRow[] {
+  const seen = new Set(rows.map((r) => r.word.toLowerCase()));
+  const out: TestBookVocabRow[] = [];
+  for (const v of packVocab) {
+    const word = String(v.word ?? "").trim();
+    if (!word || seen.has(word.toLowerCase())) continue;
+    const ok = /\s/.test(word) ? !!findPhrase(passage, word) : dict.has(word.toLowerCase());
+    if (!ok) continue;
+    const m = String(v.meaning ?? "").trim().match(/^(n|v|a|ad|prep|conj|pron|int)\.\s*(.*)$/);
+    const meaning = (m ? m[2]! : String(v.meaning ?? "")).trim();
+    if (!meaning) continue;
+    seen.add(word.toLowerCase());
+    const notSame = (w: string) => !!w.trim() && w.trim().toLowerCase() !== word.toLowerCase();
+    out.push({
+      word,
+      pos: m ? `${m[1]}.` : word.includes(" ") ? "구" : "",
+      meaning,
+      synonyms: (v.synonyms ?? []).filter(notSame).slice(0, 3),
+      antonyms: (v.antonyms ?? []).filter(notSame).slice(0, 3),
+      forms: [],
+      phrase: "",
+      confusables: [],
+      key: keyWords.has(word.toLowerCase()),
+    });
+  }
+  return out;
+}
+
 /** 지문에 처음 나오는 자리(없으면 맨 뒤). 원형이 다르면 앞 네 글자로 한 번 더 찾는다. */
-function firstAt(passage: string, word: string): number {
+export function firstAt(passage: string, word: string): number {
   const hit = findPhrase(passage, word);
   if (hit) return hit.start;
   const stem = word.split(/\s+/)[0]!.slice(0, 4);
@@ -77,7 +116,7 @@ function firstAt(passage: string, word: string): number {
 
 /** 영어 낱말 목록(약 27만, 서버에서만 처음 쓸 때 읽는다) — 모델이 지어낸 파생어·혼동어휘를 걸러 낸다 */
 let dictionary: Set<string> | null = null;
-async function englishWords(): Promise<Set<string>> {
+export async function englishWords(): Promise<Set<string>> {
   if (!dictionary) {
     const mod = (await import("an-array-of-english-words/index.json")) as unknown as { default: string[] };
     dictionary = new Set(mod.default);
@@ -192,6 +231,7 @@ export async function refineTestBookVocab(input: {
       seen.add(k);
       return true;
     });
+    unique.push(...missingPackRows(unique, input.packVocab, passage, dict, hintWords));
     if (unique.length < 3) throw new Error("단어 정리를 충분히 만들지 못했습니다. 다시 시도해 주세요.");
     // 파생어는 핵심어부터 지문당 여섯 낱말까지만 남긴다
     {
