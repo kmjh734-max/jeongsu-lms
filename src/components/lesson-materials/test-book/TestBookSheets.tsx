@@ -2163,9 +2163,8 @@ export function CoverThumbAny({
 }) {
   const scale = widthPx / 793.7;
   return (
+    // 글꼴·TEST_BOOK_CSS는 쓰는 화면(테스트 교재)이 한 번 넣는다 — 썸네일마다 33KB씩 23번 실려 페이지가 800KB 늘었다(2026-10-29)
     <div className="pointer-events-none relative overflow-hidden" style={{ width: widthPx, height: widthPx * (297 / 210) }}>
-      <link rel="stylesheet" href={TEST_BOOK_FONTS_HREF} />
-      <style>{TEST_BOOK_CSS}</style>
       <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: "210mm" }}>
         <CoverSheet cover={{ ...cover, presetId }} range={range} logoSrc={logoSrc} />
       </div>

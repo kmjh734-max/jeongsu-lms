@@ -41,6 +41,7 @@ import { legacyCoverSpec, mergeCoverSpec } from "@/lib/lesson-materials/book-cov
 import { CoverForm } from "@/components/lesson-materials/book-cover/CoverForm";
 import { askCreditConfirm } from "@/lib/credits/confirm-store";
 import { postJson } from "@/lib/lesson-materials/post-json";
+import { fetchWorkbookDoc } from "@/lib/lesson-materials/workbook-doc-client";
 import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
 import type { prepareWorkbookExtrasAction } from "@/lib/lesson-materials/test-book-actions";
 import {
@@ -191,6 +192,11 @@ export function FinalBundleClient({
     },
   }));
   const [zoom, setZoom] = useState(60);
+  // 안에 든 워크북 내용을 화면을 그리기 시작할 때 미리 부른다(워크북 부분은 같은 요청을 받아 쓴다)
+  useState(() => {
+    if (typeof window !== "undefined") for (const w of materials.workbooks) void fetchWorkbookDoc(role, w.docId).catch(() => undefined);
+    return null;
+  });
   /** PDF로 바로 저장(인쇄 창 없이) */
   const pdf = usePdfSave();
   // 미리 PDF를 만들어 두어 「PDF로 저장」을 누르면 바로 받아진다

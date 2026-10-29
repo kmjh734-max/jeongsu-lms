@@ -34,6 +34,7 @@ import type {
   generateGrammarChoicePassageAction,
 } from "@/lib/lesson-materials/workbook-actions";
 import { loadDrawProjects } from "@/lib/lesson-materials/load-draw-client";
+import { fetchWorkbookDoc } from "@/lib/lesson-materials/workbook-doc-client";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { DocumentTitle } from "@/components/lesson-materials/DocumentTitle";
 import type {
@@ -2268,10 +2269,8 @@ export function WorkbookWorkbench({
       setGrammarChoicePending(false);
 
       if (embeddedDocId) {
-        const doc = await postJson<Awaited<ReturnType<typeof getWorkbookDocument>>>(
-          "/api/lesson-materials/documents/open",
-          { op: "getWorkbook", role, id: embeddedDocId }
-        );
+        // 최종통합자료가 미리 불러 둔 것을 쓴다(없으면 여기서 부른다)
+        const doc = await fetchWorkbookDoc(role, embeddedDocId);
         if (cancelled) return;
         if (doc.ok) setDocProjectIds(doc.projectIds ?? []);
         if (!doc.ok || !doc.payload || typeof doc.payload !== "object") {
