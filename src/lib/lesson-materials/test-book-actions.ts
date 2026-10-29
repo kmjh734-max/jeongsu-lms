@@ -321,7 +321,10 @@ async function preparePassage(
   // 워크북에서 고른 유형만 — 그 유형에 필요한 재료만 만들고 유형마다 값을 받는다(2026-10-28)
   const typed = kind === "workbook" && !input.vocabTab && Array.isArray(input.tbTypes) && input.tbTypes.length > 0;
   const tbTypes = typed ? input.tbTypes!.filter((t) => typeof t === "string") : [];
-  const needContent = !typed || tbTypes.some((t) => TB_CONTENT_TYPES.has(t));
+  // 자료함 「단어」 탭은 단어 정리만 쓴다 — 1장 재료(어법·검수, gpt-5-mini 30번 안팎·지문당 약 96원)를 만들지 않는다
+  // (선생님 2026-10-29: 윌링 사흘 원가의 45%가 무료 단어 탭에서 돈 1장 재료였다)
+  const vocabOnly = kind === "workbook" && input.vocabTab === true;
+  const needContent = !vocabOnly && (!typed || tbTypes.some((t) => TB_CONTENT_TYPES.has(t)));
   const needMaterial = !typed || tbTypes.some((t) => TB_MATERIAL_TYPES.has(t));
   const paidTypes = tbTypes.filter((t) => t in TB_PAID_TYPES);
   const FEATURE = kind === "test_book" ? TEST_BOOK_FEATURE : typed ? WORKBOOK_TB_TYPE_FEATURE : WORKBOOK_EXTRAS_FEATURE;
@@ -371,8 +374,8 @@ async function preparePassage(
     const again = new Set(input.forceRegenerate ? ["vocab", "gloss", "content"] : (input.regenerate ?? []));
     const fullFresh = isOnePageContentFresh(content, english);
     const liteFresh = isOnePageContentFresh(pack.workbookLiteContent, english);
-    const contentP: Promise<OnePageContent | undefined> = typed
-      ? // 워크북 유형만: 1장 자료 재료가 있으면 그것을, 없으면 어법·낱말을 뺀 가벼운 재료를 따로 만들어 둔다
+    const contentP: Promise<OnePageContent | undefined> = typed || vocabOnly
+      ? // 워크북 유형만(또는 단어 탭): 1장 자료 재료가 있으면 그것을, 없으면 어법·낱말을 뺀 가벼운 재료를 따로 만들어 둔다
         !needContent
         ? Promise.resolve(fullFresh ? content! : liteFresh ? pack.workbookLiteContent! : undefined)
         : !again.has("content") && fullFresh
@@ -414,16 +417,24 @@ async function preparePassage(
       const oldVocab = reuseVocab ? material!.vocab : null;
       const vocabP = oldVocab
         ? Promise.resolve(oldVocab)
-        : contentP.then((c) =>
-            withAiUsage(usage, () =>
-              refineTestBookVocab({
-                title: project.title as string,
-                sentences,
-                packVocab: pack.vocab ?? [],
-                keyHints: (c?.vocab ?? []).map((v) => ({ surface: v.surface, synonyms: v.synonyms, antonyms: v.antonyms })),
-              })
-            )
-          );
+        : contentP.then(async (c) => {
+            // 1장 재료가 없으면(단어 탭) 수업용 자료 단어 목록의 동반의어를 참고로 준다 — 4o-mini는 긴 지문에서 동반의어를 비워 둔다
+            const fromPack = !c?.vocab?.length;
+            const keyHints = fromPack
+              ? (pack.vocab ?? []).map((v) => ({ surface: v.word, synonyms: v.synonyms ?? [], antonyms: v.antonyms ?? [] }))
+              : c!.vocab.map((v) => ({ surface: v.surface, synonyms: v.synonyms, antonyms: v.antonyms }));
+            const rows = await withAiUsage(usage, () =>
+              refineTestBookVocab({ title: project.title as string, sentences, packVocab: pack.vocab ?? [], keyHints })
+            );
+            if (!fromPack) return rows;
+            const hint = new Map(keyHints.map((h) => [h.surface.trim().toLowerCase(), h] as const));
+            const fill = (own: string[], more: string[], word: string) =>
+              own.length ? own : more.filter((w) => w.trim() && w.trim().toLowerCase() !== word.toLowerCase()).slice(0, 3);
+            return rows.map((r) => {
+              const h = r.key ? hint.get(r.word.trim().toLowerCase()) : undefined;
+              return h ? { ...r, synonyms: fill(r.synonyms, h.synonyms, r.word), antonyms: fill(r.antonyms, h.antonyms, r.word) } : r;
+            });
+          });
       vocabP.catch(() => {});
       // 직독직해 덩어리: 원문이 같고 이미 있으면 다시 쓰고, 없으면 만든다(gpt-4o-mini, 1원 아래) — 바로 시작
       const oldGloss =
