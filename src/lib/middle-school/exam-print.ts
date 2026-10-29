@@ -60,7 +60,7 @@ export function msExamPreloaded(unit: Pick<MsUnit, "grade" | "publisher" | "less
     passages.push({ id, source_detail: q.source });
   });
   return {
-    title: title ?? `${unit.grade} ${unit.publisher} ${unit.lessonNo}과 예상문제`,
+    title: title ?? `${unit.grade} ${unit.publisher} ${unit.lessonNo}과 문제`,
     grade: unit.grade,
     sourceDetail: `Lesson ${unit.lessonNo} ${unit.title}`,
     questions: rows,

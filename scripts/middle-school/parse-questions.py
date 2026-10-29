@@ -86,6 +86,17 @@ def review_reason(q):
             return "문제 글 없음"
     if any(KO.search(b) and re.search(r"(알맞다|자연스럽다|따라서)", b) for b in q["body"]):
         return "해설이 섞임"
+    if q["kind"] == "sa" and q["src"].startswith("Grammar"):
+        subs_body = len([b for b in q["body"] if re.match(r"^\(\d\)", strip_u(b))])
+        subs_ans = len(re.findall(r"\(\d\)", q["answer"]))
+        if subs_body != subs_ans and not (subs_body <= 1 and subs_ans == 0):
+            return "소문항·정답 수 어긋남"
+        if sum(1 for b in q["body"] if len(strip_u(b)) <= 10) >= 6:
+            return "그림·표가 있어야 풀 수 있음"
+        if any(re.match(r"^(Look|Fill|Complete|Choose|Write|Read)\b", strip_u(b)) for b in q["body"]):
+            return "다른 문항이 섞임"
+        if not any("<blank/>" in b or "___" in b for b in q["body"]):
+            return "답 칸 없음"
     if q["kind"] == "mc" and not q["body"] and not q["group"] and re.search(r"\(가\)|\(A\)|<보기>|우리말과|다음 문장|주어진 (문장|단어)|다음 글|다음 대화|다음 표", strip_u(q["stem"])):
         return "문제 글 없음"
     return ""
@@ -100,10 +111,12 @@ def is_en_stem(lines, k):
     t = strip_u(lines[k]).strip()
     # 「…? Choose all.」처럼 물음표 뒤에 짧은 지시가 붙기도 한다
     # 물음표가 없어도 「Choose the pair of words that fits in the blank.」 같은 영어 지시문
-    imperative = re.match(r"^(Choose|Find|Pick|Select|Write|Complete|Circle|Read)\b.*\.$", t) is not None
+    imperative = re.match(r"^(Choose|Find|Pick|Select|Write|Complete|Circle|Read|Look|Fill|Change|Rewrite|Make|Use|Answer|Translate|Arrange|Correct|Put)\b.*\.$", t) is not None
     if not (imperative or re.search(r"\?(\s*[A-Z][^?]{0,30}\.)?$", t)) or KO.search(t) or lines[k].startswith(" ") or re.match(r"^([①-⑤❶-❺(]|[A-Z][a-z]*\s*:|Q\b)", t):
         return False
     nxt = next((l for l in lines[k + 1:k + 4] if l.strip()), "")
+    if imperative and t.endswith("."):
+        return True  # 영어 지시문은 다음 줄이 정답 줄이 아니어도(주관식) 문항 시작
     return nxt.startswith(" ") and re.match(r"^\s+[①-⑤](\s*,\s*[①-⑤])*\s*(:|$)", strip_u(nxt)) is not None
 
 
@@ -203,9 +216,32 @@ def gbu_item(stem, chunk, titles):
     def is_answer_slot(t):
         return t.startswith("→") and "_" in t or set(t) <= set("_ →")
 
+    korean_prompt = bool(re.search(r"우리말|해석|뜻", strip_u(stem)))
+
     def is_expl(t):
+        if korean_prompt and not re.search(r"이므로|때문|주어|동사|형태|쓰인|쓴다|알맞|적절|어색|→|〔|<", t):
+            return False
         return bool(KO.search(t)) and bool(re.search(r"다\.?$|이다|알맞다|적절하다", t)) and "_" not in t
 
+    # (가) 정답이 먼저 오는 꼴: 발문 바로 다음이 한 칸 들여 쓴 정답 줄(「 (1) not is → is not」 …)
+    if is_ans(lines[0]):
+        ans_lines, k = [], 0
+        while k < len(lines) and is_ans(lines[k]):
+            ans_lines.append(strip_u(lines[k]).strip())
+            k += 1
+        body = []
+        for l in lines[k:]:
+            t = strip_u(l).strip()
+            if is_expl(t) or (l.startswith(" ") and KO.search(t)):
+                continue
+            if is_answer_slot(t):
+                body.append("→ <blank/>")
+                continue
+            # 교사용 답 칸에 적힌 정답(밑줄)은 빈칸으로
+            body.append(re.sub(r"<u>[^<]*</u>", "<blank/>", l.strip()) if re.search(r"^\(\d\)|→", t) else l.strip())
+        return {"kind": "sa", "answer": " / ".join(ans_lines), "explanation": "", "body": body, "choices": []}
+
+    # (나) 소문항마다 「문제 줄(여러 줄일 수 있음) → 한 칸 들여 쓴 정답 줄」
     pre, subs, buf = [], [], []
     for l in lines:
         t = strip_u(l).strip()
@@ -213,6 +249,11 @@ def gbu_item(stem, chunk, titles):
             continue
         if is_ans(l):
             if buf:
+                # <보기> 예시(「my mother / … / → My mother is … .」)는 소문항이 아니다 — 마지막 「→ 예시」까지는 머리 글로
+                arrows = [i for i, x in enumerate(buf) if strip_u(x).startswith("→")]
+                if arrows and arrows[-1] < len(buf) - 1:
+                    pre.extend(buf[: arrows[-1] + 1])
+                    buf = buf[arrows[-1] + 1:]
                 subs.append((" / ".join(buf) if len(buf) > 1 else buf[0], t))
                 buf = []
             continue
