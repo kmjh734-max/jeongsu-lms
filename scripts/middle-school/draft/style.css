@@ -1,0 +1,104 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Inter:wght@400;600;800&display=swap");
+@page { size: A4; margin: 0; }
+:root { --ink: #1d2433; --sub: #5b6474; --line: #d9dee7; --accent: #2f6fdf; --accent2: #ff8a3d; --soft: #f3f6fc; --soft2: #fff4ea; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #e9ecf1; font-family: "Inter", "Noto Sans KR", "Malgun Gothic", sans-serif; color: var(--ink); font-size: 10.5pt; line-height: 1.55; }
+.sheet { width: 210mm; height: 297mm; margin: 0 auto 8mm; background: #fff; padding: 16mm 15mm 14mm; position: relative; overflow: hidden; break-after: page; }
+@media print { body { background: #fff; } .sheet { margin: 0; } }
+.run { display: flex; justify-content: space-between; font-size: 8pt; color: var(--sub); border-bottom: 1px solid var(--line); padding-bottom: 2mm; margin-bottom: 5mm; }
+.foot { position: absolute; left: 15mm; right: 15mm; bottom: 8mm; display: flex; justify-content: space-between; font-size: 8pt; color: var(--sub); }
+.ptitle { display: flex; align-items: baseline; gap: 3mm; margin-bottom: 5mm; }
+.ptitle b { background: var(--accent); color: #fff; font-size: 8.5pt; padding: 1mm 2.5mm; border-radius: 3mm; letter-spacing: .05em; }
+.ptitle h2 { margin: 0; font-size: 19pt; font-weight: 900; }
+.ptitle span { color: var(--sub); font-size: 11pt; font-weight: 600; }
+h3.sub { font-size: 11.5pt; margin: 0 0 2.5mm; padding-left: 2.5mm; border-left: 3px solid var(--accent); }
+h4 { font-size: 10.5pt; margin: 3mm 0 2mm; }
+.mt { margin-top: 6mm !important; }
+.dir { margin: 1mm 0 2mm; color: var(--sub); font-size: 9.5pt; }
+
+/* 표지 */
+.cover { padding: 0; display: flex; flex-direction: column; background: linear-gradient(160deg, #1f3c88 0%, #2f6fdf 55%, #ff8a3d 140%); color: #fff; }
+.cv-top, .cv-bot { display: flex; justify-content: space-between; padding: 14mm 16mm; font-size: 10pt; letter-spacing: .04em; opacity: .9; }
+.cv-mid { flex: 1; padding: 0 16mm; display: flex; flex-direction: column; justify-content: center; }
+.cv-grade { font-size: 64pt; font-weight: 900; line-height: 1; }
+.cv-lesson { font-size: 16pt; font-weight: 600; margin-top: 6mm; opacity: .9; }
+.cover h1 { font-size: 40pt; font-weight: 800; margin: 2mm 0 14mm; line-height: 1.1; }
+.cv-toc { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3mm; }
+.cv-toc li { border-top: 2px solid rgba(255,255,255,.7); padding-top: 2mm; font-size: 12pt; font-weight: 700; }
+.cv-toc b { display: block; font-size: 9pt; opacity: .8; }
+
+/* 단어 */
+.wt { width: 100%; border-collapse: collapse; font-size: 9.2pt; margin-bottom: 4mm; }
+.wt th { text-align: left; font-size: 8pt; color: var(--sub); border-bottom: 1.5px solid var(--ink); padding: 1mm 1.5mm; }
+.wt td { border-bottom: 1px solid var(--line); padding: 1.1mm 1.5mm; vertical-align: top; }
+.wt td.no { width: 7mm; color: var(--sub); font-size: 8pt; }
+.wt td.w { width: 34mm; font-weight: 700; }
+.wt td.m { width: 50mm; }
+.wt td.ex { color: var(--sub); font-size: 8.5pt; }
+.testhead { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--ink); margin-bottom: 4mm; }
+.testhead h3 { margin: 0 0 1mm; font-size: 16pt; font-weight: 900; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; }
+.wtest { padding-left: 6mm; margin: 0; }
+.wtest li { display: flex; gap: 3mm; padding: 1.6mm 0; }
+.wtest .q { width: 34mm; font-weight: 600; }
+.wtest .line { flex: 1; border-bottom: 1px solid #aab2c0; }
+.fill { padding-left: 6mm; }
+.fill li { padding: 1.5mm 0; }
+
+/* 문법 */
+.gbox { background: var(--soft); border-radius: 3mm; padding: 4mm 5mm; margin-bottom: 4mm; }
+.gno { font-size: 8pt; font-weight: 800; color: var(--accent); letter-spacing: .08em; }
+.gbox h3 { margin: 0 0 2mm; font-size: 15pt; font-weight: 900; }
+.gpts { margin: 0; padding-left: 4.5mm; }
+.gpts li { margin: 1.5mm 0; }
+.eg { color: var(--accent); font-size: 9.3pt; margin-top: .5mm; }
+.gex { list-style: none; padding: 0; margin: 0; }
+.gex li { display: grid; grid-template-columns: 1fr 70mm; gap: 3mm; border-bottom: 1px dashed var(--line); padding: 1.3mm 0; }
+.gex .en { font-weight: 600; }
+.gex .ko { color: var(--sub); font-size: 9.3pt; }
+.tag { font-style: normal; font-size: 7pt; color: var(--accent2); border: 1px solid var(--accent2); border-radius: 2mm; padding: 0 1.2mm; margin-left: 1mm; }
+.chk, .fix { padding-left: 6mm; }
+.chk li, .fix li { padding: 1.2mm 0; }
+
+/* 대화문 */
+.func { display: flex; flex-direction: column; gap: .5mm; background: var(--soft2); border-radius: 3mm; padding: 3mm 4mm; margin-bottom: 4mm; font-size: 9.5pt; }
+.func b { color: var(--accent2); }
+.dlg { margin-bottom: 4mm; }
+.dh { font-size: 9pt; margin-bottom: 1.5mm; }
+.dh b { color: var(--accent); }
+.dh span { color: var(--sub); }
+.dlg table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+.dlg td { padding: 1mm 1.5mm; border-bottom: 1px solid var(--line); vertical-align: top; }
+.dlg td.sp { width: 7mm; font-weight: 800; color: var(--accent); }
+.dlg td.den { width: 52%; }
+.dlg td.dko { color: var(--sub); font-size: 9pt; }
+.box { border: 1px solid #aab2c0; border-radius: 2mm; padding: 2mm 3mm; margin: 1.5mm 0 2mm; font-size: 9.5pt; }
+
+/* 본문 */
+.ptl { font-size: 13pt; font-weight: 800; margin-bottom: 4mm; }
+.ptl span { font-size: 10pt; color: var(--sub); font-weight: 500; margin-left: 2mm; }
+.rh { font-size: 10pt; margin-bottom: 2mm; }
+.rh b { background: var(--accent2); color: #fff; padding: .5mm 2mm; border-radius: 2mm; margin-right: 1.5mm; font-size: 8.5pt; }
+.sents { padding-left: 6mm; margin: 0 0 4mm; }
+.sents li { padding: 1.4mm 0; border-bottom: 1px dashed var(--line); }
+.sents .en { display: block; font-weight: 600; font-size: 11pt; }
+.sents .ko { display: block; color: var(--sub); font-size: 9.3pt; }
+.tr { padding-left: 6mm; }
+.tr li { padding: 1mm 0 3mm; }
+.tr .en { display: block; font-weight: 600; }
+.wline { display: block; border-bottom: 1px solid #aab2c0; height: 6mm; }
+.pass { border: 1px solid #aab2c0; border-radius: 2mm; padding: 3mm 4mm; line-height: 1.8; font-size: 10pt; }
+
+/* 변형문제 */
+.qcols { column-count: 2; column-gap: 8mm; column-rule: 1px solid var(--line); font-size: 9.6pt; }
+.q, .qgroup { break-inside: avoid; margin-bottom: 4.5mm; }
+.qs { margin-bottom: 1mm; }
+.qgroup .pass { font-size: 9.3pt; line-height: 1.65; padding: 2.5mm 3mm; }
+.opts { list-style: none; padding: 0 0 0 2mm; margin: 0; }
+.opts li { padding: .4mm 0; }
+.opts i { font-style: normal; margin-right: 1.5mm; }
+.aline { border-bottom: 1px solid #aab2c0; height: 7mm; }
+.sec { break-inside: avoid; font-weight: 900; font-size: 12pt; border-bottom: 2px solid var(--ink); margin-bottom: 3mm; }
+.ans { width: 100%; border-collapse: collapse; }
+.ans th { text-align: left; width: 32mm; vertical-align: top; padding: 2mm; border-bottom: 1px solid var(--line); font-size: 9.5pt; }
+.ans td { padding: 2mm; border-bottom: 1px solid var(--line); }
