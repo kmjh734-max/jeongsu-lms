@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { isMiddleSchoolOpen, loadMsUnit, loadMsUnits } from "@/lib/middle-school/queries";
+import { isMiddleSchoolOpen, loadMsQuestions, loadMsUnit, loadMsUnits } from "@/lib/middle-school/queries";
 import { loadAcademyName } from "@/lib/grammar-bank/academy-name";
 import { MiddleSchoolHome } from "./MiddleSchoolHome";
 import { MiddleSchoolUnitWorkspace } from "./MiddleSchoolUnitWorkspace";
@@ -30,6 +30,7 @@ export async function MiddleSchoolUnitPage({ base, unitId }: { base: string; uni
     loadAcademyName(profile.academy_id),
   ]);
   if (!unit) notFound();
+  const questions = await loadMsQuestions(unit.id);
   return (
     <div className="space-y-4 p-6">
       <header className="no-print">
@@ -38,7 +39,7 @@ export async function MiddleSchoolUnitPage({ base, unitId }: { base: string; uni
           {unit.grade} {unit.publisher} {unit.lessonNo}과 <span className="text-slate-500">· {unit.title}</span>
         </h1>
       </header>
-      <MiddleSchoolUnitWorkspace unit={unit} academyName={academyName ?? ""} />
+      <MiddleSchoolUnitWorkspace unit={unit} questions={questions} academyName={academyName ?? ""} />
     </div>
   );
 }

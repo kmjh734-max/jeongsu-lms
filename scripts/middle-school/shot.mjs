@@ -64,4 +64,8 @@ await click("워크북");
 await snap("ms-workbook");
 await click("뽑기");
 await snap("ms-draw");
+await click("문제");
+await snap("ms-questions");
+await click("20문항");
+await snap("ms-qdraw");
 await browser.close();

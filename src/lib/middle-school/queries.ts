@@ -51,6 +51,47 @@ export type MsUnit = MsUnitSummary & {
   workbook: MsWorkbook;
 };
 
+/** 문제 은행 문항(족보닷컴 예상문제 그대로) — 글 안에 밑줄 <u>…</u>, 빈칸 <blank/> */
+export type MsQuestion = {
+  id: number;
+  source: string;
+  no: number;
+  area: string;
+  kind: "mc" | "sa";
+  stem: string;
+  groupLead: string | null;
+  groupLines: string[] | null;
+  body: string[];
+  choices: { no: number; text: string }[];
+  answer: string;
+  explanation: string;
+  review: string;
+};
+
+export async function loadMsQuestions(unitId: string): Promise<MsQuestion[]> {
+  const { data } = await createAdminClient()
+    .from("ms_questions")
+    .select("id, source, no, area, kind, stem, group_lead, group_lines, body, choices, answer, explanation, review")
+    .eq("unit_id", unitId)
+    .order("source")
+    .order("no");
+  return (data ?? []).map((r) => ({
+    id: r.id as number,
+    source: r.source as string,
+    no: r.no as number,
+    area: r.area as string,
+    kind: r.kind as "mc" | "sa",
+    stem: r.stem as string,
+    groupLead: (r.group_lead as string | null) ?? null,
+    groupLines: (r.group_lines as string[] | null) ?? null,
+    body: (r.body as string[]) ?? [],
+    choices: (r.choices as { no: number; text: string }[]) ?? [],
+    answer: r.answer as string,
+    explanation: r.explanation as string,
+    review: r.review as string,
+  }));
+}
+
 export async function isMiddleSchoolOpen(academyId: string | null | undefined): Promise<boolean> {
   return isAcademyFeatureOn(createAdminClient(), academyId, "middle_school_lessons");
 }
