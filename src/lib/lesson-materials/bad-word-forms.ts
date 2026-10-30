@@ -1,10 +1,49 @@
 /**
  * 파생어가 아닌 짝(낱말>꼴). 윌링어학원 단어장 370낱말을 하나하나 읽어 골랐다(2026-10-30) — 뿌리가 다른 말(concerto → concerted),
  * 지어낸 말(perspectively), 변화형(lacks)을 모델이 파생어로 주어 시험 문항이 틀리게 나왔다.
+ * 같은 날 전 학원 1,055쌍을 마저 읽어 더했다(fund → fundamental, university → universal 등).
  */
 const BAD_FORM_PAIRS = new Set([
+  "accompany>accompanied",
+  "affect>affection",
   "affect>effect",
+  "amplify>amplified",
   "award-winning>awarded",
+  "citizen>citizenly",
+  "content>contend",
+  "cultivate>cultured",
+  "currently>currency",
+  "deny>denied",
+  "design>designable",
+  "differentiate>differentiable",
+  "dig>diggable",
+  "domain>dominant",
+  "domain>dominate",
+  "ensure>ensurer",
+  "foster>fosterer",
+  "fund>fundamental",
+  "fund>fundamentally",
+  "generate>generously",
+  "ideal>ideality",
+  "index>indicate",
+  "interface>interact",
+  "likely>likelier",
+  "location>local",
+  "mean>meanly",
+  "minor>minutely",
+  "objection>objective",
+  "optimistic>optimally",
+  "pose>position",
+  "primary>primariness",
+  "source>sourceless",
+  "story>storied",
+  "supply>supplied",
+  "temperature>temper",
+  "temperature>temperate",
+  "tool>toolless",
+  "university>universal",
+  "university>universally",
+  "version>versatilely",
   "capture>captivating",
   "chew>chewer",
   "cling>clingingness",
@@ -52,6 +91,28 @@ const BAD_FORM_PAIRS = new Set([
   "wild>wilder",
 ]);
 
+/** -s만 붙여도 뜻이 따로 있는 명사 */
+const PLURAL_FORM_OK = new Set(["remains", "dynamics", "genetics", "economics", "electronics", "physics", "politics", "ethics"]);
+
 export function isBadWordForm(word: string, form: string): boolean {
-  return BAD_FORM_PAIRS.has(`${word.trim().toLowerCase()}>${form.trim().toLowerCase()}`);
+  const w = word.trim().toLowerCase();
+  const f = form.trim().toLowerCase();
+  if (BAD_FORM_PAIRS.has(`${w}>${f}`)) return true;
+  // 복수·3인칭 변화형(dump → dumps)은 파생어가 아니다
+  return (f === `${w}s` || f === `${w}es`) && !PLURAL_FORM_OK.has(f);
+}
+
+/** 사람 이름 같은 고유명사 낱말(tilly — 뜻이 「틸리, 고유명사」「틸리, 인물 이름」 등으로 저장돼 있다) — 단어 시험·단어장에 넣지 않는다 */
+export function isProperNounVocab(word: string, meaning: string | null | undefined): boolean {
+  return /^tilly$/i.test(word.trim()) || /고유명사|(인물|사람|인공지능|로봇|등장인물) ?이름|인명|지명/.test(meaning ?? "");
+}
+
+/** 동의어·반의어 칸에 모델이 「없음」 대신 적은 글자(none) — 보기로 나오면 안 된다 */
+export function isEmptyVocabWord(word: string): boolean {
+  return /^(none|n\/a|nil|null|없음|-+)$/i.test(word.trim());
+}
+
+/** 모델이 잘못 만든 원형을 바로잡는다(endowe → endow) — 이미 저장된 단어를 읽을 때 쓴다 */
+export function fixVocabWord(word: string): string {
+  return word.trim().toLowerCase() === "endowe" ? "endow" : word;
 }

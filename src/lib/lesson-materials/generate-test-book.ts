@@ -8,7 +8,7 @@ import { findPhrase } from "@/lib/lesson-materials/one-page";
 import type { LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
 import type { TestBookVocabRow } from "@/lib/lesson-materials/test-book";
 import { engcoreWordLevel } from "@/lib/vocab/engcore-level";
-import { isBadWordForm } from "@/lib/lesson-materials/bad-word-forms";
+import { isBadWordForm, isEmptyVocabWord, isProperNounVocab } from "@/lib/lesson-materials/bad-word-forms";
 
 /** 파생어는 지문당 이만큼의 낱말에만, 낱말마다 둘까지(선생님 2026-10-25: 안 나올 것까지 많이 할 필요 없다) */
 // 지침은 예전 그대로 넉넉히 받는다(줄여 적으면 gpt-4o-mini가 아예 빈 배열만 준다 — 2026-10-25 확인). 줄이는 것은 아래 코드가 한다.
@@ -80,14 +80,14 @@ export function missingPackRows(
   const out: TestBookVocabRow[] = [];
   for (const v of packVocab) {
     const word = String(v.word ?? "").trim();
-    if (!word || seen.has(word.toLowerCase())) continue;
+    if (!word || seen.has(word.toLowerCase()) || isProperNounVocab(word, v.meaning)) continue;
     const ok = /\s/.test(word) ? !!findPhrase(passage, word) : dict.has(word.toLowerCase());
     if (!ok) continue;
     const m = String(v.meaning ?? "").trim().match(/^(n|v|a|ad|prep|conj|pron|int)\.\s*(.*)$/);
     const meaning = (m ? m[2]! : String(v.meaning ?? "")).trim();
     if (!meaning) continue;
     seen.add(word.toLowerCase());
-    const notSame = (w: string) => !!w.trim() && w.trim().toLowerCase() !== word.toLowerCase();
+    const notSame = (w: string) => !!w.trim() && w.trim().toLowerCase() !== word.toLowerCase() && !isEmptyVocabWord(w);
     out.push({
       word,
       pos: m ? `${m[1]}.` : word.includes(" ") ? "구" : "",
@@ -164,7 +164,7 @@ export async function refineTestBookVocab(input: {
     const envelope = parseJson(body) as { choices?: Array<{ message?: { content?: string } }> } | null;
     const parsed = parseJson(envelope?.choices?.[0]?.message?.content ?? "") as { vocab?: unknown[] } | null;
     const hintWords = new Set(input.keyHints.map((h) => h.surface.toLowerCase()));
-    const rows: TestBookVocabRow[] = (Array.isArray(parsed?.vocab) ? parsed!.vocab : [])
+    let rows: TestBookVocabRow[] = (Array.isArray(parsed?.vocab) ? parsed!.vocab : [])
       .map((raw) => {
         const r = raw as Record<string, unknown>;
         const word = String(r.word ?? "").trim();
@@ -173,7 +173,7 @@ export async function refineTestBookVocab(input: {
         const rowPos = POS.has(pos) ? pos : word.includes(" ") ? "구" : pos.slice(0, 5);
         // 동반의어에 같은 낱말의 다른 꼴(experiment = experimenting)은 넣지 않는다
         const stem = word.toLowerCase().slice(0, 5);
-        const notSame = (w: string) => !(stem.length >= 5 && w.toLowerCase().startsWith(stem));
+        const notSame = (w: string) => !(stem.length >= 5 && w.toLowerCase().startsWith(stem)) && !isEmptyVocabWord(w);
         return {
           word,
           pos: rowPos,
@@ -191,7 +191,7 @@ export async function refineTestBookVocab(input: {
             // -ing·-ed만 붙인 변화형(developing·rescued)은 파생어가 아니다
             .filter((f) => {
               const w = f.word.toLowerCase();
-              const base = word.toLowerCase().replace(/e$/, "");
+              const base = word.toLowerCase().replace(/[ey]$/, "");
               return !(/(ing|ed)$/.test(w) && w.startsWith(base) && w.length - base.length <= 4);
             })
             // 품사마다 하나씩
@@ -205,9 +205,11 @@ export async function refineTestBookVocab(input: {
         };
       })
       // 사람 이름 같은 고유명사는 단어 시험에 내지 않는다(윌링어학원 2026-10-30: Tilly)
-      .filter((r) => r.word && r.meaning && !/고유명사/.test(r.meaning));
+      .filter((r) => r.word && r.meaning && !isProperNounVocab(r.word, r.meaning));
     // 사전에 없는 파생어·혼동어휘(developedly·delever·rescuingly)는 뺀다(선생님 의견 2026-10-21 반영 중 확인)
     const dict = await englishWords();
+    // 원형을 잘못 만든 낱말(endowe·reache)도 뺀다 — 하이픈·띄어쓰기 어구는 사전에 없으므로 그대로 둔다
+    rows = rows.filter((r) => !/^[A-Za-z]+$/.test(r.word) || dict.has(r.word.toLowerCase()));
     for (const r of rows) {
       /*
        * 파생어는 사전에 있고 우리 EngCore 단어장에 바로 있는 낱말만(engcoreWordLevel — weedy·ideality·decadal처럼 시험에 안 나올 것은 뺀다),

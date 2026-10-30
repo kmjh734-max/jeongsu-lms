@@ -1,5 +1,5 @@
 import type { VocabItem } from "@/types/database";
-import { isBadWordForm } from "@/lib/lesson-materials/bad-word-forms";
+import { fixVocabWord, isBadWordForm, isEmptyVocabWord, isProperNounVocab } from "@/lib/lesson-materials/bad-word-forms";
 import type {
   OnePageContent,
 } from "@/lib/lesson-materials/one-page";
@@ -9,7 +9,7 @@ function splitList(raw: string | null | undefined): string[] {
   return (raw ?? "")
     .split(/[,;/]/)
     .map((w) => w.trim())
-    .filter(Boolean);
+    .filter((w) => w && !isEmptyVocabWord(w));
 }
 
 /**
@@ -24,9 +24,9 @@ export function vocabSetAsProject(
   items: VocabItem[]
 ): TestBookProjectInput {
   const vocab: TestBookVocabRow[] = items
-    .filter((i) => i.word?.trim() && i.meaning?.trim())
+    .filter((i) => i.word?.trim() && i.meaning?.trim() && !isProperNounVocab(i.word, i.meaning))
     .map((i) => ({
-      word: i.word.trim(),
+      word: fixVocabWord(i.word.trim()),
       pos: i.part_of_speech?.trim() ?? "",
       meaning: i.meaning.trim(),
       synonyms: splitList(i.synonyms),

@@ -10,7 +10,7 @@
  * 규칙에 따라 조립하므로, 견본과 뽑기 모두 모델을 다시 부르지 않는다.
  * 섞기는 열쇠(seed)로 정해진다 — 교재 견본은 늘 같은 열쇠, 뽑기는 누를 때마다 새 열쇠.
  */
-import { isBadWordForm } from "@/lib/lesson-materials/bad-word-forms";
+import { fixVocabWord, isBadWordForm, isEmptyVocabWord, isProperNounVocab } from "@/lib/lesson-materials/bad-word-forms";
 import {
   createSeededRng,
   fisherYatesShuffle,
@@ -193,8 +193,19 @@ export function mergeTestBookVocabHints(
   material: TestBookMaterial,
   content: OnePageContent | null | undefined
 ): TestBookMaterial {
-  // 이미 만든 재료에 든 틀린 파생어도 읽을 때 뺀다(윌링어학원 2026-10-30)
-  material = { ...material, vocab: material.vocab.map((r) => ({ ...r, forms: r.forms.filter((f) => !isBadWordForm(r.word, f.word)) })) };
+  // 이미 만든 재료에 든 틀린 파생어·고유명사도 읽을 때 뺀다(윌링어학원 2026-10-30)
+  material = {
+    ...material,
+    vocab: material.vocab
+      .filter((r) => !isProperNounVocab(r.word, r.meaning))
+      .map((r) => ({
+        ...r,
+        word: fixVocabWord(r.word),
+        synonyms: r.synonyms.filter((w) => !isEmptyVocabWord(w)),
+        antonyms: r.antonyms.filter((w) => !isEmptyVocabWord(w)),
+        forms: r.forms.filter((f) => !isBadWordForm(r.word, f.word)),
+      })),
+  };
   if (!content?.vocab?.length) return material;
   const hints = new Map(content.vocab.map((v) => [v.surface.trim().toLowerCase(), v] as const));
   const merge = (own: string[], more: string[], word: string) => {
@@ -203,7 +214,7 @@ export function mergeTestBookVocabHints(
       .map((w) => w.trim())
       .filter((w) => {
         const k = w.toLowerCase();
-        if (!w || seen.has(k)) return false;
+        if (!w || seen.has(k) || isEmptyVocabWord(w)) return false;
         seen.add(k);
         return true;
       })
