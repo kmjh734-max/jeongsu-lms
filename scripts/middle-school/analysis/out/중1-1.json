@@ -1,0 +1,237 @@
+{
+ "passages": {
+  "01099e72-1fd7-4e06-8b8d-5cf6ecba16c8": {
+   "titleEn": "Jihun's Best Friend Minsu",
+   "topicEn": "Jihun and his best friend Minsu are happy together because they share rock music and their school band.",
+   "topicKo": "지훈이는 록 음악과 학교 밴드를 함께하는 가장 친한 친구 민수와 있으면 행복하다.",
+   "sentences": [
+    {
+     "translation": "나는 지훈이야.",
+     "contextNote": "글쓴이 지훈이가 자기를 소개하며 이야기를 연다.",
+     "roles": [{"q": "I", "role": "S"}, {"q": "'m", "role": "V"}, {"q": "Jihun", "role": "C"}],
+     "points": [{"q": "I'm", "label": "2형식", "star": true, "explanation": "be동사 am은 '~이다'의 뜻으로, 주어 I와 보어 Jihun을 이어 주는 2형식 동사이다. 주어가 대명사일 때 I am은 I'm으로 줄여 쓸 수 있다."}],
+     "chunks": [{"en": "I'm", "ko": "나는"}, {"en": "Jihun.", "ko": "지훈이야."}]
+    },
+    {
+     "translation": "나의 가장 친한 친구는 민수야.",
+     "contextNote": "소개할 친구 민수를 처음 밝힌다.",
+     "roles": [{"q": "My best friend", "role": "S"}, {"q": "is", "role": "V"}, {"q": "Minsu", "role": "C"}],
+     "points": [{"q": "is", "label": "2형식", "explanation": "주어 My best friend는 3인칭 단수이므로 be동사는 is를 쓴다. 'My best friend = Minsu'처럼 주어와 보어가 같은 사람을 가리키는 2형식 문장이다."}],
+     "chunks": [{"en": "My best friend", "ko": "나의 가장 친한 친구는"}, {"en": "is Minsu.", "ko": "민수야."}]
+    },
+    {
+     "translation": "민수와 나는 록 음악을 정말 좋아해.",
+     "contextNote": "두 사람이 공통으로 좋아하는 것(록 음악)을 말한다.",
+     "roles": [{"q": "Minsu and I", "role": "S"}, {"q": "love", "role": "V"}, {"q": "rock music", "role": "O"}],
+     "notes": [{"q": "Minsu and I", "label": "병렬구조", "gloss": "and로 이은 두 주어 → 복수"}],
+     "points": [{"q": "love", "label": "3형식", "star": true, "explanation": "주어 Minsu and I는 두 사람이라 복수이므로 일반동사에 -s를 붙이지 않고 원형 love를 쓴다. love 뒤에 목적어 rock music이 오는 3형식 문장이다."}],
+     "chunks": [{"en": "Minsu and I", "ko": "민수와 나는"}, {"en": "love rock music.", "ko": "록 음악을 정말 좋아해."}]
+    },
+    {
+     "translation": "우리는 학교 밴드인 Rock It의 회원이야.",
+     "contextNote": "두 사람이 함께하는 활동(학교 밴드)을 소개한다.",
+     "roles": [{"q": "We", "role": "S"}, {"q": "are", "role": "V"}, {"q": "members of the school band Rock It", "role": "C"}],
+     "notes": [{"q": "of the school band Rock It", "label": "전명구", "gloss": "members를 꾸밈"}],
+     "points": [{"q": "are", "label": "2형식", "explanation": "주어 We가 복수이므로 be동사 are를 쓴다. members(회원들)가 주격보어이고, Rock It은 the school band의 이름이다."}],
+     "chunks": [{"en": "We are members", "ko": "우리는 회원이야"}, {"en": "of the school band Rock It.", "ko": "학교 밴드인 Rock It의."}]
+    },
+    {
+     "translation": "나는 기타를 치고, 민수는 드럼을 쳐.",
+     "contextNote": "밴드에서 두 사람이 맡은 악기를 대비해 말한다.",
+     "tags": ["어법 빈출"],
+     "tagSpans": [{"tag": "어법 빈출", "q": "plays"}],
+     "roles": [{"q": "I", "role": "S"}, {"q": "play", "role": "V"}, {"q": "the guitar", "role": "O"}, {"q": "Minsu", "role": "S"}, {"q": "plays", "role": "V"}, {"q": "the drums", "role": "O"}],
+     "notes": [{"q": "and Minsu plays the drums", "label": "등위절", "gloss": "and로 이은 두 번째 절"}],
+     "points": [{"q": "plays", "label": "동사", "star": true, "explanation": "주어 Minsu는 3인칭 단수이므로 일반동사 현재형에 -s를 붙여 plays로 쓴다. 앞 절의 주어 I는 1인칭이라 play 그대로이다."}],
+     "chunks": [{"en": "I play the guitar,", "ko": "나는 기타를 치고,"}, {"en": "and Minsu plays the drums.", "ko": "민수는 드럼을 쳐."}]
+    },
+    {
+     "translation": "우리는 연주를 잘하지 못하지만, 함께 매우 즐거워.",
+     "contextNote": "실력보다 함께하는 즐거움이 중요하다는 글의 핵심으로 이어진다.",
+     "tags": ["서술형 대비"],
+     "roles": [{"q": "We", "role": "S"}, {"q": "are", "role": "V"}, {"q": "good players", "role": "C"}, {"q": "we", "role": "S"}, {"q": "have", "role": "V"}, {"q": "so much fun", "role": "O"}, {"q": "together", "role": "M"}],
+     "notes": [{"q": "but we have so much fun together", "label": "등위절", "gloss": "but: 앞 내용과 반대"}],
+     "points": [
+      {"q": "are not", "label": "2형식", "star": true, "explanation": "be동사의 부정문은 be동사 뒤에 not을 붙여 만든다. are not은 aren't로 줄여 쓸 수 있다."},
+      {"q": "so much fun", "label": "수량사", "explanation": "fun은 셀 수 없는 명사이므로 many가 아니라 much로 양을 나타내고, so가 much를 강조한다."}
+     ],
+     "chunks": [{"en": "We are not good players,", "ko": "우리는 연주를 잘하지 못하지만,"}, {"en": "but we have so much fun", "ko": "하지만 우리는 매우 즐거워"}, {"en": "together.", "ko": "함께."}]
+    },
+    {
+     "translation": "민수와 있으면 나는 항상 웃어.",
+     "contextNote": "민수와 함께할 때의 감정을 말한다.",
+     "roles": [{"q": "With Minsu", "role": "M"}, {"q": "I", "role": "S"}, {"q": "laugh", "role": "V"}, {"q": "all the time", "role": "M"}],
+     "notes": [{"q": "With Minsu", "label": "전명구", "gloss": "'민수와 함께'"}, {"q": "all the time", "label": "부사구", "gloss": "'항상'"}],
+     "points": [{"q": "laugh", "label": "1형식", "explanation": "laugh는 목적어가 필요 없는 자동사라 주어와 동사만으로 문장이 완성되는 1형식이다. With Minsu와 all the time은 모두 수식어이다."}],
+     "chunks": [{"en": "With Minsu,", "ko": "민수와 있으면,"}, {"en": "I laugh", "ko": "나는 웃어"}, {"en": "all the time.", "ko": "항상."}]
+    },
+    {
+     "translation": "함께 있으면 우리는 행복해.",
+     "contextNote": "세 글에 되풀이되는 주제 문장: 함께 있어서 행복하다.",
+     "tags": ["주제문"],
+     "roles": [{"q": "Together", "role": "M"}, {"q": "we", "role": "S"}, {"q": "are", "role": "V"}, {"q": "happy", "role": "C"}],
+     "points": [{"q": "happy", "label": "주격보어 형용사", "explanation": "be동사 뒤에 형용사 happy가 와서 주어 we의 상태를 설명하는 주격보어이다."}],
+     "chunks": [{"en": "Together,", "ko": "함께 있으면,"}, {"en": "we are happy.", "ko": "우리는 행복해."}]
+    }
+   ]
+  },
+  "027f9bb8-67ac-4784-9907-96b47ebaaa0b": {
+   "titleEn": "Hannah's Dear Friend Mrs. Schmidt",
+   "topicEn": "Hannah's neighbor Mrs. Schmidt listens to her and comforts her, so Hannah feels at home with her.",
+   "topicKo": "Hannah의 이웃 Schmidt 부인은 이야기를 잘 들어 주고 위로해 주어, Hannah는 그녀와 있으면 마음이 편안하다.",
+   "sentences": [
+    {
+     "translation": "나는 Hannah야.",
+     "contextNote": "두 번째 글쓴이 Hannah의 자기소개.",
+     "roles": [{"q": "I", "role": "S"}, {"q": "'m", "role": "V"}, {"q": "Hannah", "role": "C"}],
+     "chunks": [{"en": "I'm", "ko": "나는"}, {"en": "Hannah.", "ko": "Hannah야."}]
+    },
+    {
+     "translation": "내 이웃인 Schmidt 부인은 나에게 소중한 친구야.",
+     "contextNote": "소개할 친구가 또래가 아니라 이웃 어른이라는 점을 밝힌다.",
+     "tags": ["서술형 대비"],
+     "roles": [{"q": "Mrs. Schmidt", "role": "S"}, {"q": "is", "role": "V"}, {"q": "a dear friend", "role": "C"}, {"q": "to me", "role": "M"}],
+     "brackets": [{"q": "my neighbor", "kind": "inserted"}],
+     "notes": [{"q": "my neighbor", "label": "동격구", "gloss": "= Mrs. Schmidt"}, {"q": "to me", "label": "전명구", "gloss": "'나에게'"}],
+     "points": [{"q": "is", "label": "2형식", "star": true, "explanation": "주어는 쉼표 사이에 끼운 my neighbor를 빼고 Mrs. Schmidt 한 사람이므로 3인칭 단수 be동사 is를 쓴다. my neighbor는 Mrs. Schmidt가 누구인지 덧붙여 설명하는 말이고, a dear friend가 주격보어이다."}],
+     "chunks": [{"en": "Mrs. Schmidt, my neighbor,", "ko": "내 이웃인 Schmidt 부인은"}, {"en": "is a dear friend to me.", "ko": "나에게 소중한 친구야."}]
+    },
+    {
+     "translation": "그녀는 이야기를 잘 들어 주는 분이고, 나는 그녀와 대화를 자주 나눠.",
+     "contextNote": "Schmidt 부인의 장점(잘 들어 줌)과 두 사람의 관계를 말한다.",
+     "roles": [{"q": "She", "role": "S"}, {"q": "is", "role": "V"}, {"q": "a great listener", "role": "C"}, {"q": "I", "role": "S"}, {"q": "talk", "role": "V"}, {"q": "with her", "role": "M"}],
+     "notes": [{"q": "and I often talk with her", "label": "등위절"}],
+     "points": [{"q": "often talk", "label": "동사 수식 부사", "star": true, "explanation": "often(자주)처럼 얼마나 자주 하는지 나타내는 빈도부사는 일반동사 앞, be동사 뒤에 온다. 주어 I는 1인칭이므로 talk에 -s를 붙이지 않는다."}],
+     "chunks": [{"en": "She is a great listener,", "ko": "그녀는 이야기를 잘 들어 주는 분이고,"}, {"en": "and I often talk with her.", "ko": "나는 그녀와 자주 대화를 나눠."}]
+    },
+    {
+     "translation": "그녀는 말씀을 많이 하시지는 않아.",
+     "contextNote": "말보다 들어 주는 분이라는 앞 문장을 뒷받침한다.",
+     "tags": ["어법 빈출", "서술형 대비"],
+     "tagSpans": [{"tag": "어법 빈출", "q": "doesn't talk"}],
+     "roles": [{"q": "She", "role": "S"}, {"q": "doesn't talk", "role": "V"}, {"q": "much", "role": "M"}],
+     "points": [{"q": "doesn't talk", "label": "동사", "star": true, "explanation": "일반동사의 부정문은 동사 앞에 do not/does not을 붙인다. 주어 She가 3인칭 단수이므로 does not(= doesn't)을 쓰고, 뒤의 동사는 원형 talk로 쓴다(talks ×)."}],
+     "chunks": [{"en": "She doesn't talk", "ko": "그녀는 말씀을 하시지 않아"}, {"en": "much.", "ko": "많이."}]
+    },
+    {
+     "translation": "그녀는 그저 고개를 끄덕이시고 나에게 미소를 지으셔.",
+     "contextNote": "말 대신 보여 주는 반응(끄덕임·미소)을 구체적으로 말한다.",
+     "roles": [{"q": "She", "role": "S"}, {"q": "just", "role": "M"}, {"q": "nods", "role": "V"}, {"q": "smiles", "role": "V"}, {"q": "at me", "role": "M"}],
+     "points": [{"q": "nods and smiles", "label": "동사 병렬", "star": true, "explanation": "주어 She 하나에 동사 nods와 smiles가 and로 이어져 있다. 주어가 3인칭 단수이므로 두 동사 모두 -s를 붙인다."}],
+     "chunks": [{"en": "She just nods", "ko": "그녀는 그저 고개를 끄덕이시고"}, {"en": "and smiles at me.", "ko": "나에게 미소를 지으셔."}]
+    },
+    {
+     "translation": "가끔 나는 슬퍼, 그러면 그녀는 나를 위해 케이크를 구워 주셔.",
+     "contextNote": "Hannah가 힘들 때 Schmidt 부인이 해 주는 일을 예로 든다.",
+     "roles": [{"q": "Sometimes", "role": "M"}, {"q": "I", "role": "S"}, {"q": "'m", "role": "V"}, {"q": "sad", "role": "C"}, {"q": "she", "role": "S"}, {"q": "bakes", "role": "V"}, {"q": "a cake", "role": "O"}, {"q": "for me", "role": "M"}],
+     "notes": [{"q": "and she bakes a cake for me", "label": "등위절", "gloss": "and: '그러면'"}, {"q": "for me", "label": "전명구", "gloss": "'나를 위해'"}],
+     "points": [{"q": "bakes", "label": "동사", "explanation": "주어 she가 3인칭 단수이므로 일반동사 현재형 bake에 -s를 붙여 bakes로 쓴다."}],
+     "chunks": [{"en": "Sometimes I'm sad,", "ko": "가끔 나는 슬퍼,"}, {"en": "and she bakes a cake", "ko": "그러면 그녀는 케이크를 구워 주셔"}, {"en": "for me.", "ko": "나를 위해."}]
+    },
+    {
+     "translation": "그녀의 케이크는 맛있어서, 나는 마법처럼 기분이 좋아져.",
+     "contextNote": "케이크가 가져다주는 위로를 '마법'에 빗댄다.",
+     "roles": [{"q": "Her cake", "role": "S"}, {"q": "is", "role": "V"}, {"q": "yummy", "role": "C"}, {"q": "I", "role": "S"}, {"q": "feel", "role": "V"}, {"q": "all right", "role": "C"}, {"q": "like magic", "role": "M"}],
+     "notes": [{"q": "and I feel all right, like magic", "label": "등위절"}, {"q": "like magic", "label": "전명구", "gloss": "like: '~처럼'(전치사)"}],
+     "points": [{"q": "feel all right", "label": "연결동사 보어", "star": true, "explanation": "feel은 '~하게 느끼다'라는 뜻의 연결동사로, 뒤에 부사가 아니라 형용사 보어(all right)가 와서 주어의 상태를 설명한다."}],
+     "chunks": [{"en": "Her cake is yummy,", "ko": "그녀의 케이크는 맛있어서,"}, {"en": "and I feel all right,", "ko": "나는 기분이 좋아져,"}, {"en": "like magic.", "ko": "마법처럼."}]
+    },
+    {
+     "translation": "Schmidt 부인과 있으면 나는 마음이 편안해.",
+     "contextNote": "Schmidt 부인과 함께할 때의 감정을 정리한다(본문1의 With Minsu, … 와 같은 틀).",
+     "roles": [{"q": "With Mrs. Schmidt", "role": "M"}, {"q": "I", "role": "S"}, {"q": "feel", "role": "V"}, {"q": "at home", "role": "C"}],
+     "points": [{"q": "feel at home", "label": "연결동사 보어", "explanation": "feel at home은 '마음이 편안하다'는 뜻의 표현이다. 집에 있는 것처럼 편하다는 뜻에서 나왔으며, at home이 feel의 보어 역할을 한다."}],
+     "chunks": [{"en": "With Mrs. Schmidt,", "ko": "Schmidt 부인과 있으면,"}, {"en": "I feel at home.", "ko": "나는 마음이 편안해."}]
+    },
+    {
+     "translation": "함께 있으면 우리는 행복해.",
+     "contextNote": "되풀이되는 주제 문장.",
+     "tags": ["주제문"],
+     "roles": [{"q": "Together", "role": "M"}, {"q": "we", "role": "S"}, {"q": "are", "role": "V"}, {"q": "happy", "role": "C"}],
+     "chunks": [{"en": "Together,", "ko": "함께 있으면,"}, {"en": "we are happy.", "ko": "우리는 행복해."}]
+    }
+   ]
+  },
+  "8957f9a4-814a-4cd0-bf8c-1673c461f8d5": {
+   "titleEn": "Tim's Best Friend Hope",
+   "topicEn": "Tim's guide dog Hope is always by his side, and with her he feels free and strong.",
+   "topicKo": "Tim의 안내견 Hope는 언제나 곁에 있고, Tim은 그녀와 있으면 자유롭고 강하다고 느낀다.",
+   "sentences": [
+    {
+     "translation": "나는 Tim이야.",
+     "contextNote": "세 번째 글쓴이 Tim의 자기소개.",
+     "roles": [{"q": "I", "role": "S"}, {"q": "'m", "role": "V"}, {"q": "Tim", "role": "C"}],
+     "chunks": [{"en": "I'm", "ko": "나는"}, {"en": "Tim.", "ko": "Tim이야."}]
+    },
+    {
+     "translation": "Hope는 내 안내견이자 가장 친한 친구야.",
+     "contextNote": "친구가 사람이 아니라 안내견이라는 점을 밝힌다.",
+     "roles": [{"q": "Hope", "role": "S"}, {"q": "is", "role": "V"}, {"q": "my guide dog and my best friend", "role": "C"}],
+     "notes": [{"q": "my guide dog and my best friend", "label": "명사구 병렬", "gloss": "and로 이은 두 보어"}],
+     "points": [{"q": "is", "label": "2형식", "explanation": "Hope(안내견의 이름)는 3인칭 단수이므로 be동사 is를 쓴다. 보어 두 개(my guide dog, my best friend)를 and로 이었다."}],
+     "chunks": [{"en": "Hope is my guide dog", "ko": "Hope는 내 안내견이자"}, {"en": "and my best friend.", "ko": "가장 친한 친구야."}]
+    },
+    {
+     "translation": "그녀는 언제나 내 옆에 있어.",
+     "contextNote": "Hope가 늘 함께한다는 점을 말한다.",
+     "tags": ["서술형 대비"],
+     "roles": [{"q": "She", "role": "S"}, {"q": "is", "role": "V"}, {"q": "by my side", "role": "A"}, {"q": "24/7", "role": "M"}],
+     "notes": [{"q": "24/7", "label": "부사구", "gloss": "'하루 24시간, 일주일 내내' = 언제나"}],
+     "points": [{"q": "is by my side", "label": "1형식", "star": true, "explanation": "여기서 be동사는 '~이다'가 아니라 '(~에) 있다'는 뜻이다. by my side(내 옆에)는 어디에 있는지 나타내는 전치사구이다."}],
+     "chunks": [{"en": "She is by my side", "ko": "그녀는 내 옆에 있어"}, {"en": "24/7.", "ko": "언제나."}]
+    },
+    {
+     "translation": "그녀는 심지어 나와 함께 학교에도 가.",
+     "contextNote": "늘 함께한다는 앞 문장의 예(학교까지 함께 감).",
+     "tags": ["어법 빈출"],
+     "tagSpans": [{"tag": "어법 빈출", "q": "goes"}],
+     "roles": [{"q": "She", "role": "S"}, {"q": "even", "role": "M"}, {"q": "goes", "role": "V"}, {"q": "to school", "role": "M"}, {"q": "with me", "role": "M"}],
+     "notes": [{"q": "even", "label": "동사 수식 부사", "gloss": "'심지어'"}],
+     "points": [{"q": "goes", "label": "동사", "star": true, "explanation": "주어 She가 3인칭 단수이므로 go에 -es를 붙여 goes로 쓴다. -o로 끝나는 동사(go, do)는 -s가 아니라 -es를 붙인다."}],
+     "chunks": [{"en": "She even goes to school", "ko": "그녀는 심지어 학교에도 가"}, {"en": "with me.", "ko": "나와 함께."}]
+    },
+    {
+     "translation": "그녀는 좋은 학생일까?",
+     "contextNote": "읽는 이에게 묻는 말로 흥미를 끌고, 다음 문장에서 답한다.",
+     "tags": ["서술형 대비"],
+     "roles": [{"q": "Is", "role": "V"}, {"q": "she", "role": "S"}, {"q": "a good student", "role": "C"}],
+     "points": [{"q": "Is she", "label": "2형식", "star": true, "explanation": "be동사의 의문문은 주어와 be동사의 순서를 바꿔 「Be동사+주어 ~?」로 만든다. 대답은 Yes, she is. / No, she isn't.로 한다."}],
+     "chunks": [{"en": "Is she", "ko": "그녀는 ~일까?"}, {"en": "a good student?", "ko": "좋은 학생"}]
+    },
+    {
+     "translation": "글쎄, 그녀는 수업 시간에 대부분 잠을 자지만, 선생님들은 신경 쓰시지 않아.",
+     "contextNote": "앞 질문에 대한 재미있는 답: 수업 시간에 자지만 괜찮다.",
+     "roles": [{"q": "she", "role": "S"}, {"q": "mostly", "role": "M"}, {"q": "sleeps", "role": "V"}, {"q": "in class", "role": "M"}, {"q": "the teachers", "role": "S"}, {"q": "don't mind", "role": "V"}],
+     "notes": [{"q": "but the teachers don't mind", "label": "등위절", "gloss": "but: 반대 내용"}],
+     "points": [
+      {"q": "sleeps", "label": "동사", "explanation": "주어 she가 3인칭 단수이므로 sleep에 -s를 붙인다."},
+      {"q": "don't mind", "label": "동사", "star": true, "explanation": "주어 the teachers는 복수이므로 do not(= don't)을 쓰고 뒤의 동사는 원형 mind로 쓴다. mind는 '신경 쓰다, 꺼리다'라는 뜻이다."}
+     ],
+     "chunks": [{"en": "Well, she mostly sleeps", "ko": "글쎄, 그녀는 대부분 잠을 자"}, {"en": "in class,", "ko": "수업 시간에,"}, {"en": "but the teachers don't mind.", "ko": "하지만 선생님들은 신경 쓰시지 않아."}]
+    },
+    {
+     "translation": "주말마다 우리는 함께 공원에 가서 놀아.",
+     "contextNote": "학교 밖에서도 함께하는 모습을 보여 준다.",
+     "roles": [{"q": "On weekends", "role": "M"}, {"q": "we", "role": "S"}, {"q": "go", "role": "V"}, {"q": "to the park", "role": "M"}, {"q": "play", "role": "V"}, {"q": "together", "role": "M"}],
+     "notes": [{"q": "On weekends", "label": "전명구", "gloss": "'주말마다'"}],
+     "points": [{"q": "go to the park and play", "label": "동사 병렬", "explanation": "주어 we 하나에 동사 go와 play가 and로 이어졌다. 주어가 복수이므로 두 동사 모두 원형 그대로이다."}],
+     "chunks": [{"en": "On weekends,", "ko": "주말마다,"}, {"en": "we go to the park", "ko": "우리는 공원에 가서"}, {"en": "and play together.", "ko": "함께 놀아."}]
+    },
+    {
+     "translation": "Hope와 있으면 나는 자유롭고 강해지는 느낌이 들어.",
+     "contextNote": "Hope와 함께할 때의 감정(본문1·2와 같은 틀).",
+     "roles": [{"q": "With Hope", "role": "M"}, {"q": "I", "role": "S"}, {"q": "feel", "role": "V"}, {"q": "free and strong", "role": "C"}],
+     "points": [{"q": "feel free and strong", "label": "연결동사 보어", "star": true, "explanation": "feel 뒤에 형용사 free와 strong이 and로 이어져 주격보어로 쓰였다. 느낌을 나타내는 연결동사 뒤에는 부사(freely)가 아니라 형용사를 쓴다."}],
+     "chunks": [{"en": "With Hope,", "ko": "Hope와 있으면,"}, {"en": "I feel free and strong.", "ko": "나는 자유롭고 강해지는 느낌이 들어."}]
+    },
+    {
+     "translation": "함께 있으면 우리는 행복해.",
+     "contextNote": "세 글을 하나로 묶는 주제 문장.",
+     "tags": ["주제문"],
+     "roles": [{"q": "Together", "role": "M"}, {"q": "we", "role": "S"}, {"q": "are", "role": "V"}, {"q": "happy", "role": "C"}],
+     "chunks": [{"en": "Together,", "ko": "함께 있으면,"}, {"en": "we are happy.", "ko": "우리는 행복해."}]
+    }
+   ]
+  }
+ }
+}

@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAcademyFeatureOn } from "@/lib/academies/features";
 import type { MsWorkbook } from "./workbook";
+import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
 
 /**
  * 중학교 수업자료(선생님 2026-10-29): 족보닷컴 중학 교과서 자료를 과 단위로 읽는다.
@@ -30,6 +31,8 @@ export type MsText = {
   part: string;
   title: string | null;
   lines: MsLine[];
+  /** 본문 문장 분석(고등 분석서와 같은 형식, 직접 써서 넣은 것). 대화문·아직 안 쓴 본문은 null */
+  analysis?: AnalysisReportData | null;
 };
 
 export type MsUnitSummary = {
@@ -138,11 +141,13 @@ export async function loadMsUnit(academyId: string, unitId: string): Promise<MsU
     .eq("id", unitId)
     .maybeSingle();
   if (!row) return null;
-  const { data: texts } = await admin
-    .from("ms_texts")
-    .select("id, kind, part, title, lines")
-    .eq("unit_id", unitId)
-    .order("order_index");
+  let texts: unknown[] | null = (
+    await admin.from("ms_texts").select("id, kind, part, title, lines, analysis").eq("unit_id", unitId).order("order_index")
+  ).data;
+  // 마이그레이션 207(analysis 칸)을 아직 안 적용한 DB에서도 화면이 열리게
+  if (!texts) {
+    texts = (await admin.from("ms_texts").select("id, kind, part, title, lines").eq("unit_id", unitId).order("order_index")).data;
+  }
   const all = (texts ?? []) as MsText[];
   const r = row as UnitRow & { workbook: MsWorkbook | null };
   return {

@@ -5,7 +5,10 @@ import type { TestBookProjectInput } from "@/lib/lesson-materials/test-book";
 import type { MaterialDesign } from "@/lib/lesson-materials/material-design";
 import type { MsGrammar, MsText, MsUnit, MsWord } from "@/lib/middle-school/queries";
 import type { MsWbSheet } from "@/lib/middle-school/workbook";
+import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
+import { DESIGN_FONTS_HREF, designClass, type AnalysisDesignStyle } from "@/lib/lesson-materials/analysis-design";
 import {
+  AnalysisSheets,
   AnswerSheets,
   DocHead,
   LessonSheets,
@@ -28,9 +31,10 @@ export function MsPrintFrame({ design, academyName, children }: { design: Materi
     const root = document.getElementById("tb-print-root");
     if (!root) return;
     const count = () => {
-      const all = Array.from(root.querySelectorAll<HTMLElement>(".tb-sheet")).filter((el) => !el.closest(".tb-measure"));
+      // 최종통합자료에 끼운 문제(변형문제 쪽 .qg-print-page)도 같은 번호 줄기로 센다
+      const all = Array.from(root.querySelectorAll<HTMLElement>(".tb-sheet, .qg-print-page")).filter((el) => !el.closest(".tb-measure"));
       all.forEach((el, i) => {
-        const no = el.querySelector<HTMLElement>(":scope > .tb-foot .tb-pgno");
+        const no = el.querySelector<HTMLElement>(":scope > .tb-foot .tb-pgno") ?? el.querySelector<HTMLElement>(".qg-print-footer-page");
         if (no && no.textContent !== `- ${i + 1} -`) no.textContent = `- ${i + 1} -`;
       });
     };
@@ -51,6 +55,8 @@ export function MsPrintFrame({ design, academyName, children }: { design: Materi
       <link rel="stylesheet" href={TEST_BOOK_FONTS_HREF} />
       <style>{TEST_BOOK_CSS}</style>
       <style>{"@media print{@page{size:210mm 297mm;margin:0}#tb-print-root{transform:none !important;gap:0 !important}}"}</style>
+      {/* 끼워 넣은 문제(변형문제 인쇄 부품): 전역 규칙이 맨 위에 절대 위치로 고정하고 이름 붙은 쪽을 쓰는데, 여기서는 차례로 흐르게 한다 */}
+      <style>{"#tb-print-root #qg-print-root{padding:0}@media print{#tb-print-root #qg-print-root{position:static !important;width:210mm !important;max-width:210mm !important;margin:0 !important;padding:0 !important;page:auto !important}#tb-print-root .qg-print-page-last{break-after:page !important;page-break-after:always !important}}"}</style>
       <TestBookBrand.Provider value={{ logoSrc: null, academy: academyName }}>
         <div id="tb-print-root" className={`tb-theme-${design} relative flex flex-col items-center gap-6 print:gap-0 [&_.tb-sheet]:shadow`}>
           {children}
@@ -60,8 +66,24 @@ export function MsPrintFrame({ design, academyName, children }: { design: Materi
   );
 }
 
-function asProject(id: string, title: string, titleEn: string | null, source: string, sentences: TestBookProjectInput["sentences"]): TestBookProjectInput {
-  return { id, title, titleEn, source, sentences, content: null, material: null };
+function asProject(
+  id: string,
+  title: string,
+  titleEn: string | null,
+  source: string,
+  sentences: TestBookProjectInput["sentences"],
+  analysis: AnalysisReportData | null = null,
+): TestBookProjectInput {
+  return { id, title, titleEn, source, sentences, content: null, material: null, analysis };
+}
+
+export function msSource(unit: Pick<MsUnit, "grade" | "publisher" | "lessonNo">): string {
+  return `${unit.grade} ${unit.publisher} ${unit.lessonNo}과`;
+}
+
+/** 분석이 들어 있는 본문만 */
+export function msAnalyzed(unit: MsUnit): MsText[] {
+  return unit.passages.filter((t) => (t.analysis?.sentences?.length ?? 0) > 0);
 }
 
 const WORD_GRID = "8mm 34mm 10mm 52mm 1fr";
@@ -253,5 +275,46 @@ export function MsWorkbookSheets({ sheets, answers, title, measureKey }: { sheet
         <AnswerSheets title={`${title} 정답`} entries={sheets.map((s) => ({ index: s.index, project: proj(s), sheet: s.sheet }))} measureKey={measureKey} />
       ) : null}
     </>
+  );
+}
+
+export type MsAnalysisOptions = { style: AnalysisDesignStyle; translation: "full" | "chunk" };
+
+/**
+ * 분석서: 본문마다 문장 분석(고등 「분석 자료」 부품 그대로 — 성분·괄호·이름표·번호 설명·해석).
+ * 분석은 직접 써서 ms_texts.analysis 에 넣어 둔 것만 싣는다(모델 호출 없음).
+ */
+export function MsAnalysisSheets({ unit, options, measureKey }: { unit: MsUnit; options: MsAnalysisOptions; measureKey: string }) {
+  const source = msSource(unit);
+  const list = msAnalyzed(unit);
+  if (!list.length) return null;
+  return (
+    <div className={`contents ${designClass(options.style)}`}>
+      <link rel="stylesheet" href={DESIGN_FONTS_HREF} />
+      {list.map((t) => {
+        const i = unit.passages.indexOf(t);
+        return (
+          <AnalysisSheets
+            key={t.id}
+            index={i}
+            project={asProject(t.id, `${t.part} ${t.title ?? ""}`.trim(), i === 0 ? unit.title : null, source, [], t.analysis ?? null)}
+            translation={options.translation}
+            measureKey={`${measureKey}|${options.style}|${options.translation}`}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+/** 워크북·테스트지 정답만(최종통합자료의 정답지 묶음) */
+export function MsWorkbookAnswerSheets({ sheets, title, measureKey }: { sheets: MsWbSheet[]; title: string; measureKey: string }) {
+  if (!sheets.length) return null;
+  return (
+    <AnswerSheets
+      title={title}
+      entries={sheets.map((s) => ({ index: s.index, project: asProject(s.key, s.title, s.titleEn, s.source, []), sheet: s.sheet }))}
+      measureKey={measureKey}
+    />
   );
 }

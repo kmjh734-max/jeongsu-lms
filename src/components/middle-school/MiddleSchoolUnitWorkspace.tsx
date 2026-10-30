@@ -14,19 +14,24 @@ import {
   type MsWbTypeKey,
 } from "@/lib/middle-school/workbook";
 import {
+  MsAnalysisSheets,
   MsLessonSheets,
   MsPrintFrame,
   MsWorkbookSheets,
+  msAnalyzed,
+  type MsAnalysisOptions,
   type MsLessonOptions,
 } from "./MsSheets";
 import { MsQuestionTab } from "./MsQuestionTab";
+import { MsFinalTab } from "./MsFinalTab";
+import { DESIGN_STYLES } from "@/lib/lesson-materials/analysis-design";
 
 const TABS = [
   { id: "lesson", label: "수업용 자료", ready: true },
   { id: "workbook", label: "워크북 · 테스트지 뽑기", ready: true },
   { id: "questions", label: "문제", ready: true },
-  { id: "analysis", label: "분석서", ready: false },
-  { id: "final", label: "최종통합자료", ready: false },
+  { id: "analysis", label: "분석서", ready: true },
+  { id: "final", label: "최종통합자료", ready: true },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -78,6 +83,9 @@ export function MiddleSchoolUnitWorkspace({
   const [length, setLength] = useState<MsDrawLength>("normal");
   /** 뽑은 테스트지(뽑을 때마다 새 seed) — null이면 워크북 전체 */
   const [drawSeed, setDrawSeed] = useState<string | null>(null);
+  /** 분석서: 모양 A·B·C(고등 분석서와 같다) · 전체 해석/직독직해 */
+  const [analysis, setAnalysis] = useState<MsAnalysisOptions>({ style: "a", translation: "full" });
+  const analyzed = msAnalyzed(unit).length;
 
   const counts = useMemo(() => msWbCounts(unit, unit.workbook), [unit]);
   const sheets = useMemo(
@@ -120,7 +128,9 @@ export function MiddleSchoolUnitWorkspace({
         ))}
       </nav>
 
-      {tab === "questions" ? (
+      {tab === "final" ? (
+        <MsFinalTab unit={unit} questions={questions} design={design} setDesign={setDesign} academyName={academyName} base={base} />
+      ) : tab === "questions" ? (
         <MsQuestionTab
           unit={unit}
           questions={questions}
@@ -192,6 +202,44 @@ export function MiddleSchoolUnitWorkspace({
                   />
                   단어장에 예문
                 </label>
+              </>
+            ) : tab === "analysis" ? (
+              <>
+                <div>
+                  <div className="mb-2 font-bold text-slate-800">분석서 모양</div>
+                  <div className="flex gap-1">
+                    {DESIGN_STYLES.map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        title={d.hint}
+                        onClick={() => setAnalysis({ ...analysis, style: d.id })}
+                        className={`flex-1 rounded-md border px-2 py-1 text-xs font-semibold ${
+                          analysis.style === d.id ? "border-slate-900 bg-slate-900 text-white" : "border-slate-300 bg-white text-slate-700"
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="mb-2 font-bold text-slate-800">해석</div>
+                  {(
+                    [
+                      ["full", "전체 해석"],
+                      ["chunk", "직독직해"],
+                    ] as const
+                  ).map(([v, label]) => (
+                    <label key={v} className="flex items-center gap-2 py-0.5">
+                      <input type="radio" name="ms-an-tr" checked={analysis.translation === v} onChange={() => setAnalysis({ ...analysis, translation: v })} />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-500">
+                  본문 {analyzed}개의 문장 분석(성분·구문 설명·시험 자리)을 싣습니다.
+                </p>
               </>
             ) : (
               <>
@@ -285,6 +333,14 @@ export function MiddleSchoolUnitWorkspace({
             <MsPrintFrame design={design} academyName={academyName}>
               {tab === "lesson" ? (
                 <MsLessonSheets unit={unit} options={lesson} />
+              ) : tab === "analysis" ? (
+                analyzed ? (
+                  <MsAnalysisSheets unit={unit} options={analysis} measureKey={`${unit.id}-${design}`} />
+                ) : (
+                  <div className="flex h-[60mm] w-[210mm] items-center justify-center rounded bg-white text-sm text-slate-500 shadow">
+                    이 과의 분석서는 아직 준비 중입니다.
+                  </div>
+                )
               ) : (
                 <MsWorkbookSheets
                   sheets={sheets}
