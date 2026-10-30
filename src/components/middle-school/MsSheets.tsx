@@ -89,7 +89,7 @@ export function msAnalyzed(unit: MsUnit): MsText[] {
 const WORD_GRID = "8mm 34mm 10mm 52mm 1fr";
 const POS = /^((?:n|v|a|adj|adv|prep|conj|pron|int)\.)\s*/;
 
-function WordListSheets({ unit, examples, measureKey }: { unit: MsUnit; examples: boolean; measureKey: string }) {
+export function MsWordSheets({ unit, examples, measureKey }: { unit: MsUnit; examples: boolean; measureKey: string }) {
   const head = (
     <div className="tb-row tb-th tb-vrow" style={{ gridTemplateColumns: WORD_GRID }}>
       <div />
@@ -130,7 +130,7 @@ function WordListSheets({ unit, examples, measureKey }: { unit: MsUnit; examples
       measureKey={measureKey}
       head={(page) => (
         <>
-          <DocHead title="단어장" sub={page > 0 ? "(이어서)" : `${unit.words.length}단어`} label="WORDS" right={`${unit.grade} ${unit.publisher} ${unit.lessonNo}과`} />
+          <DocHead title="단어" sub={page > 0 ? "(이어서)" : `${unit.words.length}단어`} label="WORDS" right={`${unit.grade} ${unit.publisher} ${unit.lessonNo}과`} />
           {head}
         </>
       )}
@@ -138,7 +138,7 @@ function WordListSheets({ unit, examples, measureKey }: { unit: MsUnit; examples
   );
 }
 
-function GrammarSheets({ unit, measureKey }: { unit: MsUnit; measureKey: string }) {
+export function MsGrammarSheets({ unit, measureKey }: { unit: MsUnit; measureKey: string }) {
   const blocks: Block[] = unit.grammar.flatMap((g: MsGrammar, gi) => [
     {
       key: `g${gi}`,
@@ -182,13 +182,13 @@ function GrammarSheets({ unit, measureKey }: { unit: MsUnit; measureKey: string 
     <PagedSheet
       blocks={blocks}
       measureKey={measureKey}
-      head={(page) => <DocHead title="문법 정리" sub={page > 0 ? "(이어서)" : unit.grammar.map((g) => g.title).join(" · ")} label="GRAMMAR" right={`${unit.grade} ${unit.publisher} ${unit.lessonNo}과`} />}
+      head={(page) => <DocHead title="문법" sub={page > 0 ? "(이어서)" : unit.grammar.map((g) => g.title).join(" · ")} label="GRAMMAR" right={`${unit.grade} ${unit.publisher} ${unit.lessonNo}과`} />}
     />
   );
 }
 
 /** 대화문: 대화마다 소제목 + 말차례별 해석(짧은 대화가 한 쪽씩 차지하지 않게 이어 싣는다) */
-function DialogueSheets({ unit, translation, measureKey }: { unit: MsUnit; translation: "show" | "hide"; measureKey: string }) {
+export function MsDialogueSheets({ unit, translation, measureKey }: { unit: MsUnit; translation: "show" | "hide"; measureKey: string }) {
   const blocks: Block[] = unit.dialogues.flatMap((t, ti) => [
     {
       key: `dh${ti}`,
@@ -218,7 +218,7 @@ function DialogueSheets({ unit, translation, measureKey }: { unit: MsUnit; trans
       measureKey={measureKey}
       head={(page) => (
         <DocHead
-          title="대화문 · 말차례별 해석"
+          title="대화문"
           sub={page > 0 ? "(이어서)" : translation === "show" ? "해석 있음" : "해석 쓰기"}
           label="DIALOGUE"
           right={`${unit.grade} ${unit.publisher} ${unit.lessonNo}과`}
@@ -234,31 +234,39 @@ export type MsLessonOptions = {
   wordExamples: boolean;
 };
 
-/** 수업용 자료: 단어장 → 문법 정리 → 대화문(말차례별 해석) → 본문(문장별 해석) */
-export function MsLessonSheets({ unit, options }: { unit: MsUnit; options: MsLessonOptions }) {
-  const source = `${unit.grade} ${unit.publisher} ${unit.lessonNo}과`;
-  const mk = `${unit.id}-${options.translation}-${options.wordExamples}`;
-  const text = (t: MsText, i: number) => (
-    <LessonSheets
-      key={t.id}
-      index={i}
-      project={asProject(
-        t.id,
-        `${t.part} ${t.title ?? ""}`.trim(),
-        i === 0 ? unit.title : null,
-        source,
-        t.lines.map((l) => ({ english: l.speaker ? `${l.speaker}: ${l.en}` : l.en, korean: l.ko })),
-      )}
-      translation={options.translation}
-      measureKey={mk}
-    />
-  );
+/** 본문: 본문마다 문장별 해석(고등 수업용 자료 부품) */
+export function MsReadingSheets({ unit, translation, measureKey }: { unit: MsUnit; translation: "show" | "hide"; measureKey: string }) {
+  const source = msSource(unit);
   return (
     <>
-      {options.sections.words ? <WordListSheets unit={unit} examples={options.wordExamples} measureKey={mk} /> : null}
-      {options.sections.grammar && unit.grammar.length ? <GrammarSheets unit={unit} measureKey={mk} /> : null}
-      {options.sections.dialogue && unit.dialogues.length ? <DialogueSheets unit={unit} translation={options.translation} measureKey={mk} /> : null}
-      {options.sections.reading ? unit.passages.map((t, i) => text(t, i)) : null}
+      {unit.passages.map((t: MsText, i) => (
+        <LessonSheets
+          key={t.id}
+          index={i}
+          project={asProject(
+            t.id,
+            `${t.part} ${t.title ?? ""}`.trim(),
+            i === 0 ? unit.title : null,
+            source,
+            t.lines.map((l) => ({ english: l.speaker ? `${l.speaker}: ${l.en}` : l.en, korean: l.ko })),
+          )}
+          translation={translation}
+          measureKey={measureKey}
+        />
+      ))}
+    </>
+  );
+}
+
+/** 수업용 자료: 단어 → 대화문 → 문법 → 본문(선생님 2026-10-30 차례·제목) */
+export function MsLessonSheets({ unit, options }: { unit: MsUnit; options: MsLessonOptions }) {
+  const mk = `${unit.id}-${options.translation}-${options.wordExamples}`;
+  return (
+    <>
+      {options.sections.words ? <MsWordSheets unit={unit} examples={options.wordExamples} measureKey={mk} /> : null}
+      {options.sections.dialogue && unit.dialogues.length ? <MsDialogueSheets unit={unit} translation={options.translation} measureKey={mk} /> : null}
+      {options.sections.grammar && unit.grammar.length ? <MsGrammarSheets unit={unit} measureKey={mk} /> : null}
+      {options.sections.reading ? <MsReadingSheets unit={unit} translation={options.translation} measureKey={mk} /> : null}
     </>
   );
 }

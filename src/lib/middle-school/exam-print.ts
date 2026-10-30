@@ -10,6 +10,29 @@ import type { MsQuestion, MsUnit } from "./queries";
  */
 
 const CIRC = "①②③④⑤";
+
+/** 출처 차례(선생님 2026-10-30 「정리가 덜 됐다」): 예상문제 PRE-STEP → 1회 → 2회 → Grammar Build Up → 최다빈출 → 최상위 → 최다오답 */
+const SOURCE_RANK: Array<[RegExp, number]> = [
+  [/PRE-STEP/i, 0],
+  [/예상문제\s*1회/, 1],
+  [/예상문제\s*2회/, 2],
+  [/예상문제/, 3],
+  [/Grammar Build Up/i, 4],
+  [/최다빈출/, 5],
+  [/최상위/, 6],
+  [/최다오답/, 7],
+];
+export function msSourceRank(source: string): number {
+  for (const [re, r] of SOURCE_RANK) if (re.test(source)) return r;
+  return 9;
+}
+export function sortMsSources(list: Iterable<string>): string[] {
+  return [...new Set(list)].sort((a, b) => msSourceRank(a) - msSourceRank(b) || a.localeCompare(b, "ko"));
+}
+/** 문항을 출처 차례 → 그 자료 안 차례로 */
+export function sortMsQuestions(list: MsQuestion[]): MsQuestion[] {
+  return [...list].sort((a, b) => msSourceRank(a.source) - msSourceRank(b.source) || a.source.localeCompare(b.source, "ko") || a.no - b.no);
+}
 const BLANK = "__________";
 
 /** 서술형 빈칸 표시를 밑줄 칸으로 */
@@ -57,10 +80,11 @@ export function msExamPreloaded(unit: Pick<MsUnit, "grade" | "publisher" | "less
     const id = rows[i].passage_id!;
     if (seen.has(id)) return;
     seen.add(id);
-    passages.push({ id, source_detail: q.source });
+    // 문항 위 작은 글은 영역(단어·의사소통·어법·본문) — 출처는 머리글 제목에 한 번만(출처별로 따로 찍는다)
+    passages.push({ id, source_detail: q.area });
   });
   return {
-    title: title ?? `${unit.grade} ${unit.publisher} ${unit.lessonNo}과 문제`,
+    title: title ?? `${unit.grade} ${unit.lessonNo}과 변형문제`,
     grade: unit.grade,
     sourceDetail: `Lesson ${unit.lessonNo} ${unit.title}`,
     questions: rows,

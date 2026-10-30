@@ -5,9 +5,9 @@ import { isMiddleSchoolOpen, loadMsQuestions, loadMsUnit, loadMsUnits } from "@/
 import { loadAcademyName } from "@/lib/grammar-bank/academy-name";
 import { MiddleSchoolHome } from "./MiddleSchoolHome";
 import { MiddleSchoolUnitWorkspace } from "./MiddleSchoolUnitWorkspace";
-import { QuestionPrintView } from "@/components/question-generator/QuestionPrintView";
 import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
-import { decodeQuestionIds, msExamPreloaded } from "@/lib/middle-school/exam-print";
+import { decodeQuestionIds, sortMsQuestions } from "@/lib/middle-school/exam-print";
+import { MsExamPrintView } from "./MsExamViews";
 
 /** 관리자·강사 화면이 같이 쓰는 중학교 수업자료 쪽(base = /admin/middle-school 등) */
 export async function MiddleSchoolHomePage({ base }: { base: string }) {
@@ -65,21 +65,21 @@ export async function MiddleSchoolExamPrintPage({
   if (!unit) notFound();
   const all = await loadMsQuestions(unit.id);
   const byId = new Map(all.map((q) => [q.id, q]));
-  const picked = decodeQuestionIds(sel)
-    .map((id) => byId.get(id))
-    .filter((q): q is NonNullable<typeof q> => !!q);
+  const picked = sortMsQuestions(
+    decodeQuestionIds(sel)
+      .map((id) => byId.get(id))
+      .filter((q): q is NonNullable<typeof q> => !!q),
+  );
   if (!picked.length) notFound();
   const branding = await getAcademyBrandingForCurrentUser();
   return (
-    <QuestionPrintView
-      jobId={`ms-${unit.id}`}
-      backHref={`${base}/${unit.id}`}
-      printBaseHref={`${base}/${unit.id}/exam/${sel}`}
+    <MsExamPrintView
+      unit={{ id: unit.id, grade: unit.grade, publisher: unit.publisher, lessonNo: unit.lessonNo, title: unit.title }}
+      questions={picked}
       mode={mode}
-      layout="bySet"
       academyName={branding.name}
-      logoSrc={branding.logoUrl}
-      preloaded={msExamPreloaded(unit, picked)}
+      base={base}
+      sel={sel}
     />
   );
 }

@@ -5,13 +5,14 @@ import type { MsQuestion, MsUnit } from "@/lib/middle-school/queries";
 import type { MaterialDesign } from "@/lib/lesson-materials/material-design";
 import { MaterialDesignPicker } from "@/components/lesson-materials/MaterialDesignPicker";
 import { seeded, shuffle } from "@/lib/middle-school/workbook";
-import { QuestionPrintView } from "@/components/question-generator/QuestionPrintView";
-import { encodeQuestionIds, msExamPreloaded } from "@/lib/middle-school/exam-print";
+import { encodeQuestionIds, sortMsQuestions, sortMsSources } from "@/lib/middle-school/exam-print";
+import { MsPrintFrame } from "./MsSheets";
+import { MsExamBySource } from "./MsExamViews";
 
 const AREAS = ["단어", "의사소통", "어법", "본문"] as const;
 const COUNTS = [10, 20, 30] as const;
 
-/** 문제 탭: 족보닷컴 예상문제를 출처·영역·유형으로 거르고, 그대로 또는 무작위로 뽑아 시험지·정답지로 낸다 */
+/** 변형문제 탭: 족보닷컴 문항을 출처·영역·유형으로 거르고, 그대로 또는 무작위로 뽑아 출처별 시험지·해설지로 낸다(2026-10-30 출처별 묶음) */
 export function MsQuestionTab({
   unit,
   questions,
@@ -27,7 +28,7 @@ export function MsQuestionTab({
   academyName: string;
   base: string;
 }) {
-  const sources = useMemo(() => [...new Set(questions.map((q) => q.source))], [questions]);
+  const sources = useMemo(() => sortMsSources(questions.map((q) => q.source)), [questions]);
   const [src, setSrc] = useState<string[]>(sources);
   const [areas, setAreas] = useState<string[]>([...AREAS]);
   const [kinds, setKinds] = useState<("mc" | "sa")[]>(["mc", "sa"]);
@@ -41,17 +42,16 @@ export function MsQuestionTab({
     [questions, src, areas, kinds, withReview],
   );
   const shown = useMemo(() => {
-    if (!draw || pool.length <= draw.n) return pool;
+    if (!draw || pool.length <= draw.n) return sortMsQuestions(pool);
     // 무작위로 고르되, 같은 지문 문항이 붙어 있게 원래 차례로 다시 늘어놓는다
     const keep = new Set(shuffle(pool.map((q) => q.id), seeded(draw.seed)).slice(0, draw.n));
-    return pool.filter((q) => keep.has(q.id));
+    return sortMsQuestions(pool.filter((q) => keep.has(q.id)));
   }, [pool, draw]);
 
   function toggle<T>(list: T[], v: T, on: boolean): T[] {
     return on ? [...list, v] : list.filter((x) => x !== v);
   }
-  const ids = shown.map((q) => q.id).join(".");
-  const preloaded = useMemo(() => msExamPreloaded(unit, shown, draw ? `${unit.grade} ${unit.lessonNo}과 테스트` : undefined), [unit, shown, draw]);
+
 
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
@@ -146,18 +146,11 @@ export function MsQuestionTab({
       </aside>
       <div className="min-w-0 flex-1 overflow-x-auto bg-slate-200 print:overflow-visible print:bg-white">
         {shown.length ? (
-          <QuestionPrintView
-            key={`${sheet}-${ids}`}
-            jobId={`ms-${unit.id}`}
-            backHref={`${base}/${unit.id}`}
-            printBaseHref={`${base}/${unit.id}/exam/${encodeQuestionIds(shown.map((q) => q.id))}`}
-            mode={sheet}
-            layout="bySet"
-            academyName={academyName}
-            embedded
-            design={design}
-            preloaded={preloaded}
-          />
+          <div className="py-4">
+            <MsPrintFrame design={design} academyName={academyName}>
+              <MsExamBySource unit={unit} questions={shown} mode={sheet} design={design} academyName={academyName} base={base} />
+            </MsPrintFrame>
+          </div>
         ) : (
           <p className="p-6 text-sm text-slate-500">고른 조건에 맞는 문항이 없습니다.</p>
         )}

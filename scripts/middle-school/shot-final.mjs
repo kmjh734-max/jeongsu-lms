@@ -86,4 +86,14 @@ for (let i = 0; i < shots.length; i++) {
   const el = (await page.$$("#tb-print-root .tb-sheet, #tb-print-root .qg-print-page"))[i];
   if (el) await el.screenshot({ path: `${OUT}/ms-final-p${i + 1}.png` });
 }
+// 변형문제 탭(출처별 묶음) + 인쇄 화면(문제지·해설지)
+await click("변형문제");
+await snap("ms-questions", 8000);
+const href = await page.evaluate(() => [...document.querySelectorAll("a")].find((a) => a.textContent?.includes("인쇄 화면 열기"))?.href);
+if (href) {
+  for (const mode of ["exam", "answers"]) {
+    await page.goto(href.replace(/mode=\w+/, `mode=${mode}`), { waitUntil: "networkidle0", timeout: 300000 });
+    await snap(`ms-qprint-${mode}`, 6000);
+  }
+}
 await browser.close();

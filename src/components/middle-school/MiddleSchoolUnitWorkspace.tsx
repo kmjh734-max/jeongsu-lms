@@ -28,8 +28,8 @@ import { DESIGN_STYLES } from "@/lib/lesson-materials/analysis-design";
 
 const TABS = [
   { id: "lesson", label: "수업용 자료", ready: true },
-  { id: "workbook", label: "워크북 · 테스트지 뽑기", ready: true },
-  { id: "questions", label: "문제", ready: true },
+  { id: "workbook", label: "워크북", ready: true },
+  { id: "questions", label: "변형문제", ready: true },
   { id: "analysis", label: "분석서", ready: true },
   { id: "final", label: "최종통합자료", ready: true },
 ] as const;
@@ -39,10 +39,10 @@ const LESSON_SECTIONS: {
   key: keyof MsLessonOptions["sections"];
   label: string;
 }[] = [
-  { key: "words", label: "단어장" },
-  { key: "grammar", label: "문법 정리" },
-  { key: "dialogue", label: "대화문 (말차례별 해석)" },
-  { key: "reading", label: "본문 (문장별 해석)" },
+  { key: "words", label: "단어" },
+  { key: "dialogue", label: "대화문" },
+  { key: "grammar", label: "문법" },
+  { key: "reading", label: "본문" },
 ];
 
 const DEFAULT_WB: MsWbTypeKey[] = [
