@@ -1,4 +1,4 @@
-import { meaningProfile, overlaps } from "@/lib/vocab/synonym-test";
+import { meaningProfile, overlaps, safeFillersFor } from "@/lib/vocab/synonym-test";
 import type { VocabItem } from "@/types/database";
 import { buildChoices } from "@/lib/vocab/generate-test-questions";
 import type {
@@ -73,8 +73,9 @@ function buildRelationChoices(
     if (overlaps(meaningProfile(other.meaning ?? "").classes, ownClasses)) sameClass.push(w);
     else candidates.push(w);
   }
-  // 품사가 같은 말은 오답이 사실상 정답이 될 수 있어(cut = divide) 모자랄 때만 쓴다
-  const wrong = [...shuffle(candidates, rng), ...shuffle(sameClass, rng)].slice(0, 3);
+  // 품사가 같은 말은 오답이 사실상 정답이 될 수 있어(cut = divide) 쓰지 않고, 모자라면 뜻이 겹칠 수 없는 말로 채운다
+  const safe = safeFillersFor(item.meaning ?? "").filter((w) => !own.has(w) && !seen.has(w));
+  const wrong = [...shuffle(candidates, rng), ...shuffle(safe, rng), ...shuffle(sameClass, rng)].slice(0, 3);
   if (wrong.length < 3) return null;
   return shuffle([correct, ...wrong], rng);
 }

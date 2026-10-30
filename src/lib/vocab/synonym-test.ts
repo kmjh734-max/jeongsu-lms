@@ -83,6 +83,28 @@ export function overlaps(a: Set<string>, b: Set<string>): boolean {
   return [...a].some((x) => b.has(x));
 }
 
+/**
+ * 단어장에 품사가 다른 말이 모자랄 때 채우는 낱말(숙어만 있는 단어장 등). 같은 품사로 채우면
+ * come up to ↔ leave처럼 정답이 둘이 되므로, 뜻이 겹칠 수 없는 구체적인 말을 다른 품사에서 쓴다.
+ */
+const SAFE_FILLERS: Record<string, string[]> = {
+  noun: ["window", "pencil", "kitchen", "bottle", "mountain", "chair", "banana", "river"],
+  verb: ["swim", "paint", "cook", "sneeze", "climb", "whistle", "bake", "knit"],
+  adj: ["yellow", "wooden", "round", "rainy", "striped", "purple", "sandy", "icy"],
+};
+
+/** 뜻의 품사와 겹치지 않는 채움 낱말. 뜻이 여러 품사에 걸쳐 없으면 대표 뜻의 품사만 피한다 */
+export function safeFillersFor(meaning: string): string[] {
+  const avoid = meaningProfile(meaning).classes;
+  const pick = (skip: Set<string>) =>
+    Object.entries(SAFE_FILLERS)
+      .filter(([cls]) => !skip.has(cls))
+      .flatMap(([, words]) => words);
+  const all = pick(avoid);
+  if (all.length >= 3) return all;
+  return pick(new Set(meaningClasses(meaningPhrases(meaning)[0]?.at(-1) ?? "")));
+}
+
 export function synonymQuestionSeed(setId: string, studentId: string, attemptNumber: number): string {
   return `syn|${setId}|${studentId}|${attemptNumber}`;
 }
@@ -154,7 +176,13 @@ export function buildSynonymQuestions(items: SynonymItem[], seed: string): Synon
     const sameClass = fillers.filter((w) => !otherClass.includes(w));
     const notMain = sameClass.filter((w) => !overlaps(profileOfWord.get(w.toLowerCase())?.classes ?? new Set(), main));
     const lastResort = sameClass.filter((w) => !notMain.includes(w));
-    const wrong = [...shuffleWith(otherClass, rng), ...shuffleWith(notMain, rng), ...shuffleWith(lastResort, rng)].slice(0, 3);
+    const safe = safeFillersFor(r.meaning).filter((w) => !banned.has(w) && !bannedStems.has(stem(w)) && w !== correct.toLowerCase());
+    const wrong = [
+      ...shuffleWith(otherClass, rng),
+      ...shuffleWith(safe, rng),
+      ...shuffleWith(notMain, rng),
+      ...shuffleWith(lastResort, rng),
+    ].slice(0, 3);
     if (wrong.length < 3) continue;
     const choices = shuffleWith([correct, ...wrong], rng);
     out.push({
