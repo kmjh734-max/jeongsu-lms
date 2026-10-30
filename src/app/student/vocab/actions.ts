@@ -350,7 +350,7 @@ export async function submitSynonymTest(
 
   revalidateSet(setId);
   return {
-    ...actionSuccess(passed ? "4단계를 통과했어요. 5단계 종합테스트를 시작할 수 있어요." : `${score}점이에요. 80점 이상이면 통과예요.`),
+    ...actionSuccess(passed ? "4단계를 통과했어요. 5단계 종합테스트를 시작할 수 있어요." : `${score}점이에요. 5단계 종합테스트를 시작할 수 있어요.`),
     score,
     passed,
     results,

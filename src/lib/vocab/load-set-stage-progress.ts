@@ -7,6 +7,7 @@ import {
   stage4LastScore,
   stage4Passed,
 } from "@/lib/vocab/stage-progress-fields";
+import { synonymStepDone } from "@/lib/vocab/synonym-test";
 import type { VocabStageProgress } from "@/types/database";
 
 export async function loadSetStageProgressRows(
@@ -88,7 +89,7 @@ export async function loadSetStageProgressRows(
       stage4LastScore: stage4LastScore(progress),
       stage4BestScore: stage4BestScore(progress),
       stage4AttemptCount: stage4AttemptCount(progress),
-      synDone: Boolean(progress.stage_syn_passed || progress.stage_syn_skipped),
+      synDone: synonymStepDone(progress),
     };
   });
 }

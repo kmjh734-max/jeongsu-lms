@@ -6,6 +6,7 @@ import {
   stage4LastScore,
   stage4Passed,
 } from "@/lib/vocab/stage-progress-fields";
+import { synonymStepDone } from "@/lib/vocab/synonym-test";
 import type { StudentVocabSetSummary, VocabSet, VocabStageProgress } from "@/types/database";
 
 export async function fetchStudentVocabSummaries(
@@ -51,7 +52,7 @@ export async function fetchStudentVocabSummaries(
     supabase
       .from("vocab_stage_progress")
       .select(
-        "set_id, stage1_completed, stage2_completed, stage3_completed, stage4_passed, stage4_last_score, stage4_best_score, stage4_attempt_count, stage3_passed, stage3_last_score, stage3_best_score, stage3_attempt_count, stage_syn_passed, stage_syn_skipped"
+        "set_id, stage1_completed, stage2_completed, stage3_completed, stage4_passed, stage4_last_score, stage4_best_score, stage4_attempt_count, stage3_passed, stage3_last_score, stage3_best_score, stage3_attempt_count, stage_syn_passed, stage_syn_skipped, stage_syn_attempt_count"
       )
       .eq("student_id", studentId)
       .in("set_id", setIds),
@@ -89,7 +90,7 @@ export async function fetchStudentVocabSummaries(
         stage1Completed: Boolean(progress.stage1_completed),
         stage2Completed: Boolean(progress.stage2_completed),
         stage3Completed: stage3Completed(progress),
-        synDone: Boolean(progress.stage_syn_passed || progress.stage_syn_skipped),
+        synDone: synonymStepDone(progress),
         stage4Passed: stage4Passed(progress),
         stage4LastScore: stage4LastScore(progress),
         stage4BestScore: stage4BestScore(progress),

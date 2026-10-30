@@ -11,6 +11,7 @@ import {
   stage4BestScore,
   stage4Passed,
 } from "@/lib/vocab/stage-progress-fields";
+import { synonymStepDone } from "@/lib/vocab/synonym-test";
 import type { UserRole, VocabStageProgress } from "@/types/database";
 
 /**
@@ -114,6 +115,7 @@ type ProgressRow = Pick<
   | "stage4_attempt_count"
   | "stage_syn_passed"
   | "stage_syn_skipped"
+  | "stage_syn_attempt_count"
 > & { updated_at: string | null };
 
 const STRIP_SIZE = 8;
@@ -181,7 +183,7 @@ export async function loadVocabStatusSimple(
           supabase
             .from("vocab_stage_progress")
             .select(
-              "student_id, set_id, stage1_completed, stage2_completed, stage3_completed, stage3_passed, stage3_best_score, stage3_attempt_count, stage4_passed, stage4_best_score, stage4_attempt_count, stage_syn_passed, stage_syn_skipped, updated_at",
+              "student_id, set_id, stage1_completed, stage2_completed, stage3_completed, stage3_passed, stage3_best_score, stage3_attempt_count, stage4_passed, stage4_best_score, stage4_attempt_count, stage_syn_passed, stage_syn_skipped, stage_syn_attempt_count, updated_at",
             )
             .in("student_id", chunk)
             .order("id")
@@ -224,7 +226,7 @@ export async function loadVocabStatusSimple(
         stage1: Boolean(p?.stage1_completed),
         stage2: Boolean(p?.stage2_completed),
         stage3: full ? stage3Completed(full) : false,
-        syn: Boolean(p?.stage_syn_passed || p?.stage_syn_skipped),
+        syn: p ? synonymStepDone(p) : false,
         passed: full ? stage4Passed(full) : false,
         attempts: full ? stage4AttemptCount(full) : 0,
         bestScore: full ? stage4BestScore(full) : 0,
@@ -235,7 +237,7 @@ export async function loadVocabStatusSimple(
         stage1Completed: Boolean(p?.stage1_completed),
         stage2Completed: Boolean(p?.stage2_completed),
         stage3Completed: full ? stage3Completed(full) : false,
-        synDone: Boolean(p?.stage_syn_passed || p?.stage_syn_skipped),
+        synDone: p ? synonymStepDone(p) : false,
         stage4Passed: full ? stage4Passed(full) : false,
       });
       return { set, p, cell, steps, updated: p?.updated_at ?? "" };

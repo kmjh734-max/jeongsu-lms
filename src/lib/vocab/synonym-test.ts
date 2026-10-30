@@ -6,6 +6,7 @@ import { seededRandom, shuffleWith } from "@/lib/vocab/build-stage3-questions";
  *
  * 선생님 요청(2026-10-20): 4단계를 동반의어 테스트지(객관식)로, 5단계를 종합테스트로.
  * 동의어·반의어가 있는 단어만 낸다(없는 단어장은 이 단계를 건너뛴다). 80점 이상이면 통과.
+ * 선생님 요청(2026-10-30): 80점이 안 되어도 한 번 보면 5단계를 열어 준다(점수는 그대로 기록).
  * 문항 만드는 법은 테스트 교재의 동반의어 고르기(test-book.ts buildWordTest)와 같다:
  * 정답은 그 단어의 첫 동의어(가끔·동의어가 없으면 반의어), 오답은 단어장의 다른 단어와 그 동반의어에서.
  * 시드가 같으면 학생 화면과 서버 채점이 같은 문항을 만든다.
@@ -110,14 +111,24 @@ export function scoreSynonymTest(correct: number, total: number): { score: numbe
   return { score, passed: correct * 100 >= SYNONYM_PASS_SCORE * total };
 }
 
-/** 5단계(종합테스트)를 열어도 되는지: 동반의어를 통과했거나 건너뛰었거나, 예전에 종합테스트를 이미 본 학생 */
+/** 4단계를 마쳤는지: 통과했거나 건너뛰었거나, 점수와 상관없이 한 번 봤으면 끝난 것으로 본다 */
+export function synonymStepDone(p: {
+  stage_syn_passed?: boolean | null;
+  stage_syn_skipped?: boolean | null;
+  stage_syn_attempt_count?: number | null;
+}): boolean {
+  return Boolean(p.stage_syn_passed || p.stage_syn_skipped || (p.stage_syn_attempt_count ?? 0) > 0);
+}
+
+/** 5단계(종합테스트)를 열어도 되는지: 동반의어를 마쳤거나, 예전에 종합테스트를 이미 본 학생 */
 export function finalTestUnlocked(p: {
   stage3_completed: boolean;
   stage_syn_passed?: boolean | null;
   stage_syn_skipped?: boolean | null;
+  stage_syn_attempt_count?: number | null;
   stage4_attempt_count?: number | null;
   stage4_passed?: boolean | null;
 }): boolean {
   if (!p.stage3_completed) return false;
-  return Boolean(p.stage_syn_passed || p.stage_syn_skipped || p.stage4_passed || (p.stage4_attempt_count ?? 0) > 0);
+  return synonymStepDone(p) || Boolean(p.stage4_passed || (p.stage4_attempt_count ?? 0) > 0);
 }

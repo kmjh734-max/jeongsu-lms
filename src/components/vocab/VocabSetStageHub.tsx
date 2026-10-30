@@ -7,7 +7,7 @@ import {
   type VocabSetWord,
 } from "@/components/vocab/VocabSetWordList";
 import { STAGE4_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
-import { SYNONYM_PASS_SCORE, finalTestUnlocked } from "@/lib/vocab/synonym-test";
+import { finalTestUnlocked, synonymStepDone } from "@/lib/vocab/synonym-test";
 import {
   stage3Completed,
   stage4AttemptCount,
@@ -198,12 +198,13 @@ export function VocabSetStageHub({
   const synAttempts = progress.stage_syn_attempt_count ?? 0;
   const synBest = progress.stage_syn_best_score ?? 0;
   const synLast = progress.stage_syn_last_score ?? 0;
+  const synDone = synonymStepDone(progress);
   const finalOpen = examCompact ? stage3Done : finalTestUnlocked({ ...progress, stage3_completed: stage3Done });
 
   const s1: CardState = stage1Done ? "done" : "current";
   const s2: CardState = !stage1Done ? "locked" : stage2Done ? "done" : "current";
   const s3: CardState = !stage2Done ? "locked" : stage3Done ? "done" : "current";
-  const sSyn: CardState = !stage3Done ? "locked" : synPassed || synSkipped ? "done" : "current";
+  const sSyn: CardState = !stage3Done ? "locked" : synDone ? "done" : "current";
   const s4: CardState = !finalOpen ? "locked" : stage4Pass ? "done" : "current";
 
   const testNo = examCompact ? 3 : 5;
@@ -211,7 +212,7 @@ export function VocabSetStageHub({
   const doneStages = [
     stage1Done,
     stage2Done,
-    ...(examCompact ? [] : [stage3Done, synPassed || synSkipped]),
+    ...(examCompact ? [] : [stage3Done, synDone]),
     stage4Pass,
   ].filter(Boolean).length;
 
@@ -343,7 +344,7 @@ export function VocabSetStageHub({
                 desc={
                   synSkipped
                     ? "이 단어장은 동의어·반의어가 있는 단어가 없어 건너뛰었어요."
-                    : `동의어·반의어를 객관식으로 골라요. ${SYNONYM_PASS_SCORE}점 이상이면 통과예요.`
+                    : `동의어·반의어를 객관식으로 골라요. 한 번 풀면 5단계로 갈 수 있어요.`
                 }
                 state={sSyn}
                 pill={
@@ -356,7 +357,7 @@ export function VocabSetStageHub({
                   ) : synSkipped ? (
                     <Pill tone="neutral">건너뜀</Pill>
                   ) : synAttempts > 0 ? (
-                    <Pill tone="bad">다시 도전</Pill>
+                    <Pill tone="neutral">응시 완료</Pill>
                   ) : (
                     statePill(sSyn)
                   )

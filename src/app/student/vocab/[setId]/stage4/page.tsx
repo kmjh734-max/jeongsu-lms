@@ -42,7 +42,7 @@ export default async function StudentVocabStage4Page({ params }: PageProps) {
     ? progress.stage2_completed
     : progress.stage3_completed;
   if (!unlocked) redirect(`/student/vocab/${setId}`);
-  // 일반 단어장은 4단계 동반의어를 통과(또는 건너뜀)해야 5단계 종합테스트가 열린다
+  // 일반 단어장은 4단계 동반의어를 한 번 보거나 건너뛰어야 5단계 종합테스트가 열린다
   if (!ctx.set.exam_compact && !finalTestUnlocked(progress)) redirect(`/student/vocab/${setId}/synonym`);
   if (ctx.itemCount < 1) redirect(`/student/vocab/${setId}`);
 
