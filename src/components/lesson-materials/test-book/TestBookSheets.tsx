@@ -922,9 +922,10 @@ export const AllVocabSheets = memo(function AllVocabSheets({
   /** 지문 번호 칸을 뺀다(자료함 「단어」 탭 단어장은 지문 정보가 없다) */
   noPassage?: boolean;
 }) {
-  // 단어 탭 단어장은 지문·파생어가 없다 — 두 칸을 빼고 뜻 칸을 넓힌다
-  const grid = noPassage ? "9mm 0 32mm 8mm 46mm 1fr 1fr 0" : ALL_GRID;
   const allRows = allVocabRows(projects, indexOf);
+  // 단어 탭 단어장은 지문이 없고, 옛 단어장은 파생어도 없다 — 없는 칸을 빼고 뜻 칸을 넓힌다
+  const showForms = !noPassage || allRows.some((r) => r.row.forms.length);
+  const grid = !noPassage ? ALL_GRID : showForms ? "9mm 0 31mm 8mm 37mm 1fr 1fr 1fr" : "9mm 0 32mm 8mm 46mm 1fr 1fr 0";
   const rows = range ? allRows.filter((r) => r.no >= range.from && r.no <= range.to) : allRows;
   const head = (
     <div className="tb-row tb-th tb-vrow" style={{ gridTemplateColumns: grid }}>
@@ -935,7 +936,7 @@ export const AllVocabSheets = memo(function AllVocabSheets({
       <div>{noPassage ? "뜻" : "지문 속 뜻"}</div>
       <div>= 동의어</div>
       <div>↔ 반의어</div>
-      <div>{noPassage ? null : "파생어"}</div>
+      <div>{showForms ? "파생어" : null}</div>
     </div>
   );
   const blocks: Block[] = rows.map((r) => ({
@@ -952,7 +953,7 @@ export const AllVocabSheets = memo(function AllVocabSheets({
         <div>{r.row.meaning}</div>
         <div className={r.row.synonyms.length ? "tb-en" : "tb-nil"}>{r.row.synonyms.join(", ") || "—"}</div>
         <div className={r.row.antonyms.length ? "tb-en" : "tb-nil"}>{r.row.antonyms.join(", ") || "—"}</div>
-        {noPassage ? <div /> : <div className={r.row.forms.length ? "tb-en" : "tb-nil"}>{r.row.forms.length ? <FormList forms={r.row.forms} /> : "—"}</div>}
+        {showForms ? <div className={r.row.forms.length ? "tb-en" : "tb-nil"}>{r.row.forms.length ? <FormList forms={r.row.forms} /> : "—"}</div> : <div />}
       </div>
     ),
   }));

@@ -13,12 +13,13 @@ import type {
   loadDrawProjectsAction,
   prepareWorkbookExtrasAction,
 } from "@/lib/lesson-materials/test-book-actions";
-import { PASSAGE_PREP_CONCURRENCY, buildVocabExam, isTestBookProjectReady, type TestBookProjectInput } from "@/lib/lesson-materials/test-book";
+import { PASSAGE_PREP_CONCURRENCY, buildVocabExam, isTestBookProjectReady, vocabExamRange, type TestBookProjectInput } from "@/lib/lesson-materials/test-book";
 import { vocabExamCaps } from "@/components/lesson-materials/test-book/useVocabExamCaps";
 import { DEFAULT_LESSON_BOOK_OPTIONS, type LessonBookOptions } from "@/lib/lesson-materials/lesson-book-options";
 import { saveLessonPackOptions } from "@/lib/lesson-materials/document-actions";
 import {
   AllVocabSheets,
+  allVocabRows,
   BlankNoteSheets,
   LessonSheets,
   TEST_BOOK_CSS,
@@ -30,7 +31,7 @@ import {
   VocabSheets,
   partStyle,
 } from "@/components/lesson-materials/test-book/TestBookSheets";
-import { TRANSLATION_MODES, VocabExamControls } from "@/components/lesson-materials/test-book/TestBookControls";
+import { TRANSLATION_MODES, VocabExamControls, VocabExamRangeControls } from "@/components/lesson-materials/test-book/TestBookControls";
 import { MaterialDesignPicker } from "@/components/lesson-materials/MaterialDesignPicker";
 import { useMaterialDesign, type MaterialDesign } from "@/lib/lesson-materials/material-design";
 import { RegenMaterials, type RegenPart } from "@/components/lesson-materials/test-book/LessonPackExtras";
@@ -255,17 +256,19 @@ export function LessonBookWorkbench({
 
   // ---------------------------------------------------------------- 단어 시험지(맨 뒤, 정답 포함 — 선생님 2026-10-27 「단어장·시험지·구성을 한 탭에서」)
   const [vocabRound, setVocabRound] = useState(0);
-  const vocabCaps = useMemo(() => vocabExamCaps(projects), [projects]);
+  const vocabWordCount = useMemo(() => allVocabRows(ready, () => 0).length, [ready]);
+  const vocabRange = useMemo(() => vocabExamRange(opts.vocabFrom, opts.vocabTo, vocabWordCount), [opts.vocabFrom, opts.vocabTo, vocabWordCount]);
+  const vocabCaps = useMemo(() => vocabExamCaps(projects, vocabRange), [projects, vocabRange]);
   const vocabExam = useMemo(
     () =>
       opts.vocabTest && !embedded
         ? buildVocabExam(
             ready.map((p) => ({ passage: indexOf(p.id) + 1, vocab: p.material.vocab })),
-            { ...opts.vocabExam, seed: `lesson-pack|vocab|${vocabRound}` }
+            { ...opts.vocabExam, seed: `lesson-pack|vocab|${vocabRound}`, range: vocabRange, inOrder: opts.vocabInOrder }
           )
         : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [opts.vocabTest, opts.vocabExam, ready, vocabRound, embedded]
+    [opts.vocabTest, opts.vocabExam, opts.vocabInOrder, vocabRange, ready, vocabRound, embedded]
   );
 
   // ---------------------------------------------------------------- 인쇄 쪽
@@ -312,7 +315,7 @@ export function LessonBookWorkbench({
         {vocabExam && vocabExam.total > 0 ? (
           <div className="contents" data-toc-sub="단어 시험">
             <VocabExamSheets exam={vocabExam} measureKey={mk} />
-            <VocabExamAnswerSheets exam={vocabExam} measureKey={mk} />
+            {opts.vocabAnswers ? <VocabExamAnswerSheets exam={vocabExam} measureKey={mk} /> : null}
           </div>
         ) : null}
       </div>
@@ -374,19 +377,33 @@ export function LessonBookWorkbench({
               <input type="checkbox" className="mt-0.5 h-4 w-4 accent-violet-600" checked={opts.vocabTest} onChange={(e) => update({ vocabTest: e.target.checked })} />
               <span>
                 단어 시험지
-                <span className="block text-[10.5px] text-slate-400">맨 뒤 · 영→한 · 한→영 · 동의어 · 반의어 · 파생어 · 정답 포함</span>
+                <span className="block text-[10.5px] text-slate-400">맨 뒤 · 영→한 · 한→영 · 동의어 · 반의어 · 파생어</span>
               </span>
             </label>
             {opts.vocabTest ? (
               <div className="space-y-1.5">
+                <VocabExamRangeControls
+                  wordCount={vocabWordCount}
+                  from={opts.vocabFrom}
+                  to={opts.vocabTo}
+                  inOrder={opts.vocabInOrder}
+                  onRange={(vocabFrom, vocabTo) => update({ vocabFrom, vocabTo })}
+                  onInOrder={(vocabInOrder) => update({ vocabInOrder })}
+                />
                 <VocabExamControls value={opts.vocabExam} onChange={(vocabExam) => update({ vocabExam })} caps={vocabCaps} />
-                <button
-                  type="button"
-                  onClick={() => setVocabRound((r) => r + 1)}
-                  className="w-full rounded-lg border border-slate-300 bg-white py-1 text-[12px] font-bold text-slate-700 hover:bg-slate-50"
-                >
-                  ↻ 새로 섞기
-                </button>
+                {opts.vocabInOrder ? null : (
+                  <button
+                    type="button"
+                    onClick={() => setVocabRound((r) => r + 1)}
+                    className="w-full rounded-lg border border-slate-300 bg-white py-1 text-[12px] font-bold text-slate-700 hover:bg-slate-50"
+                  >
+                    ↻ 새로 섞기
+                  </button>
+                )}
+                <label className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
+                  <span className="text-xs font-bold text-slate-500">정답지 넣기</span>
+                  <input type="checkbox" checked={opts.vocabAnswers} onChange={(e) => update({ vocabAnswers: e.target.checked })} className="h-4 w-4 accent-violet-500" />
+                </label>
               </div>
             ) : null}
           </div>

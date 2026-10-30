@@ -7,10 +7,10 @@ import { collectPrintPages } from "@/lib/pdf/download-sheets-pdf";
 import {
   DEFAULT_VOCAB_EXAM,
   VOCAB_EXAM_ALL,
-  VOCAB_EXAM_KIND_COUNTS_WIDE,
   buildVocabExam,
   isTestBookProjectReady,
   normalizeVocabExam,
+  vocabExamRange,
   type TestBookProjectInput,
   type VocabExamOptions,
 } from "@/lib/lesson-materials/test-book";
@@ -24,7 +24,7 @@ import {
   VocabExamSheets,
   partStyle,
 } from "@/components/lesson-materials/test-book/TestBookSheets";
-import { VocabExamControls } from "@/components/lesson-materials/test-book/TestBookControls";
+import { VocabExamControls, VocabExamRangeControls } from "@/components/lesson-materials/test-book/TestBookControls";
 import { vocabExamCaps } from "@/components/lesson-materials/test-book/useVocabExamCaps";
 import { MaterialDesignPicker } from "@/components/lesson-materials/MaterialDesignPicker";
 import { useMaterialDesign } from "@/lib/lesson-materials/material-design";
@@ -82,18 +82,10 @@ export function LessonPackVocabExam({
   /** 전체 단어장 번호(지문 차례, 같은 낱말은 한 번) — 출제 범위는 이 번호로 */
   const wordCount = useMemo(() => allVocabRows(ready, () => 0).length, [ready]);
 
-  /*
-   * 출제 범위·번호순(윌링어학원 Jayden 선생님 2026-10-29): 전체 단어장 번호로 「1~50번」을 골라
-   * 그 단어만 번호 순서대로 또는 무작위로 낸다. 범위는 파일마다 달라 기억하지 않는다(비우면 전체).
-   */
+  // 출제 범위는 파일마다 달라 기억하지 않는다(비우면 전체)
   const [rangeFrom, setRangeFrom] = useState(0);
   const [rangeTo, setRangeTo] = useState(0);
-  const range = useMemo(() => {
-    if (!wordCount) return null;
-    const from = Math.min(Math.max(rangeFrom || 1, 1), wordCount);
-    const to = Math.min(Math.max(rangeTo || wordCount, from), wordCount);
-    return from === 1 && to === wordCount ? null : { from, to };
-  }, [rangeFrom, rangeTo, wordCount]);
+  const range = useMemo(() => vocabExamRange(rangeFrom, rangeTo, wordCount), [rangeFrom, rangeTo, wordCount]);
   const caps = useMemo(() => vocabExamCaps(projects, range), [projects, range]);
 
   // 유형별 문항 수 · 정답지 · 번호순 · 단어장 — 이 브라우저에 기억한다
@@ -137,10 +129,6 @@ export function LessonPackVocabExam({
   const chooseWordList = (on: boolean) => {
     setWordList(on);
     remember({ wordList: on });
-  };
-  const readNo = (raw: string) => {
-    const n = Number.parseInt(raw, 10);
-    return Number.isFinite(n) && n > 0 ? Math.min(n, wordCount) : 0;
   };
 
   // 「새로 섞기」 — 같은 단어에서 다른 문항·보기 차례로
@@ -219,65 +207,19 @@ export function LessonPackVocabExam({
             </>
           ) : (
           <>
-          {wordCount ? (
-            <div className="space-y-1.5 rounded-lg border border-slate-200 p-2">
-              <p className="text-[11px] font-bold text-slate-500">출제 범위 (전체 단어장 번호)</p>
-              <div className="flex items-center gap-1 text-[12px] text-slate-700">
-                <input
-                  type="number"
-                  min={1}
-                  max={wordCount}
-                  value={rangeFrom || ""}
-                  placeholder="1"
-                  onChange={(e) => setRangeFrom(readNo(e.target.value))}
-                  className="w-14 rounded-md border border-slate-200 px-1.5 py-1 text-center tabular-nums"
-                />
-                <span>번 ~</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={wordCount}
-                  value={rangeTo || ""}
-                  placeholder={String(wordCount)}
-                  onChange={(e) => setRangeTo(readNo(e.target.value))}
-                  className="w-14 rounded-md border border-slate-200 px-1.5 py-1 text-center tabular-nums"
-                />
-                <span>번</span>
-                {range ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRangeFrom(0);
-                      setRangeTo(0);
-                    }}
-                    className="ml-auto rounded-md border border-slate-200 px-1.5 py-0.5 text-[11px] font-bold text-slate-500 hover:bg-slate-50"
-                  >
-                    전체
-                  </button>
-                ) : null}
-              </div>
-              <p className="text-[11px] text-slate-400">
-                {range ? `${range.from}~${range.to}번 단어 ${range.to - range.from + 1}개에서 냅니다` : `비워 두면 전체 ${wordCount}단어`}
-              </p>
-              <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
-                {[
-                  { on: true, label: "번호순" },
-                  { on: false, label: "무작위" },
-                ].map((o) => (
-                  <button
-                    key={o.label}
-                    type="button"
-                    onClick={() => chooseInOrder(o.on)}
-                    className={`rounded-md py-1 text-[11px] font-bold ${inOrder === o.on ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
+          <VocabExamRangeControls
+            wordCount={wordCount}
+            from={rangeFrom}
+            to={rangeTo}
+            inOrder={inOrder}
+            onRange={(from, to) => {
+              setRangeFrom(from);
+              setRangeTo(to);
+            }}
+            onInOrder={chooseInOrder}
+          />
 
-          <VocabExamControls value={counts} onChange={chooseCounts} caps={caps} countOptions={VOCAB_EXAM_KIND_COUNTS_WIDE} />
+          <VocabExamControls value={counts} onChange={chooseCounts} caps={caps} />
           {short.length ? (
             <p className="text-[11px] leading-snug text-amber-700">
               단어가 모자라 덜 나온 유형: {short.map((s) => `${s.title} ${s.items.length}문항`).join(" · ")}

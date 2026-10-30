@@ -10,6 +10,7 @@
  * 규칙에 따라 조립하므로, 견본과 뽑기 모두 모델을 다시 부르지 않는다.
  * 섞기는 열쇠(seed)로 정해진다 — 교재 견본은 늘 같은 열쇠, 뽑기는 누를 때마다 새 열쇠.
  */
+import { isBadWordForm } from "@/lib/lesson-materials/bad-word-forms";
 import {
   createSeededRng,
   fisherYatesShuffle,
@@ -192,6 +193,8 @@ export function mergeTestBookVocabHints(
   material: TestBookMaterial,
   content: OnePageContent | null | undefined
 ): TestBookMaterial {
+  // 이미 만든 재료에 든 틀린 파생어도 읽을 때 뺀다(윌링어학원 2026-10-30)
+  material = { ...material, vocab: material.vocab.map((r) => ({ ...r, forms: r.forms.filter((f) => !isBadWordForm(r.word, f.word)) })) };
   if (!content?.vocab?.length) return material;
   const hints = new Map(content.vocab.map((v) => [v.surface.trim().toLowerCase(), v] as const));
   const merge = (own: string[], more: string[], word: string) => {
@@ -1763,16 +1766,23 @@ export const VOCAB_EXAM_KINDS: Array<{ key: VocabExamKind; label: string; hint: 
   { key: "formChoice", label: "파생어 고르기", hint: "4지선다" },
 ];
 
-/** 유형마다 문항 수(선생님 2026-10-20: 단어 시험은 유형별로 문항 수를 정하게) */
-export const VOCAB_EXAM_KIND_COUNTS = [0, 5, 10, 15, 20, 25, 30];
 /** 「전체」 — 범위 안 단어로 낼 수 있는 만큼 */
 export const VOCAB_EXAM_ALL = 9999;
 /**
- * 단어 시험지 화면은 범위 단어를 한 번에 다 내기도 한다(윌링어학원 Jayden 선생님 2026-10-29: 240단어 뜻쓰기 240문항).
+ * 유형마다 문항 수(선생님 2026-10-20: 단어 시험은 유형별로 문항 수를 정하게). 범위 단어를 한 번에 다 내기도 한다
+ * (윌링어학원 Jayden 선생님 2026-10-29: 240단어 뜻쓰기 240문항. 10-30: 수업용 자료 화면도 30개에 막히지 않게).
  */
-export const VOCAB_EXAM_KIND_COUNTS_WIDE = [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, VOCAB_EXAM_ALL];
+export const VOCAB_EXAM_KIND_COUNTS = [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, VOCAB_EXAM_ALL];
 
 export type VocabExamOptions = { counts: Record<VocabExamKind, number> };
+
+/** 칸에 적은 출제 범위(0은 비움)를 전체 단어장 번호 안으로 맞춘다. 전체면 null. */
+export function vocabExamRange(from: number, to: number, wordCount: number): { from: number; to: number } | null {
+  if (!wordCount) return null;
+  const a = Math.min(Math.max(from || 1, 1), wordCount);
+  const b = Math.min(Math.max(to || wordCount, a), wordCount);
+  return a === 1 && b === wordCount ? null : { from: a, to: b };
+}
 
 export const DEFAULT_VOCAB_EXAM: VocabExamOptions = {
   counts: { meaning: 10, spelling: 10, synonym: 5, antonym: 5, form: 5, formChoice: 5 },

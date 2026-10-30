@@ -81,6 +81,8 @@ export async function copyVocabSetToFolder(
         example_meaning: item.example_meaning,
         synonyms: item.synonyms,
         antonyms: item.antonyms,
+        forms: item.forms ?? [],
+        confusables: item.confusables ?? [],
         order_index: item.order_index ?? index,
       }))
     );

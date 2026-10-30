@@ -181,6 +181,10 @@ export interface VocabItem {
   example_meaning: string | null;
   synonyms: string | null;
   antonyms: string | null;
+  /** 단어 정리에서 옮긴 파생어(수업자료로 만든 단어장만) */
+  forms?: Array<{ word: string; pos: string; ko?: string }> | null;
+  /** 단어 정리에서 옮긴 혼동어휘 — 객관식 오답에 쓴다 */
+  confusables?: string[] | null;
   order_index: number;
   created_at: string;
 }

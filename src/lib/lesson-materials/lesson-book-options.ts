@@ -13,6 +13,12 @@ export type LessonBookOptions = {
   vocabTest: boolean;
   /** 단어 시험지 유형별 문항 수 */
   vocabExam: VocabExamOptions;
+  /** 단어 시험지 출제 범위(전체 단어장 번호, 0은 비움)·번호순 — 윌링어학원 2026-10-30 */
+  vocabFrom: number;
+  vocabTo: number;
+  vocabInOrder: boolean;
+  /** 단어 시험지 정답지 넣기 */
+  vocabAnswers: boolean;
 };
 
 export const DEFAULT_LESSON_BOOK_OPTIONS: LessonBookOptions = {
@@ -22,6 +28,10 @@ export const DEFAULT_LESSON_BOOK_OPTIONS: LessonBookOptions = {
   theme: "b",
   vocabTest: false,
   vocabExam: DEFAULT_VOCAB_EXAM,
+  vocabFrom: 0,
+  vocabTo: 0,
+  vocabInOrder: false,
+  vocabAnswers: true,
 };
 
 /** 저장된 값 가운데 쓸 수 있는 것만(없으면 null — 나머지는 브라우저 기억·기본값을 쓴다) */
@@ -35,5 +45,9 @@ export function normalizeLessonBookOptions(raw: unknown): Partial<LessonBookOpti
   if ((["a", "b", "c", "d", "e", "f"] as const).includes(r.theme as TestBookTheme)) out.theme = r.theme as TestBookTheme;
   if (typeof r.vocabTest === "boolean") out.vocabTest = r.vocabTest;
   if (r.vocabExam && typeof r.vocabExam === "object") out.vocabExam = normalizeVocabExam(r.vocabExam);
+  if (Number.isInteger(r.vocabFrom) && (r.vocabFrom as number) >= 0) out.vocabFrom = r.vocabFrom as number;
+  if (Number.isInteger(r.vocabTo) && (r.vocabTo as number) >= 0) out.vocabTo = r.vocabTo as number;
+  if (typeof r.vocabInOrder === "boolean") out.vocabInOrder = r.vocabInOrder;
+  if (typeof r.vocabAnswers === "boolean") out.vocabAnswers = r.vocabAnswers;
   return Object.keys(out).length ? out : null;
 }

@@ -4,7 +4,7 @@ import type { VocabPrintSection } from "@/lib/vocab/vocab-print-types";
 import { chunkIds, fetchAllRows } from "@/lib/supabase/fetch-all-rows";
 
 const VOCAB_ITEM_PRINT_COLS =
-  "id, set_id, word, meaning, part_of_speech, example_sentence, example_meaning, synonyms, antonyms, order_index, created_at";
+  "id, set_id, word, meaning, part_of_speech, example_sentence, example_meaning, synonyms, antonyms, forms, confusables, order_index, created_at";
 
 export interface VocabSetPrintData {
   set: VocabSet;

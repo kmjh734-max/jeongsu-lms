@@ -12,6 +12,7 @@ import {
   VOCAB_EXAM_KINDS,
   VOCAB_EXAM_ALL,
   VOCAB_EXAM_KIND_COUNTS,
+  vocabExamRange,
   type LineMode,
   type TestBookOptions,
   type TestBookTheme,
@@ -37,13 +38,10 @@ export function VocabExamControls({
   value,
   onChange,
   caps,
-  countOptions = VOCAB_EXAM_KIND_COUNTS,
 }: {
   value: VocabExamOptions;
   onChange: (v: VocabExamOptions) => void;
   caps?: VocabExamCaps | null;
-  /** 고를 수 있는 문항 수(단어 시험지 화면은 「전체」까지) */
-  countOptions?: number[];
 }) {
   const total = VOCAB_EXAM_KINDS.reduce((n, k) => n + (value.counts[k.key] ?? 0), 0);
   const real = caps ? VOCAB_EXAM_KINDS.reduce((n, k) => n + Math.min(value.counts[k.key] ?? 0, caps.perKind[k.key]), 0) : total;
@@ -60,7 +58,9 @@ export function VocabExamControls({
           ? total >= VOCAB_EXAM_ALL
             ? `${real}문항`
             : `${real}문항(고른 ${total}문항 중 단어가 있는 만큼)`
-          : `${total}문항`}
+          : total >= VOCAB_EXAM_ALL
+            ? "단어가 있는 만큼"
+            : `${total}문항`}
       </p>
       {VOCAB_EXAM_KINDS.map((k) => (
         <label key={k.key} className="flex items-center justify-between gap-2 text-[12px] text-slate-700" title={k.hint}>
@@ -77,7 +77,7 @@ export function VocabExamControls({
             onChange={(e) => onChange({ counts: { ...value.counts, [k.key]: Number(e.target.value) } })}
             className="rounded-md border border-slate-200 bg-white px-1 py-0.5 text-[12px]"
           >
-            {countOptions.map((n) => (
+            {VOCAB_EXAM_KIND_COUNTS.map((n) => (
               <option key={n} value={n}>
                 {n >= VOCAB_EXAM_ALL ? "전체" : n ? `${n}문항` : "빼기"}
               </option>
@@ -85,6 +85,87 @@ export function VocabExamControls({
           </select>
         </label>
       ))}
+    </div>
+  );
+}
+
+/**
+ * 단어 시험지 출제 범위·번호순(윌링어학원 Jayden 선생님 2026-10-29): 전체 단어장 번호로 「1~50번」을 골라
+ * 그 단어만 번호 순서대로 또는 무작위로 낸다. 0은 비움(전체).
+ */
+export function VocabExamRangeControls({
+  wordCount,
+  from,
+  to,
+  inOrder,
+  onRange,
+  onInOrder,
+}: {
+  wordCount: number;
+  from: number;
+  to: number;
+  inOrder: boolean;
+  onRange: (from: number, to: number) => void;
+  onInOrder: (on: boolean) => void;
+}) {
+  if (!wordCount) return null;
+  const range = vocabExamRange(from, to, wordCount);
+  const readNo = (raw: string) => {
+    const n = Number.parseInt(raw, 10);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, wordCount) : 0;
+  };
+  return (
+    <div className="space-y-1.5 rounded-lg border border-slate-200 p-2">
+      <p className="text-[11px] font-bold text-slate-500">출제 범위 (전체 단어장 번호)</p>
+      <div className="flex items-center gap-1 text-[12px] text-slate-700">
+        <input
+          type="number"
+          min={1}
+          max={wordCount}
+          value={from || ""}
+          placeholder="1"
+          onChange={(e) => onRange(readNo(e.target.value), to)}
+          className="w-14 rounded-md border border-slate-200 px-1.5 py-1 text-center tabular-nums"
+        />
+        <span>번 ~</span>
+        <input
+          type="number"
+          min={1}
+          max={wordCount}
+          value={to || ""}
+          placeholder={String(wordCount)}
+          onChange={(e) => onRange(from, readNo(e.target.value))}
+          className="w-14 rounded-md border border-slate-200 px-1.5 py-1 text-center tabular-nums"
+        />
+        <span>번</span>
+        {range ? (
+          <button
+            type="button"
+            onClick={() => onRange(0, 0)}
+            className="ml-auto rounded-md border border-slate-200 px-1.5 py-0.5 text-[11px] font-bold text-slate-500 hover:bg-slate-50"
+          >
+            전체
+          </button>
+        ) : null}
+      </div>
+      <p className="text-[11px] text-slate-400">
+        {range ? `${range.from}~${range.to}번 단어 ${range.to - range.from + 1}개에서 냅니다` : `비워 두면 전체 ${wordCount}단어`}
+      </p>
+      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+        {[
+          { on: true, label: "번호순" },
+          { on: false, label: "무작위" },
+        ].map((o) => (
+          <button
+            key={o.label}
+            type="button"
+            onClick={() => onInOrder(o.on)}
+            className={`rounded-md py-1 text-[11px] font-bold ${inOrder === o.on ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

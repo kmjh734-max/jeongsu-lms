@@ -8,6 +8,7 @@ import { findPhrase } from "@/lib/lesson-materials/one-page";
 import type { LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
 import type { TestBookVocabRow } from "@/lib/lesson-materials/test-book";
 import { engcoreWordLevel } from "@/lib/vocab/engcore-level";
+import { isBadWordForm } from "@/lib/lesson-materials/bad-word-forms";
 
 /** 파생어는 지문당 이만큼의 낱말에만, 낱말마다 둘까지(선생님 2026-10-25: 안 나올 것까지 많이 할 필요 없다) */
 // 지침은 예전 그대로 넉넉히 받는다(줄여 적으면 gpt-4o-mini가 아예 빈 배열만 준다 — 2026-10-25 확인). 줄이는 것은 아래 코드가 한다.
@@ -203,7 +204,8 @@ export async function refineTestBookVocab(input: {
           key,
         };
       })
-      .filter((r) => r.word && r.meaning);
+      // 사람 이름 같은 고유명사는 단어 시험에 내지 않는다(윌링어학원 2026-10-30: Tilly)
+      .filter((r) => r.word && r.meaning && !/고유명사/.test(r.meaning));
     // 사전에 없는 파생어·혼동어휘(developedly·delever·rescuingly)는 뺀다(선생님 의견 2026-10-21 반영 중 확인)
     const dict = await englishWords();
     for (const r of rows) {
@@ -212,7 +214,7 @@ export async function refineTestBookVocab(input: {
        * 낱말마다 둘까지.
        */
       r.forms = r.forms
-        .filter((f) => dict.has(f.word.toLowerCase()) && engcoreWordLevel(f.word) !== null)
+        .filter((f) => dict.has(f.word.toLowerCase()) && engcoreWordLevel(f.word) !== null && !isBadWordForm(r.word, f.word))
         .slice(0, FORMS_PER_WORD);
       const w0 = r.word.toLowerCase();
       // 같은 뿌리의 잘린 꼴(devel ⊂ develop, hazarding)은 혼동어휘가 아니다

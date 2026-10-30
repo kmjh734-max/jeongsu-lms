@@ -11,6 +11,9 @@ export interface VocabItemSaveInput {
   antonyms?: string;
   /** 편집기는 품사를 고치지 않는다 — 넘길 때만 쓰고, 안 넘기면 기존 값을 그대로 둔다 */
   part_of_speech?: string | null;
+  /** 파생어·혼동어휘도 편집기가 넘기지 않는다 — 수업자료에서 등록할 때만 쓴다 */
+  forms?: Array<{ word: string; pos: string; ko?: string }>;
+  confusables?: string[];
   order_index: number;
 }
 
@@ -63,6 +66,8 @@ export async function persistVocabItems(
           ...(item.part_of_speech !== undefined
             ? { part_of_speech: item.part_of_speech?.trim() || null }
             : {}),
+          ...(item.forms !== undefined ? { forms: item.forms } : {}),
+          ...(item.confusables !== undefined ? { confusables: item.confusables } : {}),
           example_sentence: item.example_sentence,
           example_meaning: item.example_meaning,
           synonyms: item.synonyms,
@@ -88,6 +93,8 @@ export async function persistVocabItems(
           word: item.word,
           meaning: item.meaning,
           part_of_speech: item.part_of_speech?.trim() || null,
+          forms: item.forms ?? [],
+          confusables: item.confusables ?? [],
           example_sentence: item.example_sentence,
           example_meaning: item.example_meaning,
           synonyms: item.synonyms,

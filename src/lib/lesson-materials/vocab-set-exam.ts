@@ -1,4 +1,5 @@
 import type { VocabItem } from "@/types/database";
+import { isBadWordForm } from "@/lib/lesson-materials/bad-word-forms";
 import type {
   OnePageContent,
 } from "@/lib/lesson-materials/one-page";
@@ -15,7 +16,7 @@ function splitList(raw: string | null | undefined): string[] {
  * 자료함 「단어」 탭 단어장을 수업용 자료 「단어 시험지」에 넣을 수 있게 지문 하나처럼 묶는다
  * (선생님 2026-10-29: 단어 탭 시험지와 수업용 자료 단어 시험지가 달라 맞춘다).
  * 단어장에는 지문 정보가 없으므로 단어학습에 저장된 단어(차례·뜻·품사·동의어·반의어)를 그대로 쓴다 —
- * 단어학습에서 고친 단어도 그대로 나온다. 파생어는 단어장에 없어 파생어 문항은 0이다.
+ * 단어학습에서 고친 단어도 그대로 나온다. 파생어·혼동어휘는 단어장을 만들 때 단어 정리에서 함께 옮겨 둔 것이다(2026-10-30).
  * 단어 시험지는 material.vocab만 읽으므로 나머지 재료는 빈 값이다.
  */
 export function vocabSetAsProject(
@@ -30,8 +31,9 @@ export function vocabSetAsProject(
       meaning: i.meaning.trim(),
       synonyms: splitList(i.synonyms),
       antonyms: splitList(i.antonyms),
-      forms: [],
+      forms: (Array.isArray(i.forms) ? i.forms : []).filter((f) => !isBadWordForm(i.word, f.word)),
       phrase: "",
+      confusables: Array.isArray(i.confusables) ? i.confusables : [],
       key: false,
     }));
   const material = { version: "vocab-set", sourceHash: set.id, vocab, keyIndexes: [], chunks: [] } as unknown as TestBookMaterial;

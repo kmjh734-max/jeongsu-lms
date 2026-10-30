@@ -718,6 +718,8 @@ export async function registerTestBookVocabAction(
         part_of_speech: row.pos || null,
         synonyms: row.synonyms.join(", ") || undefined,
         antonyms: row.antonyms.join(", ") || undefined,
+        forms: row.forms,
+        confusables: row.confusables ?? [],
         example_sentence: s?.english,
         example_meaning: s?.korean || undefined,
         order_index: items.length,
