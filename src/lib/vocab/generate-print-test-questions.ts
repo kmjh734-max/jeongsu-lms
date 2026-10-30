@@ -1,3 +1,4 @@
+import { meaningProfile, overlaps } from "@/lib/vocab/synonym-test";
 import type { VocabItem } from "@/types/database";
 import { buildChoices } from "@/lib/vocab/generate-test-questions";
 import type {
@@ -56,7 +57,9 @@ function buildRelationChoices(
       .filter((t) => t.length >= 2);
   const ownMeaning = new Set(meaningBits(item.meaning));
   const seen = new Set<string>([norm(correct)]);
+  const ownClasses = meaningProfile(item.meaning ?? "").classes;
   const candidates: string[] = [];
+  const sameClass: string[] = [];
   for (const other of pool) {
     if (other.id === item.id) continue;
     const w = other.word?.trim();
@@ -67,10 +70,13 @@ function buildRelationChoices(
     if (rel.has(norm(item.word)) || rel.has(norm(correct))) continue;
     if (meaningBits(other.meaning).some((t) => ownMeaning.has(t))) continue;
     seen.add(norm(w));
-    candidates.push(w);
+    if (overlaps(meaningProfile(other.meaning ?? "").classes, ownClasses)) sameClass.push(w);
+    else candidates.push(w);
   }
-  if (candidates.length < 3) return null;
-  return shuffle([correct, ...shuffle(candidates, rng).slice(0, 3)], rng);
+  // 품사가 같은 말은 오답이 사실상 정답이 될 수 있어(cut = divide) 모자랄 때만 쓴다
+  const wrong = [...shuffle(candidates, rng), ...shuffle(sameClass, rng)].slice(0, 3);
+  if (wrong.length < 3) return null;
+  return shuffle([correct, ...wrong], rng);
 }
 
 /** 시험지 예문 문항: 대표 예문 한 줄만, 단어(변화형 포함)를 모두 빈칸으로 */
